@@ -397,11 +397,14 @@ export function sharedTypedArray(data: Float64Array | BigInt64Array, shape: read
 }
 
 /** Shape-only value copy. Rank writes through either value detach the buffer. */
-export function reshapeTypedArray(value: RankArray, shape: readonly number[]): RankArray | undefined {
+export function reshapeStoredArray(value: RankArray, shape: readonly number[]): RankArray | undefined {
     const state = ownedStorage.get(value);
-    if (!state?.stable || !state.typed || state.validity) return undefined;
+    if (!state?.stable || !state.scalarOnly || state.validity || state.readOnlyCells) return undefined;
+    const result = createOwned(state.typed ?? state.items, shape, true);
     state.owners = SHARED;
-    return sharedTypedArray(state.typed, shape);
+    const reshaped = ownedStorage.get(result)!;
+    reshaped.owners = SHARED;
+    return result;
 }
 
 /** The element type of an array still held in a typed buffer. */

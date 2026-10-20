@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, type RankArray } from '../src/index.js';
-import { denseScalarItems, typedArray } from '../src/array-storage.js';
+import { denseScalarItems, typedArray, ownedArray } from '../src/array-storage.js';
 import { reshapeWithDimensions } from '../src/modules/sequences.js';
 
 describe('typed reshape storage', () => {
@@ -21,6 +21,39 @@ describe('typed reshape storage', () => {
                 expect(formatValue(runtime.execute('B')!)).toBe('1 2 3 8');
             } finally { runtime.dispose(); }
         });
+});
+
+describe('boxed reshape storage', () => {
+    it.each([[1n, 2n, 3n, 4n], [1.5, 2.5, 3.5, 4.5],
+        [true, false, true, false], ['a', 'b', 'c', 'd']])(
+        'shares scalar cells and isolates Rank writes: case %#', (...values) => {
+            const source = ownedArray(values);
+            const shaped = reshapeWithDimensions(source, [2n, 2n]) as RankArray;
+            expect(denseScalarItems(shaped)).toBe(denseScalarItems(source));
+            const runtime = new Interpreter();
+            runtime.variables.set('A', source);
+            runtime.variables.set('B', shaped);
+            try {
+                runtime.execute('A 0 = A 1\nB 1 1 = B 0 0');
+                expect(formatValue(runtime.execute('A')!)).toBe(values.map((v, i) => formatValue(i === 0 ? values[1] : v)).join(' '));
+                expect(formatValue(runtime.execute('B')!)).toBe(values.map((v, i) => formatValue(i === 3 ? values[0] : v)).join(' '));
+            } finally { runtime.dispose(); }
+        });
+
+    it('isolates Rank writes and preserves repeatedly reshaped aliases', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute(`use sequences
+A = array true false true false
+B = A reshape 2 2
+C = B reshape 4
+A 0 = false
+B 1 1 = true`);
+            expect(formatValue(runtime.execute('A')!)).toBe('false false true false');
+            expect(formatValue(runtime.execute('B')!)).toBe('true false true true');
+            expect(formatValue(runtime.execute('C')!)).toBe('true false true false');
+        } finally { runtime.dispose(); }
+    });
 });
 
 for (const compilation of [false, true]) describe(`inferred reshape (compiled=${compilation})`, () => {

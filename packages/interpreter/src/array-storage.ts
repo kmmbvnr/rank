@@ -3,7 +3,7 @@ export {
     createArraySnapshot, isFlatScalarArray, denseScalarItems, storedScalarKinds, realCells,
     writableIntegerCells, writeArrayCell, hasWritableBooleanCells, fillBooleanSelection,
     writeIntegerSelection, float64Cells, storedOperandItems, eagerOperandItems, ownedArray, ownedScalarArray,
-    filledArray, typedArray, IntegerCells, sharedTypedArray, reshapeTypedArray, typedElementKind, maskedArray, maskedCells,
+    filledArray, typedArray, IntegerCells, sharedTypedArray, reshapeStoredArray, typedElementKind, maskedArray, maskedCells,
     maskedNumericCells, hasMaskedCells, prepareScalarArrayWriter,
 } from './owned-array.js';
 export {

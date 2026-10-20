@@ -15,7 +15,7 @@ import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } fro
 import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind, reshapeTypedArray } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
@@ -657,11 +657,11 @@ export function reshapeWithDimensions(value: RankValue, dimensions: readonly (Ra
     const expected = inferred >= 0
         ? Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n))
         : shape.reduce((product, dimension) => product * dimension, 1);
-    // A typed array reshapes into a typed array: the cells keep their order.
+    // Stored scalar cells keep their order; only shape metadata changes.
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
-    if (stored && typedElementKind(value as RankArray) !== undefined && stored.length === expected) {
-        const result = reshapeTypedArray(value as RankArray, shape)!;
-        return type ? setSemanticArrayType(result, type) : result;
+    if (stored && stored.length === expected) {
+        const result = reshapeStoredArray(value as RankArray, shape);
+        if (result) return type ? setSemanticArrayType(result, type) : result;
     }
     const items = collected ?? reshapeItems(value);
     if (items.length !== expected) {
