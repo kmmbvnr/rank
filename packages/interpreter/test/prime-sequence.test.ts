@@ -72,6 +72,21 @@ describe('segmented prime source', () => {
         expect(plan.contains!(200001n)).toBe(false);
     });
 
+    it.each([false, true])('preserves unbounded membership under compilation=%s', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            const value = runtime.execute(`use sequences
+Total = 0
+for N in 65500 to 132000
+  if N in primes
+    Total += 1
+  end
+end
+Total`);
+            expect(value).toBe(BigInt(reference(132000).filter(p => p >= 65500n).length));
+        } finally { runtime.dispose(); }
+    });
+
     it('keeps finite and infinite huge-bound searches lazy and exact', () => {
         const runtime = new Interpreter();
         try {

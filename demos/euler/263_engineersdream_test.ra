@@ -1,8 +1,7 @@
 use testing
 
-rem The default input takes about 90 s,
-rem so the test only checks the
-rem practical numbers.
+rem Keep the number checks independent
+rem of the default four-result search.
 test "practical numbers"
   use "263_engineersdream"
   Count = 0
@@ -15,4 +14,30 @@ test "practical numbers"
   (10 practical) equal false
   (14 practical) equal false
   (28 practical) equal true
+end
+
+test "bounded empty search"
+  use "263_engineersdream"
+  Count = 4
+  Limit = 10000
+  run
+
+  Found equal 0
+  Answer equal 0
+end
+
+test "first paradise within a bound"
+  use "263_engineersdream"
+  Count = 1
+  Start = 219869900
+  Limit = 219869980
+  run
+
+  Found equal 1
+  Answer equal 219869980
+  (219869980 practical_neighbours) equal true
+  (219869978 practical_neighbours) equal false
+  (312501820 practical_neighbours) equal true
+  (360613700 practical_neighbours) equal true
+  (1146521020 practical_neighbours) equal true
 end
