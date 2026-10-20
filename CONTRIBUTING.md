@@ -18,3 +18,11 @@ will not be accepted.
 
 Before submitting, install dependencies with `npm ci` and run `npm test`.
 See the [README](README.md) for system requirements and examples.
+
+Local `npm test` runs distribute the demo type, differential and name-facts audits
+across separate processes. The default leaves at least one CPU available and allows up to
+one worker per 2 GiB of RAM. Set `RANK_DEMO_WORKERS=4` to choose the count, or
+`RANK_DEMO_WORKERS=1` for serial demo audits. Existing explicit shard settings and CI
+retain their current execution path. Each shard uses one Vitest worker; failures
+keep their logs in the temporary directory printed by the runner. Corpus coverage
+is checked after all shards finish.

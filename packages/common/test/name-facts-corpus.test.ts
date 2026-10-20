@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { createHash } from 'node:crypto';
 import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { AstUtils } from 'langium';
@@ -50,7 +51,13 @@ function settledNames(program: Program): Set<string> {
  * read, and the answer is checked against the value the run produced.
  */
 describe('facts at a name against the values a run produced', () => {
-    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file)));
+    const count = Number(process.env.RANK_NAME_FACTS_SHARDS ?? 1);
+    const shard = Number(process.env.RANK_NAME_FACTS_SHARD ?? 0);
+    if (!Number.isInteger(count) || count < 1 || !Number.isInteger(shard) || shard < 0 || shard >= count) {
+        throw new Error('Invalid name facts shard');
+    }
+    const files = programs().filter(file => !executionExclusions.has(path.relative(demos, file))).filter(file =>
+        createHash('sha256').update(path.relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let ran = 0;
     let asked = 0;
     let known = 0;
@@ -106,7 +113,13 @@ describe('facts at a name against the values a run produced', () => {
         if (finished !== files.length) return;
         console.log(`name facts: ${ran} demos run, ${asked} names asked, ${known} known`);
         // A vacuous pass proves nothing: the corpus must be run and the analyzer must answer for some of it.
-        expect(ran).toBeGreaterThan(100);
-        expect(known).toBeGreaterThan(50);
+        if (count === 1) {
+            expect(ran).toBeGreaterThan(100);
+            expect(known).toBeGreaterThan(50);
+        } else {
+            const summary = process.env.RANK_NAME_FACTS_SUMMARY;
+            if (!summary) throw new Error('Missing name facts summary path');
+            fs.writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => path.relative(demos, file)), ran, asked, known }));
+        }
     });
 });

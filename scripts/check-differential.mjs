@@ -11,9 +11,12 @@ function programs(directory) {
 }
 const executionExclusions = new Set(Object.keys(JSON.parse(readFileSync(
     new URL('./demo-execution-exclusions.json', import.meta.url), 'utf8'))));
-const summaries = process.argv.slice(2).map(file => JSON.parse(readFileSync(file, 'utf8')));
-assert.deepEqual(summaries.map(result => result.shard).sort(), [0, 1, 2, 3], 'all four shards must report');
-assert.ok(summaries.every(result => result.count === 4), 'shard counts must agree');
+const args = process.argv.slice(2);
+const count = args[0] === '--shards' ? Number(args.splice(0, 2)[1]) : 4;
+assert.ok(Number.isSafeInteger(count) && count > 0, 'invalid differential shard count');
+const summaries = args.map(file => JSON.parse(readFileSync(file, 'utf8')));
+assert.deepEqual(summaries.map(result => result.shard).sort((a, b) => a - b), Array.from({ length: count }, (_, shard) => shard), 'all shards must report');
+assert.ok(summaries.every(result => result.count === count), 'shard counts must agree');
 assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !executionExclusions.has(file)).sort(),
     'every eligible demo and Rank test file must be compared exactly once');
 const totals = summaries.reduce((sum, result) => ({ completed: sum.completed + result.completed,
