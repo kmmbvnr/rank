@@ -434,6 +434,106 @@ export function hasMaskedCells(value: RankArray): boolean {
     return ownedStorage.get(value)?.validity !== undefined;
 }
 
+function changedCell(state: OwnedStorage, value: RankValue): void {
+    state.revision = noteMutation(state.birth);
+    state.resources.include(value);
+    state.scalarOnly &&= typeof value !== 'object';
+}
+
+function uncertainStorage(state: OwnedStorage): void {
+    state.revision = noteMutation(state.birth);
+    state.resources.invalidate();
+    state.scalarOnly = false;
+    state.stable = false;
+    state.elementKinds = undefined;
+}
+
+// Non-cell writes (length, new indexes, metadata) cannot update a cell count.
+function previousCell(state: OwnedStorage, target: RankValue[], key: PropertyKey): RankValue | undefined {
+    if (!state.elementKinds || typeof key !== 'string') return undefined;
+    const index = Number(key);
+    return Number.isInteger(index) && index >= 0 && index < target.length && String(index) === key
+        ? target[index] : undefined;
+}
+
+/** Trap methods are shared; only the state reference belongs to each items facade. */
+class OwnedItemsHandler implements ProxyHandler<RankValue[]> {
+    constructor(private readonly state: OwnedStorage) {}
+
+    set(target: RankValue[], key: PropertyKey, value: RankValue): boolean {
+        const state = this.state;
+        const previous = previousCell(state, target, key);
+        const length = target.length;
+        const success = Reflect.set(target, key, value, target);
+        if (success) {
+            updateScalarKinds(state, previous, value);
+            changedCell(state, value);
+        } else if (target.length !== length) {
+            // A failed length shrink may already have deleted trailing cells.
+            state.elementKinds = undefined;
+            state.revision = noteMutation(state.birth);
+        }
+        return success;
+    }
+    defineProperty(target: RankValue[], key: PropertyKey, descriptor: PropertyDescriptor): boolean {
+        const state = this.state;
+        const previous = previousCell(state, target, key);
+        const length = target.length;
+        const success = Reflect.defineProperty(target, key, descriptor);
+        if (success) {
+            if (descriptor.writable === false) state.readOnlyCells = true;
+            if ('get' in descriptor || 'set' in descriptor) uncertainStorage(state);
+            else if ('value' in descriptor) {
+                updateScalarKinds(state, previous, descriptor.value);
+                changedCell(state, descriptor.value);
+            }
+            else state.revision = noteMutation(state.birth);
+        } else if (target.length !== length) {
+            state.elementKinds = undefined;
+            state.revision = noteMutation(state.birth);
+        }
+        return success;
+    }
+    deleteProperty(target: RankValue[], key: PropertyKey): boolean {
+        const success = Reflect.deleteProperty(target, key);
+        if (success) {
+            this.state.elementKinds = undefined;
+            this.state.revision = noteMutation(this.state.birth);
+        }
+        return success;
+    }
+    setPrototypeOf(target: RankValue[], prototype: object | null): boolean {
+        const success = Reflect.setPrototypeOf(target, prototype);
+        if (success) uncertainStorage(this.state);
+        return success;
+    }
+}
+
+// Raw value objects are fresh per array, so their state supports one static handler.
+// The public items property remains a data property for ordinary boxed storage.
+const ownedValueHandler: ProxyHandler<RankArray> = {
+    set(target, key, replacement) {
+        const success = Reflect.set(target, key, replacement, target);
+        if (success) uncertainStorage(ownedStorage.get(target)!);
+        return success;
+    },
+    defineProperty(target, key, descriptor) {
+        const success = Reflect.defineProperty(target, key, descriptor);
+        if (success) uncertainStorage(ownedStorage.get(target)!);
+        return success;
+    },
+    deleteProperty(target, key) {
+        const success = Reflect.deleteProperty(target, key);
+        if (success) uncertainStorage(ownedStorage.get(target)!);
+        return success;
+    },
+    setPrototypeOf(target, prototype) {
+        const success = Reflect.setPrototypeOf(target, prototype);
+        if (success) uncertainStorage(ownedStorage.get(target)!);
+        return success;
+    },
+};
+
 export function createOwned(
     cells: RankValue[] | Float64Array | BigInt64Array, shape: readonly number[], scalarOnly: boolean,
     columnNames?: readonly string[], validity?: Uint32Array,
@@ -453,73 +553,6 @@ export function createOwned(
     };
     state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
     if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
-    const changed = (value: RankValue) => {
-        state.revision = noteMutation(state.birth);
-        state.resources.include(value);
-        state.scalarOnly &&= typeof value !== 'object';
-    };
-    const uncertain = () => {
-        state.revision = noteMutation(state.birth);
-        state.resources.invalidate();
-        state.scalarOnly = false;
-        state.stable = false;
-        state.elementKinds = undefined;
-    };
-    // Non-cell writes (length, new indexes, metadata) cannot update a cell count.
-    const previousCell = (target: RankValue[], key: PropertyKey): RankValue | undefined => {
-        if (!state.elementKinds || typeof key !== 'string') return undefined;
-        const index = Number(key);
-        return Number.isInteger(index) && index >= 0 && index < target.length && String(index) === key
-            ? target[index] : undefined;
-    };
-    const facadeOf = (target: RankValue[]) => new Proxy(target, {
-        set(target, key, value) {
-            const previous = previousCell(target, key);
-            const length = target.length;
-            const success = Reflect.set(target, key, value, target);
-            if (success) {
-                updateScalarKinds(state, previous, value);
-                changed(value);
-            } else if (target.length !== length) {
-                // Shrinking length can delete trailing cells before hitting a
-                // nonconfigurable index and failing. Those deletions still count.
-                state.elementKinds = undefined;
-                state.revision = noteMutation(state.birth);
-            }
-            return success;
-        },
-        defineProperty(target, key, descriptor) {
-            const previous = previousCell(target, key);
-            const length = target.length;
-            const success = Reflect.defineProperty(target, key, descriptor);
-            if (success) {
-                if (descriptor.writable === false) state.readOnlyCells = true;
-                if ('get' in descriptor || 'set' in descriptor) uncertain();
-                else if ('value' in descriptor) {
-                    updateScalarKinds(state, previous, descriptor.value);
-                    changed(descriptor.value);
-                }
-                else state.revision = noteMutation(state.birth);
-            } else if (target.length !== length) {
-                state.elementKinds = undefined;
-                state.revision = noteMutation(state.birth);
-            }
-            return success;
-        },
-        deleteProperty(target, key) {
-            const success = Reflect.deleteProperty(target, key);
-            if (success) {
-                state.elementKinds = undefined;
-                state.revision = noteMutation(state.birth);
-            }
-            return success;
-        },
-        setPrototypeOf(target, prototype) {
-            const success = Reflect.setPrototypeOf(target, prototype);
-            if (success) uncertain();
-            return success;
-        },
-    });
     const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
     if (typed) {
@@ -541,33 +574,13 @@ export function createOwned(
             state.items = plain;
             state.typed = undefined;
             state.convert = undefined;
-            Object.defineProperty(raw, 'items', { value: facadeOf(plain), writable: true, enumerable: true, configurable: true });
+            Object.defineProperty(raw, 'items', { value: new Proxy(plain, new OwnedItemsHandler(state)), writable: true, enumerable: true, configurable: true });
         };
     } else {
-        raw.items = facadeOf(items);
+        raw.items = new Proxy(items, new OwnedItemsHandler(state));
     }
-    const value: RankArray = new Proxy(raw, {
-        set(target, key, replacement) {
-            const success = Reflect.set(target, key, replacement, target);
-            if (success) uncertain();
-            return success;
-        },
-        defineProperty(target, key, descriptor) {
-            const success = Reflect.defineProperty(target, key, descriptor);
-            if (success) uncertain();
-            return success;
-        },
-        deleteProperty(target, key) {
-            const success = Reflect.deleteProperty(target, key);
-            if (success) uncertain();
-            return success;
-        },
-        setPrototypeOf(target, prototype) {
-            const success = Reflect.setPrototypeOf(target, prototype);
-            if (success) uncertain();
-            return success;
-        },
-    });
+    ownedStorage.set(raw, state);
+    const value: RankArray = new Proxy(raw, ownedValueHandler);
     ownedStorage.set(value, state);
     return state.resources.track(value);
 }
