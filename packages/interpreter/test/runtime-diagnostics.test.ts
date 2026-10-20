@@ -71,7 +71,7 @@ Total`))).toBe(28n);
         } finally { runtime.dispose(); }
     });
 
-    it('reuses an element-type guard only while owned storage has the same revision', () => {
+    it('reuses storage-kind evidence across same-kind writes and rejects changed kinds', () => {
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
@@ -80,16 +80,16 @@ Total`))).toBe(28n);
             const array = createArraySnapshot([7n, 8n, 9n]);
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
             expect(stats.run(() => read.call([array]))).toBe(7n);
-            expect(stats.loopElementScans).toBe(1);
+            expect(stats.loopElementScans).toBe(0);
             expect(stats.run(() => read.call([array]))).toBe(7n);
-            expect(stats.loopElementScans).toBe(1);
+            expect(stats.loopElementScans).toBe(0);
             array.items[0] = 11n;
             expect(stats.run(() => read.call([array]))).toBe(11n);
-            expect(stats.loopElementScans).toBe(2);
+            expect(stats.loopElementScans).toBe(0);
             array.items[0] = 'changed';
             expect(() => stats.run(() => read.call([array])))
                 .toThrow('arrays require one element type');
-            expect(stats.loopElementScans).toBe(2);
+            expect(stats.loopElementScans).toBe(0);
             expect(stats.compiledLoops).toBe(3);
         } finally { runtime.dispose(); }
     });

@@ -71,6 +71,71 @@ Containers change in place. Giving one a
 second name does not copy it: both names
 refer to the same container.
 
+### Dense integer frontiers
+
+For BFS over states `0 till StateCount`,
+a fixed array and two cursors avoid
+queue storage and dispatch. Reserve one
+slot per state and mark a state before
+appending it, so each state enters the
+frontier at most once:
+
+```rank
+StateCount = 100
+Pending = array shape StateCount fill 0
+Parent = array shape StateCount fill -1
+Parent 0 = 0
+Head = 0
+Tail = 1
+Visits = 0
+for Head less Tail
+  R = Pending Head
+  Head += 1
+  Visits += 1
+  for Next in R + 1 to R + 2
+    if Next less StateCount
+      if Parent Next equal -1
+        Parent Next = R
+        Pending Tail = Next
+        Tail += 1
+      end
+    end
+  end
+end
+Visits
+```
+
+```result
+100
+```
+
+Appending successors in a fixed order
+preserves FIFO discovery and first-visit
+parent links. The existing integer-loop
+compiler handles the entire cursor loop,
+including nested successor loops and
+array writes. Integer arithmetic remains
+exact.
+
+An integer `new queue` also supports a
+compiled live `for R in Pending` loop:
+appended items are visited in queue
+order. It retains general queue storage;
+the fixed array above is useful when the
+maximum number of states is known.
+
+After building the interpreter, run:
+
+```sh
+node benchmarks/dense-bfs.mjs --trials=3
+```
+
+This compares both frontiers on the
+complete Euler 303 limit of 10,000.
+Separate diagnostic runs check
+whole-frontier compilation and array
+validation scans.
+
 ### See also
 
 push, pop, add, pushback

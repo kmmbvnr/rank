@@ -10,7 +10,7 @@ import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { indexHas, indexSet, indexKey } from './index-storage.js';
-import { denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind } from './array-storage.js';
+import { storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined): CompiledLoop | undefined {
@@ -58,6 +58,9 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         if (revision === undefined) return false;
         // An integer buffer needs no scan, and reading it as plain cells would unpack it.
         if (typedElementKind(value) === 'integer') return (type ?? 'integer') === 'integer';
+        // Same-kind writes preserve the tracked storage proof across revisions.
+        const kinds = storedScalarKinds(value);
+        if (kinds) return kinds.every(kind => (kind === 'numeric-limit' ? 'real' : kind) === (type ?? 'integer'));
         const items = materializedArrayItems(value);
         if (!items) return false;
         const checked = checkedCells.get(value);

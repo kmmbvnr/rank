@@ -2671,3 +2671,81 @@ X`);
     expect(result).toHaveProperty('error');
     expect(result.loops).toBe(0);
 });
+
+describe('compiled live integer frontiers', () => {
+    it('keeps FIFO discovery order and visits each dense state once', () => {
+        const result = compare(`use algo
+Parent = array shape 8 fill -1
+Parent 1 = 1
+Pending = new queue (array 1)
+Order = 0
+for R in Pending
+  Order = Order * 10 + R
+  for D in 0 to 1
+    Next = (2 * R + D) mod 8
+    if Parent Next equal -1
+      Parent Next = R
+      Pending push Next
+    end
+  end
+end
+Order`);
+        expect(result.value).toBe('12345670');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['queue', 'stack', 'deque'])('preserves live pops, appends and ordinals for %s', kind => {
+        const result = compare(`use algo
+Q = new ${kind} (array 1 2 3)
+Total = 0
+for X I in Q
+  Total += X * 10 + I
+  Removed = Q pop
+  if I equal 0
+    Q push 4
+  end
+end
+Total`);
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains completed mutations and source diagnostics on failure', () => {
+        const result = compare(`use algo
+Q = new queue (array 1)
+Alias = Q
+Done = 0
+for X in Q
+  Done += 1
+  Alias push X + 1
+  Value = 10 // (2 - X)
+end`);
+        expect(result.error).toContain('division by zero');
+        expect(result.variables).toContainEqual(['Done', '2']);
+        expect(result.containers).toContainEqual(['Q', ['1', '2', '3']]);
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains empty-source binding checks', () => {
+        const result = compare(`use algo
+Q = new queue
+Count = 0
+for X in Q
+  Count += X
+end
+Count`);
+        expect(result.value).toBe('0');
+        expect(result.loops).toBe(1);
+    });
+
+    it('falls back for text frontiers', () => {
+        const result = compare(`use algo
+Q = new queue (array "a" "b")
+Count = 0
+for X in Q
+  Count += 1
+end
+Count`);
+        expect(result.value).toBe('2');
+        expect(result.loops).toBe(0);
+    });
+});

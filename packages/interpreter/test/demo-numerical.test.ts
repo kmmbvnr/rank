@@ -57,7 +57,7 @@ describe('numerical demo host oracles', () => {
         for (const result of results.slice(1)) {
             expect({ ...result, scans: 0, loops: 0, numberLoops: 0 }).toEqual(results[0]);
         }
-        expect(results[1]).toMatchObject({ scans: 2, loops: 3, numberLoops: 0 });
+        expect(results[1]).toMatchObject({ scans: 0, loops: 3, numberLoops: 0 });
         expect(results[2]).toMatchObject({ scans: 0, loops: 3, numberLoops: 3 });
     });
 });

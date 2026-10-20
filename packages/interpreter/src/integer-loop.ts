@@ -131,7 +131,7 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const aliases: [string, string][] = [];
     const graphMutations: string[] = [];
     const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
-    const iterators: ((source: RankArray | string) => Iterable<RankValue>)[] = [];
+    const iterators: ((source: RankArray | RankDeque | string) => Iterable<RankValue>)[] = [];
     const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type'] }>();
     let needsAlgo = false, hasControl = false, hasReturn = false;
     let serial = 0;
@@ -579,6 +579,15 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
                 const source = emit(range, tests, 'text');
                 if (source?.type !== 'text') return undefined;
                 setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
+                iterators.push(source => host.iterationValues(iteration, source));
+                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+            } else if (isNameExpression(range) && host.read(range.name) instanceof RankDeque) {
+                // Keep the ordinary live iterator: appended work and front/back
+                // operations must have exactly the same order as interpreted BFS.
+                if (numberMode || slice || !host.arrayIteration) return undefined;
+                const receiver = container(range.name, 'deque', true);
+                if (!receiver) return undefined;
+                setup = `const iterable = iterators[${iterators.length}](${receiver}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(iteration, source));
                 header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
             } else if (isNameExpression(range)) {
