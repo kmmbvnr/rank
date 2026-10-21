@@ -1,0 +1,186 @@
+rem Titanic Sets
+rem https://projecteuler.net/problem=415
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000
+option L integer = 10000000
+
+rem A set is not titanic when it is
+rem empty, one point or at least three
+rem collinear points. With n = N + 1
+rem and P(l) the number of point pairs
+rem l primitive steps apart,
+rem P(l) = 4 n^2 F0(m) - 6 n l F1(m) +
+rem 2 l^2 F2(m), m = N // l, Fj the
+rem sum of k^j phi(k), the count is
+rem 1 + n^2 + sum of P(l) (2^(l-1) -
+rem 1). Fj come from prefix tables up
+rem to L and, above L, from
+rem Fj(x) = T - sum over k >= 2 of
+rem k^j Fj(x // k). Sums over l run by
+rem blocks of equal m.
+fun X Md tri
+  Ev = X mod 2 equal 0
+  Ha = Ev choose (X // 2) X
+  X1 = X + 1
+  Hb = Ev choose X1 (X1 // 2)
+  Rs = Ha mod Md * (Hb mod Md)
+  return Rs mod Md
+end
+
+fun X Md sqs
+  M6 = 6 * Md
+  Xa = X mod M6
+  Xb = (X + 1) mod M6
+  Xc = (2 * X + 1) mod M6
+  Rs = Xa * Xb mod M6 * Xc mod M6
+  return (Rs // 6) mod Md
+end
+
+fun E Md p2
+  Rs = E * 0 + 1
+  Bs = 2
+  for E max greater 0
+    Od = E mod 2 equal 1
+    Mu = Rs * Bs mod Md
+    Rs = Od choose Mu Rs
+    Bs = Bs * Bs mod Md
+    E = E // 2
+  end
+  return Rs
+end
+
+Mod = 100000000
+Rn = N isqrt + 2
+Lm = (L Rn max) N min
+Ph = (0 to Lm) copy
+Sm = array shape (Lm + 1) fill 1
+Rt = Lm isqrt
+for P in primes to Rt
+  Q = P
+  for Q at most Lm
+    Sl = Q to Lm by Q
+    Sm Sl *= P
+    if Q equal P
+      Ph Sl -= Ph Sl // P
+    end
+    Q *= P
+  end
+end
+Ix = (0 to Lm) copy
+Rs = Ix // Sm
+Big = Rs greater 1
+Pc = Ph - Ph // Rs
+Ph = (Big choose Pc Ph) copy
+Ph 0 = 0
+Im = Ix mod Mod
+F0 = Ph mod Mod
+F1 = Im * F0 mod Mod
+F2 = Im * F1 mod Mod
+Cs = F0 scan + with 0
+C0 = (Cs (1 to Lm + 1)) mod Mod
+Cs = F1 scan + with 0
+C1 = (Cs (1 to Lm + 1)) mod Mod
+Cs = F2 scan + with 0
+C2 = (Cs (1 to Lm + 1)) mod Mod
+Nq = N // Lm
+L0 = array shape (Nq + 2) fill 0
+L1 = array shape (Nq + 2) fill 0
+L2 = array shape (Nq + 2) fill 0
+for I in Nq to 1 by -1
+  X = N // I
+  if X greater Lm
+    R = X isqrt
+    Ks = (2 to R) copy
+    Ys = X // Ks
+    Sm1 = Ys at most Lm
+    Yc = Ys Lm min
+    Ic = I * Ks Nq min
+    V0 = Sm1 choose (C0 Yc) (L0 Ic)
+    V1 = Sm1 choose (C1 Yc) (L1 Ic)
+    V2 = Sm1 choose (C2 Yc) (L2 Ic)
+    K2 = Ks * Ks mod Mod
+    Pa0 = V0 sum
+    Pa1 = (Ks * V1 mod Mod) sum
+    Pa2 = (K2 * V2 mod Mod) sum
+    Qs = (1 to X // (R + 1)) copy
+    Hi = X // Qs
+    Lo = X // (Qs + 1) R max
+    D0 = (Hi - Lo) mod Mod
+    Th = Hi Mod tri
+    Tl = Lo Mod tri
+    D1 = (Th - Tl) mod Mod
+    Sh = Hi Mod sqs
+    Sl = Lo Mod sqs
+    D2 = (Sh - Sl) mod Mod
+    Pb0 = (D0 * C0 Qs mod Mod) sum
+    Pb1 = (D1 * C1 Qs mod Mod) sum
+    Pb2 = (D2 * C2 Qs mod Mod) sum
+    X6 = X * (X + 1) * (2 * X + 1) // 6
+    X2 = X * (X + 1) // 2
+    L0 I = (X2 - Pa0 - Pb0) mod Mod
+    L1 I = (X6 - Pa1 - Pb1) mod Mod
+    L2 I = (X2 * X2 - Pa2 - Pb2) mod Mod
+  end
+end
+Nn = N + 1
+Nm = Nn mod Mod
+rem Single l up to the root.
+R2 = N isqrt
+Ls = (1 to R2) copy
+Ms = N // Ls
+Sk = Ms at most Lm
+Mc = Ms Lm min
+Ic = Ls Nq min
+G0 = Sk choose (C0 Mc) (L0 Ic)
+G1 = Sk choose (C1 Mc) (L1 Ic)
+G2 = Sk choose (C2 Mc) (L2 Ic)
+Lq = Ls mod Mod
+Na = 4 * Nm * Nm mod Mod
+Pl = Na * G0 mod Mod
+Nb = 6 * Nm * Lq mod Mod
+Pl = Pl - Nb * G1 mod Mod
+Ls2 = Lq * Lq mod Mod
+Pl = Pl + 2 * Ls2 * G2 mod Mod
+Tw = (Ls - 1) Mod p2
+Tm1 = (Tw - 1) mod Mod
+Su1 = ((Pl mod Mod) * Tm1 mod Mod) sum
+rem Blocks of equal m above the root.
+Mc2 = N // (R2 + 1)
+Mb = (1 to (Mc2 1 max)) copy
+Hb = N // Mb
+Lb = N // (Mb + 1) R2 max
+Ab = Lb + 1
+Ca = Na * (C0 Mb) mod Mod
+Cb = (0 - 6 * Nm * (C1 Mb)) mod Mod
+Cc = 2 * (C2 Mb) mod Mod
+Tb = Hb Mod p2
+Ta = (Ab - 1) Mod p2
+Bm = Hb mod Mod
+Am = (Ab - 1) mod Mod
+E0 = (Tb - Ta) mod Mod
+E1b = (Bm - 1) * Tb + 1
+E1a = (Am - 1) * Ta + 1
+E1 = E1b - E1a
+E2b = (Bm * Bm - 2 * Bm + 3) mod Mod
+E2a = (Am * Am - 2 * Am + 3) mod Mod
+E2 = E2b * Tb mod Mod
+E2 = E2 - (E2a * Ta mod Mod)
+Z0 = Hb - Ab + 1
+Z1 = Hb Mod tri - ((Ab - 1) Mod tri)
+Z2 = Hb Mod sqs - ((Ab - 1) Mod sqs)
+Q0 = Ca * ((E0 - Z0) mod Mod) mod Mod
+Q1 = Cb * ((E1 - Z1) mod Mod) mod Mod
+Q2 = Cc * ((E2 - Z2) mod Mod) mod Mod
+Su2 = ((Q0 + Q1 + Q2) mod Mod) sum
+if Mc2 equal 0
+  Su2 = 0
+end
+Nt = 1 + Nm * Nm + Su1 + Su2
+Pw = 2 (Nn * Nn) Mod powmod
+Answer = (Pw - Nt) mod Mod
+Answer print
