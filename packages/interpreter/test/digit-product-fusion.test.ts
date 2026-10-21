@@ -37,72 +37,82 @@ function compare(source: string) {
     return actual;
 }
 
-describe('digit product filtering', () => {
-    it('fuses the product, flattening, bit mask and sum in one pass', () => {
+describe('retained digit product stages', () => {
+    it('completes ordinary product, flattening and selected bindings', () => {
         const actual = compare(setup);
-        expect(actual).toMatchObject({ value: '8', kernels: 1, cells: 0 });
+        expect(actual).toMatchObject({ value: '8', kernels: 0 });
+        expect(actual.compiled).toEqual([]);
+        expect(actual.cells).toBeGreaterThan(0);
+    });
+
+    it.each(['+', '-', '*'])('fuses inline outer %s and reshape without intermediate storage', operator => {
+        const source = setup.replace(
+            '  Grid = Lows (Highs * Place) outer +\n  Flat = Grid reshape #\n  Selected = Flat (Flat Mask band equal 0)\n  return Selected sum',
+            `  return ((Lows (Highs * Place) outer ${operator}) reshape #) sum`);
+        const actual = compare(source);
+        expect(actual).toMatchObject({ value: operator === '+' ? '21' : operator === '-' ? '-9' : '15', kernels: 1, cells: 0 });
         expect(actual.compiled).toHaveLength(1);
         expect(actual.compiled[0].match(/for \(/g)).toHaveLength(1);
         expect(actual.compiled[0]).not.toContain('new Array');
     });
 
-    it('counts matching values without producing an array', () => {
+    it('fuses an inline mask count after the product has completed', () => {
         const source = setup.replace('  Selected = Flat (Flat Mask band equal 0)\n  return Selected sum',
             '  return (Flat Mask band equal 0) count');
-        expect(compare(source)).toMatchObject({ value: '3', kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ value: '3', kernels: 1 });
     });
 
-    it('materializes only survivors in row-major order', () => {
+    it('stores survivors in row-major order', () => {
         expect(compare(setup.replace('Selected sum', 'Selected copy')))
-            .toMatchObject({ value: '0 6 2', shape: [3], kernels: 1, cells: 0 });
+            .toMatchObject({ value: '0 6 2', shape: [3], kernels: 0 });
     });
 
     it.each(['6', '2 3', '2 #', '# 3', '1 2 3'])('retains linear order through reshape %s', shape => {
         const source = setup.replace('Grid reshape #', `Grid reshape ${shape}\n  Vector = Flat reshape #`)
             .replace('Selected = Flat (Flat Mask', 'Selected = Vector (Vector Mask');
-        expect(compare(source)).toMatchObject({ value: '8', kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ value: '8', kernels: 0 });
     });
 
     it.each(['+', '-', '*'])('preserves operand order for outer %s', operator => {
-        expect(compare(setup.replace('outer +', `outer ${operator}`))).toMatchObject({ kernels: 1, cells: 0 });
+        expect(compare(setup.replace('outer +', `outer ${operator}`))).toMatchObject({ kernels: 0 });
     });
 
     it('preserves all operand axes', () => {
         const source = setup.replace('array 0 1 2', '(array 0 1 2 3) reshape 2 2')
             .replace('array 0 1\nPlace', '(array 0 1) reshape 1 2\nPlace');
-        expect(compare(source)).toMatchObject({ kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ kernels: 0 });
     });
 
-    it('composes nested digit products without retaining intermediate cells', () => {
+    it('completes each of the nested digit products', () => {
         const source = setup.replace('  Grid = Lows (Highs * Place) outer +',
             '  Pair = Lows Highs outer +\n  Grid = Pair (Highs * Place) outer +');
-        expect(compare(source)).toMatchObject({ kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ kernels: 0 });
     });
 
     it('addresses a shared operand separately on each side of the product', () => {
         const source = setup.replace('  Grid = Lows (Highs * Place) outer +',
             '  Digits = Lows * Place\n  Grid = Digits Digits outer -');
-        expect(compare(source)).toMatchObject({ value: '0', kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ value: '0', kernels: 0 });
     });
 
     it('broadcasts after a shape change', () => {
         const source = setup.replace('  Flat = Grid reshape #\n  Selected = Flat (Flat Mask band equal 0)\n  return Selected sum',
                 '  Shaped = Grid reshape 3 2\n  Mapped = Shaped + Highs\n  return Mapped copy');
-        expect(compare(source)).toMatchObject({ value: '0 6 1 7 2 8', shape: [3, 2], kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ value: '0 6 1 7 2 8', shape: [3, 2], kernels: 0 });
     });
 
     it.each(['sum', 'copy'])('handles empty products and rejected values for %s', terminal => {
         for (const lows of ['array shape 0 fill 0', 'array 1 3 7']) {
             const source = setup.replace('array 0 1 2', lows).replace('Place = 5', 'Place = 2')
                 .replace('Selected sum', `Selected ${terminal}`);
-            expect(compare(source)).toMatchObject({ kernels: 1, cells: 0 });
+            expect(compare(source)).toMatchObject({ kernels: 0 });
         }
     });
 
     it('uses arbitrary-precision integers and signed bit masks', () => {
         const source = setup.replace('array 0 1 2', 'array -9007199254740993 9223372036854775807')
             .replace('Place = 5', 'Place = 9007199254740993').replace('Mask = 1', 'Mask = -8');
-        expect(compare(source)).toMatchObject({ kernels: 1, cells: 0 });
+        expect(compare(source)).toMatchObject({ kernels: 0 });
     });
 
     it.each(['4', '4 #', '# 0', '-1', '2.0'])('retains reshape errors for %s', dimensions => {
@@ -133,13 +143,13 @@ describe('digit product filtering', () => {
         const source = setup.replace('Grid reshape #', 'Grid reshape (Mask + 5)\n  Vector = Flat reshape #')
             .replace('Selected = Flat (Flat Mask', 'Selected = Vector (Vector Mask');
         // First call accepts 6 cells; a changed Mask must recheck the reshape.
-        expect(compare(source)).toMatchObject({ kernels: 1 });
+        expect(compare(source)).toMatchObject({ kernels: 0 });
         expect(compare(source + '\nMask = 0\nLows Highs Place Mask carry_sum')).toHaveProperty('error');
-        expect(compare(setup + '\nLows 0 = 8\nLows Highs Place Mask carry_sum')).toMatchObject({ value: '16', kernels: 2 });
+        expect(compare(setup + '\nLows 0 = 8\nLows Highs Place Mask carry_sum')).toMatchObject({ value: '16', kernels: 0 });
         expect(compare(setup + '\nLows = array 0 2\nHighs = array 0 1 2\nLows Highs Place Mask carry_sum'))
-            .toMatchObject({ value: '24', kernels: 2, cells: 0 });
+            .toMatchObject({ value: '24', kernels: 0 });
         expect(compare(setup + '\nLows = array shape 0 fill 0\nLows Highs Place Mask carry_sum'))
-            .toMatchObject({ value: '0', kernels: 2, cells: 0 });
+            .toMatchObject({ value: '0', kernels: 0 });
     });
 
     it('does not probe opaque host readers or move their reads behind the mask', () => {
@@ -156,7 +166,7 @@ describe('digit product filtering', () => {
             } finally { runtime.dispose(); }
         }
         expect(run(true)).toEqual(run(false));
-        expect(run(true)).toMatchObject({ reads: 6 });
+        expect(run(true)).toMatchObject({ reads: 3 });
     });
 
     it('declines untracked storage without probing host shape or cell getters', () => {
@@ -165,8 +175,9 @@ describe('digit product filtering', () => {
             get items() { reads++; return [0n, 1n, 2n]; }, itemAt() { reads++; return 0n; } };
         const values = new Map<string, RankValue>([['Lows', source], ['Highs', createArraySnapshot([0n, 1n])],
             ['Place', 5n], ['Mask', 1n]]);
-        const fn = parse(setup).statements.find(isFunctionStatement)!;
-        const kernel = compileTensorKernel(fn.statements, { lookup: name => values.get(name), builtin: () => true });
+        const fn = parse('fun Lows Highs Place total\n return ((Lows (Highs * Place) outer +) reshape #) sum\nend').statements[0];
+        if (!isFunctionStatement(fn)) throw Error('expected function');
+        const kernel = compileTensorKernel(fn.statements[0], { lookup: name => values.get(name), builtin: () => true });
         expect(kernel).toBeDefined();
         expect(kernel!.run()).toBeUndefined();
         expect(reads).toBe(0);

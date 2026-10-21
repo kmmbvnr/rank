@@ -16,7 +16,6 @@ import { broadcastShape } from './tensor.js';
 import { arraySliceLayout, reshapeDimensions } from './tensor-layout.js';
 import { arrayRevision, ownedArray, ownedScalarArray } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
-import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
 export type TensorReduction = Exclude<Terminal, 'copy'>;
@@ -50,7 +49,7 @@ export type TensorCodeCache = Map<string, KernelRun>;
  * Checks belong to this demand; the optional cache retains executable code only. */
 export function compileNativeTensorReduction(root: TensorNode, operation: TensorReduction,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
-    return build(root, [], operation, 1, host, domains, false, code, true);
+    return build(root, operation, host, domains, false, code, true);
 }
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
 function pair(value: Expression): Expression[] | undefined {
@@ -64,13 +63,13 @@ const same = (a: readonly number[], b: readonly number[]) => a.length === b.leng
 
 /** Composable tensor expression IR. Shape binding is separate from emission;
  * unsupported layouts/values decline without evaluating user code or lazy data. */
-export function compileTensorKernel(statements: Statement[], host: TensorKernelHost): {
-    count: number; source: string; run(): RankValue | undefined;
+export function compileTensorKernel(statement: Statement, host: TensorKernelHost): {
+    source: string; run(): RankValue | undefined;
 } | undefined {
     // Both plans parse the same statement: report its first rejection once.
     const attempt = { rejected: false };
-    return compileTensorPlan(statements, host, attempt)
-        ?? compileTensorPlan(statements, host, attempt, true);
+    return compileTensorPlan(statement, host, attempt)
+        ?? compileTensorPlan(statement, host, attempt, true);
 }
 
 /** A scalar demand may fuse its tensor expression without completing an array
@@ -84,17 +83,14 @@ export function compileTensorReduction(expression: Expression, host: TensorKerne
     // indices before traversal, while pointwise maps may stop at the first answer.
     if (terminal.name === 'any' || terminal.name === 'all') return undefined;
     const statement = { $type: 'ReturnStatement', value: expression } as ReturnStatement;
-    return compileTensorPlan([statement], host, { rejected: false });
+    return compileTensorPlan(statement, host, { rejected: false });
 }
 
-function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
+function compileTensorPlan(statement: Statement, host: TensorKernelHost,
     attempt: { rejected: boolean }, implicit = false) {
     type Domain = readonly CompiledAtomType[];
     const domains = new Map<TensorNode, Domain>();
     const unknown: Domain = ['integer', 'real', 'boolean', 'text'];
-    const definitions = new Map<string, TensorNode>();
-    const reads = new Map<string, number>();
-    const names: string[] = [];
     function reject(node: Expression | Statement, detail?: string): undefined {
         if (!attempt.rejected && currentDiagnostics()) recordFallback(compilerRejection('tensor', node, detail));
         attempt.rejected = true;
@@ -112,7 +108,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
                 const input = parseInput(source);
                 return input ? { type: domains.get(input)!, input } : undefined;
             },
-            isBound: name => definitions.has(name),
+            isBound: () => false,
             operator: (operation, inputs) => matchCompiledOperatorDomains(operation.tensor, inputs),
             call: (operation, inputs) => bitwise(operation.name)
                 && inputs.length === 2 && inputs.every(domain => domain.includes('integer'))
@@ -145,7 +141,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
             const source = parse(e.source), count = parse(e.count);
             return source && count ? typed({ kind: 'slice', source, count, drop: e.operator === 'drop' }, domains.get(source)!) : undefined;
         }
-        const form = applicationForm(e, name => definitions.has(name) ? undefined : findOperation(name));
+        const form = applicationForm(e, name => findOperation(name));
         if (form.kind === 'outer' && form.operands.length === 2 && ['+', '-', '*'].includes(form.operator)) {
             const left = parse(form.operands[0]), right = parse(form.operands[1]);
             const matched = left && right && matchCompiledOperatorDomains(tensorOperatorSignatures(form.operator, 2),
@@ -165,8 +161,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
             return typed({ kind: 'concat', sources: sources as TensorNode[] }, unknown);
         }
         if (isNameExpression(e) && !e.name.includes('.')) {
-            reads.set(e.name, (reads.get(e.name) ?? 0) + 1);
-            return definitions.get(e.name) ?? typed({ kind: 'input', name: e.name }, unknown);
+            return typed({ kind: 'input', name: e.name }, unknown);
         }
         // Rank gives power precedence over an unparenthesized sign.
         if (isBinaryExpression(e) && e.operator === '**' && !e.step && isUnaryExpression(e.left)
@@ -194,7 +189,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
         }
         // Native calls use the shared application frontend, not selection parsing.
         const last = flattenApplication(e).at(-1);
-        if (last && isNameExpression(last) && bitwise(last.name) && !definitions.has(last.name)) return undefined;
+        if (last && isNameExpression(last) && bitwise(last.name)) return undefined;
         const parts = pair(e);
         if (parts) {
             const source = parse(parts[0]), selector = parse(parts[1]);
@@ -204,13 +199,12 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
     }
     // A compound arithmetic assignment is one observable rebinding. Its old
     // value remains an input, never an output buffer or a private temporary.
-    const first = statements[0];
-    if (isAssignmentStatement(first) && first.deferred) return reject(first, 'deferred-binding');
+    if (isAssignmentStatement(statement) && statement.deferred) return reject(statement, 'deferred-binding');
     if (implicit) {
-        if (!(isAssignmentStatement(first) && first.operator === '=' && !first.name.includes('.'))
-            && !isReturnStatement(first)) return undefined;
-        if (!first.value) return undefined;
-        const root = parse(first.value);
+        if (!(isAssignmentStatement(statement) && statement.operator === '=' && !statement.name.includes('.'))
+            && !isReturnStatement(statement)) return undefined;
+        if (!statement.value) return undefined;
+        const root = parse(statement.value);
         let operations = 0;
         const arithmetic = (node: TensorNode): boolean => {
             if (node.kind === 'input') return true;
@@ -225,68 +219,41 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
             return false;
         };
         if (!root || !arithmetic(root) || operations < 2) return undefined;
-        return build(root, [], 'copy', 1, host, domains, true);
+        return build(root, 'copy', host, domains, true);
     }
-    if (isAssignmentStatement(first) && ['+=', '-=', '*='].includes(first.operator) && !first.name.includes('.')) {
-        const right = parse(first.value);
+    if (isAssignmentStatement(statement) && ['+=', '-=', '*='].includes(statement.operator) && !statement.name.includes('.')) {
+        const right = parse(statement.value);
         const arithmetic = (node: TensorNode): boolean => node.kind === 'input'
             || node.kind === 'unary' && ['+', '-'].includes(node.op) && arithmetic(node.operand)
             || node.kind === 'binary' && ['+', '-', '*'].includes(node.op) && arithmetic(node.left) && arithmetic(node.right);
         if (!right || !arithmetic(right)) return undefined;
-        const left = typed({ kind: 'input', name: first.name }, unknown);
-        const op = first.operator.slice(0, -1);
+        const left = typed({ kind: 'input', name: statement.name }, unknown);
+        const op = statement.operator.slice(0, -1);
         const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2), [unknown, domains.get(right)!]);
         if (!matched) return undefined;
-        return build(typed({ kind: 'binary', op, left, right }, matched.result), [], 'copy', 1, host, domains);
+        return build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains);
     }
-    for (let index = 0; index < Math.min(statements.length, 16); index++) {
-        const statement = statements[index];
-        if (isAssignmentStatement(statement) && statement.deferred) return reject(statement, 'deferred-binding');
-        const assignment = isAssignmentStatement(statement) && statement.operator === '=';
-        if ((!assignment && !isReturnStatement(statement)) || !statement.value) return reject(statement, 'group');
-        const parts = pair(statement.value);
-        const last = parts && unwrap(parts[1]);
-        if (last && isNameExpression(last) && terminals.has(last.name)) {
-            // A dyadic overload such as `A 12 min` clips every cell; it is
-            // not indexing followed by a monadic reduction. An explicit
-            // `(A 12) min` or a completed unary call retains that boundary.
-            if (findOperation(last.name)?.arities.includes(2)
-                && flattenApplication(unwrap(statement.value)).length !== 2
-                && !unaryApplicationHead(unwrap(statement.value), name => findOperation(name)?.arities)) {
-                return reject(statement, 'dyadic-terminal');
-            }
-            const root = parse(parts![0]);
-            if (!root || root.kind === 'input' && names.length === 0) return reject(statement, 'group');
-            if (!privateTensorNames(statements[0], names)
-                || names.some(name => tensorReadCount(statements[0], name) !== reads.get(name))) return reject(statement, 'group');
-            // Do not discard independent assignments merely because a later
-            // expression ends with a reduction.
-            const reached = new Set<TensorNode>();
-            const visit = (node: TensorNode): void => {
-                if (reached.has(node)) return;
-                reached.add(node);
-                if (node.kind === 'binary' || node.kind === 'outer') { visit(node.left); visit(node.right); }
-                if (node.kind === 'check' || node.kind === 'view') visit(node.source);
-                if (node.kind === 'reshape') { visit(node.source); node.dimensions.forEach(dimension => { if (dimension) visit(dimension); }); }
-                if (node.kind === 'unary') visit(node.operand);
-                if (node.kind === 'concat') node.sources.forEach(visit);
-                if (node.kind === 'slice') { visit(node.source); visit(node.count); }
-                if (node.kind === 'select') { visit(node.source); visit(node.selector); }
-            };
-            visit(root);
-            if ([...definitions.values()].some(node => !reached.has(node))) return reject(statement, 'group');
-            return build(root, names, last.name as Terminal, index + 1, host, domains);
-        }
-        if (!isAssignmentStatement(statement)) return reject(statement, 'group');
-        const value = parse(statement.value);
-        if (!value || definitions.has(statement.name)) return reject(statement, 'group');
-        definitions.set(statement.name, value);
-        names.push(statement.name);
+    // An ordinary assignment completes its result before the next statement.
+    // Only a single expression may enter this source frontend. Named deferred
+    // stages compose through the checked native graph after normal demand.
+    const assignment = isAssignmentStatement(statement) && statement.operator === '=';
+    if ((!assignment && !isReturnStatement(statement)) || !statement.value) return undefined;
+    const parts = pair(statement.value);
+    const last = parts && unwrap(parts[1]);
+    if (!last || !isNameExpression(last) || !terminals.has(last.name)) return undefined;
+    // A dyadic overload such as `A 12 min` clips every cell; it is not
+    // indexing followed by a monadic reduction. Parentheses retain the boundary.
+    if (findOperation(last.name)?.arities.includes(2)
+        && flattenApplication(unwrap(statement.value)).length !== 2
+        && !unaryApplicationHead(unwrap(statement.value), name => findOperation(name)?.arities)) {
+        return reject(statement, 'dyadic-terminal');
     }
-    return recordFallback('tensor:no-terminal');
+    const root = parse(parts![0]);
+    if (!root || root.kind === 'input') return undefined;
+    return build(root, last.name as Terminal, host, domains);
 }
 
-function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
+function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, shortCircuit = false) {
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
@@ -323,7 +290,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         `${shape === undefined ? 's' : shape.join(',')}:${kind ?? ''}:${boolean}:${slot}`;
     let generated = '';
     let unavailable = false;
-    return { count, get source() { return generated; }, run(): RankValue | undefined {
+    return { get source() { return generated; }, run(): RankValue | undefined {
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         if (implicit && !privateLoopPolling()) return recordFallback('tensor:observable-expression');
         if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
@@ -331,7 +298,6 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
         if (structural.some(node => node.kind === 'reshape') && !host.builtin('reshape')) return recordFallback('tensor:builtin:reshape');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
-        if (names.some(name => host.lookup(name) !== undefined)) return recordFallback('tensor:existing-binding');
         // Interrupt callbacks may enter this kernel again with another shape.
         const plan = layout;
         if (plan && plan.interruptible === interruptsEnabled() && (implicit || host.builtin(terminal))) {

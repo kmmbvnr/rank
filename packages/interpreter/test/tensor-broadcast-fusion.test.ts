@@ -156,7 +156,7 @@ it('keeps the active layout when an interrupt callback reenters the kernel', () 
     const inner = createArraySnapshot([5n]);
     let input = outer, armed = false, entered = false;
     let nested: RankValue | undefined;
-    const kernel = compileTensorKernel(statement.statements, { lookup: () => input, builtin: () => true })!;
+    const kernel = compileTensorKernel(statement.statements[0], { lookup: () => input, builtin: () => true })!;
     const signal: InterruptSignal = {
         length: 1, load: () => 0, store() {}, wait() {},
         exchange: () => {
@@ -185,7 +185,7 @@ it('pairs a layout with its own code when the compilation hook reenters', () => 
     const outerB = createArraySnapshot([10n, 20n]);
     let a = outerA, b = outerB, entered = false;
     let nested: RankValue | undefined;
-    const kernel = compileTensorKernel(statement.statements, {
+    const kernel = compileTensorKernel(statement.statements[0], {
         lookup: name => name === 'A' ? a : b, builtin: () => true,
         compiled() {
             if (entered) return;

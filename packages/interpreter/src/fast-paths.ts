@@ -16,7 +16,7 @@ import { scalarFunctionResult, type ScalarCaptureTypes } from './scalar-function
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
-import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
+import type { ExecutionContext, PreparedStatement, TensorStep } from './statement-control.js';
 import { compileTensorKernel, compileTensorReduction, type TensorCodeCache, type TensorKernelHost } from './tensor-kernel.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { tensorPlanScope } from './tensor-map.js';
@@ -180,19 +180,18 @@ export class FastPaths {
             () => this.tensorExecuted(), code);
     }
 
-    tensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
-        const kernel = compileTensorKernel(statements.slice(index), this.tensorHost());
+    tensorStatement(statement: Statement): TensorStep | undefined {
+        if (!isAssignmentStatement(statement) && !isReturnStatement(statement)) return undefined;
+        const kernel = compileTensorKernel(statement, this.tensorHost());
         if (!kernel) return undefined;
-        const last = statements[index + kernel.count - 1];
-        if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
-        const assign = isAssignmentStatement(last) ? this.context.compileAssign(last.name) : undefined;
-        return { count: kernel.count, run: () => {
+        const assign = isAssignmentStatement(statement) ? this.context.compileAssign(statement.name) : undefined;
+        return { run: () => {
             if (!assign && !this.context.bindings.insideFunction) return undefined;
-            for (let offset = 0; offset < kernel.count; offset++) this.context.checkMutation(statements[index + offset]);
+            this.context.checkMutation(statement);
             const value = kernel.run();
             if (value === undefined) return undefined;
             try { assign?.(value); }
-            catch (error) { throw this.context.locate(error, last); }
+            catch (error) { throw this.context.locate(error, statement); }
             this.tensorExecuted();
             if (!assign) throw new ReturnSignal(value);
             return value;

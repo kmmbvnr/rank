@@ -49,7 +49,7 @@ The compiler performs static effect analysis on function declarations to determi
 ---
 
 ### 2. Automatic Compile-Time In-Place (ACI) Lowering
-The compiler leverages [bindings.ts](file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/language/src/analysis/bindings.ts) and [tensor-use.ts](file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/src/tensor-use.ts) to statically prove uniqueness:
+Compile-time in-place lowering requires a proof of exclusive ownership in addition to [lexical binding analysis](../../../packages/language/src/analysis/bindings.ts). Tensor expression fusion does not establish uniqueness. Where the proof is unavailable, runtime CoW checks remain necessary:
 
 - **Static Uniqueness Invariant:** If an array variable satisfies:
   1. It was allocated in the current lexical scope (or received as an owned argument);

@@ -318,7 +318,7 @@ it('publishes generated code before a compilation observer reenters the same ker
     let nested: unknown;
     let kernel: ReturnType<typeof compileTensorKernel>;
     const input = ownedArray([1n, 2n, 3n]);
-    kernel = compileTensorKernel(definition.statements, { lookup: name => name === 'A' ? input : undefined,
+    kernel = compileTensorKernel(definition.statements[0], { lookup: name => name === 'A' ? input : undefined,
         builtin: () => true, compiled() {
             if (++compilations === 1) nested = kernel!.run();
         } });

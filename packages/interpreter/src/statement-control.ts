@@ -17,17 +17,17 @@ export interface ExecutionContext {
     readonly tailCallsAllowed?: false;
 }
 
-/** A run of statements one tensor kernel computes at once; `run` answers undefined to fall back. */
-export interface TensorGroup { readonly count: number; run(): RankValue | undefined }
+/** One statement's tensor path; `run` answers undefined to fall back. */
+export interface TensorStep { run(): RankValue | undefined }
 
 /**
  * A statement ready to execute. `run` never suspends; `stream` may hand a task
- * to the driver. A statement that opens a fusable run also carries its group.
+ * to the driver. A statement may also carry its guarded tensor expression path.
  */
 export type PreparedStatement = (
     | { readonly run: (context: ExecutionContext) => RankValue | undefined }
     | { readonly stream: (context: ExecutionContext) => Evaluation<RankValue | undefined> }
-) & { readonly tensor?: TensorGroup };
+) & { readonly tensor?: TensorStep };
 
 interface StatementExecution {
     execute(statements: Statement[], context: ExecutionContext): Evaluation<RankValue | undefined>;

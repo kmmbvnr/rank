@@ -114,8 +114,7 @@ describe('attributable compiler rejections', () => {
     it('names a tensor operation whose generated type guard declined', () => {
         const source = `use sequences
 fun A B same
-  Mapped = A equal B
-  return Mapped count
+  return (A equal B) count
 end
 A = array true false
 B = array true false
@@ -130,8 +129,7 @@ A B same`;
 
     it('records a rejected tensor power without changing the reference result', () => {
         const source = `fun A B powers
-  Mapped = A ** B
-  return Mapped sum
+  return (A ** B) sum
 end
 A = array 2.0 3.0
 B = array -1.0 -2.0
@@ -145,7 +143,7 @@ A B powers`;
         const statement = parse('fun A B probe\nMapped = (A to B) + (A reverse)\nreturn Mapped sum\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
         const diagnostics = new RuntimeDiagnostics();
-        const kernel = diagnostics.run(() => compileTensorKernel(statement.statements, {
+        const kernel = diagnostics.run(() => compileTensorKernel(statement.statements[0], {
             lookup: () => undefined, builtin: () => true,
         }));
         expect(kernel).toBeUndefined();
@@ -153,9 +151,9 @@ A B powers`;
     });
 
     it('reports one storage rejection per tensor entry attempt', () => {
-        const statement = parse('fun A B probe\nMapped = A + B\nreturn Mapped sum\nend').statements[0];
+        const statement = parse('fun A B probe\nreturn (A + B) sum\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
-        const kernel = compileTensorKernel(statement.statements, {
+        const kernel = compileTensorKernel(statement.statements[0], {
             lookup: name => name === 'A' || name === 'B' ? { kind: 'array', shape: [2], items: [1n, 2n] } : undefined,
             builtin: () => true,
         });
@@ -169,10 +167,10 @@ A B powers`;
     });
 
     it('reports the generated guard when a cached tensor kernel declines', () => {
-        const statement = parse('fun A B probe\nMapped = A equal B\nreturn Mapped count\nend').statements[0];
+        const statement = parse('fun A B probe\nreturn (A equal B) count\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
         const values = ownedArray([true, false]);
-        const kernel = compileTensorKernel(statement.statements, {
+        const kernel = compileTensorKernel(statement.statements[0], {
             lookup: name => name === 'A' || name === 'B' ? values : undefined,
             builtin: () => true,
         });

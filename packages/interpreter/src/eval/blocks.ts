@@ -93,7 +93,6 @@ export class BlockExecution implements BlockSteps {
                     const value = prepared.tensor.run();
                     if (value !== undefined) {
                         result = value;
-                        index += prepared.tensor.count - 1;
                         continue;
                     }
                 }
@@ -161,7 +160,7 @@ export class BlockExecution implements BlockSteps {
             }
             if (this.host.options().tensorFusion !== false
                 && (isAssignmentStatement(statement) || isReturnStatement(statement))) {
-                const tensor = this.host.fastPaths.tensorGroup(statements, index);
+                const tensor = this.host.fastPaths.tensorStatement(statement);
                 if (tensor) prepared = { ...prepared, tensor };
             }
             cache.set(statement, prepared);
@@ -208,7 +207,6 @@ export class BlockExecution implements BlockSteps {
                     const value = prepared.tensor.run();
                     if (value !== undefined) {
                         result = value;
-                        index += prepared.tensor.count - 1;
                         continue;
                     }
                 }

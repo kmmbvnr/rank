@@ -94,7 +94,7 @@ Roc and Koka demonstrate that pure functional value semantics can achieve native
 2. **Drop-Reuse & In-Place Morphing (Buffer Recycling):**
    - When a tensor operation drops an owned buffer and immediately allocates a new one of identical or smaller byte capacity (such as an elementwise unary transformation, `reshape`, or transposition), the allocator **recycles the existing backing buffer** instead of returning memory to the system allocator and calling `malloc`.
 3. **Compile-Time In-Place Lowering (Automatic In-Place Modification - ACI):**
-   - If static lexical analysis (`tensor-use.ts`) proves that an array variable has no active aliases throughout its scope, the compiler elides the `isSharedArray` check entirely, lowering writes directly to unconditional pointer stores.
+   - Eliding `isSharedArray` requires a proof of exclusive ownership at the write. Tensor fusion and lexical read counts are not that proof. Where exclusive ownership is unproved, compiled writes must retain the runtime ownership guard.
 
 ---
 
@@ -106,7 +106,7 @@ Rank deploys four layers of protection to eliminate the Swift performance cliff:
 |---|---|---|
 | **Layer 1: Reset-to-Unbound** | Fresh CoW copy is marked `owners = 1` | Caps accidental in-loop copy cost to $1 \times O(N)$ rather than $N \times O(N)$. |
 | **Layer 2: Vectorized Primacy** | Whole-tensor updates (`A Mask = 0`, `A += Delta`) | Operations are atomic transformations; no per-element allocation cascades. |
-| **Layer 3: Kernel Fusion (ADR-0003)** | JIT fuses intermediate pipelines into CPU registers | Intermediates never reach the heap; zero CoW overhead. |
+| **Layer 3: Kernel Fusion (ADR-0003)** | JIT combines supported expression and deferred-plan stages | Ordinary bindings still retain their completed results. |
 | **Layer 4: Static LSP Linting** | Abstract interpreter (ADR-0002) checks loop aliasing | Warns at edit-time if an alias is repeatedly created inside a loop body. |
 
 ---

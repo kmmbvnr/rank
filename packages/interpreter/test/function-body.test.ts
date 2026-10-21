@@ -85,8 +85,8 @@ end
     it('retains tensor fusion through the final return', () => {
         const result = compare(`use numbers
 fun A calculate
-  B = A * 2
-  C = B + 1
+  B' = A * 2
+  C' = B + 1
   return C sum
 end
 Values = array 1 2 3

@@ -156,7 +156,7 @@ it('does not invoke unproved sequence readers while binding a kernel', () => {
 
 it.each([
     { marker: "'", value: '0', kernels: 0 },
-    { marker: '', value: '3', kernels: 1 },
+    { marker: '', value: '3', kernels: 0 },
 ])('preserves zip or broadcast for binding marker "$marker"', ({ marker, value, kernels }) => {
     const source = `use sequences
 fun A${marker} B${marker} score
@@ -204,11 +204,12 @@ it('keeps gather bindings local when the compilation callback reenters', () => {
     const runtime = new Interpreter();
     try {
         runtime.execute(program);
-        const statement = parse(program).statements.find(isFunctionStatement)!;
+        const statement = parse('fun Cipher Weights Key Slots score\n return (Weights (Cipher (Key Slots) bxor)) sum\nend').statements[0];
+        if (!isFunctionStatement(statement)) throw Error('expected function');
         const outer = new Map(['Cipher', 'Weights', 'Key', 'Slots'].map(name => [name, runtime.variables.get(name)!]));
         let values = outer, entered = false;
         let nested: RankValue | undefined;
-        const kernel = compileTensorKernel(statement.statements, {
+        const kernel = compileTensorKernel(statement.statements[0], {
             lookup: name => values.get(name), builtin: () => true,
             compiled() {
                 if (entered) return;
@@ -234,9 +235,7 @@ it.each([
     const source = `use sequences
 use bits
 fun Cipher Key Slots score
-  KeyStream = Key Slots
-  Plain = Cipher KeyStream bxor
-  return Plain sum
+  return (Cipher (Key Slots) bxor) sum
 end
 Cipher = ${cipher}
 Key = array 1 2 3
