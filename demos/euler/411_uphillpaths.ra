@@ -1,0 +1,98 @@
+rem Uphill Paths
+rem https://projecteuler.net/problem=411
+
+use numbers
+use sequences
+use io
+use cli
+
+option First integer = 1
+option Count integer = 30
+option Power integer = 5
+
+rem Stations (2^i, 3^i) mod n repeat
+rem after p + T steps: p = max power
+rem of 2 and 3 in n, T = lcm of the
+rem orders of 2 and 3 modulo the rest.
+rem S(n) is the longest nondecreasing
+rem run of y over stations by x.
+fun A M order
+  if M equal 1
+    return 1
+  end
+  Ph = M
+  for Q in M factors unique array
+    Ph = Ph // Q * (Q - 1)
+  end
+  D = Ph
+  for Q in Ph factors unique array
+    for D mod Q equal 0
+      if A (D // Q) M powmod equal 1
+        D //= Q
+      else
+        break
+      end
+    end
+  end
+  return D
+end
+
+Tot = 0
+for K in First to Count
+  N = K ** Power
+  N2 = N
+  Al = 0
+  for N2 mod 2 equal 0
+    N2 //= 2
+    Al += 1
+  end
+  N3 = N
+  Be = 0
+  for N3 mod 3 equal 0
+    N3 //= 3
+    Be += 1
+  end
+  O2 = 2 N2 order
+  O3 = 3 N3 order
+  T = O2 O3 lcm
+  Len = (2 * N + 1) (Al Be max + T) min
+  rem Doubling: first Len powers.
+  Xs = array 1 mod N
+  Ys = array 1 mod N
+  for Xs len less Len
+    H = Xs len
+    Px = 2 H N powmod
+    Py = 3 H N powmod
+    Xs = concat Xs (Xs * Px mod N)
+    Ys = concat Ys (Ys * Py mod N)
+  end
+  Xs = Xs (0 to Len - 1)
+  Ys = Ys (0 to Len - 1)
+  Ks = Xs * N + Ys sort
+  Kp = concat (array -1) Ks
+  Nw = Ks len
+  Nx = Kp (1 to Nw)
+  Keep = Nx not equal Kp (0 to Nw - 1)
+  Ys = (Ks (Keep indices)) mod N copy
+  Tl = array shape (Ys len) fill 0
+  Ln = 0
+  for V in Ys
+    Lo = 0
+    Hi = Ln
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Tl Mid greater V
+        Hi = Mid
+      else
+        Lo = Mid + 1
+      end
+    end
+    Tl Lo = V
+    if Lo equal Ln
+      Ln += 1
+    end
+  end
+  Tot += Ln
+end
+Answer = Tot
+Answer print
