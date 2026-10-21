@@ -1,0 +1,30 @@
+use testing
+
+test "statement values"
+  use "427_nsequences"
+  N = 3
+  run
+  Answer equal 45
+  N = 7
+  run
+  Answer equal 1403689
+  N = 11
+  run
+  Answer equal 496890792
+end
+
+test "small and large k loops"
+  use "427_nsequences"
+  N = 60
+  run
+  Answer equal 776548161
+  N = 100
+  run
+  Answer equal 54843257
+end
+
+test "default input"
+  use "427_nsequences"
+  run
+  Answer equal 97138867
+end

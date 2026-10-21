@@ -1,0 +1,76 @@
+rem n-sequences
+rem https://projecteuler.net/problem=427
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 7500000
+
+rem f(n) = n^(n+1) - n (S1 - S2) with
+rem S1 = sum over k of A(n-1, k) and
+rem S2 = sum of A(n-1-k, k), where
+rem A(m, k) = sum over p of
+rem C(m - p k, p) n^(m - p (k+1))
+rem (-(n-1))^p. Small k run over p,
+rem large k run over k for each p.
+Mod = 1000000009
+Ng = Mod - N + 1
+Fa = array shape (N + 1) fill 1
+Pn = array shape (N + 1) fill 1
+Ps = array shape (N + 1) fill 1
+for I in 1 to N
+  Fa I = Fa (I - 1) * I mod Mod
+  Pn I = Pn (I - 1) * N mod Mod
+  Ps I = Ps (I - 1) * Ng mod Mod
+end
+If = array shape (N + 1) fill 1
+If N = Fa N (Mod - 2) Mod powmod
+for I in N to 1 by -1
+  If (I - 1) = If I * I mod Mod
+end
+Rt = N isqrt
+K0 = Rt (N - 1) min
+Tot = 0
+for Pass in 0 to 1
+  for K in 1 to K0
+    Mp = N - 1 - K * Pass
+    Pt = Mp // (K + 1)
+    Pv = (0 to Pt) copy
+    Rm = Mp - Pv * K
+    Cb = Fa Rm * (If Pv) mod Mod
+    Cb = Cb * If (Rm - Pv) mod Mod
+    Ex = Mp - Pv * (K + 1)
+    Tm = Cb * Pn Ex mod Mod
+    Tm = Tm * Ps Pv mod Mod
+    Tot += (Tm sum) * (1 - 2 * Pass)
+  end
+  for Pq in 0 to N
+    Kx = N - 1
+    if Pq greater 0
+      Kx = (N - 1) // Pq - 1
+      Kx = Kx (N - 1) min
+    end
+    if Pass equal 1
+      Kx = N // (Pq + 1) - 1
+      Kx = Kx (N - 1) min
+    end
+    if Kx at most K0
+      break
+    end
+    Ks = ((K0 + 1) to Kx) copy
+    Mk = N - 1 - Ks * Pass
+    Rk = Mk - Pq * Ks
+    Cc = Fa Rk * (If Pq) mod Mod
+    Cc = Cc * If (Rk - Pq) mod Mod
+    Ek = Mk - Pq * (Ks + 1)
+    Tk = Cc * Pn Ek mod Mod
+    Tk = Tk * (Ps Pq) mod Mod
+    Tot += (Tk sum) * (1 - 2 * Pass)
+  end
+end
+Tot = Tot mod Mod
+Top = N (N + 1) Mod powmod
+Answer = (Top - N * Tot) mod Mod
+Answer print
