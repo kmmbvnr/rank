@@ -1,0 +1,27 @@
+use testing
+
+test "statement values"
+  use "442_elevenfree"
+  N = 3
+  run
+  Answer equal 3
+  N = 200
+  run
+  Answer equal 213
+  N = 500000
+  run
+  Answer equal 531563
+end
+
+test "forbidden powers of eleven"
+  use "442_elevenfree"
+  N = 120
+  run
+  Answer equal 132
+end
+
+test "default input"
+  use "442_elevenfree"
+  run
+  Answer equal 1295552661530920149
+end

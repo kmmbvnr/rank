@@ -1,0 +1,119 @@
+rem Eleven-free Integers
+rem https://projecteuler.net/problem=442
+
+use numbers
+use sequences
+use text
+use algo
+use io
+use cli
+
+option N integer = 1000000000000000000
+option Width integer = 30
+
+rem Aho-Corasick automaton over the
+rem digits of 11, 121, 1331, ... Then
+rem Ca(r, s) counts safe digit strings
+rem of length r after state s, and the
+rem N-th number is unranked digit by
+rem digit.
+Base = array shape Width fill 10
+Mx = 1 + 4 * Width * 10
+Go = array shape Mx 10 fill -1
+Tm = array shape Mx fill 0
+Ns = 1
+Pw = 1
+for K in 1 to 200
+  Pw *= 11
+  Ln = Pw text len
+  if Ln greater Width
+    break
+  end
+  Ds = (Pw Base digits) copy
+  St = 0
+  for J in (Width - Ln) to (Width - 1)
+    D = Ds J
+    if Go St D less 0
+      Go St D = Ns
+      Ns += 1
+    end
+    St = Go St D
+  end
+  Tm St = 1
+end
+Fl = array shape Mx fill 0
+Qu = new queue
+for D in 0 to 9
+  if Go 0 D less 0
+    Go 0 D = 0
+  else
+    Qu push (Go 0 D)
+  end
+end
+for Qu len greater 0
+  St = Qu pop
+  if Tm (Fl St) greater 0
+    Tm St = 1
+  end
+  for D in 0 to 9
+    Nx = Go St D
+    Fb = Go (Fl St) D
+    if Nx less 0
+      Go St D = Fb
+    else
+      Fl Nx = Fb
+      Qu push Nx
+    end
+  end
+end
+
+rem Rows r s counts safe strings of
+rem r more digits from state s.
+Ok = (Tm equal 0) choose 1 0
+Gc = (Go (0 to Ns - 1)) transpose
+Os = Ok (0 to Ns - 1)
+Rows = array shape 80 Ns fill 0
+Rows 0 = Os
+for R in 1 to 79
+  Prv = Rows (R - 1)
+  Sm = Prv * 0
+  for D in 0 to 9
+    Sm = Sm + Prv (Gc D)
+  end
+  Sm = Sm * Os
+  Rows R = Sm (N + 1) min
+end
+rem Find the length, then unrank.
+Rank = N
+Ln = 1
+for I in 1 to 79
+  Tot = 0
+  for D in 1 to 9
+    Tot += Rows (I - 1) (Go 0 D)
+  end
+  if Rank at most Tot
+    Ln = I
+    break
+  end
+  Rank -= Tot
+end
+Out = 0
+St = 0
+for Pos in 1 to Ln
+  D0 = 0
+  if Pos equal 1
+    D0 = 1
+  end
+  for D in D0 to 9
+    Nx = Go St D
+    Cn = Rows (Ln - Pos) Nx
+    if Rank at most Cn
+      Out = Out * 10 + D
+      St = Nx
+      break
+    end
+    Rank -= Cn
+  end
+end
+Answer = Out
+Answer print
