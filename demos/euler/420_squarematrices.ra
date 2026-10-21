@@ -1,0 +1,90 @@
+rem 2x2 Positive Integer Matrix
+rem https://projecteuler.net/problem=420
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+
+rem A matrix with two roots of the
+rem trace ratio p : q (p > q coprime)
+rem comes from n and m with
+rem |m| < q n / p, trace (p^2+q^2)
+rem n^2 / 2 < N, and contributes
+rem tau((n^2 - m^2) / 4). Parity: n,
+rem m even if p - q is odd, else m = n
+rem mod 2. For each n a table of
+rem partial sums over m is read at
+rem (n q - 1) // p for every pair.
+Bd = (2 * N - 1) // 4
+Pm = Bd isqrt
+Pg = (2 to Pm) copy
+Qg = (1 to Pm) copy
+Cp = Pg reshape (Pm - 1) 1
+Cq = Qg reshape 1 Pm
+Gg = Cp Cq gcd
+Sg = Cp * Cp + Cq * Cq
+Ok = (Gg equal 1) choose 1 0
+Ok = Ok * (Cq less Cp choose 1 0)
+Ok = Ok * (Sg at most Bd choose 1 0)
+Ok = Ok * (Sg at least 5 choose 1 0)
+Fl = Ok reshape ((Pm - 1) * Pm)
+Ix = Fl greater 0 indices
+Ct = (Pm - 1) * Pm
+Ap = (Cp * (Cq * 0 + 1)) reshape Ct
+Aq = ((Cp * 0 + 1) * Cq) reshape Ct
+Pa = Ap Ix
+Qa = Aq Ix
+Sa = Pa * Pa + Qa * Qa
+Odd = (Pa - Qa) mod 2 equal 1
+Z0 = Odd equal true indices
+Z1 = Odd equal false indices
+Od0 = (Sa Z0) argsort
+Od1 = (Sa Z1) argsort
+P0 = (Pa Z0) Od0
+Q0 = (Qa Z0) Od0
+S0 = (Sa Z0) Od0
+P1 = (Pa Z1) Od1
+Q1 = (Qa Z1) Od1
+S1 = (Sa Z1) Od1
+Nm = (2 * N - 1) // 5 isqrt
+Xt = Nm * Nm // 4
+Tau = array shape (Xt + 1) fill 0
+Xr = Xt isqrt
+for D in 1 to Xr
+  Sl = (D * D) to Xt by D
+  Tau Sl += 2
+  Tau (D * D) -= 1
+end
+Tot = 0
+for Nn in 2 to Nm
+  Bn = (2 * N - 1) // (Nn * Nn)
+  Ms = (0 to Nn - 1) copy
+  Lv = (Nn * Nn - Ms * Ms) // 4
+  Dbl = 1 + (Ms greater 0 choose 1 0)
+  Wt = Tau Lv * Dbl
+  Sp = (Ms mod 2 equal 0) choose 1 0
+  V0 = Wt * Sp * (1 - Nn mod 2)
+  Sm = (Ms - Nn) mod 2 equal 0
+  V1 = Wt * (Sm choose 1 0)
+  C0 = (V0 scan + with 0) copy
+  C1 = (V1 scan + with 0) copy
+  K0 = (S0 at most Bn) choose 1 0 sum
+  K1 = (S1 at most Bn) choose 1 0 sum
+  if K0 greater 0
+    Qs = Q0 (0 to K0 - 1)
+    Ps = P0 (0 to K0 - 1)
+    X0 = (Nn * Qs - 1) // Ps
+    Tot += (C0 (X0 + 1)) sum
+  end
+  if K1 greater 0
+    Qs = Q1 (0 to K1 - 1)
+    Ps = P1 (0 to K1 - 1)
+    X1 = (Nn * Qs - 1) // Ps
+    Tot += (C1 (X1 + 1)) sum
+  end
+end
+Answer = Tot
+Answer print
