@@ -3,7 +3,7 @@ import { createLoopExpressions } from './integer-loop-expressions.js';
 import { createLoopHeader } from './integer-loop-header.js';
 import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
-import { type IterationBinding, type LoopHost, type CompiledLoop } from './integer-loop-plan.js';
+import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
@@ -17,10 +17,8 @@ import { denseScalarItems, materializedArrayItems, arrayRevision } from './array
 export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iteration?: IterationBinding): CompiledLoop | undefined {
     const sources: string[] = [];
     const numericHost = host.compiled ? { ...host, compiled: (source: string) => sources.push(source) } : host;
-    const exact = compileTypedLoop(statement, numericHost, iteration, new Set(), new Set());
-    const fast = exact && buildTypedLoop(statement, numericHost, iteration, new Set(), new Set(), () => {}, true);
+    const numeric = compileTypedLoop(statement, numericHost, iteration, new Set(), new Set(), true);
     if (sources.length) host.compiled?.(sources.join('\n'));
-    const numeric: CompiledLoop | undefined = exact && fast ? { run: (...context) => fast.run(...context) ?? exact.run(...context) } : exact;
     if (!host.textLoops) return numeric;
     const candidates = new Set<string>();
     function collect(node: Statement) {
@@ -63,15 +61,26 @@ export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iter
     } };
 }
 
-function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>): CompiledLoop | undefined {
+function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, numberVariant = false): CompiledLoop | undefined {
     let failure: string | undefined;
-    const result = buildTypedLoop(statement, host, iteration, textSources, textArrays, reason => { failure ??= reason; });
-    if (!result && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
-    return result;
+    const failed = (reason: string) => { failure ??= reason; };
+    const plan = lowerTypedLoop(statement, host, iteration, textSources, textArrays, failed);
+    const exact = plan && prepareIntegerLoop(plan, host, () => {
+        failed(compilerRejection('loop', statement, 'code-generation'));
+        return undefined;
+    });
+    if (!exact) {
+        if (currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
+        return undefined;
+    }
+    const numberPlan = numberVariant && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true);
+    const fast = numberPlan && prepareNumberLoop(numberPlan, host);
+    return fast ? { run: (...context) => fast.run(...context) ?? exact.run(...context) } : exact;
 }
 
-function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined,
-    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false): CompiledLoop | undefined {
+/** Shared region checks and lowering; runtime preparation consumes only the plan. */
+function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined,
+    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false): IntegerLoopPlan | undefined {
     const state = createLoopState(host, textSources, textArrays, failed, numberMode);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
@@ -107,11 +116,10 @@ function buildTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
-    const plan = {
+    return {
         statement, names, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, graphMutations, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration,
     };
-    return numberMode ? prepareNumberLoop(plan, host) : prepareIntegerLoop(plan, host, () => reject(statement, 'code-generation'));
 }

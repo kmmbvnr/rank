@@ -1,8 +1,6 @@
-import { type IterationBinding, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
+import { type LoopHost, type IntegerLoopPlan } from './integer-loop-plan.js';
 import { compilerRejection } from './compiler-rejection.js';
 import { type Expression, type Statement } from '@arrrank/language';
-import { type RankArray, type RankValue } from './value.js';
-import { RankDeque } from './containers.js';
 
 /** Mutable facts belong to one compilation attempt, never an invocation frame. */
 export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>,
@@ -14,26 +12,25 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
         failed(compilerRejection('loop', node, detail));
         return undefined;
     }
-    const localTypes = new Map<string, LoopTerm['type']>();
+    const localTypes: IntegerLoopPlan['localTypes'] = new Map();
     const names: string[] = [], required = new Set<number>(), assigned = new Set<string>();
-    const writers: ((value: RankValue) => void)[] = [];
-    const binders: ((value: RankValue) => void)[] = [];
+    const writers: IntegerLoopPlan['writers'] = [];
+    const binders: IntegerLoopPlan['binders'] = [];
     const writerNames: string[] = [], binderNames: string[] = [];
     const written = new Set<string>();
-    const containers = new Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>();
+    const containers: IntegerLoopPlan['containers'] = new Map();
     const builtins = new Map<string, string>();
-    const calls: { name: string; locals: readonly string[]; stableArrayReads: boolean;
-        bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[] = [];
-    const arrays = new Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>();
+    const calls: IntegerLoopPlan['calls'] = [];
+    const arrays: IntegerLoopPlan['arrays'] = new Map();
     const calleeArrays = new Set<string>();
     // One read per source at a named cursor; computed/repeated reads use undefined.
     const indexedReads = new Map<string, string | undefined>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
     const graphMutations: string[] = [];
-    const vectorIterations: { slot: number; binding: IterationBinding }[] = [];
-    const iterators: ((source: RankArray | RankDeque | string) => Iterable<RankValue>)[] = [];
-    const destinations = new Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type']; slice?: boolean }>();
+    const vectorIterations: IntegerLoopPlan['vectorIterations'] = [];
+    const iterators: IntegerLoopPlan['iterators'] = [];
+    const destinations: IntegerLoopPlan['destinations'] = new Map();
     const locations: Statement[] = [];
     return {
         host, numberMode, textSources, textArrays, zero, one, safe, dirty, reject,
