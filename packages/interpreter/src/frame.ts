@@ -242,6 +242,11 @@ export class LocalFrame {
         noteBinding(value);
     }
 
+    /** Validate a demanded value without publishing it over its plan. */
+    checkValue(name: string, value: RankValue): RankValue {
+        return this.checkBinding(name, value);
+    }
+
     private checkBinding(name: string, value: RankValue): RankValue {
         if (typeof value !== 'object') return value;
         if (isRankTuple(value)) {

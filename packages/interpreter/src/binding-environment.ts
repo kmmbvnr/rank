@@ -2,6 +2,7 @@ import {
     acceptsBindingType, availableBuiltin, bindingTypeMessage, builtinBindingMessage, possibleBindingTypeConflict,
     settledBindingTypes,
 } from '@arrrank/language';
+import { checkPlan, isRankPlan } from './plan.js';
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
 import { typeName, type RankValue } from './value.js';
@@ -65,6 +66,18 @@ export class BindingEnvironment {
         const scope = this.assignmentScope(name);
         if (scope === this.globals) this.sourceBindings.add(name);
         if (this.isConstant(name, scope)) throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
+        if (isRankPlan(value)) {
+            scope.set(name, checkPlan(value, computed => {
+                const received = typeName(computed);
+                const expected = scope.typeOf(name);
+                if (expected && !acceptsBindingType(expected, received)) {
+                    throw new RankError(bindingTypeMessage(name, expected, [received], true));
+                }
+                scope.declareType(name, expected ? settledBindingTypes(expected, [received]) : new Set([received]));
+                return scope.checkValue(name, computed);
+            }));
+            return;
+        }
         const received = typeName(value);
         if (received === 'function' && /^[A-Z]/.test(name.split('.').at(-1)!)) {
             throw new RankError(`Function bindings use lowercase names: ${name}`, 'TypeError');
@@ -89,7 +102,7 @@ export class BindingEnvironment {
             return;
         }
         const previous = scope.get(name);
-        const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
+        const expected = previous === undefined || isRankPlan(previous) ? undefined : new Set([typeName(previous)]);
         if (expected !== undefined && !acceptsBindingType(expected, received)) {
             throw new RankError(bindingTypeMessage(name, expected, [received], true));
         }
@@ -109,6 +122,7 @@ export class BindingEnvironment {
             if (this.isConstant(name, this.assignmentScope(name))) {
                 throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
             }
+            if (isRankPlan(value)) { this.assign(name, value); return; }
             const received = typeName(value);
             const frame = this.current;
             if (frame === undefined) {

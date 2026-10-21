@@ -146,6 +146,7 @@ export class Interpreter {
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
                 resolve: name => this.resolve(name),
+                evaluateReturn: expression => this.expressions.returnValue(expression),
                 inputs: this.checkedInputs,
                 apply: (fn, args) => this.rankApplication.applyIntrinsicRank(fn, args),
                 compileDirect: expression => this.expressions.compileDirect(expression),
@@ -176,12 +177,14 @@ export class Interpreter {
             locate: (error, node) => this.locateError(error, node),
             options: () => this.options,
             evaluate: expression => this.expressions.evaluate(expression),
+            evaluateReturn: (expression, tail) => this.expressions.returnValue(expression, tail),
             compileDirect: expression => this.expressions.compileDirect(expression),
-            compileTail: expression => this.expressions.compile(expression, undefined, true),
             operationOf: name => this.expressions.operationOf(name),
             operators: this.operators,
         });
         this.application = new ApplicationEvaluator({
+            findVariable: name => this.bindings.find(name),
+            argument: expression => this.expressions.argument(expression),
             checkInput: (expression, value, source) => this.checkedInputs.check(expression, value, source),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
@@ -240,6 +243,7 @@ export class Interpreter {
             locate: (error, statement) => this.locateError(error, statement),
         };
         this.writes = {
+            defer: expression => this.expressions.defer(expression),
             checkArrayWrite: (name, target, values, offsets) => this.checkArrayWrite(name, target, values, offsets),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
@@ -252,11 +256,12 @@ export class Interpreter {
             operators: this.operators,
         };
         this.statements = {
+            evaluateReturn: (expression, tail) => this.expressions.returnValue(expression, tail),
             resolve: name => this.resolve(name),
             bindings: this.bindings,
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
-            compileTail: expression => this.expressions.compile(expression, undefined, true),
+            compileTail: expression => () => this.expressions.returnValue(expression, true),
             operationOf: name => this.expressions.operationOf(name),
             execute: (statements, context) => this.blocks.executeIn(statements, context),
             assign: (name, value) => this.assign(name, value),

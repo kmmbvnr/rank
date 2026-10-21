@@ -16,3 +16,5 @@ export { RuntimeDiagnostics } from './diagnostics.js';
 export { InterruptedError, DemandBudgetExhausted, withDemandBudget, DebugSession, withInterrupt, checkInterrupt, detachInspection, type PauseSnapshot, type InterruptSignal } from './interrupt.js';
 
 export { integerValue, realValue } from './numeric-conversions.js';
+
+export { demand, isRankPlan, type RankPlan } from './plan.js';

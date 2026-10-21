@@ -37,6 +37,7 @@ import {
 /** What evaluating application forms needs from the rest of evaluation. */
 export interface ApplicationContext {
     evaluate(expression: Expression): Evaluation<RankValue>;
+    argument(expression: Expression): Evaluation<RankValue>;
     checkInput(expression: Expression, value: RankValue, source: string): void;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of an expression that is not an application, without classifying it again. */
@@ -45,6 +46,7 @@ export interface ApplicationContext {
     /** Builtin identity a name is bound to, or false for a user value; never runs user code. */
     operationOf(name: string): Operation | undefined | false;
     resolve(name: string): RankValue;
+    findVariable(name: string): RankValue | undefined;
     select(values: RankValue[], missing?: () => RankValue): RankValue;
     requireModule(module: string, operation: string): void;
     readonly random: () => number;
@@ -84,7 +86,8 @@ export class ApplicationEvaluator {
                 let value = argument;
                 while (isParenthesizedExpression(value)) value = value.value;
                 args.push(fn.callSignature?.parameters[index]?.kind === 'function' && isNameExpression(value)
-                    ? context.resolve(value.name) : yield* resume(context.evaluate(argument)));
+                    ? context.resolve(value.name) : yield* resume(
+                        expression.ranks.length || expression.axes.length ? context.evaluate(argument) : context.argument(argument)));
             }
             const data = expression.dataParameters.map(index => args[index]);
             const ranks = expression.ranks.map(rank => {
@@ -437,6 +440,22 @@ export class ApplicationEvaluator {
     }
 
     private compileApplication(
+        expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
+    ): () => Evaluation<RankValue> {
+        const ordinary = this.compileNativeApplication(expression, parts, missing, tail);
+        const last = parts.at(-1);
+        if (!last || !isNameExpression(last)) return ordinary;
+        return () => {
+            const fn = this.context.findVariable(last.name);
+            if (!fn || !isNativeFunction(fn) || !fn.callSignature || fn.monadicRank !== 'all'
+                || fn.dyadicRanks?.some(rank => rank !== 'all')) return ordinary();
+            return flatMapResult(mapExecution(parts.slice(0, -1), part => this.context.argument(part)),
+                values => this.apply([...values, this.context.resolve(last.name)], missing, 0, [], tail,
+                    lastArrayUseProofs(expression, parts.slice(0, -1))));
+        };
+    }
+
+    private compileNativeApplication(
         expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
     ): () => Evaluation<RankValue> {
         const context = this.context;

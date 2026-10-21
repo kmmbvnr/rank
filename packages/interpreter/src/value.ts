@@ -1,3 +1,4 @@
+import type { RankPlan } from './plan.js';
 import type { IndexKey } from './index-key.js';
 import type { FunctionCallSignature } from '@arrrank/language';
 import { arrayDeclaration } from './array-declaration.js';
@@ -351,7 +352,7 @@ export type RankValue = bigint | number | boolean | string | RankMissing | RankA
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankArrowTable | NativeFunction |
     RankSequence | RankSequenceMask | RankGraph | RankDsu | RankFunctionalGraph |
-    RankWavelet;
+    RankWavelet | RankPlan;
 
 export type RankGraph = GraphValue | PredicateGraph | SuccessorGraph;
 
@@ -513,6 +514,7 @@ export function typeName(value: RankValue): string {
     if (typeof value === 'number') return 'real';
     if (typeof value === 'string') return 'text';
     if (typeof value !== 'object') return typeof value;
+    if (value.kind === 'plan') return value.result?.types.length === 1 ? value.result.types[0] : 'unknown';
     if (value.kind === 'queue' && 'mode' in value && typeof value.mode === 'string') return value.mode;
     return value.kind === 'label' ? 'symbol' : value.kind;
 }
@@ -540,6 +542,7 @@ export function isRankArray(value: RankValue): value is RankArray {
 }
 
 export function valueRank(value: RankValue): number {
+    if (typeof value === 'object' && value.kind === 'plan') return value.result?.rank ?? 0;
     if (isRankArray(value)) return value.shape.length;
     if (isRankSequence(value) || isRankQueue(value) || typeof value === 'string') return 1;
     return 0;
@@ -726,6 +729,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return `.${value.name}`;
     }
     if (value.kind === 'missing') return '.NA';
+    if (value.kind === 'plan') return '<plan>';
     if (isRankDate(value)) return formatDate(value);
     if (isRankDuration(value)) return formatDuration(value);
     if (value.kind === 'error') {

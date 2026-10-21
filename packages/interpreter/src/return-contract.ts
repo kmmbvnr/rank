@@ -1,3 +1,4 @@
+import { checkPlan, isRankPlan } from './plan.js';
 import { ArrayBindingContract } from './array-binding-contract.js';
 import { semanticArrayType, semanticValueType } from './semantic-array-type.js';
 import { arrayRevision } from './array-storage.js';
@@ -66,6 +67,7 @@ export class ReturnContract {
     constructor(private readonly name: string, private readonly ranks: { rank?: number } = {}) {}
 
     check(value: RankValue): RankValue {
+        if (isRankPlan(value)) return checkPlan(value, result => this.check(result));
         const rank = valueRank(value), type = typeName(value);
         if (this.ranks.rank !== undefined && this.ranks.rank !== rank) {
             throw new RankError(`${this.name} returns rank ${this.ranks.rank} and cannot return rank ${rank}`, 'ReturnRankMismatch');

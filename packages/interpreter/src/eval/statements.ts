@@ -12,7 +12,7 @@ import { inputDeclarationName } from '../cli-args.js';
 import { BREAK_SIGNAL, CONTINUE_SIGNAL, returnFunctionValue } from '../control-signals.js';
 import { materializeSequence } from '../sequence.js';
 import { RankError } from '../errors.js';
-import { completed, emit, mapExecution, mapResult, resume, type Evaluation, type Execution } from '../execution.js';
+import { completed, runExecution, emit, mapExecution, mapResult, resume, type Evaluation, type Execution } from '../execution.js';
 import {
     prepareIfStatement, prepareTryStatement, type ExecutionContext, type PreparedStatement,
 } from '../statement-control.js';
@@ -38,6 +38,7 @@ export interface ProgramControl {
 export interface StatementContext {
     readonly bindings: BindingEnvironment;
     evaluate(expression: Expression): Evaluation<RankValue>;
+    evaluateReturn(expression: Expression, tail?: boolean): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of a returned application that may become a tail call. */
     compileTail(expression: Expression): () => Evaluation<RankValue>;
@@ -139,7 +140,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
         if (direct) {
             return { run: context => {
                 validate(context);
-                return returnFunctionValue(context.functionControl, direct());
+                return returnFunctionValue(context.functionControl, runExecution(host.evaluateReturn(statement.value!)));
             } };
         }
         let candidate = statement.value;
@@ -149,7 +150,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             return { stream: function* (context): Execution<RankValue | undefined> {
                 validate(context);
                 return returnFunctionValue(context.functionControl, statement.value === undefined ? undefined
-                    : yield* resume(host.evaluate(statement.value)));
+                    : yield* resume(host.evaluateReturn(statement.value)));
             } };
         }
         let tail: (() => Evaluation<RankValue>) | undefined;

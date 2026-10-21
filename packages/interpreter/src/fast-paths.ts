@@ -2,8 +2,8 @@ import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-
 import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
-    findOperation, isBinaryExpression, isDeclaredCallExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression,
+    type ApplicationForm, type Operation, type CompiledFunctionType, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -14,7 +14,7 @@ import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './scalar-compiler.js';
 import { scalarFunctionResult, type ScalarCaptureTypes } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
-import { completed, type Evaluation, type Execution } from './execution.js';
+import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
 import { compileTensorKernel } from './tensor-kernel.js';
@@ -45,9 +45,8 @@ export interface FastPathContext {
     locate(error: unknown, node: AstNode): unknown;
     options(): InterpreterOptions;
     evaluate(expression: Expression): Evaluation<RankValue>;
+    evaluateReturn(expression: Expression, tail?: boolean): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
-    /** Evaluation of a returned application that may become a tail call. */
-    compileTail(expression: Expression): () => Evaluation<RankValue>;
     /** Builtin identity a name is bound to, or false for a user value. */
     operationOf(name: string): Operation | undefined | false;
     readonly operators: Operators;
@@ -116,12 +115,8 @@ export class FastPaths {
                     if (index !== commands.length - 1) return steps.preparedStatement(commands, index);
                     const tensor = steps.preparedStatement(commands, index).tensor;
                     const direct = this.context.compileDirect(last.value!);
-                    if (direct) return { run: direct, tensor };
-                    let candidate = last.value!;
-                    while (isParenthesizedExpression(candidate)) candidate = candidate.value;
-                    const value = isApplicationExpression(candidate) || isDeclaredCallExpression(candidate)
-                        ? this.context.compileTail(last.value!)
-                        : () => this.context.evaluate(last.value!);
+                    if (direct) return { run: () => runExecution(this.context.evaluateReturn(last.value!)), tensor };
+                    const value = () => this.context.evaluateReturn(last.value!, true);
                     return { stream: value, tensor };
                 },
                 locate: (error, index) => this.context.locate(error, commands[index]),

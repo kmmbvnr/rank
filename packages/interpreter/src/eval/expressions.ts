@@ -1,3 +1,6 @@
+import { AstUtils } from 'langium';
+import { LocalFrame } from '../frame.js';
+import { demand, isRankPlan, type RankPlan } from '../plan.js';
 import { checkedArrayDimension } from '../tensor-index.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
@@ -8,11 +11,11 @@ import {
     isKeyedRollingExpression, isKeyedSortExpression, isKeyedMergeExpression, isLabelLiteral, isMaterializeExpression, isNameExpression,
     isNewStructureExpression, isNumberLiteral, isParenthesizedExpression, isRecordExpression,
     isRecordUpdateExpression, isStdinExpression, isStringLiteral, isTextBlockExpression, isUnaryExpression,
-    isUnpackExpression, nameNeedsExecution, requiresDataOperand, applicationForm, findOperation,
+    isUnpackExpression, expressionFacts, UNKNOWN_VALUE, nameNeedsExecution, requiresDataOperand, applicationForm, findOperation,
     type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
 import { nameMask } from '../array-mask.js';
-import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
+import { allValid, denseScalarItems, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
 import { newStructure } from '../collections.js';
@@ -82,7 +85,90 @@ export class ExpressionEvaluator {
 
     /** The evaluation of an expression; its preparation is cached per syntax node. */
     evaluate(expression: Expression): Evaluation<RankValue> {
-        return this.prepare(expression)();
+        return flatMapResult(this.prepare(expression)(), demand);
+    }
+
+    /** Capture values now, retaining native collection plans when construction
+     * itself performs no data computation. User calls execute their bodies now. */
+    defer(expression: Expression, tail = false): Evaluation<RankValue> {
+        let source = expression;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source)) {
+            const value = this.context.bindings.find(source.name);
+            if (value !== undefined && !isNativeFunction(value)) return completed(value);
+        }
+        const dependencies = new Map<string, RankValue>();
+        let callsUserCode = false;
+        for (const node of AstUtils.streamAst(expression)) {
+            if (!isNameExpression(node)) continue;
+            const value = this.context.bindings.find(node.name);
+            if (value !== undefined) {
+                dependencies.set(node.name, value);
+                if (isNativeFunction(value) && !BuiltinRegistry.operationOf(value)) callsUserCode = true;
+            } else if (/^[A-Z]/.test(node.name)) this.context.resolve(node.name);
+        }
+        if (callsUserCode || isBinaryExpression(source) && ['to', 'till'].includes(source.operator)
+            && ![...dependencies.values()].some(isRankPlan)) {
+            return tail && callsUserCode ? this.compile(expression, undefined, true)() : this.prepare(expression)();
+        }
+        const snapshot = new LocalFrame(undefined);
+        for (const [name, value] of dependencies) snapshot.set(name, value);
+        const result = expressionFacts(expression, name => {
+            const value = dependencies.get(name);
+            if (value === undefined) return undefined;
+            if (isRankPlan(value)) return value.result ?? UNKNOWN_VALUE;
+            if (typeof value === 'bigint') return { types: ['integer'], rank: 0, shape: [] };
+            if (typeof value === 'number') return { types: ['real'], rank: 0, shape: [] };
+            if (typeof value === 'boolean') return { types: ['boolean'], rank: 0, shape: [] };
+            if (typeof value === 'string') return { types: ['text'], rank: 1 };
+            if (isRankSequence(value)) return { types: ['sequence'], rank: 1 };
+            if (isRankArray(value) && denseScalarItems(value) !== undefined) {
+                return { types: [value.kind], rank: value.shape.length, shape: [...value.shape] };
+            }
+            return UNKNOWN_VALUE;
+        });
+        const plan: RankPlan = { kind: 'plan', expression, dependencies, result,
+            evaluate: () => completed(this.context.bindings.withFrame(snapshot,
+                () => runExecution(this.evaluate(expression)))),
+        };
+        return completed(plan);
+    }
+
+    /** Callers pass plans through; the parameter binder decides completion. */
+    argument(expression: Expression): Evaluation<RankValue> {
+        let source = expression;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source)) {
+            const value = this.context.bindings.find(source.name);
+            if (value !== undefined && !isNativeFunction(value)) return completed(value);
+        }
+        return this.hasPlanInput(expression) ? this.defer(expression) : this.prepare(expression)();
+    }
+
+    /** Return does not add a storage or demand boundary. */
+    returnValue(expression: Expression, tail = false): Evaluation<RankValue> {
+        let source = expression;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source)) {
+            const value = this.context.bindings.find(source.name);
+            if (value !== undefined && !isNativeFunction(value)) return completed(value);
+        }
+        const demandsEffects = AstUtils.streamAst(expression).some(node => {
+            if (!isNameExpression(node)) return false;
+            const operation = this.operationOf(node.name);
+            return operation && operation.effects?.includes('io');
+        });
+        if (!demandsEffects && this.hasPlanInput(expression)) return this.defer(expression, tail);
+        return tail ? this.compile(expression, undefined, true)() : this.prepare(expression)();
+    }
+
+    private hasPlanInput(expression: Expression): boolean {
+        return AstUtils.streamAst(expression).some(node => {
+            if (!isNameExpression(node)) return false;
+            const value = this.context.bindings.find(node.name);
+            return value !== undefined && (isRankPlan(value) || isRankSequence(value)
+                || isRankArray(value) && denseScalarItems(value) === undefined);
+        });
     }
 
     private prepare(expression: Expression): () => Evaluation<RankValue> {
@@ -445,7 +531,7 @@ export class ExpressionEvaluator {
         }
         if (isNameExpression(expression)) {
             return () => {
-                const value = expressions.context.resolve(expression.name);
+                const value = runExecution(demand(expressions.context.resolve(expression.name)));
                 if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
                 if (tail && expressions.context.resources.currentScopeEmpty()
                     && expressions.context.functions.transferTailCall(value, [])) return completed(MISSING);
@@ -678,6 +764,7 @@ export class ExpressionEvaluator {
     }
 
     private directNameValue(value: RankValue): RankValue {
+        value = runExecution(demand(value));
         if (!isNativeFunction(value) || !value.arities.includes(0)) return nameMask(value);
         const result = value.call([]);
         this.context.resources.ownFiles(result);

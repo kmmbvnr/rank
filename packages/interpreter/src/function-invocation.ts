@@ -63,6 +63,7 @@ export interface FunctionDefinition {
 /** What defining and running a function body needs from execution and the fast-path owner. */
 export interface FunctionHost {
     resolve(name: string): RankValue;
+    evaluateReturn(expression: Expression): Evaluation<RankValue>;
     apply(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue>;
     readonly inputs?: Pick<CheckedInputContracts, 'pending' | 'call' | 'tail'>;
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
@@ -358,10 +359,11 @@ export class FunctionInvocation {
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.bindings.current;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
-        const compiled = !inspectionEnabled() && only && isReturnStatement(only) && only.value
-            ? this.host.compileDirect(only.value) : undefined;
+        const returnExpression = only && isReturnStatement(only) ? only.value : undefined;
+        const compiled = !inspectionEnabled() && returnExpression
+            ? this.host.compileDirect(returnExpression) : undefined;
         const direct = compiled ? () => {
-            try { return compiled(); }
+            try { return runExecution(this.host.evaluateReturn(returnExpression!)); }
             catch (error) { throw this.host.locate(error, only!); }
         } : undefined;
         const { specialization, returnRanks } = functionReturnSpecializations(statement.name);

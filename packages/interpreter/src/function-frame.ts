@@ -1,3 +1,4 @@
+import { isRankPlan } from './plan.js';
 import { flatArrayBorrowProofs, type LastArrayUseProof, type FunctionStatement } from '@arrrank/language';
 import { isFlatScalarArray, isSharedArray } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
@@ -95,7 +96,8 @@ export class FunctionFrames {
             if (isNativeFunction(argument) && !acceptsFunction) {
                 throw new RankError(`Function parameters use lowercase names: ${parameter}`, 'TypeError');
             }
-            frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
+            if (isRankPlan(argument)) frame.set(parameter, argument);
+            else frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
         });
         if (arguments_.some(isFlatScalarArray)) this.inputs.set(frame, arguments_);
         else this.inputs.delete(frame);

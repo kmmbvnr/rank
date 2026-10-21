@@ -34,6 +34,7 @@ import {
 /** What preparing a write needs from evaluation and the binding environment. */
 export interface AssignmentContext {
     evaluate(expression: Expression): Evaluation<RankValue>;
+    defer(expression: Expression): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
     resolveVariable(name: string): RankValue;
@@ -272,7 +273,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
 export function prepareAssignment(statement: AssignmentStatement, host: AssignmentContext): PreparedStatement {
     const operator = statement.operator === '='
         ? undefined : assignmentOperator(statement.operator);
-    const direct = host.compileDirect(statement.value);
+    const direct = statement.deferred ? undefined : host.compileDirect(statement.value);
     const write = host.compileAssign(statement.name);
     const stored = (value: RankValue): RankValue => {
         if (!statement.deferred) return materializeValue(value);
@@ -289,7 +290,7 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
     }
     return { stream: () => {
         const previous = operator === undefined ? undefined : host.resolveVariable(statement.name);
-        return mapResult(host.evaluate(statement.value), value => {
+        return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
             const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));
             write(result);
             return result;

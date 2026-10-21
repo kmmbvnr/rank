@@ -1,5 +1,7 @@
 import type { CallParameter } from '@arrrank/language';
 import { denseScalarItems, materializeCells, ownedArray, readArrayItem } from './array-storage.js';
+import { demand } from './plan.js';
+import { runExecution } from './execution.js';
 import { checkpoint } from './interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { materializeSequence } from './sequence.js';
@@ -9,6 +11,7 @@ import { isRankArray, isRankSequence, type RankValue } from './value.js';
  * intermediates. Already stored scalar arrays keep their packed storage and
  * identity; a lazy array becomes owned cells with exactly the same shape. */
 export function materializeValue(value: RankValue): RankValue {
+    value = runExecution(demand(value));
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value) || value.kind === 'bytes' || denseScalarItems(value) !== undefined) return value;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);

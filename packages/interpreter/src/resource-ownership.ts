@@ -1,3 +1,4 @@
+import { isRankPlan } from './plan.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { normalizeStackError } from './execution.js';
 import { closeFile } from './modules/io.js';
@@ -152,6 +153,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             if (item.captures) pending.push(captures(item.captures));
         } else if (isRankGraph(item) && 'captures' in item) {
             pending.push(captures(item.captures));
+        } else if (isRankPlan(item)) {
+            pending.push(item.dependencies.values());
         } else if (isRankSequence(item)) {
             if (item.plan.captures) pending.push(captures(item.plan.captures));
         }
