@@ -76,10 +76,38 @@ Notes from this range, for the next one:
 
 ## Problems 401-450
 
-Written: all of 401-450. One program and one test file each. The default
-answers were checked against the published ones, and the tests keep to small
-inputs, so the default runs that take more than about 25 s are left out of the
-type, name-facts and differential audits (`scripts/demo-execution-exclusions.json`).
+Written: all of 401-450, one program and one test file each. The tests
+keep to small inputs; the statement values and published checkpoints are in
+the tests. How the default answers were checked: 424, 438 and 450 were
+recomputed in full with an independent Python program (a solver, or a port of
+the same method). 414 (base 1803), 433 (N = 10^6), 428 and 441 (small bounds,
+brute force) were checked independently only on smaller inputs. Every other
+default was compared with the published answer, recalled from memory and not
+fetched, and its statement values and checkpoints are in the tests.
+
+Default runs that take more than about 25 s are left out of the type,
+name-facts and differential audits
+(`scripts/demo-execution-exclusions.json`).
+
+No APL, J or K solutions for 401-450 turned up in a web search (the
+collections found stop near problem 100). Method sources: eulersolve.org
+for the outlines, and public C++ for 433 (eulersolve.org) and 438 and 450
+(roosephu/project-euler), whose default answers were checked against a
+Python port of the same method.
+
+Programs that are scalar loops rather than array code, and why:
+
+| Problem | Why a loop |
+|---|---|
+| 417 | order of 10 per number from a smaller prime-power order and lcm, in increasing order |
+| 423 | one row of a binomial sum per step, sequential recurrence |
+| 424 | backtracking over letters and cells |
+| 425 | union-find over edges in order of the larger prime |
+| 426 | stack pass over the runs |
+| 433 | floor sum that follows the Euclid steps for each pair |
+| 437 | per prime: square root of 5 and a primitive-root test |
+| 438 | depth-first search over the coefficients |
+| 445 | exponents of C(N, k) updated from k to k + 1 |
 
 The slowest defaults, compiled (417, 418, 420, 433, 437 take 35-160 s;
 424 takes 11 min and 438 3.5 min): 414 (28 min, one pass per base and a
@@ -88,11 +116,6 @@ pointer-jumping depth), 427 (6 min), 446 (6 min), 413 and 415 (5 min), 411
 (3 min), 407, 429 and 432 (2 min). Most of those are tables of 10^7 cells with
 a recursion over the values N // k for N near 10^11 (415, 432, 439, 447, 448),
 or a sieve over 10^7-10^8 integers.
-
-Method sources: 433, 438 and 450 follow public C++ solutions
-(eulersolve.org for 433; roosephu/project-euler for 438 and 450).
-Their default answers were checked against a Python port of the same
-method.
 
 Notes from this range:
 
