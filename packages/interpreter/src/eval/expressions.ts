@@ -36,9 +36,6 @@ import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-s
 import { mergeSorted } from '../modules/sorted-merge.js';
 import { materializeCollection } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
-import {
-    materializeSqlite, materializeSqliteExpression,
-} from '../modules/sqlite.js';
 import { expectInteger, type Operators } from '../operators.js';
 import { recordContract } from '../record-contract.js';
 import { assignRecordField } from '../record-write.js';
@@ -628,12 +625,10 @@ export class ExpressionEvaluator {
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(expressions.evaluate(expression.source)));
-                const result = isRankArray(source) ? source
-                    : isRankTableAlias(source) && isRankSqliteTable(source.source) ? materializeSqlite(source.source)
-                    : isRankSqliteTable(source) ? materializeSqlite(source)
+                const result = isRankArray(source) || isRankSequence(source)
+                    || isRankSqliteTable(source) || isRankSqliteExpression(source) ? source
+                    : isRankTableAlias(source) && isRankSqliteTable(source.source) ? source.source
                     : isRankTable(source) ? source.toRows()
-                    : isRankSqliteExpression(source) ? materializeSqliteExpression(source)
-                    : isRankSequence(source) ? materializeSequence(source)
                     : materializeCollection(source);
                 if (result) return materializeValue(result);
                 throw new RankError('postfix array expects an array, sequence, queue, stack, deque, set, multiset, table or SQLite table');

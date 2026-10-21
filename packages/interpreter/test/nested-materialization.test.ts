@@ -218,7 +218,7 @@ describe('recursive value completion', () => {
 });
 
 describe.each([false, true])('nested binding completion (compilation=%s)', compilation => {
-    it('refines a lazy field on demand and ignores observers of a replaced field', () => {
+    it('protects captured lazy fields and permits writes to an independently completed record', () => {
         let current: RankValue = 1n;
         let reads = 0;
         const source = record([['values', { kind: 'array', shape: [1], items: [], containsFiles: false,
@@ -229,10 +229,13 @@ describe.each([false, true])('nested binding completion (compilation=%s)', compi
             runtime.execute("R' = Input");
             expect(reads).toBe(0);
             const previous = source.entries.get('values') as RankArray;
-            runtime.execute('R .values = array "new"');
+            expect(() => runtime.execute('R .values = array 2')).toThrowError('read-only');
+            expect(reads).toBe(0);
+            runtime.execute('Saved = R');
+            runtime.execute('Saved .values = array 2');
             expect(readArrayItem(previous, 0)).toBe(1n);
-            expect(source.fieldContracts?.get('values')?.elements).toEqual([{ type: 'text' }]);
-            expect(runtime.execute('R .values 0')).toBe('new');
+            expect(source.fieldContracts?.get('values')?.elements).toEqual([{ type: 'integer' }]);
+            expect(runtime.execute('Saved .values 0')).toBe(2n);
             current = 'bad';
             expect(() => readArrayItem(previous, 0)).toThrowError(/array elements/);
         } finally { runtime.dispose(); }

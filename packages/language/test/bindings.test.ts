@@ -2,7 +2,7 @@ import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
-    analyzeBindings, createRankServices, type Binding, type ProgramFacts, type Program,
+    analyzeBindings, expressionFreeReads, isAssignmentStatement, createRankServices, type Binding, type ProgramFacts, type Program,
 } from '../src/index.js';
 
 let parse: ReturnType<typeof parseHelper<Program>>;
@@ -384,4 +384,21 @@ it('leaves an elementwise result unsettled when an operand type is unknown', asy
     expect(named(result, 'program', 'Both').types).toEqual([]);
     expect(named(result, 'program', 'Plain').types).toEqual(['integer']);
     expect(named(result, 'program', 'Pair').types).toEqual(['integer']);
+});
+
+
+it('finds expression inputs without capturing sequential select locals', async () => {
+    const document = await parse(`Result' = Data select
+ Before = Flag
+ Flag = .name
+ .title = Flag
+ .other = Outside
+ .number = rownumber
+end`);
+    expect(document.parseResult.parserErrors).toEqual([]);
+    const statement = document.parseResult.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const reads = expressionFreeReads(statement.value);
+    expect(reads.map(read => read.name)).toEqual(['Data', 'Flag', 'Outside']);
+    expect(expressionFreeReads(statement.value)).toBe(reads);
 });

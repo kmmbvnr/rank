@@ -124,7 +124,7 @@ With `use tables`, an existing SQLite database can be opened read-only:
 
 ```rank
 Db = "demos/pgexercises/data/club.sqlite3" sqlite
-Facilities = Db .facilities
+Facilities' = Db .facilities
 Query = Facilities sql
 Rows = Facilities array
 ```
@@ -133,7 +133,11 @@ To inspect the SQL and plan in a program, add `use io` and print
 `Query .text` or `(Facilities explain) .detail`.
 
 `Db .facilities` validates the table name and returns a SQLite-backed table
-view without loading rows. The variable keeps the database path and query plan.
+view without loading rows. `Facilities' = Db .facilities` retains that query
+plan. `Rows = Facilities` executes it and stores the ready row array; a column
+binding such as `Names = Facilities .name` similarly reads and stores its values.
+Each demand of the explicit plan executes against the current database state;
+it does not retain previous rows. The database handle itself remains a resource.
 `Query` is a record with `.text` (parameterized SQL) and `.params` (an ordered
 array of bound values). `Facilities explain` runs `EXPLAIN QUERY PLAN` and
 returns an ordinary Rank table of plan rows. Postfix `array` executes the query
@@ -144,11 +148,11 @@ stays integer, and row order is unspecified unless the SQL query orders it.
 The same table addressing and operators build a query without reading rows:
 
 ```rank
-Bookings = (Db .bookings) (array .memid .starttime)
-Members = (Db .members) (array .memid .firstname .surname)
-Joined = Bookings Members innerjoin by .memid
-David = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
-Result = (Joined David) (array .starttime)
+Bookings' = (Db .bookings) (array .memid .starttime)
+Members' = (Db .members) (array .memid .firstname .surname)
+Joined' = Bookings Members innerjoin by .memid
+David' = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
+Result' = (Joined David) (array .starttime)
 Statement = Result sql
 Result "bookings.csv" csv
 ```
@@ -156,9 +160,9 @@ Result "bookings.csv" csv
 For a self join, give each use of a table a short role name:
 
 ```rank
-M = Db .members alias .m
-R = Db .members alias .r
-J = M R leftjoin on
+M' = Db .members alias .m
+R' = Db .members alias .r
+J' = M R leftjoin on
   .recommendedby equal .memid
 Rows = J array
 Names = Rows .r .firstname default ""
@@ -174,18 +178,18 @@ The alias changes only the Rank result shape, never the database schema.
 An already joined SQLite view cannot itself be aliased yet; multiway joins of
 nested views need qualified join keys and nested scope composition.
 
-An ordered `record` names output columns and holds their source expressions:
+A `select` block names output columns while retaining SQL expressions:
 
 ```rank
-Cols = record
-  .memfname = J .m .firstname
-  .recfname = J .r .firstname
+Out' = J select
+  .memfname = .m .firstname
+  .recfname = .r .firstname
 end
-Out = J select Cols
 ```
 
-`select` returns a new flat view with only those fields, in record order. For a
-SQLite view, every expression must come from that exact view; scalar values
+Ordinary record fields complete their values, including SQL columns. Use the
+contextual block to keep the projection in SQL. `select` returns a new flat
+view with only those fields, in source order. For a SQLite view, every expression must come from that exact view; scalar values
 are bound parameters. The operation builds `SELECT expression AS name` without
 reading rows or changing the database. SQL `NULL` leaves the output field
 absent, so CSV writes an empty cell. On an array table, fields may be scalars
@@ -201,8 +205,8 @@ the same expression works on an array table.
 Inside a `select` block, bare `rownumber` gives each row its one-based position:
 
 ```rank
-R = Members sort by .joindate .memid
-Out = R select
+R' = Members sort by .joindate .memid
+Out' = R select
   .row_number = rownumber
   .firstname = .firstname
   .surname = .surname
@@ -220,8 +224,8 @@ Rows tied on every key receive the same one-based rank, and the next rank
 skips the positions occupied by the tie:
 
 ```rank
-R = Members sort by .hours .descending
-Out = R select
+R' = Members sort by .hours .descending
+Out' = R select
   .rank = ranknumber
   .hours = .hours
 end
@@ -237,10 +241,10 @@ For a row-dependent column, build a boolean expression and choose between two
 values from the same view:
 
 ```rank
-Guest = Rows .memid equal 0
-GCost = Rows .slots * Rows .guestcost
-MCost = Rows .slots * Rows .membercost
-Cost = Guest GCost MCost choose
+Guest' = Rows .memid equal 0
+GCost' = Rows .slots * Rows .guestcost
+MCost' = Rows .slots * Rows .membercost
+Cost' = Guest GCost MCost choose
 ```
 
 This stays in SQL as a bound `CASE` expression. An unknown SQL condition gives
@@ -249,19 +253,20 @@ an absent cost. `select` can then name the computed column.
 `Ids Keys Values lookup` finds the first matching key for each requested ID:
 
 ```rank
-Ids = Members .recommendedby
-Keys = Members .memid
-First = Members .firstname + " "
-Names = First + Members .surname
-Rec = Ids Keys Names lookup
+Ids' = Members .recommendedby
+Keys' = Members .memid
+First' = Members .firstname + " "
+Names' = First + Members .surname
+Rec' = Ids Keys Names lookup
 ```
 
 For arrays, `Keys` and `Values` must be aligned rank-1 arrays or finite
 sequences. A rank-1 `Ids`
 array produces a lazy rank-1 result; a scalar ID produces one value. The first
 match in source order wins, numeric keys compare by value, and a missing key
-or unmatched ID leaves the result cell absent. Source changes invalidate a
-derived result. For SQLite, all three operands are column expressions: `Keys`
+or unmatched ID leaves the result cell absent. An ordinary binding retains
+the result; an explicit plan recomputes it when demanded. For SQLite, all three
+operands are column expressions: `Keys`
 and `Values` belong to one source view, while `Ids` may belong to another view
 of the same database. `lookup` builds a bound correlated scalar subquery, with
 no join and no row read until the enclosing view executes. SQL `NULL` or no
@@ -281,10 +286,10 @@ cell absent where `find` raises.
 starting ID or a rank-1 array/column of IDs:
 
 ```rank
-Up = Edges 27 reach by .member .recommender
-Down = Edges 1 reach by .recommender .member
-Starts = Members .memid
-All = Edges Starts reach by .member .recommender
+Up' = Edges 27 reach by .member .recommender
+Down' = Edges 1 reach by .recommender .member
+Starts' = Members .memid
+All' = Edges Starts reach by .member .recommender
 ```
 
 The first named field identifies a current node in `Edges`; the second gives
@@ -310,7 +315,7 @@ as a table mask extend the SQL plan. Projection with an array of field labels,
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
 or a product of expressions uses SQL `SUM`. `View (0 till N)` keeps the
 first `N` rows as a SQLite `LIMIT` query and checks the bounds against `len`.
-`array`, `print` and CSV output execute the
+Ordinary binding, `array`, `print` and CSV output execute the
 view. `sql` and `explain` inspect the current plan without loading its result
 rows. Generated comparisons use bound parameters; field names are checked
 against the source schema and quoted. A predicate must come from the exact
@@ -321,8 +326,8 @@ numeric and text keys stay distinct as in Rank arrays.
 The supported SQLite expression operators are `equal`, `notequal`, `less`,
 `greater`, `at least`, `at most`, `and`, `or`, `+`, `-`, `*` and `/`. Division
 uses real arithmetic even when both columns hold integers. A scalar
-`sum` executes its aggregate; ordinary columns and tables remain lazy until a
-terminal operation. Other array operations require explicit `array` for now.
+`sum` executes its aggregate. Use apostrophes on named query stages to keep
+columns and tables deferred until a consumer demands them. Other array operations require explicit `array` for now.
 SQLite `NULL` fields are absent when rows are materialized. The database view
 cannot be used as a destination for field assignment. SQL
 ordering is guaranteed when `sort by` is the final operation before the
@@ -335,7 +340,7 @@ an explicit read-only SQL source with positional bound parameters:
 ```rank
 Text = "SELECT * FROM facilities WHERE facid = ?"
 Params = array FacilityId
-Result = Db Text Params sqlquery
+Result' = Db Text Params sqlquery
 Rows = Result array
 ```
 
@@ -356,13 +361,13 @@ records separated by spaces, or a rank-1 table of rows. A filtered base table
 can be updated or deleted; projections, joins and sorts cannot be write targets.
 
 ```rank
-F = Db .facilities
+F' = Db .facilities
 F insert Spa Squash
-T = F filter .facid equal 1
+T' = F filter .facid equal 1
 T update
   .initialoutlay = 10000
 end
-Old = Db .members filter .memid equal 37
+Old' = Db .members filter .memid equal 37
 Old delete
 ```
 
@@ -776,10 +781,10 @@ text and SQLite columns. Text casts, substring membership with `in`, and text
 slices also stay in a lazy SQLite query. For example:
 
 ```rank
-F = Db .facilities
-Names = F .name lower
-Mask = Names "tennis" startswith
-Result = F filter Mask
+F' = Db .facilities
+Names' = F .name lower
+Mask' = Names "tennis" startswith
+Result' = F filter Mask
 ```
 
 The SQLite host registers deterministic `rank_*` text functions so Unicode

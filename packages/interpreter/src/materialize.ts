@@ -12,9 +12,10 @@ import { ResourceMap } from './resource-summary.js';
 import { recordContract } from './record-contract.js';
 import { setValueKey } from './set.js';
 import { isStoredValue } from './stored-value.js';
+import { materializeSqlite, materializeSqliteExpression } from './modules/sqlite.js';
 import {
     isRankArray, isRankSequence, isRankTuple, isRankRecord, isRankObject, isRankIndex,
-    isRankQueue, isRankSet, isRankCounter, isRankMultiset, tuple, typeName, MISSING,
+    isRankQueue, isRankSet, isRankCounter, isRankMultiset, isRankSqliteTable, isRankSqliteExpression, tuple, typeName, MISSING,
     checkCollectionElementType, type RankRecord, type RankCounter, type RankTuple, type RankValue,
 } from './value.js';
 
@@ -49,6 +50,8 @@ export function materializeValue(value: RankValue): RankValue {
     const enter = (input: RankValue): { value: RankValue; node?: Completion } => {
         let computed = demandValue(input);
         if (isRankSequence(computed)) computed = materializeSequence(computed);
+        else if (isRankSqliteTable(computed)) computed = materializeSqlite(computed);
+        else if (isRankSqliteExpression(computed)) computed = materializeSqliteExpression(computed);
         if (isStoredValue(computed)) return { value: computed };
         const previous = known.get(computed);
         if (previous) return { value: computed, node: previous };

@@ -1,4 +1,6 @@
 import { ByteArray } from '../bytes.js';
+import { ownedArray } from '../array-storage.js';
+import { sameSqliteSource } from '../sqlite-source.js';
 import { MissingValueError, RankError } from '../errors.js';
 import type { RankSqliteConnection, SqliteScalar } from '../io.js';
 import {
@@ -177,7 +179,7 @@ export function textFunctionSqlite(
 ): RankSqliteExpression {
     const expressions = values.filter(isRankSqliteExpression);
     const table = expressions[0]?.table;
-    if (!table || expressions.some(expression => expression.table !== table)) {
+    if (!table || expressions.some(expression => !sameSqliteSource(expression.table, table))) {
         throw new RankError('SQLite text operands must come from one table', 'TypeError');
     }
     const parts = values.map(value => isRankSqliteExpression(value)
@@ -222,7 +224,7 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
     let windowField: string | undefined;
     for (const [name, value] of fields.entries) {
         if (isRankSqliteExpression(value)) {
-            if (value.table !== table) {
+            if (!sameSqliteSource(value.table, table)) {
                 throw new RankError(`select field .${name} belongs to another SQLite view`, 'TypeError');
             }
             columns.push(`${value.text} AS ${quote(name)}`);
@@ -245,7 +247,7 @@ export function selectSqlite(table: RankSqliteTable, fields: RankRecord): RankSq
 }
 
 export function filterSqlite(table: RankSqliteTable, predicate: RankSqliteExpression): RankSqliteTable {
-    if (predicate.table !== table || !predicate.boolean) {
+    if (!sameSqliteSource(predicate.table, table) || !predicate.boolean) {
         throw new RankError('SQLite filter expects a boolean expression from this table', 'TypeError');
     }
     return { kind: 'sqlite-table', database: table.database, scopes: table.scopes,
@@ -438,7 +440,7 @@ export function binarySqlite(
     const leftExpr = isRankSqliteExpression(left) ? left : undefined;
     const rightExpr = isRankSqliteExpression(right) ? right : undefined;
     const table = leftExpr?.table ?? rightExpr?.table;
-    if (!table || (leftExpr && rightExpr && leftExpr.table !== rightExpr.table)) {
+    if (!table || (leftExpr && rightExpr && !sameSqliteSource(leftExpr.table, rightExpr.table))) {
         throw new RankError('SQLite expression operands must come from one table', 'TypeError');
     }
     if ((operator === 'and' || operator === 'or')
@@ -542,7 +544,7 @@ export function chooseSqlite(
 ): RankSqliteExpression {
     const expressions = [condition, whenTrue, whenFalse].filter(isRankSqliteExpression);
     const table = expressions[0]?.table;
-    if (!table || expressions.some(expression => expression.table !== table)) {
+    if (!table || expressions.some(expression => !sameSqliteSource(expression.table, table))) {
         throw new RankError('SQLite choose operands must come from one table', 'TypeError');
     }
     if (isRankSqliteExpression(condition) ? !condition.boolean : typeof condition !== 'boolean') {
@@ -571,8 +573,9 @@ export function lookupSqlite(
     key: RankSqliteExpression,
     value: RankSqliteExpression,
 ): RankSqliteExpression {
-    if (key.table !== value.table
-        || requested.table.database.path !== key.table.database.path) {
+    if (!sameSqliteSource(key.table, value.table)
+        || (requested.table.database.path !== key.table.database.path
+            || requested.table.database.io !== key.table.database.io)) {
         throw new RankError('SQLite lookup expects one source view and database', 'TypeError');
     }
     const qualify = (text: string, alias: string) => text.replace(
@@ -722,7 +725,7 @@ export function sqliteWrite(
         const params: SqliteScalar[] = [];
         const changes = [...fields.entries].map(([field, value]) => {
             if (isRankSqliteExpression(value)) {
-                if (value.table !== table) throw new RankError('update field belongs to another view', 'TypeError');
+                if (!sameSqliteSource(value.table, table)) throw new RankError('update field belongs to another view', 'TypeError');
                 params.push(...value.params);
                 return `${checked(field)} = ${value.text}`;
             }
@@ -808,10 +811,11 @@ export function materializeSqliteExpression(expression: RankSqliteExpression): R
     const rows = withConnection(table.database, connection => connection.prepare(
         `SELECT ${expression.text} AS value FROM (${table.text}) AS source`,
     ).all([...expression.params, ...table.params]));
-    return { kind: 'array', items: rows.map(row => {
+    const booleanColumns = expression.boolean ? new Set(['value']) : undefined;
+    return ownedArray(rows.map(row => {
         if (row.value === null) throw new MissingValueError('SQLite column contains NULL');
-        return fromSqlite(row.value);
-    }), shape: [rows.length] };
+        return fromColumn(row.value, 'value', booleanColumns);
+    }), [rows.length]);
 }
 
 function resultRows(

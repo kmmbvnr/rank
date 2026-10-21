@@ -1,6 +1,6 @@
 import { AstUtils, isAstNode, type AstNode } from 'langium';
 import {
-    applicationExpression, applicationForm, expressionFacts, flattenApplication,
+    applicationExpression, applicationForm, expressionFacts, expressionFreeReads, flattenApplication,
     isApplicationExpression, isBinaryExpression, isBooleanLiteral, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
     isExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, nameNeedsExecution, UNKNOWN_VALUE,
     type Expression, type NameExpression, type Operation,
@@ -12,6 +12,7 @@ import { LocalFrame } from '../frame.js';
 import { BuiltinRegistry } from '../modules/builtins.js';
 import { isRankPlan, type RankPlan } from '../plan.js';
 import { isNativeFunction, isRankArray, isRankSequence, MISSING, type NativeFunction, type RankValue } from '../value.js';
+import { identifySqliteSource } from '../sqlite-source.js';
 
 interface ConstructionContext {
     readonly bindings: BindingEnvironment;
@@ -36,13 +37,11 @@ export class PlanConstruction {
     isReference(expression: Expression): boolean { return this.references.has(expression); }
 
     hasUserFunction(expression: Expression): boolean {
-        return AstUtils.streamAst(expression).some(node => isNameExpression(node)
-            && !this.isReference(node) && !!this.userFunction(node));
+        return expressionFreeReads(expression).some(node => !this.isReference(node) && !!this.userFunction(node));
     }
 
     hasInput(expression: Expression): boolean {
-        return AstUtils.streamAst(expression).some(node => {
-            if (!isNameExpression(node)) return false;
+        return expressionFreeReads(expression).some(node => {
             const value = this.context.findVariable(node.name);
             return value !== undefined && (isRankPlan(value) || isRankSequence(value)
                 || isRankArray(value) && denseScalarItems(value) === undefined);
@@ -224,10 +223,10 @@ export class PlanConstruction {
     }
 
     private capture(expression: Expression): RankPlan {
+        const source = {};
         const dependencies = new Map<string, RankValue>();
         const functions = new Map<NativeFunction, NativeFunction>();
-        for (const node of AstUtils.streamAst(expression)) {
-            if (!isNameExpression(node)) continue;
+        for (const node of expressionFreeReads(expression)) {
             const value = this.context.findVariable(node.name);
             if (value !== undefined) dependencies.set(node.name, isNativeFunction(value)
                 ? this.context.snapshotFunction(value, functions) : value);
@@ -251,7 +250,7 @@ export class PlanConstruction {
         });
         return { kind: 'plan', expression, dependencies, result,
             evaluate: () => completed(this.context.bindings.withFrame(snapshot,
-                () => runExecution(this.context.execute(expression, false)))),
+                () => identifySqliteSource(runExecution(this.context.execute(expression, false)), source))),
         };
     }
 }

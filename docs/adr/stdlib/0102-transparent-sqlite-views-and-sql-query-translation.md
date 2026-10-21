@@ -24,8 +24,8 @@ Rank establishes **Transparent SQLite Views with Deferred Execution and SQL Tran
 use tables
 
 Db = "club.sqlite3" sqlite
-Facilities = Db .facilities
-Filtered = Facilities filter .membercost greater 0
+Facilities' = Db .facilities
+Filtered' = Facilities filter .membercost greater 0
 Statement = Filtered sql
 Rows = Filtered array
 ```
@@ -43,9 +43,12 @@ Common analytical operations compile directly to native SQL primitives:
 - Relational joins translate directly to SQL `JOIN` clauses.
 - Data is processed directly inside SQLite's optimized C engine, transferring only necessary results into memory.
 
-### 3. Transparent Execution via Materialization (`array`)
-- A SQLite view remains lazy until an explicit demand point is reached.
-- Postfix `array` executes the compiled SQL statement and returns a rank-1 array of object rows:
+### 3. Binding and materialization
+- `Query' = Expression` retains a query plan. Each demand recomputes the query against the current database state without retaining previous rows.
+- `Rows = Query` executes and stores the ready row array. Ordinary column bindings and nested record/container values also materialize.
+- A database handle remains a resource. Binding it does not copy the database.
+- A SQLite view remains lazy while it is part of an explicitly deferred plan.
+- Postfix `array` also executes the compiled SQL statement and returns a rank-1 array of object rows:
   ```rank
   Rows = Filtered array
   ```
@@ -65,7 +68,7 @@ Rank allows developers to inspect generated SQL and execution plans programmatic
 Direct updates, inserts, and deletions operate on base table views and return the count of affected rows:
 ```rank
 Db .facilities insert NewFacility
-Target = Db .facilities filter .facid equal 1
+Target' = Db .facilities filter .facid equal 1
 Target update
   .initialoutlay = 10000
 end
@@ -76,7 +79,7 @@ Target delete
 ### 7. Direct SQL Fallback (`sqlquery`)
 For queries that cannot yet be expressed via Rank table syntax (e.g. specialized PRAGMAs or custom CTEs), `sqlquery` provides safe parameter-bound SQL execution:
 ```rank
-Result = Db "SELECT * FROM t WHERE id = ?" (array TargetId) sqlquery
+Result' = Db "SELECT * FROM t WHERE id = ?" (array TargetId) sqlquery
 Rows = Result array
 ```
 

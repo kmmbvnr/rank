@@ -5251,7 +5251,7 @@ With `use tables`, an existing SQLite database can be opened read-only:
 
 ```rank
 Db = "demos/pgexercises/data/club.sqlite3" sqlite
-Facilities = Db .facilities
+Facilities' = Db .facilities
 Query = Facilities sql
 Rows = Facilities array
 ```
@@ -5260,7 +5260,11 @@ To inspect the SQL and plan in a program, add `use io` and print
 `Query .text` or `(Facilities explain) .detail`.
 
 `Db .facilities` validates the table name and returns a SQLite-backed table
-view without loading rows. The variable keeps the database path and query plan.
+view without loading rows. `Facilities' = Db .facilities` retains the query;
+`Rows = Facilities` executes it and stores a ready row array. Ordinary column
+bindings and nested record/container values also materialize. Repeated demand
+of an explicit query plan reads the current database state without retaining
+previous rows. The database handle remains a resource.
 `Query` is a record with `.text` (parameterized SQL) and `.params` (an ordered
 array of bound values). `Facilities explain` runs `EXPLAIN QUERY PLAN` and
 returns an ordinary Rank table of plan rows. Postfix `array` executes the query
@@ -5279,17 +5283,18 @@ shapes are errors.
 `Index choose Choices` selects among more than two branches: each integer index
 cell names a leading-axis cell of `Choices`, with trailing-axis broadcasting
 and only the chosen value read. An index outside the choices raises `.Missing`.
-`M = Db .members alias .m` gives a table view a join role without reading or
+`M' = Db .members alias .m` gives a table view a join role without reading or
 renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under
 the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
 `default` after materialization. The SQL join remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
-`Cols = record ... end` followed by `Out = View select Cols` builds an ordered,
-named projection. SQLite expressions must belong to `View`; constants become
-bound parameters. It returns a flat lazy SQLite view without changing its
-source. An array source produces lazy rank-1 object rows from scalar fields or
+`Out' = View select ... end` builds an ordered, named projection without
+reading rows. SQLite expressions must belong to `View`; constants become bound
+parameters. Ordinary record fields complete SQL columns, so use the contextual
+`select` block to retain their expressions. The projection returns a flat query
+view without changing its source. An array source produces lazy rank-1 object rows from scalar fields or
 same-length rank-1 columns. Missing array cells and SQLite `NULL` omit the
 corresponding output field. Boolean SQL expressions materialize as Rank
 booleans. A final `sort by` after `select` orders the exported rows.
@@ -5322,7 +5327,7 @@ join keys compare by numeric value, while text and numeric keys do not match.
 rows and applies named `select` reductions over the current row and up to
 `N-1` predecessors; on SQLite this compiles to an ordered `ROWS` window.
 `sql` exposes the current query and ordered parameters; `explain` inspects its
-SQLite plan. `array`, `print` or CSV output materializes a view. SQLite-backed views are
+SQLite plan. Ordinary binding, `array`, `print` or CSV output materializes a view. SQLite-backed views are
 read-only; derived-column assignment and operations beyond this set require
 materialization. An expression used as a mask must belong to that exact view.
 
@@ -5332,7 +5337,7 @@ an explicit read-only SQL source with positional bound parameters:
 ```rank
 Text = "SELECT * FROM facilities WHERE facid = ?"
 Params = array FacilityId
-Result = Db Text Params sqlquery
+Result' = Db Text Params sqlquery
 Rows = Result array
 ```
 

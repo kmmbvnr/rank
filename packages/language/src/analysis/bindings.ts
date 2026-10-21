@@ -23,7 +23,7 @@ import {
     isPushStatement, isRecordExpression, isRecordField, isRecordUpdateExpression, isReturnStatement, isStdinExpression,
     isTestStatement, isTryStatement, isUnaryExpression, isUnpackExpression,
     isUnpackStatement, isUseStatement, isYieldStatement,
-    type Expression, type Program, type Statement,
+    type Expression, type NameExpression, type Program, type Statement,
 } from '../generated/ast.js';
 import type { AstNode } from 'langium';
 import { findOperation, operationArities } from '../operations.js';
@@ -155,6 +155,22 @@ export function analyzeBindings(
     signatures: ReadonlyMap<string, FunctionCallSignature> = new Map(),
 ): ProgramFacts {
     return new Analyzer(new Set(imported), externalFunctions, observeRead, signatures).run(program);
+}
+
+const expressionReads = new WeakMap<Expression, readonly NameExpression[]>();
+
+/** Reads supplied by the enclosing environment, excluding sequential query locals. */
+export function expressionFreeReads(expression: Expression): readonly NameExpression[] {
+    const cached = expressionReads.get(expression);
+    if (cached) return cached;
+    const reads: NameExpression[] = [];
+    const program: Program = { $type: 'Program', statements: [] };
+    program.statements.push({ $type: 'ExpressionStatement', $container: program, value: expression });
+    analyzeBindings(program, [], new Map(), (node, binding) => {
+        if (!binding && isNameExpression(node)) reads.push(node);
+    });
+    expressionReads.set(expression, reads);
+    return reads;
 }
 
 interface Slot {
