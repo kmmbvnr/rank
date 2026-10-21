@@ -1,0 +1,150 @@
+rem Retractions B
+rem https://projecteuler.net/problem=446
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+
+rem R(m) = s(m) - m with s the sum of
+rem unitary divisors. n^4 + 4 =
+rem ((n-1)^2 + 1)((n+1)^2 + 1), so
+rem s = Q(n-1) Q(n+1) for odd n and
+rem 5/9 of that for even n, where
+rem Q(m) = s(m^2 + 1). A sieve gives
+rem Q: for each prime p = 1 mod 4 the
+rem m with p | m^2 + 1 are r and -r
+rem mod p, r^2 = -1. What is left of
+rem m^2 + 1 is one big prime.
+Mod = 1000000007
+Top = N + 1
+Ms = (0 to Top) copy
+Rem = (Ms * Ms + 1) copy
+Acc = array shape (Top + 1) fill 1
+Od = Ms mod 2 equal 1
+Acc = (Od choose 3 1) copy
+Rem = (Od choose (Rem // 2) Rem) copy
+Ap = primes to Top array
+P4 = Ap (Ap mod 4 equal 1 indices)
+Eq = (P4 - 1) // 4
+Pu = P4
+Eu = Eq
+Pr = array shape 0 fill 0
+Rt = array shape 0 fill 0
+for A in 2 to 100
+  if Pu len equal 0
+    break
+  end
+  Res = Pu * 0 + 1
+  Bs = Pu * 0 + A
+  Ex = Eu
+  for Ex max greater 0
+    Bit = Ex mod 2 equal 1
+    Mu = Res * Bs mod Pu
+    Res = Bit choose Mu Res
+    Bs = Bs * Bs mod Pu
+    Ex = Ex // 2
+  end
+  Sq = Res * Res mod Pu
+  Hit = Sq equal (Pu - 1)
+  Ix = Hit indices
+  Pr = concat Pr (Pu Ix)
+  Rt = concat Rt (Res Ix)
+  Lf = Hit equal false indices
+  Pu = Pu Lf
+  Eu = Eu Lf
+end
+Bc = Top isqrt
+Sm = Pr at most Bc
+rem Small primes: strided slices.
+Ps = Pr (Sm indices)
+Rs = Rt (Sm indices)
+for I in 0 to Ps len - 1
+  P = Ps I
+  for Sg in 0 to 1
+    R0 = Rs I
+    if Sg equal 1
+      R0 = P - R0
+    end
+    if R0 at most Top
+      Sl = R0 to Top by P
+      Cur = (Rem Sl) // P
+      Pe = (Cur * 0 + P) copy
+      for I2 in 1 to 80
+        Dv = Cur mod P equal 0
+        if (Dv choose 1 0) sum equal 0
+          break
+        end
+        Cur = Dv choose (Cur // P) Cur
+        Pe = Dv choose (Pe * P) Pe
+      end
+      Rem Sl = Cur
+      Acc Sl = (Acc Sl) * (Pe + 1)
+    end
+  end
+end
+rem Large primes: step j for all.
+rem Equal m share a prime in turn, by
+rem rank among equal m.
+Lg = Sm equal false indices
+P0 = Pr Lg
+R0 = Rt Lg
+Pp = concat P0 P0
+Rr = concat R0 (P0 - R0)
+for J in 0 to Top // Bc + 1
+  Mp = Rr + J * Pp
+  Ix = (Mp at most Top) indices
+  if Ix len equal 0
+    break
+  end
+  Pp = Pp Ix
+  Rr = Rr Ix
+  Mp = Mp Ix
+  Oq = Mp argsort
+  Mx = Mp Oq
+  Pv = Pp Oq
+  Nn = Mx len
+  Ps2 = (0 to Nn - 1) copy
+  Kp = concat (array -1) Mx
+  Pm = Kp (0 to Nn - 1)
+  St = Mx not equal Pm
+  Gs = (St choose Ps2 0) scan max with 0
+  Rk = Ps2 - Gs (1 to Nn)
+  Mrk = Rk max
+  for Rd in 0 to Mrk
+    Sel = Rk equal Rd indices
+    Mq = Mx Sel
+    Pq = Pv Sel
+    Cur = (Rem Mq) // Pq
+    Pe = Pq
+    for I2 in 1 to 80
+      Dv = Cur mod Pq equal 0
+      if (Dv choose 1 0) sum equal 0
+        break
+      end
+      Cur = Dv choose (Cur // Pq) Cur
+      Pe = Dv choose (Pe * Pq) Pe
+    end
+    Rem Mq = Cur
+    Acc Mq = (Acc Mq) * (Pe + 1)
+  end
+end
+Big = Rem greater 1
+Ac2 = Acc * (Rem + 1)
+Acc = (Big choose Ac2 Acc) copy
+Acc0 = Acc mod Mod
+Qa = Acc0 (0 to N - 1)
+Qb = Acc0 (2 to Top)
+Ns = (1 to N) copy
+Sa = Qa * Qb mod Mod
+Ev = Ns mod 2 equal 0
+Inv9 = 9 (Mod - 2) Mod powmod
+Sb = Sa * 5 mod Mod * Inv9 mod Mod
+Ss = Ev choose Sb Sa
+N2 = Ns * Ns mod Mod
+N4 = N2 * N2 mod Mod
+Tot = (Ss - N4 - 4) mod Mod
+Answer = (Tot sum) mod Mod
+Answer print

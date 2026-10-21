@@ -1,0 +1,28 @@
+use testing
+
+test "statement values"
+  use "446_retractionsb"
+  N = 1
+  run
+  Answer equal 1
+  N = 2
+  run
+  Answer equal 11
+  N = 3
+  run
+  Answer equal 34
+end
+
+test "published checkpoint"
+  use "446_retractionsb"
+  N = 1024
+  run
+  Answer equal 376757876
+end
+
+test "sieve of larger primes"
+  use "446_retractionsb"
+  N = 100000
+  run
+  Answer equal 312372944
+end
