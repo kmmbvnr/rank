@@ -1,0 +1,55 @@
+rem Square Silo
+rem https://projecteuler.net/problem=431
+
+use numbers
+use sequences
+use io
+use cli
+
+option R integer = 6
+option Deg integer = 40
+option Steps integer = 4096
+option Digits integer = 9
+
+rem Empty volume V(x) = (tan a / 3) *
+rem integral of s^3 over the angle,
+rem s = ray length to the wall from
+rem a point x off the centre. Simpson
+rem sums the integral, and bisection
+rem finds each x with V(x) = k^2 for
+rem the squares between V(0) and V(R).
+Pi = 4 * (1.0 atan)
+Ta = (Pi * Deg / 180) tan
+Ph = (0 to Steps) copy
+Ang = Ph * (2 * Pi / Steps)
+Cs = Ang cos
+Sn2 = (Ang sin) ** 2
+Wt = (2 + 2 * (Ph mod 2)) * 1.0
+Wt 0 = 1.0
+Wt Steps = 1.0
+Hh = 2 * Pi / Steps / 3
+Kv = Ta / 3 * Hh
+R2 = R * R * 1.0
+V0 = 2 * Pi * R ** 3 / 3 * Ta
+V1 = 32 * R ** 3 / 9 * Ta
+Lo = V0 sqrt ceil
+Hi = V1 sqrt floor
+Tot = 0.0
+for K in Lo to Hi
+  A = 0.0
+  B = R * 1.0
+  for I in 1 to 120
+    X = (A + B) / 2
+    Dc = (R2 - X * X * Sn2) sqrt
+    Sv = Dc - X * Cs
+    Vol = Kv * ((Wt * Sv * Sv * Sv) sum)
+    if Vol less K * K
+      A = X
+    else
+      B = X
+    end
+  end
+  Tot += (A + B) / 2
+end
+Answer = Tot Digits round
+Answer print
