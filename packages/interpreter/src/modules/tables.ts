@@ -1,15 +1,15 @@
 import { checkpoint } from '../interrupt.js';
+import { tableRows, tableColumns, tableKey } from '../table-rows.js';
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
 import { materializeSequence } from '../sequence.js';
-import { arrayRevision, derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
+import { derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { isKnownFileFree } from '../resource-summary.js';
 import { readTextFile, writeTextFile } from './io.js';
-import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, selectRollingSqlite, sqliteColumns } from './sqlite.js';
+import { lookupSqlite, materializeSqlite, selectSqlite, selectGroupedSqlite, selectRollingSqlite } from './sqlite.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
-import { sortByKeys } from './sequences.js';
 import { RankArrowTable, parseCsvToArrow } from '../arrow-table.js';
 import { expectNumeric } from './shared.js';
 import { meanValue, medianValue, standardDeviation, varianceValue, skewnessValue, modeValue, quantileValue } from './stats.js';
@@ -173,30 +173,6 @@ function selectArray(source: RankArray, fields: RankRecord): RankArray {
     return result;
 }
 
-function tableRows(value: RankValue, operation: string): RankObject[] {
-    if (!isRankArray(value) || value.shape.length !== 1) {
-        throw new RankError(`${operation} expects a rank-1 table`, 'DimensionMismatch');
-    }
-    const rows = Array.from({ length: value.shape[0] }, (_, index) =>
-        value.itemAt?.(index) ?? value.items[index]);
-    if (!rows.every(isRankObject)) {
-        throw new RankError(`${operation} expects object rows`, 'TypeError');
-    }
-    return rows;
-}
-
-function tableColumns(value: RankArray, rows: readonly RankObject[]): string[] {
-    const names = new Set(value.columnNames ?? []);
-    for (const row of rows) {
-        checkpoint('processing table');
-        for (const name of row.entries.keys()) {
-                                checkpoint('processing table');
-                                names.add(name);
-                            }
-    }
-    return [...names];
-}
-
 function reachKey(value: RankValue): string {
     if (typeof value === 'string' || typeof value === 'bigint'
         || (typeof value === 'number' && Number.isFinite(value))) return setValueKey(value);
@@ -262,106 +238,6 @@ export function reachTable(edges: RankValue, starts: RankValue, from: string, to
         }
     }
     return ownedArray(items, [items.length], false, [from, to]);
-}
-
-function tableKey(
-    row: RankObject,
-    fields: readonly string[],
-    keepMissing = false,
-): string | undefined {
-    const parts: (string | null)[] = [];
-    for (const field of fields) {
-        checkpoint('processing table');
-        const value = row.entries.get(field);
-        if (value === undefined) {
-            if (!keepMissing) return undefined;
-            parts.push(null);
-            continue;
-        }
-        if (!(typeof value === 'bigint' || typeof value === 'number'
-            || typeof value === 'boolean' || typeof value === 'string'
-            || isRankLabel(value) || isRankDate(value))) {
-            throw new RankError(`table key .${field} must be scalar`, 'TypeError');
-        }
-        if (typeof value === 'number' && Number.isNaN(value)) {
-            throw new RankError(`table key .${field} cannot be NaN`, 'DomainError');
-        }
-        parts.push(setValueKey(value));
-    }
-    return JSON.stringify(parts);
-}
-
-export function groupTable(source: RankValue, fields: readonly string[], rollup = false): RankGroupedTable {
-    if (new Set(fields).size !== fields.length) {
-        throw new RankError('group by fields must be unique', 'TypeError');
-    }
-    const input = isRankTableAlias(source) ? source.source : source;
-    if (isRankSqliteTable(input)) {
-        const columns = sqliteColumns(input);
-        for (const field of fields) {
-            checkpoint('processing table');
-            if (!columns.includes(field)) {
-                throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
-            }
-        }
-        return { kind: 'grouped-table', fields, groups: [], sqliteSource: input, rollup };
-    }
-    const rows = tableRows(input, 'group by');
-    const groups: { keys: (RankValue | undefined)[]; rows: RankObject[] }[] = [];
-    const positions = new Map<string, number>();
-    const add = (row: RankObject | undefined, level: number): void => {
-        const keys = fields.map((field, index) => index < level ? row?.entries.get(field) : undefined);
-        const id = JSON.stringify([level, row ? tableKey(row, fields.slice(0, level), true) : '[]']);
-        let position = positions.get(id);
-        if (position === undefined) {
-            position = groups.length;
-            positions.set(id, position);
-            groups.push({ keys, rows: [] });
-        }
-        if (row) groups[position].rows.push(row);
-    };
-    for (const sourceRow of rows) {
-        checkpoint('processing table');
-        const row = ownedObject(sourceRow.entries);
-        for (let level = fields.length; level >= (rollup ? 0 : fields.length); level -= 1) {
-            checkpoint('processing table');
-            add(row, level);
-        }
-    }
-    if (rollup && rows.length === 0) add(undefined, 0);
-    return { kind: 'grouped-table', fields, groups, rollup };
-}
-
-export function rollingTable(source: RankValue, width: RankValue, field: string): RankGroupedTable {
-    if (typeof width !== 'bigint' || width < 1n || width > BigInt(Number.MAX_SAFE_INTEGER)) {
-        throw new RankError('rolling width must be a positive integer', 'TypeError');
-    }
-    const input = isRankTableAlias(source) ? source.source : source;
-    const rolling = { width: Number(width), field };
-    if (isRankSqliteTable(input)) {
-        if (!sqliteColumns(input).includes(field)) {
-            throw new RankError(`SQLite column does not exist: .${field}`, 'Missing');
-        }
-        return { kind: 'grouped-table', fields: [field], groups: [], sqliteSource: input, rolling };
-    }
-    if (!isRankArray(input) || input.shape.length !== 1) {
-        throw new RankError('rolling by expects a rank-1 table', 'DimensionMismatch');
-    }
-    let sortedRows: RankArray | undefined;
-    let sortedRevision: number | undefined;
-    const sorted = derivedArray(input.shape, [input], index => {
-        const revision = arrayRevision(input);
-        if (!sortedRows || revision === undefined || revision !== sortedRevision) {
-            const rows = tableRows(input, 'rolling by');
-            if (rows.some(row => !row.entries.has(field))) {
-                throw new RankError(`rolling by requires .${field} in every row`, 'Missing');
-            }
-            sortedRows = sortByKeys(rows, rows.map(row => [row.entries.get(field)]), 'rolling by');
-            sortedRevision = revision;
-        }
-        return readArrayItem(sortedRows, index);
-    });
-    return { kind: 'grouped-table', fields: [field], groups: [], rollingSource: sorted, rolling };
 }
 
 export type GroupAggregateOperation = 'count' | 'sum' | 'min' | 'max' | 'mean' | 'median' | 'std' | 'variance' | 'var' | 'skewness' | 'skew' | 'mode' | 'quantile' | 'percentile';

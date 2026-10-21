@@ -1,6 +1,7 @@
 import { arrayResourceValues, denseScalarItems, noteArrayBinding } from './array-storage.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { GraphValue } from './graph.js';
+import { groupedTableValues } from './grouped-table.js';
 import { checkpoint } from './interrupt.js';
 import { isRankPlan } from './plan.js';
 import { protectValue, valueProtection } from './value-protection.js';
@@ -51,11 +52,7 @@ export function prepareCaptureProtection(value: RankValue, message: string): () 
             }
         })();
         else if (isRankTableAlias(item)) children = [item.source];
-        else if (isRankGroupedTable(item)) children = (function* () {
-            for (const group of item.groups) yield* group.rows;
-            if (item.columnar) yield item.columnar.table;
-            if (item.rollingSource) yield item.rollingSource;
-        })();
+        else if (isRankGroupedTable(item)) children = groupedTableValues(item);
         else if (isRankSequence(item) && !item.plan.singlePass && item.plan.captures) children = captures(item.plan.captures);
         else if (isNativeFunction(item)) children = item.captureValues?.() ?? (item.captures && captures(item.captures));
         else if (item.kind === 'graph' && 'captures' in item) children = captures(item.captures);

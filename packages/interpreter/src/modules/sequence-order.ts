@@ -45,3 +45,47 @@ export function stableOrder(items: readonly RankValue[], kind: OrderedKind, desc
             (descending ? -1 : 1) * compareOrderedValues(items[left], items[right], kind) || left - right, 'sorting'));
 }
 
+/** Sort already-computed key rows lexicographically and stably. */
+export function sortByKeys(
+    items: readonly RankValue[],
+    keys: readonly (readonly (RankValue | undefined)[])[],
+    operation = 'sort by',
+    indices = false,
+    descending: readonly boolean[] = [],
+): RankArray {
+    if (items.length !== keys.length) throw new RankError(`${operation} key count mismatch`);
+    const width = keys[0]?.length ?? 0;
+    if (keys.some(key => key.length !== width)) {
+        throw new RankError(`${operation} keys must have one shape`);
+    }
+    const kinds = Array.from({ length: width }, (_, column) => {
+        const first = keys.find(row => row[column] !== undefined)?.[column];
+        if (first === undefined) return undefined;
+        const kind = orderedKind(first);
+        for (const row of keys) {
+            const value = row[column];
+            if (value !== undefined && orderedKind(value) !== kind) {
+                throw new RankError(`${operation} key values must have one comparable type`);
+            }
+        }
+        return kind;
+    });
+    const entries = items.map((value, position) => ({ value, position, keys: keys[position] }));
+    entries.sort(interruptibleCallback((left, right) => {
+        for (let column = 0; column < width; column += 1) {
+            const a = left.keys[column];
+            const b = right.keys[column];
+            if (a === undefined || b === undefined) {
+                if (a !== b) return a === undefined ? 1 : -1;
+                continue;
+            }
+            const order = compareOrderedValues(a, b, kinds[column]!);
+            if (order !== 0) return descending[column] ? -order : order;
+        }
+        return left.position - right.position;
+    }, 'sorting'));
+    const result = ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
+    if (!indices) Object.defineProperty(result, 'sortKeys', { value: entries.map(entry => entry.keys) });
+    return result;
+}
+

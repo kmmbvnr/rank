@@ -13,11 +13,12 @@ import { recordContract } from './record-contract.js';
 import { setValueKey } from './set.js';
 import { isStoredValue } from './stored-value.js';
 import { RankArrowTable, checkColumnValues, columnFromValues } from './arrow-table.js';
+import { groupedTableValues, ownedGroupedTable, groupTable, rollingTable } from './grouped-table.js';
 import { materializeSqlite, materializeSqliteExpression, materializeSqliteScope } from './modules/sqlite.js';
 import {
     isRankArray, isRankSequence, isRankTuple, isRankRecord, isRankObject, isRankIndex,
     isRankQueue, isRankSet, isRankCounter, isRankMultiset, isRankTable, isRankTableAlias,
-    isRankSqliteTable, isRankSqliteExpression, isRankSqliteScope, tuple, typeName, MISSING,
+    isRankSqliteTable, isRankSqliteExpression, isRankSqliteScope, isRankGroupedTable, tuple, typeName, MISSING,
     checkCollectionElementType, type RankRecord, type RankCounter, type RankTuple, type RankValue,
 } from './value.js';
 
@@ -55,6 +56,12 @@ export function materializeValue(value: RankValue): RankValue {
         else if (isRankSqliteTable(computed)) computed = materializeSqlite(computed);
         else if (isRankSqliteExpression(computed)) computed = materializeSqliteExpression(computed);
         else if (isRankSqliteScope(computed)) computed = materializeSqliteScope(computed);
+        else if (isRankGroupedTable(computed) && computed.sqliteSource) {
+            const rows = materializeSqlite(computed.sqliteSource);
+            computed = computed.rolling
+                ? rollingTable(rows, BigInt(computed.rolling.width), computed.rolling.field)
+                : groupTable(rows, computed.fields, computed.rollup);
+        }
         if (isStoredValue(computed)) return { value: computed };
         const previous = known.get(computed);
         if (previous) return { value: computed, node: previous };
@@ -160,6 +167,18 @@ export function materializeValues(values: readonly RankValue[]): readonly RankVa
 }
 
 function aggregateValue(value: RankValue): Aggregate | undefined {
+    if (isRankGroupedTable(value)) return { values: [...groupedTableValues(value)], finish: values => {
+        let index = 0;
+        const next = () => values[index++];
+        const rollingSource = value.rollingSource ? next() as typeof value.rollingSource : undefined;
+        const table = value.columnar ? next() as RankArrowTable : undefined;
+        const keys = (values: readonly (RankValue | undefined)[]) => values.map(value => value === undefined ? undefined : next());
+        const groups = value.groups.map(group => ({ keys: keys(group.keys),
+            rows: group.rows.map(() => next() as typeof group.rows[number]) }));
+        const columnar = value.columnar ? { table: table!, groups: value.columnar.groups.map(group =>
+            ({ ...group, keys: keys(group.keys) })) } : undefined;
+        return ownedGroupedTable({ ...value, groups, rollingSource, columnar });
+    } };
     if (isRankTableAlias(value)) return { values: [value.source],
         finish: ([source]) => ({ ...value, source: source as typeof value.source }) };
     if (isRankTable(value)) {

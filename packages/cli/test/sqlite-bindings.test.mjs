@@ -100,6 +100,110 @@ Scope' = Joined .right`);
         data.balanced();
     });
 
+    for (const [operation, expected, changed] of [
+        ['group by .name', [1n, 2n], [1n, 12n]],
+        ['rollup by .name', [1n, 2n, 3n], [1n, 12n, 13n]],
+        ['2 rolling by .id', [1n, 3n], [1n, 13n]],
+    ]) {
+        test(`SQLite ${operation} respects group retention (compilation=${compilation})`, { timeout: 10000 }, t => {
+            const data = fixture(t);
+            const runtime = new Interpreter(undefined, { io: data.io, compilation });
+            t.after(() => runtime.dispose());
+            const select = `select
+ .n = count
+ .total = .id sum
+end`;
+            const totals = rows => rows.items.map(row => row.entries.get('total'))
+                .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+            runtime.execute(`use tables
+use sequences
+Db = ${JSON.stringify(data.path)} sqlite
+Source' = Db .items
+Groups' = Source ${operation}`);
+            assert.equal(data.reads(), 0);
+            runtime.execute('Saved = Groups');
+            assert.equal(data.reads(), 1);
+            assert.equal(runtime.variables.get('Saved').sqliteSource, undefined);
+            runtime.execute(`Ready = Saved ${select}`);
+            assert.deepEqual(totals(runtime.variables.get('Ready')), expected);
+            assert.equal(data.reads(), 1);
+            runtime.execute(`Later' = Groups ${select}
+Statement = Later sql`);
+            assert.equal(data.reads(), 1);
+            data.db.exec('UPDATE items SET id = 12 WHERE id = 2');
+            assert.deepEqual(totals(runtime.execute('Later array')), changed);
+            assert.equal(data.reads(), 2);
+            runtime.execute(`Retained = Saved ${select}`);
+            assert.deepEqual(totals(runtime.variables.get('Retained')), expected);
+            assert.equal(data.reads(), 2);
+            data.balanced();
+        });
+    }
+
+    test(`empty SQLite rollup retains one grand total (compilation=${compilation})`, { timeout: 10000 }, t => {
+        const data = fixture(t);
+        data.db.exec('DELETE FROM items');
+        const runtime = new Interpreter(undefined, { io: data.io, compilation });
+        t.after(() => runtime.dispose());
+        runtime.execute(`use tables
+use sequences
+Db = ${JSON.stringify(data.path)} sqlite
+Groups' = (Db .items) rollup by .name
+Saved = Groups
+Result = Saved select
+ .n = count
+ .total = .id sum
+end`);
+        assert.equal(data.reads(), 1);
+        const result = runtime.variables.get('Result');
+        assert.equal(result.items.length, 1);
+        assert.deepEqual([...result.items[0].entries], [['n', 0n], ['total', 0n]]);
+        data.balanced();
+    });
+
+    for (const file of ['003_recs.ra', '012_rollup.ra', '022_rolling.ra']) {
+        test(`PostgreSQL Exercises ${file} preserves SQL pushdown (compilation=${compilation})`, { timeout: 10000 }, t => {
+            const data = fixture(t);
+            data.db.exec(`CREATE TABLE members(memid INTEGER, recommendedby INTEGER);
+                INSERT INTO members VALUES (1, NULL), (2, 1), (3, 1), (4, 99);
+                CREATE TABLE facilities(facid INTEGER, membercost REAL, guestcost REAL);
+                INSERT INTO facilities VALUES (0, 2, 10), (1, 3, 20);
+                CREATE TABLE bookings(facid INTEGER, memid INTEGER, starttime TEXT, slots INTEGER);
+                INSERT INTO bookings VALUES
+                    (0, 0, '2012-08-01 10:00:00', 2),
+                    (0, 1, '2012-08-02 10:00:00', 3),
+                    (1, 2, '2012-08-03 10:00:00', 1),
+                    (0, 0, '2011-12-31 10:00:00', 100),
+                    (1, 0, '2013-01-01 10:00:00', 100);`);
+            const runtime = new Interpreter(undefined, { io: data.io, compilation });
+            t.after(() => runtime.dispose());
+            const output = data.path + '.csv';
+            const source = readFileSync(new URL(`../../../demos/pgexercises/aggregates/${file}`, import.meta.url), 'utf8');
+            runtime.executeProgram(parse(source), [data.path, output]);
+            const csv = readFileSync(output, 'utf8').trimEnd();
+            if (file === '003_recs.ra') {
+                assert.equal(csv, 'recommendedby,count\n1,2');
+            } else if (file === '012_rollup.ra') {
+                assert.equal(csv, 'facid,month,slots\n0,8,5\n0,,5\n1,8,1\n1,,1\n,,6');
+            } else {
+                const [header, ...rows] = csv.split('\n');
+                assert.equal(header, 'date,revenue');
+                assert.equal(rows.length, 31);
+                const daily = new Map([[1, 20], [2, 6], [3, 3]]);
+                rows.forEach((row, index) => {
+                    const [date, value] = row.split(',');
+                    const day = index + 1;
+                    assert.equal(date, `2012-08-${String(day).padStart(2, '0')}`);
+                    const expected = [...daily].filter(([when]) => when <= day && when >= day - 14)
+                        .reduce((sum, [, revenue]) => sum + revenue, 0) / 15;
+                    assert.ok(Math.abs(Number(value) - expected) < 1e-12, `${date}: ${value} != ${expected}`);
+                });
+            }
+            assert.equal(data.reads(), 1);
+            data.balanced();
+        });
+    }
+
     test(`TPC-H Q6 pilot keeps SQL pushdown (compilation=${compilation})`, { timeout: 10000 }, t => {
         const data = fixture(t);
         const output = [];

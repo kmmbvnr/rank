@@ -3,7 +3,7 @@ import { materializeValue } from '../materialize.js';
 import { numericSort } from '../numeric-collections.js';
 import { reshapeDimensions } from '../tensor-layout.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
-export { sortValue, argsortValue } from './sequence-order.js';
+export { sortValue, argsortValue, sortByKeys } from './sequence-order.js';
 import { uniqueValue } from './sequence-distinct.js';
 export { uniqueLength } from './sequence-distinct.js';
 import { primePlan } from '../prime-sequence.js';
@@ -15,13 +15,12 @@ import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
-import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
+import { checkpoint, inspectionEnabled } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
-import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
@@ -483,50 +482,6 @@ export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[
         return [...value.plan.iterate()];
     }
     throw new RankError(`${operation} expects a finite rank-1 collection`);
-}
-
-/** Sort already-computed key rows lexicographically and stably. */
-export function sortByKeys(
-    items: readonly RankValue[],
-    keys: readonly (readonly (RankValue | undefined)[])[],
-    operation = 'sort by',
-    indices = false,
-    descending: readonly boolean[] = [],
-): RankArray {
-    if (items.length !== keys.length) throw new RankError(`${operation} key count mismatch`);
-    const width = keys[0]?.length ?? 0;
-    if (keys.some(key => key.length !== width)) {
-        throw new RankError(`${operation} keys must have one shape`);
-    }
-    const kinds = Array.from({ length: width }, (_, column) => {
-        const first = keys.find(row => row[column] !== undefined)?.[column];
-        if (first === undefined) return undefined;
-        const kind = orderedKind(first);
-        for (const row of keys) {
-            const value = row[column];
-            if (value !== undefined && orderedKind(value) !== kind) {
-                throw new RankError(`${operation} key values must have one comparable type`);
-            }
-        }
-        return kind;
-    });
-    const entries = items.map((value, position) => ({ value, position, keys: keys[position] }));
-    entries.sort(interruptibleCallback((left, right) => {
-        for (let column = 0; column < width; column += 1) {
-            const a = left.keys[column];
-            const b = right.keys[column];
-            if (a === undefined || b === undefined) {
-                if (a !== b) return a === undefined ? 1 : -1;
-                continue;
-            }
-            const order = compareOrderedValues(a, b, kinds[column]!);
-            if (order !== 0) return descending[column] ? -order : order;
-        }
-        return left.position - right.position;
-    }, 'sorting'));
-    const result = ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
-    if (!indices) Object.defineProperty(result, 'sortKeys', { value: entries.map(entry => entry.keys) });
-    return result;
 }
 
 /** Return stable indices that order a tensor along one axis. */

@@ -674,15 +674,31 @@ cells. `.field sum`, `min`, `max`, `mean`, `median`, and `std` reduce one field
 within each group. A bare reduction of a grouped column is not table syntax.
 Ordinary reductions outside this block retain their scalar or tensor meaning.
 
+`G = Source group by .key` stores completed grouping inputs, including nested
+values. The same rule applies to `rollup by` and `rolling by`. When `Source` is
+a SQLite query, this reads its rows; a later `select` uses the retained data.
+Use explicit plans to keep both stages in SQL:
+
+```rank
+G' = Source group by .key
+Totals' = G select
+  .total = .value sum
+end
+Rows = Totals
+```
+
+The ordinary `Rows` binding runs the aggregate query. Repeated demand of the
+explicit stages recomputes; it does not reuse earlier grouping or sorting results.
+
 Array groups appear in first-seen order. Missing key cells form one group per
 key combination. Missing aggregate cells are skipped; `sum` yields zero and
 `count` yields zero when no cells are present. Other reductions leave the
 result cell missing. Keys must be scalar and cannot be NaN; repeated keys and
 output names are errors.
 
-On SQLite views, `select` creates one lazy `GROUP BY` query for all requested
-columns. `count`, `sum`, `min`, `max`, and `mean` translate to SQLite. `median`
-and `std` currently require array tables; SQLite reports an error rather than
+With explicitly deferred SQLite grouping stages, `select` builds one `GROUP BY`
+query for all requested columns. `count`, `sum`, `min`, `max`, and `mean`
+translate to SQLite. `median` and `std` currently require array tables; SQLite reports an error rather than
 reading rows early. Use `sql` and `explain` to inspect the generated query,
 `filter` for conditions on totals, and `sort by` for a defined output order.
 SQLite grouping does not promise first-seen order.
@@ -694,36 +710,37 @@ prefix plus a grand total. For `.facid .month`, it groups by both fields, by
 `.facid`, and by no fields. Keys omitted at a subtotal level are absent in the
 result, including on an empty input: the grand total still has `count` and
 `sum` equal to zero. A real missing source key and a subtotal remain separate
-groups even when their visible keys are both absent. On SQLite, this remains a
-lazy view built from grouped queries joined with `UNION ALL`; bound source
+groups even when their visible keys are both absent. Explicit SQLite query
+stages build grouped queries joined with `UNION ALL`; bound source
 parameters are retained for every branch. `sort by` places absent key cells
 last for both array tables and SQLite views, in ascending and descending order.
 
 ```rank
-G = Rows rollup by .facid .month
-Totals = G select
+G' = Rows rollup by .facid .month
+Totals' = G select
   .slots = .slots sum
 end
-Totals = Totals sort by .facid .month
+Totals' = Totals sort by .facid .month
 ```
 
 `N rolling by .field` orders a table by one field and produces one trailing
 group per row: the current row and up to `N-1` predecessors. `N` must be a
 positive integer. A `select` block uses the same named reductions as `group by`
-and retains the ordering field. On arrays, the ordered result rows are lazy and
-respond to source changes. On SQLite, `count`, `sum`, `min`, `max` and `mean`
-use an ordered `ROWS` window without reading rows until output; `median` and
+and retains the ordering field. Ordinary bindings retain the ordered inputs and
+completed results; later source writes do not update them. Explicit SQLite
+stages translate `count`, `sum`, `min`, `max` and `mean` to an ordered `ROWS`
+window without reading rows until demand; `median` and
 `std` are not yet available. `sum` of a frame with no present values is zero.
 Equal ordering keys use the source order on arrays; for stable SQLite results,
 choose a unique ordering field. Filter *after* the rolling `select` when
 earlier rows must contribute to the first displayed result:
 
 ```rank
-W = Daily 15 rolling by .date
-R = W select
+W' = Daily 15 rolling by .date
+R' = W select
   .revenue = .revenue sum
 end
-R = R filter .date at least August
+R' = R filter .date at least August
 ```
 
 ## Join

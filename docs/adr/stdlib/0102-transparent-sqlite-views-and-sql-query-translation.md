@@ -41,6 +41,7 @@ Common analytical operations compile directly to native SQL primitives:
 - `View .cost sum` translates to `SELECT SUM(cost) FROM ...`
 - `View (0 till 10)` translates to `LIMIT 10 OFFSET 0`
 - Relational joins translate directly to SQL `JOIN` clauses.
+- Explicit grouped, rollup and rolling query stages compose with `select` in SQL. An ordinary grouping binding reads and stores its source rows; subsequent aggregation uses those retained inputs.
 - Data is processed directly inside SQLite's optimized C engine, transferring only necessary results into memory.
 
 ### 3. Binding and materialization

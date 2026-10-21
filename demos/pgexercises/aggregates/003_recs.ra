@@ -9,16 +9,16 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/agg_003.csv"
 
 Db = DbPath sqlite
-M = Db .members
-Ids = M select .memid
-M = M Ids innerjoin on
+M' = Db .members
+Ids' = M select .memid
+M' = M Ids innerjoin on
   .recommendedby equal .memid
-R = M select
+R' = M select
   .recommendedby = .recommendedby
 end
-G = R group by .recommendedby
-Result = G select
+G' = R group by .recommendedby
+Result' = G select
   .count = count
 end
-Result = Result sort by .recommendedby
+Result' = Result sort by .recommendedby
 Result OutputPath csv

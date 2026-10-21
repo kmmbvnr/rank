@@ -10,7 +10,8 @@ export function isStoredValue(value: RankValue): boolean {
     switch (value.kind) {
         case 'plan': case 'sequence': case 'sqlite-table': case 'sqlite-expression': case 'sqlite-scope': return false;
         case 'array': return denseScalarItems(value) !== undefined || summaries.get(value)?.complete === true;
-        case 'tuple': case 'queue': case 'heap': case 'multiset': case 'table': return summaries.get(value)?.complete === true;
+        case 'tuple': case 'queue': case 'heap': case 'multiset': case 'table': case 'grouped-table':
+            return summaries.get(value)?.complete === true;
         case 'table-alias': return isStoredValue(value.source);
         case 'record': case 'object': case 'index': case 'set': case 'counter':
             return summaries.get(value.entries)?.complete === true;

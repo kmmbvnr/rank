@@ -12,31 +12,31 @@ argument OutputPath path = "demos/pgexercises/data/agg_022.csv"
 Db = DbPath sqlite
 Start = "2012-07-18"
 End = "2012-08-31"
-Days = Db Start End calendar
-B = Db .bookings
-F = Db .facilities
-R = B F innerjoin by .facid
-R = R select
+Days' = Db Start End calendar
+B' = Db .bookings
+F' = Db .facilities
+R' = B F innerjoin by .facid
+R' = R select
   Guest = .memid equal 0
   GCost = .slots * .guestcost
   MCost = .slots * .membercost
   .date = .starttime datetime date
   .revenue = Guest GCost MCost choose
 end
-G = R group by .date
-Revenue = G select
+G' = R group by .date
+Revenue' = G select
   .revenue = .revenue sum
 end
-Daily = Days Revenue leftjoin by .date
-W = Daily 15 rolling by .date
-R = W select
+Daily' = Days Revenue leftjoin by .date
+W' = Daily 15 rolling by .date
+R' = W select
   .revenue = .revenue sum
 end
 August = "2012-08-01" date
-R = R filter .date at least August
-R = R select
+R' = R filter .date at least August
+R' = R select
   .date = .date
   .revenue = .revenue / 15
 end
-Result = R sort by .date
+Result' = R sort by .date
 Result OutputPath csv
