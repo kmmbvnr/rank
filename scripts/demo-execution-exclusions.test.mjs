@@ -12,7 +12,7 @@ test('execution exclusions name existing workloads and explain the resource cost
         assert.equal(typeof reason, 'string', file);
         assert.ok(reason.length > 20, file);
     }
-    assert.ok(files.has('euler/322_binomial.ra'));
+    assert.ok(!files.has('euler/322_binomial.ra'), 'corrected carry constraints keep the default product small');
     assert.ok(files.has('euler/331_crossflips.ra'));
 });
 

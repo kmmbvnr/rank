@@ -31,7 +31,6 @@
   "euler/318_nines.ra": "Enumerates pairs through 2011 with real logarithmic calculations.",
   "euler/319_bounded.ra": "Builds multi-million-cell tables for N=10^10.",
   "euler/320_factorials.ra": "Computes factorial divisibility minima through 1000000.",
-  "euler/322_binomial.ra": "Builds up to 1875000000 intermediate array cells at default parameters.",
   "euler/324_tower.ra": "Performs polynomial recurrence arithmetic for a 10000-digit exponent.",
   "euler/326_modulosums.ra": "Processes a 6000000-step period for a 10^12-term query.",
   "euler/328_lowestcost.ra": "Runs a quadratic search through N=200000.",

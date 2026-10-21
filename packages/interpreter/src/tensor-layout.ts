@@ -1,4 +1,33 @@
 import { RankError } from './errors.js';
+import type { RankValue } from './value.js';
+
+/** Resolve reshape metadata without reading source cells. Count is demanded
+ * only for an inferred dimension, so one-shot sources are consumed once. */
+export function reshapeDimensions(dimensions: readonly (RankValue | undefined)[], count: () => bigint): number[] {
+    const inferred = dimensions.indexOf(undefined);
+    if (dimensions.filter(item => item === undefined).length > 1) {
+        throw new RankError('reshape accepts at most one inferred dimension #', 'DimensionMismatch');
+    }
+    if (!dimensions.every(item => item === undefined || typeof item === 'bigint')) {
+        throw new RankError('reshape dimensions must be integers');
+    }
+    const dimension = (value: bigint): number => {
+        if (value < 0n) throw new RankError(`reshape dimension must be nonnegative: ${value}`);
+        if (value > BigInt(Number.MAX_SAFE_INTEGER)) throw new RankError(`reshape dimension is too large: ${value}`);
+        return Number(value);
+    };
+    const shape = dimensions.map(item => item === undefined ? 1 : dimension(item as bigint));
+    if (inferred >= 0) {
+        const product = shape.reduce((total, size) => total * BigInt(size), 1n);
+        if (product === 0n) throw new RankError('reshape cannot infer # when another dimension is zero', 'DimensionMismatch');
+        const size = count();
+        if (size % product !== 0n) {
+            throw new RankError(`reshape cannot divide ${size} elements into dimensions with product ${product}`, 'DimensionMismatch');
+        }
+        shape[inferred] = dimension(size / product);
+    }
+    return shape;
+}
 
 /** First-axis take/drop layout; callers validate a nonnegative integer count. */
 export function arraySliceLayout(source: readonly number[], count: bigint, drop: boolean) {

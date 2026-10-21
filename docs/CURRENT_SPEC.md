@@ -5825,6 +5825,13 @@ directly among the reshape dimensions; it is not a value to store in a shape
 array. Negative dimensions, including `-1`, remain invalid. Finite sequences
 are consumed once. Transpose keeps its existing axis-permutation behavior.
 
+Inside a function, private integer expressions using `outer +`, `outer -` or
+`outer *` can fuse with reshape, a bit-mask filter and a following reduction.
+The candidates are read in row-major order without storing the product or
+mask. A following `copy` stores only selected values. This still visits every
+candidate; it does not skip whole branches of the product. Sources with
+observable reads or potentially failing arithmetic keep ordinary evaluation.
+
 
 Dense storage may also be allocated with a fill value and updated in place:
 
