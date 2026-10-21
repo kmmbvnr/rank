@@ -32,6 +32,7 @@ C = concat C (array 43529574 23193354)
 C = concat C (array 64137046 85911555)
 C = concat C (array 96480880 76177)
 C = concat C (array 99999328 1)
+C = C copy
 Answer = Exp recurrence
 Answer print
 
@@ -66,5 +67,5 @@ fun A B combine
       P (I - J) += Add
     end
   end
-  return P take K
+  return (P take K) copy
 end
