@@ -250,7 +250,7 @@ function* collectionValues(value: RankValue, operation: string): IterableIterato
     yield* source ? source.values() : [value];
 }
 
-function copyArray(value: RankValue): RankArray {
+export function copyArray(value: RankValue): RankArray {
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);

@@ -16,6 +16,8 @@ import { scalarArrayWriteOffset } from './selectors.js';
 import { checkedArrayDimension } from './tensor-index.js';
 import { arrayForWrite, ownedArray, noteArrayBinding } from './array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
+import { takeDropValue } from './sequence.js';
+import { copyArray } from './modules/sequences.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
 
 interface Kernel {
@@ -84,6 +86,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
+            if (operation === 'take' || operation === 'drop' || operation === 'copy') {
+                const values = expression.input.indices!.map(item => lower(item, lines));
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ${operation === 'copy' ? `copyArray(${values[0]})`
+                    : `takeDropValue(${values[0]}, ${values[1]}, ${operation === 'drop'})`};`);
+                return result;
+            }
             if (operation === 'vector') {
                 const values = expression.input.indices!.map(item => lower(item, lines));
                 const result = `v${serial++}`;
@@ -214,8 +223,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const receiver = slot(command.name);
                 const offset = `v${serial++}`;
                 if (proof!.arrayWrites.has(command)) lines.push(`const ${offset} = scalarArrayWriteOffset(${receiver}, [${keys.join(',')}]);`);
-                const value = emit(command.value, lines);
+                let value = emit(command.value, lines);
                 if (proof!.arrayWrites.has(command)) {
+                    if (command.operator !== '=') {
+                        const previous = `v${serial++}`;
+                        lines.push(`const ${previous} = ${receiver}.items[${offset}];`);
+                        value = binary(findCompiledOperator(command.operator.slice(0, -1))!, previous, value, lines, expressions.get(command.value)!.type);
+                    }
                     const copy = `v${serial++}`;
                     lines.push(`const ${copy} = arrayForWrite(${receiver});
                         if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); }
@@ -277,7 +291,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

@@ -4,7 +4,7 @@ import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
     isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement,
-    type Expression, type FunctionStatement, type Statement,
+    isCountClauseExpression, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from './diagnostics.js';
@@ -17,7 +17,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default' | 'captured-read' | 'captured-scalar';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy';
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -110,6 +110,13 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                if (loops && isCountClauseExpression(source)) {
+                    const array = type(source.source, env);
+                    if (!array || typeof array === 'string' || isCompiledContainer(array)
+                        || type(source.count, env) !== 'integer') return undefined;
+                    return { type: array, input: { name: '', operation: source.operator,
+                        indices: [expressions.get(source.source)!, expressions.get(source.count)!] } };
+                }
                 if (loops && isArrayExpression(source) && source.items.length
                     && !source.dimensions.length && !source.fill && !source.rows.length && !source.range) {
                     if (source.items.some(item => item.sign)) return undefined;
@@ -174,6 +181,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (loops && isApplicationExpression(source)) {
                     const parts = flattenApplication(source);
                     const [receiver, operation] = parts;
+                    if (parts.length === 2 && isNameExpression(operation) && operation.name === 'copy'
+                        && !env.has('copy') && !lexicalBinding(scope, 'copy')) {
+                        const array = type(receiver, env);
+                        if (array && typeof array !== 'string' && !isCompiledContainer(array)) {
+                            nativeReads.add('copy');
+                            return { type: array, input: { name: '', operation: 'copy', indices: [expressions.get(receiver)!] } };
+                        }
+                    }
                     const domain = isNameExpression(receiver) ? env.get(receiver.name) : undefined;
                     if (parts.length === 2 && isNameExpression(receiver) && domain && isCompiledContainer(domain)
                         && domain.kind === 'deque'
@@ -282,9 +297,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             if (loops && isArrayAssignmentStatement(command)) {
                 const receiver = env.get(command.name);
                 if (!receiver || typeof receiver === 'string' || isCompiledContainer(receiver) && receiver.kind !== 'index'
-                    || command.operator !== '=' || command.indices.length !== (isCompiledContainer(receiver) ? 1 : receiver.rank)
+                    || command.indices.length !== (isCompiledContainer(receiver) ? 1 : receiver.rank)
                     || command.indices.some(index => index.all || index.sign || !index.value || type(index.value, env) !== 'integer')
                     || type(command.value, env) !== (isCompiledContainer(receiver) ? 'integer' : receiver.element)) return reject(command, 'container-write');
+                if (command.operator !== '=') {
+                    if (isCompiledContainer(receiver)) return reject(command, 'container-write');
+                    const signature = scalarOperatorSignature(command.operator.slice(0, -1), [receiver.element, receiver.element]);
+                    if (!signature?.compound || signature.result !== receiver.element) return reject(command, 'array-compound');
+                }
                 if (!isCompiledContainer(receiver)) arrayWrites.add(command);
                 continue;
             }

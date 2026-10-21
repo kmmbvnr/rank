@@ -2128,7 +2128,7 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('keeps effectful helpers on the ordinary path', () => {
+    it('links helpers that return their updated array value', () => {
         const result = compare(`A = array 0
 fun X A update
   A 0 += X
@@ -2142,7 +2142,7 @@ end
 Total`);
         expect(result.value).toBe('6');
         expect(result.containers).toContainEqual(['A', [1], ['6']]);
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('binds local function instances separately on each invocation', () => {
