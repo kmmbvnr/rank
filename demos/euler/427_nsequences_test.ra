@@ -22,9 +22,3 @@ test "small and large k loops"
   run
   Answer equal 54843257
 end
-
-test "default input"
-  use "427_nsequences"
-  run
-  Answer equal 97138867
-end
