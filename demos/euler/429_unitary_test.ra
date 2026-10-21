@@ -1,0 +1,18 @@
+use testing
+
+test "statement value"
+  use "429_unitary"
+  N = 4
+  run
+  Answer equal 650
+end
+
+test "products of prime powers"
+  use "429_unitary"
+  N = 8
+  run
+  Answer equal 746640991
+  N = 100
+  run
+  Answer equal 202476099
+end

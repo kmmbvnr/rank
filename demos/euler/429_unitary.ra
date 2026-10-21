@@ -1,0 +1,45 @@
+rem Sum of Squares of Unitary Divisors
+rem https://projecteuler.net/problem=429
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000
+
+rem A unitary divisor of n! takes
+rem each prime p to the power 0 or
+rem e = v_p(n!), so the sum of
+rem squares is the product of
+rem (1 + p^(2e)) over primes p <= n.
+Mod = 1000000009
+Pr = primes to N array
+Ex = Pr * 0
+Pk = Pr
+for Pk min at most N
+  Ex = Ex + N // Pk
+  Pk = (Pk * Pr) (N + 1) min
+end
+Bs = Pr
+Ep = 2 * Ex
+Res = Pr * 0 + 1
+for Ep max greater 0
+  Odd = Ep mod 2 equal 1
+  Mu = Res * Bs mod Mod
+  Res = Odd choose Mu Res
+  Bs = Bs * Bs mod Mod
+  Ep = Ep // 2
+end
+V = (Res + 1) mod Mod
+for V len greater 1
+  if V len mod 2 equal 1
+    V = concat V (array 1)
+  end
+  H = V len // 2
+  Lo = V (0 to H - 1)
+  Hi = V (H to 2 * H - 1)
+  V = (Lo * Hi mod Mod) copy
+end
+Answer = V 0
+Answer print
