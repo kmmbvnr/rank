@@ -1,0 +1,33 @@
+use testing
+
+test "statement values"
+  use "448_averagelcm"
+  N = 10
+  run
+  Answer equal 142
+  N = 100
+  run
+  Answer equal 122726
+end
+
+test "brute force with a long table"
+  use "448_averagelcm"
+  N = 2000
+  run
+  Answer equal 975176532
+  N = 5000
+  run
+  Answer equal 227886188
+end
+
+test "short table uses the recursion"
+  use "448_averagelcm"
+  N = 5000
+  L = 60
+  run
+  Answer equal 227886188
+  N = 3000000
+  L = 2000
+  run
+  Answer equal 56766550
+end

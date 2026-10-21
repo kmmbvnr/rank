@@ -1,0 +1,96 @@
+rem Average Least Common Multiple
+rem https://projecteuler.net/problem=448
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 99999999019
+option L integer = 10000000
+
+rem A(n) = (1 + sum of k phi(k) over
+rem k | n) / 2, so S(N) = (N + R) / 2
+rem with R = sum of d phi(d) (N // d).
+rem F(x) = sum of k phi(k) up to x is
+rem a prefix table up to L, and for
+rem x = N // i above L it follows
+rem from F(x) = x(x+1)(2x+1)/6 -
+rem sum over k >= 2 of k F(x // k).
+Mod = 999999017
+Rn = N isqrt + 2
+Lm = (L Rn max) N min
+Inv2 = (Mod + 1) // 2
+Ph = (0 to Lm) copy
+Sm = array shape (Lm + 1) fill 1
+Rt = Lm isqrt
+for P in primes to Rt
+  Q = P
+  for Q at most Lm
+    Sl = Q to Lm by Q
+    Sm Sl *= P
+    if Q equal P
+      Ph Sl -= Ph Sl // P
+    end
+    Q *= P
+  end
+end
+Ix = (0 to Lm) copy
+Rs = Ix // Sm
+Big = Rs greater 1
+Pc = Ph - Ph // Rs
+Ph = (Big choose Pc Ph) copy
+Ph 0 = 0
+Fk = Ix mod Mod * Ph mod Mod
+Cs = Fk scan + with 0
+C1 = (Cs (1 to Lm + 1)) mod Mod
+Nq = N // Lm
+Lt = array shape (Nq + 2) fill 0
+for I in Nq to 1 by -1
+  X = N // I
+  if X greater Lm
+    R = X isqrt
+    Ks = (2 to R) copy
+    Ys = X // Ks
+    Sv = C1 (Ys Lm min)
+    Lv = Lt (I * Ks Nq min)
+    Va = (Ys at most Lm) choose Sv Lv
+    Pa = (Ks * Va mod Mod) sum
+    Qs = (1 to X // (R + 1)) copy
+    Hi = X // Qs
+    Lo = X // (Qs + 1) R max
+    Eh = Hi mod 2 equal 0
+    Ah = Eh choose (Hi // 2) Hi
+    H1 = Hi + 1
+    Bh = Eh choose H1 (H1 // 2)
+    Sh = Ah mod Mod * (Bh mod Mod)
+    Sh = Sh mod Mod
+    El = Lo mod 2 equal 0
+    Al = El choose (Lo // 2) Lo
+    L1 = Lo + 1
+    Bl = El choose L1 (L1 // 2)
+    Sl = Al mod Mod * (Bl mod Mod)
+    Sl = Sl mod Mod
+    Dk = (Sh - Sl) mod Mod
+    Pb = (Dk * C1 Qs mod Mod) sum
+    T6 = X * (X + 1) * (2 * X + 1) // 6
+    Lt I = (T6 - Pa - Pb) mod Mod
+  end
+end
+R2 = N isqrt
+Dd = (1 to R2) copy
+Pd = Fk Dd * (N // Dd mod Mod) mod Mod
+Qq = (1 to N // (R2 + 1)) copy
+Xq = N // Qq
+Sx = C1 (Xq Lm min)
+Qm = Qq Nq min
+Fx = (Xq at most Lm) choose Sx (Lt Qm)
+Lw = N // (Qq + 1) R2 max
+Sw = C1 (Lw Lm min)
+Qn = (Qq + 1) Nq min
+Fl = (Lw at most Lm) choose Sw (Lt Qn)
+Dq = (Fx - Fl) mod Mod
+Pq = (Qq * Dq mod Mod) sum
+Rr = (Pd sum) + Pq
+Answer = (N + Rr) mod Mod * Inv2 mod Mod
+Answer print
