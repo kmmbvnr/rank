@@ -1,5 +1,6 @@
 import { RankError } from './errors.js';
 import { ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 import type { RankArray, RankObject, RankValue } from './value.js';
 import {
     ownedStorage, derivedRevisions, writeRevision, creationSerial, onlyNewObjectsChanged, noteMutation,
@@ -119,17 +120,24 @@ class OwnedEntries extends Map<string, RankValue> {
     revision = writeRevision;
     readonly birth = nextCreationSerial();
     readonly resources = new ResourceSummary();
+    private scalarOnly = true;
+    private readonly stored = new StoredValueSummary(() => this.scalarOnly);
 
     constructor(entries: Iterable<readonly [string, RankValue]>) {
         super();
+        this.stored.track(this);
         for (const [key, value] of entries) {
             this.resources.include(value);
+            this.stored.include(value);
+            this.scalarOnly &&= typeof value !== 'object';
             Map.prototype.set.call(this, key, value);
         }
     }
 
     override set(key: string, value: RankValue): this {
         this.resources.include(value);
+        this.stored.include(value);
+        this.scalarOnly &&= typeof value !== 'object';
         this.revision = noteMutation(this.birth);
         return super.set(key, value);
     }

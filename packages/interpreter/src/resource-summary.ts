@@ -1,5 +1,6 @@
 import { noteArrayBinding } from './array-storage.js';
 import type { RankValue } from './value.js';
+import { StoredValueSummary } from './stored-value.js';
 
 // A possible resource insertion invalidates earlier proofs, including proofs held
 // by parents of an aliased container. No parent links or deep mutation scans.
@@ -42,11 +43,18 @@ export class ResourceSummary {
 /** Public Map writes must invalidate proofs too, including writes made by JS. */
 export class ResourceMap<T, K = string> extends Map<K, T> {
     readonly resources = new ResourceSummary();
+    private scalarOnly = true;
+    private readonly stored = new StoredValueSummary(() => this.scalarOnly);
 
-    constructor(private readonly valueOfEntry: (entry: T) => RankValue) { super(); }
+    constructor(private readonly valueOfEntry: (entry: T) => RankValue) {
+        super();
+        this.stored.track(this);
+    }
 
     override set(key: K, value: T): this {
         const entry = this.valueOfEntry(value);
+        this.stored.include(entry);
+        this.scalarOnly &&= typeof entry !== 'object';
         this.resources.include(entry);
         noteArrayBinding(entry);
         return super.set(key, value);

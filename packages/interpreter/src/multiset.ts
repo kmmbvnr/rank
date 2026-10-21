@@ -1,4 +1,5 @@
 import { noteArrayBinding } from './array-storage.js';
+import { StoredValueSummary } from './stored-value.js';
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import {
@@ -27,8 +28,9 @@ export class RankMultiset {
     private valueKind?: OrderedKind;
     private total = 0;
     private priorityState = 0x9e3779b9;
+    private readonly stored = new StoredValueSummary();
 
-    constructor(readonly unique = false) {}
+    constructor(readonly unique = false) { this.stored.track(this); }
 
     get size(): number {
         return this.total;
@@ -41,6 +43,7 @@ export class RankMultiset {
             throw new RankError('multiset values must have one comparable type');
         }
         this.valueKind ??= kind;
+        this.stored.include(value);
         noteArrayBinding(value);
         this.root = this.insert(this.root, value);
         this.total += 1;

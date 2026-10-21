@@ -2,6 +2,8 @@ import type { RankPlan } from './plan.js';
 import type { IndexKey } from './index-key.js';
 import type { FunctionCallSignature } from '@arrrank/language';
 import { arrayDeclaration } from './array-declaration.js';
+import { recordContract } from './record-contract.js';
+import { StoredValueSummary } from './stored-value.js';
 import { noteArrayBinding } from './array-storage.js';
 import { checkpoint, interruptibleValues } from './interrupt.js';
 import type { RankMultiset } from './multiset.js';
@@ -71,7 +73,9 @@ export interface RankTuple {
 
 export function tuple(items: readonly RankValue[]): RankTuple {
     items.forEach(noteArrayBinding);
-    return Object.freeze({ kind: 'tuple', items: Object.freeze([...items]) });
+    const stored = new StoredValueSummary();
+    items.forEach(value => stored.include(value));
+    return stored.track(Object.freeze({ kind: 'tuple', items: Object.freeze([...items]) }));
 }
 
 export function isRankTuple(value: RankValue): value is RankTuple {
@@ -457,15 +461,7 @@ export function collectionElementType(value: RankValue, active: Set<RankValue> =
     const rank = isRankArray(value) ? value.shape.length : undefined;
     if (isRankTuple(value)) return { type, positions: value.items.map(item => collectionElementType(item, active, true)) };
     if (records && isRankRecord(value)) {
-        if (active.has(value)) throw new RankError('cyclic records cannot establish a structural type', 'TypeError');
-        if (!value.fieldContracts) {
-            active.add(value);
-            const fields = new Map([...value.entries].map(([name, field]) =>
-                [name, collectionElementType(field, active, true)]));
-            active.delete(value);
-            value.fieldContracts = fields;
-        }
-        return { type, fields: value.fieldContracts };
+        return recordContract(value);
     }
     if (!isRankArray(value)) return { type };
     if (active.has(value)) throw new RankError('cyclic arrays cannot be collection elements');

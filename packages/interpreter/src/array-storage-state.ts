@@ -1,5 +1,6 @@
 import type { RankArray, RankValue } from './value.js';
 import type { ResourceSummary } from './resource-summary.js';
+import type { StoredValueSummary } from './stored-value.js';
 
 export interface OwnedStorage {
     /** The cells. Typed storage stands in here while `typed` is set: only index
@@ -21,6 +22,7 @@ export interface OwnedStorage {
     stable: boolean;
     readOnlyCells?: boolean;
     resources: ResourceSummary;
+    stored: StoredValueSummary;
     owners?: number;
     nestedEpoch?: number;
     checkedBirth?: number;

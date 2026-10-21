@@ -3,10 +3,12 @@ import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.j
 import { noteArrayBinding } from './array-storage.js';
 import { checkCollectionElementType, isRankQueue, type CollectionElementType, type RankValue } from './value.js';
 import { ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 
 /** Queue-family storage. Removed entries release their references immediately. */
 export class RankDeque {
     private readonly resources = new ResourceSummary();
+    private readonly stored = new StoredValueSummary();
     readonly kind = 'queue' as const;
     private readonly entries = new Map<number, RankValue>();
     private stack?: RankValue[];
@@ -17,6 +19,7 @@ export class RankDeque {
 
     constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {
         this.resources.track(this);
+        this.stored.track(this);
         if (mode === 'stack') this.stack = [];
     }
 
@@ -38,6 +41,7 @@ export class RankDeque {
     push(value: RankValue): this {
         this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
+        this.stored.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
         if (this.stack) this.stack.push(value);
@@ -47,6 +51,7 @@ export class RankDeque {
     pushFront(value: RankValue): this {
         this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
+        this.stored.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
         this.mapStorage();
@@ -83,13 +88,14 @@ interface HeapEntry { readonly priority: RankValue; readonly value: RankValue; r
 /** Stable priority queue; ties retain insertion order. */
 export class RankHeap {
     private readonly resources = new ResourceSummary();
+    private readonly stored = new StoredValueSummary();
     readonly kind = 'heap' as const;
     private readonly entries: HeapEntry[] = [];
     private priorityKind?: OrderedKind;
     private elementType?: CollectionElementType;
     private nextOrder = 0;
 
-    constructor(readonly descending = false) { this.resources.track(this); }
+    constructor(readonly descending = false) { this.resources.track(this); this.stored.track(this); }
 
     get size(): number { return this.entries.length; }
     *values(): IterableIterator<RankValue> { for (const entry of this.entries) yield entry.value; }
@@ -103,6 +109,7 @@ export class RankHeap {
         this.elementType = elementType;
         this.priorityKind = kind;
         this.resources.include(value);
+        this.stored.include(value);
         noteArrayBinding(value);
         return { value, priority, order: this.nextOrder++ };
     }
@@ -128,6 +135,17 @@ export class RankHeap {
         for (let index = Math.floor(this.size / 2) - 1; index >= 0; index--) {
             this.siftDown(index, this.entries[index]);
         }
+        return this;
+    }
+    /** Copy payloads without changing priorities, heap layout or tie order. */
+    copyValuesFrom(source: RankHeap, values: readonly RankValue[]): this {
+        if (this.size || values.length !== source.size || this.descending !== source.descending) {
+            throw new RankError('heap payload copy requires an empty matching heap');
+        }
+        source.entries.forEach((entry, index) => {
+            this.entries.push({ ...this.entry(values[index], entry.priority), order: entry.order });
+        });
+        this.nextOrder = source.nextOrder;
         return this;
     }
     peek(): RankValue {

@@ -36,9 +36,14 @@ export class ArrayBindingContract {
     private version?: RankArray;
 
     private commit(next: Contract | undefined): void {
-        if (next !== this.contract) { this.contract = next; if (this.version) this.version.items[0] = 0n; }
+        if (next !== this.contract) {
+            this.contract = next;
+            if (this.version) this.version.items[0] = 0n;
+            if (next) this.observe?.(next);
+        }
     }
-    constructor(private readonly name: string, private readonly errorKind = 'TypeError') {}
+    constructor(private readonly name: string, private readonly errorKind = 'TypeError',
+        private readonly observe?: (contract: Contract) => void) {}
 
     copy(): ArrayBindingContract {
         const copy = new ArrayBindingContract(this.name, this.errorKind);

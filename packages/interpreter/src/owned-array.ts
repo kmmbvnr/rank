@@ -1,6 +1,7 @@
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 import { RankError } from './errors.js';
 import { isRankArray, typeName, requireHomogeneous, MISSING, type RankArray, type RankValue } from './value.js';
 import {
@@ -450,12 +451,14 @@ export function hasMaskedCells(value: RankArray): boolean {
 function changedCell(state: OwnedStorage, value: RankValue): void {
     state.revision = noteMutation(state.birth);
     state.resources.include(value);
+    state.stored.include(value);
     state.scalarOnly &&= typeof value !== 'object';
 }
 
 function uncertainStorage(state: OwnedStorage): void {
     state.revision = noteMutation(state.birth);
     state.resources.invalidate();
+    state.stored.invalidate();
     state.scalarOnly = false;
     state.stable = false;
     state.elementKinds = undefined;
@@ -562,10 +565,12 @@ export function createOwned(
     const state: OwnedStorage = {
         items, typed, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
         scalarOnly: !validity && (typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object')),
-        stable: true, resources: undefined!,
+        stable: true, resources: undefined!, stored: undefined!,
     };
     state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
+    state.stored = new StoredValueSummary(() => state.stable && (state.scalarOnly || state.validity !== undefined));
     if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
+    if (!state.scalarOnly && !typed) for (const item of items) state.stored.include(item);
     const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
         ...metadata,
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
@@ -596,6 +601,8 @@ export function createOwned(
     ownedStorage.set(raw, state);
     const value: RankArray = new Proxy(raw, ownedValueHandler);
     ownedStorage.set(value, state);
+    state.stored.track(raw);
+    state.stored.track(value);
     return state.resources.track(value);
 }
 
