@@ -97,7 +97,10 @@ export class SignatureLexer extends DefaultLexer {
             if (!['fun', 'memo'].includes(token.image)) continue;
             const start = index;
             let cursor = index + 1;
-            while (uppercase(tokens[cursor])) cursor++;
+            while (uppercase(tokens[cursor])) {
+                cursor++;
+                if (tokens[cursor]?.image === "'") cursor++;
+            }
             if (!lowercase(tokens[cursor])) continue;
             const name = tokens[cursor++].image;
             const right: boolean[] = [], callbacks: string[] = [];
@@ -106,6 +109,7 @@ export class SignatureLexer extends DefaultLexer {
                 right.push(callback);
                 if (callback) callbacks.push(tokens[cursor].image);
                 cursor++;
+                if (tokens[cursor]?.image === "'") cursor++;
             }
             const words = new Set<string>();
             for (;;) {
@@ -123,7 +127,10 @@ export class SignatureLexer extends DefaultLexer {
                     tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! });
                 words.add(word.image);
                 cursor++;
-                if (uppercase(tokens[cursor])) cursor++;
+                if (uppercase(tokens[cursor])) {
+                    cursor++;
+                    if (tokens[cursor]?.image === "'") cursor++;
+                }
                 if (tokens[cursor]?.image === '=') cursor = atomEnd(tokens, cursor + 1);
             }
             scope.names.set(name, { right, words });
