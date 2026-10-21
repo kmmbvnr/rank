@@ -13,6 +13,7 @@ import { BuiltinRegistry } from '../modules/builtins.js';
 import { isRankPlan, type RankPlan } from '../plan.js';
 import { isNativeFunction, isRankArray, isRankSequence, MISSING, type NativeFunction, type RankValue } from '../value.js';
 import { identifySqliteSource } from '../sqlite-source.js';
+import { registerTensorResult } from '../tensor-map.js';
 
 interface ConstructionContext {
     readonly bindings: BindingEnvironment;
@@ -255,7 +256,7 @@ export class PlanConstruction {
         return { kind: 'plan', expression, dependencies, result,
             evaluate: () => completed(this.context.bindings.withFrame(snapshot, () => withinPlan(() => {
                 const value = compiled?.() ?? runExecution(this.context.execute(expression, false));
-                return identifySqliteSource(value, source);
+                return registerTensorResult(identifySqliteSource(value, source));
             }))),
         };
     }

@@ -2,12 +2,13 @@ import { arrayCells, arrayFrameAxes, derivedArray, registerArrayReadPlan } from 
 import { isKnownFileFree } from './resource-summary.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { arrayOffset, coordinatesAt } from './tensor-index.js';
-import { isRankArray, type RankArray, type RankValue } from './value.js';
+import { isRankArray, type RankArray } from './value.js';
+import { registerScalarView } from './integer-view.js';
 
 /** A checked axis permutation preserves scalar addressing and producer cells. */
 export function permutedArray(value: RankArray, permutation: readonly number[]): RankArray {
     const shape = permutation.map(axis => value.shape[axis]);
-    const itemAt = (index: number): RankValue => {
+    const offsetAt = (index: number): number => {
         const output = coordinatesAt(shape, index);
         const sourceRank = value.shape.length;
         let source: number[];
@@ -22,10 +23,12 @@ export function permutedArray(value: RankArray, permutation: readonly number[]):
             source = Array(sourceRank).fill(0) as number[];
             output.forEach((coordinate, axis) => { source[permutation[axis]] = coordinate; });
         }
-        const offset = source.reduce((current, coordinate, axis) => current * value.shape[axis] + coordinate, 0);
-        return value.itemAt?.(offset) ?? value.items[offset];
+        return source.reduce((current, coordinate, axis) => current * value.shape[axis] + coordinate, 0);
     };
-    const result = inheritSemanticArrayType(value, derivedArray(shape, [value], itemAt, isKnownFileFree(value)));
+    const result = registerScalarView(inheritSemanticArrayType(value, derivedArray(shape, [value], index => {
+        const offset = offsetAt(index);
+        return value.itemAt?.(offset) ?? value.items[offset];
+    }, isKnownFileFree(value))), value, offsetAt, { regular: true });
     const cells = arrayCells(value);
     if (!cells) return result;
     const sourceFrames = arrayFrameAxes(cells);

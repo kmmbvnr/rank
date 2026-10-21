@@ -28,6 +28,7 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
     const dependencies = [source];
     const result = derivedArray(shape, dependencies, index => arrayItem(current, position(index)));
     registerScalarView(result, () => current, index => position(index), { regular,
+        capture: () => ({ source: current, offset: position }),
         linear: linear ? () => linear! : undefined });
     retainSelectionSnapshot(result, source, offsetAt, snapshot => {
         current = snapshot;

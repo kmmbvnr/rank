@@ -27,6 +27,7 @@ const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 
 export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
+    | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
     | { kind: 'binary'; op: string; native?: Bitwise; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
     | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }
@@ -39,9 +40,10 @@ export interface TensorKernelHost {
     lookup(name: string): RankValue | undefined;
     builtin(name: Terminal | 'text' | 'integer' | 'reshape' | Bitwise): boolean;
     compiled?(source: string): void;
+    valid?(): boolean;
 }
 type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
-    checks: ((cell: RankValue, index: number) => RankValue)[]) => RankValue | RankValue[] | undefined;
+    checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[]) => RankValue | RankValue[] | undefined;
 export type TensorCodeCache = Map<string, KernelRun>;
 
 /** Native producers use the same IR, guards and emitter as source expressions.
@@ -264,7 +266,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
                 if (reached.has(node)) return;
                 reached.add(node);
                 if (node.kind === 'binary' || node.kind === 'outer') { visit(node.left); visit(node.right); }
-                if (node.kind === 'check') visit(node.source);
+                if (node.kind === 'check' || node.kind === 'view') visit(node.source);
                 if (node.kind === 'reshape') { visit(node.source); node.dimensions.forEach(dimension => { if (dimension) visit(dimension); }); }
                 if (node.kind === 'unary') visit(node.operand);
                 if (node.kind === 'concat') node.sources.forEach(visit);
@@ -300,6 +302,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     const checkedNodes = [...domains.keys()].filter(node => node.kind === 'check');
     const checks = checkedNodes.map(node => node.validate);
     const checkSlots = new Map<TensorNode, number>(checkedNodes.map((node, index) => [node, index]));
+    const viewNodes = [...domains.keys()].filter(node => node.kind === 'view');
+    const routes = viewNodes.map(node => node.offset);
+    const routeSlots = new Map<TensorNode, number>(viewNodes.map((node, index) => [node, index]));
     let cachedRun: KernelRun | undefined;
     // Concat segment lengths vary between calls; retain bounded code layouts,
     // never source arrays, so recurring shapes do not recompile every step.
@@ -319,6 +324,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     let generated = '';
     let unavailable = false;
     return { count, get source() { return generated; }, run(): RankValue | undefined {
+        if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         if (implicit && !privateLoopPolling()) return recordFallback('tensor:observable-expression');
         if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
         if (structural.length && !privateLoopPolling()) return recordFallback('tensor:observable-structure');
@@ -357,7 +363,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
                     layout = selected;
                     generated = selected.source;
-                    const result = selected.execute(data, offsets, scalars, selected.size, checks);
+                    if (host.valid?.() === false) return recordFallback('tensor:stale-input');
+                    const result = selected.execute(data, offsets, scalars, selected.size, checks, routes);
                     return terminal === 'copy' && result !== undefined
                         ? copied(result as RankValue[], selected.shape) : result as RankValue | undefined;
                 }
@@ -410,10 +417,14 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (view.validate) (validations ??= []).push(view.validate);
                     result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
-            } else if (node.kind === 'check') {
+            } else if (node.kind === 'check' || node.kind === 'view') {
                 const source = bind(node.source);
                 if (!source?.shape || source.filter || source.progression) return undefined;
-                result = { shape: source.shape, boolean: source.boolean };
+                if (node.kind === 'view' && !Number.isSafeInteger(source.shape.reduce((size, n) => size * n, 1))) return undefined;
+                const shape = node.kind === 'view' ? node.shape : source.shape;
+                if (!shape.every(n => Number.isSafeInteger(n) && n >= 0)
+                    || !Number.isSafeInteger(shape.reduce((size, n) => size * n, 1))) return undefined;
+                result = { shape, boolean: source.boolean };
             } else if (node.kind === 'slice') {
                 const a = bind(node.source), b = bind(node.count);
                 if (!a?.view || !a.shape?.length || typeof b?.scalar !== 'bigint' || b.scalar < 0n) return undefined;
@@ -533,7 +544,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (node.kind === 'input') return typeof info.scalar === 'bigint' || info.view?.kind === 'integer'
                 || !!info.view?.shape.some(n => n === 0);
             if (node.kind === 'reshape') return totalInteger(node.source);
-            if (node.kind === 'check') return totalInteger(node.source);
+            if (node.kind === 'check' || node.kind === 'view') return totalInteger(node.source);
             if (node.kind === 'unary') return ['+', '-'].includes(node.op) && totalInteger(node.operand);
             if (node.kind === 'binary' || node.kind === 'outer') {
                 return (['+', '-', '*'].includes(node.op) || node.kind === 'binary' && !!node.native)
@@ -565,7 +576,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (filtered.has(node)) return filtered.get(node)!;
             let value = bound.get(node)?.filter ?? false;
             if (node.kind === 'unary') value ||= domain(node.operand);
-            if (node.kind === 'check') value ||= domain(node.source);
+            if (node.kind === 'check' || node.kind === 'view') value ||= domain(node.source);
             if (node.kind === 'reshape') {
                 if (domain(node.source)) throw false;
             }
@@ -648,6 +659,15 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     const source = child(node.source);
                     lines.push(`const ${name} = checks[${checkSlots.get(node)}](${source}, ${at});`);
                 }
+                else if (node.kind === 'view') {
+                    const position = `p${serial++}`;
+                    const sourceShape = bound.get(node.source)!.shape!;
+                    const sourceSize = sourceShape.reduce((size, n) => size * n, 1);
+                    lines.push(`const ${position} = routes[${routeSlots.get(node)}](${at});`);
+                    lines.push(`if (!Number.isSafeInteger(${position}) || ${position} < 0 || ${position} >= ${sourceSize}) return decline('tensor:view-index');`);
+                    const source = emit(node.source, position, sourceShape);
+                    lines.push(`const ${name} = ${source};`);
+                }
                 else if (node.kind === 'reshape') {
                     const source = emit(node.source, at, bound.get(node.source)!.shape!);
                     lines.push(`const ${name} = ${source};`);
@@ -722,7 +742,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
             const initial = terminal === 'copy' ? compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
-            generated = `"use strict"; return function(data, offsets, scalars, size, checks) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; return function(data, offsets, scalars, size, checks, routes) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -756,7 +776,8 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             }
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
-        const result = execute!(data, offsets, scalars, size, checks);
+        if (host.valid?.() === false) return recordFallback('tensor:stale-input');
+        const result = execute!(data, offsets, scalars, size, checks, routes);
         if (terminal === 'copy' && result !== undefined) {
             return copied(result as RankValue[], compact ? [(result as RankValue[]).length] : output.shape);
         }

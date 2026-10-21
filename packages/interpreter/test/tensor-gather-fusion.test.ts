@@ -128,22 +128,30 @@ it('preserves missing cells through bitwise lookup fallback', () => {
 it('does not invoke unproved sequence readers while binding a kernel', () => {
     function execute(tensorFusion: boolean) {
         const reads: string[] = [];
+        const readsAtCompilation: string[][] = [];
         let kernels = 0;
-        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
+        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++,
+            onTensorKernelCompiled: () => readsAtCompilation.push([...reads]) });
         try {
-            runtime.execute(program.replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
+            runtime.execute(program.replace('\nCipher Weights Key Slots score', '')
+                .replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
                 .replace('KeyStream =', "KeyStream' =").replace('Plain =', "Plain' =").replace('Score =', "Score' ="));
             kernels = 0;
+            readsAtCompilation.length = 0;
             const slots: RankSequence = { kind: 'sequence', plan: {
                 name: 'host range', size: { kind: 'exact', value: 6n },
                 *iterate() { for (let i = 0n; i < 6n; i++) { reads.push(`iterate:${i}`); yield i % 3n; } },
                 at(i) { reads.push(`at:${i}`); return i % 3n; },
             } };
             runtime.variables.set('Slots', slots);
-            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels };
+            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels, readsAtCompilation };
         } finally { runtime.dispose(); }
     }
-    expect(execute(true)).toEqual({ ...execute(false), kernels: 0 });
+    const reference = execute(false), actual = execute(true);
+    expect(reference.reads).toEqual(Array.from({ length: 6 }, (_, i) => `iterate:${i}`));
+    // The ordinary selector path finishes reading the opaque sequence before
+    // a native kernel may reduce the resulting selection of stored Weights.
+    expect(actual).toEqual({ ...reference, kernels: 1, readsAtCompilation: [reference.reads] });
 });
 
 it.each([
@@ -164,12 +172,16 @@ A B score`;
 it.each(['at', 'iterate'] as const)('revalidates a modified modular sequence %s hook', hook => {
     function execute(tensorFusion: boolean) {
         let reads = 0, kernels = 0;
-        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
+        const readsAtCompilation: number[] = [];
+        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++,
+            onTensorKernelCompiled: () => readsAtCompilation.push(reads) });
         try {
-            runtime.execute(program.replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
+            runtime.execute(program.replace('\nCipher Weights Key Slots score', '')
+                .replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
                 .replace('KeyStream =', "KeyStream' =").replace('Plain =', "Plain' =").replace('Score =', "Score' =")
                 .replace('Slots =', "Slots' ="));
             kernels = 0;
+            readsAtCompilation.length = 0;
             const slots = demandValue(runtime.variables.get('Slots')!) as RankSequence;
             runtime.variables.set('Slots', slots);
             if (hook === 'at') {
@@ -179,10 +191,12 @@ it.each(['at', 'iterate'] as const)('revalidates a modified modular sequence %s 
                 const original = slots.plan.iterate;
                 slots.plan.iterate = function* () { reads++; yield* original.call(this); };
             }
-            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels };
+            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels, readsAtCompilation };
         } finally { runtime.dispose(); }
     }
-    expect(execute(true)).toEqual({ ...execute(false), kernels: 0 });
+    const reference = execute(false);
+    expect(reference.reads).toBe(hook === 'at' ? 0 : 1);
+    expect(execute(true)).toEqual({ ...reference, kernels: 1, readsAtCompilation: [reference.reads] });
 });
 
 

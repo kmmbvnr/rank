@@ -170,7 +170,7 @@ export class Operators {
         }
         if (isRankArray(value)) {
             // Stored cells are read in place: `items` would unpack a typed buffer for good.
-            const items = constructingTensorPlan() ? undefined : denseScalarItems(value);
+            const items = constructingTensorPlan(value) ? undefined : denseScalarItems(value);
             return items ? ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape)
                 : registerTensorMap(mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item)), operator, value);
         }
@@ -741,7 +741,7 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
-    if (!constructingTensorPlan() && leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
+    if (!constructingTensorPlan(left, right) && leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
         const dense = mapBooleanArrays(leftArray, rightArray, name);
         if (dense) return dense;
     }
@@ -751,7 +751,7 @@ function mapBinary(
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;
     }
-    if (!constructingTensorPlan() && (leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
+    if (!constructingTensorPlan(left, right) && (leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
         const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name], !isPredicateOperator(name), name);
         if (dense) return dense;
     }

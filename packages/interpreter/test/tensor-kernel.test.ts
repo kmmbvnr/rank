@@ -133,7 +133,7 @@ C`;
             .toHaveProperty('value', '13');
     });
 
-    it('does not force a lazy input while guarding', () => {
+    it('reduces a native selection without completing its intermediate maps', () => {
         const source = `use sequences
 fun A' probe
  return (A * 2 + 1) sum
@@ -141,7 +141,7 @@ end
 A = array 1 2 3
 View' = A (array 0 1 2)
 View probe`;
-        expect(compare(source)).toMatchObject({ value: '15', kernels: 0 });
+        expect(compare(source)).toMatchObject({ value: '15', kernels: 1 });
     });
     it('retains missing-module errors at the original statement', () => {
         expect(compare(probe.replace('use sequences\n', '')).kernels).toBe(0);

@@ -14,6 +14,8 @@ interface View {
     readonly regular?: boolean;
     /** Internal binding validation depends on scalar kind, not scalar value. */
     readonly scalarCheck?: boolean;
+    /** A selection may detach its source and offset together before a write. */
+    readonly capture?: () => { source: RankArray; offset: (index: number) => number };
 }
 const views = new WeakMap<RankArray, View>();
 const deferredCopies = new WeakSet<RankArray>();
@@ -33,24 +35,34 @@ export function registerIntegerReadPlan<T extends RankArray>(value: T,
 /** Only runtime-created selections and contract wrappers may publish views.
  * The public reader still owns its ordinary cache and validation behavior. */
 export function registerScalarView<T extends RankArray>(value: T, source: RankArray | (() => RankArray),
-    offset: (index: number) => number, options: Pick<View, 'accepts' | 'check' | 'linear' | 'regular' | 'scalarCheck'> = {}): T {
+    offset: (index: number) => number, options: Pick<View, 'accepts' | 'check' | 'linear' | 'regular' | 'scalarCheck' | 'capture'> = {}): T {
     views.set(value, { source, offset, ...options, reader: value.itemAt });
     return value;
 }
 
-/** Binding wrappers can expose their scalar contract without reading cells.
- * Only identity views with internal scalar checks are transparent to native maps. */
-export function prepareIdentityScalarView(value: RankArray): {
-    source: RankArray; validate(cell: RankValue, index: number): RankValue;
-} | undefined {
+/** Native views expose addressing and scalar contracts without reading cells.
+ * Capture a consistent source/offset pair; later detachment invalidates it.
+ * False means a registered view is opaque or stale, not a stored input. */
+export function prepareNativeScalarView(value: RankArray): {
+    source: RankArray; shape: readonly number[]; offset(index: number): number;
+    linear?: LinearView; valid(): boolean;
+    validate(cell: RankValue, index: number): RankValue;
+} | false | undefined {
     const view = views.get(value);
-    if (!view || value.itemAt !== view.reader || !view.scalarCheck) return undefined;
+    if (!view) return undefined;
+    if (value.itemAt !== view.reader || view.check && !view.scalarCheck) return false;
+    const capture = () => view.capture?.() ?? {
+        source: typeof view.source === 'function' ? view.source() : view.source, offset: view.offset,
+    };
+    const snapshot = capture();
+    const shape = [...value.shape];
     const linear = view.linear?.();
-    if (!linear || linear.offset !== 0 || linear.stride !== 1) return undefined;
-    const source = typeof view.source === 'function' ? view.source() : view.source;
-    if (source.shape.length !== value.shape.length || source.shape.some((n, axis) => n !== value.shape[axis])) return undefined;
     const validate = arrayCellValidator(value);
-    return { source, validate(cell, index) {
+    return { ...snapshot, shape, linear: linear && { ...linear }, valid() {
+        const current = capture();
+        return value.itemAt === view.reader && current.source === snapshot.source && current.offset === snapshot.offset
+            && value.shape.length === shape.length && value.shape.every((n, axis) => n === shape[axis]);
+    }, validate(cell, index) {
         validate?.(cell, index);
         return view.check ? view.check(cell) : cell;
     } };

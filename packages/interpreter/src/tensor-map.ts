@@ -1,7 +1,8 @@
 import { matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType } from '@arrrank/language';
 import { arrayCellValidator } from './derived-array.js';
 import { checkpoint } from './interrupt.js';
-import { prepareIdentityScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
+import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
+import { arrayRevision } from './array-revision.js';
 import { compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -10,9 +11,9 @@ interface MapRecipe {
     readonly shape: readonly number[];
     readonly operator: string;
     readonly operands: readonly RankValue[];
-    readonly scope: PlanScope;
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
+const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
     'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not']);
 const reductions: ReadonlySet<string> = new Set<TensorReduction>(['sum', 'mean', 'min', 'max', 'count', 'any', 'all']);
@@ -37,13 +38,30 @@ export function tensorPlanScope(host: TensorKernelHost, enabled: () => boolean, 
     };
 }
 
-export function constructingTensorPlan(): boolean { return active !== undefined; }
+/** A native operand can carry a deferred recipe past its original demand. */
+export function constructingTensorPlan(...operands: RankValue[]): boolean {
+    return active !== undefined || operands.some(value => isRankArray(value) && mapScope(value)?.enabled());
+}
+
+/** Native view results keep their compiler owner for consumers after demand.
+ * Stored results are boundaries and acquire no provenance from this operation. */
+export function registerTensorResult(value: RankValue): RankValue {
+    if (active?.enabled() && isRankArray(value) && prepareNativeScalarView(value)) owners.set(value, active);
+    return value;
+}
 
 /** Only native scalar operators can publish a recipe. Host readers and callbacks
  * cannot acquire this capability by having a numeric result annotation. */
 export function registerTensorMap<T extends RankValue>(value: T, operator: string, ...operands: RankValue[]): T {
-    if (active?.enabled() && isRankArray(value) && mapOperators.has(operator)) {
-        maps.set(value, { reader: value.itemAt, shape: [...value.shape], operator, operands, scope: active });
+    if (!isRankArray(value) || !mapOperators.has(operator)) return value;
+    let scope = active;
+    if (!scope) for (const operand of operands) {
+        if (isRankArray(operand)) scope = mapScope(operand);
+        if (scope) break;
+    }
+    if (scope?.enabled()) {
+        maps.set(value, { reader: value.itemAt, shape: [...value.shape], operator, operands });
+        owners.set(value, scope);
     }
     return value;
 }
@@ -56,11 +74,17 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
     if (!scope?.enabled()) return undefined;
     const domains = new Map<TensorNode, readonly CompiledAtomType[]>();
     const visiting = new Set<RankArray>();
+    const guards: (() => boolean)[] = [];
     let remaining = 1024;
-    let mapped = false;
+    let transformed = false;
     const typed = <T extends TensorNode>(node: T, domain: readonly CompiledAtomType[]): T => { domains.set(node, domain); return node; };
     function check(source: TensorNode, validate: ((cell: RankValue, index: number) => RankValue) | undefined): TensorNode {
         return validate ? typed({ kind: 'check', source, validate }, domains.get(source)!) : source;
+    }
+    function guardArray(value: RankArray): void {
+        const reader = value.itemAt, shape = [...value.shape], revision = arrayRevision(value);
+        guards.push(() => value.itemAt === reader && value.shape.length === shape.length
+            && value.shape.every((n, axis) => n === shape[axis]) && arrayRevision(value) === revision);
     }
     function lower(value: RankValue): TensorNode | undefined {
         if (--remaining < 0) return undefined;
@@ -71,28 +95,39 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
         if (!isRankArray(value) || visiting.has(value)) return undefined;
         visiting.add(value);
         try {
-            const view = prepareIdentityScalarView(value);
+            const view = prepareNativeScalarView(value);
+            if (view === false) return undefined;
             if (view) {
                 const source = lower(view.source);
-                return source && check(source, view.validate);
+                if (!source) return undefined;
+                guards.push(view.valid);
+                const identity = view.linear?.offset === 0 && view.linear.stride === 1
+                    && view.shape.length === view.source.shape.length
+                    && view.shape.every((n, axis) => n === view.source.shape[axis]);
+                transformed ||= !identity;
+                return check(identity ? source : typed({ kind: 'view', source, shape: view.shape, offset: view.offset },
+                    domains.get(source)!), view.validate);
             }
             // Stored arrays are completion boundaries, even if their creation
             // had a recipe. Only their present storage may feed this demand.
             const stored = prepareStoredScalarView(value, true);
             if (stored?.kinds?.length === 0 && value.shape.some(n => n === 0)) {
+                guardArray(value);
                 return typed({ kind: 'input', value }, ['integer', 'real', 'boolean']);
             }
-            // Keep validation in graph order. A nonidentity checked view may
-            // not establish a later operand's contract before an earlier fails.
+            // Other checked readers must retain their traversal order instead
+            // of settling a contract before an earlier computed operand fails.
             if (stored?.validate) return undefined;
             if (stored?.kinds?.length
                 && stored.kinds.every((kind): kind is CompiledAtomType => kind === 'integer' || kind === 'real' || kind === 'boolean')) {
+                guardArray(value);
                 return typed({ kind: 'input', value }, stored.kinds);
             }
-            if (prepareIntegerView(value)) return typed({ kind: 'input', value }, ['integer']);
+            if (prepareIntegerView(value)) { guardArray(value); return typed({ kind: 'input', value }, ['integer']); }
             const map = maps.get(value);
             if (!map || map.reader !== value.itemAt || map.shape.length !== value.shape.length
                 || map.shape.some((n, axis) => n !== value.shape[axis])) return undefined;
+            guardArray(value);
             if (map.operands.length < 1 || map.operands.length > 2) return undefined;
             const operands: TensorNode[] = [];
             for (const operand of map.operands) {
@@ -103,7 +138,7 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
             const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(map.operator, operands.length),
                 operands.map(node => domains.get(node)!));
             if (!matched) return undefined;
-            mapped = true;
+            transformed = true;
             const node = typed(operands.length === 1 ? { kind: 'unary', op: map.operator, operand: operands[0]! }
                 : { kind: 'binary', op: map.operator, left: operands[0]!, right: operands[1]! }, matched.result);
             const validate = arrayCellValidator(value);
@@ -111,17 +146,18 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
         } finally { visiting.delete(value); }
     }
     const root = lower(value);
-    if (!root || !mapped) return undefined;
-    const result = compileNativeTensorReduction(root, operation as TensorReduction, domains, scope.host, scope.code).run();
+    if (!root || !transformed) return undefined;
+    const host = { ...scope.host, valid: () => scope.host.valid?.() !== false && guards.every(guard => guard()) };
+    const result = compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code).run();
     if (result !== undefined) scope.executed();
     return result;
 }
 
 function mapScope(value: RankArray): PlanScope | undefined {
     for (let remaining = 1024; remaining > 0; remaining--) {
-        const map = maps.get(value);
-        if (map) return map.scope;
-        const view = prepareIdentityScalarView(value);
+        const owner = owners.get(value);
+        if (owner) return owner;
+        const view = prepareNativeScalarView(value);
         if (!view) return undefined;
         value = view.source;
     }
