@@ -1,3 +1,4 @@
+import { registerNativeImplementation } from '../native-implementation.js';
 import { checkValueMutable } from '../value-protection.js';
 import { registerScalarBuiltin } from '../scalar-builtin.js';
 import { findOperation, instantiateShapeSignature, type KnownShape } from '@arrrank/language';
@@ -41,7 +42,7 @@ export function native(
             }
             return tensorResult ? result : [];
         } : undefined;
-    return {
+    return registerNativeImplementation({
         kind: 'function',
         name,
         arities,
@@ -63,7 +64,7 @@ export function native(
             checkInterrupt(name);
             return result;
         },
-    };
+    });
 }
 
 /** Register the checked scalar body without exposing a new NativeFunction ABI. */

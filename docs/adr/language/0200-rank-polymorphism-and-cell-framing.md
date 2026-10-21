@@ -78,6 +78,11 @@ completed array instead. Callback effects, operand order, failures and resource
 ownership must be preserved by optimized paths. A failed traversal does not
 silently retain its successful prefix.
 
+Bulk evaluation before demand requires completed scalar operands and an unchanged
+builtin implementation. A lazy operand remains deferred even for a pure builtin;
+array size alone does not permit reading its cells. Cancellation propagates
+through bulk execution and empty-frame shape inference, without a fallback retry.
+
 ### Empty frames
 
 A zero-sized application frame makes no call to its operation. Known result-cell

@@ -1,3 +1,4 @@
+import { registerNativeImplementation } from '../native-implementation.js';
 import { findOperation, type Operation } from '@arrrank/language';
 import { RankError } from '../errors.js';
 import {
@@ -81,6 +82,7 @@ export class BuiltinRegistry {
                 if (cached !== undefined) return cached;
                 const value = fn(this.context);
                 if (isNativeFunction(value)) {
+                    registerNativeImplementation(value);
                     this.functions.set(fn, value);
                     const operation = findOperation(name);
                     if (operation) builtinOperations.set(value, operation);

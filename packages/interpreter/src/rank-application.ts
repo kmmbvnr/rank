@@ -6,12 +6,13 @@ import { framedArray } from './framed-array.js';
 import { ALL_AXIS, atArray, sliceArray, tensorSelection } from './selectors.js';
 import { rankedNumericFind } from './numeric-search.js';
 import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
-import { registerScalarView } from './integer-view.js';
+import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, checkInterrupt, InterruptedError, privateLoopPolling } from './interrupt.js';
+import { hasNativeImplementation } from './native-implementation.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { textFunctionSqlite } from './modules/sqlite.js';
@@ -169,20 +170,21 @@ export class RankApplication {
             this.ownFiles(result);
             return result;
         };
-        // A pure builtin over scalar cells is computed at once: a lazy layer per
-        // call makes a loop that rebinds its own result read back through every
-        // earlier pass. A cell that raises leaves the lazy form, which raises
-        // only when that cell is read.
+        // Only completed scalar storage permits speculative bulk evaluation.
+        // Reading a plan here would move effects and failures before demand.
+        // A domain failure on stored data leaves the ordinary lazy form.
         const frameSize = arraySize(frameShape);
         if (frameSize >= DENSE_FRAME_CELLS && leftRank === 0 && rightRank === 0
             && (a.frameShape.length === 0 || b.frameShape.length === 0 || sameShape(a.frameShape, b.frameShape))
-            && this.isPureBuiltin(fn)) {
+            && privateLoopPolling() && this.isPureBuiltin(fn)
+            && storedScalarOperand(left) && storedScalarOperand(right)) {
+            checkInterrupt('computing array');
             const cells: RankValue[] = new Array(frameSize);
             // Real results (max, min over reals) go into one typed buffer.
             let reals: Float64Array | undefined = new Float64Array(frameSize);
             try {
                 for (let index = 0; index < frameSize; index += 1) {
-                    if ((index & 0xfff) === 0) checkpoint('computing array');
+                    if ((index & 0xfff) === 0) checkpoint('computing array', Math.min(4096, frameSize - index));
                     const result = applyCell(
                         a.cellAt(a.frameShape.length === 0 ? 0 : index),
                         b.cellAt(b.frameShape.length === 0 ? 0 : index));
@@ -197,7 +199,7 @@ export class RankApplication {
                 }
                 return completed(reals ? typedArray(reals, frameShape) : ownedArray(cells, frameShape));
             } catch (error) {
-                if (!(error instanceof RankError)) throw error;
+                if (error instanceof InterruptedError || !(error instanceof RankError)) throw error;
             }
         }
         // Each native read evaluates its operands; ordinary binding retains the result.
@@ -297,7 +299,7 @@ export class RankApplication {
     }
 
     private isPureBuiltin(fn: Extract<RankValue, { kind: 'function' }>): boolean {
-        return ['core', 'numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
+        return hasNativeImplementation(fn) && ['core', 'numbers', 'linalg', 'stats', 'sequences', 'text'].some(module =>
             Object.values(standardModules[module]).some(definition => this.standardFunctions.get(definition) === fn));
     }
 
@@ -322,7 +324,7 @@ export class RankApplication {
             const result = fn.call([fill]);
             return isRankArray(result) ? [...result.shape] : [];
         } catch (error) {
-            if (error instanceof RankError) return undefined;
+            if (error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
             throw error;
         }
     }
@@ -490,4 +492,9 @@ function textCells(value: string): OuterCells {
     }
     return { frameShape: [offsets.length], cellShape: [],
         cellAt: index => value.slice(offsets[index], offsets[index + 1] ?? value.length) };
+}
+
+/** No arbitrary object or lazy reader may be probed to establish eligibility. */
+function storedScalarOperand(value: RankValue): boolean {
+    return typeof value !== 'object' || prepareStoredScalarView(value) !== undefined;
 }
