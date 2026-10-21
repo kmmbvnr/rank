@@ -2,8 +2,8 @@ import { AstUtils, isAstNode, type AstNode } from 'langium';
 import {
     applicationExpression, applicationForm, expressionFacts, flattenApplication,
     isApplicationExpression, isBinaryExpression, isBooleanLiteral, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
-    isExpression, isNameExpression, isParenthesizedExpression, nameNeedsExecution, UNKNOWN_VALUE,
-    type DeclaredCallExpression, type Expression, type NameExpression, type Operation,
+    isExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, nameNeedsExecution, UNKNOWN_VALUE,
+    type Expression, type NameExpression, type Operation,
 } from '@arrrank/language';
 import { denseScalarItems } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
@@ -22,7 +22,7 @@ interface ConstructionContext {
 
 type ConstructionMode = 'defer' | 'propagate' | 'demand';
 
-/** Stage actual calls, then retain the remaining expression and captured values.
+/** Stage calls and stream creation, then retain the expression and captured values.
  * A callback in a filter or ranked operation is a reference, not an invocation.
  * The original syntax is never mutated while replacing a staged call's result. */
 export class PlanConstruction {
@@ -94,6 +94,11 @@ export class PlanConstruction {
     }
 
     private *rewrite(expression: Expression, tail = false, invokeName = true): Execution<Expression> {
+        // A counted input is one consumable resource. Keep that instance in the
+        // recipe; replaying the recipe must not silently open another stream.
+        if (isStdinExpression(expression) && expression.count) {
+            return this.reference(yield* resume(this.context.execute(expression, tail)), expression);
+        }
         if (isNameExpression(expression)) {
             const fn = !this.isReference(expression) && this.userFunction(expression);
             return fn && invokeName && fn.arities.includes(0)
@@ -112,15 +117,9 @@ export class PlanConstruction {
                     const part = parts[index];
                     const fn = isNameExpression(part) && this.userFunction(part);
                     if (!fn || fn.arities.includes(0) || !this.wholeCall(fn)) continue;
-                    const arity = fn.callSignature?.leftCount
-                        ?? Math.max(...fn.arities.filter(count => count <= index));
-                    if (arity < 1 || arity > index) continue;
-                    const firstEnd = index - arity + 1;
-                    const arguments_ = [applicationExpression(parts.slice(0, firstEnd), expression),
-                        ...parts.slice(firstEnd, index)];
-                    const call = { $type: 'DeclaredCallExpression', callee: part, arguments: arguments_,
-                        dataParameters: [...fn.callSignature?.dataParameters ?? arguments_.map((_, i) => i)],
-                        ranks: [], axes: [], $cstNode: expression.$cstNode } as DeclaredCallExpression;
+                    // The ordinary call path owns argument grouping, arity,
+                    // parameter modes and ownership transfers.
+                    const call = applicationExpression(parts.slice(0, index + 1), expression);
                     const result = yield* resume(this.context.execute(call, tail && index === parts.length - 1));
                     const remainder = applicationExpression([this.reference(result, call), ...parts.slice(index + 1)], expression);
                     return yield* resume(this.rewrite(remainder, tail));

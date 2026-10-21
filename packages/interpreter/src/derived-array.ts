@@ -22,11 +22,12 @@ const MAX_CACHED_CELLS = 1 << 24;
  * Registering the dependency revision also invalidates downstream expressions.
  */
 export function derivedArray(
-    shape: readonly number[], dependencies: readonly RankArray[],
+    shape: readonly number[], dependencies: readonly RankValue[],
     read: (index: number) => RankValue, fileFree = false,
     evaluate?: (index: number) => Evaluation<RankValue>,
 ): RankArray {
-    const depth = arrayReaderDepth(dependencies, 1);
+    const sources = dependencies.filter(isRankArray);
+    const depth = arrayReaderDepth(sources, 1);
     const diagnostics = currentDiagnostics();
     const observedColumns = new Map<number, Map<string, { type: string; rank?: number }>>();
     let lastColumn = -1;
@@ -52,7 +53,8 @@ export function derivedArray(
         lastColumn = column;
         lastScalar = scalar === 'bigint' || scalar === 'boolean' || scalar === 'string' ? scalar : undefined;
     };
-    const record: DerivedRecord = { values: () => dependencies, epoch: -1, sources: dependencies };
+    const record: DerivedRecord = { values: () => dependencies, epoch: -1, sources,
+        retained: () => materialized ?? cells.values() };
     let seen: number | undefined;
     let validatedEpoch = -1;
     let validatedEntry = -1;

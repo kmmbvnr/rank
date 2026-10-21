@@ -81,7 +81,7 @@ describe('Rank IO, modules and programs', () => {
         const interpreter = new Interpreter(undefined, { input });
         interpreter.execute([
             'use io',
-            'Values = stdin .integer 2',
+            "Values' = stdin .integer 2",
         ].join('\n'));
 
         expect(input.reads).toBe(0);
@@ -110,12 +110,12 @@ describe('Rank IO, modules and programs', () => {
             .toThrowError('stdin count must be a nonnegative integer');
 
         const short = new Interpreter(undefined, { input: new TokenInput(['1']) });
-        short.execute('use io\nValues = stdin .integer 2');
+        short.execute("use io\nValues' = stdin .integer 2");
         expect(() => short.execute('Values array'))
             .toThrowError('standard input ended before .integer');
 
         const invalid = new Interpreter(undefined, { input: new TokenInput(['x']) });
-        invalid.execute('use io\nValues = stdin .integer 1');
+        invalid.execute("use io\nValues' = stdin .integer 1");
         expect(() => invalid.execute('Values array'))
             .toThrowError('invalid integer input: x');
     });
@@ -130,7 +130,7 @@ describe('Rank IO, modules and programs', () => {
             '    Current -= 1',
             '  end',
             'end',
-            'Values = 3 values',
+            "Values' = 3 values",
         ].join('\n'));
         const values = interpreter.variables.get('Values');
         expect(values && isRankSequence(values)).toBe(true);
@@ -149,7 +149,7 @@ describe('Rank IO, modules and programs', () => {
             'A = record',
             '  .count = 0',
             'end',
-            'S = A stream',
+            "S' = A stream",
             'N = S len',
             'A .count',
         ].join('\n'))).toBe('9');
@@ -187,7 +187,7 @@ describe('Rank IO, modules and programs', () => {
             'use io',
 
             'use sequences',
-            'X = 1 to 3',
+            "X' = 1 to 3",
             'X array len print',
         ].join('\n'));
         expect(formatValue(result!)).toBe('3');
@@ -206,7 +206,7 @@ describe('Rank IO, modules and programs', () => {
             '  return',
             '  yield 99',
             'end',
-            'Values = (array 1 2) first',
+            "Values' = (array 1 2) first",
         ].join('\n'));
         const values = interpreter.variables.get('Values');
         expect(values && isRankSequence(values)).toBe(true);
@@ -223,7 +223,7 @@ describe('Rank IO, modules and programs', () => {
             '  yield N',
             '  return N',
             'end',
-            'Values = 1 invalid',
+            "Values' = 1 invalid",
         ].join('\n'));
         const values = interpreter.variables.get('Values');
         expect(values && isRankSequence(values)).toBe(true);
@@ -242,7 +242,7 @@ describe('Rank IO, modules and programs', () => {
             '  yield N',
             '  yield 1 // 0',
             'end',
-            'Values = 7 values',
+            "Values' = 7 values",
         ].join('\n'));
         const values = interpreter.variables.get('Values');
         expect(values && isRankSequence(values)).toBe(true);
@@ -262,7 +262,7 @@ describe('Rank IO, modules and programs', () => {
             '  yield File position',
             '  yield File size',
             'end',
-            'Values = "/input" positions',
+            'Values\' = "/input" positions',
         ].join('\n'));
         const values = interpreter.variables.get('Values');
         expect(values && isRankSequence(values)).toBe(true);

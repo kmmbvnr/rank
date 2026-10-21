@@ -10,6 +10,33 @@ function counted() {
 }
 
 describe.each([false, true])('compositional plan construction (compilation=%s)', compilation => {
+    it('demands a planned receiver for ungrouped argument addressing', () => {
+        const source = counted();
+        const runtime = new Interpreter(undefined, { compilation });
+        runtime.variables.set('Input', source.value);
+        try {
+            runtime.execute("use sequences\nfun Value Limit above = Value greater Limit\nM' = (array 1 2 3 4) reshape 2 2");
+            expect(runtime.execute('M 1 0 2 above')).toBe(true);
+            expect(runtime.execute('Result = M 1 0 3 above')).toBe(false);
+            runtime.execute("Result' = M 1 0 2 above");
+            expect(runtime.execute('Result')).toBe(true);
+            runtime.execute("fun Value X' keep = Value\nLater' = Input sum");
+            expect(runtime.execute('M 1 0 Later keep')).toBe(3n);
+            expect(source.reads()).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each(['', 'Result = ', "Result' = "])('keeps ordinary arity diagnostics while staging a call: %s', prefix => {
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            runtime.execute('use io\nfun A B add\n "entered" print\n return A + B\nend');
+            expect(() => runtime.execute(`${prefix}1 2 3 add`)).toThrowError('add expects 2 arguments, got 3');
+            expect(() => runtime.execute(`${prefix}1 add`)).toThrowError('add expects 2 arguments, got 1');
+            expect(output).toEqual([]);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['(Input transform) sum', 'Input transform sum', '(Input transform) sum + 1'])(
         'executes the helper and defers surrounding work: %s', expression => {
             const source = counted();

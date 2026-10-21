@@ -127,7 +127,7 @@ export function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse
     if (dense) return dense;
     const fileFree = [whenTrue, whenFalse].every(value => isKnownFileFree(value)
         || (isRankArray(value) && value.containsFiles === false));
-    return derivedArray(shape, arrays, index => {
+    return derivedArray(shape, values, index => {
         const selected = read(condition, index);
         if (typeof selected !== 'boolean') {
             throw new RankError('choose expects a boolean condition', 'TypeError');

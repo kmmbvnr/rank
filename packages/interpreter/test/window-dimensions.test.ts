@@ -66,7 +66,7 @@ it('does not read source cells when window dimensions are unpacked', () => {
     let reads = 0;
     r.variables.set('M', { kind: 'array', shape: [3, 3], items: [],
         itemAt: i => { reads++; return BigInt(i); } } as RankArray);
-    r.execute('S = array 2 2\nW = M window unpack S');
+    r.execute("S = array 2 2\nW' = M window unpack S");
     expect(reads).toBe(0);
     expect(r.execute('W 0 0 0 0')).toBe(0n);
     expect(reads).toBe(1);

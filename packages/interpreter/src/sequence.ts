@@ -6,6 +6,7 @@ import { derivedArray, IntegerCells, materializeCells, MAX_HELD_CELLS, ownedArra
 import { arithmeticRange } from './range-plan.js';
 import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
+import { isKnownFileFree } from './resource-summary.js';
 import {
     isRankArray,
     isRankQueue,
@@ -541,7 +542,7 @@ export function windowValue(
     if (isRankSequence(source)) {
         validateWindowAxes(1, widths, axes);
         rejectWindowPadding(padding, 'sequence');
-        if (source.plan.size.kind !== 'exact') {
+        if (source.plan.size.kind !== 'exact' || source.plan.singlePass) {
             return streamingWindows(source, widths[0], strides[0]);
         }
         const length = safeSize(source.plan.size.value, 'sequence size');
@@ -607,7 +608,7 @@ export function shiftValue(
     const amount = Number(amountValue);
     if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
     const shape = source.shape;
-    return derivedArray(shape, [source], linear => {
+    return derivedArray(shape, [source, fillValue], linear => {
         const coordinates = arrayCoordinates(shape, linear);
         coordinates[axis] -= amount;
         if (coordinates[axis] < 0 || coordinates[axis] >= shape[axis]) return fillValue;
@@ -735,7 +736,8 @@ function arrayWindows(
         });
         return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
-    const result = dependencies ? derivedArray(resultShape, dependencies, read)
+    const result = dependencies ? derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
+        dependencies.every(isKnownFileFree) && isKnownFileFree(fill))
         : lazyArray(resultShape, read);
 
     const size = arraySize(widths);
@@ -791,11 +793,15 @@ function streamingWindows(
     stride: number,
 ): RankSequence {
     const sourceSize = source.plan.size;
-    const size = sourceSize.kind === 'infinite'
-        ? sourceSize
-        : { kind: 'unknown' as const };
+    const size = sourceSize.kind === 'exact'
+        ? { kind: 'exact' as const, value: sourceSize.value < BigInt(width) ? 0n
+            : (sourceSize.value - BigInt(width)) / BigInt(stride) + 1n }
+        : sourceSize;
     return sequence({
         name: `${width} window over ${source.plan.name}`,
+        singlePass: source.plan.singlePass,
+        replay: source.plan.replay,
+        captures: source.plan.captures,
         size,
         *iterate() {
             const buffer: RankValue[] = [];

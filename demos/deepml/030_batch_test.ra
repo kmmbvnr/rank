@@ -12,7 +12,7 @@ test "official paired batches"
   end
   Y = array 1 2 3 4 5
 
-  Batches = X Y 2 batch_pairs array
+  Batches = X Y 2 batch_pairs
   Batches len equal 3
 
   First = Batches 0
@@ -61,7 +61,7 @@ test "empty input has no batches"
   use "030_batch"
   use sequences
   X = array shape 0 2 fill 0
-  Batches = X 3 batch_iterator array
+  Batches = X 3 batch_iterator
 
   Batches len equal 0
 end
@@ -72,7 +72,7 @@ test "batch size must be positive"
   Raised = false
 
   try
-    Result = X 0 batch_iterator array
+    Result = X 0 batch_iterator
   catch .InvalidBatchSize Error
     Raised = true
   end
@@ -87,7 +87,7 @@ test "paired sample counts must match"
   Raised = false
 
   try
-    Result = X Y 2 batch_pairs array
+    Result = X Y 2 batch_pairs
   catch .DimensionMismatch Error
     Raised = true
   end

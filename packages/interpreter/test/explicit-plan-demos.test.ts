@@ -6,8 +6,31 @@ import { denseScalarItems, materializedArrayItems } from '../src/array-storage.j
 
 const euler4 = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
 const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', import.meta.url), 'utf8');
+const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('keeps generated-grid windows deferred and materializes an explicit retained result', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(windows));
+            expect(output).toEqual(['1 2 4 5 2 3 5 6 4 5 7 8 5 6 8 9', '1 5 9', '3 5 7']);
+            const blocks = runtime.variables.get('Blocks')!;
+            expect(isRankPlan(blocks)).toBe(true);
+            const before = diagnostics.cellsComputed;
+            const view = diagnostics.run(() => runExecution(demand(blocks))) as RankArray;
+            expect(view.shape).toEqual([2, 2, 2, 2]);
+            expect(denseScalarItems(view)).toBeUndefined();
+            expect(materializedArrayItems(view)).toBeUndefined();
+            expect(diagnostics.cellsComputed).toBe(before);
+            const saved = runtime.execute('Saved = Blocks') as RankArray;
+            expect(saved.shape).toEqual([2, 2, 2, 2]);
+            expect(denseScalarItems(saved)).toBeDefined();
+            expect(formatValue(saved)).toBe(output[0]);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains centered data once and defers the covariance transpose', () => {
         const runtime = new Interpreter(undefined, { compilation });
         const diagnostics = new RuntimeDiagnostics();

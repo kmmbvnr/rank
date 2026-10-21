@@ -84,8 +84,8 @@ export class Operators {
             return compareCells(spec.operator, a.cellAt(0), b.cellAt(0));
         }
         return mapBroadcastArrays(
-            derivedArray(a.frameShape, [left].filter(isRankArray), a.cellAt),
-            derivedArray(b.frameShape, [right].filter(isRankArray), b.cellAt),
+            derivedArray(a.frameShape, [left], a.cellAt),
+            derivedArray(b.frameShape, [right], b.cellAt),
             (x, y) => compareCells(spec.operator, x, y),
         );
     }

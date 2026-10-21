@@ -79,6 +79,8 @@ export function nextCreationSerial(): number { return ++creationSerial; }
 // Validate each node once per write epoch, rather than expanding every path.
 export const derivedRevisions = new WeakMap<object, {
     values: () => Iterable<RankValue>; own?: () => number;
+    /** Already computed children held by the reader, without evaluating cells. */
+    retained?: () => Iterable<RankValue>;
     epoch: number; cached?: number; checkedBirth?: number;
     // What binding this reader has to freeze; a reader over no stored array
     // has none, so only the readers that can be frozen carry the list.
