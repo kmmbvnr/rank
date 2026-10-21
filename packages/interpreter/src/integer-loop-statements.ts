@@ -3,7 +3,7 @@ import {
     applicationForm, isExpressionStatement, findOperation, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
     isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
-    isParenthesizedExpression, isNameExpression, type Statement,
+    isParenthesizedExpression, isNameExpression, type Statement, type AssignmentStatement,
 } from '@arrrank/language';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -16,8 +16,25 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         host, numberMode, dirty, localTypes, required, assigned, writers, writerNames, written, arrays,
         arrayInputs, arrayDefinitions, aliases, graphMutations, destinations, locations, reject,
     } = state;
-    const {container, slot, realInput, emit, arithmetic} = expressions;
+    const {container, slot, realInput, emit, emitValue, arithmetic} = expressions;
     const indexedWrite = createLoopIndexedWrites(state, expressions);
+
+    function bindArray(assignment: AssignmentStatement, value: string, rank: number, type: LoopTerm['type'],
+        lines: string[], body: string[], location: number): true | undefined {
+        if (localTypes.has(assignment.name)) return reject(assignment);
+        const old = arrays.get(assignment.name), target = destinations.get(assignment.name);
+        if (old && (old.rank !== rank || old.type !== type)
+            || target && (target.rank !== rank || target.type !== type)) return reject(assignment);
+        const destination = slot(assignment.name), index = writers.length;
+        arrays.set(assignment.name, { slot: destination, rank, type });
+        arrayDefinitions.add(assignment.name);
+        written.add(assignment.name);
+        writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
+        body.push(`location = ${location};`, ...lines,
+            `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
+        assigned.add(assignment.name);
+        return true;
+    }
 
     function statements(commands: readonly Statement[], body: string[], allowTail: boolean): 'next' | 'stop' | undefined {
         for (const assignment of commands) {
@@ -54,7 +71,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     if (!assigned.has(expression.name)) arrayInputs.add(expression.name);
                     value = `r${array.slot}`;
                 } else {
-                    const result = emit(expression, lines, undefined, allowTail);
+                    const result = emitValue(expression, lines, undefined, allowTail);
                     if (!result) return reject(assignment);
                     value = result.code;
                 }
@@ -177,23 +194,12 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         aliases.push([assignment.name, name]);
                         rank = source.rank; type = source.type; value = `r${source.slot}`;
                     }
-                    const old = arrays.get(assignment.name), target = destinations.get(assignment.name);
-                    if (old && (old.rank !== rank || old.type !== type)
-                        || target && (target.rank !== rank || target.type !== type)) return reject(assignment);
-                    const destination = slot(assignment.name), index = writers.length;
-                    arrays.set(assignment.name, { slot: destination, rank, type });
-                    arrayDefinitions.add(assignment.name);
-                    written.add(assignment.name);
-                    writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
-                    body.push(`location = ${location};`, ...lines,
-                        `writers[${index}](${value}); r${destination} = ${value}; storage${destination} = access(${value}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${value};`);
-                    assigned.add(assignment.name);
+                    if (!bindArray(assignment, value, rank, type, lines, body, location)) return undefined;
                     continue;
                 }
             }
             const index = writers.length;
             if (!isAssignmentStatement(assignment) || assignment.name.includes('.')) return reject(assignment);
-            if (arrays.has(assignment.name)) return reject(assignment);
             const destination = slot(assignment.name);
             written.add(assignment.name);
             if (assignment.operator !== '=' && !assigned.has(assignment.name)) required.add(destination);
@@ -201,7 +207,12 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
             const textUpdate = host.nativeCalls && assignment.operator === '+='
                 && (localTypes.get(assignment.name) === 'text' || typeof host.read(assignment.name) === 'string');
-            const value = emit(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
+            const value = emitValue(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
+            if (value && typeof value.type !== 'string') {
+                if (assignment.operator !== '=' || !bindArray(assignment, value.code, value.type.rank, value.type.element, lines, body, location)) return reject(assignment);
+                continue;
+            }
+            if (arrays.has(assignment.name)) return reject(assignment);
             if (!value || value.type === 'boolean' && !host.booleanLocals) return reject(assignment);
             // A compound update keeps its binding's type, as in `Total += 1`.
             const compound = assignment.operator !== '=';
@@ -212,7 +223,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 const op = assignment.operator.slice(0, -1);
                 const signature = loopOperatorSignature(op, [type, value.type], host.nativeCalls);
                 const out = signature?.compound && signature.result === type
-                    ? arithmetic(op, { code: `r${destination}`, type }, value, type, lines) : undefined;
+                    ? arithmetic(op, { code: `r${destination}`, type }, { code: value.code, type: value.type }, type, lines) : undefined;
                 if (out === undefined) return reject(assignment);
                 result = out;
             } else if (type !== value.type) return reject(assignment);

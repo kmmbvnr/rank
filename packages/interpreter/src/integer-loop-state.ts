@@ -37,7 +37,7 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
         graphMutations, vectorIterations, iterators, destinations, locations,
-        serial: 0, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        serial: 0, hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
     };
 }
 

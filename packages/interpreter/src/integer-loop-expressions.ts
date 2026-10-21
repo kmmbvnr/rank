@@ -9,7 +9,7 @@ import {
     flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isParenthesizedExpression, isNumberLiteral, isNameExpression, type Expression, type CompiledLoopType,
-    type CompiledExpression, type Operation,
+    type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex } from './value.js';
 import { RankDeque } from './containers.js';
@@ -90,6 +90,8 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 : (denseScalarItems(value) ?? materializedArrayItems(value))?.[0] : value;
         return typeof first === 'number' ? 'real' : undefined;
     }
+    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType };
+    function isScalar(value: LoopValue): value is LoopTerm { return typeof value.type === 'string'; }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
         let tailSource = e;
@@ -106,7 +108,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
                     && source.operator !== '**' && source.operator !== 'in' && source.operator !== 'notin') return undefined;
                 const inputLines: string[] = [];
                 const term = emitInput(source, inputLines, expected, tail && source === tailSource);
-                return term ? { type: term.type, input: { term, lines: inputLines } } : undefined;
+                return term && isScalar(term) ? { type: term.type, input: { term, lines: inputLines } } : undefined;
             },
             isBound: name => localTypes.has(name) || arrays.has(name) || containers.has(name),
             extreme: host.extrema ? (name, inputs) => {
@@ -257,7 +259,20 @@ export function createLoopExpressions(state: LoopCompilationState) {
         lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
         return { code: name, type: signature.result };
     }
-    function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
+    function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
+        let source = e;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isApplicationExpression(source)) {
+            // Whole-value stores/returns may accept an array call. Other forms
+            // keep the shared scalar inference, including min/max grouping.
+            const parts = flattenApplication(source), last = parts.at(-1);
+            if (last && isNameExpression(last) && host.scalarFunction(last.name, parts.length - 1)) {
+                return emitInput(source, lines, hint, tail);
+            }
+        }
+        return emit(e, lines, hint, tail);
+    }
+    function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         if (state.serial > 256) return undefined;
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
@@ -379,6 +394,12 @@ export function createLoopExpressions(state: LoopCompilationState) {
                     const callable = prepareCallee(types);
                     if (callable?.type === 'real' && !host.reals) return reject(e, 'unsupported-type:real');
                     if (callable) {
+                        if (typeof callable.type !== 'string') {
+                            if (!host.arrayLocals || callable.type.element === 'real'
+                                || callable.type.element === 'boolean' && !host.booleanArrays
+                                || callable.type.element === 'text' && !host.textArrayLoops) return undefined;
+                            state.hasArrayCall = true;
+                        }
                         const name = `v${state.serial++}`, index = calls.length;
                         // The proof fixes input domains and permitted mutations.
                         // Binding identity is rechecked at every region entry.
@@ -507,7 +528,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
         }
         return undefined;
     }
-    return { container, slot, knownType, realInput, emit, arithmetic };
+    return { container, slot, knownType, realInput, emit, emitValue, arithmetic };
 }
 
 export type LoopExpressions = ReturnType<typeof createLoopExpressions>;

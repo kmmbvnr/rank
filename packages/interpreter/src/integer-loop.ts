@@ -105,6 +105,9 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
     if (graphMutations.some(name => written.has(name) || names.includes(name))) return reject(statement, 'unstable-graph');
+    // An array-returning callee can share a caller operand after entry COW.
+    // Per-store ownership preparation is required before these regions may write.
+    if (state.hasArrayCall && destinations.size) return reject(statement, 'array-call-write-region');
     const writable = new Set(destinations.keys());
     for (let changed = true; changed;) {
         changed = false;

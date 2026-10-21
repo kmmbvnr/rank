@@ -342,7 +342,7 @@ export class FastPaths {
 
     /**
      * A compiled loop calling `name` with proven argument types may compile the call
-     * when the callee's body is a proven scalar function. `bind` rechecks the
+     * when the callee's body has a proven scalar or array result. `bind` rechecks the
      * binding at loop entry, since the name can be rebound between runs.
      */
     scalarCall(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
@@ -354,13 +354,13 @@ export class FastPaths {
         if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
         return types => {
             const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
-            if (!proof || typeof proof.type !== 'string') return undefined;
+            if (!proof) return undefined;
             const captures = definition.context !== undefined;
             return {
                 parameters: types,
                 effects: {
                     writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
-                    stableArrayReads: !proof.containers && !proof.arrayWrites.size,
+                    stableArrayReads: typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size,
                 },
                 type: proof.type,
                 locals: [...(captures ? proof.locals : []), ...proof.nativeReads, ...proof.dependencies],
