@@ -67,6 +67,39 @@ Statement = Selected sql`);
         data.balanced();
     });
 
+    test(`SQLite aliases and join scopes complete at ordinary bindings (compilation=${compilation})`, { timeout: 10000 }, t => {
+        const data = fixture(t);
+        const runtime = new Interpreter(undefined, { io: data.io, compilation });
+        t.after(() => runtime.dispose());
+        runtime.execute(`use tables
+Db = ${JSON.stringify(data.path)} sqlite
+Left' = Db .items alias .left
+Right' = (Db .items filter .id greater 1) alias .right
+Joined' = Left Right leftjoin on
+ .id equal .id
+Scope' = Joined .right`);
+        assert.equal(data.reads(), 0);
+        runtime.execute('ReadyAlias = Left');
+        const alias = runtime.variables.get('ReadyAlias');
+        assert.equal(alias.kind, 'table-alias');
+        assert.equal(alias.name, 'left');
+        assert.equal(alias.source.kind, 'array');
+        assert.equal(data.reads(), 1);
+        runtime.execute('ReadyScope = Scope');
+        const scope = runtime.variables.get('ReadyScope');
+        assert.equal(scope.kind, 'array');
+        assert.equal(scope.shape[0], 2);
+        assert.deepEqual(scope.columnNames, ['id', 'name']);
+        assert.equal(scope.items[0].kind, 'missing');
+        assert.equal(scope.items[1].entries.get('name'), 'second');
+        assert.equal(data.reads(), 2);
+        data.db.exec("UPDATE items SET name = 'changed' WHERE id = 2");
+        assert.equal(scope.items[1].entries.get('name'), 'second');
+        assert.equal(runtime.execute('Scope array').items[1].entries.get('name'), 'changed');
+        assert.equal(data.reads(), 3);
+        data.balanced();
+    });
+
     test(`TPC-H Q6 pilot keeps SQL pushdown (compilation=${compilation})`, { timeout: 10000 }, t => {
         const data = fixture(t);
         const output = [];

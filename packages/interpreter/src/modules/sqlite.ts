@@ -4,7 +4,7 @@ import { sameSqliteSource } from '../sqlite-source.js';
 import { MissingValueError, RankError } from '../errors.js';
 import type { RankSqliteConnection, SqliteScalar } from '../io.js';
 import {
-    tuple, formatDate,
+    tuple, formatDate, MISSING,
     isRankArray,
     isRankTuple,
     isRankBytes,
@@ -103,6 +103,13 @@ export function sqliteCalendar(
 export function materializeSqlite(table: RankSqliteTable): RankArray {
     return withConnection(table.database, connection =>
         resultRows(connection.prepare(table.text), table.params, table.scopes, table.booleanColumns));
+}
+
+/** Complete a join namespace with the same missing-scope behavior as ready rows. */
+export function materializeSqliteScope(scope: RankSqliteScope): RankArray {
+    const rows = materializeSqlite(scope.table);
+    return ownedArray(rows.items.map(row => (row as RankObject).entries.get(scope.name) ?? MISSING),
+        rows.shape, false, scope.table.scopes?.get(scope.name));
 }
 
 export function sqliteColumns(table: RankSqliteTable): readonly string[] {

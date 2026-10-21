@@ -14,6 +14,11 @@ Data len                      rem number of rows
 Ages = Data .Age              rem one column, a rank-1 array
 ```
 
+Ordinary binding completes a column or table, including plans inside nested
+cells. `Ages' = Data .Age` instead retains the projection plan. Completion keeps
+the columnar table representation, absent cells and column order, sharing ready
+columns where possible.
+
 ### Schema
 
 A table has an ordered list of unique column names and a length. Each column has
@@ -27,9 +32,8 @@ with no values at all is a text column of absent cells.
 
 ### Values, not references
 
-A table is a value, like an array. Binding it to a second name, passing it to a
-function or returning it never lets a write through one name show through
-another:
+A table is a value, like an array. Replacing a column or cell through one name
+does not change another table version:
 
 ```rank
 fun Data fill
@@ -38,6 +42,11 @@ fun Data fill
 end
 Filled = Train fill                   rem Train still has its gaps
 ```
+
+Nested records and containers retain their shared identities. Capturing a table
+in an explicit plan protects those mutable values against writes through any
+alias. Completing a deferred nested value can produce an independent stored
+value; binding an already ready shared record does not remove its protection.
 
 Every change produces a new table version. Unchanged columns are shared with
 the old version, not copied, so replacing one column costs one buffer. A
@@ -175,6 +184,10 @@ distinct without renaming either source column. A left row with no match has no
 `.r` object, so a nested projection can use `default`. For a SQLite view, `J` is
 still lazy and `J sql` shows a query with the self join; `array` reads its rows.
 The alias changes only the Rank result shape, never the database schema.
+An ordinary alias binding reads and stores its source while keeping the role
+name; use an apostrophe to retain a SQLite source. An ordinary binding of a join
+scope, `RightRows = J .r`, stores that scope's values, with missing cells for
+unmatched right rows. `RightRows' = J .r` keeps the scope query deferred.
 An already joined SQLite view cannot itself be aliased yet; multiway joins of
 nested views need qualified join keys and nested scope composition.
 

@@ -63,13 +63,13 @@ describe('contextual table operations', () => {
         expect(formatValue(runtime.execute('Out .right default "none"')!)).toBe('B A none');
     });
 
-    it('keeps single-field results tabular, column order, empty headers and lazy source revisions', () => {
+    it('retains ordinary projection values, column order and empty headers', () => {
         const { runtime, io } = setup();
         runtime.execute('One = Rows select .name\nTwo = Rows select .name .id\n'
             + 'Empty = One filter .name equal "absent"\nEmpty "empty.csv" csv\n'
             + 'Rows .name = "Changed"');
         expect(isRankArray(runtime.variables.get('One')!)).toBe(true);
-        expect(formatValue(runtime.execute('One .name')!)).toBe('Changed Changed Changed');
+        expect(formatValue(runtime.execute('One .name')!)).toBe('B A B');
         expect(formatValue(runtime.execute('Two labels')!)).toBe('.name .id');
         expect(new TextDecoder().decode(io.files.get('empty.csv'))).toBe('name\n');
     });

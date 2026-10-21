@@ -5245,6 +5245,12 @@ blocking-flow algorithm and returns:
 
 Tables reuse Rank's normal addressing model.
 
+Ordinary bindings complete tables and columns, including plans in nested cells.
+Completion preserves columnar storage, column order and absent cells, sharing
+ready columns. `Ages' = Data .Age` retains a projection plan instead. Table writes
+produce new versions; nested records and containers retain shared identities
+and cannot be mutated through any alias after capture.
+
 ## SQLite
 
 With `use tables`, an existing SQLite database can be opened read-only:
@@ -5290,6 +5296,9 @@ the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
 `default` after materialization. The SQL join remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
+An ordinary alias binding materializes its source and preserves the role name.
+`RightRows = J .r` materializes a join scope, with missing cells for unmatched
+right rows; an apostrophe keeps that scope query deferred.
 `Out' = View select ... end` builds an ordered, named projection without
 reading rows. SQLite expressions must belong to `View`; constants become bound
 parameters. Ordinary record fields complete SQL columns, so use the contextual

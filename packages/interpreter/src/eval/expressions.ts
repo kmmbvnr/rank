@@ -47,7 +47,7 @@ import { compileTableExpression } from '../table-query-expression.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
     isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence, isRankSqliteExpression,
-    isRankSqliteTable, isRankTable, isRankTableAlias, MISSING, typeName,
+    isRankSqliteTable, isRankSqliteScope, isRankTable, isRankTableAlias, MISSING, typeName,
     type NativeFunction, type RankArray, type RankRecord, type RankSequence, type RankValue,
 } from '../value.js';
 import type { ApplicationEvaluator } from './application.js';
@@ -626,7 +626,7 @@ export class ExpressionEvaluator {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(expressions.evaluate(expression.source)));
                 const result = isRankArray(source) || isRankSequence(source)
-                    || isRankSqliteTable(source) || isRankSqliteExpression(source) ? source
+                    || isRankSqliteTable(source) || isRankSqliteExpression(source) || isRankSqliteScope(source) ? source
                     : isRankTableAlias(source) && isRankSqliteTable(source.source) ? source.source
                     : isRankTable(source) ? source.toRows()
                     : materializeCollection(source);

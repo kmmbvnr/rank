@@ -12,10 +12,12 @@ import { ResourceMap } from './resource-summary.js';
 import { recordContract } from './record-contract.js';
 import { setValueKey } from './set.js';
 import { isStoredValue } from './stored-value.js';
-import { materializeSqlite, materializeSqliteExpression } from './modules/sqlite.js';
+import { RankArrowTable, checkColumnValues, columnFromValues } from './arrow-table.js';
+import { materializeSqlite, materializeSqliteExpression, materializeSqliteScope } from './modules/sqlite.js';
 import {
     isRankArray, isRankSequence, isRankTuple, isRankRecord, isRankObject, isRankIndex,
-    isRankQueue, isRankSet, isRankCounter, isRankMultiset, isRankSqliteTable, isRankSqliteExpression, tuple, typeName, MISSING,
+    isRankQueue, isRankSet, isRankCounter, isRankMultiset, isRankTable, isRankTableAlias,
+    isRankSqliteTable, isRankSqliteExpression, isRankSqliteScope, tuple, typeName, MISSING,
     checkCollectionElementType, type RankRecord, type RankCounter, type RankTuple, type RankValue,
 } from './value.js';
 
@@ -52,6 +54,7 @@ export function materializeValue(value: RankValue): RankValue {
         if (isRankSequence(computed)) computed = materializeSequence(computed);
         else if (isRankSqliteTable(computed)) computed = materializeSqlite(computed);
         else if (isRankSqliteExpression(computed)) computed = materializeSqliteExpression(computed);
+        else if (isRankSqliteScope(computed)) computed = materializeSqliteScope(computed);
         if (isStoredValue(computed)) return { value: computed };
         const previous = known.get(computed);
         if (previous) return { value: computed, node: previous };
@@ -140,6 +143,12 @@ export function materializeValue(value: RankValue): RankValue {
             if (result.entries.get(name) === node.source.entries.get(name)) result.fieldContracts!.set(name, contract);
         }
     }
+    for (const node of nodes) {
+        if (!node.changed || !isRankTable(node.result!)) continue;
+        for (const column of node.result!.columns) {
+            if (column.cells) checkColumnValues(column.name, column.cells);
+        }
+    }
     return root.node.result!;
 }
 
@@ -151,6 +160,43 @@ export function materializeValues(values: readonly RankValue[]): readonly RankVa
 }
 
 function aggregateValue(value: RankValue): Aggregate | undefined {
+    if (isRankTableAlias(value)) return { values: [value.source],
+        finish: ([source]) => ({ ...value, source: source as typeof value.source }) };
+    if (isRankTable(value)) {
+        const starts = new Map<number, number>();
+        const cells: RankValue[] = [];
+        value.columns.forEach((column, index) => {
+            if (!column.cells) return;
+            starts.set(index, cells.length);
+            for (const cell of column.cells) {
+                checkpoint('materializing binding');
+                cells.push(cell ?? MISSING);
+            }
+        });
+        return { values: cells, finish: values => {
+            const columns = value.columns.map((column, index) => {
+                const start = starts.get(index);
+                if (start === undefined) return column;
+                let cells: (RankValue | undefined)[] | undefined;
+                column.cells!.forEach((original, row) => {
+                    checkpoint('materializing binding');
+                    const cell = values[start + row] === MISSING ? undefined : values[start + row];
+                    if (cell === original) return;
+                    cells ??= [...column.cells!];
+                    cells[row] = cell;
+                });
+                if (!cells) return column;
+                // Structural cells can reference empty mutable shells here.
+                // Validate their schemas after the graph is fully populated.
+                return cells.every(cell => typeof cell !== 'object')
+                    ? columnFromValues(column.name, cells, column.kind)
+                    : { name: column.name, kind: 'values' as const, cells };
+            });
+            const result = new RankArrowTable(value.length, columns);
+            result.sortKeys = value.sortKeys;
+            return result;
+        } };
+    }
     if (isRankArray(value)) {
         if (value.kind === 'bytes' || denseScalarItems(value) !== undefined) return undefined;
         const size = value.shape.reduce((product, dimension) => product * dimension, 1);
