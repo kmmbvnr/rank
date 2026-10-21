@@ -496,6 +496,8 @@ export function correlationValue(
 
 export function meanValue(value: RankValue): number {
     const source = elementSource(value, 'mean', 'series');
+    const planned = source?.reduce?.('mean');
+    if (planned !== undefined) return Number(expectNumeric(planned));
     const stored = source?.scalarItems?.();
     if (stored) {
         if (stored.length === 0) throw new RankError('mean requires at least one value', 'EmptyReduction');

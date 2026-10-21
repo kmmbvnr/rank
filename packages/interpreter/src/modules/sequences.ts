@@ -194,6 +194,11 @@ export function chooseIndexed(index: RankValue, choices: RankValue): RankValue {
 }
 
 function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
+    const planned = elementSource(value, operation, 'booleans')?.reduce?.(operation);
+    if (planned !== undefined) {
+        if (typeof planned !== 'boolean') throw new RankError(`${operation} plan must return a boolean`);
+        return planned;
+    }
     const expected = operation === 'all';
     for (const item of collectionValues(value, operation)) {
         if (typeof item !== 'boolean') {

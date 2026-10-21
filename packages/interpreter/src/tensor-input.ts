@@ -16,7 +16,7 @@ export function tensorInput(value: RankArray): TensorInput | undefined {
     if (value.itemAt !== undefined && ownedStorage.has(value)) return undefined;
     const view = privateLoopPolling() ? prepareStoredScalarView(value, true) : undefined;
     if (!view?.linear || view.linear.stride !== 1 || !view.validateUniform
-        || !view.kinds?.every(kind => kind === 'integer' || kind === 'real')) {
+        || !view.kinds?.every(kind => kind === 'integer' || kind === 'real' || kind === 'boolean')) {
         if (arrayRevision(value) === undefined) return undefined;
         const items = denseScalarItems(value) ?? materializedArrayItems(value);
         if (items && items.length === value.shape.reduce((a, b) => a * b, 1)) {

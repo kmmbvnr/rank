@@ -31,10 +31,13 @@ flow left to right: `N factors sum` means sum(factors(N)). A predicate keeps the
 shape of its input and gives booleans: `Mask = Fib even` is map(is_even, Fib),
 and an explicit selection `Fib Mask` filters, so `Fib Mask sum` means
 sum(filter(Fib, Mask)). Numeric operations (`sum`, `min`, `max`, `mean`, ...)
-on such a mask read the items it selects, so `Fib even sum` means
+on an unnamed mask read the items it selects, so `Fib even sum` means
 sum(filter(is_even, Fib)) too. The same holds for an array mask made by a
 predicate or by comparing the array with a scalar: `A even sum` sums the even
-cells of A, in row-major order, as A was when the mask was made.
+cells of A, in row-major order, as A was when the mask was made. A named mask
+cannot be reduced numerically by itself: use `Values Mask sum` for its selected
+values or `Mask count` for its number of true cells. `any` and `all` read booleans
+and stop as soon as the answer is known, preserving checks on visited cells.
 Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
@@ -66,7 +69,7 @@ Do not implement capture as a reference to a later replacement of the binding.
 
 `X text` converts X to text, `Text
 reverse` reverses it, and `Text equal Back` compares values. `less`, `greater`,
-`atleast` and `atmost` mean <, >, >= and <=. `equal`/`notequal` are value equality.
+`at least` and `at most` mean <, >, >= and <=. `equal`/`not equal` are value equality.
 
 `for I in Range ... end` visits Range in order and binds I. `if Condition ...
 elif Other ... else ... end` selects a branch. `return` exits a function;

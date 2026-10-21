@@ -170,9 +170,9 @@ export class Operators {
         }
         if (isRankArray(value)) {
             // Stored cells are read in place: `items` would unpack a typed buffer for good.
-            const items = denseScalarItems(value);
+            const items = constructingTensorPlan() ? undefined : denseScalarItems(value);
             return items ? ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape)
-                : mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item));
+                : registerTensorMap(mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item)), operator, value);
         }
         if (value === MISSING && (operator === 'not' || operator === '+' || operator === '-')) return MISSING;
         if (operator === 'not' && typeof value === 'boolean') {
@@ -741,7 +741,7 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
-    if (leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
+    if (!constructingTensorPlan() && leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
         const dense = mapBooleanArrays(leftArray, rightArray, name);
         if (dense) return dense;
     }

@@ -32,21 +32,32 @@ legacy grouped-assignment description is not a claim that every deferred stage
 already has a specialized kernel or that eager boundaries may be discarded.
 Captured plan expressions are not substituted into consumer kernels. Normal
 demand first creates each native result and applies its binding contract. Native
-numeric array maps publish their operator and operands, independently of the
+array maps publish their operator and operands, independently of the
 source AST. Identity scalar contract views expose their checks without reading
 cells. This native graph lowers to the same tensor IR, including per-cell check
-nodes, for `+`, `-`, `*` stages followed by `sum`. Integer arithmetic remains exact;
-real operations retain their evaluation and accumulation order. Computed storage
-ends traversal of the graph; opaque readers and unsupported operations keep the
-reference path.
+nodes, for arithmetic, numeric comparisons, boolean logic and unary signs.
+Supported domain signatures come from the shared operator catalogue. Integer
+arithmetic remains exact; real operations retain their evaluation and accumulation
+order. Computed storage ends traversal of the graph. Opaque readers and unsupported
+operations keep the reference path.
 
 While creating a plan's native array result, arithmetic does not allocate a dense
 intermediate merely because its operands are already stored. Ordinary binding
 still completes that result. A demand owns its native graph and checks; the
 expression site may retain a bounded cache of generated code. Every run receives
 fresh data and checks. Escaped native arrays retain this capability for direct consumers.
-Compilation options and inspection are checked when the consumer runs. Other
-native operators, views and reductions still need composition support.
+Compilation options and inspection are checked when the consumer runs.
+
+The native graph supports `sum`, `mean`, `min`, `max`, `count`, `any` and `all`.
+Boolean terminals stop as soon as their answer is known; unvisited cell contracts
+do not run. Deferred inline boolean reductions also use this native graph rather
+than the source-expression reduction shortcut. Selection still validates indices
+before producing its result, so an early answer cannot hide an invalid index.
+Ordinary grouped-assignment kernels retain full traversal where completing their
+eliminated intermediates requires it. Empty numeric extrema and means preserve
+their reference errors. Named masks retain their prohibition on numeric reduction;
+`count` reads their boolean cells. Unsupported domains and nonidentity checked
+views keep the reference path; other native views still need composition support.
 
 ## Context
 

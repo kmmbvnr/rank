@@ -19,6 +19,7 @@ import { arithmeticRange, modularRange } from './range-plan.js';
 import { privateTensorNames, tensorReadCount } from './tensor-use.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
+export type TensorReduction = Exclude<Terminal, 'copy'>;
 const bitwiseTokens = { bxor: '^', band: '&', bor: '|' } as const;
 type Bitwise = keyof typeof bitwiseTokens;
 const bitwise = (name: string): name is Bitwise => Object.prototype.hasOwnProperty.call(bitwiseTokens, name);
@@ -45,9 +46,9 @@ export type TensorCodeCache = Map<string, KernelRun>;
 
 /** Native producers use the same IR, guards and emitter as source expressions.
  * Checks belong to this demand; the optional cache retains executable code only. */
-export function compileNativeTensorSum(root: TensorNode,
+export function compileNativeTensorReduction(root: TensorNode, operation: TensorReduction,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
-    return build(root, [], 'sum', 1, host, domains, false, code);
+    return build(root, [], operation, 1, host, domains, false, code, true);
 }
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
 function pair(value: Expression): Expression[] | undefined {
@@ -77,6 +78,9 @@ export function compileTensorReduction(expression: Expression, host: TensorKerne
     const terminal = parts && unwrap(parts[1]);
     if (!terminal || !isNameExpression(terminal) || terminal.name === 'copy'
         || !terminals.has(terminal.name)) return undefined;
+    // Boolean demands use the actual native graph: selection must validate its
+    // indices before traversal, while pointwise maps may stop at the first answer.
+    if (terminal.name === 'any' || terminal.name === 'all') return undefined;
     const statement = { $type: 'ReturnStatement', value: expression } as ReturnStatement;
     return compileTensorPlan([statement], host, { rejected: false });
 }
@@ -281,7 +285,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
 }
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
-    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache) {
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, shortCircuit = false) {
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     // A successful integer-only kernel has already checked every output cell.
@@ -712,7 +716,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
             if (terminal === 'mean') lines.push(`answer += Number(${value});`);
             if (terminal === 'count') lines.push(`if (${value}) answer += 1n;`);
-            if (terminal === 'any' || terminal === 'all') lines.push(`answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
+            if (terminal === 'any' || terminal === 'all') lines.push(shortCircuit
+                ? `if (${terminal === 'any' ? value : `!${value}`}) return ${terminal === 'any'};`
+                : `answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
             const initial = terminal === 'copy' ? compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
