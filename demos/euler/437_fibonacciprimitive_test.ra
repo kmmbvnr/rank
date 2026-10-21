@@ -1,0 +1,22 @@
+use testing
+
+test "statement checkpoint"
+  use "437_fibonacciprimitive"
+  N = 10000
+  run
+  Answer equal 1480491
+end
+
+test "brute force over every residue"
+  use "437_fibonacciprimitive"
+  N = 2000
+  run
+  Answer equal 70549
+end
+
+test "primes below one million"
+  use "437_fibonacciprimitive"
+  N = 1000000
+  run
+  Answer equal 9990826718
+end

@@ -1,0 +1,101 @@
+rem Fibonacci Primitive Root
+rem https://projecteuler.net/problem=437
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000
+
+rem g^2 = g + 1 mod p has roots
+rem (1 +- s) / 2 with s^2 = 5, which
+rem exist for p = 1, 4 mod 5. Take s
+rem by Tonelli-Shanks, and test each
+rem root as a primitive root against
+rem the prime factors of p - 1 found
+rem from a smallest-factor table.
+Sp = (0 to N) copy
+Rt = N isqrt
+Ps = primes to Rt array
+for I in (Ps len - 1) to 0 by -1
+  P = Ps I
+  Sl = (P * P) to N by P
+  Sp Sl = P
+end
+Sp = Sp copy
+Tot = 5
+for P in primes to N
+  if P mod 5 equal 1 or P mod 5 equal 4
+    Q = P - 1
+    Sh = 0
+    for Q mod 2 equal 0
+      Q //= 2
+      Sh += 1
+    end
+    S = 0
+    if P mod 4 equal 3
+      E4 = (P + 1) // 4
+      S = 5 E4 P powmod
+    else
+      Z = 2
+      Hp = (P - 1) // 2
+      Nr = Z Hp P powmod
+      for Nr not equal P - 1
+        Z += 1
+        Nr = Z Hp P powmod
+      end
+      Cc = Z Q P powmod
+      E5 = (Q + 1) // 2
+      Rr = 5 E5 P powmod
+      Tt = 5 Q P powmod
+      Mm = Sh
+      for Tt not equal 1
+        I2 = 0
+        Tz = Tt
+        for Tz not equal 1
+          Tz = Tz * Tz mod P
+          I2 += 1
+        end
+        E6 = 2 ** (Mm - I2 - 1)
+        Bb = Cc E6 P powmod
+        Rr = Rr * Bb mod P
+        Cc = Bb * Bb mod P
+        Tt = Tt * Cc mod P
+        Mm = I2
+      end
+      S = Rr
+    end
+    Inv2 = (P + 1) // 2
+    G1 = (1 + S) * Inv2 mod P
+    G2 = (P + 1 - S) * Inv2 mod P
+    Ok1 = true
+    Ok2 = true
+    X = P - 1
+    for X mod 2 equal 0
+      X //= 2
+    end
+    F = 2
+    for F greater 0
+      Ef = (P - 1) // F
+      if G1 Ef P powmod equal 1
+        Ok1 = false
+      end
+      if G2 Ef P powmod equal 1
+        Ok2 = false
+      end
+      for X mod F equal 0
+        X //= F
+      end
+      F = 0
+      if X greater 1
+        F = Sp X
+      end
+    end
+    if Ok1 or Ok2
+      Tot += P
+    end
+  end
+end
+Answer = Tot
+Answer print
