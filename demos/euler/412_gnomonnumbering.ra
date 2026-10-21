@@ -1,0 +1,59 @@
+rem Gnomon Numbering
+rem https://projecteuler.net/problem=412
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 10000
+option K integer = 5000
+option Chunk integer = 4000000
+
+rem Count standard Young tableaux of
+rem the gnomon: (M^2 - K^2)! divided
+rem by the hook product, which is
+rem a ratio of products of factorials
+rem t! with a corner block and two
+rem arms of width K. Prime modulus,
+rem so division is a power.
+P = 76543217
+fun V P modprod
+  for V len greater 1
+    if V len mod 2 equal 1
+      V = concat V (array 1)
+    end
+    H = V len // 2
+    Lo = V (0 to H - 1)
+    Hi = V (H to 2 * H - 1)
+    V = (Lo * Hi mod P) copy
+  end
+  return V 0
+end
+
+Cells = M * M - K * K
+Fact = 1
+for Lo in 1 to Cells by Chunk
+  Hi = Cells (Lo + Chunk - 1) min
+  Part = (Lo to Hi) mod P copy
+  Fact = Fact * (Part P modprod) mod P
+end
+
+Fc = array shape (2 * M) fill 1
+for T in 1 to 2 * M - 1
+  Fc T = Fc (T - 1) * T mod P
+end
+W = M - K
+Sl = Fc ((M + K) to (2 * M - 1))
+An = Sl copy P modprod
+Sl = Fc ((2 * K) to (M + K - 1))
+Ad = Sl copy P modprod
+Sl = Fc (K to (M - 1))
+Bn = Sl copy P modprod
+Sl = Fc (0 to (W - 1))
+Bd = Sl copy P modprod
+Den = An * Bn mod P * Bn mod P
+Num = Ad * Bd mod P * Bd mod P
+Inv = Den (P - 2) P powmod
+Answer = Fact * Num mod P * Inv mod P
+Answer print
