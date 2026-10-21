@@ -1,0 +1,45 @@
+rem The Roundtable Lottery
+rem https://projecteuler.net/problem=444
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option N integer = 100000000000000
+option K integer = 20
+option Digits integer = 9
+
+rem E(p) = H(p), the harmonic number,
+rem and k-fold prefix sums give
+rem S(k, N) = C(N + k, k) *
+rem (H(N + k) - H(k)). H(N + k) comes
+rem from Euler-Maclaurin, and the
+rem result is written as d.ddde+x.
+Gm = 0.5772156649015329
+Top = N + K
+Nf = Top * 1.0
+Hn = 0.0
+if Top greater 1000000
+  Hn = Nf log + Gm + 1 / (2 * Nf)
+  Hn -= 1 / (12 * Nf * Nf)
+  Hn += 1 / (120 * Nf ** 4)
+else
+  Hn = (1.0 / (1 to Top)) sum
+end
+Hk = 0.0
+for J in 1 to K
+  Hk += 1.0 / J
+end
+Cb = 1.0
+for J in 1 to K
+  Cb = Cb * (N + J) / J
+end
+Lg = (Cb * (Hn - Hk)) log / (10.0 log)
+Ex = Lg floor
+Mn = 10 ** (Lg - Ex)
+Mt = Mn Digits round
+Parts = array (Mt text) "e" (Ex text)
+Answer = Parts "" join
+Answer print

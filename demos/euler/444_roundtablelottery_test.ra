@@ -1,0 +1,24 @@
+use testing
+
+test "statement format example"
+  use "444_roundtablelottery"
+  N = 100
+  K = 3
+  run
+  Answer equal "5.983679014e5"
+end
+
+test "single harmonic number"
+  use "444_roundtablelottery"
+  N = 111
+  K = 0
+  Digits = 4
+  run
+  Answer equal "5.2912e0"
+end
+
+test "default input"
+  use "444_roundtablelottery"
+  run
+  Answer equal "1.200856722e263"
+end
