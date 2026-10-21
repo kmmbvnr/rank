@@ -1,0 +1,33 @@
+use testing
+
+test "statement values"
+  use "416_froggy"
+  M = 1
+  N = 3
+  run
+  Answer equal 4
+  N = 4
+  run
+  Answer equal 15
+  N = 5
+  run
+  Answer equal 46
+  M = 2
+  N = 3
+  run
+  Answer equal 16
+end
+
+test "two trips, 100 squares"
+  use "416_froggy"
+  M = 2
+  N = 100
+  run
+  Answer equal 429619151
+end
+
+test "default input"
+  use "416_froggy"
+  run
+  Answer equal 898082747
+end

@@ -1,0 +1,86 @@
+rem A Frog's Trip
+rem https://projecteuler.net/problem=416
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option M integer = 10
+option N integer = 1000000000000
+
+rem Each of the p = 2M legs keeps
+rem its run of skipped squares
+rem (0, 1, 2). A state counts legs
+rem per run length. T moves one
+rem internal square, and Z is the
+rem part where every leg skips it.
+rem (T + e Z)^(N - 2) with e^2 = 0
+rem counts routes with at most one
+rem unvisited square. Products split
+rem a factor at 2^15 to stay in 64 bits.
+fun X Y mm
+  Hi = X // 32768
+  Lo = X mod 32768
+  R = (Hi Y matmul) mod 1000000000
+  R = R * 32768 + (Lo Y matmul)
+  return R mod 1000000000
+end
+
+Mod = 1000000000
+P = 2 * M
+Id = array shape (P + 1) (P + 1) fill -1
+Sa = array shape 0 fill 0
+Sb = array shape 0 fill 0
+for A in 0 to P
+  for B in 0 to P - A
+    Id A B = Sa len
+    Sa = concat Sa (array A)
+    Sb = concat Sb (array B)
+  end
+end
+D = Sa len
+T = array shape D D fill 0
+Z = array shape D D fill 0
+for S in 0 to D - 1
+  A = Sa S
+  B = Sb S
+  C = P - A - B
+  for I in 0 to A
+    for J in 0 to B
+      To = Id (A - I + B - J + C) I
+      W = A I binomial * (B J binomial)
+      Stay = C + A - I + B - J
+      if Stay equal 0
+        Z To S += W
+      else
+        T To S += W
+      end
+    end
+  end
+end
+V0 = array shape D fill 0
+V0 (Id P 0) = 1
+V1 = array shape D fill 0
+Aa = T
+Bb = Z
+Ex = N - 2
+for Ex greater 0
+  if Ex mod 2 equal 1
+    W1 = Aa V1 mm
+    W2 = Bb V0 mm
+    W1 = (W1 + W2) mod Mod
+    V0 = Aa V0 mm
+    V1 = W1
+  end
+  X1 = Aa Bb mm
+  X2 = Bb Aa mm
+  Bb = (X1 + X2) mod Mod
+  Aa = Aa Aa mm
+  Ex //= 2
+end
+S0 = V0 sum
+S1 = V1 sum
+Answer = (S0 + S1) mod Mod
+Answer print
