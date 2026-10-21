@@ -4,7 +4,20 @@ Rank is a data-first language. Source uses one statement per line; `rem` starts
 a comment. `use NAME` opens a standard vocabulary. Capitalized names denote
 values; lowercase words name operations and functions. `X = expression` creates
 or replaces a binding, while `X += Y`, `X *= Y`, `X or= Y` and `X and= Y` update it.
-These updates use previously bound X. Named sequences and arrays may be reused.
+These updates use previously bound X.
+
+`X = Expr` computes and stores the result. Finite sequences become arrays; lazy
+array cells are computed while preserving shape. Plans inside tuples, records,
+tables and containers are completed recursively. A known-infinite result cannot
+be stored this way and fails. Unknown termination is not a promise of finiteness.
+Only the final result must be stored: intermediates within Expr may stream.
+
+`X' = Expr` preserves a computation plan, computed value or existing resource.
+The apostrophe belongs to the binding syntax; references still use X. Each demand of a plan
+recomputes it, including effects and failures; do not cache its result. To retain
+a result, bind it without an apostrophe. Conditions, indexing and operations
+that need computed data demand it. A true single-pass resource is different:
+preserving it does not create a restartable recipe or reopen it on each read.
 
 `option Limit integer = 100` declares a command-line integer input, with default
 100 and override `--limit VALUE`. Integer literals have arbitrary precision.
@@ -26,15 +39,32 @@ Consult the parsed
 syntax below for grouping; do not infer grouping from whitespace alone.
 
 `fun X palindrome ... return Value ... end` declares a function of X. Function
-declarations can appear after their calls. A name holds its own value: `B = A`,
-passing an argument and `yield` each give the receiver a value, so no write can
-reach another name's data and a function cannot change what its caller passed.
+declarations can appear after their calls. `fun X f` completes the argument on
+entry, using the same recursive rule as ordinary assignment. `fun X' f` keeps
+the argument's plan or value; each consumer in the body may recompute a plan.
+Callers do not mark arguments. A call executes its body now, even inside an
+apostrophe assignment: its ordinary local bindings still compute immediately.
+`return` passes its result through without adding a completion boundary. Work
+inside a deferred conditional or callback runs when that branch or callback is
+actually selected; preserve these demand sites and the order of their effects.
+
+Array values have copy-on-write semantics: `B = A`, passing an array argument
+and `yield` each give the receiver an independent logical value.
 Translate an array as owned storage — `Vec<T>`, moved or borrowed — and never as
 shared mutable state. Naming a computed array fixes it: a later write to one of
 its sources does not change it. The exceptions carry identity and do need shared
 mutation: records, graphs, the `algo` structures (`index`, `queue`, `deque`,
 `stack`, `heap`, `set`, `counter`, `multiset`, `orderedset`, `fenwick`, segment
-trees), open handles and generator sequences. `X text` converts X to text, `Text
+trees), open handles and generator sequences.
+
+Names read syntactically by an apostrophe assignment become read-only for the
+rest of their scope. Rebinding is allowed, but does not restore write permission;
+the plan retains the captured old value. Deferred parameters are also read-only.
+Array aliases retain copy-on-write independence. Captured shared records and
+containers reject mutation through any alias, even after the plan is discarded.
+Do not implement capture as a reference to a later replacement of the binding.
+
+`X text` converts X to text, `Text
 reverse` reverses it, and `Text equal Back` compares values. `less`, `greater`,
 `atleast` and `atmost` mean <, >, >= and <=. `equal`/`notequal` are value equality.
 
@@ -54,12 +84,14 @@ In the first ten Euler programs, chained mask operations retain array shape.
 Rank integers are signed arbitrary-precision values. Real numbers are a distinct
 type: do not replace integers with f64. `//` is floor division and `%` follows the
 divisor's sign; Rust signed division truncates, so translate negative operands
-explicitly. Division by zero fails. Boolean operations evaluate both operands.
+explicitly. Division by zero fails. Scalar `and` and `or` short-circuit; an
+unselected branch must not run effects or fail.
 
-`A to B` is ascending and includes B. `A until B` excludes B. Empty ascending
-ranges produce no elements. Sequence values are lazy and may be iterated again;
-do not consume a named sequence once if it is reused later. Never assume an
-arbitrary user generator is pure or finite.
+`A to B` is ascending and includes B. `A till B` excludes B. Empty ascending
+ranges produce no elements. A range bound with an apostrophe remains a plan;
+an ordinary binding stores its finite elements. Repeated plan traversal starts
+fresh; stored arrays reuse computed values. Never assume an arbitrary user
+generator is restartable, pure or finite.
 
 `fibonacci` produces 1, 2, 3, 5, 8, ... . `primes` produces 2, 3, 5, 7, ... .
 Sequence indexing starts at zero; negative positions on an unbounded sequence
@@ -90,8 +122,10 @@ nonnegative integer produces its decimal representation; reversing that text
 and comparing it implements the palindrome helper in Euler 4.
 
 Pure map/filter/reduce and outer-product selection may fuse into loops without
-allocating intermediate arrays. Several named intermediates need not imply
-separate passes. Prove purity and preserve error/evaluation order before fusing.
+allocating intermediate arrays. Apostrophe bindings can name streaming stages;
+ordinary bindings are completion boundaries, including inside compiled functions
+and loops. Fusion must preserve completed storage, error timing and effect order,
+and must not introduce retained results for repeated plan demands.
 Arithmetic simplifications are allowed only under the selected numeric policy.
 In i64 mode, require checked arithmetic for generated expressions as well.
 
