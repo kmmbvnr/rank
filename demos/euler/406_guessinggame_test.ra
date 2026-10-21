@@ -1,0 +1,31 @@
+use testing
+
+test "equal costs halve the interval"
+  use "406_guessinggame"
+  Terms = 1
+  N = 5
+  run
+  Answer equal 2
+  N = 1000
+  run
+  Answer equal 9
+  N = 1000000000000
+  run
+  Answer equal 39
+end
+
+test "first terms of the sum"
+  use "406_guessinggame"
+  Terms = 2
+  run
+  Answer equal 86.04163056
+  Terms = 3
+  run
+  Answer equal 147.69556898
+end
+
+test "default input"
+  use "406_guessinggame"
+  run
+  Answer equal 36813.12757207
+end

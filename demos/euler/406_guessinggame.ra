@@ -1,0 +1,63 @@
+rem Guessing Game
+rem https://projecteuler.net/problem=406
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000
+option Terms integer = 30
+
+rem K(c) = 1 + K(c - a) + K(c - b)
+rem counts numbers solvable within
+rem cost c. C(n) is the least c with
+rem K(c) >= n, found by doubling and
+rem bisecting. K comes from lattice
+rem counts D(i, j) = sum of
+rem 1 + D(t, j + 1) over t >= i.
+Tot = 0.0
+F1 = 1
+F2 = 1
+for T in 1 to Terms
+  A = T sqrt
+  B = F1 sqrt
+  Lo = 0.0
+  Hi = 1.0
+  Up = false
+  for Step in 1 to 80
+    C = Hi
+    if Up
+      C = (Lo + Hi) / 2
+    end
+    J = C / B floor
+    I = C / A floor
+    Col = array shape (I + 1) fill 0
+    for Jj in J to 0 by -1
+      M = (C - Jj * B) / A floor
+      Sub = 1 + Col (0 to M)
+      Sub = Sub reverse scan + with 0
+      Sub = (Sub (1 to M + 1)) reverse
+      Zs = array shape (I - M) fill 0
+      Col = (concat Sub Zs) N min
+    end
+    if Col 0 at least N
+      if Up
+        Hi = C
+      else
+        Up = true
+        Lo = Hi / 2
+      end
+    elif Up
+      Lo = C
+    else
+      Hi *= 2
+    end
+  end
+  Tot += Hi
+  F3 = F1 + F2
+  F1 = F2
+  F2 = F3
+end
+Answer = Tot 8 round
+Answer print
