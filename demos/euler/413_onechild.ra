@@ -1,0 +1,82 @@
+rem One-child Numbers
+rem https://projecteuler.net/problem=413
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option Digits integer = 19
+
+rem For each length n a state is the
+rem count (capped at 2) of suffixes
+rem by remainder mod n, in base 3,
+rem with the number of divisible
+rem substrings seen (0 or 1) in the
+rem lowest bit. A new digit d scales
+rem remainders by 10 (rows merge),
+rem rotates them by d and adds one
+rem suffix. States merge by sorting.
+Tot = 0
+for N in 1 to Digits
+  Pw = (3 ** (0 to N - 1)) copy
+  Keys = array 0
+  Cnt = array 1
+  for Pos in 0 to N - 1
+    W = Keys len
+    Pk = Keys // 2
+    Lay = Keys mod 2
+    Pr = Pk reshape 1 W
+    Dg = Pr // (Pw reshape N 1)
+    Dg = (Dg mod 3) copy
+    Bm = array shape N W fill 0
+    for R in 0 to N - 1
+      T = R * 10 mod N
+      Bm T += Dg R
+    end
+    Bm = Bm 2 min
+    Bk = (Pw Bm matmul) copy
+    Nk = array shape 0 fill 0
+    Nc = array shape 0 fill 0
+    D0 = 0
+    if Pos equal 0
+      D0 = 1
+    end
+    for D in D0 to 9
+      S = D mod N
+      Lo = 3 ** (N - S)
+      Up = 3 ** S
+      Rk = Bk mod Lo * Up + Bk // Lo
+      A = Rk // Up mod 3
+      Z = Rk mod 3
+      if S equal 0
+        Z += 1
+      end
+      Ok = Lay + Z at most 1
+      Ix = Ok indices
+      Add = A less 2 choose Up 0
+      Nw = (Rk + Add) * 2 + Lay + Z
+      Nk = concat Nk (Nw Ix)
+      Nc = concat Nc (Cnt Ix)
+    end
+    Od = Nk argsort
+    Ks = Nk Od
+    Cs = Nc Od
+    Kp = concat (array -1) Ks
+    Nx = Kp (1 to Ks len)
+    Pv = Kp (0 to Ks len - 1)
+    St = Nx not equal Pv
+    Is = St indices
+    Cu = Cs scan + with 0
+    G = Is len
+    Es = concat Is (array (Ks len))
+    Ce = Cu Es
+    Keys = Ks Is
+    Cnt = Ce (1 to G) - Ce (0 to G - 1)
+  end
+  One = Keys mod 2 equal 1
+  Tot += (One choose Cnt 0) sum
+end
+Answer = Tot
+Answer print

@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "413_onechild"
+  Digits = 1
+  run
+  Answer equal 9
+  Digits = 3
+  run
+  Answer equal 389
+  Digits = 7
+  run
+  Answer equal 277674
+end
+
+test "sixteen digits"
+  use "413_onechild"
+  Digits = 16
+  run
+  Answer equal 751694772228659
+end
