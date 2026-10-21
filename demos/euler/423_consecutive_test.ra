@@ -1,0 +1,28 @@
+use testing
+
+test "sums of the first terms"
+  use "423_consecutive"
+  L = 3
+  run
+  Answer equal 258
+  L = 4
+  run
+  Answer equal 1548
+end
+
+test "statement checkpoints"
+  use "423_consecutive"
+  L = 11
+  run
+  Answer equal 433880568
+  L = 50
+  run
+  Answer equal 832833871
+end
+
+test "wide prime gaps"
+  use "423_consecutive"
+  L = 24
+  run
+  Answer equal 399105404
+end
