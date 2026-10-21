@@ -10,6 +10,20 @@ test "given small counts"
   Answer equal 5
 end
 
+test "large values with a small sieve"
+  use "319_bounded"
+  N = 20
+  Limit = 2
+  run
+  1 mertens equal 1
+  2 mertens equal 0
+  4 mertens equal -1
+  5 mertens equal -2
+  10 mertens equal -1
+  20 mertens equal -3
+  Answer equal 227991891
+end
+
 test "given medium counts"
   use "319_bounded"
   N = 20

@@ -9,7 +9,6 @@ option N integer = 10000000000
 option Limit integer = 4641589
 
 Mod = 1000000000
-Sent = N + 1
 Mu = array shape (Limit + 1) fill 2
 Mu 0 = 0
 Mu 1 = 1
@@ -37,16 +36,43 @@ end
 for I in 1 to Limit
   Mu I += Mu (I - 1)
 end
-Root = N isqrt + 2
-Cache = array shape Root fill Sent
+rem Dependencies have larger cache slots.
+Top = N // (Limit + 1)
+Cache = array shape (Top + 1) fill 0
+for Slot in Top to 1 by -1
+  X = N // Slot
+  Total = 1
+  Left = 2
+  for Left at most X
+    Q = X // Left
+    Right = X // Q
+    Part = 0
+    if Q at most Limit
+      Part = Mu Q
+    else
+      Part = Cache (N // Q)
+    end
+    Total -= (Right - Left + 1) * Part
+    Left = Right + 1
+  end
+  Cache Slot = Total
+end
 Answer = 1
+Before = 0
 L = 1
 for L at most N
   Q = N // L
   R = N // Q
-  A = (R coeff) - ((L - 1) coeff)
-  M = Q Cache mertens
+  Current = R coeff
+  A = Current - Before
+  M = 0
+  if Q at most Limit
+    M = Mu Q
+  else
+    M = Cache (N // Q)
+  end
   Answer = (Answer + A * M) mod Mod
+  Before = Current
   L = R + 1
 end
 Answer print
@@ -55,6 +81,7 @@ fun M coeff
   if M at most 0
     return 0
   end
+  Mod = 1000000000
   Twice = 2 * Mod
   P3 = 3 (M + 1) Twice powmod
   S3 = (P3 - 3) mod Twice
@@ -64,23 +91,10 @@ fun M coeff
   return (S3 - S2 - M) mod Mod
 end
 
-fun X Cache mertens
+rem X must be a quotient N // K.
+fun X mertens
   if X at most Limit
     return Mu X
   end
-  Slot = N // X
-  if Cache Slot not equal Sent
-    return Cache Slot
-  end
-  Sum = 1
-  L = 2
-  for L at most X
-    Q = X // L
-    R = X // Q
-    M = Q Cache mertens
-    Sum -= (R - L + 1) * M
-    L = R + 1
-  end
-  Cache Slot = Sum
-  return Sum
+  return Cache (N // X)
 end

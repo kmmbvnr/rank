@@ -1,0 +1,242 @@
+{
+  "sourceSha256": "7aaf058250e4b54b93bb459459ed0fd13394461391a0e9df079aaba047f82dbd",
+  "initialBottomUp": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 10000000000,
+    "limit": 4641589,
+    "compilation": true,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": false,
+    "records": [
+      {
+        "sample": 1,
+        "answer": "268457129",
+        "ms": 7317.404584,
+        "cpuMs": 9127.381,
+        "rssMb": 593.796875
+      },
+      {
+        "sample": 2,
+        "answer": "268457129",
+        "ms": 7334.297875,
+        "cpuMs": 9153.894,
+        "rssMb": 591.015625
+      }
+    ],
+    "medianMs": 7334.297875
+  },
+  "discardedInitialRun": {
+    "sample": 0,
+    "answer": "268457129",
+    "ms": 7471.093333,
+    "cpuMs": 9361.845,
+    "rssMb": 591.390625,
+    "reason": "overlapped the focused test process"
+  },
+  "reuseCoefficient": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 10000000000,
+    "limit": 4641589,
+    "compilation": true,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": false,
+    "records": [
+      {
+        "sample": 0,
+        "answer": "268457129",
+        "ms": 6157.001834,
+        "cpuMs": 7673.705,
+        "rssMb": 587.65625
+      },
+      {
+        "sample": 1,
+        "answer": "268457129",
+        "ms": 6015.78025,
+        "cpuMs": 7530.364,
+        "rssMb": 586.328125
+      },
+      {
+        "sample": 2,
+        "answer": "268457129",
+        "ms": 6103.1445,
+        "cpuMs": 7625.882,
+        "rssMb": 584.765625
+      }
+    ],
+    "medianMs": 6103.1445
+  },
+  "localModulusExploration": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 10000000000,
+    "limit": 4641589,
+    "compilation": true,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": false,
+    "records": [
+      {
+        "sample": 0,
+        "answer": "268457129",
+        "ms": 4639.717834,
+        "cpuMs": 5690.333,
+        "rssMb": 577.046875
+      }
+    ],
+    "medianMs": 4639.717834
+  },
+  "final": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 10000000000,
+    "limit": 4641589,
+    "compilation": true,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": false,
+    "records": [
+      {
+        "sample": 0,
+        "answer": "268457129",
+        "ms": 3197.290542,
+        "cpuMs": 3612.928,
+        "rssMb": 323.328125
+      },
+      {
+        "sample": 1,
+        "answer": "268457129",
+        "ms": 3138.8466249999997,
+        "cpuMs": 3556.093,
+        "rssMb": 323.046875
+      },
+      {
+        "sample": 2,
+        "answer": "268457129",
+        "ms": 3179.021708,
+        "cpuMs": 3567.362,
+        "rssMb": 323.265625
+      }
+    ],
+    "medianMs": 3179.021708
+  },
+  "finalProfileRun": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 10000000000,
+    "limit": 4641589,
+    "compilation": true,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": true,
+    "records": [
+      {
+        "sample": 0,
+        "answer": "268457129",
+        "ms": 3140.4196669999997,
+        "cpuMs": 3547.967,
+        "rssMb": 346.390625
+      }
+    ],
+    "medianMs": 3140.4196669999997
+  },
+  "interpretedSmallRun": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 1000000,
+    "limit": 10000,
+    "compilation": false,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": false,
+    "records": [
+      {
+        "sample": 0,
+        "answer": "585561545",
+        "ms": 513.9924169999999,
+        "cpuMs": 1023.004,
+        "rssMb": 188.09375
+      }
+    ],
+    "medianMs": 513.9924169999999
+  },
+  "finalDiagnostics": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "n": 10000000000,
+    "limit": 4641589,
+    "compilation": true,
+    "method": "fresh processes; timings include parsing and execution, exclude interpreter construction; RSS is total process memory after execution, not peak",
+    "instrumented": true,
+    "records": [
+      {
+        "sample": 0,
+        "answer": "268457129",
+        "ms": 3473.374833,
+        "cpuMs": 3965.657,
+        "rssMb": 323.0625,
+        "diagnostics": {
+          "validationRequests": 0,
+          "dependencyValidations": 0,
+          "cacheHits": 0,
+          "cacheMisses": 0,
+          "memoHits": 0,
+          "memoMisses": 0,
+          "indexReads": 0,
+          "indexReadHits": 0,
+          "indexReadMisses": 0,
+          "indexWrites": 0,
+          "sequenceReplayHits": 0,
+          "sequencePredicateCalls": 0,
+          "sequenceCachedValues": 0,
+          "sequenceCacheBytes": 0,
+          "sequenceCachePeakBytes": 0,
+          "sequenceCacheEvictions": 0,
+          "cellsComputed": 0,
+          "invalidations": 0,
+          "hoistedReaders": 0,
+          "loopElementScans": 0,
+          "compiledLoops": 4,
+          "compiledGeneratorLoops": 0,
+          "integerMembershipFilters": 0,
+          "compiledGraphAdds": 0,
+          "numericSorts": 0,
+          "numericDistincts": 0,
+          "numericUniqueSorts": 0,
+          "numericSearches": 0,
+          "numericSearchIndexes": 0,
+          "numberLoops": 3,
+          "numberLoopOverflows": 0,
+          "compiledTensors": 0,
+          "compiledArrayFunctions": 0,
+          "rankedArrayBatches": 0,
+          "rankedBatches": 0,
+          "maskPositionReuses": 0,
+          "maskMaterializations": 0,
+          "maskMaterializedCells": 0,
+          "bulkArrayWrites": 0,
+          "bulkArrayWriteCells": 0,
+          "cowCopies": 0,
+          "cowCopiedCells": 0,
+          "elementTypeScans": 0,
+          "elementTypeScannedCells": 0,
+          "selectionSnapshots": 0,
+          "selectionSnapshotCells": 0,
+          "typedUnpacks": 0,
+          "typedUnpackedCells": 0,
+          "fallbacks": {
+            "scalar-function:unbound-name:NameExpression": 1,
+            "tensor:unsupported-type:array": 6,
+            "scalar-expression:too-small": 3,
+            "tensor:scalar-evaluation-timing": 2,
+            "tensor:group:ForStatement": 4
+          }
+        }
+      }
+    ],
+    "medianMs": 3473.374833
+  },
+  "independentReference": {
+    "url": "https://github.com/cirosantilli/project-euler-solutions/blob/9170c6bb40eda679e2da3fbc019a32b0b439d076/solvers/319.py",
+    "language": "Python",
+    "n": 10000000000,
+    "answer": "268457129"
+  }
+}
