@@ -407,19 +407,19 @@ describe('Rank linear algebra', () => {
 
         expect(run([
             'use linalg',
-            'A = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)',
+            "A' = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)",
             'B = array shape 2 2',
             '  1 0',
             '  0 1',
             'end',
-            'Result = A B matmul',
+            "Result' = A B matmul",
             'Result 0 0',
         ].join('\n'))).toBe('1');
         expect(() => run([
             'use linalg',
-            'A = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)',
+            "A' = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)",
             'B = array shape 2 2 fill 1',
-            'Result = A B matmul',
+            "Result' = A B matmul",
             'Result 1 0',
         ].join('\n'))).toThrowError('division by zero');
     });

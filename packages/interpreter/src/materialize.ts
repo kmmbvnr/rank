@@ -18,8 +18,9 @@ export function materializeValue(value: RankValue): RankValue {
         checkpoint('materializing binding');
         return readArrayItem(value, index);
     });
-    const result = ownedArray(cells, value.shape, false, value.columnNames);
-    Object.assign(result, { tableScopes: value.tableScopes, sortKeys: value.sortKeys });
+    const result = ownedArray(cells, value.shape, false, value.columnNames, {
+        tableScopes: value.tableScopes, sortKeys: value.sortKeys,
+    });
     return inheritSemanticArrayType(value, result);
 }
 

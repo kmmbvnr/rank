@@ -28,7 +28,7 @@ fun Data K pca
   if (Dev equal 0) any
     .DomainError raise
   end
-  X = (Data - Mean) / Dev
+  X' = (Data - Mean) / Dev
 
   Cov = X covariance axis 1 0
   unpack Values Vectors = Cov eigh

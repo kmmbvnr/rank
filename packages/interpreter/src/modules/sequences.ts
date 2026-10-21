@@ -17,7 +17,7 @@ import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } fro
 import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind, reshapeStoredArray } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
@@ -435,40 +435,6 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     }
 
     const shape = permutation.map(axis => value.shape[axis]);
-    // A stored array is permuted into a stored array at once: a lazy transpose
-    // would decode coordinates again for every cell of every later read.
-    const stored = denseScalarItems(value);
-    const total = shape.reduce((product, dimension) => product * dimension, 1);
-    if (stored && total >= 1024) {
-        const sourceStrides = new Array<number>(value.shape.length).fill(1);
-        for (let axis = value.shape.length - 2; axis >= 0; axis -= 1) {
-            sourceStrides[axis] = sourceStrides[axis + 1] * value.shape[axis + 1];
-        }
-        const strides = permutation.map(axis => sourceStrides[axis]);
-        // A typed source stays typed, and a plain array of reals becomes typed.
-        const kind = typedElementKind(value);
-        const reals = realCells(value) !== undefined;
-        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
-            : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
-        const cells = out as unknown as RankValue[];
-        // An odometer over the output coordinates walks the source offsets.
-        const rank = shape.length;
-        const coordinates = new Array<number>(rank).fill(0);
-        let offset = 0;
-        for (let index = 0; index < total; index += 1) {
-            if ((index & 0xfff) === 0) checkpoint('transposing array');
-            cells[index] = stored[offset];
-            for (let axis = rank - 1; axis >= 0; axis -= 1) {
-                coordinates[axis] += 1;
-                offset += strides[axis];
-                if (coordinates[axis] < shape[axis]) break;
-                offset -= strides[axis] * shape[axis];
-                coordinates[axis] = 0;
-            }
-        }
-        if (Array.isArray(out)) return inheritSemanticArrayType(value, ownedArray(out, shape, true));
-        return inheritSemanticArrayType(value, typedArray(out, shape));
-    }
     const itemAt = (index: number): RankValue => {
         const output = coordinatesAt(shape, index);
         const sourceRank = value.shape.length;
@@ -494,7 +460,7 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
         );
         return value.itemAt?.(offset) ?? value.items[offset];
     };
-    return inheritSemanticArrayType(value, derivedArray(shape, [value], itemAt));
+    return inheritSemanticArrayType(value, derivedArray(shape, [value], itemAt, isKnownFileFree(value)));
 }
 
 /** Materialize the finite rank-1 sources accepted by keyed sorting. */

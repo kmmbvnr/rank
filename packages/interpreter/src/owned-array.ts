@@ -10,6 +10,8 @@ import { borrowedStorage, materializedArrayItems, readArrayItem } from './array-
 import { arrayRevision } from './array-revision.js';
 import { scanForMissing } from './array-validity.js';
 
+type ArrayMetadata = Pick<RankArray, 'tableScopes' | 'sortKeys'>;
+
 /** A shallow copy for our JS callers, not an immutability or isolation boundary. */
 export function createArraySnapshot(items: Iterable<RankValue>, shape?: readonly number[]): RankArray {
     const copied = Array.from(items);
@@ -267,7 +269,7 @@ export function eagerOperandItems(value: RankArray): ArrayLike<RankValue> | unde
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
-    columnNames?: readonly string[],
+    columnNames?: readonly string[], metadata?: ArrayMetadata,
 ): RankArray {
     let scalarKinds: Map<string, number> | undefined;
     if (!columnNames) {
@@ -296,8 +298,8 @@ export function ownedArray(
         }
     }
     const packed = scalarKinds?.size === 1 && scalarKinds.has('integer') ? packedIntegers(items) : undefined;
-    if (packed) return typedArray(packed, shape);
-    const value = createOwned(items, shape, scalarOnly, columnNames);
+    if (packed) return createOwned(packed, shape, true, columnNames, undefined, metadata);
+    const value = createOwned(items, shape, scalarOnly, columnNames, undefined, metadata);
     if (scalarKinds) ownedStorage.get(value)!.elementKinds = scalarKinds;
     return value;
 }
@@ -547,7 +549,7 @@ const ownedValueHandler: ProxyHandler<RankArray> = {
 
 export function createOwned(
     cells: RankValue[] | Float64Array | BigInt64Array, shape: readonly number[], scalarOnly: boolean,
-    columnNames?: readonly string[], validity?: Uint32Array,
+    columnNames?: readonly string[], validity?: Uint32Array, metadata?: ArrayMetadata,
 ): RankArray {
     const typed = Array.isArray(cells) ? undefined : cells;
     const items = cells as RankValue[];
@@ -555,7 +557,7 @@ export function createOwned(
         // Cells with no value are kept beside a numeric buffer, not in it.
         const found = scanForMissing(items);
         if (found === 'scalar') scalarOnly = true;
-        else if (found) return createOwned(found.values, shape, false, columnNames, found.validity);
+        else if (found) return createOwned(found.values, shape, false, columnNames, found.validity, metadata);
     }
     const state: OwnedStorage = {
         items, typed, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
@@ -565,6 +567,7 @@ export function createOwned(
     state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
     if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
     const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
+        ...metadata,
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
     if (typed) {
         Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });

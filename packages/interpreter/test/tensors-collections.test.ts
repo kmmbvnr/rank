@@ -57,7 +57,7 @@ describe('Rank tensors and collections', () => {
             .toThrowError('array has no axis 2');
     });
 
-    it('transposes all axes or uses an explicit axis permutation lazily', () => {
+    it('transposes all axes or uses an explicit axis permutation', () => {
         expect(run([
             'use sequences',
             'M = array shape 2 3',
@@ -77,12 +77,13 @@ describe('Rank tensors and collections', () => {
             'Dims = P shape',
             'Dims 0 * 1000 + Dims 1 * 100 + Dims 2 * 10 + P 2 1 1',
         ].join('\n'))).toBe('3231');
-        expect(() => run([
+        expect(run([
             'use sequences',
             'M = (array 1 2 3 4) reshape 2 2',
             'T = M transpose',
             'T 0 0 = 9',
-        ].join('\n'))).toThrowError('cannot assign to a lazy array');
+            'tuple T M',
+        ].join('\n'))).toBe('9 3 2 4 1 2 3 4');
         expect(() => run([
             'use sequences',
             'T = array shape 2 3 4 fill 0',
@@ -387,11 +388,12 @@ describe('Rank tensors and collections', () => {
             .toThrowError('array index out of bounds on axis 0: 2');
         expect(() => run('A = array shape 2 fill 0\nA 2 = Unknown'))
             .toThrowError('array index out of bounds on axis 0: 2');
-        expect(() => run([
+        expect(run([
 
             'A = (1 to 2) (1 to 2) outer +',
             'A 0 0 = 9',
-        ].join('\n'))).toThrowError('cannot assign to a lazy array');
+            'A',
+        ].join('\n'))).toBe('9 3 3 4');
     });
 
     it('iterates tensor cells by rank and explicit axes', () => {
@@ -692,7 +694,7 @@ describe('Rank tensors and collections', () => {
 
             'Values = 1 to 5',
             'Doubled = Values + Values',
-            'Doubled unique array',
+            'Doubled unique',
         ].join('\n'))).toBe('2 4 6 8 10');
         expect(() => run([
             'use sequences',
@@ -866,8 +868,8 @@ describe('Rank tensors and collections', () => {
     it('keeps array rounding lazy and validates its inputs', () => {
         expect(run([
             'use numbers',
-            'Values = (array 1.25 0.0) / (array 1.0 0.0)',
-            'Rounded = Values round 1',
+            "Values' = (array 1.25 0.0) / (array 1.0 0.0)",
+            "Rounded' = Values round 1",
             'Rounded 0',
         ].join('\n'))).toBe('1.2');
         expect(() => run('use numbers\n"Rank" round 2'))

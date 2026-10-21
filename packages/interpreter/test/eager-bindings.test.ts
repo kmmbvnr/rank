@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, type RankArray } from '../src/index.js';
-import { ownedArray, readArrayItem } from '../src/array-storage.js';
+import { denseScalarItems, materializedArrayItems, ownedArray, readArrayItem } from '../src/array-storage.js';
 import { sequence } from '../src/sequence.js';
 import { MissingValueError } from '../src/errors.js';
 import { materializeValue } from '../src/materialize.js';
@@ -161,6 +161,21 @@ describe('binding materialization storage', () => {
         const result = materializeValue(source);
         expect(result).toMatchObject({ shape: [0, 3], columnNames: ['a', 'b', 'c'], tableScopes: ['Data'], sortKeys: [] });
         expect((result as RankArray).itemAt).toBeUndefined();
+        expect(materializedArrayItems(result as RankArray)).toEqual([]);
+    });
+
+    it('keeps completed cells trusted when constructing table metadata', () => {
+        let reads = 0;
+        const source: RankArray = { kind: 'array', shape: [2, 1], items: [],
+            itemAt: index => { reads++; return BigInt(index + 1); },
+            columnNames: ['a'], tableScopes: ['Data'], sortKeys: [],
+        };
+        const result = materializeValue(source) as RankArray;
+        expect(reads).toBe(2);
+        expect(result).toMatchObject({ shape: [2, 1], columnNames: ['a'], tableScopes: ['Data'], sortKeys: [] });
+        expect(denseScalarItems(result)).toEqual([1n, 2n]);
+        expect(materializeValue(result)).toBe(result);
+        expect(reads).toBe(2);
     });
 
     it('stores soft missing cells and preserves hard failures', () => {
