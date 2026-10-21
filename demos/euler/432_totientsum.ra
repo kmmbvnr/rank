@@ -1,0 +1,88 @@
+rem Totient Sum
+rem https://projecteuler.net/problem=432
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000
+option L integer = 10000000
+
+rem For n = 2*3*5*7*11*13*17 the sum
+rem of phi(n i) for i <= N is phi(n)
+rem times the sum of F(N // d) over d
+rem with only these primes, F the
+rem summatory totient. F is a prefix
+rem table up to L, and for x = N // i
+rem above L it comes from F(x) =
+rem x(x+1)/2 - sum over k >= 2 of
+rem F(x // k).
+Mod = 1000000000
+Rn = N isqrt + 2
+Lm = (L Rn max) N min
+Ph = (0 to Lm) copy
+Sm = array shape (Lm + 1) fill 1
+Rt = Lm isqrt
+for P in primes to Rt
+  Q = P
+  for Q at most Lm
+    Sl = Q to Lm by Q
+    Sm Sl *= P
+    if Q equal P
+      Ph Sl -= Ph Sl // P
+    end
+    Q *= P
+  end
+end
+Ix = (0 to Lm) copy
+Rs = Ix // Sm
+Big = Rs greater 1
+Pc = Ph - Ph // Rs
+Ph = (Big choose Pc Ph) copy
+Ph 0 = 0
+Cs = Ph scan + with 0
+C0 = (Cs (1 to Lm + 1)) mod Mod
+Nq = N // Lm
+Lt = array shape (Nq + 2) fill 0
+for I in Nq to 1 by -1
+  X = N // I
+  if X greater Lm
+    R = X isqrt
+    Ks = (2 to R) copy
+    Ys = X // Ks
+    Sv = C0 (Ys Lm min)
+    Lv = Lt (I * Ks Nq min)
+    Va = (Ys at most Lm) choose Sv Lv
+    Pa = Va sum
+    Qs = (1 to X // (R + 1)) copy
+    Hi = X // Qs
+    Lo = X // (Qs + 1) R max
+    Dk = (Hi - Lo) mod Mod
+    Pb = (Dk * C0 Qs mod Mod) sum
+    T2 = X * (X + 1) // 2
+    Lt I = (T2 - Pa - Pb) mod Mod
+  end
+end
+rem Numbers with primes 2 .. 17 only.
+Sd = array 1
+for P in (array 2 3 5 7 11 13 17)
+  Cur = Sd
+  Acc = Sd
+  for Step in 1 to 60
+    Cur = Cur * P
+    Cur = Cur (Cur at most N indices)
+    if Cur len equal 0
+      break
+    end
+    Acc = concat Acc Cur
+  end
+  Sd = Acc
+end
+Xd = N // Sd
+Sx = C0 (Xd Lm min)
+Qd = Sd Nq min
+Fv = (Xd at most Lm) choose Sx (Lt Qd)
+Tot = (Fv sum) mod Mod
+Answer = 92160 * Tot mod Mod
+Answer print
