@@ -46,7 +46,6 @@ export * from './function-call-signature.js';
 
 export * from './analysis/last-array-use.js';
 export * from './analysis/function-scopes.js';
-export * from './analysis/sequence-consumers.js';
 export * from './analysis/lazy-function.js';
 export * from './analysis/function-mutations.js';
 export * from './analysis/function-scope-diagnostics.js';
