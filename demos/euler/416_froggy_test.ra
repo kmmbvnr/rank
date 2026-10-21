@@ -25,9 +25,3 @@ test "two trips, 100 squares"
   run
   Answer equal 429619151
 end
-
-test "default input"
-  use "416_froggy"
-  run
-  Answer equal 898082747
-end

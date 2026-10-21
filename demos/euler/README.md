@@ -73,3 +73,38 @@ Notes from this range, for the next one:
 - A compiled loop checks its arrays when it is entered, so a small loop
   inside a loop that is not compiled costs the size of the array each
   time (#390). `**` and `isqrt` stop a loop from compiling (#391).
+
+## Problems 401-450
+
+Written so far: 401-416, 421-423, 425-427, 429-432, 434-436, 439-449 (with
+the gaps listed below). One program and one test file each. The default
+answers were checked against the published ones, and the tests keep to small
+inputs, so the default runs that take more than about 25 s are left out of the
+type, name-facts and differential audits (`scripts/demo-execution-exclusions.json`).
+
+The slowest defaults, compiled: 414 (28 min, one pass per base and a
+pointer-jumping depth), 427 (6 min), 446 (6 min), 413 and 415 (5 min), 411
+(4 min, patience sorting over 5 x 10^7 integers), 439 (4 min), 448 and 421
+(3 min), 407, 429 and 432 (2 min). Most of those are tables of 10^7 cells with
+a recursion over the values N // k for N near 10^11 (415, 432, 439, 447, 448),
+or a sieve over 10^7-10^8 integers.
+
+Not written yet: 417, 418, 419, 420, 424, 428, 433, 437, 438 and 450.
+
+Notes from this range:
+
+- A statement that builds several derived arrays from slices, gathers and
+  `choose` stays lazy, and each later read evaluates the whole expression for
+  every element. `copy` after each statement gave 2-5 times (#402).
+- A mask built from a range (`1 to N`) was rejected by `choose` (#401).
+- `for E in 0 to X len - 1` keeps the loop out of the compiler; with a
+  union-find in the body the guard rescans the array on every iteration, so
+  hoist the bound into a variable (#390).
+- Slice writes into a 10^7-cell array cost about as much as the array size
+  per write, so loops that write once per prime should be batched by the
+  step index instead (446).
+- `for D in 1 to X isqrt` loops over `isqrt` of every number from 1 to X: use
+  `Xr = X isqrt` first.
+- Integers wider than 64 bits promote to BigInt arrays, which is fine for
+  small tables and very slow for 10^7 cells. Reduce products modulo before
+  they pass 9 x 10^18 (and split a factor at 2^15 for matrix products, 416).

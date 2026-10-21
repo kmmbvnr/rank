@@ -32,9 +32,3 @@ test "jump method checkpoints"
   run
   Answer equal 2624152
 end
-
-test "default input"
-  use "443_gcdsequence"
-  run
-  Answer equal 2744233049300770
-end

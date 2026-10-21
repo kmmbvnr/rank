@@ -1,0 +1,103 @@
+rem The Inverse Summation
+rem https://projecteuler.net/problem=441
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+option Cut integer = 3000
+option Digits integer = 4
+
+rem A coprime pair p < q is counted for
+rem each M from q to min(N, p + q), so
+rem S = sum over q of (1/q) sum over
+rem coprime p < q of (min(N - q, p) +
+rem 1) / p, less the term q = 1. With
+rem Moebius, each sum is over d | q.
+rem For q <= N / 2 the d-sums collapse
+rem to harmonic closed forms. For
+rem larger q write q = d k and sum
+rem over the pairs (d, k).
+Rt = N isqrt
+Ix = (0 to N) copy
+Mu = array shape (N + 1) fill 1
+Sm = array shape (N + 1) fill 1
+for P in primes to Rt
+  Q = P
+  for Q at most N
+    Sl = Q to N by Q
+    Sm Sl *= P
+    if Q equal P
+      Mu Sl *= -1
+    end
+    Q *= P
+  end
+  Sl = (P * P) to N by (P * P)
+  Mu Sl = 0
+end
+Big = Ix // Sm greater 1
+Mu = (Big choose (0 - Mu) Mu) copy
+Mu 0 = 0
+Ij = (Ix * 1.0) copy
+Ij 0 = 1.0
+Iv = (1.0 / Ij) copy
+Iv 0 = 0.0
+Sc = Iv scan + with 0.0
+Hs = (Sc (1 to N + 1)) copy
+I2 = Iv * Iv
+Sc = I2 scan + with 0.0
+Hq = (Sc (1 to N + 1)) copy
+rem Part one: q <= N / 2.
+Ds = (1 to N // 2) copy
+Md = N // (2 * Ds)
+Gm = (Hs Md * (Hs Md) - (Hq Md)) / 2
+Dd = Ds * 1.0
+T1 = Md / Dd + Gm / Dd / Dd
+Tot = ((Mu Ds) * T1) sum
+rem Part two: q = d k above N / 2.
+rem Small d: vector over k.
+Dc = Cut N min
+for D in 1 to Dc
+  if Mu D not equal 0
+    Ka = N // 2 // D + 1
+    Kb = N // D
+    if Kb at least Ka
+      Ks = (Ka to Kb) copy
+      Xs = N // D - Ks
+      As = N - D * Ks
+      Hx = Hs Xs
+      Hk = Hs (Ks - 1)
+      Df = D * 1.0
+      Tm = Xs + Hx / Df
+      Tm += (As + 1) * (Hk - Hx) / Df
+      Sq = (Tm / (Df * Ks)) sum
+      Tot += Mu D * Sq
+    end
+  end
+end
+rem Large d: vector over d, loop on k.
+K1 = N // (Dc + 1)
+for K in 1 to (K1 1 max)
+  Hf = N // 2 // K
+  Da = (Dc Hf max) + 1
+  if K1 equal 0
+    Da = N + 1
+  end
+  Db = N // K
+  if Db at least Da
+    Dv = (Da to Db) copy
+    Xs = N // Dv - K
+    As = N - Dv * K
+    Hx = Hs Xs
+    Hk = Hs (K - 1)
+    Dg = Dv * 1.0
+    Tm = Xs + Hx / Dg
+    Tm += (As + 1) * (Hk - Hx) / Dg
+    Wq = Tm / (Dg * K)
+    Tot += ((Mu Dv) * Wq) sum
+  end
+end
+Answer = (Tot - 1) Digits round
+Answer print
