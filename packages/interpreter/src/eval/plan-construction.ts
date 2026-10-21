@@ -129,12 +129,21 @@ export class PlanConstruction {
                     return yield* resume(this.rewrite(remainder, tail));
                 }
             }
-            // Flatten only this application's syntax. Nested operand groups are
-            // independent expressions; intermediate heads are not separate calls.
+            const callbacks = new Set<Expression>();
+            if ('operation' in form && isExpression(form.operation)) callbacks.add(form.operation);
+            if (form.kind === 'rank') callbacks.add(form.parts.at(-1)!);
+            if (form.kind === 'repeat' && form.until) callbacks.add(form.until);
+            if (form.kind === 'new-graph') {
+                if (form.predicate) callbacks.add(form.predicate);
+                if (form.successor) callbacks.add(form.successor);
+            }
+            // Flatten only this application's syntax. Callback positions retain
+            // function references, including a parenthesized nullary function.
             const rewritten: Expression[] = [];
             for (let index = 0; index < parts.length; index++) {
-                rewritten.push(yield* resume(this.rewrite(parts[index], false,
-                    index === 0 || nameNeedsExecution(parts[index]))));
+                const part = parts[index];
+                rewritten.push(yield* resume(callbacks.has(part) ? this.rewriteCallback(part)
+                    : this.rewrite(part, false, index === 0 || nameNeedsExecution(part))));
             }
             return rewritten.every((part, index) => part === parts[index]) ? expression
                 : { ...expression, ...applicationExpression(rewritten, expression) } as Expression;
@@ -167,6 +176,15 @@ export class PlanConstruction {
             if (rewritten !== value) { clone[key] = rewritten; changed = true; }
         }
         return changed ? clone as unknown as Expression : expression;
+    }
+
+    private *rewriteCallback(expression: Expression): Execution<Expression> {
+        if (isNameExpression(expression)) return expression;
+        if (isParenthesizedExpression(expression)) {
+            const value = yield* resume(this.rewriteCallback(expression.value));
+            return value === expression.value ? expression : { ...expression, value } as Expression;
+        }
+        return yield* resume(this.rewrite(expression));
     }
 
     private readyValue(expression: Expression): RankValue | undefined {

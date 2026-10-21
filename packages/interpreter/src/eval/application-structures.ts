@@ -1,6 +1,7 @@
+import { functionReference } from './function-reference.js';
 import { queryDefault } from '../query-default.js';
 import {
-    assertNever, flattenApplication, isParenthesizedExpression, isNameExpression, type ApplicationForm,
+    assertNever, flattenApplication, type ApplicationForm,
     type Expression,
 } from '@arrrank/language';
 import { RankError } from '../errors.js';
@@ -43,10 +44,7 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 context.requireModule('graph', 'new graph');
                 if (form.predicate || form.successor) {
                     const domain = form.domain ? yield* resume(context.evaluate(form.domain)) : undefined;
-                    let callback = (form.predicate ?? form.successor)!;
-                    while (isParenthesizedExpression(callback)) callback = callback.value;
-                    const predicate = isNameExpression(callback) ? context.resolve(callback.name)
-                        : yield* resume(context.evaluate(callback));
+                    const predicate = yield* resume(functionReference((form.predicate ?? form.successor)!, context));
                     const direction = yield* resume(context.evaluate(form.direction!));
                     if (!isNativeFunction(predicate)) throw new RankError(form.successor ? 'graph successor expects a function' : 'graph predicate expects a function');
                     if (form.successor) return new SuccessorGraph(direction, predicate, vertex =>
@@ -129,7 +127,7 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 const source = yield* resume(context.evaluate(segment.source));
                 const identity = segment.identity
                     ? yield* resume(context.evaluate(segment.identity)) : undefined;
-                const operation = yield* resume(context.evaluate(segment.operation));
+                const operation = yield* resume(functionReference(segment.operation, context));
                 return namedSegment(source, operation, identity, context.builtins.standard('algo', 'maxsum'));
             };
         }

@@ -1,3 +1,4 @@
+import { functionReference } from './function-reference.js';
 import { compileNumericApplication } from './application-numeric.js';
 import { compileSequenceApplication } from './application-sequences.js';
 import { compileStructureApplication } from './application-structures.js';
@@ -268,7 +269,7 @@ export class ApplicationEvaluator {
             case 'named-outer': {
                 const namedOuter = form;
                 return function* (): Execution<RankValue> {
-                    const operation = (yield* resume(context.evaluate(namedOuter.operation)));
+                    const operation = (yield* resume(functionReference(namedOuter.operation, context)));
                     if (!isNativeFunction(operation)) {
                         throw new RankError('outer expects a binary function');
                     }
@@ -334,9 +335,9 @@ export class ApplicationEvaluator {
             case 'repeat': {
                 return function* (): Execution<RankValue> {
                     let state = yield* resume(context.evaluate(form.source));
-                    const operation = yield* resume(context.evaluate(form.operation));
+                    const operation = yield* resume(functionReference(form.operation, context));
                     const count = yield* resume(context.evaluate(form.count));
-                    const until = form.until ? yield* resume(context.evaluate(form.until)) : undefined;
+                    const until = form.until ? yield* resume(functionReference(form.until, context)) : undefined;
                     if (!isNativeFunction(operation) || !operation.arities.includes(1)) {
                         throw new RankError('repeat requires a unary function', 'TypeError');
                     }
@@ -371,7 +372,7 @@ export class ApplicationEvaluator {
                     const source = yield* resume(context.evaluate(namedScan.source));
                     const seed = namedScan.seed === undefined
                         ? undefined : yield* resume(context.evaluate(namedScan.seed));
-                    const operation = yield* resume(context.evaluate(namedScan.operation));
+                    const operation = yield* resume(functionReference(namedScan.operation, context));
                     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
                         throw new RankError(`${form.kind === 'named-reduce' ? 'reduce' : 'scan'} requires a binary operation`);
                     }

@@ -13,7 +13,7 @@ use sequences
 fun A B next = A + 1 equal B
 Graph = new graph (1 to 5) with next .directed
 Graph 2 3 adjacent
-Neighbors = Graph 2
+Neighbors' = Graph 2
 Chosen = (array 1 3 5) filter in Neighbors array
 ```
 
@@ -24,6 +24,8 @@ domain and yields matching neighbors in domain order. Membership in that sequenc
 checks the requested candidate directly, so candidate filtering does not scan the
 whole domain. Candidates outside the domain are absent. Self-edges are included
 when the predicate returns true. `Graph edges U` yields `(neighbor, 1)` tuples.
+An ordinary binding, `Neighbors = Graph U`, materializes the neighbor values.
+`Neighbors' = Graph U` preserves the query plan for later demand.
 
 The predicate must return a Boolean. For `.undirected`, the caller must supply a
 symmetric predicate: Rank does not test symmetry or combine both directions.
@@ -33,7 +35,9 @@ predicate's environment. Repeating a query invokes the predicate again. A nested
 predicate may be used inside its enclosing call, but a graph or neighbor sequence
 retaining it cannot escape that call. Materialize neighbor values before returning
 them, or return the eager result of BFS, DFS or Dijkstra. Predicates use ordinary
-named `fun` declarations.
+named `fun` declarations. A named or parenthesized callback is passed as a
+function reference; construction checks its arity before running its body.
+A compound callback expression runs at construction to produce the function.
 
 BFS, DFS and unit-weight Dijkstra accept predicate graphs. `len` counts domain
 vertices. Mutation and other graph algorithms currently require explicit graphs

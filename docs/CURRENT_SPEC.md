@@ -4905,7 +4905,8 @@ Its public behavior does not expose adjacency-list, CSR or other physical storag
 scalar domain and evaluates its binary Boolean predicate on demand. `Graph U V
 adjacent` tests one pair; membership in `Graph U` tests only the requested candidate.
 Predicate graphs support BFS, DFS and unit-weight Dijkstra, and reject mutation and
-other graph algorithms. For callback lifetime, symmetry, iteration and complexity
+other graph algorithms. `Neighbors = Graph U` materializes neighbor values;
+`Neighbors' = Graph U` preserves the query plan. For callback lifetime, symmetry, iteration and complexity
 contracts, see [predicate graphs](language/graphs.md#predicate-graphs).
 
 `new graph with Successor .directed` creates an open, unweighted state space.

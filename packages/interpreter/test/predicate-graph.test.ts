@@ -33,7 +33,7 @@ fun A B link
   return A less B
 end
 G = new graph (1 to 100) with link .directed
-N = G 50`);
+N' = G 50`);
             expect(output).toEqual([]);
             expect(formatValue(runtime.execute('(array 49 51 60) filter in N array')!)).toBe('51 60');
             expect(output).toHaveLength(3);
@@ -74,7 +74,7 @@ fun A B shifted
 end
 G = new graph Values with shifted .directed
 Values 1 = 9
-N = G 1
+N' = G 1
 First = N array
 Offset = 2
 Second = N array
@@ -238,7 +238,7 @@ build`)).toBe(true);
 
 it('never infers callback-free neighbors from a predicate constructor', () => {
     const facts = analyzeValues(parse(prelude + `G = new graph (1 to 5) with near .directed
-N = G 1
+N' = G 1
 B = N array`));
     expect(facts.diagnostics).toEqual([]);
     expect(facts.bindings.get('G')?.types).toEqual(['graph']);
