@@ -111,23 +111,32 @@ numbers, text, symbols, dates, arrays and tensors — is a value.
 
 ### Naming a lazy result
 
-A derived array such as `A * 2` computes its cells when they are demanded. A
-name freezes what it reports: writing to a source afterwards builds a new value
-for that source and leaves the named result alone.
+`B = A * 2` completes the result and stores its cells. `Plan' = A * 2`
+saves an expression that computes again when demanded:
 
 ```rank
-use sequences
 A = array 1 2
 B = A * 2
 A 0 = 5
+Plan' = A * 2
+A = array 7 8
+Saved = Plan
 ```
 
-`B` remains `2 4` while `A` becomes `5 2`. This holds through a chain of lazy
-readers: naming the last one freezes every source it reads through. To compute
-a result from current values, write the expression again.
+`B` holds `2 4`; `Plan` computes `10 4` from the captured value of `A`, and
+`Saved` holds that completed result. Rebinding `A` does not retarget the plan.
+Repeated reads of `Saved` use its stored cells; repeated demands of `Plan`
+compute again, including any effects of its expression.
 
-`copy` remains the way to force storage for a lazy result, and is no longer
-needed to protect one name from another's writes.
+A name captured by an apostrophe binding is read-only for the rest of its
+scope. A later indexed or field write through that name is rejected, while
+rebinding remains allowed. Shared records and containers also reject writes
+through aliases after capture. Array aliases keep copy-on-write value semantics.
+
+Ordinary binding completes plans recursively inside tuples, records and
+containers. A known infinite result is an error. Deferred binding preserves
+single-pass resources without making them restartable. `copy` remains an array
+copy operation; ordinary binding already provides a storage boundary.
 
 ## General form
 

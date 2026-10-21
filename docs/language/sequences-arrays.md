@@ -374,13 +374,10 @@ this also applies to nested sequence concatenation.
 
 ## Derived values and mutation
 
-Built-in pure tensor computations reuse demanded cells while their source
-arrays are unchanged. Naming a derived array is one of those sources' bindings,
-so a later write to a source builds a new value for the written name and leaves
-the named result alone:
+An ordinary binding stores completed values. Later source writes do not change
+those stored results:
 
 ```rank
-use sequences
 A = array 1 2
 B = A * 2
 Before = B 0
@@ -388,35 +385,28 @@ A 0 = 5
 After = B 0
 ```
 
-`Before` and `After` are both `2`, and `A` is `5 2`. Naming the last reader in
-a chain freezes every source it reads through. Write the expression again to
-compute a result from current values.
+`Before` and `After` are both `2`, and `A` is `5 2`. No derived-cell result
+cache is needed to preserve `B`: the ordinary binding owns its completed data.
+This rule also applies to transpose, slices, windows, ranked operations, matrix
+multiplication and covariance.
 
-`copy` forces storage for a lazy result. It is no longer needed to keep one
-name safe from another's writes; see
-[values and sharing](values-addressing.md#values-and-sharing).
+Use `B' = A * 2` to retain the expression instead. Every demand computes again.
+The captured name `A` becomes read-only for the rest of its scope. Rebinding
+`A` is allowed and leaves `B` reading its captured value. Shared records and
+containers cannot be changed through another alias after capture. Arrays keep
+their value semantics: an alias write can take an independent copy.
 
-This applies to arithmetic and broadcasting, numeric transformations, axis
-reductions, transpose and slice views, array windows, matrix multiplication,
-and covariance. A change can conservatively invalidate the whole derived
-array; there is no promise of per-cell invalidation. Errors are not retained
-as successful cached values. An unrelated array write does not discard valid
-computed cells.
-
-A cached result is invalidated by Rank writes that value semantics does not
-redirect, such as writes to an array observed only by unnamed readers inside
-one expression. This cache policy does not introduce implicit replay of I/O or
-generators. User-function effect and capture analysis is separate from the
-built-in pure tensor operations described here.
+An ordinary binding also makes writable storage for a computed array. `copy`
+remains an explicit array copy operation; it is not required merely to retain
+a formula's result. A known infinite result cannot be completed by an ordinary
+binding. Single-pass resources keep their consumption rules even when a plan
+refers to them.
 
 The interpreter's JavaScript value objects are an internal repository protocol,
 not a supported public embedding API. Direct external writes to `items`, shape
 or nested storage do not promise to update existing Rank computations. Use Rank
 assignments for mutations with language semantics. `createArraySnapshot` remains
 an internal shallow-copy helper; it does not establish a reactive JS interface.
-Already stored numerical formulas may materialize their results, including small
-arrays. Lazy comparison masks retain their read-only interface; use `copy` or
-`array` to make mutable storage.
 
 ## Sliding windows
 
@@ -425,14 +415,16 @@ source precedes `window`, and the size follows it:
 
 ```rank
 Pairs = Text window 2
-Windows = Values window Width
+Windows' = Values window Width
 ```
 
 Text windows are text values, so ordinary text comparison and addressing keep
 working. Windows over a finite numeric vector form a rank-2 tensor whose first
 axis selects the window and whose trailing axis contains the window cell. The
-operation is lazy and does not copy all overlapping cells before they are
-demanded. An unbounded sequence may likewise produce windows indefinitely.
+deferred expression reads overlapping cells on demand. `Windows = Values
+window Width` completes and stores every window cell. An unbounded sequence
+may produce windows indefinitely and needs a deferred binding or a finite
+consumer.
 
 For a tensor, write one size per selected axis directly, pass a rank-1
 integer array, or unpack a vector of sizes. These forms produce the same windows:

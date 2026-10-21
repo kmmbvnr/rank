@@ -2,7 +2,7 @@ import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, IntegerCells, materializeCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
 import { arithmeticRange } from './range-plan.js';
 import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -550,7 +550,7 @@ export function windowValue(
             return streamingWindows(source, widths[0], strides[0]);
         }
         const length = safeSize(source.plan.size.value, 'sequence size');
-        const sourceItem = cachedSequenceItem(source);
+        const sourceItem = (index: number) => atSequence(source, BigInt(index));
         return arrayWindows(
             [length],
             sourceItem,
@@ -559,6 +559,7 @@ export function windowValue(
             strides,
             padding,
             fillValue,
+            [source],
         );
     }
 
@@ -574,6 +575,7 @@ export function windowValue(
             strides,
             padding,
             fillValue,
+            [ownedArray(items)],
         );
     }
 
@@ -706,7 +708,7 @@ function arrayWindows(
     strides: readonly number[],
     padding: readonly number[],
     fill: RankValue,
-    dependencies?: readonly RankArray[],
+    dependencies: readonly RankValue[],
     wrap = false,
 ): RankArray {
     if (wrap && sourceShape.some(n => n === 0) && padding.some(n => n > 0)) {
@@ -740,9 +742,8 @@ function arrayWindows(
         });
         return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
-    const result = dependencies ? derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
-        dependencies.every(isKnownFileFree) && isKnownFileFree(fill))
-        : lazyArray(resultShape, read);
+    const result = derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
+        dependencies.every(isKnownFileFree) && isKnownFileFree(fill));
 
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
@@ -822,32 +823,6 @@ function streamingWindows(
             }
         },
     });
-}
-
-function cachedSequenceItem(source: RankSequence): (index: number) => RankValue {
-    const iterator = source.plan.iterate();
-    const items: RankValue[] = [];
-    return index => {
-        while (items.length <= index) {
-            const next = iterator.next();
-            if (next.done) throw new MissingValueError(`sequence index out of bounds: ${index}`);
-            items.push(next.value);
-        }
-        return items[index];
-    };
-}
-
-function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValue): RankArray {
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        get items() {
-            materialized ??= materializeCells(arraySize(shape), itemAt);
-            return materialized;
-        },
-    };
 }
 
 function arrayCoordinates(shape: readonly number[], linear: number): number[] {
