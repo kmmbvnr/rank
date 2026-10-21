@@ -8,16 +8,17 @@ import {
     isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement,
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
-import type { RankValue } from './value.js';
+import type { RankArray, RankValue } from './value.js';
 import { scalarArrayWriteOffset } from './selectors.js';
 import { checkedArrayDimension } from './tensor-index.js';
-import { arrayForWrite, ownedArray, noteArrayBinding } from './array-storage.js';
+import { arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from './array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
 import { takeDropValue } from './sequence.js';
 import { copyArray } from './modules/sequences.js';
+import { hasDeferredSelectionCopy } from './integer-view.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
 
 interface Kernel {
@@ -43,6 +44,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     if (!proof) return undefined;
     if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');
     const expressions = proof.expressions;
+    // Guarded captures cannot change when assignments are local, polling is
+    // private, and the invocation makes no native or nested user calls.
+    const stableCaptures = !proof.callCount && ![...expressions.values()].some(expression => expression.kind === 'call');
     const slots = new Map<string, number>();
     const slot = (name: string): string => {
         if (!slots.has(name)) slots.set(name, slots.size);
@@ -55,6 +59,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
     const captures: { name: string; rank: number }[] = [];
+    const writtenSlots = new Set([...proof.arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
     let serial = 0;
     function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledCalleeType, inputs?: readonly CompiledCalleeType[]): string {
         const op = operation.name;
@@ -118,7 +123,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 let index = scalarCaptures.findIndex(capture => capture.name === expression.input.name);
                 if (index < 0) index = scalarCaptures.push({ name: expression.input.name, type: expression.type as CompiledScalarType }) - 1;
                 const result = `v${serial++}`;
-                lines.push(`const ${result} = scalars[${index}]();`);
+                lines.push(`const ${result} = ${stableCaptures ? `scalarValues[${index}]` : `scalars[${index}]()`};`);
                 return result;
             }
             if (operation === 'captured-read') {
@@ -166,7 +171,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (!expression.input.indices) return receiver;
             const indices = expression.input.indices.map(index => lower(index, lines));
             const result = `v${serial++}`;
-            lines.push(`const ${result} = scalarSelection(${slot(expression.input.name)}, [${indices.join(',')}]);`);
+            const array = slot(expression.input.name), reader = `reader${slots.get(expression.input.name)}`;
+            lines.push(`const ${result} = ${proof!.containers ? `scalarSelection(${array}, [${indices.join(',')}])`
+                : `(${reader} ??= prepareReader(${array}, ${indices.length}))(${indices.length <= 2 ? indices.join(',') : `[${indices.join(',')}]`})`};`);
             return result;
         }
         if (expression.kind === 'extreme') {
@@ -212,6 +219,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 lines.push(`${slot(command.name)} = ${value};`);
+                lines.push(`reader${slots.get(command.name)} = undefined;`);
+                if (writtenSlots.has(command.name)) lines.push(`write${slots.get(command.name)} = undefined;`);
                 if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
             } else if (isBreakStatement(command)) lines.push('break;');
             else if (isContinueStatement(command)) lines.push('continue;');
@@ -219,21 +228,30 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const value = emit(command.value, lines);
                 lines.push(`${slot(command.receiver.name)}.push(${value});`);
             } else if (isArrayAssignmentStatement(command)) {
+                const receiver = slot(command.name), writer = `write${slots.get(command.name)}`;
+                if (proof!.arrayWrites.has(command)) lines.push(`if (!${writer}) writable(${receiver});`);
                 const keys = command.indices.map(index => emit(index.value!, lines));
-                const receiver = slot(command.name);
                 const offset = `v${serial++}`;
-                if (proof!.arrayWrites.has(command)) lines.push(`const ${offset} = scalarArrayWriteOffset(${receiver}, [${keys.join(',')}]);`);
+                if (proof!.arrayWrites.has(command)) {
+                    const coordinates = keys.map(key => {
+                        const coordinate = `v${serial++}`;
+                        lines.push(`const ${coordinate} = Number(${key});`);
+                        return coordinate;
+                    });
+                    lines.push(`if (${keys.map((key, axis) => `${key} < 0n || ${coordinates[axis]} >= ${receiver}.shape[${axis}]`).join(' || ')}) scalarArrayWriteOffset(${receiver}, [${keys.join(',')}]);`);
+                    lines.push(`const ${offset} = ${coordinates.reduce((offset, coordinate, axis) => axis ? `(${offset} * ${receiver}.shape[${axis}] + ${coordinate})` : coordinate, '')};`);
+                }
                 let value = emit(command.value, lines);
                 if (proof!.arrayWrites.has(command)) {
                     if (command.operator !== '=') {
                         const previous = `v${serial++}`;
-                        lines.push(`const ${previous} = ${receiver}.items[${offset}];`);
+                        lines.push(`const ${previous} = readArrayItem(${receiver}, ${offset});`);
                         value = binary(findCompiledOperator(command.operator.slice(0, -1))!, previous, value, lines, expressions.get(command.value)!.type);
                     }
                     const copy = `v${serial++}`;
                     lines.push(`const ${copy} = arrayForWrite(${receiver});
-                        if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); }
-                        ${receiver}.items[${offset}] = ${value};`);
+                        if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
+                        (${writer} ??= prepareWriter(${receiver}))(${offset}, ${value});`);
                 } else lines.push(`indexSet(${receiver}, indexKey([${keys.join(',')}]), ${value});`);
             } else if (isForStatement(command)) {
                 const binding = forIteration(command.condition);
@@ -285,13 +303,34 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
     const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars) {
+        ${stableCaptures && scalarCaptures.length ? 'const scalarValues = scalars.map(read => read());' : ''}
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
+        ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
+        ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
         ${proof.arrayWrites.size ? 'args.forEach(noteArrayBinding);' : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray) as Kernel['run'] }; }
+    const prepareWriter = (value: RankValue) => prepareScalarArrayWriter(
+        !calls.length && !userCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value);
+    const prepareReader = (value: RankValue, rank: number) => {
+        const storage = !calls.length && !userCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value;
+        if (rank === 1) return prepareScalarArrayReader(storage, scalarSelection);
+        // Multiaxis negative reads retain the ordinary selector's detailed error.
+        if (rank === 2) {
+            const read = prepareMatrixArrayReader(storage, scalarSelection);
+            return (row: bigint, column: bigint) => row < 0n || column < 0n
+                ? scalarSelection(value as RankArray, [row, column]) : read(row, column);
+        }
+        const read = prepareArrayReader(storage, scalarSelection);
+        return (indices: readonly bigint[]) => indices.some(index => index < 0n)
+            ? scalarSelection(value as RankArray, indices) : read(indices);
+    };
+    const writable = (array: RankArray) => {
+        if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
+    };
+    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

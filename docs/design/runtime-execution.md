@@ -849,11 +849,21 @@ Callee bodies may use scalar assignments, branches, early returns, conditional
 loops and inline integer `to`/`till` ranges. They may allocate local indexes,
 queue-family containers, and `array shape ... fill ...` scratch storage. Index
 access in a callee is limited to one integer key and integer values; deque cells
-are integers. Full scalar array reads and plain `=` cell writes retain the
-proved element type and rank. A loop's potentially empty body does not establish
-new locals for subsequent reads. Unsupported control flow, collection returns,
+are integers. Full scalar array reads and cell writes, including supported
+compound operators, retain the proved element type and rank. Array `take`/`drop`
+and the standard `copy` operation reuse ordinary slicing and copying semantics.
+Typed array results can feed subsequent linked calls. Caller regions containing
+both indexed writes and array-returning calls remain conservative fallbacks.
+A loop's potentially empty body does not establish
+new locals for subsequent reads. Unsupported control flow, other collection returns,
 record arguments, recursion, memo functions and generators keep ordinary calls.
 No source-language syntax or ownership annotations are required.
+
+Read-only scalar captures specialize by domain, never by their observed values.
+The call reads current bindings and checks domains again at region entry.
+Caller writes to a capture prevent linking. Custom host polling retains ordinary
+execution; a private kernel without native or nested calls may read its guarded
+captures once per invocation. Capture-domain variants are bounded per closure.
 
 At each outer region entry, the runtime rechecks function/closure identity,
 local/capture collisions, modules, builtin identities, and argument storage and
@@ -865,6 +875,9 @@ are part of the callee specialization because their binding contracts differ.
 
 Array writes use `noteArrayBinding` and `arrayForWrite`: the callee gets its own
 version on a write, including when an array is passed twice or locally aliased.
+Private kernels reuse existing borrowed-storage readers and writers, refreshing
+them after rebinding or COW. Bounds and arithmetic failures retain their source
+order, and writes continue to publish storage revisions.
 Index/deque mutations retain reference identity and use the existing resource-
 aware maps and container methods. A callee with container activity or array
 writes disables caller storage borrowing/reader hoisting. No resource tracking

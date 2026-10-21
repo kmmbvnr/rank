@@ -23,6 +23,25 @@ function compare(source: string) {
 }
 
 describe('array operations in linked function kernels', () => {
+    it('refreshes a prepared writer when an earlier assignment runs again', () => {
+        const result = compare(`fun N rows
+ Result = array 0 0
+ for J in 1 to N
+  Scratch = array shape 2 fill J
+  Scratch 0 += 10
+  Result = Scratch
+ end
+ return Result
+end
+Current = array 0 0
+for I in 1 to 3
+ Current = I rows
+end
+Current`);
+        expect(result.observation.value).toBe('13 3');
+        expect(result.loops).toBe(1);
+    });
+
     it.each(['+=', '-=', '*=', '//=', 'mod='])('preserves COW and signed arithmetic for %s', operator => {
         const result = compare(`fun A N changed
  Saved = A
@@ -52,6 +71,19 @@ for I in 1 to 2
 end
 tuple Source Current`);
         expect(result.observation.error).toBeUndefined();
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['A (-1) 0', 'A 0 (-1)', 'A 0 9007199254740993'])('retains matrix read errors for %s', expression => {
+        const result = compare(`fun A cell
+ return ${expression}
+end
+Source = array shape 2 2 fill 1
+for I in 1 to 2
+ Before = I
+ Value = Source cell
+end`);
+        expect(result.observation.error).toBeDefined();
         expect(result.loops).toBe(1);
     });
 
@@ -99,6 +131,22 @@ for I in 1 to 2
 end
 tuple Source Current`);
         expect(result.observation.error).toBeUndefined();
+        expect(result.loops).toBe(1);
+    });
+
+    it('retains the lazy-write error for a selected local array', () => {
+        const result = compare(`fun A sliced
+ Part = A take 2
+ Part 0 += 10
+ return Part
+end
+Source = array 3 5 7
+Current = Source
+for I in 1 to 2
+ Current = Source sliced
+end
+tuple Source Current`);
+        expect(result.observation.error).toContain('cannot assign to a lazy array');
         expect(result.loops).toBe(1);
     });
 

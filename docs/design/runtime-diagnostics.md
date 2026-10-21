@@ -53,6 +53,13 @@ These count attempts, not unique statements: one variant
 can fail before another succeeds. They are not runtime errors, and do not claim
 to describe every compiler in Rank or mid-loop deoptimization.
 
+`compilerRejections` additionally retains up to 64 distinct scalar-function
+proof failures, including cached failures. Each contains the reason, AST node
+kind, enclosing function, relevant name, source expression (at most 160
+characters), and available 1-based line/column. These are syntax snapshots:
+they do not retain ASTs, frames, or runtime values. Existing `fallbacks` counters
+still count repeated attempts independently of this bounded detail list.
+
 ## Hoisting cache validation
 
 The first implementation covers compiled integer loops reading already-computed
