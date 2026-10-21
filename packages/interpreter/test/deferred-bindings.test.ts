@@ -40,4 +40,70 @@ describe.each([false, true])('deferred binding validation (compilation=%s)', com
             ].join('\n'))).toBe(3n);
         } finally { runtime.dispose(); }
     });
+
+    it.each([
+        ['Q = new queue', 'Q push 9'],
+        ['Q = new set', 'Q add 9'],
+        ['Q = new deque', 'Q 9 pushfront'],
+        ['Q = new heap', 'Q 1 9 enqueue'],
+    ])('rejects receiver mutation before effects: %s / %s', (setup, write) => {
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            expect(() => runtime.execute([
+                'use algo', 'use io', '"started" print', setup, "Plan' = Q len", write,
+            ].join('\n'))).toThrowError('Q is read-only because plan Plan reads it');
+            expect(output).toEqual([]);
+            expect(runtime.variables.has('Q')).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+
+    it('rejects transitive mutation through a helper before effects', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            expect(() => runtime.execute([
+                'use algo', 'use io', 'fun Items leaf', ' Items push 9', ' return 0', 'end',
+                'fun Items forward = Items leaf', '"started" print', 'Q = new queue',
+                "Plan' = Q len", 'Q forward',
+            ].join('\n'))).toThrowError('Q is read-only because plan Plan reads it');
+            expect(output).toEqual([]);
+        } finally { runtime.dispose(); }
+    });
+
+    it('allows a read-only callback even when another call uses a mutating one', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            expect(runtime.execute([
+                'use algo', 'fun X act op = X op', 'Q = new queue', 'Q push 3',
+                "Plan' = Q len", 'Other = new queue', 'Other push 9', 'Other act pop', 'Q act peek',
+            ].join('\n'))).toBe(3n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('runs a helper in a deferred RHS before protecting the name it mentions', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            expect(runtime.execute([
+                'use algo', 'fun Items append', ' Items push 1', ' return Items len', 'end',
+                'Q = new queue', "Total' = Q append", 'array (Q len) Total Total',
+            ].join('\n'))).toMatchObject({ shape: [3], items: [1n, 1n, 1n] });
+        } finally { runtime.dispose(); }
+    });
+
+    it.each(['earlier cell', 'import'] as const)('checks a mutating helper from an %s', origin => {
+        const helper = 'use algo\nfun Items append\n Items push 9\n return 0\nend';
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation,
+            loadModule: () => ({ id: 'helpers.ra', source: helper }) });
+        try {
+            if (origin === 'earlier cell') runtime.execute(helper);
+            const setup = origin === 'import' ? 'use "helpers" as H' : '';
+            const call = origin === 'import' ? 'Q H.append' : 'Q append';
+            expect(() => runtime.execute([
+                'use algo', 'use io', setup, '"started" print', 'Q = new queue', "Plan' = Q len", call,
+            ].join('\n'))).toThrowError('Q is read-only because plan Plan reads it');
+            expect(output).toEqual([]);
+        } finally { runtime.dispose(); }
+    });
 });

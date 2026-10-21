@@ -174,14 +174,14 @@ consume`)).toThrow('Q is read-only in consume');
         try {
             expect(() => runtime.execute(`use algo
 use sequences
-fun Items S store
+fun Items S' store
  Items push S
  return 0
 end
 fun Limit outer
  Items = new queue
  fun X below = X less Limit
- S = 1 to 10 filter below
+ S' = 1 to 10 filter below
  Items S store
  return ${result}
 end
@@ -216,7 +216,7 @@ end
 fun Limit outer
  Items = new queue
  fun X below = X less Limit
- S = 1 to 10 filter below
+ S' = 1 to 10 filter below
  Items (S array) store
  return Items
 end

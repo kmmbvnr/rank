@@ -1,11 +1,11 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isArrayAssignmentStatement, isAssignmentStatement, isFunctionStatement,
-    isNameExpression, isOperationAssignmentStatement,
+    isAssignmentStatement, isFunctionStatement, isNameExpression,
     type AssignmentStatement, type FunctionStatement, type Program,
 } from '../generated/ast.js';
 import { functionCallSignature } from '../function-call-signature.js';
 import { analyzeBindings } from './bindings.js';
+import { bindingMutationSites } from './function-mutations.js';
 import { analyzeFunctionScopes, lexicalBinding, type LexicalBinding } from './function-scopes.js';
 
 export interface DeferredBindingDiagnostic {
@@ -50,21 +50,19 @@ export function deferredBindingDiagnostics(program: Program): DeferredBindingDia
             const scope = analysis.scopes.get(read);
             const binding = lexicalBinding(scope, read.name)
                 ?? lexicalBinding(scope, read.name.split('.')[0]);
-            protect(binding, node, node.$cstNode?.offset ?? 0, node.name);
+            protect(binding, node, node.$cstNode ? node.$cstNode.offset + node.$cstNode.length : 0, node.name);
         }
     }
     const diagnostics: DeferredBindingDiagnostic[] = [];
-    for (const node of AstUtils.streamAllContents(program)) {
-        if (!(isArrayAssignmentStatement(node) || isOperationAssignmentStatement(node)
-            || isAssignmentStatement(node) && node.operator !== '=')) continue;
-        const binding = lexicalBinding(analysis.scopes.get(node), node.name);
-        const protection = binding && protectedNames.get(binding);
+    for (const [node, bindings] of bindingMutationSites(analysis)) for (const binding of bindings) {
+        const protection = protectedNames.get(binding);
         if (!protection || (node.$cstNode?.offset ?? 0) <= protection.offset) continue;
         diagnostics.push({ node, source: protection.source,
             message: protection.plan
-                ? `${node.name} is read-only because plan ${protection.plan} reads it; copy it before mutation.`
-                : `${node.name} is a deferred parameter and is read-only; bind a computed local value before mutation.`,
+                ? `${binding.name} is read-only because plan ${protection.plan} reads it; copy it before mutation.`
+                : `${binding.name} is a deferred parameter and is read-only; bind a computed local value before mutation.`,
         });
     }
+    diagnostics.sort((left, right) => (left.node.$cstNode?.offset ?? 0) - (right.node.$cstNode?.offset ?? 0));
     return diagnostics;
 }

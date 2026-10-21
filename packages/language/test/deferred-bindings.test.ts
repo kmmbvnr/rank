@@ -93,6 +93,73 @@ describe('names read by deferred bindings', () => {
         expect(errors).toHaveLength(1);
     });
 
+    it.each([
+        'Q push 9', 'Q push unpack (array 8 9)', 'Q pop',
+        'Q 9 pushfront', 'Q 9 pushback', 'Q popfront', 'Q popback',
+        'Q add 9', 'Q remove 9', 'Q 1 9 enqueue', 'Q 0 1 merge',
+    ])('rejects a mutating receiver operation: %s', write => {
+        const { errors } = diagnostics(`use algo\nQ = new queue\nPlan' = Q len\n${write}`);
+        expect(errors).toHaveLength(1);
+        expect(errors[0].message).toContain('Q is read-only because plan Plan reads it');
+        expect(errors[0].node.$cstNode?.range.start.line).toBe(3);
+    });
+
+    it('follows a nested field receiver to its source name', () => {
+        const { errors } = diagnostics("use algo\nR = record\n .queue = new queue\nend\nPlan' = R\nR .queue push 9");
+        expect(errors).toHaveLength(1);
+        expect(errors[0].message).toContain('R is read-only');
+    });
+
+    it.each([
+        'fun X change\n X 0 = 9\n return X\nend\n',
+        'fun X leaf\n X 0 = 9\n return X\nend\nfun X change = X leaf\n',
+        'fun X leaf\n X 0 = 9\n return X\nend\nchange = leaf\n',
+    ])('rejects a write through a helper or function alias', definitions => {
+        const { errors } = diagnostics(`${definitions}A = array 1 2\nPlan' = A * 2\nA change`);
+        expect(errors).toHaveLength(1);
+        expect(errors[0].message).toContain('A is read-only because plan Plan reads it');
+        expect(errors[0].node.$cstNode?.range.end.line).toBe(errors[0].node.$cstNode?.range.start.line);
+    });
+
+    it('rejects mutation through an alias of a native operation', () => {
+        const { errors } = diagnostics("use algo\ntakeout = pop\nQ = new queue\nPlan' = Q len\nQ takeout");
+        expect(errors).toHaveLength(1);
+        expect(errors[0].message).toContain('Q is read-only');
+    });
+
+    it('protects deferred parameters passed to mutating helpers', () => {
+        const { errors } = diagnostics("fun X leaf\n X 0 = 9\n return X\nend\nfun X' outer = X leaf");
+        expect(errors).toHaveLength(1);
+        expect(errors[0].message).toContain('X is a deferred parameter and is read-only');
+    });
+
+    it('keeps callback effects specific to their call sites', () => {
+        const { errors } = diagnostics([
+            'use algo', 'fun X act op = X op', 'Q = new queue', "Plan' = Q len",
+            'Q act peek', 'Other = new queue', 'Other act pop',
+        ].join('\n'));
+        expect(errors).toEqual([]);
+        expect(diagnostics([
+            'use algo', 'fun X act op = X op', 'Q = new queue', "Plan' = Q len", 'Q act pop',
+        ].join('\n')).errors).toHaveLength(1);
+    });
+
+    it('starts protection after construction of its own deferred binding', () => {
+        expect(diagnostics([
+            'use algo', 'fun X append', ' X push 1', ' return X', 'end',
+            'Q = new queue', "Plan' = Q append",
+        ].join('\n')).errors).toEqual([]);
+        expect(diagnostics("use algo\nQ = new queue\nPlan' = Q pop").errors).toEqual([]);
+    });
+
+    it('permits reads, writes before protection, fresh copies and unrelated parameters', () => {
+        expect(diagnostics([
+            'use algo', 'use sequences', 'Q = new queue', 'Q push 1', "Plan' = Q len",
+            'Q peek', 'A = array 1 2', "Values' = A * 2", 'Work = A copy',
+            'fun X change', ' X 0 = 9', ' return X', 'end', 'Work change',
+        ].join('\n')).errors).toEqual([]);
+    });
+
     it('preserves the old behavior for programs without deferred bindings', () => {
         expect(diagnostics('A = array 1 2\nB = A * 2\nA 0 = 9\nA += 1').errors).toEqual([]);
     });
@@ -103,6 +170,8 @@ describe('editor locations for deferred binding errors', () => {
     it.each([
         { source: "A = array 1 2\nB' = A * 2\nA 0 = 9", writeLine: 2, bindingLine: 1, column: 0 },
         { source: "fun X' change\n X 0 = 9\n return X\nend", writeLine: 1, bindingLine: 0, column: 4 },
+        { source: "use algo\nQ = new queue\nB' = Q len\nQ push 9", writeLine: 3, bindingLine: 2, column: 0 },
+        { source: "fun X change\n X 0 = 9\n return X\nend\nA = array 1 2\nB' = A * 2\nA change", writeLine: 6, bindingLine: 5, column: 0 },
     ])('links the write to its responsible binding: $bindingLine', async ({ source, writeLine, bindingLine, column }) => {
         const parseDocument = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
         const document = await parseDocument(source, { validation: true });
