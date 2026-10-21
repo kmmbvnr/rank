@@ -1,0 +1,43 @@
+rem Chocolate Covered Candy
+rem https://projecteuler.net/problem=449
+
+use numbers
+use sequences
+use io
+use cli
+
+option A integer = 3
+option B integer = 1
+option Steps integer = 4096
+option Digits integer = 8
+
+rem The outer surface at distance 1
+rem along the normal is R = s (a +
+rem 1 / (a E)), Z = c (b + 1 / (b E))
+rem with s = sin t, c = cos t and
+rem E = sqrt(s^2 / a^2 + c^2 / b^2).
+rem Its volume 2 pi times the
+rem integral of R^2 (-Z') by Simpson,
+rem less the core 4 pi a^2 b / 3.
+Pi = 4 * (1.0 atan)
+Ph = (0 to Steps) copy
+Th = Ph * (Pi / 2 / Steps)
+Sn = Th sin
+Cs = Th cos
+Ia = 1.0 / (A * A)
+Ib = 1.0 / (B * B)
+Ee = (Sn * Sn * Ia + Cs * Cs * Ib) sqrt
+Dn = Sn * Cs * (Ia - Ib) / Ee
+Rr = Sn * (A + 1 / (A * Ee))
+Zz = B + 1 / (B * Ee)
+Dz = Cs * Dn / (B * Ee * Ee)
+Dz = (0 - Sn) * Zz - Dz
+Wt = (2 + 2 * (Ph mod 2)) * 1.0
+Wt 0 = 1.0
+Wt Steps = 1.0
+Hh = Pi / 2 / Steps / 3
+Ig = (Wt * Rr * Rr * (0 - Dz)) sum
+Vo = 2 * Pi * Hh * Ig
+Vc = Vo - 4 * Pi * A * A * B / 3
+Answer = Vc Digits round
+Answer print
