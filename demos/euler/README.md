@@ -76,8 +76,7 @@ Notes from this range, for the next one:
 
 ## Problems 401-450
 
-Written so far: 401-423, 425-427, 429-432, 434-437, 439-449 (with
-the gaps listed below). One program and one test file each. The default
+Written so far: 401-432, 434-437, 439-449 (with the gaps listed below). One program and one test file each. The default
 answers were checked against the published ones, and the tests keep to small
 inputs, so the default runs that take more than about 25 s are left out of the
 type, name-facts and differential audits (`scripts/demo-execution-exclusions.json`).
@@ -89,9 +88,7 @@ pointer-jumping depth), 427 (6 min), 446 (6 min), 413 and 415 (5 min), 411
 a recursion over the values N // k for N near 10^11 (415, 432, 439, 447, 448),
 or a sieve over 10^7-10^8 integers.
 
-Not written yet: 424 (Kakuro with letter clues: needs a constraint
-solver), 428 (necklace triplets, needs summatory functions of tau(m^2) and a
-mod 3 twist for 10^9), 433 (Euclid steps: needs a floor-sum recursion over
+Not written yet: 433 (Euclid steps: needs a floor-sum recursion over
 coprime pairs), 438 (integer parts of roots, needs a linear-bound search) and
 450 (hypocycloid lattice points).
 
