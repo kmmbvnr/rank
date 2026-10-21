@@ -1,0 +1,30 @@
+use testing
+
+test "statement values"
+  use "439_sumofdivisors"
+  N = 3
+  run
+  Answer equal 59
+  N = 1000
+  run
+  Answer equal 576517282
+end
+
+test "larger bound"
+  use "439_sumofdivisors"
+  N = 100000
+  run
+  Answer equal 215766508
+end
+
+test "short tables use the recursion"
+  use "439_sumofdivisors"
+  N = 100000
+  L = 400
+  run
+  Answer equal 215766508
+  N = 1000
+  L = 40
+  run
+  Answer equal 576517282
+end

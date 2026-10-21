@@ -1,0 +1,128 @@
+rem Sum of Sum of Divisors
+rem https://projecteuler.net/problem=439
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000
+option L integer = 10000000
+
+rem sigma(xy) = sum over d | gcd of
+rem mu(d) d sigma(x/d) sigma(y/d), so
+rem S(N) = sum of mu(d) d A(N//d)^2
+rem over d, A the summatory sigma. A and
+rem W(x) = sum of k mu(k) are prefix
+rem tables up to L. Above L, A comes
+rem from the hyperbola method and W
+rem from W(x) = 1 - sum over k >= 2
+rem of k W(x // k).
+Mod = 1000000000
+Rn = N isqrt + 2
+Lm = (L Rn max) N min
+Rt = Lm isqrt
+Ix = (0 to Lm) copy
+Mu = array shape (Lm + 1) fill 1
+Sm = array shape (Lm + 1) fill 1
+for P in primes to Rt
+  Q = P
+  for Q at most Lm
+    Sl = Q to Lm by Q
+    Sm Sl *= P
+    if Q equal P
+      Mu Sl *= -1
+    end
+    Q *= P
+  end
+  Sl = (P * P) to Lm by (P * P)
+  Mu Sl = 0
+end
+Big = Ix // Sm greater 1
+Mu = (Big choose (0 - Mu) Mu) copy
+Mu 0 = 0
+Sg = array shape (Lm + 1) fill 0
+Xr = Lm isqrt
+for D in 1 to Xr
+  Sl = (D * D) to Lm by D
+  Vs = (D + Sl // D) copy
+  Sg Sl += Vs
+  Sg (D * D) -= D
+end
+Ts = Sg scan + with 0
+At = (Ts (1 to Lm + 1)) mod Mod
+Kw = Ix mod Mod * Mu
+Ws = Kw scan + with 0
+Wt = (Ws (1 to Lm + 1)) mod Mod
+Nq = N // Lm
+Lw = array shape (Nq + 2) fill 0
+La = array shape (Nq + 2) fill 0
+for I in Nq to 1 by -1
+  X = N // I
+  if X greater Lm
+    R = X isqrt
+    Ks = (2 to R) copy
+    Ys = X // Ks
+    Sv = Wt (Ys Lm min)
+    Lv = Lw (I * Ks Nq min)
+    Va = (Ys at most Lm) choose Sv Lv
+    Pa = (Ks * Va mod Mod) sum
+    Qs = (1 to X // (R + 1)) copy
+    Hi = X // Qs
+    Lo = X // (Qs + 1) R max
+    Eh = Hi mod 2 equal 0
+    Ah = Eh choose (Hi // 2) Hi
+    H1 = Hi + 1
+    Bh = Eh choose H1 (H1 // 2)
+    Sh = Ah mod Mod * (Bh mod Mod)
+    Sh = Sh mod Mod
+    El = Lo mod 2 equal 0
+    Al = El choose (Lo // 2) Lo
+    L1 = Lo + 1
+    Bl = El choose L1 (L1 // 2)
+    Sl = Al mod Mod * (Bl mod Mod)
+    Sl = Sl mod Mod
+    Dk = (Sh - Sl) mod Mod
+    Pb = (Dk * Wt Qs mod Mod) sum
+    Lw I = (1 - Pa - Pb) mod Mod
+    rem A(X) by the hyperbola method.
+    Q1 = X // Ks
+    Q0 = X // 1
+    Qa = concat (array Q0) Q1
+    Ka = (1 to R) copy
+    E2 = Qa mod 2 equal 0
+    Ha = E2 choose (Qa // 2) Qa
+    Qb = Qa + 1
+    Hb = E2 choose Qb (Qb // 2)
+    Tr = Ha mod Mod * (Hb mod Mod)
+    Tr = Tr mod Mod
+    Kq = Ka * (Qa mod Mod)
+    Ta = ((Tr + Kq) mod Mod) sum
+    Rr = R mod Mod
+    Rp = R * (R + 1) // 2 mod Mod
+    La I = (Ta - Rr * Rp) mod Mod
+  end
+end
+R2 = N isqrt
+Dd = (1 to R2) copy
+Nd = N // Dd
+Sa = At (Nd Lm min)
+Lq = La (Dd Nq min)
+Ad = (Nd at most Lm) choose Sa Lq
+Pd = (Mu Dd) * (Dd mod Mod) mod Mod
+Ad2 = Ad * Ad mod Mod
+P1 = (Pd * Ad2 mod Mod) sum
+Qq = (1 to N // (R2 + 1)) copy
+Xq = N // Qq
+Sx = Wt (Xq Lm min)
+Qm = Qq Nq min
+Fx = (Xq at most Lm) choose Sx (Lw Qm)
+Lo2 = N // (Qq + 1) R2 max
+Sw = Wt (Lo2 Lm min)
+Qn = (Qq + 1) Nq min
+Fl = (Lo2 at most Lm) choose Sw (Lw Qn)
+Dq = (Fx - Fl) mod Mod
+Aq = At Qq
+P2 = (Aq * Aq mod Mod * Dq mod Mod) sum
+Answer = (P1 + P2) mod Mod
+Answer print
