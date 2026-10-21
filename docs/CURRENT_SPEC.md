@@ -462,6 +462,11 @@ semantics. A fresh record made with `with`, or a newly constructed container,
 has independent writable storage. Consuming or forgetting the plan does not
 make the captured state writable again.
 
+When a plan captures a named callback, it also retains that function's data
+dependencies, including transitive helper dependencies from each defining scope. Rebinding those names
+later does not change the existing plan. Ordinary calls to the original
+function continue to read its current enclosing bindings.
+
 Addressing may continue through arrays, queues and nested records:
 
 ```rank

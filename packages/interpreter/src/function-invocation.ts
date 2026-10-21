@@ -16,7 +16,7 @@ import {
     type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
+import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
@@ -46,7 +46,7 @@ import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
-    MISSING, isNativeFunction, isRankArray, isRankDate, isRankLabel, type NativeFunction, type RankArray,
+    isNativeFunction, isRankArray, type NativeFunction, type RankArray,
     type RankFile, type RankSequence, type RankValue,
 } from './value.js';
 
@@ -311,13 +311,9 @@ export class FunctionInvocation {
             const value = this.bindings.withFrame(context, () => this.host.resolve(binding.name));
             if (value === undefined) throw new RankError(`snapshot dependency ${binding.name} is not initialized`, 'Scope');
             if (isNativeFunction(value)) frame.set(binding.name, this.snapshot(value, seen));
-            else {
-                if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)
-                    && value !== MISSING && !isFlatScalarArray(value)) {
-                    throw new RankError(`snapshot capture ${binding.name} does not support value snapshots; pass explicit data or materialize it first`, 'Scope');
-                }
-                frame.set(binding.name, value);
-            }
+            // The snapshot retains the value/version. Explicit plan capture
+            // separately protects shared mutable storage; arrays keep CoW.
+            else frame.set(binding.name, value);
         }
         return result;
     }

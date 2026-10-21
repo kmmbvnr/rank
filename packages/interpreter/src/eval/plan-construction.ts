@@ -18,6 +18,7 @@ interface ConstructionContext {
     findVariable(name: string): RankValue | undefined;
     resolve(name: string): RankValue;
     operationOf(name: string): Operation | undefined | false;
+    snapshotFunction(fn: NativeFunction, seen: Map<NativeFunction, NativeFunction>): NativeFunction;
     execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
 }
 
@@ -206,10 +207,12 @@ export class PlanConstruction {
 
     private capture(expression: Expression): RankPlan {
         const dependencies = new Map<string, RankValue>();
+        const functions = new Map<NativeFunction, NativeFunction>();
         for (const node of AstUtils.streamAst(expression)) {
             if (!isNameExpression(node)) continue;
             const value = this.context.findVariable(node.name);
-            if (value !== undefined) dependencies.set(node.name, value);
+            if (value !== undefined) dependencies.set(node.name, isNativeFunction(value)
+                ? this.context.snapshotFunction(value, functions) : value);
             else if (/^[A-Z]/.test(node.name)) this.context.resolve(node.name);
         }
         const snapshot = new LocalFrame(undefined, new Map(), new Set(dependencies.keys()));
