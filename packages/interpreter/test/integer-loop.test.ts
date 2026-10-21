@@ -2114,7 +2114,7 @@ end`);
         expect(result.loops).toBe(1);
     });
 
-    it('does not assume a captured value is a parameter', () => {
+    it('guards a captured scalar separately from its parameter', () => {
         const result = compare(`Offset = 7
 fun X plus
   return X + Offset
@@ -2125,7 +2125,7 @@ for I in 1 to 3
 end
 Total`);
         expect(result.value).toBe('27');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('keeps effectful helpers on the ordinary path', () => {

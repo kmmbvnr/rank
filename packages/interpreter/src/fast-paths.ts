@@ -12,7 +12,7 @@ import { registerFlatCombine } from './flat-combine.js';
 import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
 import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './scalar-compiler.js';
-import { scalarFunctionResult } from './scalar-function-proof.js';
+import { scalarFunctionResult, type ScalarCaptureTypes } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
@@ -323,9 +323,9 @@ export class FastPaths {
     }
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[]; readonly loops: true } | undefined {
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined {
         if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
-        const proof = scalarFunctionResult(statement, true, types, true);
+        const proof = scalarFunctionResult(statement, true, types, true, [], captures);
         // Entry arguments admit only scalars and checked arrays. Local index/
         // deque storage is integer-only, cannot escape through a scalar return,
         // and needs no resource frame. Argument array writes still need one.
@@ -353,7 +353,8 @@ export class FastPaths {
         const statement = definition.statement;
         if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
         return types => {
-            const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true);
+            const scalarTypes = definition.owner.scalarCaptureTypes(statement, definition.context);
+            const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true, [], scalarTypes);
             if (!proof) return undefined;
             const captures = definition.context !== undefined;
             return {
@@ -370,7 +371,7 @@ export class FastPaths {
                     const active = this.context.functions.definitionOf(current);
                     if (active?.statement !== statement || (active.context !== undefined) !== captures
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
-                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true);
+                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
                     return (arguments_, tail = false) => {
                         if (tail && active.owner === this.context.functions) {

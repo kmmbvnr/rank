@@ -6,7 +6,7 @@ import { indexGet, indexHas, indexSet, indexKey } from './index-storage.js';
 import {
     findCompiledOperator,
     isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement,
-    type CompiledExpression, type CompiledOperator, type Operation, type Expression, type FunctionStatement, type Statement,
+    type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { checkpoint } from './interrupt.js';
 import { RankError } from './errors.js';
@@ -16,10 +16,11 @@ import { scalarArrayWriteOffset } from './selectors.js';
 import { checkedArrayDimension } from './tensor-index.js';
 import { arrayForWrite, ownedArray, noteArrayBinding } from './array-storage.js';
 import { scalarSelection } from './scalar-selection.js';
-import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput } from './scalar-function-proof.js';
+import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
 
 interface Kernel {
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean }[];
+    readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
     readonly calls: readonly { operation: Operation; inputs: readonly string[] }[];
@@ -29,14 +30,14 @@ interface Kernel {
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[],
         userCalls?: readonly ((arguments_: RankValue[], tail?: boolean) => RankValue)[],
         memberships?: readonly ((value: bigint) => boolean)[],
-        captures?: readonly ((indices: bigint[]) => bigint)[]): RankValue;
+        captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[]): RankValue;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
 // Callers prove the selected argument types and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
-export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false): Kernel | undefined {
-    const proof = scalarFunctionResult(statement, true, parameterTypes, loops);
+export function compileScalarFunction(statement: FunctionStatement, parameterTypes?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): Kernel | undefined {
+    const proof = scalarFunctionResult(statement, true, parameterTypes, loops, [], capturedTypes);
     if (!proof) return undefined;
     if (kernels.has(proof)) return kernels.get(proof) ?? recordFallback('scalar-function:code-generation');
     const expressions = proof.expressions;
@@ -49,6 +50,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const locations: Statement[] = [];
     const calls: { operation: Operation; inputs: readonly string[] }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean }[] = [];
+    const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
     const captures: { name: string; rank: number }[] = [];
     let serial = 0;
@@ -101,6 +103,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const value = lower(expression.input.indices![0], lines);
                 const index = memberships.push(expression.input.name) - 1, result = `v${serial++}`;
                 lines.push(`const ${result} = ${operation === 'sequence-not-contains' ? '!' : ''}memberships[${index}](${value});`);
+                return result;
+            }
+            if (operation === 'captured-scalar') {
+                let index = scalarCaptures.findIndex(capture => capture.name === expression.input.name);
+                if (index < 0) index = scalarCaptures.push({ name: expression.input.name, type: expression.type as CompiledScalarType }) - 1;
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = scalars[${index}]();`);
                 return result;
             }
             if (operation === 'captured-read') {
@@ -261,14 +270,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         const parameter = statement.parameters.lastIndexOf(name);
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
-    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures) {
+    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars) {
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${proof.arrayWrites.size ? 'args.forEach(noteArrayBinding);' : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
     let kernel: Kernel | undefined;
-    try { kernel = { locations, calls, userCalls, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

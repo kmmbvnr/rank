@@ -152,7 +152,7 @@ export class Interpreter {
                 compiled: (statement, arguments_) => this.fastPaths.functionBody(statement, arguments_, this.blocks),
                 execute: (statements, generator, control) => this.blocks.execute(statements, false, false, false, generator, true, undefined, control),
                 locate: (error, node) => this.locateError(error, node),
-                scalarEntry: (statement, generator, types) => this.fastPaths.scalarEntry(statement, generator, types),
+                scalarEntry: (statement, generator, types, captures) => this.fastPaths.scalarEntry(statement, generator, types, captures),
                 flatCombine: (fn, statement, available) => this.fastPaths.flatCombine(fn, statement, available),
             });
         this.reductions = new ReductionEvaluator(

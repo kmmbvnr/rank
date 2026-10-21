@@ -9,9 +9,15 @@ import {
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from './diagnostics.js';
 
+export type ScalarCaptureTypes = ReadonlyMap<string, CompiledScalarType>;
+export function scalarCaptureKey(captures: ScalarCaptureTypes): string {
+    return JSON.stringify([...captures].sort(([a], [b]) => a.localeCompare(b)));
+}
+const noCaptures: ScalarCaptureTypes = new Map();
+
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default' | 'captured-read';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default' | 'captured-read' | 'captured-scalar';
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -35,7 +41,7 @@ const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionPro
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
 export function scalarFunctionResult(statement: FunctionStatement, blocks = false,
-    parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = []): ScalarFunctionProof | undefined {
+    parameterTypes?: readonly CompiledCalleeType[], loops = false, path: readonly FunctionStatement[] = [], captures: ScalarCaptureTypes = noCaptures): ScalarFunctionProof | undefined {
     if (path.includes(statement) || path.length >= 16) return recordFallback('scalar-function:call-graph');
     if (parameterTypes && parameterTypes.length !== statement.parameters.length) {
         return recordFallback('scalar-function:argument-count');
@@ -46,7 +52,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     // The default remains the integer specialization used by loop call sites.
     // This is preparation-time work; runtime callers cache their selected proof.
     const types = parameterTypes ?? statement.parameters.map(() => 'integer' as const);
-    const key = types.map(compiledCalleeTypeKey).join(',');
+    const key = `${types.map(compiledCalleeTypeKey).join(',')}|${scalarCaptureKey(captures)}`;
     const cached = proofs.get(key);
     if (cached && 'reason' in cached) return recordCompilerRejection(cached);
     if (cached) return cached;
@@ -179,7 +185,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (isNameExpression(source)) {
                     const known = env.get(source.name);
-                    return known ? { type: known, input: { name: source.name } } : userCall([source], env);
+                    if (known) return { type: known, input: { name: source.name } };
+                    const captured = captures.get(source.name), binding = lexical?.reads.get(source) ?? lexicalBinding(scope, source.name);
+                    if (loops && captured && binding && binding.scope.owner !== statement && !binding.function
+                        && !source.name.includes('.')) {
+                        dependencies.add(source.name);
+                        return { type: captured, input: { name: source.name, operation: 'captured-scalar' } };
+                    }
+                    return userCall([source], env);
                 }
                 if (!isApplicationExpression(source)) return undefined;
                 const lookup = (name: string) => env.has(name) || lexicalBinding(scope, name) ? false : findOperation(name);
@@ -205,7 +218,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
                 return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, indices: indices.map(index => expressions.get(index)!) } };
             },
-            isBound: name => env.has(name),
+            isBound: name => env.has(name) || captures.has(name),
             extreme: (name, inputs) => {
                 const type = inputs[0];
                 if (lexicalBinding(scope, name) || type !== 'integer' && type !== 'real'

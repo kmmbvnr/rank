@@ -30,12 +30,13 @@ import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
-import { checkpoint, inspectionEnabled } from './interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract } from './return-contract.js';
-import { compiledArgumentType } from './compiled-argument-type.js';
+import { compiledArgumentType, compiledScalarType } from './compiled-argument-type.js';
+import { scalarCaptureKey, type ScalarCaptureTypes } from './scalar-function-proof.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
 import { compileDistinctFunction } from './distinct-function.js';
@@ -70,7 +71,7 @@ export interface FunctionHost {
     execute(statements: Statement[], generator: boolean, control?: FunctionControl): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
     /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[]): { readonly locals: readonly string[]; readonly loops: true } | undefined;
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined;
     /** Offers a function to flat combinators; `available` is checked before each use. */
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
@@ -531,10 +532,36 @@ export class FunctionInvocation {
         });
     }
 
+    /** Capture only scalar domains; cached proofs never retain their values. */
+    scalarCaptureTypes(statement: FunctionStatement, context?: LocalFrame): ScalarCaptureTypes {
+        const types = new Map<string, NonNullable<ReturnType<typeof compiledScalarType>>>();
+        for (const capture of functionScope(statement)?.captures ?? []) {
+            const type = compiledScalarType(context?.lookup(capture.name) ?? this.bindings.globals.get(capture.name));
+            if (type) types.set(capture.name, type);
+        }
+        return types;
+    }
+
     /** Selects per-argument scalar entries without retaining invocation frames. */
     private scalarEntrySelector(statement: FunctionStatement, context: LocalFrame | undefined, generator: boolean, arity: number) {
-        const proof = this.host.scalarEntry(statement, generator);
-        const scalar = proof ? this.prepareScalarCall(statement, context, undefined, proof.loops) : undefined;
+        if (!functionScope(statement)?.captures.size) return this.scalarEntryForCaptures(statement, context, generator, arity, new Map());
+        const variants = new Map<string, (arguments_: RankValue[]) => PreparedScalarCall | undefined>();
+        return (arguments_: RankValue[]) => {
+            const captures = this.scalarCaptureTypes(statement, context), key = scalarCaptureKey(captures);
+            let entry = variants.get(key);
+            if (!entry) {
+                if (variants.size >= 8) return undefined;
+                entry = this.scalarEntryForCaptures(statement, context, generator, arity, captures);
+                variants.set(key, entry);
+            }
+            return entry(arguments_);
+        };
+    }
+
+    private scalarEntryForCaptures(statement: FunctionStatement, context: LocalFrame | undefined, generator: boolean,
+        arity: number, captures: ScalarCaptureTypes) {
+        const proof = this.host.scalarEntry(statement, generator, undefined, captures);
+        const scalar = proof ? this.prepareScalarCall(statement, context, undefined, proof.loops, captures) : undefined;
         const typedEntries = new CallSpecializations<{
             readonly locals: readonly string[]; readonly call: PreparedScalarCall;
         } | null>();
@@ -555,8 +582,8 @@ export class FunctionInvocation {
                 let entry = typedEntries.get(arguments_);
                 if (entry === undefined) {
                     types ??= arguments_.map(value => compiledArgumentType(value)!);
-                    const typedProof = this.host.scalarEntry(statement, generator, types);
-                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops) : undefined;
+                    const typedProof = this.host.scalarEntry(statement, generator, types, captures);
+                    const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops, captures) : undefined;
                     entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
                     typedEntries.set(arguments_, entry);
                 }
@@ -623,16 +650,17 @@ export class FunctionInvocation {
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
-    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledCalleeType[], loops = false): PreparedScalarCall | undefined {
+    prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): PreparedScalarCall | undefined {
         if (this.options().scalarFunctionCompilation === false) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
         let instances = cache.get(statement);
         if (!instances) cache.set(statement, instances = new Map());
-        const key = `${loops ? 'loops:' : ''}${types?.map(compiledCalleeTypeKey).join(',') ?? ''}`;
+        const scalarTypes = capturedTypes ?? this.scalarCaptureTypes(statement, context);
+        const key = `${loops ? 'loops:' : ''}${types?.map(compiledCalleeTypeKey).join(',') ?? ''}|${scalarCaptureKey(scalarTypes)}`;
         const cached = instances.get(key);
         if (cached) return cached;
-        const kernel = compileScalarFunction(statement, types, loops);
+        const kernel = compileScalarFunction(statement, types, loops, scalarTypes);
         if (!kernel || kernel.userCalls.length && this.options().scalarCallCompilation === false
             || kernel.memberships.length && this.options().sequenceMembershipCompilation === false
             || kernel.userCalls.some(call => call.tail) && this.options().compiledScalarTailCalls === false) return undefined;
@@ -652,6 +680,7 @@ export class FunctionInvocation {
         const users: ((arguments_: RankValue[], tail?: boolean) => RankValue)[] = [];
         const memberships: ((value: bigint) => boolean)[] = [];
         const captures: ((indices: bigint[]) => bigint)[] = [];
+        const scalars = kernel.scalarCaptures.map(({ name }) => () => resolve(name)!);
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
         const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
@@ -667,7 +696,7 @@ export class FunctionInvocation {
             if (!tail) this.depth += 1;
             try {
                 this.options().onScalarFunctionExecuted?.();
-                return kernel.run(arguments_, locate, calls, users, memberships, captures);
+                return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars);
             } catch (error) {
                 // A scalar tail callee replaces this logical frame. Errors from
                 // it must not acquire the discarded caller's stack entry.
@@ -676,8 +705,10 @@ export class FunctionInvocation {
                 throw error;
             } finally { if (!tail) this.depth -= 1; }
         };
-        if (binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled()) return false;
+            if (kernel.scalarCaptures.length && (!privateLoopPolling()
+                || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
             for (let index = 0; index < userBinders.length; index++) {
                 const bound = userBinders[index]();

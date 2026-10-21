@@ -1,4 +1,4 @@
-import { compiledScalarTypes, type CompiledArrayType, type CompiledFunctionType } from '@arrrank/language';
+import { compiledScalarTypes, type CompiledScalarType, type CompiledArrayType, type CompiledFunctionType } from '@arrrank/language';
 import { arrayRevision, denseScalarItems, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { semanticArrayType } from './semantic-array-type.js';
@@ -12,13 +12,20 @@ interface Entry {
 }
 const arrays = new WeakMap<RankArray, Entry>();
 
-/** Select a semantic domain only after proving that array reads cannot run code.
- * Never inspect lazy caches or host cells. Reuse cell checks at the same revision. */
-export function compiledArgumentType(value: RankValue): CompiledFunctionType | undefined {
+/** Scalar domains require no storage reads or coercion. */
+export function compiledScalarType(value: RankValue | undefined): CompiledScalarType | undefined {
     if (typeof value === 'bigint') return 'integer';
     if (typeof value === 'number') return 'real';
     if (typeof value === 'boolean') return 'boolean';
     if (typeof value === 'string') return 'text';
+    return undefined;
+}
+
+/** Select a semantic domain only after proving that array reads cannot run code.
+ * Never inspect lazy caches or host cells. Reuse cell checks at the same revision. */
+export function compiledArgumentType(value: RankValue): CompiledFunctionType | undefined {
+    const scalarValue = compiledScalarType(value);
+    if (scalarValue) return scalarValue;
     if (typeof value !== 'object' || value === null) return undefined;
     const array = value as RankArray;
     const cells = denseScalarItems(array);
