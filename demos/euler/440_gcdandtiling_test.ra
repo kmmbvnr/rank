@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "440_gcdandtiling"
+  L = 2
+  run
+  Answer equal 10444
+  L = 3
+  run
+  Answer equal 862246950
+  L = 4
+  run
+  Answer equal 670616280
+end
+
+test "six terms"
+  use "440_gcdandtiling"
+  L = 6
+  run
+  Answer equal 509791024
+end
