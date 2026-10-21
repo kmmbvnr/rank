@@ -1,0 +1,56 @@
+rem Circle and Tangent Line
+rem https://projecteuler.net/problem=410
+
+use numbers
+use sequences
+use io
+use cli
+
+option R integer = 100000000
+option X integer = 1000000000
+option Block integer = 10000000
+
+rem F(A, B) = sum over m <= min(A, B)
+rem of 2^w(m) U(m), w = distinct
+rem primes, a = A // m, b = B // m,
+rem U = 2 a b for odd m and
+rem a b + (a mod 2)(b mod 2) for
+rem even m. F is symmetric, so the
+rem answer is 2 F(R, X). w comes
+rem from a sieve of each block by
+rem primes up to sqrt: the smooth
+rem part of m shows a big factor.
+L = R X min
+Root = L isqrt
+Tot = 0
+for Lo in 1 to L by Block
+  Hi = L (Lo + Block - 1) min
+  Len = Hi - Lo + 1
+  M = (Lo to Hi) copy
+  Sm = array shape Len fill 1
+  Om = array shape Len fill 0
+  for P in primes to Root
+    Q = P
+    for Q at most Hi
+      S = (Lo + Q - 1) // Q * Q - Lo
+      if S less Len
+        Sl = S to (Len - 1) by Q
+        Sm Sl *= P
+        if Q equal P
+          Om Sl += 1
+        end
+      end
+      Q *= P
+    end
+  end
+  Big = Sm less M choose 1 0
+  Om += Big
+  A = R // M
+  B = X // M
+  Odd = M mod 2 equal 1
+  Even = (A * B + A mod 2 * (B mod 2))
+  Us = Odd choose (2 * A * B) Even
+  Tot += (2 ** Om * Us) sum
+end
+Answer = 2 * Tot
+Answer print

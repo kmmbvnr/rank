@@ -1,0 +1,34 @@
+use testing
+
+test "statement values"
+  use "410_circleandtangent"
+  R = 1
+  X = 5
+  run
+  Answer equal 20
+  R = 2
+  X = 10
+  run
+  Answer equal 104
+  R = 10
+  X = 100
+  run
+  Answer equal 6768
+end
+
+test "brute force reference"
+  use "410_circleandtangent"
+  R = 12
+  X = 20
+  run
+  Answer equal 1648
+end
+
+test "blocks agree with one sieve"
+  use "410_circleandtangent"
+  R = 200000
+  X = 300000
+  Block = 70000
+  run
+  Answer equal 479955026416
+end
