@@ -1,0 +1,32 @@
+use testing
+use text
+
+test "statement values"
+  use "419_lookandsay"
+  N = 8
+  run
+  Answer equal "6,2,2"
+  N = 40
+  run
+  Answer equal "31254,20259,11625"
+end
+
+test "direct string references"
+  use "419_lookandsay"
+  N = 20
+  run
+  Answer equal "155,91,56"
+  N = 35
+  run
+  Answer equal "8300,5366,3108"
+end
+
+test "default input"
+  use "419_lookandsay"
+  run
+  A1 = "998567458"
+  A2 = "1046245404"
+  A3 = "43363922"
+  Want = array A1 A2 A3
+  Answer equal (Want "," join)
+end
