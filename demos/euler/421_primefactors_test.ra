@@ -1,0 +1,29 @@
+use testing
+
+test "statement value"
+  use "421_primefactors"
+  N = 10
+  M = 20
+  run
+  Answer equal 157
+end
+
+test "brute force references"
+  use "421_primefactors"
+  N = 200
+  M = 1000
+  run
+  Answer equal 92634
+  N = 1000
+  M = 5000
+  run
+  Answer equal 2057773
+end
+
+test "two terms, small bound"
+  use "421_primefactors"
+  N = 2
+  M = 10
+  run
+  Answer equal 5
+end

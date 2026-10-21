@@ -1,0 +1,72 @@
+rem Prime Factors of n^15+1
+rem https://projecteuler.net/problem=421
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000
+option M integer = 100000000
+
+rem Sum over primes p <= M of p times
+rem the count of x <= N with
+rem x^15 = -1 mod p. With
+rem d = gcd(15, p - 1) the roots are
+rem -r^j for r of order d, found as
+rem a^((p - 1) / d) for small a.
+fun A E Pm vpow
+  Res = Pm * 0 + 1
+  Bs = Pm * 0 + A
+  for E max greater 0
+    Odd = E mod 2 equal 1
+    Mu = Res * Bs mod Pm
+    Res = Odd choose Mu Res
+    Bs = Bs * Bs mod Pm
+    E = E // 2
+  end
+  return Res
+end
+
+Pr = primes to M array
+Gd = 15 (Pr - 1) gcd
+Tot = 0
+rem d = 1: the single root is -1.
+Ones = Pr (Gd equal 1 indices)
+Tot += (Ones * ((N + 1) // Ones)) sum
+for D in (array 3 5 15)
+  Pu = Pr (Gd equal D indices)
+  Eu = (Pu - 1) // D
+  Pd = array shape 0 fill 0
+  Rd = array shape 0 fill 0
+  for A in 2 to 200
+    if Pu len equal 0
+      break
+    end
+    Cd = (A Eu Pu vpow) copy
+    Dv = Pu * 0 + D
+    Pw = Cd Dv Pu vpow
+    Hit = Pw equal 1 choose 1 0
+    Take = Hit
+    for Q in D factors unique array
+      Tq = Cd (Dv // Q) Pu vpow
+      Mis = Tq equal 1 choose 0 1
+      Take = Take * Mis
+    end
+    Ix = Take equal 1 indices
+    Pd = concat Pd (Pu Ix)
+    Rd = concat Rd (Cd Ix)
+    Lf = Take equal 0 indices
+    Pu = Pu Lf
+    Eu = Eu Lf
+  end
+  Rj = Pd * 0 + 1
+  for J in 1 to D
+    Hh = (Pd - Rj) mod Pd
+    Ct = (N + Pd - Hh) // Pd
+    Tot += (Pd * Ct) sum
+    Rj = Rj * Rd mod Pd
+  end
+end
+Answer = Tot
+Answer print
