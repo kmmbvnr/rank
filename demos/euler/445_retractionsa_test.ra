@@ -1,0 +1,25 @@
+use testing
+
+test "statement value"
+  use "445_retractionsa"
+  N = 10
+  run
+  Answer equal 1118
+end
+
+test "published checkpoint"
+  use "445_retractionsa"
+  N = 100000
+  run
+  Answer equal 628701600
+end
+
+test "exact factorization references"
+  use "445_retractionsa"
+  N = 300
+  run
+  Answer equal 775151319
+  N = 1000
+  run
+  Answer equal 853246560
+end

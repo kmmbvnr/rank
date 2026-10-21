@@ -1,0 +1,116 @@
+rem Retractions A
+rem https://projecteuler.net/problem=445
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+
+rem R(n) = s(n) - n for the sum s of
+rem unitary divisors. Walk k up and
+rem keep the exponent of each prime in
+rem C(N, k) and the product of
+rem (1 + p^e), changing only the
+rem primes of N - k + 1 and k. Factors
+rem are undone with stored inverses.
+Mod = 1000000007
+Rs = N isqrt
+Ix = (0 to N) copy
+Sp = Ix
+Ps = primes to Rs array
+for I in (Ps len - 1) to 0 by -1
+  P = Ps I
+  Sl = P to N by P
+  Sp Sl = P
+end
+Sp = Sp copy
+Ex = array shape (N + 1) fill 0
+Ex2 = Mod - 2
+Fs = array shape ((Rs + 1) * 32) fill 1
+Is = array shape ((Rs + 1) * 32) fill 1
+for P in Ps
+  Pw = 1
+  for E in 1 to 31
+    Pw = Pw * P mod Mod
+    Fs (P * 32 + E) = Pw + 1
+    Ci = P * 32 + E
+    Is Ci = (Pw + 1) Ex2 Mod powmod
+  end
+end
+Ap = primes to N array
+Fl = Ap + 1
+Rv = Fl * 0 + 1
+Bs = Fl
+Et = Mod - 2
+for I in 1 to 31
+  Bit = Et mod 2 equal 1
+  Mu = Rv * Bs mod Mod
+  Rv = Bit choose Mu Rv
+  Bs = Bs * Bs mod Mod
+  Et = Et // 2
+end
+Il = array shape (N + 1) fill 1
+Il Ap = Rv
+Hf = N // 2
+Iv = array shape (Hf + 2) fill 1
+for I in 2 to Hf + 1
+  Lo = Mod - Mod // I
+  Iv I = Lo * Iv (Mod mod I) mod Mod
+end
+Cur = 1
+Bin = 1
+Tot = 0
+for K in 1 to Hf
+  X = N - K + 1
+  for X greater 1
+    P = Sp X
+    C = 0
+    for X mod P equal 0
+      X //= P
+      C += 1
+    end
+    E0 = Ex P
+    E1 = E0 + C
+    Ex P = E1
+    if P at most Rs
+      Ci = P * 32 + E0
+      Cn = P * 32 + E1
+      Cur = Cur * Is Ci mod Mod
+      Cur = Cur * Fs Cn mod Mod
+    else
+      Cur = Cur * (P + 1) mod Mod
+    end
+  end
+  Y = K
+  for Y greater 1
+    P = Sp Y
+    C = 0
+    for Y mod P equal 0
+      Y //= P
+      C += 1
+    end
+    E0 = Ex P
+    E1 = E0 - C
+    Ex P = E1
+    if P at most Rs
+      Ci = P * 32 + E0
+      Cn = P * 32 + E1
+      Cur = Cur * Is Ci mod Mod
+      Cur = Cur * Fs Cn mod Mod
+    else
+      Cur = Cur * Il P mod Mod
+    end
+  end
+  Nk = (N - K + 1) mod Mod
+  Bin = Bin * Nk mod Mod
+  Bin = Bin * Iv K mod Mod
+  Wt = 2
+  if K * 2 equal N
+    Wt = 1
+  end
+  Tot += Wt * ((Cur - Bin) mod Mod)
+end
+Answer = Tot mod Mod
+Answer print
