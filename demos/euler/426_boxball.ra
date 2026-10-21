@@ -1,0 +1,84 @@
+rem Box-Ball System
+rem https://projecteuler.net/problem=426
+
+use numbers
+use sequences
+use io
+use cli
+
+option Last integer = 10000000
+option Cap integer = 4000000
+
+rem Match balls to empty boxes like
+rem brackets. A pair removed in round
+rem r has all pairs inside it removed
+rem before, so its round is one more
+rem than the largest round inside. Nr
+rem pairs in round r mean Nr solitons
+rem of length >= r, and the sum of
+rem squares is the sum of (2r - 1) Nr.
+rem The stack holds runs of balls with
+rem the round already inside them.
+Sv = array shape (Last + 10) fill 0
+Sc = array shape (Last + 10) fill 0
+Df = array shape (Cap + 2) fill 0
+Sp = 0
+S = 290797
+Mx = 0
+for K in 0 to Last + 1
+  Rem = 0
+  if K at most Last
+    T = S mod 64 + 1
+    S = S * S mod 50515093
+    if K mod 2 equal 0
+      Sv Sp = 0
+      Sc Sp = T
+      Sp += 1
+    else
+      Rem = T
+    end
+  else
+    Rem = Last * 100
+  end
+  for Rem greater 0
+    if Sp equal 0
+      break
+    end
+    V = Sv (Sp - 1)
+    C = Sc (Sp - 1)
+    Kk = Rem C min
+    Df (V + 1) += 1
+    Df (V + Kk + 1) -= 1
+    Mx = Mx (V + Kk) max
+    Rem -= Kk
+    if Kk less C
+      Sc (Sp - 1) = C - Kk - 1
+      if C - Kk - 1 equal 0
+        Sp -= 1
+      end
+      Sv Sp = V + Kk
+      Sc Sp = 1
+      Sp += 1
+    else
+      Sp -= 1
+      if Sp greater 0
+        W = Sv (Sp - 1)
+        if V + C greater W
+          if Sc (Sp - 1) equal 1
+            Sv (Sp - 1) = V + C
+          else
+            Sc (Sp - 1) -= 1
+            Sv Sp = V + C
+            Sc Sp = 1
+            Sp += 1
+          end
+        end
+      end
+    end
+  end
+end
+Ns = Df (0 to Mx + 1) scan + with 0
+Rs = (1 to Mx) copy
+Nr = Ns (2 to Mx + 1)
+Answer = ((2 * Rs - 1) * Nr) sum
+Answer print

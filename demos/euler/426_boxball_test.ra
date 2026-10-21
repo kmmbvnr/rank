@@ -1,0 +1,24 @@
+use testing
+
+test "statement sample"
+  use "426_boxball"
+  Last = 10
+  run
+  Answer equal 8912
+end
+
+test "per-ball stack references"
+  use "426_boxball"
+  Last = 100
+  run
+  Answer equal 170376
+  Last = 1000
+  run
+  Answer equal 1714252
+end
+
+test "default input"
+  use "426_boxball"
+  run
+  Answer equal 31591886008
+end
