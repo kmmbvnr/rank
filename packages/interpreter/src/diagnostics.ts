@@ -2,10 +2,6 @@ import type { CompilerRejection } from './compiler-rejection.js';
 
 /** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
-    validationRequests = 0;
-    dependencyValidations = 0;
-    cacheHits = 0;
-    cacheMisses = 0;
     memoHits = 0;
     memoMisses = 0;
     indexReads = 0;
@@ -14,7 +10,6 @@ export class RuntimeDiagnostics {
     indexWrites = 0;
     sequencePredicateCalls = 0;
     cellsComputed = 0;
-    invalidations = 0;
     hoistedReaders = 0;
     loopElementScans = 0;
     compiledLoops = 0;

@@ -6,7 +6,7 @@ import { isRankArray, MISSING, type RankArray, type RankValue } from './value.js
 import { ownedStorage, type OwnedStorage } from './array-storage-state.js';
 import { arrayRevision } from './array-revision.js';
 
-/** Eager numeric cells only. Lazy Rank readers must retain their caches. */
+/** Eager numeric cells only. Never probe a lazy reader for an optimization. */
 export function eagerArrayStorage(value: RankValue): {
     shape: readonly number[]; read: (index: number) => RankValue;
 } | undefined {
@@ -22,33 +22,38 @@ export function eagerArrayStorage(value: RankValue): {
     return { shape: owned.shape, read: index => items[index] };
 }
 
-// Only runtime-owned readers may publish a stable, already-computed cache.
-// Looking up storage must never evaluate a lazy element or call user code.
-const cachedStorage = new WeakMap<RankArray, () => RankValue[] | undefined>();
-
-export function registerCachedArray<T extends RankArray>(
-    value: T, peek: () => RankValue[] | undefined,
-): T {
-    cachedStorage.set(value, peek);
-    return value;
-}
-
+/** Completed storage only; this query never evaluates a cell or a getter. */
 export function materializedArrayItems(value: RankArray): RankValue[] | undefined {
     const owned = ownedStorage.get(value);
     if (owned) {
         owned.convert?.();
         return owned.stable ? owned.items : undefined;
     }
-    if ('itemAt' in value) return cachedStorage.get(value)?.();
+    if ('itemAt' in value) return undefined;
     const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
     return Array.isArray(items) ? items : undefined;
+}
+
+/** Stored references only. Ownership/capture scans must not call a host getter
+ * or evaluate a recipe merely to discover values that it could produce later. */
+export function* storedArrayValues(value: RankArray): IterableIterator<RankValue> {
+    const owned = ownedStorage.get(value);
+    if (owned?.stable) { yield* owned.items; return; }
+    const items: unknown = Object.getOwnPropertyDescriptor(value, 'items')?.value;
+    if (!Array.isArray(items)) return;
+    const length: number = Object.getOwnPropertyDescriptor(items, 'length')!.value;
+    for (let index = 0; index < length; index++) {
+        checkpoint('inspecting stored array');
+        const cell = Object.getOwnPropertyDescriptor(items, String(index))?.value as RankValue | undefined;
+        if (cell !== undefined) yield cell;
+    }
 }
 
 /** Copy only our completed storage: host arrays may override slice or expose
  * observable index getters, and must keep the ordinary cell-reading path. */
 export function copyMaterializedArrayItems(value: RankArray, size: number): RankValue[] | undefined {
     const owned = ownedStorage.get(value);
-    if (owned?.typed || (!owned && !cachedStorage.has(value)) || size >= STREAM_CELLS) return undefined;
+    if (!owned?.stable || owned.typed || size >= STREAM_CELLS) return undefined;
     const items = materializedArrayItems(value);
     if (items?.length !== size) return undefined;
     checkpoint('copying array', size);
@@ -140,7 +145,7 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     return view;
 }
 
-/** Both scalar and tensor readers use the same borrowed/cache eligibility.
+/** Both scalar and tensor readers use the same completed-storage eligibility.
  * Keep storage in an object: a writer may replace its packed cell buffer. */
 function preparedReaderStorage(
     value: RankValue | undefined,
@@ -149,7 +154,7 @@ function preparedReaderStorage(
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     // The caller proves no array writes, callbacks or iterators in the region.
-    // Only already-computed, revision-tracked caches qualify: never force cells.
+    // Only completed, revision-tracked storage qualifies: never force cells.
     const cached = !state && stableReads && array && arrayRevision(array) !== undefined
         ? materializedArrayItems(array) : undefined;
     if (!state && !cached) return undefined;

@@ -5,7 +5,7 @@ import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType }
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
-import { evaluateArrayItem, registerArrayCellEvaluation, arrayRevision, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
+import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { registerScalarView } from './integer-view.js';
@@ -295,26 +295,15 @@ export class ArrayBindingContract {
             if (missing) throw missing;
             return result;
         };
-        // Check every read, even a cached source cell: another assignment may
-        // have refined this binding since the wrapper was created.
-        let cache: { source: number; version: number; items: RankValue[] } | undefined;
-        const peek = (): RankValue[] | undefined => cache && arrayRevision(value) === cache.source
-            && arrayRevision(version) === cache.version ? cache.items : undefined;
+        // Validation evidence can change after another assignment. Check each
+        // demand without retaining the values produced by an earlier read.
         const prepare = (): ((index: number) => RankValue) | undefined => {
             const source = prepareArrayRead(value);
             return source ? index => read(index, source) : undefined;
         };
-        const all = (): RankValue[] => {
-            const previous = peek();
-            if (previous) return previous;
-            const items = materializeCells(size, prepare() ?? read);
-            const source = arrayRevision(value);
-            if (source !== undefined) cache = { source, version: arrayRevision(version)!, items };
-            return items;
-        };
-        const checked = registerCachedArray(registerArrayDependencies({ kind: 'array' as const,
+        const checked = registerArrayDependencies({ kind: 'array' as const,
             shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
-            get items() { return all(); } }, [value, version]), peek);
+            get items() { return materializeCells(size, prepare() ?? read); } }, [value, version]);
         if (path === undefined) inheritConcatCheck(value, checked, this, validate, version);
         registerArrayReadPlan(checked, prepare);
         registerArrayCellEvaluation(checked, evaluate);

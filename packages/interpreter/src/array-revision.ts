@@ -12,16 +12,9 @@ export function arrayRevision(value: RankArray): number | undefined {
     return valueRevision(value);
 }
 
-/** Inspect a native reader's sources and retained values without evaluating cells. */
+/** Inspect declared dependencies without evaluating a native cell recipe. */
 export function arrayResourceValues(value: RankArray): Iterable<RankValue> | undefined {
-    const dependencies = derivedRevisions.get(value);
-    if (!dependencies) return undefined;
-    const retained = dependencies.retained;
-    if (!retained) return dependencies.values();
-    return (function* () {
-        yield* dependencies.values();
-        yield* retained();
-    })();
+    return derivedRevisions.get(value)?.values();
 }
 
 const revisiting = new WeakSet<object>();

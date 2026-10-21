@@ -35,15 +35,15 @@ describe.each([false, true])('effects in explicit plans (compilation=%s)', compi
         try {
             host.execute([
                 'use io', 'fun X visible', ' X print', ' return X * 2', 'end',
-                "fun X' transform", ' "entered" print', ' return X visible rank 0', 'end',
+                "fun X' transform", ' "entered" print', " Returned' = X visible rank 0", ' return Returned', 'end',
                 planned ? "Input' = 1 to 3" : 'Input = array 1 2 3', "Plan' = Input transform",
             ].join('\n'));
-            const built = planned ? ['entered'] : ['entered', '1', '2', '3'];
+            const built = ['entered'];
             expect(output).toEqual(built);
             expect(host.execute('Plan sum')).toBe(12n);
-            expect(output).toEqual(planned ? [...built, '1', '2', '3'] : built);
+            expect(output).toEqual([...built, '1', '2', '3']);
             expect(host.execute('Plan sum')).toBe(12n);
-            expect(output).toEqual(planned ? [...built, '1', '2', '3', '1', '2', '3'] : built);
+            expect(output).toEqual([...built, '1', '2', '3', '1', '2', '3']);
         } finally { host.dispose(); }
     });
 

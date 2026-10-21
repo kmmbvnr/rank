@@ -1,5 +1,5 @@
 import { isRankPlan } from './plan.js';
-import { arrayResourceValues } from './array-storage.js';
+import { arrayResourceValues, storedArrayValues } from './array-storage.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { normalizeStackError } from './execution.js';
 import { closeFile } from './modules/io.js';
@@ -141,7 +141,7 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
             pending.push(item.values());
         } else if (isRankArray(item)) {
             const dependencies = arrayResourceValues(item);
-            pending.push(dependencies ? dependencies[Symbol.iterator]() : item.items.values());
+            pending.push((dependencies ?? storedArrayValues(item))[Symbol.iterator]());
         } else if (isRankTuple(item) || isRankQueue(item)) {
             pending.push(item.items.values());
         } else if (isRankIndex(item) || isRankSet(item)

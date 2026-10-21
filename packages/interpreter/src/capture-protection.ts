@@ -1,4 +1,4 @@
-import { arrayResourceValues, denseScalarItems, noteArrayBinding } from './array-storage.js';
+import { arrayResourceValues, denseScalarItems, noteArrayBinding, storedArrayValues } from './array-storage.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { GraphValue } from './graph.js';
 import { groupedTableValues } from './grouped-table.js';
@@ -33,7 +33,7 @@ export function prepareCaptureProtection(value: RankValue, message: string): () 
         if (isRankArray(item)) {
             arrays.push(item);
             if (denseScalarItems(item) === undefined) {
-                children = arrayResourceValues(item) ?? (item.itemAt === undefined ? item.items : undefined);
+                children = arrayResourceValues(item) ?? storedArrayValues(item);
             }
         } else if (isRankPlan(item)) children = item.dependencies.values();
         else if (isRankTuple(item)) children = item.items;

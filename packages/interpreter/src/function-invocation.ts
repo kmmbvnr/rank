@@ -16,7 +16,7 @@ import {
     type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
+import { arrayRevision } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
@@ -435,21 +435,14 @@ export class FunctionInvocation {
             captureValues: () => this.captureValues(statement, context),
             snapshot: () => this.snapshot(fn),
             lazySafe: () => this.lazySafe(fn),
-            // What a caller outside the runtime reaches. A Rank call made from a
-            // Rank body takes a shorter path, so the stretch this opens is the
-            // work our embedder asked for; readers over storage we cannot track
-            // keep their cells for exactly that long. See enterRuntime.
             call: arguments_ => {
-                enterRuntime(this.bindings);
-                try {
-                    if (generator && !frozenFunctions.has(fn)) {
-                        const frozen = this.snapshot(fn);
-                        if (frozen !== fn) return frozen.call(arguments_);
-                    }
-                    return generator
-                        ? this.callGeneratorFunction(statement, bindParameters(arguments_), context)
-                        : runExecution(execute(arguments_));
-                } finally { leaveRuntime(); }
+                if (generator && !frozenFunctions.has(fn)) {
+                    const frozen = this.snapshot(fn);
+                    if (frozen !== fn) return frozen.call(arguments_);
+                }
+                return generator
+                    ? this.callGeneratorFunction(statement, bindParameters(arguments_), context)
+                    : runExecution(execute(arguments_));
             },
         };
         this.sources.set(fn, statement);
@@ -467,9 +460,7 @@ export class FunctionInvocation {
                 const key = memoCallKey(arguments_, signature.arity);
                 const cached = cachedMemoValue!(key);
                 if (cached !== undefined) return cached;
-                enterRuntime(this.bindings);
-                try { return runExecution(memoMiss(arguments_, key)); }
-                finally { leaveRuntime(); }
+                return runExecution(memoMiss(arguments_, key));
             });
             if (!statement.memo && this.options().scalarFunctionCompilation !== false
                 && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
@@ -477,11 +468,8 @@ export class FunctionInvocation {
                 // those same values and keeps memo/generator paths untouched.
                 const selected = selectScalar(arguments_);
                 if (!selected) return fn.call(arguments_);
-                enterRuntime(this.bindings);
-                try {
-                    const contract = specialization(arguments_);
-                    return checkReturn(contract, arguments_, selected(arguments_));
-                } finally { leaveRuntime(); }
+                const contract = specialization(arguments_);
+                return checkReturn(contract, arguments_, selected(arguments_));
             });
         }
         if (!generator && !statement.memo) {
@@ -969,7 +957,6 @@ export class FunctionInvocation {
         resources: Set<RankFile>,
         operation: () => T,
     ): T {
-        enterRuntime(this.bindings);
         const callerControl = this.control;
         this.control = undefined;
         this.resources.pushScope(resources);
@@ -978,7 +965,6 @@ export class FunctionInvocation {
         } finally {
             this.resources.popScope();
             this.control = callerControl;
-            leaveRuntime();
         }
     }
 

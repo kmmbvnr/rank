@@ -4,7 +4,6 @@ import {
     functionScopeDiagnostics, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
     type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
 import { MutationGuards } from './mutation-guards.js';
 import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
@@ -292,22 +291,20 @@ export class Interpreter {
     }
 
     execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
-        enterRuntime(this.bindings);
         const previous = this.syntheticNames;
         this.syntheticNames = syntheticNames;
         try { return this.environmentOverride
             ? withEnvironment(this.environmentOverride, () => this.executeSource(source)) : this.executeSource(source); }
-        finally { this.syntheticNames = previous; leaveRuntime(); }
+        finally { this.syntheticNames = previous; }
     }
 
     evaluate(expression: Expression): RankValue {
-        enterRuntime(this.bindings);
         try {
             const run = () => runExecution(this.expressions.evaluate(expression));
             return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
         } catch (error) {
             throw this.locateError(error, expression);
-        } finally { leaveRuntime(); }
+        }
     }
 
     executeProgram(
@@ -315,11 +312,8 @@ export class Interpreter {
         args: readonly string[] = [],
         assertBooleanExpressions = false,
     ): RankValue | undefined {
-        enterRuntime(this.bindings);
-        try {
-            const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
-            return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
-        } finally { leaveRuntime(); }
+        const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
+        return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
     }
 
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {

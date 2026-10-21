@@ -35,6 +35,16 @@ describe('captured data protection', () => {
         expect(() => checkValueMutable(child)).toThrowError('captured');
     });
 
+    it('protects stored host children without invoking indexed getters', () => {
+        const child = record();
+        let reads = 0;
+        const items: RankValue[] = [child, 0n];
+        Object.defineProperty(items, '1', { get() { reads++; throw Error('unread'); } });
+        prepareCaptureProtection({ kind: 'array', shape: [2], items }, 'captured')();
+        expect(reads).toBe(0);
+        expect(() => checkValueMutable(child)).toThrowError('captured');
+    });
+
     it('keeps native single-pass resource state mutable and does not advance it', () => {
         let reads = 0;
         const queue = new RankDeque();

@@ -4,10 +4,12 @@ import { currentDiagnostics } from '../src/diagnostics.js';
 import { createArraySnapshot, derivedArray, noteArrayBinding, ownedArray } from '../src/array-storage.js';
 import type { RankArray } from '../src/value.js';
 
+// Exercise the integer-loop backend directly; scalar entry compilation may
+// otherwise compile a whole helper and bypass loop-specific counters.
 describe('runtime diagnostics and stable tensor reads', () => {
     it('counts only copy-on-write copies and their cells', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             stats.run(() => runtime.execute('A = array 1 2 3\nA 0 = 9'));
             expect([stats.cowCopies, stats.cowCopiedCells]).toEqual([0, 0]);
@@ -25,14 +27,10 @@ describe('runtime diagnostics and stable tensor reads', () => {
         expect(stats.cellsComputed).toBe(0);
         expect(result.itemAt!(0)).toBe(2n);
         expect(result.itemAt!(0)).toBe(2n);
-        expect(stats.cacheHits).toBe(1);
-        expect(stats.cellsComputed).toBe(1);
-        expect(stats.dependencyValidations).toBe(1);
-        source.items[0] = 3n;
-        expect(stats.invalidations).toBe(0);
-        expect(result.itemAt!(0)).toBe(3n);
-        expect(stats.invalidations).toBe(1);
         expect(stats.cellsComputed).toBe(2);
+        source.items[0] = 3n;
+        expect(result.itemAt!(0)).toBe(3n);
+        expect(stats.cellsComputed).toBe(3);
         stats.run(() => {
             expect(() => new RuntimeDiagnostics().run(() => { throw Error('stop'); })).toThrow('stop');
             expect(currentDiagnostics()).toBe(stats);
@@ -40,34 +38,26 @@ describe('runtime diagnostics and stable tensor reads', () => {
         expect(currentDiagnostics()).toBeUndefined();
     });
 
-    it.each([true, false])('reads a cached tensor with hoisting %s', tensorReadHoisting => {
+    it.each([true, false])('compiles explicitly stored tensors with hoisting %s', tensorReadHoisting => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter(undefined, { tensorReadHoisting });
+        const runtime = new Interpreter(undefined, { tensorReadHoisting, scalarEntryCompilation: false });
         try {
-            // Exercise internal lazy cache invalidation explicitly. Stored
-            // arithmetic may materialize instead of creating such a cache.
             const source = createArraySnapshot([1n, 2n, 3n]);
-            runtime.variables.set('A', source);
-            stats.run(() => runtime.variables.set('B', derivedArray([3], [source], i => source.items[i] as bigint * 2n)));
-            (runtime.variables.get('B') as RankArray).items;
-            const before = stats.validationRequests;
+            const native = stats.run(() => derivedArray([3], [source], i => source.items[i] as bigint * 2n));
+            runtime.variables.set('Native', native);
+            stats.run(() => runtime.execute('B = Native'));
+            expect(stats.cellsComputed).toBe(3);
             expect(stats.run(() => runtime.execute(`Total = 0
 for I in 0 till 100
   Total += B 0
 end
 Total`))).toBe(200n);
             expect(stats.compiledLoops).toBe(1);
-            expect(stats.hoistedReaders).toBe(tensorReadHoisting ? 1 : 0);
-            if (tensorReadHoisting) expect(stats.validationRequests - before).toBeLessThan(10);
-            else expect(stats.validationRequests - before).toBeGreaterThanOrEqual(100);
+            expect(stats.cellsComputed).toBe(3);
             source.items[0] = 7n;
-            // An invalidated cache is not materialized speculatively at loop entry.
-            expect(stats.run(() => runtime.execute(`Total = 0
-for I in 0 till 2
-  Total += B 0
-end
-Total`))).toBe(28n);
-            expect(stats.fallbacks['loop:storage-or-cell-type']).toBeGreaterThan(0);
+            expect(stats.run(() => runtime.execute('B 0'))).toBe(2n);
+            expect(stats.run(() => runtime.execute('Native 0'))).toBe(14n);
+            expect(stats.cellsComputed).toBe(4);
         } finally { runtime.dispose(); }
     });
 
@@ -96,9 +86,9 @@ Total`))).toBe(28n);
 
     it('keeps host-owned arrays with no tracked revision on the interpreted path', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
-            runtime.execute('fun A read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun A\' read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             const array: RankArray = { kind: 'array', shape: [2], items: [7n, 8n] };
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
@@ -115,9 +105,9 @@ Total`))).toBe(28n);
     });
 
     it.each([true, false])('does not inspect an unread host cell with compilation %s', integerLoopCompilation => {
-        const runtime = new Interpreter(undefined, { integerLoopCompilation });
+        const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
         try {
-            runtime.execute('fun A read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
+            runtime.execute('fun A\' read_one\n for I in 0 till 1\n  return A I\n end\n return 0\nend');
             const read = runtime.variables.get('read_one');
             if (!read || typeof read !== 'object' || !('call' in read)) throw new Error('read_one');
             const items = new Proxy([7n, 8n], {
@@ -132,7 +122,7 @@ Total`))).toBe(28n);
     });
 
     it.each([true, false])('does not inspect an empty host iteration source with compilation %s', integerLoopCompilation => {
-        const runtime = new Interpreter(undefined, { integerLoopCompilation });
+        const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
         try {
             runtime.execute('fun Source consume\n for Value in Source\n  return Value\n end\n return 0\nend');
             const consume = runtime.variables.get('consume');
@@ -151,7 +141,7 @@ Total`))).toBe(28n);
     it.each(['0 till N', '2 to 1', '0 to 1 by -1'])('does not copy a shared destination for empty range %s', range => {
         for (const integerLoopCompilation of [false, true]) {
             const stats = new RuntimeDiagnostics();
-            const runtime = new Interpreter(undefined, { integerLoopCompilation });
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
             try {
                 runtime.execute(`fun A N alter\n for I in ${range}\n  A 0 = I\n end\n return A\nend`);
                 const alter = runtime.variables.get('alter');
@@ -170,7 +160,7 @@ Total`))).toBe(28n);
     it('does not copy a shared destination before a zero range step fails', () => {
         for (const integerLoopCompilation of [false, true]) {
             const stats = new RuntimeDiagnostics();
-            const runtime = new Interpreter(undefined, { integerLoopCompilation });
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
             try {
                 runtime.execute('fun A alter\n for I in 0 till 1 by 0\n  A 0 = I\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
@@ -186,7 +176,7 @@ Total`))).toBe(28n);
     it('does not copy a shared destination when array iteration is empty', () => {
         for (const integerLoopCompilation of [false, true]) {
             const stats = new RuntimeDiagnostics();
-            const runtime = new Interpreter(undefined, { integerLoopCompilation });
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
             try {
                 runtime.execute('fun A Source alter\n for Value in Source\n  A 0 = Value\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
@@ -203,7 +193,7 @@ Total`))).toBe(28n);
 
     it.each([true, false])('checks a shared destination before copying with compilation %s', integerLoopCompilation => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter(undefined, { integerLoopCompilation });
+        const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
         try {
             runtime.execute('fun A Flag alter\n for I in 0 till 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
@@ -220,7 +210,7 @@ Total`))).toBe(28n);
 
     it.each([true, false])('checks every destination before copying with compilation %s', integerLoopCompilation => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter(undefined, { integerLoopCompilation });
+        const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
         try {
             runtime.execute('fun A B Flag alter\n for I in 0 till 1\n  if Flag\n   A I = 9\n   B I = 8\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
@@ -236,11 +226,10 @@ Total`))).toBe(28n);
         } finally { runtime.dispose(); }
     });
 
-    // A second name cannot reach the cached tensor at all: its first write takes
-    // a copy, so the cache needs no invalidation.
-    it('keeps a cached tensor clear of writes through another name', () => {
+    // Ordinary B holds completed cells independently of later source writes.
+    it('keeps a stored tensor clear of writes through another name', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             stats.run(() => runtime.execute(`A = array 1
 Other = A
@@ -253,13 +242,12 @@ for I in 1 to 3
 end
 Total`))).toBe(6n);
             expect(stats.compiledLoops).toBe(1);
-            expect(stats.invalidations).toBe(0);
         } finally { runtime.dispose(); }
     });
 
-    it('hoists cached reads across a proven scalar callee', () => {
+    it('compiles stored reads across a proven scalar callee', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             stats.run(() => runtime.execute(`fun N twice
   return N * 2
@@ -273,14 +261,13 @@ for I in 1 to 3
 end
 Total`))).toBe(30n);
             expect(stats.compiledLoops).toBe(1);
-            expect(stats.hoistedReaders).toBe(1);
         } finally { runtime.dispose(); }
     });
 
-    it('leaves a cached compiled region before effects after callee redefinition', () => {
+    it('leaves a compiled region before effects after callee redefinition', () => {
         const results = [false, true].map(integerLoopCompilation => {
             const stats = new RuntimeDiagnostics();
-            const runtime = new Interpreter(undefined, { integerLoopCompilation });
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
             try {
                 runtime.execute(`fun X bump
  return X + 1
@@ -305,14 +292,14 @@ B = (A * 3) (array 0)`);
             } finally { runtime.dispose(); }
         });
         expect(results.map(({ first, second }) => [first, second])).toEqual([[24n, 27n], [24n, 27n]]);
-        expect(results[1]).toMatchObject({ compiledBefore: 1, compiledAfter: 1, hoistedReaders: 1 });
+        expect(results[1]).toMatchObject({ compiledBefore: 1, compiledAfter: 1 });
         expect(results[1].calleeFallbacks).toBeGreaterThan(0);
     });
 
-    it('rejects a changed array element type before entering a cached compiled region', () => {
+    it('rejects a changed array element type before entering a compiled region', () => {
         const results = [false, true].map(integerLoopCompilation => {
             const stats = new RuntimeDiagnostics();
-            const runtime = new Interpreter(undefined, { integerLoopCompilation });
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
             try {
                 runtime.execute(`fun X bump
  return X + 1
@@ -345,22 +332,21 @@ B = (A * 3) (array 0)`);
         expect(results[1].storageFallbacks).toBeGreaterThan(0);
     });
 
-    it('hoists cached reads across a bound synchronous builtin', () => {
+    it('compiles stored reads across a bound synchronous builtin', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             stats.run(() => runtime.execute('use text\nA = array 2\nB = (A * 3) (array 0)'));
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + ("A" codepoint)\nend\nTotal')))
                 .toBe(213n);
             expect(stats.compiledLoops).toBe(1);
-            expect(stats.hoistedReaders).toBe(1);
         } finally { runtime.dispose(); }
     });
 
-    it('leaves a cached builtin region after the host replaces a builtin', () => {
+    it('leaves a compiled builtin region after the host replaces a builtin', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             runtime.execute(`use text
 fun B N total
@@ -375,7 +361,6 @@ B = (A * 3) (array 0)`);
             (runtime.variables.get('B') as RankArray).items;
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(213n);
             expect(stats.compiledLoops).toBe(1);
-            expect(stats.hoistedReaders).toBe(1);
             runtime.execute('fun X hostreplacement\n return 7\nend');
             runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
             expect(stats.run(() => runtime.execute('B 3 total'))).toBe(39n);
@@ -387,7 +372,7 @@ B = (A * 3) (array 0)`);
 
     it('rejects a shadowed builtin before entering the compiled region', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             stats.run(() => runtime.execute('use text\nA = array 2\nB = (A * 3) (array 0)\nfun X hostreplacement\n return 7\nend'));
             runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
@@ -400,7 +385,7 @@ B = (A * 3) (array 0)`);
 
     it('does not hoist across a callee that writes explicit state', () => {
         const stats = new RuntimeDiagnostics();
-        const runtime = new Interpreter();
+        const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             stats.run(() => runtime.execute('fun N C change\n C .value = N\n return N\nend\nA = array 2\nB = (A * 3) (array 0)\nC = record\n .value = 0\nend'));
             (runtime.variables.get('B') as RankArray).items;
@@ -416,7 +401,6 @@ B = (A * 3) (array 0)`);
         expect(result.itemAt!(0)).toBe(1n);
         source.items[0] = 9n;
         expect(result.itemAt!(0)).toBe(9n);
-        expect(stats.cacheHits).toBe(0);
         const runtime = new Interpreter(() => {});
         try {
             stats.run(() => runtime.execute(`use io
@@ -433,10 +417,10 @@ it('rechecks linked helper array storage on each cached region entry', () => {
     let loops = 0;
     const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
     try {
-        runtime.execute(`fun A I cellread
+        runtime.execute(`fun A' I cellread
  return A I
 end
-fun A outerread
+fun A' outerread
  Total = 0
  for I in 0 till 1
   Total += A I cellread

@@ -47,7 +47,7 @@ describe('container resource summaries', () => {
         expect(file.closed).toBe(true);
     });
 
-    it('preserves a file in an already computed cell without demanding unread cells', () => {
+    it.each([false, true])('retains a computed file only when returned explicitly (retained=%s)', retained => {
         const io = new MemoryIo({ '/input': 'Rank' });
         const file: RankFile = { kind: 'file', handle: io.open('/input', 'read'), closed: false };
         const ownership = new ResourceOwnership();
@@ -60,11 +60,12 @@ describe('container resource summaries', () => {
                     if (index) throw new Error('unread cell');
                     return file;
                 });
-                expect(readArrayItem(view, 0)).toBe(file);
-                return view;
+                const cell = readArrayItem(view, 0);
+                expect(cell).toBe(file);
+                return retained ? { kind: 'tuple' as const, items: [cell, view] } : view;
             });
             expect(reads).toBe(1);
-            expect(file.closed).toBe(false);
+            expect(file.closed).toBe(!retained);
         } finally { ownership.dispose(); }
         expect(file.closed).toBe(true);
     });

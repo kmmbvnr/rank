@@ -6366,7 +6366,9 @@ Both axes are zero-based. Exactly two axes are required, and out-of-range axes
 are errors. Scalar or nonnumeric operands are errors; unequal contracted
 dimensions raise `.DimensionMismatch`.
 
-Array results are lazy. Each output element is calculated on demand and cached.
+A deferred binding such as `C' = A B matmul` computes output elements on
+demand. Repeated demands recompute them; `C = A B matmul` stores the completed
+array explicitly.
 The calculation uses ordinary Rank numeric promotion: integer-only terms stay
 integer, while a real term promotes that output element to real. A contraction
 over an empty dimension produces zero for every output element.
