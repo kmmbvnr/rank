@@ -62,42 +62,81 @@ export function copyMaterializedArrayItems(value: RankArray, size: number): Rank
 
 /** Prepared readers remove view dispatch, not validation or effects. Preparing
  * one must not read cells; using it may still execute callbacks or throw. */
-export type ArrayCellVisitor = (value: RankValue, index: number) => RankValue;
-type ArrayCollector = (visit?: ArrayCellVisitor) => RankValue[];
-const arrayReadPlans = new WeakMap<RankArray, {
-    prepare: () => ((index: number) => RankValue) | undefined;
-    collect?: ArrayCollector;
-}>();
+interface ArrayReadPlan {
+    readonly prepare?: () => ((index: number) => RankValue) | undefined;
+    readonly values?: () => IterableIterator<RankValue>;
+    /** Keep a dynamic shape probe within the same full observation. */
+    readonly collect?: () => RankValue[];
+}
+const arrayReadPlans = new WeakMap<RankArray, ArrayReadPlan>();
 
 export function registerArrayReadPlan<T extends RankArray>(
-    value: T, prepare: () => ((index: number) => RankValue) | undefined,
-    collect?: ArrayCollector,
+    value: T, plan: ArrayReadPlan,
 ): T {
-    arrayReadPlans.set(value, { prepare, collect });
+    arrayReadPlans.set(value, plan);
     return value;
 }
 
 export function prepareArrayRead(value: RankArray): ((index: number) => RankValue) | undefined {
-    return arrayReadPlans.get(value)?.prepare();
+    return arrayReadPlans.get(value)?.prepare?.();
 }
 
-/** Looking up a full traversal must not execute it. */
-export function arrayValueCollector(value: RankArray): ArrayCollector | undefined {
-    return arrayReadPlans.get(value)?.collect;
+/** Looking up a traversal must not start a reader or evaluate cells. */
+export function arrayValueTraversal(value: RankArray): (() => IterableIterator<RankValue>) | undefined {
+    return arrayReadPlans.get(value)?.values;
 }
 
-/** Complete a native array in one pass. A producer may need to evaluate framed
- * callbacks even when each result cell has zero scalar elements. */
-export function collectArrayCells(value: RankArray, visit?: ArrayCellVisitor): RankValue[] {
-    const collect = arrayValueCollector(value);
-    if (collect) return collect(visit);
-    const read = prepareArrayRead(value) ?? ((index: number) => readArrayItem(value, index));
+/** Each consumer owns its traversal, including its temporary buffers. */
+export function* arrayValues(value: RankArray, streaming = false): IterableIterator<RankValue> {
+    const traverse = arrayValueTraversal(value);
+    if (traverse) { yield* traverse(); return; }
+    const read = (streaming ? value.streamAt : undefined) ?? prepareArrayRead(value)
+        ?? ((index: number) => readArrayItem(value, index));
     const size = value.shape.reduce((total, n) => total * n, 1);
-    return materializeCells(size, index => {
-        checkpoint('materializing array');
-        const item = read(index);
-        return visit ? visit(item, index) : item;
-    });
+    for (let index = 0; index < size; index++) {
+        checkpoint('reading array');
+        let item: RankValue;
+        try { item = read(index); }
+        catch (error) {
+            if (!(error instanceof MissingValueError) || !error.soft) throw error;
+            item = MISSING;
+        }
+        yield item;
+    }
+}
+
+/** Even a zero-element result must finish its traversal: a nonempty rank frame
+ * can contain callbacks producing empty cells. Always close abandoned readers. */
+export function collectArrayValues(size: number, values: IterableIterator<RankValue>): RankValue[] {
+    let finished = false;
+    let failed = false;
+    try {
+        if (size > MAX_HELD_CELLS) {
+            throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
+        }
+        const items = new Array<RankValue>(size);
+        let index = 0;
+        while (true) {
+            const next = values.next();
+            if (next.done) { finished = true; break; }
+            if (index >= size) throw new RankError('array reader exceeded its declared shape', 'DimensionMismatch');
+            items[index++] = next.value;
+        }
+        if (index !== size) throw new RankError('array reader ended before its declared shape', 'DimensionMismatch');
+        return items;
+    } catch (error) { failed = true; throw error; }
+    finally {
+        if (!finished) {
+            try { values.return?.(); }
+            catch (error) { if (!failed) throw error; }
+        }
+    }
+}
+
+export function collectArrayCells(value: RankArray): RankValue[] {
+    const collect = arrayReadPlans.get(value)?.collect;
+    if (collect) return collect();
+    return collectArrayValues(value.shape.reduce((total, n) => total * n, 1), arrayValues(value));
 }
 
 /**
@@ -118,16 +157,7 @@ export function shouldStream(value: RankArray): boolean {
 
 /** The cells of an array in order, read one at a time; a cell that is softly missing reads as `.NA`. */
 export function* streamCells(value: RankArray): IterableIterator<RankValue> {
-    const read = value.streamAt ?? value.itemAt!;
-    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    for (let index = 0; index < size; index += 1) {
-        try {
-            yield read(index);
-        } catch (error) {
-            if (error instanceof MissingValueError && error.soft) yield MISSING;
-            else throw error;
-        }
-    }
+    yield* arrayValues(value, true);
 }
 
 export function materializeCells(size: number, read: (index: number) => RankValue): RankValue[] {

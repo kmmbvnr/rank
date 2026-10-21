@@ -8,11 +8,10 @@ export {
 } from './owned-array.js';
 export {
     eagerArrayStorage, materializedArrayItems, storedArrayValues, copyMaterializedArrayItems,
-    registerArrayReadPlan, prepareArrayRead, arrayValueCollector, collectArrayCells, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
+    registerArrayReadPlan, prepareArrayRead, arrayValueTraversal, arrayValues, collectArrayValues, collectArrayCells, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
     materializeCells, readCellOrMissing, borrowArrayStorage, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader,
     readArrayItem, readArrayShape, registerArrayCellEvaluation, evaluateArrayItem,
 } from './array-read.js';
-export type { ArrayCellVisitor } from './array-read.js';
 export { validityWords, allPresent, isPresentAt, allValid } from './array-validity.js';
 export {
     retainSelectionSnapshot, holdArraySource, noteArrayBinding, noteArrayBorrow, isSharedArray, hasPendingSelections,

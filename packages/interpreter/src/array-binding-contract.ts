@@ -5,7 +5,7 @@ import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType }
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
-import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
+import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, arrayValues, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { registerScalarView } from './integer-view.js';
@@ -304,10 +304,17 @@ export class ArrayBindingContract {
             shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
             get items() { return collectArrayCells(checked); } }, [value, version]);
         if (path === undefined) inheritConcatCheck(value, checked, this, validate, version);
-        registerArrayReadPlan(checked, prepare, visit => collectArrayCells(value, (item, index) => {
-            const result = validate(item);
-            return visit ? visit(result, index) : result;
-        }));
+        registerArrayReadPlan(checked, { prepare, *values() {
+            for (const item of arrayValues(value)) {
+                let result: RankValue;
+                try { result = validate(item); }
+                catch (error) {
+                    if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                    result = MISSING;
+                }
+                yield result;
+            }
+        } });
         registerArrayCellEvaluation(checked, evaluate);
         this.metadata(value, checked);
         holdArraySource(checked, value);

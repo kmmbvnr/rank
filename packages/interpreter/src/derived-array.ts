@@ -1,10 +1,11 @@
 import { resume, type Evaluation } from './execution.js';
-import { checkpoint, interruptibleCallback } from './interrupt.js';
+import { checkpoint } from './interrupt.js';
+import { MissingValueError } from './errors.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { isRankArray, typeName, requireHomogeneous, MISSING, type RankArray, type RankValue } from './value.js';
 import { derivedRevisions } from './array-storage-state.js';
 import { arrayReaderDepth, lazyDepth } from './array-revision.js';
-import { materializeCells, registerArrayCellEvaluation } from './array-read.js';
+import { collectArrayCells, registerArrayReadPlan, registerArrayCellEvaluation } from './array-read.js';
 
 // Domain checks are type evidence; they retain no computed cell values.
 const cellValidators = new WeakMap<RankArray, (cell: RankValue, index: number) => void>();
@@ -18,6 +19,7 @@ export function derivedArray(
     shape: readonly number[], dependencies: readonly RankValue[],
     read: (index: number) => RankValue, fileFree = false,
     evaluate?: (index: number) => Evaluation<RankValue>,
+    values?: () => IterableIterator<RankValue>,
 ): RankArray {
     const sources = dependencies.filter(isRankArray);
     const depth = arrayReaderDepth(sources, 1);
@@ -56,8 +58,7 @@ export function derivedArray(
         kind: 'array', shape, itemAt,
         containsFiles: fileFree ? false : undefined,
         get items() {
-            return materializeCells(shape.reduce((size, dimension) => size * dimension, 1),
-                interruptibleCallback(itemAt, 'materializing array'));
+            return collectArrayCells(value);
         },
     };
     derivedRevisions.set(value, { values: () => dependencies, epoch: -1, sources });
@@ -67,5 +68,17 @@ export function derivedArray(
         checkpoint('reading array');
         return finishRead(index, yield* resume(evaluate(index)));
     });
+    if (values) registerArrayReadPlan(value, { *values() {
+        let index = 0;
+        for (const item of values()) {
+            let result: RankValue;
+            try { result = finishRead(index++, item); }
+            catch (error) {
+                if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                result = MISSING;
+            }
+            yield result;
+        }
+    } });
     return value;
 }

@@ -15,6 +15,20 @@ const array = (value: RankValue): RankArray => {
 };
 
 describe('native ranked demand', () => {
+    it.each([0, 2])('keeps an unknown shape probe inside full completion (width=%s)', width => {
+        const calls: bigint[] = [];
+        const fn = native('unknown', 1, ([value]) => {
+            calls.push(value as bigint);
+            return ownedArray(width ? [value, value] : [], [width]);
+        });
+        const result = array(runExecution(app().applyUnaryAtRank(ownedArray([1n, 2n]), fn, 0)));
+        expect(calls).toEqual([]);
+        const saved = array(materializeValue(result));
+        expect(saved.items).toEqual(width ? [1n, 1n, 2n, 2n] : []);
+        expect(saved.shape).toEqual([2, width]);
+        expect(calls).toEqual([1n, 2n]);
+    });
+
     it('executes every framed callback when completing empty result cells', () => {
         const calls: bigint[] = [];
         const fn = { ...native('empty', 1, ([value]) => {

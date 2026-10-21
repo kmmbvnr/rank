@@ -3213,6 +3213,13 @@ window Width` completes and stores every window cell. An unbounded sequence
 may produce windows indefinitely and needs a deferred binding or a finite
 consumer.
 
+Exact sequence windows keep their tensor shape. For a source without direct
+indexing, full collection and sequential whole-array traversal use a fresh
+rolling reader: overlapping cells share source values only within that pass.
+The next pass starts the source again. Individual indexed reads may replay a
+prefix; indexed sources keep their direct-access algorithms. Strides leave an
+unused source suffix unread, and early termination closes the current reader.
+
 For a tensor, write one size per selected axis directly, pass a rank-1
 integer array, or unpack a vector of sizes. These forms produce the same windows:
 

@@ -551,6 +551,8 @@ export function windowValue(
         }
         const length = safeSize(source.plan.size.value, 'sequence size');
         const sourceItem = (index: number) => atSequence(source, BigInt(index));
+        const values = source.plan.at ? undefined
+            : () => exactWindowCells(source, length, widths[0], strides[0]);
         return arrayWindows(
             [length],
             sourceItem,
@@ -560,6 +562,8 @@ export function windowValue(
             padding,
             fillValue,
             [source],
+            false,
+            values,
         );
     }
 
@@ -710,6 +714,7 @@ function arrayWindows(
     fill: RankValue,
     dependencies: readonly RankValue[],
     wrap = false,
+    values?: () => IterableIterator<RankValue>,
 ): RankArray {
     if (wrap && sourceShape.some(n => n === 0) && padding.some(n => n > 0)) {
         throw new RankError('window wrap cannot pad an empty axis', 'DomainError');
@@ -743,7 +748,7 @@ function arrayWindows(
         return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
     const result = derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
-        dependencies.every(isKnownFileFree) && isKnownFileFree(fill));
+        dependencies.every(isKnownFileFree) && isKnownFileFree(fill), undefined, values);
 
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
@@ -790,6 +795,41 @@ function arrayWindows(
 function windowCount(length: number, width: number, stride: number, padding: number): number {
     const available = length + padding * 2 - width;
     return available < 0 ? 0 : Math.floor(available / stride) + 1;
+}
+
+/** Sequential scalar demand over exact windows. The rolling buffer belongs
+ * to this reader; yielding a cell never reads the next one in advance. */
+function* exactWindowCells(
+    source: RankSequence, length: number, width: number, stride: number,
+): IterableIterator<RankValue> {
+    const count = windowCount(length, width, stride, 0);
+    if (count === 0) return;
+    const reader = source.plan.iterate();
+    const buffer: RankValue[] = [];
+    let position = -1;
+    let failed = false;
+    try {
+        for (let frame = 0; frame < count; frame++) {
+            for (let offset = 0; offset < width; offset++) {
+                checkpoint('reading window');
+                const target = frame * stride + offset;
+                while (position < target) {
+                    checkpoint('reading window source');
+                    const next = reader.next();
+                    if (next.done) throw new MissingValueError('sequence ended before its declared size');
+                    position++;
+                    if (buffer.length < width) buffer.push(next.value);
+                    else buffer[position % width] = next.value;
+                    if (position < target) passOver();
+                }
+                yield buffer[target % width];
+            }
+        }
+    } catch (error) { failed = true; throw error; }
+    finally {
+        try { reader.return?.(); }
+        catch (error) { if (!failed) throw error; }
+    }
 }
 
 function streamingWindows(

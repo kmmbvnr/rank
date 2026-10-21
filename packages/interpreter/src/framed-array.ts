@@ -1,10 +1,10 @@
 import type { KnownShape } from '@arrrank/language';
-import { materializeCells, readArrayItem, registerArrayReadPlan, type ArrayCellVisitor } from './array-storage.js';
+import { collectArrayValues, readArrayItem, registerArrayReadPlan } from './array-storage.js';
 import { demandValue } from './plan.js';
 import { MissingValueError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { sameShape } from './tensor-index.js';
-import { isRankArray, type RankArray, type RankValue } from './value.js';
+import { isRankArray, MISSING, type RankArray, type RankValue } from './value.js';
 
 const sizeOf = (shape: readonly number[]): number => shape.reduce((size, n) => size * n, 1);
 
@@ -52,21 +52,27 @@ export function framedArray(
             return at(cell!, index % width);
         };
     };
-    const collect = (visit?: ArrayCellVisitor): RankValue[] => {
-        const first = probe();
+    const values = function* (first?: RankValue): IterableIterator<RankValue> {
+        first ??= probe();
         if (sizeOf(cellShape!) === 0) {
             for (let frame = 0; frame < sizeOf(frameShape); frame++) {
-                checkpoint('materializing ranked result');
+                checkpoint('reading ranked result');
                 if (frame !== 0 || first === undefined) readCell(frame);
             }
-            return [];
+            return;
         }
         const read = prepare(first)!;
-        return materializeCells(sizeOf(shape()), index => {
-            checkpoint('materializing ranked result');
-            const item = read(index);
-            return visit ? visit(item, index) : item;
-        });
+        const size = sizeOf(shape());
+        for (let index = 0; index < size; index++) {
+            checkpoint('reading ranked result');
+            let item: RankValue;
+            try { item = read(index); }
+            catch (error) {
+                if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                item = MISSING;
+            }
+            yield item;
+        }
     };
     const result: RankArray = {
         kind: 'array',
@@ -78,7 +84,10 @@ export function framedArray(
             const frame = Math.floor(index / width);
             return at(frame === 0 && first !== undefined ? first : readCell(frame), index % width);
         },
-        get items() { return collect(); },
+        get items() {
+            const first = probe();
+            return collectArrayValues(sizeOf(shape()), values(first));
+        },
     };
-    return registerArrayReadPlan(result, () => prepare(), collect);
+    return registerArrayReadPlan(result, { prepare: () => prepare(), values: () => values(), collect: () => result.items });
 }

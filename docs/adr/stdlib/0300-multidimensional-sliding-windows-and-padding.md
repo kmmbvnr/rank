@@ -68,9 +68,13 @@ axis. Padding and wrapping apply to arrays.
 
 Text windows yield text. Exact, repeatable sequence sources form array windows
 with known shape. Indexed sources retain their direct indexing algorithms;
-indexing a source without that capability may replay its prefix. No prefix is
-retained between independent demands. Programs can explicitly store an expensive
-source before using several overlapping windows.
+indexing a source without that capability may replay its prefix. Full collection
+and sequential whole-array traversal of a non-indexed source use a rolling reader
+local to that traversal. It reads each needed source value once, shares overlap
+inside that pass, and leaves unused suffix values unread. Errors, cancellation
+and early termination close the reader. No prefix is retained between independent
+demands. Programs can explicitly store an expensive source before separate
+indexed demands or repeated traversals.
 
 Unknown-size, infinite and single-pass sequence sources produce windows with a
 bounded rolling buffer inside each traversal. Single-pass sources remain
