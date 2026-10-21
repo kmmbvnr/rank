@@ -58,6 +58,12 @@ logic and unary signs. Signatures come from the shared operator catalogue.
 Slices, index-array selections and axis permutations compose through address
 nodes. Checks around a source run in source coordinates; checks around its view
 run in result coordinates. Duplicate and reordered indices retain visit order.
+Native outer maps concatenate both operand shapes and address each scalar pair
+in row-major order. They support mapped operands and nested products through the
+same IR. Their lazy inputs need no proof of eager completion; a later boolean
+consumer can stop before a failing unvisited row or column. Source-expression
+structural rewrites retain their separate completion guards. Named outer
+callbacks and unproved sequence operands keep their canonical traversal.
 Opaque readers and unsupported operations retain canonical traversal.
 
 Completed storage ends graph traversal. Arithmetic while constructing a plan,

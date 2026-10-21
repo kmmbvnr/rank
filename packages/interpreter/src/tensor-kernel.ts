@@ -254,7 +254,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
 }
 
 function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
-    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, shortCircuit = false) {
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false) {
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     // A successful integer-only kernel has already checked every output cell.
@@ -413,7 +413,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 if (!a?.shape || !b?.shape || a.filter || b.filter || a.progression || b.progression) return undefined;
                 const shape = [...a.shape, ...b.shape];
                 if (!Number.isSafeInteger(shape.reduce((size, n) => size * n, 1))) return undefined;
-                result = { shape, boolean: false };
+                result = { shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'reshape') {
                 const a = bind(node.source);
                 if (!a?.shape || a.filter || a.progression) return undefined;
@@ -501,9 +501,9 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         const output = bind(root);
         if (!output) return undefined;
-        // Reshape used to force its source before selection. Only total,
-        // proved integer expressions may move behind a filter; opaque reads,
-        // missing cells and potentially failing arithmetic keep that timing.
+        // Source structural expressions may complete arguments before a filter.
+        // Only total integer expressions can move behind it. A native outer
+        // producer already has lazy scalar addressing and completes neither side.
         function totalInteger(node: TensorNode): boolean {
             const info = bound.get(node);
             if (!info) return false;
@@ -518,7 +518,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             }
             return false;
         }
-        if (structural.some(node => !totalInteger(node))) return recordFallback('tensor:structural-domain');
+        if (structural.some(node => (node.kind === 'reshape' || !nativeGraph) && !totalInteger(node))) return recordFallback('tensor:structural-domain');
         if (!output.shape) return recordFallback('tensor:output-shape');
         if (!implicit && !host.builtin(terminal)) return recordFallback(`tensor:builtin:${terminal}`);
         // A gather preserves its selector's frame: broadcast its selector,
@@ -702,7 +702,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
             if (terminal === 'mean') lines.push(`answer += Number(${value});`);
             if (terminal === 'count') lines.push(`if (${value}) answer += 1n;`);
-            if (terminal === 'any' || terminal === 'all') lines.push(shortCircuit
+            if (terminal === 'any' || terminal === 'all') lines.push(nativeGraph
                 ? `if (${terminal === 'any' ? value : `!${value}`}) return ${terminal === 'any'};`
                 : `answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);

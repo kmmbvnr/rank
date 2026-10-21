@@ -106,11 +106,11 @@ export class Operators {
             { value: b, axes: b.shape.map((_, axis) => axis), offset: a.shape.length },
         ]);
         const evaluate = (x: RankValue, y: RankValue) => this.evaluateBinary(operator, x, y);
-        return derivedArray([...a.shape, ...b.shape], [a, b], index => {
+        return registerTensorMap(derivedArray(shape, [a, b], index => {
             const leftIndex = Math.floor(index / rightSize);
             const rightIndex = index % rightSize;
             return evaluate(readArrayItem(a, leftIndex), readArrayItem(b, rightIndex));
-        }, true, undefined, () => outerValues(a, b, evaluate));
+        }, true, undefined, () => outerValues(a, b, evaluate)), operator, [a, b], 'outer');
     }
 
     evaluateNamedOuter(
@@ -172,7 +172,7 @@ export class Operators {
             // Stored cells are read in place: `items` would unpack a typed buffer for good.
             const items = constructingTensorPlan(value) ? undefined : denseScalarItems(value);
             return items ? ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape)
-                : registerTensorMap(mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item)), operator, value);
+                : registerTensorMap(mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item)), operator, [value]);
         }
         if (value === MISSING && (operator === 'not' || operator === '+' || operator === '-')) return MISSING;
         if (operator === 'not' && typeof value === 'boolean') {
@@ -756,14 +756,14 @@ function mapBinary(
         if (dense) return dense;
     }
     if (leftArray && rightArray) {
-        return registerTensorMap(mapBroadcastArrays(leftArray, rightArray, scalarOperation), name, leftArray, rightArray);
+        return registerTensorMap(mapBroadcastArrays(leftArray, rightArray, scalarOperation), name, [leftArray, rightArray]);
     }
     const source = leftArray ?? rightArray!;
     const evaluate = (index: number) => mapResult(evaluateArrayItem(source, index), item =>
         leftArray ? scalarOperation(item, right) : scalarOperation(left, item));
     return registerTensorMap(mapArrayCells(derivedArray(source.shape, [left, right, source], index => runExecution(evaluate(index)), true, evaluate),
         [leftArray ?? left, rightArray ?? right], cells => mapScalarArrays(cells, ([a, b]) => scalarOperation(a, b))),
-        name, leftArray ?? left, rightArray ?? right);
+        name, [leftArray ?? left, rightArray ?? right]);
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {

@@ -10,6 +10,7 @@ interface MapRecipe {
     readonly reader: RankArray['itemAt'];
     readonly shape: readonly number[];
     readonly operator: string;
+    readonly layout: 'broadcast' | 'outer';
     readonly operands: readonly RankValue[];
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
@@ -52,7 +53,8 @@ export function registerTensorResult(value: RankValue): RankValue {
 
 /** Only native scalar operators can publish a recipe. Host readers and callbacks
  * cannot acquire this capability by having a numeric result annotation. */
-export function registerTensorMap<T extends RankValue>(value: T, operator: string, ...operands: RankValue[]): T {
+export function registerTensorMap<T extends RankValue>(value: T, operator: string, operands: readonly RankValue[],
+    layout: 'broadcast' | 'outer' = 'broadcast'): T {
     if (!isRankArray(value) || !mapOperators.has(operator)) return value;
     let scope = active;
     if (!scope) for (const operand of operands) {
@@ -60,7 +62,7 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
         if (scope) break;
     }
     if (scope?.enabled()) {
-        maps.set(value, { reader: value.itemAt, shape: [...value.shape], operator, operands });
+        maps.set(value, { reader: value.itemAt, shape: [...value.shape], operator, operands, layout });
         owners.set(value, scope);
     }
     return value;
@@ -140,7 +142,7 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
             if (!matched) return undefined;
             transformed = true;
             const node = typed(operands.length === 1 ? { kind: 'unary', op: map.operator, operand: operands[0]! }
-                : { kind: 'binary', op: map.operator, left: operands[0]!, right: operands[1]! }, matched.result);
+                : { kind: map.layout === 'outer' ? 'outer' : 'binary', op: map.operator, left: operands[0]!, right: operands[1]! }, matched.result);
             const validate = arrayCellValidator(value);
             return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));
         } finally { visiting.delete(value); }

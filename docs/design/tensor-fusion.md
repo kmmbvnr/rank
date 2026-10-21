@@ -104,6 +104,9 @@ views can be borrowed without forcing lazy cells. Deferred native maps and
 scalar views also publish capabilities for the same IR. View addresses preserve
 source coordinates and result-check coordinates separately. Completed storage
 ends native graph traversal; eager bindings remain storage boundaries.
+Native outer maps preserve the Cartesian domain, including all operand axes,
+and compose mapped operands and nested products. Unproved sequence operands and
+named outer callbacks continue through their existing runtime readers.
 
 The [tensor kernel ADR](../adr/implementation/0003-tensor-kernel-fusion-and-execution-planner.md)
 describes native composition, per-demand checks, early boolean terminals and
