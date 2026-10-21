@@ -1060,11 +1060,12 @@ everywhere else, as in `Number text` and `use text`.
 
 ## Standard modules
 
-In the REPL, a saved native source has a consumption cursor: after `G = primes`
-and `G till 100 sum`, the next preview of `G` begins at `101`. Previews do not
-consume values. `H = G` shares the cursor; `H = primes` starts fresh. Replaying
-a consuming line restores the position before that line. Normal file execution
-keeps native sources repeatable. See [sequence previews](design/generator-previews.md).
+Native sources remain repeatable in the REPL and file execution. After
+`G' = primes`, every `G till 100 sum` returns `1060` and a preview of `G`
+begins at `2`. `H' = G` preserves repeatability. Ordinary binding completes
+finite results; binding `G = primes` rejects a known infinite result.
+Single-pass generators retain their resource identity and REPL replay tapes.
+See [sequence previews](design/generator-previews.md).
 
 Ranges (`to`, `till`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text`, `bytes` are available
@@ -2979,9 +2980,9 @@ Bounds read items in order and work on any rank-1 value. An ordered source
 seeks instead: `primes from 100` starts its sieve at 100, `fibonacci` advances
 its recurrence to the bound, and a filter over such a source keeps the
 ability. Seeking applies to a plain bound and to `greater` and `at least`
-conditions, and gives the same items as reading. On a stored native stream,
-`to` and `till` look at the first excluded value and leave it for the next
-consumer.
+conditions, and gives the same items as reading. Repeated bounds intersect:
+`to` and `till` cannot widen a previously bounded native source. Each demand
+of a deferred source begins an independent evaluation.
 
 Sequence sources may also accept filters and reductions in their own plan.
 For example, filtering `fibonacci` by `even` lets the source produce only

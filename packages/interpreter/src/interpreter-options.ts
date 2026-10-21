@@ -16,8 +16,6 @@ export interface InterpreterOptions {
     readonly md5?: (value: string | Uint8Array) => Uint8Array;
     /** Host-owned buffering for single-pass sources, installed only at creation. */
     readonly wrapSinglePassSequence?: (source: RankSequence) => RankSequence;
-    /** Optional host cursors for repeatable sequence values saved by assignment. */
-    readonly wrapStoredSequence?: (source: RankSequence) => RankSequence;
     readonly tensorReadHoisting?: boolean;
     readonly scalarEntryCompilation?: boolean;
     readonly compiledScalarTailCalls?: boolean;
@@ -125,7 +123,7 @@ export function moduleOptions(options: InterpreterOptions): InterpreterOptions {
 
 /** What a `test` block inherits: a module's options, without host buffering or the host's call limit. */
 export function testOptions(options: InterpreterOptions): InterpreterOptions {
-    const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored, maxCallDepth: _depth,
+    const { wrapSinglePassSequence: _singlePass, maxCallDepth: _depth,
         ...inherited } = moduleOptions(options);
     return inherited;
 }

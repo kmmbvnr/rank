@@ -285,8 +285,7 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
     const write = host.compileAssign(statement.name);
     const protectedNames = statement.deferred ? deferredBindingReferences(statement).map(read => read.name) : [];
     const stored = (value: RankValue): RankValue => {
-        if (!statement.deferred) return materializeValue(value);
-        return isRankSequence(value) ? host.options().wrapStoredSequence?.(value) ?? value : value;
+        return statement.deferred ? value : materializeValue(value);
     };
     if (direct) {
         return { run: () => {

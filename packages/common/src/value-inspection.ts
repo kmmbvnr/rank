@@ -1,6 +1,6 @@
 import { displayTypeName } from '@arrrank/language';
 import {
-    DemandBudgetExhausted, withDemandBudget, formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
+    DemandBudgetExhausted, withDemandBudget, demandValue, isRankPlan, formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
     type RankArray, type RankSequence, type RankValue,
 } from '@arrrank/interpreter';
 import { preview } from './preview.js';
@@ -106,6 +106,7 @@ function axisWindow(length: number, offset: number | undefined, count: number | 
 
 function cellOf(value: RankValue | undefined): InspectCell {
     if (value === undefined) return { text: '.NA', type: 'missing' };
+    if (isRankPlan(value)) return withDemandBudget(10_000, () => cellOf(demandValue(value)));
     return { text: preview(value, CELL_WIDTH).text, type: typeName(value) };
 }
 
@@ -122,6 +123,7 @@ function cellAt(read: () => RankValue | undefined): InspectCell {
  * it; the rest stays unread.
  */
 export function inspectValue(value: RankValue, request: InspectRequest, replay?: Pick<SequenceReplay, 'forced'>): InspectedValue {
+    if (isRankPlan(value)) return withDemandBudget(10_000, () => inspectValue(demandValue(value), request, replay));
     if (isRankArray(value) && value.shape.length > 0) return inspectArray(value, request);
     if (isRankTable(value)) return inspectTable(value, request);
     if (isRankSequenceMask(value)) return inspectUnrecorded(value.source.plan, item => value.predicate.test(item), request, { kind: 'unknown' });

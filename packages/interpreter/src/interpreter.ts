@@ -382,7 +382,7 @@ export class Interpreter {
 
     /** Copy the current bindings without rerunning the program that produced them. */
     forkForPreview(output: Output = this.output, environment: RankEnvironment = new EnvironmentOverlay(this.options.environment)): Interpreter {
-        const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored,
+        const { wrapSinglePassSequence: _singlePass,
             persistentResources: _persistent, ...options } = this.options;
         const fork = new Interpreter(output, { ...options, environment });
         fork.environmentOverride = environment;

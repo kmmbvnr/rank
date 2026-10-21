@@ -2,7 +2,7 @@ import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
 import { displayTypeName, formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
-    Interpreter, EnvironmentOverlay, RankError, InterruptedError, checkInterrupt, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
+    Interpreter, EnvironmentOverlay, RankError, InterruptedError, checkInterrupt, demandValue, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
@@ -87,7 +87,6 @@ export function createReplSession(host: ReplHost = {}) {
     let environment = new EnvironmentOverlay(host.options?.environment);
     const createRuntime = () => new RankSession(text => emit(text, true), {
         wrapSinglePassSequence: replay.wrap,
-        wrapStoredSequence: replay.store,
         persistentResources: true, ...host.options, sourceId, environment,
     });
     let runtime = createRuntime();
@@ -457,7 +456,7 @@ export function createReplSession(host: ReplHost = {}) {
             if (session.last === undefined) say(chalk.dim('no result to show'));
             else {
                 try { session.replay.preview(() => {
-                    const text = formatValue(session.last!);
+                    const text = formatValue(demandValue(session.last!));
                     checkInterrupt('formatting result');
                     emit(text);
                 }); }

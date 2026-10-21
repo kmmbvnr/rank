@@ -315,8 +315,6 @@ export interface SequencePlan {
     /** Explicit replay capability; absence is unknown, never a purity promise.
      * Direct sources are cheap to read again and do not need retained history. */
     readonly replay?: 'pure' | 'direct';
-    /** Preserve native REPL cursor behavior when this source is explicitly stored. */
-    readonly replCursor?: boolean;
     /** Reads share state rather than starting an independent traversal. */
     readonly singlePass?: boolean;
     readonly name: string;

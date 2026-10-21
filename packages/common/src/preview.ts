@@ -1,5 +1,5 @@
 import {
-    DemandBudgetExhausted, withDemandBudget, formatValue, isRankArray, isRankSequence, isRankSequenceMask,
+    DemandBudgetExhausted, withDemandBudget, demandValue, isRankPlan, formatValue, isRankArray, isRankSequence, isRankSequenceMask,
     type RankArray, type RankValue,
 } from '@arrrank/interpreter';
 
@@ -42,6 +42,13 @@ const DOTS = '...';
  * are scanned up to SCAN_LIMIT to retain both ends.
  */
 export function preview(value: RankValue, width = Infinity): Preview {
+    if (isRankPlan(value)) {
+        try { return withDemandBudget(DEMAND_LIMIT, () => preview(demandValue(value), width)); }
+        catch (error) {
+            if (error instanceof DemandBudgetExhausted) return { text: DOTS, note: 'preview demand budget exhausted' };
+            throw error;
+        }
+    }
     if (typeof value === 'string') return textPreview([...value], value, width);
     if (isRankArray(value) && value.kind === 'array') return arrayPreview(value, width);
     if (typeof value === 'object' && value.kind === 'queue') {

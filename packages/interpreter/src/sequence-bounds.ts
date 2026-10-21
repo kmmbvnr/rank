@@ -19,6 +19,12 @@ export function strongerLower(left: Boundary | undefined, right: Boundary): Boun
     return { limit: left.limit, inclusive: left.inclusive && right.inclusive };
 }
 
+export function strongerUpper(left: Boundary | undefined, right: Boundary): Boundary {
+    if (!left || right.limit < left.limit) return right;
+    if (left.limit < right.limit) return left;
+    return { limit: left.limit, inclusive: left.inclusive && right.inclusive };
+}
+
 export function membershipInteger(value: RankValue): bigint | undefined {
     if (typeof value === 'bigint') return value;
     if (typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value)) {

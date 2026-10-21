@@ -193,9 +193,9 @@ Bounds read items in order and work on any rank-1 value. An ordered source
 seeks instead: `primes from 100` starts its sieve at 100, `fibonacci` advances
 its recurrence to the bound, and a filter over such a source keeps the
 ability. Seeking applies to a plain bound and to `greater` and `at least`
-conditions, and gives the same items as reading. On a stored native stream,
-`to` and `till` look at the first excluded value and leave it for the next
-consumer.
+conditions, and gives the same items as reading. Repeated bounds intersect:
+`to` and `till` cannot widen a previously bounded native source. Each demand
+of a deferred source begins an independent evaluation.
 
 Sequence sources may also accept filters and reductions in their own plan.
 For example, filtering `fibonacci` by `even` lets the source produce only
