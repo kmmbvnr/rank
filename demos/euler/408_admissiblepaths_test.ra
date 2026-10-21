@@ -1,0 +1,26 @@
+use testing
+
+test "statement values"
+  use "408_admissiblepaths"
+  N = 5
+  run
+  Answer equal 252
+  N = 16
+  run
+  Answer equal 596994440
+end
+
+test "forbidden points"
+  use "408_admissiblepaths"
+  N = 16
+  run
+  X equal (array 9 16)
+  Y equal (array 16 9)
+end
+
+test "one thousand"
+  use "408_admissiblepaths"
+  N = 1000
+  run
+  Answer equal 341920854
+end

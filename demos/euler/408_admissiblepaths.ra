@@ -1,0 +1,67 @@
+rem Admissible Paths Through a Grid
+rem https://projecteuler.net/problem=408
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+
+rem Forbidden points are (a^2, b^2)
+rem with a^2 + b^2 a square. Bs I
+rem counts paths whose first hit is
+rem the I-th such point, sorted by
+rem x then y. The answer is all
+rem paths minus the paths that
+rem first hit point I and go on.
+P = 1000000007
+Rt = N isqrt
+Ar = (1 to Rt) copy
+Sq = Ar * Ar
+S2 = Sq Sq outer +
+Hit = (S2 isqrt) ** 2 equal S2
+Ix = (Hit reshape (Rt * Rt)) indices
+X = Sq (Ix // Rt)
+Y = Sq (Ix mod Rt)
+M = X len
+
+rem Factorials and their inverses.
+Fa = array shape (2 * N + 1) fill 1
+for K in 1 to 2 * N
+  Fa K = Fa (K - 1) * K mod P
+end
+If = array shape (2 * N + 1) fill 1
+If (2 * N) = Fa (2 * N) (P - 2) P powmod
+for K in 2 * N to 1 by -1
+  If (K - 1) = If K * K mod P
+end
+
+Bs = array shape M fill 0
+Out = Fa (2 * N) * If N mod P
+Out = Out * If N mod P
+for I in 0 to M - 1
+  Xi = X I
+  Yi = Y I
+  Tot = Fa (Xi + Yi) * If Xi mod P
+  Tot = Tot * If Yi mod P
+  if I greater 0
+    Dx = (Xi - X (0 to I - 1)) copy
+    Dy = (Yi - Y (0 to I - 1)) copy
+    Ok = (Dy at least 0 choose 1 0) copy
+    Dy = (Dy * Ok) copy
+    Fx = Fa (Dx + Dy) * If Dx mod P
+    Fy = (Fx * If Dy mod P) copy
+    Cj = (Fy * Ok mod P) copy
+    Cj = Cj * Bs (0 to I - 1) mod P
+    Tot -= Cj sum
+  end
+  Bs I = Tot mod P
+  Rx = N - Xi
+  Ry = N - Yi
+  Cn = Fa (Rx + Ry) * If Rx mod P
+  Cn = Cn * If Ry mod P * Bs I mod P
+  Out -= Cn
+end
+Answer = Out mod P
+Answer print
