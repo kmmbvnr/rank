@@ -1,0 +1,32 @@
+use testing
+
+test "statement values of S"
+  use "402_integerpolynomials"
+  K = 30
+  run
+  Q = 416
+  S = C3 * Q ** 3 + C2 16 * Q ** 2
+  S += C1 16 * Q + C0 16
+  S equal 2024258331114
+  C0 10 equal 1972
+  C0 1 equal 2
+end
+
+test "sums of the first Fibonacci terms"
+  use "402_integerpolynomials"
+  K = 30
+  run
+  Answer equal 374086449
+  K = 50
+  run
+  Answer equal 831290082
+  K = 300
+  run
+  Answer equal 547154064
+end
+
+test "default input"
+  use "402_integerpolynomials"
+  run
+  Answer equal 356019862
+end

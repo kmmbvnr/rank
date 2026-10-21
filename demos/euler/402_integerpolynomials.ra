@@ -1,0 +1,113 @@
+rem Integer-valued Polynomials
+rem https://projecteuler.net/problem=402
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option K integer = 1234567890123
+
+rem M = gcd(24, 36+6a, 14+6a+2b,
+rem 1+a+b+c) depends on a, b, c mod
+rem 24. Count the residues for N =
+rem 24q + r: cubic in q per r.
+Mod = 1000000000
+Big = 24 ** 3 * Mod
+R = (0 to 23) copy
+A = R reshape 24 1 1
+B = R reshape 1 24 1
+C = R reshape 1 1 24
+T = 36 + 6 * A
+G = 24 T gcd
+T = 14 + 6 * A + 2 * B
+G = G T gcd
+T = 1 + A + B + C
+G = G T gcd
+Rr = R reshape 24 1
+Rp = R reshape 1 24
+Lo = Rp at least 1 choose 1 0
+Hi = Rp at most Rr choose 1 0
+E = Lo * Hi
+Ea = E reshape 24 24 1 1
+Eb = E reshape 24 1 24 1
+Ec = E reshape 24 1 1 24
+G4 = G reshape 1 24 24 24
+C3 = G sum
+W = G4 * (Ea + Eb + Ec)
+C2 = (W reshape 24 13824) sum axis 1
+W = G4 * (Ea * Eb + Ea * Ec + Eb * Ec)
+C1 = (W reshape 24 13824) sum axis 1
+W = G4 * Ea * Eb * Ec
+C0 = (W reshape 24 13824) sum axis 1
+
+rem Row state of F^a F'^b, a+b <= 3.
+rem U is one Fibonacci step.
+Pa = array shape 0 fill 0
+Pb = array shape 0 fill 0
+U = array shape 10 10 fill 0
+for D in 0 to 3
+  X = D * (D + 1) // 2
+  for I in 0 to D
+    Pa = concat Pa (array I)
+    Pb = concat Pb (array (D - I))
+    Y = D - I
+    for J in 0 to Y
+      U (X + J) (X + I) = Y J binomial
+    end
+  end
+end
+Id = (array shape 10 fill 1) diag
+Z = array shape 10 10 fill 0
+Bt = Id
+for I in 1 to 24
+  Bt = Bt U matmul mod Big
+end
+rem Aug^n = [Bt^n, sum Bt^m; 0, I].
+Top = concat Bt Id axis 1
+Bot = concat Z Id axis 1
+Ag = concat Top Bot axis 0
+Ap = (array shape 20 fill 1) diag
+Nb = (K - 25) // 24 + 1
+N = Nb
+for N greater 0
+  if N mod 2 equal 1
+    Ap = Ap Ag matmul mod Big
+  end
+  Ag = Ag Ag matmul mod Big
+  N //= 2
+end
+Bn = Ap (0 to 9) (0 to 9)
+Gn = Ap (0 to 9) (10 to 19)
+
+rem Classes k = k0 + 24 m, k0 = 2..25.
+Fb = (fibonacci till 200000) copy
+Fv = Fb (0 to 23)
+Fw = Fb (1 to 24)
+Fc = Fv reshape 24 1
+Fd = Fw reshape 24 1
+Sm = Fc ** (Pa reshape 1 10)
+Sm = Sm * (Fd ** (Pb reshape 1 10))
+K0 = (2 to 25) copy
+Ex = (K - K0) // 24 + 1 - Nb
+V = Sm Gn matmul
+V += (Ex reshape 24 1) * (Sm Bn matmul)
+Vt = (V mod Big) transpose
+Ro = Fv mod 24
+P0 = Vt 0
+P1 = Vt 2
+P2 = Vt 5
+P3 = Vt 9
+Q0 = P0
+Q1 = (P1 - Ro * P0) mod Big // 24
+Dl = P2 - 2 * Ro * P1 + Ro * Ro * P0
+Q2 = Dl mod Big // 576
+Dl = P3 - 3 * Ro * P2
+R2 = Ro * Ro
+Dl += 3 * R2 * P1 - R2 * Ro * P0
+Q3 = Dl mod Big // 13824
+Tot = C3 * Q3 + (C2 Ro) * Q2
+Tot += (C1 Ro) * Q1 + (C0 Ro) * Q0
+Answer = Tot sum mod Mod
+Answer print
