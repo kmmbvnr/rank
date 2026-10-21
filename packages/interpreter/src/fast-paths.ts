@@ -2,7 +2,7 @@ import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-
 import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
-    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression,
+    findOperation, isBinaryExpression, isDeclaredCallExpression, isNameExpression, isUnaryExpression,
     type ApplicationForm, type Operation, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
@@ -119,7 +119,7 @@ export class FastPaths {
                     if (direct) return { run: direct, tensor };
                     let candidate = last.value!;
                     while (isParenthesizedExpression(candidate)) candidate = candidate.value;
-                    const value = isApplicationExpression(candidate)
+                    const value = isApplicationExpression(candidate) || isDeclaredCallExpression(candidate)
                         ? this.context.compileTail(last.value!)
                         : () => this.context.evaluate(last.value!);
                     return { stream: value, tensor };

@@ -1,3 +1,4 @@
+import { materializeArguments } from './materialize.js';
 import {
     functionArgumentBinder, functionReturnSpecializations, memoizedFunctionBody, memoCallKey,
 } from './function-definition.js';
@@ -52,6 +53,7 @@ import {
 /** A user function as its call sites see it. `owner` tells this interpreter's functions from a module child's. */
 export interface FunctionDefinition {
     readonly specialization: (arguments_: RankValue[]) => ReturnContract;
+    readonly bindParameters: (arguments_: RankValue[]) => RankValue[];
     readonly owner: FunctionInvocation;
     readonly statement: FunctionStatement;
     readonly context: LocalFrame | undefined;
@@ -154,7 +156,8 @@ export class FunctionInvocation {
     transferTailCall(fn: NativeFunction, arguments_: RankValue[]): boolean {
         const definition = functionDefinitions.get(fn);
         if (definition?.owner !== this) return false;
-        const transfer = new TailCallSignal(definition, arguments_, undefined, this.host.inputs?.pending);
+        const bound = definition.bindParameters(arguments_);
+        const transfer = new TailCallSignal(definition, bound, undefined, this.host.inputs?.pending);
         if (!this.control) throw transfer;
         this.control.returned = true;
         this.control.tail = transfer;
@@ -389,10 +392,11 @@ export class FunctionInvocation {
         };
         const { executeBound, memoMiss, cachedMemoValue } = memoizedFunctionBody(statement.memo, signature.arity, checkedBody);
         const bindArguments = functionArgumentBinder(statement.name, signature, value => this.host.compileDirect(value));
-        const execute = signature.words.length || signature.rightParameters.some(parameter => parameter.kind === 'function')
-            ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> =>
-                executeBound(bindArguments(arguments_), inputRequirement)
-            : executeBound;
+        const bindParameters = (arguments_: RankValue[]): RankValue[] => materializeArguments(
+            signature.parameters, bindArguments(arguments_),
+        );
+        const execute = (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> =>
+            executeBound(bindParameters(arguments_), inputRequirement);
         const declared = declaredRanks(statement);
         if (typeof declared === 'string') throw this.host.locate(new RankError(declared, 'TypeError'), statement);
         const fn: NativeFunction = {
@@ -427,7 +431,7 @@ export class FunctionInvocation {
                         if (frozen !== fn) return frozen.call(arguments_);
                     }
                     return generator
-                        ? this.callGeneratorFunction(statement, bindArguments(arguments_), context)
+                        ? this.callGeneratorFunction(statement, bindParameters(arguments_), context)
                         : runExecution(execute(arguments_));
                 } finally { leaveRuntime(); }
             },
@@ -439,7 +443,7 @@ export class FunctionInvocation {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
-            if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
+            if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization, bindParameters });
             // Hits already passed the return contract. Misses retain the same
             // execution stack, validation and cache writer as ordinary calls.
             if (memoMiss && this.options().scalarFunctionCompilation !== false

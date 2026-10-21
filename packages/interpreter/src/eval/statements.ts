@@ -1,5 +1,5 @@
 import {
-    applicationForm, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    applicationForm, isApplicationExpression, isDeclaredCallExpression, isArgsStatement, isArgumentStatement,
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
     isFlagStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isNameExpression, isOptionStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
@@ -144,7 +144,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
         }
         let candidate = statement.value;
         while (candidate && isParenthesizedExpression(candidate)) candidate = candidate.value;
-        const tailCandidate = candidate && isApplicationExpression(candidate);
+        const tailCandidate = candidate && (isApplicationExpression(candidate) || isDeclaredCallExpression(candidate));
         if (!tailCandidate) {
             return { stream: function* (context): Execution<RankValue | undefined> {
                 validate(context);
