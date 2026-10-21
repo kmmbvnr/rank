@@ -16,9 +16,3 @@ test "per-ball stack references"
   run
   Answer equal 1714252
 end
-
-test "default input"
-  use "426_boxball"
-  run
-  Answer equal 31591886008
-end

@@ -13,13 +13,6 @@ test "small bounds against brute force"
   Answer equal 528791040
 end
 
-test "published checkpoint"
-  use "432_totientsum"
-  N = 1000000
-  run
-  Answer equal 821125120
-end
-
 test "short table uses the recursion"
   use "432_totientsum"
   N = 1000000

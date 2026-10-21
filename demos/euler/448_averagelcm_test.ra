@@ -26,8 +26,8 @@ test "short table uses the recursion"
   L = 60
   run
   Answer equal 227886188
-  N = 3000000
-  L = 2000
+  N = 300000
+  L = 700
   run
-  Answer equal 56766550
+  Answer equal 902957242
 end

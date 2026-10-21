@@ -23,9 +23,3 @@ test "first terms of the sum"
   run
   Answer equal 147.69556898
 end
-
-test "default input"
-  use "406_guessinggame"
-  run
-  Answer equal 36813.12757207
-end

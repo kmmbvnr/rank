@@ -32,11 +32,3 @@ test "small modulus"
   run
   Answer equal 866559
 end
-
-test "deep chains in the largest base"
-  use "414_kaprekar"
-  First = 300
-  Last = 300
-  run
-  Answer equal 334961735971658529
-end

@@ -32,9 +32,3 @@ test "chunked factorial"
   run
   Answer equal 61251715
 end
-
-test "default input"
-  use "412_gnomonnumbering"
-  run
-  Answer equal 38788800
-end

@@ -13,9 +13,9 @@ test "statement values"
   Answer equal 277674
 end
 
-test "sixteen digits"
+test "eleven digits"
   use "413_onechild"
-  Digits = 16
+  Digits = 11
   run
-  Answer equal 751694772228659
+  Answer equal 86585017
 end

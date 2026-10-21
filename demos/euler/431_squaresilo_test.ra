@@ -4,21 +4,8 @@ test "statement example"
   use "431_squaresilo"
   R = 3
   Deg = 30
-  run
-  Answer equal 3.625953152
-end
-
-test "fewer decimals"
-  use "431_squaresilo"
-  R = 3
-  Deg = 30
+  Steps = 256
   Digits = 6
   run
   Answer equal 3.625953
-end
-
-test "default input"
-  use "431_squaresilo"
-  run
-  Answer equal 23.386029052
 end

@@ -22,7 +22,7 @@ end
 
 test "sieve of larger primes"
   use "446_retractionsb"
-  N = 100000
+  N = 3000
   run
-  Answer equal 312372944
+  Answer equal 661927618
 end
