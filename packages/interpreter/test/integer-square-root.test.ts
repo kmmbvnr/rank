@@ -1,11 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { integerSquareRoot } from '../src/integer-square-root.js';
 import { ownedArray } from '../src/array-storage.js';
 import { Interpreter, formatValue, isRankArray, type NativeFunction } from '../src/index.js';
 import { InterruptedError, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 import { numbersModule } from '../src/modules/numbers.js';
 import type { RuntimeContext } from '../src/modules/types.js';
-import { scalarBuiltinArray } from '../src/scalar-builtin.js';
+import { registerScalarBuiltin, scalarBuiltinArray } from '../src/scalar-builtin.js';
+import { native } from '../src/modules/shared.js';
+import { demandValue } from '../src/plan.js';
 
 // Independent integer-only oracle, including for inputs using the new estimate.
 function newton(n: bigint): bigint {
@@ -80,18 +82,20 @@ describe('stored scalar builtin arrays', () => {
         expect(result.items).toEqual([2n, 3n, 4n]);
     });
 
-    it('demands the first cell when shape is requested', () => {
+    it('uses the known scalar result shape without demanding the first cell', () => {
         const { source, result } = mapped([-1n, 9n]);
-        expect(() => result.shape).toThrow('isqrt expects a nonnegative integer');
+        expect(result.shape).toEqual([2]);
+        expect(() => result.itemAt!(0)).toThrow('isqrt expects a nonnegative integer');
         source.items[0] = 0n;
         expect(result.shape).toEqual([2]);
         expect(result.itemAt!(0)).toBe(0n);
     });
 
-    it('invalidates first-cell and materialized caches on writes', () => {
+    it('recomputes full results and observes later source writes', () => {
         const { source, result } = mapped([0n, 9n, 16n]);
         const initial = result.items;
-        expect(result.items).toBe(initial);
+        expect(result.items).toEqual(initial);
+        expect(result.items).not.toBe(initial);
         source.items[0] = 25n;
         source.items[2] = 36n;
         expect(result.shape).toEqual([3]);
@@ -101,6 +105,20 @@ describe('stored scalar builtin arrays', () => {
         // Host edits to a materialized result are not source edits.
         result.items[1] = 99n;
         expect(result.itemAt!(1)).toBe(3n);
+    });
+
+    it('repeats pure scalar work on indexed reads and full observations', () => {
+        const operation = vi.fn((value: unknown) => integerSquareRoot(value as bigint));
+        const fn = registerScalarBuiltin(native('root', 1, ([value]) => operation(value)), operation);
+        const result = scalarBuiltinArray(ownedArray([4n, 9n]), fn, [0])!;
+        expect(result.shape).toEqual([2]);
+        expect(operation).not.toHaveBeenCalled();
+        expect(result.itemAt!(0)).toBe(2n);
+        expect(result.itemAt!(0)).toBe(2n);
+        expect(operation).toHaveBeenCalledTimes(2);
+        expect(result.items).toEqual([2n, 3n]);
+        expect(result.items).toEqual([2n, 3n]);
+        expect(operation).toHaveBeenCalledTimes(6);
     });
 
     it('retains shape for intrinsic, explicit, permuted and empty frames', () => {
@@ -147,7 +165,7 @@ end
         expect(run('9223372036854775808 isqrt')).toBe('3037000499');
     });
 
-    it('can cancel materialization and resume without a poisoned cache', () => {
+    it('can cancel materialization and start a fresh observation', () => {
         const { result } = mapped(Array.from({ length: 10000 }, (_, i) => BigInt(i)));
         const signal: InterruptSignal = { length: 1, load: () => 0, store() {}, wait() {}, exchange: () => 1 };
         expect(() => withInterrupt(signal, () => result.items)).toThrow(InterruptedError);
@@ -191,10 +209,10 @@ end
     it('keeps source errors outside partially consumed prefixes', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use numbers\nuse sequences\nA = array 4 9 -1\nRoots = A isqrt');
+            runtime.execute("use numbers\nuse sequences\nA = array 4 9 -1\nRoots' = A isqrt");
             expect(runtime.execute('Roots 1')).toBe(3n);
             expect(() => runtime.execute('Roots 2')).toThrow('isqrt expects a nonnegative integer');
-            const roots = runtime.variables.get('Roots');
+            const roots = demandValue(runtime.variables.get('Roots')!);
             expect(isRankArray(roots!)).toBe(true);
         } finally { runtime.dispose(); }
     });

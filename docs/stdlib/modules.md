@@ -143,13 +143,18 @@ using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt
-Roots = Values isqrt
+Roots' = Values isqrt
+Saved = Roots
 Perfect = Root ** 2 equal Value
 ```
 
 It maps lazily over arrays and sequences. A negative integer raises
 `.DomainError`, and a `real` raises `.TypeError`. The computation uses only
 integer arithmetic, so large values do not lose precision.
+
+Ordinary binding stores all roots; a deferred binding recomputes on demand.
+For an array, the known scalar-map result shape is available without reading
+its cells. Domain errors arise when a selected cell or the full result is read.
 
 `log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
 

@@ -1322,11 +1322,19 @@ A nonempty frame whose callbacks return empty arrays still runs every callback
 when the result is completed, including their effects and shape checks. Its
 output can have zero scalar elements; this does not make the frame empty.
 
-A zero-sized frame contains no calls. Known result-cell axes are retained:
+A zero-sized application frame makes no call to its operation. Known result-cell
+axes are retained:
 `sort` over shape `0 3` at rank 1 produces shape `0 3`. A nonempty frame of
 empty cells is different: shape `2 0` at rank 1 contains two empty vectors, so
 `sum` produces two zeros. Declared cell constraints still apply to empty frames:
 an empty batch does not make nonsquare matrix cells valid for `inverse`.
+
+An input plan may have nonempty producer frames whose cells are empty. Completing
+the new result observes those selected producers, while its own operation still
+has no cells to call. Producer axes retained by the new frame remain selectable;
+consumed producer axes are observed together within a result cell. A genuinely
+empty combined producer frame makes no calls. Unused nonempty operands are not
+forced by these empty-cell observations.
 
 For an empty frame, unknown lengths in a known result shape become zero at
 runtime; if the result rank is unknown, no cell axes are appended. For example,

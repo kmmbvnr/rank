@@ -80,10 +80,17 @@ silently retain its successful prefix.
 
 ### Empty frames
 
-A zero-sized frame calls no source cell or user function. Known result-cell axes
-remain present: sorting shape `0 3` at rank 1 gives `0 3`. Unknown lengths of a
+A zero-sized application frame makes no call to its operation. Known result-cell
+axes remain present: sorting shape `0 3` at rank 1 gives `0 3`. Unknown lengths of a
 known result rank become zero only for empty-frame assembly; an unknown result
 rank adds no cell axes. Thus `unique` over `0 3` gives `0 0`.
+
+An operand can itself contain nonempty producer frames of empty cells. Completing
+the new result preserves their selected observations, without calling the new
+operation. Producer axes that survive framing remain selectable in the result.
+Consumed producer axes are observed together within a result cell. If the
+combined logical frame is itself empty, it makes no producer calls. Unused
+nonempty operands are not forced by these empty-cell observations.
 
 Completing a nonempty frame invokes every callback even when each result is an
 empty array. Its effects and shape checks are still required.

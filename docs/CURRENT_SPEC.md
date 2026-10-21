@@ -3917,9 +3917,9 @@ unevaluated.
 Ranked and axis reductions preserve this producer boundary. The identity of an
 empty reduction does not replace the callback that produces its input cell.
 
-An empty frame has no cells to call, but its result keeps the cell axes, so the
-result rank does not depend on whether the input is empty. A declared result
-shape takes precedence. If a pure standard-library function has no result-shape
+An empty application frame makes no call to its operation, but keeps the result
+cell axes, so its rank does not depend on whether the input is empty. A declared
+result shape takes precedence. If a pure standard-library function has no result-shape
 hook, the runtime may call it once on a zero cell of the argument cell shape
 when that cell is small enough; only the resulting shape is kept. A user
 function is not called. Its result shape comes from the analysis of its body,
@@ -3931,6 +3931,12 @@ M = array shape 0 3 fill 1
 Sorted = M sort rank 1
 rem shape 0 3
 ```
+
+An operand can still contain nonempty producer frames of empty cells. Completing
+the new result observes the selected upstream producers without calling the new
+operation. Producer axes retained by framing remain selectable; consumed axes
+are observed together within a result cell. A genuinely empty combined producer
+frame makes no calls. This does not force unused nonempty operands.
 
 `integer` converts a complete text value by default and maps arrays while
 preserving their shape. Explicit `rank 0` converts individual Unicode code
@@ -6535,13 +6541,18 @@ using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt
-Roots = Values isqrt
+Roots' = Values isqrt
+Saved = Roots
 Perfect = Root ** 2 equal Value
 ```
 
 It maps lazily over arrays and sequences. A negative integer raises
 `.DomainError`, and a `real` raises `.TypeError`. The computation uses only
 integer arithmetic, so large values do not lose precision.
+
+Ordinary binding stores all roots; a deferred binding recomputes on demand.
+For an array, the known scalar-map result shape is available without reading
+its cells. Domain errors arise when a selected cell or the full result is read.
 
 `log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
 
