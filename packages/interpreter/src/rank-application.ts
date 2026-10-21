@@ -1,3 +1,4 @@
+import { demandValue } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { rankedCells } from './ranked-cells.js';
@@ -74,7 +75,7 @@ export class RankApplication {
             if (cellRank >= 1) return this.invoke(fn, [value]);
             fn = pureLazyFunction(fn);
             const scalar = this.scalarCallback(fn);
-            return completed(mapSequence(value, fn.name, atom => scalar ? scalar([atom]) : fn.call([atom]), true));
+            return completed(mapSequence(value, fn.name, atom => demandValue(scalar ? scalar([atom]) : fn.call([atom])), true));
         }
         if (isRankArray(value)) {
             if (frameAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
@@ -159,7 +160,7 @@ export class RankApplication {
         const scalar = this.scalarCallback(fn);
         const applyCell = (x: RankValue, y: RankValue): RankValue => {
             const arguments_ = [x, y];
-            const result = scalar ? scalar(arguments_) : fn.call(arguments_);
+            const result = demandValue(scalar ? scalar(arguments_) : fn.call(arguments_));
             // Text is a boxed cell, as in unary ranked application.
             if (valueRank(result) !== 0 && typeof result !== 'string') {
                 throw new RankError(
@@ -277,7 +278,7 @@ export class RankApplication {
                 a.cellAt(operandIndex(a.frameShape, frameIndex)),
                 b.cellAt(operandIndex(b.frameShape, frameIndex)),
             ];
-            const result = scalar ? scalar(arguments_) : fn.call(arguments_);
+            const result = demandValue(scalar ? scalar(arguments_) : fn.call(arguments_));
             const shape = isRankArray(result) ? result.shape : [];
             if (cellShape === undefined) cellShape = [...shape];
             else if (!sameShape(cellShape, shape)) {

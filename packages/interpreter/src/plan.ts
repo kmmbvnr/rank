@@ -1,6 +1,6 @@
 import type { Expression, ValueFacts } from '@arrrank/language';
 import { RankError } from './errors.js';
-import { completed, mapResult, resume, type Evaluation, type Execution } from './execution.js';
+import { completed, mapResult, resume, runExecution, type Evaluation, type Execution } from './execution.js';
 import { checkpoint } from './interrupt.js';
 import type { RankValue } from './value.js';
 
@@ -21,6 +21,11 @@ export function isRankPlan(value: RankValue): value is RankPlan {
 /** Demand never retains a result, including after failure or cancellation. */
 export function demand(value: RankValue): Evaluation<RankValue> {
     return isRankPlan(value) ? demandPlan(value) : completed(value);
+}
+
+/** Synchronous callbacks share the same demand contract and stack driver. */
+export function demandValue(value: RankValue): RankValue {
+    return isRankPlan(value) ? runExecution(demand(value)) : value;
 }
 
 function* demandPlan(value: RankValue): Execution<RankValue> {

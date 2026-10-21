@@ -1,0 +1,234 @@
+import { AstUtils, isAstNode, type AstNode } from 'langium';
+import {
+    applicationExpression, applicationForm, expressionFacts, flattenApplication,
+    isApplicationExpression, isBinaryExpression, isBooleanLiteral, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
+    isExpression, isNameExpression, isParenthesizedExpression, nameNeedsExecution, UNKNOWN_VALUE,
+    type DeclaredCallExpression, type Expression, type NameExpression, type Operation,
+} from '@arrrank/language';
+import { denseScalarItems } from '../array-storage.js';
+import type { BindingEnvironment } from '../binding-environment.js';
+import { completed, resume, runExecution, type Evaluation, type Execution } from '../execution.js';
+import { LocalFrame } from '../frame.js';
+import { BuiltinRegistry } from '../modules/builtins.js';
+import { isRankPlan, type RankPlan } from '../plan.js';
+import { isNativeFunction, isRankArray, isRankSequence, MISSING, type NativeFunction, type RankValue } from '../value.js';
+
+interface ConstructionContext {
+    readonly bindings: BindingEnvironment;
+    resolve(name: string): RankValue;
+    operationOf(name: string): Operation | undefined | false;
+    execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
+}
+
+type ConstructionMode = 'defer' | 'propagate' | 'demand';
+
+/** Stage actual calls, then retain the remaining expression and captured values.
+ * A callback in a filter or ranked operation is a reference, not an invocation.
+ * The original syntax is never mutated while replacing a staged call's result. */
+export class PlanConstruction {
+    private nextReference = 0;
+    private readonly references = new WeakSet<Expression>();
+
+    constructor(private readonly context: ConstructionContext) {}
+
+    isReference(expression: Expression): boolean { return this.references.has(expression); }
+
+    hasUserFunction(expression: Expression): boolean {
+        return AstUtils.streamAst(expression).some(node => isNameExpression(node)
+            && !this.isReference(node) && !!this.userFunction(node));
+    }
+
+    hasInput(expression: Expression): boolean {
+        return AstUtils.streamAst(expression).some(node => {
+            if (!isNameExpression(node)) return false;
+            const value = this.context.bindings.find(node.name);
+            return value !== undefined && (isRankPlan(value) || isRankSequence(value)
+                || isRankArray(value) && denseScalarItems(value) === undefined);
+        });
+    }
+
+    build(expression: Expression, mode: ConstructionMode, tail = false): Evaluation<RankValue> {
+        return this.inScope(expression, mode, tail);
+    }
+
+    private *inScope(expression: Expression, mode: ConstructionMode, tail: boolean): Execution<RankValue> {
+        const caller = this.context.bindings.current;
+        this.context.bindings.current = new LocalFrame(caller, new Map(), new Set());
+        try { return yield* resume(this.construct(expression, mode, tail)); }
+        finally { this.context.bindings.current = caller; }
+    }
+
+    private *construct(expression: Expression, mode: ConstructionMode, tail: boolean): Execution<RankValue> {
+        const rewritten = yield* resume(this.rewrite(expression, tail));
+        let source = rewritten;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source)) {
+            const value = this.context.bindings.find(source.name);
+            if (value !== undefined && (!isNativeFunction(value) || this.isReference(source)
+                || !value.arities.includes(0))) return value;
+        }
+        if (mode === 'demand' || mode === 'propagate' && !this.hasInput(rewritten)
+            || isBinaryExpression(source) && ['to', 'till'].includes(source.operator)
+                && !AstUtils.streamAst(rewritten).some(node => isNameExpression(node)
+                    && isRankPlan(this.context.bindings.find(node.name) ?? MISSING))) {
+            return yield* resume(this.context.execute(rewritten, tail));
+        }
+        return this.capture(rewritten);
+    }
+
+    private userFunction(expression: NameExpression): NativeFunction | undefined {
+        const value = this.context.bindings.find(expression.name);
+        return value && isNativeFunction(value) && !BuiltinRegistry.operationOf(value) ? value : undefined;
+    }
+
+    private wholeCall(fn: NativeFunction): boolean {
+        return fn.monadicRank === 'all' && !fn.dyadicRanks?.some(rank => rank !== 'all');
+    }
+
+    private reference(value: RankValue, original: Expression): NameExpression {
+        const name = `$plan${this.nextReference++}`;
+        this.context.bindings.scope.set(name, value);
+        const reference = { $type: 'NameExpression', name, $cstNode: original.$cstNode } as NameExpression;
+        this.references.add(reference);
+        return reference;
+    }
+
+    private *rewrite(expression: Expression, tail = false, invokeName = true): Execution<Expression> {
+        if (isNameExpression(expression)) {
+            const fn = !this.isReference(expression) && this.userFunction(expression);
+            return fn && invokeName && fn.arities.includes(0)
+                ? this.reference(yield* resume(this.context.execute(expression, tail)), expression) : expression;
+        }
+        if (isDeclaredCallExpression(expression) && isNameExpression(expression.callee)
+            && this.userFunction(expression.callee) && !expression.ranks.length && !expression.axes.length
+            && this.wholeCall(this.userFunction(expression.callee)!)) {
+            return this.reference(yield* resume(this.context.execute(expression, tail)), expression);
+        }
+        if (isApplicationExpression(expression)) {
+            const parts = flattenApplication(expression);
+            const form = applicationForm(expression, name => this.context.operationOf(name));
+            if (form.kind === 'plain') {
+                for (let index = 1; index < parts.length; index++) {
+                    const part = parts[index];
+                    const fn = isNameExpression(part) && this.userFunction(part);
+                    if (!fn || fn.arities.includes(0) || !this.wholeCall(fn)) continue;
+                    const arity = fn.callSignature?.leftCount
+                        ?? Math.max(...fn.arities.filter(count => count <= index));
+                    if (arity < 1 || arity > index) continue;
+                    const firstEnd = index - arity + 1;
+                    const arguments_ = [applicationExpression(parts.slice(0, firstEnd), expression),
+                        ...parts.slice(firstEnd, index)];
+                    const call = { $type: 'DeclaredCallExpression', callee: part, arguments: arguments_,
+                        dataParameters: [...fn.callSignature?.dataParameters ?? arguments_.map((_, i) => i)],
+                        ranks: [], axes: [], $cstNode: expression.$cstNode } as DeclaredCallExpression;
+                    const result = yield* resume(this.context.execute(call, tail && index === parts.length - 1));
+                    const remainder = applicationExpression([this.reference(result, call), ...parts.slice(index + 1)], expression);
+                    return yield* resume(this.rewrite(remainder, tail));
+                }
+            }
+            // Flatten only this application's syntax. Nested operand groups are
+            // independent expressions; intermediate heads are not separate calls.
+            const rewritten: Expression[] = [];
+            for (let index = 0; index < parts.length; index++) {
+                rewritten.push(yield* resume(this.rewrite(parts[index], false,
+                    index === 0 || nameNeedsExecution(parts[index]))));
+            }
+            return rewritten.every((part, index) => part === parts[index]) ? expression
+                : { ...expression, ...applicationExpression(rewritten, expression) } as Expression;
+        }
+        if (isParenthesizedExpression(expression)) {
+            const value = yield* resume(this.rewrite(expression.value, tail));
+            return value === expression.value ? expression : { ...expression, value } as Expression;
+        }
+        if (isBinaryExpression(expression) && ['and', 'or', 'default'].includes(expression.operator)) {
+            const left = yield* resume(this.rewrite(expression.left));
+            const ready = this.readyValue(left);
+            if (typeof ready === 'boolean' && (expression.operator === 'and' && !ready
+                || expression.operator === 'or' && ready)) return left;
+            if (expression.operator === 'default' && ready !== undefined && ready !== MISSING && !isRankArray(ready)) return left;
+            const selected = expression.operator === 'default' ? ready === MISSING : ready !== undefined;
+            const right = selected ? yield* resume(this.rewrite(expression.right)) : expression.right;
+            return left === expression.left && right === expression.right ? expression
+                : { ...expression, left, right } as Expression;
+        }
+        const clone: Record<string, unknown> = { ...expression };
+        let changed = false;
+        const order = isBinaryExpression(expression) ? ['left', 'right', 'step']
+            : expression.$type === 'ArrayExpression' ? ['range', 'rows', 'items', 'dimensions', 'fill']
+                : expression.$type === 'RecordUpdateExpression' ? ['source', 'fields'] : [];
+        const entries = Object.entries(expression).sort(([a], [b]) =>
+            (order.includes(a) ? order.indexOf(a) : order.length) - (order.includes(b) ? order.indexOf(b) : order.length));
+        for (const [key, value] of entries) {
+            if (key.startsWith('$') || this.deferredChild(expression, key)) continue;
+            const rewritten = yield* resume(this.rewriteChild(value));
+            if (rewritten !== value) { clone[key] = rewritten; changed = true; }
+        }
+        return changed ? clone as unknown as Expression : expression;
+    }
+
+    private readyValue(expression: Expression): RankValue | undefined {
+        while (isParenthesizedExpression(expression)) expression = expression.value;
+        if (isNameExpression(expression)) {
+            const value = this.context.bindings.find(expression.name);
+            return value !== undefined && !isRankPlan(value) ? value : undefined;
+        }
+        if (isBooleanLiteral(expression) || isNumberLiteral(expression) || isStringLiteral(expression)) return expression.value;
+        return isLabelLiteral(expression) && expression.name === 'NA' ? MISSING : undefined;
+    }
+
+    private deferredChild(expression: Expression, key: string): boolean {
+        if (['TableFilterExpression', 'BoundClauseExpression'].includes(expression.$type)
+            && (key === 'condition' || key === 'conditions')) return true;
+        if (['TakeWhileExpression', 'FirstWhereExpression', 'FirstIndexWhereExpression'].includes(expression.$type)
+            && key === 'mask') return true;
+        return ['TableSelectExpression', 'TableWriteExpression'].includes(expression.$type) && key === 'entries';
+    }
+
+    private *rewriteChild(value: unknown): Execution<unknown> {
+        if (isExpression(value)) return yield* resume(this.rewrite(value));
+        if (Array.isArray(value)) {
+            const result: unknown[] = [];
+            for (const item of value) result.push(yield* resume(this.rewriteChild(item)));
+            return result.every((item, index) => item === value[index]) ? value : result;
+        }
+        if (!isAstNode(value)) return value;
+        const result: Record<string, unknown> = { ...value };
+        let changed = false;
+        for (const [key, item] of Object.entries(value)) {
+            if (key.startsWith('$')) continue;
+            const rewritten = yield* resume(this.rewriteChild(item));
+            if (rewritten !== item) { result[key] = rewritten; changed = true; }
+        }
+        return changed ? result as unknown as AstNode : value;
+    }
+
+    private capture(expression: Expression): RankPlan {
+        const dependencies = new Map<string, RankValue>();
+        for (const node of AstUtils.streamAst(expression)) {
+            if (!isNameExpression(node)) continue;
+            const value = this.context.bindings.find(node.name);
+            if (value !== undefined) dependencies.set(node.name, value);
+            else if (/^[A-Z]/.test(node.name)) this.context.resolve(node.name);
+        }
+        const snapshot = new LocalFrame(undefined, new Map(), new Set(dependencies.keys()));
+        for (const [name, value] of dependencies) snapshot.set(name, value);
+        const result = expressionFacts(expression, name => {
+            const value = dependencies.get(name);
+            if (value === undefined) return undefined;
+            if (isRankPlan(value)) return value.result ?? UNKNOWN_VALUE;
+            if (typeof value === 'bigint') return { types: ['integer'], rank: 0, shape: [] };
+            if (typeof value === 'number') return { types: ['real'], rank: 0, shape: [] };
+            if (typeof value === 'boolean') return { types: ['boolean'], rank: 0, shape: [] };
+            if (typeof value === 'string') return { types: ['text'], rank: 1 };
+            if (isRankSequence(value)) return { types: ['sequence'], rank: 1 };
+            if (isRankArray(value) && denseScalarItems(value) !== undefined) {
+                return { types: [value.kind], rank: value.shape.length, shape: [...value.shape] };
+            }
+            return UNKNOWN_VALUE;
+        });
+        return { kind: 'plan', expression, dependencies, result,
+            evaluate: () => completed(this.context.bindings.withFrame(snapshot,
+                () => runExecution(this.context.execute(expression, false)))),
+        };
+    }
+}

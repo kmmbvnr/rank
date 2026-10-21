@@ -177,6 +177,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
     // A compound arithmetic assignment is one observable rebinding. Its old
     // value remains an input, never an output buffer or a private temporary.
     const first = statements[0];
+    if (isAssignmentStatement(first) && first.deferred) return reject(first, 'deferred-binding');
     if (implicit) {
         if (!(isAssignmentStatement(first) && first.operator === '=' && !first.name.includes('.'))
             && !isReturnStatement(first)) return undefined;
@@ -212,6 +213,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
     }
     for (let index = 0; index < Math.min(statements.length, 16); index++) {
         const statement = statements[index];
+        if (isAssignmentStatement(statement) && statement.deferred) return reject(statement, 'deferred-binding');
         const assignment = isAssignmentStatement(statement) && statement.operator === '=';
         if ((!assignment && !isReturnStatement(statement)) || !statement.value) return reject(statement, 'group');
         const parts = pair(statement.value);

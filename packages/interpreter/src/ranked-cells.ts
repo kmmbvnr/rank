@@ -1,3 +1,4 @@
+import { demandValue } from './plan.js';
 import { arrayRevision, readArrayItem, registerArrayDependencies, registerArrayReadPlan } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
@@ -34,6 +35,7 @@ export function rankedCells(
     };
     let resultCellShape: readonly number[] | undefined;
     const retainResult = (result: RankValue, frameIndex: number, cacheable: boolean): RankValue => {
+        result = demandValue(result);
         const shape = isRankArray(result) ? result.shape : [];
         if (resultCellShape === undefined) {
             resultCellShape = [...shape];

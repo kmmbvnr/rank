@@ -41,6 +41,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             const location = locations.length;
             // Bound the complete region, including nested branches and loops.
             // Search loops exceed 32 statements even with a small outer body.
+            if (isAssignmentStatement(assignment) && assignment.deferred) return reject(assignment, 'deferred-binding');
             if (location >= 128) return reject(assignment, 'statement-budget');
             locations.push(assignment);
             if (isForStatement(assignment)) {
