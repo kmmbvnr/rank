@@ -5,6 +5,24 @@
 * **Deciders:** @kmmbvnr
 * **Consulted:** Rank Language Specification, Tensor Fusion Architecture, Tensor Benchmark Suite
 
+## Explicit binding migration (#403)
+
+`A = Expr` completes and stores its result. `A' = Expr` keeps a recipe, and
+`return` passes the result through without adding a completion boundary. The
+legacy lexical-elimination model described below does not by itself justify
+removing an ordinary binding's completion boundary under this contract.
+
+Typed function kernels and compiled loop array bindings use the same
+`materializeValue` implementation as the reference binder before storing an
+ordinary local or publishing a loop result. Array-valued call results can still
+be native views, so a proved element type is not proof of completed storage.
+Bare returns retain those views. Scalar slots already contain completed scalar
+values. Deferred assignments retain the shared reference binding path.
+
+Adapting tensor fusion to explicit named plans remains in progress. This ADR's
+legacy grouped-assignment description is not a claim that every deferred stage
+already has a specialized kernel or that eager boundaries may be discarded.
+
 ## Context
 
 Idiomatic Rank code emphasizes short lines (~40 columns, ADR-0000) and intentional intermediate variables (ADR-0300):

@@ -76,15 +76,16 @@ describe('scalar function argument domains', () => {
         } finally { runtime.dispose(); }
     });
 
-    it('uses text kernels in ranked arrays and keeps one callback per cell', () => {
+    it('uses text kernels once per cell in each ranked traversal', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => kernels++ });
         try {
             const result = runtime.execute('use sequences\nfun Text flip\nreturn Text reverse\nend\n(array "ab" "𝄞é") flip rank 0');
             if (!result || !isRankArray(result)) throw new Error('missing array');
             expect([...result.items]).toEqual(['ba', '́e𝄞']);
-            expect([...result.items]).toEqual(['ba', '́e𝄞']);
             expect(kernels).toBe(2);
+            expect([...result.items]).toEqual(['ba', '́e𝄞']);
+            expect(kernels).toBe(4);
         } finally { runtime.dispose(); }
     });
 
