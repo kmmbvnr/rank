@@ -13,7 +13,7 @@ import {
     writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan,
     groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects,
     isReturnStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
-    type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
+    type KnownShape, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision } from './array-storage.js';
@@ -607,14 +607,15 @@ export class FunctionInvocation {
      * The result cell shape of a user function over an empty frame, found
      * without calling it: its body may print or loop. Static result facts for
      * an integer cell of that shape come first, then a return rank that earlier
-     * calls settled. Lengths the facts leave open are zero.
+     * calls settled. Unknown lengths remain unknown until a caller chooses an
+     * empty-frame fill shape or observes a result cell.
      */
     private userResultCellShape(
         statement: FunctionStatement,
         context: LocalFrame | undefined,
         returnRanks: ReadonlyMap<string, { rank?: number }>,
         cellShapes: readonly (readonly number[])[],
-    ): readonly number[] | undefined {
+    ): KnownShape | undefined {
         const valueOf = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
         const functionValue = (name: string) => {
             const value = valueOf(name);
@@ -644,7 +645,7 @@ export class FunctionInvocation {
         // Like a called cell, a non-array result leaves only the frame.
         if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
         if (result?.types.join() === 'array' && result.shape?.length === result.rank) {
-            return result.shape!.map(dimension => dimension ?? 0);
+            return result.shape;
         }
         const settled = new Set<number>();
         for (const [key, contract] of returnRanks) {
@@ -654,7 +655,7 @@ export class FunctionInvocation {
                     || cellShapes[index].length > 0 && argument[0] !== 'array')) continue;
             settled.add(contract.rank);
         }
-        return settled.size === 1 ? Array<number>([...settled][0]).fill(0) : undefined;
+        return settled.size === 1 ? Array<number | null>([...settled][0]).fill(null) : undefined;
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */

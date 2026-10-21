@@ -207,8 +207,9 @@ Planes = T det axis 1 rank 2
 Integer-only cells produce exact `integer` results. A cell containing any
 `real` value produces a `real`. A singular cell returns zero, and the
 determinant of a `0` by `0` matrix is one. A non-square cell raises
-`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. Batched results
-are evaluated lazily and cached.
+`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. An ordinary
+binding completes batched results; `BatchDeterminants' = Batch det` keeps a
+recipe that recomputes on demand.
 
 ## Linear solve
 
@@ -242,7 +243,9 @@ Planes = T inverse axis 1 rank 2
 The second expression applies to every trailing matrix cell. The third uses
 axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
-`.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+`.SingularMatrix`. Ordinary binding completes every ranked matrix result;
+`BatchInverse' = Batch inverse` keeps a recipe. Repeated demands recompute the
+matrix results rather than retaining them implicitly.
 
 ## Symmetric eigendecomposition
 

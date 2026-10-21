@@ -1,6 +1,6 @@
 import type { RankPlan } from './plan.js';
 import type { IndexKey } from './index-key.js';
-import type { FunctionCallSignature } from '@arrrank/language';
+import type { FunctionCallSignature, KnownShape } from '@arrrank/language';
 import { arrayDeclaration } from './array-declaration.js';
 import { recordContract } from './record-contract.js';
 import { StoredValueSummary } from './stored-value.js';
@@ -265,12 +265,13 @@ export interface NativeFunction {
     readonly monadicRank: IntrinsicRank;
     /** Result cell shape for an argument cell of this shape, when known without
      * calling the function. Ranked application over an empty frame has no cell
-     * to call. `undefined` leaves the shape unknown. */
-    /** Shape-only contract in declaration parameter order, including fixed configuration. */
-    readonly resultCellShape?: (cellShapes: readonly (readonly number[])[]) => readonly number[] | undefined;
-    readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined;
+     * to call. A null dimension is unknown; an undefined shape leaves even
+     * the result rank unknown. */
+    readonly resultCellShape?: (cellShapes: readonly (readonly number[])[]) => KnownShape | undefined;
+    /** Unary form of the shape-only contract. */
+    readonly monadicResultShape?: (cellShape: readonly number[]) => KnownShape | undefined;
     /** Shape-only contract for two ranked operand cells, including empty frames. */
-    readonly dyadicResultShape?: (leftShape: readonly number[], rightShape: readonly number[]) => readonly number[] | undefined;
+    readonly dyadicResultShape?: (leftShape: readonly number[], rightShape: readonly number[]) => KnownShape | undefined;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly arrayCells?: boolean;
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];

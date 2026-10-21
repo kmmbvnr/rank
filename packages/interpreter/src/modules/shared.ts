@@ -1,6 +1,6 @@
 import { checkValueMutable } from '../value-protection.js';
 import { registerScalarBuiltin } from '../scalar-builtin.js';
-import { findOperation, instantiateShapeSignature } from '@arrrank/language';
+import { findOperation, instantiateShapeSignature, type KnownShape } from '@arrrank/language';
 import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
@@ -25,21 +25,21 @@ export function native(
     // logical shape must not be appended as tensor axes.
     const tensorResult = operation && !['text', 'sequence'].includes(operation.result);
     const resultShape = signature
-        ? (cellShape: readonly number[]): readonly number[] | undefined => {
+        ? (cellShape: readonly number[]): KnownShape | undefined => {
             const result = instantiateShapeSignature(signature, [cellShape]);
             if (result === undefined && signature.result !== null) {
                 throw new RankError(`${name} expects cell shape ${signature.args[0]?.join(' ') ?? 'all'}, got ${cellShape.join(' ')}`, 'DimensionMismatch');
             }
-            return tensorResult ? result?.map(n => n ?? 0) : [];
+            return tensorResult ? result : [];
         } : undefined;
     const dyadicSignature = operation?.shape?.find(shape => shape.args.length === 2);
     const dyadicResultShape = dyadicSignature
-        ? (left: readonly number[], right: readonly number[]): readonly number[] | undefined => {
+        ? (left: readonly number[], right: readonly number[]): KnownShape | undefined => {
             const result = instantiateShapeSignature(dyadicSignature, [left, right]);
             if (result === undefined && dyadicSignature.result !== null) {
                 throw new RankError(`${name} expects compatible cell shapes`, 'DimensionMismatch');
             }
-            return tensorResult ? result?.map(n => n ?? 0) : [];
+            return tensorResult ? result : [];
         } : undefined;
     return {
         kind: 'function',

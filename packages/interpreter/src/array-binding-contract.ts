@@ -5,7 +5,7 @@ import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType }
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
-import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
+import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { registerScalarView } from './integer-view.js';
@@ -266,7 +266,6 @@ export class ArrayBindingContract {
     private lazy(value: RankArray, base: Contract, path: Path | undefined): Prepared {
         const version = this.version ??= ownedArray([0n]);
         const prepared: Prepared = { value, contract: base };
-        const size = value.shape.reduce((a, b) => a * b, 1);
         const validate = this.validator(value, base, path);
         const evaluate = function* (index: number): Execution<RankValue> {
             let item: RankValue;
@@ -301,11 +300,14 @@ export class ArrayBindingContract {
             const source = prepareArrayRead(value);
             return source ? index => read(index, source) : undefined;
         };
-        const checked = registerArrayDependencies({ kind: 'array' as const,
+        const checked: RankArray = registerArrayDependencies({ kind: 'array' as const,
             shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
-            get items() { return materializeCells(size, prepare() ?? read); } }, [value, version]);
+            get items() { return collectArrayCells(checked); } }, [value, version]);
         if (path === undefined) inheritConcatCheck(value, checked, this, validate, version);
-        registerArrayReadPlan(checked, prepare);
+        registerArrayReadPlan(checked, prepare, visit => collectArrayCells(value, (item, index) => {
+            const result = validate(item);
+            return visit ? visit(result, index) : result;
+        }));
         registerArrayCellEvaluation(checked, evaluate);
         this.metadata(value, checked);
         holdArraySource(checked, value);

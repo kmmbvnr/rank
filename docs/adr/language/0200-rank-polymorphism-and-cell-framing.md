@@ -1,108 +1,117 @@
-# 0200. Rank Polymorphism and Leading-Frame Cell Application
+# 0200. Rank polymorphism and leading-frame cell application
 
 * **Status:** Accepted
-* **Date:** 2026-09-08 / 2026-09-09
-* **Updated:** 2026-09-28 — result cell shape over an empty frame
+* **Date:** 2026-09-08
 * **Deciders:** @kmmbvnr
-* **Consulted:** Rank Language Specification, Tensor Model Specification
 
 ## Context
 
-In mainstream numerical and data science ecosystems (Python/NumPy/Pandas, R, Julia), working with multi-dimensional data requires learning fragmented, inconsistent APIs:
-1. **API fragmentation across dimensions:** Operating on 1D vectors uses one set of methods, 2D dataframes require row/column wrappers like `.apply(axis=1)`, and 3D+ tensors require specialized batching abstractions.
-2. **Explicit vectorization boilerplate:** In languages without rank polymorphism, applying a scalar function to array elements or a vector function to matrix rows requires manual nested loops, list comprehensions, or high-overhead helper wrappers.
-3. **Cryptic glyphs in classical array languages:** Array languages like APL and J introduced rank polymorphism, but expressed it through cryptic ASCII glyphs (e.g. `"` in J) and obscure monadic/dyadic rules that are impossible to type on mobile touchscreens and difficult to read.
-
-Rank is named after **Rank Polymorphism**—the language was conceived to bring the mathematical elegance of multidimensional cell framing to general-purpose programming, expressed using clean, English words and primary-layer mobile ergonomics without glyphs.
+An operation has a natural input cell: an atom, vector, matrix or whole value.
+Applying it to a larger tensor should use one set of shape and iteration rules.
+Programs also need to choose explicitly whether they store those results or
+recompute a named stage.
 
 ## Decision
 
-Rank establishes **Rank Polymorphism with Leading-Frame Cell Application (`rank`, `axis`)** as the core computational model for arrays, tensors, and tables:
+### Cells and frames
 
-### 1. Intrinsic Function Rank
-Every function declares an intrinsic rank for each supported arity:
-- **Rank 0 (scalar atoms):** Elementwise arithmetic (`+`, `-`, `*`, `/`), math functions (`abs`, `sqrt`, `exp`, `log`, `sin`, `cos`). Applied to higher-rank tensors, they automatically map over individual scalar atoms.
-- **Rank 1 (vectors / 1D sequences):** Trailing-vector operations (`sort`, `argsort`, `unique`). `integer` and `real` parsing complete strings have intrinsic rank 1.
-- **Rank 2 (matrices / 2D tables):** Linear algebra operations (`det`, `inverse`, `diag`, `eigh`).
-- **Rank $\infty$ (whole tensor):** Structural operations (`transpose`, `reshape`), global reductions (`sum`, unary `min`/`max`, statistics), and leading-axis transformations (`reverse`, `len`). `solve` keeps whole matrix/vector or matrix/matrix operands; `matmul` keeps last-left/first-right contraction. Higher arities retain whole-operand semantics.
+Unary functions declare an intrinsic cell rank. Binary functions may declare
+one rank per data operand. Elementwise arithmetic uses scalar cells, `sort`
+uses vectors, and `det` and `inverse` use matrix cells. Whole-value operations
+such as `reshape`, global `sum`, and `solve` retain their own operand rules.
+Intrinsic cell rank is separate from the ranks an operation accepts.
 
-Intrinsic rank controls cell splitting, separately from accepted input ranks.
-For example, `diag` accepts a vector or matrix whole, but lifts over trailing
-matrix cells in higher-rank arrays. Tuple results remain one frame element;
-`eigh` of `[B N N]` returns `[B]` tuples, not a tuple of batched tensors.
-Declared shape constraints are validated even for empty frames, without reading
-values. See the [reference audit](../../stdlib/reference.md#default-cells).
+`rank R` overrides a unary cell rank. An operand with rank at most `R` is passed
+whole; otherwise its trailing `R` axes form each cell and the remaining axes
+form the frame. Negative ranks count down from the operand rank, with a minimum
+cell rank of zero.
 
-### 2. Overriding Cell Rank with the `rank` Modifier
-The `rank R` modifier overrides the unary cell rank:
 ```rank
-rem Convert string into individual integer digits:
 Digits = "1203" integer rank 0
-
-rem Normalize each row vector in a 2D matrix:
-Rows = Matrix normalize rank 1
-
-rem Compute determinant of each 2D matrix plane in a 3D batch:
-BatchDets = T det rank 2
+RowSums = Matrix sum rank 1
+BatchDets' = Batch det rank 2
 ```
-- **Argument rank $> R$:** The function applies to every trailing rank-$R$ cell in row-major frame order.
-- **Argument rank $\le R$:** The function receives the argument whole once.
-- **Empty frame:** No source cell is called, yet the result keeps the cell axes, so its rank matches the nonempty case. Following J and Remora (Slepak, Shivers, Manolios, *The Semantics of Rank Polymorphism*, §2.4), the cell shape comes from the function rather than from computed cells: a declared shape first; for a pure standard-library function without a shape hook, a zero fill cell may be probed within the runtime size limit; for user functions, the analysed result facts and settled return rank. User code never runs for this, because it may print or fail to terminate on a fill value.
 
-### 3. Frame Selection via the `axis` Modifier
-When targeting non-trailing or arbitrary dimensions, `axis` names the **frame axes** along which the operation iterates:
+Ordinary bindings complete the result. An apostrophe binding retains a recipe
+that recomputes on each demand. The same rule applies to scalar and array-valued
+cell results; a function's parameter mode determines whether its argument is
+completed at entry. `return` does not introduce another storage boundary.
+
+### Explicit frame axes and binary calls
+
+`axis` lists distinct zero-based frame axes, in result-axis order. The remaining
+axes form the cell in natural source order:
+
 ```rank
-rem Compute distance per row in a geographic coordinate table:
-Geo distance axis 0 rank 1
-
-rem Normalize planes across axis 1 of a 3D tensor:
-Planes = T normalize axis 1 rank 2
+Planes' = Tensor inverse axis 1 rank 2
 ```
-- **Fundamental Invariant:**
-  $$\text{number of frame axes} + \text{cell rank} = \text{tensor rank}$$
-- The written order of `axis` becomes the leading result-axis order; remaining axes form the cell in natural order. This completely eliminates manual tensor transpositions.
-- Frame axes lead the result. For binary lifting, frames align by their trailing axes, and a size-1 axis may stretch to match its counterpart. A symbolic dimension may itself be 1, so static analysis can reject only mismatches it can prove.
 
-### 4. Tensor Reductions and Combinators (`reduce`, `scan`, `outer`)
-Rank lifts scalar and vector operations across dimensions through higher-order combinators:
-- **Rank-limited reduction (`reduce rank R`):**
-  ```rank
-  rem Sum every row of a matrix:
-  RowTotals = M reduce + rank 1 with 0
+The number of frame axes plus cell rank equals source rank. Explicit frame axes
+support unary application and the documented binary comparison forms; general
+binary calls use trailing cells. Two binary frames align by their trailing axes.
+Equal lengths agree, and a length-one axis can stretch. A statically unknown
+length is not proof of a mismatch.
 
-  rem Multiply 2D blocks inside a 4D tensor:
-  BlockProducts = Blocks reduce * rank 2
-  ```
-- **Prefix scan combinator (`scan`):**
-  Computes running prefix reductions (cumulative sum, prefix product, running extrema):
-  ```rank
-  Prefix = Values scan + with 0
-  RunningMin = Values scan min
-  ```
-  Evaluates lazily on sequences and dense arrays without extra intermediate allocations.
-- **Outer product combinator (`outer`):**
-  Applies an operator or binary function to every pair of cells across two operands:
-  ```rank
-  Sums = A B outer +
-  Grid = Values Values outer bxor
-  Smallest = A B outer min
-  ```
-  The result shape is the exact concatenation of the left frame shape and the right frame shape.
+`rank L R` chooses both binary cell ranks. For ordinary named binary functions,
+`rank L` changes the left cell rank while retaining the right declared rank.
+Comparison shorthand follows its own documented rules. Only positional data
+operands participate; function operands and optional configuration stay fixed.
+General lifting supports one or two data operands. Special forms such as
+`reduce`, `scan`, `outer`, constructors and indexing keep their own rules.
 
-### 5. Unified Iteration over Cells
-The `for` statement natively understands cell framing without helper functions:
+### Result assembly and demand
+
+Scalar results leave the frame shape. Array results append their cell shape;
+every observed result cell must have the same shape. Text, sequences and tuples
+remain boxed frame elements. Unequal array shapes are errors, without padding.
+
+Known result-cell shapes can be used without calling the function. Unknown
+lengths remain unknown until observation. Determining a nonempty result's shape
+may call the function on its first cell. The resulting shape evidence is kept;
+the computed value is not kept for a separate read. A shape query therefore
+neither validates later cells nor promises that its effects will be reused by
+another demand.
+
+During one traversal, assembly can retain its current result cell while reading
+its scalar elements. A later traversal recomputes. Ordinary binding stores the
+completed array instead. Callback effects, operand order, failures and resource
+ownership must be preserved by optimized paths. A failed traversal does not
+silently retain its successful prefix.
+
+### Empty frames
+
+A zero-sized frame calls no source cell or user function. Known result-cell axes
+remain present: sorting shape `0 3` at rank 1 gives `0 3`. Unknown lengths of a
+known result rank become zero only for empty-frame assembly; an unknown result
+rank adds no cell axes. Thus `unique` over `0 3` gives `0 0`.
+
+Completing a nonempty frame invokes every callback even when each result is an
+empty array. Its effects and shape checks are still required.
+
+An empty frame also differs from a nonempty frame of empty input cells: shape `2 0` at rank
+1 contains two vectors, and `sum` produces two zeros. Declared cell constraints
+still apply: an empty batch does not make nonsquare `inverse` cells valid.
+
+Result facts and previously established return-rank contracts can supply shape
+metadata without running user code. Only pure builtins without a shape hook may
+use a bounded zero-filled prototype; a failed or oversized probe leaves the
+result shape unknown. Binary empty frames use shape metadata without a
+prototype call.
+
+### Iteration
+
+`for` uses the same cell/frame geometry. Its ordinary data bindings complete
+selected values before the body runs:
+
 ```rank
-rem Iterate over 1D rows:
 for Row i in Matrix
   Row print
 end
 
-rem Iterate over atoms with 2D coordinate bindings:
 for Value i j in Matrix rank 0
   Value print
 end
 
-rem Iterate over matrix columns:
 for Column j in Matrix axis 1 rank 1
   Column print
 end
@@ -110,20 +119,15 @@ end
 
 ## Consequences
 
-### Positive
-* **Eponymous identity:** Fulfills the core design promise that gives Rank its name.
-* **Unified dimensional grammar:** The exact same concept handles string character parsing, matrix row operations, batch ML inferences, and dataframe column transformations.
-* **Zero glyph noise:** Replaces J's cryptic rank conjunctions (`"`) with clean, readable keywords (`rank`, `axis`, `outer`) accessible on mobile keyboards.
-* **No wrapper loops:** Replaces deeply nested `for` loops with clear, vectorized expressions.
-* **Optimized execution planner:** The execution engine can fuse cell applications directly into contiguous SIMD or GPU kernels without materializing intermediate framed arrays.
-
-### Negative & Trade-offs
-* **Dimensional thinking curve:** Developers new to array programming must internalize the distinction between frame axes and cell rank.
+The same geometry covers scalar mapping, row operations and matrix batches.
+Deferred stages can compose without retaining every intermediate result;
+ordinary bindings offer explicit reuse and writable storage. Shape inference
+can be incomplete, and a shape observation can run an effectful callback.
+Runtime validation remains necessary for data-dependent result dimensions.
 
 ## References
-* Section "Rank-based application" and "Iterating by axis and cell rank" in [docs/language/tensors.md](../../language/tensors.md)
-* Section "Outer" and "Axis reductions" in [docs/language/tensors.md](../../language/tensors.md)
-* Section "Rank" in [docs/CURRENT_SPEC.md](../../CURRENT_SPEC.md)
-* ADR-0202: [Whitespace Juxtaposition for Addressing and Selection](0202-whitespace-juxtaposition-for-addressing.md)
-* ADR-0204: [Whole-Axis Tensor Selector (#)](0204-whole-axis-tensor-selector-hash.md)
-* ADR-0300: [Intentional Intermediate Variables Over Vertical Pipelines](0300-intentional-intermediate-variables.md)
+
+- [Sequences and arrays](../../language/sequences-arrays.md#rank)
+- [Tensor operations](../../language/tensors.md)
+- [Shape contracts](../../stdlib/reference.md#shape-contracts)
+- [Function and return contracts](../../language/control-functions.md)

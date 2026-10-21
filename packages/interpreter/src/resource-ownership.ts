@@ -154,6 +154,8 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         } else if (isRankErrorValue(item)) {
             pending.push([item.value, item.cause].values());
         } else if (isNativeFunction(item)) {
+            const dependencies = item.captureValues?.();
+            if (dependencies) pending.push(dependencies[Symbol.iterator]());
             if (item.captures) pending.push(captures(item.captures));
         } else if (isRankGraph(item) && 'captures' in item) {
             pending.push(captures(item.captures));

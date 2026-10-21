@@ -86,7 +86,7 @@ describe('window cell folds', () => {
                 const value = runtime.execute(`use sequences
 use numbers
 A = array 1.5 2.0 3.0 4.0 5.0
-Windows = A window 3
+Windows' = A window 3
 Result = Windows reduce ${op} rank 1
 Result copy`);
                 return isRankArray(value!) ? { shape: value.shape, items: value.items } : value;

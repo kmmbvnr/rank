@@ -1,5 +1,5 @@
 import type { CallParameter } from '@arrrank/language';
-import { denseScalarItems, materializeCells, ownedArray, ownedObject, readArrayItem } from './array-storage.js';
+import { denseScalarItems, collectArrayCells, ownedArray, ownedObject } from './array-storage.js';
 import { demandValue } from './plan.js';
 import { checkpoint } from './interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
@@ -218,8 +218,7 @@ function aggregateValue(value: RankValue): Aggregate | undefined {
     }
     if (isRankArray(value)) {
         if (value.kind === 'bytes' || denseScalarItems(value) !== undefined) return undefined;
-        const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-        const cells = materializeCells(size, index => { checkpoint('materializing binding'); return readArrayItem(value, index); });
+        const cells = collectArrayCells(value);
         return { values: cells, force: true, finish: (values, _, nestedChanged) => {
             const result = ownedArray(values, value.shape, false, value.columnNames, {
                 tableScopes: value.tableScopes, sortKeys: value.sortKeys,

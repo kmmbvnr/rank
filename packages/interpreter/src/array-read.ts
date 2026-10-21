@@ -62,17 +62,42 @@ export function copyMaterializedArrayItems(value: RankArray, size: number): Rank
 
 /** Prepared readers remove view dispatch, not validation or effects. Preparing
  * one must not read cells; using it may still execute callbacks or throw. */
-const arrayReadPlans = new WeakMap<RankArray, () => ((index: number) => RankValue) | undefined>();
+export type ArrayCellVisitor = (value: RankValue, index: number) => RankValue;
+type ArrayCollector = (visit?: ArrayCellVisitor) => RankValue[];
+const arrayReadPlans = new WeakMap<RankArray, {
+    prepare: () => ((index: number) => RankValue) | undefined;
+    collect?: ArrayCollector;
+}>();
 
 export function registerArrayReadPlan<T extends RankArray>(
     value: T, prepare: () => ((index: number) => RankValue) | undefined,
+    collect?: ArrayCollector,
 ): T {
-    arrayReadPlans.set(value, prepare);
+    arrayReadPlans.set(value, { prepare, collect });
     return value;
 }
 
 export function prepareArrayRead(value: RankArray): ((index: number) => RankValue) | undefined {
-    return arrayReadPlans.get(value)?.();
+    return arrayReadPlans.get(value)?.prepare();
+}
+
+/** Looking up a full traversal must not execute it. */
+export function arrayValueCollector(value: RankArray): ArrayCollector | undefined {
+    return arrayReadPlans.get(value)?.collect;
+}
+
+/** Complete a native array in one pass. A producer may need to evaluate framed
+ * callbacks even when each result cell has zero scalar elements. */
+export function collectArrayCells(value: RankArray, visit?: ArrayCellVisitor): RankValue[] {
+    const collect = arrayValueCollector(value);
+    if (collect) return collect(visit);
+    const read = prepareArrayRead(value) ?? ((index: number) => readArrayItem(value, index));
+    const size = value.shape.reduce((total, n) => total * n, 1);
+    return materializeCells(size, index => {
+        checkpoint('materializing array');
+        const item = read(index);
+        return visit ? visit(item, index) : item;
+    });
 }
 
 /**

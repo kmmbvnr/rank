@@ -9,7 +9,7 @@ import {
     lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication,
     isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
     isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, renamedBuiltinCall,
-    type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
+    type KnownShape, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
     type Expression, type Operation,
 } from '@arrrank/language';
 import { checkpoint } from '../interrupt.js';
@@ -104,7 +104,7 @@ export class ApplicationEvaluator {
                 if (tail && context.functions.transferTailCall(fn, args)) return MISSING;
                 return yield* resume(context.functions.invoke(fn, args));
             }
-            const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): readonly number[] | undefined => {
+            const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): KnownShape | undefined => {
                 const shapes = args.map(value => isRankArray(value) ? value.shape : []);
                 expression.dataParameters.forEach((index, i) => { shapes[index] = [...cells[i]]; });
                 return fn.resultCellShape?.(shapes);

@@ -1,7 +1,7 @@
 import { RankError } from './errors.js';
 import { ResourceSummary } from './resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
-import type { RankArray, RankObject, RankValue } from './value.js';
+import { isRankArray, type RankArray, type RankObject, type RankValue } from './value.js';
 import {
     ownedStorage, derivedRevisions, writeRevision, creationSerial, onlyNewObjectsChanged, noteMutation,
     nextCreationSerial, type OwnedStorage, type DerivedRecord,
@@ -165,9 +165,9 @@ export function arrayDependencyNode(sources: readonly RankArray[]): RankArray {
     return node;
 }
 
-/** Publish dependencies for a pure producer with a dynamically inferred shape. */
-export function registerArrayDependencies<T extends RankArray>(value: T, sources: readonly RankArray[]): T {
-    const depth = arrayReaderDepth(sources, 1);
+/** Publish dependencies for a native producer with a dynamically inferred shape. */
+export function registerArrayDependencies<T extends RankArray>(value: T, sources: readonly RankValue[]): T {
+    const depth = arrayReaderDepth(sources.filter(isRankArray), 1);
     derivedRevisions.set(value, { epoch: -1, values: () => sources });
     lazyDepth.set(value, depth);
     return value;

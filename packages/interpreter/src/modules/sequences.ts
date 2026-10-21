@@ -18,7 +18,7 @@ import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } fro
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, arrayValueCollector, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
@@ -257,15 +257,16 @@ export function copyArray(value: RankValue): RankArray {
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const copied = inspectionEnabled() ? undefined : copyMaterializedArrayItems(value, size);
     const integers = copied || inspectionEnabled() ? undefined : prepareIntegerView(value, true);
-    const prepared = copied || integers || inspectionEnabled() ? undefined : prepareArrayRead(value);
-    const items = copied ?? Array.from(
+    const collect = copied || integers ? undefined : arrayValueCollector(value);
+    const prepared = copied || integers || collect || inspectionEnabled() ? undefined : prepareArrayRead(value);
+    const items = copied ?? (collect ? collect() : Array.from(
         { length: size },
         (_, index) => {
             if (integers) { checkpoint('copying integers'); return integers.read(index); }
             if (prepared) { checkpoint('copying array'); return prepared(index); }
             return value.itemAt?.(index) ?? value.items[index];
         },
-    );
+    ));
     // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
     if (!items.some(item => isRankArray(item) || isRankSequence(item))) {
         const result = ownedArray(items, value.shape, false, value.columnNames);

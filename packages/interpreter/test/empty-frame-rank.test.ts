@@ -18,7 +18,7 @@ describe('Rank over an empty frame', () => {
         expect(native('argsort', 1, never).monadicResultShape?.([3])).toEqual([3]);
         expect(native('inverse', 1, never).monadicResultShape?.([3, 3])).toEqual([3, 3]);
         expect(native('det', 1, never).monadicResultShape?.([3, 3])).toEqual([]);
-        expect(native('unique', 1, never).monadicResultShape?.([3])).toEqual([0]);
+        expect(native('unique', 1, never).monadicResultShape?.([3])).toEqual([null]);
         expect(() => native('inverse', 1, never).monadicResultShape?.([2, 3])).toThrow(/cell shape/);
     });
 

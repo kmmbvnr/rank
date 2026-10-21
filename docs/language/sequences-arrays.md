@@ -1103,7 +1103,8 @@ Result = M + Row
 rem Result shape is 2 3
 ```
 
-Broadcast results are lazy and cached. Incompatible shapes raise
+A deferred broadcast computes on demand; an ordinary binding stores the
+completed result. Repeated plan demands recompute. Incompatible shapes raise
 `.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
 Two sequences retain their lazy elementwise zip behavior, ending at the shorter
 input. A sequence mixed with an array uses the shape and broadcasting rules of
@@ -1298,12 +1299,22 @@ only the frame shape; array results append their shape to the frame. Text,
 sequences and tuples returned as cell values stay boxed rather than contributing
 array axes. Rank does not pad unequal results to a common size.
 
-Ranked array results can be lazy. Determining their shape can evaluate the first
-cell; reading later cells can discover incompatible result shapes or operation
-errors. A shape query therefore does not prove that every cell is valid. Pure
-scalar builtin paths may compute eagerly; laziness is not a guarantee that no
-computation occurs at construction. User callbacks can have effects, so do not
-assume arbitrary reordering or parallel execution is allowed.
+`Rows = Matrix sum rank 1` completes and stores all row sums. Use
+`Rows' = Matrix sum rank 1` to keep a recipe; each demand computes again.
+Native ranked readers retain shape evidence, not computed result cells. A full
+traversal may keep its current result cell while reading its scalar elements.
+It does not keep that cell for another traversal.
+
+Determining an unknown result shape can evaluate the first cell. The shape facts
+survive that observation; the prototype value does not. A separate value read
+therefore invokes the callback again. Exact shape facts can avoid this probe.
+Reading later cells can discover incompatible result shapes or operation errors,
+so a shape query does not prove that every cell is valid. User callbacks may
+have effects; arbitrary reordering or parallel execution is not permitted.
+
+A nonempty frame whose callbacks return empty arrays still runs every callback
+when the result is completed, including their effects and shape checks. Its
+output can have zero scalar elements; this does not make the frame empty.
 
 A zero-sized frame contains no calls. Known result-cell axes are retained:
 `sort` over shape `0 3` at rank 1 produces shape `0 3`. A nonempty frame of
@@ -1378,7 +1389,8 @@ The leading frame shapes use trailing-axis broadcasting. For example, a
 matrix and a vector with `rank 1` compare every matrix row with that vector.
 Incompatible frame shapes raise `.DimensionMismatch`. Different cell shapes
 are unequal; they are not broadcast inside a whole-cell comparison. Results
-are lazy over array frames and reflect changes to their source arrays.
+are computed on demand over array frames. Ordinary binding stores their values;
+deferred binding keeps the captured inputs and recomputes.
 
 An explicit `axis` list names frame axes for **both** array operands, retaining
 the listed order. The remaining axes form each cell:

@@ -3742,7 +3742,8 @@ Result = M + Row
 rem Result shape is 2 3
 ```
 
-Broadcast results are lazy and cached. Incompatible shapes raise
+A deferred broadcast computes on demand; an ordinary binding stores the
+completed result. Repeated plan demands recompute. Incompatible shapes raise
 `.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
 Two sequences retain their lazy elementwise zip behavior, ending at the shorter
 input. A sequence mixed with an array uses the shape and broadcasting rules of
@@ -3896,7 +3897,9 @@ the tensor rank. Frame axes are zero-based, unique and in bounds.
 
 Every cell result must have the same shape. Scalar results leave only the frame
 shape; array results append their shape to the frame. Source cells and the
-assembled result are lazy views, and a demanded cell result is cached.
+assembled result are native readers. Shape facts can survive a read, but
+computed cell values are retained only within one traversal. Ordinary binding
+completes the result; deferred binding recomputes on demand.
 
 An empty frame has no cells to call, but its result keeps the cell axes, so the
 result rank does not depend on whether the input is empty. A declared result
@@ -3962,7 +3965,8 @@ The leading frame shapes use trailing-axis broadcasting. For example, a
 matrix and a vector with `rank 1` compare every matrix row with that vector.
 Incompatible frame shapes raise `.DimensionMismatch`. Different cell shapes
 are unequal; they are not broadcast inside a whole-cell comparison. Results
-are lazy over array frames and reflect changes to their source arrays.
+are computed on demand over array frames. Ordinary binding stores their values;
+deferred binding keeps the captured inputs and recomputes.
 
 An explicit `axis` list names frame axes for **both** array operands, retaining
 the listed order. The remaining axes form each cell:
@@ -6009,8 +6013,9 @@ Planes = T det axis 1 rank 2
 Integer-only cells produce exact `integer` results. A cell containing any
 `real` value produces a `real`. A singular cell returns zero, and the
 determinant of a `0` by `0` matrix is one. A non-square cell raises
-`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. Batched results
-are evaluated lazily and cached.
+`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. An ordinary
+binding completes batched results; `BatchDeterminants' = Batch det` keeps a
+recipe that recomputes on demand.
 
 ## Linear solve
 
@@ -6044,7 +6049,9 @@ Planes = T inverse axis 1 rank 2
 The second expression applies to every trailing matrix cell. The third uses
 axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
-`.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+`.SingularMatrix`. Ordinary binding completes every ranked matrix result;
+`BatchInverse' = Batch inverse` keeps a recipe. Repeated demands recompute the
+matrix results rather than retaining them implicitly.
 
 ## Symmetric eigendecomposition
 

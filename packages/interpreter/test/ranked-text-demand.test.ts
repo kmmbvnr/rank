@@ -6,7 +6,7 @@ import { standardModules } from '../src/modules/index.js';
 import { native } from '../src/modules/shared.js';
 import { RankApplication } from '../src/rank-application.js';
 
-it('caches pure ranked text cells across overlapping reads without forcing later cells', () => {
+it('recomputes ranked text cells across overlapping reads without forcing later cells', () => {
     const calls: string[] = [];
     const fn = native('integer', 1, ([value]) => {
         calls.push(value as string);
@@ -18,10 +18,11 @@ it('caches pure ranked text cells across overlapping reads without forcing later
     if (!('done' in result) || !isRankArray(result.value)) throw new Error('expected immediate array');
     const digits = result.value;
     expect(digits.shape).toEqual([4]);
+    expect(calls).toEqual(['1']); // Shape observation may demand a prototype cell.
     for (const index of [0, 1, 1, 2, 0, 2]) {
         expect(readArrayItem(digits, index)).toBe(BigInt(index + 1));
     }
-    expect(calls).toEqual(['1', '2', '3']);
+    expect(calls).toEqual(['1', '1', '2', '2', '3', '1', '3']);
     expect(() => readArrayItem(digits, 3)).toThrow();
 });
 
@@ -32,11 +33,11 @@ it('preserves lazy per-cell evaluation of user callbacks', () => {
     const result = app.applyUnaryAtRank('abc', fn, 0);
     if (!('done' in result) || !isRankArray(result.value)) throw new Error('expected immediate array');
     expect(calls).toBe(0);
-    const first = readArrayItem(result.value, 0);
-    expect(readArrayItem(result.value, 0)).toBe(first);
-    expect(calls).toBe(1);
-    expect(readArrayItem(result.value, 1)).toBe(2n);
+    expect(readArrayItem(result.value, 0)).toBe(1n);
+    expect(readArrayItem(result.value, 0)).toBe(2n);
     expect(calls).toBe(2);
+    expect(readArrayItem(result.value, 1)).toBe(3n);
+    expect(calls).toBe(3);
 });
 
 it.each([false, true])('preserves Unicode cells and rebinding (compilation=%s)', compilation => {
