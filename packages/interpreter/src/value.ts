@@ -274,6 +274,8 @@ export interface NativeFunction {
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly arrayCells?: boolean;
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
+    /** Actual data dependencies; closure resource roots may include unrelated locals. */
+    readonly captureValues?: () => Iterable<RankValue>;
     readonly call: (arguments_: RankValue[]) => RankValue;
 }
 

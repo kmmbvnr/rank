@@ -1,4 +1,5 @@
 import { inheritSemanticArrayType } from './semantic-array-type.js';
+import { inheritValueProtection } from './value-protection.js';
 import { ownedArray, readArrayItem } from './array-storage.js';
 import { ByteArray } from './bytes.js';
 import { recordContract, retainRecordContract } from './record-contract.js';
@@ -9,6 +10,10 @@ import {
 
 /** Detach the ordinary mutable values a preview function can reach. */
 export function clonePreviewValue(value: RankValue): RankValue {
+    return inheritValueProtection(value, cloneValue(value));
+}
+
+function cloneValue(value: RankValue): RankValue {
     if (typeof value !== 'object') return value;
     if (isRankTuple(value)) return tuple(value.items.map(clonePreviewValue));
     if (isRankBytes(value)) return new ByteArray(value.data.slice());

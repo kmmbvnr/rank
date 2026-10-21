@@ -15,7 +15,15 @@ B = A
 B 0 = 99
 ```
 
-`A` remains `1 2 3` and `B` is `99 2 3`. The same rule covers functions: a
+`A` remains `1 2 3` and `B` is `99 2 3`.
+
+Records and mutable containers share identity across aliases. Once a deferred
+binding (`Plan' = Expr`) or deferred parameter captures that state, writes
+through any alias fail. This includes nested records and containers. Arrays
+keep copy-on-write semantics. To change captured record fields, construct a
+fresh record with `with`; to change a captured container, construct a new one.
+
+The same array rule covers functions: a
 function cannot change the data its caller passed in. To hand a changed value
 back, return it.
 

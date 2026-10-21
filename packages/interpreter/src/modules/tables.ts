@@ -1,4 +1,5 @@
 import { checkpoint } from '../interrupt.js';
+import { checkValueMutable } from '../value-protection.js';
 import { materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
 import { materializeSequence } from '../sequence.js';
@@ -816,6 +817,7 @@ export function tableColumnWrite(
         if (!rows.every(isRankObject)) {
             throw new RankError('table assignment expects object rows', 'TypeError');
         }
+        rows.forEach(checkValueMutable);
         const combine = operator === '=' ? undefined : operator.slice(0, -1);
         const replacements = materializeValues(operands.map((operand, index) => {
             if (combine === undefined) return operand;

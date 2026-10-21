@@ -4,6 +4,8 @@ import {
 } from '@arrrank/language';
 import { checkPlan, isRankPlan } from './plan.js';
 import { RankError } from './errors.js';
+import { prepareCaptureProtection } from './capture-protection.js';
+import { checkValueMutable } from './value-protection.js';
 import { LocalFrame } from './frame.js';
 import { typeName, type RankValue } from './value.js';
 
@@ -147,19 +149,27 @@ export class BindingEnvironment {
     }
 
     /** Protection belongs to a name's scope and survives ordinary rebinding. */
-    protect(name: string, plan: string): void {
+    protect(name: string, plan: string): () => void {
         const frame = this.current?.find(name) ?? this.globals;
-        if (frame.get(name) !== undefined) frame.protectName(name, deferredBindingMessage(name, plan));
+        const value = frame.get(name);
+        if (value === undefined) return () => undefined;
+        const message = deferredBindingMessage(name, plan);
+        const publish = prepareCaptureProtection(value, message);
+        return () => { publish(); frame.protectName(name, message); };
     }
 
     checkMutable(name: string, local = false): void {
         for (let frame = this.current; frame; frame = frame.parent) {
             const message = frame.mutationError(name);
             if (message) throw new RankError(message, 'Scope');
-            if (frame.get(name) !== undefined || frame.layout.has(name) || frame.blockNames?.has(name)) return;
+            const value = frame.get(name);
+            if (value !== undefined) { checkValueMutable(value); return; }
+            if (frame.layout.has(name) || frame.blockNames?.has(name)) return;
         }
         const message = !local && this.globals.mutationError(name);
         if (message) throw new RankError(message, 'Scope');
+        const value = local ? undefined : this.globals.get(name);
+        if (value !== undefined) checkValueMutable(value);
     }
 
     /** A private region can publish once only when all its binding stores are total.

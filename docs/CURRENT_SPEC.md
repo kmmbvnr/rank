@@ -453,6 +453,15 @@ Records have reference semantics, one of the few exceptions to
 [values and sharing](language/values-addressing.md#values-and-sharing). Assignment,
 function arguments and storage inside another structure preserve the same record
 identity, so mutation through one alias is visible through the others.
+
+Capturing a record or mutable container in a deferred binding (`Plan' = Expr`)
+or a deferred parameter makes its shared state read-only. Writes through any
+alias fail, including aliases created before capture and nested records or
+containers reachable from the captured value. Arrays keep copy-on-write
+semantics. A fresh record made with `with`, or a newly constructed container,
+has independent writable storage. Consuming or forgetting the plan does not
+make the captured state writable again.
+
 Addressing may continue through arrays, queues and nested records:
 
 ```rank

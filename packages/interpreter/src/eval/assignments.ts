@@ -14,6 +14,7 @@ import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, w
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { expectPushCollection, pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
+import { checkValueMutable } from '../value-protection.js';
 import {
     completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
@@ -39,7 +40,7 @@ export interface AssignmentContext {
     defer(expression: Expression): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
-    protect(names: readonly string[], plan: string): void;
+    protect(names: readonly string[], plan: string): () => void;
     resolveVariable(name: string): RankValue;
     checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
@@ -133,6 +134,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             if (!isRankRecord(receiver)) {
                 throw new RankError('field assignment expects a record target');
             }
+            checkValueMutable(receiver);
             return assignRecordField(
                 receiver,
                 field.name,
@@ -299,8 +301,9 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         const previous = operator === undefined ? undefined : host.resolveVariable(statement.name);
         return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
             const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));
+            const protect = statement.deferred ? host.protect(protectedNames, statement.name) : undefined;
             write(result);
-            if (statement.deferred) host.protect(protectedNames, statement.name);
+            protect?.();
             return result;
         });
     } };

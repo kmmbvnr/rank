@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { bindingTypeMessage } from '@arrrank/language';
 import { noteArrayBinding } from './array-storage.js';
 import { RankError } from './errors.js';
@@ -15,6 +16,7 @@ export function assignRecordField(
     value: RankValue,
     operators: Operators,
 ): RankValue {
+    checkValueMutable(record);
     const previous = record.entries.get(field);
     if (previous === undefined) {
         throw new RankError(`unknown record field: .${field}`);

@@ -1,5 +1,6 @@
 import { numbersModule } from './numbers.js';
 import { checkpoint } from '../interrupt.js';
+import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
 import { demandValue } from '../plan.js';
 import { ownedArray } from '../array-storage.js';
@@ -430,6 +431,7 @@ export function structureWrite(
     target: RankValue, selectors: readonly RankValue[], operator: string, operators: Operators,
 ): ((value: RankValue) => RankValue | undefined) | undefined {
     const combine = operator === '=' ? undefined : operator.slice(0, -1);
+    if (isRankIndex(target) || isRankFenwick(target) || isRankSegment(target)) checkValueMutable(target);
     if (isRankIndex(target)) {
         const key = indexKey(selectors);
         return value => {

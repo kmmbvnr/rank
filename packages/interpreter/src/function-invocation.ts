@@ -230,6 +230,11 @@ export class FunctionInvocation {
                 return definition && this.userResultCellShape(definition, context, new Map(), [left, right]);
             },
             captures: this.bindings.current?.captures(),
+            captureValues: () => plain ? this.bindings.withFrame(context, () => stages!.map(stage => {
+                const head = stage[0];
+                if (!isNameExpression(head)) throw new RankError('Pipeline stage must name a function');
+                return resolve(head.name);
+            })) : alternatives.values(),
             call: args => {
                 if (plain) return this.bindings.withFrame(context, () => {
                     let operands = args;
@@ -258,6 +263,7 @@ export class FunctionInvocation {
             const frozen: NativeFunction = {
                 ...fn,
                 snapshot: () => frozen,
+                captureValues: () => operations,
                 lazySafe: () => operations.every(isPureLazyFunction),
                 call: args => {
                     if (plain) {
@@ -314,6 +320,17 @@ export class FunctionInvocation {
             }
         }
         return result;
+    }
+
+    private *captureValues(statement: FunctionStatement, context: LocalFrame | undefined): IterableIterator<RankValue> {
+        const scope = functionScope(statement);
+        if (!scope) return;
+        const bindings = new Set([...scope.reads.values(), ...[...scope.captures].filter(binding =>
+            lexicalBinding(scope.scope, binding.name) === binding)]);
+        for (const binding of bindings) {
+            if (binding.scope.owner === statement) continue;
+            yield this.bindings.withFrame(context, () => this.host.resolve(binding.name));
+        }
     }
 
     private lazySafe(fn: NativeFunction, seen = new Set<NativeFunction>(), checkParameters = true): boolean {
@@ -419,6 +436,7 @@ export class FunctionInvocation {
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
             captures: context?.captures(),
+            captureValues: () => this.captureValues(statement, context),
             snapshot: () => this.snapshot(fn),
             lazySafe: () => this.lazySafe(fn),
             // What a caller outside the runtime reaches. A Rank call made from a

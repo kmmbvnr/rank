@@ -248,7 +248,10 @@ export class Interpreter {
             locate: (error, statement) => this.locateError(error, statement),
         };
         this.writes = {
-            protect: (names, plan) => { for (const name of names) this.protect(name, plan); },
+            protect: (names, plan) => {
+                const publish = names.map(name => this.protect(name, plan));
+                return () => { for (const apply of publish) apply(); };
+            },
             defer: expression => this.expressions.defer(expression),
             checkArrayWrite: (name, target, values, offsets) => this.checkArrayWrite(name, target, values, offsets),
             evaluate: expression => this.expressions.evaluate(expression),
@@ -533,10 +536,10 @@ export class Interpreter {
         return value;
     }
 
-    private protect(name: string, plan: string): void {
+    private protect(name: string, plan: string): () => void {
         const qualified = splitQualified(name);
-        if (qualified) this.aliases.get(qualified.alias)?.protect(qualified.member, plan);
-        else this.bindings.protect(name, plan);
+        if (qualified) return this.aliases.get(qualified.alias)?.protect(qualified.member, plan) ?? (() => undefined);
+        return this.bindings.protect(name, plan);
     }
 
     private checkMutable(name: string, local = false): void {

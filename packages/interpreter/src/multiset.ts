@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { noteArrayBinding } from './array-storage.js';
 import { StoredValueSummary } from './stored-value.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -37,6 +38,7 @@ export class RankMultiset {
     }
 
     add(value: RankValue): this {
+        checkValueMutable(this);
         if (this.unique && this.has(value)) return this;
         const kind = orderedKind(value);
         if (this.valueKind !== undefined && kind !== this.valueKind) {
@@ -51,6 +53,7 @@ export class RankMultiset {
     }
 
     remove(value: RankValue): this {
+        checkValueMutable(this);
         if (!this.root) {
             throw new MissingValueError('multiset does not contain the value');
         }

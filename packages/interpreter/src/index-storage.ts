@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { currentDiagnostics } from './diagnostics.js';
 import type { IndexKey } from './index-key.js';
 import type { RankIndex, RankValue } from './value.js';
@@ -59,6 +60,7 @@ export function indexHas(index: RankIndex, key: IndexKey): boolean {
 }
 
 export function indexSet(index: RankIndex, key: IndexKey, value: RankValue): void {
+    checkValueMutable(index);
     index.entries.set(key, value);
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.indexWrites++;

@@ -1,4 +1,5 @@
 import { isRankPlan } from './plan.js';
+import { prepareCaptureProtection } from './capture-protection.js';
 import { flatArrayBorrowProofs, deferredBindingMessage, type LastArrayUseProof, type FunctionStatement } from '@arrrank/language';
 import { isFlatScalarArray, isSharedArray } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
@@ -86,6 +87,7 @@ export class FunctionFrames {
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
             && !prepared.borrowedParameters.has(signature.parameters[index].name))
             ? this.borrowCandidates(statement, parent) : undefined;
+        const protections: (() => void)[] = [];
         signature.parameters.forEach(({ name: parameter, index, acceptsFunction, deferred }) => {
             const argument = arguments_[index];
             const guards = candidates?.get(index);
@@ -98,8 +100,13 @@ export class FunctionFrames {
             }
             if (isRankPlan(argument)) frame.set(parameter, argument);
             else frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
-            if (deferred) frame.protectName(parameter, deferredBindingMessage(parameter));
+            if (deferred) {
+                const message = deferredBindingMessage(parameter);
+                const publish = prepareCaptureProtection(argument, message);
+                protections.push(() => { publish(); frame.protectName(parameter, message); });
+            }
         });
+        for (const protect of protections) protect();
         if (arguments_.some(isFlatScalarArray)) this.inputs.set(frame, arguments_);
         else this.inputs.delete(frame);
         return frame;

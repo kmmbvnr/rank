@@ -1,3 +1,4 @@
+import { checkValueMutable } from '../value-protection.js';
 import { registerScalarBuiltin } from '../scalar-builtin.js';
 import { findOperation, instantiateShapeSignature } from '@arrrank/language';
 import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
@@ -55,6 +56,7 @@ export function native(
                     `${name} expects ${arities.join(' or ')} argument, got ${arguments_.length}`,
                 );
             }
+            if (operation?.effects?.includes('mutates') && arguments_[0] !== undefined) checkValueMutable(arguments_[0]);
             if (!interruptsEnabled()) return call(arguments_);
             checkInterrupt(name);
             const result = call(arguments_);

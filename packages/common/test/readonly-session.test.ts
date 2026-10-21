@@ -20,8 +20,8 @@ describe('plan protection in notebook sessions', () => {
     it('checks preview mutations without altering the retained session', async () => {
         const session = createReplSession();
         try {
-            expect((await session.execute("use algo\nQ = new queue\nPlan' = Q len", 0, [], 80, true)).ok).toBe(true);
-            const preview = session.preview('Q push 9');
+            expect((await session.execute("use algo\nQ = new queue\nAlias = Q\nPlan' = Q len", 0, [], 80, true)).ok).toBe(true);
+            const preview = session.preview('Alias push 9');
             expect(preview.ok).toBe(false);
             expect(preview.output.some(line => line.error && line.text.includes('Q is read-only'))).toBe(true);
             const result = await session.execute('Plan', 1, [], 80, true);

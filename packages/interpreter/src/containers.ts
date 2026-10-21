@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import { noteArrayBinding } from './array-storage.js';
@@ -39,6 +40,7 @@ export class RankDeque {
         return this.typeSummary.types;
     }
     push(value: RankValue): this {
+        checkValueMutable(this);
         this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
         this.stored.include(value);
@@ -49,6 +51,7 @@ export class RankDeque {
         return this;
     }
     pushFront(value: RankValue): this {
+        checkValueMutable(this);
         this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
         this.stored.include(value);
@@ -64,6 +67,7 @@ export class RankDeque {
             : this.entries.get(back ? this.last - 1 : this.first)!;
     }
     pop(back = this.mode === 'stack'): RankValue {
+        checkValueMutable(this);
         const value = this.peek(back);
         this.typeSummary = undefined;
         if (this.stack && back) { this.stack.pop(); return value; }
@@ -99,6 +103,9 @@ export class RankHeap {
 
     get size(): number { return this.entries.length; }
     *values(): IterableIterator<RankValue> { for (const entry of this.entries) yield entry.value; }
+    *retainedValues(): IterableIterator<RankValue> {
+        for (const entry of this.entries) { yield entry.value; yield entry.priority; }
+    }
     private entry(value: RankValue, priority: RankValue): HeapEntry {
         const kind = orderedKind(priority);
         if (typeof priority === 'number' && Number.isNaN(priority)) throw new RankError('heap priority cannot be NaN');
@@ -114,6 +121,7 @@ export class RankHeap {
         return { value, priority, order: this.nextOrder++ };
     }
     push(value: RankValue, priority: RankValue = value): this {
+        checkValueMutable(this);
         const entry = this.entry(value, priority);
         let index = this.entries.length;
         this.entries.push(entry);
@@ -127,6 +135,7 @@ export class RankHeap {
         return this;
     }
     fill(priorities: readonly RankValue[], values: readonly RankValue[]): this {
+        checkValueMutable(this);
         if (this.size) throw new RankError('heap must be empty before filling it');
         if (priorities.length !== values.length) throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
         for (let index = 0; index < values.length; index++) {
@@ -139,6 +148,7 @@ export class RankHeap {
     }
     /** Copy payloads without changing priorities, heap layout or tie order. */
     copyValuesFrom(source: RankHeap, values: readonly RankValue[]): this {
+        checkValueMutable(this);
         if (this.size || values.length !== source.size || this.descending !== source.descending) {
             throw new RankError('heap payload copy requires an empty matching heap');
         }
@@ -153,6 +163,7 @@ export class RankHeap {
         return this.entries[0].value;
     }
     pop(): RankValue {
+        checkValueMutable(this);
         const value = this.peek();
         const last = this.entries.pop()!;
         if (!this.size) { this.priorityKind = undefined; this.nextOrder = 0; return value; }
@@ -177,7 +188,7 @@ export class RankHeap {
 }
 
 export function expectPushCollection(receiver: RankValue): RankQueue | RankHeap {
-    if (receiver instanceof RankHeap || isRankQueue(receiver)) return receiver;
+    if (receiver instanceof RankHeap || isRankQueue(receiver)) { checkValueMutable(receiver); return receiver; }
     throw new RankError('push expects a queue, deque, stack or heap receiver');
 }
 
@@ -194,6 +205,7 @@ export function pushCollection(receiver: RankValue, value: RankValue): RankValue
 }
 
 export function peekCollection(receiver: RankValue, remove: boolean): RankValue {
+    if (remove) checkValueMutable(receiver);
     if (receiver instanceof RankDeque || receiver instanceof RankHeap) return remove ? receiver.pop() : receiver.peek();
     if (isRankQueue(receiver)) {
         if (!receiver.items.length) throw new MissingValueError('queue is empty');
