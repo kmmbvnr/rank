@@ -21,8 +21,8 @@ describe('short-circuiting sequence selectors', () => {
     it('stops an unbounded sequence at its first match', () => {
         expect(run([
             'use sequences',
-            'Candidates = primes',
-            'Mask = Candidates greater 100',
+            "Candidates' = primes",
+            "Mask' = Candidates greater 100",
             'Candidates first where Mask',
         ].join('\n'))).toBe('101');
         expect(run('use sequences\nprimes first where greater 100')).toBe('101');

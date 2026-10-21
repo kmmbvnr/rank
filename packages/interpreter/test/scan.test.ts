@@ -52,7 +52,7 @@ describe('scan modifier', () => {
     it('keeps sequence scans lazy, including unbounded sources', () => {
         expect(run([
             'use sequences',
-            'Prefix = primes scan + with 0',
+            "Prefix' = primes scan + with 0",
             'Prefix 4',
         ].join('\n'))).toBe('17');
     });
@@ -64,7 +64,7 @@ describe('scan modifier', () => {
         expect(run(setup + '(array 2 3 4) scan combine sum')).toBe('16');
         expect(run(setup + 'Empty = array shape 0 fill 0\nEmpty scan combine with 7')).toBe('7');
         expect(run(setup + 'Empty = array shape 0 fill 0\nEmpty scan combine len')).toBe('0');
-        expect(run(setup + 'Prefix = primes scan combine with 0\nPrefix 4')).toBe('17');
+        expect(run(setup + "Prefix' = primes scan combine with 0\nPrefix 4")).toBe('17');
     });
 
     it('accepts min and max as named scan operations', () => {

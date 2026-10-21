@@ -2603,14 +2603,16 @@ Materialize a lazy value before storing it in a container that will leave the
 call. Converting a queue to an array or copying that array does not evaluate
 lazy sequences stored inside its elements.
 
-Lazy operations record the current values of external dependencies when the
-operation is created. This includes module data and dependencies read through
-called helpers. Later reassignment does not change the pipeline. Scalar values
-and owned scalar arrays support capture snapshots; array storage is shared
-through copy-on-write without copying cells at creation. Mutable containers,
-resources and arbitrary lazy values cannot be captured by a lazy operation;
-pass explicit operands or materialize the data first. Ordinary direct calls
-read current values each time.
+A named callback captured by a plan retains the current values of its external
+dependencies, including module data and reads through called helpers. Later
+reassignment does not change the plan. Arrays keep copy-on-write storage;
+captured records and mutable containers reject writes through every alias.
+Resources retain their own state and are not restarted by an apostrophe.
+Ordinary direct calls read current enclosing bindings each time.
+
+Callbacks in plans may print, use randomness or call an unannotated host function.
+Each demand can repeat these effects. Bind the result without an apostrophe to
+compute it once and retain it. The read-only rules for captured state still apply.
 
 A multiline function may also be declared directly inside a `for` body:
 

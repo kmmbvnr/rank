@@ -2,81 +2,66 @@
 
 ## Sequences
 
-Ranges and algorithmic sources are sequences:
+Ranges and algorithmic sources build sequence plans. An apostrophe binding
+keeps the plan; an ordinary binding computes a finite result and stores an array:
 
 ```rank
-Range = 1 till 1000
-Primes = primes
+use sequences
+Range' = 1 till 1000
+Primes' = primes
 Fib = fibonacci to 4000000
 ```
 
-Sequences are lazy by default. Constructing, transforming or filtering a
-sequence builds a plan. A terminal operation such as `sum`, explicit
-materialization, or iteration demands values from that plan. A terminal
-operation that would consume an unbounded sequence is an error.
+`sum`, printing and iteration demand values. A bounded consumer such as `take`
+can stop before the source ends. Materializing a known-infinite result is an
+error; use an apostrophe to keep that source as a plan.
 
 `fibonacci` starts with `1 2 3 5 8 ...` and `primes` with `2 3 5 7 11 ...`.
 Both are infinite until a bound ends them, and both support ordinary
 zero-based sequence addressing:
 
 ```rank
-Fib = fibonacci to 100
+Fib' = fibonacci to 100
 SixthPrime = primes 5
 ```
 
-### Reusing pure sequences
+### Recomputing and retaining results
 
-A pure sequence may reuse computed items when the current program has multiple
-consumers. Direct aliases and ordinary helper parameters participate in this
-analysis. A source used by only one pipeline stage can remain a stream; naming
-an intermediate does not require saving its history. Cheap arithmetic ranges
-continue to compute their values directly. Constructor-certified membership
-queries and modular range selectors also keep their specialized plans.
+Each demand of an explicit plan recomputes its result. An ordinary binding
+retains a computed value for later use. The choice belongs to the program:
 
 ```rank
 use sequences
 fun X odd = X mod 2 equal 1
-Candidates = 1 to 100
-Selected = Candidates filter odd
+Candidates' = 1 to 100
+Selected' = Candidates filter odd
 Count = Selected len
 Total = Selected sum
+Saved = Selected
+Again = Saved sum
 ```
 
-Here the filter retains its 50 accepted values for the second read. It does not
-retain the 100 candidates. Readers have independent positions; reading a prefix
-does not force the tail. Completing a retained sequence also discovers its
-length, including zero for an empty result.
+`Count`, `Total` and `Saved` each run the filter. `Again` reads the stored array.
+A plan does not retain the accepted items automatically. Finite prefix consumers
+read only the values they need. Arithmetic ranges, membership queries and bounds
+may use specialized implementations while preserving these observations.
 
-Lazy sequence predicates, rank-0 callbacks and scan callbacks must be pure.
-They may use local working state, but cannot mutate their inputs, perform
-input/output, use randomness, or depend on changing external state. Copy an input
-before modifying it. Captures use the creation-time snapshots
-described under [local functions](control-functions.md#local-functions-and-closures).
-Unresolved callable behavior is rejected conservatively. Ordinary eager calls
-and effectful single-pass generators keep their existing contracts.
+Callbacks may perform effects, including printing or calling an unannotated
+host function. A later demand repeats those effects. Ordinary function bodies
+execute at the call; an outer apostrophe does not postpone their eager local
+bindings. Named callbacks retain their creation-time data dependencies as
+specified under [local functions](control-functions.md#local-functions-and-closures).
+Writes to captured record or container state remain forbidden through every
+alias. Purity can justify an optimization; it is not required to construct a plan.
 
-Caching is an optimization, not a promise never to recompute. In particular,
-future REPL commands are unknown when a sequence is created. A later command can
-reuse retained results or recompute a pure value. Existing stored native cursors
-and user generators keep their consumption and rewind rules.
+A failed computation does not retain its successful prefix. A later demand
+starts the computation again and may repeat the effects before the failure.
+Cancellation also leaves no computed result for later reuse. Single-pass
+resources keep their own consumption state: an apostrophe does not reopen an
+input stream or restart a generator.
 
-Retention is bounded. The default interpreter limit is 8 MiB of estimated
-payload per cached sequence; it counts scalar-array cells as well as outer
-items. It is not a measurement of JavaScript heap overhead. Crossing the limit,
-or encountering a result without a supported stable-value representation,
-discards that cache and continues streaming. Subsequent readers may recompute.
-Supported retained values include scalars and owned eager scalar arrays; Rank
-writes to a reader's array do not modify the retained value.
-
-A retained source failure is reported at its position on later reads. Host
-cancellation and preview-budget exhaustion are different: a later read may
-restart pure computation to recover the interrupted iterator. It does not replay
-an old cancellation event. A new budget must be sufficient to reach the requested
-position; interrupted work is not guaranteed to resume without recomputation.
-
-Use `array` when an operation needs an array's shape or indexing interface, and
-`copy` when materialized independent storage is needed. Neither is required solely
-to request reuse of a pure sequence with known repeated consumers.
+Use postfix `array` when an operation needs a sequence's array shape or indexing
+interface. Use an ordinary binding to keep that computed result.
 
 ## Open numeric ranges
 
@@ -85,9 +70,9 @@ marker, not a numeric infinity. Both `to #` and `till #` construct the same
 lazy, replayable sequence:
 
 ```rank
-N = 1 to #
-Odd = 1 to # by 2
-Down = 0 to # by -1
+N' = 1 to #
+Odd' = 1 to # by 2
+Down' = 0 to # by -1
 First = N take 4
 rem 1 2 3 4
 ```

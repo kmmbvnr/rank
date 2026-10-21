@@ -29,7 +29,7 @@ export function sequenceMask(
     source: RankSequence,
     predicate: SequencePredicate,
 ): RankSequenceMask {
-    const mapped = mapSequence(source, predicate.name, value => predicate.test(value), predicate.pure);
+    const mapped = mapSequence(source, predicate.name, value => predicate.test(value), predicate.pure, predicate.captures);
     return { kind: 'sequence', plan: mapped.plan, source, predicate };
 }
 
@@ -55,6 +55,7 @@ function filteredPlan(source: SequencePlan, predicate: SequencePredicate): Seque
         replay: source.replay && predicate.pure ? 'pure' : undefined,
         name: `${source.name} where ${predicate.name}`,
         singlePass: source.singlePass,
+        captures: [...source.captures ?? [], ...predicate.captures ?? []],
         size: filteredSize(source.size),
         *iterate() {
             for (const value of source.iterate()) {
@@ -132,12 +133,14 @@ export function mapSequence(
     name: string,
     operation: (value: RankValue) => RankValue,
     pure = false,
+    captures?: readonly ReadonlyMap<string, RankValue>[],
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} ${name}`,
         replay: sourcePlan.replay && pure ? 'pure' : undefined,
         singlePass: sourcePlan.singlePass,
+        captures: [...sourcePlan.captures ?? [], ...captures ?? []],
         size: sourcePlan.size,
         *iterate() {
             for (const value of sourcePlan.iterate()) yield operation(value);
@@ -151,6 +154,7 @@ export function scanSequence(
     seed: RankValue | undefined,
     operation: (left: RankValue, right: RankValue) => RankValue,
     pure = false,
+    captures?: readonly ReadonlyMap<string, RankValue>[],
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
@@ -158,7 +162,7 @@ export function scanSequence(
         replay: sourcePlan.replay && pure && typeof seed !== 'object' ? 'pure' : undefined,
         singlePass: sourcePlan.singlePass,
         size: scanSize(sourcePlan.size, seed !== undefined),
-        captures: sourcePlan.captures,
+        captures: [...sourcePlan.captures ?? [], ...captures ?? []],
         *iterate() {
             let accumulated = seed;
             if (accumulated !== undefined) yield accumulated;

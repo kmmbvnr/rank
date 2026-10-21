@@ -281,6 +281,7 @@ export interface NativeFunction {
 
 export interface SequencePredicate {
     readonly pure?: boolean;
+    readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly name: string;
     readonly optimizationKey?: string;
     readonly expression?: SequencePredicateExpression;

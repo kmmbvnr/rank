@@ -109,6 +109,7 @@ export class ApplicationEvaluator {
                 return fn.resultCellShape?.(shapes);
             };
             const withOperands = (fn: NativeFunction, fixed = args): NativeFunction => ({
+                captureValues: () => [fn, ...fixed],
                 snapshot: () => withOperands(fn.snapshot?.() ?? fn, fixed.map((value, index) =>
                     expression.dataParameters.includes(index) ? value : snapshotLazyOperand(value))),
                 lazySafe: () => isPureLazyFunction(fn),
