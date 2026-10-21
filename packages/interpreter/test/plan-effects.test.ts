@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
 
 const recipes = [
+    ['fun A B combine rank 0 0\n B print\n return A + B\nend',
+        '(array 1 2) (array 10 20) outer combine', 66n, ['10', '20', '10', '20']],
     ['fun X visible\n X print\n return true\nend', '1 to 3 filter visible', 6n, ['1', '2', '3']],
     ['fun X visible\n X print\n return X * 2\nend', '(1 to 3) visible rank 0', 12n, ['1', '2', '3']],
     ['fun X visible\n X print\n return X * 2\nend', '(array 1 2 3) visible rank 0', 12n, ['1', '2', '3']],

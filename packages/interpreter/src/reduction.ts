@@ -1,5 +1,5 @@
 import { elementSource } from './element-source.js';
-import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
+import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { standardModules } from './modules/index.js';
@@ -7,6 +7,7 @@ import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
 import { numericKernel } from './numeric-kernels.js';
+import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
@@ -16,17 +17,6 @@ const MAX_OFFSET_TABLE = 1 << 20;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 const array = (items: RankValue[]): RankArray => ownedArray(items);
-
-function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValue): RankArray {
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array', shape, itemAt,
-        get items() {
-            materialized ??= materializeCells(arraySize(shape), itemAt);
-            return materialized;
-        },
-    };
-}
 
 /** Numeric and axis reductions share validation, cell traversal and lazy frame assembly. */
 export class ReductionEvaluator {
@@ -57,7 +47,9 @@ export class ReductionEvaluator {
             const frameShape = value.shape.slice(0, value.shape.length - cellRank);
             const cellShape = value.shape.slice(value.shape.length - cellRank);
             const cellSize = arraySize(cellShape);
+            const producer = arrayCells(value) ? dyadicCells(value, cellRank, true) : undefined;
             return derivedArray(frameShape, [value], frameIndex => {
+                if (producer) return this.reduceCell(operator, producer.cellAt(frameIndex), seed);
                 const start = frameIndex * cellSize;
                 return cellRank === 0
                     ? this.reduceCell(operator, arrayItem(value, start), seed)
@@ -232,12 +224,14 @@ export class ReductionEvaluator {
         // Stored cells are read straight from their storage, through offsets
         // worked out once for the reduced axes instead of once per cell.
         const stored = denseScalarItems(value);
+        const producer = arrayCells(value) ? tensorCells(value, frameAxes) : undefined;
         let reducedOffsets: Int32Array | undefined;
         if (stored && reducedSize <= MAX_OFFSET_TABLE) {
             reducedOffsets = new Int32Array(reducedSize);
             for (let index = 0; index < reducedSize; index += 1) reducedOffsets[index] = offsetAt(index, reducedAxes);
         }
         const reduceAt = (frameIndex: number): RankValue => {
+            if (producer) return reducer.call([producer.cellAt(frameIndex)]);
             const start = offsetAt(frameIndex, frameAxes);
             const itemAt = stored && reducedOffsets
                 ? (index: number) => stored[start + reducedOffsets![index]]
@@ -270,8 +264,7 @@ export class ReductionEvaluator {
             const definition = standardModules[module][operation];
             return definition !== undefined && reducer === this.standardFunctions.get(definition);
         });
-        return builtin ? derivedArray(frameShape, [value], reduceAt, true)
-            : lazyArray(frameShape, reduceAt);
+        return derivedArray(frameShape, [value, reducer], reduceAt, builtin);
     }
 
     private reduceCell(operator: string, value: RankValue, seed?: RankValue): RankValue {
@@ -298,12 +291,17 @@ export class ReductionEvaluator {
         size: number,
         seed?: RankValue,
     ): RankValue {
-        if (size === 0) return seed === undefined ? reductionIdentity(operator) : seed;
         const operation = numericKernel(operator, (a, b) => this.binary(operator, a, b));
-        if (seed === undefined && this.isTensorFusion()) {
+        if (size > 0 && seed === undefined && this.isTensorFusion()) {
             const folded = reduceWindowCell(value, start, size, operation);
             if (folded !== undefined) return folded;
         }
+        if (start === 0 && size === arraySize(value.shape) && arrayValueTraversal(value)) {
+            let result = seed;
+            for (const item of arrayValues(value)) result = result === undefined ? item : operation(result, item);
+            return result === undefined ? reductionIdentity(operator) : result;
+        }
+        if (size === 0) return seed === undefined ? reductionIdentity(operator) : seed;
         let result = seed === undefined
             ? arrayItem(value, start)
             : operation(seed, arrayItem(value, start));

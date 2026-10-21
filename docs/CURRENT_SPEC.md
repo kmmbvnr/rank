@@ -3402,9 +3402,8 @@ selectors, previous cell values and right side are evaluated before any write.
 This gives both ordinary and compound assignment snapshot semantics when
 selections overlap.
 
-Lazy arrays produced by operations such as `outer` and `window` are not
-writable. Copy a finite result explicitly with postfix `copy` before changing
-its cells.
+Deferred results of `outer` and `window` are read-only recipes. Bind a finite
+result with `Saved = Plan`, or use postfix `copy`, before changing its cells.
 
 A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
@@ -3915,6 +3914,9 @@ observations, and an empty selection calls no producer. A loop completes its
 selected cell before entering the body, so an early `break` leaves later cells
 unevaluated.
 
+Ranked and axis reductions preserve this producer boundary. The identity of an
+empty reduction does not replace the callback that produces its input cell.
+
 An empty frame has no cells to call, but its result keeps the cell axes, so the
 result rank does not depend on whether the input is empty. A declared result
 shape takes precedence. If a pure standard-library function has no result-shape
@@ -4195,7 +4197,7 @@ The leading run that meets a condition is `till not Condition`; see
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary
-function immediately before it to every pair of cells:
+function immediately after it to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -4224,7 +4226,7 @@ pairing `A B outer *` has shape:
 
 The left frame axes come first and the right frame varies fastest. The operation
 must accept two arguments and currently must return a scalar for every pair.
-Both operands must be finite and restartable.
+Both operands must be finite.
 
 A range operand is addressed by arithmetic (`Start + Index * Step`), and so is arithmetic over ranges
 (`Range * 2 + 1`, `Range - Range`), so building the table reads nothing from them, however long they are. Any other operand of known size is read only as far as a demanded
@@ -4237,11 +4239,11 @@ A lazy array of a million cells or more is reduced one cell at a time by `sum` (
 compute each of them. An operation that must hold the whole array, such as `copy`, raises
 `array is too large to hold in memory` past 4294967295 cells.
 
-Construction is lazy and may compute a demanded pair again. A named function
-supplied to `outer` must therefore be pure: its result and observable behavior
-may depend only on its arguments and immutable captured values. The runtime does
-not yet prove this property; static effect analysis is tracked separately as
-tooling work.
+Ordinary binding completes the result; use `Pairs' = A B outer operation` to
+keep a recipe. Each observation recomputes the demanded pairs, including
+callback effects. An ordinary `Saved = Pairs` binding retains the completed
+result. A deferred assignment does not make a single-pass operand restartable;
+bind its completed data before reusing it.
 
 Explicit binary comparison rank and frame axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
@@ -6309,7 +6311,7 @@ array. All other axes keep their order and size.
 ## Outer
 
 `outer` is a higher-order modifier: the operator or named binary function
-immediately before it is applied to every pair of cells:
+immediately after it is applied to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -6353,11 +6355,11 @@ atom-pairing operations preserve all operand axes. Left frame axes come first
 and the right frame varies fastest. The operation must accept two arguments and
 currently must return a scalar for every pair.
 
-Both operands must be finite and restartable. Construction is lazy and may
-compute a demanded pair again. A named function supplied to `outer` must
-therefore be pure: its result and observable behavior may depend only on its
-arguments and immutable captured values. The runtime does not yet prove this
-property; static effect analysis is tracked separately as tooling work.
+Both operands must be finite. Ordinary binding completes the result; use
+`Pairs' = A B outer operation` to keep a recipe. Each observation recomputes
+the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
+binding retains the completed result. A deferred assignment does not make a
+single-pass operand restartable; bind its completed data before reusing it.
 
 Explicit binary comparison rank and frame axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.

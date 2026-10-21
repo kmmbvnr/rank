@@ -5,7 +5,7 @@ import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
-import { denseScalarItems, evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
+import { denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexHas, indexKey } from './index-storage.js';
@@ -121,7 +121,7 @@ export class Operators {
         const rightFrames = arraySize(b.frameShape);
         const scalar = this.scalarCallback(operation);
         requireIndexable([...a.frameShape, ...b.frameShape]);
-        return lazyArray([...a.frameShape, ...b.frameShape], index => {
+        return derivedArray([...a.frameShape, ...b.frameShape], [left, right, a.source, b.source, operation], index => {
             const arguments_ = [
                 a.cellAt(Math.floor(index / rightFrames)),
                 b.cellAt(index % rightFrames),
@@ -482,7 +482,7 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
         const read: RankValue[] = [];
         let source: Iterator<RankValue> | undefined;
         const direct = value.plan.at;
-        return lazyArray([size], index => {
+        return derivedArray([size], [value], index => {
             // A plan that can address its items (a range, arithmetic over one) is not read at all.
             const addressed = direct?.call(value.plan, BigInt(index));
             if (addressed !== undefined) return addressed;
@@ -504,40 +504,12 @@ function outerCells(
     value: RankValue,
     rank: IntrinsicRank,
     side: 'left' | 'right',
-): OuterCells {
+): OuterCells & { source: RankArray } {
     const source = outerOperand(value, side);
-    const receivesWhole = rank === 'all' || rank >= source.shape.length;
-    const cellRank = rank === 'all' ? source.shape.length : Math.min(rank, source.shape.length);
-    const frameShape = source.shape.slice(0, source.shape.length - cellRank);
-    const cellShape = source.shape.slice(source.shape.length - cellRank);
-    const cellSize = arraySize(cellShape);
+    const cells = dyadicCells(source, rank);
     return {
-        frameShape,
-        cellShape,
-        cellAt(frameIndex) {
-            if (receivesWhole) return value;
-            const start = frameIndex * cellSize;
-            if (cellRank === 0) return readArrayItem(source, start);
-            return derivedArray(cellShape, [source], index => readArrayItem(source, start + index));
-        },
-    };
-}
-
-function lazyArray(
-    shape: readonly number[],
-    itemAt: (index: number) => RankValue,
-    fileFree = false,
-): RankArray {
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        containsFiles: fileFree ? false : undefined,
-        get items() {
-            materialized ??= materializeCells(arraySize(shape), itemAt);
-            return materialized;
-        },
+        ...cells, source,
+        cellAt: cells.frameShape.length === 0 && !isRankSequence(value) ? () => value : cells.cellAt,
     };
 }
 

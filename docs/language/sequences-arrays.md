@@ -665,9 +665,8 @@ selectors, previous cell values and right side are evaluated before any write.
 This gives both ordinary and compound assignment snapshot semantics when
 selections overlap.
 
-Lazy arrays produced by operations such as `outer` and `window` are not
-writable. Copy a finite result explicitly with postfix `copy` before changing
-its cells.
+Deferred results of `outer` and `window` are read-only recipes. Bind a finite
+result with `Saved = Plan`, or use postfix `copy`, before changing its cells.
 
 A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
@@ -1667,7 +1666,7 @@ The leading run that meets a condition is `till not Condition`; see
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary
-function immediately before it to every pair of cells:
+function immediately after it to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -1695,13 +1694,11 @@ pairing `A B outer *` has shape:
 
 The left frame axes come first and the right frame varies fastest. The operation
 must accept two arguments and currently must return a scalar for every pair.
-Both operands must be finite and restartable.
-
-Construction is lazy and may compute a demanded pair again. A named function
-supplied to `outer` must therefore be pure: its result and observable behavior
-may depend only on its arguments and immutable captured values. The runtime does
-not yet prove this property; static effect analysis is tracked separately as
-tooling work.
+Both operands must be finite. Ordinary binding completes the result; use
+`Pairs' = A B outer operation` to keep a recipe. Each observation recomputes
+the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
+binding retains the completed result. A deferred assignment does not make a
+single-pass operand restartable; bind its completed data before reusing it.
 
 For paired cells with broadcasting, use the [ranked-call forms](#rank).
 `outer` instead forms all pairs using the supplied operation's intrinsic ranks.

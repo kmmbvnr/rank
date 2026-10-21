@@ -484,7 +484,7 @@ array. All other axes keep their order and size.
 ## Outer
 
 `outer` is a higher-order modifier: the operator or named binary function
-immediately before it is applied to every pair of cells:
+immediately after it is applied to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -504,11 +504,11 @@ atom-pairing operations preserve all operand axes. Left frame axes come first
 and the right frame varies fastest. The operation must accept two arguments and
 currently must return a scalar for every pair.
 
-Both operands must be finite and restartable. Construction is lazy and may
-compute a demanded pair again. A named function supplied to `outer` must
-therefore be pure: its result and observable behavior may depend only on its
-arguments and immutable captured values. The runtime does not yet prove this
-property; static effect analysis is tracked separately as tooling work.
+Both operands must be finite. Ordinary binding completes the result; use
+`Pairs' = A B outer operation` to keep a recipe. Each observation recomputes
+the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
+binding retains the completed result. A deferred assignment does not make a
+single-pass operand restartable; bind its completed data before reusing it.
 
 For paired cells with broadcasting, use the
 [ranked-call forms](sequences-arrays.md#rank). `outer` instead forms all pairs

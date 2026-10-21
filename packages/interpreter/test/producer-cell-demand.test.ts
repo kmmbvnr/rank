@@ -151,3 +151,48 @@ end`);
         expect(output).toEqual(['1']);
     } finally { runtime.dispose(); }
 });
+
+describe.each([false, true])('reducing empty producer cells (compilation=%s)', compilation => {
+    it.each([
+        ['Rows reduce + rank 1 with 0', [2]], ['Rows reduce + with 0', null],
+        ['Rows reduce max with 0', null],
+        ['Rows sum axis 1', [2]], ['Rows sum rank 1', [2]],
+        ['Rows (array 0) outer width', [2, 1]],
+    ] as const)('%s executes its selected producers', (expression, shape) => {
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line), { compilation });
+        try {
+            runtime.execute(`use io
+fun A B width rank 1 0 = A len + B
+fun X empty
+ X print
+ return array shape 0 fill 0
+end
+Rows' = (array 1 2) empty rank 0`);
+            expect(output).toEqual([]);
+            runtime.execute(`Saved = ${expression}`);
+            expect(output).toEqual(['1', '2']);
+            const saved = runtime.variables.get('Saved')!;
+            if (shape) expect(array(saved).shape).toEqual(shape);
+            else expect(saved).toBe(0n);
+            expect(runtime.execute('Saved sum')).toBe(0n);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each(['Rows max axis 1', 'Rows mean axis 1', 'Rows reduce - rank 1'])('%s stops at the first invalid empty cell after producing it', expression => {
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line), { compilation });
+        try {
+            runtime.execute(`use io
+use stats
+fun X empty
+ X print
+ return array shape 0 fill 0
+end
+Rows' = (array 1 2) empty rank 0`);
+            expect(() => runtime.execute(`Saved = ${expression}`)).toThrow(/empty|at least one/);
+            expect(output).toEqual(['1']);
+            expect(runtime.variables.has('Saved')).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+});

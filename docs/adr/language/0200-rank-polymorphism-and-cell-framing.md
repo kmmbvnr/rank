@@ -92,6 +92,8 @@ Selecting a whole empty result cell invokes that cell's producer and checks its
 shape. A view retains the selected producer geometry through indexing, gathers,
 `take` and `drop`. It does not invoke unrelated frame cells. Duplicate indices
 observe their producer separately; a selection with an empty frame invokes none.
+Ranked and axis reductions preserve the same demand boundary. An empty result
+cell's reduction identity does not replace the call that produces that cell.
 
 An empty frame also differs from a nonempty frame of empty input cells: shape `2 0` at rank
 1 contains two vectors, and `sum` produces two zeros. Declared cell constraints
