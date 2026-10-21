@@ -1,0 +1,99 @@
+rem Sequence of Points on a Hyperbola
+rem https://projecteuler.net/problem=422
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option N integer = 379749833583241
+
+rem With u = 25 q the points are
+rem x = 3q + 4/q and y = 4q - 3/q,
+rem q(n) = q(n-2) / q(n-1) with
+rem q(1) = 4, q(2) = -3/2. So q(n) =
+rem +-2^a 3^b with a(n) = a(n-2) -
+rem a(n-1), a = 2, -1, and b = 0, 1.
+rem Exponents come from a 2x2 matrix
+rem power mod P - 1. The fractions
+rem reduce by a factor that depends
+rem on the signs of a and b, which
+rem repeat with the parity of n.
+P = 1000000007
+Q = P - 1
+Al = array shape 41 fill 0
+Be = array shape 41 fill 0
+Al 1 = 2
+Al 2 = -1
+Be 2 = 1
+for K in 3 to 40
+  Al K = Al (K - 2) - Al (K - 1)
+  Be K = Be (K - 2) - Be (K - 1)
+end
+T = N
+if N greater 40
+  T = 40 - N mod 2
+end
+Sa = Al T greater 0
+Sb = Be T greater 0
+rem v(n) = F^(n-1) v(1).
+Fm = (array 0 1 1 (Q - 1)) reshape 2 2
+Rm = (array 1 0 0 1) reshape 2 2
+Em = N - 1
+for Em greater 0
+  if Em mod 2 equal 1
+    Rm = Rm Fm matmul mod Q
+  end
+  Fm = Fm Fm matmul mod Q
+  Em //= 2
+end
+Am = (2 * Rm 0 0 - Rm 0 1) mod Q
+Bm = Rm 0 1
+Aa = Am
+if not Sa
+  Aa = (Q - Am) mod Q
+end
+Ab = Bm
+if not Sb
+  Ab = (Q - Bm) mod Q
+end
+P2 = 2 Aa P powmod
+P3 = 3 Ab P powmod
+Nn = 1
+Dd = 1
+if Sa
+  Nn = P2
+else
+  Dd = P2
+end
+if Sb
+  Nn = Nn * P3 mod P
+else
+  Dd = Dd * P3 mod P
+end
+Gx = 1
+Gy = 1
+if Sa
+  Gx = 4
+else
+  Gy = 4
+end
+if Sb
+  Gy *= 3
+else
+  Gx *= 3
+end
+Sg = -1
+if N mod 3 equal 1
+  Sg = 1
+end
+Xd = Nn * Dd mod P
+Xn = (3 * Nn * Nn + 4 * Dd * Dd) mod P
+Yn = (4 * Nn * Nn - 3 * Dd * Dd) mod P
+Ix = Gx (P - 2) P powmod
+Iy = Gy (P - 2) P powmod
+Tot = Sg * Xn * Ix + Xd * Ix
+Tot += Sg * Yn * Iy + Xd * Iy
+Answer = Tot mod P
+Answer print

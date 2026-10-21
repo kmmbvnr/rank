@@ -1,0 +1,34 @@
+use testing
+
+test "statement checksum"
+  use "422_hyperbola"
+  N = 7
+  run
+  Answer equal 806236837
+end
+
+test "early points"
+  use "422_hyperbola"
+  N = 3
+  run
+  Answer equal 999999785
+  N = 4
+  run
+  Answer equal 1386
+end
+
+test "exact rational references"
+  use "422_hyperbola"
+  N = 14
+  run
+  Answer equal 976371267
+  N = 25
+  run
+  Answer equal 589144558
+end
+
+test "default input"
+  use "422_hyperbola"
+  run
+  Answer equal 92060460
+end
