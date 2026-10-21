@@ -222,7 +222,23 @@ export function createLoopExpressions(state: LoopCompilationState) {
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
-        if (numberMode) return undefined;
+        if (numberMode) {
+            if (operation.module !== 'bits' || operation.name !== 'band') return undefined;
+            const arguments_: string[] = [];
+            for (const operand of operands) {
+                const value = emit(operand, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                const name = `v${state.serial++}`;
+                // Number bitwise operators truncate to signed Int32. Wider
+                // integers must discard the private attempt and replay exactly.
+                lines.push(`const ${name} = int32(${value.code});`);
+                arguments_.push(name);
+            }
+            builtins.set(operation.name, operation.module);
+            const name = `v${state.serial++}`;
+            lines.push(`const ${name} = ${arguments_[0]} & ${arguments_[1]};`);
+            return { code: name, type: 'integer' };
+        }
         const signature = operation.compiledCall!;
         const arguments_: string[] = [];
         const types: string[] = [];

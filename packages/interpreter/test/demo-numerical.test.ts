@@ -4,6 +4,24 @@ import { Interpreter, RuntimeDiagnostics, isNativeFunction, isRankQueue, type Ra
 import { createArraySnapshot } from '../src/array-storage.js';
 
 describe('numerical demo host oracles', () => {
+    it.each([[10, 4n], [100, 82073668n], [10000, 73808307n]])('runs Euler 337 at limit %s on both numeric backends and the interpreter', (limit, expected) => {
+        const source = readFileSync(new URL('../../../demos/euler/337_totientstairs.ra', import.meta.url), 'utf8');
+        for (const options of [{}, { numberLoopCompilation: false }, { compilation: false }]) {
+            const output: string[] = [];
+            const runtime = new Interpreter(text => output.push(text), { ...options, args: [`--limit=${limit}`] });
+            const diagnostics = new RuntimeDiagnostics();
+            try {
+                diagnostics.run(() => runtime.execute(source));
+                expect(output.join('').trim()).toBe(String(expected));
+                if (!('numberLoopCompilation' in options) && !('compilation' in options)) {
+                    expect(diagnostics.numberLoops).toBe(2);
+                    expect(diagnostics.numberLoopOverflows).toBe(0);
+                    expect(diagnostics.typedUnpacks).toBe(0);
+                }
+            } finally { runtime.dispose(); }
+        }
+    });
+
     it('returns a distance matrix from the unchanged Cody pair-distances demo', () => {
         const runtime = new Interpreter();
         try {

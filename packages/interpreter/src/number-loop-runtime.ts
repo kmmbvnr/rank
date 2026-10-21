@@ -14,6 +14,10 @@ function safe(value: number): number {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
 }
+function int32(value: number): number {
+    if (value !== (value | 0)) throw overflow;
+    return value;
+}
 const rankInteger = (value: unknown): RankValue | undefined =>
     typeof value === 'number' ? BigInt(value) : value as RankValue | undefined;
 
@@ -61,8 +65,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', source)(
-            safe, overflow, () => new RankError('division by zero'),
+        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', source)(
+            safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
             (name: string) => new RankError(`${name} expects a nonnegative integer count`),

@@ -729,8 +729,11 @@ The Number specialization accepts safe integer/boolean scalars, supported nested
 numeric/conditional loops, and rank-one eager stored integer arrays, including
 direct traversal of a named vector. It proves
 scalar and destination binding stores cannot fail their contracts before deferring
-them. Calls, collection mutation, array rebinding, returns, arbitrary iterators,
-lazy arrays and unsupported contracts retain the BigInt backend. Most array reads
+them. `band` is inlined when both operands fit signed Int32; wider operands discard
+the private attempt and replay through the exact backend. The builtin's identity
+is checked on every entry. Other calls, collection mutation, array rebinding,
+returns, arbitrary iterators, lazy arrays and unsupported contracts retain the
+BigInt backend. Most array reads
 use an invocation-owned Float64 buffer after checking every cell's type and
 magnitude; there is no retained numeric mirror. Single-pass packed-array scans
 can instead read their original buffer, as described below. Every indexed read
