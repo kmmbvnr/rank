@@ -45,25 +45,31 @@ if (option('worker')) {
     assert.ok(Number.isInteger(trials) && trials > 0);
     assert.ok(Number.isInteger(timeout) && timeout > 0);
     const diagnostics = process.argv.includes('--diagnostics');
+    const baseline = option('baseline');
+    const runtimes = [...(baseline ? [{ runtime: 'baseline', path: resolve(baseline) }] : []),
+        { runtime: 'candidate', path: runtimePath }];
     console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model, runtimePath,
-        timings: 'fresh sequential processes; execution includes parsing and setup; diagnostic runs are separate', diagnostics }));
-    const samples = new Map(selected.map(mode => [mode, []]));
+        ...(baseline ? { baseline: resolve(baseline) } : {}),
+        timings: 'fresh sequential processes; alternating runtime order; execution includes parsing and setup; diagnostic runs are separate', diagnostics }));
+    const samples = new Map(selected.flatMap(mode => runtimes.map(({ runtime }) => [`${runtime}:${mode}`, []])));
     for (let trial = 0; trial < trials; trial++) {
         for (const mode of trial % 2 ? [...selected].reverse() : selected) {
-            const start = performance.now();
-            const worker = spawnSync(process.execPath, [import.meta.filename, `--worker=${mode}`,
-                `--digits=${digits}`, `--runtime=${runtimePath}`, ...(diagnostics ? ['--diagnostics'] : [])],
-            { encoding: 'utf8', timeout });
-            assert.ifError(worker.error);
-            assert.equal(worker.status, 0, worker.stderr);
-            const sample = { trial, processMs: performance.now() - start, ...JSON.parse(worker.stdout) };
-            samples.get(mode).push(sample);
-            console.log(JSON.stringify(sample));
+            for (const { runtime, path } of trial % 2 ? [...runtimes].reverse() : runtimes) {
+                const start = performance.now();
+                const worker = spawnSync(process.execPath, [import.meta.filename, `--worker=${mode}`,
+                    `--digits=${digits}`, `--runtime=${path}`, ...(diagnostics ? ['--diagnostics'] : [])],
+                { encoding: 'utf8', timeout });
+                assert.ifError(worker.error);
+                assert.equal(worker.status, 0, worker.stderr);
+                const sample = { trial, runtime, processMs: performance.now() - start, ...JSON.parse(worker.stdout) };
+                samples.get(`${runtime}:${mode}`).push(sample);
+                console.log(JSON.stringify(sample));
+            }
         }
     }
-    for (const [mode, values] of samples) {
+    for (const values of samples.values()) {
         const median = key => values.map(value => value[key]).sort((a, b) => a - b)[Math.floor(values.length / 2)];
-        console.log(JSON.stringify({ mode, digits, samples: values.length,
+        console.log(JSON.stringify({ runtime: values[0].runtime, mode: values[0].mode, digits, samples: values.length,
             medianExecuteMs: median('executeMs'), medianCpuMs: median('cpuMs'),
             medianProcessMs: median('processMs'), medianMaxRssKiB: median('maxRssKiB') }));
     }
