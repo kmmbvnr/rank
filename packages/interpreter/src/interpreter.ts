@@ -6,6 +6,7 @@ import {
 } from '@arrrank/language';
 import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
+import { MutationGuards } from './mutation-guards.js';
 import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
 import { bindInputs } from './cli-args.js';
 import { CheckedInputContracts } from './checked-input.js';
@@ -77,6 +78,9 @@ export class Interpreter {
     private syntheticNames: ReadonlySet<string> = new Set();
 
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
+    private readonly mutations = new MutationGuards(
+        (name, local) => this.checkMutable(name, local), (error, node) => this.locateError(error, node),
+    );
     private readonly resources = new ResourceOwnership();
     private readonly checkedInputs = new CheckedInputContracts();
     private readonly operators = new Operators(value => this.resources.ownFiles(value),
@@ -168,6 +172,7 @@ export class Interpreter {
             (fn, source, axes) => this.functions.arrayBatch(fn, source, axes),
         );
         this.fastPaths = new FastPaths({
+            checkMutation: statement => this.mutations.statement(statement),
             bindings: this.bindings,
             modules: this.modules,
             builtins: this.builtins,
@@ -222,7 +227,7 @@ export class Interpreter {
         this.blocks = new BlockExecution({
             bindings: this.bindings,
             fastPaths: this.fastPaths,
-            prepare: statement => prepareStatement(statement, this.statements),
+            prepare: statement => this.mutations.wrap(statement, prepareStatement(statement, this.statements)),
             point: statement => this.inspection.point(statement),
             locate: (error, node) => this.locateError(error, node),
             syntheticNames: () => this.syntheticNames,
@@ -243,6 +248,7 @@ export class Interpreter {
             locate: (error, statement) => this.locateError(error, statement),
         };
         this.writes = {
+            protect: (names, plan) => { for (const name of names) this.protect(name, plan); },
             defer: expression => this.expressions.defer(expression),
             checkArrayWrite: (name, target, values, offsets) => this.checkArrayWrite(name, target, values, offsets),
             evaluate: expression => this.expressions.evaluate(expression),
@@ -317,6 +323,7 @@ export class Interpreter {
         const scopeError = functionScopeDiagnostics(program)[0];
         if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
+        this.mutations.program(program);
         const declarations = new Map<string, FunctionStatement>();
         const initial = new Map<string, ValueFacts>();
         for (const [name, value] of this.variables) {
@@ -524,6 +531,18 @@ export class Interpreter {
             throw new RankError(`unknown variable: ${name}`);
         }
         return value;
+    }
+
+    private protect(name: string, plan: string): void {
+        const qualified = splitQualified(name);
+        if (qualified) this.aliases.get(qualified.alias)?.protect(qualified.member, plan);
+        else this.bindings.protect(name, plan);
+    }
+
+    private checkMutable(name: string, local = false): void {
+        const qualified = splitQualified(name);
+        if (qualified) this.aliases.get(qualified.alias)?.checkMutable(qualified.member);
+        else this.bindings.checkMutable(name, local);
     }
 
     private checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {

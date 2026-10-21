@@ -1,6 +1,6 @@
 import {
     acceptsBindingType, availableBuiltin, bindingTypeMessage, builtinBindingMessage, possibleBindingTypeConflict,
-    settledBindingTypes,
+    settledBindingTypes, deferredBindingMessage,
 } from '@arrrank/language';
 import { checkPlan, isRankPlan } from './plan.js';
 import { RankError } from './errors.js';
@@ -144,6 +144,22 @@ export class BindingEnvironment {
             if (slot >= 0 && frame.store(slot, name, value, received)) return;
             this.assign(name, value);
         };
+    }
+
+    /** Protection belongs to a name's scope and survives ordinary rebinding. */
+    protect(name: string, plan: string): void {
+        const frame = this.current?.find(name) ?? this.globals;
+        if (frame.get(name) !== undefined) frame.protectName(name, deferredBindingMessage(name, plan));
+    }
+
+    checkMutable(name: string, local = false): void {
+        for (let frame = this.current; frame; frame = frame.parent) {
+            const message = frame.mutationError(name);
+            if (message) throw new RankError(message, 'Scope');
+            if (frame.get(name) !== undefined || frame.layout.has(name) || frame.blockNames?.has(name)) return;
+        }
+        const message = !local && this.globals.mutationError(name);
+        if (message) throw new RankError(message, 'Scope');
     }
 
     /** A private region can publish once only when all its binding stores are total.

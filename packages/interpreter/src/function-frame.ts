@@ -1,5 +1,5 @@
 import { isRankPlan } from './plan.js';
-import { flatArrayBorrowProofs, type LastArrayUseProof, type FunctionStatement } from '@arrrank/language';
+import { flatArrayBorrowProofs, deferredBindingMessage, type LastArrayUseProof, type FunctionStatement } from '@arrrank/language';
 import { isFlatScalarArray, isSharedArray } from './array-storage.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { summarizeValue } from './value-summary.js';
@@ -86,7 +86,7 @@ export class FunctionFrames {
         const candidates = arguments_.some((argument, index) => isFlatScalarArray(argument) && !isSharedArray(argument)
             && !prepared.borrowedParameters.has(signature.parameters[index].name))
             ? this.borrowCandidates(statement, parent) : undefined;
-        signature.parameters.forEach(({ name: parameter, index, acceptsFunction }) => {
+        signature.parameters.forEach(({ name: parameter, index, acceptsFunction, deferred }) => {
             const argument = arguments_[index];
             const guards = candidates?.get(index);
             const borrowed = isFlatScalarArray(argument)
@@ -98,6 +98,7 @@ export class FunctionFrames {
             }
             if (isRankPlan(argument)) frame.set(parameter, argument);
             else frame.define(parameter, argument, new Set([typeName(argument)]), borrowed);
+            if (deferred) frame.protectName(parameter, deferredBindingMessage(parameter));
         });
         if (arguments_.some(isFlatScalarArray)) this.inputs.set(frame, arguments_);
         else this.inputs.delete(frame);

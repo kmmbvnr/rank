@@ -174,7 +174,8 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
                 && functionCallSignature(call.callee.scope.owner).parameters.some(parameter =>
                     parameter.name === call.callee.name && parameter.acceptsFunction)
             || isFunctionBindingStatement(call.callee.declaration)
-            || call.callee.scope.owner.$type === 'Program' && isNameExpression(call.callee.declaration)
+            || call.callee.scope.owner.$type === 'Program'
+                && (isNameExpression(call.callee.declaration) || call.callee.declaration === call.callee.scope.owner)
                 && /^[a-z]/.test(call.callee.name);
         // Unknown callbacks may mutate any argument. Keep this conservative
         // effect in their parameter summary and substitute at the call site.

@@ -1,7 +1,7 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
     isAssignmentStatement, isFunctionStatement, isNameExpression,
-    type AssignmentStatement, type FunctionStatement, type Program,
+    type AssignmentStatement, type FunctionStatement, type NameExpression, type Program,
 } from '../generated/ast.js';
 import { functionCallSignature } from '../function-call-signature.js';
 import { analyzeBindings } from './bindings.js';
@@ -13,6 +13,32 @@ export interface DeferredBindingDiagnostic {
     /** The plan binding or parameter declaration that prohibited the write. */
     readonly source: AstNode;
     readonly message: string;
+}
+
+const references = new WeakMap<Program, ReadonlyMap<AssignmentStatement, readonly NameExpression[]>>();
+
+/** Actual source reads, shared by static diagnostics and runtime scope protection. */
+export function deferredBindingReferences(statement: AssignmentStatement): readonly NameExpression[] {
+    let root: AstNode = statement;
+    while (root.$container) root = root.$container;
+    if (root.$type !== 'Program') return [];
+    const program = root as Program;
+    let known = references.get(program);
+    if (!known) {
+        const reads = new Set<AstNode>();
+        analyzeBindings(program, [], new Map(), node => reads.add(node));
+        known = new Map([...AstUtils.streamAllContents(program)].filter(isAssignmentStatement)
+            .filter(node => node.deferred).map(node => [node, [...AstUtils.streamAst(node.value)]
+                .filter(isNameExpression).filter(read => reads.has(read))]));
+        references.set(program, known);
+    }
+    return known.get(statement) ?? [];
+}
+
+export function deferredBindingMessage(name: string, plan?: string): string {
+    return plan
+        ? `${name} is read-only because plan ${plan} reads it; copy it before mutation.`
+        : `${name} is a deferred parameter and is read-only; bind a computed local value before mutation.`;
 }
 
 /** A deferred binding protects the names it reads, independently of plan lifetime.
@@ -33,8 +59,6 @@ export function deferredBindingDiagnostics(program: Program): DeferredBindingDia
     }
     if (!plans.length && !parameters.length) return [];
     const analysis = analyzeFunctionScopes(program);
-    const reads = new Set<AstNode>();
-    if (plans.length) analyzeBindings(program, [], new Map(), node => reads.add(node));
     const protectedNames = new Map<LexicalBinding, { source: AstNode; offset: number; plan?: string }>();
     const protect = (binding: LexicalBinding | undefined, source: AstNode, offset: number, plan?: string) => {
         if (!binding) return;
@@ -45,8 +69,7 @@ export function deferredBindingDiagnostics(program: Program): DeferredBindingDia
         protect(lexicalBinding(analysis.functions.get(definition)?.scope, name), source, -Infinity);
     }
     for (const node of plans) {
-        for (const read of AstUtils.streamAst(node.value)) {
-            if (!isNameExpression(read) || !reads.has(read)) continue;
+        for (const read of deferredBindingReferences(node)) {
             const scope = analysis.scopes.get(read);
             const binding = lexicalBinding(scope, read.name)
                 ?? lexicalBinding(scope, read.name.split('.')[0]);
@@ -58,9 +81,7 @@ export function deferredBindingDiagnostics(program: Program): DeferredBindingDia
         const protection = protectedNames.get(binding);
         if (!protection || (node.$cstNode?.offset ?? 0) <= protection.offset) continue;
         diagnostics.push({ node, source: protection.source,
-            message: protection.plan
-                ? `${binding.name} is read-only because plan ${protection.plan} reads it; copy it before mutation.`
-                : `${binding.name} is a deferred parameter and is read-only; bind a computed local value before mutation.`,
+            message: deferredBindingMessage(binding.name, protection.plan),
         });
     }
     diagnostics.sort((left, right) => (left.node.$cstNode?.offset ?? 0) - (right.node.$cstNode?.offset ?? 0));

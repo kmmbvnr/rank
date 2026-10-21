@@ -2,7 +2,8 @@ import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { describe, expect, it } from 'vitest';
 import {
-    createRankServices, deferredBindingDiagnostics, functionScopeDiagnostics, type Program,
+    createRankServices, deferredBindingDiagnostics, deferredBindingReferences, functionScopeDiagnostics,
+    isAssignmentStatement, type Program,
 } from '../src/index.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
@@ -158,6 +159,19 @@ describe('names read by deferred bindings', () => {
             'Q peek', 'A = array 1 2', "Values' = A * 2", 'Work = A copy',
             'fun X change', ' X 0 = 9', ' return X', 'end', 'Work change',
         ].join('\n')).errors).toEqual([]);
+    });
+
+    it('uses existing notebook data names as enclosing lexical bindings', () => {
+        const options = { rule: 'Program', bindings: new Map([['A', false]]) };
+        const parsed = parser.parse<Program>("Plan' = A * 2\nA 0 = 9", options);
+        expect(parsed.parserErrors).toEqual([]);
+        expect(deferredBindingDiagnostics(parsed.value).map(error => error.message))
+            .toEqual(['A is read-only because plan Plan reads it; copy it before mutation.']);
+        const assignment = parsed.value.statements[0];
+        expect(isAssignmentStatement(assignment)).toBe(true);
+        if (isAssignmentStatement(assignment)) {
+            expect(deferredBindingReferences(assignment).map(read => read.name)).toEqual(['A']);
+        }
     });
 
     it('preserves the old behavior for programs without deferred bindings', () => {

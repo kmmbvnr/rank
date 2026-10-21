@@ -40,6 +40,7 @@ export interface FastPathContext {
     readonly modules: ReadonlySet<string>;
     readonly builtins: BuiltinRegistry;
     readonly functions: FunctionInvocation;
+    checkMutation(statement: Statement): void;
     resolve(name: string): RankValue;
     compileAssign(name: string): (value: RankValue) => void;
     locate(error: unknown, node: AstNode): unknown;
@@ -115,8 +116,14 @@ export class FastPaths {
                     if (index !== commands.length - 1) return steps.preparedStatement(commands, index);
                     const tensor = steps.preparedStatement(commands, index).tensor;
                     const direct = this.context.compileDirect(last.value!);
-                    if (direct) return { run: () => runExecution(this.context.evaluateReturn(last.value!)), tensor };
-                    const value = () => this.context.evaluateReturn(last.value!, true);
+                    if (direct) return { run: () => {
+                        this.context.checkMutation(last);
+                        return runExecution(this.context.evaluateReturn(last.value!));
+                    }, tensor };
+                    const value = () => {
+                        this.context.checkMutation(last);
+                        return this.context.evaluateReturn(last.value!, true);
+                    };
                     return { stream: value, tensor };
                 },
                 locate: (error, index) => this.context.locate(error, commands[index]),
@@ -146,6 +153,7 @@ export class FastPaths {
         const assign = isAssignmentStatement(last) ? this.context.compileAssign(last.name) : undefined;
         return { count: kernel.count, run: () => {
             if (!assign && !this.context.bindings.insideFunction) return undefined;
+            for (let offset = 0; offset < kernel.count; offset++) this.context.checkMutation(statements[index + offset]);
             const value = kernel.run();
             if (value === undefined) return undefined;
             try { assign?.(value); }
@@ -235,7 +243,10 @@ export class FastPaths {
             executed: this.context.options().onIntegerLoopExecuted,
         }, binding) : undefined;
         if (this.context.options().integerLoopCompilation === false) recordFallback('loop:disabled');
-        return compiled;
+        return compiled && { run: (...context) => {
+            this.context.checkMutation(statement);
+            return compiled.run(...context);
+        } };
     }
 
     /** A binary or unary expression over direct leaves compiled to one closure. */

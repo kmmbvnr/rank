@@ -98,6 +98,11 @@ export interface GroupingOptions {
 }
 
 const externalDeclarations = new WeakMap<Program, ReadonlyMap<string, FunctionStatement>>();
+const externalBindings = new WeakMap<Program, ReadonlySet<string>>();
+/** Names already present when this source was grouped, including notebook data. */
+export function programExternalBindings(program: Program): ReadonlySet<string> {
+    return externalBindings.get(program) ?? new Set();
+}
 export function programFunctionDeclarations(program: Program): ReadonlyMap<string, FunctionStatement> {
     return externalDeclarations.get(program) ?? new Map();
 }
@@ -110,6 +115,7 @@ export function programFunctionDeclarations(program: Program): ReadonlyMap<strin
  */
 export function groupExpressions(program: Program, options: GroupingOptions = {}): GroupedProgram {
     if (options.declarations) externalDeclarations.set(program, options.declarations);
+    if (options.bindings) externalBindings.set(program, new Set(options.bindings.keys()));
     // Regrouping (for example after resolving a function binding) recomputes semantic facts.
     for (const node of AstUtils.streamAllContents(program)) {
         if (isExpression(node)) delete (node as AnnotatedExpression)[annotations];

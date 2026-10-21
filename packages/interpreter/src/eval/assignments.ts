@@ -1,7 +1,7 @@
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
-    type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
+    deferredBindingReferences, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
@@ -39,6 +39,7 @@ export interface AssignmentContext {
     defer(expression: Expression): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
+    protect(names: readonly string[], plan: string): void;
     resolveVariable(name: string): RankValue;
     checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
@@ -280,6 +281,7 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         ? undefined : assignmentOperator(statement.operator);
     const direct = statement.deferred ? undefined : host.compileDirect(statement.value);
     const write = host.compileAssign(statement.name);
+    const protectedNames = statement.deferred ? deferredBindingReferences(statement).map(read => read.name) : [];
     const stored = (value: RankValue): RankValue => {
         if (!statement.deferred) return materializeValue(value);
         return isRankSequence(value) ? host.options().wrapStoredSequence?.(value) ?? value : value;
@@ -298,6 +300,7 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
             const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));
             write(result);
+            if (statement.deferred) host.protect(protectedNames, statement.name);
             return result;
         });
     } };
