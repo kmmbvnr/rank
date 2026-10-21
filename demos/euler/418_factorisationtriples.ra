@@ -1,0 +1,216 @@
+rem Factorisation Triples
+rem https://projecteuler.net/problem=418
+
+use numbers
+use sequences
+use io
+use cli
+
+option Fact integer = 43
+option Num integer = 0
+
+rem The triple a <= b <= c with
+rem a b c = n and the least c / a has
+rem ln(c / a) = r small, so a, b and c
+rem all lie in [ln n / 3 - 2r / 3,
+rem ln n / 3 + r / 3]. For r doubling
+rem from 1e-6 the divisors in that
+rem window are built one prime at a
+rem time, keeping only partial products
+rem that can still land inside. Pairs
+rem (a, b) are tried against c = n / ab
+rem by logarithm and checked exactly.
+Pr = array shape 0 fill 0
+Ex = array shape 0 fill 0
+if Num equal 0
+  Pr = primes to Fact array
+  Ex = Pr * 0
+  Pk = Pr
+  for Pk min at most Fact
+    Ex = Ex + Fact // Pk
+    Pk = (Pk * Pr) (Fact + 1) min
+  end
+else
+  Rest = Num
+  Lim = Num isqrt
+  for Q in 2 to Lim
+    if Rest mod Q equal 0
+      C = 0
+      for Rest mod Q equal 0
+        Rest //= Q
+        C += 1
+      end
+      Pr = concat Pr (array Q)
+      Ex = concat Ex (array C)
+    end
+  end
+  if Rest greater 1
+    Pr = concat Pr (array Rest)
+    Ex = concat Ex (array 1)
+  end
+end
+Lp = Pr log
+Ln = (Ex * Lp) sum
+Cr = Ln / 3
+rem Split the primes in two groups of
+rem about equal divisor counts.
+Od = (0 - Ex) argsort
+Pq = Pr Od
+Eq = Ex Od
+Gs = array shape (Pq len) fill 0
+Cnt0 = 1
+Cnt1 = 1
+for K in 0 to Pq len - 1
+  if Cnt0 at most Cnt1
+    Cnt0 *= Eq K + 1
+  else
+    Gs K = 1
+    Cnt1 *= Eq K + 1
+  end
+end
+G0 = Gs equal 0 indices
+G1 = Gs equal 1 indices
+Po = concat (Pq G0) (Pq G1)
+Eo = concat (Eq G0) (Eq G1)
+Lo = Po log
+Np = Po len
+N0 = G0 len
+Sc = (Eo + 1) scan * with 1
+Best = array shape 0 fill 0
+rem Divisor lists of each group.
+Cd1 = array 0
+Lg1 = array 0.0
+for K in 0 to N0 - 1
+  Ek = Eo K
+  Mk = array shape 0 fill 0
+  Ml = array shape 0 fill 0.0
+  for E in 0 to Ek
+    Mk = concat Mk (Cd1 + E * (Sc K))
+    Ml = concat Ml (Lg1 + E * (Lo K))
+  end
+  Cd1 = Mk
+  Lg1 = Ml
+end
+Cd2 = array 0
+Lg2 = array 0.0
+for K in N0 to Np - 1
+  Ek = Eo K
+  Mk = array shape 0 fill 0
+  Ml = array shape 0 fill 0.0
+  for E in 0 to Ek
+    Mk = concat Mk (Cd2 + E * (Sc K))
+    Ml = concat Ml (Lg2 + E * (Lo K))
+  end
+  Cd2 = Mk
+  Lg2 = Ml
+end
+Os = Lg2 argsort
+Lg2 = Lg2 Os
+Cd2 = Cd2 Os
+N2 = Lg2 len
+R = 0.000001
+for Step in 1 to 60
+  Lw = Cr - 2 * R / 3 - 0.000000001
+  Hg = Cr + R / 3 + 0.000000001
+  rem Bounds of the partners by search.
+  N1 = Lg1 len
+  Lb = array shape N1 fill 0
+  Ub = array shape N1 fill 0
+  Ha = array shape N1 fill N2
+  Hb = array shape N1 fill N2
+  for Bs in 1 to 24
+    Md = (Lb + Ha) // 2
+    Mc = Md (N2 - 1) min
+    Lt = (Lg2 Mc) less (Lw - Lg1)
+    Lb = Lt choose (Md + 1) Lb
+    Ha = Lt choose Ha Md
+    Me = (Ub + Hb) // 2
+    Mf = Me (N2 - 1) min
+    Le = (Lg2 Mf) at most (Hg - Lg1)
+    Ub = Le choose (Me + 1) Ub
+    Hb = Le choose Hb Me
+  end
+  Lb = Lb N2 min
+  Ub = Ub N2 min
+  Cn = Ub - Lb
+  Nz = Cn greater 0 indices
+  Wc = array shape 0 fill 0
+  Wl = array shape 0 fill 0.0
+  for Ix in Nz
+    Rg = (Lb Ix) to (Ub Ix - 1)
+    Wc = concat Wc ((Cd2 Rg) + (Cd1 Ix))
+    Wl = concat Wl ((Lg2 Rg) + (Lg1 Ix))
+  end
+  Wo = Wl argsort
+  Wc = Wc Wo
+  Wl = Wl Wo
+  Nw = Wl len
+  rem Pairs by index: a, b, c = n / ab.
+  Ia = (0 to Nw - 1) copy
+  Wa = Wl reshape Nw 1
+  Wb = Wl reshape 1 Nw
+  Tg = Ln - Wa - Wb
+  Tf = Tg reshape (Nw * Nw)
+  Ir = Ia reshape Nw 1
+  Ic = Ia reshape 1 Nw
+  Gi = Ir + Ic * 0
+  Fi = Gi reshape (Nw * Nw)
+  Gj = Ir * 0 + Ic
+  Fj = Gj reshape (Nw * Nw)
+  Lw2 = Fi * 0
+  Hw2 = Fi * 0 + Nw
+  for Bs in 1 to 24
+    Md = (Lw2 + Hw2) // 2
+    Mc = Md (Nw - 1) min
+    Lt = (Wl Mc) less (Tf - 0.0000001)
+    Lw2 = Lt choose (Md + 1) Lw2
+    Hw2 = Lt choose Hw2 Md
+  end
+  Kk = Lw2 (Nw - 1) min
+  Df = ((Wl Kk) - Tf) abs
+  Mt = (Df less 0.0000001) choose 1 0
+  Mt = Mt * (Fi at most Fj choose 1 0)
+  Mt = Mt * (Kk at least Fj choose 1 0)
+  Cx = Mt greater 0 indices
+  if Cx len greater 0
+    Ci = Fi Cx
+    Cj = Fj Cx
+    Ck = Kk Cx
+    Vok = Ci * 0 + 1
+    for K in 0 to Np - 1
+      Sk = Sc K
+      Rk = Eo K + 1
+      Da = (Wc Ci) // Sk mod Rk
+      Db = (Wc Cj) // Sk mod Rk
+      Dc = (Wc Ck) // Sk mod Rk
+      Sum3 = Da + Db + Dc
+      Hit = Sum3 equal (Eo K)
+      Vok = Vok * (Hit choose 1 0)
+    end
+    Vx = Vok greater 0 indices
+    if Vx len greater 0
+      Ri = (Wl (Ck Vx)) - (Wl (Ci Vx))
+      Bi = Ri argsort
+      Pick = Vx (Bi 0)
+      if Ri (Bi 0) at most R
+        Ba = Wc (Ci Pick)
+        Bb = Wc (Cj Pick)
+        Bc = Wc (Ck Pick)
+        Best = array Ba Bb Bc
+        break
+      end
+    end
+  end
+  R = R * 2
+end
+Answer = 0
+for Q in 0 to 2
+  Cdx = Best Q
+  Val = 1
+  for K in 0 to Np - 1
+    Ee = Cdx // (Sc K) mod (Eo K + 1)
+    Val = Val * Po K ** Ee
+  end
+  Answer += Val
+end
+Answer print
