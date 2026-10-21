@@ -1,0 +1,89 @@
+rem Retractions C
+rem https://projecteuler.net/problem=447
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000000
+option Cut integer = 3000
+
+rem R(n) = s(n) - n for the sum s of
+rem unitary divisors, and s(n) =
+rem sum over t^2 | n of mu(t) t
+rem sigma(n / t^2). So the sum of s is
+rem sum of mu(t) t T(N // t^2), T the
+rem sum of sigma. T(x) comes from the
+rem hyperbola method for small t and
+rem from a sigma sieve for large t.
+Mod = 1000000007
+Rt = N isqrt
+Tc = Rt Cut min
+Tot = 0
+rem Moebius up to Rt by small primes.
+Mu = array shape (Rt + 1) fill 1
+Sm = array shape (Rt + 1) fill 1
+Ix = (0 to Rt) copy
+Lim = Rt isqrt
+for P in primes to Lim
+  Q = P
+  for Q at most Rt
+    Sl = Q to Rt by Q
+    Sm Sl *= P
+    if Q equal P
+      Mu Sl *= -1
+    end
+    Q *= P
+  end
+  Sl = (P * P) to Rt by (P * P)
+  Mu Sl = 0
+end
+Big = Ix // Sm greater 1
+Mu = (Big choose (0 - Mu) Mu) copy
+Mu 0 = 0
+rem Small t: T(x) by hyperbola.
+for T in 1 to Tc
+  if Mu T not equal 0
+    X = N // (T * T)
+    R = X isqrt
+    Ks = (1 to R) copy
+    Q = X // Ks
+    Ev = Q mod 2 equal 0
+    Ha = Ev choose (Q // 2) Q
+    Q1 = Q + 1
+    Hb = Ev choose Q1 (Q1 // 2)
+    Tri = Ha mod Mod * (Hb mod Mod)
+    Tri = Tri mod Mod
+    Kq = Ks * (Q mod Mod)
+    Ts = (Tri + Kq) mod Mod
+    Rr = R mod Mod
+    Rp = R * (R + 1) // 2 mod Mod
+    Tv = (Ts sum) - Rr * Rp mod Mod
+    Tot += Mu T * T * (Tv mod Mod)
+  end
+end
+rem Large t: sigma sieve and prefix.
+if Tc less Rt
+  X1 = N // ((Tc + 1) * (Tc + 1))
+  Sg = array shape (X1 + 1) fill 0
+  Xr = X1 isqrt
+  for D in 1 to Xr
+    Sl = (D * D) to X1 by D
+    Vs = (D + Sl // D) copy
+    Sg Sl += Vs
+    Sg (D * D) -= D
+  end
+  Tt = Sg scan + with 0
+  Ts = (Tc + 1) to Rt
+  Xs = N // (Ts * Ts)
+  Tv = Tt (Xs + 1) mod Mod
+  Mw = Mu (Tc + 1 to Rt) * Ts mod Mod
+  Wt = Mw * Tv mod Mod
+  Tot += Wt sum
+end
+Tot = Tot mod Mod
+M2 = 2 * Mod
+Tr = N mod M2 * ((N + 1) mod M2) // 2
+Answer = (Tot - Tr) mod Mod
+Answer print

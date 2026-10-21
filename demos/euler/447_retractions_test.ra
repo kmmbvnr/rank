@@ -1,0 +1,29 @@
+use testing
+
+test "statement values"
+  use "447_retractions"
+  N = 10
+  run
+  Answer equal 21
+end
+
+test "brute force references"
+  use "447_retractions"
+  N = 100
+  run
+  Answer equal 1839
+  N = 1000
+  run
+  Answer equal 184078
+end
+
+test "both ranges of t"
+  use "447_retractions"
+  N = 10000000
+  run
+  Answer equal 638042271
+  N = 10000000
+  Cut = 10
+  run
+  Answer equal 638042271
+end
