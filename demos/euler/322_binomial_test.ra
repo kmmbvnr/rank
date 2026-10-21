@@ -13,3 +13,9 @@ test "statement sample"
   run
   Answer equal 989697000
 end
+
+test "full carry count"
+  use "322_binomial"
+  run
+  Answer equal 999998760323313995
+end
