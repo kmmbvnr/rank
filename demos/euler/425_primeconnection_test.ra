@@ -1,0 +1,18 @@
+use testing
+
+test "statement checkpoints"
+  use "425_primeconnection"
+  N = 1000
+  run
+  Answer equal 431
+  N = 10000
+  run
+  Answer equal 78728
+end
+
+test "union-find reference"
+  use "425_primeconnection"
+  N = 200
+  run
+  Answer equal 431
+end
