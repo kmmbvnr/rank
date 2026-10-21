@@ -1,4 +1,5 @@
 import { findValue, findAllValues } from './sequence-search.js';
+import { materializeValue } from '../materialize.js';
 import { numericSort } from '../numeric-collections.js';
 import { reshapeDimensions } from '../tensor-layout.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
@@ -49,7 +50,7 @@ import {
     type SequencePredicate,
 } from '../value.js';
 import type { Operators } from '../operators.js';
-import { assignRecordField } from '../record-contract.js';
+import { assignRecordField } from '../record-write.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -788,8 +789,9 @@ export function flatRecordWrite(
             return result;
         }
         if (operator !== '=') throw new RankError('flat record assignment supports =');
-        target.set(index, value);
-        return value;
+        const result = materializeValue(value);
+        target.set(index, result);
+        return result;
     };
 }
 

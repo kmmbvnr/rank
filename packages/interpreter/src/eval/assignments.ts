@@ -6,7 +6,9 @@ import {
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
-import { materializeValue } from '../materialize.js';
+import { materializeValue, materializeValues } from '../materialize.js';
+import { demandValue } from '../plan.js';
+import { materializeSequence } from '../sequence.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
@@ -21,7 +23,7 @@ import { flatRecordWrite } from '../modules/sequences.js';
 import { tableColumnWrite } from '../modules/tables.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { arraySize, type Operators } from '../operators.js';
-import { assignRecordField } from '../record-contract.js';
+import { assignRecordField } from '../record-write.js';
 import { tensorSelection } from '../selectors.js';
 import type { PreparedStatement } from '../statement-control.js';
 import { writeTable } from '../table-access.js';
@@ -147,8 +149,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         const selection = tensorSelection(target, selectors);
         // The compiled single-cell form hands its value over when the
         // shape rules have to decide what happens to it.
-        const result = evaluated
-            ?? (yield* resume(host.evaluate(statement.value)));
+        let result = demandValue(evaluated
+            ?? (yield* resume(host.evaluate(statement.value))));
+        if (isRankSequence(result)) result = materializeSequence(result);
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
         let operands: RankValue[] | undefined;
@@ -203,13 +206,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             return result;
         }
         operands ??= Array(count).fill(result) as RankValue[];
-        const replacements = operands.map((operand, index) => operator === undefined
+        const replacements = materializeValues(operands.map((operand, index) => operator === undefined
             ? operand
             : host.operators.evaluateBinary(
                 operator,
-                readArrayItem(target, selection.offsetAt(index)),
-                operand,
-            ));
+                demandValue(readArrayItem(target, selection.offsetAt(index))),
+                demandValue(operand),
+            )));
         const checked = host.checkArrayWrite(statement.name, target, replacements, replacements.map((_, index) => selection.offsetAt(index)));
         const destination = owned(target) as typeof target;
         for (let index = 0; index < replacements.length; index += 1) {
@@ -248,9 +251,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 const offset = Number(selector);
                 if (offset >= 0 && offset < target.shape[0]) {
                     const value = directValue();
-                    if (isRankArray(value)) return general(target, [selector], value);
-                    const replacement = operator === undefined ? value
-                        : host.operators.evaluateBinary(operator, readArrayItem(target, offset), value);
+                    if (typeof value === 'object') return general(target, [selector], value);
+                    const replacement = materializeValue(operator === undefined ? value
+                        : host.operators.evaluateBinary(operator, demandValue(readArrayItem(target, offset)), value));
                     const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
                     target = owned(target) as typeof target;
                     writeArrayCell(target, offset, checked);

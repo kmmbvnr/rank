@@ -468,7 +468,7 @@ describe('Rank tables', () => {
             'use json',
             'use tables',
             'Rows = "[{\\"x\\":1}]" json',
-            'Matrix = Rows (array .x .missing)',
+            "Matrix' = Rows (array .x .missing)",
             'Matrix 0 1',
         ].join('\n'))).toThrowError('missing object key: missing');
     });
@@ -509,26 +509,36 @@ describe('Rank tables', () => {
         ].join('\n'))).toThrowError('assignment shape mismatch: 2 and 1');
     });
 
-    it('checks rows and missing fields only when demanded', () => {
+    it('stores soft missing selected cells as .NA at an ordinary binding', () => {
+        expect(run([
+            'use json', 'use tables',
+            'Rows = "[{\\"x\\":1},{}]" json',
+            'Column = Rows "x"',
+            'Matrix = Rows (array .x .missing)',
+            'tuple (Column 1) (Matrix 0 1)',
+        ].join('\n'))).toBe('.NA .NA');
+    });
+
+    it('checks explicitly deferred columns when demanded', () => {
         expect(run([
             'use json',
             'use tables',
             'Rows = "[{\\"x\\":1},{}]" json',
-            'Column = Rows "x"',
+            "Column' = Rows \"x\"",
             'Column 0',
         ].join('\n'))).toBe('1');
         expect(() => run([
             'use json',
             'use tables',
             'Rows = "[{\\"x\\":1},{}]" json',
-            'Column = Rows "x"',
+            "Column' = Rows \"x\"",
             'Column 1',
         ].join('\n'))).toThrowError('missing object key: x');
         expect(() => run([
             'use json',
             'use tables',
             'Rows = "[{\\"x\\":1}]" json',
-            'Column = Rows "missing"',
+            "Column' = Rows \"missing\"",
             'Column 0',
         ].join('\n'))).toThrowError('missing object key: missing');
     });

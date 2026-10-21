@@ -448,8 +448,8 @@ export function structureWrite(
         }
         const position = selectors[0];
         return value => {
-            const result = combine === undefined ? value
-                : operators.evaluateBinary(combine, target.at(position), value);
+            const result = materializeValue(combine === undefined ? value
+                : operators.evaluateBinary(combine, demandValue(target.at(position)), demandValue(value)));
             if (typeof result !== 'bigint') {
                 throw new RankError('fenwick values must be integers');
             }
@@ -464,14 +464,13 @@ export function structureWrite(
                 || target instanceof RankPersistentSumSegment)) {
             const [start, end] = selectors as [bigint, bigint];
             return value => {
-                if (operator === '=') {
-                    target.setRange(start, end, value);
-                } else if (operator === '+=') {
-                    target.addRange(start, end, value);
-                } else {
+                if (operator !== '=' && operator !== '+=') {
                     throw new RankError('segment + range assignment supports = and +=');
                 }
-                return value;
+                const result = materializeValue(value);
+                if (operator === '=') target.setRange(start, end, result);
+                else target.addRange(start, end, result);
+                return result;
             };
         }
         if (selectors.length !== 1 || typeof selectors[0] !== 'bigint') {
@@ -479,8 +478,8 @@ export function structureWrite(
         }
         const position = selectors[0];
         return value => {
-            const result = combine === undefined ? value
-                : operators.evaluateBinary(combine, target.at(position), value);
+            const result = materializeValue(combine === undefined ? value
+                : operators.evaluateBinary(combine, demandValue(target.at(position)), demandValue(value)));
             target.set(position, result);
             return result;
         };

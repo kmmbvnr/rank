@@ -40,7 +40,8 @@ import {
     materializeSqlite, materializeSqliteExpression,
 } from '../modules/sqlite.js';
 import { expectInteger, type Operators } from '../operators.js';
-import { assignRecordField, recordContract } from '../record-contract.js';
+import { recordContract } from '../record-contract.js';
+import { assignRecordField } from '../record-write.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ResourceMap } from '../resource-summary.js';
 import { ALL_AXIS } from '../selectors.js';

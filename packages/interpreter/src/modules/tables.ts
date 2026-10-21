@@ -1,4 +1,7 @@
 import { checkpoint } from '../interrupt.js';
+import { materializeValues } from '../materialize.js';
+import { demandValue } from '../plan.js';
+import { materializeSequence } from '../sequence.js';
 import { arrayRevision, derivedArray, ownedArray, ownedObject, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { isKnownFileFree } from '../resource-summary.js';
@@ -795,6 +798,8 @@ export function tableColumnWrite(
     }
     const size = receiver.shape[0];
     return result => {
+        result = demandValue(result);
+        if (isRankSequence(result)) result = materializeSequence(result);
         let operands: RankValue[];
         if (isRankArray(result)) {
             if (result.shape.length !== 1 || result.shape[0] !== size) {
@@ -812,14 +817,14 @@ export function tableColumnWrite(
             throw new RankError('table assignment expects object rows', 'TypeError');
         }
         const combine = operator === '=' ? undefined : operator.slice(0, -1);
-        const replacements = operands.map((operand, index) => {
+        const replacements = materializeValues(operands.map((operand, index) => {
             if (combine === undefined) return operand;
             const previous = rows[index].entries.get(field);
             if (previous === undefined) {
                 throw new MissingValueError(`missing object key: ${field}`);
             }
-            return operators.evaluateBinary(combine, previous, operand);
-        });
+            return operators.evaluateBinary(combine, demandValue(previous), demandValue(operand));
+        }));
         for (let index = 0; index < rows.length; index += 1) {
             rows[index].entries.set(field, replacements[index]);
         }

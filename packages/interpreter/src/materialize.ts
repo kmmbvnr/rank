@@ -15,7 +15,7 @@ import { isStoredValue } from './stored-value.js';
 import {
     isRankArray, isRankSequence, isRankTuple, isRankRecord, isRankObject, isRankIndex,
     isRankQueue, isRankSet, isRankCounter, isRankMultiset, tuple, typeName, MISSING,
-    checkCollectionElementType, type RankRecord, type RankCounter, type RankValue,
+    checkCollectionElementType, type RankRecord, type RankCounter, type RankTuple, type RankValue,
 } from './value.js';
 
 interface Aggregate {
@@ -138,6 +138,13 @@ export function materializeValue(value: RankValue): RankValue {
         }
     }
     return root.node.result!;
+}
+
+/** Complete a write batch before publishing any cell, preserving sharing between
+ * its values. Ready batches need no temporary aggregate or extra copies. */
+export function materializeValues(values: readonly RankValue[]): readonly RankValue[] {
+    if (values.every(isStoredValue)) return values;
+    return (materializeValue(tuple(values)) as RankTuple).items;
 }
 
 function aggregateValue(value: RankValue): Aggregate | undefined {

@@ -3,6 +3,8 @@ import { readArrayItem, ownedArray, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { materializeSequence } from './sequence.js';
+import { materializeValue, materializeValues } from './materialize.js';
+import { demandValue } from './plan.js';
 import { sameShape } from './tensor-index.js';
 import {
     isRankArray, isRankLabel, isRankSequence,
@@ -150,16 +152,18 @@ export function writeTable(
         if (operator !== undefined) {
             const previous = table.cell(Number(row), table.indexOf(name));
             if (previous === undefined) throw new MissingValueError(`missing object key: ${name}`);
-            written = binary(operator, previous, value);
+            written = binary(operator, demandValue(previous), demandValue(value));
         }
+        written = materializeValue(written);
         if (isRankArray(written)) {
             throw new RankError('a table cell holds one value', 'TypeError');
         }
         return table.withCell(Number(row), name, written);
     }
-    let result = value;
-    if (operator !== undefined) result = binary(operator, table.columnArray(name), value);
-    const cells: (RankValue | undefined)[] = new Array(table.length);
+    let result = demandValue(value);
+    if (operator !== undefined) result = demandValue(binary(operator, table.columnArray(name), result));
+    if (isRankSequence(result)) result = materializeSequence(result);
+    const cells: RankValue[] = new Array(table.length);
     if (isRankArray(result)) {
         if (!sameShape([table.length], result.shape)) {
             throw new RankError(`assignment shape mismatch: ${table.length} and ${result.shape}`, 'DimensionMismatch');
@@ -170,5 +174,5 @@ export function writeTable(
         }
     } else cells.fill(result);
     const hint = table.columns[table.indexOf(name)]?.kind;
-    return table.withColumn(columnFromValues(name, cells, hint));
+    return table.withColumn(columnFromValues(name, materializeValues(cells), hint));
 }
