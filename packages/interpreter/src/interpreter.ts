@@ -188,7 +188,7 @@ export class Interpreter {
             operators: this.operators,
         });
         this.application = new ApplicationEvaluator({
-            findVariable: name => this.bindings.find(name),
+            findVariable: name => this.findVariable(name),
             argument: expression => this.expressions.argument(expression),
             checkInput: (expression, value, source) => this.checkedInputs.check(expression, value, source),
             evaluate: expression => this.expressions.evaluate(expression),
@@ -211,6 +211,7 @@ export class Interpreter {
         this.expressions = new ExpressionEvaluator({
             inputCall: (expression, run) => this.checkedInputs.expression(expression, run),
             bindings: this.bindings,
+            findVariable: name => this.findVariable(name),
             resolve: name => this.resolve(name),
             select,
             requireModule: requireOpen,
@@ -495,6 +496,14 @@ export class Interpreter {
 
     // Names: module aliases own dotted names, the implicit structures own
     // theirs, then bindings and finally the open builtins.
+
+    /** Look up data/functions without invoking a function or falling back to builtins. */
+    private findVariable(name: string): RankValue | undefined {
+        const qualified = splitQualified(name);
+        if (!qualified) return this.bindings.find(name);
+        return this.bindings.current?.lookup(name)
+            ?? this.aliases.get(qualified.alias)?.findVariable(qualified.member);
+    }
 
     private resolve(name: string): RankValue {
         const qualified = splitQualified(name);

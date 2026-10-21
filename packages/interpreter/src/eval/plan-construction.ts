@@ -15,6 +15,7 @@ import { isNativeFunction, isRankArray, isRankSequence, MISSING, type NativeFunc
 
 interface ConstructionContext {
     readonly bindings: BindingEnvironment;
+    findVariable(name: string): RankValue | undefined;
     resolve(name: string): RankValue;
     operationOf(name: string): Operation | undefined | false;
     execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
@@ -41,7 +42,7 @@ export class PlanConstruction {
     hasInput(expression: Expression): boolean {
         return AstUtils.streamAst(expression).some(node => {
             if (!isNameExpression(node)) return false;
-            const value = this.context.bindings.find(node.name);
+            const value = this.context.findVariable(node.name);
             return value !== undefined && (isRankPlan(value) || isRankSequence(value)
                 || isRankArray(value) && denseScalarItems(value) === undefined);
         });
@@ -63,21 +64,21 @@ export class PlanConstruction {
         let source = rewritten;
         while (isParenthesizedExpression(source)) source = source.value;
         if (isNameExpression(source)) {
-            const value = this.context.bindings.find(source.name);
+            const value = this.context.findVariable(source.name);
             if (value !== undefined && (!isNativeFunction(value) || this.isReference(source)
                 || !value.arities.includes(0))) return value;
         }
         if (mode === 'demand' || mode === 'propagate' && !this.hasInput(rewritten)
             || isBinaryExpression(source) && ['to', 'till'].includes(source.operator)
                 && !AstUtils.streamAst(rewritten).some(node => isNameExpression(node)
-                    && isRankPlan(this.context.bindings.find(node.name) ?? MISSING))) {
+                    && isRankPlan(this.context.findVariable(node.name) ?? MISSING))) {
             return yield* resume(this.context.execute(rewritten, tail));
         }
         return this.capture(rewritten);
     }
 
     private userFunction(expression: NameExpression): NativeFunction | undefined {
-        const value = this.context.bindings.find(expression.name);
+        const value = this.context.findVariable(expression.name);
         return value && isNativeFunction(value) && !BuiltinRegistry.operationOf(value) ? value : undefined;
     }
 
@@ -119,7 +120,9 @@ export class PlanConstruction {
                     if (!fn || fn.arities.includes(0) || !this.wholeCall(fn)) continue;
                     // The ordinary call path owns argument grouping, arity,
                     // parameter modes and ownership transfers.
-                    const call = applicationExpression(parts.slice(0, index + 1), expression);
+                    // Whole calls keep syntax identity for inferred input contracts.
+                    const call = index === parts.length - 1 ? expression
+                        : applicationExpression(parts.slice(0, index + 1), expression);
                     const result = yield* resume(this.context.execute(call, tail && index === parts.length - 1));
                     const remainder = applicationExpression([this.reference(result, call), ...parts.slice(index + 1)], expression);
                     return yield* resume(this.rewrite(remainder, tail));
@@ -168,7 +171,7 @@ export class PlanConstruction {
     private readyValue(expression: Expression): RankValue | undefined {
         while (isParenthesizedExpression(expression)) expression = expression.value;
         if (isNameExpression(expression)) {
-            const value = this.context.bindings.find(expression.name);
+            const value = this.context.findVariable(expression.name);
             return value !== undefined && !isRankPlan(value) ? value : undefined;
         }
         if (isBooleanLiteral(expression) || isNumberLiteral(expression) || isStringLiteral(expression)) return expression.value;
@@ -205,7 +208,7 @@ export class PlanConstruction {
         const dependencies = new Map<string, RankValue>();
         for (const node of AstUtils.streamAst(expression)) {
             if (!isNameExpression(node)) continue;
-            const value = this.context.bindings.find(node.name);
+            const value = this.context.findVariable(node.name);
             if (value !== undefined) dependencies.set(node.name, value);
             else if (/^[A-Z]/.test(node.name)) this.context.resolve(node.name);
         }

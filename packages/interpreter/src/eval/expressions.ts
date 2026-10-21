@@ -60,6 +60,7 @@ import { isNamed } from './application.js';
 export interface ExpressionContext {
     inputCall?(expression: Expression, run: () => Evaluation<RankValue>): Evaluation<RankValue>;
     readonly bindings: BindingEnvironment;
+    findVariable(name: string): RankValue | undefined;
     resolve(name: string): RankValue;
     select(values: RankValue[], missing?: () => RankValue): RankValue;
     requireModule(module: string, operation: string): void;
@@ -86,7 +87,7 @@ export class ExpressionEvaluator {
     private readonly plans: PlanConstruction;
 
     constructor(private readonly context: ExpressionContext) {
-        this.plans = new PlanConstruction({ bindings: context.bindings,
+        this.plans = new PlanConstruction({ bindings: context.bindings, findVariable: name => context.findVariable(name),
             resolve: name => context.resolve(name), operationOf: name => this.operationOf(name),
             execute: (expression, tail) => tail ? this.compile(expression, undefined, true)() : this.prepare(expression)(),
         });
@@ -107,7 +108,7 @@ export class ExpressionEvaluator {
         let source = expression;
         while (isParenthesizedExpression(source)) source = source.value;
         if (isNameExpression(source)) {
-            const value = this.context.bindings.find(source.name);
+            const value = this.context.findVariable(source.name);
             if (value !== undefined && (!isNativeFunction(value) || this.plans.isReference(source))) return completed(value);
         }
         return this.plans.hasInput(expression) || this.plans.hasUserFunction(expression)
@@ -119,7 +120,7 @@ export class ExpressionEvaluator {
         let source = expression;
         while (isParenthesizedExpression(source)) source = source.value;
         if (isNameExpression(source)) {
-            const value = this.context.bindings.find(source.name);
+            const value = this.context.findVariable(source.name);
             if (value !== undefined && (!isNativeFunction(value) || this.plans.isReference(source))) return completed(value);
         }
         const demandsEffects = AstUtils.streamAst(expression).some(node => {
@@ -393,7 +394,7 @@ export class ExpressionEvaluator {
             select: values => expressions.context.select(values),
             binary: (operator, left, right) => expressions.context.operators.evaluateBinary(operator, left, right),
             resolve: name => expressions.context.resolve(name),
-            findVariable: name => expressions.context.bindings.find(name),
+            findVariable: name => expressions.context.findVariable(name),
             isStandardFunction: (module, name, value) => expressions.context.builtins.is(module, name, value),
             maskSelection,
         }));
@@ -646,7 +647,7 @@ export class ExpressionEvaluator {
 
     /** Binding identity, including aliases; no user function is executed by classification. */
     operationOf(name: string): ReturnType<typeof findOperation> | false {
-        const value = this.context.bindings.find(name);
+        const value = this.context.findVariable(name);
         if (value === undefined) return findOperation(name);
         return isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
     }
@@ -726,7 +727,7 @@ export class ExpressionEvaluator {
             set localFrame(frame) { expressions.context.bindings.current = frame; },
             evaluate: node => expressions.evaluate(node),
             binary: (operator, left, right) => expressions.context.operators.evaluateBinary(operator, left, right),
-            findVariable: name => expressions.context.bindings.find(name),
+            findVariable: name => expressions.context.findVariable(name),
         };
     }
 
