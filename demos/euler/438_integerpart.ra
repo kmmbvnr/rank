@@ -1,0 +1,125 @@
+rem Integer Part of Polynomial Equation
+rem https://projecteuler.net/problem=438
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 7
+
+rem Write P(x) = sum of a_k times the
+rem falling factorial x^(n-k), so
+rem integer a_k match integer
+rem coefficients. P must alternate in
+rem sign at x = 1 .. n + 1, and so
+rem must every forward difference. The
+rem difference of order n - t at
+rem x = 1 .. t + 1 uses a_0 .. a_t only
+rem and bounds a_t on both sides. The
+rem sum of |coefficients| is
+rem |P(-1)| - 1. A leaf alternates
+rem strictly or is checked in floats.
+W = N + 2
+Af = array shape (W * W) fill 0
+for I in 0 to N + 1
+  Af (I * W) = 1
+  for J in 1 to I
+    Pv = Af ((I - 1) * W + J - 1)
+    Af (I * W + J) = Pv * I
+  end
+end
+Ac = array shape W fill 0
+Ac 0 = 1
+Lo = array shape W fill 0
+Hi = array shape W fill 0
+Cu = array shape W fill 0
+Vs = array shape W fill 0
+Big = 1000000000000000000
+Cnt = 0
+Tot = 0
+T = 1
+Nb = 1
+for T at least 1
+  if Nb equal 1
+    Lw = 0 - Big
+    Hg = Big
+    for X in 1 to T + 1
+      S = 0
+      for I in 0 to T - 1
+        F1 = Af ((N - I) * W + N - T)
+        F2 = Af (X * W + T - I)
+        S -= Ac I * F1 * F2
+      end
+      S = S // Af ((N - T) * W + N - T)
+      if X mod 2 not equal T mod 2
+        if S greater Lw
+          Lw = S
+        end
+      elif S less Hg
+        Hg = S
+      end
+    end
+    Lo T = Lw
+    Hi T = Hg
+    Cu T = Lw
+    Nb = 0
+  end
+  if Cu T greater Hi T
+    T -= 1
+    if T at least 1
+      Cu T += 1
+    end
+  else
+    Ac T = Cu T
+    if T less N
+      T += 1
+      Nb = 1
+    else
+      Ok = 1
+      Zr = 0
+      for K in 1 to N + 1
+        R = 0
+        for I in 0 to N
+          R = R * (K + I - N) + Ac I
+        end
+        Vs K = R
+        if R equal 0
+          Zr = 1
+        end
+      end
+      for K in 1 to N
+        if Vs K * Vs (K + 1) at least 0
+          Ok = 0
+        end
+      end
+      if Ok equal 0
+        if Zr equal 1
+          Ok = 1
+          for K in 1 to N
+            Xr = K + 0.9999
+            Rf = 0.0
+            for I in 0 to N
+              Qf = Xr + I - N
+              Rf = Rf * Qf + Ac I
+            end
+            if Vs K * Rf greater 0
+              Ok = 0
+            end
+          end
+        end
+      end
+      if Ok equal 1
+        R = 0
+        for I in 0 to N
+          R = R * (I - 1 - N) + Ac I
+        end
+        Cnt += 1
+        Tot += R abs - 1
+      end
+      Cu T += 1
+    end
+  end
+end
+Answer = Tot
+Answer print
