@@ -1,7 +1,7 @@
 import { tensorSource } from '../tensor-source.js';
 import { elementSource } from '../element-source.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, arrayRevision, ownedArray, readArrayItem } from '../array-storage.js';
+import { derivedArray, ownedArray, readArrayItem } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { numericSource } from '../sequence.js';
 import { mapBroadcastArrays } from '../tensor.js';
@@ -408,8 +408,6 @@ export function covarianceValue(
         .filter(axis => axis !== featureAxis && axis !== observationAxis);
     const batchShape = batchAxes.map(axis => value.shape[axis]);
     const outputShape = [...batchShape, features, features];
-    const means = new Map<number, number>();
-    let meansRevision: number | undefined;
 
     const coordinatesFor = (batch: readonly number[], feature: number, observation: number) => {
         const coordinates = Array(value.shape.length).fill(0) as number[];
@@ -420,15 +418,9 @@ export function covarianceValue(
         coordinates[observationAxis] = observation;
         return coordinates;
     };
-    const meanAt = (batchIndex: number, batch: readonly number[], feature: number): number => {
-        const currentRevision = arrayRevision(value);
-        if (currentRevision === undefined || currentRevision !== meansRevision) {
-            means.clear();
-            meansRevision = currentRevision;
-        }
-        const key = batchIndex * features + feature;
-        const cached = means.get(key);
-        if (cached !== undefined) return cached;
+    const meanAt = (batch: readonly number[], feature: number, means: Map<number, number>): number => {
+        const previous = means.get(feature);
+        if (previous !== undefined) return previous;
         let total = 0;
         for (let observation = 0; observation < observations; observation += 1) {
             checkpoint('computing statistics');
@@ -436,17 +428,16 @@ export function covarianceValue(
             total += Number(expectNumeric(arrayItem(value, arrayOffset(value.shape, coordinates))));
         }
         const result = total / observations;
-        means.set(key, result);
+        means.set(feature, result);
         return result;
     };
-    const resultAt = (index: number): number => {
+    const resultAt = (index: number, means = new Map<number, number>()): number => {
         const output = coordinatesAt(outputShape, index);
         const batch = output.slice(0, batchShape.length);
-        const batchIndex = arrayOffset(batchShape, batch);
         const leftFeature = output[batchShape.length];
         const rightFeature = output[batchShape.length + 1];
-        const leftMean = meanAt(batchIndex, batch, leftFeature);
-        const rightMean = meanAt(batchIndex, batch, rightFeature);
+        const leftMean = meanAt(batch, leftFeature, means);
+        const rightMean = meanAt(batch, rightFeature, means);
         let total = 0;
         for (let observation = 0; observation < observations; observation += 1) {
             checkpoint('computing statistics');
@@ -464,7 +455,17 @@ export function covarianceValue(
         return result;
     };
 
-    return derivedArray(outputShape, [value], resultAt, true);
+    return derivedArray(outputShape, [value], resultAt, true, undefined, function* () {
+        // A full observation shares means within its current batch. Independent
+        // reads and subsequent traversals start fresh; no computed data belongs
+        // to the covariance recipe itself.
+        const means = new Map<number, number>();
+        const matrixSize = features * features;
+        for (let index = 0; index < arraySize(outputShape); index++) {
+            if (index % matrixSize === 0) means.clear();
+            yield resultAt(index, means);
+        }
+    });
 }
 
 export function correlationValue(

@@ -6127,7 +6127,10 @@ already defines the cells and is not combined with `rank`.
 
 Covariance divides by `N - 1`, always returns real values, and raises
 `.InsufficientData` when the observation axis has fewer than two items. The
-result and per-feature means are calculated on demand and cached.
+ordinary result is completed by `=`. Use `Cov' = Features covariance` to keep a
+recipe; each observation recomputes. A full traversal shares feature means only
+within its current batch. Independent cell reads, later traversals and retries
+after failure start fresh. Assigning `Saved = Cov` retains the completed matrix.
 
 ## Sliding windows
 
@@ -7214,7 +7217,9 @@ earlier axes are independent batches. The explicit `axis F O` form selects the
 feature and observation axes in that order. It preserves the other axes and
 replaces the selected axes with two feature axes. The operation uses the sample
 denominator `N - 1`, returns real values, and requires at least two
-observations. Its result and feature means are calculated lazily and cached.
+observations. Ordinary binding stores the completed result. Deferred binding
+recomputes on demand; a traversal may share feature means within its current
+batch, but later observations start fresh.
 
 ## Text
 

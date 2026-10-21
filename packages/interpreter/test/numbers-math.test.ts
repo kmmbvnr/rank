@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, isRankSequence } from '../src/index.js';
 import { run } from './support.js';
+import { demandValue } from '../src/plan.js';
 
 describe('Rank mathematical functions', () => {
     it('marks and detects nan, which is unordered and unequal to itself', () => {
@@ -68,8 +69,8 @@ describe('Rank mathematical functions', () => {
         expect(run('M divisors count rank 0')).toBe('1 2 4 6');
         expect(run('(array 6 12) divisors rank 0 count rank 0')).toBe('4 6');
         expect(() => run('(array 6 12) divisors rank 1')).toThrow(/integer/);
-        r.execute('N = 1 to #\nLists = N divisors');
-        const lists = r.variables.get('Lists');
+        r.execute("N' = 1 to #\nLists' = N divisors");
+        const lists = demandValue(r.variables.get('Lists')!);
         expect(lists && isRankSequence(lists) && lists.plan.size).toEqual({ kind: 'infinite' });
         expect(run('Lists count rank 0 take 6')).toBe('1 2 2 3 2 4');
         expect(run('Lists count rank 0 take 3')).toBe('1 2 2');
@@ -142,8 +143,8 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n(array 1 2) log')).toBe('0 0.6931471805599453');
         expect(run([
             'use numbers',
-            'Values = (array 1 0) // (array 1 0)',
-            'Logs = Values log',
+            "Values' = (array 1 0) // (array 1 0)",
+            "Logs' = Values log",
             'Logs 0',
         ].join('\n'))).toBe('0');
     });
@@ -157,8 +158,8 @@ describe('Rank mathematical functions', () => {
             .toBe('1 2.718281828459045');
         expect(run([
             'use numbers',
-            'Values = (array 0 0) // (array 1 0)',
-            'Powers = Values exp',
+            "Values' = (array 0 0) // (array 1 0)",
+            "Powers' = Values exp",
             'Powers 0',
         ].join('\n'))).toBe('1');
         expect(run('use numbers\n(-infinity) exp')).toBe('0');
@@ -179,8 +180,8 @@ describe('Rank mathematical functions', () => {
 
         expect(run([
             'use numbers',
-            'Values = (array 0 0) // (array 1 0)',
-            'Result = Values cos',
+            "Values' = (array 0 0) // (array 1 0)",
+            "Result' = Values cos",
             'Result 0',
         ].join('\n'))).toBe('1');
     });

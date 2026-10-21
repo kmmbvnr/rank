@@ -906,7 +906,9 @@ earlier axes are independent batches. The explicit `axis F O` form selects the
 feature and observation axes in that order. It preserves the other axes and
 replaces the selected axes with two feature axes. The operation uses the sample
 denominator `N - 1`, returns real values, and requires at least two
-observations. Its result and feature means are calculated lazily and cached.
+observations. Ordinary binding stores the completed result. Deferred binding
+recomputes on demand; a traversal may share feature means within its current
+batch, but later observations start fresh.
 
 ## Text
 

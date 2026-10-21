@@ -307,7 +307,10 @@ already defines the cells and is not combined with `rank`.
 
 Covariance divides by `N - 1`, always returns real values, and raises
 `.InsufficientData` when the observation axis has fewer than two items. The
-result and per-feature means are calculated on demand and cached.
+ordinary result is completed by `=`. Use `Cov' = Features covariance` to keep a
+recipe; each observation recomputes. A full traversal shares feature means only
+within its current batch. Independent cell reads, later traversals and retries
+after failure start fresh. Assigning `Saved = Cov` retains the completed matrix.
 
 ## Sliding windows
 

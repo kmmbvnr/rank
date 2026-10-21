@@ -1,4 +1,4 @@
-import { arrayRevision, noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem } from './array-storage.js';
+import { noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
 import { prepareStoredScalarView } from './integer-view.js';
@@ -7,7 +7,6 @@ import { sameShape } from './tensor-index.js';
 import { MISSING, type RankArray, type RankSequence, type RankValue } from './value.js';
 
 interface Selection { source: RankArray; positions: readonly number[]; iterate: RankSequence['plan']['iterate'] }
-const masks = new WeakMap<RankArray, { revision: number; size: number; positions: readonly number[] }>();
 const selections = new WeakMap<RankSequence['plan'], Selection>();
 
 /** Snapshot mask positions without demanding source cells. */
@@ -16,38 +15,26 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
         throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
     }
     const size = source.shape.reduce((n, axis) => n * axis, 1);
-    let positions: readonly number[];
+    const positions: number[] = [];
     const view = prepareStoredScalarView(selector, true);
-    const revision = arrayRevision(selector);
     const linear = view?.linear;
-    // Only proved stored booleans can reuse positions. Lazy/host masks must
-    // retain their ordinary reads; binding checks still run before each use.
-    const reusable = view?.kinds?.length === 1 && view.kinds[0] === 'boolean'
-        && linear && (!view.validate || view.validateUniform) && revision !== undefined;
-    const cached = reusable ? masks.get(selector) : undefined;
-    if (reusable && size) view.validateUniform?.(view.items[linear.offset]);
-    if (cached && cached.revision === revision && cached.size === size) {
+    // Completed storage can be scanned directly, but each selection constructs
+    // its own positions. Lazy/host masks retain ordinary reads and validation.
+    const direct = view?.kinds?.length === 1 && view.kinds[0] === 'boolean'
+        && linear && (!view.validate || view.validateUniform);
+    if (direct && size) view.validateUniform?.(view.items[linear.offset]);
+    if (view) {
+        for (let index = 0; index < size; index++) {
+            if ((index & 4095) === 0) checkpoint('selecting array positions', Math.min(4096, size - index));
+            const item = direct ? view.items[linear.offset + linear.stride * index] : view.read(index);
+            if (item === true) positions.push(index);
+            else if (item !== false && item !== MISSING) throw new RankError('array selector must be a boolean mask');
+        }
+    } else if (!selector.items.every((item, index) => {
         checkpoint('selecting array positions');
-        positions = cached.positions;
-        const diagnostics = currentDiagnostics();
-        if (diagnostics) diagnostics.maskPositionReuses++;
-    } else {
-        const found: number[] = [];
-        if (view) {
-            for (let index = 0; index < size; index++) {
-                if ((index & 4095) === 0) checkpoint('selecting array positions', Math.min(4096, size - index));
-                const item = reusable ? view.items[linear.offset + linear.stride * index] : view.read(index);
-                if (item === true) found.push(index);
-                else if (item !== false && item !== MISSING) throw new RankError('array selector must be a boolean mask');
-            }
-        } else if (!selector.items.every((item, index) => {
-            checkpoint('selecting array positions');
-            if (item === true && index < size) found.push(index);
-            return typeof item === 'boolean' || item === MISSING;
-        })) throw new RankError('array selector must be a boolean mask');
-        positions = found;
-        if (reusable) masks.set(selector, { revision, size, positions });
-    }
+        if (item === true && index < size) positions.push(index);
+        return typeof item === 'boolean' || item === MISSING;
+    })) throw new RankError('array selector must be a boolean mask');
 
     // A retained lazy selection still owns the old source after a Rank write.
     noteArrayBinding(source);
