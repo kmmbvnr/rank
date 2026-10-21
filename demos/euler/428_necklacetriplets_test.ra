@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "428_necklacetriplets"
+  N = 1
+  run
+  Answer equal 9
+  N = 20
+  run
+  Answer equal 732
+end
+
+test "published checkpoint"
+  use "428_necklacetriplets"
+  N = 3000
+  run
+  Answer equal 438106
+end
+
+test "brute force over divisors"
+  use "428_necklacetriplets"
+  N = 300
+  run
+  Answer equal 25992
+end

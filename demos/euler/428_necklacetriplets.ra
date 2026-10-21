@@ -1,0 +1,161 @@
+rem Necklace of Circles
+rem https://projecteuler.net/problem=428
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000
+
+rem A Steiner chain of k circles closes
+rem when a c = t b (a + b + c) with
+rem t = tan(pi / k)^2, rational only
+rem for k = 3, 4, 6. Counting divisor
+rem pairs gives tau(12 b^2) + tau(2 b^2)
+rem + (divisors of 4 b^2 = -b mod 3).
+rem With b = 2^p 3^q m, m prime to 6,
+rem T(N) needs S1(x) = sum of tau(m^2)
+rem and S2(x) = sum of W(m), the same
+rem with a mod 3 character, for
+rem x = N // (2^p 3^q). Both are sums
+rem over squarefree e of a count
+rem D(x // e), so tables of D and of
+rem squarefree counts at all N // t are
+rem built first.
+fun Z Mu feval
+  R = Z isqrt
+  Ks = (1 to R) copy
+  Q = Z // Ks
+  Fl = (Ks mod 2) * (Ks mod 3) greater 0
+  F1 = Fl choose 1 0
+  Ng = 0 - 1
+  Ch = (Ks mod 3 equal 1) choose 1 Ng
+  C6 = Q - Q // 2 - Q // 3 + Q // 6
+  Cx = (Q + 5) // 6 - ((Q + 1) // 6)
+  C6r = R - R // 2 - R // 3 + R // 6
+  Cxr = (R + 5) // 6 - ((R + 1) // 6)
+  Dd = 2 * ((F1 * C6) sum) - C6r * C6r
+  K1 = (F1 * Cx) sum
+  Kc = K1 + ((F1 * Ch * C6) sum)
+  Kc = Kc - C6r * Cxr
+  Mq = Z // (Ks * Ks)
+  M6 = Mq - Mq // 2 - Mq // 3 + Mq // 6
+  Mx = (Mq + 5) // 6 - ((Mq + 1) // 6)
+  Mk = Mu Ks * F1
+  S6 = (Mk * M6) sum
+  Sx = (Mk * Mx) sum
+  return array Dd Kc S6 Sx
+end
+
+fun Tv Lt St Nr look
+  R = Lt len - 2
+  Vl = Lt (Tv R min)
+  Qv = Nr // Tv
+  Vs = St (Qv R min)
+  return (Tv at most R) choose Vl Vs
+end
+
+R = N isqrt
+Rt = R isqrt + 1
+Mu = array shape (R + 2) fill 1
+Sm = array shape (R + 2) fill 1
+Ix = (0 to R + 1) copy
+for P in primes to Rt
+  Q = P
+  for Q at most R + 1
+    Sl = Q to R + 1 by Q
+    Sm Sl *= P
+    if Q equal P
+      Mu Sl *= -1
+    end
+    Q *= P
+  end
+  Sl = (P * P) to R + 1 by (P * P)
+  Mu Sl = 0
+end
+Big = Ix // Sm greater 1
+Mu = (Big choose (0 - Mu) Mu) copy
+Mu 0 = 0
+Dds = array shape (R + 2) fill 0
+Kcs = array shape (R + 2) fill 0
+S6s = array shape (R + 2) fill 0
+Sxs = array shape (R + 2) fill 0
+DdL = array shape (R + 2) fill 0
+KcL = array shape (R + 2) fill 0
+S6L = array shape (R + 2) fill 0
+SxL = array shape (R + 2) fill 0
+for V in 1 to R
+  Rs = V Mu feval
+  Dds V = Rs 0
+  Kcs V = Rs 1
+  S6s V = Rs 2
+  Sxs V = Rs 3
+  Rl = (N // V) Mu feval
+  DdL V = Rl 0
+  KcL V = Rl 1
+  S6L V = Rl 2
+  SxL V = Rl 3
+end
+Ng = 0 - 1
+Tot = 0
+for A in 0 to 40
+  for B in 0 to 20
+    Bs = 2 ** A * 3 ** B
+    if Bs at most N
+      X = N // Bs
+      Rx = X isqrt
+      Es = (1 to Rx) copy
+      P2 = Es mod 2
+      P3 = Es mod 3
+      Ft = P2 * P3 greater 0
+      Fe = Ft choose 1 0
+      Fe = Fe * (Mu Es) * (Mu Es)
+      Ch = (P3 equal 1) choose 1 Ng
+      Te = Bs * Es
+      D1 = Te DdL Dds N look
+      D2 = Te KcL Kcs N look
+      S1 = (Fe * D1) sum
+      S2 = (Fe * Ch * D2) sum
+      Qm = X // (Rx + 1)
+      if Qm greater 0
+        Qs = (1 to Qm) copy
+        Tq = Bs * Qs
+        Tp = Bs * (Qs + 1)
+        Hi6 = Tq S6L S6s N look
+        Hix = Tq SxL Sxs N look
+        Ap = N // Tp
+        Lo6 = Tp S6L S6s N look
+        Lox = Tp SxL Sxs N look
+        Rm6 = S6s Rx
+        Rmx = Sxs Rx
+        Ge = Ap at least Rx
+        Lo6 = Ge choose Lo6 Rm6
+        Lox = Ge choose Lox Rmx
+        Dq = Dds Qs
+        Kq = Kcs Qs
+        S1 += (Dq * (Hi6 - Lo6)) sum
+        S2 += (Kq * (Hix - Lox)) sum
+      end
+      Ca = (2 * A + 3) * (2 * B + 2)
+      Cb = (2 * A + 2) * (2 * B + 1)
+      C1 = 2 * (Ca + Cb)
+      if B greater 0
+        Cc = 2 * B - 1
+        C1 += 2 * Cc * (2 * A + 3)
+      else
+        C1 += 2 * A + 3
+      end
+      C2 = 0
+      if B equal 0
+        C2 = -1
+        if A mod 2 equal 1
+          C2 = 1
+        end
+      end
+      Tot += C1 * S1 + C2 * S2
+    end
+  end
+end
+Answer = Tot // 2
+Answer print
