@@ -1,0 +1,136 @@
+rem Hypocycloid and Lattice Points
+rem https://projecteuler.net/problem=450
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000
+
+rem With R = g p and r = g q the point
+rem is g (e z^q + q z^-e) for a point z
+rem of the unit circle with rational
+rem coordinates, e = p - q. The four
+rem trivial z give 4 R - 2 r per pair
+rem less a correction by cos(pi RR / 2)
+rem summed with mu. The other z come
+rem from primitive Pythagorean triples
+rem (a, b, c), c <= sqrt N: the point
+rem for angle powers rr and RR - rr is
+rem reduced by a common factor, and
+rem every multiple that fits adds its
+rem coordinates.
+Sq = N isqrt
+Ans = 0
+Va = array shape 0 fill 0
+Vb = array shape 0 fill 0
+Vc = array shape 0 fill 0
+for U in 1 to Sq
+  for V in 1 to U
+    C = U * U + V * V
+    Gu = U V gcd
+    Pr = (U + V) mod 2
+    Ok = Gu equal 1 and Pr equal 1
+    if C at most Sq and Ok
+      A = U * U - V * V
+      B = 2 * U * V
+      Na = 0 - A
+      Nb = 0 - B
+      Va = concat Va (array A Na B Nb)
+      Vb = concat Vb (array B B A A)
+      Vc = concat Vc (array C C C C)
+    end
+  end
+end
+for Vi in 0 to Va len - 1
+  Pa = Va Vi
+  Pb = Vb Vi
+  C = Vc Vi
+  Rr = 3
+  Cp = C ** Rr
+  for Cp at most N * N // 2
+    Hr = (Rr - 1) // 2
+    for Ra in 1 to Hr
+      Gc = Rr Ra gcd
+      Rb = Rr - Ra
+      X1 = 1
+      Y1 = 0
+      Z1 = 1
+      for I in 1 to Ra
+        Xt = X1 * Pa - Y1 * Pb
+        Y1 = X1 * Pb + Y1 * Pa
+        X1 = Xt
+        Z1 *= C
+      end
+      X2 = 1
+      Y2 = 0
+      Z2 = 1
+      for I in 1 to Rb
+        Xt = X2 * Pa - Y2 * Pb
+        Y2 = X2 * Pb + Y2 * Pa
+        X2 = Xt
+        Z2 *= C
+      end
+      Q2 = Z2 // Z1
+      Xu = Rb * X1 * Q2 + Ra * X2
+      Yu = Rb * Y1 * Q2 - Ra * Y2
+      Gx = Xu Yu gcd
+      Gg = Z2 Gx gcd
+      Gr = Z2 // Gg
+      Sa = Xu abs + (Yu abs)
+      Sa = Sa // Gg
+      Mm = N // (Gr * Rr)
+      if Gc equal 1
+        Ans += Sa * Mm * (Mm + 1)
+      end
+    end
+    Rr += 1
+    Cp = C ** Rr
+  end
+end
+rem Trivial points.
+for R in 1 to N
+  K = (R - 1) // 2
+  Ans += 4 * R * K - K * (K + 1)
+end
+Lm = N + 1
+Mu = array shape (Lm + 1) fill 1
+Sm = array shape (Lm + 1) fill 1
+Ix = (0 to Lm) copy
+Rt = Lm isqrt + 1
+for P in primes to Rt
+  Q = P
+  for Q at most Lm
+    Sl = Q to Lm by Q
+    Sm Sl *= P
+    if Q equal P
+      Mu Sl *= -1
+    end
+    Q *= P
+  end
+  Sl = (P * P) to Lm by (P * P)
+  Mu Sl = 0
+end
+Bg = Ix // Sm greater 1
+Mu = (Bg choose (0 - Mu) Mu) copy
+Mu 0 = 0
+Xc = array 1 0 (0 - 1) 0
+D2 = 0
+for D in 1 to N
+  Md = Mu D
+  if Md not equal 0
+    for R in D to N by D
+      if R at least 3
+        Mq = N // R
+        H = R // 2 // D
+        Tq = Mq * (Mq + 1) // 2
+        Cx = Xc (R mod 4)
+        Hh = H * (H + 1)
+        D2 += Cx * Tq * Md * Hh * D
+      end
+    end
+  end
+end
+Answer = Ans + D2
+Answer print
