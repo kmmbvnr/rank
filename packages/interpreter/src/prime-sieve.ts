@@ -25,9 +25,10 @@ export class PrimeSieve {
 
     private prepare(value: number): void {
         const first = 3 + Math.floor((value - 3) / (2 * segmentOdds)) * 2 * segmentOdds;
-        // A short prefix must not prepare a whole large segment before it can
-        // yield its first odd prime. Later requests use the regular workspace.
-        const odds = value < 3 + 2 * initialOdds ? initialOdds : segmentOdds;
+        // Grow the first segment with demand instead of marking a large block
+        // for a short prefix. Later segments use the regular workspace.
+        let odds = initialOdds;
+        while (odds < segmentOdds && value >= 3 + 2 * odds) odds *= 2;
         const last = Math.min(first + 2 * (odds - 1), maxSieveInteger);
         const root = Math.floor(Math.sqrt(last));
         this.extendBase(root);

@@ -93,7 +93,9 @@ it('keeps the cold prime prefix within budget and validates segment transitions'
     withDemandBudget(10_000, () => {
         for (let value = 3; value <= 257; value += 2) expect(sieve.contains(value)).toBe(prime(value));
     });
-    for (const value of [259, 263, 65533, 65535, 65537, 65539, 131071, 131073, 3, 257, 259]) {
+    for (const value of [259, 263, 511, 513, 515, 1023, 1025, 1027, 2049, 2051,
+        4097, 4099, 8193, 8195, 16385, 16387, 32769, 32771,
+        65533, 65535, 65537, 65539, 131071, 131073, 3, 257, 259]) {
         expect(sieve.contains(value)).toBe(prime(value));
     }
     expect(() => withDemandBudget(1, () => sieve.contains(300001))).toThrow(DemandBudgetExhausted);

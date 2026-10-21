@@ -138,11 +138,11 @@ Total`);
         let loops = 0;
         const runtime = new Interpreter(undefined, { compilation, onIntegerLoopExecuted: () => loops++ });
         try {
-            runtime.execute('use sequences\nAllowed = primes from 65500 till 132000');
+            runtime.execute('use sequences\nAllowed\' = primes from 65500 till 132000');
             const value = runtime.execute('S = 0\nfor I in 65400 to 132100\n if I in Allowed\n  S += 1\n end\nend\nS');
             expect(value).toBe(BigInt(reference(131999).filter(p => p >= 65500n).length));
             expect(loops > 0).toBe(compilation);
-            runtime.execute('Huge = primes till 1000000000002');
+            runtime.execute('Huge\' = primes till 1000000000002');
             expect(() => withInterrupt(cancel(), () => runtime.execute('1000000000001 in Huge'))).toThrow('Interrupted');
             expect(runtime.execute('65537 in Huge')).toBe(true);
         } finally { runtime.dispose(); }
