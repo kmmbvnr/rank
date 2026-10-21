@@ -6372,6 +6372,15 @@ the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
 binding retains the completed result. A deferred assignment does not make a
 single-pass operand restartable; bind its completed data before reusing it.
 
+Repeatable sequences with an exact size retain no item history between
+observations. Their equally shaped array items are stacked before pairing, so
+trailing item axes participate just as they do after an ordinary binding.
+Determining the shape can read the first item; indexing reads only the prefix
+needed to reach its selected item when direct addressing is unavailable.
+A full traversal owns and closes its cursors, including when stopped early.
+Unknown-size operands and single-pass resources are completed by the current
+`outer` evaluation; this does not make the original resource restartable.
+
 Explicit binary comparison rank and frame axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
 

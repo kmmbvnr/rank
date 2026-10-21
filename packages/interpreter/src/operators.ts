@@ -1,3 +1,4 @@
+import { demandValue } from './plan.js';
 import { membershipLookup } from './membership-lookup.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
@@ -7,7 +8,7 @@ import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
-import { denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
+import { arrayValues, collectArrayCells, denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, registerArrayReadPlan, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexHas, indexKey } from './index-storage.js';
@@ -97,15 +98,12 @@ export class Operators {
         const b = outerOperand(right, 'right');
         const rightSize = arraySize(b.shape);
         requireIndexable([...a.shape, ...b.shape]);
+        const evaluate = (x: RankValue, y: RankValue) => this.evaluateBinary(operator, x, y);
         return derivedArray([...a.shape, ...b.shape], [a, b], index => {
             const leftIndex = Math.floor(index / rightSize);
             const rightIndex = index % rightSize;
-            return this.evaluateBinary(
-                operator,
-                readArrayItem(a, leftIndex),
-                readArrayItem(b, rightIndex),
-            );
-        }, true);
+            return evaluate(readArrayItem(a, leftIndex), readArrayItem(b, rightIndex));
+        }, true, undefined, () => outerValues(a, b, evaluate));
     }
 
     evaluateNamedOuter(
@@ -123,18 +121,18 @@ export class Operators {
         const rightFrames = arraySize(b.frameShape);
         const scalar = this.scalarCallback(operation);
         requireIndexable([...a.frameShape, ...b.frameShape]);
-        return derivedArray([...a.frameShape, ...b.frameShape], [left, right, a.source, b.source, operation], index => {
-            const arguments_ = [
-                a.cellAt(Math.floor(index / rightFrames)),
-                b.cellAt(index % rightFrames),
-            ];
-            const result = scalar ? scalar(arguments_) : operation.call(arguments_);
+        const apply = (x: RankValue, y: RankValue): RankValue => {
+            const arguments_ = [x, y];
+            const result = demandValue(scalar ? scalar(arguments_) : operation.call(arguments_));
             if (valueRank(result) !== 0) {
                 throw new RankError(`outer operation ${operation.name} must return a scalar`);
             }
             this.ownFiles(result);
             return result;
-        });
+        };
+        return derivedArray([...a.frameShape, ...b.frameShape], [left, right, a.source, b.source, operation], index =>
+            apply(a.cellAt(Math.floor(index / rightFrames)), b.cellAt(index % rightFrames)), false, undefined,
+            leftRank === 0 && rightRank === 0 ? () => outerValues(a.source, b.source, apply) : undefined);
     }
 
     evaluateUnary(operator: string, value: RankValue): RankValue {
@@ -464,9 +462,25 @@ export function arraySize(shape: readonly number[]): number {
     return shape.reduce((product, dimension) => product * dimension, 1);
 }
 
-/** Operands up to this many values are read whole on first use: indexing a held array is cheaper than addressing. */
-const OUTER_EAGER_OPERAND = 65_536n;
+/** Each pass owns its cursors and current left scalar, with no replay tape. */
+function* outerValues(
+    left: RankArray, right: RankArray, apply: (x: RankValue, y: RankValue) => RankValue,
+): IterableIterator<RankValue> {
+    const leftSize = arraySize(left.shape), rightSize = arraySize(right.shape);
+    // Empty products observe empty producers, not unused scalar inputs.
+    if (leftSize === 0 || rightSize === 0) {
+        if (leftSize === 0) yield* arrayValues(left);
+        if (rightSize === 0) yield* arrayValues(right);
+        return;
+    }
+    for (const x of arrayValues(left)) {
+        for (const y of arrayValues(right)) yield apply(x, y);
+    }
+}
 
+/** Exact repeatable operands retain shape evidence, never an item prefix or
+ * iterator. Sources needing a size pass and consumable resources are completed
+ * once by this outer evaluation, just like an explicit array conversion. */
 function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     if (isRankArray(value)) return value;
     if (isRankQueue(value)) {
@@ -478,29 +492,49 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     if (value.plan.size.kind === 'infinite') {
         throw new RankError(`outer ${side} operand must be finite`);
     }
-
-    if (value.plan.size.kind === 'exact' && value.plan.size.value > OUTER_EAGER_OPERAND) {
-        // The size is promised, so values are read only as far as a cell asks, and kept.
-        const size = safeDimension(value.plan.size.value, 'outer operand size');
-        const read: RankValue[] = [];
-        let source: Iterator<RankValue> | undefined;
-        const direct = value.plan.at;
-        return derivedArray([size], [value], index => {
-            // A plan that can address its items (a range, arithmetic over one) is not read at all.
-            const addressed = direct?.call(value.plan, BigInt(index));
-            if (addressed !== undefined) return addressed;
-            source ??= sequenceValues(value, 'outer')[Symbol.iterator]();
-            while (read.length <= index) {
-                const next = source.next();
-                if (next.done) throw new RankError(`outer operand ended after ${read.length} values, not ${size}`);
-                read.push(next.value);
+    if (value.plan.size.kind !== 'exact' || value.plan.singlePass) return materializeSequence(value);
+    const size = safeDimension(value.plan.size.value, 'outer operand size');
+    // Consume the selected cell while its yield is suspended. Closing a
+    // generator can mutate a borrowed row, so no borrowed row escapes this call.
+    const visit = <T>(index: number, consume: (item: RankValue) => T): T => {
+        const direct = value.plan.at?.(BigInt(index));
+        if (direct !== undefined) return consume(demandValue(direct));
+        let position = 0;
+        for (const item of sequenceValues(value, 'outer')) {
+            if (position++ === index) return consume(demandValue(item));
+        }
+        throw new RankError(`outer operand ended after ${position} values, not ${size}`);
+    };
+    const cellShape = size === 0 ? [] : visit(0, item => isRankArray(item) ? [...item.shape] : []);
+    const width = arraySize(cellShape);
+    const check = (item: RankValue): RankValue => {
+        const shape = isRankArray(item) ? item.shape : [];
+        if (shape.length !== cellShape.length || shape.some((n, axis) => n !== cellShape[axis])) {
+            throw new RankError('outer operand items must have the same shape', 'DimensionMismatch');
+        }
+        return item;
+    };
+    const result = derivedArray([size, ...cellShape], [value], index =>
+        visit(Math.floor(index / width), item => {
+            item = check(item);
+            return isRankArray(item) ? readArrayItem(item, index % width) : item;
+        }), false, undefined, function* () {
+            let count = 0;
+            for (const item of sequenceValues(value, 'outer')) {
+                if (count++ >= size) throw new RankError('outer operand exceeded its declared size');
+                const cell = check(demandValue(item));
+                if (isRankArray(cell)) yield* arrayValues(cell);
+                else yield cell;
             }
-            return read[index];
+            if (count !== size) throw new RankError(`outer operand ended after ${count} values, not ${size}`);
         });
-    }
-    // Finite operands read as a whole must stack yielded array cells just as
-    // explicit array/copy does, preserving their trailing axes and snapshots.
-    return materializeSequence(value);
+    return registerArrayReadPlan(result, { cells: {
+        frameShape: [size], cellShape: () => cellShape,
+        read: index => visit(index, item => {
+            item = check(item);
+            return isRankArray(item) ? ownedArray(collectArrayCells(item), [...item.shape]) : item;
+        }),
+    } });
 }
 
 function outerCells(

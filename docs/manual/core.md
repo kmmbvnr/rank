@@ -1486,6 +1486,11 @@ Left Right outer Operator
 The result has one row per item of Left
 and one column per item of Right.
 
+Use `Pairs' = Left Right outer Operator` to keep a recipe;
+`Pairs = Left Right outer Operator` computes and stores the result.
+Repeating a recipe computes its pairs again. Finite sequence items that are
+arrays must have equal shapes; their axes are stacked before pairing.
+
 ### See also
 
 rank, matmul
