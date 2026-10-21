@@ -1,7 +1,7 @@
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import { noteArrayBinding } from './array-storage.js';
-import { checkCollectionElementType, isRankQueue, type CollectionElementType, type RankValue } from './value.js';
+import { checkCollectionElementType, isRankQueue, type CollectionElementType, type RankQueue, type RankValue } from './value.js';
 import { ResourceSummary } from './resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
 
@@ -176,18 +176,21 @@ export class RankHeap {
     }
 }
 
-export function pushCollection(receiver: RankValue, value: RankValue): RankValue {
-    if (receiver instanceof RankDeque || receiver instanceof RankHeap) return receiver.push(value);
-    if (isRankQueue(receiver)) {
-        receiver.elementType = checkCollectionElementType('queue', () => {
-            let previous = receiver.elementType;
-            for (const item of receiver.items) previous = checkCollectionElementType('queue', previous, item);
-            return previous;
-        }, value);
-        receiver.items.push(value);
-        return receiver;
-    }
+export function expectPushCollection(receiver: RankValue): RankQueue | RankHeap {
+    if (receiver instanceof RankHeap || isRankQueue(receiver)) return receiver;
     throw new RankError('push expects a queue, deque, stack or heap receiver');
+}
+
+export function pushCollection(receiver: RankValue, value: RankValue): RankValue {
+    receiver = expectPushCollection(receiver);
+    if (receiver instanceof RankDeque || receiver instanceof RankHeap) return receiver.push(value);
+    receiver.elementType = checkCollectionElementType('queue', () => {
+        let previous = receiver.elementType;
+        for (const item of receiver.items) previous = checkCollectionElementType('queue', previous, item);
+        return previous;
+    }, value);
+    receiver.items.push(value);
+    return receiver;
 }
 
 export function peekCollection(receiver: RankValue, remove: boolean): RankValue {

@@ -1,9 +1,11 @@
 import { numbersModule } from './numbers.js';
 import { checkpoint } from '../interrupt.js';
+import { materializeValue } from '../materialize.js';
+import { demandValue } from '../plan.js';
 import { ownedArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
-import { expectDeque, expectHeap, peekCollection, pushCollection } from '../containers.js';
-import { addToCollection, removeFromCollection } from '../collections.js';
+import { expectDeque, expectHeap, expectPushCollection, peekCollection, pushCollection } from '../containers.js';
+import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { RankFenwick, expectFenwick } from '../fenwick.js';
 import { FlatRecords } from '../flat.js';
 import { indexGet, indexSet, indexKey } from '../index-storage.js';
@@ -79,21 +81,26 @@ export const algoModule: RuntimeModule = {
         }
         return expectSegment(arguments_[0]).firstAtLeast(target);
     }),
-    push: () => native('push', 2, a => pushCollection(a[0], a[1])),
+    push: () => native('push', 2, a => pushCollection(expectPushCollection(a[0]), materializeValue(a[1]))),
     pop: () => native('pop', 1, a => peekCollection(a[0], true)),
     peek: () => native('peek', 1, a => peekCollection(a[0], false)),
-    pushfront: () => native('pushfront', 2, a => expectDeque(a[0]).pushFront(a[1])),
-    pushback: () => native('pushback', 2, a => expectDeque(a[0]).push(a[1])),
+    pushfront: () => native('pushfront', 2, a => expectDeque(a[0]).pushFront(materializeValue(a[1]))),
+    pushback: () => native('pushback', 2, a => expectDeque(a[0]).push(materializeValue(a[1]))),
     popfront: () => native('popfront', 1, a => expectDeque(a[0]).pop(false)),
     popback: () => native('popback', 1, a => expectDeque(a[0]).pop(true)),
     peekfront: () => native('peekfront', 1, a => expectDeque(a[0]).peek(false)),
     peekback: () => native('peekback', 1, a => expectDeque(a[0]).peek(true)),
-    enqueue: () => native('enqueue', 3, a => expectHeap(a[0]).push(a[2], a[1])),
+    enqueue: () => native('enqueue', 3, a => {
+        const heap = expectHeap(a[0]);
+        const priority = materializeValue(a[1]);
+        const value = materializeValue(a[2]);
+        return heap.push(value, priority);
+    }),
     lowerbound: () => native('lowerbound', 2, a => expectMultiset(a[0]).ceiling(a[1])),
     upperbound: () => native('upperbound', 2, a => expectMultiset(a[0]).upperBound(a[1])),
     multiset: () => native('multiset', 1, arguments_ => multisetValue(arguments_[0])),
     add: () => native('add', 2, arguments_ =>
-        addToCollection(arguments_[0], arguments_[1])),
+        addToCollection(expectAddCollection(arguments_[0]), materializeValue(arguments_[1]))),
     remove: () => native('remove', 2, arguments_ =>
         removeFromCollection(arguments_[0], arguments_[1])),
     floor: numbersModule.floor,
@@ -426,11 +433,11 @@ export function structureWrite(
     if (isRankIndex(target)) {
         const key = indexKey(selectors);
         return value => {
-            if (combine === undefined) indexSet(target, key, value);
+            if (combine === undefined) indexSet(target, key, materializeValue(value));
             else {
                 const previous = indexGet(target, key);
                 if (previous === undefined) throw new MissingValueError('index key not found');
-                indexSet(target, key, operators.evaluateBinary(combine, previous, value));
+                indexSet(target, key, materializeValue(operators.evaluateBinary(combine, demandValue(previous), demandValue(value))));
             }
             return undefined;
         };

@@ -10,7 +10,7 @@ import { materializeValue } from '../materialize.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
-import { pushCollection } from '../containers.js';
+import { expectPushCollection, pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
 import {
     completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
@@ -68,12 +68,13 @@ export function preparePushStatement(statement: PushStatement, host: AssignmentC
     return { stream: function* (): Execution<RankValue | undefined> {
         const receiver = (yield* resume(host.evaluate(statement.receiver)));
         host.requireModule('algo', 'push');
+        expectPushCollection(receiver);
         // `Queue push unpack Items` appends each item; a plain value is appended as one element.
         const spread = unpackSource(statement.value);
         if (isUnpackExpression(spread.source)) {
             const items = unpackApplicationItems(yield* resume(host.evaluate(spread.source.value)), spread.axis);
-            for (const item of items) pushCollection(receiver, item);
-        } else pushCollection(receiver, (yield* resume(host.evaluate(statement.value))));
+            for (const item of items) pushCollection(receiver, materializeValue(item));
+        } else pushCollection(receiver, materializeValue(yield* resume(host.evaluate(statement.value))));
         return undefined;
     } };
 }
@@ -324,7 +325,7 @@ export function prepareCollectionMutation(
             ? expectAddCollection(target) : target;
         host.requireModule('algo', mutation.operation);
         const value = yield* resume(host.evaluate(mutation.value));
-        if (mutation.operation === 'add') addToCollection(receiver, value);
+        if (mutation.operation === 'add') addToCollection(receiver, materializeValue(value));
         else removeFromCollection(receiver, value);
         return undefined;
     } };

@@ -1,6 +1,8 @@
 import { bindingTypeMessage } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { ArrayBindingContract } from './array-binding-contract.js';
+import { materializeValue } from './materialize.js';
+import { demandValue } from './plan.js';
 import type { Operators } from './operators.js';
 import { noteArrayBinding, readArrayItem } from './array-storage.js';
 import { collectionElementType, isRankTuple, isRankArray, isRankRecord, mergeCollectionElementType, typeName,
@@ -94,9 +96,9 @@ export function assignRecordField(
     if (previous === undefined) {
         throw new RankError(`unknown record field: .${field}`);
     }
-    const result = operator === '='
+    const result = materializeValue(operator === '='
         ? value
-        : operators.evaluateBinary(operator.slice(0, -1), previous, value);
+        : operators.evaluateBinary(operator.slice(0, -1), demandValue(previous), demandValue(value)));
     const expected = record.types.get(field)!;
     const received = typeName(result);
     if (expected !== received) {

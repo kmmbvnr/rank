@@ -1,6 +1,7 @@
 import { AstUtils } from 'langium';
 import { PlanConstruction } from './plan-construction.js';
 import { demand, demandValue } from '../plan.js';
+import { materializeValue } from '../materialize.js';
 import { checkedArrayDimension } from '../tensor-index.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
@@ -410,7 +411,7 @@ export class ExpressionEvaluator {
                     if (record.entries.has(field.name)) {
                         throw new RankError(`duplicate record field: .${field.name}`);
                     }
-                    const value = yield* resume(expressions.evaluate(field.value));
+                    const value = materializeValue(yield* resume(expressions.evaluate(field.value)));
                     record.entries.set(field.name, value);
                     record.types.set(field.name, typeName(value));
                 }

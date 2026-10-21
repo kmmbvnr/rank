@@ -8,6 +8,7 @@ import { runExecution, mapExecution, resume, type Evaluation, type Execution } f
 import { graphConstructor, PredicateGraph, SuccessorGraph } from '../graph.js';
 import { addToCollection, newStructure } from '../collections.js';
 import { pushCollection, RankHeap } from '../containers.js';
+import { materializeValue } from '../materialize.js';
 import { dsuFrom } from '../dsu.js';
 import { finiteValues } from '../multiset.js';
 import { multisetQuery, namedSegment, symbolicSegment } from '../modules/algo.js';
@@ -80,8 +81,9 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 const filled = newStructure(structure);
                 const items = yield* resume(context.evaluate(parts[1]));
                 for (const item of finiteValues(items)) {
-                    if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, item);
-                    else addToCollection(filled, item);
+                    const value = materializeValue(item);
+                    if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, value);
+                    else addToCollection(filled, value);
                 }
                 return filled;
             };
@@ -108,11 +110,12 @@ export function compileStructureApplication(context: ApplicationContext, applica
                         throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
                     }
                     const cells = dyadicCells(values, values.shape.length - 1);
-                    const payloads = Array.from({ length: values.shape[0] }, (_, index) => cells.cellAt(index));
-                    return heap.fill([...finiteValues(priorities)], payloads);
+                    const priorityValues = [...finiteValues(priorities)].map(materializeValue);
+                    const payloads = Array.from({ length: values.shape[0] }, (_, index) => materializeValue(cells.cellAt(index)));
+                    return heap.fill(priorityValues, payloads);
                 }
                 if (values !== undefined) {
-                    const items = [...finiteValues(values)];
+                    const items = [...finiteValues(values)].map(materializeValue);
                     return heap.fill(items, items);
                 }
                 return heap;
