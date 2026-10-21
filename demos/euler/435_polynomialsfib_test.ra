@@ -1,0 +1,23 @@
+use testing
+
+test "statement checkpoint"
+  use "435_polynomialsfib"
+  N = 20
+  Top = 10
+  run
+  Answer equal 1044074802100
+end
+
+test "small degree sums"
+  use "435_polynomialsfib"
+  N = 7
+  Top = 11
+  run
+  Answer equal 520417062
+end
+
+test "default input"
+  use "435_polynomialsfib"
+  run
+  Answer equal 252541322550
+end
