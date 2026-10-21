@@ -5,7 +5,7 @@ import {
 import { findCompiledOperator, type CompiledOperator } from './compiled-operators.js';
 import { findOperation, type Operation, type CompiledAtomType, type CompiledCallSignature } from './operations.js';
 import { applicationForm, symbolicApplicationForm } from './application-forms.js';
-import { flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from './expressions.js';
+import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from './expressions.js';
 
 interface TypedNode<T> {
     readonly source: Expression;
@@ -22,6 +22,8 @@ export type CompiledExpression<T = CompiledAtomType, Input = string> = TypedNode
         readonly signature: CompiledExpressionSignature<T>; readonly operand: CompiledExpression<T, Input> }
     | { readonly kind: 'call'; readonly operation: Operation; readonly signature: CompiledCallSignature;
         readonly arguments: readonly CompiledExpression<T, Input>[] }
+    | { readonly kind: 'extreme'; readonly name: 'min' | 'max';
+        readonly left: CompiledExpression<T, Input>; readonly right?: CompiledExpression<T, Input> }
     | { readonly kind: 'binary'; readonly operation: CompiledOperator;
         readonly signature: CompiledExpressionSignature<T>;
         readonly left: CompiledExpression<T, Input>; readonly right: CompiledExpression<T, Input> }
@@ -46,6 +48,8 @@ export interface CompiledExpressionContext<T, Input = string> {
     readonly operator: (operation: CompiledOperator, inputs: readonly T[]) => CompiledExpressionSignature<T> | undefined;
     /** Optional native call capability. Runtime binding identity remains an entry guard. */
     readonly call?: (operation: Operation, inputs: readonly T[]) => CompiledCallSignature | undefined;
+    /** Scalar extrema only; consumers prove the operand domains and guard the builtin. */
+    readonly extreme?: (name: 'min' | 'max', inputs: readonly T[]) => T | undefined;
     /** Share a finite analysis budget with the enclosing statement analysis. */
     readonly budget: { remaining: number };
 }
@@ -53,6 +57,29 @@ export interface CompiledExpressionContext<T, Input = string> {
 export type CompiledExpressionResult<T, Input = string> =
     | { readonly expression: CompiledExpression<T, Input>; readonly failure?: never }
     | { readonly expression?: never; readonly failure: { readonly source: Expression; readonly detail?: string } };
+
+/** Scalar extrema and left-associated chains such as `A B max C min`.
+ * Collection reductions use the ordinary call path when scalar proof fails. */
+function scalarExtremeParts(source: Expression, unbound: (name: string) => boolean): {
+    name: 'min' | 'max'; left: Expression; right?: Expression;
+} | undefined {
+    if (!isApplicationExpression(source)) return undefined;
+    const parts = flattenApplication(source);
+    const isExtreme = (part: Expression | undefined) => isNameExpression(part)
+        && (part.name === 'min' || part.name === 'max') && unbound(part.name);
+    const last = parts.at(-1);
+    if (!isNameExpression(last) || last.name !== 'min' && last.name !== 'max' || !unbound(last.name)) return undefined;
+    const name = last.name;
+    if (parts.length === 2 && !isExtreme(parts[0])) return { name, left: parts[0] };
+    if (parts.length === 3 && !isExtreme(parts[0]) && !isExtreme(parts[1])) {
+        return { name, left: parts[0], right: parts[1] };
+    }
+    if (parts.length > 3 && !isExtreme(parts.at(-2))) {
+        const left = applicationExpression(parts.slice(0, -2), source);
+        if (scalarExtremeParts(left, unbound)) return { name, left, right: parts.at(-2) };
+    }
+    return undefined;
+}
 
 /** Infer once, then let backends lower the proved tree. This is the common
  * atomic-expression frontend; storage/layout and binding identity remain
@@ -74,6 +101,17 @@ export function inferCompiledExpression<T, Input>(
             : typeof source.value === 'number' ? 'real' : typeof source.value === 'boolean' ? 'boolean' : 'text';
         const type = context.atom(actual);
         return type !== undefined ? { expression: { kind: 'literal', source, type, value: source.value } } : reject();
+    }
+    const extreme = context.extreme && scalarExtremeParts(source, name => !context.isBound(name));
+    if (extreme) {
+        const left = inferCompiledExpression(extreme.left, context);
+        if (left.failure) return left;
+        const right = extreme.right ? inferCompiledExpression(extreme.right, context) : undefined;
+        if (right?.failure) return right;
+        const type = context.extreme!(extreme.name, right ? [left.expression.type, right.expression.type] : [left.expression.type]);
+        if (type !== undefined) return { expression: { kind: 'extreme', source, type, name: extreme.name,
+            left: left.expression, right: right?.expression } };
+        return reject();
     }
     const input = context.read(source, hint);
     if (input) return { expression: { kind: 'input', source, ...input } };

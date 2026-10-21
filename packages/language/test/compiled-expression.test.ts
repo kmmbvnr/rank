@@ -29,6 +29,25 @@ function context(
 }
 
 describe('shared compiled expression inference', () => {
+    it('shares scalar extrema inference without treating reductions or mixed types as scalar', () => {
+        const scope = { ...context({ A: 'integer', B: 'integer' }),
+            extreme: (_name: 'min' | 'max', inputs: readonly CompiledAtomType[]) => {
+                const type = inputs[0];
+                return (type === 'integer' || type === 'real') && inputs.every(input => input === type) ? type : undefined;
+            } };
+        expect(inferCompiledExpression(expression('A B max 10 min'), scope).expression).toMatchObject({
+            kind: 'extreme', name: 'min', type: 'integer',
+            left: { kind: 'extreme', name: 'max', left: { input: 'A' }, right: { input: 'B' } },
+            right: { kind: 'literal', value: 10n },
+        });
+        expect(inferCompiledExpression(expression('A min'), scope).expression).toMatchObject({
+            kind: 'extreme', name: 'min', type: 'integer', left: { input: 'A' },
+        });
+        expect(inferCompiledExpression(expression('A 1.5 max'), scope).failure).toBeDefined();
+        expect(inferCompiledExpression(expression('A min'), { ...scope, isBound: name => name === 'min' }).failure).toBeDefined();
+        expect(inferCompiledExpression(expression('A B max'), context({ A: 'integer', B: 'integer' })).failure).toBeDefined();
+    });
+
     it('retains the syntax, child order and selected catalogue overload for lowering', () => {
         const source = expression('(A + 1) less B');
         const result = inferCompiledExpression(source, context({ A: 'integer', B: 'integer' }));

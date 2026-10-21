@@ -93,6 +93,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
         return lower(result.expression);
     }
     function lower(node: CompiledExpression<Domain, TensorNode>): TensorNode | undefined {
+        if (node.kind === 'extreme') return undefined; // Scalar extrema are not tensor capabilities.
         if (node.kind === 'group') return lower(node.operand);
         if (node.kind === 'input') return node.input;
         if (node.kind === 'literal') return typed({ kind: 'input', value: node.value }, node.type);

@@ -1,4 +1,4 @@
-import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
+import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
 import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
@@ -90,27 +90,6 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 : (denseScalarItems(value) ?? materializedArrayItems(value))?.[0] : value;
         return typeof first === 'number' ? 'real' : undefined;
     }
-    const isExtreme = (part: Expression | undefined) => isNameExpression(part) && ['min', 'max'].includes(part.name);
-    // `A B max`, `A max`, or a chain such as `A B max 5 min` that ends in scalar extrema.
-    function extremeChain(parts: readonly Expression[]): boolean {
-        if (!isExtreme(parts.at(-1))) return false;
-        if (parts.length === 2 || parts.length === 3) return !isExtreme(parts[0]) && !isExtreme(parts.at(-2));
-        return parts.length > 3 && !isExtreme(parts.at(-2)) && extremeChain(parts.slice(0, -2));
-    }
-    function emitExtreme(parts: readonly Expression[], lines: string[]): LoopTerm | undefined {
-        const last = parts.at(-1);
-        if (!isNameExpression(last)) return undefined;
-        const left = parts.length > 3 ? emitExtreme(parts.slice(0, -2), lines) : emit(parts[0], lines);
-        if (left?.type !== 'integer' && left?.type !== 'real') return undefined;
-        builtins.set(last.name, 'core');
-        if (parts.length === 2) return left;
-        // Mixed operands would give a result of either type.
-        const right = emit(parts.at(-2)!, lines);
-        if (right?.type !== left.type) return undefined;
-        const name = `v${state.serial++}`;
-        lines.push(`const ${name} = (${right.code}) ${last.name === 'min' ? '<' : '>'} (${left.code}) ? (${right.code}) : (${left.code});`);
-        return { code: name, type: left.type };
-    }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
         let tailSource = e;
@@ -130,6 +109,12 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 return term ? { type: term.type, input: { term, lines: inputLines } } : undefined;
             },
             isBound: name => localTypes.has(name) || arrays.has(name) || containers.has(name),
+            extreme: host.extrema ? (name, inputs) => {
+                const type = inputs[0];
+                if (type !== 'integer' && type !== 'real' || inputs.some(input => input !== type)) return undefined;
+                builtins.set(name, 'core');
+                return type;
+            } : undefined,
             operandHint: (source, index, left) => {
                 if (isUnaryExpression(source)) return source.operator === 'not' ? 'boolean' : undefined;
                 if (!isBinaryExpression(source)) return undefined;
@@ -172,6 +157,19 @@ export function createLoopExpressions(state: LoopCompilationState) {
             return node.input.term;
         }
         if (node.kind === 'call') return undefined; // Calls are guarded loop inputs above.
+        if (node.kind === 'extreme') {
+            const left = lower(node.left, lines);
+            if (!left || !node.right) return left;
+            // Cell reads may be accessor expressions. Freeze the left value
+            // before lowering the right and use each operand only once.
+            const first = `v${state.serial++}`;
+            lines.push(`const ${first} = ${left.code};`);
+            const right = lower(node.right, lines);
+            if (!right) return undefined;
+            const second = `v${state.serial++}`, result = `v${state.serial++}`;
+            lines.push(`const ${second} = ${right.code};`, `const ${result} = ${scalarExtremeSource(node.name, first, second)};`);
+            return { code: result, type: node.type };
+        }
         if (node.kind === 'unary') {
             const value = lower(node.operand, lines), token = node.operation.unary;
             if (!value || token === undefined) return undefined;
@@ -269,10 +267,6 @@ export function createLoopExpressions(state: LoopCompilationState) {
             const index = slot(e.name);
             if (!assigned.has(e.name)) required.add(index);
             return { code: `r${index}`, type };
-        }
-        if (host.extrema && isApplicationExpression(e)) {
-            const parts = host.extremeParts(e);
-            if (parts && extremeChain(parts)) return emitExtreme(parts, lines);
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;

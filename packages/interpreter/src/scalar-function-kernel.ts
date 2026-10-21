@@ -1,4 +1,4 @@
-import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
+import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
 import { newStructure } from './collections.js';
@@ -149,6 +149,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             const indices = expression.input.indices.map(index => lower(index, lines));
             const result = `v${serial++}`;
             lines.push(`const ${result} = scalarSelection(${slot(expression.input.name)}, [${indices.join(',')}]);`);
+            return result;
+        }
+        if (expression.kind === 'extreme') {
+            const left = lower(expression.left, lines);
+            if (!expression.right) return left;
+            const right = lower(expression.right, lines), result = `v${serial++}`;
+            lines.push(`const ${result} = ${scalarExtremeSource(expression.name, left, right)};`);
             return result;
         }
         if (expression.kind === 'unary') {

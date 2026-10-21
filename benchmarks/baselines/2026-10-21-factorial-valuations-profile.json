@@ -1,0 +1,109 @@
+{
+  "baselineRevision": "fc5e820d",
+  "upper": 100000,
+  "node": "v24.15.0",
+  "profile": "Node --cpu-prof; imports, parsing, compilation and execution included; collected before the fix",
+  "sampledMs": 5910.833,
+  "topSelfTime": [
+    {
+      "file": "packages/interpreter/out/function-invocation.js",
+      "name": "run",
+      "sampledMs": 659.047
+    },
+    {
+      "file": "packages/interpreter/out/eval/expressions.js",
+      "name": "",
+      "sampledMs": 593.372
+    },
+    {
+      "file": "packages/interpreter/out/frame.js",
+      "name": "get",
+      "sampledMs": 219.498
+    },
+    {
+      "file": "packages/interpreter/out/integer-loop-runtime.js",
+      "name": "run",
+      "sampledMs": 208.249
+    },
+    {
+      "file": "packages/interpreter/out/function-invocation.js",
+      "name": "prepareScalarCall",
+      "sampledMs": 203.918
+    },
+    {
+      "file": "",
+      "name": "(garbage collector)",
+      "sampledMs": 189.996
+    },
+    {
+      "file": "packages/interpreter/out/execution.js",
+      "name": "advance",
+      "sampledMs": 185.039
+    },
+    {
+      "file": "packages/interpreter/out/eval/application.js",
+      "name": "",
+      "sampledMs": 182.878
+    },
+    {
+      "file": "packages/interpreter/out/binding-environment.js",
+      "name": "assign",
+      "sampledMs": 169.788
+    },
+    {
+      "file": "",
+      "name": "",
+      "sampledMs": 159.125
+    },
+    {
+      "file": "",
+      "name": "(program)",
+      "sampledMs": 147.199
+    },
+    {
+      "file": "packages/interpreter/out/eval/assignments.js",
+      "name": "general",
+      "sampledMs": 126.754
+    },
+    {
+      "file": "packages/interpreter/out/eval/assignments.js",
+      "name": "",
+      "sampledMs": 124.335
+    },
+    {
+      "file": "packages/interpreter/out/eval/application.js",
+      "name": "apply",
+      "sampledMs": 86.582
+    },
+    {
+      "file": "node:internal/modules/esm/utils",
+      "name": "compileSourceTextModule",
+      "sampledMs": 84.542
+    },
+    {
+      "file": "",
+      "name": "run",
+      "sampledMs": 84.127
+    },
+    {
+      "file": "packages/interpreter/out/number-loop-runtime.js",
+      "name": "run",
+      "sampledMs": 81.955
+    },
+    {
+      "file": "packages/interpreter/out/execution.js",
+      "name": "",
+      "sampledMs": 79.081
+    },
+    {
+      "file": "packages/interpreter/out/eval/loops.js",
+      "name": "stream",
+      "sampledMs": 65.334
+    },
+    {
+      "file": "packages/interpreter/out/value.js",
+      "name": "isRankArray",
+      "sampledMs": 63.836
+    }
+  ]
+}

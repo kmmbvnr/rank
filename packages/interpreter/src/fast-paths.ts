@@ -2,7 +2,7 @@ import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-
 import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
-    findOperation, flattenApplication, isBinaryExpression, isNameExpression, isUnaryExpression,
+    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression,
     type ApplicationForm, type Operation, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
@@ -215,7 +215,6 @@ export class FastPaths {
             absolute: this.context.options().absoluteLoopCompilation !== false,
             reals: this.context.options().realLoopCompilation !== false,
             extrema: this.context.options().extremaLoopCompilation !== false,
-            extremeParts: flattenApplication,
             compoundWrites: this.context.options().compoundArrayCompilation !== false,
             arrayIteration: this.context.options().arrayIterationCompilation !== false,
             declareIteration: (binding, source) => declareIterationTypes(this.context.bindings, binding, source, 'integer'),

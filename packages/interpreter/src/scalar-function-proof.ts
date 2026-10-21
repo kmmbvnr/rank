@@ -206,6 +206,13 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, indices: indices.map(index => expressions.get(index)!) } };
             },
             isBound: name => env.has(name),
+            extreme: (name, inputs) => {
+                const type = inputs[0];
+                if (lexicalBinding(scope, name) || type !== 'integer' && type !== 'real'
+                    || inputs.some(input => input !== type)) return undefined;
+                nativeReads.add(name);
+                return type;
+            },
             operator: (operation, inputs) => inputs.every((value): value is CompiledScalarType => typeof value === 'string')
                 ? matchCompiledOperatorSignature(operation.scalarFunction, inputs) : undefined,
             call: (operation, inputs) => {

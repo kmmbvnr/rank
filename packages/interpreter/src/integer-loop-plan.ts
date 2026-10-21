@@ -39,7 +39,6 @@ export interface LoopHost {
     canReturn(): boolean;
     returnValue(value: RankValue): never;
     dimension(value: bigint): number;
-    extremeParts(expression: Expression): Expression[] | undefined;
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     textRead(source: string, index: bigint): string;

@@ -1,5 +1,11 @@
 import type { CompiledOperator } from '@arrrank/language';
 
+/** Keep the first operand on ties, including signed zero and NaN.
+ * Both source operands must already have been evaluated exactly once. */
+export function scalarExtremeSource(name: 'min' | 'max', left: string, right: string): string {
+    return `(${right}) ${name === 'min' ? '<' : '>'} (${left}) ? (${right}) : (${left})`;
+}
+
 /** Source operands must be evaluated once by the caller. Guards, temporaries,
  * error handling and short-circuit control flow belong to each compiler. */
 export function binaryOperatorSource(operation: CompiledOperator, left: string, right: string, options?: {
