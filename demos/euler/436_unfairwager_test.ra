@@ -1,0 +1,14 @@
+use testing
+
+test "closed form"
+  use "436_unfairwager"
+  run
+  Answer equal 0.5276662759
+end
+
+test "simulation estimate"
+  use "436_unfairwager"
+  Digits = 2
+  run
+  Answer equal 0.53
+end

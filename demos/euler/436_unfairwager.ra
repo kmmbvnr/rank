@@ -1,0 +1,19 @@
+rem Unfair Wager
+rem https://projecteuler.net/problem=436
+
+use numbers
+use io
+use cli
+
+option Digits integer = 10
+
+rem Louise's last draw x and her
+rem overshoot w above 1 have density
+rem e^(1 + w - x) on 0 <= w <= x <= 1.
+rem Julie needs 1 - w more, and the
+rem integral over the region gives
+rem (1 + 14 e - 5 e^2) / 4.
+E = 1.0 exp
+P = (1 + 14 * E - 5 * E * E) / 4
+Answer = P Digits round
+Answer print
