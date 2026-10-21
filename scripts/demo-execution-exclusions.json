@@ -157,5 +157,6 @@
   "euler/420_squarematrices.ra": "To fix later: the default input takes about 2.5 min compiled; the small _test.ra fixture stays in the audits.",
   "euler/441_inversesum.ra": "To fix later: the default input takes about 6 min compiled; the small _test.ra fixture stays in the audits.",
   "euler/418_factorisationtriples.ra": "To fix later: the default input takes about 40 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/437_fibonacciprimitive.ra": "To fix later: the default input takes about 90 s compiled; the small _test.ra fixture stays in the audits."
+  "euler/437_fibonacciprimitive.ra": "To fix later: the default input takes about 90 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/417_reciprocalcycles.ra": "To fix later: the default input takes about 80 s compiled; the small _test.ra fixture stays in the audits."
 }
