@@ -112,15 +112,6 @@ Numbers = array shape 100
   53503534226472524250874054075591789781264330331690
 end
 
-Answer = Numbers Digits leading_sum
+Total = Numbers sum
+Answer = Total text take Digits integer
 Answer print
-
-
-rem Sum with exact integers, then take the
-rem requested leading decimal digits.
-fun Numbers Digits leading_sum
-  Total = Numbers sum
-  Text = Total text
-  Prefix = Text take Digits
-  return Prefix integer
-end

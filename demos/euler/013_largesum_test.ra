@@ -7,9 +7,10 @@ test "default input"
   Answer equal 5537376230
 end
 
-test "small exact sum"
+test "three leading digits"
   use "013_largesum"
-  Numbers = array 12345 98765
+  Digits = 3
+  run
 
-  Numbers 3 leading_sum equal 111
+  Answer equal 553
 end
