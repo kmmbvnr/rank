@@ -48,8 +48,9 @@ B = array true false true false true
 A B 3 probe print`;
 
 describe('tensor pipeline fusion', () => {
-    it('declines host arrays without probing their cells', () => {
-        const source = probe.replace('A = array 1 2 3\nB = array true false true false true\n', '');
+    it('preserves host reads and only fuses after ordinary intermediates complete', () => {
+        const source = probe.replace('A = array 1 2 3\nB = array true false true false true\n', '')
+            .replace('fun A B Limit probe', "fun A' B' Limit probe");
         const execute = (fused: boolean) => {
             const reads: string[] = [];
             let kernels = 0;
@@ -72,7 +73,7 @@ describe('tensor pipeline fusion', () => {
         };
         const reference = execute(false);
         const compiled = execute(true);
-        expect(compiled).toEqual({ ...reference, kernels: 0 });
+        expect(compiled).toEqual({ ...reference, kernels: 2 });
     });
     it('fuses an independently named pipeline and preserves all', () => {
         expect(compare(probe)).not.toHaveProperty('error');
@@ -93,11 +94,11 @@ describe('tensor pipeline fusion', () => {
         const source = probe.replace('return Result', 'Gathered print\n  return Result');
         expect(compare(source).kernels).toBe(0);
     });
-    it('retains mutation rejection for lazy intermediates', () => {
-        const source = probe.replace('Result = Inverted all', 'Result = Inverted all\n    Gathered 0 = false');
+    it('preserves writable completed intermediates after a fused reduction', () => {
+        const source = probe.replace('Result = Inverted all', 'Result = Inverted all\n    Gathered 0 = true\n    Gathered print');
         const result = compare(source);
-        expect(result.kernels).toBe(0);
-        expect('error' in result).toBe(true);
+        expect(result.kernels).toBe(2);
+        expect(result.output).toEqual(['true false', 'true false', 'true']);
     });
     it('retains preexisting variable types', () => {
         const source = probe.replace('Result = false', 'Mask = 1\n  Result = false');
@@ -106,8 +107,10 @@ describe('tensor pipeline fusion', () => {
         expect('error' in result).toBe(true);
     });
     it('retains a global binding with the same name', () => {
-        const source = probe.replace('A = array', 'Mask = 1\nA = array');
-        expect(compare(source).kernels).toBe(0);
+        const source = probe.replace('A = array', 'Mask = 1\nA = array') + '\nMask print';
+        const result = compare(source);
+        expect(result.kernels).toBe(2);
+        expect(result.output).toEqual(['true', '1']);
     });
     it('retains custom reduction dispatch', () => {
         const source = probe.replace('fun A B Limit probe', 'fun V all\n  return false\nend\nfun A B Limit probe');
@@ -131,8 +134,14 @@ C`;
     });
 
     it('does not force a lazy input while guarding', () => {
-        const source = probe.replace('A B 3 probe', 'A = A (array 0 1 2)\nA B 3 probe');
-        expect(compare(source).kernels).toBe(0);
+        const source = `use sequences
+fun A' probe
+ return (A * 2 + 1) sum
+end
+A = array 1 2 3
+View' = A (array 0 1 2)
+View probe`;
+        expect(compare(source)).toMatchObject({ value: '15', kernels: 0 });
     });
     it('retains missing-module errors at the original statement', () => {
         expect(compare(probe.replace('use sequences\n', '')).kernels).toBe(0);
@@ -360,8 +369,8 @@ A f`);
 });
 
 
-describe('compiled access to completed lazy caches', () => {
-    it('keeps a completed round cache valid when a name writes its source', () => {
+describe('compiled access to retained values and deferred inputs', () => {
+    it('keeps a completed round result valid when a name writes its source', () => {
         const result = compare(`use numbers
 A = array 1.2 2.8
 R = A round 0
@@ -370,18 +379,18 @@ A 0 = 100.0
 Answer = (R * 2.0) sum
 Answer
 `);
-        // The write goes to storage of its own, so the completed cache stays
-        // valid and the kernel may run over it.
+        // R holds a completed value independent of later source writes.
         expect(result.value).toBe('8');
         expect(result.kernels).toBe(1);
     });
 
-    it('does not force a partially cached input to enable compilation', () => {
+    it('does not complete a deferred input merely to enable compilation', () => {
         const result = compare(`use numbers
 A = array 1.2 2.8
-R = A round 0
+Alias = A
+R' = A round 0
 First = R 0
-A 1 = 4.1
+Alias 1 = 4.1
 Answer = (R * 2.0) sum
 Answer
 `);

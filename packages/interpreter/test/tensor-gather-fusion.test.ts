@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { demandValue } from '../src/plan.js';
 import { Interpreter, formatValue, MISSING, createArraySnapshot, type RankSequence, type RankValue, parse } from '../src/index.js';
 
 import { isFunctionStatement } from '@arrrank/language';
@@ -73,8 +74,11 @@ describe('indirect gather bitwise reduction fusion', () => {
     it('preserves escaped intermediate values', () => {
         const actual = compare(program.replace('use bits', 'use bits\nuse io')
             .replace('return Score', 'Plain print\n  return Score'));
-        expect(actual.kernels).toBe(0);
-        expect(actual.output).toHaveLength(1);
+        // The final gather/reduction may fuse after Plain is stored; the
+        // escaped XOR result must remain available for the print.
+        expect(actual.kernels).toBe(1);
+        expect(actual.compiled[0]).not.toContain('^');
+        expect(actual.output).toEqual(['5 7 5 6 10 10']);
     });
     it('refreshes source arrays, selectors and lookup table on repeated calls', () => {
         const actual = compare(program.replace('use bits', 'use bits\nuse io') + ` print
@@ -127,7 +131,8 @@ it('does not invoke unproved sequence readers while binding a kernel', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
         try {
-            runtime.execute(program);
+            runtime.execute(program.replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
+                .replace('KeyStream =', "KeyStream' =").replace('Plain =', "Plain' =").replace('Score =', "Score' ="));
             kernels = 0;
             const slots: RankSequence = { kind: 'sequence', plan: {
                 name: 'host range', size: { kind: 'exact', value: 6n },
@@ -141,16 +146,19 @@ it('does not invoke unproved sequence readers while binding a kernel', () => {
     expect(execute(true)).toEqual({ ...execute(false), kernels: 0 });
 });
 
-it('does not reinterpret sequence zip arithmetic as array broadcasting', () => {
+it.each([
+    { marker: "'", value: '0', kernels: 0 },
+    { marker: '', value: '3', kernels: 1 },
+])('preserves zip or broadcast for binding marker "$marker"', ({ marker, value, kernels }) => {
     const source = `use sequences
-fun A B score
-  Values = A + B
+fun A${marker} B${marker} score
+  Values${marker} = A + B
   return Values sum
 end
-A = 0 till 1
-B = 0 till 3
+A${marker} = 0 till 1
+B${marker} = 0 till 3
 A B score`;
-    expect(compare(source)).toMatchObject({ value: '0', kernels: 0 });
+    expect(compare(source)).toMatchObject({ value, kernels });
 });
 
 it.each(['at', 'iterate'] as const)('revalidates a modified modular sequence %s hook', hook => {
@@ -158,9 +166,12 @@ it.each(['at', 'iterate'] as const)('revalidates a modified modular sequence %s 
         let reads = 0, kernels = 0;
         const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
         try {
-            runtime.execute(program);
+            runtime.execute(program.replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
+                .replace('KeyStream =', "KeyStream' =").replace('Plain =', "Plain' =").replace('Score =', "Score' =")
+                .replace('Slots =', "Slots' ="));
             kernels = 0;
-            const slots = runtime.variables.get('Slots') as RankSequence;
+            const slots = demandValue(runtime.variables.get('Slots')!) as RankSequence;
+            runtime.variables.set('Slots', slots);
             if (hook === 'at') {
                 const original = slots.plan.at!;
                 slots.plan.at = function(index) { reads++; return original.call(this, index); };

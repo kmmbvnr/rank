@@ -21,6 +21,7 @@ interface ConstructionContext {
     operationOf(name: string): Operation | undefined | false;
     snapshotFunction(fn: NativeFunction, seen: Map<NativeFunction, NativeFunction>): NativeFunction;
     execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
+    compileReduction(expression: Expression): (() => RankValue | undefined) | undefined;
 }
 
 type ConstructionMode = 'defer' | 'propagate' | 'demand';
@@ -248,9 +249,10 @@ export class PlanConstruction {
             }
             return UNKNOWN_VALUE;
         });
+        const compiled = this.context.compileReduction(expression);
         return { kind: 'plan', expression, dependencies, result,
             evaluate: () => completed(this.context.bindings.withFrame(snapshot,
-                () => identifySqliteSource(runExecution(this.context.execute(expression, false)), source))),
+                () => identifySqliteSource(compiled?.() ?? runExecution(this.context.execute(expression, false)), source))),
         };
     }
 }

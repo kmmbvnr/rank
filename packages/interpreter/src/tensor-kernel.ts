@@ -9,7 +9,7 @@ import {
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isUnaryExpression, isCountClauseExpression, isAllAxisExpression,
-    type Expression, type Statement, type CompiledAtomType, type CompiledExpression,
+    type Expression, type Statement, type ReturnStatement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
 import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
@@ -57,6 +57,17 @@ export function compileTensorKernel(statements: Statement[], host: TensorKernelH
     const attempt = { rejected: false };
     return compileTensorPlan(statements, host, attempt)
         ?? compileTensorPlan(statements, host, attempt, true);
+}
+
+/** A scalar demand may fuse its tensor expression without completing an array
+ * result early. The caller still owns plan capture and binding validation. */
+export function compileTensorReduction(expression: Expression, host: TensorKernelHost) {
+    const parts = pair(unwrap(expression));
+    const terminal = parts && unwrap(parts[1]);
+    if (!terminal || !isNameExpression(terminal) || terminal.name === 'copy'
+        || !terminals.has(terminal.name)) return undefined;
+    const statement = { $type: 'ReturnStatement', value: expression } as ReturnStatement;
+    return compileTensorPlan([statement], host, { rejected: false });
 }
 
 function compileTensorPlan(statements: Statement[], host: TensorKernelHost,

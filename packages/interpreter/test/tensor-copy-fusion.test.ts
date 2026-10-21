@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { RankError } from '../src/errors.js';
 import { type RankValue } from '../src/value.js';
 import { Interpreter, formatValue } from '../src/index.js';
+import { materializeValue } from '../src/materialize.js';
 
 function run(body: string, fused: boolean, setup = 'A = array 1 2 3', before = '') {
     let kernels = 0;
@@ -91,10 +92,10 @@ describe('copy kernel host values', () => {
             onTensorKernelCompiled: source => sources.push(source),
         });
         try {
-            runtime.execute(`use sequences\nfun A probe\n  return (A * A + ${typeof items[0] === 'number' ? '1.0' : '1'}) copy\nend`);
+            runtime.execute(`use sequences\nfun A' probe\n  return (A * A + ${typeof items[0] === 'number' ? '1.0' : '1'}) copy\nend`);
             const fn = runtime.variables.get('probe')!;
             if (typeof fn !== 'object' || fn.kind !== 'function') throw new Error('missing probe');
-            const result = fn.call([{ kind: 'array', items, shape }]);
+            const result = materializeValue(fn.call([{ kind: 'array', items, shape }]));
             return { result, kernels, sources };
         } finally { runtime.dispose(); }
     }

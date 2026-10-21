@@ -17,7 +17,8 @@ import { currentDiagnostics } from './diagnostics.js';
 import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
-import { compileTensorKernel } from './tensor-kernel.js';
+import { compileTensorKernel, compileTensorReduction, type TensorKernelHost } from './tensor-kernel.js';
+import { hasNativeImplementation } from './native-implementation.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
@@ -136,17 +137,42 @@ export class FastPaths {
         return body ?? undefined;
     }
 
-    tensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
-        const kernel = compileTensorKernel(statements.slice(index), {
+    private tensorHost(): TensorKernelHost {
+        return {
             textDigits: this.context.options().tensorTextDigits !== false,
             lookup: name => this.context.bindings.find(name),
             compiled: this.context.options().onTensorKernelCompiled,
             builtin: name => {
                 const module = findOperation(name)?.module;
                 if (module === undefined || !this.context.modules.has(module)) return false;
-                return this.context.builtins.is(module, name, this.context.resolve(name));
+                const value = this.context.resolve(name);
+                return isNativeFunction(value) && hasNativeImplementation(value)
+                    && this.context.builtins.is(module, name, value);
             },
-        });
+        };
+    }
+
+    private tensorExecuted(): void {
+        this.context.options().onTensorKernelExecuted?.();
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.compiledTensors++;
+    }
+
+    planReduction(expression: Expression): (() => RankValue | undefined) | undefined {
+        if (this.context.options().tensorFusion === false) return undefined;
+        const kernel = compileTensorReduction(expression, this.tensorHost());
+        if (!kernel) return undefined;
+        return () => {
+            // Inspection can disable compilation after the plan was captured.
+            if (this.context.options().tensorFusion === false) return undefined;
+            const value = kernel.run();
+            if (value !== undefined) this.tensorExecuted();
+            return value;
+        };
+    }
+
+    tensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
+        const kernel = compileTensorKernel(statements.slice(index), this.tensorHost());
         if (!kernel) return undefined;
         const last = statements[index + kernel.count - 1];
         if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
@@ -158,9 +184,7 @@ export class FastPaths {
             if (value === undefined) return undefined;
             try { assign?.(value); }
             catch (error) { throw this.context.locate(error, last); }
-            this.context.options().onTensorKernelExecuted?.();
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) diagnostics.compiledTensors++;
+            this.tensorExecuted();
             if (!assign) throw new ReturnSignal(value);
             return value;
         } };
@@ -318,7 +342,7 @@ export class FastPaths {
                 return compileFusedSum(parts[0], arithmetic, (value, sum) => {
                     // A host can still bind the name to something else between runs.
                     const fn = this.context.resolve(operation.name);
-                    if (isNativeFunction(fn) && this.context.builtins.is('core', 'sum', fn)) {
+                    if (isNativeFunction(fn) && hasNativeImplementation(fn) && this.context.builtins.is('core', 'sum', fn)) {
                         return completed(sum ? sum() : fn.call([value]));
                     }
                     return reference.apply([value, fn]);

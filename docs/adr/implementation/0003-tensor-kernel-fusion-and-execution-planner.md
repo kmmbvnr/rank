@@ -19,9 +19,20 @@ be native views, so a proved element type is not proof of completed storage.
 Bare returns retain those views. Scalar slots already contain completed scalar
 values. Deferred assignments retain the shared reference binding path.
 
+Scalar tensor reductions in a deferred expression can enter the existing tensor
+kernel at demand. The kernel runs inside the plan's captured frame, returns
+through its normal binding checks, and retains code/layouts rather than results.
+Unsupported inputs decline before observing cells. Array-valued plans keep
+their native lazy result; this path does not turn them into completed arrays.
+Call-time compilation options, cancellation budgets and builtin implementation
+identity are checked on every demand, including after a prior successful run.
+
 Adapting tensor fusion to explicit named plans remains in progress. This ADR's
 legacy grouped-assignment description is not a claim that every deferred stage
 already has a specialized kernel or that eager boundaries may be discarded.
+In particular, a captured plan's expression is not substituted into a consumer
+kernel: doing so would skip that plan's binding and cell contracts. Composition
+across those checked stages still needs a native capability that preserves them.
 
 ## Context
 
