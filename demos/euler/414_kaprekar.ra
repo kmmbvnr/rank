@@ -1,0 +1,99 @@
+rem Kaprekar Constant
+rem https://projecteuler.net/problem=414
+
+use numbers
+use sequences
+use io
+use cli
+
+option First integer = 2
+option Last integer = 300
+option Mod integer = 1000000000000000000
+
+rem Base b = 6k + 3. A 5-digit string
+rem sorted x0 <= .. <= x4 has
+rem difference u (b^4 - 1) +
+rem v b (b^2 - 1), u = x4 - x0 and
+rem v = x3 - x1, so only the state
+rem (u, v) matters. Digits of that
+rem number give the next state, and
+rem steps to the constant C come
+rem from pointer jumping. Strings per
+rem state are counted by formula.
+Tot = 0
+for K in First to Last
+  B = 6 * K + 3
+  Rg = (0 to B - 1) copy
+  Ug = Rg reshape B 1
+  Vg = Rg reshape 1 B
+  Fl = (Vg at most Ug) reshape (B * B)
+  Ix = Fl indices
+  U = (Ix // B) copy
+  V = (Ix mod B) copy
+  Q4 = B ** 4 - 1
+  Q3 = B * (B * B - 1)
+  Rn = (U * Q4 + V * Q3) copy
+  M3 = B // 3
+  Cn = 2 * M3 * Q4 + M3 * Q3
+  X0 = Rn mod B
+  X1 = Rn // B mod B
+  X2 = Rn // (B ** 2) mod B
+  X3 = Rn // (B ** 3) mod B
+  X4 = Rn // (B ** 4) mod B
+  rem Sorting network on 5 columns.
+  T = X0 X1 min
+  X1 = X0 X1 max
+  X0 = T
+  T = X3 X4 min
+  X4 = X3 X4 max
+  X3 = T
+  T = X2 X4 min
+  X4 = X2 X4 max
+  X2 = T
+  T = X2 X3 min
+  X3 = X2 X3 max
+  X2 = T
+  T = X1 X4 min
+  X4 = X1 X4 max
+  X1 = T
+  T = X0 X3 min
+  X3 = X0 X3 max
+  X0 = T
+  T = X0 X2 min
+  X2 = X0 X2 max
+  X0 = T
+  T = X1 X3 min
+  X3 = X1 X3 max
+  X1 = T
+  T = X1 X2 min
+  X2 = X1 X2 max
+  X1 = T
+  Du = (X4 - X0) copy
+  Dv = (X3 - X1) copy
+  Nx = (Du * (Du + 1) // 2 + Dv) copy
+  Hit = Rn equal Cn
+  Self = (0 to U len - 1) copy
+  Nx = (Hit choose Self Nx) copy
+  Ws = (Hit choose 0 1) copy
+  for Rounds in 1 to 40
+    Nn = (Nx Nx) copy
+    Same = Nn equal Nx
+    if Same count equal Nn len
+      break
+    end
+    Ws = (Ws + Ws Nx) copy
+    Nx = Nn
+  end
+  Dist = Ws + 1
+  Mg = 100 + 120 * (V - 1)
+  Mg += 120 * V * (U - V - 1)
+  Me = 20 + 30 * (U - 1)
+  Mz = 10 + 20 * (U - 1)
+  Mu = U equal V choose Me Mg
+  Mu = V equal 0 choose Mz Mu
+  Mu = U greater 0 choose Mu 0
+  Mu = Mu * (B - U)
+  Tot += ((Mu * Dist) sum - 1) mod Mod
+end
+Answer = Tot mod Mod
+Answer print
