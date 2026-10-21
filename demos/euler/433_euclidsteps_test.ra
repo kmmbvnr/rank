@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "433_euclidsteps"
+  N = 1
+  run
+  Answer equal 1
+  N = 10
+  run
+  Answer equal 221
+  N = 100
+  run
+  Answer equal 39826
+end
+
+test "larger bounds"
+  use "433_euclidsteps"
+  N = 1000
+  run
+  Answer equal 5893024
+  N = 10000
+  run
+  Answer equal 782828208
+end

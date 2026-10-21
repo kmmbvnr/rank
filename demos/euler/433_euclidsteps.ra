@@ -1,0 +1,117 @@
+rem Steps in Euclid's Algorithm
+rem https://projecteuler.net/problem=433
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 5000000
+
+rem E(y, x) = E(x, y) + 1, so S = 2 L
+rem + N (N + 1) / 2 with L the sum over
+rem y < x. A pair gives 1 step, and 1
+rem more if x < 2 y; the rest is a sum
+rem of scaled coprime pair residuals,
+rem inverted with mu over blocks of
+rem N // d. Each block value q needs
+rem the count of reversed Euclid
+rem chains below q, found by walking
+rem x <= sqrt q, y < x with a floor
+rem sum that follows the Euclid steps.
+Lm = N // 5
+Mu = array shape (Lm + 2) fill 1
+Sm = array shape (Lm + 2) fill 1
+Ix = (0 to Lm + 1) copy
+Rt = Lm isqrt + 1
+for P in primes to Rt
+  Q = P
+  for Q at most Lm + 1
+    Sl = Q to Lm + 1 by Q
+    Sm Sl *= P
+    if Q equal P
+      Mu Sl *= -1
+    end
+    Q *= P
+  end
+  Sl = (P * P) to Lm + 1 by (P * P)
+  Mu Sl = 0
+end
+Bg = Ix // Sm greater 1
+Mu = (Bg choose (0 - Mu) Mu) copy
+Mu 0 = 0
+Ps = Mu scan + with 0
+Pm = Ps copy
+Hf = N // 2
+Res = 3 * Hf * Hf + Hf
+if N mod 2 equal 0
+  Res = (3 * Hf - 2) * Hf
+end
+Lb = 1
+for Lb at most Lm
+  Q = N // Lb
+  Rb = Lm (N // Q) min
+  Ms = Pm (Rb + 1) - Pm Lb
+  if Ms not equal 0 and Q greater 1
+    Mx = Q isqrt
+    R1 = 0
+    R2 = 0
+    for X in 2 to Mx
+      for Y in 1 to X - 1
+        Sp = Q // (X + Y)
+        R1 += Sp * (Sp - 1) // 2
+        S1 = Q // X - Sp
+        S2 = 0
+        if Sp at most Mx
+          S2 = Mx - Sp
+        end
+        P1 = 0 - X
+        Qq = Y
+        Mm = Q - Sp * X
+        A1 = S1
+        A2 = S2
+        Sg = 1
+        B1 = 0
+        B2 = 0
+        Go = 1
+        for Go equal 1
+          Tt = Mm // Qq
+          Mm -= Tt * Qq
+          B1 += Sg * Tt * A1
+          B2 += Sg * Tt * A2
+          Tt = P1 // Qq
+          P1 -= Tt * Qq
+          T1 = Tt * A1 * (A1 + 1) // 2
+          T2 = Tt * A2 * (A2 + 1) // 2
+          B1 += Sg * T1
+          B2 += Sg * T2
+          if P1 equal 0
+            Go = 0
+          else
+            Tt = (P1 * A1 + Mm) // Qq
+            B1 += Sg * A1 * Tt
+            A1 = Tt
+            Tt = (P1 * A2 + Mm) // Qq
+            B2 += Sg * A2 * Tt
+            A2 = Tt
+            Tz = P1
+            P1 = Qq
+            Qq = Tz
+            Mm = 0 - Mm - 1
+            Sg = 0 - Sg
+          end
+        end
+        R1 += B1
+        if Sp at most Mx
+          R2 += Sp * (Sp - 1) // 2 + B2
+        else
+          R2 += Mx * (Mx - 1) // 2
+        end
+      end
+    end
+    Res += 2 * Ms * (2 * R1 - R2)
+  end
+  Lb = Rb + 1
+end
+Answer = 2 * Res + N * (N + 1) // 2
+Answer print
