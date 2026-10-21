@@ -76,20 +76,24 @@ Notes from this range, for the next one:
 
 ## Problems 401-450
 
-Written so far: 401-416, 418-423, 425-427, 429-432, 434-436, 439-449 (with
+Written so far: 401-423, 425-427, 429-432, 434-437, 439-449 (with
 the gaps listed below). One program and one test file each. The default
 answers were checked against the published ones, and the tests keep to small
 inputs, so the default runs that take more than about 25 s are left out of the
 type, name-facts and differential audits (`scripts/demo-execution-exclusions.json`).
 
-The slowest defaults, compiled: 414 (28 min, one pass per base and a
+The slowest defaults, compiled (417, 418, 420, 437 take 40-160 s): 414 (28 min, one pass per base and a
 pointer-jumping depth), 427 (6 min), 446 (6 min), 413 and 415 (5 min), 411
 (4 min, patience sorting over 5 x 10^7 integers), 439 (4 min), 448 and 421
 (3 min), 407, 429 and 432 (2 min). Most of those are tables of 10^7 cells with
 a recursion over the values N // k for N near 10^11 (415, 432, 439, 447, 448),
 or a sieve over 10^7-10^8 integers.
 
-Not written yet: 417, 424, 428, 433, 437, 438 and 450.
+Not written yet: 424 (Kakuro with letter clues: needs a constraint
+solver), 428 (necklace triplets, needs summatory functions of tau(m^2) and a
+mod 3 twist for 10^9), 433 (Euclid steps: needs a floor-sum recursion over
+coprime pairs), 438 (integer parts of roots, needs a linear-bound search) and
+450 (hypocycloid lattice points).
 
 Notes from this range:
 
