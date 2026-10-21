@@ -1,0 +1,51 @@
+rem GCD Sequence
+rem https://projecteuler.net/problem=443
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000000
+
+rem From an index a with g(a) = 3a the
+rem sequence grows by 1 until a' = a +
+rem (p - 1) / 2, where p is the least
+rem prime factor of 2a - 1, and there
+rem g(a') = 3a' again. Between jumps
+rem g(n) = n + 2a. Trial division of
+rem 2a - 1 runs on chunks of odd
+rem candidates.
+G = 13
+for K in 5 to (N 9 min)
+  G += K G gcd
+end
+Answer = G
+if N greater 9
+  A = 9
+  for Step in 1 to 100000
+    M = 2 * A - 1
+    P = M
+    Lim = M isqrt
+    for Lo in 3 to Lim by 2000000
+      Hi = Lim (Lo + 1999999) min
+      Ds = (Lo to Hi by 2) copy
+      Z = (M mod Ds equal 0) indices
+      if Z len greater 0
+        P = Ds (Z 0)
+        break
+      end
+    end
+    Nx = A + (P - 1) // 2
+    if Nx greater N
+      Answer = N + 2 * A
+      break
+    end
+    if Nx equal N
+      Answer = 3 * N
+      break
+    end
+    A = Nx
+  end
+end
+Answer print

@@ -1,0 +1,40 @@
+use testing
+
+test "statement value"
+  use "443_gcdsequence"
+  N = 4
+  run
+  Answer equal 13
+end
+
+test "direct recurrence references"
+  use "443_gcdsequence"
+  N = 9
+  run
+  Answer equal 27
+  N = 100
+  run
+  Answer equal 268
+  N = 2000
+  run
+  Answer equal 5120
+  N = 5000
+  run
+  Answer equal 11258
+end
+
+test "jump method checkpoints"
+  use "443_gcdsequence"
+  N = 1000
+  run
+  Answer equal 2524
+  N = 1000000
+  run
+  Answer equal 2624152
+end
+
+test "default input"
+  use "443_gcdsequence"
+  run
+  Answer equal 2744233049300770
+end
