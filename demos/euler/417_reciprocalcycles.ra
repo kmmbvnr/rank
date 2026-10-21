@@ -1,0 +1,107 @@
+rem Reciprocal Cycles II
+rem https://projecteuler.net/problem=417
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000
+
+rem L(n) is the multiplicative order
+rem of 10 modulo the part m of n
+rem coprime to 10 (0 for m = 1). The
+rem sum is over m of L(m) times the
+rem count of 2^a 5^b <= N // m. Orders
+rem of m come from its smallest prime
+rem power and the rest by lcm, an
+rem order of a prime p from the prime
+rem factors of p - 1 and an order of
+rem a prime power by lifting.
+Sp = (0 to N) copy
+Rt = N isqrt
+Ps = primes to Rt array
+for I in (Ps len - 1) to 0 by -1
+  P = Ps I
+  Sl = (P * P) to N by P
+  Sp Sl = P
+end
+Sp = Sp copy
+Od = array shape (N + 1) fill 0
+Fv = array shape 1 fill 0
+Q2 = array shape 0 fill 0
+for A in 0 to 40
+  for B in 0 to 20
+    V = 2 ** A * 5 ** B
+    if V at most N
+      Q2 = concat Q2 (array V)
+    end
+  end
+end
+Q2 = Q2 sort
+Qn = Q2 len
+Tot = 0
+for M in 3 to N by 2
+  if M mod 5 not equal 0
+    P = Sp M
+    R = M
+    Pk = 1
+    for R mod P equal 0
+      R //= P
+      Pk *= P
+    end
+    Dp = 0
+    if M equal P
+      X = P - 1
+      Dp = X
+      for X greater 1
+        Q = Sp X
+        for X mod Q equal 0
+          X //= Q
+        end
+        for Dp mod Q equal 0
+          Ef = Dp // Q
+          if 10 Ef P powmod not equal 1
+            break
+          end
+          Dp = Ef
+        end
+      end
+    elif R equal 1
+      Dp = Od P
+      Pj = P
+      for Pj less Pk
+        Pj *= P
+        if 10 Dp Pj powmod not equal 1
+          Dp *= P
+        end
+      end
+    else
+      A = Od Pk
+      B = Od R
+      G1 = A
+      G2 = B
+      for G2 greater 0
+        T = G1 mod G2
+        G1 = G2
+        G2 = T
+      end
+      Dp = A // G1 * B
+    end
+    Od M = Dp
+    Lim = N // M
+    Lo = 0
+    Hi = Qn
+    for Lo less Hi
+      Md = (Lo + Hi) // 2
+      if Q2 Md at most Lim
+        Lo = Md + 1
+      else
+        Hi = Md
+      end
+    end
+    Tot += Dp * Lo
+  end
+end
+Answer = Tot
+Answer print

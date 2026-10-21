@@ -1,0 +1,22 @@
+use testing
+
+test "statement values"
+  use "417_reciprocalcycles"
+  N = 10
+  run
+  Answer equal 9
+end
+
+test "brute force for one thousand"
+  use "417_reciprocalcycles"
+  N = 1000
+  run
+  Answer equal 94288
+end
+
+test "published checkpoint"
+  use "417_reciprocalcycles"
+  N = 1000000
+  run
+  Answer equal 55535191115
+end
