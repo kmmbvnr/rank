@@ -3,8 +3,9 @@ import { scalarBuiltinArray } from './scalar-builtin.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
+import { ALL_AXIS, atArray, sliceArray, tensorSelection } from './selectors.js';
 import { rankedNumericFind } from './numeric-search.js';
-import { derivedArray, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
+import { arrayCells, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, typedArray } from './array-storage.js';
 import { registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, type Evaluation } from './execution.js';
@@ -379,6 +380,7 @@ export function dyadicCells(
             if (frameShape.length === 0) return value;
             const start = frameIndex * cellSize;
             if (cellRank === 0) return arrayItem(value, start);
+            if (arrayCells(value)) return atArray(value, coordinatesAt(frameShape, frameIndex).map(BigInt));
             return derivedArray(cellShape, [value], index =>
                 arrayItem(value, start + index));
         },
@@ -407,6 +409,8 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[]): Te
             if (cellShape.length === 0) {
                 return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
             }
+            if (arrayCells(source)) return sliceArray(source, tensorSelection(source,
+                sourceCoordinates.map((coordinate, axis) => frameSet.has(axis) ? BigInt(coordinate) : ALL_AXIS)));
             const offset = (cellIndex: number) => {
                 const coordinates = [...sourceCoordinates];
                 coordinatesAt(cellShape, cellIndex).forEach((coordinate, index) => {

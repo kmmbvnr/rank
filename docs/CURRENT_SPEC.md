@@ -3908,6 +3908,13 @@ assembled result are native readers. Shape facts can survive a read, but
 computed cell values are retained only within one traversal. Ordinary binding
 completes the result; deferred binding recomputes on demand.
 
+Selecting a result cell also demands its producer when the cell has no scalar
+elements. Indexing, gathers and ranked loop bindings preserve this boundary;
+they do not demand unrelated frame cells. Repeated indices are repeated
+observations, and an empty selection calls no producer. A loop completes its
+selected cell before entering the body, so an early `break` leaves later cells
+unevaluated.
+
 An empty frame has no cells to call, but its result keeps the cell axes, so the
 result rank does not depend on whether the input is empty. A declared result
 shape takes precedence. If a pure standard-library function has no result-shape

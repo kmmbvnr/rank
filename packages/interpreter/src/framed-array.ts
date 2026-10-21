@@ -89,5 +89,11 @@ export function framedArray(
             return collectArrayValues(sizeOf(shape()), values(first));
         },
     };
-    return registerArrayReadPlan(result, { prepare: () => prepare(), values: () => values(), collect: () => result.items });
+    return registerArrayReadPlan(result, {
+        prepare: () => prepare(), values: () => values(), collect: () => result.items,
+        cells: { frameShape, cellShape: () => cellShape, read(index) {
+            const cell = readCell(index);
+            return cellShape!.length === 0 && isRankArray(cell) ? readArrayItem(cell, 0) : cell;
+        } },
+    });
 }

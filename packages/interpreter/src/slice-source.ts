@@ -1,5 +1,6 @@
 import { collectionProtocol, type CollectionProtocolFor } from '@arrrank/language';
-import { derivedArray, readArrayItem } from './array-storage.js';
+import { arrayCells, derivedArray, readArrayItem } from './array-storage.js';
+import { sliceArray } from './selectors.js';
 import { registerScalarView } from './integer-view.js';
 import { checkpoint } from './interrupt.js';
 import { arraySliceLayout } from './tensor-layout.js';
@@ -18,6 +19,17 @@ const adapters = {
     } }),
     array: (source: RankArray): SliceSource => ({ slice(count, drop) {
         const { shape, offset } = arraySliceLayout(source.shape, count, drop);
+        if (arrayCells(source)) {
+            const start = drop ? source.shape[0] - shape[0] : 0;
+            return sliceArray(source, { shape, sourceShape: source.shape,
+                linear: { offset, stride: 1 }, offsetAt: index => offset + index,
+                axes: source.shape.map((size, axis) => ({ preserve: true,
+                    size: axis === 0 ? shape[0] : size,
+                    linear: { offset: axis === 0 ? start : 0, stride: 1 },
+                    indexAt: coordinate => coordinate + (axis === 0 ? start : 0),
+                })),
+            });
+        }
         const position = (index: number) => index + offset;
         return registerScalarView(derivedArray(shape, [source], index =>
             readArrayItem(source, position(index))), source, position, { linear: () => ({ offset, stride: 1 }) });

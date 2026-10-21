@@ -62,11 +62,23 @@ export function copyMaterializedArrayItems(value: RankArray, size: number): Rank
 
 /** Prepared readers remove view dispatch, not validation or effects. Preparing
  * one must not read cells; using it may still execute callbacks or throw. */
+export interface ArrayCells {
+    readonly frameShape: readonly number[];
+    /** Peek only: geometry becomes known when the array's shape is observed. */
+    cellShape(): readonly number[] | undefined;
+    read(index: number): RankValue;
+}
 interface ArrayReadPlan {
     readonly prepare?: () => ((index: number) => RankValue) | undefined;
     readonly values?: () => IterableIterator<RankValue>;
     /** Keep a dynamic shape probe within the same full observation. */
     readonly collect?: () => RankValue[];
+    readonly cells?: ArrayCells;
+}
+
+/** Logical producer cells retain meaning even when they contain no scalars. */
+export function arrayCells(value: RankArray): ArrayCells | undefined {
+    return arrayReadPlans.get(value)?.cells;
 }
 const arrayReadPlans = new WeakMap<RankArray, ArrayReadPlan>();
 
