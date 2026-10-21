@@ -628,16 +628,15 @@ export class ExpressionEvaluator {
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(expressions.evaluate(expression.source)));
-                if (isRankTableAlias(source) && isRankSqliteTable(source.source)) {
-                    return materializeSqlite(source.source);
-                }
-                if (isRankSqliteTable(source)) return materializeSqlite(source);
-                if (isRankTable(source)) return source.toRows();
-                if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
-                if (isRankSequence(source)) return materializeSequence(source);
-                const collection = materializeCollection(source);
-                if (collection) return collection;
-                throw new RankError('postfix array expects a sequence, queue, stack, deque, set, multiset, table or SQLite table');
+                const result = isRankArray(source) ? source
+                    : isRankTableAlias(source) && isRankSqliteTable(source.source) ? materializeSqlite(source.source)
+                    : isRankSqliteTable(source) ? materializeSqlite(source)
+                    : isRankTable(source) ? source.toRows()
+                    : isRankSqliteExpression(source) ? materializeSqliteExpression(source)
+                    : isRankSequence(source) ? materializeSequence(source)
+                    : materializeCollection(source);
+                if (result) return materializeValue(result);
+                throw new RankError('postfix array expects an array, sequence, queue, stack, deque, set, multiset, table or SQLite table');
             };
         }
         if (isAllAxisExpression(expression)) {

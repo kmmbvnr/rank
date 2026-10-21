@@ -2586,22 +2586,30 @@ state to an opaque helper is also rejected when its mutation behavior is unknown
 pass that state explicitly through the enclosing function's parameters.
 
 A nested function cannot be returned, assigned to another name, or stored in a
-container or record. A lazy result retaining it must be materialized before it
-leaves the enclosing call:
+container or record as a function value. A computation plan may retain a
+snapshot of the function and its dependencies and leave the enclosing call:
 
 ```rank
 fun Limit small
   fun X below = X less Limit
-  S = 1 to 10 filter below
+  S' = 1 to 10 filter below
   Limit = 3
-  return S array
+  return S
 end
-rem 6 small returns 1 2 3 4 5
+Selected' = 6 small
+Selected sum
+rem 15
 ```
 
-Materialize a lazy value before storing it in a container that will leave the
-call. Converting a queue to an array or copying that array does not evaluate
-lazy sequences stored inside its elements.
+Each demand of `Selected` uses the captured value `6`. Ordinary bindings,
+ordinary parameters and writes to records or containers complete nested plans
+recursively. Postfix `array` also completes nested values and accepts an already
+computed array. A plain `copy` does not recursively complete nested resources.
+
+Live nested generators and opaque relations keep separate lifetime rules. A
+relation retaining a local predicate cannot leave the call merely by being
+stored in a tuple, record or container. Consume its neighbors or traversal
+result before returning, rather than returning the live relation itself.
 
 A named callback captured by a plan retains the current values of its external
 dependencies, including module data and reads through called helpers. Later

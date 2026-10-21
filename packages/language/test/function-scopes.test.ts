@@ -242,12 +242,12 @@ fun Limit outer
 end`).some(message => message.includes('nested function below cannot be returned'))).toBe(true);
     });
 
-    it('rejects a lazy result that retains a nested predicate', () => {
+    it.each(['S =', "S' ="])('permits a snapshotted callback result through %s', binding => {
         expect(diagnostics(`fun Limit outer
  fun X below = X less Limit
- S = 1 to 10 filter below
+ ${binding} 1 to 10 filter below
  return S
-end`).some(message => message.includes('lazy result retains nested function below'))).toBe(true);
+end`)).toEqual([]);
     });
 
     it('permits materializing the lazy result before return', () => {
@@ -300,13 +300,13 @@ end`)).toEqual([]);
 end`).some(message => message.includes('lazy result retains nested function values'))).toBe(true);
     });
 
-    it('preserves callback provenance in the result of repeat', () => {
+    it('permits snapshotted callback results from repeat', () => {
         expect(diagnostics(`use sequences
 fun Limit outer
  fun X below = X less Limit
  fun X step = 1 to X filter below
  return 10 step repeat 1
-end`).some(message => message.includes('lazy result retains nested function below'))).toBe(true);
+end`)).toEqual([]);
     });
 
     it('follows a callback into a helper that stores it in a container', () => {
@@ -346,7 +346,7 @@ fun Limit outer
 end`)).toEqual([]);
     });
 
-    it('propagates lazy results through mutually recursive local helpers', () => {
+    it('permits computation plans through mutually recursive local helpers', () => {
         expect(diagnostics(`use sequences
 fun Limit outer
  fun X below = X less Limit
@@ -358,7 +358,7 @@ fun Limit outer
  end
  fun N right = N left
  return 3 right
-end`).some(message => message.includes('lazy result retains nested function below'))).toBe(true);
+end`)).toEqual([]);
     });
 
     it('keeps recursive results specific to the callback and its captured environment', () => {

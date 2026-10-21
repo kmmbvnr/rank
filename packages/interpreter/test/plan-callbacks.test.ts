@@ -29,9 +29,9 @@ describe.each([false, true])('plan callback dependencies (compilation=%s)', comp
             host.execute([
                 'Limit = 6', 'fun X below = X less Limit', 'fun Limit selected',
                 ' fun X predicate = X below', " Plan' = 1 to 10 filter predicate",
-                ' Limit = 2', ' return Plan sum', 'end', 'Saved = 3 selected', 'Limit = 8',
+                ' Limit = 2', ' return Plan', 'end', "Saved' = 3 selected", 'Limit = 8',
             ].join('\n'));
-            expect(host.execute('Saved')).toBe(15n);
+            expect(formatValue(host.execute('Saved')!)).toBe('1 2 3 4 5');
         } finally { host.dispose(); }
     });
 

@@ -169,10 +169,10 @@ consume`)).toThrow('Q is read-only in consume');
         } finally { runtime.dispose(); }
     });
 
-    it.each(['Items', 'Items array', '(Items array) copy'])('rejects returning nested pipelines through %s', result => {
+    it.each(['Items', 'Items array', '(Items array) copy'])('returns completed nested pipelines through %s', result => {
         const runtime = new Interpreter(undefined, { compilation });
         try {
-            expect(() => runtime.execute(`use algo
+            runtime.execute(`use algo
 use sequences
 fun Items S' store
  Items push S
@@ -185,14 +185,16 @@ fun Limit outer
  Items S store
  return ${result}
 end
-6 outer`)).toThrow('lazy result retains nested function below');
+Saved = 6 outer`);
+            expect(runtime.execute('Saved len')).toBe(1n);
+            expect(runtime.execute('(Saved 0) sum')).toBe(15n);
         } finally { runtime.dispose(); }
     });
 
-    it('rejects materializing a generator whose cells still retain a nested callback', () => {
+    it('recursively completes generated cells containing snapshotted callbacks', () => {
         const runtime = new Interpreter(undefined, { compilation });
         try {
-            expect(() => runtime.execute(`use sequences
+            runtime.execute(`use sequences
 fun Limit outer
  fun X below = X less Limit
  fun values
@@ -200,7 +202,8 @@ fun Limit outer
  end
  return values array
 end
-6 outer`)).toThrow('lazy result retains nested function below');
+Saved = 6 outer`);
+            expect(runtime.execute('(Saved 0) sum')).toBe(15n);
         } finally { runtime.dispose(); }
     });
 

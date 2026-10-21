@@ -61,7 +61,9 @@ resources keep their own consumption state: an apostrophe does not reopen an
 input stream or restart a generator.
 
 Use postfix `array` when an operation needs a sequence's array shape or indexing
-interface. Use an ordinary binding to keep that computed result.
+interface. It completes nested plans too; applying it to an existing array
+preserves its shape and completes any remaining cells. Use an ordinary binding
+to keep the computed result.
 
 ## Open numeric ranges
 

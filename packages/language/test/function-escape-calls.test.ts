@@ -32,4 +32,17 @@ describe('callback call summaries', () => {
         expect(invoke(helper, [shared, shared], new Map()).lazy).toEqual(new Set([callback]));
         expect(invoke(helper, [empty(), empty()], new Map()).lazy).toEqual(new Set());
     });
+
+    it('keeps outer streams, nested streams and opaque capsules distinct in call keys', () => {
+        let evaluations = 0;
+        const invoke = escapeCalls((_fn, args) => { evaluations++; return args[0]; });
+        for (const field of ['lazy', 'cells', 'opaque', 'stored'] as const) {
+            const input = empty();
+            input[field].add(callback);
+            const result = invoke(helper, [input], new Map());
+            expect(result[field]).toEqual(new Set([callback]));
+        }
+        expect(evaluations).toBe(4);
+    });
+
 });
