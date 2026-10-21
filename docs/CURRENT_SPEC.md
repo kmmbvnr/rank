@@ -1065,6 +1065,10 @@ Native sources remain repeatable in the REPL and file execution. After
 begins at `2`. `H' = G` preserves repeatability. Ordinary binding completes
 finite results; binding `G = primes` rejects a known infinite result.
 Single-pass generators retain their resource identity and REPL replay tapes.
+Preview and inspection share a cooperative computation budget, including work
+before the next value is yielded. Reaching it stops that observation without
+retaining a repeatable plan's result; a later observation recomputes. The viewer
+shows `Inspection work limit reached` for a window stopped by this limit.
 See [sequence previews](design/generator-previews.md).
 
 Ranges (`to`, `till`, `by`), `len`, `sum`, `min`, `max`, and explicit

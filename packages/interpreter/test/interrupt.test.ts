@@ -127,7 +127,7 @@ describe('interactive host cancellation', () => {
 
     it('can finish materializing a derived array after cancellation without caching a partial result', () => {
         const value = derivedArray([4096], [], index => BigInt(index), true);
-        expect(() => cancel(() => value.items)).toThrow(/materializing array/);
+        expect(() => cancel(() => value.items)).toThrow(InterruptedError);
         expect(value.items).toEqual(Array.from({ length: 4096 }, (_, index) => BigInt(index)));
     });
 

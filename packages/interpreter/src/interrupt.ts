@@ -119,8 +119,8 @@ export function withInterrupt<T>(signal: Int32Array | InterruptSignal, run: () =
     finally { state = previous; }
 }
 
-/** Interactive workers install a signal. File and pipe execution do not. */
-export function interruptsEnabled(): boolean { return state.flag !== undefined; }
+/** Cooperative checks are needed for host cancellation and bounded observation. */
+export function interruptsEnabled(): boolean { return state.flag !== undefined || state.budget !== undefined; }
 
 /** Atomics-only cancellation cannot observe private loop registers. Inspection
  * and arbitrary host polling callbacks retain per-assignment publication. */
@@ -130,28 +130,37 @@ export function privateLoopPolling(): boolean { return state.opaquePolling && !s
  * A look that ran out of reading before it found the next item. Not a
  * RankError: a program's `catch` must not swallow the host giving up.
  */
-export class DemandBudgetExhausted extends Error {}
+export class DemandBudgetExhausted extends Error {
+    constructor() { super('demand budget exhausted'); }
+}
 
-/**
- * Bound how many items `run` may pass over. A selection may skip without end on
- * the way to its next item, as `Fib (Fib less 10)` does after 8; a preview has
- * to give up on it instead of waiting forever. Slow work that does produce
- * items, such as a factor search, is not counted: Ctrl-C stops that.
- */
+/** Bound cooperative computation, including loops that have not yielded yet.
+ * Nested observations share the enclosing allowance instead of resetting it. */
 export function withDemandBudget<T>(limit: number, run: () => T): T {
     const scope = state;
     const previous = scope.budget;
-    scope.budget = { remaining: limit };
+    const available = Math.min(limit, previous?.remaining ?? Infinity);
+    const budget = { remaining: available };
+    scope.budget = budget;
     try { return run(); }
-    finally { scope.budget = previous; }
+    finally {
+        if (previous) previous.remaining -= available - budget.remaining;
+        scope.budget = previous;
+    }
 }
 
-/** A selection read an item it did not keep. */
-export function passOver(): void {
-    if (state.budget !== undefined && --state.budget.remaining < 0) throw new DemandBudgetExhausted();
+function chargeDemand(work: number): void {
+    const budget = state.budget;
+    if (!budget) return;
+    if (work > budget.remaining) throw new DemandBudgetExhausted();
+    budget.remaining -= work;
 }
+
+/** Skipping an input is work even when no result was produced. */
+export function passOver(): void { chargeDemand(1); }
 
 export function checkpoint(activity?: string, work = 1, details?: () => Record<string, string>): void {
+    chargeDemand(work);
     if (!state.flag) return;
     state.ticks += work;
     if (state.ticks < 1024) return;
@@ -189,16 +198,16 @@ export function checkInterrupt(activity?: string, details?: () => Record<string,
     }
 }
 
-/** Keep the ordinary callback/iterator when no interactive host installed a signal. */
+/** Keep the ordinary callback/iterator when no cooperative checks are needed. */
 export function interruptibleCallback<A extends unknown[], R>(
     operation: (...args: A) => R, activity: string,
 ): (...args: A) => R {
-    if (!state.flag) return operation;
+    if (!interruptsEnabled()) return operation;
     return (...args) => { checkpoint(activity); return operation(...args); };
 }
 
 export function interruptibleValues<T>(values: Iterable<T>, activity: string): Iterable<T> {
-    if (!state.flag) return values;
+    if (!interruptsEnabled()) return values;
     return { *[Symbol.iterator]() {
         for (const value of values) {
             checkpoint(activity);

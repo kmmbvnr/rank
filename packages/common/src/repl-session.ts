@@ -2,7 +2,7 @@ import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
 import { displayTypeName, formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
-    Interpreter, EnvironmentOverlay, RankError, InterruptedError, checkInterrupt, demandValue, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
+    Interpreter, EnvironmentOverlay, RankError, InterruptedError, DemandBudgetExhausted, checkInterrupt, demandValue, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
@@ -161,7 +161,13 @@ export function createReplSession(host: ReplHost = {}) {
             if (printed) return { status: 'ok', ...inspectPrintedOutput(printed, request) };
             const value = held.get(ref);
             if (value === undefined) return STALE;
-            return { status: 'ok', ...replay.preview(() => inspectValue(value, request, replay)) };
+            try { return { status: 'ok', ...replay.preview(() => inspectValue(value, request, replay)) }; }
+            catch (error) {
+                if (error instanceof DemandBudgetExhausted) return {
+                    status: 'ok', kind: 'opaque', type: 'error', text: 'Inspection work limit reached',
+                };
+                throw error;
+            }
         },
         /**
          * Reads more of a held sequence ahead of whatever consumes it, at most `count` values,

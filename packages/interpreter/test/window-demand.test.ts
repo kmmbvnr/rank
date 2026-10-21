@@ -100,7 +100,7 @@ describe('native window demand', () => {
         expect(() => withDemandBudget(2, () => window.items)).toThrow(DemandBudgetExhausted);
         expect(reads).toBeLessThan(10);
         expect(closed).toBe(1);
-        expect(withDemandBudget(20, () => window.items)).toEqual([0n, 1n, 10n, 11n]);
+        expect(withDemandBudget(100, () => window.items)).toEqual([0n, 1n, 10n, 11n]);
         expect(closed).toBe(2);
     });
 

@@ -30,8 +30,10 @@ As before, requesting an endless value in full does not terminate.
 
 A preview of a sequence with unknown size takes at most ten items. It does not
 scan for a count or pull an extra item just to discover whether there is more.
-If the end was not reached, the note says `size unknown`. Finite sequences with
-a known size retain the existing bounded scan for their two ends.
+If the end was not reached, the note says `size unknown`, unless the work limit
+stopped the read. Finite sequences with a known size use a bounded scan for their
+two ends. If that scan reaches its work limit, it keeps the computed head and
+shows `preview demand budget exhausted`.
 Automatic result previews use at most 40 text columns, reduced further when the
 terminal has less space after the source gutter. A wider terminal does not expand
 these previews; `full` still prints the complete value.
@@ -64,6 +66,20 @@ values, while `A = primes` rejects a known infinite result. An apostrophe on a
 generator binding preserves its single-pass resource; it does not restart the
 body. Preview and inspection demand deferred expressions within a work budget.
 `full` demands the expression without the preview limit.
+
+The work budget covers cooperative computation, including loops that produce
+values and loops still computing the next value. Nested previews and inspection
+cells share the enclosing allowance. Raw lazy arrays, sequence scans and
+first-cell type labels use the same protection as expression plans. Inspection
+stops a costly window with `Inspection work limit reached`; ordinary cell errors
+remain visible as cell errors. Another request starts a fresh observation.
+Ordinary execution and `full` do not install this preview allowance.
+
+Read-ahead that reaches its limit between values leaves the resource suspended.
+A limit raised while computing the next value closes that iterator. Its tape
+keeps the yielded prefix; trying to consume beyond it asks the user to rerun the
+producing cell. A host limit is never replayed as a new cancellation or a new
+budget exhaustion.
 
 ## Returning to a line
 

@@ -1,4 +1,4 @@
-import { DemandBudgetExhausted, InterruptedError, RankError, withDemandBudget, withInterrupt, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
+import { DemandBudgetExhausted, InterruptedError, RankError, checkpoint, withDemandBudget, withInterrupt, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
 
 interface Read {
     readonly tape: Tape;
@@ -39,7 +39,7 @@ interface Tape {
     finished: boolean;
 }
 
-/** Bounds on one read-ahead: source values passed over, milliseconds in all, and milliseconds for one value. */
+/** Bounds on one read-ahead: cooperative work, total milliseconds and milliseconds for one value. */
 export interface ExtendLimits { readonly budget?: number; readonly total?: number; readonly each?: number }
 
 /** How reading ahead on a sequence went. */
@@ -103,8 +103,8 @@ export class SequenceReplay {
      * Reads up to `count` more values from a stored generator into its tape, the way showing a
      * result already reads its first few, and says how it went. Nothing is consumed: the values
      * wait on the tape for whatever reads the sequence next, so reading ahead never changes what a
-     * later cell sees. It stops at the end, at `count`, when the source is asked for `budget`
-     * values without yielding the next one (a filter that may never find another), after
+     * later cell sees. It stops at the end, at `count`, when cooperative computation
+     * reaches `budget` (including work before the next yield), after
      * `limits.total` milliseconds between values, when one value takes longer than `limits.each`
      * (a generator that never yields again is interrupted and closed, as Ctrl-C would), at the
      * memory budget of the tape, or at an error of the generator itself.
@@ -127,6 +127,7 @@ export class SequenceReplay {
             try {
                 withInterrupt(signal, () => withDemandBudget(budget, () => {
                     for (let read = 0; read < count && !tape.finished; read++) {
+                        checkpoint('reading ahead');
                         if (Date.now() - started > total) { stopped = 'time'; message = 'time limit reached'; return; }
                         deadline.at = Date.now() + each;
                         this.read(tape, tape.entries.length);
@@ -236,11 +237,13 @@ export class SequenceReplay {
             entry = { reads, outcome: { result } };
         } catch (error) {
             tape.finished = true;
-            if (error instanceof InterruptedError) {
-                // A cancelled generator is closed. Do not replay a host cancellation
-                // as if the user pressed Ctrl-C again on the next command.
+            if (error instanceof InterruptedError || error instanceof DemandBudgetExhausted) {
+                // Host limits close the generator. Keep an actionable resource
+                // error on its tape, never replay a host control-flow exception.
                 tape.entries.push({ reads, outcome: { error: new RankError(
-                    `sequence ${tape.source.plan.name} was interrupted; rerun its producing cell`,
+                    error instanceof DemandBudgetExhausted
+                        ? `sequence ${tape.source.plan.name} exhausted its demand budget; rerun its producing cell`
+                        : `sequence ${tape.source.plan.name} was interrupted; rerun its producing cell`,
                     'InterruptedSequence',
                 ) } });
                 throw error;

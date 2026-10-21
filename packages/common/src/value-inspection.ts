@@ -1,9 +1,9 @@
 import { displayTypeName } from '@arrrank/language';
 import {
-    DemandBudgetExhausted, withDemandBudget, demandValue, isRankPlan, formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
+    DemandBudgetExhausted, InterruptedError, checkpoint, withDemandBudget, demandValue, isRankPlan, formatValue, isRankArray, isRankSequence, isRankSequenceMask, isRankTable, typeName,
     type RankArray, type RankSequence, type RankValue,
 } from '@arrrank/interpreter';
-import { preview } from './preview.js';
+import { DEMAND_LIMIT, preview } from './preview.js';
 import type { SequenceReplay } from './sequence-replay.js';
 
 /** Cells or entries returned per axis when a request does not say. */
@@ -105,15 +105,19 @@ function axisWindow(length: number, offset: number | undefined, count: number | 
 }
 
 function cellOf(value: RankValue | undefined): InspectCell {
+    checkpoint('inspecting value');
     if (value === undefined) return { text: '.NA', type: 'missing' };
-    if (isRankPlan(value)) return withDemandBudget(10_000, () => cellOf(demandValue(value)));
+    if (isRankPlan(value)) return withDemandBudget(DEMAND_LIMIT, () => cellOf(demandValue(value)));
     return { text: preview(value, CELL_WIDTH).text, type: typeName(value) };
 }
 
-/** A cell a lazy array computes; its failure is a cell, not a failed window. */
+/** Cell errors stay local; host cancellation and work limits stop the window. */
 function cellAt(read: () => RankValue | undefined): InspectCell {
     try { return cellOf(read()); }
-    catch (error) { return { text: error instanceof Error ? error.message : String(error), type: 'error' }; }
+    catch (error) {
+        if (error instanceof DemandBudgetExhausted || error instanceof InterruptedError) throw error;
+        return { text: error instanceof Error ? error.message : String(error), type: 'error' };
+    }
 }
 
 /**
@@ -123,7 +127,11 @@ function cellAt(read: () => RankValue | undefined): InspectCell {
  * it; the rest stays unread.
  */
 export function inspectValue(value: RankValue, request: InspectRequest, replay?: Pick<SequenceReplay, 'forced'>): InspectedValue {
-    if (isRankPlan(value)) return withDemandBudget(10_000, () => inspectValue(demandValue(value), request, replay));
+    return withDemandBudget(DEMAND_LIMIT, () => inspectObservedValue(value, request, replay));
+}
+
+function inspectObservedValue(value: RankValue, request: InspectRequest, replay?: Pick<SequenceReplay, 'forced'>): InspectedValue {
+    if (isRankPlan(value)) return inspectObservedValue(demandValue(value), request, replay);
     if (isRankArray(value) && value.shape.length > 0) return inspectArray(value, request);
     if (isRankTable(value)) return inspectTable(value, request);
     if (isRankSequenceMask(value)) return inspectUnrecorded(value.source.plan, item => value.predicate.test(item), request, { kind: 'unknown' });
@@ -146,6 +154,11 @@ const COLLECTIONS = ['record', 'object', 'index', 'set', 'queue', 'tuple', 'coun
  * or nothing for a value that is only its text. Cheap: it reads at most one cell.
  */
 export function viewLabel(value: RankValue): string | undefined {
+    try { return withDemandBudget(DEMAND_LIMIT, () => observedViewLabel(value)); }
+    catch (error) { if (error instanceof DemandBudgetExhausted) return undefined; throw error; }
+}
+
+function observedViewLabel(value: RankValue): string | undefined {
     if (isRankArray(value) && value.shape.length > 0) {
         const shape = `[${value.shape.join(' ')}]`;
         if (value.shape.some(length => length === 0)) return `c ${shape}`;
@@ -236,7 +249,7 @@ function inspectUnrecorded(
 ): InspectedValue {
     const items: RankValue[] = [];
     try {
-        withDemandBudget(10_000, () => {
+        withDemandBudget(DEMAND_LIMIT, () => {
             for (const item of plan.iterate()) {
                 items.push(keep(item));
                 if (items.length >= HEAD) return;
