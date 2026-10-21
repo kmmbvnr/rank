@@ -1,0 +1,43 @@
+rem Lattice Points Enclosed by Parabola
+rem https://projecteuler.net/problem=403
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000
+
+rem Area is rational iff a^2 + 4b is
+rem s^2. With a = v - u, b = u v,
+rem s = u + v, L = (s^3 + 5s + 6)/6.
+rem P(n) is the sum of L(0..n).
+rem S = 2 P(N) - 1 + A + 2 B with
+rem A over u v <= N, u, v >= 1, and
+rem B over u >= w >= 1, u w <= N.
+Mod = 100000000
+M = 24 * Mod
+R = N isqrt
+U = (1 to R) copy
+Q = N // U
+Args = concat (array N) (U + Q) U
+Args = concat Args (U + R) (Q - U)
+rem 24 P = n1 (n^2 n1 + 10 n + 24)
+N0 = Args mod M
+N1 = (Args + 1) mod M
+X = N0 * N0 mod M
+X = X * N1 mod M
+X = (X + 10 * N0 + 24) mod M
+X = X * N1 mod M
+Pm = X // 24
+Pa = Pm (1 to R)
+Pu = Pm (R + 1 to 2 * R)
+Pr = Pm (2 * R + 1 to 3 * R)
+Pw = Pm (3 * R + 1 to 4 * R)
+A = 2 * (Pa - Pu sum) - (Pr - Pu sum)
+S1 = N - 1
+Lm = (S1 ** 3 + 5 * S1 + 6) // 6
+B = Pw sum - Lm
+Tot = 2 * Pm 0 - 1 + A + 2 * B
+Answer = Tot mod Mod
+Answer print

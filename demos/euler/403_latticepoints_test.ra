@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "403_latticepoints"
+  N = 5
+  run
+  Answer equal 344
+  N = 100
+  run
+  Answer equal 26709528
+end
+
+test "exact values below the modulus"
+  use "403_latticepoints"
+  N = 20
+  run
+  Answer equal 47021
+end
+
+test "default input"
+  use "403_latticepoints"
+  run
+  Answer equal 18224771
+end
