@@ -1,5 +1,6 @@
+import type { ArrayCellRead } from './array-cell-read.js';
 import type { KnownShape } from '@arrrank/language';
-import { arrayValues, collectArrayValues, readArrayItem, registerArrayReadPlan } from './array-storage.js';
+import { arrayCells, arrayCellValues, arrayValues, collectArrayValues, readArrayItem, registerArrayReadPlan } from './array-storage.js';
 import { demandValue } from './plan.js';
 import { MissingValueError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -12,7 +13,7 @@ const sizeOf = (shape: readonly number[]): number => shape.reduce((size, n) => s
  * a prepared traversal owns at most its current result cell. */
 export function framedArray(
     frameShape: readonly number[],
-    cellAt: (index: number) => RankValue,
+    cellAt: (index: number, observation?: ArrayCellRead) => RankValue,
     options: {
         readonly shape?: KnownShape;
         readonly ownFiles: (value: RankValue) => void;
@@ -30,7 +31,7 @@ export function framedArray(
         options.ownFiles(value);
         return value;
     };
-    const readCell = (index: number): RankValue => check(cellAt(index), index);
+    const readCell = (index: number, observation?: ArrayCellRead): RankValue => check(cellAt(index, observation), index);
     // A probe is local to the observation that needed the shape. Its value is
     // reused by that same items/itemAt call, never by a later observation.
     const probe = (): RankValue | undefined => cellShape === undefined ? readCell(0) : undefined;
@@ -55,11 +56,8 @@ export function framedArray(
     const values = function* (first?: RankValue): IterableIterator<RankValue> {
         first ??= probe();
         if (sizeOf(cellShape!) === 0) {
-            for (let frame = 0; frame < sizeOf(frameShape); frame++) {
-                checkpoint('reading ranked result');
-                const cell = frame === 0 && first !== undefined ? first : readCell(frame);
-                if (isRankArray(cell)) yield* arrayValues(cell);
-            }
+            if (first !== undefined && isRankArray(first)) yield* arrayValues(first);
+            yield* arrayCellValues(arrayCells(result)!, first === undefined ? 0 : 1);
             return;
         }
         const read = prepare(first)!;
@@ -92,8 +90,8 @@ export function framedArray(
     };
     return registerArrayReadPlan(result, {
         prepare: () => prepare(), values: () => values(), collect: () => result.items,
-        cells: { frameShape, cellShape: () => cellShape, read(index) {
-            const cell = readCell(index);
+        cells: { frameShape, cellShape: () => cellShape, read(index, observation) {
+            const cell = readCell(index, observation);
             return cellShape!.length === 0 && isRankArray(cell) ? readArrayItem(cell, 0) : cell;
         } },
     });

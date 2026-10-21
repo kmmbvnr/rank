@@ -37,11 +37,11 @@ export function permutedArray(value: RankArray, permutation: readonly number[]):
     return registerArrayReadPlan(result, { cells: {
         frameAxes, frameShape,
         cellShape: () => { const shape = cells.cellShape(); return shape && cellOrder.map(axis => shape[axis]); },
-        read(index) {
+        read(index, observation) {
             const coordinates = coordinatesAt(frameShape, index);
             const original = Array(sourceFrames.length).fill(0) as number[];
             frameOrder.forEach((axis, position) => { original[axis] = coordinates[position]; });
-            const cell = cells.read(arrayOffset(cells.frameShape, original));
+            const cell = cells.read(arrayOffset(cells.frameShape, original), observation);
             return isRankArray(cell) && cellOrder.some((axis, position) => axis !== position)
                 ? permutedArray(cell, cellOrder) : cell;
         },

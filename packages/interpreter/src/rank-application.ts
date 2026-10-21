@@ -336,16 +336,18 @@ const FILL_CELL_LIMIT = 1 << 16;
 
 /** No new operation cell exists, but an operand can still contain nonempty
  * producer frames of empty cells. Preserve their selected observations. Axes
- * consumed by the new operation belong to one result cell, not a result frame. */
-function emptyFrameArray(shape: readonly number[], frameRank: number,
-    operands: readonly { value: RankValue; axes: readonly number[] }[]): RankArray {
-    const inputs = operands.flatMap(({ value, axes }) => {
+ * consumed by the new operation belong to one result cell, not a result frame.
+ * Frame axes right-align for broadcasting unless an explicit offset places
+ * them in concatenated outer frames. */
+export function emptyFrameArray(shape: readonly number[], frameRank: number,
+    operands: readonly { value: RankValue; axes: readonly number[]; offset?: number }[]): RankArray {
+    const inputs = operands.flatMap(({ value, axes, offset }) => {
         if (!isRankArray(value)) return [];
         const cells = arrayCells(value);
         if (!cells) return [];
         const sourceFrames = arrayFrameAxes(cells);
         const cellShape = cells.cellShape() ?? value.shape.filter((_, axis) => !sourceFrames.includes(axis));
-        return arraySize(cellShape) === 0 ? [{ value, axes, cells, leading: frameRank - axes.length }] : [];
+        return arraySize(cellShape) === 0 ? [{ value, axes, cells, leading: offset ?? frameRank - axes.length }] : [];
     });
     if (!inputs.length) return ownedArray([], shape);
     const frames = new Set<number>();
@@ -362,7 +364,7 @@ function emptyFrameArray(shape: readonly number[], frameRank: number,
     }, true);
     return registerArrayReadPlan(result, { cells: {
         frameAxes, frameShape, cellShape: () => cellShape,
-        read(index) {
+        read(index, observation) {
             const coordinates = coordinatesAt(frameShape, index);
             for (const input of inputs) {
                 const selectors = input.value.shape.map((size, axis) => {
@@ -370,7 +372,7 @@ function emptyFrameArray(shape: readonly number[], frameRank: number,
                     const frame = position < 0 ? -1 : frameAxes.indexOf(input.leading + position);
                     return frame < 0 ? ALL_AXIS : BigInt(size === 1 ? 0 : coordinates[frame]);
                 });
-                const selected = sliceArray(input.value, tensorSelection(input.value, selectors));
+                const selected = sliceArray(input.value, tensorSelection(input.value, selectors), observation?.branch(input));
                 if (isRankArray(selected)) for (const _ of arrayValues(selected)) { /* Finish its producers. */ }
             }
             return ownedArray([], cellShape);

@@ -307,8 +307,8 @@ export class ArrayBindingContract {
             if (path === undefined) inheritConcatCheck(source, checked, this, validate, version);
             const cells = arrayCells(source);
             registerArrayReadPlan(checked, { prepare,
-                cells: cells && { frameAxes: cells.frameAxes, frameShape: cells.frameShape, cellShape: () => cells.cellShape(), read(index) {
-                    const item = cells.read(index);
+                cells: cells && { frameAxes: cells.frameAxes, frameShape: cells.frameShape, cellShape: () => cells.cellShape(), read(index, observation) {
+                    const item = cells.read(index, observation);
                     return isRankArray(item) ? wrap(item) : validate(item);
                 } },
                 *values() {

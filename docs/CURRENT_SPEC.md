@@ -6381,6 +6381,12 @@ A full traversal owns and closes its cursors, including when stopped early.
 Unknown-size operands and single-pass resources are completed by the current
 `outer` evaluation; this does not make the original resource restartable.
 
+An empty pair frame makes no call to the pair operation. Operands can still
+produce empty cells, whose selected producers must run when the result is
+completed. Arithmetic and axis permutations preserve these observations;
+selecting no producer positions makes no producer calls. Unused nonempty
+scalar operands are not evaluated for an empty product.
+
 Explicit binary comparison rank and frame axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
 

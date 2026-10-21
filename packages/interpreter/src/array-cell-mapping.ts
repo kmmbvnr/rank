@@ -10,6 +10,7 @@ export function mapArrayCells(
     result: RankArray, arguments_: readonly RankValue[],
     mapCells: (values: RankValue[]) => RankValue,
 ): RankArray {
+    const operands = arguments_.map(value => ({ value }));
     const arrays = arguments_.filter(isRankArray);
     const frames = new Set<number>();
     let hasCells = false;
@@ -26,16 +27,17 @@ export function mapArrayCells(
     const cellShape = result.shape.filter((_, axis) => !frames.has(axis));
     return registerArrayReadPlan(result, { cells: {
         frameAxes, frameShape, cellShape: () => cellShape,
-        read(index) {
+        read(index, observation) {
             const coordinates = coordinatesAt(frameShape, index);
-            const selected = arguments_.map(value => {
+            const selected = operands.map(operand => {
+                const value = operand.value;
                 if (!isRankArray(value)) return value;
                 const leading = result.shape.length - value.shape.length;
                 const selectors = value.shape.map((size, axis) => {
                     const frame = frameAxes.indexOf(leading + axis);
                     return frame < 0 ? ALL_AXIS : BigInt(size === 1 ? 0 : coordinates[frame]);
                 });
-                return sliceArray(value, tensorSelection(value, selectors));
+                return sliceArray(value, tensorSelection(value, selectors), observation?.branch(operand));
             });
             return mapCells(selected);
         },

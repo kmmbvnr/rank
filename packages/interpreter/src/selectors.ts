@@ -1,3 +1,4 @@
+import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
 import { permutedArray } from './array-permutation.js';
 import { arithmeticRange } from './range-plan.js';
@@ -213,7 +214,7 @@ function linearSelection(axes: readonly SelectedAxis[], sourceShape: readonly nu
 }
 
 /** Select producer cells before flattening their zero-sized trailing axes. */
-function producerSelection(source: RankArray, selection: TensorSelection): RankValue | undefined {
+function producerSelection(source: RankArray, selection: TensorSelection, observation?: ArrayCellRead): RankValue | undefined {
     const cells = arrayCells(source);
     const axes = selection.axes;
     const cellShape = cells?.cellShape();
@@ -226,11 +227,11 @@ function producerSelection(source: RankArray, selection: TensorSelection): RankV
     const selectedCellShape = cellAxes.filter(axis => axis.preserve).map(axis => axis.size);
     const wholeCell = cellAxes.every((axis, index) => axis.preserve && axis.size === cellShape[index]
         && axis.linear?.offset === 0 && axis.linear.stride === 1);
-    const read = (index: number): RankValue => {
+    const read = (index: number, current = observation): RankValue => {
         const coordinates = coordinatesAt(frameShape, index);
         let axisIndex = 0;
         const original = frameAxes.map(axis => axis.indexAt(axis.preserve ? coordinates[axisIndex++] : 0));
-        const cell = cells.read(arrayOffset(cells.frameShape, original));
+        const cell = cells.read(arrayOffset(cells.frameShape, original), current);
         if (wholeCell || cellAxes.length === 0) return cell;
         if (!isRankArray(cell)) throw new RankError('ranked cell selection expects an array');
         return sliceArray(cell, selectionFromAxes(cell.shape, cellAxes));
@@ -291,10 +292,10 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
 export function sliceArray(
-    source: RankArray, selection: TensorSelection,
+    source: RankArray, selection: TensorSelection, observation?: ArrayCellRead,
 ): RankValue {
     if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
-    const produced = producerSelection(source, selection);
+    const produced = producerSelection(source, selection, observation);
     if (produced !== undefined) return produced;
     const columnAxis = source.columnNames && source.shape.length === 2 ? selection.axes?.[1] : undefined;
     if (columnAxis?.preserve && selection.axes?.[0].preserve === false) {

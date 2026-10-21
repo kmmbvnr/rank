@@ -97,6 +97,13 @@ Consumed producer axes are observed together within a result cell. If the
 combined logical frame is itself empty, it makes no producer calls. Unused
 nonempty operands are not forced by these empty-cell observations.
 
+The same rule applies to `outer`: left and right producer frames occupy their
+respective result axes. Arithmetic, selections and axis permutations preserve
+the selected producer observations. Empty products make no new scalar calls.
+Sequential producer cursors belong to one traversal, keep no earlier cell
+history, and close on completion, failure or cancellation. Aliased operands
+have separate cursors; a later observation starts again.
+
 Completing a nonempty frame invokes every callback even when each result is an
 empty array. Its effects and shape checks are still required.
 

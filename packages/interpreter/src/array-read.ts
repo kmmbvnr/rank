@@ -1,3 +1,4 @@
+import { ArrayCellRead } from './array-cell-read.js';
 import { completed, type Evaluation, type Execution } from './execution.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
@@ -67,7 +68,11 @@ export interface ArrayCells {
     readonly frameShape: readonly number[];
     /** Peek only: geometry becomes known when the array's shape is observed. */
     cellShape(): readonly number[] | undefined;
-    read(index: number): RankValue;
+    /** With an observation, consume a borrowed cell before the next read in
+     * that operand branch. A standalone read returns a stable cell. */
+    read(index: number, observation?: ArrayCellRead): RankValue;
+    /** Borrowed cells, consumed before advancing; the observer closes the cursor. */
+    iterate?(): IterableIterator<RankValue>;
 }
 interface ArrayReadPlan {
     readonly prepare?: () => ((index: number) => RankValue) | undefined;
@@ -99,6 +104,21 @@ export function prepareArrayRead(value: RankArray): ((index: number) => RankValu
     return arrayReadPlans.get(value)?.prepare?.();
 }
 
+/** Observe empty producer cells, owning cursors through their nested demands. */
+export function* arrayCellValues(cells: ArrayCells, start = 0): IterableIterator<RankValue> {
+    const observation = new ArrayCellRead();
+    let failed = false;
+    try {
+        const size = cells.frameShape.reduce((total, n) => total * n, 1);
+        for (let index = start; index < size; index++) {
+            checkpoint('reading empty array cells');
+            const cell = cells.read(index, observation);
+            if (isRankArray(cell)) yield* arrayValues(cell);
+        }
+    } catch (error) { failed = true; throw error; }
+    finally { observation.close(failed); }
+}
+
 /** Looking up a traversal must not start a reader or evaluate cells. */
 export function arrayValueTraversal(value: RankArray): (() => IterableIterator<RankValue>) | undefined {
     return arrayReadPlans.get(value)?.values;
@@ -113,12 +133,7 @@ export function* arrayValues(value: RankArray, streaming = false): IterableItera
     const size = value.shape.reduce((total, n) => total * n, 1);
     const cells = arrayCells(value);
     if (size === 0 && cells) {
-        const frames = cells.frameShape.reduce((total, n) => total * n, 1);
-        for (let index = 0; index < frames; index++) {
-            checkpoint('reading empty array cells');
-            const cell = cells.read(index);
-            if (isRankArray(cell)) yield* arrayValues(cell);
-        }
+        yield* arrayCellValues(cells);
         return;
     }
     for (let index = 0; index < size; index++) {

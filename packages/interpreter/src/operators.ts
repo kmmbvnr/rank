@@ -1,3 +1,4 @@
+import type { ArrayCellRead } from './array-cell-read.js';
 import { demandValue } from './plan.js';
 import { membershipLookup } from './membership-lookup.js';
 import { mapArrayCells } from './array-cell-mapping.js';
@@ -19,7 +20,7 @@ import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
-import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
+import { dyadicCells, emptyFrameArray, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import {
     arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
@@ -96,8 +97,13 @@ export class Operators {
     evaluateOuter(operator: string, left: RankValue, right: RankValue): RankValue {
         const a = outerOperand(left, 'left');
         const b = outerOperand(right, 'right');
+        const shape = [...a.shape, ...b.shape];
         const rightSize = arraySize(b.shape);
-        requireIndexable([...a.shape, ...b.shape]);
+        requireIndexable(shape);
+        if (arraySize(shape) === 0) return emptyFrameArray(shape, shape.length, [
+            { value: a, axes: a.shape.map((_, axis) => axis), offset: 0 },
+            { value: b, axes: b.shape.map((_, axis) => axis), offset: a.shape.length },
+        ]);
         const evaluate = (x: RankValue, y: RankValue) => this.evaluateBinary(operator, x, y);
         return derivedArray([...a.shape, ...b.shape], [a, b], index => {
             const leftIndex = Math.floor(index / rightSize);
@@ -118,9 +124,14 @@ export class Operators {
         const [leftRank, rightRank] = operation.dyadicRanks ?? ['all', 'all'];
         const a = outerCells(left, leftRank, 'left');
         const b = outerCells(right, rightRank, 'right');
+        const shape = [...a.frameShape, ...b.frameShape];
         const rightFrames = arraySize(b.frameShape);
+        requireIndexable(shape);
+        if (arraySize(shape) === 0) return emptyFrameArray(shape, shape.length, [
+            { value: a.source, axes: a.frameShape.map((_, axis) => axis), offset: 0 },
+            { value: b.source, axes: b.frameShape.map((_, axis) => axis), offset: a.frameShape.length },
+        ]);
         const scalar = this.scalarCallback(operation);
-        requireIndexable([...a.frameShape, ...b.frameShape]);
         const apply = (x: RankValue, y: RankValue): RankValue => {
             const arguments_ = [x, y];
             const result = demandValue(scalar ? scalar(arguments_) : operation.call(arguments_));
@@ -466,13 +477,6 @@ export function arraySize(shape: readonly number[]): number {
 function* outerValues(
     left: RankArray, right: RankArray, apply: (x: RankValue, y: RankValue) => RankValue,
 ): IterableIterator<RankValue> {
-    const leftSize = arraySize(left.shape), rightSize = arraySize(right.shape);
-    // Empty products observe empty producers, not unused scalar inputs.
-    if (leftSize === 0 || rightSize === 0) {
-        if (leftSize === 0) yield* arrayValues(left);
-        if (rightSize === 0) yield* arrayValues(right);
-        return;
-    }
     for (const x of arrayValues(left)) {
         for (const y of arrayValues(right)) yield apply(x, y);
     }
@@ -528,13 +532,25 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
             }
             if (count !== size) throw new RankError(`outer operand ended after ${count} values, not ${size}`);
         });
-    return registerArrayReadPlan(result, { cells: {
+    const cells = {
         frameShape: [size], cellShape: () => cellShape,
-        read: index => visit(index, item => {
-            item = check(item);
-            return isRankArray(item) ? ownedArray(collectArrayCells(item), [...item.shape]) : item;
-        }),
-    } });
+        *iterate() {
+            let count = 0;
+            for (const item of sequenceValues(value, 'outer')) {
+                if (count++ >= size) throw new RankError('outer operand exceeded its declared size');
+                yield check(demandValue(item));
+            }
+            if (count !== size) throw new RankError(`outer operand ended after ${count} values, not ${size}`);
+        },
+        read(index: number, observation?: ArrayCellRead): RankValue {
+            if (observation) return observation.read(cells, index);
+            return visit(index, item => {
+                item = check(item);
+                return isRankArray(item) ? ownedArray(collectArrayCells(item), [...item.shape]) : item;
+            });
+        },
+    };
+    return registerArrayReadPlan(result, { cells });
 }
 
 function outerCells(
