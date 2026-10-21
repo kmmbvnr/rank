@@ -1,0 +1,36 @@
+rem Sum of Squares of Divisors
+rem https://projecteuler.net/problem=401
+
+use numbers
+use sequences
+use io
+use cli
+
+option Limit integer = 1000000000000000
+
+rem Hyperbola: sum d^2 [N/d] over
+rem d <= r, plus sum S2(N/k) over
+rem k <= r, minus r S2(r).
+Mod = 1000000000
+M3 = 3 * Mod
+Root = Limit isqrt
+Tot = 0
+for L in 1 to Root by 1000000
+  Hi = Root (L + 999999) min
+  D = (L to Hi) copy
+  Q = Limit // D
+  A = D * D mod Mod * (Q mod Mod)
+  Tot += A mod Mod sum
+  rem S2(x) = x (x+1) (2x+1) / 6
+  rem mod 3 Mod, then divide by 3.
+  Ev = Q mod 2 equal 0
+  H = Ev choose (Q // 2) Q
+  G = Ev choose (Q + 1) ((Q + 1) // 2)
+  B = H mod M3 * (G mod M3) mod M3
+  B = B * ((2 * Q + 1) mod M3) mod M3
+  Tot += B // 3 sum
+end
+R2 = Root * (Root + 1) * (2 * Root + 1)
+Tot -= Root * (R2 // 6)
+Answer = Tot mod Mod
+Answer print

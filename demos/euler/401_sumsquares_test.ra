@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "401_sumsquares"
+  Limit = 6
+  run
+  Answer equal 113
+  Limit = 4
+  run
+  Answer equal 37
+end
+
+test "reference value"
+  use "401_sumsquares"
+  Limit = 1000
+  run
+  Answer equal 401382971
+end
+
+test "two chunks of the root range"
+  use "401_sumsquares"
+  Limit = 2000000000000
+  run
+  Answer equal 679233331
+end
