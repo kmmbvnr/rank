@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "404_crazyellipses"
+  N = 1000
+  run
+  Answer equal 7
+  N = 10000
+  run
+  Answer equal 106
+  N = 1000000
+  run
+  Answer equal 11845
+end
+
+test "first family starts at 209"
+  use "404_crazyellipses"
+  N = 208
+  run
+  Answer equal 0
+  N = 209
+  run
+  Answer equal 1
+end

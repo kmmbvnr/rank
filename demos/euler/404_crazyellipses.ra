@@ -1,0 +1,38 @@
+rem Crisscross Ellipses
+rem https://projecteuler.net/problem=404
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000000000
+
+rem With X = 2a/b, Y = 2a/c the rule
+rem a < b < c < 2a means X^2 + Y^2 = 5.
+rem Primitive solutions U^2 + V^2 =
+rem 5 W^2, W < V < U < 2W come from
+rem coprime m > n > m/2:
+rem U = (n^2 + 4mn - m^2) / g,
+rem V = 2 (m^2 + mn - n^2) / g,
+rem g = 1 + (m, n both odd), skipping
+rem m = 2n mod 5. Family gives
+rem 2N // (U V) triples.
+Top = 3 * N isqrt isqrt + 2
+Tot = 0
+for M in 3 to Top
+  Ns = ((M // 2 + 1) to (M - 1)) copy
+  Cop = M Ns gcd equal 1
+  Ok = Cop choose 1 0
+  Mk = (M - 2 * Ns) mod 5 not equal 0
+  Ok *= Mk choose 1 0
+  G = 1 + M mod 2 * (Ns mod 2)
+  A = M * M
+  B = Ns * Ns
+  C = M * Ns
+  U = (B + 4 * C - A) // G
+  V = 2 * (A + C - B) // G
+  Tot += Ok * (2 * N // (U * V)) sum
+end
+Answer = Tot
+Answer print
