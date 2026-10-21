@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "405_rectangulartiling"
+  K = 0
+  run
+  Answer equal 0
+  Base = 4
+  K = 1
+  run
+  Answer equal 82
+end
+
+test "ten to the ninth"
+  use "405_rectangulartiling"
+  K = 9
+  run
+  Answer equal 126897180
+end
+
+test "default input"
+  use "405_rectangulartiling"
+  run
+  Answer equal 237696125
+end

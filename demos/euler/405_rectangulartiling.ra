@@ -1,0 +1,27 @@
+rem A Rectangular Tiling
+rem https://projecteuler.net/problem=405
+
+use numbers
+use io
+use cli
+
+option Base integer = 10
+option K integer = 1000000000000000000
+
+rem f(n) = 1 - (-1)^n / 15
+rem        - 4/3 2^n + 2/5 4^n
+rem for n = Base^K, mod 17^7, with
+rem n reduced mod phi(17^7).
+M = 17 ** 7
+Phi = 17 ** 6 * 16
+E = Base K Phi powmod
+T1 = 2 E M powmod
+T2 = 4 E M powmod
+Sg = -1
+if Base mod 2 equal 0 and K at least 1
+  Sg = 1
+end
+S = 15 - Sg - 20 * T1 + 6 * T2
+Inv = 15 (Phi - 1) M powmod
+Answer = S * Inv mod M
+Answer print
