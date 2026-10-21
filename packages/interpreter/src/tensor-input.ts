@@ -1,5 +1,6 @@
 import { arrayRevision, denseScalarItems, materializedArrayItems, storedScalarKinds } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
+import { ownedStorage } from './array-storage-state.js';
 import { privateLoopPolling } from './interrupt.js';
 import { InterruptedError } from './interrupt.js';
 import { RankError } from './errors.js';
@@ -12,9 +13,10 @@ export interface TensorInput {
 /** Inspect tracked storage without observing cells. Binding/cell validation is
  * deferred until all layout and scalar guards have accepted the kernel. */
 export function tensorInput(value: RankArray): TensorInput | undefined {
+    if (value.itemAt !== undefined && ownedStorage.has(value)) return undefined;
     const view = privateLoopPolling() ? prepareStoredScalarView(value, true) : undefined;
     if (!view?.linear || view.linear.stride !== 1 || !view.validateUniform
-        || !view.kinds?.every(kind => kind === 'integer')) {
+        || !view.kinds?.every(kind => kind === 'integer' || kind === 'real')) {
         if (arrayRevision(value) === undefined) return undefined;
         const items = denseScalarItems(value) ?? materializedArrayItems(value);
         if (items && items.length === value.shape.reduce((a, b) => a * b, 1)) {
@@ -25,7 +27,7 @@ export function tensorInput(value: RankArray): TensorInput | undefined {
     }
     const validate = view.validate && value.shape.every(n => n > 0)
         ? () => view.validateUniform!(view.items[view.linear!.offset]) : undefined;
-    return { items: view.items, offset: view.linear.offset, shape: value.shape, kind: 'integer', validate };
+    return { items: view.items, offset: view.linear.offset, shape: value.shape, kind: view.kinds[0], validate };
 }
 
 export function validateTensorInputs(checks: readonly (() => void)[] | undefined): boolean {

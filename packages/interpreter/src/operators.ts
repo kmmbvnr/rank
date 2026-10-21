@@ -1,5 +1,6 @@
 import type { ArrayCellRead } from './array-cell-read.js';
 import { demandValue } from './plan.js';
+import { constructingTensorPlan, registerTensorMap } from './tensor-map.js';
 import { membershipLookup } from './membership-lookup.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
@@ -750,18 +751,19 @@ function mapBinary(
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;
     }
-    if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
+    if (!constructingTensorPlan() && (leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
         const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name], !isPredicateOperator(name), name);
         if (dense) return dense;
     }
     if (leftArray && rightArray) {
-        return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
+        return registerTensorMap(mapBroadcastArrays(leftArray, rightArray, scalarOperation), name, leftArray, rightArray);
     }
     const source = leftArray ?? rightArray!;
     const evaluate = (index: number) => mapResult(evaluateArrayItem(source, index), item =>
         leftArray ? scalarOperation(item, right) : scalarOperation(left, item));
-    return mapArrayCells(derivedArray(source.shape, [left, right, source], index => runExecution(evaluate(index)), true, evaluate),
-        [leftArray ?? left, rightArray ?? right], cells => mapScalarArrays(cells, ([a, b]) => scalarOperation(a, b)));
+    return registerTensorMap(mapArrayCells(derivedArray(source.shape, [left, right, source], index => runExecution(evaluate(index)), true, evaluate),
+        [leftArray ?? left, rightArray ?? right], cells => mapScalarArrays(cells, ([a, b]) => scalarOperation(a, b))),
+        name, leftArray ?? left, rightArray ?? right);
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {

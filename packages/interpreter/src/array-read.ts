@@ -14,7 +14,7 @@ export function eagerArrayStorage(value: RankValue): {
     const owned = typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
     // A host array may expose observable item getters (including through a
     // Proxy). Inspecting its cells to select a fast path would read ahead.
-    if (!owned?.stable) return undefined;
+    if (!owned?.stable || isRankArray(value) && value.itemAt !== undefined) return undefined;
     const items = owned.items;
     if (!Array.isArray(items)
         || !items.every(item => typeof item === 'number' || typeof item === 'bigint' || typeof item === 'boolean')) {

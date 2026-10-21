@@ -1,4 +1,5 @@
 import { checkpoint } from './interrupt.js';
+import { reduceTensorMap } from './tensor-map.js';
 import { collectionProtocol, type CollectionProtocolFor, type CollectionCapability } from '@arrrank/language';
 import { arrayValues, denseScalarItems, float64Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
 import { extremeMasked, presentReals, sumMasked } from './masked-kernels.js';
@@ -39,6 +40,8 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
         rank: value.shape.length,
         values: () => arrayValues(value, shouldStream(value)),
         reduce: operation => {
+            const tensor = reduceTensorMap(value, operation);
+            if (tensor !== undefined) return tensor;
             if (operation === 'sum') return sumMasked(value);
             if (operation !== 'min' && operation !== 'max') return undefined;
             const masked = extremeMasked(value, operation === 'min' ? (a, b) => a < b : (a, b) => a > b);

@@ -38,6 +38,24 @@ export function registerScalarView<T extends RankArray>(value: T, source: RankAr
     return value;
 }
 
+/** Binding wrappers can expose their scalar contract without reading cells.
+ * Only identity views with internal scalar checks are transparent to native maps. */
+export function prepareIdentityScalarView(value: RankArray): {
+    source: RankArray; validate(cell: RankValue, index: number): RankValue;
+} | undefined {
+    const view = views.get(value);
+    if (!view || value.itemAt !== view.reader || !view.scalarCheck) return undefined;
+    const linear = view.linear?.();
+    if (!linear || linear.offset !== 0 || linear.stride !== 1) return undefined;
+    const source = typeof view.source === 'function' ? view.source() : view.source;
+    if (source.shape.length !== value.shape.length || source.shape.some((n, axis) => n !== value.shape[axis])) return undefined;
+    const validate = arrayCellValidator(value);
+    return { source, validate(cell, index) {
+        validate?.(cell, index);
+        return view.check ? view.check(cell) : cell;
+    } };
+}
+
 /** A selection that previously gathered eagerly keeps its writable value
  * interface, but pays for its private storage only if it is actually written. */
 export function deferSelectionCopy<T extends RankArray>(value: T): T {
@@ -91,6 +109,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
     const plan = integerPlans.get(source);
     const segmented = plan?.reader === source.itemAt ? plan?.prepare() : undefined;
     if (segmented) return wrap(segmented);
+    if (source.itemAt !== undefined) return undefined;
     const items = denseScalarItems(source) ?? materializedArrayItems(source);
     if (!items) return undefined;
     const kinds = storedScalarKinds(source);
@@ -128,6 +147,7 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
             scalarCheck: !needsCheck || view.scalarCheck === true, columns: source.columnNames !== undefined });
         source = typeof view.source === 'function' ? view.source() : view.source;
     }
+    if (source.itemAt !== undefined) return undefined;
     const items = denseScalarItems(source) && storedOperandItems(source);
     if (!items) return undefined;
     let read = (index: number): RankValue => items[index];

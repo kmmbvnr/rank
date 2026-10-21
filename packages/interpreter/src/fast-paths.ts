@@ -17,8 +17,9 @@ import { currentDiagnostics } from './diagnostics.js';
 import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
-import { compileTensorKernel, compileTensorReduction, type TensorKernelHost } from './tensor-kernel.js';
+import { compileTensorKernel, compileTensorReduction, type TensorCodeCache, type TensorKernelHost } from './tensor-kernel.js';
 import { hasNativeImplementation } from './native-implementation.js';
+import { tensorPlanScope } from './tensor-map.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
@@ -76,6 +77,7 @@ export interface BlockSteps {
  * guard fails. Options can disable each path; inspection disables them all.
  */
 export class FastPaths {
+    private readonly tensorPlanCode = new WeakMap<Expression, TensorCodeCache>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly functionBodies = new WeakMap<FunctionStatement, CallSpecializations<CompiledBlock<ExecutionContext> | null>>();
 
@@ -169,6 +171,13 @@ export class FastPaths {
             if (value !== undefined) this.tensorExecuted();
             return value;
         };
+    }
+
+    tensorPlanScope(expression: Expression): <T>(run: () => T) => T {
+        let code = this.tensorPlanCode.get(expression);
+        if (!code) this.tensorPlanCode.set(expression, code = new Map());
+        return tensorPlanScope(this.tensorHost(), () => this.context.options().tensorFusion !== false,
+            () => this.tensorExecuted(), code);
     }
 
     tensorGroup(statements: Statement[], index: number): TensorGroup | undefined {

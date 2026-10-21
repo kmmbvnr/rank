@@ -25,6 +25,7 @@ const bitwise = (name: string): name is Bitwise => Object.prototype.hasOwnProper
 const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
 export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
+    | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'binary'; op: string; native?: Bitwise; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
     | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }
@@ -37,6 +38,16 @@ export interface TensorKernelHost {
     lookup(name: string): RankValue | undefined;
     builtin(name: Terminal | 'text' | 'integer' | 'reshape' | Bitwise): boolean;
     compiled?(source: string): void;
+}
+type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
+    checks: ((cell: RankValue, index: number) => RankValue)[]) => RankValue | RankValue[] | undefined;
+export type TensorCodeCache = Map<string, KernelRun>;
+
+/** Native producers use the same IR, guards and emitter as source expressions.
+ * Checks belong to this demand; the optional cache retains executable code only. */
+export function compileNativeTensorSum(root: TensorNode,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
+    return build(root, [], 'sum', 1, host, domains, false, code);
 }
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
 function pair(value: Expression): Expression[] | undefined {
@@ -249,6 +260,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
                 if (reached.has(node)) return;
                 reached.add(node);
                 if (node.kind === 'binary' || node.kind === 'outer') { visit(node.left); visit(node.right); }
+                if (node.kind === 'check') visit(node.source);
                 if (node.kind === 'reshape') { visit(node.source); node.dimensions.forEach(dimension => { if (dimension) visit(dimension); }); }
                 if (node.kind === 'unary') visit(node.operand);
                 if (node.kind === 'concat') node.sources.forEach(visit);
@@ -269,7 +281,7 @@ function compileTensorPlan(statements: Statement[], host: TensorKernelHost,
 }
 
 function build(root: TensorNode, names: string[], terminal: Terminal, count: number, host: TensorKernelHost,
-    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false) {
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache) {
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     // A successful integer-only kernel has already checked every output cell.
@@ -281,7 +293,9 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
     const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
         node.kind === 'select' && node.selector.kind === 'input' ? [node.selector] : []));
     let cachedKey: string | undefined;
-    type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number) => RankValue | RankValue[] | undefined;
+    const checkedNodes = [...domains.keys()].filter(node => node.kind === 'check');
+    const checks = checkedNodes.map(node => node.validate);
+    const checkSlots = new Map<TensorNode, number>(checkedNodes.map((node, index) => [node, index]));
     let cachedRun: KernelRun | undefined;
     // Concat segment lengths vary between calls; retain bounded code layouts,
     // never source arrays, so recurring shapes do not recompile every step.
@@ -339,7 +353,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
                     layout = selected;
                     generated = selected.source;
-                    const result = selected.execute(data, offsets, scalars, selected.size);
+                    const result = selected.execute(data, offsets, scalars, selected.size, checks);
                     return terminal === 'copy' && result !== undefined
                         ? copied(result as RankValue[], selected.shape) : result as RankValue | undefined;
                 }
@@ -392,6 +406,10 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     if (view.validate) (validations ??= []).push(view.validate);
                     result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
+            } else if (node.kind === 'check') {
+                const source = bind(node.source);
+                if (!source?.shape || source.filter || source.progression) return undefined;
+                result = { shape: source.shape, boolean: source.boolean };
             } else if (node.kind === 'slice') {
                 const a = bind(node.source), b = bind(node.count);
                 if (!a?.view || !a.shape?.length || typeof b?.scalar !== 'bigint' || b.scalar < 0n) return undefined;
@@ -511,6 +529,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (node.kind === 'input') return typeof info.scalar === 'bigint' || info.view?.kind === 'integer'
                 || !!info.view?.shape.some(n => n === 0);
             if (node.kind === 'reshape') return totalInteger(node.source);
+            if (node.kind === 'check') return totalInteger(node.source);
             if (node.kind === 'unary') return ['+', '-'].includes(node.op) && totalInteger(node.operand);
             if (node.kind === 'binary' || node.kind === 'outer') {
                 return (['+', '-', '*'].includes(node.op) || node.kind === 'binary' && !!node.native)
@@ -542,6 +561,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (filtered.has(node)) return filtered.get(node)!;
             let value = bound.get(node)?.filter ?? false;
             if (node.kind === 'unary') value ||= domain(node.operand);
+            if (node.kind === 'check') value ||= domain(node.source);
             if (node.kind === 'reshape') {
                 if (domain(node.source)) throw false;
             }
@@ -620,6 +640,10 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
                     });
                     lines.push(`const ${name} = ${parts.join('')};`);
                 }
+                else if (node.kind === 'check') {
+                    const source = child(node.source);
+                    lines.push(`const ${name} = checks[${checkSlots.get(node)}](${source}, ${at});`);
+                }
                 else if (node.kind === 'reshape') {
                     const source = emit(node.source, at, bound.get(node.source)!.shape!);
                     lines.push(`const ${name} = ${source};`);
@@ -692,12 +716,20 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
             const initial = terminal === 'copy' ? compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
-            generated = `"use strict"; return function(data, offsets, scalars, size) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
-            try { execute = new Function('checkpoint', 'decline', generated)(checkpoint, recordFallback) as KernelRun; }
-            catch { unavailable = true; return recordFallback('tensor:code-generation'); }
+            generated = `"use strict"; return function(data, offsets, scalars, size, checks) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            execute = code?.get(generated);
+            const compiled = !execute;
+            if (!execute) {
+                try { execute = new Function('checkpoint', 'decline', generated)(checkpoint, recordFallback) as KernelRun; }
+                catch { unavailable = true; return recordFallback('tensor:code-generation'); }
+                if (code) {
+                    if (code.size >= 32) code.delete(code.keys().next().value!);
+                    code.set(generated, execute);
+                }
+            }
             cachedKey = key;
             cachedRun = execute;
-            host.compiled?.(generated);
+            if (compiled) host.compiled?.(generated);
             if ([...bound.keys()].some(node => node.kind === 'concat')) {
                 if (variants.size >= 256) variants.delete(variants.keys().next().value!);
                 variants.set(key, { run: execute!, source: generated });
@@ -718,7 +750,7 @@ function build(root: TensorNode, names: string[], terminal: Terminal, count: num
             }
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
-        const result = execute!(data, offsets, scalars, size);
+        const result = execute!(data, offsets, scalars, size, checks);
         if (terminal === 'copy' && result !== undefined) {
             return copied(result as RankValue[], compact ? [(result as RankValue[]).length] : output.shape);
         }

@@ -22,6 +22,7 @@ interface ConstructionContext {
     snapshotFunction(fn: NativeFunction, seen: Map<NativeFunction, NativeFunction>): NativeFunction;
     execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
     compileReduction(expression: Expression): (() => RankValue | undefined) | undefined;
+    tensorPlanScope(expression: Expression): <T>(run: () => T) => T;
 }
 
 type ConstructionMode = 'defer' | 'propagate' | 'demand';
@@ -250,9 +251,12 @@ export class PlanConstruction {
             return UNKNOWN_VALUE;
         });
         const compiled = this.context.compileReduction(expression);
+        const withinPlan = this.context.tensorPlanScope(expression);
         return { kind: 'plan', expression, dependencies, result,
-            evaluate: () => completed(this.context.bindings.withFrame(snapshot,
-                () => identifySqliteSource(compiled?.() ?? runExecution(this.context.execute(expression, false)), source))),
+            evaluate: () => completed(this.context.bindings.withFrame(snapshot, () => withinPlan(() => {
+                const value = compiled?.() ?? runExecution(this.context.execute(expression, false));
+                return identifySqliteSource(value, source);
+            }))),
         };
     }
 }

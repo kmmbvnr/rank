@@ -30,9 +30,23 @@ identity are checked on every demand, including after a prior successful run.
 Adapting tensor fusion to explicit named plans remains in progress. This ADR's
 legacy grouped-assignment description is not a claim that every deferred stage
 already has a specialized kernel or that eager boundaries may be discarded.
-In particular, a captured plan's expression is not substituted into a consumer
-kernel: doing so would skip that plan's binding and cell contracts. Composition
-across those checked stages still needs a native capability that preserves them.
+Captured plan expressions are not substituted into consumer kernels. Normal
+demand first creates each native result and applies its binding contract. Native
+numeric array maps publish their operator and operands, independently of the
+source AST. Identity scalar contract views expose their checks without reading
+cells. This native graph lowers to the same tensor IR, including per-cell check
+nodes, for `+`, `-`, `*` stages followed by `sum`. Integer arithmetic remains exact;
+real operations retain their evaluation and accumulation order. Computed storage
+ends traversal of the graph; opaque readers and unsupported operations keep the
+reference path.
+
+While creating a plan's native array result, arithmetic does not allocate a dense
+intermediate merely because its operands are already stored. Ordinary binding
+still completes that result. A demand owns its native graph and checks; the
+expression site may retain a bounded cache of generated code. Every run receives
+fresh data and checks. Escaped native arrays retain this capability for direct consumers.
+Compilation options and inspection are checked when the consumer runs. Other
+native operators, views and reductions still need composition support.
 
 ## Context
 

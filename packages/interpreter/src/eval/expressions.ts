@@ -89,6 +89,7 @@ export class ExpressionEvaluator {
             snapshotFunction: (fn, seen) => context.functions.snapshot(fn, seen),
             execute: (expression, tail) => tail ? this.compile(expression, undefined, true)() : this.prepare(expression)(),
             compileReduction: expression => context.fastPaths.planReduction(expression),
+            tensorPlanScope: expression => context.fastPaths.tensorPlanScope(expression),
         });
     }
 
