@@ -23,3 +23,5 @@
 `0105_sets.txt` is the unmodified [official input for Special Subset Sums: Testing](https://projecteuler.net/resources/documents/0105_sets.txt): one hundred sets of seven to twelve positive integers, one set per line. See [Project Euler 105](https://projecteuler.net/problem=105).
 
 `0107_network.txt` is the unmodified [official input for Minimal Network](https://projecteuler.net/resources/documents/0107_network.txt): a 40 by 40 symmetric weight matrix, one comma-separated row per line, with `-` for no link. See [Project Euler 107](https://projecteuler.net/problem=107).
+
+`0424_kakuro200.txt` is the unmodified [official input for Kakuro](https://projecteuler.net/resources/documents/0424_kakuro200.txt): 200 puzzles, one per line, with clue sums written as letters. See [Project Euler 424](https://projecteuler.net/problem=424).

@@ -1,0 +1,8 @@
+use testing
+
+test "first puzzle"
+  use "424_kakuro"
+  Count = 1
+  run
+  Answer equal 8426039571
+end

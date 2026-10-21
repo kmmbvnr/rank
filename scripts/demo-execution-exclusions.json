@@ -159,5 +159,6 @@
   "euler/418_factorisationtriples.ra": "To fix later: the default input takes about 40 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/437_fibonacciprimitive.ra": "To fix later: the default input takes about 90 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/417_reciprocalcycles.ra": "To fix later: the default input takes about 80 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/428_necklacetriplets.ra": "To fix later: the default input takes about 80 s compiled; the small _test.ra fixture stays in the audits."
+  "euler/428_necklacetriplets.ra": "To fix later: the default input takes about 80 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/424_kakuro.ra": "To fix later: the default input takes about 11 min compiled; the small _test.ra fixture stays in the audits."
 }
