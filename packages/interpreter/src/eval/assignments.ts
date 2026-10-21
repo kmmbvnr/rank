@@ -89,7 +89,8 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
         if (unpacked.length !== statement.names.length) {
             throw new RankError(`unpack expects ${statement.names.length} values, got ${unpacked.length}`);
         }
-        for (let index = 0; index < writes.length; index += 1) writes[index]?.(unpacked[index]);
+        const values = unpacked.map((value, index) => writes[index] ? materializeValue(value) : value);
+        for (let index = 0; index < writes.length; index += 1) writes[index]?.(values[index]);
         return result;
     } };
 }

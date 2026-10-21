@@ -11,6 +11,8 @@ import { resume, type Evaluation } from '../execution.js';
 import type { CompiledLoop } from '../fast-paths.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { materializeValue } from '../materialize.js';
+import { isRankPlan } from '../plan.js';
 import { compileGeneratorLoop } from '../generator-loop.js';
 import { tensorFrameAxes } from '../rank-application.js';
 import { sequenceValues } from '../sequence.js';
@@ -52,8 +54,9 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         ? loop.compileDirect(statement.condition) : undefined;
     // The names a binding writes never change, so each gets its write
     // site once here rather than a name lookup on every iteration.
-    const bindValue = binding && binding.names[0] !== '#'
+    const writeValue = binding && binding.names[0] !== '#'
         ? loop.compileAssign(binding.names[0]) : undefined;
+    const bindValue = writeValue ? (value: RankValue) => writeValue(materializeValue(value)) : undefined;
     const bindIndex = binding
         ? binding.names.slice(1).map(name =>
             name === '#' ? undefined : loop.compileAssign(name))
@@ -233,7 +236,8 @@ export function declareIterationTypes(
             ? new Set(value.items.length ? [provenType] : []) : typesOf(value.items);
         bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
     } else if (isRankQueue(value)) {
-        const types = value instanceof RankDeque ? value.iterationTypes(typeName) : typesOf(value.items);
+        const types = value instanceof RankDeque
+            ? new Set([...value.iterationTypes(iterationType)].filter(type => type !== 'unknown')) : typesOf(value.items);
         bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
     } else if (isRankSet(value)) {
         bindings.declareTypes(binding.names, [
@@ -365,5 +369,12 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
 }
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
-    return new Set([...values].map(typeName));
+    return new Set([...values].map(iterationType).filter(type => type !== 'unknown'));
+}
+
+function iterationType(value: RankValue): string {
+    if (isRankSequence(value)) return 'array';
+    if (!isRankPlan(value)) return typeName(value);
+    const types = value.result?.types;
+    return types?.length === 1 ? types[0] === 'sequence' ? 'array' : types[0] : 'unknown';
 }
