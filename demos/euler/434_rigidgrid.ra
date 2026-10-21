@@ -1,0 +1,66 @@
+rem Rigid Graphs
+rem https://projecteuler.net/problem=434
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100
+
+rem A braced grid is rigid exactly when
+rem its bipartite graph of rows and
+rem columns is connected. R(m, n)
+rem counts connected spanning
+rem subgraphs of K(m, n): all graphs
+rem minus those where the component
+rem of row 1 has i rows and j columns,
+rem or holds every row but only j
+rem columns.
+Mod = 1000000033
+Bn = array shape (N + 1) (N + 1) fill 0
+for A in 0 to N
+  Bn A 0 = 1
+  for B in 1 to A
+    Up = Bn (A - 1) (B - 1)
+    Bn A B = (Up + Bn (A - 1) B) mod Mod
+  end
+end
+Tw = array shape (N * N + 1) fill 1
+for E in 1 to N * N
+  Tw E = Tw (E - 1) * 2 mod Mod
+end
+Rg = array shape (N + 1) (N + 1) fill 0
+Rg 1 0 = 1
+Tot = 0
+for M in 1 to N
+  for Q in 1 to N
+    V = Tw (M * Q)
+    Js = (0 to Q - 1) copy
+    Cn = Bn Q Js
+    Rm = Rg M Js
+    V -= (Cn * Rm mod Mod) sum
+    if M greater 1
+      Is = (1 to M - 1) copy
+      Js = (0 to Q) copy
+      Cm = Bn (M - 1) (Is - 1)
+      Cq = Bn Q Js
+      Im = M - 1
+      Jq = Q + 1
+      Cc = Cm reshape Im 1
+      Cr = Cq reshape 1 Jq
+      Cw = Cc * Cr mod Mod
+      Rs = Rg (1 to Im) (0 to Q)
+      Er = (M - Is) reshape Im 1
+      Ec = (Q - Js) reshape 1 Jq
+      Ex = Er * Ec reshape (Im * Jq)
+      Pw = (Tw Ex) reshape Im Jq
+      Tm = Cw * Rs mod Mod * Pw mod Mod
+      V -= Tm sum
+    end
+    Rg M Q = V mod Mod
+    Tot += V mod Mod
+  end
+end
+Answer = Tot mod Mod
+Answer print
