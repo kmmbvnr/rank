@@ -1,4 +1,6 @@
-/** Optional synchronous instrumentation. No tracing events are allocated. */
+import type { CompilerRejection } from './compiler-rejection.js';
+
+/** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
     validationRequests = 0;
     dependencyValidations = 0;
@@ -53,6 +55,7 @@ export class RuntimeDiagnostics {
     typedUnpacks = 0;
     typedUnpackedCells = 0;
     readonly fallbacks: Record<string, number> = Object.create(null);
+    readonly compilerRejections: CompilerRejection[] = [];
 
     /** Scopes nest safely, including exceptions. Lazy readers retain their owner. */
     run<T>(operation: () => T): T {

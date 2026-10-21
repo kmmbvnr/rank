@@ -21,6 +21,33 @@ function execute(source: string, diagnostics?: RuntimeDiagnostics) {
 }
 
 describe('attributable compiler rejections', () => {
+    it('retains the failing name and source location when a proof was cached without diagnostics', () => {
+        const statement = proof('X + K');
+        scalarFunctionResult(statement);
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => {
+            scalarFunctionResult(statement);
+            scalarFunctionResult(statement);
+        });
+        expect(diagnostics.fallbacks).toEqual({ 'scalar-function:unbound-name:NameExpression': 2 });
+        expect(diagnostics.compilerRejections).toEqual([{
+            reason: 'scalar-function:unbound-name:NameExpression', node: 'NameExpression',
+            name: 'K', function: 'helper', expression: 'K', line: 2, column: 12,
+        }]);
+    });
+
+    it('bounds syntax snapshots without limiting the fallback counters', () => {
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => {
+            for (let i = 0; i < 80; i++) scalarFunctionResult(proof(`X + Missing${i}`));
+        });
+        expect(diagnostics.compilerRejections).toHaveLength(64);
+        expect(diagnostics.fallbacks['scalar-function:unbound-name:NameExpression']).toBe(80);
+        const long = new RuntimeDiagnostics();
+        long.run(() => scalarFunctionResult(proof(`array ${'1 '.repeat(200)}`)));
+        expect(long.compilerRejections[0].expression).toHaveLength(160);
+    });
+
     it.each([
         ['X reverse', 'scalar-function:unsupported-op:reverse'],
         ['X ** 2', 'scalar-function:unsupported-op:**'],

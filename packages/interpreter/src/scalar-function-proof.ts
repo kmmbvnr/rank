@@ -6,7 +6,7 @@ import {
     isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement,
     type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
-import { compilerRejection } from './compiler-rejection.js';
+import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from './diagnostics.js';
 
 export interface ScalarFunctionInput {
@@ -28,9 +28,9 @@ export interface ScalarFunctionProof {
     readonly arrayWrites: ReadonlySet<Statement>;
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>;
 }
-const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
-const loopProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
-const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | string>>();
+const simpleProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | CompilerRejection>>();
+const loopProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | CompilerRejection>>();
+const blockProofs = new WeakMap<FunctionStatement, Map<string, ScalarFunctionProof | CompilerRejection>>();
 
 // The caller must additionally check that local assignment names neither exist
 // in the closure context nor can be created by the surrounding register region.
@@ -48,7 +48,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const types = parameterTypes ?? statement.parameters.map(() => 'integer' as const);
     const key = types.map(compiledCalleeTypeKey).join(',');
     const cached = proofs.get(key);
-    if (typeof cached === 'string') return recordFallback(cached);
+    if (cached && 'reason' in cached) return recordCompilerRejection(cached);
     if (cached) return cached;
     // Duplicate names are bound in order by the ordinary frame. Its array
     // contracts can reject an earlier argument even if the body reads only the
@@ -59,9 +59,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (previous && !sameCompiledCalleeType(previous, types[index])) return recordFallback('scalar-function:duplicate-parameter-domain');
         firstTypes.set(name, types[index]);
     }
-    let rejection: string | undefined;
+    let rejection: CompilerRejection | undefined;
     function reject(node: Expression | Statement, detail?: string): undefined {
-        rejection ??= compilerRejection('scalar-function', node, detail);
+        rejection ??= describeCompilerRejection('scalar-function', node, detail);
         return undefined;
     }
     const expressions = new Map<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>();
@@ -319,8 +319,8 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     }
     const outcome = flow(statement.statements, new Map(settled));
     const result = outcome === null && resultType ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
-    const reason = rejection ?? 'scalar-function:missing-return';
+    const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
-    if (result || !path.length) proofs.set(key, result ?? reason);
-    return result ?? recordFallback(reason);
+    if (result || !path.length) proofs.set(key, result ?? failure);
+    return result ?? recordCompilerRejection(failure);
 }
