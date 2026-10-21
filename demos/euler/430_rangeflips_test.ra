@@ -1,0 +1,35 @@
+use testing
+
+test "statement values"
+  use "430_rangeflips"
+  N = 3
+  M = 1
+  Digits = 8
+  run
+  Answer equal 1.11111111
+  M = 2
+  run
+  Answer equal 1.66666667
+  N = 10
+  M = 4
+  run
+  Answer equal 5.15702608
+end
+
+test "one hundred disks"
+  use "430_rangeflips"
+  N = 100
+  M = 10
+  Digits = 13
+  run
+  Answer equal 51.8928010382861
+end
+
+test "edges of a long row"
+  use "430_rangeflips"
+  N = 1000000
+  M = 40
+  Edge = 100000
+  run
+  Answer equal 506172.33
+end

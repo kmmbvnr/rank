@@ -1,0 +1,34 @@
+rem Range Flips
+rem https://projecteuler.net/problem=430
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000000
+option M integer = 4000
+option Digits integer = 2
+option Edge integer = 30000000
+
+rem Disk i stays white with chance
+rem (1 + r^M) / 2 with r = ((N + 1 -
+rem 2 i)^2 - 2 N + 1) / N^2. Only
+rem disks near the ends have r^M that
+rem matters, so a huge N sums two
+rem symmetric edges of Edge disks.
+Cnt = N
+Fac = 1
+if N greater 2 * Edge
+  Cnt = Edge
+  Fac = 2
+end
+Is = (1 to Cnt) copy
+Xs = (N + 1) * 1.0 - 2.0 * Is
+Nf = N * 1.0
+Qs = Xs * Xs - 2.0 * Nf + 1.0
+Rs = Qs / Nf / Nf
+Ps = (Rs ** M) copy
+E = N / 2.0 + Fac * (Ps sum) / 2.0
+Answer = E Digits round
+Answer print
