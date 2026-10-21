@@ -133,15 +133,16 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         seen.add(item);
         if (isRankFile(item)) {
             files.add(item);
-        } else if (isRankArray(item) && item.containsFiles === false) {
-            continue;
         } else if (item instanceof RankDeque || item instanceof RankHeap) {
             pending.push(item.values());
         } else if (isRankSegment(item)) {
             pending.push(item.values());
         } else if (isRankArray(item)) {
             const dependencies = arrayResourceValues(item);
-            pending.push((dependencies ?? storedArrayValues(item))[Symbol.iterator]());
+            // A recipe can return only numbers while its reader still needs a
+            // captured file. Output-cell facts cannot discharge dependencies.
+            if (dependencies) pending.push(dependencies[Symbol.iterator]());
+            else if (item.containsFiles !== false) pending.push(storedArrayValues(item)[Symbol.iterator]());
         } else if (isRankTuple(item) || isRankQueue(item)) {
             pending.push(item.items.values());
         } else if (isRankIndex(item) || isRankSet(item)

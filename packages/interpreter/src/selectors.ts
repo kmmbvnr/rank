@@ -1,10 +1,11 @@
 import { framedArray } from './framed-array.js';
+import { permutedArray } from './array-permutation.js';
 import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { arrayCells, registerArrayDependencies, denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -217,8 +218,10 @@ function producerSelection(source: RankArray, selection: TensorSelection): RankV
     const axes = selection.axes;
     const cellShape = cells?.cellShape();
     if (!cells || !axes || !cellShape || cells.frameShape.length + cellShape.length !== axes.length) return undefined;
-    const frameAxes = axes.slice(0, cells.frameShape.length);
-    const cellAxes = axes.slice(cells.frameShape.length);
+    const framePositions = arrayFrameAxes(cells);
+    const cellPositions = axes.map((_, axis) => axis).filter(axis => !framePositions.includes(axis));
+    const frameAxes = framePositions.map(axis => axes[axis]);
+    const cellAxes = cellPositions.map(axis => axes[axis]);
     const frameShape = frameAxes.filter(axis => axis.preserve).map(axis => axis.size);
     const selectedCellShape = cellAxes.filter(axis => axis.preserve).map(axis => axis.size);
     const wholeCell = cellAxes.every((axis, index) => axis.preserve && axis.size === cellShape[index]
@@ -233,11 +236,15 @@ function producerSelection(source: RankArray, selection: TensorSelection): RankV
         return sliceArray(cell, selectionFromAxes(cell.shape, cellAxes));
     };
     if (frameShape.length === 0) return read(0);
-    if (frameShape.some(n => n === 0)) return ownedArray([], [...frameShape, ...selectedCellShape]);
-    return registerArrayDependencies(framedArray(frameShape, read, {
+    if (frameShape.some(n => n === 0)) return ownedArray([], selection.shape);
+    const selected = registerArrayDependencies(framedArray(frameShape, read, {
         shape: selectedCellShape, ownFiles: () => {},
         mismatch: () => new RankError('selected ranked cells must have one shape', 'DimensionMismatch'),
     }), [source]);
+    const stackedAxes = [...framePositions, ...cellPositions].filter(axis => axes[axis].preserve);
+    const permutation = axes.map((_, axis) => axis).filter(axis => axes[axis].preserve)
+        .map(axis => stackedAxes.indexOf(axis));
+    return permutation.some((axis, position) => axis !== position) ? permutedArray(selected, permutation) : selected;
 }
 
 export function atArray(source: RankArray, indices: readonly bigint[]): RankValue {

@@ -191,8 +191,7 @@ function mapUnaryNumeric(
             if (!(error instanceof RankError)) throw error;
         }
     }
-    return derivedArray(value.shape, [value], index =>
-        apply(value.itemAt?.(index) ?? value.items[index]), true);
+    return mapScalarArrays([value], ([item]) => apply(item));
 }
 
 function mapBinaryValue(

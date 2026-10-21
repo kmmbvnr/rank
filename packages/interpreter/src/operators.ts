@@ -1,4 +1,6 @@
 import { membershipLookup } from './membership-lookup.js';
+import { mapArrayCells } from './array-cell-mapping.js';
+import { mapScalarArrays } from './scalar-array-map.js';
 import { registerRangePlan, registerModularRange } from './range-plan.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
@@ -158,8 +160,9 @@ export class Operators {
         }
         if (isRankArray(value)) {
             // Stored cells are read in place: `items` would unpack a typed buffer for good.
-            const items = denseScalarItems(value) ?? value.items;
-            return ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape);
+            const items = denseScalarItems(value);
+            return items ? ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape)
+                : mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item));
         }
         if (value === MISSING && (operator === 'not' || operator === '+' || operator === '-')) return MISSING;
         if (operator === 'not' && typeof value === 'boolean') {
@@ -707,7 +710,8 @@ function mapBinary(
     const source = leftArray ?? rightArray!;
     const evaluate = (index: number) => mapResult(evaluateArrayItem(source, index), item =>
         leftArray ? scalarOperation(item, right) : scalarOperation(left, item));
-    return derivedArray(source.shape, [source], index => runExecution(evaluate(index)), true, evaluate);
+    return mapArrayCells(derivedArray(source.shape, [left, right, source], index => runExecution(evaluate(index)), true, evaluate),
+        [leftArray ?? left, rightArray ?? right], cells => mapScalarArrays(cells, ([a, b]) => scalarOperation(a, b)));
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {

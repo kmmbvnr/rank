@@ -141,18 +141,16 @@ describe('Rank IO, modules and programs', () => {
     });
 
     it('executes generator effects when len must count its elements', () => {
-        expect(run([
-            'fun A stream',
-            '  A .count = 9',
-            '  yield 1',
-            'end',
-            'A = record',
-            '  .count = 0',
-            'end',
-            "S' = A stream",
-            'N = S len',
-            'A .count',
-        ].join('\n'))).toBe('9');
+        const output: string[] = [];
+        const runtime = new Interpreter(line => output.push(line));
+        try {
+            runtime.execute("use io\nfun stream\n \"read\" print\n yield 1\nend\nS' = stream");
+            expect(output).toEqual([]);
+            expect(runtime.execute('S len')).toBe(1n);
+            expect(output).toEqual(['read']);
+            expect(() => runtime.execute('S len')).toThrow('already been consumed');
+            expect(output).toEqual(['read']);
+        } finally { runtime.dispose(); }
     });
 
     it('materializes a finite sequence with postfix array', () => {
@@ -177,7 +175,7 @@ describe('Rank IO, modules and programs', () => {
         expect(() => run('use sequences\nprimes array'))
             .toThrowError('cannot materialize an infinite sequence');
         expect(() => run('42 array'))
-            .toThrowError('postfix array expects a sequence');
+            .toThrowError('postfix array expects an array, sequence');
     });
 
     it('continues a pipeline after postfix array materialization', () => {

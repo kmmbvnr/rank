@@ -60,9 +60,10 @@ export function copyMaterializedArrayItems(value: RankArray, size: number): Rank
     return items.slice();
 }
 
-/** Prepared readers remove view dispatch, not validation or effects. Preparing
- * one must not read cells; using it may still execute callbacks or throw. */
+/** Producer-cell geometry survives views even when no scalar address exists. */
 export interface ArrayCells {
+    /** Positions of frame axes in the tensor; omitted for leading frames. */
+    readonly frameAxes?: readonly number[];
     readonly frameShape: readonly number[];
     /** Peek only: geometry becomes known when the array's shape is observed. */
     cellShape(): readonly number[] | undefined;
@@ -80,15 +81,20 @@ interface ArrayReadPlan {
 export function arrayCells(value: RankArray): ArrayCells | undefined {
     return arrayReadPlans.get(value)?.cells;
 }
+export function arrayFrameAxes(cells: ArrayCells): readonly number[] {
+    return cells.frameAxes ?? cells.frameShape.map((_, axis) => axis);
+}
 const arrayReadPlans = new WeakMap<RankArray, ArrayReadPlan>();
 
 export function registerArrayReadPlan<T extends RankArray>(
     value: T, plan: ArrayReadPlan,
 ): T {
-    arrayReadPlans.set(value, plan);
+    // Adding geometry must retain an existing checked traversal or collector.
+    arrayReadPlans.set(value, { ...arrayReadPlans.get(value), ...plan });
     return value;
 }
 
+/** Preparing a reader must not read cells; using it can validate or perform effects. */
 export function prepareArrayRead(value: RankArray): ((index: number) => RankValue) | undefined {
     return arrayReadPlans.get(value)?.prepare?.();
 }
@@ -105,6 +111,16 @@ export function* arrayValues(value: RankArray, streaming = false): IterableItera
     const read = (streaming ? value.streamAt : undefined) ?? prepareArrayRead(value)
         ?? ((index: number) => readArrayItem(value, index));
     const size = value.shape.reduce((total, n) => total * n, 1);
+    const cells = arrayCells(value);
+    if (size === 0 && cells) {
+        const frames = cells.frameShape.reduce((total, n) => total * n, 1);
+        for (let index = 0; index < frames; index++) {
+            checkpoint('reading empty array cells');
+            const cell = cells.read(index);
+            if (isRankArray(cell)) yield* arrayValues(cell);
+        }
+        return;
+    }
     for (let index = 0; index < size; index++) {
         checkpoint('reading array');
         let item: RankValue;

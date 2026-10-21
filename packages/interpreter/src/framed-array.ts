@@ -1,5 +1,5 @@
 import type { KnownShape } from '@arrrank/language';
-import { collectArrayValues, readArrayItem, registerArrayReadPlan } from './array-storage.js';
+import { arrayValues, collectArrayValues, readArrayItem, registerArrayReadPlan } from './array-storage.js';
 import { demandValue } from './plan.js';
 import { MissingValueError } from './errors.js';
 import { checkpoint } from './interrupt.js';
@@ -57,7 +57,8 @@ export function framedArray(
         if (sizeOf(cellShape!) === 0) {
             for (let frame = 0; frame < sizeOf(frameShape); frame++) {
                 checkpoint('reading ranked result');
-                if (frame !== 0 || first === undefined) readCell(frame);
+                const cell = frame === 0 && first !== undefined ? first : readCell(frame);
+                if (isRankArray(cell)) yield* arrayValues(cell);
             }
             return;
         }

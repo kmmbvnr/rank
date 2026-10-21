@@ -10,6 +10,8 @@ import { ALL_AXIS, atArray, sliceArray, tensorSelection } from '../src/selectors
 import { sliceSource } from '../src/slice-source.js';
 import { ResourceOwnership } from '../src/resource-ownership.js';
 import { MemoryIo } from './support.js';
+import { mapScalarArrays } from '../src/scalar-array-map.js';
+import { transposeValue } from '../src/modules/sequences.js';
 
 const array = (value: RankValue): RankArray => {
     if (!isRankArray(value)) throw Error('expected array');
@@ -72,14 +74,14 @@ describe('producer cell selection', () => {
         const app = new RankApplication((f, args) => completed(f.call(args)), () => {}, new Map(), () => undefined);
         const rows = array(runExecution(app.applyUnaryAtRank(ownedArray([1n, 2n]), fn, 0)));
         const contract = new ArrayBindingContract('Rows');
-        const checked = contract.check(rows);
+        const checked = contract.check(array(transposeValue(rows)));
         expect(calls).toEqual([]);
-        expect(array(materializeValue(atArray(checked, [0n]))).items).toEqual([1n, 2n]);
-        expect(() => materializeValue(atArray(checked, [1n]))).toThrow(/array elements/);
+        expect(array(materializeValue(sliceArray(checked, tensorSelection(checked, [ALL_AXIS, 0n])))).items).toEqual([1n, 2n]);
+        expect(() => materializeValue(sliceArray(checked, tensorSelection(checked, [ALL_AXIS, 1n])))).toThrow(/array elements/);
         expect(calls).toEqual([1n, 2n]);
     });
 
-    it('retains captured files through a deferred selected view without evaluating cells', () => {
+    it.each([false, true])('retains captured files through a deferred selected view without evaluating cells (mapped transpose=%s)', mapped => {
         const io = new MemoryIo({ '/input': 'Rank' });
         const file: RankFile = { kind: 'file', handle: io.open('/input', 'read'), closed: false };
         const ownership = new ResourceOwnership();
@@ -92,11 +94,15 @@ describe('producer cell selection', () => {
                 const app = new RankApplication((f, args) => completed(f.call(args)),
                     value => ownership.ownFiles(value), new Map(), () => undefined);
                 const rows = array(runExecution(app.applyUnaryAtRank(ownedArray([1n, 2n]), fn, 0)));
+                if (mapped) {
+                    const view = array(transposeValue(mapScalarArrays([rows], () => 1n)));
+                    return sliceArray(view, tensorSelection(view, [ALL_AXIS, ownedArray([1n])]));
+                }
                 return sliceArray(rows, tensorSelection(rows, [ownedArray([1n]), ALL_AXIS]));
             });
             expect(calls).toBe(0);
             expect(file.closed).toBe(false);
-            expect(array(materializeValue(selected!)).items).toEqual([file]);
+            expect(array(materializeValue(selected!)).items).toEqual(mapped ? [1n] : [file]);
             expect(calls).toBe(1);
         } finally { ownership.dispose(); }
         expect(file.closed).toBe(true);

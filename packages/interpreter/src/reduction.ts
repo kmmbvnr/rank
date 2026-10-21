@@ -296,7 +296,7 @@ export class ReductionEvaluator {
             const folded = reduceWindowCell(value, start, size, operation);
             if (folded !== undefined) return folded;
         }
-        if (start === 0 && size === arraySize(value.shape) && arrayValueTraversal(value)) {
+        if (start === 0 && size === arraySize(value.shape) && (arrayValueTraversal(value) || arrayCells(value))) {
             let result = seed;
             for (const item of arrayValues(value)) result = result === undefined ? item : operation(result, item);
             return result === undefined ? reductionIdentity(operator) : result;

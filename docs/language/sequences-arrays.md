@@ -1692,6 +1692,11 @@ pairing `A B outer *` has shape:
 
 `outer` combines axes. `matmul` contracts axes.
 
+Broadcast arithmetic and axis permutations preserve the logical producer cells
+of a native result. Completing an empty view still observes those selected
+producers; selecting one frame does not evaluate unrelated frames. A transpose
+can move frame axes among empty cell axes without erasing these observations.
+
 The left frame axes come first and the right frame varies fastest. The operation
 must accept two arguments and currently must return a scalar for every pair.
 Both operands must be finite. Ordinary binding completes the result; use

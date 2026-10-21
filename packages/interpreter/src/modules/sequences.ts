@@ -1,3 +1,4 @@
+import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
 import { materializeValue } from '../materialize.js';
 import { numericSort } from '../numeric-collections.js';
@@ -14,7 +15,7 @@ import { orderedSource } from '../ordered-source.js';
 import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
-import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
+import { semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
@@ -435,33 +436,7 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
         throw new RankError('transpose axes must be unique');
     }
 
-    const shape = permutation.map(axis => value.shape[axis]);
-    const itemAt = (index: number): RankValue => {
-        const output = coordinatesAt(shape, index);
-        const sourceRank = value.shape.length;
-        let source: number[];
-        if (sourceRank === 2 && output.length === 2) {
-            // These coordinates are fresh and unexposed. Reuse their array,
-            // retaining permutation read/write order for host-backed views.
-            const first = output[0], second = output[1];
-            source = output;
-            source[0] = 0;
-            source[1] = 0;
-            source[permutation[0]] = first;
-            source[permutation[1]] = second;
-        } else {
-            source = Array(sourceRank).fill(0) as number[];
-            output.forEach((coordinate, axis) => {
-                source[permutation[axis]] = coordinate;
-            });
-        }
-        const offset = source.reduce(
-            (current, coordinate, axis) => current * value.shape[axis] + coordinate,
-            0,
-        );
-        return value.itemAt?.(offset) ?? value.items[offset];
-    };
-    return inheritSemanticArrayType(value, derivedArray(shape, [value], itemAt, isKnownFileFree(value)));
+    return permutedArray(value, permutation);
 }
 
 /** Materialize the finite rank-1 sources accepted by keyed sorting. */

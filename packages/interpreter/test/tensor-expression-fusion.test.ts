@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { Interpreter, formatValue, type RankArray } from '../src/index.js';
 import { typedArray, typedElementKind } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
+import { demandValue } from '../src/plan.js';
 
 function evaluate(source: string, tensorFusion: boolean) {
     const runtime = new Interpreter(undefined, { tensorFusion });
@@ -113,10 +114,14 @@ concat X Y`;
         runtime.variables.set('A', host);
         const diagnostics = new RuntimeDiagnostics();
         try {
-            const result = diagnostics.run(() => runtime.execute('R = (A + 1) * 2\nR'));
+            const result = diagnostics.run(() => {
+                runtime.execute("R' = (A + 1) * 2");
+                return demandValue(runtime.variables.get('R')!);
+            });
             expect(diagnostics.compiledTensors).toBe(0);
             expect(reads).toBe(0);
             expect(formatValue(result!)).toBe('4 4 4');
+            expect(reads).toBe(3);
         } finally { runtime.dispose(); }
     });
 

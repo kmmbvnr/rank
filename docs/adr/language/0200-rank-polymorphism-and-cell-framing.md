@@ -95,6 +95,11 @@ observe their producer separately; a selection with an empty frame invokes none.
 Ranked and axis reductions preserve the same demand boundary. An empty result
 cell's reduction identity does not replace the call that produces that cell.
 
+Permutation and broadcast views keep producer frame positions independently of
+scalar offsets. Frame axes may move among cell axes after a transpose. Selecting
+a frame maps back to its original producer; completing the view observes the
+selected producers in the view's frame order, including zero-width cells.
+
 An empty frame also differs from a nonempty frame of empty input cells: shape `2 0` at rank
 1 contains two vectors, and `sum` produces two zeros. Declared cell constraints
 still apply: an empty batch does not make nonsquare `inverse` cells valid.

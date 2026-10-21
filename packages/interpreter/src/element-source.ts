@@ -56,6 +56,7 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
         streamingValues: () => shouldStream(value) ? streamCells(value) : undefined,
         *presentValues() {
             const size = value.shape.reduce((product, length) => product * length, 1);
+            if (size === 0) { yield* arrayValues(value); return; }
             for (let index = 0; index < size; index++) {
                 checkpoint('computing statistics');
                 try {
