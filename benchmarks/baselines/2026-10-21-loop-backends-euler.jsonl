@@ -1,0 +1,9 @@
+{"baselineCommit":"5cc5b310","candidateCommit":"3e8f2d1c","runtimes":{"baseline":"/private/tmp/rank-loop-backends-baseline/packages/interpreter/out/index.js","candidate":"/private/tmp/rank-loop-backends/packages/interpreter/out/index.js"},"scope":"Fresh alternating processes against an isolated detached baseline; no diagnostic instrumentation"}
+{"name":"baseline","trial":0,"mode":"stored","digits":9999,"executeMs":8822.467125000001,"cpuMs":10386.684,"maxRssKiB":468400,"answer":"96972774","sourceSha256":"ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f"}
+{"name":"candidate","trial":0,"mode":"stored","digits":9999,"executeMs":8502.6705,"cpuMs":10127.768,"maxRssKiB":484864,"answer":"96972774","sourceSha256":"ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f"}
+{"name":"candidate","trial":1,"mode":"stored","digits":9999,"executeMs":8807.144291999999,"cpuMs":10498.374,"maxRssKiB":486944,"answer":"96972774","sourceSha256":"ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f"}
+{"name":"baseline","trial":1,"mode":"stored","digits":9999,"executeMs":9699.865208000001,"cpuMs":11410.985,"maxRssKiB":468416,"answer":"96972774","sourceSha256":"ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f"}
+{"name":"baseline","trial":2,"mode":"stored","digits":9999,"executeMs":9201.198083,"cpuMs":11071.99,"maxRssKiB":470464,"answer":"96972774","sourceSha256":"ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f"}
+{"name":"candidate","trial":2,"mode":"stored","digits":9999,"executeMs":8483.8275,"cpuMs":10032.097,"maxRssKiB":466128,"answer":"96972774","sourceSha256":"ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f"}
+{"name":"baseline","samples":3,"medianExecuteMs":9201.198083,"medianCpuMs":11071.99,"medianMaxRssKiB":468416}
+{"name":"candidate","samples":3,"medianExecuteMs":8502.6705,"medianCpuMs":10127.768,"medianMaxRssKiB":484864}

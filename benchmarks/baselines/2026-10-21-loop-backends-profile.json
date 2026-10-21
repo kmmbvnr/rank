@@ -1,0 +1,143 @@
+{
+  "runtimeCommit": "3e8f2d1c",
+  "scope": "Separate CPU profile of the unchanged stored Euler 324 source; not a timing comparison",
+  "profile": [
+    {
+      "functionName": "(anonymous) :3",
+      "selfPercent": 34.71391333637702
+    },
+    {
+      "functionName": "(garbage collector) :0",
+      "selfPercent": 6.218258985605006
+    },
+    {
+      "functionName": "run integer-loop-runtime.js:122",
+      "selfPercent": 5.052964655376257
+    },
+    {
+      "functionName": "readPosition array-read.js:153",
+      "selfPercent": 4.553615082687343
+    },
+    {
+      "functionName": "run number-loop-runtime.js:71",
+      "selfPercent": 3.0822539671029636
+    },
+    {
+      "functionName": "createOwned owned-array.js:560",
+      "selfPercent": 2.062996021765718
+    },
+    {
+      "functionName": "(anonymous) return-contract.js:45",
+      "selfPercent": 1.8187835369339405
+    },
+    {
+      "functionName": "floorDivide numeric-division.js:28",
+      "selfPercent": 1.511413817272534
+    },
+    {
+      "functionName": "updateScalarKinds owned-array.js:70",
+      "selfPercent": 1.4631927197443182
+    },
+    {
+      "functionName": "borrowArrayStorage array-read.js:121",
+      "selfPercent": 1.3060663593963375
+    },
+    {
+      "functionName": "(anonymous) owned-array.js:620",
+      "selfPercent": 1.2287021293479512
+    },
+    {
+      "functionName": "checkBinding frame.js:242",
+      "selfPercent": 1.2115810714414665
+    },
+    {
+      "functionName": "run :4",
+      "selfPercent": 1.1245976783163945
+    },
+    {
+      "functionName": "semanticArrayType semantic-array-type.js:17",
+      "selfPercent": 1.081916557230625
+    },
+    {
+      "functionName": "advance execution.js:92",
+      "selfPercent": 0.9810619250348228
+    },
+    {
+      "functionName": "get items array-read.js:131",
+      "selfPercent": 0.935231210829128
+    }
+  ],
+  "diagnostics": {
+    "mode": "stored",
+    "digits": 9999,
+    "executeMs": 38540.594333,
+    "cpuMs": 22827.577,
+    "maxRssKiB": 446272,
+    "answer": "96972774",
+    "sourceSha256": "ce7b91b15f3a2961dc8fcc5791d2af4cc1a87f523753bb842d9c117b7ceb061f",
+    "diagnostics": {
+      "validationRequests": 20,
+      "dependencyValidations": 20,
+      "cacheHits": 0,
+      "cacheMisses": 0,
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequenceReplayHits": 0,
+      "sequencePredicateCalls": 0,
+      "sequenceCachedValues": 0,
+      "sequenceCacheBytes": 0,
+      "sequenceCachePeakBytes": 0,
+      "sequenceCacheEvictions": 0,
+      "cellsComputed": 0,
+      "invalidations": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "compiledLoops": 89804,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "numericSorts": 0,
+      "numericDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 89804,
+      "numberLoopOverflows": 89793,
+      "compiledTensors": 44902,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskPositionReuses": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-function:unbound-name:NameExpression": 4,
+        "scalar-expression:unsupported-op:**": 4,
+        "scalar-expression:unsupported-op:*": 1,
+        "scalar-expression:too-small": 4,
+        "tensor:unsupported-type:array": 27,
+        "tensor:group:AssignmentStatement": 3,
+        "tensor:group:ExpressionStatement": 1,
+        "loop:unsupported-node:AssignmentStatement": 1,
+        "tensor:no-terminal": 1,
+        "scalar-expression:unsupported-op:sum": 3,
+        "scalar-expression:unsupported-op:mod": 3,
+        "tensor:group:ReturnStatement": 1
+      }
+    }
+  }
+}
