@@ -76,7 +76,7 @@ Notes from this range, for the next one:
 
 ## Problems 401-450
 
-Written so far: 401-416, 421-423, 425-427, 429-432, 434-436, 439-449 (with
+Written so far: 401-416, 418-423, 425-427, 429-432, 434-436, 439-449 (with
 the gaps listed below). One program and one test file each. The default
 answers were checked against the published ones, and the tests keep to small
 inputs, so the default runs that take more than about 25 s are left out of the
@@ -89,7 +89,7 @@ pointer-jumping depth), 427 (6 min), 446 (6 min), 413 and 415 (5 min), 411
 a recursion over the values N // k for N near 10^11 (415, 432, 439, 447, 448),
 or a sieve over 10^7-10^8 integers.
 
-Not written yet: 417, 418, 419, 420, 424, 428, 433, 437, 438 and 450.
+Not written yet: 417, 424, 428, 433, 437, 438 and 450.
 
 Notes from this range:
 
