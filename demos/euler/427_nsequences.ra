@@ -34,17 +34,21 @@ Rt = N isqrt
 K0 = Rt (N - 1) min
 Tot = 0
 for Pass in 0 to 1
+  Sg = 1 - 2 * Pass
   for K in 1 to K0
     Mp = N - 1 - K * Pass
     Pt = Mp // (K + 1)
-    Pv = (0 to Pt) copy
-    Rm = Mp - Pv * K
-    Cb = Fa Rm * (If Pv) mod Mod
-    Cb = Cb * If (Rm - Pv) mod Mod
-    Ex = Mp - Pv * (K + 1)
-    Tm = Cb * Pn Ex mod Mod
-    Tm = Tm * Ps Pv mod Mod
-    Tot += (Tm sum) * (1 - 2 * Pass)
+    Ac = 0
+    for P in 0 to Pt
+      Rm = Mp - P * K
+      Ex = Mp - P * (K + 1)
+      Tm = Fa Rm * (If P) mod Mod
+      Tm = Tm * (If (Rm - P)) mod Mod
+      Tm = Tm * (Pn Ex) mod Mod
+      Tm = Tm * (Ps P) mod Mod
+      Ac += Tm
+    end
+    Tot += (Ac mod Mod) * Sg
   end
   for Pq in 0 to N
     Kx = N - 1
@@ -59,15 +63,18 @@ for Pass in 0 to 1
     if Kx at most K0
       break
     end
-    Ks = ((K0 + 1) to Kx) copy
-    Mk = N - 1 - Ks * Pass
-    Rk = Mk - Pq * Ks
-    Cc = Fa Rk * (If Pq) mod Mod
-    Cc = Cc * If (Rk - Pq) mod Mod
-    Ek = Mk - Pq * (Ks + 1)
-    Tk = Cc * Pn Ek mod Mod
-    Tk = Tk * (Ps Pq) mod Mod
-    Tot += (Tk sum) * (1 - 2 * Pass)
+    Ac = 0
+    for Kk in K0 + 1 to Kx
+      Mk = N - 1 - Kk * Pass
+      Rk = Mk - Pq * Kk
+      Ek = Mk - Pq * (Kk + 1)
+      Tk = Fa Rk * (If Pq) mod Mod
+      Tk = Tk * (If (Rk - Pq)) mod Mod
+      Tk = Tk * (Pn Ek) mod Mod
+      Tk = Tk * (Ps Pq) mod Mod
+      Ac += Tk
+    end
+    Tot += (Ac mod Mod) * Sg
   end
 end
 Tot = Tot mod Mod
