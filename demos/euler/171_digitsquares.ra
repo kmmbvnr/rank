@@ -36,6 +36,6 @@ for Pos in 1 to Digits
 end
 Lim = (Top - 1) isqrt
 Roots = 1 to Lim array
-Pick = Sum (Roots * Roots)
+Pick' = Sum (Roots * Roots)
 Answer = Pick sum mod Mod
 Answer print

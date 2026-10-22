@@ -17,10 +17,10 @@ rem (m + 1) to the power m (m + 1) / 2.
 Rows = Top - 1
 M = (2 to Top array) reshape Rows 1
 I = (1 to Top array) reshape 1 Top
-Pow = (2 * I) ** I
-Terms = (I at most M) choose Pow 1
-Num = Terms reduce * rank 1
-Den = (M + 1) ** (M * (M + 1) // 2)
-Best = Num // (Den reshape Rows)
+Pow' = (2 * I) ** I
+Terms' = (I at most M) choose Pow 1
+Num' = Terms reduce * rank 1
+Den' = (M + 1) ** (M * (M + 1) // 2)
+Best' = Num // (Den reshape Rows)
 Answer = Best sum
 Answer print

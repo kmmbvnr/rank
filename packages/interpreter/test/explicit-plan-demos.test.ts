@@ -11,6 +11,25 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains the colour transition tensor and completes each planned matrix sweep', () => {
+        const source = readFileSync(new URL('../../../demos/euler/189_tricolouring.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--rows=3'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(528n);
+            expect(isRankPlan(runtime.variables.get('Diff')!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Third')!)).toBe(true);
+            const transition = runtime.variables.get('Fac')!;
+            expect(transition).toMatchObject({ kind: 'array', shape: [3, 3, 3] });
+            expect(isStoredValue(transition)).toBe(true);
+            const state = runtime.variables.get('V')!;
+            expect(state).toMatchObject({ kind: 'array', shape: [27] });
+            expect(isStoredValue(state)).toBe(true);
+            expect(runtime.executeProgram(parse('Fac 0 0 0'), [])).toBe(2n);
+            expect(runtime.executeProgram(parse('Fac 0 1 2'), [])).toBe(0n);
+        } finally { runtime.dispose(); }
+    });
+
     it('uses native kernels for the actual cross-hatched triangle predicates', () => {
         const source = readFileSync(new URL('../../../demos/euler/163_crosshatched.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--size=2'] });
@@ -447,6 +466,8 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
         ['014_collatz', 14, 'Lengths', 'Lengths 0 = 999', 9n],
         ['127_abchits', 1000, 'Rad', 'Rad 0 = 999', 12523n],
         ['159_digitalrootsums', 100, 'Best', 'Best 0 = 999', 856n],
+        ['179_consecutivedivisors', 1000, 'Cnt', 'Cnt 0 = 999', 118n],
+        ['187_semiprimes', 1000, 'Lo', 'Lo 0 = 999', 299n],
     ] as const)('retains writable working data in Euler %s', (name, limit, binding, mutation, expected) => {
         const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });

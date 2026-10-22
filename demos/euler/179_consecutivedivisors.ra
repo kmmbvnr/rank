@@ -20,7 +20,5 @@ for D in 1 to Root
   Cnt (D * D) += 1
   Cnt (D * (D + 1) to Limit by D) += 2
 end
-Next = Cnt -1 shift
-Same = Cnt equal Next
-Answer = Same count
+Answer = (Cnt equal (Cnt -1 shift)) count
 Answer print
