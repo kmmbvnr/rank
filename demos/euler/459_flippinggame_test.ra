@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "459_flippinggame"
+  N = 1
+  run
+  Answer equal 1
+  N = 2
+  run
+  Answer equal 0
+  N = 5
+  run
+  Answer equal 8
+  N = 100
+  run
+  Answer equal 31395
+end
+
+test "board 3000"
+  use "459_flippinggame"
+  N = 3000
+  run
+  Answer equal 55837744
+end

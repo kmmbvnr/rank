@@ -1,0 +1,88 @@
+rem Flipping Game
+rem https://projecteuler.net/problem=459
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 1000000
+
+rem The board is the nim product of
+rem two coin games, heights (triangle
+rem numbers) and widths (squares). On
+rem one axis g_i = mex of x_(i-1) xor
+rem x_(i-l), x the prefix xor of g,
+rem and a move has nimber x_i xor
+rem x_(i-l). Winning moves pair row
+rem nimber a with column nimber b, a
+rem times b equal to the board nimber.
+Kv = 512
+Hc = array shape 2 Kv fill 0
+Xt = array shape 2 fill 0
+Rq = (2 * N) isqrt + 1
+Ks = (1 to Rq) copy
+for Ax in 0 to 1
+  Ls = Ks * Ks
+  if Ax equal 0
+    Ls = Ks * (Ks + 1) // 2
+  end
+  Ls = Ls (Ls at most N indices)
+  Nl = Ls len
+  X = array shape (N + 1) fill 0
+  Sn = array shape Kv fill 0
+  H = array shape Kv fill 0
+  Cn = 0
+  for I in 1 to N
+    if Cn less Nl
+      if Ls Cn equal I
+        Cn += 1
+      end
+    end
+    Xp = X (I - 1)
+    for J in 0 to Cn - 1
+      Sn (Xp (X (I - Ls J)) bxor) = I
+    end
+    M = 0
+    for Sn M equal I
+      M += 1
+    end
+    Xi = Xp M bxor
+    X I = Xi
+    for K in 0 to Cn - 1
+      H (Xi (X (I - Ls K)) bxor) += 1
+    end
+  end
+  Hc Ax = H
+  Xt Ax = X N
+end
+rem Nim products below 512: from size
+rem K to K^2 with H = K, H^2 = 3H/2.
+T = array 0 0 0 1
+K = 2
+for K less Kv
+  Kn = (K * K) Kv min
+  Fi = (0 till Kn * Kn) copy
+  Ra = Fi // Kn
+  Cb = Fi mod Kn
+  A1 = Ra // K
+  A0 = Ra mod K
+  B1 = Cb // K
+  B0 = Cb mod K
+  P11 = T (A1 * K + B1)
+  P10 = T (A1 * K + B0)
+  P01 = T (A0 * K + B1)
+  P00 = T (A0 * K + B0)
+  Ph = T (P11 * K + K // 2)
+  Up = (P11 P10 bxor) P01 bxor
+  T = (Up * K + (P00 Ph bxor)) copy
+  K = Kn
+end
+Nm = T reshape Kv Kv
+G = T (Xt 0 * Kv + Xt 1)
+Ct = Hc 0
+Cs = Hc 1
+Pr = Ct Cs outer *
+Answer = ((Nm equal G) choose Pr 0) sum
+Answer print
