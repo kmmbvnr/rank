@@ -1,0 +1,34 @@
+rem Permutations of Project
+rem https://projecteuler.net/problem=458
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option N integer = 1000000000000
+
+rem State j: the last j letters are
+rem distinct, the one before repeats
+rem one of them. A new letter gives
+rem j + 1 (7 - j ways, not at j = 6);
+rem the letter i back gives i. A is
+rem indexed new state, old state.
+Md = 1000000000
+J = (1 to 6) copy
+Up = (J J outer -) equal 1
+Wu = (7 - J) * 1
+Dn = J J outer greater
+A = Up choose Wu (Dn choose 0 1)
+V = array 7 0 0 0 0 0
+E = N - 1
+for E greater 0
+  if E mod 2 equal 1
+    V = A V matmul mod Md
+  end
+  A = A A matmul mod Md
+  E //= 2
+end
+Answer = V sum mod Md
+Answer print

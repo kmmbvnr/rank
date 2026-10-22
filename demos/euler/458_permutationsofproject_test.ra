@@ -1,0 +1,17 @@
+use testing
+
+test "short words"
+  use "458_permutationsofproject"
+  N = 7
+  run
+  Answer equal 818503
+  N = 8
+  run
+  Answer equal 5699281
+end
+
+test "default input"
+  use "458_permutationsofproject"
+  run
+  Answer equal 423341841
+end
