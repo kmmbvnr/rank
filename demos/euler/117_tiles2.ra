@@ -26,11 +26,11 @@ Grey = Size - B * 2 - C * 3 - D * 4
 Fits = Grey at least 0
 A = Fits choose Grey 0
 Pieces = A + B + C + D
-Rest = B + C + D
-Mix = C + D
-First = Pieces A binomial
-Second = Rest B binomial
-Third = Mix C binomial
-Ways = First * Second * Third
+Rest' = B + C + D
+Mix' = C + D
+First' = Pieces A binomial
+Second' = Rest B binomial
+Third' = Mix C binomial
+Ways' = First * Second * Third
 Answer = (Fits choose Ways 0) sum
 Answer print

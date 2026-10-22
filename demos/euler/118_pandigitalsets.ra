@@ -15,16 +15,16 @@ rem 1 to 9.
 Bits = 0 to 8 array
 Cnt = array shape 512 fill 0
 for M in 1 to 511
-  Has = M Bits bit
+  Has' = M Bits bit
   Ds = (Bits + 1) filter Has array
   K = Ds len
   Total = Ds sum
   if Total mod 3 equal 0 and K greater 1
     continue
   end
-  Perm = Ds permutations copy
-  Place = 0 till K array
-  Pow = 10 ** (K - 1 - Place)
+  Perm' = Ds permutations copy
+  Place' = 0 till K array
+  Pow' = 10 ** (K - 1 - Place)
   Nums = Perm Pow matmul
   Odd = Nums mod 2 equal 1 or K equal 1
   Cand = Nums filter Odd array
@@ -40,11 +40,11 @@ Ways 0 = 1
 Cand = 1 to 511 array
 for M in 1 to 511
   Low = M (0 - M) band
-  Inside = (Cand M band) equal Cand
-  Holds = (Cand Low band) not equal 0
-  Pick = Inside and Holds
+  Inside' = (Cand M band) equal Cand
+  Holds' = (Cand Low band) not equal 0
+  Pick' = Inside and Holds
   Subs = Cand filter Pick array
-  Rest = M Subs bxor
+  Rest' = M Subs bxor
   Ways M = (Cnt Subs * Ways Rest) sum
 end
 Answer = Ways 511

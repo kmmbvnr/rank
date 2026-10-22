@@ -11,6 +11,22 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains shared block masks while deferring the combinatorial reduction', () => {
+        const source = readFileSync(new URL('../../../demos/euler/114_blocks1.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--size=7'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(17n);
+            expect(isStoredValue(runtime.variables.get('Fits')!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('K')!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Ways')!)).toBe(true);
+            const total = runtime.variables.get('Total')!;
+            expect(isRankPlan(total)).toBe(true);
+            expect(runExecution(demand(total))).toBe(16n);
+            expect(runExecution(demand(total))).toBe(16n);
+        } finally { runtime.dispose(); }
+    });
+
     it('reduces deferred checkout tensors through native kernels without retaining the full totals', () => {
         const source = readFileSync(new URL('../../../demos/euler/109_darts.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });
