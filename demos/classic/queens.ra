@@ -29,8 +29,8 @@ fun States next
 end
 
 States len print
-Mask = States Cols outer equal
-Boards = Mask choose "Q" "."
+Mask' = States Cols outer equal
+Boards' = Mask choose "Q" "."
 for Board i in Boards
   i + 1 print
   for Row in Board

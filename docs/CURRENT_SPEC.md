@@ -2240,7 +2240,8 @@ ranks; `rank L` changes the first and keeps the second operand's declared rank
 (or its whole value). These modifiers never bind a parameter in the body.
 
 The [fold demo](../demos/classic/fold.ra) implements reduction with
-`fun Values fold op .with Seed`. An omitted seed starts from the first item;
+`fun Values' fold op .with Seed`. The deferred input is consumed once.
+An omitted seed starts from the first item;
 an explicit seed processes every item. Empty input requires a seed and returns
 it unchanged.
 

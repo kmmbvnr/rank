@@ -18,12 +18,14 @@ describe('sequences of array cells', () => {
         runtime.execute(`use algo
 use sequences
 Columns = 0 till 3 array
-Sols = Columns permutations
-Mask = Sols Columns outer equal
-Boards = Mask choose "Q" "."
+Sols' = Columns permutations
+Mask' = Sols Columns outer equal
+Boards' = Mask choose "Q" "."
 Expected = (Sols copy) Columns outer equal choose "Q" "."`);
-        expect(runtime.variables.get('Mask')).toMatchObject({ shape: [6, 3, 3] });
-        expect(runtime.variables.get('Boards')).toMatchObject({ shape: [6, 3, 3] });
+        expect(isRankPlan(runtime.variables.get('Mask')!)).toBe(true);
+        expect(runtime.execute('Mask')).toMatchObject({ shape: [6, 3, 3] });
+        expect(isRankPlan(runtime.variables.get('Boards')!)).toBe(true);
+        expect(runtime.execute('Boards')).toMatchObject({ shape: [6, 3, 3] });
         expect(runtime.execute('Boards equal Expected all')).toBe(true);
         expect(run(`${rows}\nrows (array 1 2) outer + shape`)).toBe('2 3 2');
         expect(run(`${rows}\n(array 1 2) rows outer + shape`)).toBe('2 2 3');

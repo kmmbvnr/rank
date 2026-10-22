@@ -9,8 +9,8 @@ use io
 Row = array 0 to 7
 Sols = Row permutations filter safe array
 Sols len print
-Mask = Sols Row outer equal
-Boards = Mask choose "Q" "."
+Mask' = Sols Row outer equal
+Boards' = Mask choose "Q" "."
 for Board i in Boards
   i + 1 print
   for Line in Board

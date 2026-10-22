@@ -72,7 +72,7 @@ it('rejects interpreter-owned and duplicate words in declarations', () => {
 
 it.each([false, true])('runs a user-defined reduction (compilation=%s)', compilation => {
     const runtime = new Interpreter(undefined, { compilation });
-    runtime.execute(`fun Values fold op .with Seed
+    runtime.execute(`fun Values' fold op .with Seed
  Result = Seed
  for Value in Values
   if Result is .missing

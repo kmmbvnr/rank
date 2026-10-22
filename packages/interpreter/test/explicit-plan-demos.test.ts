@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, demand, formatValue, isRankPlan, isNativeFunction, type RankArray } from '../src/index.js';
-import { windowValue } from '../src/sequence.js';
+import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan, isNativeFunction, type RankArray, type NativeFunction } from '../src/index.js';
+import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
 import { denseScalarItems, materializedArrayItems } from '../src/array-storage.js';
@@ -11,6 +11,48 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('streams values through the actual fold helper without completing its input on entry', () => {
+        const source = readFileSync(new URL('../../../demos/classic/fold.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let reads = 0;
+        const observed: number[] = [];
+        const input = sequence({ name: 'fold input', size: { kind: 'exact', value: 4n },
+            *iterate() { for (let value = 1n; value <= 4n; value++) { reads++; yield value; } },
+        });
+        const combine: NativeFunction = { kind: 'function', name: 'observed addition', arities: [2], monadicRank: 'all',
+            call([left, right]) { observed.push(reads); return (left as bigint) + (right as bigint); },
+        };
+        try {
+            runtime.execute(source);
+            const fold = runtime.variables.get('fold')!;
+            if (!isNativeFunction(fold)) throw new Error('expected fold function');
+            expect(fold.call([input, combine, 0n])).toBe(10n);
+            expect(observed).toEqual([1, 2, 3, 4]);
+            expect(reads).toBe(4);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each(['queens', 'queens_permutations', 'queens_recursive'])('keeps %s board rendering deferred over retained solutions', name => {
+        const source = readFileSync(new URL(`../../../demos/classic/${name}.ra`, import.meta.url), 'utf8');
+        const rendering = source.slice(source.indexOf("Mask' ="), source.indexOf('for Board i in Boards'));
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use sequences\nuse text\nStates = array shape 1 4\n1 3 0 2\nend\nSols = States\nPlacements = States\nCols = array 0 1 2 3\nRow = Cols');
+            diagnostics.run(() => runtime.execute(rendering));
+            expect(diagnostics.cellsComputed).toBe(0);
+            const boards = runtime.variables.get('Boards')!;
+            expect(isRankPlan(boards)).toBe(true);
+            const view = diagnostics.run(() => runExecution(demand(boards))) as RankArray;
+            expect(view.shape).toEqual([1, 4, 4]);
+            expect(isStoredValue(view)).toBe(false);
+            expect(diagnostics.cellsComputed).toBe(0);
+            expect(formatValue(view)).toBe('. Q . . . . . Q Q . . . . . Q .');
+            expect(formatValue(runExecution(demand(boards)))).toBe(formatValue(view));
+            expect(isStoredValue(runtime.variables.get('States')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         ['005_smallestmultiple', 20, 232792560n],
         ['006_sumsquarediff', 10000, (10000n * 10001n / 2n) ** 2n - 10000n * 10001n * 20001n / 6n],
@@ -68,7 +110,7 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
             runtime.execute(source);
             expect(runtime.variables.get('Answer')).toBe(expected);
             expect(isStoredValue(runtime.variables.get(binding)!)).toBe(true);
-            runtime.executeProgram(runtime.parse(mutation), []);
+            runtime.executeProgram(parse(mutation), []);
             expect(runtime.variables.get('Answer')).toBe(expected);
         } finally { runtime.dispose(); }
     });

@@ -51,8 +51,8 @@ Placements = Solutions reshape (
 Placements len print
 
 rem Turn placements into printed boards.
-Mask = Placements Cols outer equal
-Boards = Mask choose "Q" "."
+Mask' = Placements Cols outer equal
+Boards' = Mask choose "Q" "."
 for Board i in Boards
   i + 1 print
   for Row in Board
