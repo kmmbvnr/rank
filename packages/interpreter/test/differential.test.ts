@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, relative } from 'node:path';
 import { createHash } from 'node:crypto';
 import { setImmediate } from 'node:timers/promises';
@@ -40,6 +40,14 @@ function snapshot(value: RankValue | undefined, active = new Set<object>()): unk
 }
 
 function run(file: string, compilation: boolean) {
+    const start = performance.now();
+    const summary = process.env.RANK_DIFFERENTIAL_SUMMARY;
+    const progress = (stage: string, elapsedMs?: number) => {
+        if (summary) appendFileSync(`${summary}.progress.jsonl`, JSON.stringify({
+            file: relative(demos, file), compilation, stage, elapsedMs,
+        }) + '\n');
+    };
+    progress('start');
     const output: string[] = [], environment = new Map<string, string>();
     const io = new MemoryIo({}), input = new TokenInput([]);
     let seed = 12345, entries = 0;
@@ -64,7 +72,9 @@ function run(file: string, compilation: boolean) {
     try { value = snapshot(diagnostics.run(() => runtime.execute(sources.get(file)!))); }
     catch (failure) { error = failure instanceof RankError ? failure.format() : String(failure); }
     finally { runtime.dispose(); }
-    return { entries: entries + diagnostics.compiledLoops, numberEntries: diagnostics.numberLoops, observation: { value, error, output, environment: [...environment],
+    const elapsedMs = performance.now() - start;
+    progress('complete', elapsedMs);
+    return { elapsedMs, entries: entries + diagnostics.compiledLoops, numberEntries: diagnostics.numberLoops, observation: { value, error, output, environment: [...environment],
         files: [...io.files], closed: io.handles.map(handle => handle.closed), inputReads: input.reads,
         tests: runtime.testResults.map(({ durationMs: _, ...result }) => result),
     } };
@@ -80,6 +90,8 @@ describe('compiled and reference demo execution', () => {
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let compared = 0, completed = 0, tests = 0, entries = 0, numberEntries = 0;
     const failures: { file: string; error?: string; tests: { name: string; error?: string }[] }[] = [];
+    const outcomes: { file: string; referenceMs: number; compiledMs: number; output?: string[];
+        outputChunks: number; tests: number; failedTests: number; error?: string }[] = [];
     for (const file of files) it(relative(demos, file), async () => {
         console.log(`comparing ${relative(demos, file)}`);
         const reference = run(file, false), compiled = run(file, true);
@@ -91,6 +103,11 @@ describe('compiled and reference demo execution', () => {
         if (compiled.observation.error || failedTests.length) {
             failures.push({ file: relative(demos, file), error: compiled.observation.error, tests: failedTests });
         }
+        const output = compiled.observation.output;
+        outcomes.push({ file: relative(demos, file), referenceMs: reference.elapsedMs, compiledMs: compiled.elapsedMs,
+            output: output.length <= 16 && output.every(line => line.length <= 256) ? output : undefined,
+            outputChunks: output.length, tests: compiled.observation.tests.length,
+            failedTests: failedTests.length, error: compiled.observation.error });
         compared++;
         completed += Number(!compiled.observation.error);
         tests += compiled.observation.tests.length;
@@ -101,7 +118,7 @@ describe('compiled and reference demo execution', () => {
         console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} compiled entries, ${numberEntries} Number loop entries`);
         if (compared !== files.length) return; // A name-filtered run reports only selected fixtures.
         const summary = process.env.RANK_DIFFERENTIAL_SUMMARY;
-        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries, failures }));
+        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries, failures, outcomes }));
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
