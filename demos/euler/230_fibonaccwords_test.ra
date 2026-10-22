@@ -1,4 +1,5 @@
 use testing
+use sequences
 
 test "default input"
   use "230_fibonaccwords"
