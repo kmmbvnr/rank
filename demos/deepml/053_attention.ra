@@ -15,15 +15,15 @@ end
 
 fun Q K V self_attention
   Width = Q len axis 1
-  Kt = K transpose
+  Kt' = K transpose
   Scores = (Q Kt matmul) / (Width sqrt)
 
   Tops = Scores max axis 1
-  Shift = Scores transpose - Tops
+  Shift' = Scores transpose - Tops
   Exps = Shift transpose exp
   Totals = Exps sum axis 1
-  Weights = Exps transpose / Totals
-  Weights = Weights transpose
+  Weights' = Exps transpose / Totals
+  Weights' = Weights transpose
 
   return Weights V matmul
 end

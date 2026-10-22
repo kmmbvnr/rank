@@ -5,7 +5,7 @@ use linalg
 use stats
 
 fun X W Truth Alpha ridge_loss
-  Predicted = X W matmul
+  Predicted' = X W matmul
   if Predicted len not equal Truth len
     .DimensionMismatch raise
   end

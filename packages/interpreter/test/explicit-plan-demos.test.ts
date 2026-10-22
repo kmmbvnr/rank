@@ -14,6 +14,7 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
     it.each([
         ['022_sigmoid', 'sigmoid', [3], '0.2689 0.5 0.7311'],
         ['035_diag', 'make_diagonal', [3, 3], '-1 0 0 0 0 0 0 0 1'],
+        ['042_relu', 'relu', [3], '0 0 1'],
     ] as const)('keeps a planned input deferred through %s', (name, helper, shape, expected) => {
         const source = readFileSync(new URL(`../../../demos/deepml/${name}.ra`, import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });
@@ -34,6 +35,52 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
             const after = reads;
             expect(formatValue(runtime.execute('Saved')!)).toBe(expected);
             expect(reads).toBe(after);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
+        ['041_conv2d', [3, 3], 'Input Kernel 0 1 simple_conv2d', [2, 2], '12 16 24 28'],
+        ['045_kernel', [2, 2], 'Input Identity kernel_function', [2, 2], '1 2 3 4'],
+        ['055_translate', [2, 2], 'Input 10 (-1) translate_object', [2, 2], '11 1 13 3'],
+    ] as const)('keeps planned matrix data deferred through %s', (name, inputShape, expression, outputShape, expected) => {
+        const source = readFileSync(new URL(`../../../demos/deepml/${name}.ra`, import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let reads = 0;
+        runtime.variables.set('Input', derivedArray([...inputShape], [], index => { reads++; return BigInt(index + 1); }));
+        try {
+            runtime.execute(source);
+            runtime.execute('Kernel = array shape 2 2 fill 1\nIdentity = array shape 2 2\n1 0\n0 1\nend');
+            runtime.execute(`Result' = ${expression}`);
+            expect(reads).toBe(0);
+            expect(isRankPlan(runtime.variables.get('Result')!)).toBe(true);
+            const saved = runtime.execute('Saved = Result')!;
+            expect(saved).toMatchObject({ shape: outputShape });
+            expect(formatValue(saved)).toBe(expected);
+            const afterSaved = reads;
+            expect(afterSaved).toBeGreaterThan(0);
+            expect(formatValue(runtime.execute('Result')!)).toBe(expected);
+            expect(reads).toBeGreaterThan(afterSaved);
+            const after = reads;
+            expect(formatValue(runtime.execute('Saved')!)).toBe(expected);
+            expect(reads).toBe(after);
+        } finally { runtime.dispose(); }
+    });
+
+    it('executes Adam callbacks once per step and retains its completed iteration state', () => {
+        const source = readFileSync(new URL('../../../demos/deepml/049_adam.ra', import.meta.url), 'utf8');
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            runtime.execute(source);
+            runtime.execute([
+                'use io', 'fun X gradient', ' "gradient" print', ' return X * 2', 'end',
+                'Input = array 1.0 1.0', "Result' = Input adam_optimizer gradient",
+            ].join('\n'));
+            expect(output).toEqual(Array(10).fill('gradient'));
+            expect(formatValue(runtime.execute('Result round 8')!)).toBe('0.99000325 0.99000325');
+            expect(formatValue(runtime.execute('Result round 8')!)).toBe('0.99000325 0.99000325');
+            expect(output).toHaveLength(10);
+            expect(formatValue(runtime.execute('Input')!)).toBe('1 1');
         } finally { runtime.dispose(); }
     });
 

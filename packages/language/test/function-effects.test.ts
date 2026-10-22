@@ -251,7 +251,7 @@ it('summarizes guarded scalar numeric operations in the sigmoid demo', () => {
     expect(analyze(source, 'sigmoid', [], [{ types: [] }]).unknown).toBe(true);
 });
 
-it('summarizes the unchanged recall demo only with callback-free array cells', () => {
+it('summarizes the recall demo only with callback-free array cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
         eagerScalarCells: true };

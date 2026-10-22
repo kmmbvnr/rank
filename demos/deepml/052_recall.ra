@@ -15,7 +15,7 @@ fun Truth Predicted recall
     return 0.0
   end
 
-  Guessed = Predicted equal 1
+  Guessed' = Predicted equal 1
   Hits = (Actual and Guessed) count
   return Hits / Positives round 3
 end

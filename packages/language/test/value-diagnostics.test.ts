@@ -1379,7 +1379,7 @@ it('retains caller facts across the sigmoid demo only for scalar input', () => {
     expect(messages(`${definition}\nCount = 1\n(array 0 1) sigmoid\nCount + "bad"`)).toEqual([]);
 });
 
-it('retains caller facts across the unchanged recall demo only for callback-free cells', () => {
+it('retains caller facts across the recall demo only for callback-free cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*recall\b/));
     expect(messages(`${definition}\nCount = 1\n(array 1 0) (array 1 1) recall\nCount + "bad"`))

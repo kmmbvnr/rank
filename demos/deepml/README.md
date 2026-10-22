@@ -12,3 +12,8 @@ Problems 21–40 retain softmax exponentials, shuffled orders and training state
 when several consumers need them. Sigmoid and diagonal helpers accept deferred
 inputs. Correlation, masks and dense-layer gradient expressions use plans;
 record updates and autograd tape mutations still execute on computed values.
+
+Problems 41–55 keep convolution windows, attention views and temporary gradient
+expressions deferred. Optimizers retain weights and accumulated moments; each
+RNN step completes its hidden state. RREF, Lasso and string-alignment working
+arrays remain writable computed values.

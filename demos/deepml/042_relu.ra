@@ -2,6 +2,6 @@ rem Deep-ML 42: ReLU
 rem https://www.deep-ml.com/problems/42
 
 
-fun Z relu
+fun Z' relu
   return 0 Z max
 end

@@ -15,7 +15,7 @@ fun Truth Predicted precision
     return 0.0
   end
 
-  Actual = Truth equal 1
+  Actual' = Truth equal 1
   Hits = (Actual and Positive) count
   return Hits / Guesses
 end

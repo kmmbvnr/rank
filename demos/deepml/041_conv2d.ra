@@ -3,8 +3,8 @@ rem https://www.deep-ml.com/problems/41
 
 use sequences
 
-fun A K P S simple_conv2d
+fun A' K P S simple_conv2d
   W = K shape
-  B = A window W stride S padding P
+  B' = A window W stride S padding P
   return B * K sum rank 2
 end
