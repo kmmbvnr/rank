@@ -1,5 +1,6 @@
 import { functionCallSignature, type FunctionCallSignature } from '../function-call-signature.js';
 import { functionBindingPlan } from '../function-binding.js';
+import { completedTypes } from './completion-facts.js';
 import { flattenApplication as flatten, forIteration } from '../expressions.js';
 /**
  * Binding and mutation facts: where every name is bound, read and written.
@@ -343,7 +344,8 @@ class Analyzer {
             // A compound operator reads the name before it writes it.
             if (statement.operator !== '=') this.read(statement.name, statement);
             this.expression(statement.value);
-            const value = this.typeOf(statement.value);
+            const expressionType = this.typeOf(statement.value);
+            const value = statement.deferred ? expressionType : completedTypes(expressionType);
             this.bind(statement.name, 'assignment', statement, statement.operator === '='
                 ? value
                 : compoundType(statement.operator,

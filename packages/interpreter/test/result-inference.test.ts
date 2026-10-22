@@ -1,10 +1,68 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeBindings, analyzeValues } from '@arrrank/language';
-import { Interpreter, isRankArray, parse, typeName } from '../src/index.js';
+import { Interpreter, isRankArray, isRankRecord, isRankTuple, parse, typeName } from '../src/index.js';
 
 // Exercise both analysis APIs against actual values, rather than agreeing on
 // an expected static label that could itself be wrong.
 describe.each([false, true])('selection and contraction facts (compilation=%s)', compilation => {
+    it('uses parameter modes before inferring the result of an identity call', () => {
+        const source = `fun X identity = X
+fun X' deferred = X
+fun X' nested = X identity
+Recipe' = 1 to 3
+Ready' = Recipe identity
+NestedReady' = Recipe nested
+StillDeferred' = Recipe deferred`;
+        const analysis = analyzeValues(parse(source));
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(source);
+            expect(analysis.diagnostics).toEqual([]);
+            for (const name of ['Ready', 'NestedReady', 'StillDeferred']) {
+                expect(analysis.bindings.get(name)?.types).toEqual([typeName(runtime.variables.get(name)!)]);
+            }
+            expect(analysis.bindings.get('Ready')?.types).toEqual(['array']);
+            expect(analysis.bindings.get('StillDeferred')?.types).toEqual(['sequence']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('completes plans nested in tuple positions and record fields', () => {
+        const source = `Recipe' = 1 to 3
+Nested' = tuple Recipe 7
+Ready = Nested
+Object = record
+ .items = Recipe
+end`;
+        const analysis = analyzeValues(parse(source));
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(source);
+            expect(analysis.diagnostics).toEqual([]);
+            const tuple = runtime.variables.get('Ready')!;
+            const record = runtime.variables.get('Object')!;
+            if (!isRankTuple(tuple) || !isRankRecord(record)) throw new Error('expected completed structures');
+            expect(analysis.bindings.get('Ready')?.tupleItems?.[0].types).toEqual([typeName(tuple.items[0])]);
+            expect(analysis.bindings.get('Object')?.fields?.items.types).toEqual([typeName(record.entries.get('items')!)]);
+            expect(typeName(tuple.items[0])).toBe('array');
+            expect(typeName(record.entries.get('items')!)).toBe('array');
+        } finally { runtime.dispose(); }
+    });
+
+    it('does not invent a tensor rank when a completed stream has unknown cell shapes', () => {
+        const source = `fun items
+ yield array 1 2
+end
+Saved = items`;
+        const analysis = analyzeValues(parse(source));
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(source);
+            expect(analysis.bindings.get('Saved')?.types).toEqual(['array']);
+            expect(analysis.bindings.get('Saved')?.rank).toBeUndefined();
+            expect(runtime.variables.get('Saved')).toMatchObject({ kind: 'array', shape: [1, 2] });
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         'N = array 1 2 3\nPicked = N (array true false)',
         'N = array 1 2 3\nPicked = N (array 0 true)',

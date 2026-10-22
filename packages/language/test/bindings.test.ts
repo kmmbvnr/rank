@@ -67,7 +67,7 @@ describe('binding facts', () => {
             'Values = array 1 2 3', 'Mask = Values greater 1',
             'Selected = Values Mask', 'Gathered = Values (1 till 3)',
         ]);
-        expect(named(result, 'program', 'Selected').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'Selected').types).toEqual(['array']);
         expect(named(result, 'program', 'Gathered').types).toEqual(['array']);
     });
 
@@ -82,9 +82,9 @@ describe('binding facts', () => {
             'FromUnknown = Input window 2',
         ], ['Input']);
         expect(named(result, 'program', 'FromArray').types).toEqual(['array']);
-        expect(named(result, 'program', 'FromSequence').types).toEqual(['array', 'sequence']);
-        expect(named(result, 'program', 'FromText').types).toEqual(['sequence']);
-        expect(named(result, 'program', 'FromUnknown').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'FromSequence').types).toEqual(['array']);
+        expect(named(result, 'program', 'FromText').types).toEqual(['array']);
+        expect(named(result, 'program', 'FromUnknown').types).toEqual(['array']);
     });
 
     it('recognizes contextual rownumber and ranknumber in select fields', async () => {
@@ -272,8 +272,8 @@ describe('type facts', () => {
             'Shifted = Values + 1',
             'Flags = Values greater 1',
         ]);
-        expect(named(result, 'program', 'Range').types).toEqual(['sequence']);
-        expect(named(result, 'program', 'Mask').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Range').types).toEqual(['array']);
+        expect(named(result, 'program', 'Mask').types).toEqual(['array']);
         expect(named(result, 'program', 'Shifted').types).toEqual(['array']);
         expect(named(result, 'program', 'Flags').types).toEqual(['array']);
     });
@@ -288,7 +288,7 @@ describe('type facts', () => {
         ]);
         expect(named(result, 'program', 'Root').types).toEqual(['real']);
         expect(named(result, 'program', 'Parts').types).toEqual(['array']);
-        expect(named(result, 'program', 'Divisors').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Divisors').types).toEqual(['array']);
         expect(named(result, 'program', 'Size').types).toEqual(['integer']);
     });
 
@@ -305,7 +305,7 @@ describe('type facts', () => {
         ], ['Input']);
         expect(named(result, 'program', 'Scalar').types).toEqual(['boolean']);
         expect(named(result, 'program', 'ArrayMask').types).toEqual(['array']);
-        expect(named(result, 'program', 'SequenceMask').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'SequenceMask').types).toEqual(['array']);
         expect(named(result, 'program', 'UnknownMask').types).toEqual([]);
         expect(named(result, 'program', 'Addressed').types).toEqual([]);
     });

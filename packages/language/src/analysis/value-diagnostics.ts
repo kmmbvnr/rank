@@ -41,6 +41,7 @@ import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
+import { completedValueFacts } from './completion-facts.js';
 import { filterPredicateForm } from '../clause-conditions.js';
 import { rankedFrameConflict } from './operation-shape.js';
 import { withInsertedElement } from './collection-facts.js';
@@ -1112,7 +1113,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     next = { ...combined, types: combined.types.length ? combined.types
                         : compoundType(statement.operator, previous?.types ?? [], next.types) };
                 }
-                bind(statement.name, next, statement.value, env);
+                bind(statement.name, statement.deferred ? next : completedValueFacts(next), statement.value, env);
                 assignments.set(statement, env.get(statement.name)!);
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {

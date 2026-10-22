@@ -274,9 +274,9 @@ it('keeps Euler 1 types across restored notebook cells before execution', () => 
         repl.notebook.restore(readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8'));
         for (const [site, expected] of [
             ['N =', 'N · c<integer>'],
-            ['Mask =', 'Mask · c<boolean>'],
-            ['Mask or=', 'Mask · c<boolean>'],
-            ['Mask sum', 'Mask · c<boolean>'],
+            ['Mask =', 'Mask · c[#]<boolean>'],
+            ['Mask or=', 'Mask · c[#]<boolean>'],
+            ['Mask sum', 'Mask · c[#]<boolean>'],
             ['Answer =', 'Answer · integer'],
             ['Answer print', 'Answer · integer'],
         ]) {

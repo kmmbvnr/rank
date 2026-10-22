@@ -1,7 +1,7 @@
 import { AstUtils, EmptyFileSystem } from 'langium';
 import { describe, expect, it } from 'vitest';
 import {
-    analyzeBindings, createRankServices, functionCallSignature,
+    analyzeBindings, analyzeValues, createRankServices, functionCallSignature,
     isAssignmentStatement, isDeclaredCallExpression, isFunctionStatement, isNameExpression,
     type Program,
 } from '../src/index.js';
@@ -17,6 +17,22 @@ function parse(source: string): Program {
 }
 
 describe('binding evaluation modes', () => {
+    it('distinguishes expression kinds from completed binding kinds', () => {
+        const program = parse("Recipe' = 1 to 3\nSaved = Recipe\nNested' = tuple Recipe 7\nReady = Nested");
+        const values = analyzeValues(program);
+        expect(values.diagnostics).toEqual([]);
+        expect(values.bindings.get('Recipe')).toMatchObject({ types: ['sequence'], rank: 1, shape: [3] });
+        expect(values.bindings.get('Saved')).toMatchObject({ types: ['array'], rank: 1, shape: [3] });
+        const saved = program.statements.filter(isAssignmentStatement).find(statement => statement.name === 'Saved')!;
+        expect(values.expressions.get(saved.value)?.types).toEqual(['sequence']);
+        expect(values.assignments.get(saved)?.types).toEqual(['array']);
+        expect(values.bindings.get('Nested')?.tupleItems?.[0].types).toEqual(['sequence']);
+        expect(values.bindings.get('Ready')?.tupleItems?.[0].types).toEqual(['array']);
+        const names = analyzeBindings(program).scopes[0].bindings;
+        expect(names.find(binding => binding.name === 'Recipe')?.types).toEqual(['sequence']);
+        expect(names.find(binding => binding.name === 'Saved')?.types).toEqual(['array']);
+    });
+
     it('keeps the assignment marker separate from the referenced name', () => {
         const program = parse("Source' = 1 to 10\nSaved = Source\nTotal' = Source sum\nTotal");
         const assignments = program.statements.filter(isAssignmentStatement);

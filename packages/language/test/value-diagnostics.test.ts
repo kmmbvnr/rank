@@ -1390,12 +1390,15 @@ it('retains caller facts across the recall demo only for callback-free cells', (
         .toEqual([]);
 });
 
-it('drops a derived mask read proof after an indexed replacement', () => {
+it('checks indexed replacements against a completed mask domain', () => {
     const reader = 'fun Mask count_mask\n return Mask count\nend';
     const before = `${reader}\nMask = (array 1 0) equal 1\nCount = 1`;
     expect(messages(`${before}\nMask count_mask\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages(`${before}\nMask 0 = "text"\nMask count_mask\nCount + "bad"`)).toEqual([]);
+    expect(messages(`${before}\nMask 0 = false\nMask count_mask\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${before}\nMask 0 = "text"\nMask count_mask\nCount + "bad"`))
+        .toEqual(['Mask has array elements of type boolean and cannot receive text']);
 });
 
 it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
@@ -2599,7 +2602,7 @@ it('uses a proved array length as a later shape dimension', () => {
 });
 
 it('invalidates captured facts when len consumes a generator', () => {
-    const generator = 'fun stream\n A 0 = "x"\n yield 1\nend\nS = stream\nA = array 1 2\n';
+    const generator = "fun stream\n A 0 = \"x\"\n yield 1\nend\nS' = stream\nA = array 1 2\n";
     expect(messages(generator + 'N = S len\nA 0 + "bad"')).toEqual([]);
     expect(messages('use sequences\n' + generator + 'N = S len axis 0\nA 0 + "bad"')).toEqual([]);
     expect(messages('A = array 1 2\nS = 1 to 5\nN = S len\nA 0 + "bad"'))
@@ -2797,7 +2800,7 @@ it('does not analyze statements after a definite no-return call', () => {
 });
 
 it('infers a generator sequence without executing its body', () => {
-    const source = 'fun stream\n if false\n  yield 1\n end\nend\nS = stream\n';
+    const source = "fun stream\n if false\n  yield 1\n end\nend\nS' = stream\n";
     expect(messages(source + 'S = 1')).toEqual(['S has type sequence and cannot receive integer']);
     // An unreachable yield supplies no cell facts for materialization.
     expect(messages(source + 'A = S array\nA # #')).toEqual([]);
@@ -2807,7 +2810,7 @@ it('infers a generator sequence without executing its body', () => {
     expect(messages('fun outer\n fun inner\n  yield 1\n end\n return 2\nend\nA = outer\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
-    expect(analyzeValues(parse('fun X stream\n yield X\nend\nS = 1 stream')).bindings.get('S'))
+    expect(analyzeValues(parse("fun X stream\n yield X\nend\nS' = 1 stream")).bindings.get('S'))
         .toMatchObject({ types: ['sequence'], elements: ['integer'], rank: 1 });
     expect(analyzeValues(parse('fun stream\n yield 1\n yield "x"\nend\nS = stream')).bindings.get('S')?.elements)
         .toEqual(['integer', 'text']);

@@ -1680,9 +1680,21 @@ it('tracks absent endpoints separately from numeric infinity and slice boundarie
 });
 
 
+it('keeps integer sums after a completed boolean mask of unknown length', () => {
+    const values = bound(`use numbers
+option Limit integer = 1000
+N = 1 till Limit
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
+Answer = N Mask sum`);
+    expect(values.get('N')).toMatchObject({ types: ['array'], elements: ['integer'] });
+    expect(values.get('Mask')).toMatchObject({ types: ['array'], elements: ['boolean'] });
+    expect(values.get('Answer')?.types).toEqual(['integer']);
+});
+
 it('keeps infinite cardinality through scalar mapping but not filtering', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'use numbers\nuse sequences\nN = 1 to #\nMapped = N abs rank 0\nFiltered = N filter greater 5',
+        "use numbers\nuse sequences\nN' = 1 to #\nMapped' = N abs rank 0\nFiltered' = N filter greater 5",
     );
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value);

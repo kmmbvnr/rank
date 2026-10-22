@@ -240,7 +240,7 @@ describe('function signatures in the type footer', () => {
         expect(rows.join(' ')).not.toContain('c:');
         expect(rows.every(row => row.length <= 40)).toBe(true);
         const source = 'N = 1 to 999\nN sum';
-        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe("c<number> → number");
+        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe("c[999]<number> → number");
     });
     it('uses explicit builtin signatures with their actual overloads', () => {
         const split = 'use text\n"a,b" "," split';
@@ -361,22 +361,22 @@ describe('layoutNameFacts', () => {
     });
 
     it('keeps a signature that fits on one row', () => {
-        expect(layoutNameFacts(outer(), 80)).toEqual(["outer * · c<i> c<i> → c[9, 9]<i>"]);
+        expect(layoutNameFacts(outer(), 80)).toEqual(["outer * · c[9]<i> c[9]<i> → c[9, 9]<i>"]);
     });
 
     it('puts one parameter per row and the result beside the last one', () => {
         expect(layoutNameFacts(outer(), 24)).toEqual([
             'outer * ·',
-            '  c<i>',
-            "  c<i> → c[9, 9]<i>",
+            '  c[9]<i>',
+            "  c[9]<i> → c[9, 9]<i>",
         ]);
     });
 
     it('moves the result to its own row when it would not fit beside the last parameter', () => {
         expect(layoutNameFacts(outer(), 18)).toEqual([
             'outer * ·',
-            '  c<i>',
-            '  c<i>',
+            '  c[9]<i>',
+            '  c[9]<i>',
             "  → c[9, 9]<i>",
         ]);
     });
@@ -471,9 +471,9 @@ it('keeps Euler 1 integer sequence sums and boolean masks, including compound as
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
         ['N =', 'N · c<integer>'],
-        ['Mask =', 'Mask · c<boolean>'],
-        ['Mask or=', 'Mask · c<boolean>'],
-        ['Mask sum', 'Mask · c<boolean>'],
+        ['Mask =', 'Mask · c[#]<boolean>'],
+        ['Mask or=', 'Mask · c[#]<boolean>'],
+        ['Mask sum', 'Mask · c[#]<boolean>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);

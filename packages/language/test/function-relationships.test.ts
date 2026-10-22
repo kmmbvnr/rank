@@ -176,8 +176,8 @@ it('bounds expansion of a branching relationship graph', () => {
     let summary: FunctionRelationship = { result: input, expressions: new Map(), dependencies: [] };
     for (let i = 0; i < 30; i++) {
         summary = { result: { kind: 'tuple', items: [
-            { kind: 'call', callee: summary, arguments: [input] },
-            { kind: 'call', callee: summary, arguments: [input] },
+            { kind: 'call', callee: summary, arguments: [input], deferred: [false] },
+            { kind: 'call', callee: summary, arguments: [input], deferred: [false] },
         ] }, expressions: new Map(), dependencies: [] };
     }
     expect(instantiateRelationship(summary, [{ types: ['integer'], rank: 0, shape: [] }])).toBeUndefined();

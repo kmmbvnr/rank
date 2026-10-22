@@ -956,7 +956,7 @@ function transferApplicationFacts(
                 }
             }
             if (last.name === 'sum' && arity === 1
-                && (['array', 'sequence'].includes(source.types.join())
+                && (source.types.length > 0 && source.types.every(type => ['array', 'sequence'].includes(type))
                     && (source.eagerScalarCells || source.callbackFreeScalarCells)
                     || ['queue', 'stack', 'deque', 'set'].includes(source.types.join()))
                 && source.elements?.join() === 'integer') {
@@ -1196,7 +1196,7 @@ function transferApplicationFacts(
                 if (shape?.length) shape[0] = empty ? 0 : selector.shape?.[0] ?? null;
                 return { types: ['array'], rank: source.rank, shape, ...cells };
             }
-            return { types: ['array', 'sequence'] };
+            return { types: ['array', 'sequence'], ...cells };
         }
         if (source.types.join() === 'sequence' || source.types.join() === 'queue') {
             return { types: source.types.join() === 'queue' || integerSelector ? ['array']
