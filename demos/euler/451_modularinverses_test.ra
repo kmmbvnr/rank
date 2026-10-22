@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "451_modularinverses"
+  N = 100
+  run
+  B 7 equal 1
+  B 15 equal 11
+  B 100 equal 51
+  Answer equal 2044
+end
+
+test "brute-force sum to 1000"
+  use "451_modularinverses"
+  N = 1000
+  run
+  Answer equal 278340
+end
+
+test "sum to 200000"
+  use "451_modularinverses"
+  N = 200000
+  run
+  Answer equal 14223825129
+end
