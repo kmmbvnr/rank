@@ -6,7 +6,7 @@ import type { ModuleApplication } from './application-module.js';
 import { isPureLazyFunction, snapshotLazyOperand } from '../lazy-function.js';
 import { queryDefault } from '../query-default.js';
 import {
-    lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication,
+    lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication, groupedExpression,
     isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
     isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, renamedBuiltinCall,
     type KnownShape, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
@@ -403,7 +403,7 @@ export class ApplicationEvaluator {
                 });
                 if (fused) return fused;
                 if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
-                    return function* (): Execution<RankValue> {
+                    return application.compileApplication(expression, parts, missing, tail, function* (): Execution<RankValue> {
                         let pending: RankValue[] = [];
                         for (let index = 0; index < parts.length; index += 1) {
                             const part = parts[index];
@@ -433,7 +433,7 @@ export class ApplicationEvaluator {
                         }
                         return pending.length === 1
                             ? pending[0] : context.select(pending, missing);
-                    };
+                    });
                 }
                 return application.compileApplication(expression, parts, missing, tail);
             }
@@ -443,17 +443,42 @@ export class ApplicationEvaluator {
 
     private compileApplication(
         expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
+        ordinary = this.compileNativeApplication(expression, parts, missing, tail),
     ): () => Evaluation<RankValue> {
-        const ordinary = this.compileNativeApplication(expression, parts, missing, tail);
         const last = parts.at(-1);
         if (!last || !isNameExpression(last)) return ordinary;
         return () => {
             const fn = this.context.findVariable(last.name);
             if (!fn || !isNativeFunction(fn) || !fn.callSignature || fn.monadicRank !== 'all'
                 || fn.dyadicRanks?.some(rank => rank !== 'all')) return ordinary();
-            return flatMapResult(mapExecution(parts.slice(0, -1), part => this.context.argument(part)),
+            // Every postfix operation consumes the pending operands and leaves
+            // one result. Preserve that result's syntax as an argument recipe;
+            // evaluating its parts separately would feed plans to native calls
+            // or compute a reduction before the parameter binder sees it.
+            const prefix = parts.slice(0, -1);
+            // Receiver-specific `sum` can take its index on the right. Its
+            // dispatcher owns that grouping for multi-argument calls.
+            if (fn.arities.join() !== '1' && prefix.some(part => isNamed(part, 'sum'))) return ordinary();
+            const operations = prefix.map((part, index) => {
+                while (isParenthesizedExpression(part)) part = part.value;
+                if (!index || !isNameExpression(part)) return false;
+                const value = this.context.findVariable(part.name);
+                const builtin = value === undefined ? this.context.operationOf(part.name) : undefined;
+                const arities = value !== undefined && isNativeFunction(value) ? value.arities : builtin ? builtin.arities : undefined;
+                return !!arities?.length && !arities.includes(0);
+            });
+            const operands: Expression[] = [];
+            if (fn.arities.join() === '1' && operations.some(Boolean)) {
+                operands.push(applicationParts(prefix, expression));
+            } else for (const [index, part] of prefix.entries()) {
+                operands.push(part);
+                if (operations[index]) {
+                    operands.splice(0, operands.length, groupedExpression(applicationParts(operands, expression)));
+                }
+            }
+            return flatMapResult(mapExecution(operands, part => this.context.argument(part)),
                 values => this.apply([...values, this.context.resolve(last.name)], missing, 0, [], tail,
-                    lastArrayUseProofs(expression, parts.slice(0, -1))));
+                    lastArrayUseProofs(expression, operands)));
         };
     }
 

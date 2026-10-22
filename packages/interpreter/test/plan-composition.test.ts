@@ -10,6 +10,72 @@ function counted() {
 }
 
 describe.each([false, true])('compositional plan construction (compilation=%s)', compilation => {
+    it.each([
+        ['Matrix transpose pass', '1 3 2 4'],
+        ['Matrix transpose 2 scale', '2 6 4 8'],
+        ['Matrix transpose reverse pass', '2 4 1 3'],
+        ['Input sum pass', '10'],
+    ])('passes a complete postfix argument recipe to a deferred parameter: %s', (expression, expected) => {
+        const source = counted();
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        runtime.variables.set('Input', source.value);
+        try {
+            runtime.execute(`use sequences\nuse io
+fun X' pass
+ "entered" print
+ return X
+end
+fun X' Factor scale
+ "entered" print
+ return X * Factor
+end
+Matrix' = (Input array) reshape 2 2
+Result' = ${expression}`);
+            expect(output).toEqual(['entered']);
+            expect(source.reads()).toBe(0);
+            expect(formatValue(runtime.execute('Result')!)).toBe(expected);
+            expect(formatValue(runtime.execute('Result')!)).toBe(expected);
+            expect(source.reads()).toBe(8);
+            expect(output).toEqual(['entered']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('completes a postfix argument once at an ordinary parameter', () => {
+        const source = counted();
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        runtime.variables.set('Input', source.value);
+        try {
+            runtime.execute(`use sequences\nuse io
+fun X stats
+ "entered" print
+ return (X sum) + (X len)
+end
+Matrix' = (Input array) reshape 2 2
+Result' = Matrix transpose stats`);
+            expect(output).toEqual(['entered']);
+            expect(source.reads()).toBe(4);
+            expect(runtime.execute('Result')).toBe(12n);
+            expect(runtime.execute('Result')).toBe(12n);
+            expect(source.reads()).toBe(4);
+        } finally { runtime.dispose(); }
+    });
+
+    it('preserves Fenwick prefix query arguments before whole calls', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`use algo
+fun X' pass = X
+fun X' Y plusvalue = X + Y
+Tree = 3 fenwick
+Tree 0 = 2
+Tree 1 = 5`);
+            expect(runtime.execute('Tree sum 1 pass')).toBe(7n);
+            expect(runtime.execute('Tree sum 1 10 plusvalue')).toBe(17n);
+        } finally { runtime.dispose(); }
+    });
+
     it('demands a planned receiver for ungrouped argument addressing', () => {
         const source = counted();
         const runtime = new Interpreter(undefined, { compilation });
@@ -33,6 +99,8 @@ describe.each([false, true])('compositional plan construction (compilation=%s)',
             runtime.execute('use io\nfun A B add\n "entered" print\n return A + B\nend');
             expect(() => runtime.execute(`${prefix}1 2 3 add`)).toThrowError('add expects 2 arguments, got 3');
             expect(() => runtime.execute(`${prefix}1 add`)).toThrowError('add expects 2 arguments, got 1');
+            runtime.execute('fun X only\n "entered" print\n return X\nend');
+            expect(() => runtime.execute(`${prefix}1 2 only`)).toThrowError('only expects 1 arguments, got 2');
             expect(output).toEqual([]);
         } finally { runtime.dispose(); }
     });
