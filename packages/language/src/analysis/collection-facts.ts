@@ -1,4 +1,5 @@
 import { joinValueFacts, stableRecordField, TRACKED_COLLECTIONS, type ValueFacts } from './value-domain.js';
+import { completedValueFacts } from './completion-facts.js';
 
 export const isTrackedCollection = (fact: ValueFacts | undefined): boolean =>
     fact?.collectionId !== undefined && fact.types.length === 1 && TRACKED_COLLECTIONS.includes(fact.types[0]);
@@ -12,6 +13,7 @@ export const summarizedElement = (value: ValueFacts): boolean =>
 
 /** What a collection's facts claim about its contents after it receives one value of the given facts. */
 export function withInsertedElement(collection: ValueFacts, value: ValueFacts): ValueFacts {
+    value = completedValueFacts(value);
     const accepted = collection.elements;
     if (!value.types.length) {
         // The inserted value's type is unknown, so no claim about the contents survives. A populated

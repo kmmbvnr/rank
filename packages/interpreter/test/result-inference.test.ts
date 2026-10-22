@@ -5,6 +5,61 @@ import { Interpreter, isRankArray, isRankRecord, isRankTuple, parse, typeName } 
 // Exercise both analysis APIs against actual values, rather than agreeing on
 // an expected static label that could itself be wrong.
 describe.each([false, true])('selection and contraction facts (compilation=%s)', compilation => {
+    it('completes unpacked values, record fields and inserted collection values', () => {
+        const source = `use algo
+Recipe' = 1 to 3
+Pair' = tuple Recipe 7
+unpack Picked # = Pair
+Object' = record
+ .items = Recipe
+end
+Stored = record
+ .items = array 0
+end
+Stored .items = Recipe
+Queue = new queue
+Queue push Recipe
+Lookup = new index
+Lookup "x" = Recipe`;
+        const analysis = analyzeValues(parse(source));
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(source);
+            expect(analysis.diagnostics.map(diagnostic => diagnostic.message)).toEqual([]);
+            expect(analysis.bindings.get('Picked')?.types).toEqual([typeName(runtime.variables.get('Picked')!)]);
+            expect(analysis.bindings.get('Picked')?.types).toEqual(['array']);
+            expect(analysis.bindings.get('Object')?.fields?.items.types).toEqual(['array']);
+            expect(typeName(runtime.execute('Object .items')!)).toBe('array');
+            expect(analysis.bindings.get('Stored')?.fields?.items.types).toEqual(['array']);
+            expect(typeName(runtime.execute('Stored .items')!)).toBe('array');
+            expect(analysis.bindings.get('Queue')?.elements).toEqual(['array']);
+            expect(typeName(runtime.execute('Queue 0')!)).toBe('array');
+            expect(analysis.bindings.get('Lookup')?.types).toEqual(['index']);
+            expect(typeName(runtime.execute('Lookup "x"')!)).toBe('array');
+        } finally { runtime.dispose(); }
+    });
+
+    it('completes a sequence yielded to an ordinary for binding', () => {
+        const source = `fun rows
+ yield 1 to 3
+end
+fun first_row
+ for Row in rows
+  return Row
+ end
+ return array 0
+end
+Ready' = first_row`;
+        const analysis = analyzeValues(parse(source));
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(source);
+            expect(analysis.diagnostics.map(diagnostic => diagnostic.message)).toEqual([]);
+            expect(analysis.bindings.get('Ready')?.types).toEqual([typeName(runtime.variables.get('Ready')!)]);
+            expect(analysis.bindings.get('Ready')?.types).toEqual(['array']);
+        } finally { runtime.dispose(); }
+    });
+
     it('uses parameter modes before inferring the result of an identity call', () => {
         const source = `fun X identity = X
 fun X' deferred = X

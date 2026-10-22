@@ -1,4 +1,5 @@
 import { arrayBindingContract, contractElements } from './array-binding-contract.js';
+import { completedValueFacts } from './completion-facts.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
     isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement,
@@ -86,6 +87,7 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                                     shape: Array(collection.elementRank).fill(null), elements: collection.elementCells } : {}) });
             }
         }
+        if (names[0] !== '#') env.set(names[0], completedValueFacts(env.get(names[0])!));
         if (names[1] && names[1] !== '#') env.set(names[1], {
             types: ['integer'], acceptedTypes: ['integer'], rank: 0, shape: [],
         });

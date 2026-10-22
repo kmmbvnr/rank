@@ -1,4 +1,5 @@
 import { valueElementContracts } from './array-binding-contract.js';
+import { completedValueFacts } from './completion-facts.js';
 import { freshDim } from './shape-index.js';
 import {
     isDeclaredCallExpression, isFunctionOperator, isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
@@ -88,7 +89,7 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isBooleanLiteral(expression)) return { types: ['boolean'], rank: 0, shape: [], boolean: expression.value };
     if (isRecordExpression(expression)) return { types: ['record'], rank: 0, shape: [], closedRecord: true,
         fields: Object.fromEntries(expression.fields.map(field =>
-            [field.name, stableRecordField(expressionFacts(field.value, lookup), true)])) };
+            [field.name, stableRecordField(completedValueFacts(expressionFacts(field.value, lookup)), true)])) };
     if (isRecordUpdateExpression(expression)) {
         const source = expressionFacts(expression.source, lookup);
         if (source.types.join() !== 'record') return { types: ['record'] };

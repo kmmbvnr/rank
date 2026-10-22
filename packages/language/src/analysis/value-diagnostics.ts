@@ -149,6 +149,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
     });
     function insertCollectionElement(name: string, value: ValueFacts, node: Expression,
         env: Map<string, ValueFacts>): void {
+        value = completedValueFacts(value);
         const collection = env.get(name);
         if (!collection || !['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(collection.types.join())) return;
         if (!value.types.length) {
@@ -988,7 +989,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             : expressionFacts({ $type: 'BinaryExpression', operator: operator.slice(0, -1),
                 left: { $type: 'NameExpression', name: '$field' }, right: value } as Expression,
             key => key === '$field' ? expected : env.get(key));
-        const conflict = recordFieldConflict(expected, received, name);
+        const conflict = recordFieldConflict(expected, completedValueFacts(received), name);
         if (conflict) diagnostics.push({ node: value, ...conflict });
     }
 
@@ -1138,11 +1139,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const scalarCell = types.length && types.every(type =>
                         ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
                     const textCell = types.join() === 'text';
-                    bind(name, { ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
+                    bind(name, completedValueFacts({ ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
                             : textCell ? { rank: 1, shape: [null] } : {})),
                         types,
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
-                    }, statement, env);
+                    }), statement, env);
                 }
             } else if (isPushStatement(statement)) {
                 const receiver = isNameExpression(statement.receiver) ? statement.receiver.name : undefined;
@@ -1169,7 +1170,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     return inspect(index.value, env);
                 });
                 invalidateCalls(statement.value, env);
-                const replacement = inspect(statement.value, env);
+                const replacement = completedValueFacts(inspect(statement.value, env));
                 if (operation && !operation.write) diagnostics.push({ node: statement, kind: 'TypeError',
                     message: `${statement.name} does not support addressed assignment` });
                 if (statement.operator !== '=') diagnostics.push({ node: statement, kind: 'TypeError',
