@@ -31,7 +31,7 @@ fun P rounds
 
     Factors = Length factors array
     for Prime in Factors unique
-      Mask = Factors equal Prime
+      Mask' = Factors equal Prime
       Power = Mask count
       Powers Prime = Powers Prime Power max
     end

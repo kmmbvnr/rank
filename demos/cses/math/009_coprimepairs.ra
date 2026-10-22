@@ -8,13 +8,13 @@ use numbers
 use sequences
 
 N = stdin .integer
-Values = stdin .integer N
+Values' = stdin .integer N
 
 Values coprime_pairs print
 
 
 rem Count earlier coprimes by exclusion.
-fun Values coprime_pairs
+fun Values' coprime_pairs
   Counts = new counter
   Answer = 0
   Seen = 0

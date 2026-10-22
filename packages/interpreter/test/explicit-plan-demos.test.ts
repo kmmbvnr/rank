@@ -11,6 +11,28 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it.each([
+        ['005_commondivisors', '5 3 14 15 7 9', '7'],
+        ['009_coprimepairs', '5 2 3 4 9 5', '8'],
+    ] as const)('consumes the single-pass values through the deferred parameter in math %s', (name, input, expected) => {
+        const source = readFileSync(new URL(`../../../demos/cses/math/${name}.ra`, import.meta.url), 'utf8');
+        const tokens = input.split(' ');
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual([expected]);
+            expect(reads).toBe(tokens.length);
+            expect(runtime.variables.get('Values')).toMatchObject({ kind: 'sequence' });
+            expect(isStoredValue(runtime.variables.get('Values')!)).toBe(false);
+            expect(() => runtime.executeProgram(parse('Again = Values sum'), [])).toThrow(/already been consumed/);
+            expect(reads).toBe(tokens.length);
+        } finally { runtime.dispose(); }
+    });
+
     it('counts the tree snapshot with native bounds without enumerating pair distances', () => {
         const source = readFileSync(new URL('../../../demos/cses/tree/016_fixedpaths2.ra', import.meta.url), 'utf8');
         const program = parse(source);

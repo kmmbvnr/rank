@@ -34,6 +34,6 @@ fun N Low High dice_probability
     Ways = Next
   end
 
-  Favorable = Ways (Low to High)
+  Favorable' = Ways (Low to High)
   return Favorable sum / 6 ** N
 end
