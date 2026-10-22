@@ -28,6 +28,13 @@ describe('factsAt: each kind of name position', () => {
         expect(formatNameFacts(found)).toBe('M · integer [3 4]');
     });
 
+    it.each([['', 'array'], ["'", 'sequence']])('shows the binding result for a range marked %s', (marker, type) => {
+        const source = `Values${marker} = 1 to 3\nValues print`;
+        for (const offset of [source.indexOf('Values'), source.lastIndexOf('Values')]) {
+            expect(factsAt(source, offset)?.facts.types).toEqual([type]);
+        }
+    });
+
     it('finds a loop name and reports one element of the iterable', () => {
         const found = factsAt(source, at(source, 'Row'))!;
         expect(found).toMatchObject({ name: 'Row', source: 'static' });
@@ -467,10 +474,10 @@ it('shows builtin signatures at their own boundary in a pipeline', () => {
 });
 
 
-it('keeps Euler 1 integer sequence sums and boolean masks, including compound assignment targets', () => {
+it('keeps Euler 1 computed integer arrays and boolean masks, including compound assignment targets', () => {
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
-        ['N =', 'N · c<integer>'],
+        ['N =', 'N · c[#]<integer>'],
         ['Mask =', 'Mask · c[#]<boolean>'],
         ['Mask or=', 'Mask · c[#]<boolean>'],
         ['Mask sum', 'Mask · c[#]<boolean>'],

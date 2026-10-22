@@ -1,6 +1,6 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
+    analyzeValues, completedValueFacts, completionMayCall, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
     isFunctionCallGroup, isFunctionParameter, isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
@@ -397,9 +397,15 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
                 : { types, rank: types.join() === 'text' ? 1 : 0, shape: types.join() === 'text' ? [null] : [] };
         }
         case 'function': return FUNCTION;
-        case 'assignment':
-            return isAssignmentStatement(node) ? node.operator === '=' ? known(node.value)
-                : analysis.assignments.get(node) ?? UNKNOWN : UNKNOWN;
+        case 'assignment': {
+            if (!isAssignmentStatement(node)) return UNKNOWN;
+            const assigned = analysis.assignments.get(node);
+            if (assigned?.types.length || node.operator !== '=') return assigned ?? UNKNOWN;
+            // Example calls can refine an expression before its local binding.
+            // Reuse that evidence only when completion cannot re-enter Rank.
+            const value = known(node.value);
+            return node.deferred ? value : completionMayCall(value) ? assigned ?? UNKNOWN : completedValueFacts(value);
+        }
         case 'loop': return bodyRead(loopOf(node)!, name, analysis);
         case 'parameter': return bodyRead(node as FunctionStatement, name, analysis);
         case 'unpack': return isUnpackStatement(node)
