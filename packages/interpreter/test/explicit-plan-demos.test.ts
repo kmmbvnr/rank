@@ -13,7 +13,9 @@ const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
     it('retains dice histograms and defers pairwise win selection', () => {
         const source = readFileSync(new URL('../../../demos/euler/205_dicegame.ra', import.meta.url), 'utf8');
-        const runtime = new Interpreter(() => {}, { compilation, args: ['--pn=1', '--cn=1'] });
+        let entries = 0;
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--pn=1', '--cn=1'],
+            onTensorKernelExecuted: () => entries++ });
         try {
             runtime.execute(source);
             expect(runtime.variables.get('Answer')).toBe(0.25);
@@ -26,6 +28,7 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
             expect(formatValue(runtime.variables.get('Hc')!)).toBe('0 1 1 1 1 1 1');
             expect(isRankPlan(runtime.variables.get('Pair')!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Won')!)).toBe(true);
+            expect(entries).toBe(compilation ? 14 : 0);
         } finally { runtime.dispose(); }
     });
 

@@ -153,6 +153,10 @@ empty `all` and `any` cells return `true` and `false`; an empty `mean`, `std`,
 `min` or `max` raises `.EmptyReduction`. `mean` and `std` always return real
 values. `std` uses the population denominator `N`.
 
+`all` and `any` stop within each reduced cell as soon as its result is known.
+Later elements of that cell are not read or checked. Each new demand of a
+deferred axis reduction computes its cells again.
+
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
 the coordinate dimensions that the operation consumes.

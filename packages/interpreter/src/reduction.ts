@@ -7,8 +7,10 @@ import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
 import { numericKernel } from './numeric-kernels.js';
+import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
+import { reduceTensorMap } from './tensor-map.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
@@ -200,6 +202,11 @@ export class ReductionEvaluator {
         const frameShape = frameAxes.map(axis => value.shape[axis]);
         const reducer = this.resolve(operation);
         if (!isNativeFunction(reducer)) throw new RankError(`${operation} is not an operation`);
+        const builtin = hasNativeImplementation(reducer) && ['core', 'numbers', 'stats', 'sequences'].some(module => {
+            const definition = standardModules[module][operation];
+            return definition !== undefined && reducer === this.standardFunctions.get(definition);
+        });
+        const booleanFold = builtin && (operation === 'any' || operation === 'all');
 
         const strides = value.shape.map(() => 1);
         for (let axis = strides.length - 2; axis >= 0; axis -= 1) {
@@ -215,16 +222,21 @@ export class ReductionEvaluator {
             }
             return offset;
         };
-        // Lazy cells must still be fully read before the reducer validates them.
+        // Numeric fallback cells must still be fully read before the reducer validates them.
         // A table too big to collect is the exception: it is summed a cell at a time, nothing held.
         const streaming = shouldStream(value);
-        const directSum = operation === 'sum' && (value.itemAt === undefined || streaming)
+        const directSum = builtin && operation === 'sum' && (value.itemAt === undefined || streaming)
             && reducer === this.standardFunctions.get(standardModules.core.sum);
 
         // Stored cells are read straight from their storage, through offsets
         // worked out once for the reduced axes instead of once per cell.
         const stored = denseScalarItems(value);
         const producer = arrayCells(value) ? tensorCells(value, frameAxes) : undefined;
+        // Reuse checked scalar views so native terminals see the original map.
+        // Boolean folds consume the same view in reference mode to short-circuit
+        // within each cell, just as a whole-array fold does.
+        const scalarCells = !producer && reducedAxes.length > 0
+            && (booleanFold || builtin && this.isTensorFusion()) ? tensorCells(value, frameAxes) : undefined;
         let reducedOffsets: Int32Array | undefined;
         if (stored && reducedSize <= MAX_OFFSET_TABLE) {
             reducedOffsets = new Int32Array(reducedSize);
@@ -232,14 +244,22 @@ export class ReductionEvaluator {
         }
         const reduceAt = (frameIndex: number): RankValue => {
             if (producer) return reducer.call([producer.cellAt(frameIndex)]);
+            if (scalarCells && hasNativeImplementation(reducer)) {
+                const cell = scalarCells.cellAt(frameIndex);
+                if (booleanFold) return reducer.call([cell]);
+                if (isRankArray(cell)) {
+                    const native = reduceTensorMap(cell, operation);
+                    if (native !== undefined) return native;
+                }
+            }
             const start = offsetAt(frameIndex, frameAxes);
             const itemAt = stored && reducedOffsets
                 ? (index: number) => stored[start + reducedOffsets![index]]
                 : streaming && value.streamAt
                     ? (index: number) => value.streamAt!(start + offsetAt(index, reducedAxes))
                     : (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
-            if (directSum) return sumIndexed(reducedSize, itemAt);
-            if (this.isTensorFusion()
+            if (directSum && hasNativeImplementation(reducer)) return sumIndexed(reducedSize, itemAt);
+            if (builtin && hasNativeImplementation(reducer) && this.isTensorFusion()
                 && (operation === 'mean' || operation === 'std')
                 && reducer === this.standardFunctions.get(standardModules.stats[operation])) {
                 return statisticsCell(operation, reducedSize, itemAt);
@@ -260,10 +280,6 @@ export class ReductionEvaluator {
         };
 
         if (frameShape.length === 0) return reduceAt(0);
-        const builtin = ['core', 'numbers', 'stats', 'sequences'].some(module => {
-            const definition = standardModules[module][operation];
-            return definition !== undefined && reducer === this.standardFunctions.get(definition);
-        });
         return derivedArray(frameShape, [value, reducer], reduceAt, builtin);
     }
 
