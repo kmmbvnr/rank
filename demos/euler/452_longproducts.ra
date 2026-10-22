@@ -1,0 +1,69 @@
+rem Long Products
+rem https://projecteuler.net/problem=452
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 1000000000
+option N integer = 1000000000
+
+rem F = sum of C(N, r) G_r(M), where
+rem G_r(v) counts r-tuples of factors
+rem >= 2 with product <= v. G_r(v) =
+rem sum over x >= 2 of G_{r-1}(v // x)
+rem stays on the quotients v = M // i.
+rem Every v has its blocks of equal
+rem v // x in one flat transition list.
+Md = 1234567891
+Sq = M isqrt
+Lg = M // (Sq to 1 by -1)
+if M // Sq equal Sq
+  Lg = Lg (1 till Sq)
+end
+V = (concat (1 to Sq) Lg) copy
+S = V len
+Sv = V isqrt
+Ct = Sv - 1 + V // (Sv + 1)
+Of = Ct scan + with 0
+B = Of S
+Nz = (Ct greater 0) indices
+Mk = array shape B fill 0
+Mk (Of Nz) = Nz
+Ow = (Mk scan max) copy
+J = (0 till B) - Of Ow
+Vo = V Ow
+So = Sv Ow
+rem x = 2 .. sqrt v one at a time,
+rem then the quotients q below it.
+Ix = J less (So - 1)
+Qq = (J - So + 2) 1 max
+Lo = (Vo // (Qq + 1)) So max
+Wq = Vo // Qq - Lo
+Q = (Ix choose (Vo // (J + 2)) Qq) copy
+W = (Ix choose 1 Wq) copy
+Hi = Q greater Sq
+Tl = S - M // Q
+Tg = (Hi choose Tl (Q - 1)) copy
+D = 0
+for 2 ** (D + 1) at most M
+  D += 1
+end
+Pv = array shape S fill 1
+Tot = 1
+for R in 1 to D
+  T0 = (V less 2 ** R) count
+  F0 = Of T0
+  Fs = F0 till B
+  Va = W Fs * Pv (Tg Fs) mod Md
+  Cs = Va scan + with 0
+  Ed = Of ((T0 + 1) to S) - F0
+  Bg = Of (T0 till S) - F0
+  Pv = array shape S fill 0
+  Pv (T0 till S) = Cs Ed - Cs Bg mod Md
+  Cn = N R binomial mod Md
+  Tot = (Tot + Cn * Pv (S - 1)) mod Md
+end
+Answer = Tot
+Answer print

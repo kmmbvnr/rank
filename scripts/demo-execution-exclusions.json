@@ -167,5 +167,6 @@
   "euler/424_kakuro.ra": "To fix later: the default input takes about 92 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/433_euclidsteps.ra": "To fix later: the default input takes about 22 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/438_integerpart.ra": "To fix later: the default input takes about 57 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/451_modularinverses.ra": "To fix later: the default input takes about 110 s (1.7 x 10^8 split candidates); the small _test.ra fixture stays in the audits."
+  "euler/451_modularinverses.ra": "To fix later: the default input takes about 110 s (1.7 x 10^8 split candidates); the small _test.ra fixture stays in the audits.",
+  "euler/452_longproducts.ra": "To fix later: the default input takes about 3 min and 4.7 GB (3 x 10^7 transitions over 29 layers); the small _test.ra fixture stays in the audits."
 }
