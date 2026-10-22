@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "460_antonthemove"
+  D = 4
+  run
+  Answer equal 2.960516287
+  D = 10
+  run
+  Answer equal 4.668187834
+  D = 100
+  run
+  Answer equal 9.217221972
+end
+
+test "wider band agrees"
+  use "460_antonthemove"
+  D = 1000
+  run
+  A1 = Answer
+  Band = 1.0
+  K = 600
+  run
+  Answer equal A1
+end

@@ -1,0 +1,61 @@
+rem An Ant on the Move
+rem https://projecteuler.net/problem=460
+
+use numbers
+use sequences
+use io
+use cli
+
+option D integer = 10000
+option Band real = 0.5
+option K integer = 300
+
+rem Speed y makes time a hyperbolic
+rem length, so the quickest path keeps
+rem close to the geodesic: the circle
+rem of radius w = D / 2 about (w, 0).
+rem Half the path, to x = w, runs on
+rem lattice points within Band of the
+rem circle. In angle order each point
+rem takes the best of the K before it.
+W = D // 2
+Xs = (0 to W) copy
+Hx = (W - Xs) * (W - Xs) * 1.0
+Lo = (W - Band) ** 2 - Hx
+Hi = (W + Band) ** 2 - Hx
+Yl = ((Lo 1.0 max) sqrt) ceil
+Yh = (Hi sqrt) floor
+Ln = (Yh - Yl + 1) 0 max
+Of = Ln scan + with 0
+Np = Of (W + 1)
+Nz = (Ln greater 0) indices
+Mk = array shape Np fill 0
+Mk (Of Nz) = Nz
+Ow = (Mk scan max) copy
+Px = Ow
+Py = Yl Ow + (0 till Np) - Of Ow
+Th = (Py * 1.0) ((W - Px) * 1.0) atan2
+Od = Th argsort
+Px = (Px Od) copy
+Py = (Py Od) copy
+Ly = (Py * 1.0) log
+Bt = array shape Np fill 1000000.0
+Bt 0 = 0.0
+for J in 1 to Np - 1
+  Is = (J - K) 0 max till J
+  Xj = Px J
+  Yj = Py J
+  Dx = Xj - Px Is
+  Dy = Yj - Py Is
+  Ok = (Dx Dy min) at least 0
+  Ll = (Dx * Dx + Dy * Dy) sqrt
+  Fl = Dy equal 0
+  Dn = Fl choose 1 Dy
+  Ps = (Ly J - Ly Is) / Dn
+  Ps = Fl choose (1.0 / Yj) Ps
+  Cs = Bt Is + Ll * Ps
+  Bt J = (Ok choose Cs 1000000.0) min
+end
+Ed = (Px equal W) indices
+Answer = (2 * (Bt Ed) min) 9 round
+Answer print
