@@ -57,3 +57,28 @@ test "finds a route through two cities"
   Dist = Graph 4 all_pairs
   Dist 1 4 equal 12
 end
+
+test "keeps large integer sums exact beside unreachable cells"
+  use "009_routes2"
+  use graph
+  Graph = new graph (1 to 3) .undirected
+  Price = 9007199254740993
+  Graph add 1 2 Price
+  Graph add 2 3 Price
+  Dist = Graph 3 all_pairs
+  Dist 1 2 equal Price
+  Dist 1 3 equal 18014398509481986
+end
+
+test "rebuilds after graph changes without changing the retained matrix"
+  use "009_routes2"
+  use graph
+  Graph = new graph (1 to 3) .undirected
+  Graph add 1 2 5
+  Graph add 2 3 5
+  First = Graph 3 all_pairs
+  Graph add 1 3 1
+  Second = Graph 3 all_pairs
+  First 1 3 equal 10
+  Second 1 3 equal 1
+end

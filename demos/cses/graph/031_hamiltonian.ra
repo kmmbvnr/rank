@@ -20,7 +20,7 @@ fun N Edges hamiltonian_flights
   States = 1 N shl
   Full = States - 1
   Last = N - 1
-  Nodes = 0 till N
+  Nodes' = 0 till N
   Back = new graph Nodes .directed
   for Edge in Edges
     unpack From To = Edge
@@ -43,8 +43,7 @@ fun N Edges hamiltonian_flights
       Bit = 1 City shl
       Before = Mask Bit bxor
       Prevs = Back City
-      Incoming = Ways Before Prevs
-      Ways Mask City = Incoming sum mod Modulus
+      Ways Mask City = (Ways Before Prevs) sum mod Modulus
     end
   end
   return Ways Full Last

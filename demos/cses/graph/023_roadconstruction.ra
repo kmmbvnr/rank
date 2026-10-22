@@ -15,7 +15,7 @@ N Roads road_progress print
 
 rem Track components after each road.
 fun N Roads road_progress
-  Nodes = 1 to N
+  Nodes' = 1 to N
   Union = new dsu Nodes
   Sizes = array shape (N + 1) fill 1
   M = Roads len

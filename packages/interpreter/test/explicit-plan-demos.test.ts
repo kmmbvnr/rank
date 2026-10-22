@@ -11,6 +11,29 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it.each([
+        ['008_routes1', '3 3 1 2 5 2 3 7 1 3 20', ['0 5 12']],
+        ['009_routes2', '4 2 3 1 2 5 2 3 7 1 3 1 4 2 2', ['12', '-1', '0']],
+    ] as const)('keeps graph vertices deferred and distances ready in %s', (name, input, expected) => {
+        const source = readFileSync(new URL(`../../../demos/cses/graph/${name}.ra`, import.meta.url), 'utf8');
+        const tokens = input.split(' ');
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual(expected);
+            expect(reads).toBe(tokens.length);
+            expect(isStoredValue(runtime.variables.get('Nodes')!)).toBe(false);
+            expect(isStoredValue(runtime.variables.get('Distances')!)).toBe(true);
+            const distances = formatValue(runtime.variables.get('Distances')!);
+            runtime.executeProgram(parse('Graph add 1 3 1'), []);
+            expect(formatValue(runtime.execute('Distances')!)).toBe(distances);
+        } finally { runtime.dispose(); }
+    });
+
     it('streams denominations once while keeping the combination DP mutable', () => {
         const source = readFileSync(new URL('../../../demos/cses/dynamic/004_coincomb2.ra', import.meta.url), 'utf8');
         const tokens = ['3', '9', '2', '3', '5'];

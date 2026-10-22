@@ -114,7 +114,7 @@ isolated vertices and makes an unknown endpoint an error:
 ```rank
 use graph
 
-Nodes = 1 to NodeCount
+Nodes' = 1 to NodeCount
 Graph = new graph Nodes .undirected
 ```
 

@@ -9,7 +9,7 @@ use sequences
 
 NodeCount = stdin .integer
 EdgeCount = stdin .integer
-Nodes = 1 to NodeCount
+Nodes' = 1 to NodeCount
 Graph = new graph Nodes .directed
 
 for i in 1 to EdgeCount

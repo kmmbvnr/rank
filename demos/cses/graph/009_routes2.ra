@@ -9,7 +9,7 @@ use sequences
 NodeCount = stdin .integer
 EdgeCount = stdin .integer
 QueryCount = stdin .integer
-Nodes = 1 to NodeCount
+Nodes' = 1 to NodeCount
 Graph = new graph Nodes .undirected
 
 for i in 1 to EdgeCount
@@ -45,9 +45,9 @@ fun Graph NodeCount all_pairs
   end
 
   for Middle in 1 to NodeCount
-    Column = Dist # Middle
-    Row = Dist Middle
-    Through = Column Row outer +
+    Column' = Dist # Middle
+    Row' = Dist Middle
+    Through' = Column Row outer +
     Dist = Dist Through min
   end
   return Dist

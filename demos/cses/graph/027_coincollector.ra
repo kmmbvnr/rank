@@ -29,7 +29,7 @@ fun N Coins Edges collect_coins
     Sums Kingdom += Coins i
   end
 
-  Kingdoms = 1 to Count
+  Kingdoms' = 1 to Count
   DAG = new graph Kingdoms .directed
   for Edge in Edges
     unpack From To = Edge
