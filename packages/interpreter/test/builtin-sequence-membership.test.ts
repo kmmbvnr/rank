@@ -49,13 +49,13 @@ end`);
         const runtime = new Interpreter();
         try {
             expect(runtime.execute(`use sequences
-Allowed = primes
+Allowed' = primes
 Total = 0
 for N in 1 to 3
   if N in Allowed
     Total += 1
   end
-  Allowed = fibonacci
+  Allowed' = fibonacci
 end
 Total`)).toBe(2n);
         } finally { runtime.dispose(); }

@@ -40,6 +40,9 @@ Each numbered `.ra` file opens the database, computes one answer and writes a
 CSV result to `../data/`. Tasks 1–8 stay in SQLite until output. Task 4 compares
 fifty times the member cost with maintenance; task 6 uses an OR filter, and
 task 7 uses a contextual select with `choose`.
+Their `R'` and `Result'` bindings keep query stages deferred; the CSV consumer
+executes the composed query. Scalar locals inside `select` remain ordinary
+bindings evaluated for each row.
 [Task 5](005_like.ra) still uses bound `sqlquery` for SQLite LIKE;
 Rank has no equivalent case-insensitive substring operation yet.
 
@@ -48,6 +51,8 @@ rows locally. Task 10 reads only the projected name columns for its local
 union. Tasks 11 and 12 still read members for their latest-date calculation.
 These remaining materialization boundaries are explicit; see the
 [translation roadmap](../../../docs/design/sqlite-tables.md).
+In tasks 11 and 12, ordinary `Rows` retains members for both the latest-date
+calculation and the final selection.
 
 Run all answers from the repository root:
 
@@ -63,3 +68,6 @@ query. It includes a date at the cutoff, duplicate surnames, tied latest
 signups and a lowercase `tennis` name. The test needs no downloaded club data.
 The ordered task compares row order; the other tasks compare result rows
 without assuming a database scan order.
+Both interpreter modes also check query counts: tasks 1–8 read no data before
+CSV output, task 9 reads its sorted distinct rows once, task 10 reads each
+projected table once, and tasks 11–12 retain one members read.

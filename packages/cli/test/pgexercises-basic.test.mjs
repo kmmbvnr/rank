@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, isRankPlan, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -63,6 +65,16 @@ function makeDatabase(dbPath) {
     return db;
 }
 
+function assertAnswer(db, index, output) {
+    const actual = fs.readFileSync(output, 'utf8').trimEnd().split('\n').map(line => line.split(','));
+    const statement = db.prepare(reference[index]);
+    const expected = [statement.columns().map(column => column.name),
+        ...statement.all().map(row => Object.values(row).map(value => value === null ? '' : String(value)))];
+    assert.deepEqual(actual[0], expected[0]);
+    if (index === 8) assert.deepEqual(actual, expected);
+    else assert.deepEqual(actual.slice(1).sort(), expected.slice(1).sort());
+}
+
 test('all 12 PostgreSQL Exercises Basic programs match SQLite reference queries', async t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgexercises-'));
     const dbPath = path.join(directory, 'club.sqlite3');
@@ -75,16 +87,10 @@ test('all 12 PostgreSQL Exercises Basic programs match SQLite reference queries'
                 assert.equal(Number(program.slice(0, 3)), index + 1);
                 const output = path.join(directory, 'out.csv');
                 const result = spawnSync(process.execPath, [cli, path.join(basic, program), dbPath, output], {
-                    cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024,
+                    cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 15000,
                 });
                 assert.equal(result.status, 0, result.stderr);
-                const actual = fs.readFileSync(output, 'utf8').trimEnd().split('\n').map(line => line.split(','));
-                const statement = db.prepare(reference[index]);
-                const expected = [statement.columns().map(column => column.name),
-                    ...statement.all().map(row => Object.values(row).map(value => value === null ? '' : String(value)))];
-                assert.deepEqual(actual[0], expected[0]);
-                if (index === 8) assert.deepEqual(actual, expected);
-                else assert.deepEqual(actual.slice(1).sort(), expected.slice(1).sort());
+                assertAnswer(db, index, output);
             });
         }
     } finally {
@@ -92,3 +98,56 @@ test('all 12 PostgreSQL Exercises Basic programs match SQLite reference queries'
         fs.rmSync(directory, { recursive: true, force: true });
     }
 });
+
+for (const compilation of [false, true]) {
+    test(`Basic query plans and explicit retained rows (compilation=${compilation})`, async t => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-pgexercises-plans-'));
+        const dbPath = path.join(directory, 'club.sqlite3');
+        const db = makeDatabase(dbPath);
+        try {
+            const programs = fs.readdirSync(basic).filter(name => /^\d{3}_.*\.ra$/.test(name)).sort();
+            for (const [index, program] of programs.entries()) await t.test(program, () => {
+                const queries = [];
+                let opens = 0, closes = 0;
+                const io = { ...nodeIo, openSqlite(file) {
+                    opens++;
+                    const connection = nodeIo.openSqlite(file);
+                    return { ...connection, prepare(sql) {
+                        const statement = connection.prepare(sql);
+                        return { ...statement, all(params) {
+                            if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) queries.push(sql);
+                            return statement.all(params);
+                        } };
+                    }, close() { closes++; connection.close(); } };
+                } };
+                const output = path.join(directory, 'out.csv');
+                const source = fs.readFileSync(path.join(basic, program), 'utf8');
+                const boundary = '\nResult OutputPath csv';
+                assert.ok(source.trimEnd().endsWith(boundary));
+                const runtime = new Interpreter(undefined, { io, compilation });
+                try {
+                    // Execute the actual query declarations before the CSV consumer.
+                    const prefix = source.slice(0, source.lastIndexOf(boundary));
+                    runtime.executeProgram(parse(prefix), [dbPath, output]);
+                    const before = index < 8 ? 0 : index === 9 ? 2 : 1;
+                    assert.equal(queries.length, before);
+                    assert.equal(isRankPlan(runtime.variables.get('Result')), index < 8);
+                    runtime.execute('Result OutputPath csv');
+                    assert.equal(queries.length, index === 9 ? 2 : 1);
+                    assertAnswer(db, index, output);
+                    if ([2, 3, 5, 7].includes(index)) assert.match(queries[0], /\bWHERE\b/);
+                    if (index === 4) assert.match(queries[0], /\bLIKE\b/);
+                    if (index === 6) assert.match(queries[0], /\bCASE\b/);
+                    if (index === 8) {
+                        assert.match(queries[0], /DISTINCT/);
+                        assert.match(queries[0], /ORDER BY/);
+                    }
+                } finally { runtime.dispose(); }
+                assert.equal(opens, closes);
+            });
+        } finally {
+            db.close();
+            fs.rmSync(directory, { recursive: true, force: true });
+        }
+    });
+}

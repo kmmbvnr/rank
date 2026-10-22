@@ -8,8 +8,8 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/006_in.csv"
 
 Db = DbPath sqlite
-R = Db .facilities
-Result = R filter
+R' = Db .facilities
+Result' = R filter
   .facid equal 1 or .facid equal 5
 end
 Result OutputPath csv
