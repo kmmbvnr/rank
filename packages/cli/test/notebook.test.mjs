@@ -514,9 +514,9 @@ test('live function previews read current globals without changing them', async 
     await enter('fun X replace');
     repl.exampleEditor.replace('9');
     await repl.submit();
-    book.insert('A 1 = X');
+    book.insert('A + X');
     await repl.submit();
-    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['1 9 3']);
+    assert.deepEqual(repl.liveOutputs.get(2).map(line => line.text), ['10 11 12']);
     const global = await session.execute('A', 99, []);
     assert.deepEqual(global.output.map(line => line.text), ['1 2 3']);
 });
@@ -695,12 +695,12 @@ test('a generator name displays its current unread tail and is empty after consu
     const { book, enter } = setup(t);
     await enter('use numbers');
     await enter('fun tst\n  yield 1\n  yield 2\n  yield 3\nend');
-    await enter('G = tst');
+    await enter("G' = tst");
     assert.equal(output(book.cells[2]), '1 2 3');
     await enter('G 0');
     await enter('G');
     assert.equal(output(book.cells[4]), '2 3');
-    await enter('G = tst');
+    await enter("G' = tst");
     await enter('G sum');
     assert.equal(output(book.cells[6]), '6');
     await enter('G');
@@ -1071,24 +1071,25 @@ test('load saves the old document to its bound file before replacing it; a missi
     assert.equal(repl.unsaved, false);
 });
 
-test('editing a native stream consumer restores its position while retaining earlier consumption', async t => {
+test('editing a native plan consumer starts a fresh evaluation and preserves other results', async t => {
     const { book, enter, edit } = setup(t);
     await enter('use sequences');
-    await enter('G = primes');
+    await enter("G' = primes");
     await enter('G till 100 sum');
     await enter('G till 120 sum');
     await enter('G');
     assert.equal(output(book.cells[2]), '1060');
-    assert.equal(output(book.cells[3]), '533');
-    assert.match(output(book.cells[4]), /^127 131 137/);
+    assert.equal(output(book.cells[3]), '1593');
+    assert.match(output(book.cells[4]), /^2 3 5/);
     edit(3, 'G till 110 sum');
     await enter('');
-    assert.equal(output(book.cells[3]), '420');
-    assert.match(output(book.cells[4]), /^113 127 131/);
+    assert.equal(output(book.cells[3]), '1480');
+    assert.match(output(book.cells[4]), /^2 3 5/);
     edit(2, 'G till 10 sum');
     await enter('');
     assert.equal(output(book.cells[2]), '17');
-    assert.match(output(book.cells[4]), /^113 127 131/);
+    assert.equal(output(book.cells[3]), '1480');
+    assert.match(output(book.cells[4]), /^2 3 5/);
 });
 
 test('loading declares later functions without running statements or function bodies', async t => {

@@ -46,12 +46,12 @@ test('an unbounded sequence shows a beginning only', () => {
 test('a selection that runs dry stops looking instead of hanging', () => {
     const shown = preview(value([
         'use numbers', 'use sequences',
-        'Fib = fibonacci',
-        'Mask = (Fib even) and (Fib less 1000)',
+        "Fib' = fibonacci",
+        "Mask' = (Fib even) and (Fib less 1000)",
         'Fib Mask',
     ].join('\n')));
     assert.equal(shown.text, '2 8 34 144 610 ...');
-    assert.equal(shown.note, 'unbounded');
+    assert.equal(shown.note, 'preview demand budget exhausted');
 });
 
 test('a tensor reports the shape its flat text hides', () => {
