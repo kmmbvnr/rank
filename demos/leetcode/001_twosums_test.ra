@@ -39,3 +39,15 @@ test "negative values"
 
   Answer equal array 0 2
 end
+
+test "stops before evaluating the remaining input"
+  use "001_twosums"
+  fun X checked
+    if X greater 2
+      .DomainError raise
+    end
+    return X
+  end
+  Source' = (1 to 10) checked rank 0
+  Source 3 two_sum equal array 0 1
+end

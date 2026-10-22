@@ -21,7 +21,7 @@ Submission OutputPath csv
 rem Use CSV headers to retain pixel order in both files.
 fun Train Test solve_table
   Labels = Train labels
-  Mask = Labels not equal .label
+  Mask' = Labels not equal .label
   Features = (Labels Mask) array
   X = Train Features
   Xtest = Test Features
@@ -43,7 +43,7 @@ fun X Y Classes centroids
   K = Classes len
   Result = array shape K Cols fill 0.0
   for Class ci in Classes
-    Mask = Y equal Class
+    Mask' = Y equal Class
     Group = X Mask #
     if Group len equal 0
       .DomainError raise
@@ -59,8 +59,8 @@ fun X Centers Classes classify
   Pred = array shape Rows fill 0
   for Row in 0 till Rows
     Point = X Row #
-    Delta = Centers - Point
-    Dist = Delta * Delta sum axis 1
+    Delta' = Centers - Point
+    Dist' = Delta * Delta sum axis 1
     Best = Dist argsort .ascending 0
     Pred Row = Classes Best
   end

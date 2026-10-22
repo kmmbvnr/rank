@@ -4,7 +4,7 @@ rem that add up to a target
 
 use algo
 
-fun A Target two_sum
+fun A' Target two_sum
   Index = new index
   for Value i in A
     Need = Target - Value

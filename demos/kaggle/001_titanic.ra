@@ -62,10 +62,11 @@ fun X Y Rate Steps logistic
   Bias = 0.0
   Zt = Z transpose
   for # in 0 till Steps
+    rem Store scores before updating weights and bias.
     Scores = Z Weights matmul + Bias
-    Probability = Scores sigmoid
+    Probability' = Scores sigmoid
     Error = Probability - Targets
-    Gradient = Zt Error matmul / (Rows real)
+    Gradient' = Zt Error matmul / (Rows real)
     Weights -= Rate * Gradient
     Bias -= Rate * (Error mean)
   end
@@ -80,16 +81,16 @@ end
 
 
 rem Predict integer classes with a 0.5 threshold.
-fun X Model logistic_predict
-  Features = X real rank 0
-  Z = (Features - Model .center) / Model .scale
-  Score = Z Model .weights matmul + Model .bias
+fun X' Model logistic_predict
+  Features' = X real rank 0
+  Z' = (Features - Model .center) / Model .scale
+  Score' = Z Model .weights matmul + Model .bias
   return (Score sigmoid greater 0.5) binary
 end
 
 
-fun Value sigmoid
-  Exp = (-Value) exp
+fun Value' sigmoid
+  Exp' = (-Value) exp
   return 1.0 / (1.0 + Exp)
 end
 
