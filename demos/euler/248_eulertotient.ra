@@ -25,20 +25,20 @@ rem and for each the primes that still
 rem fit are listed beforehand.
 Pf = Target factors array unique
 Cnt = Pf len
-Col = Pf reshape Cnt 1
+Col' = Pf reshape Cnt 1
 All = Target factors array
-Ex = (Col equal All) count axis 1
+Ex' = (Col equal All) count axis 1
 Rad = Ex + 1
 Wt = Rad scan * with 1
 Num = Wt Cnt
 Ix = 0 till Num array
 Rv = Ix - Ix + 1
 for I in 0 till Cnt
-  Dg = (Ix // Wt I) mod Rad I
+  Dg' = (Ix // Wt I) mod Rad I
   Rv = Rv * (Pf I) ** Dg
 end
 Pa = Rv + 1
-Ok = Pa in primes
+Ok' = Pa in primes
 Ps = ((Pa filter Ok array) sort) reverse
 Np = Ps len
 Pos = 0 till Np array
@@ -46,7 +46,7 @@ Off = array shape Num fill 0
 Len = array shape Num fill 0
 Flat = array shape 0 fill 0
 for K in 0 till Num
-  Fit = Rv K mod (Ps - 1) equal 0
+  Fit' = Rv K mod (Ps - 1) equal 0
   Sel = Pos filter Fit array
   Off K = Flat len
   Len K = Sel len

@@ -43,22 +43,22 @@ for Level in 1 to 100
     To = Pos + Dels M
     Ok = (To at least 0) and To less 16
     if M less 2
-      Row = To // 4 equal Pos // 4
+      Row' = To // 4 equal Pos // 4
       Ok = Ok and Row
     end
     P = Pos filter Ok array
     T = To filter Ok array
     R = Red filter Ok array
-    Sh = R T shr
-    Moved = Sh 1 band
-    Bt = 1 T shl
-    Rest = R (Bt bnot) band
-    Mp = Moved P shl
-    NewRed = Rest Mp bor
-    Ck = Chk * 243 + Ords M * Cnt
+    Sh' = R T shr
+    Moved' = Sh 1 band
+    Bt' = 1 T shl
+    Rest' = R (Bt bnot) band
+    Mp' = Moved P shl
+    NewRed' = Rest Mp bor
+    Ck' = Chk * 243 + Ords M * Cnt
     NK = concat NK (NewRed * 16 + T)
     NC = concat NC (Cnt filter Ok array)
-    Cm = Ck mod Mod
+    Cm' = Ck mod Mod
     NS = concat NS (Cm filter Ok array)
   end
   Fresh = (Seen NK) equal 0
@@ -69,23 +69,23 @@ for Level in 1 to 100
   Ks = NK Ord
   Cc = (NC Ord) scan +
   Cs = (NS Ord) scan +
-  Nx = concat (Ks drop 1) (array -1)
+  Nx' = concat (Ks drop 1) (array -1)
   Last = Ks not equal Nx
   Ke = Ks filter Last array
   Ce = Cc filter Last array
   Se = Cs filter Last array
   H = Ke len
-  Hc = Ce take (H - 1)
-  Hs = Se take (H - 1)
-  Pc = concat (array 0) Hc
-  Ps = concat (array 0) Hs
+  Hc' = Ce take (H - 1)
+  Hs' = Se take (H - 1)
+  Pc' = concat (array 0) Hc
+  Ps' = concat (array 0) Hs
   Key = Ke
   Cnt = Ce - Pc
   Chk = (Se - Ps) mod Mod
   Seen Key = Seen Key - Seen Key + 1
   Hit = Key equal (Goal * 16)
   if Hit any
-    Won = Chk filter Hit array
+    Won' = Chk filter Hit
     Answer = Won sum mod Mod
     break
   end

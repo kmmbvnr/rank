@@ -11,6 +11,64 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('keeps race rows writable while reducing deferred action candidates', () => {
+        const source = readFileSync(new URL('../../../demos/euler/232_race.ra', import.meta.url), 'utf8');
+        let entries = 0, maxKernels = 0;
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--goal=3'],
+            onTensorKernelExecuted: () => entries++,
+            onTensorKernelCompiled: source => { if (source.includes('tensor:terminal-type:max')) maxKernels++; } });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(0.54403292);
+            for (const name of ['P', 'G', 'F', 'Hn']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            if (compilation) expect(entries).toBeGreaterThanOrEqual(9);
+            else expect(entries).toBe(0);
+            expect(maxKernels).toBe(compilation ? 1 : 0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('packs ready digit words through the actual infinite-string merge stage', () => {
+        const source = readFileSync(new URL('../../../demos/euler/238_infinitestring.ra', import.meta.url), 'utf8');
+        const start = source.indexOf('Nw = Words len');
+        const end = source.indexOf('Full = ', start);
+        expect(start).toBeGreaterThan(0);
+        expect(end).toBeGreaterThan(start);
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute('use bits\nuse numbers\nuse sequences\nWords = array 1 2 3');
+            // Run the unchanged merge stage, without the expensive period search.
+            runtime.execute(source.slice(start, end));
+            expect(runtime.variables.get('B')).toBe(1n + (2n << 32n) + (3n << 64n));
+            expect(isStoredValue(runtime.variables.get('Ws')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains the odd-triplet bit counts and defers their weighted sum', () => {
+        const source = readFileSync(new URL('../../../demos/euler/242_oddtriplets.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(139n);
+            for (const name of ['I', 'Bit']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Above', 'Share']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains shared tangent bounds while deferring the final lattice-point count', () => {
+        const source = readFileSync(new URL('../../../demos/euler/246_tangents.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--radius=400', '--gap=300'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(538584n);
+            for (const name of ['R', 'K', 'W', 'Top', 'N', 'Low']) {
+                expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            }
+            for (const name of ['Pos', 'Ok', 'Under', 'Cnt', 'Per', 'Used']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
     it('retains flea transition lookups and state while deferring the empty-square product', () => {
         const source = readFileSync(new URL('../../../demos/euler/213_fleacircus.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--n=4', '--rings=2'] });
