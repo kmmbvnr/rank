@@ -177,6 +177,11 @@ export function privateArrayCopy(value: RankArray): RankArray {
 
 /** Protect retained selections, then copy storage if ordinary aliases need it. */
 export function arrayForWrite(value: RankValue): RankArray | undefined {
+    // Host descriptors can invalidate writable storage even without an alias.
+    if (typeof value === 'object' && value.kind === 'array') {
+        const stored = ownedStorage.get(value);
+        if (stored && (!stored.stable || stored.readOnlyCells)) return privateArrayCopy(value);
+    }
     if (!isSharedArray(value)) return undefined;
     const source = value as RankArray;
     // Ordinary aliases still require a whole-value copy; their lazy readers

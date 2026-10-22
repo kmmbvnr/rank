@@ -89,6 +89,7 @@ export class ExpressionEvaluator {
             builtinValue: name => context.builtins.lookup(name),
             snapshotFunction: (fn, seen) => context.functions.snapshot(fn, seen),
             execute: (expression, tail) => tail ? this.compile(expression, undefined, true)() : this.prepare(expression)(),
+            locate: (error, expression) => context.locate(error, expression),
             compileReduction: expression => context.fastPaths.planReduction(expression),
             tensorPlanScope: expression => context.fastPaths.tensorPlanScope(expression),
         });

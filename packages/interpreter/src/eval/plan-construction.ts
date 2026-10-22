@@ -25,6 +25,7 @@ interface ConstructionContext {
     operationOf(name: string): Operation | undefined | false;
     snapshotFunction(fn: NativeFunction, seen: Map<NativeFunction, NativeFunction>): NativeFunction;
     execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
+    locate(error: unknown, expression: Expression): unknown;
     compileReduction(expression: Expression): (() => RankValue | undefined) | undefined;
     tensorPlanScope(expression: Expression): <T>(run: () => T) => T;
 }
@@ -342,8 +343,10 @@ export class PlanConstruction {
         const withinPlan = this.context.tensorPlanScope(expression);
         return { kind: 'plan', expression, dependencies, result,
             evaluate: () => completed(this.context.bindings.withFrame(snapshot, () => withinPlan(() => {
-                const value = compiled?.() ?? runExecution(this.context.execute(expression, false));
-                return registerTensorResult(identifySqliteSource(value, source));
+                try {
+                    const value = compiled?.() ?? runExecution(this.context.execute(expression, false));
+                    return registerTensorResult(identifySqliteSource(value, source));
+                } catch (error) { throw this.context.locate(error, expression); }
             }))),
         };
     }

@@ -24,7 +24,7 @@ for (const compilation of [false, true]) describe(`stored slice arithmetic (comp
         } finally { r.dispose(); }
     });
 
-    it('borrows direct and named operands without building lazy cell caches', () => {
+    it('completes named slices once and retains their independent cells', () => {
         const r = new Interpreter(undefined, { compilation }), diagnostics = new RuntimeDiagnostics();
         try {
             r.execute('use sequences\nA = 1 to 10000 array\nB = A * A');
@@ -34,7 +34,9 @@ Right = B (0 till 9999)
 R = Left - Right
 R sum`));
             expect(result).toBe(99999999n);
-            expect(diagnostics.cellsComputed).toBe(0);
+            expect(diagnostics.cellsComputed).toBe(19998);
+            diagnostics.run(() => r.execute('Left sum\nRight sum\nR sum'));
+            expect(diagnostics.cellsComputed).toBe(19998);
             // A retained result and both inputs remain independent of a later write.
             r.execute('B 0 = 99');
             expect(r.execute('Right 0')).toBe(1n);
@@ -63,7 +65,7 @@ R sum`));
         try {
             r.execute(`use sequences
 A = 1 to 2000 array
-R = (A drop 1) // ((A take 1999) - 1)`);
+R' = (A drop 1) // ((A take 1999) - 1)`);
             expect(r.execute('R 1')).toBe(3n);
             expect(() => r.execute('R 0')).toThrow(/zero/);
             r.execute(`fun X checked rank 0
@@ -72,8 +74,8 @@ R = (A drop 1) // ((A take 1999) - 1)`);
   end
   return X
 end
-Lazy = (1 to 2000) checked
-S = (Lazy drop 1) + (Lazy take 1999)`);
+Lazy' = (1 to 2000) checked
+S' = (Lazy drop 1) + (Lazy take 1999)`);
             expect(r.execute('S 0')).toBe(3n);
             expect(() => r.execute('S 1998')).toThrow('overread');
         } finally { r.dispose(); }
@@ -83,8 +85,8 @@ S = (Lazy drop 1) + (Lazy take 1999)`);
         const r = new Interpreter(undefined, { compilation });
         try {
             r.execute('use sequences\nA = 1 to 2000 array\nCut = A drop 1\nR = Cut + 1');
-            r.execute('Cut = (((1 to 2000 array) real rank 0) drop 1)');
-            expect(() => r.execute('Cut 0')).toThrow(/cannot receive/);
+            expect(() => r.execute('Cut = (((1 to 2000 array) real rank 0) drop 1)')).toThrow(/cannot receive/);
+            expect(r.execute('Cut 0')).toBe(2n);
         } finally { r.dispose(); }
     });
 });
@@ -130,8 +132,9 @@ describe('stored slice kernel boundaries', () => {
                 expect((r.execute(`A ${op} B`) as RankArray).items).toEqual([...expected]);
             }
             expect((r.execute('(Values (5 to # by -2)) - B') as RankArray).items).toEqual([5, 1, -3]);
-            r.execute('Cut = (1 to 6 array) drop 1\nSeen = Cut + 1\nCut = Values (1 to #)\nR = Cut + 1.0');
-            expect(() => r.execute('R 0')).toThrow(/cannot receive/);
+            r.execute('Cut = (1 to 6 array) drop 1\nSeen = Cut + 1');
+            expect(() => r.execute('Cut = Values (1 to #)')).toThrow(/cannot receive/);
+            expect(r.execute('Cut 0')).toBe(2n);
         } finally { r.dispose(); }
     });
 

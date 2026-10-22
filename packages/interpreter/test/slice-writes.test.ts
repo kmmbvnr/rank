@@ -175,7 +175,8 @@ it('does not infer a range from the name or host indexing hooks', () => {
 it('declines a range proof after its iterator is replaced by a host', () => {
     const r = new Interpreter();
     try {
-        r.execute('A = array 10 20 30 40\nR = 0 to 3');
+        r.execute('A = array 10 20 30 40');
+        r.variables.set('R', r.execute('0 to 3')!);
         const range = r.variables.get('R') as { plan: { iterate(): IterableIterator<bigint> } };
         range.plan.iterate = function* () { yield 3n; };
         r.execute('A R += 1');
