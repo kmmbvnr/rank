@@ -5,7 +5,7 @@ import { setImmediate } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 import { analyzeBindings, analyzeValues } from '@arrrank/language';
-import { Interpreter, isRankArray, parse, typeName } from '../src/index.js';
+import { Interpreter, isRankArray, isRankPlan, parse, typeName } from '../src/index.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
 // Share the execution budget with differential tests; static checks still see every source.
@@ -37,11 +37,12 @@ interface Audit {
     readonly ran: number;
     readonly names: number;
     readonly settled: number;
+    readonly plans: number;
 }
 
 function audit(file: string): Audit {
     const contradictions: string[] = [];
-    const unobserved = { contradictions, ran: 0, names: 0, settled: 0 };
+    const unobserved = { contradictions, ran: 0, names: 0, settled: 0, plans: 0 };
     const source = fs.readFileSync(file, 'utf8');
     let facts;
     try {
@@ -64,7 +65,7 @@ function audit(file: string): Audit {
     }
     for (const [name, fact] of values.bindings) {
         const value = interpreter.variables.get(name);
-        if (value === undefined) continue;
+        if (value === undefined || isRankPlan(value)) continue;
         if (fact.types.length && !fact.types.includes(typeName(value))) {
             contradictions.push(`${path.relative(demos, file)} ${name}: value analysis inferred ${fact.types.join(' or ')}, ran as ${typeName(value)}`);
         }
@@ -78,12 +79,15 @@ function audit(file: string): Audit {
         }
     }
 
-    let names = 0, settled = 0;
+    let names = 0, settled = 0, plans = 0;
     const program = facts.scopes.find(scope => scope.kind === 'program')!;
     for (const binding of program.bindings) {
         const value = interpreter.variables.get(binding.name);
         if (value === undefined) continue;
         names += 1;
+        // A retained recipe has not produced an observable result here. Do not
+        // run it just to inspect its type, or compare its storage kind with T.
+        if (isRankPlan(value)) { plans += 1; continue; }
         if (binding.types.length === 0) continue;
         settled += 1;
         const actual = typeName(value);
@@ -92,7 +96,7 @@ function audit(file: string): Audit {
                 + `inferred ${binding.types.join(' or ')}, ran as ${actual}`);
         }
     }
-    return { contradictions, ran: 1, names, settled };
+    return { contradictions, ran: 1, names, settled, plans };
 }
 
 describe('inferred types against the values a run produced', () => {
@@ -123,8 +127,9 @@ describe('inferred types against the values a run produced', () => {
         if (results.size !== files.length) return;
         const totals = [...results.values()].reduce((sum, result) => ({
             ran: sum.ran + result.ran, names: sum.names + result.names, settled: sum.settled + result.settled,
-        }), { ran: 0, names: 0, settled: 0 });
-        console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled} settled`);
+            plans: sum.plans + result.plans,
+        }), { ran: 0, names: 0, settled: 0, plans: 0 });
+        console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled} settled, ${totals.plans} plans unobserved`);
         if (shardCount === 1) {
             expect(totals.ran).toBeGreaterThan(400);
             // Silence alone must not let a lost inference rule pass unnoticed.
