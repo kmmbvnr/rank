@@ -638,7 +638,7 @@ scalar values broadcast. Empty output schemas, duplicate names and mismatched
 column shapes are errors. Column order follows the source text. Array rows
 are lazy and follow source revisions; SQLite builds a bound SELECT plan.
 
-For dynamic columns, use an ordered record of expressions:
+For dynamic columns in an array table, use an ordered record of completed columns:
 
 ```rank
 Cols = record
@@ -648,6 +648,7 @@ Out = Rows select Cols
 ```
 
 `Rows select Cols` uses the same projection implementation as the block form.
+For SQLite, use the contextual block to retain SQL column expressions.
 It replaces the former postfix `Rows Cols select` function call; `select` is
 now table syntax. General `record`, `choose`, `lookup`, aliases and boolean
 addressing retain their independent uses.
