@@ -164,6 +164,8 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             const cellShape = result && (offset === undefined ? result.map(() => null) : result);
             const shape = cellShape && partition ? [...partition.frame, ...cellShape] : undefined;
             return { types: ['array'], elements: source.elements,
+                ...(source.eagerScalarCells || source.callbackFreeScalarCells
+                    ? { callbackFreeScalarCells: true as const } : {}),
                 ...(shape ? { rank: shape.length, shape } : {}) };
         }
         case 'checked-read':
@@ -1015,7 +1017,7 @@ function transferApplicationFacts(
                 ...(hasMappedScalarNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
-            if (operation.preservesCollectionElements && arity === 2 && collection) return {
+            if (operation.preservesCollectionElements && (arity === 1 || arity === 2) && collection) return {
                 ...(shaped ?? { types: source.types }), elements: source.elements,
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),

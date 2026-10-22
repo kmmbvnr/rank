@@ -142,8 +142,17 @@ describe('interactive host cancellation', () => {
 
     it('switches a cached fused tensor between ordinary and interactive execution', () => {
         const generated: string[] = [];
-        const runtime = new Interpreter(undefined, { onTensorKernelCompiled: source => generated.push(source) });
-        runtime.execute('use numbers\nfun A squares\n  Squared = A * A\n  return Squared sum\nend');
+        let executed = 0;
+        const signal = new Int32Array(new SharedArrayBuffer(4));
+        const runtime = new Interpreter(undefined, {
+            onTensorKernelExecuted: () => executed++,
+            onTensorKernelCompiled: source => {
+                generated.push(source);
+                // Cancel inside the new interactive kernel, after native entry checks.
+                if (interruptsEnabled()) Atomics.store(signal, 0, 1);
+            },
+        });
+        runtime.execute("use numbers\nfun A squares\n  Squared' = A * A\n  return Squared sum\nend");
         const input = vector(8192);
         runtime.variables.set('A', input);
         try {
@@ -151,10 +160,12 @@ describe('interactive host cancellation', () => {
             expect(runtime.execute('A squares')).toBe(expected);
             expect(generated.length).toBeGreaterThan(0);
             expect(generated.at(-1)).not.toContain('checkpoint(');
-            expect(() => cancel(() => runtime.execute('A squares'))).toThrow(/computing tensor/);
+            expect(() => withInterrupt(signal, () => runtime.execute('A squares'))).toThrow(/computing tensor/);
             expect(generated.at(-1)).toContain('checkpoint(');
+            const compilations = generated.length;
             expect(runtime.execute('A squares')).toBe(expected);
-            expect(generated.at(-1)).not.toContain('checkpoint(');
+            expect(generated).toHaveLength(compilations);
+            expect(executed).toBe(2);
         } finally { runtime.dispose(); }
     });
 

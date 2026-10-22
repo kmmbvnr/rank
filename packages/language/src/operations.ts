@@ -770,6 +770,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [squareAxes], result: [] }],
         monadicRank: 2, summary: 'Determinant of a square numeric matrix, exact for integers.' },
     { name: 'diag', module: 'linalg', monadicRank: 2, arities: [1], form: 'Values diag [.anti] [Offset]', result: 'array',
+        numericArrayNoCallback: true, preservesCollectionElements: true,
         signatures: [
             { inputs: [shapedArray(diagonalElement, ['n'])], result: shapedArray(diagonalElement, ['n', 'n']) },
             { inputs: [shapedArray(diagonalElement, squareFrames)],

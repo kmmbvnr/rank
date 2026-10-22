@@ -23,8 +23,10 @@ describe('graph traversal providers', () => {
                 yield { target: 0n, weight: 1n };
             },
         };
-        const state = search(provider, 0n);
-        expect(expanded).toEqual(search === depthFirst ? [0n, 1, 2, 3, 4] : [0n, 1n, 2n, 3n, 4n]);
+        // Keep the selected numeric representation uniform in the returned order array.
+        // The duplicate edges still exercise integer/real key equality.
+        const state = search(provider, search === depthFirst ? 0 : 0n);
+        expect(expanded).toEqual(search === depthFirst ? [0, 1, 2, 3, 4] : [0n, 1n, 2n, 3n, 4n]);
         expect(state.vertices.size).toBe(5);
         const result = searchRecord(state);
         const distance = result.entries.get('distance')!;

@@ -35,6 +35,7 @@ import { ReductionEvaluator } from './reduction.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { locateError, registerSource, sourceIdOf } from './source-location.js';
 import { selectValues } from './value-selection.js';
+import { withoutAmbientTensorPlan } from './tensor-map.js';
 import { isNativeFunction, type RankValue } from './value.js';
 
 type Output = (text: string) => void;
@@ -294,15 +295,14 @@ export class Interpreter {
     execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
         const previous = this.syntheticNames;
         this.syntheticNames = syntheticNames;
-        try { return this.environmentOverride
-            ? withEnvironment(this.environmentOverride, () => this.executeSource(source)) : this.executeSource(source); }
+        try { return this.inEnvironment(() => this.executeSource(source)); }
         finally { this.syntheticNames = previous; }
     }
 
     evaluate(expression: Expression): RankValue {
         try {
             const run = () => runExecution(this.expressions.evaluate(expression));
-            return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+            return this.inEnvironment(run);
         } catch (error) {
             throw this.locateError(error, expression);
         }
@@ -314,7 +314,7 @@ export class Interpreter {
         assertBooleanExpressions = false,
     ): RankValue | undefined {
         const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
-        return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+        return this.inEnvironment(run);
     }
 
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
@@ -370,9 +370,10 @@ export class Interpreter {
         return this.bindings.globals.rankOf(name);
     }
 
-    /** Hosts force lazy preview results inside the same disposable environment. */
+    /** Hosts force preview results in this environment, without borrowing a caller's compiler. */
     inEnvironment<T>(run: () => T): T {
-        return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+        return withoutAmbientTensorPlan(() => this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run(),
+            this.options.tensorFusion !== false);
     }
 
     /** Copy the current bindings without rerunning the program that produced them. */

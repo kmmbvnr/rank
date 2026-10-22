@@ -1,4 +1,4 @@
-import { demandValue } from './plan.js';
+import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { rankedCells } from './ranked-cells.js';
@@ -8,7 +8,7 @@ import { rankedNumericFind } from './numeric-search.js';
 import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
 import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
-import { completed, type Evaluation } from './execution.js';
+import { completed, flatMapResult, mapExecution, type Evaluation } from './execution.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { checkpoint, checkInterrupt, InterruptedError, privateLoopPolling } from './interrupt.js';
@@ -81,6 +81,11 @@ export class RankApplication {
         fn: NativeFunction,
         arguments_: RankValue[],
     ): Evaluation<RankValue> {
+        // Native consumers need actual operands before choosing their cell ranks.
+        // Rank functions keep their parameter binder's ordinary/deferred contract.
+        if (!fn.callSignature && arguments_.some(isRankPlan)) {
+            return flatMapResult(mapExecution(arguments_, demand), values => this.applyIntrinsicRank(fn, values));
+        }
         if (fn.name === 'text' && arguments_.length === 1
             && isRankSqliteExpression(arguments_[0])) {
             return completed(textFunctionSqlite(

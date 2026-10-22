@@ -2195,6 +2195,10 @@ inside tuples, records and containers. `fun Values' use_values` keeps the
 argument without completing it. The body executes at the call; returning a
 plan leaves the receiving binding to keep or complete it.
 
+A native consumer demands a returned plan before dispatching on its value or
+rank. For example, `Source total print` computes a plan returned by `total`
+before printing it. This demand does not retain the result for a later call.
+
 Ordinary expression evaluation follows operand order and stops at the first
 error. During plan construction, whole user calls run immediately; the remaining
 operations stay deferred. Ranked and filter callbacks run when their cells or

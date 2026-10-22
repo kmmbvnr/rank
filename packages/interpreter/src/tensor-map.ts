@@ -25,6 +25,18 @@ interface PlanScope {
     executed(): void;
 }
 let active: PlanScope | undefined;
+let consumerCompilation = true;
+
+/** A host entry starts outside its caller's ambient plan. Its compilation policy
+ * also applies to native values carrying an earlier compiler owner. */
+export function withoutAmbientTensorPlan<T>(run: () => T, enabled = true): T {
+    const previous = active;
+    const previousCompilation = consumerCompilation;
+    active = undefined;
+    consumerCompilation = enabled;
+    try { return run(); }
+    finally { active = previous; consumerCompilation = previousCompilation; }
+}
 
 /** A demand owns temporary native values; its persistent scope retains code only.
  * Nested plans restore the consumer's scope before its reduction executes. */
@@ -71,7 +83,7 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
 /** Lower actual, checked native arrays after normal plan demand. Never inspect
  * RankPlan.expression or evaluate a producer to make a speculative guard pass. */
 export function reduceTensorMap(value: RankArray, operation: string): RankValue | undefined {
-    if (!reductions.has(operation)) return undefined;
+    if (!consumerCompilation || !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
     const domains = new Map<TensorNode, readonly CompiledAtomType[]>();

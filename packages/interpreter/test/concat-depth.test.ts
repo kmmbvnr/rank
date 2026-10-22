@@ -44,7 +44,7 @@ array (A 0) (A 1) (Saved 1) (Copy 0)`)).toBe('1 2 8 7');
         try {
             runtime.variables.set('Host', { kind: 'array', shape: [1], items: [],
                 itemAt: () => { reads++; return 'wrong'; } });
-            runtime.execute('use sequences\nA = array shape 0 fill 0\nA = concat A Host\nB = concat A (array 1)');
+            runtime.execute("use sequences\nA = array shape 0 fill 0\nA' = concat A Host\nB' = concat A (array 1)");
             expect(reads).toBe(0);
             expect(() => runtime.execute('B 0')).toThrow(/integer/);
             expect(reads).toBe(1);

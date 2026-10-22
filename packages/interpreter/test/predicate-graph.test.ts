@@ -239,7 +239,7 @@ build`)).toBe(true);
 it('never infers callback-free neighbors from a predicate constructor', () => {
     const facts = analyzeValues(parse(prelude + `G = new graph (1 to 5) with near .directed
 N' = G 1
-B = N array`));
+B' = N array`));
     expect(facts.diagnostics).toEqual([]);
     expect(facts.bindings.get('G')?.types).toEqual(['graph']);
     expect(facts.bindings.get('N')?.callbackFreeScalarCells).not.toBe(true);

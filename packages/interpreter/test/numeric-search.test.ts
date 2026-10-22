@@ -50,7 +50,9 @@ describe('numeric search', () => {
     });
 
     it('keeps errors lazy, default elementwise, and shares the default query index', () => {
-        expect(run('use sequences\nV = array 1 2\nQ = array 2 9\nR = V Q find\nR 0')).toBe('1');
+        expect(run("use sequences\nV = array 1 2\nQ = array 2 9\nR' = V Q find\nR 0")).toBe('1');
+        expect(() => run('use sequences\nV = array 1 2\nQ = array 2 9\nR = V Q find'))
+            .toThrow('no matching value');
         expect(run('use sequences\nV = array 1 2\nQ = array 2 9\nV Q find default -1')).toBe('1 -1');
         const runtime = new Interpreter(), d = new RuntimeDiagnostics();
         expect(format(d.run(() => runtime.execute('use sequences\nV = array 1 2\nQ = array 2 9\nV Q find default -1')))).toBe('1 -1');

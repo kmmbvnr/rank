@@ -308,6 +308,10 @@ it('does not lend an outer plan compiler to a nested interpreter with compilatio
         expect(outer(() => inner.execute('use sequences\nfun X twice = X * 2\nA = array 1 2 3\n(A twice) sum'))).toBe(12n);
         expect(entries).toBe(0);
         expect(constructingTensorPlan()).toBe(false);
+        const operators = new Operators(() => {}, () => undefined);
+        inner.variables.set('Mapped', outer(() => operators.evaluateBinary('*', ownedArray([1n, 2n, 3n]), 2n)));
+        expect(inner.execute('Mapped sum')).toBe(12n);
+        expect(entries).toBe(0);
     } finally { inner.dispose(); }
 });
 

@@ -1678,6 +1678,13 @@ it('infers configured diagonal shapes without treating parameters as data', () =
     }
 });
 
+it('preserves native diagonal cell facts without proving opaque host reads safe', () => {
+    const input: ValueFacts = { types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'] };
+    expect(facts('M diag', new Map([['M', { ...input, eagerScalarCells: true }]])))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('M diag', new Map([['M', input]])).callbackFreeScalarCells).toBeUndefined();
+});
+
 it('tracks absent endpoints separately from numeric infinity and slice boundaries', () => {
     const range = facts('2 to #');
     expect(range).toMatchObject({ types: ['sequence'], rank: 1, shape: [null],

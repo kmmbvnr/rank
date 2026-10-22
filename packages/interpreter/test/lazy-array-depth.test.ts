@@ -28,7 +28,7 @@ A 0`)).toBe(2000n);
         } finally { runtime.dispose(); }
     });
 
-    it('validates and reads an unread DAG after changing its oldest dependency', () => {
+    it('recomputes a deep DAG on every read and observes changes to its oldest dependency', () => {
         const source = ownedArray([0n, 1n]);
         const step = ownedArray([1n, 1n]);
         let result = source;
@@ -43,12 +43,12 @@ A 0`)).toBe(2000n);
         expect(readArrayItem(result, 0)).toBe(5000n);
         expect(calls).toBe(5000);
         expect(readArrayItem(result, 0)).toBe(5000n);
-        expect(calls).toBe(5000);
+        expect(calls).toBe(10000);
         source.items[0] = 10n;
         expect(readArrayItem(result, 0)).toBe(5010n);
-        expect(calls).toBe(10000);
-        expect(readArrayItem(result, 1)).toBe(5001n);
         expect(calls).toBe(15000);
+        expect(readArrayItem(result, 1)).toBe(5001n);
+        expect(calls).toBe(20000);
     });
 
     it('unwinds cancellation during deep reads and remains readable', () => {
