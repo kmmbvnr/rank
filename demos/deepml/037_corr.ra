@@ -15,13 +15,13 @@ fun X Y calculate_correlation
     .EmptyInput raise
   end
 
-  Xc = X - (X mean axis 0)
-  Yc = Y - (Y mean axis 0)
-  Cov = (Xc transpose) Yc matmul / N
+  Xc' = X - (X mean axis 0)
+  Yc' = Y - (Y mean axis 0)
+  Cov' = (Xc transpose) Yc matmul / N
 
   Xstd = X std axis 0
   Ystd = Y std axis 0
-  Scale = Xstd Ystd outer *
+  Scale' = Xstd Ystd outer *
   return Cov / Scale
 end
 

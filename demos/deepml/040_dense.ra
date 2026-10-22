@@ -47,14 +47,14 @@ fun Layer Grad Rate backward_pass
 
   Trainable = Layer .trainable
   if Trainable
-    Xt = X transpose
-    GradW = Xt Grad matmul
-    GradB = Grad sum axis 0
+    Xt' = X transpose
+    GradW' = Xt Grad matmul
+    GradB' = Grad sum axis 0
     Layer .weights = W - Rate * GradW
     Layer .bias = Bias - Rate * GradB
   end
 
-  Wt = W transpose
+  Wt' = W transpose
   return Grad Wt matmul
 end
 

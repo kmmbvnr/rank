@@ -7,3 +7,8 @@ state. Apostrophe bindings preserve one-use column selections, dot products,
 transpose views, gradient stages and masks until their consumer. The
 `scalar_multiply` helper accepts a deferred matrix; iterative solvers retain
 their state, and PCA retains a writable copy before fixing eigenvector signs.
+
+Problems 21–40 retain softmax exponentials, shuffled orders and training state
+when several consumers need them. Sigmoid and diagonal helpers accept deferred
+inputs. Correlation, masks and dense-layer gradient expressions use plans;
+record updates and autograd tape mutations still execute on computed values.

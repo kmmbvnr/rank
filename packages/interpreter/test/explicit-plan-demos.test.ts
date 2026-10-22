@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan, isNativeFunction, type RankArray, type NativeFunction } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan, isRankTuple, isNativeFunction, type RankArray, type NativeFunction } from '../src/index.js';
 import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
@@ -11,6 +11,57 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it.each([
+        ['022_sigmoid', 'sigmoid', [3], '0.2689 0.5 0.7311'],
+        ['035_diag', 'make_diagonal', [3, 3], '-1 0 0 0 0 0 0 0 1'],
+    ] as const)('keeps a planned input deferred through %s', (name, helper, shape, expected) => {
+        const source = readFileSync(new URL(`../../../demos/deepml/${name}.ra`, import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let reads = 0;
+        runtime.variables.set('Input', derivedArray([3], [], index => { reads++; return BigInt(index - 1); }));
+        try {
+            runtime.execute(source);
+            runtime.execute(`Result' = Input ${helper}`);
+            expect(reads).toBe(0);
+            expect(isRankPlan(runtime.variables.get('Result')!)).toBe(true);
+            const saved = runtime.execute('Saved = Result')!;
+            expect(saved).toMatchObject({ shape });
+            expect(formatValue(saved)).toBe(expected);
+            expect(isStoredValue(saved)).toBe(true);
+            const before = reads;
+            expect(formatValue(runtime.execute('Result')!)).toBe(expected);
+            expect(reads).toBeGreaterThan(before);
+            const after = reads;
+            expect(formatValue(runtime.execute('Saved')!)).toBe(expected);
+            expect(reads).toBe(after);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains one shuffle order while returning deferred sample selections', () => {
+        const source = readFileSync(new URL('../../../demos/deepml/029_shuf.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute(source);
+            runtime.execute('use sequences');
+            runtime.execute([
+                'State = 42 seed', 'X = array shape 4 1', '10 20 30 40', 'end',
+                'Y = array 1 2 3 4', "Result' = X Y shuffle_data",
+                'State = 999 seed', 'First = Result', 'Second = Result',
+            ].join('\n'));
+            expect(formatValue(runtime.variables.get('First')!)).toBe(formatValue(runtime.variables.get('Second')!));
+            runtime.execute('unpack ShuffledX ShuffledY = First');
+            expect(runtime.execute('ShuffledX len equal 4')).toBe(true);
+            expect(runtime.execute('((ShuffledX reshape 4) equal (ShuffledY * 10)) all')).toBe(true);
+            expect(runtime.execute('(ShuffledY sort equal (array 1 2 3 4)) all')).toBe(true);
+            const saved = runtime.variables.get('First')!;
+            if (!isRankTuple(saved)) throw new Error('expected retained sample pair');
+            expect(saved.items).toHaveLength(2);
+            for (const item of saved.items) {
+                expect(denseScalarItems(item as RankArray)).toBeDefined();
+            }
+        } finally { runtime.dispose(); }
+    });
+
     it('runs the actual matrix-product dot plans through native reductions when compilation is enabled', () => {
         const source = readFileSync(new URL('../../../demos/deepml/009_matmul.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });

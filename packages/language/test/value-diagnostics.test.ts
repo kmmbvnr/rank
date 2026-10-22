@@ -1371,9 +1371,9 @@ it('retains caller facts across the unchanged modular-power demo for proven inte
     expect(messages(`${definition}\nCount = 1\nUnknown 4 power\nCount + "bad"`)).toEqual([]);
 });
 
-it('retains caller facts across the unchanged sigmoid demo only for scalar input', () => {
+it('retains caller facts across the sigmoid demo only for scalar input', () => {
     const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*sigmoid\b/));
+    const definition = source;
     expect(messages(`${definition}\nCount = 1\n0.5 sigmoid\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\n(array 0 1) sigmoid\nCount + "bad"`)).toEqual([]);
@@ -1409,7 +1409,7 @@ it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
         .toEqual([]);
 });
 
-it('retains caller facts across the unchanged softmax pipeline only for safe cells', () => {
+it('retains caller facts across the softmax pipeline only for safe cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/023_softmax.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*softmax\b/));
     expect(messages(`${definition}\nCount = 1\n(array 1 2 3) softmax\nCount + "bad"`))
@@ -1420,7 +1420,7 @@ it('retains caller facts across the unchanged softmax pipeline only for safe cel
         .toEqual([]);
 });
 
-it('retains a caller fact after the unchanged normal-equation pipeline on eager arrays', () => {
+it('retains a caller fact after the normal-equation pipeline on eager arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/014_linreg.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
@@ -1435,7 +1435,7 @@ it('retains a caller fact after the unchanged normal-equation pipeline on eager 
         .toEqual([]);
 });
 
-it('retains a caller fact after the unchanged gradient-descent loop on numeric arrays', () => {
+it('retains a caller fact after the gradient-descent loop on numeric arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';

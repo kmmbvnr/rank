@@ -11,10 +11,10 @@ fun X Y shuffle_data
     .DimensionMismatch raise
   end
 
-  Indices = 0 till Count
+  Indices' = 0 till Count
   Order = Indices shuffle
 
-  ShuffledX = X Order
-  ShuffledY = Y Order
+  ShuffledX' = X Order
+  ShuffledY' = Y Order
   return tuple ShuffledX ShuffledY
 end
