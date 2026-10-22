@@ -19,3 +19,10 @@ test "leading zeroes are not digits"
   use "022_countnums"
   98 102 count_numbers equal 3
 end
+
+test "full-width interval counts every permitted digit length"
+  use "022_countnums"
+  rem Length L has 9 ** L positive numbers; add zero.
+  Expected = 1 + (9 ** 19 - 9) // 8
+  0 (10 ** 18) count_numbers equal Expected
+end

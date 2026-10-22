@@ -11,6 +11,23 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('streams denominations once while keeping the combination DP mutable', () => {
+        const source = readFileSync(new URL('../../../demos/cses/dynamic/004_coincomb2.ra', import.meta.url), 'utf8');
+        const tokens = ['3', '9', '2', '3', '5'];
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual(['3']);
+            expect(reads).toBe(tokens.length);
+            expect(runtime.variables.get('Coins')).toMatchObject({ kind: 'sequence' });
+            expect(isStoredValue(runtime.variables.get('Coins')!)).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+
     it('streams list-removal positions while retaining values for indexed reads', () => {
         const source = readFileSync(new URL('../../../demos/cses/range/009_listremovals.ra', import.meta.url), 'utf8');
         const tokens = ['5', '2', '6', '1', '4', '2', '3', '1', '3', '1', '1'];

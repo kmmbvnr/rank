@@ -23,7 +23,7 @@ fun Limit valid_up_to
     return 0
   end
 
-  Digits = Limit text integer rank 0
+  Digits' = Limit text integer rank 0
   Current = array shape 11 2 fill 0
   Current 10 1 = 1
 
