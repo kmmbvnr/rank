@@ -7,7 +7,7 @@ use cli
 
 option Limit integer = 20
 
-Range = 1 to Limit
+Range' = 1 to Limit
 Answer = Range reduce lcm with 1
 Answer print
 
