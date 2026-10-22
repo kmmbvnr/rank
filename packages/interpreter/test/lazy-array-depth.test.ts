@@ -3,7 +3,7 @@ import { Interpreter } from '../src/index.js';
 import { ArrayBindingContract } from '../src/array-binding-contract.js';
 import { ownedArray, readArrayItem } from '../src/array-storage.js';
 import { MissingValueError } from '../src/errors.js';
-import { InterruptedError, withInterrupt } from '../src/interrupt.js';
+import { DemandBudgetExhausted, InterruptedError, withDemandBudget, withInterrupt } from '../src/interrupt.js';
 import { mapBroadcastArrays } from '../src/tensor.js';
 import { MISSING, type RankArray, type RankValue } from '../src/value.js';
 
@@ -13,6 +13,43 @@ function lazy(read: (index: number) => RankValue): RankArray {
 }
 
 describe('lazy arithmetic dependency depth', () => {
+    it.each([32, 128, 129, 256])('preserves ordered effects, failure and replay across %i layers', depth => {
+        let seed = 1n;
+        let reads = 0;
+        const events: number[] = [];
+        let failing: number | undefined = Math.floor(depth / 2);
+        let result = lazy(index => {
+            expect(index).toBe(1);
+            reads++;
+            return seed;
+        });
+        const step = ownedArray([1n, 1n]);
+        for (let layer = 0; layer < depth; layer++) {
+            result = mapBroadcastArrays(result, step, (a, b) => {
+                events.push(layer);
+                if (failing === layer) throw new Error('stage failed');
+                return (a as bigint) + (b as bigint);
+            });
+        }
+        expect(reads).toBe(0);
+        expect(events).toEqual([]);
+        expect(() => readArrayItem(result, 1)).toThrow('stage failed');
+        expect(events).toEqual(Array.from({ length: failing! + 1 }, (_, i) => i));
+        failing = undefined;
+        events.length = 0;
+        expect(readArrayItem(result, 1)).toBe(BigInt(depth) + seed);
+        expect(events).toEqual(Array.from({ length: depth }, (_, i) => i));
+        seed = 7n;
+        events.length = 0;
+        expect(readArrayItem(result, 1)).toBe(BigInt(depth) + seed);
+        expect(events).toHaveLength(depth);
+        expect(reads).toBe(3);
+        // Bounded previews must still count the work inside a direct read,
+        // and an abandoned read must not retain a partial result.
+        expect(() => withDemandBudget(8, () => readArrayItem(result, 1))).toThrow(DemandBudgetExhausted);
+        expect(readArrayItem(result, 1)).toBe(BigInt(depth) + seed);
+    });
+
     it.each([
         [true, 'array 1 1'], [false, 'array 1 1'], [true, '1'], [false, '1'],
     ] as const)('reads a long binding chain with compilation %s and operand %s', (compiled, operand) => {
@@ -88,6 +125,20 @@ A 0`)).toBe(2000n);
         fail = false;
         expect(readArrayItem(result, 0)).toBe(5n);
         expect(events).toEqual(['left', 'left', 'right']);
+    });
+
+    it('keeps Rank diagnostics for host stack and allocation failures', () => {
+        const step = ownedArray([1n, 1n]);
+        for (const [message, rankKind] of [
+            ['Maximum call stack size exceeded', 'RecursionLimit'],
+            ['Invalid array length', 'Runtime'],
+        ]) {
+            const source = lazy(() => { throw new RangeError(message); });
+            const result = mapBroadcastArrays(mapBroadcastArrays(source, step, a => a), step, a => a);
+            expect(() => readArrayItem(result, 0)).toThrowError(expect.objectContaining({
+                rankKind,
+            }));
+        }
     });
 
     it('revalidates checked source cells when a binding settles after plan creation', () => {

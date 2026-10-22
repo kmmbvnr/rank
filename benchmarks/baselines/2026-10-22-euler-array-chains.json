@@ -1,0 +1,163 @@
+{
+  "runtimeBaseRevision": "f961487bc5a7844a2455e36707ba44f38d7f25d5",
+  "arrayReadSourceHash": "4a311f7e97bb0195b02f319de713401efb6825a70d19574afdb65377bcbcf6e3",
+  "command": "node benchmarks/euler-array-chains.mjs",
+  "method": "Two fresh processes per input/variant, sequential, order reversed in second sample. Compiled execution. Total time includes parsing and setup. Same current runtime with explicit copy versus removing copy tokens from the demo source in memory; demo files unchanged. Large-input checks compare answers across variants; independent small expected answers are covered in test/array-chain-demos.test.ts. These are descriptive measurements, not a universal per-element speed guarantee.",
+  "summary": [
+    {
+      "name": "407_idempotents",
+      "n": 200000,
+      "answer": "15071898482",
+      "copyMedianMs": 779.6306665,
+      "ordinaryMedianMs": 780.354875
+    },
+    {
+      "name": "407_idempotents",
+      "n": 1600000,
+      "answer": "996662824280",
+      "copyMedianMs": 5046.121958,
+      "ordinaryMedianMs": 5034.7863959999995
+    },
+    {
+      "name": "408_admissiblepaths",
+      "n": 1000000,
+      "answer": "612927873",
+      "copyMedianMs": 1811.983,
+      "ordinaryMedianMs": 1806.9845415
+    }
+  ],
+  "measurements": [
+    {
+      "name": "407_idempotents",
+      "n": 200000,
+      "variant": "copy",
+      "totalMs": 778.170542,
+      "answer": "15071898482",
+      "sourceHash": "f5457031c99e1577632b1aac3b83b64bec74618f7176b137a000f986d5c35548",
+      "peakRssKiB": 419008,
+      "compilation": true,
+      "sample": 0
+    },
+    {
+      "name": "407_idempotents",
+      "n": 200000,
+      "variant": "ordinary",
+      "totalMs": 774.055917,
+      "answer": "15071898482",
+      "sourceHash": "34e7af812049b62bf7dac041f7328cdaae3340390cefa65983268d2ea4deaea1",
+      "peakRssKiB": 425248,
+      "compilation": true,
+      "sample": 0
+    },
+    {
+      "name": "407_idempotents",
+      "n": 1600000,
+      "variant": "copy",
+      "totalMs": 5022.474,
+      "answer": "996662824280",
+      "sourceHash": "f5457031c99e1577632b1aac3b83b64bec74618f7176b137a000f986d5c35548",
+      "peakRssKiB": 1172176,
+      "compilation": true,
+      "sample": 0
+    },
+    {
+      "name": "407_idempotents",
+      "n": 1600000,
+      "variant": "ordinary",
+      "totalMs": 5032.162834,
+      "answer": "996662824280",
+      "sourceHash": "34e7af812049b62bf7dac041f7328cdaae3340390cefa65983268d2ea4deaea1",
+      "peakRssKiB": 843776,
+      "compilation": true,
+      "sample": 0
+    },
+    {
+      "name": "408_admissiblepaths",
+      "n": 1000000,
+      "variant": "copy",
+      "totalMs": 1811.743375,
+      "answer": "612927873",
+      "sourceHash": "d0053af26e4d49be637065407e7b3af23ff40d0be5bc775e052191df7b78c4b9",
+      "peakRssKiB": 603776,
+      "compilation": true,
+      "sample": 0
+    },
+    {
+      "name": "408_admissiblepaths",
+      "n": 1000000,
+      "variant": "ordinary",
+      "totalMs": 1792.034625,
+      "answer": "612927873",
+      "sourceHash": "5c5d7546aa9bb0a8ebf40aca1fe8428c7ee71b7c20a445f75b99b37ea091ef30",
+      "peakRssKiB": 693184,
+      "compilation": true,
+      "sample": 0
+    },
+    {
+      "name": "407_idempotents",
+      "n": 200000,
+      "variant": "ordinary",
+      "totalMs": 786.653833,
+      "answer": "15071898482",
+      "sourceHash": "34e7af812049b62bf7dac041f7328cdaae3340390cefa65983268d2ea4deaea1",
+      "peakRssKiB": 417520,
+      "compilation": true,
+      "sample": 1
+    },
+    {
+      "name": "407_idempotents",
+      "n": 200000,
+      "variant": "copy",
+      "totalMs": 781.090791,
+      "answer": "15071898482",
+      "sourceHash": "f5457031c99e1577632b1aac3b83b64bec74618f7176b137a000f986d5c35548",
+      "peakRssKiB": 415792,
+      "compilation": true,
+      "sample": 1
+    },
+    {
+      "name": "407_idempotents",
+      "n": 1600000,
+      "variant": "ordinary",
+      "totalMs": 5037.409958,
+      "answer": "996662824280",
+      "sourceHash": "34e7af812049b62bf7dac041f7328cdaae3340390cefa65983268d2ea4deaea1",
+      "peakRssKiB": 837088,
+      "compilation": true,
+      "sample": 1
+    },
+    {
+      "name": "407_idempotents",
+      "n": 1600000,
+      "variant": "copy",
+      "totalMs": 5069.769915999999,
+      "answer": "996662824280",
+      "sourceHash": "f5457031c99e1577632b1aac3b83b64bec74618f7176b137a000f986d5c35548",
+      "peakRssKiB": 817072,
+      "compilation": true,
+      "sample": 1
+    },
+    {
+      "name": "408_admissiblepaths",
+      "n": 1000000,
+      "variant": "ordinary",
+      "totalMs": 1821.934458,
+      "answer": "612927873",
+      "sourceHash": "5c5d7546aa9bb0a8ebf40aca1fe8428c7ee71b7c20a445f75b99b37ea091ef30",
+      "peakRssKiB": 631952,
+      "compilation": true,
+      "sample": 1
+    },
+    {
+      "name": "408_admissiblepaths",
+      "n": 1000000,
+      "variant": "copy",
+      "totalMs": 1812.2226249999999,
+      "answer": "612927873",
+      "sourceHash": "d0053af26e4d49be637065407e7b3af23ff40d0be5bc775e052191df7b78c4b9",
+      "peakRssKiB": 602832,
+      "compilation": true,
+      "sample": 1
+    }
+  ]
+}

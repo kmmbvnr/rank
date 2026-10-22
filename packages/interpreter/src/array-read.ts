@@ -1,11 +1,11 @@
 import { ArrayCellRead } from './array-cell-read.js';
-import { completed, type Evaluation, type Execution } from './execution.js';
+import { completed, normalizeStackError, type Evaluation, type Execution } from './execution.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, MISSING, type RankArray, type RankValue } from './value.js';
 import { ownedStorage, type OwnedStorage } from './array-storage-state.js';
-import { arrayRevision } from './array-revision.js';
+import { arrayRevision, lazyDepth } from './array-revision.js';
 
 /** Eager numeric cells only. Never probe a lazy reader for an optimization. */
 export function eagerArrayStorage(value: RankValue): {
@@ -345,5 +345,14 @@ export function registerArrayCellEvaluation(
 
 export function evaluateArrayItem(value: RankArray, index: number): Evaluation<RankValue> {
     const evaluate = cellEvaluations.get(value);
+    // Native readers already have equivalent synchronous cell access. Bound
+    // its depth so shallow arithmetic avoids a generator per layer, while deep
+    // dependency chains still suspend onto the execution stack.
+    const depth = lazyDepth.get(value);
+    if (evaluate && depth !== undefined && depth <= 128) {
+        checkpoint('reading array');
+        try { return completed(readArrayItem(value, index)); }
+        catch (error) { throw normalizeStackError(error); }
+    }
     return evaluate ? evaluate(index) : completed(readArrayItem(value, index));
 }

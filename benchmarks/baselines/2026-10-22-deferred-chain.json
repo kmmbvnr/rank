@@ -1,0 +1,289 @@
+{
+  "baselineRevision": "f961487bc5a7844a2455e36707ba44f38d7f25d5",
+  "method": "Same built interpreter copied locally; only array-read.js restored from HEAD TypeScript using transpileModule target ES2020 ESNext. Language and all other runtime outputs shared/unchanged. Fresh-process samples sequential; timing excludes setup and GC, includes complete result. Independent BigInt closed-form oracle.",
+  "beforeArrayReadSourceHash": "4cd5899935262c41fc67b44836b88b562d66e187798353600a83f3e060c951e9",
+  "afterArrayReadSourceHash": "4a311f7e97bb0195b02f319de713401efb6825a70d19574afdb65377bcbcf6e3",
+  "benchmarkHash": "68e1b11b4150fd9c5ab4522b17b298ffc714f7b6f8b188e27d23d0dd36696cab",
+  "command": "node benchmarks/deferred-chain.mjs [--root=<baseline>] [--depth=128 --size=1000 --reference]",
+  "limitations": "Three descriptive samples per variant. Reference/compiled both measured at depth 32; reference only at depth 128. Retained heap is not allocation volume; peak RSS includes setup. No full-scale Euler 407/408 performance claim.",
+  "measurements": {
+    "before32": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "samples": 3,
+        "method": "Fresh processes, one at a time. Preparation separate; complete result inside execution timing. Heap is retained after GC; RSS is the whole process peak."
+      },
+      {
+        "sample": 0,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "compilation": false,
+        "preparationMs": 90.913375,
+        "executionMs": 386.668458,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 3820992,
+        "peakRssKiB": 425680
+      },
+      {
+        "sample": 0,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "compilation": true,
+        "preparationMs": 91.88133400000001,
+        "executionMs": 28.85216700000001,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 1905976,
+        "peakRssKiB": 165408
+      },
+      {
+        "sample": 1,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "compilation": false,
+        "preparationMs": 91.254042,
+        "executionMs": 397.6625,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 3845288,
+        "peakRssKiB": 445856
+      },
+      {
+        "sample": 1,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "compilation": true,
+        "preparationMs": 91.166,
+        "executionMs": 29.494833,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 1920576,
+        "peakRssKiB": 164048
+      },
+      {
+        "sample": 2,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "compilation": false,
+        "preparationMs": 91.261167,
+        "executionMs": 394.8729169999999,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 3830344,
+        "peakRssKiB": 445536
+      },
+      {
+        "sample": 2,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 32,
+        "size": 10000,
+        "compilation": true,
+        "preparationMs": 92.37604199999998,
+        "executionMs": 29.418042000000014,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 1907032,
+        "peakRssKiB": 174320
+      }
+    ],
+    "after32": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "samples": 3,
+        "method": "Fresh processes, one at a time. Preparation separate; complete result inside execution timing. Heap is retained after GC; RSS is the whole process peak."
+      },
+      {
+        "sample": 0,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "compilation": false,
+        "preparationMs": 91.63624999999999,
+        "executionMs": 62.26608300000001,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 941304,
+        "peakRssKiB": 172576
+      },
+      {
+        "sample": 0,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "compilation": true,
+        "preparationMs": 95.961625,
+        "executionMs": 29.323458999999986,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 1915328,
+        "peakRssKiB": 166544
+      },
+      {
+        "sample": 1,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "compilation": false,
+        "preparationMs": 91.49879200000001,
+        "executionMs": 59.98487500000002,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 941208,
+        "peakRssKiB": 171520
+      },
+      {
+        "sample": 1,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "compilation": true,
+        "preparationMs": 92.174125,
+        "executionMs": 29.410583000000003,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 1900240,
+        "peakRssKiB": 164560
+      },
+      {
+        "sample": 2,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "compilation": false,
+        "preparationMs": 90.73054199999999,
+        "executionMs": 60.891583,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 939824,
+        "peakRssKiB": 172512
+      },
+      {
+        "sample": 2,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 32,
+        "size": 10000,
+        "compilation": true,
+        "preparationMs": 92.92474999999999,
+        "executionMs": 29.67270800000003,
+        "sourceHash": "080be12124385e86095c285f0a8479a1c5d6812be29471a5e65218890d6a006b",
+        "result": "214812789309430000",
+        "retainedHeapBytes": 1913128,
+        "peakRssKiB": 174848
+      }
+    ],
+    "before128": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 128,
+        "size": 1000,
+        "samples": 3,
+        "method": "Fresh processes, one at a time. Preparation separate; complete result inside execution timing. Heap is retained after GC; RSS is the whole process peak."
+      },
+      {
+        "sample": 0,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 128,
+        "size": 1000,
+        "compilation": false,
+        "preparationMs": 106.03158299999998,
+        "executionMs": 186.89608399999997,
+        "sourceHash": "945977206a77d4de5a1d1b623e11b8a5ad5718333a9860459d4590e0b3527714",
+        "result": "170651607010850639426882365627031758045183000",
+        "retainedHeapBytes": 2629544,
+        "peakRssKiB": 339056
+      },
+      {
+        "sample": 1,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 128,
+        "size": 1000,
+        "compilation": false,
+        "preparationMs": 106.197375,
+        "executionMs": 188.8415,
+        "sourceHash": "945977206a77d4de5a1d1b623e11b8a5ad5718333a9860459d4590e0b3527714",
+        "result": "170651607010850639426882365627031758045183000",
+        "retainedHeapBytes": 2622416,
+        "peakRssKiB": 338528
+      },
+      {
+        "sample": 2,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.bench/deferred-cost/before",
+        "depth": 128,
+        "size": 1000,
+        "compilation": false,
+        "preparationMs": 106.303125,
+        "executionMs": 194.169584,
+        "sourceHash": "945977206a77d4de5a1d1b623e11b8a5ad5718333a9860459d4590e0b3527714",
+        "result": "170651607010850639426882365627031758045183000",
+        "retainedHeapBytes": 2651440,
+        "peakRssKiB": 347984
+      }
+    ],
+    "after128": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 128,
+        "size": 1000,
+        "samples": 3,
+        "method": "Fresh processes, one at a time. Preparation separate; complete result inside execution timing. Heap is retained after GC; RSS is the whole process peak."
+      },
+      {
+        "sample": 0,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 128,
+        "size": 1000,
+        "compilation": false,
+        "preparationMs": 107.22220900000002,
+        "executionMs": 146.696083,
+        "sourceHash": "945977206a77d4de5a1d1b623e11b8a5ad5718333a9860459d4590e0b3527714",
+        "result": "170651607010850639426882365627031758045183000",
+        "retainedHeapBytes": 2243736,
+        "peakRssKiB": 298960
+      },
+      {
+        "sample": 1,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 128,
+        "size": 1000,
+        "compilation": false,
+        "preparationMs": 107.632416,
+        "executionMs": 146.356584,
+        "sourceHash": "945977206a77d4de5a1d1b623e11b8a5ad5718333a9860459d4590e0b3527714",
+        "result": "170651607010850639426882365627031758045183000",
+        "retainedHeapBytes": 2220536,
+        "peakRssKiB": 298688
+      },
+      {
+        "sample": 2,
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+        "depth": 128,
+        "size": 1000,
+        "compilation": false,
+        "preparationMs": 106.28420799999998,
+        "executionMs": 146.269667,
+        "sourceHash": "945977206a77d4de5a1d1b623e11b8a5ad5718333a9860459d4590e0b3527714",
+        "result": "170651607010850639426882365627031758045183000",
+        "retainedHeapBytes": 2229080,
+        "peakRssKiB": 299328
+      }
+    ]
+  }
+}
