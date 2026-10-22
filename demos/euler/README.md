@@ -110,14 +110,24 @@ Programs that are scalar loops rather than array code, and why:
 | 445 | exponents of C(N, k) updated from k to k + 1 |
 
 The slowest defaults, compiled, on an M5 with power saving off (figures
-taken in low power mode are about 3 times higher): 424 (3.7 min), 415
-(2.4 min), 438 (2.3 min), 414 (1.9 min), 411, 420, 427 and 413 (1.5-2 min),
-439, 448, 437 and 421 (1-1.5 min); the rest take under a minute. Most of those
-are tables of 10^7 cells with a recursion over the values N // k for N near
-10^11 (415, 432, 439, 447, 448), or a sieve over 10^7-10^8 integers.
+taken in low power mode are about 3 times higher): 414 (1.9 min), 413 (95 s),
+424 (92 s), 415 (74 s), 448 and 437 (68 s), 421 and 438 (57 s), 427 (56 s),
+439 (48 s); the rest take under a minute. Most of those are tables of 10^7
+cells with a recursion over the values N // k for N near 10^11 (415, 432,
+439, 447, 448), or a sieve over 10^7-10^8 integers.
 
 Notes from this range:
 
+- What made the slow defaults faster, in order of effect: a scalar walk with
+  memoised distances instead of pointer jumping (414, 5x); generating the
+  stations in a scalar loop and deduplicating inside the sort loop (411, 11x);
+  incremental per-run state in a backtracking search (424, 2.4x); an interval
+  and a closed sum for the last coefficient (438, 2.4x); scalar term loops
+  instead of arrays of N / k cells (427, 1.8x); `choose`, `min` and compares
+  replaced by splitting a sum at the table boundary (415, 439) or by boolean
+  `and` (420). `choose`, `min` and `max` on large integer arrays are 4-5x
+  slower than `+` or `//` today (#417), and loop bodies above 32 statements
+  fall back to the interpreter (#419).
 - 414 first used pointer jumping over all (u, v) states of a base: about 100
   passes over B^2 / 2 cells, 515 s in all. The chains to the constant are
   hundreds of steps long, so a scalar walk with memoised distances (one step
