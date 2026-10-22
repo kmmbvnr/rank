@@ -19,7 +19,8 @@ const totals = summaries.reduce((sum, summary) => ({
     settled: sum.settled + summary.settled,
     plans: sum.plans + summary.plans,
 }), { ran: 0, names: 0, settled: 0, plans: 0 });
-console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled} settled, ${totals.plans} plans unobserved`);
-if (totals.ran <= 400 || totals.settled / totals.names <= 0.75) {
+const observed = totals.names - totals.plans;
+console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled}/${observed} observed names settled, ${totals.plans} plans unobserved`);
+if (totals.ran <= 400 || observed <= 0 || totals.settled / observed <= 0.75) {
     throw new Error('Type audit coverage fell below the required level');
 }

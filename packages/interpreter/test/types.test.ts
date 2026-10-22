@@ -129,11 +129,13 @@ describe('inferred types against the values a run produced', () => {
             ran: sum.ran + result.ran, names: sum.names + result.names, settled: sum.settled + result.settled,
             plans: sum.plans + result.plans,
         }), { ran: 0, names: 0, settled: 0, plans: 0 });
-        console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled} settled, ${totals.plans} plans unobserved`);
+        const observed = totals.names - totals.plans;
+        console.log(`type audit: ${totals.ran} demos run, ${totals.names} names, ${totals.settled}/${observed} observed names settled, ${totals.plans} plans unobserved`);
         if (shardCount === 1) {
             expect(totals.ran).toBeGreaterThan(400);
             // Silence alone must not let a lost inference rule pass unnoticed.
-            expect(totals.settled / totals.names).toBeGreaterThan(0.75);
+            expect(observed).toBeGreaterThan(0);
+            expect(totals.settled / observed).toBeGreaterThan(0.75);
         } else {
             const summary = process.env.RANK_TYPE_AUDIT_SUMMARY;
             if (!summary) throw new Error('Missing type audit summary path');
