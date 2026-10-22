@@ -22,9 +22,9 @@ for D greater 0
   Cap = 4 - D mod 5
   Ds = 0 to Cap array
   Size = (Lows len) * (Ds len)
-  Grid = Lows (Ds * Place) outer +
+  Grid' = Lows (Ds * Place) outer +
   Lows = Grid reshape Size
-  Place *= 5
+  Place = Place * 5
   D //= 5
 end
 MaxH = (Top - 1) // Place

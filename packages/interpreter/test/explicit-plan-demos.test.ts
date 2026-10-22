@@ -11,6 +11,44 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains shared sliding-game bounds and defers the prime-count masks', () => {
+        const source = readFileSync(new URL('../../../demos/euler/313_sliding.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--prime-limit=100'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(5482n);
+            for (const name of ['Ps', 'H', 'Low', 'High']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Sq', 'Fit', 'Count', 'Ways']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
+    it('matches interval minimax costs beyond the unrestricted prefix', () => {
+        const source = readFileSync(new URL('../../../demos/euler/328_lowestcost.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const runtime = new Interpreter(() => {}, { compilation });
+        const n = 101;
+        // Independent interval DP tries every guess; it does not use the tree-shape shortcut.
+        const cost = Array.from({ length: n + 2 }, () => Array<number>(n + 2).fill(0));
+        for (let length = 2; length <= n; length++) {
+            for (let lo = 1; lo + length - 1 <= n; lo++) {
+                const hi = lo + length - 1;
+                let best = Infinity;
+                for (let guess = lo; guess <= hi; guess++) {
+                    best = Math.min(best, guess + Math.max(cost[lo][guess - 1], cost[guess + 1][hi]));
+                }
+                cost[lo][hi] = best;
+            }
+        }
+        const total = cost[1].slice(2, n + 1).reduce((sum, value) => sum + value, 0);
+        expect(total).toBe(17981);
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            expect(runtime.execute('101 costs')).toBe(BigInt(total));
+        } finally { runtime.dispose(); }
+    });
+
     it('rebuilds amnesia states before deferred column weights on repeated runs', () => {
         const source = readFileSync(new URL('../../../demos/euler/298_selectiveamnesia.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--turns=5'] });

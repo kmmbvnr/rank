@@ -5,3 +5,10 @@ test "prime frog"
   Got = 500 "PPPPNNPPPNPPNPN" frog
   Got equal "199740353/29386561536000"
 end
+
+test "prime at the last square"
+  use "329_primefrog"
+  3 "P" frog equal "5/9"
+  3 "N" frog equal "4/9"
+  2 "P" frog equal "1/2"
+end

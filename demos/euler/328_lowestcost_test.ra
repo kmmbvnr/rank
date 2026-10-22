@@ -4,4 +4,5 @@ test "lowest costs"
   use "328_lowestcost"
   8 costs equal 43
   100 costs equal 17575
+  101 costs equal 17981
 end
