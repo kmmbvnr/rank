@@ -61,39 +61,41 @@ for I in Nq to 1 by -1
   X = N // I
   if X greater Lm
     R = X isqrt
-    Ks = (2 to R) copy
-    Ys = X // Ks
-    Sv = Wt (Ys Lm min)
-    Lv = Lw (I * Ks Nq min)
-    Va = (Ys at most Lm) choose Sv Lv
-    Pa = (Ks * Va mod Mod) sum
-    Qs = (1 to X // (R + 1)) copy
-    Hi = X // Qs
-    Lo = X // (Qs + 1) R max
-    Eh = Hi mod 2 equal 0
-    Ah = Eh choose (Hi // 2) Hi
-    H1 = Hi + 1
-    Bh = Eh choose H1 (H1 // 2)
-    Sh = Ah mod Mod * (Bh mod Mod)
-    Sh = Sh mod Mod
-    El = Lo mod 2 equal 0
-    Al = El choose (Lo // 2) Lo
-    L1 = Lo + 1
-    Bl = El choose L1 (L1 // 2)
-    Sl = Al mod Mod * (Bl mod Mod)
-    Sl = Sl mod Mod
-    Dk = (Sh - Sl) mod Mod
+    K0 = (X // (Lm + 1)) R min
+    rem k <= K0: X // k is above L, so
+    rem W comes from the recursion Lw.
+    Pa = 0
+    if K0 at least 2
+      Ka = (2 to K0) copy
+      Va = Lw (I * Ka)
+      Pa += (Ka * Va mod Mod) sum
+    end
+    rem k > K0: X // k is a table index.
+    if R greater K0
+      Kb = (K0 + 1 to R) copy
+      Vb = Wt (X // Kb)
+      Pa += (Kb * Vb mod Mod) sum
+    end
+    Qm = X // (R + 1)
+    Qs = (1 to Qm) copy
+    Hq = X // Qs
+    Hx = concat Hq (array R)
+    Od = Hx mod 2
+    Ha = Hx // (2 - Od)
+    Hb = (Hx + 1) // (1 + Od)
+    Tx = Ha mod Mod * (Hb mod Mod)
+    Tx = Tx mod Mod
+    Tu = Tx (0 to Qm - 1)
+    Tb = Tx (1 to Qm)
+    Dk = (Tu - Tb) mod Mod
     Pb = (Dk * Wt Qs mod Mod) sum
     Lw I = (1 - Pa - Pb) mod Mod
     rem A(X) by the hyperbola method.
-    Q1 = X // Ks
-    Q0 = X // 1
-    Qa = concat (array Q0) Q1
     Ka = (1 to R) copy
-    E2 = Qa mod 2 equal 0
-    Ha = E2 choose (Qa // 2) Qa
-    Qb = Qa + 1
-    Hb = E2 choose Qb (Qb // 2)
+    Qa = X // Ka
+    Od = Qa mod 2
+    Ha = Qa // (2 - Od)
+    Hb = (Qa + 1) // (1 + Od)
     Tr = Ha mod Mod * (Hb mod Mod)
     Tr = Tr mod Mod
     Kq = Ka * (Qa mod Mod)

@@ -152,7 +152,7 @@
   "euler/427_nsequences.ra": "To fix later: the default input takes about 56 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/429_unitary.ra": "To fix later: the default input takes about 44 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/432_totientsum.ra": "To fix later: the default input takes about 43 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/439_sumofdivisors.ra": "To fix later: the default input takes about 84 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/439_sumofdivisors.ra": "To fix later: the default input takes about 48 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/440_gcdandtiling.ra": "To fix later: the default input takes about 34 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/443_gcdsequence.ra": "To fix later: the default input takes about 18 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/446_retractionsb.ra": "To fix later: the default input takes about 46 s compiled; the small _test.ra fixture stays in the audits.",
