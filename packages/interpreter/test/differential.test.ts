@@ -79,12 +79,18 @@ describe('compiled and reference demo execution', () => {
     const files = [...sources.keys()].filter(file => !executionExclusions.has(relative(demos, file))).filter(file =>
         createHash('sha256').update(relative(demos, file)).digest().readUInt32BE(0) % count === shard);
     let compared = 0, completed = 0, tests = 0, entries = 0, numberEntries = 0;
+    const failures: { file: string; error?: string; tests: { name: string; error?: string }[] }[] = [];
     for (const file of files) it(relative(demos, file), async () => {
         console.log(`comparing ${relative(demos, file)}`);
         const reference = run(file, false), compiled = run(file, true);
         await setImmediate();
         expect(reference.entries).toBe(0);
         expect(compiled.observation).toEqual(reference.observation);
+        const failedTests = compiled.observation.tests.filter(result => !result.passed)
+            .map(({ name, error }) => ({ name, error }));
+        if (compiled.observation.error || failedTests.length) {
+            failures.push({ file: relative(demos, file), error: compiled.observation.error, tests: failedTests });
+        }
         compared++;
         completed += Number(!compiled.observation.error);
         tests += compiled.observation.tests.length;
@@ -95,7 +101,7 @@ describe('compiled and reference demo execution', () => {
         console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} compiled entries, ${numberEntries} Number loop entries`);
         if (compared !== files.length) return; // A name-filtered run reports only selected fixtures.
         const summary = process.env.RANK_DIFFERENTIAL_SUMMARY;
-        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries }));
+        if (summary) writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => relative(demos, file)), completed, tests, entries, numberEntries, failures }));
         expect(completed).toBeGreaterThan(0);
         expect(entries).toBeGreaterThan(0);
         if (count === 1) {
