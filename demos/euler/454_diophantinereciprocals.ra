@@ -1,0 +1,78 @@
+rem Diophantine Reciprocals III
+rem https://projecteuler.net/problem=454
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 1000000000000
+
+rem x = t u (u+v), y = t v (u+v) with
+rem u < v coprime. With a = v and
+rem s = u + v: F = sum over coprime
+rem a < s < 2a of L // (a s). Moebius
+rem on the gcd: F = sum mu(d) G(L //
+rem d^2), G the same sum without the
+rem gcd condition. Blocks of d with
+rem equal L // d^2 share one G.
+Dm = (L // 6) isqrt + 1
+Mu = array shape (Dm + 1) fill 1
+Mu 0 = 0
+for P in primes to Dm
+  Sl = P to Dm by P
+  Mu Sl *= -1
+  if P * P at most Dm
+    Sq = (P * P) to Dm by (P * P)
+    Mu Sq = 0
+  end
+end
+Mc = (Mu scan +) copy
+Tot = 0
+D = 1
+for D at most Dm
+  X = L // (D * D)
+  D2 = ((L // X) isqrt) Dm min
+  Cf = Mc D2 - Mc (D - 1)
+  if Cf not equal 0 and X at least 6
+    rem a up to the cube root: every
+    rem s, as a loop over u = s - a.
+    A0 = (X ** (1 / 3)) floor
+    for (A0 + 1) ** 3 at most X
+      A0 += 1
+    end
+    for A0 ** 3 greater X
+      A0 -= 1
+    end
+    G = 0
+    for U in 1 to A0 - 1
+      As = (U + 1 to A0) copy
+      G += (X // (As * (As + U))) sum
+    end
+    rem Larger a: t with all a - 1
+    rem values of s, then the rest of
+    rem t as a loop over t.
+    Am = ((4 * X + 1) isqrt - 1) // 2
+    Ab = (A0 + 1 to Am) copy
+    Fl = X // (Ab * (2 * Ab - 1))
+    G += ((Ab - 1) * Fl) sum
+    Tm = X // ((A0 + 1) * (A0 + 2))
+    for T in 1 to Tm
+      Y = X // T
+      Hi = ((4 * Y + 1) isqrt - 1) // 2
+      Lo = (1 + (8 * Y + 9) isqrt) // 4
+      for Lo * (2 * Lo - 1) at most Y
+        Lo += 1
+      end
+      Lo = Lo (A0 + 1) max
+      if Lo at most Hi
+        As = (Lo to Hi) copy
+        G += (X // (As * T) - As) sum
+      end
+    end
+    Tot += Cf * G
+  end
+  D = D2 + 1
+end
+Answer = Tot
+Answer print

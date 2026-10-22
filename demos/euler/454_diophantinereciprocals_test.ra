@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "454_diophantinereciprocals"
+  L = 15
+  run
+  Answer equal 4
+  L = 1000
+  run
+  Answer equal 1069
+end
+
+test "limit 10^8"
+  use "454_diophantinereciprocals"
+  L = 100000000
+  run
+  Answer equal 349446716
+end
