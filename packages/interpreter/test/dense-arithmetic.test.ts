@@ -23,13 +23,14 @@ describe('elementwise arithmetic on large stored arrays', () => {
         expect(run(`${setup}B = A + 1\nA 0 = 100\nB 0`)).toBe(4n);
     });
 
-    it('keeps an integer division by zero lazy until a cell is read', () => {
-        expect(run(`${setup}Q = A / Z\n1`)).toBe(1n);
-        expect(() => run(`${setup}Q = A / Z\nQ 0`)).toThrow(RankError);
+    it('completes ordinary division and defers explicit plans until a cell is read', () => {
+        expect(() => run(`${setup}Q = A / Z\n1`)).toThrow(RankError);
+        expect(run(`${setup}Q' = A / Z\n1`)).toBe(1n);
+        expect(() => run(`${setup}Q' = A / Z\nQ 0`)).toThrow(RankError);
     });
 
     it('lets choose skip the cells that would divide by zero', () => {
-        expect(run(`use sequences\n${setup}Q = A / Z\nM = Z equal 0\nR = M A Q choose\nR sum`)).toBe(6000n);
+        expect(run(`use sequences\n${setup}Q' = A / Z\nM = Z equal 0\nR = M A Q choose\nR sum`)).toBe(6000n);
     });
 
     it('broadcasts a row over a matrix', () => {
@@ -108,7 +109,7 @@ describe('dense kernels for broadcasting, powers, comparisons and choose', () =>
             'use sequences', 'use numbers',
             'Rate = ((0 till 3000) real rank 0) reshape 3000 * 0.5',
             'Zero = Rate less 0.25',
-            'Inverse = 1.0 / Rate',
+            "Inverse' = 1.0 / Rate",
             'R = Zero 0.0 Inverse choose',
             'R sum',
         ].join('\n');

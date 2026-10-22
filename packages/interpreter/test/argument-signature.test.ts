@@ -4,6 +4,44 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { clonePreviewValue } from '../src/preview-values.js';
 import { argumentRankSignature, argumentSignature } from '../src/return-contract.js';
 
+describe.each([false, true])('plan argument specializations (compilation=%s)', compilation => {
+    it.each([
+        ['integer', '1 + 2', '3'],
+        ['real', '1.0 + 2.0', '3.0'],
+        ['boolean', 'not false', 'true'],
+        ['text', '"a" + "b"', '"ab"'],
+        ['array', 'Source * 2', 'array 2 4'],
+        ['typed empty array', 'array shape 0 fill 0', 'array shape 0 fill 0'],
+        ['tuple', 'tuple (Source * 2) 3', 'tuple (array 2 4) 3'],
+        ['record', 'record\n .items = Source * 2\n .count = 3\nend',
+            'record\n .items = array 2 4\n .count = 3\nend'],
+    ])('shares known %s signatures and return contracts across storage modes', (_name, recipe, ready) => {
+        for (const planFirst of [false, true]) {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                runtime.execute(`State = false
+fun Value' result
+  if State
+    return true
+  end
+  return 1
+end
+Source = array 1 2
+Deferred' = ${recipe}
+Ready = ${ready}`);
+                expect(argumentSignature([runtime.variables.get('Deferred')!]))
+                    .toBe(argumentSignature([runtime.variables.get('Ready')!]));
+                expect(argumentRankSignature([runtime.variables.get('Deferred')!]))
+                    .toBe(argumentRankSignature([runtime.variables.get('Ready')!]));
+                expect(runtime.execute(`${planFirst ? 'Deferred' : 'Ready'} result`)).toBe(1n);
+                runtime.execute('State = true');
+                expect(() => runtime.execute(`${planFirst ? 'Ready' : 'Deferred'} result`))
+                    .toThrow(/returns integer and cannot return boolean/);
+            } finally { runtime.dispose(); }
+        }
+    });
+});
+
 describe('argument signature memo', () => {
     it('invalidates signatures after a host replaces all cells with another homogeneous type', () => {
         const value = ownedArray([1n, 2n]);
@@ -30,13 +68,13 @@ describe('argument signature memo', () => {
 });
 
 for (const compiled of [true, false]) describe(`semantic array specialization (compiled ${compiled})`, () => {
-    const runtime = () => new Interpreter(() => {}, { scalarCompilation: compiled,
+    const runtime = () => new Interpreter(() => {}, { compilation: compiled, scalarCompilation: compiled,
         integerLoopCompilation: compiled, tensorFusion: compiled, functionBodyCompilation: compiled,
         scalarFunctionCompilation: compiled, scalarEntryCompilation: compiled });
 
     it('keeps the same signature across arithmetic, calls and materialization', () => {
         const interpreter = runtime();
-        interpreter.execute('use sequences\nfun Values twice\n return Values * 2\nend\nSource = array 1 2\nLazy = Source * 2');
+        interpreter.execute("use sequences\nfun Values' twice\n return Values * 2\nend\nSource = array 1 2\nLazy' = Source * 2");
         const source = interpreter.variables.get('Source')!;
         const lazy = interpreter.variables.get('Lazy')!;
         const key = argumentSignature([source]);
@@ -52,7 +90,7 @@ for (const compiled of [true, false]) describe(`semantic array specialization (c
 
     it('does not let copying an input evade its function return contract', () => {
         const interpreter = runtime();
-        interpreter.execute('use sequences\nState = false\nfun Values result\n if State\n return true\n end\n return 1\nend\nSource = array 1 2\nLazy = Source * 2\nLazy result\nState = true\nMaterial = Lazy copy');
+        interpreter.execute("use sequences\nState = false\nfun Values' result\n if State\n return true\n end\n return 1\nend\nSource = array 1 2\nLazy' = Source * 2\nLazy result\nState = true\nMaterial = Lazy copy");
         expect(() => interpreter.execute('Material result')).toThrow(/returns integer and cannot return boolean/);
     });
 });
@@ -66,7 +104,7 @@ it.each([3, 1024, 8192])('does not read lazy argument cells to call twice (size 
         return 2n;
     } };
     runtime.variables.set('Source', source);
-    runtime.execute('fun Values twice\n return Values * 2\nend\nResult = Source twice');
+    runtime.execute("fun Values' twice\n return Values * 2\nend\nResult' = Source twice");
     expect(reads).toBe(0);
     expect(formatValue(runtime.execute('Result 0')!)).toBe('4');
     expect(reads).toBe(1);
@@ -90,7 +128,7 @@ it('keeps genuinely unresolved lazy types unresolved after reading and copying',
         reads++;
         return BigInt(index);
     } });
-    runtime.execute('use sequences\nLazy = Source * 2');
+    runtime.execute("use sequences\nLazy' = Source * 2");
     const lazy = runtime.variables.get('Lazy')!;
     const key = argumentSignature([lazy]);
     expect(reads).toBe(0);

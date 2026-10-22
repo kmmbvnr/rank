@@ -6,6 +6,7 @@ import {
     type Expression, type NameExpression, type Operation,
 } from '@arrrank/language';
 import { denseScalarItems } from '../array-storage.js';
+import { semanticArrayType } from '../semantic-array-type.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { completed, resume, runExecution, type Evaluation, type Execution } from '../execution.js';
 import { LocalFrame } from '../frame.js';
@@ -326,7 +327,14 @@ export class PlanConstruction {
             if (typeof value === 'string') return { types: ['text'], rank: 1 };
             if (isRankSequence(value)) return { types: ['sequence'], rank: 1 };
             if (isRankArray(value) && denseScalarItems(value) !== undefined) {
-                return { types: [value.kind], rank: value.shape.length, shape: [...value.shape] };
+                const element = semanticArrayType(value).scalar;
+                return { types: [value.kind], rank: value.shape.length, shape: [...value.shape], eagerScalarCells: true,
+                    ...(element ? { elements: [element] } : {}) };
+            }
+            if (isRankArray(value)) {
+                const shape = Object.getOwnPropertyDescriptor(value, 'shape')?.value;
+                return { types: [value.kind], ...(Array.isArray(shape)
+                    ? { rank: shape.length, shape: Array(shape.length).fill(null) } : {}) };
             }
             return UNKNOWN_VALUE;
         });

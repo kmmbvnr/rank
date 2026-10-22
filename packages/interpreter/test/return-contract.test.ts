@@ -71,7 +71,7 @@ it('defers lazy element validation until a consumer reads the result', () => {
     runtime.variables.set('Lazy', { kind: 'array', shape: [1], items: [], containsFiles: false,
         itemAt: () => { reads++; return 'wrong'; } });
     runtime.execute('fun Flag pick\n if Flag\n return array 1\n end\n return Lazy\nend\ntrue pick');
-    runtime.execute('Result = false pick');
+    runtime.execute("Result' = false pick");
     const result = runtime.variables.get('Result')!;
     expect(reads).toBe(0);
     expect(() => formatValue(result)).toThrowError(expect.objectContaining({ rankKind: 'ReturnTypeMismatch' }));

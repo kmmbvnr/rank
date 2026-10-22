@@ -97,9 +97,15 @@ end`, [[{ kind: 'array', shape: [2], items: [1n, 2n] }], [3n]], 1);
 end`, [[3n], [3n], [4n], [4n]], 2);
     });
 
-    it('handles zero parameters and duplicate parameter names', () => {
+    it('handles zero parameters and rejects duplicate parameter names', () => {
         expect(compare('fun helper\n  return 7\nend', [[], []], 2)[0]).toEqual({ value: '7' });
-        expect(compare('fun X X helper\n  return X\nend', [[1n, 2n]], 1)[0]).toEqual({ value: '2' });
+        for (const scalarEntryCompilation of [false, true]) {
+            const runtime = new Interpreter(undefined, { scalarEntryCompilation });
+            try {
+                expect(() => runtime.execute('fun X X helper\n  return X\nend'))
+                    .toThrow('Duplicate function parameter X');
+            } finally { runtime.dispose(); }
+        }
     });
 
     it('retains error location and recovers call depth', () => {
@@ -279,8 +285,8 @@ end`, [[1n]], 0);
         expect(values[0]).toHaveProperty('error', expect.stringContaining('len expects text or a collection'));
     });
 
-    it('preserves range errors, empty ranges and duplicate parameters', () => {
-        compare(`fun X X Step helper
+    it('preserves range errors and empty ranges with multiple parameters', () => {
+        compare(`fun First X Step helper
   Total = 0
   for I in 1 to X by Step
     Total += I
