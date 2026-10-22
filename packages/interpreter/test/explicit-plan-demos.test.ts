@@ -11,6 +11,40 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it.each([
+        ['002_misnum', ['5', '2', '3', '1', '5'], ['4'], 'Values'],
+        ['022_digits', ['3', '7', '19', '12'], ['7', '4', '1'], 'Queries'],
+    ] as const)('streams the single-pass stdin resource in CSES %s', (name, tokens, expected, binding) => {
+        const source = readFileSync(new URL(`../../../demos/cses/intro/${name}.ra`, import.meta.url), 'utf8');
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual(expected);
+            expect(reads).toBe(tokens.length);
+            expect(runtime.variables.get(binding)).toMatchObject({ kind: 'sequence' });
+            expect(isStoredValue(runtime.variables.get(binding)!)).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+
+    it('prints a deferred CSES XOR grid one completed row at a time', () => {
+        const source = readFileSync(new URL('../../../demos/cses/intro/019_mexgrid.ra', import.meta.url), 'utf8');
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => { reads++; return '3'; } },
+        });
+        try {
+            runtime.execute(source);
+            expect(reads).toBe(1);
+            expect(output).toEqual(['0 1 2', '1 0 3', '2 3 0']);
+            expect(isStoredValue(runtime.variables.get('Grid')!)).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+
     it('reads and stores coin probabilities once before running the mutable DP', () => {
         const source = readFileSync(new URL('../../../demos/atcoder/edpc/09_coin.ra', import.meta.url), 'utf8');
         const tokens = ['3', '0.30', '0.60', '0.80'];

@@ -4,7 +4,7 @@ rem https://cses.fi/problemset/task/2431
 use io
 
 Q = stdin .integer
-Queries = stdin .integer Q
+Queries' = stdin .integer Q
 
 for K in Queries
   K digit print

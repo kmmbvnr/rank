@@ -4,13 +4,13 @@ rem https://cses.fi/problemset/task/1083
 use io
 
 N = stdin .integer
-Values = stdin .integer (N - 1) array
+Values' = stdin .integer (N - 1)
 
 N Values missing print
 
 
 rem Find the missing value from the numbers 1 through N.
-fun N Values missing
+fun N Values' missing
   Total = N * (N + 1) // 2
   Sum = Values sum
   return Total - Sum
