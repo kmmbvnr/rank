@@ -34,18 +34,18 @@ Tm = array shape 72900 fill 0.0
 for K in 0 to 3
   Ch = Chg K
   Next = Cm + (Ch reshape 4 1)
-  Fit = (Next at most Cap) all axis 0
+  Fit' = (Next at most Cap) all axis 0
   Has = Cm K
   Ok = Has greater 0 and Fit
-  From = Id filter Ok array
-  To = (Wgt Next matmul) filter Ok array
-  Pr = (Has / Tot) filter Ok array
+  From' = Id filter Ok array
+  To' = (Wgt Next matmul) filter Ok array
+  Pr' = (Has / Tot) filter Ok array
   Tm (From * 270 + To) = Pr
 end
 Mat = Tm reshape 270 270
 P = array shape 270 fill 0.0
 P 190 = 1.0
-Single = Cnt equal 1 and C5 equal 0
+Single' = Cnt equal 1 and C5 equal 0
 One = Single choose 1.0 0.0
 Answer = 0.0
 for Step in 1 to 20

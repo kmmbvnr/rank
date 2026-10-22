@@ -25,19 +25,19 @@ Best = Dr copy
 Root = Limit isqrt
 for K in 2 to Root - 1
   Top = (Limit - 1) // K
-  Slot = K * 2 to K * Top by K
+  Slot' = K * 2 to K * Top by K
   New = (Dr (2 to Top)) + Best K
   Best Slot = (Best Slot) New max
 end
 B = Root
 for B at most Limit // 2
-  Ks = B to 2 * B - 1 array
+  Ks' = B to 2 * B - 1 array
   Mine = Best Ks copy
   for D in 2 to (Limit - 1) // B
     Reach = (Limit - 1) // D
     Hi = (2 * B - 1) Reach min
     Cut = Hi - B + 1
-    Slot = B * D to Hi * D by D
+    Slot' = B * D to Hi * D by D
     New = (Mine take Cut) + Dr D
     Best Slot = (Best Slot) New max
   end

@@ -45,11 +45,11 @@ for S in 0 to 4 * (Base - 1)
   Kc = KC filter Pick array
   Kd = KD filter Pick array
   Cnt = Ka len
-  Up = (Ka reshape Cnt 1) + Kb
-  Dn = (Kc reshape Cnt 1) + Kd
+  Up' = (Ka reshape Cnt 1) + Kb
+  Dn' = (Kc reshape Cnt 1) + Kd
   Flat = Cnt * Cnt
   Seen = new counter (Dn reshape Flat)
-  Need = S * Whole - (Up reshape Flat)
+  Need' = S * Whole - (Up reshape Flat)
   Answer += Seen Need sum
 end
 Answer print

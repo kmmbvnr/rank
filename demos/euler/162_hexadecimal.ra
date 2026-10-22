@@ -17,18 +17,17 @@ rem Inclusion and exclusion over the
 rem digits left out. The first digit
 rem is never zero.
 N = 1 to Digits array
-All = 15 * 16 ** (N - 1)
-No0 = 15 ** N
-No1 = 14 * 15 ** (N - 1)
-No01 = 14 ** N
-No1A = 13 * 14 ** (N - 1)
-No01A = 13 ** N
-Count = All - No0 - 2 * No1 + 2 * No01
-Count += No1A - No01A
+All' = 15 * 16 ** (N - 1)
+No0' = 15 ** N
+No1' = 14 * 15 ** (N - 1)
+No01' = 14 ** N
+No1A' = 13 * 14 ** (N - 1)
+No01A' = 13 ** N
+Count' = All - No0 - 2 * No1 + 2 * No01 + No1A - No01A
 Answer = Count sum
 Bases = array shape Digits fill 16
 Ds = Answer Bases digits
-Code = Ds + (Ds greater 9 choose 55 48)
-Chars = Code character rank 0
+Code' = Ds + (Ds greater 9 choose 55 48)
+Chars' = Code character rank 0
 Text = Chars "" join
 Text print

@@ -48,11 +48,11 @@ for C in 0 to Wide * High - 1
       Fits and= R + Down P less High
       if Fits
         Pm = Mask P
-        Hit = (Keys Pm band) equal 0
+        Hit' = (Keys Pm band) equal 0
         Ok = Free and Hit
-        Sel = Keys filter Ok array
-        Moved = (Sel Pm bor) 1 shr
-        More = Cnts filter Ok array
+        Sel' = Keys filter Ok array
+        Moved' = (Sel Pm bor) 1 shr
+        More' = Cnts filter Ok array
         NewK = concat NewK Moved copy
         NewC = concat NewC More copy
       end
@@ -62,12 +62,12 @@ for C in 0 to Wide * High - 1
   K2 = NewK Ord
   C2 = NewC Ord
   Len = K2 len
-  Prev = K2 (0 till Len - 1)
-  Edge = K2 (1 to #) not equal Prev
+  Prev' = K2 (0 till Len - 1)
+  Edge' = K2 (1 to #) not equal Prev
   Head = array true
   Starts = (concat Head Edge) indices
   Last = array Len
-  Ends = concat (Starts drop 1) Last
+  Ends' = concat (Starts drop 1) Last
   Cum = C2 scan + with 0
   Keys = K2 Starts copy
   Cnts = Cum Ends - Cum Starts copy

@@ -23,12 +23,12 @@ for R in 1 to 3124
 end
 Js = 0 to 17 array
 Nj = N // 5 ** Js
-Odd = (Nj // 3125) mod 2 equal 1
-Sign = Odd choose 3124 1
+Odd' = (Nj // 3125) mod 2 equal 1
+Sign' = Odd choose 3124 1
 F = Sign * (Pre (Nj mod 3125)) mod 3125
-P = F reduce * mod 3125
-E = Nj drop 1 sum
-Half = 1563 E 3125 powmod
-Low = P * Half mod 3125
+P' = F reduce * mod 3125
+E' = Nj drop 1 sum
+Half' = 1563 E 3125 powmod
+Low' = P * Half mod 3125
 Answer = 32 * (Low * 293 mod 3125)
 Answer print

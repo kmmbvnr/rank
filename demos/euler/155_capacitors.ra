@@ -47,12 +47,12 @@ for M in 2 to Count
     end
   end
   Par = Out unique
-  Rec = Par mod K * K + Par // K
-  Lev = concat Par Rec unique
+  Rec' = Par mod K * K + Par // K
+  Lev' = concat Par Rec unique
   Store = concat Store Lev copy
   End = array (Store len)
   Off = concat Off End copy
 end
-All = Store unique
+All' = Store unique
 Answer = All len
 Answer print

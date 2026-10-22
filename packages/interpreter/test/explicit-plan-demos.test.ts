@@ -11,6 +11,31 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('uses native kernels for the actual cross-hatched triangle predicates', () => {
+        const source = readFileSync(new URL('../../../demos/euler/163_crosshatched.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--size=2'] });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(source));
+            expect(runtime.variables.get('Answer')).toBe(104n);
+            if (compilation) expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            else expect(diagnostics.compiledTensors).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('completes each hyperbinary matrix step after deferred pair selections', () => {
+        const source = readFileSync(new URL('../../../demos/euler/169_hyperbinary.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--power=1'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(5n);
+            expect(isRankPlan(runtime.variables.get('Zero')!)).toBe(true);
+            const result = runtime.variables.get('R')!;
+            expect(result).toMatchObject({ kind: 'array', shape: [1, 2, 2] });
+            expect(isStoredValue(result)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains row prefixes and reduces the actual maximum-run helper through native kernels', () => {
         const source = readFileSync(new URL('../../../demos/euler/149_maxsubsequence.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });
@@ -421,6 +446,7 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
         ['001_multiples', 1000, 'Mask', 'Mask 0 = true', 233168n],
         ['014_collatz', 14, 'Lengths', 'Lengths 0 = 999', 9n],
         ['127_abchits', 1000, 'Rad', 'Rad 0 = 999', 12523n],
+        ['159_digitalrootsums', 100, 'Best', 'Best 0 = 999', 856n],
     ] as const)('retains writable working data in Euler %s', (name, limit, binding, mutation, expected) => {
         const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });
