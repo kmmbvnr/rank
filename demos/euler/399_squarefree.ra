@@ -15,7 +15,7 @@ option PrimeLimit integer = 5714285
 
 rem Wall gives p z(p) as forbidden
 rem indices for each prime p.
-Pr = primes to PrimeLimit array
+Pr' = primes to PrimeLimit
 Mods = array shape 0 fill 0
 for P in Pr
   D = 0
@@ -31,7 +31,7 @@ for P in Pr
         C = P - 1
       end
       D = C
-      Fs = C factors unique array
+      Fs' = C factors unique
       for Q in Fs
         for D mod Q equal 0
           Part = D // Q

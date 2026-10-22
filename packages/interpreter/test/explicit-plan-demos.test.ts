@@ -11,6 +11,55 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('streams Fibonacci forbidden-index inputs before retaining the inclusion-exclusion state', () => {
+        const source = readFileSync(new URL('../../../demos/euler/399_squarefree.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--count=200', '--limit=300', '--prime-limit=53'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Index')).toBe(260n);
+            expect(runtime.variables.get('Answer')).toBe('1608739584170445,9.7e53');
+            expect(runtime.variables.get('Pr')).toMatchObject({ kind: 'sequence' });
+            expect(isStoredValue(runtime.variables.get('Pr')!)).toBe(false);
+            expect(isStoredValue(runtime.variables.get('Mods')!)).toBe(true);
+            expect(runtime.executeProgram(parse('Again = Pr len'), [])).toBe(16n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains maze column cosines for reuse and defers the single row traversal', () => {
+        const source = readFileSync(new URL('../../../demos/euler/380_mazes.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--rows=3', '--cols=3'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe('1.9200e2');
+            for (const name of ['R', 'C', 'Rx']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('Cx')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
+    it('recomputes deferred prime factorial terms over retained primes', () => {
+        const source = readFileSync(new URL('../../../demos/euler/381_primefactorial.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(480n);
+            expect(isStoredValue(runtime.variables.get('Ps')!)).toBe(true);
+            for (const name of ['K', 'Inv', 'Terms']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            expect(runtime.executeProgram(parse('Again = Terms sum'), [])).toBe(480n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('shares explicit Mertens memo entries beyond the precomputed cutoff', () => {
+        const source = readFileSync(new URL('../../../demos/euler/388_lines.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--n=40', '--cut=5'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(56335n);
+            expect(runtime.executeProgram(parse('Cache 1'), [])).toBe(0n);
+            expect(runtime.executeProgram(parse('Cache 2'), [])).toBe(-3n);
+            expect(runtime.executeProgram(parse('40 Cache mertens'), [])).toBe(0n);
+        } finally { runtime.dispose(); }
+    });
+
     it('publishes orchard recursion memo entries through an explicit shared index', () => {
         const source = readFileSync(new URL('../../../demos/euler/351_orchards.ra', import.meta.url), 'utf8');
         const program = parse(source);
