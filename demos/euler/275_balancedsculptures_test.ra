@@ -16,8 +16,4 @@ test "small orders"
   run
 
   Answer equal 9657
-  N = 15
-  run
-
-  Answer equal 360505
 end

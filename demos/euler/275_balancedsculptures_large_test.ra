@@ -1,0 +1,9 @@
+use testing
+
+test "order fifteen"
+  use "275_balancedsculptures"
+  N = 15
+  run
+
+  Answer equal 360505
+end
