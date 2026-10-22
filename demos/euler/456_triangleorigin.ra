@@ -1,0 +1,77 @@
+rem Triangles Containing the Origin II
+rem https://projecteuler.net/problem=456
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 2000000
+
+rem Only the ray of a point matters:
+rem merge equal primitive directions
+rem into classes of weight w. Count
+rem triples of distinct classes, less
+rem those in one open half-plane (by
+rem the first class in angle order)
+rem and those with an opposite pair.
+Is = (1 to N) copy
+X = 1248 Is 32323 powmod - 16161
+Y = 8421 Is 30103 powmod - 15051
+G = X abs (Y abs) gcd
+Nz = (G greater 0) indices
+Dx = X Nz // G Nz
+Dy = Y Nz // G Nz
+Ky = (Dx + 20000) * 40000 + Dy + 20000
+Od = Ky argsort
+Ks = Ky Od
+Pr = concat (array -1) Ks
+Nk = Ks len
+Nw = Ks not equal Pr (0 till Nk)
+St = Nw indices
+Sn = St (1 till St len)
+Ed = concat Sn (array Nk)
+W = Ed - St
+Cx = (Dx Od) St * 1.0
+Cy = (Dy Od) St * 1.0
+An = Cy Cx atan2
+Ao = An argsort
+An = An Ao
+W = W Ao
+Cx = Cx Ao
+Cy = Cy Ao
+M = W len
+rem Opposite ray of each class, in
+rem the doubled circle after it.
+Tp = 8 * (1.0 atan)
+Qa = (0 - Cy) (0 - Cx) atan2
+Qa = (Qa less An) choose (Qa + Tp) Qa
+K2 = concat An (An + Tp)
+Ws = concat W W
+rem Keys below each query: queries
+rem go first, so ties sort before.
+Mg = concat Qa K2
+Mo = Mg argsort
+Ik = (Mo at least M) choose 1 0
+Cb = Ik scan + with 0
+Ps = (Mo less M) indices
+Qi = Mo Ps
+J = array shape M fill 0
+J Qi = Cb Ps
+P1 = Ws scan + with 0
+P2 = Ws * Ws scan + with 0
+I1 = (0 till M) + 1
+A = P1 J - P1 I1
+Q = P2 J - P2 I1
+O = (W * (A * A - Q) // 2) sum
+Jc = J (2 * M - 1) min
+Hit = K2 Jc equal Qa
+Wo = Hit choose (Ws Jc) 0
+Tw = W sum
+B = (W * Wo * (Tw - W - Wo)) sum // 2
+S2 = (W * W) sum
+S3 = (W * W * W) sum
+T = Tw ** 3 - 3 * Tw * S2 + 2 * S3
+T //= 6
+Answer = T - O - B
+Answer print
