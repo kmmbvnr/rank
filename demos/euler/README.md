@@ -109,16 +109,19 @@ Programs that are scalar loops rather than array code, and why:
 | 438 | depth-first search over the coefficients |
 | 445 | exponents of C(N, k) updated from k to k + 1 |
 
-The slowest defaults, compiled (417, 418, 420, 433, 437 take 35-160 s;
-424 takes 11 min and 438 3.5 min): 414 (28 min, one pass per base and a
-pointer-jumping depth), 427 (6 min), 446 (6 min), 413 and 415 (5 min), 411
-(4 min, patience sorting over 5 x 10^7 integers), 439 (4 min), 448 and 421
-(3 min), 407, 429 and 432 (2 min). Most of those are tables of 10^7 cells with
-a recursion over the values N // k for N near 10^11 (415, 432, 439, 447, 448),
-or a sieve over 10^7-10^8 integers.
+The slowest defaults, compiled, on an M5 with power saving off (figures
+taken in low power mode are about 3 times higher): 424 (3.7 min), 415
+(2.4 min), 438 (2.3 min), 414 (1.9 min), 411, 420, 427 and 413 (1.5-2 min),
+439, 448, 437 and 421 (1-1.5 min); the rest take under a minute. Most of those
+are tables of 10^7 cells with a recursion over the values N // k for N near
+10^11 (415, 432, 439, 447, 448), or a sieve over 10^7-10^8 integers.
 
 Notes from this range:
 
+- 414 first used pointer jumping over all (u, v) states of a base: about 100
+  passes over B^2 / 2 cells, 515 s in all. The chains to the constant are
+  hundreds of steps long, so a scalar walk with memoised distances (one step
+  per state) takes 111 s and needs no array of next states.
 - Ordinary assignments complete arrays built from slices, gathers and
   `choose`. Apostrophe bindings keep plans and recompute on each demand;
   retain reused intermediate results with ordinary assignments.
