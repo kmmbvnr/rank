@@ -25,14 +25,14 @@ rem savings while owning, cashout value, rent,
 rem savings while renting and advantage of buying.
 fun Params buyorrent
   unpack Price Costs Term BankAmt BankRate DadAmt DadRate Infl Tax PropRate SavRate Rent = Params
-  Month = (1 to (Term integer)) copy
+  Month = 1 to (Term integer)
   Bank = BankAmt (BankRate / 1200) Month loan
   Dad = DadAmt (DadRate / 1200) Month loan
 
   rem Rent and the assessed home value change once a year.
   Yearly = (1 + Infl / 100) ** ((Month - 1) // 12)
   HomeVal = Price * (1 + Infl / 100) ** (Month / 12)
-  Assessed = Price * Yearly * PropRate / 200
+  Assessed' = Price * Yearly * PropRate / 200
   PropTax = (Month mod 6 equal 0) Assessed 0.0 choose
   TaxSave = Bank .int * Tax / 100
   Growth = 1 + SavRate / 1200 * (1 - Tax / 100)
@@ -73,6 +73,6 @@ rem grown by Growth, plus that month's flow.
 rem Discounting to month zero turns it into a sum.
 fun Flow Growth Start accrue
   Discount = Growth ** -((1 to (Flow len)) copy)
-  Saved = (Flow * Discount) scan +
+  Saved' = (Flow * Discount) scan +
   return (Start + Saved) / Discount
 end

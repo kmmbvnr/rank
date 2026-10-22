@@ -1,17 +1,20 @@
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
-    type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
+    deferredBindingReferences, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
-    isUnpackExpression, sequenceRetentionCandidate, type Expression, type PushStatement, type UnpackStatement,
+    isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy } from '../integer-view.js';
-import { retainSequence } from '../sequence-retention.js';
+import { materializeValue, materializeValues } from '../materialize.js';
+import { demandValue } from '../plan.js';
+import { materializeSequence } from '../sequence.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
-import { pushCollection } from '../containers.js';
+import { expectPushCollection, pushCollection } from '../containers.js';
 import { RankError } from '../errors.js';
+import { checkValueMutable } from '../value-protection.js';
 import {
     completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
 } from '../execution.js';
@@ -21,7 +24,7 @@ import { flatRecordWrite } from '../modules/sequences.js';
 import { tableColumnWrite } from '../modules/tables.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { arraySize, type Operators } from '../operators.js';
-import { assignRecordField } from '../record-contract.js';
+import { assignRecordField } from '../record-write.js';
 import { tensorSelection } from '../selectors.js';
 import type { PreparedStatement } from '../statement-control.js';
 import { writeTable } from '../table-access.js';
@@ -34,8 +37,10 @@ import {
 /** What preparing a write needs from evaluation and the binding environment. */
 export interface AssignmentContext {
     evaluate(expression: Expression): Evaluation<RankValue>;
+    defer(expression: Expression): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
+    protect(names: readonly string[], plan: string): () => void;
     resolveVariable(name: string): RankValue;
     checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
@@ -67,12 +72,13 @@ export function preparePushStatement(statement: PushStatement, host: AssignmentC
     return { stream: function* (): Execution<RankValue | undefined> {
         const receiver = (yield* resume(host.evaluate(statement.receiver)));
         host.requireModule('algo', 'push');
+        expectPushCollection(receiver);
         // `Queue push unpack Items` appends each item; a plain value is appended as one element.
         const spread = unpackSource(statement.value);
         if (isUnpackExpression(spread.source)) {
             const items = unpackApplicationItems(yield* resume(host.evaluate(spread.source.value)), spread.axis);
-            for (const item of items) pushCollection(receiver, item);
-        } else pushCollection(receiver, (yield* resume(host.evaluate(statement.value))));
+            for (const item of items) pushCollection(receiver, materializeValue(item));
+        } else pushCollection(receiver, materializeValue(yield* resume(host.evaluate(statement.value))));
         return undefined;
     } };
 }
@@ -88,7 +94,8 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
         if (unpacked.length !== statement.names.length) {
             throw new RankError(`unpack expects ${statement.names.length} values, got ${unpacked.length}`);
         }
-        for (let index = 0; index < writes.length; index += 1) writes[index]?.(unpacked[index]);
+        const values = unpacked.map((value, index) => writes[index] ? materializeValue(value) : value);
+        for (let index = 0; index < writes.length; index += 1) writes[index]?.(values[index]);
         return result;
     } };
 }
@@ -127,6 +134,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             if (!isRankRecord(receiver)) {
                 throw new RankError('field assignment expects a record target');
             }
+            checkValueMutable(receiver);
             return assignRecordField(
                 receiver,
                 field.name,
@@ -144,8 +152,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         const selection = tensorSelection(target, selectors);
         // The compiled single-cell form hands its value over when the
         // shape rules have to decide what happens to it.
-        const result = evaluated
-            ?? (yield* resume(host.evaluate(statement.value)));
+        let result = demandValue(evaluated
+            ?? (yield* resume(host.evaluate(statement.value))));
+        if (isRankSequence(result)) result = materializeSequence(result);
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
         let operands: RankValue[] | undefined;
@@ -200,13 +209,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             return result;
         }
         operands ??= Array(count).fill(result) as RankValue[];
-        const replacements = operands.map((operand, index) => operator === undefined
+        const replacements = materializeValues(operands.map((operand, index) => operator === undefined
             ? operand
             : host.operators.evaluateBinary(
                 operator,
-                readArrayItem(target, selection.offsetAt(index)),
-                operand,
-            ));
+                demandValue(readArrayItem(target, selection.offsetAt(index))),
+                demandValue(operand),
+            )));
         const checked = host.checkArrayWrite(statement.name, target, replacements, replacements.map((_, index) => selection.offsetAt(index)));
         const destination = owned(target) as typeof target;
         for (let index = 0; index < replacements.length; index += 1) {
@@ -245,9 +254,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 const offset = Number(selector);
                 if (offset >= 0 && offset < target.shape[0]) {
                     const value = directValue();
-                    if (isRankArray(value)) return general(target, [selector], value);
-                    const replacement = operator === undefined ? value
-                        : host.operators.evaluateBinary(operator, readArrayItem(target, offset), value);
+                    if (typeof value === 'object') return general(target, [selector], value);
+                    const replacement = materializeValue(operator === undefined ? value
+                        : host.operators.evaluateBinary(operator, demandValue(readArrayItem(target, offset)), value));
                     const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
                     target = owned(target) as typeof target;
                     writeArrayCell(target, offset, checked);
@@ -272,16 +281,11 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
 export function prepareAssignment(statement: AssignmentStatement, host: AssignmentContext): PreparedStatement {
     const operator = statement.operator === '='
         ? undefined : assignmentOperator(statement.operator);
-    const direct = host.compileDirect(statement.value);
+    const direct = statement.deferred ? undefined : host.compileDirect(statement.value);
     const write = host.compileAssign(statement.name);
-    const retain = sequenceRetentionCandidate(statement);
+    const protectedNames = statement.deferred ? deferredBindingReferences(statement).map(read => read.name) : [];
     const stored = (value: RankValue): RankValue => {
-        if (!isRankSequence(value)) return value;
-        if (retain && host.options().sequenceReuse !== false
-            && !(host.options().wrapStoredSequence && value.plan.replCursor)) {
-            value = retainSequence(value, host.options().sequenceCacheBytes);
-        }
-        return host.options().wrapStoredSequence?.(value) ?? value;
+        return statement.deferred ? value : materializeValue(value);
     };
     if (direct) {
         return { run: () => {
@@ -294,9 +298,11 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
     }
     return { stream: () => {
         const previous = operator === undefined ? undefined : host.resolveVariable(statement.name);
-        return mapResult(host.evaluate(statement.value), value => {
+        return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
             const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));
+            const protect = statement.deferred ? host.protect(protectedNames, statement.name) : undefined;
             write(result);
+            protect?.();
             return result;
         });
     } };
@@ -327,7 +333,7 @@ export function prepareCollectionMutation(
             ? expectAddCollection(target) : target;
         host.requireModule('algo', mutation.operation);
         const value = yield* resume(host.evaluate(mutation.value));
-        if (mutation.operation === 'add') addToCollection(receiver, value);
+        if (mutation.operation === 'add') addToCollection(receiver, materializeValue(value));
         else removeFromCollection(receiver, value);
         return undefined;
     } };

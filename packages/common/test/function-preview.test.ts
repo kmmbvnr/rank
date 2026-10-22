@@ -127,7 +127,7 @@ it('keeps an unproven fallback result unknown when notebook context cannot be pa
 
 it('infers the settled integer return of the Euler poker function before any call', async () => {
     const demo = readFileSync(new URL('../../../demos/euler/054_poker.ra', import.meta.url), 'utf8');
-    const source = demo.slice(demo.search(/\bfun (?:[A-Z]\w*[ \t]+)*poker_wins\b/), demo.indexOf('rem Category')).trim();
+    const source = demo.slice(demo.search(/\bfun (?:[A-Z]\w*'?[ \t]+)*poker_wins\b/), demo.indexOf('rem Category')).trim();
     const session = createReplSession();
     try {
         await session.execute('Input = ""', 0, [], 40, true);

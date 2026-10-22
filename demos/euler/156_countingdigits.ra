@@ -30,31 +30,31 @@ for D in 1 to Last
     if Lvl greater 0
       B = B // 10
       Cols = Lo len
-      Kids = (0 till 10 array) * B
-      Row = Lo reshape Cols 1
-      Kid = Kids reshape 1 10
+      Kids' = (0 till 10 array) * B
+      Row' = Lo reshape Cols 1
+      Kid' = Kids reshape 1 10
       Num = Cols * 10
       Lo = (Row + Kid) reshape Num
     end
     Ends = concat Lo (Lo + B)
     Col = Ends reshape (Ends len) 1
     Cur = Col // Pw mod 10
-    Low = Col mod Pw + 1
-    Part = Cur equal D choose Low 0
-    Add = Cur greater D choose Pw Part
-    Top10 = Col // Pw10 * Pw
-    F = Add + Top10 sum axis 1
+    Low' = Col mod Pw + 1
+    Part' = Cur equal D choose Low 0
+    Add' = Cur greater D choose Pw Part
+    Top10' = Col // Pw10 * Pw
+    F' = Add + Top10 sum axis 1
     G = F - Ends
     Half = Lo len
     Glo = G take Half
-    Ghi = G drop Half
+    Ghi' = G drop Half
     if B equal 1
-      Z = Glo equal 0 and Lo greater 0
-      Hit = Lo filter Z array
+      Z' = Glo equal 0 and Lo greater 0
+      Hit' = Lo filter Z array
       Answer += Hit sum
     end
-    Under = Glo - B at most 0
-    Keep = Under and Ghi + B at least 0
+    Under' = Glo - B at most 0
+    Keep' = Under and Ghi + B at least 0
     Lo = Lo filter Keep array
   end
 end

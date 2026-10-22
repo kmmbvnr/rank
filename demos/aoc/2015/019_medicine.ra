@@ -10,14 +10,13 @@ use sequences
 
 argument Input path
 
-Lines = Input readlines
-unpack Part1 Part2 = Lines solve
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
 
 rem Parse replacement rules and solve both molecule questions.
-fun Lines solve
+fun Lines' solve
   Queue = new queue
   Target = ""
 

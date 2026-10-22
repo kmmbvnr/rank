@@ -36,7 +36,7 @@ for I in (Goal - 1) to 0 by -1
   for J in (Goal - 1) to 0 by -1
     A = Row (J + G)
     Nxt = Hn J
-    Cand = (Nxt + P * A) / (1 + P)
+    Cand' = (Nxt + P * A) / (1 + P)
     Best = Cand max
     Row J = Best
   end

@@ -68,8 +68,8 @@ Notes from this range, for the next one:
 - `A B gcd`, `A isqrt` and `A B max` are postfix calls and take everything
   to their left, so use named intermediates.
 - A Boolean array does not sum: use `count` (#392).
-- A gathered or sorted array (`A Order`) is lazy; `copy` it before reading
-  it in a loop, or the loop does not compile.
+- Ordinary assignment completes a gathered or sorted array (`A Order`),
+  so a later loop reads stored cells. Use an apostrophe to retain a plan.
 - A compiled loop checks its arrays when it is entered, so a small loop
   inside a loop that is not compiled costs the size of the array each
   time (#390). `**` and `isqrt` stop a loop from compiling (#391).
@@ -119,9 +119,9 @@ or a sieve over 10^7-10^8 integers.
 
 Notes from this range:
 
-- A statement that builds several derived arrays from slices, gathers and
-  `choose` stays lazy, and each later read evaluates the whole expression for
-  every element. `copy` after each statement gave 2-5 times (#402).
+- Ordinary assignments complete arrays built from slices, gathers and
+  `choose`. Apostrophe bindings keep plans and recompute on each demand;
+  retain reused intermediate results with ordinary assignments.
 - A mask built from a range (`1 to N`) was rejected by `choose` (#401).
 - `for E in 0 to X len - 1` keeps the loop out of the compiler; with a
   union-find in the body the guard rescans the array on every iteration, so

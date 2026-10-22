@@ -34,8 +34,8 @@ East = Right + 1
 South = Down + Side
 From = concat Right East Down South
 To = concat East Right South Down
-Cost = Cells To
-Edges = stack From To Cost transpose
+Cost' = Cells To
+Edges' = stack From To Cost transpose
 Net = new graph .directed
 Net add Id
 Net add Edges

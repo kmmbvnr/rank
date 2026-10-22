@@ -25,10 +25,9 @@ Col = array 0 1 2
 A = Col reshape 3 1 1
 B = Col reshape 1 3 1
 C = Col reshape 1 1 3
-Diff = (A not equal B) choose 1 0
-Third = C not equal A
-Third and= C not equal B
-New = Third choose 1 0
+Diff' = (A not equal B) choose 1 0
+Third' = C not equal A and C not equal B
+New' = Third choose 1 0
 Fac = 3 - (1 + Diff + New)
 V = array 1 1 1
 for Row in 2 to Rows
@@ -37,10 +36,10 @@ for Row in 2 to Rows
   for I in 1 to Prev
     Heads = 3 ** I
     Tail = 3 ** (Prev - I)
-    Last = (0 till Heads array) mod 3
-    Mat = Fac Last
-    Old = W reshape Heads 3 Tail
-    New = Mat Old matmul rank 2 2
+    Last' = (0 till Heads array) mod 3
+    Mat' = Fac Last
+    Old' = W reshape Heads 3 Tail
+    New' = Mat Old matmul rank 2 2
     Count = Heads * 3 * Tail
     W = New reshape Count
   end

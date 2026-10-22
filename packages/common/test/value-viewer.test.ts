@@ -119,7 +119,7 @@ describe('the value viewer', () => {
 
     it('reads more of an endless sequence on m, and says how it went', async () => {
         const { session, repl, viewer, press, screen } = await opened(60, 12, {},
-            'fun stream\n for I in 1 to 1000000000\n  yield I\n end\nend', 'N = stream');
+            'fun stream\n for I in 1 to 1000000000\n  yield I\n end\nend', "N' = stream");
         try {
             const before = viewer.view.kind === 'list' ? viewer.view.scroll.length : 0;
             expect(viewer.view).toMatchObject({ kind: 'list', more: true });
@@ -134,7 +134,7 @@ describe('the value viewer', () => {
 
     it('offers nothing to read for a sequence that has ended, and m does nothing', async () => {
         const { session, viewer, press, screen } = await opened(60, 12, {},
-            'fun N upto\n for I in 1 to N\n  yield I\n end\nend', 'S = 5 upto');
+            'fun N upto\n for I in 1 to N\n  yield I\n end\nend', "S' = 5 upto");
         try {
             expect(viewer.view).toMatchObject({ kind: 'list' });
             expect(viewer.view.kind === 'list' && viewer.view.more).toBeUndefined();

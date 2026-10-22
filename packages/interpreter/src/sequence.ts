@@ -2,10 +2,11 @@ import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, IntegerCells, materializeCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
 import { arithmeticRange } from './range-plan.js';
 import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
 import { MissingValueError, RankError } from './errors.js';
+import { isKnownFileFree } from './resource-summary.js';
 import {
     isRankArray,
     isRankQueue,
@@ -28,7 +29,7 @@ export function sequenceMask(
     source: RankSequence,
     predicate: SequencePredicate,
 ): RankSequenceMask {
-    const mapped = mapSequence(source, predicate.name, value => predicate.test(value), predicate.pure);
+    const mapped = mapSequence(source, predicate.name, value => predicate.test(value), predicate.pure, predicate.captures);
     return { kind: 'sequence', plan: mapped.plan, source, predicate };
 }
 
@@ -54,6 +55,7 @@ function filteredPlan(source: SequencePlan, predicate: SequencePredicate): Seque
         replay: source.replay && predicate.pure ? 'pure' : undefined,
         name: `${source.name} where ${predicate.name}`,
         singlePass: source.singlePass,
+        captures: [...source.captures ?? [], ...predicate.captures ?? []],
         size: filteredSize(source.size),
         *iterate() {
             for (const value of source.iterate()) {
@@ -131,12 +133,14 @@ export function mapSequence(
     name: string,
     operation: (value: RankValue) => RankValue,
     pure = false,
+    captures?: readonly ReadonlyMap<string, RankValue>[],
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
         name: `${sourcePlan.name} ${name}`,
         replay: sourcePlan.replay && pure ? 'pure' : undefined,
         singlePass: sourcePlan.singlePass,
+        captures: [...sourcePlan.captures ?? [], ...captures ?? []],
         size: sourcePlan.size,
         *iterate() {
             for (const value of sourcePlan.iterate()) yield operation(value);
@@ -150,6 +154,7 @@ export function scanSequence(
     seed: RankValue | undefined,
     operation: (left: RankValue, right: RankValue) => RankValue,
     pure = false,
+    captures?: readonly ReadonlyMap<string, RankValue>[],
 ): RankSequence {
     const sourcePlan = source.plan;
     return sequence({
@@ -157,7 +162,7 @@ export function scanSequence(
         replay: sourcePlan.replay && pure && typeof seed !== 'object' ? 'pure' : undefined,
         singlePass: sourcePlan.singlePass,
         size: scanSize(sourcePlan.size, seed !== undefined),
-        captures: sourcePlan.captures,
+        captures: [...sourcePlan.captures ?? [], ...captures ?? []],
         *iterate() {
             let accumulated = seed;
             if (accumulated !== undefined) yield accumulated;
@@ -483,7 +488,14 @@ export function stackItems(
 }
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
-    return value.plan.reduce?.(operation);
+    const planned = value.plan.reduce?.(operation);
+    if (planned !== undefined) return planned;
+    // Counting true mask items is counting the source items selected by the
+    // same predicate. Preserve native reductions such as tree distance bounds.
+    if (operation === 'count' && isRankSequenceMask(value)) {
+        return value.source.plan.withFilter?.(value.predicate)?.reduce?.('count');
+    }
+    return undefined;
 }
 
 export function windowValue(
@@ -541,11 +553,13 @@ export function windowValue(
     if (isRankSequence(source)) {
         validateWindowAxes(1, widths, axes);
         rejectWindowPadding(padding, 'sequence');
-        if (source.plan.size.kind !== 'exact') {
+        if (source.plan.size.kind !== 'exact' || source.plan.singlePass) {
             return streamingWindows(source, widths[0], strides[0]);
         }
         const length = safeSize(source.plan.size.value, 'sequence size');
-        const sourceItem = cachedSequenceItem(source);
+        const sourceItem = (index: number) => atSequence(source, BigInt(index));
+        const values = source.plan.at ? undefined
+            : () => exactWindowCells(source, length, widths[0], strides[0]);
         return arrayWindows(
             [length],
             sourceItem,
@@ -554,6 +568,9 @@ export function windowValue(
             strides,
             padding,
             fillValue,
+            [source],
+            false,
+            values,
         );
     }
 
@@ -569,6 +586,7 @@ export function windowValue(
             strides,
             padding,
             fillValue,
+            [ownedArray(items)],
         );
     }
 
@@ -607,7 +625,7 @@ export function shiftValue(
     const amount = Number(amountValue);
     if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
     const shape = source.shape;
-    return derivedArray(shape, [source], linear => {
+    return derivedArray(shape, [source, fillValue], linear => {
         const coordinates = arrayCoordinates(shape, linear);
         coordinates[axis] -= amount;
         if (coordinates[axis] < 0 || coordinates[axis] >= shape[axis]) return fillValue;
@@ -701,8 +719,9 @@ function arrayWindows(
     strides: readonly number[],
     padding: readonly number[],
     fill: RankValue,
-    dependencies?: readonly RankArray[],
+    dependencies: readonly RankValue[],
     wrap = false,
+    values?: () => IterableIterator<RankValue>,
 ): RankArray {
     if (wrap && sourceShape.some(n => n === 0) && padding.some(n => n > 0)) {
         throw new RankError('window wrap cannot pad an empty axis', 'DomainError');
@@ -735,8 +754,8 @@ function arrayWindows(
         });
         return hasPadding ? readInput(input) : sourceItem(arrayOffset(sourceShape, input));
     };
-    const result = dependencies ? derivedArray(resultShape, dependencies, read)
-        : lazyArray(resultShape, read);
+    const result = derivedArray(resultShape, hasPadding ? [...dependencies, fill] : dependencies, read,
+        dependencies.every(isKnownFileFree) && isKnownFileFree(fill), undefined, values);
 
     const size = arraySize(widths);
     windowCells.set(result, { size, fold(frameIndex, operation) {
@@ -785,17 +804,56 @@ function windowCount(length: number, width: number, stride: number, padding: num
     return available < 0 ? 0 : Math.floor(available / stride) + 1;
 }
 
+/** Sequential scalar demand over exact windows. The rolling buffer belongs
+ * to this reader; yielding a cell never reads the next one in advance. */
+function* exactWindowCells(
+    source: RankSequence, length: number, width: number, stride: number,
+): IterableIterator<RankValue> {
+    const count = windowCount(length, width, stride, 0);
+    if (count === 0) return;
+    const reader = source.plan.iterate();
+    const buffer: RankValue[] = [];
+    let position = -1;
+    let failed = false;
+    try {
+        for (let frame = 0; frame < count; frame++) {
+            for (let offset = 0; offset < width; offset++) {
+                checkpoint('reading window');
+                const target = frame * stride + offset;
+                while (position < target) {
+                    checkpoint('reading window source');
+                    const next = reader.next();
+                    if (next.done) throw new MissingValueError('sequence ended before its declared size');
+                    position++;
+                    if (buffer.length < width) buffer.push(next.value);
+                    else buffer[position % width] = next.value;
+                    if (position < target) passOver();
+                }
+                yield buffer[target % width];
+            }
+        }
+    } catch (error) { failed = true; throw error; }
+    finally {
+        try { reader.return?.(); }
+        catch (error) { if (!failed) throw error; }
+    }
+}
+
 function streamingWindows(
     source: RankSequence,
     width: number,
     stride: number,
 ): RankSequence {
     const sourceSize = source.plan.size;
-    const size = sourceSize.kind === 'infinite'
-        ? sourceSize
-        : { kind: 'unknown' as const };
+    const size = sourceSize.kind === 'exact'
+        ? { kind: 'exact' as const, value: sourceSize.value < BigInt(width) ? 0n
+            : (sourceSize.value - BigInt(width)) / BigInt(stride) + 1n }
+        : sourceSize;
     return sequence({
         name: `${width} window over ${source.plan.name}`,
+        singlePass: source.plan.singlePass,
+        replay: source.plan.replay,
+        captures: source.plan.captures,
         size,
         *iterate() {
             const buffer: RankValue[] = [];
@@ -812,32 +870,6 @@ function streamingWindows(
             }
         },
     });
-}
-
-function cachedSequenceItem(source: RankSequence): (index: number) => RankValue {
-    const iterator = source.plan.iterate();
-    const items: RankValue[] = [];
-    return index => {
-        while (items.length <= index) {
-            const next = iterator.next();
-            if (next.done) throw new MissingValueError(`sequence index out of bounds: ${index}`);
-            items.push(next.value);
-        }
-        return items[index];
-    };
-}
-
-function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValue): RankArray {
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        get items() {
-            materialized ??= materializeCells(arraySize(shape), itemAt);
-            return materialized;
-        },
-    };
 }
 
 function arrayCoordinates(shape: readonly number[], linear: number): number[] {

@@ -1,5 +1,6 @@
 import { functionCallSignature, type FunctionCallSignature } from '../function-call-signature.js';
 import { functionBindingPlan } from '../function-binding.js';
+import { completedTypes } from './completion-facts.js';
 import { flattenApplication as flatten, forIteration } from '../expressions.js';
 /**
  * Binding and mutation facts: where every name is bound, read and written.
@@ -14,16 +15,18 @@ import { flattenApplication as flatten, forIteration } from '../expressions.js';
 
 import {
     isDeclaredCallExpression, isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    isAliasedTableExpression, isBoundClauseExpression, isCountClauseExpression,
+    isFirstWhereExpression, isFirstIndexWhereExpression, isTakeWhileExpression, isSubjectComparisonExpression,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isOperationAssignmentStatement,
-    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression,
+    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isKeyedRollingExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
     isPushStatement, isRecordExpression, isRecordField, isRecordUpdateExpression, isReturnStatement, isStdinExpression,
     isTestStatement, isTryStatement, isUnaryExpression, isUnpackExpression,
     isUnpackStatement, isUseStatement, isYieldStatement,
-    type Expression, type Program, type Statement,
+    type Expression, type NameExpression, type Program, type Statement,
 } from '../generated/ast.js';
 import type { AstNode } from 'langium';
 import { findOperation, operationArities } from '../operations.js';
@@ -155,6 +158,22 @@ export function analyzeBindings(
     signatures: ReadonlyMap<string, FunctionCallSignature> = new Map(),
 ): ProgramFacts {
     return new Analyzer(new Set(imported), externalFunctions, observeRead, signatures).run(program);
+}
+
+const expressionReads = new WeakMap<Expression, readonly NameExpression[]>();
+
+/** Reads supplied by the enclosing environment, excluding sequential query locals. */
+export function expressionFreeReads(expression: Expression): readonly NameExpression[] {
+    const cached = expressionReads.get(expression);
+    if (cached) return cached;
+    const reads: NameExpression[] = [];
+    const program: Program = { $type: 'Program', statements: [] };
+    program.statements.push({ $type: 'ExpressionStatement', $container: program, value: expression });
+    analyzeBindings(program, [], new Map(), (node, binding) => {
+        if (!binding && isNameExpression(node)) reads.push(node);
+    });
+    expressionReads.set(expression, reads);
+    return reads;
 }
 
 interface Slot {
@@ -325,7 +344,8 @@ class Analyzer {
             // A compound operator reads the name before it writes it.
             if (statement.operator !== '=') this.read(statement.name, statement);
             this.expression(statement.value);
-            const value = this.typeOf(statement.value);
+            const expressionType = this.typeOf(statement.value);
+            const value = statement.deferred ? expressionType : completedTypes(expressionType);
             this.bind(statement.name, 'assignment', statement, statement.operator === '='
                 ? value
                 : compoundType(statement.operator,
@@ -456,6 +476,26 @@ class Analyzer {
             this.expression(expression.operand);
             return;
         }
+        if (isSubjectComparisonExpression(expression)) {
+            this.expression(expression.stepOperand);
+            this.expression(expression.right);
+            return;
+        }
+        if (isCountClauseExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.count);
+            return;
+        }
+        if (isBoundClauseExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.condition);
+            return;
+        }
+        if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression) || isTakeWhileExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.mask);
+            return;
+        }
         if (isApplicationExpression(expression)) {
             const parts = flatten(expression);
             for (const [index, part] of parts.entries()) {
@@ -469,7 +509,7 @@ class Analyzer {
             this.expression(expression.value);
             return;
         }
-        if (isMaterializeExpression(expression)) {
+        if (isMaterializeExpression(expression) || isAliasedTableExpression(expression)) {
             this.expression(expression.source);
             return;
         }
@@ -542,6 +582,11 @@ class Analyzer {
         }
         if (isKeyedGroupExpression(expression)) {
             this.expression(expression.source);
+            return;
+        }
+        if (isKeyedRollingExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.width);
             return;
         }
         if (isKeyedJoinExpression(expression)) {

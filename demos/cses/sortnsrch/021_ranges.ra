@@ -17,11 +17,11 @@ Result .inside print
 rem Count containing and contained ranges.
 fun Data nested_range_counts
   N = (Data shape) 0
-  Start = Data # 0
+  Start' = Data # 0
   Finish = Data # 1
 
   Base = 1000000001
-  Keys = Start * Base + Base - Finish
+  Keys' = Start * Base + Base - Finish
   Order = Keys argsort
 
   Ends = Finish unique sort

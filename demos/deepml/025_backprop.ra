@@ -20,14 +20,14 @@ fun X Y InitialWeights Bias Rate Epochs train_neuron
     Pred = Pred sigmoid
 
     Error = Pred - Y
-    Squared = Error * Error
+    Squared' = Error * Error
     Mse = Squared mean
     Loss Epoch = Mse round 4
 
     Delta = Error * Pred
     Delta *= 1 - Pred
 
-    Xt = X transpose
+    Xt' = X transpose
     GradW = Xt Delta matmul
     GradW *= 2 / N
 

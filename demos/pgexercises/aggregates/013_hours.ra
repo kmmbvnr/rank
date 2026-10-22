@@ -9,17 +9,17 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/agg_013.csv"
 
 Db = DbPath sqlite
-B = Db .bookings
-F = Db .facilities
-R = B F innerjoin by .facid
-R = R select
+B' = Db .bookings
+F' = Db .facilities
+R' = B F innerjoin by .facid
+R' = R select
   .facid = .facid
   .name = .name
   .hours = (.slots real rank 0) * 0.5
 end
-G = R group by .facid .name
-Result = G select
+G' = R group by .facid .name
+Result' = G select
   .hours = .hours sum
 end
-Result = Result sort by .facid
+Result' = Result sort by .facid
 Result OutputPath csv

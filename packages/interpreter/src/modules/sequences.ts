@@ -1,26 +1,27 @@
+import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
+import { materializeValue } from '../materialize.js';
 import { numericSort } from '../numeric-collections.js';
 import { reshapeDimensions } from '../tensor-layout.js';
 import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-order.js';
-export { sortValue, argsortValue } from './sequence-order.js';
+export { sortValue, argsortValue, sortByKeys } from './sequence-order.js';
 import { uniqueValue } from './sequence-distinct.js';
 export { uniqueLength } from './sequence-distinct.js';
 import { primePlan } from '../prime-sequence.js';
 import { registerSequenceMembership } from '../sequence-membership.js';
-import { above, within, strongerLower, membershipInteger, type Boundary } from '../sequence-bounds.js';
+import { above, within, strongerLower, strongerUpper, membershipInteger, type Boundary } from '../sequence-bounds.js';
 import { concatArrays } from '../concat-array.js';
 import { orderedSource } from '../ordered-source.js';
 import { collectionSize } from '../collection-size.js';
 import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
-import { inheritSemanticArrayType, semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
-import { checkpoint, inspectionEnabled, interruptibleCallback } from '../interrupt.js';
+import { semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
+import { checkpoint, inspectionEnabled } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, prepareArrayRead, readArrayItem, realCells, typedArray, typedElementKind, reshapeStoredArray } from '../array-storage.js';
+import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, arrayValueTraversal, collectArrayCells, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
-import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
@@ -49,7 +50,7 @@ import {
     type SequencePredicate,
 } from '../value.js';
 import type { Operators } from '../operators.js';
-import { assignRecordField } from '../record-contract.js';
+import { assignRecordField } from '../record-write.js';
 import { native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
@@ -127,7 +128,7 @@ export function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse
     if (dense) return dense;
     const fileFree = [whenTrue, whenFalse].every(value => isKnownFileFree(value)
         || (isRankArray(value) && value.containsFiles === false));
-    return derivedArray(shape, arrays, index => {
+    return derivedArray(shape, values, index => {
         const selected = read(condition, index);
         if (typeof selected !== 'boolean') {
             throw new RankError('choose expects a boolean condition', 'TypeError');
@@ -193,6 +194,11 @@ export function chooseIndexed(index: RankValue, choices: RankValue): RankValue {
 }
 
 function booleanReduction(value: RankValue, operation: 'all' | 'any'): boolean {
+    const planned = elementSource(value, operation, 'booleans')?.reduce?.(operation);
+    if (planned !== undefined) {
+        if (typeof planned !== 'boolean') throw new RankError(`${operation} plan must return a boolean`);
+        return planned;
+    }
     const expected = operation === 'all';
     for (const item of collectionValues(value, operation)) {
         if (typeof item !== 'boolean') {
@@ -257,15 +263,16 @@ export function copyArray(value: RankValue): RankArray {
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const copied = inspectionEnabled() ? undefined : copyMaterializedArrayItems(value, size);
     const integers = copied || inspectionEnabled() ? undefined : prepareIntegerView(value, true);
-    const prepared = copied || integers || inspectionEnabled() ? undefined : prepareArrayRead(value);
-    const items = copied ?? Array.from(
+    const traverse = copied || integers ? undefined : arrayValueTraversal(value);
+    const prepared = copied || integers || traverse || inspectionEnabled() ? undefined : prepareArrayRead(value);
+    const items = copied ?? (traverse ? collectArrayCells(value) : Array.from(
         { length: size },
         (_, index) => {
             if (integers) { checkpoint('copying integers'); return integers.read(index); }
             if (prepared) { checkpoint('copying array'); return prepared(index); }
             return value.itemAt?.(index) ?? value.items[index];
         },
-    );
+    ));
     // Cells that are arrays or finite sequences stack along new trailing axes, as sequence items do.
     if (!items.some(item => isRankArray(item) || isRankSequence(item))) {
         const result = ownedArray(items, value.shape, false, value.columnNames);
@@ -434,67 +441,7 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
         throw new RankError('transpose axes must be unique');
     }
 
-    const shape = permutation.map(axis => value.shape[axis]);
-    // A stored array is permuted into a stored array at once: a lazy transpose
-    // would decode coordinates again for every cell of every later read.
-    const stored = denseScalarItems(value);
-    const total = shape.reduce((product, dimension) => product * dimension, 1);
-    if (stored && total >= 1024) {
-        const sourceStrides = new Array<number>(value.shape.length).fill(1);
-        for (let axis = value.shape.length - 2; axis >= 0; axis -= 1) {
-            sourceStrides[axis] = sourceStrides[axis + 1] * value.shape[axis + 1];
-        }
-        const strides = permutation.map(axis => sourceStrides[axis]);
-        // A typed source stays typed, and a plain array of reals becomes typed.
-        const kind = typedElementKind(value);
-        const reals = realCells(value) !== undefined;
-        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
-            : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
-        const cells = out as unknown as RankValue[];
-        // An odometer over the output coordinates walks the source offsets.
-        const rank = shape.length;
-        const coordinates = new Array<number>(rank).fill(0);
-        let offset = 0;
-        for (let index = 0; index < total; index += 1) {
-            if ((index & 0xfff) === 0) checkpoint('transposing array');
-            cells[index] = stored[offset];
-            for (let axis = rank - 1; axis >= 0; axis -= 1) {
-                coordinates[axis] += 1;
-                offset += strides[axis];
-                if (coordinates[axis] < shape[axis]) break;
-                offset -= strides[axis] * shape[axis];
-                coordinates[axis] = 0;
-            }
-        }
-        if (Array.isArray(out)) return inheritSemanticArrayType(value, ownedArray(out, shape, true));
-        return inheritSemanticArrayType(value, typedArray(out, shape));
-    }
-    const itemAt = (index: number): RankValue => {
-        const output = coordinatesAt(shape, index);
-        const sourceRank = value.shape.length;
-        let source: number[];
-        if (sourceRank === 2 && output.length === 2) {
-            // These coordinates are fresh and unexposed. Reuse their array,
-            // retaining permutation read/write order for host-backed views.
-            const first = output[0], second = output[1];
-            source = output;
-            source[0] = 0;
-            source[1] = 0;
-            source[permutation[0]] = first;
-            source[permutation[1]] = second;
-        } else {
-            source = Array(sourceRank).fill(0) as number[];
-            output.forEach((coordinate, axis) => {
-                source[permutation[axis]] = coordinate;
-            });
-        }
-        const offset = source.reduce(
-            (current, coordinate, axis) => current * value.shape[axis] + coordinate,
-            0,
-        );
-        return value.itemAt?.(offset) ?? value.items[offset];
-    };
-    return inheritSemanticArrayType(value, derivedArray(shape, [value], itemAt));
+    return permutedArray(value, permutation);
 }
 
 /** Materialize the finite rank-1 sources accepted by keyed sorting. */
@@ -516,50 +463,6 @@ export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[
         return [...value.plan.iterate()];
     }
     throw new RankError(`${operation} expects a finite rank-1 collection`);
-}
-
-/** Sort already-computed key rows lexicographically and stably. */
-export function sortByKeys(
-    items: readonly RankValue[],
-    keys: readonly (readonly (RankValue | undefined)[])[],
-    operation = 'sort by',
-    indices = false,
-    descending: readonly boolean[] = [],
-): RankArray {
-    if (items.length !== keys.length) throw new RankError(`${operation} key count mismatch`);
-    const width = keys[0]?.length ?? 0;
-    if (keys.some(key => key.length !== width)) {
-        throw new RankError(`${operation} keys must have one shape`);
-    }
-    const kinds = Array.from({ length: width }, (_, column) => {
-        const first = keys.find(row => row[column] !== undefined)?.[column];
-        if (first === undefined) return undefined;
-        const kind = orderedKind(first);
-        for (const row of keys) {
-            const value = row[column];
-            if (value !== undefined && orderedKind(value) !== kind) {
-                throw new RankError(`${operation} key values must have one comparable type`);
-            }
-        }
-        return kind;
-    });
-    const entries = items.map((value, position) => ({ value, position, keys: keys[position] }));
-    entries.sort(interruptibleCallback((left, right) => {
-        for (let column = 0; column < width; column += 1) {
-            const a = left.keys[column];
-            const b = right.keys[column];
-            if (a === undefined || b === undefined) {
-                if (a !== b) return a === undefined ? 1 : -1;
-                continue;
-            }
-            const order = compareOrderedValues(a, b, kinds[column]!);
-            if (order !== 0) return descending[column] ? -order : order;
-        }
-        return left.position - right.position;
-    }, 'sorting'));
-    const result = ownedArray(entries.map(entry => indices ? BigInt(entry.position) : entry.value));
-    if (!indices) Object.defineProperty(result, 'sortKeys', { value: entries.map(entry => entry.keys) });
-    return result;
 }
 
 /** Return stable indices that order a tensor along one axis. */
@@ -698,7 +601,6 @@ function fibonacciPlan(
     const plan: SequencePlan = {
         name: evenOnly ? 'even fibonacci' : 'fibonacci',
         replay: 'pure',
-        replCursor: true,
         size: boundary
             ? { kind: 'exact', value: fibonacciSize(boundary, evenOnly, lower) }
             : { kind: 'infinite' },
@@ -729,7 +631,7 @@ function fibonacciPlan(
             }
         },
         withUpperBound(limit, inclusive) {
-            return fibonacciPlan({ limit, inclusive }, evenOnly, lower);
+            return fibonacciPlan(strongerUpper(boundary, { limit, inclusive }), evenOnly, lower);
         },
         withLowerBound(limit, inclusive) {
             return fibonacciPlan(
@@ -822,8 +724,9 @@ export function flatRecordWrite(
             return result;
         }
         if (operator !== '=') throw new RankError('flat record assignment supports =');
-        target.set(index, value);
-        return value;
+        const result = materializeValue(value);
+        target.set(index, result);
+        return result;
     };
 }
 

@@ -5,12 +5,12 @@ use algo
 use io
 
 N = stdin .integer
-Values = stdin .integer N array
+Values' = stdin .integer N
 Values increasing_length print
 
 
 rem Keep the smallest tail by length.
-fun Values increasing_length
+fun Values' increasing_length
   Tails = new multiset
 
   for Value in Values

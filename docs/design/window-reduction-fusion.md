@@ -10,17 +10,18 @@ use consecutive source addresses. Multidimensional windows use a coordinate
 counter with source strides; axis order, stride and padding remain supported.
 
 This is producer/reducer composition in the runtime, not a new language construct
-or a generated-JavaScript kernel. It benefits the original Euler 8 program:
+or a generated-JavaScript kernel. It can compose through explicitly deferred
+Euler 8 stages:
 
 ```rank
-Windows = Digits window Width
-Products = Windows reduce * rank 1
+Windows' = Digits window Width
+Products' = Windows reduce * rank 1
 Answer = Products max
 ```
 
 It avoids per-element coordinate arrays. It does not eliminate observable
-variables or change their materialization. The product array and final maximum
-retain ordinary behavior.
+variables or change their materialization. The deferred stages compute on demand;
+the final ordinary binding stores the maximum. An ordinary window binding completes the windows before reduction.
 
 ## Semantics
 

@@ -3,7 +3,7 @@ import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, type CompiledFunctionType, isApplicationExpression, isAssignmentStatement, isParenthesizedExpression,
+    type ApplicationForm, type Operation, type CompiledFunctionType, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -14,10 +14,12 @@ import type { Operators } from './operators.js';
 import { compileScalarExpression, compileResumableScalarExpression } from './scalar-compiler.js';
 import { scalarFunctionResult, type ScalarCaptureTypes } from './scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
-import { completed, type Evaluation, type Execution } from './execution.js';
+import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
 import { CallSpecializations } from './call-specializations.js';
-import type { ExecutionContext, PreparedStatement, TensorGroup } from './statement-control.js';
-import { compileTensorKernel } from './tensor-kernel.js';
+import type { ExecutionContext, PreparedStatement, TensorStep } from './statement-control.js';
+import { compileTensorKernel, compileTensorReduction, type TensorCodeCache, type TensorKernelHost } from './tensor-kernel.js';
+import { hasNativeImplementation } from './native-implementation.js';
+import { tensorPlanScope } from './tensor-map.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
@@ -40,14 +42,14 @@ export interface FastPathContext {
     readonly modules: ReadonlySet<string>;
     readonly builtins: BuiltinRegistry;
     readonly functions: FunctionInvocation;
+    checkMutation(statement: Statement): void;
     resolve(name: string): RankValue;
     compileAssign(name: string): (value: RankValue) => void;
     locate(error: unknown, node: AstNode): unknown;
     options(): InterpreterOptions;
     evaluate(expression: Expression): Evaluation<RankValue>;
+    evaluateReturn(expression: Expression, tail?: boolean): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
-    /** Evaluation of a returned application that may become a tail call. */
-    compileTail(expression: Expression): () => Evaluation<RankValue>;
     /** Builtin identity a name is bound to, or false for a user value. */
     operationOf(name: string): Operation | undefined | false;
     readonly operators: Operators;
@@ -75,6 +77,7 @@ export interface BlockSteps {
  * guard fails. Options can disable each path; inspection disables them all.
  */
 export class FastPaths {
+    private readonly tensorPlanCode = new WeakMap<Expression, TensorCodeCache>();
     private readonly blocks = new WeakMap<Statement[], CompiledBlock<ExecutionContext> | null>();
     private readonly functionBodies = new WeakMap<FunctionStatement, CallSpecializations<CompiledBlock<ExecutionContext> | null>>();
 
@@ -116,12 +119,14 @@ export class FastPaths {
                     if (index !== commands.length - 1) return steps.preparedStatement(commands, index);
                     const tensor = steps.preparedStatement(commands, index).tensor;
                     const direct = this.context.compileDirect(last.value!);
-                    if (direct) return { run: direct, tensor };
-                    let candidate = last.value!;
-                    while (isParenthesizedExpression(candidate)) candidate = candidate.value;
-                    const value = isApplicationExpression(candidate)
-                        ? this.context.compileTail(last.value!)
-                        : () => this.context.evaluate(last.value!);
+                    if (direct) return { run: () => {
+                        this.context.checkMutation(last);
+                        return runExecution(this.context.evaluateReturn(last.value!));
+                    }, tensor };
+                    const value = () => {
+                        this.context.checkMutation(last);
+                        return this.context.evaluateReturn(last.value!, true);
+                    };
                     return { stream: value, tensor };
                 },
                 locate: (error, index) => this.context.locate(error, commands[index]),
@@ -134,30 +139,60 @@ export class FastPaths {
         return body ?? undefined;
     }
 
-    tensorGroup(statements: Statement[], index: number): TensorGroup | undefined {
-        const kernel = compileTensorKernel(statements.slice(index), {
+    private tensorHost(): TensorKernelHost {
+        return {
             textDigits: this.context.options().tensorTextDigits !== false,
             lookup: name => this.context.bindings.find(name),
             compiled: this.context.options().onTensorKernelCompiled,
             builtin: name => {
                 const module = findOperation(name)?.module;
                 if (module === undefined || !this.context.modules.has(module)) return false;
-                return this.context.builtins.is(module, name, this.context.resolve(name));
+                const value = this.context.resolve(name);
+                return isNativeFunction(value) && hasNativeImplementation(value)
+                    && this.context.builtins.is(module, name, value);
             },
-        });
+        };
+    }
+
+    private tensorExecuted(): void {
+        this.context.options().onTensorKernelExecuted?.();
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.compiledTensors++;
+    }
+
+    planReduction(expression: Expression): (() => RankValue | undefined) | undefined {
+        if (this.context.options().tensorFusion === false) return undefined;
+        const kernel = compileTensorReduction(expression, this.tensorHost());
         if (!kernel) return undefined;
-        const last = statements[index + kernel.count - 1];
-        if (!isAssignmentStatement(last) && !isReturnStatement(last)) return undefined;
-        const assign = isAssignmentStatement(last) ? this.context.compileAssign(last.name) : undefined;
-        return { count: kernel.count, run: () => {
+        return () => {
+            // Inspection can disable compilation after the plan was captured.
+            if (this.context.options().tensorFusion === false) return undefined;
+            const value = kernel.run();
+            if (value !== undefined) this.tensorExecuted();
+            return value;
+        };
+    }
+
+    tensorPlanScope(expression: Expression): <T>(run: () => T) => T {
+        let code = this.tensorPlanCode.get(expression);
+        if (!code) this.tensorPlanCode.set(expression, code = new Map());
+        return tensorPlanScope(this.tensorHost(), () => this.context.options().tensorFusion !== false,
+            () => this.tensorExecuted(), code);
+    }
+
+    tensorStatement(statement: Statement): TensorStep | undefined {
+        if (!isAssignmentStatement(statement) && !isReturnStatement(statement)) return undefined;
+        const kernel = compileTensorKernel(statement, this.tensorHost());
+        if (!kernel) return undefined;
+        const assign = isAssignmentStatement(statement) ? this.context.compileAssign(statement.name) : undefined;
+        return { run: () => {
             if (!assign && !this.context.bindings.insideFunction) return undefined;
+            this.context.checkMutation(statement);
             const value = kernel.run();
             if (value === undefined) return undefined;
             try { assign?.(value); }
-            catch (error) { throw this.context.locate(error, last); }
-            this.context.options().onTensorKernelExecuted?.();
-            const diagnostics = currentDiagnostics();
-            if (diagnostics) diagnostics.compiledTensors++;
+            catch (error) { throw this.context.locate(error, statement); }
+            this.tensorExecuted();
             if (!assign) throw new ReturnSignal(value);
             return value;
         } };
@@ -240,7 +275,10 @@ export class FastPaths {
             executed: this.context.options().onIntegerLoopExecuted,
         }, binding) : undefined;
         if (this.context.options().integerLoopCompilation === false) recordFallback('loop:disabled');
-        return compiled;
+        return compiled && { run: (...context) => {
+            this.context.checkMutation(statement);
+            return compiled.run(...context);
+        } };
     }
 
     /** A binary or unary expression over direct leaves compiled to one closure. */
@@ -312,7 +350,7 @@ export class FastPaths {
                 return compileFusedSum(parts[0], arithmetic, (value, sum) => {
                     // A host can still bind the name to something else between runs.
                     const fn = this.context.resolve(operation.name);
-                    if (isNativeFunction(fn) && this.context.builtins.is('core', 'sum', fn)) {
+                    if (isNativeFunction(fn) && hasNativeImplementation(fn) && this.context.builtins.is('core', 'sum', fn)) {
                         return completed(sum ? sum() : fn.call([value]));
                     }
                     return reference.apply([value, fn]);

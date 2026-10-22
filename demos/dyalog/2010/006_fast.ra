@@ -29,7 +29,7 @@ fun Options Params variablefast
   Sims = Count integer
   Quarters = Params 2 integer // 3
   Rolls = (1 to 6) (Quarters * Sims) choices
-  Steps = (Rolls - 3.5) / 10
+  Steps' = (Rolls - 3.5) / 10
   Changes = Steps reshape Quarters Sims
   return Changes Start Params fastdifference bins
 end
@@ -61,41 +61,41 @@ fun Changes Start Params fastdifference
   Sims = Changes shape 1
   Tax = TaxPct / 100
   Growth = 1 + SavRate / 1200 * (1 - Tax)
-  Month = (1 to Term) copy
+  Month = 1 to Term
   Fixed = BankAmt (BankRate / 1200) Month loan
-  FixedFlow = Fixed .pmt - Fixed .int * Tax
+  FixedFlow' = Fixed .pmt - Fixed .int * Tax
   Settled = FixedFlow * Growth ** (Term - Month) sum
 
   Years = (Term + 11) // 12
-  Year = (0 till Years) copy
+  Year = 0 till Years
   Column = array Years 1
-  Elapsed = (Year * 12) reshape unpack Column
+  Elapsed' = (Year * 12) reshape unpack Column
   Left = Term - Elapsed
   Span = Left 12 min
-  Alive = (Year reshape unpack Column) 1 min
+  Alive' = (Year reshape unpack Column) 1 min
   Reached = (Year * 4 - 1) 0 max
 
   Walk = (Changes scan + axis 0) + Start
   Low = Walk scan min axis 0
   Path = Walk - (Low 0.0 min)
-  Official = Path Reached # * Alive + Start * (1 - Alive)
+  Official' = Path Reached # * Alive + Start * (1 - Alive)
   Rate = Official / 1200
   Payment = 1.0 Rate Left payment
-  Factor = 1.0 Rate Payment Span repay
+  Factor' = 1.0 Rate Payment Span repay
   Kept = Factor scan * axis 0
-  Before = Kept 1 shift with 1.0
+  Before' = Kept 1 shift with 1.0
 
   Ahead = (0 till 12) reshape 1 12
-  Powers = (Ahead less Span) (Growth ** Ahead) 0.0 choose
+  Powers' = (Ahead less Span) (Growth ** Ahead) 0.0 choose
   Within = Powers sum axis 1
-  Weight = (1 + Rate) Growth Span weight
-  Excess = BankAmt * Before * (Rate - Payment)
-  Paid = BankAmt * Before * Payment
-  Flow = Tax * Excess * Weight - (1 - Tax) * Paid * (Within reshape unpack Column)
-  Grown = Flow * Growth ** (Left - Span)
+  Weight' = (1 + Rate) Growth Span weight
+  Excess' = BankAmt * Before * (Rate - Payment)
+  Paid' = BankAmt * Before * Payment
+  Flow' = Tax * Excess * Weight - (1 - Tax) * Paid * (Within reshape unpack Column)
+  Grown' = Flow * Growth ** (Left - Span)
   Saving = Grown sum axis 0
-  Last = Kept (Years - 1)
-  Owed = BankAmt * Last - Fixed .bal (Term - 1)
+  Last' = Kept (Years - 1)
+  Owed' = BankAmt * Last - Fixed .bal (Term - 1)
   return Saving + Settled - Owed
 end
 
@@ -103,8 +103,8 @@ end
 rem The balance after Span equal payments.
 fun Balance Rate Payment Span repay
   Grown = (1 + Rate) ** Span
-  Annuity = Balance * Grown - Payment * (Grown - 1) / Rate
-  Zero = Rate less 0.000000001
+  Annuity' = Balance * Grown - Payment * (Grown - 1) / Rate
+  Zero' = Rate less 0.000000001
   return Zero (Balance - Span * Payment) Annuity choose
 end
 
@@ -114,7 +114,7 @@ rem below Span: a difference of powers over the Gap,
 rem or its first-order series when the two nearly meet.
 fun Rise Growth Span weight
   Gap = Rise - Growth
-  Near = Span * Growth ** (Span - 1) + Span * (Span - 1) / 2 * Growth ** (Span - 2) * Gap
-  Far = (Rise ** Span - Growth ** Span) / Gap
+  Near' = Span * Growth ** (Span - 1) + Span * (Span - 1) / 2 * Growth ** (Span - 2) * Gap
+  Far' = (Rise ** Span - Growth ** Span) / Gap
   return (Gap abs less 0.0000001) Near Far choose
 end

@@ -58,7 +58,7 @@ fun Data Attr Rest T branch
   Values = Data Attr unique sort
 
   for Value in Values
-    Mask = Data Attr equal Value
+    Mask' = Data Attr equal Value
     Part = Data Mask array
     Index Value = Part Rest T learn_tree
   end
@@ -75,7 +75,7 @@ fun Data Attr Target gain
   Total = Data len
 
   for Value in Values
-    Mask = Data Attr equal Value
+    Mask' = Data Attr equal Value
     Part = Data Mask array
     Weight = Part len / Total
     Bits = Part Target entropy

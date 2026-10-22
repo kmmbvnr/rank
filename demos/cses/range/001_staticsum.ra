@@ -16,8 +16,8 @@ Values Queries range_sums print
 rem Answer inclusive one-based ranges.
 fun Values Queries range_sums
   Prefix = Values scan + with 0
-  Left = Queries # 0
-  Right = Queries # 1
-  Before = Prefix (Left - 1)
+  Left' = Queries # 0
+  Right' = Queries # 1
+  Before' = Prefix (Left - 1)
   return Prefix Right - Before
 end

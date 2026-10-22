@@ -18,13 +18,13 @@ A = 1 to 100 array
 B = 1 to (Reach + 1) array
 TA = A * (A + 1) // 2
 TB = B * (B + 1) // 2
-Count = TA TB outer *
-Gap = (Count - Target) abs
+Count' = TA TB outer *
+Gap' = (Count - Target) abs
 Rows = A len
 Cols = B len
 Size = Rows * Cols
 Flat = Gap reshape Size
-Area = A B outer *
+Area' = A B outer *
 Cells = Area reshape Size
 Answer = Cells (Flat min .index)
 Answer print

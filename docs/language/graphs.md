@@ -13,7 +13,7 @@ use sequences
 fun A B next = A + 1 equal B
 Graph = new graph (1 to 5) with next .directed
 Graph 2 3 adjacent
-Neighbors = Graph 2
+Neighbors' = Graph 2
 Chosen = (array 1 3 5) filter in Neighbors array
 ```
 
@@ -24,6 +24,8 @@ domain and yields matching neighbors in domain order. Membership in that sequenc
 checks the requested candidate directly, so candidate filtering does not scan the
 whole domain. Candidates outside the domain are absent. Self-edges are included
 when the predicate returns true. `Graph edges U` yields `(neighbor, 1)` tuples.
+An ordinary binding, `Neighbors = Graph U`, materializes the neighbor values.
+`Neighbors' = Graph U` preserves the query plan for later demand.
 
 The predicate must return a Boolean. For `.undirected`, the caller must supply a
 symmetric predicate: Rank does not test symmetry or combine both directions.
@@ -33,7 +35,9 @@ predicate's environment. Repeating a query invokes the predicate again. A nested
 predicate may be used inside its enclosing call, but a graph or neighbor sequence
 retaining it cannot escape that call. Materialize neighbor values before returning
 them, or return the eager result of BFS, DFS or Dijkstra. Predicates use ordinary
-named `fun` declarations.
+named `fun` declarations. A named or parenthesized callback is passed as a
+function reference; construction checks its arity before running its body.
+A compound callback expression runs at construction to produce the function.
 
 BFS, DFS and unit-weight Dijkstra accept predicate graphs. `len` counts domain
 vertices. Mutation and other graph algorithms currently require explicit graphs
@@ -110,7 +114,7 @@ isolated vertices and makes an unknown endpoint an error:
 ```rank
 use graph
 
-Nodes = 1 to NodeCount
+Nodes' = 1 to NodeCount
 Graph = new graph Nodes .undirected
 ```
 
@@ -240,9 +244,12 @@ only as demanded. The total number of routes can be exponential. Use `take`
 or `first` when only a prefix is needed:
 
 ```rank
-Routes = Graph "LAX" "LHR" 2 trips
+Routes' = Graph "LAX" "LHR" 2 trips
 FirstRoute = Routes first
 ```
+
+The apostrophe keeps enumeration deferred. Ordinary assignment collects the
+routes into an array and requires all routes to have the same shape.
 
 `Graph From To edgeweight` returns the minimum weight among the current
 connections from `From` to `To`. It respects graph direction and raises
@@ -403,12 +410,14 @@ distinct vertices. Each pair occurs once, and an `N`-vertex tree therefore has
 `N * (N - 1) // 2` logical path lengths:
 
 ```rank
-Lengths = Tree pathlengths
+Lengths' = Tree pathlengths
 Exact = (Lengths equal K) count
-Mask = Lengths at least Low
-Mask and= Lengths at most High
+Mask' = (Lengths at least Low) and (Lengths at most High)
 Within = Mask count
 ```
+
+The deferred binding captures `Tree` read-only. Ordinary binding instead stores
+all pair distances.
 
 Iteration or materialization enumerates the logical sequence and takes
 quadratic time. Integer comparisons followed by `count` are planned without

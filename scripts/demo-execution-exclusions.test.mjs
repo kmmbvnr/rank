@@ -13,6 +13,7 @@ test('execution exclusions name existing workloads and explain the resource cost
         assert.ok(reason.length > 20, file);
     }
     assert.ok(!files.has('euler/322_binomial.ra'), 'corrected carry constraints keep the default product small');
+    assert.ok(!files.has('euler/339_peredur.ra'), 'the linear expected-value recurrence stays eligible');
     assert.ok(files.has('euler/331_crossflips.ra'));
 });
 

@@ -23,9 +23,9 @@ fun Grid Queries forest_queries
   Columns = 1 to Size
 
   for Row Y in Grid
-    Codes = Row codepoint rank 0
-    Trees = (46 - Codes) // 4
-    Running = Trees scan +
+    Codes' = Row codepoint rank 0
+    Trees' = (46 - Codes) // 4
+    Running' = Trees scan +
     Above = Prefix Y Columns
     Prefix (Y + 1) Columns = Above + Running
   end

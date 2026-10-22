@@ -46,7 +46,7 @@ Store 0 # = Held
 Held 0 = 9
 Store print
 
-rem A named lazy result is fixed; write the expression again to recompute.
+rem An ordinary binding stores the computed result.
 Source = array 1 2
 Doubled = Source * 2
 Source 0 = 5

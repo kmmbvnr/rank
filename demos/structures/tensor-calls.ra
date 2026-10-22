@@ -1,9 +1,9 @@
 rem Normalize successive batches with shared column statistics.
 use sequences
 
-fun normalize Data Mean Dev
-  Centered = Data - Mean
-  return (Centered / Dev) copy
+fun normalize Data' Mean Dev
+  Centered' = Data - Mean
+  return Centered / Dev
 end
 
 Mean = array 1 3

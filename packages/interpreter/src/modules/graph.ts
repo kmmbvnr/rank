@@ -1,3 +1,4 @@
+import { ownedArray } from '../array-storage.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDsu } from '../dsu.js';
@@ -1441,7 +1442,7 @@ function record(fields: Record<string, RankValue>): RankRecord {
 }
 
 function array(items: RankValue[]): RankArray {
-    return { kind: 'array', items, shape: [items.length] };
+    return ownedArray(items, [items.length]);
 }
 
 function valueType(value: RankValue): string {

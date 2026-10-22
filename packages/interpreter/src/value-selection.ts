@@ -8,6 +8,7 @@ import { counterFrequency } from './collections.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexGet, indexKey } from './index-storage.js';
 import { checkpoint } from './interrupt.js';
+import { demandValue } from './plan.js';
 import { requireModule } from './modules/shared.js';
 import {
     filterSqlite, projectSqlite, sliceSqlite, sliceTextSqlite, sqliteColumn, sqliteScope, sqliteScopedColumn,
@@ -383,10 +384,14 @@ export function callArguments(
     if (fn.arities.includes(values.length)) return values;
 
     const arities = [...fn.arities].sort((left, right) => right - left);
+    const receiver: RankValue[] = [];
     for (const arity of arities) {
         if (arity < 1 || values.length <= arity) continue;
         const firstLength = values.length - arity + 1;
-        const firstParts = values.slice(0, firstLength);
+        // Selection is a demand site. Resolve only the proposed receiver and
+        // selectors; the remaining parameters keep their binding modes.
+        while (receiver.length < firstLength) receiver.push(demandValue(values[receiver.length]));
+        const firstParts = receiver.slice(0, firstLength);
         if (!canApplySelectors(firstParts)) continue;
         let first: RankValue;
         try {

@@ -114,10 +114,10 @@ Width = 32
 for Step in 1 to 40
   Nl = Ws len
   if Nl greater 1
-    Pair = Ws reshape (Nl // 2) 2
+    Pair' = Ws reshape (Nl // 2) 2
     Tr = Pair transpose
-    Lo = Tr 0
-    Hi = Tr 1
+    Lo' = Tr 0
+    Hi' = Tr 1
     Ws = Lo + (Hi Width shl)
     Width = Width * 2
   end

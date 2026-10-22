@@ -2,6 +2,7 @@ import { inferSignatureResultTypes } from '../signature-matching.js';
 import type { SignatureAtom } from '../type-signature.js';
 import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { joinValueFacts } from './value-domain.js';
+import { completedValueFacts, completionMayCall } from './completion-facts.js';
 import { diagonalResultShape } from '../shape-signature.js';
 import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
@@ -27,7 +28,9 @@ import {
  */
 function perQueryFacts(query: ValueFacts, elements: Types): ValueFacts {
     if (query.types.join() === 'array' && query.rank !== undefined) {
-        return { types: ['array'], rank: query.rank, shape: query.shape ?? Array(query.rank).fill(null), elements };
+        return { types: ['array'], rank: query.rank, shape: query.shape ?? Array(query.rank).fill(null), elements,
+            ...(query.completion === 'ready' || query.eagerScalarCells || query.callbackFreeScalarCells
+                ? { callbackFreeScalarCells: true as const } : {}) };
     }
     return isAtom(query) ? stableRecordField({ types: elements }) : UNKNOWN_VALUE;
 }
@@ -161,6 +164,8 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             const cellShape = result && (offset === undefined ? result.map(() => null) : result);
             const shape = cellShape && partition ? [...partition.frame, ...cellShape] : undefined;
             return { types: ['array'], elements: source.elements,
+                ...(source.eagerScalarCells || source.callbackFreeScalarCells
+                    ? { callbackFreeScalarCells: true as const } : {}),
                 ...(shape ? { rank: shape.length, shape } : {}) };
         }
         case 'checked-read':
@@ -538,9 +543,13 @@ function transferApplicationFacts(
         const index = infer(parts[1], lookup).integer;
         if (index !== undefined) {
             const position = Number(index) < 0 ? source.tupleItems.length + Number(index) : Number(index);
-            return source.tupleItems[position] ?? UNKNOWN_VALUE;
+            const item = source.tupleItems[position] ?? UNKNOWN_VALUE;
+            return source.completion === 'ready' ? completedValueFacts(item)
+                : source.completion === 'pure' ? { ...item, completion: 'pure' } : item;
         }
-        return joinValueFacts(source.tupleItems);
+        const item = joinValueFacts(source.tupleItems);
+        return source.completion === 'ready' ? completedValueFacts(item)
+            : source.completion === 'pure' ? { ...item, completion: 'pure' } : item;
     }
     if (parts.length === 2 && source.types.join() === 'array' && source.rank === 1 && source.shape) {
         const fields = infer(parts[1], lookup);
@@ -588,10 +597,11 @@ function transferApplicationFacts(
         && ['queue', 'stack', 'deque', 'heap'].includes(source.types.join())
         && source.elements?.length) {
         const types = source.elements;
-        if (source.elementRecord && types.join() === 'record') return source.elementRecord;
-        return types.join() === 'array' && source.elementRank !== undefined
+        const result = source.elementRecord && types.join() === 'record' ? source.elementRecord
+            : types.join() === 'array' && source.elementRank !== undefined
             ? { types, rank: source.elementRank, shape: Array(source.elementRank).fill(null), elements: source.elementCells }
             : stableRecordField({ types });
+        return source.completion === 'ready' ? completedValueFacts(result) : result;
     }
     if (parts.length === 3 && isLabelLiteral(parts[1]) && parts[1].name === 'flat'
         && isNameExpression(last) && ['json', 'xml'].includes(last.name)
@@ -656,10 +666,13 @@ function transferApplicationFacts(
         callbackFreeScalarCells: true,
     };
     if (parts.length === 2 && isLabelLiteral(last) && source.checkedFields?.[last.name]) {
-        return source.checkedFields[last.name];
+        const field = source.checkedFields[last.name];
+        return source.completion === 'ready' ? completedValueFacts(field) : field;
     }
     if (parts.length === 2 && ['record', 'object'].includes(source.types.join()) && isLabelLiteral(last)) {
-        return source.fields?.[last.name] ?? UNKNOWN_VALUE;
+        const field = source.fields?.[last.name] ?? UNKNOWN_VALUE;
+        return source.completion === 'ready' || source.completion === 'pure' ? completedValueFacts(field)
+            : source.completion === 'may-call' ? { ...field, completion: 'may-call' } : field;
     }
     if (parts.length === 2 && source.types.join() === 'array' && isLabelLiteral(last)) {
         return source.checkedColumns?.[last.name] ?? UNKNOWN_VALUE;
@@ -716,15 +729,16 @@ function transferApplicationFacts(
         const shaped = operationShapeFacts(sortDirection.operation, [source]);
         if (shaped) return shaped;
     }
-    if (source.types.join() === 'index' && source.elements?.length && parts.length > 1
+    if (source.types.join() === 'index' && source.elements !== undefined && parts.length > 1
         && parts.slice(1).every(part => {
             const key = infer(part, lookup);
             return key.types.length > 0 && key.types.every(type =>
                 ['integer', 'real', 'boolean', 'text', 'symbol'].includes(type));
         })) {
         const types = source.elements;
-        return types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
+        const result = types.length && types.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type))
             ? { types, rank: 0, shape: [] } : { types };
+        return source.completion === 'ready' ? completedValueFacts(result) : result;
     }
     const lastOperation = isNameExpression(last) ? operationBinding(last.name, lookup) : undefined;
     if (isNameExpression(last) && lastOperation) {
@@ -852,6 +866,10 @@ function transferApplicationFacts(
                         : { elements: kind === 'integer' ? ['integer'] : ['integer', 'real'] }),
                 };
                 return { types: ['record'], fields,
+                    // Closed native graphs produce data records; relation graphs may call Rank.
+                    ...(operation.module === 'graph' && source.types.join() === 'graph' && source.elements?.length
+                        && operands.every(value => !completionMayCall(value))
+                        ? { completion: 'pure' as const } : {}),
                     ...(last.name === 'root' && source.types.join() === 'graph' && source.elements?.length
                         ? { elements: source.elements } : {}) };
             }
@@ -956,7 +974,7 @@ function transferApplicationFacts(
                 }
             }
             if (last.name === 'sum' && arity === 1
-                && (['array', 'sequence'].includes(source.types.join())
+                && (source.types.length > 0 && source.types.every(type => ['array', 'sequence'].includes(type))
                     && (source.eagerScalarCells || source.callbackFreeScalarCells)
                     || ['queue', 'stack', 'deque', 'set'].includes(source.types.join()))
                 && source.elements?.join() === 'integer') {
@@ -999,7 +1017,7 @@ function transferApplicationFacts(
                 ...(hasMappedScalarNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };
-            if (operation.preservesCollectionElements && arity === 2 && collection) return {
+            if (operation.preservesCollectionElements && (arity === 1 || arity === 2) && collection) return {
                 ...(shaped ?? { types: source.types }), elements: source.elements,
                 ...(hasNumericArrayNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
@@ -1196,7 +1214,7 @@ function transferApplicationFacts(
                 if (shape?.length) shape[0] = empty ? 0 : selector.shape?.[0] ?? null;
                 return { types: ['array'], rank: source.rank, shape, ...cells };
             }
-            return { types: ['array', 'sequence'] };
+            return { types: ['array', 'sequence'], ...cells };
         }
         if (source.types.join() === 'sequence' || source.types.join() === 'queue') {
             return { types: source.types.join() === 'queue' || integerSelector ? ['array']

@@ -2,81 +2,68 @@
 
 ## Sequences
 
-Ranges and algorithmic sources are sequences:
+Ranges and algorithmic sources build sequence plans. An apostrophe binding
+keeps the plan; an ordinary binding computes a finite result and stores an array:
 
 ```rank
-Range = 1 till 1000
-Primes = primes
+use sequences
+Range' = 1 till 1000
+Primes' = primes
 Fib = fibonacci to 4000000
 ```
 
-Sequences are lazy by default. Constructing, transforming or filtering a
-sequence builds a plan. A terminal operation such as `sum`, explicit
-materialization, or iteration demands values from that plan. A terminal
-operation that would consume an unbounded sequence is an error.
+`sum`, printing and iteration demand values. A bounded consumer such as `take`
+can stop before the source ends. Materializing a known-infinite result is an
+error; use an apostrophe to keep that source as a plan.
 
 `fibonacci` starts with `1 2 3 5 8 ...` and `primes` with `2 3 5 7 11 ...`.
 Both are infinite until a bound ends them, and both support ordinary
 zero-based sequence addressing:
 
 ```rank
-Fib = fibonacci to 100
+Fib' = fibonacci to 100
 SixthPrime = primes 5
 ```
 
-### Reusing pure sequences
+### Recomputing and retaining results
 
-A pure sequence may reuse computed items when the current program has multiple
-consumers. Direct aliases and ordinary helper parameters participate in this
-analysis. A source used by only one pipeline stage can remain a stream; naming
-an intermediate does not require saving its history. Cheap arithmetic ranges
-continue to compute their values directly. Constructor-certified membership
-queries and modular range selectors also keep their specialized plans.
+Each demand of an explicit plan recomputes its result. An ordinary binding
+retains a computed value for later use. The choice belongs to the program:
 
 ```rank
 use sequences
 fun X odd = X mod 2 equal 1
-Candidates = 1 to 100
-Selected = Candidates filter odd
+Candidates' = 1 to 100
+Selected' = Candidates filter odd
 Count = Selected len
 Total = Selected sum
+Saved = Selected
+Again = Saved sum
 ```
 
-Here the filter retains its 50 accepted values for the second read. It does not
-retain the 100 candidates. Readers have independent positions; reading a prefix
-does not force the tail. Completing a retained sequence also discovers its
-length, including zero for an empty result.
+`Count`, `Total` and `Saved` each run the filter. `Again` reads the stored array.
+A plan does not retain the accepted items automatically. Finite prefix consumers
+read only the values they need. Arithmetic ranges, membership queries and bounds
+may use specialized implementations while preserving these observations.
 
-Lazy sequence predicates, rank-0 callbacks and scan callbacks must be pure.
-They may use local working state, but cannot mutate their inputs, perform
-input/output, use randomness, or depend on changing external state. Copy an input
-before modifying it. Captures use the creation-time snapshots
-described under [local functions](control-functions.md#local-functions-and-closures).
-Unresolved callable behavior is rejected conservatively. Ordinary eager calls
-and effectful single-pass generators keep their existing contracts.
+Callbacks may perform effects, including printing or calling an unannotated
+host function. A later demand repeats those effects. Ordinary function bodies
+execute at the call; an outer apostrophe does not postpone their eager local
+bindings. Named callbacks retain their creation-time data dependencies as
+specified under [local functions](control-functions.md#local-functions-and-closures).
+Writes to captured record or container state remain forbidden through every
+alias. Purity can justify an optimization; it is not required to construct a plan.
 
-Caching is an optimization, not a promise never to recompute. In particular,
-future REPL commands are unknown when a sequence is created. A later command can
-reuse retained results or recompute a pure value. Existing stored native cursors
-and user generators keep their consumption and rewind rules.
+A failed computation does not retain its successful prefix. A later demand
+starts the computation again and may repeat the effects before the failure.
+Cancellation also leaves no computed result for later reuse. Single-pass
+resources keep their own consumption state: an apostrophe does not reopen an
+input stream or restart a generator.
 
-Retention is bounded. The default interpreter limit is 8 MiB of estimated
-payload per cached sequence; it counts scalar-array cells as well as outer
-items. It is not a measurement of JavaScript heap overhead. Crossing the limit,
-or encountering a result without a supported stable-value representation,
-discards that cache and continues streaming. Subsequent readers may recompute.
-Supported retained values include scalars and owned eager scalar arrays; Rank
-writes to a reader's array do not modify the retained value.
-
-A retained source failure is reported at its position on later reads. Host
-cancellation and preview-budget exhaustion are different: a later read may
-restart pure computation to recover the interrupted iterator. It does not replay
-an old cancellation event. A new budget must be sufficient to reach the requested
-position; interrupted work is not guaranteed to resume without recomputation.
-
-Use `array` when an operation needs an array's shape or indexing interface, and
-`copy` when materialized independent storage is needed. Neither is required solely
-to request reuse of a pure sequence with known repeated consumers.
+Use postfix `array` when an operation needs a sequence's array shape or indexing
+interface. It completes nested plans too; applying it to an existing array
+preserves its shape and completes any remaining cells. Use an ordinary binding
+to keep the computed result.
 
 ## Open numeric ranges
 
@@ -85,9 +72,9 @@ marker, not a numeric infinity. Both `to #` and `till #` construct the same
 lazy, replayable sequence:
 
 ```rank
-N = 1 to #
-Odd = 1 to # by 2
-Down = 0 to # by -1
+N' = 1 to #
+Odd' = 1 to # by 2
+Down' = 0 to # by -1
 First = N take 4
 rem 1 2 3 4
 ```
@@ -206,9 +193,9 @@ Bounds read items in order and work on any rank-1 value. An ordered source
 seeks instead: `primes from 100` starts its sieve at 100, `fibonacci` advances
 its recurrence to the bound, and a filter over such a source keeps the
 ability. Seeking applies to a plain bound and to `greater` and `at least`
-conditions, and gives the same items as reading. On a stored native stream,
-`to` and `till` look at the first excluded value and leave it for the next
-consumer.
+conditions, and gives the same items as reading. Repeated bounds intersect:
+`to` and `till` cannot widen a previously bounded native source. Each demand
+of a deferred source begins an independent evaluation.
 
 Sequence sources may also accept filters and reductions in their own plan.
 For example, filtering `fibonacci` by `even` lets the source produce only
@@ -387,13 +374,10 @@ this also applies to nested sequence concatenation.
 
 ## Derived values and mutation
 
-Built-in pure tensor computations reuse demanded cells while their source
-arrays are unchanged. Naming a derived array is one of those sources' bindings,
-so a later write to a source builds a new value for the written name and leaves
-the named result alone:
+An ordinary binding stores completed values. Later source writes do not change
+those stored results:
 
 ```rank
-use sequences
 A = array 1 2
 B = A * 2
 Before = B 0
@@ -401,35 +385,28 @@ A 0 = 5
 After = B 0
 ```
 
-`Before` and `After` are both `2`, and `A` is `5 2`. Naming the last reader in
-a chain freezes every source it reads through. Write the expression again to
-compute a result from current values.
+`Before` and `After` are both `2`, and `A` is `5 2`. No derived-cell result
+cache is needed to preserve `B`: the ordinary binding owns its completed data.
+This rule also applies to transpose, slices, windows, ranked operations, matrix
+multiplication and covariance.
 
-`copy` forces storage for a lazy result. It is no longer needed to keep one
-name safe from another's writes; see
-[values and sharing](values-addressing.md#values-and-sharing).
+Use `B' = A * 2` to retain the expression instead. Every demand computes again.
+The captured name `A` becomes read-only for the rest of its scope. Rebinding
+`A` is allowed and leaves `B` reading its captured value. Shared records and
+containers cannot be changed through another alias after capture. Arrays keep
+their value semantics: an alias write can take an independent copy.
 
-This applies to arithmetic and broadcasting, numeric transformations, axis
-reductions, transpose and slice views, array windows, matrix multiplication,
-and covariance. A change can conservatively invalidate the whole derived
-array; there is no promise of per-cell invalidation. Errors are not retained
-as successful cached values. An unrelated array write does not discard valid
-computed cells.
-
-A cached result is invalidated by Rank writes that value semantics does not
-redirect, such as writes to an array observed only by unnamed readers inside
-one expression. This cache policy does not introduce implicit replay of I/O or
-generators. User-function effect and capture analysis is separate from the
-built-in pure tensor operations described here.
+An ordinary binding also makes writable storage for a computed array. `copy`
+remains an explicit array copy operation; it is not required merely to retain
+a formula's result. A known infinite result cannot be completed by an ordinary
+binding. Single-pass resources keep their consumption rules even when a plan
+refers to them.
 
 The interpreter's JavaScript value objects are an internal repository protocol,
 not a supported public embedding API. Direct external writes to `items`, shape
 or nested storage do not promise to update existing Rank computations. Use Rank
 assignments for mutations with language semantics. `createArraySnapshot` remains
 an internal shallow-copy helper; it does not establish a reactive JS interface.
-Already stored numerical formulas may materialize their results, including small
-arrays. Lazy comparison masks retain their read-only interface; use `copy` or
-`array` to make mutable storage.
 
 ## Sliding windows
 
@@ -438,14 +415,23 @@ source precedes `window`, and the size follows it:
 
 ```rank
 Pairs = Text window 2
-Windows = Values window Width
+Windows' = Values window Width
 ```
 
 Text windows are text values, so ordinary text comparison and addressing keep
 working. Windows over a finite numeric vector form a rank-2 tensor whose first
 axis selects the window and whose trailing axis contains the window cell. The
-operation is lazy and does not copy all overlapping cells before they are
-demanded. An unbounded sequence may likewise produce windows indefinitely.
+deferred expression reads overlapping cells on demand. `Windows = Values
+window Width` completes and stores every window cell. An unbounded sequence
+may produce windows indefinitely and needs a deferred binding or a finite
+consumer.
+
+Exact sequence windows keep their tensor shape. For a source without direct
+indexing, full collection and sequential whole-array traversal use a fresh
+rolling reader: overlapping cells share source values only within that pass.
+The next pass starts the source again. Individual indexed reads may replay a
+prefix; indexed sources keep their direct-access algorithms. Strides leave an
+unused source suffix unread, and early termination closes the current reader.
 
 For a tensor, write one size per selected axis directly, pass a rank-1
 integer array, or unpack a vector of sizes. These forms produce the same windows:
@@ -679,9 +665,8 @@ selectors, previous cell values and right side are evaluated before any write.
 This gives both ordinary and compound assignment snapshot semantics when
 selections overlap.
 
-Lazy arrays produced by operations such as `outer` and `window` are not
-writable. Copy a finite result explicitly with postfix `copy` before changing
-its cells.
+Deferred results of `outer` and `window` are read-only recipes. Bind a finite
+result with `Saved = Plan`, or use postfix `copy`, before changing its cells.
 
 A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
@@ -1124,7 +1109,8 @@ Result = M + Row
 rem Result shape is 2 3
 ```
 
-Broadcast results are lazy and cached. Incompatible shapes raise
+A deferred broadcast computes on demand; an ordinary binding stores the
+completed result. Repeated plan demands recompute. Incompatible shapes raise
 `.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
 Two sequences retain their lazy elementwise zip behavior, ending at the shorter
 input. A sequence mixed with an array uses the shape and broadcasting rules of
@@ -1319,18 +1305,36 @@ only the frame shape; array results append their shape to the frame. Text,
 sequences and tuples returned as cell values stay boxed rather than contributing
 array axes. Rank does not pad unequal results to a common size.
 
-Ranked array results can be lazy. Determining their shape can evaluate the first
-cell; reading later cells can discover incompatible result shapes or operation
-errors. A shape query therefore does not prove that every cell is valid. Pure
-scalar builtin paths may compute eagerly; laziness is not a guarantee that no
-computation occurs at construction. User callbacks can have effects, so do not
-assume arbitrary reordering or parallel execution is allowed.
+`Rows = Matrix sum rank 1` completes and stores all row sums. Use
+`Rows' = Matrix sum rank 1` to keep a recipe; each demand computes again.
+Native ranked readers retain shape evidence, not computed result cells. A full
+traversal may keep its current result cell while reading its scalar elements.
+It does not keep that cell for another traversal.
 
-A zero-sized frame contains no calls. Known result-cell axes are retained:
+Determining an unknown result shape can evaluate the first cell. The shape facts
+survive that observation; the prototype value does not. A separate value read
+therefore invokes the callback again. Exact shape facts can avoid this probe.
+Reading later cells can discover incompatible result shapes or operation errors,
+so a shape query does not prove that every cell is valid. User callbacks may
+have effects; arbitrary reordering or parallel execution is not permitted.
+
+A nonempty frame whose callbacks return empty arrays still runs every callback
+when the result is completed, including their effects and shape checks. Its
+output can have zero scalar elements; this does not make the frame empty.
+
+A zero-sized application frame makes no call to its operation. Known result-cell
+axes are retained:
 `sort` over shape `0 3` at rank 1 produces shape `0 3`. A nonempty frame of
 empty cells is different: shape `2 0` at rank 1 contains two empty vectors, so
 `sum` produces two zeros. Declared cell constraints still apply to empty frames:
 an empty batch does not make nonsquare matrix cells valid for `inverse`.
+
+An input plan may have nonempty producer frames whose cells are empty. Completing
+the new result observes those selected producers, while its own operation still
+has no cells to call. Producer axes retained by the new frame remain selectable;
+consumed producer axes are observed together within a result cell. A genuinely
+empty combined producer frame makes no calls. Unused nonempty operands are not
+forced by these empty-cell observations.
 
 For an empty frame, unknown lengths in a known result shape become zero at
 runtime; if the result rank is unknown, no cell axes are appended. For example,
@@ -1399,7 +1403,8 @@ The leading frame shapes use trailing-axis broadcasting. For example, a
 matrix and a vector with `rank 1` compare every matrix row with that vector.
 Incompatible frame shapes raise `.DimensionMismatch`. Different cell shapes
 are unequal; they are not broadcast inside a whole-cell comparison. Results
-are lazy over array frames and reflect changes to their source arrays.
+are computed on demand over array frames. Ordinary binding stores their values;
+deferred binding keeps the captured inputs and recomputes.
 
 An explicit `axis` list names frame axes for **both** array operands, retaining
 the listed order. The remaining axes form each cell:
@@ -1669,7 +1674,7 @@ The leading run that meets a condition is `till not Condition`; see
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary
-function immediately before it to every pair of cells:
+function immediately after it to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -1695,15 +1700,18 @@ pairing `A B outer *` has shape:
 
 `outer` combines axes. `matmul` contracts axes.
 
+Broadcast arithmetic and axis permutations preserve the logical producer cells
+of a native result. Completing an empty view still observes those selected
+producers; selecting one frame does not evaluate unrelated frames. A transpose
+can move frame axes among empty cell axes without erasing these observations.
+
 The left frame axes come first and the right frame varies fastest. The operation
 must accept two arguments and currently must return a scalar for every pair.
-Both operands must be finite and restartable.
-
-Construction is lazy and may compute a demanded pair again. A named function
-supplied to `outer` must therefore be pure: its result and observable behavior
-may depend only on its arguments and immutable captured values. The runtime does
-not yet prove this property; static effect analysis is tracked separately as
-tooling work.
+Both operands must be finite. Ordinary binding completes the result; use
+`Pairs' = A B outer operation` to keep a recipe. Each observation recomputes
+the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
+binding retains the completed result. A deferred assignment does not make a
+single-pass operand restartable; bind its completed data before reusing it.
 
 For paired cells with broadcasting, use the [ranked-call forms](#rank).
 `outer` instead forms all pairs using the supplied operation's intrinsic ranks.

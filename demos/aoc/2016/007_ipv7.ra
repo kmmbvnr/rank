@@ -39,8 +39,8 @@ end
 
 rem Test whether text contains ABBA.
 fun Text has_abba
-  Windows = Text window 4
-  Mask = Windows is_abba rank 0
+  Windows' = Text window 4
+  Mask' = Windows is_abba rank 0
   return Mask any
 end
 
@@ -71,10 +71,10 @@ fun Address ssl
 
   Windows = Super window 3
   Mask = Windows is_aba rank 0
-  ABAs = Windows Mask
+  ABAs' = Windows Mask
 
-  BABs = ABAs to_bab rank 0
-  HyperWindows = Hyper window 3
+  BABs' = ABAs to_bab rank 0
+  HyperWindows' = Hyper window 3
 
   return (BABs in HyperWindows) any
 end

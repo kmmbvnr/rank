@@ -27,9 +27,10 @@ Ages = Data .Age default 0
 
 ### 1. Unified Addressing for Columns and Subsets
 Tables adhere strictly to Rank's core addressing model:
-- **Single column projection:** Applying a symbol selector extracts that column as a lazy rank-1 array:
+- **Single column projection:** Applying a symbol selector extracts that column as a rank-1 array. Ordinary binding stores its values; an apostrophe retains the projection plan:
   ```rank
   Ages = Data .Age
+  LaterAges' = Data .Age
   ```
 - **Multi-column projection:** Applying an array of symbols extracts a sub-table with only the requested columns in array order:
   ```rank
@@ -54,9 +55,11 @@ Tabular I/O uses symmetrical postfix operations:
 - **Reading CSV:** `"dataset.csv" csv` reads UTF-8 comma-separated files with headers, inferring uniform types (`integer`, `real`, `boolean`, `text`) for each column based on non-empty cells.
 - **Writing CSV:** `Table "output.csv" csv` serializes row objects, quoting text fields where necessary and emitting empty cells for absent values.
 
-### 4. CoW Revision Tracking and Invalidation
-- A table maintains a single observable revision counter.
-- Updating a row or mutating a column increments the table's revision, safely invalidating any dependent cached column views or downstream tensor expressions.
+### 4. Binding, completion and table versions
+- Ordinary bindings complete tables and columns, including plans in nested cells. Completion preserves column order and absent cells, keeps columnar storage, and shares unchanged ready columns.
+- Explicit plans retain captured table versions and recompute when demanded; they do not update an earlier materialized column after a source write.
+- Column and cell writes produce a new table version. Nested records and containers retain shared identities; after capture they cannot be mutated through any alias.
+- Internal revision tracking supports native views and storage bookkeeping. It does not retain computed language-plan results or change the binding rule.
 
 ## Consequences
 
@@ -67,4 +70,4 @@ Tabular I/O uses symmetrical postfix operations:
 * **Dual row-column efficiency:** Tables can be traversed by row objects or projected into flat column vectors for tensor computations.
 
 ### Negative / Trade-offs
-* **Whole-table cache invalidation:** Mutating one column conservatively invalidates derived column caches across the whole table rather than tracking per-column versioning.
+* **Repeated computation:** Repeated demand of an explicit projection can repeat work. Bind an ordinary result when it should be retained.

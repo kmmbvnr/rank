@@ -3,6 +3,7 @@ import { Interpreter, isRankArray, isRankSequence } from '../src/index.js';
 import { createArraySnapshot, materializedArrayItems } from '../src/array-storage.js';
 import { takeDropValue } from '../src/sequence.js';
 import { run } from './support.js';
+import { isStoredValue } from '../src/stored-value.js';
 
 describe('positional take and drop', () => {
     it('bounds infinite sources by count, separately from value bounds', () => {
@@ -16,7 +17,7 @@ describe('positional take and drop', () => {
 
     it('composes with finite, descending and filtered sequences', () => {
         expect(run('use sequences\n(10 to 1 by -2) drop 2 take 2 copy')).toBe('6 4');
-        expect(run('use sequences\nuse numbers\nMask = fibonacci even\nF = fibonacci Mask\nF drop 2 take 3 copy')).toBe('34 144 610');
+        expect(run("use sequences\nuse numbers\nMask' = fibonacci even\nF' = fibonacci Mask\nF drop 2 take 3 copy")).toBe('34 144 610');
         expect(run('use sequences\nuse numbers\nfibonacci filter even drop 2 take 3 copy')).toBe('34 144 610');
         expect(run('use sequences\n(1 to 3) take 9 copy')).toBe('1 2 3');
         expect(run('use sequences\n(1 to 3) drop 9 copy len')).toBe('0');
@@ -49,12 +50,12 @@ fun values
   try
     "started" print
     yield 7
-    raise "tail demanded"
+    "tail demanded" raise
   finally
     "closed" print
   end
 end
-Stream = values`);
+Stream' = values`);
             runtime.execute('Empty = Stream take 0 copy');
             expect(output).toEqual([]);
             runtime.execute(loop);
@@ -63,7 +64,7 @@ Stream = values`);
         }
     });
 
-    it('works with unknown-size generators and stacks retained rows only on copy', () => {
+    it('preserves unknown-size generators until explicit completion', () => {
         const runtime = new Interpreter();
         runtime.execute(`use sequences
 fun rows
@@ -71,10 +72,10 @@ fun rows
   yield array 3 4
   yield array 5 6
 end
-Tail = rows drop 1
-Prefix = Tail take 1`);
-        expect(isRankSequence(runtime.variables.get('Prefix')!)).toBe(true);
-        expect(runtime.execute('Prefix copy')).toMatchObject({ shape: [1, 2], items: [3n, 4n] });
+Tail' = rows drop 1
+Prefix' = Tail take 1`);
+        expect(isStoredValue(runtime.variables.get('Prefix')!)).toBe(false);
+        expect(runtime.execute('Saved = Prefix')).toMatchObject({ shape: [1, 2], items: [3n, 4n] });
         expect(run('use sequences\nfun values\n  yield 1\nend\nvalues take 9 copy')).toBe('1');
         expect(run('use sequences\nfun values\n  yield 1\nend\nvalues drop 9 copy len')).toBe('0');
     });

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, isRankPlan } from '../src/index.js';
 import { derivedArray } from '../src/array-storage.js';
 
 for (const compilation of [false, true]) describe(`tensor indices (compiled=${compilation})`, () => {
@@ -65,7 +65,8 @@ for (const compilation of [false, true]) describe(`tensor indices (compiled=${co
             try {
                 runtime.execute(demo.replace('Size = 8', `Size = ${size}`));
                 expect(runtime.variables.get('States')).toMatchObject({ shape: [count, size] });
-                expect(runtime.variables.get('Boards')).toMatchObject({ shape: [count, size, size] });
+                expect(isRankPlan(runtime.variables.get('Boards')!)).toBe(true);
+                expect(runtime.execute('Boards')).toMatchObject({ shape: [count, size, size] });
                 if (size === 1) expect(formatValue(runtime.execute('Boards')!)).toBe('Q');
                 if (size === 4) {
                     expect(formatValue(runtime.execute('States')!)).toBe('1 3 0 2 2 0 3 1');

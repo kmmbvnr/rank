@@ -33,29 +33,29 @@ end
 Cum = ((0 to Top array) * Good) scan +
 Cap = Limit // 21125 + 2
 Ps = primes till Cap array
-Quad = Ps mod 4 equal 1
+Quad' = Ps mod 4 equal 1
 Ones = Ps filter Quad array
 Amax = (Limit // 125) ** (1.0 / 3) floor
-SmallA = Ones at most Amax
+SmallA' = Ones at most Amax
 As = Ones filter SmallA array
 Bmax = (Limit // 625) isqrt
-SmallB = Ones at most Bmax
+SmallB' = Ones at most Bmax
 Bs = Ones filter SmallB array
 Flag = array shape (Cap + 1) fill 0
 Flag Ones = 1
 Seen = Flag scan +
 Total = 0
 for A in As
-  Rest = Bs not equal A
-  Others = Bs filter Rest array
+  Rest' = Bs not equal A
+  Others' = Bs filter Rest
   for B in Others
     Base = A ** 3 * B ** 2
     K = Seen (Limit // Base)
     Pool = Ones take K
-    NotA = Pool not equal A
-    Fit = NotA and (Pool not equal B)
-    Cs = Base * (Pool filter Fit array)
-    Share = Cum (Limit // Cs)
+    NotA' = Pool not equal A
+    Fit' = NotA and (Pool not equal B)
+    Cs = Base * (Pool filter Fit)
+    Share' = Cum (Limit // Cs)
     Total += (Cs * Share) sum
   end
 end
@@ -66,10 +66,10 @@ for I in 0 to 1
   Y = Eb I
   for A in As
     Cs = A ** X * Ones ** Y
-    Big = Cs at most Limit
-    Fit = Big and (Ones not equal A)
+    Big' = Cs at most Limit
+    Fit' = Big and (Ones not equal A)
     Cs = Cs filter Fit array
-    Share = Cum (Limit // Cs)
+    Share' = Cum (Limit // Cs)
     Total += (Cs * Share) sum
   end
 end

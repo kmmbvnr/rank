@@ -12,15 +12,15 @@ fun N nums
   yield N + 2
 end`;
 
-test('a stored native stream keeps its position rather than the values it read', t => {
+test('a deferred native sequence repeats without retaining its results', t => {
     const s = session(t);
-    s.run(1, 'use numbers\nFib = fibonacci');
+    s.run(1, 'use numbers\nFib\' = fibonacci');
     assert.equal(s.run(2, 'Fib till 100000 sum'), 196416n);
-    assert.equal(s.run(3, 'Fib till 1000000 sum'), 121393n + 196418n + 317811n + 514229n + 832040n);
+    assert.equal(s.run(3, 'Fib till 1000000 sum'), 196416n + 121393n + 196418n + 317811n + 514229n + 832040n);
     assert.equal(s.replay.retained, 0);
-    // A rewind recomputes the prefix instead of replaying kept values.
+    // Rewind does not change a repeatable source.
     s.replay.rewind(3);
-    assert.equal(s.run(3, 'Fib take 2 sum'), 121393n + 196418n);
+    assert.equal(s.run(3, 'Fib take 2 sum'), 3n);
     s.replay.rewind(2);
     assert.equal(s.run(2, 'Fib take 3 sum'), 6n);
 });
@@ -29,14 +29,14 @@ test('a generator that outgrows the replay budget raises an error instead of exh
     const s = session(t);
     // A generator may print, so its values stay on the tape to replay; values
     // that keep growing would otherwise fill memory within seconds.
-    s.run(1, 'use numbers\nfun growing\n  X = 2\n  for\n    X = X * X + 1\n    yield X\n  end\nend\nG = growing');
+    s.run(1, 'use numbers\nfun growing\n  X = 2\n  for\n    X = X * X + 1\n    yield X\n  end\nend\nG\' = growing');
     assert.throws(() => s.run(2, 'G filter less 0 take 1 sum'), /kept more than 64 MB of values for replay/);
 });
 
 test('nullary generator calls create fresh tapes and saved instances rewind', t => {
     const s = session(t);
     s.interpreter.execute('fun tst\n yield 1\n yield 2\n yield 3\nend');
-    const g = s.run(1, 'G = tst');
+    const g = s.run(1, 'G\' = tst');
     assert.equal(s.look(g).text, '1 2 3');
     assert.equal(formatValue(s.run(2, 'G array')), '1 2 3');
     assert.throws(() => s.run(3, 'G array'), /already been consumed/);
@@ -50,7 +50,7 @@ function session(t, options = {}) {
     const replay = new SequenceReplay();
     const output = [];
     const interpreter = new Interpreter(line => output.push(line), {
-        persistentResources: true, wrapSinglePassSequence: replay.wrap, wrapStoredSequence: replay.store, ...options,
+        persistentResources: true, wrapSinglePassSequence: replay.wrap, ...options,
     });
     t.after(() => { try { replay.dispose(); } finally { interpreter.dispose(); } });
     interpreter.execute(definition);
@@ -63,7 +63,7 @@ function session(t, options = {}) {
 
 test('looking repeatedly does not consume a generator, including assignment and full', t => {
     const s = session(t);
-    const g = s.run(1, 'G = 3 nums');
+    const g = s.run(1, 'G\' = 3 nums');
     assert.deepEqual(s.look(g), { text: '3 4 5', note: '' });
     assert.equal(s.look(g).text, '3 4 5');
     assert.equal(s.replay.preview(() => formatValue(g)), '3 4 5');
@@ -74,7 +74,7 @@ test('looking repeatedly does not consume a generator, including assignment and 
 
 test('preview and full show the unread tail without consuming it, and rewind restores the start', t => {
     const s = session(t);
-    const g = s.run(1, 'G = 3 nums');
+    const g = s.run(1, 'G\' = 3 nums');
     assert.equal(s.look(g).text, '3 4 5');
     assert.equal(s.run(2, 'G 0'), 3n);
     assert.equal(s.look(g).text, '4 5');
@@ -89,8 +89,8 @@ test('preview and full show the unread tail without consuming it, and rewind res
 
 test('an unread tail can be previewed before it is cached, through either alias', t => {
     const s = session(t);
-    const g = s.run(1, 'G = 3 nums');
-    const h = s.run(2, 'H = G');
+    const g = s.run(1, 'G\' = 3 nums');
+    const h = s.run(2, 'H\' = G');
     assert.equal(s.run(3, 'G 0'), 3n);
     assert.equal(s.look(h).text, '4 5');
     assert.equal(s.look(g).text, '4 5');
@@ -101,9 +101,9 @@ test('an unread tail can be previewed before it is cached, through either alias'
 
 test('cached outer reads restore the actual consumed position of inner generators', t => {
     const s = session(t);
-    s.interpreter.execute('fun G forward\n  for V in G\n    yield V\n  end\nend');
-    const g = s.run(1, 'G = 3 nums');
-    const h = s.run(2, 'H = G forward');
+    s.interpreter.execute('fun G\' forward\n  for V in G\n    yield V\n  end\nend');
+    const g = s.run(1, 'G\' = 3 nums');
+    const h = s.run(2, 'H\' = G forward');
     assert.equal(s.look(h).text, '3 4 5');
     assert.equal(s.run(3, 'H 0'), 3n);
     assert.equal(s.look(g).text, '4 5');
@@ -117,7 +117,7 @@ test('cached outer reads restore the actual consumed position of inner generator
 
 test('rewinding resets only consumption on or below the target line', t => {
     const s = session(t);
-    s.run(1, 'G = 3 nums\nH = 6 nums');
+    s.run(1, 'G\' = 3 nums\nH\' = 6 nums');
     s.run(2, 'G array');
     s.run(4, 'H array');
     s.replay.rewind(3);
@@ -129,7 +129,7 @@ test('rewinding resets only consumption on or below the target line', t => {
 
 test('aliases and two reads inside one statement still share consumption', t => {
     const s = session(t);
-    s.run(1, 'G = 3 nums\nH = G');
+    s.run(1, 'G\' = 3 nums\nH\' = G');
     s.run(2, 'G array');
     assert.throws(() => s.run(3, 'H array'), /already been consumed/);
     s.replay.rewind(2);
@@ -145,7 +145,7 @@ fun N logged
   (N + 1) print
   yield N + 1
 end`);
-    s.run(1, 'G = 3 logged');
+    s.run(1, 'G\' = 3 logged');
     assert.equal(s.run(2, 'G 0'), 3n);
     assert.deepEqual(s.output, ['3']);
     s.replay.rewind(2);
@@ -166,7 +166,7 @@ fun N forever
     N += 1
   end
 end`);
-    const g = s.run(1, 'G = 0 forever');
+    const g = s.run(1, 'G\' = 0 forever');
     assert.deepEqual(s.look(g), { text: '0 1 2 3 4 5 6 7 8 9 ...', note: 'size unknown' });
     assert.equal(s.output.length, 10);
     assert.equal(s.run(2, 'G 12'), 12n);
@@ -177,7 +177,7 @@ end`);
 
 test('generator masks and explicit selection use the source tape', t => {
     const s = session(t);
-    const mask = s.run(1, 'G = 3 nums\nM = G greater 3');
+    const mask = s.run(1, 'G\' = 3 nums\nM\' = G greater 3');
     assert.equal(s.look(mask).text, 'false true true');
     assert.equal(formatValue(s.run(2, 'M array')), 'false true true');
     s.replay.rewind(2);
@@ -188,12 +188,12 @@ test('generator masks and explicit selection use the source tape', t => {
 
 test('cached outer generators also restore consumption of their dependencies', t => {
     const s = session(t);
-    s.interpreter.execute(`fun G forward
+    s.interpreter.execute(`fun G\' forward
   for V in G
     yield V
   end
 end`);
-    const h = s.run(1, 'G = 3 nums\nH = G forward');
+    const h = s.run(1, 'G\' = 3 nums\nH\' = G forward');
     assert.equal(s.look(h).text, '3 4 5');
     s.run(2, 'H array');
     assert.throws(() => s.run(3, 'G array'), /already been consumed/);
@@ -210,7 +210,7 @@ fun N broken
   yield N
   yield 1 // 0
 end`);
-    s.run(1, 'G = 3 broken');
+    s.run(1, 'G\' = 3 broken');
     assert.throws(() => s.run(2, 'G array'), /division by zero/);
     s.replay.rewind(2);
     assert.throws(() => s.run(2, 'G array'), /division by zero/);
@@ -228,7 +228,7 @@ fun N held
     "closed" print
   end
 end`);
-    s.run(1, 'G = 3 held');
+    s.run(1, 'G\' = 3 held');
     s.run(2, 'G 0');
     assert.deepEqual(s.output, []);
     s.replay.dispose();
@@ -244,7 +244,7 @@ fun N opened
   yield N
   yield N + 1
 end`);
-    s.run(1, 'G = 3 opened');
+    s.run(1, 'G\' = 3 opened');
     s.run(2, 'G 0');
     assert.equal(closed, false);
     s.replay.dispose();
@@ -254,7 +254,7 @@ end`);
 test('stdin sequences replay buffered input without reading the port twice', t => {
     const tokens = ['3', '4'];
     const s = session(t, { input: { readToken: () => tokens.shift() } });
-    const g = s.run(1, 'use io\nG = stdin .integer 2');
+    const g = s.run(1, 'use io\nG\' = stdin .integer 2');
     assert.equal(s.look(g).text, '3 4');
     assert.equal(formatValue(s.run(2, 'G array')), '3 4');
     s.replay.rewind(2);
@@ -264,16 +264,16 @@ test('stdin sequences replay buffered input without reading the port twice', t =
 
 test('recreating a generator produces a fresh tape', t => {
     const s = session(t);
-    s.run(1, 'G = 3 nums');
+    s.run(1, 'G\' = 3 nums');
     s.run(2, 'G array');
     s.replay.rewind(1);
-    s.run(1, 'G = 8 nums');
+    s.run(1, 'G\' = 8 nums');
     assert.equal(formatValue(s.run(2, 'G array')), '8 9 10');
 });
 
 test('imported generator functions also use the session tape', t => {
     const s = session(t, { loadModule: () => ({ id: '/nums.ra', source: definition }) });
-    const g = s.run(1, 'use "nums.ra" as Lib\nG = 3 Lib.nums');
+    const g = s.run(1, 'use "nums.ra" as Lib\nG\' = 3 Lib.nums');
     assert.equal(s.look(g).text, '3 4 5');
     assert.equal(formatValue(s.run(2, 'G array')), '3 4 5');
     s.replay.rewind(2);
@@ -293,7 +293,7 @@ fun N held
     "closed" print
   end
 end
-G = 3 held`);
+G\' = 3 held`);
         assert.equal(interpreter.execute('G 0'), 3n);
         assert.deepEqual(output, ['closed']);
         assert.throws(() => interpreter.execute('G array'), /already been consumed/);
@@ -302,8 +302,8 @@ G = 3 held`);
 
 test('the actual CLI previews assignment, a name and full without spending the generator', () => {
     const result = spawnSync(process.execPath, ['packages/cli/bin/cli.js'], {
-        cwd: new URL('../../../', import.meta.url), encoding: 'utf8',
-        input: `${definition}\nG = 3 nums\nG\nfull\nG array\nexit\n`,
+        cwd: new URL('../../../', import.meta.url), encoding: 'utf8', timeout: 10_000,
+        input: `${definition}\nG\' = 3 nums\nG\nfull\nG array\nexit\n`,
     });
     assert.equal(result.status, 0);
     assert.equal(result.stderr, '');
@@ -320,13 +320,13 @@ test('an error beyond the preview head is reported by full without exiting the C
     end
   end
 end
-G = 0 late
+G\' = 0 late
 full
 12345
 exit
 `;
     const result = spawnSync(process.execPath, ['packages/cli/bin/cli.js'], {
-        cwd: new URL('../../../', import.meta.url), encoding: 'utf8', input: source,
+        cwd: new URL('../../../', import.meta.url), encoding: 'utf8', timeout: 10_000, input: source,
     });
     assert.equal(result.status, 0);
     assert.match(result.stdout, /size unknown/);
@@ -334,117 +334,117 @@ exit
     assert.match(result.stdout, /12345\n/);
 });
 
-test('stored primes resume after bounded sums and preserve the first excluded value', t => {
+test('deferred primes repeat after bounded sums and rewind', t => {
     const s = session(t);
-    const g = s.run(1, 'G = primes');
+    const g = s.run(1, 'G\' = primes');
     assert.match(s.look(g).text, /^2 3 5 7/);
     assert.match(s.look(s.run(2, 'G till 100')).text, /^2 3 5 7/);
     assert.match(s.look(g).text, /^2 3 5 7/);
     assert.equal(s.run(3, 'G till 100 sum'), 1060n);
-    assert.match(s.look(g).text, /^101 103 107/);
-    assert.equal(s.run(4, 'G till 120 sum'), 533n);
-    assert.match(s.look(g).text, /^127 131 137/);
+    assert.match(s.look(g).text, /^2 3 5/);
+    assert.equal(s.run(4, 'G till 120 sum'), 1593n);
+    assert.match(s.look(g).text, /^2 3 5/);
     s.replay.rewind(4);
-    assert.match(s.look(g).text, /^101 103 107/);
-    assert.equal(s.run(4, 'G till 120 sum'), 533n);
+    assert.match(s.look(g).text, /^2 3 5/);
+    assert.equal(s.run(4, 'G till 120 sum'), 1593n);
     s.replay.rewind(3);
     assert.match(s.look(g).text, /^2 3 5 7/);
 });
 
-test('stored sources start fresh while aliases share the same cursor', t => {
+test('native sources and aliases support independent readers', t => {
     const s = session(t);
-    const g = s.run(1, 'G = primes');
-    const h = s.run(2, 'H = G');
+    const g = s.run(1, 'G\' = primes');
+    const h = s.run(2, 'H\' = G');
     assert.equal(s.run(3, 'G till 10 sum'), 17n);
-    assert.match(s.look(h).text, /^11 13 17/);
-    assert.equal(s.run(4, 'H 0'), 11n);
-    assert.match(s.look(g).text, /^13 17 19/);
-    const fresh = s.run(5, 'F = primes');
+    assert.match(s.look(h).text, /^2 3 5/);
+    assert.equal(s.run(4, 'H 0'), 2n);
+    assert.match(s.look(g).text, /^2 3 5/);
+    const fresh = s.run(5, 'F\' = primes');
     assert.match(s.look(fresh).text, /^2 3 5/);
     assert.equal(s.run(6, 'F till 10 sum'), 17n);
-    assert.match(s.look(g).text, /^13 17 19/);
+    assert.match(s.look(g).text, /^2 3 5/);
 });
 
-test('inclusive, empty and lower bounds consume only the requested prefix', t => {
+test('inclusive, empty and lower bounds compose without consuming the source', t => {
     const s = session(t);
-    const g = s.run(1, 'G = primes');
+    const g = s.run(1, 'G\' = primes');
     assert.equal(s.run(2, 'G till 2 sum'), 0n);
     assert.equal(s.run(3, 'G to 2 sum'), 2n);
-    assert.match(s.look(g).text, /^3 5 7/);
+    assert.match(s.look(g).text, /^2 3 5/);
     assert.equal(s.run(4, 'G from 10 till 20 sum'), 60n);
-    assert.match(s.look(g).text, /^23 29 31/);
-    const limited = s.run(5, 'Limited = G till 30');
-    assert.equal(s.run(6, 'Limited till 100 sum'), 52n);
-    assert.match(s.look(g).text, /^31 37 41/);
-    assert.equal(s.look(limited).text, '');
+    assert.match(s.look(g).text, /^2 3 5/);
+    const limited = s.run(5, 'Limited\' = G till 30');
+    assert.equal(s.run(6, 'Limited till 100 sum'), 129n);
+    assert.match(s.look(g).text, /^2 3 5/);
+    assert.match(s.look(limited).text, /^2 3 5/);
 });
 
-test('Fibonacci reductions and combined masks read the stream rather than a fresh plan', t => {
+test('Fibonacci reductions and combined masks repeat their source', t => {
     const s = session(t);
-    s.run(1, 'use numbers\nG = fibonacci');
+    s.run(1, 'use numbers\nG\' = fibonacci');
     assert.equal(s.run(2, 'G till 10 sum'), 19n);
-    assert.equal(s.run(3, 'G till 30 sum'), 34n);
-    assert.match(s.look(s.interpreter.variables.get('G')).text, /^34 55 89/);
-    s.run(4, 'P = primes\nMask = P greater 5 and P less 20');
+    assert.equal(s.run(3, 'G till 30 sum'), 53n);
+    assert.match(s.look(s.interpreter.variables.get('G')).text, /^1 2 3/);
+    s.run(4, 'P\' = primes\nMask\' = P greater 5 and P less 20');
     assert.equal(s.run(5, 'P Mask till 20 sum'), 67n);
-    assert.match(s.look(s.interpreter.variables.get('P')).text, /^23 29 31/);
+    assert.match(s.look(s.interpreter.variables.get('P')).text, /^2 3 5/);
 });
 
-test('filtered views retain their stream source when assigned and bounded again', t => {
+test('deferred filtered views compose with another bound', t => {
     const s = session(t);
-    const g = s.run(1, 'G = primes');
-    s.run(2, 'H = (G (G greater 5)) till 100');
+    const g = s.run(1, 'G\' = primes');
+    s.run(2, 'H\' = (G (G greater 5)) till 100');
     assert.equal(s.run(3, 'H till 20 sum'), 67n);
-    assert.match(s.look(g).text, /^23 29 31/);
-    assert.equal(s.run(4, 'H till 30 sum'), 52n);
-    assert.match(s.look(g).text, /^31 37 41/);
+    assert.match(s.look(g).text, /^2 3 5/);
+    assert.equal(s.run(4, 'H till 30 sum'), 119n);
+    assert.match(s.look(g).text, /^2 3 5/);
 });
 
-test('cached generators cannot move a separately consumed native source backwards', t => {
+test('buffered generators remain independent of repeated native source demands', t => {
     const s = session(t);
-    s.run(1, 'fun G forward\n for V in G till 1000\n  yield V\n end\nend\nG = primes\nH = G forward');
+    s.run(1, 'fun G\' forward\n for V in G till 1000\n  yield V\n end\nend\nG\' = primes\nH\' = G forward');
     s.look(s.interpreter.variables.get('H'));
     s.run(2, 'G till 100 sum');
-    assert.throws(() => s.run(3, 'H 0'), /advanced since this value was buffered/);
-    assert.match(s.look(s.interpreter.variables.get('G')).text, /^101 103 107/);
+    assert.equal(s.run(3, 'H 0'), 2n);
+    assert.match(s.look(s.interpreter.variables.get('G')).text, /^2 3 5/);
     s.replay.rewind(2);
     assert.equal(s.run(2, 'H 0'), 2n);
-    assert.match(s.look(s.interpreter.variables.get('G')).text, /^3 5 7/);
+    assert.match(s.look(s.interpreter.variables.get('G')).text, /^2 3 5/);
 });
 
 test('ordinary execution keeps reusable native sequences and ranges', () => {
     const interpreter = new Interpreter(() => {});
-    interpreter.execute('use sequences\nG = primes');
+    interpreter.execute('use sequences\nG\' = primes');
     assert.equal(interpreter.execute('G till 100 sum'), 1060n);
     assert.equal(interpreter.execute('G till 100 sum'), 1060n);
 });
 
-test('two sequential reads and nested readers share a native cursor without duplication', t => {
+test('sequential and nested readers each begin a fresh native evaluation', t => {
     const s = session(t);
-    s.run(1, 'G = primes');
-    assert.equal(s.run(2, '(G 0) + (G 0)'), 5n);
-    assert.equal(s.run(3, 'Total = 0\nfor P in G till 11\n Total += P\n Extra = G 0\n Total += Extra\nend\nTotal'), 12n);
-    assert.match(s.look(s.interpreter.variables.get('G')).text, /^11 13 17/);
+    s.run(1, 'G\' = primes');
+    assert.equal(s.run(2, '(G 0) + (G 0)'), 4n);
+    assert.equal(s.run(3, 'Total = 0\nfor P in G till 11\n Total += P\n Extra = G 0\n Total += Extra\nend\nTotal'), 25n);
+    assert.match(s.look(s.interpreter.variables.get('G')).text, /^2 3 5/);
 });
 
-test('previewing two readers of one native stream mirrors consumption without spending it', t => {
+test('previewing two native readers preserves independent evaluation', t => {
     const s = session(t);
-    const g = s.run(1, 'G = primes');
-    s.run(2, 'H = G till 10');
+    const g = s.run(1, 'G\' = primes');
+    s.run(2, 'H\' = G till 10');
     const pairs = s.run(3, 'H + H');
-    assert.equal(s.look(pairs).text, '5 12');
+    assert.equal(s.look(pairs).text, '4 6 10 14');
     assert.match(s.look(g).text, /^2 3 5/);
-    assert.equal(formatValue(s.run(4, '(H + H) array')), '5 12');
-    assert.match(s.look(g).text, /^11 13 17/);
+    assert.equal(formatValue(s.run(4, '(H + H) array')), '4 6 10 14');
+    assert.match(s.look(g).text, /^2 3 5/);
 });
 
-test('the actual CLI shows 101 after consuming primes below 100', () => {
+test('the actual CLI repeats primes after a bounded sum', () => {
     const result = spawnSync(process.execPath, ['packages/cli/bin/cli.js'], {
-        cwd: new URL('../../../', import.meta.url), encoding: 'utf8',
-        input: 'use sequences\nG = primes\nG till 100\nG till 100 sum\nG\nexit\n',
+        cwd: new URL('../../../', import.meta.url), encoding: 'utf8', timeout: 10_000,
+        input: 'use sequences\nG\' = primes\nG till 100\nG till 100 sum\nG\nexit\n',
     });
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stderr, '');
     assert.match(result.stdout, /1060\n/);
-    assert.match(result.stdout, /101 103 107/);
+    assert.match(result.stdout, /2 3 5 7/);
 });

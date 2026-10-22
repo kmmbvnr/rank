@@ -37,7 +37,7 @@ describe('navigable result rows', () => {
     });
 
     it('keeps a long preview to one row and keeps a note that adds something', async () => {
-        const { session, text } = await ran('A = array shape 100 fill 7', 'use sequences', 'S = 1 to 40');
+        const { session, text } = await ran('A = array shape 100 fill 7', 'use sequences', "S' = 1 to 40");
         try {
             const lines = text();
             const at = lines.findIndex(line => line.trim() === 'integer [100]');

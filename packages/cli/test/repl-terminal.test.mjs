@@ -622,7 +622,7 @@ test('keys typed while a cell runs are kept and run at the next prompt', async t
 test('Ctrl-C drops the keys typed ahead of the stopped cell', async t => {
     const frames = await drive(t, [
         { keys: 'use numbers' + ENTER, until: '1›' },
-        running('170141183460469231731687303715884105727 factors' + ENTER),
+        running('170141183460469231731687303715884105727 factors max' + ENTER),
         running('B = 1' + ENTER),
         '\x03',
     ], 60, 18);

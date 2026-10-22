@@ -26,8 +26,8 @@ function compare(source: string, input = '') {
     return fused;
 }
 
-// Different names, multiple arithmetic maps, a separate unary statement, and
-// all rather than any: this is a pipeline compiler, not a Stick Game rewrite.
+// Ordinary stages must complete independently, including before boolean
+// short-circuiting and writes in subsequent statements.
 const probe = `use sequences
 use io
 fun A B Limit probe
@@ -48,8 +48,9 @@ B = array true false true false true
 A B 3 probe print`;
 
 describe('tensor pipeline fusion', () => {
-    it('declines host arrays without probing their cells', () => {
-        const source = probe.replace('A = array 1 2 3\nB = array true false true false true\n', '');
+    it('preserves host reads through ordinary completion boundaries', () => {
+        const source = probe.replace('A = array 1 2 3\nB = array true false true false true\n', '')
+            .replace('fun A B Limit probe', "fun A' B' Limit probe");
         const execute = (fused: boolean) => {
             const reads: string[] = [];
             let kernels = 0;
@@ -74,9 +75,9 @@ describe('tensor pipeline fusion', () => {
         const compiled = execute(true);
         expect(compiled).toEqual({ ...reference, kernels: 0 });
     });
-    it('fuses an independently named pipeline and preserves all', () => {
+    it('completes an ordinary named pipeline before all', () => {
         expect(compare(probe)).not.toHaveProperty('error');
-        expect(compare(probe)).toMatchObject({ output: ['true'], kernels: 2 });
+        expect(compare(probe)).toMatchObject({ output: ['true'], kernels: 0 });
     });
     it('keeps integer arithmetic exact above 2^53', () => {
         const source = probe.replace('A less Limit', 'A greater Limit')
@@ -84,20 +85,20 @@ describe('tensor pipeline fusion', () => {
             .replace('Scaled - 1', 'Scaled * 1')
             .replace('array 1 2 3', 'array 9007199254740993 9007199254740994')
             .replace('A B 3 probe', 'A B 0 probe');
-        expect(compare(source).kernels).toBe(2);
+        expect(compare(source).kernels).toBe(0);
     });
     it('handles an empty selection', () => {
-        expect(compare(probe.replace('A B 3 probe', 'A B 0 probe')).kernels).toBe(2);
+        expect(compare(probe.replace('A B 3 probe', 'A B 0 probe')).kernels).toBe(0);
     });
     it('does not eliminate an intermediate that escapes', () => {
         const source = probe.replace('return Result', 'Gathered print\n  return Result');
         expect(compare(source).kernels).toBe(0);
     });
-    it('retains mutation rejection for lazy intermediates', () => {
-        const source = probe.replace('Result = Inverted all', 'Result = Inverted all\n    Gathered 0 = false');
+    it('preserves writable completed intermediates after reduction', () => {
+        const source = probe.replace('Result = Inverted all', 'Result = Inverted all\n    Gathered 0 = true\n    Gathered print');
         const result = compare(source);
         expect(result.kernels).toBe(0);
-        expect('error' in result).toBe(true);
+        expect(result.output).toEqual(['true false', 'true false', 'true']);
     });
     it('retains preexisting variable types', () => {
         const source = probe.replace('Result = false', 'Mask = 1\n  Result = false');
@@ -106,8 +107,10 @@ describe('tensor pipeline fusion', () => {
         expect('error' in result).toBe(true);
     });
     it('retains a global binding with the same name', () => {
-        const source = probe.replace('A = array', 'Mask = 1\nA = array');
-        expect(compare(source).kernels).toBe(0);
+        const source = probe.replace('A = array', 'Mask = 1\nA = array') + '\nMask print';
+        const result = compare(source);
+        expect(result.kernels).toBe(0);
+        expect(result.output).toEqual(['true', '1']);
     });
     it('retains custom reduction dispatch', () => {
         const source = probe.replace('fun A B Limit probe', 'fun V all\n  return false\nend\nfun A B Limit probe');
@@ -130,9 +133,15 @@ C`;
             .toHaveProperty('value', '13');
     });
 
-    it('does not force a lazy input while guarding', () => {
-        const source = probe.replace('A B 3 probe', 'A = A (array 0 1 2)\nA B 3 probe');
-        expect(compare(source).kernels).toBe(0);
+    it('reduces a native selection without completing its intermediate maps', () => {
+        const source = `use sequences
+fun A' probe
+ return (A * 2 + 1) sum
+end
+A = array 1 2 3
+View' = A (array 0 1 2)
+View probe`;
+        expect(compare(source)).toMatchObject({ value: '15', kernels: 1 });
     });
     it('retains missing-module errors at the original statement', () => {
         expect(compare(probe.replace('use sequences\n', '')).kernels).toBe(0);
@@ -160,13 +169,13 @@ C`;
     });
     it('observes mutations between iterations', () => {
         const source = probe.replace('Result = Inverted all', 'Result = Inverted all\n    B 1 = true');
-        expect(compare(source).kernels).toBe(2);
+        expect(compare(source).kernels).toBe(0);
     });
     it('can decline after a successful iteration without replaying effects', () => {
         const source = probe.replace('Result = Inverted all',
             'Result = Inverted all\n    Tick print\n    B 3 = 7');
         const result = compare(source);
-        expect(result.kernels).toBe(1);
+        expect(result.kernels).toBe(0);
         expect(result.output).toEqual(['1']);
         expect('error' in result).toBe(true);
     });
@@ -179,8 +188,8 @@ C`;
 use stats
 use io
 fun A B calculate
-  Difference = A - B
-  Squared = Difference * Difference
+  Difference' = A - B
+  Squared' = Difference * Difference
   Result = Squared ${reducer}
   return Result
 end
@@ -220,7 +229,7 @@ A X rows print`;
     it('reuses a tensor body across integer and real calls without fixing an unknown input domain', () => {
         const result = compare(`use io
 fun Values total
-  Scaled = Values + Values
+  Scaled' = Values + Values
   return Scaled sum
 end
 First = array 1 2
@@ -308,8 +317,8 @@ S`);
             const source = `use numbers
 use stats
 fun A f
-  Shifted = A + ${sample % 2 ? '3.0' : '3'}
-  Product = Shifted * A
+  Shifted' = A + ${sample % 2 ? '3.0' : '3'}
+  Product' = Shifted * A
   Result = Product ${sample % 2 ? 'mean' : 'sum'}
   return Result
 end
@@ -346,7 +355,7 @@ A f`);
         expect('error' in result).toBe(true);
         expect(result.kernels).toBe(0);
     });
-    it('matches independent DP for unchanged Stick Game, including unsorted moves', () => {
+    it('matches independent DP for migrated Stick Game, including unsorted moves', () => {
         const source = readFileSync(new URL('../../../demos/cses/math/032_stickgame.ra', import.meta.url), 'utf8');
         for (const moves of [[1], [2, 5], [9, 2, 4], [200], [3, 3, 1], [0, 2]]) {
             const n = 100;
@@ -360,8 +369,8 @@ A f`);
 });
 
 
-describe('compiled access to completed lazy caches', () => {
-    it('keeps a completed round cache valid when a name writes its source', () => {
+describe('compiled access to retained values and deferred inputs', () => {
+    it('keeps a completed round result valid when a name writes its source', () => {
         const result = compare(`use numbers
 A = array 1.2 2.8
 R = A round 0
@@ -370,18 +379,18 @@ A 0 = 100.0
 Answer = (R * 2.0) sum
 Answer
 `);
-        // The write goes to storage of its own, so the completed cache stays
-        // valid and the kernel may run over it.
+        // R holds a completed value independent of later source writes.
         expect(result.value).toBe('8');
         expect(result.kernels).toBe(1);
     });
 
-    it('does not force a partially cached input to enable compilation', () => {
+    it('does not complete a deferred input merely to enable compilation', () => {
         const result = compare(`use numbers
 A = array 1.2 2.8
-R = A round 0
+Alias = A
+R' = A round 0
 First = R 0
-A 1 = 4.1
+Alias 1 = 4.1
 Answer = (R * 2.0) sum
 Answer
 `);
@@ -395,7 +404,7 @@ describe('tensor return terminals', () => {
     it('fuses a named pipeline ending in return', () => {
         const result = compare(`use numbers
 fun A squares
-  Squared = A * A
+  Squared' = A * A
   return Squared sum
 end
 A = array 2 3 4
@@ -448,10 +457,7 @@ describe('text digits inside tensor kernels', () => {
 use numbers
 use io
 fun N Power digitpowers
-  Text = N text
-  Digits = Text integer rank 0
-  Powers = Digits ** Power
-  return Powers sum
+  return (((N text) integer rank 0) ** Power) sum
 end
 1634 4 digitpowers`;
 
@@ -470,9 +476,7 @@ end
         const source = `use text
 use numbers
 fun Text digitpowers
-  Digits = Text integer rank 0
-  Shifted = Digits + 1
-  return Shifted sum
+  return ((Text integer rank 0) + 1) sum
 end
 ${input} digitpowers`;
         expect(compare(source)).toMatchObject({ value: input === '""' ? '0' : '8', kernels: 1 });
@@ -480,7 +484,7 @@ ${input} digitpowers`;
 
     it.each(['-12', '"1😀2"', '"1 2"', '"12\\n"'])('retains conversion errors for %s', input => {
         const source = typeof input === 'string' && input.startsWith('"')
-            ? program.replace('Text = N text', 'Text = N').replace('1634 4 digitpowers', `${input} 2 digitpowers`)
+            ? program.replace('(N text)', 'N').replace('1634 4 digitpowers', `${input} 2 digitpowers`)
             : program.replace('1634 4 digitpowers', `${input} 2 digitpowers`);
         expect(compare(source)).toHaveProperty('error');
     });
@@ -502,7 +506,8 @@ fun N Power digitpowers`);
     });
 
     it('does not remove observable intermediate bindings', () => {
-        const source = program.replace('return Powers sum', 'Digits print\n  return Powers sum');
+        const source = program.replace('return (((N text) integer rank 0) ** Power) sum',
+            'Text = N text\n  Digits = Text integer rank 0\n  Powers = Digits ** Power\n  Digits print\n  return Powers sum');
         expect(compare(source)).toMatchObject({ value: '1634', output: ['1 6 3 4'] });
     });
 });

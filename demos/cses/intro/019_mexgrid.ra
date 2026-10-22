@@ -5,7 +5,7 @@ use bits
 use io
 
 N = stdin .integer
-Grid = N grid
+Grid' = N grid
 
 for Row in Grid
   Row print

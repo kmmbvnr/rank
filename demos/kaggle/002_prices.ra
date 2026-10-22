@@ -52,8 +52,8 @@ fun X Y Rate Steps linear
 end
 
 
-fun X Model linear_predict
-  Z = (X - Model .center) / Model .scale
+fun X' Model linear_predict
+  Z' = (X - Model .center) / Model .scale
   return Z Model .weights matmul + Model .bias
 end
 
@@ -72,8 +72,8 @@ fun Train Test Rate Steps predictall
   Y = Train .SalePrice + 1 log
 
   Model = X Y Rate Steps linear
-  Raw = Xtest Model linear_predict
-  Pred = (Raw exp - 1) 0.0 max
+  Raw' = Xtest Model linear_predict
+  Pred' = (Raw exp - 1) 0.0 max
   Test .SalePrice = Pred
   return Test (array .Id .SalePrice)
 end

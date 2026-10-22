@@ -7,8 +7,8 @@ use tables
 argument DbPath path
 
 Db = DbPath sqlite
-Booked = Db .bookings select .memid
-Unused = Db .members filter
+Booked' = Db .bookings select .memid
+Unused' = Db .members filter
   .memid not in Booked
 end
 Unused delete

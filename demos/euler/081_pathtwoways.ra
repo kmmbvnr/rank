@@ -25,7 +25,7 @@ Count = Parts len - 1
 Side = Count isqrt
 Cells = Parts take Count integer
 Id = 0 till Count array
-Col = Id mod Side
+Col' = Id mod Side
 Last = Side - 1
 Rows = Count - Side
 Right = Id filter (Col less Last) copy
@@ -34,8 +34,8 @@ East = Right + 1
 South = Down + Side
 From = concat Right Down
 To = concat East South
-Cost = Cells To
-Edges = stack From To Cost transpose
+Cost' = Cells To
+Edges' = stack From To Cost transpose
 Net = new graph .directed
 Net add Id
 Net add Edges

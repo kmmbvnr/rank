@@ -78,17 +78,18 @@ test('factor search cancels without losing bindings, and can be cancelled again'
     const s = await session(t);
     await s.execute('use numbers', 0, []);
     await s.execute('A = 41', 1, []);
-    const result = await stop(s, 'Factors = 170141183460469231731687303715884105727 factors');
+    await s.execute("Factors' = 170141183460469231731687303715884105727 factors", 2, []);
+    const result = await stop(s, 'Factors max', 3);
     assert.equal(result.interrupted, true);
     assert.equal(result.ok, false);
     assert.match(result.output.map(x => x.text).join('\n'), /searching factors/);
-    const next = await s.execute('A + 1', 3, []);
+    const next = await s.execute('A + 1', 4, []);
     assert.equal(next.ok, true);
     assert.equal(next.output[0].text, '42');
-    const again = await stop(s, 'Factors max', 4);
+    const again = await stop(s, 'Factors max', 5);
     assert.equal(again.interrupted, true);
     assert.match(again.output.map(x => x.text).join('\n'), /Factors max/);
-    assert.equal((await s.execute('2 + 3', 5, [])).output[0].text, '5');
+    assert.equal((await s.execute('2 + 3', 6, [])).output[0].text, '5');
 });
 
 test('compiled endless loop cancels, bypasses catch, and runs finally', { timeout: 10000 }, async t => {
@@ -146,7 +147,7 @@ test('empty loop and a native sequence can both be stopped', { timeout: 10000 },
 test('full can be stopped and Ctrl-R can retry a stopped cell after editing', { timeout: 10000 }, async t => {
     const s = await session(t);
     await s.execute('use numbers', 0, []);
-    await stop(s, 'Factors = 170141183460469231731687303715884105727 factors', 1);
+    await s.execute("Factors' = 170141183460469231731687303715884105727 factors", 1, []);
     assert.equal((await stop(s, 'full', 2)).interrupted, true);
     const repl = new NotebookRepl(s);
     repl.notebook.replace('for\nend');
@@ -163,11 +164,17 @@ test('full can be stopped and Ctrl-R can retry a stopped cell after editing', { 
 test('a cancelled generator reports its closed state instead of replaying Ctrl-C', { timeout: 10000 }, async t => {
     const s = await session(t);
     await s.execute('fun generate\n  yield 1\n  for\n  end\nend', 0, []);
-    assert.equal((await stop(s, 'G = generate', 1)).interrupted, true);
-    const again = await s.execute('G', 2, []);
+    // Keep resource creation separate from the preview that would exhaust its budget.
+    await s.execute("G' = generate\n0", 1, []);
+    assert.equal((await stop(s, 'G sum', 2)).interrupted, true);
+    const again = await s.execute('G', 3, []);
     assert.equal(again.interrupted, false);
     assert.equal(again.ok, false);
     assert.match(again.output.map(x => x.text).join('\n'), /rerun its producing cell/);
+    assert.equal((await stop(s, 'Unstored = generate', 4)).interrupted, true);
+    const unstored = await s.execute('Unstored', 5, []);
+    assert.equal(unstored.ok, false);
+    assert.match(unstored.output.map(x => x.text).join('\n'), /unknown name: Unstored/);
 });
 
 test('large native binomial and matrix elimination cancel while the terminal thread stays responsive', { timeout: 10000 }, async t => {

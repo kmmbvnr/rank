@@ -19,21 +19,21 @@ Hi = 19293949596979899 isqrt
 M = array 3 7
 for K in 1 to 8
   Rows = M len
-  Dig = 10 ** K * (0 to 9 array)
-  Up = (M reshape Rows 1) + Dig
+  Dig' = 10 ** K * (0 to 9 array)
+  Up' = (M reshape Rows 1) + Dig
   M = Up reshape (Rows * 10)
   if K mod 2 equal 0
     J = K // 2
-    S = M * M // 100 ** J
-    Ok = S mod 10 equal 9 - J
+    S' = M * M // 100 ** J
+    Ok' = S mod 10 equal 9 - J
     M = M filter Ok array
   end
 end
-Ok = M at most Hi
+Ok' = M at most Hi
 M = M filter Ok array
 for J in 0 to 8
-  S = M * M // 100 ** J
-  Ok = S mod 10 equal 9 - J
+  S' = M * M // 100 ** J
+  Ok' = S mod 10 equal 9 - J
   M = M filter Ok array
 end
 Answer = M 0 * 10

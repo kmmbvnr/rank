@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type RankValue } from '../src/index.js';
 import { MissingValueError, RankError } from '../src/errors.js';
 import { createArraySnapshot } from '../src/array-storage.js';
+import { demandValue } from '../src/plan.js';
 
 function run(operation: string, axes: string, shape: number[], cells: RankValue[], fused: boolean,
     failAt?: number, missingAt?: number) {
@@ -9,7 +10,7 @@ function run(operation: string, axes: string, shape: number[], cells: RankValue[
     const runtime = new Interpreter(undefined, { tensorFusion: fused });
     try {
         runtime.execute(`use stats
-fun A probe
+fun A' probe
   return A ${operation} axis ${axes}
 end`);
         const source = { kind: 'array' as const, shape, items: cells, itemAt(i: number) {
@@ -20,7 +21,7 @@ end`);
         } };
         const fn = runtime.variables.get('probe')!;
         if (typeof fn !== 'object' || fn.kind !== 'function') throw new Error('missing probe');
-        const value = fn.call([source]);
+        const value = demandValue(fn.call([source]));
         return { value: isRankArray(value) ? { shape: value.shape, items: value.items } : value, reads };
     } catch (error) {
         return { error: error instanceof RankError ? error.format() : String(error), reads };
@@ -56,16 +57,14 @@ describe('axis statistics reader fusion', () => {
         expect(run('std', '0', [3, 2], [1n, 2n, 3n, 4n, 5n, 6n], true).value)
             .toEqual({ shape: [2], items: [Math.sqrt(8 / 3), Math.sqrt(8 / 3)] });
     });
-    // Naming M freezes A against Rank writes, so the cache is exercised through
-    // storage the embedding still owns.
-    it('retains repeated indexed evaluation after a host write', () => {
+    it('recomputes indexed observations after a host write', () => {
         for (const tensorFusion of [false, true]) {
             const runtime = new Interpreter(undefined, { tensorFusion });
             try {
                 const source = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
                 runtime.variables.set('A', source);
-                runtime.execute('use stats\nuse sequences\nM = A mean axis 0');
-                const m = runtime.variables.get('M')!;
+                runtime.execute("use stats\nuse sequences\nM' = A mean axis 0");
+                const m = demandValue(runtime.variables.get('M')!);
                 if (!isRankArray(m)) throw new Error('missing array');
                 expect(m.itemAt!(0)).toBe(2);
                 source.items[0] = 5n;

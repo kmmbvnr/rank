@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, isRankPlan, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -82,7 +84,7 @@ test('aggregate count programs match SQLite on empty and repeated data', async t
                 await t.test(`${phase}: ${file}`, () => {
                     const result = spawnSync(process.execPath,
                         [cli, path.join(examples, file), dbPath],
-                        { cwd: root, encoding: 'utf8' });
+                        { cwd: root, encoding: 'utf8', timeout: 15_000 });
                     assert.equal(result.status, 0, result.stderr);
                     assert.equal(result.stdout.trim(), String(db.prepare(sql).pluck().get()));
                 });
@@ -121,7 +123,7 @@ test('member count accompanies every row in join-date order on SQLite and arrays
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const expected = db.prepare(oracle).all()
                     .map(row => Object.values(row).map(String));
@@ -163,7 +165,7 @@ test('numbered members match a SQLite window on SQLite and arrays', () => {
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const expected = db.prepare(oracle).all()
                     .map(row => Object.values(row).map(String));
@@ -212,7 +214,7 @@ test('rounded member hours and gap ranks match SQLite on views and arrays', () =
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const expected = db.prepare(oracle).all().map(row =>
                     Object.values(row).map(String));
@@ -261,7 +263,7 @@ test('top three facility ranks include ties on SQLite views and arrays', () => {
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const expected = db.prepare(oracle).all()
                     .map(row => Object.values(row).map(String));
@@ -274,7 +276,7 @@ test('top three facility ranks include ties on SQLite views and arrays', () => {
             .replace('Result OutputPath csv',
                 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
-            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /RANK\(\) OVER \(ORDER BY/);
         assert.match(plan.stdout, /WHERE .*rank.*<=/);
@@ -322,7 +324,7 @@ test('facility revenue classes match NTILE on SQLite views and arrays', () => {
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const expected = db.prepare(oracle).all()
                     .map(row => Object.values(row).map(String));
@@ -334,7 +336,7 @@ test('facility revenue classes match NTILE on SQLite views and arrays', () => {
             .replace('Result OutputPath csv',
                 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
-            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /ROW_NUMBER\(\) OVER \(ORDER BY/);
         assert.match(plan.stdout, /CASE WHEN/);
@@ -381,7 +383,7 @@ test('facility payback matches SQLite arithmetic on views and arrays', () => {
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const expected = db.prepare(oracle).all();
                 const actual = csvRows(output);
@@ -398,7 +400,7 @@ test('facility payback matches SQLite arithmetic on views and arrays', () => {
             .replace('Result OutputPath csv',
                 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
-            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /GROUP BY "facid"/);
         assert.match(plan.stdout, /1\.0 \* "revenue"/);
@@ -453,13 +455,13 @@ test('rolling daily revenue includes empty days on SQLite and arrays', () => {
                     const program = fs.readFileSync(file, 'utf8')
                         .replace('Db = DbPath sqlite',
                             `use json\nDb = ${JSON.stringify(JSON.stringify(tables))} json`)
-                        .replace('Days = Db Start End calendar',
-                            'Days = Start End calendar');
+                        .replace("Days' = Db Start End calendar",
+                            "Days' = Start End calendar");
                     source = path.join(dir, 'array.ra');
                     fs.writeFileSync(source, program);
                 }
                 const result = spawnSync(process.execPath,
-                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                    [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(result.status, 0, result.stderr);
                 const actual = csvRows(output);
                 const expected = db.prepare(oracle).all();
@@ -475,7 +477,7 @@ test('rolling daily revenue includes empty days on SQLite and arrays', () => {
         fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
             .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
-            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8' });
+            [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /WITH RECURSIVE days/);
         assert.match(plan.stdout, /SELECT \? WHERE \? <= \?/);
@@ -520,7 +522,7 @@ test('grouped aggregate programs match SQLite without reading source rows early'
                     }
                     const result = spawnSync(process.execPath,
                         [cli, source, dbPath, output],
-                        { cwd: root, encoding: 'utf8' });
+                        { cwd: root, encoding: 'utf8', timeout: 15_000 });
                     assert.equal(result.status, 0, result.stderr);
                     const expected = db.prepare(sql).all().map(row => Object.values(row)
                         .map(value => value === null ? '' : String(value)));
@@ -531,11 +533,11 @@ test('grouped aggregate programs match SQLite without reading source rows early'
         const source = path.join(dir, 'inspect.ra');
         fs.writeFileSync(source, `use io\nuse numbers\nuse sequences\nuse tables\n`
             + `Db = ${JSON.stringify(dbPath)} sqlite\n`
-            + 'R = Db .bookings\nG = R group by .facid\n'
-            + 'S = G select\n  .visits = count\n  .slots = .slots sum\nend\n'
+            + 'R\' = Db .bookings\nG\' = R group by .facid\n'
+            + 'S\' = G select\n  .visits = count\n  .slots = .slots sum\nend\n'
             + 'Q = S sql\nQ .text print\n');
         const result = spawnSync(process.execPath, [cli, source],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         assert.match(result.stdout, /GROUP BY "facid"/);
         assert.match(result.stdout, /SUM\("slots"\)/);
@@ -543,13 +545,13 @@ test('grouped aggregate programs match SQLite without reading source rows early'
         const mixed = path.join(dir, 'mixed.ra');
         fs.writeFileSync(mixed, `use io\nuse numbers\nuse sequences\nuse stats\nuse tables\n`
             + `use cli\nargument DbPath path\nargument OutputPath path\n`
-            + 'Db = DbPath sqlite\nR = Db .bookings\nG = R group by .facid\n'
-            + 'S = G select\n  .visits = count\n  .present = .slots count\n'
+            + 'Db = DbPath sqlite\nR\' = Db .bookings\nG\' = R group by .facid\n'
+            + 'S\' = G select\n  .visits = count\n  .present = .slots count\n'
             + '  .slots = .slots sum\n  .low = .slots min\n'
             + '  .high = .slots max\n  .average = .slots mean\nend\n'
-            + 'S = S sort by .facid\nS OutputPath csv\n');
+            + 'S\' = S sort by .facid\nS OutputPath csv\n');
         const mixedResult = spawnSync(process.execPath,
-            [cli, mixed, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, mixed, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(mixedResult.status, 0, mixedResult.stderr);
         const mixedSql = 'SELECT facid, COUNT(*) AS visits, COUNT(slots) AS present, '
             + 'SUM(slots) AS slots, MIN(slots) AS low, MAX(slots) AS high, '
@@ -570,10 +572,10 @@ test('rollup keeps real NULL keys distinct and repeats bound source parameters',
     try {
         db.exec('CREATE TABLE facts (facid INTEGER, month INTEGER, slots INTEGER); '
             + 'INSERT INTO facts VALUES (1,NULL,3),(1,7,2),(2,7,4)');
-        const body = 'R = Db .facts\nR = R filter .slots greater 1\n'
-            + 'G = R rollup by .facid .month\nTotals = G select\n'
+        const body = 'R\' = Db .facts\nR\' = R filter .slots greater 1\n'
+            + 'G\' = R rollup by .facid .month\nTotals\' = G select\n'
             + '  .visits = count\n  .slots = .slots sum\nend\n'
-            + 'Totals = Totals sort by .facid .month .slots\n'
+            + 'Totals\' = Totals sort by .facid .month .slots\n'
             + 'Totals OutputPath csv\n';
         const expected = [
             ['facid', 'month', 'visits', 'slots'],
@@ -595,7 +597,7 @@ test('rollup keeps real NULL keys distinct and repeats bound source parameters',
                 + 'argument DbPath path\nargument OutputPath path\n'
                 + setup + body.replace('Totals OutputPath csv\n', inspect + 'Totals OutputPath csv\n'));
             const result = spawnSync(process.execPath,
-                [cli, source, dbPath, output], { cwd: root, encoding: 'utf8' });
+                [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
             assert.equal(result.status, 0, result.stderr);
             assert.deepEqual(csvRows(output), expected);
             if (storage === 'sqlite') {
@@ -606,7 +608,7 @@ test('rollup keeps real NULL keys distinct and repeats bound source parameters',
         db.exec('DELETE FROM facts');
         const empty = spawnSync(process.execPath,
             [cli, path.join(dir, 'sqlite.ra'), dbPath, output],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(empty.status, 0, empty.stderr);
         assert.deepEqual(csvRows(output), [
             ['facid', 'month', 'visits', 'slots'], ['', '', '0', '0'],
@@ -616,3 +618,72 @@ test('rollup keeps real NULL keys distinct and repeats bound source parameters',
         fs.rmSync(dir, { recursive: true, force: true });
     }
 });
+
+for (const compilation of [false, true]) {
+    test(`aggregate query and retained scalar boundaries (compilation=${compilation})`, async t => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-aggregate-plans-'));
+        const dbPath = path.join(directory, 'club.sqlite3');
+        const db = new Database(dbPath);
+        try {
+            db.exec(`CREATE TABLE facilities (facid INTEGER, name TEXT, membercost REAL,
+                guestcost REAL, initialoutlay REAL, monthlymaintenance REAL);
+                CREATE TABLE members (memid INTEGER, firstname TEXT, surname TEXT,
+                recommendedby INTEGER, joindate TEXT);
+                CREATE TABLE bookings (facid INTEGER, memid INTEGER, slots INTEGER, starttime TEXT);
+                INSERT INTO facilities VALUES (0,'Court',5,20,1000,10),(1,'Pool',0,10,2000,20);
+                INSERT INTO members VALUES (0,'GUEST','GUEST',NULL,'2012-07-01'),
+                (1,'A','Smith',NULL,'2012-07-02'),(2,'B','Jones',1,'2012-08-01');
+                INSERT INTO bookings VALUES (0,1,2,'2012-08-15 00:00:00'),
+                (0,2,3,'2012-09-01 00:00:00'),(1,1,4,'2012-09-10 00:00:00'),
+                (0,0,1100,'2012-09-12 00:00:00');`);
+            const programs = fs.readdirSync(examples).filter(name => /^\d{3}_.*\.ra$/.test(name)).sort();
+            assert.equal(programs.length, 22);
+            for (const file of programs) await t.test(file, () => {
+                const number = Number(file.slice(0, 3));
+                const count = [1, 2, 7].includes(number);
+                let reads = 0, opens = 0, closes = 0;
+                const queries = [];
+                const io = { ...nodeIo, openSqlite(file) {
+                    opens++;
+                    const connection = nodeIo.openSqlite(file);
+                    return { ...connection, prepare(sql) {
+                        const statement = connection.prepare(sql);
+                        return { ...statement, all(params) {
+                            if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) { reads++; queries.push(sql); }
+                            return statement.all(params);
+                        } };
+                    }, close() { closes++; connection.close(); } };
+                } };
+                const printed = [];
+                const runtime = new Interpreter(text => printed.push(text), { io, compilation });
+                try {
+                    const source = fs.readFileSync(path.join(examples, file), 'utf8');
+                    const consumer = count ? 'Count print' : 'Result OutputPath csv';
+                    const boundary = source.lastIndexOf(consumer);
+                    assert.ok(boundary > 0);
+                    const output = path.join(directory, 'out.csv');
+                    runtime.executeProgram(parse(source.slice(0, boundary)), count ? [dbPath] : [dbPath, output]);
+                    const before = [1, 2, 7, 15, 17, 20].includes(number) ? 1 : 0;
+                    assert.equal(reads, before);
+                    if (count) {
+                        assert.equal(typeof runtime.variables.get('Count'), 'bigint');
+                        assert.match(queries[0], /COUNT\(/);
+                    } else assert.ok(isRankPlan(runtime.variables.get('Result')));
+                    const results = [];
+                    for (const demand of [1, 2]) {
+                        runtime.execute(consumer);
+                        assert.equal(reads, count ? before : before + demand * (number === 11 ? 2 : 1));
+                        results.push(count ? printed.at(-1) : fs.readFileSync(output, 'utf8'));
+                    }
+                    assert.equal(results[0], results[1]);
+                    if (!count) assert.equal(queries.at(-1), queries.at(number === 11 ? -3 : -2));
+                    if (number === 11) {
+                        assert.match(queries[0], /COUNT\(/);
+                        assert.match(queries[1], /LIMIT \? OFFSET \?/);
+                    }
+                } finally { runtime.dispose(); }
+                assert.equal(opens, closes);
+            });
+        } finally { db.close(); fs.rmSync(directory, { recursive: true, force: true }); }
+    });
+}

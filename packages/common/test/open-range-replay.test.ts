@@ -5,8 +5,8 @@ import { withInterrupt } from '@arrrank/interpreter';
 describe('open ranges in notebook cells', () => {
     it.each([5, 500])('finds the Euler 12 answer for more than %i divisors cell by cell', async minimum => {
         const session = createReplSession();
-        const file = ['use numbers\nuse sequences', 'N = 1 to #',
-            'Triangles = N * (N + 1) // 2', 'Divs = Triangles divisors count rank 0',
+        const file = ['use numbers\nuse sequences', "N' = 1 to #",
+            "Triangles' = N * (N + 1) // 2", "Divs' = Triangles divisors count rank 0",
             `Triangles (Divs greater ${minimum}) first`];
         const signal = new Int32Array(new SharedArrayBuffer(12));
         try {
@@ -26,8 +26,8 @@ describe('open ranges in notebook cells', () => {
 
     it.each(['1 to #', '1 till #', '1 to # by 2'])('keeps independent reads of %s', async range => {
         const session = createReplSession();
-        const file = ['use numbers\nuse sequences', `N = ${range}`,
-            'Triangles = N * (N + 1) // 2', 'Triangles take 5 array'];
+        const file = ['use numbers\nuse sequences', `N' = ${range}`,
+            "Triangles' = N * (N + 1) // 2", 'Triangles take 5 array'];
         try {
             for (let id = 0; id < file.length; id++) {
                 const result = await session.execute(file[id], id, file, 40, true);

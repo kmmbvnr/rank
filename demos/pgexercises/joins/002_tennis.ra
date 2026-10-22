@@ -9,18 +9,18 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_002.csv"
 
 Db = DbPath sqlite
-B = Db .bookings
-F = Db .facilities
-R = B F innerjoin by .facid
-R = R filter
+B' = Db .bookings
+F' = Db .facilities
+R' = B F innerjoin by .facid
+R' = R filter
   (.name equal "Tennis Court 1"
     or .name equal "Tennis Court 2")
   .starttime at least "2012-09-21"
   .starttime less "2012-09-22"
 end
-R = R select
+R' = R select
   .start = .starttime
   .name = .name
 end
-Result = R sort by .start
+Result' = R sort by .start
 Result OutputPath csv

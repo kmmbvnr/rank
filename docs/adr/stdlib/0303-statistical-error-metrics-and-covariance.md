@@ -67,8 +67,23 @@ Rank provides dedicated first-class loss metrics:
   The first index selects the feature axis and the second selects the observation axis.
 - Raises `.InsufficientData` when the observation count is fewer than 2.
 
-### 4. Lazy Caching and Stability
-Statistical reductions and covariance calculations are evaluated on demand and cached, ensuring efficient reuse during iterative training and evaluation loops without unnecessary recalculations.
+### 4. Evaluation and retention
+
+Ordinary binding completes a statistical result. Deferred binding preserves the
+calculation, including scalar reductions:
+
+```rank
+Loss' = Predictions Targets mse
+Cov' = Features covariance
+Saved = Cov
+```
+
+Each observation of `Loss` or `Cov` recomputes. `Saved` stores the completed
+matrix and can be reused without repeating its calculation. A full covariance
+traversal may share feature means within its current batch; these means belong
+to that traversal. Independent cell reads, later traversals and retries after
+failure start fresh. Neither shape metadata nor a completed prefix retains
+computed covariance cells.
 
 ## Consequences
 

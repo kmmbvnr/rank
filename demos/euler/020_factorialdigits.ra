@@ -20,6 +20,6 @@ fun N factorial_digit_sum
   end
 
   Digits = Factorial text
-  Values = Digits integer rank 0
+  Values' = Digits integer rank 0
   return Values sum
 end

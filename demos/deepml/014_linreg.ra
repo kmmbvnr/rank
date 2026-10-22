@@ -7,7 +7,7 @@ use sequences
 
 rem Fit coefficients with the normal equation without forming an inverse.
 fun X Y linear_regression
-  Xt = X transpose
+  Xt' = X transpose
   A = Xt X matmul
   B = Xt Y matmul
 

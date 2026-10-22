@@ -28,10 +28,10 @@ Ca = 6 * Limit
 Qb = (Cb * Cb // 3) isqrt
 Qa = (Ca * Ca // 3) isqrt
 Qs = 1 to Qb array
-Rb = Cb * Cb // (3 * Qs * Qs)
+Rb' = Cb * Cb // (3 * Qs * Qs)
 Tb = Rb isqrt copy
 Qs = 1 to Qa array
-Ra = Ca * Ca // (3 * Qs * Qs)
+Ra' = Ca * Ca // (3 * Qs * Qs)
 Ta = Ra isqrt copy
 Total = 0
 for N in 1 to Qb
@@ -39,10 +39,9 @@ for N in 1 to Qb
     break
   end
   Ts = 1 to (Qb // N - N) array
-  Ok = Ts mod 3 not equal 0
-  Ok and= (N Ts gcd) equal 1
-  Qv = N * (N + Ts)
-  Hit = Tb (Qv - 1) filter Ok array
+  Ok' = Ts mod 3 not equal 0 and (N Ts gcd) equal 1
+  Qv' = N * (N + Ts)
+  Hit' = Tb (Qv - 1) filter Ok
   Total += Hit sum
 end
 for T in 1 to Qa
@@ -51,9 +50,9 @@ for T in 1 to Qa
   end
   if T mod 3 not equal 0
     Ns = 1 to ((Qa // T - T) // 3) array
-    Ok = (Ns T gcd) equal 1
-    Qv = T * (3 * Ns + T)
-    Hit = Ta (Qv - 1) filter Ok array
+    Ok' = (Ns T gcd) equal 1
+    Qv' = T * (3 * Ns + T)
+    Hit' = Ta (Qv - 1) filter Ok
     Total += Hit sum
   end
 end

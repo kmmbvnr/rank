@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue } from '../src/index.js';
-import { arrayRevision, enterRuntime, leaveRuntime, noteArrayBinding, ownedArray, readArrayItem } from '../src/array-storage.js';
+import { arrayRevision, noteArrayBinding, ownedArray, readArrayItem } from '../src/array-storage.js';
 import { concatValues } from '../src/modules/sequences.js';
 import { ArrayBindingContract } from '../src/array-binding-contract.js';
 import { sequence } from '../src/sequence.js';
@@ -44,7 +44,7 @@ array (A 0) (A 1) (Saved 1) (Copy 0)`)).toBe('1 2 8 7');
         try {
             runtime.variables.set('Host', { kind: 'array', shape: [1], items: [],
                 itemAt: () => { reads++; return 'wrong'; } });
-            runtime.execute('use sequences\nA = array shape 0 fill 0\nA = concat A Host\nB = concat A (array 1)');
+            runtime.execute("use sequences\nA = array shape 0 fill 0\nA' = concat A Host\nB' = concat A (array 1)");
             expect(reads).toBe(0);
             expect(() => runtime.execute('B 0')).toThrow(/integer/);
             expect(reads).toBe(1);
@@ -128,18 +128,15 @@ describe('concat rope reads and dependencies', () => {
         expect(readArrayItem(value, 4000)).toBe(2n);
     });
 
-    it('preserves cached opaque host reads when an observed concat is joined again', () => {
+    it('recomputes opaque host cells when a concat is reused', () => {
         let reads = 0;
         const host: RankArray = { kind: 'array', shape: [1], items: [], itemAt: () => BigInt(++reads) };
-        enterRuntime();
-        try {
-            const first = concatValues([host, ownedArray([0n])]) as RankArray;
-            expect(readArrayItem(first, 0)).toBe(1n);
-            const second = concatValues([first, first]) as RankArray;
-            expect(readArrayItem(second, 0)).toBe(1n);
-            expect(readArrayItem(second, 2)).toBe(1n);
-            expect(reads).toBe(1);
-        } finally { leaveRuntime(); }
+        const first = concatValues([host, ownedArray([0n])]) as RankArray;
+        expect(readArrayItem(first, 0)).toBe(1n);
+        const second = concatValues([first, first]) as RankArray;
+        expect(readArrayItem(second, 0)).toBe(2n);
+        expect(readArrayItem(second, 2)).toBe(3n);
+        expect(reads).toBe(3);
     });
 
     it('retains reference cells and rejects cyclic lazy binding cells', () => {

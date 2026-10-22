@@ -1,6 +1,9 @@
+import type { RankPlan } from './plan.js';
 import type { IndexKey } from './index-key.js';
-import type { FunctionCallSignature } from '@arrrank/language';
+import type { FunctionCallSignature, KnownShape } from '@arrrank/language';
 import { arrayDeclaration } from './array-declaration.js';
+import { recordContract } from './record-contract.js';
+import { StoredValueSummary } from './stored-value.js';
 import { noteArrayBinding } from './array-storage.js';
 import { checkpoint, interruptibleValues } from './interrupt.js';
 import type { RankMultiset } from './multiset.js';
@@ -70,7 +73,9 @@ export interface RankTuple {
 
 export function tuple(items: readonly RankValue[]): RankTuple {
     items.forEach(noteArrayBinding);
-    return Object.freeze({ kind: 'tuple', items: Object.freeze([...items]) });
+    const stored = new StoredValueSummary();
+    items.forEach(value => stored.include(value));
+    return stored.track(Object.freeze({ kind: 'tuple', items: Object.freeze([...items]) }));
 }
 
 export function isRankTuple(value: RankValue): value is RankTuple {
@@ -260,20 +265,24 @@ export interface NativeFunction {
     readonly monadicRank: IntrinsicRank;
     /** Result cell shape for an argument cell of this shape, when known without
      * calling the function. Ranked application over an empty frame has no cell
-     * to call. `undefined` leaves the shape unknown. */
-    /** Shape-only contract in declaration parameter order, including fixed configuration. */
-    readonly resultCellShape?: (cellShapes: readonly (readonly number[])[]) => readonly number[] | undefined;
-    readonly monadicResultShape?: (cellShape: readonly number[]) => readonly number[] | undefined;
+     * to call. A null dimension is unknown; an undefined shape leaves even
+     * the result rank unknown. */
+    readonly resultCellShape?: (cellShapes: readonly (readonly number[])[]) => KnownShape | undefined;
+    /** Unary form of the shape-only contract. */
+    readonly monadicResultShape?: (cellShape: readonly number[]) => KnownShape | undefined;
     /** Shape-only contract for two ranked operand cells, including empty frames. */
-    readonly dyadicResultShape?: (leftShape: readonly number[], rightShape: readonly number[]) => readonly number[] | undefined;
+    readonly dyadicResultShape?: (leftShape: readonly number[], rightShape: readonly number[]) => KnownShape | undefined;
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     readonly arrayCells?: boolean;
     readonly captures?: readonly ReadonlyMap<string, RankValue>[];
+    /** Actual data dependencies; closure resource roots may include unrelated locals. */
+    readonly captureValues?: () => Iterable<RankValue>;
     readonly call: (arguments_: RankValue[]) => RankValue;
 }
 
 export interface SequencePredicate {
     readonly pure?: boolean;
+    readonly captures?: readonly ReadonlyMap<string, RankValue>[];
     readonly name: string;
     readonly optimizationKey?: string;
     readonly expression?: SequencePredicateExpression;
@@ -307,8 +316,6 @@ export interface SequencePlan {
     /** Explicit replay capability; absence is unknown, never a purity promise.
      * Direct sources are cheap to read again and do not need retained history. */
     readonly replay?: 'pure' | 'direct';
-    /** Preserve native REPL cursor behavior when this source is explicitly stored. */
-    readonly replCursor?: boolean;
     /** Reads share state rather than starting an independent traversal. */
     readonly singlePass?: boolean;
     readonly name: string;
@@ -351,7 +358,7 @@ export type RankValue = bigint | number | boolean | string | RankMissing | RankA
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankArrowTable | NativeFunction |
     RankSequence | RankSequenceMask | RankGraph | RankDsu | RankFunctionalGraph |
-    RankWavelet;
+    RankWavelet | RankPlan;
 
 export type RankGraph = GraphValue | PredicateGraph | SuccessorGraph;
 
@@ -456,15 +463,7 @@ export function collectionElementType(value: RankValue, active: Set<RankValue> =
     const rank = isRankArray(value) ? value.shape.length : undefined;
     if (isRankTuple(value)) return { type, positions: value.items.map(item => collectionElementType(item, active, true)) };
     if (records && isRankRecord(value)) {
-        if (active.has(value)) throw new RankError('cyclic records cannot establish a structural type', 'TypeError');
-        if (!value.fieldContracts) {
-            active.add(value);
-            const fields = new Map([...value.entries].map(([name, field]) =>
-                [name, collectionElementType(field, active, true)]));
-            active.delete(value);
-            value.fieldContracts = fields;
-        }
-        return { type, fields: value.fieldContracts };
+        return recordContract(value);
     }
     if (!isRankArray(value)) return { type };
     if (active.has(value)) throw new RankError('cyclic arrays cannot be collection elements');
@@ -513,6 +512,7 @@ export function typeName(value: RankValue): string {
     if (typeof value === 'number') return 'real';
     if (typeof value === 'string') return 'text';
     if (typeof value !== 'object') return typeof value;
+    if (value.kind === 'plan') return value.result?.types.length === 1 ? value.result.types[0] : 'unknown';
     if (value.kind === 'queue' && 'mode' in value && typeof value.mode === 'string') return value.mode;
     return value.kind === 'label' ? 'symbol' : value.kind;
 }
@@ -540,6 +540,7 @@ export function isRankArray(value: RankValue): value is RankArray {
 }
 
 export function valueRank(value: RankValue): number {
+    if (typeof value === 'object' && value.kind === 'plan') return value.result?.rank ?? 0;
     if (isRankArray(value)) return value.shape.length;
     if (isRankSequence(value) || isRankQueue(value) || typeof value === 'string') return 1;
     return 0;
@@ -726,6 +727,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
         return `.${value.name}`;
     }
     if (value.kind === 'missing') return '.NA';
+    if (value.kind === 'plan') return '<plan>';
     if (isRankDate(value)) return formatDate(value);
     if (isRankDuration(value)) return formatDuration(value);
     if (value.kind === 'error') {

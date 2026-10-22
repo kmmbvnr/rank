@@ -5,12 +5,12 @@ use io
 use sequences
 
 N = stdin .integer
-Values = stdin .integer N
+Values' = stdin .integer N
 
 Values count_distinct print
 
 
 rem Count distinct values.
-fun Values count_distinct
+fun Values' count_distinct
   return Values unique len
 end

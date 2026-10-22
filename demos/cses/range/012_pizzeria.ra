@@ -26,8 +26,8 @@ rem Split distance at the query point.
 fun Prices Queries deliveries
   N = Prices len
   Indices = 0 till N array
-  LeftPrices = Prices - Indices
-  RightPrices = Prices + Indices
+  LeftPrices' = Prices - Indices
+  RightPrices' = Prices + Indices
   FromLeft = LeftPrices segment min
   FromRight = RightPrices segment min
 

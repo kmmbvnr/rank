@@ -71,7 +71,7 @@ A in primes`);
         expect(run('use sequences\n(1 to 5) in primes')).toBe('false true true false true');
         expect(run('(1 to 5) in (2 to 3)')).toBe('false true true false false');
         expect(run('(1 to 3) not in (array 2)')).toBe('true false true');
-        expect(run('use sequences\nMask = primes in (array 2 5)\narray (Mask 0) (Mask 1) (Mask 2) (Mask 3)')).toBe('true false true false');
+        expect(run("use sequences\nMask' = primes in (array 2 5)\narray (Mask 0) (Mask 1) (Mask 2) (Mask 3)")).toBe('true false true false');
     });
 
     it('supports fibonacci membership and retains source boundaries', () => {

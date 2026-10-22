@@ -2,7 +2,7 @@ import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
-    analyzeBindings, createRankServices, type Binding, type ProgramFacts, type Program,
+    analyzeBindings, expressionFreeReads, isAssignmentStatement, createRankServices, type Binding, type ProgramFacts, type Program,
 } from '../src/index.js';
 
 let parse: ReturnType<typeof parseHelper<Program>>;
@@ -67,7 +67,7 @@ describe('binding facts', () => {
             'Values = array 1 2 3', 'Mask = Values greater 1',
             'Selected = Values Mask', 'Gathered = Values (1 till 3)',
         ]);
-        expect(named(result, 'program', 'Selected').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'Selected').types).toEqual(['array']);
         expect(named(result, 'program', 'Gathered').types).toEqual(['array']);
     });
 
@@ -82,9 +82,9 @@ describe('binding facts', () => {
             'FromUnknown = Input window 2',
         ], ['Input']);
         expect(named(result, 'program', 'FromArray').types).toEqual(['array']);
-        expect(named(result, 'program', 'FromSequence').types).toEqual(['array', 'sequence']);
-        expect(named(result, 'program', 'FromText').types).toEqual(['sequence']);
-        expect(named(result, 'program', 'FromUnknown').types).toEqual(['array', 'sequence']);
+        expect(named(result, 'program', 'FromSequence').types).toEqual(['array']);
+        expect(named(result, 'program', 'FromText').types).toEqual(['array']);
+        expect(named(result, 'program', 'FromUnknown').types).toEqual(['array']);
     });
 
     it('recognizes contextual rownumber and ranknumber in select fields', async () => {
@@ -272,8 +272,8 @@ describe('type facts', () => {
             'Shifted = Values + 1',
             'Flags = Values greater 1',
         ]);
-        expect(named(result, 'program', 'Range').types).toEqual(['sequence']);
-        expect(named(result, 'program', 'Mask').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Range').types).toEqual(['array']);
+        expect(named(result, 'program', 'Mask').types).toEqual(['array']);
         expect(named(result, 'program', 'Shifted').types).toEqual(['array']);
         expect(named(result, 'program', 'Flags').types).toEqual(['array']);
     });
@@ -288,7 +288,7 @@ describe('type facts', () => {
         ]);
         expect(named(result, 'program', 'Root').types).toEqual(['real']);
         expect(named(result, 'program', 'Parts').types).toEqual(['array']);
-        expect(named(result, 'program', 'Divisors').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'Divisors').types).toEqual(['array']);
         expect(named(result, 'program', 'Size').types).toEqual(['integer']);
     });
 
@@ -305,7 +305,7 @@ describe('type facts', () => {
         ], ['Input']);
         expect(named(result, 'program', 'Scalar').types).toEqual(['boolean']);
         expect(named(result, 'program', 'ArrayMask').types).toEqual(['array']);
-        expect(named(result, 'program', 'SequenceMask').types).toEqual(['sequence']);
+        expect(named(result, 'program', 'SequenceMask').types).toEqual(['array']);
         expect(named(result, 'program', 'UnknownMask').types).toEqual([]);
         expect(named(result, 'program', 'Addressed').types).toEqual([]);
     });
@@ -384,4 +384,44 @@ it('leaves an elementwise result unsettled when an operand type is unknown', asy
     expect(named(result, 'program', 'Both').types).toEqual([]);
     expect(named(result, 'program', 'Plain').types).toEqual(['integer']);
     expect(named(result, 'program', 'Pair').types).toEqual(['integer']);
+});
+
+
+it('finds expression inputs without capturing sequential select locals', async () => {
+    const document = await parse(`Result' = Data select
+ Before = Flag
+ Flag = .name
+ .title = Flag
+ .other = Outside
+ .number = rownumber
+end`);
+    expect(document.parseResult.parserErrors).toEqual([]);
+    const statement = document.parseResult.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    const reads = expressionFreeReads(statement.value);
+    expect(reads.map(read => read.name)).toEqual(['Data', 'Flag', 'Outside']);
+    expect(expressionFreeReads(statement.value)).toBe(reads);
+});
+
+it.each([
+    ['Source take Count', ['Source', 'Count']],
+    ['Source drop Count', ['Source', 'Count']],
+    ['Source from Limit', ['Source', 'Limit']],
+    ['Source after Limit', ['Source', 'Limit']],
+    ['Source till greater Limit', ['Source', 'Limit']],
+    ['Source from mod Divisor equal Limit', ['Source', 'Divisor', 'Limit']],
+    ['Source first where greater Limit', ['Source', 'Limit']],
+    ['Source first index where greater Limit', ['Source', 'Limit']],
+    ['Source take while greater Limit', ['Source', 'Limit']],
+    ['Source alias .items', ['Source']],
+    ['Source Width rolling by .date', ['Source', 'Width']],
+])('tracks every free read in %s', async (expression, expected) => {
+    const document = await parse(`Plan' = ${expression}`);
+    expect(document.parseResult.lexerErrors).toEqual([]);
+    expect(document.parseResult.parserErrors).toEqual([]);
+    const program = document.parseResult.value;
+    const statement = program.statements[0];
+    if (!isAssignmentStatement(statement)) throw Error('expected assignment');
+    expect(expressionFreeReads(statement.value).map(read => read.name)).toEqual(expected);
+    expect(analyzeBindings(program).words.map(word => word.name).sort()).toEqual([...expected].sort());
 });

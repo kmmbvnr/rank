@@ -1,9 +1,12 @@
+import type { ArrayCellRead } from './array-cell-read.js';
+import { framedArray } from './framed-array.js';
+import { permutedArray } from './array-permutation.js';
 import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -25,6 +28,7 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
     const dependencies = [source];
     const result = derivedArray(shape, dependencies, index => arrayItem(current, position(index)));
     registerScalarView(result, () => current, index => position(index), { regular,
+        capture: () => ({ source: current, offset: position }),
         linear: linear ? () => linear! : undefined });
     retainSelectionSnapshot(result, source, offsetAt, snapshot => {
         current = snapshot;
@@ -158,6 +162,10 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
             indexAt: (coordinate: number) => indices[coordinate],
         };
     });
+    return selectionFromAxes(source.shape, axes);
+}
+
+function selectionFromAxes(sourceShape: readonly number[], axes: readonly SelectedAxis[]): TensorSelection {
     const shape = axes.filter(axis => axis.preserve).map(axis => axis.size);
     // A vector selection is already a linear mapping. Avoid rebuilding a
     // one-coordinate tensor address for every selected item; gather-heavy
@@ -165,12 +173,12 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
     if (axes.length === 1) {
         const axis = axes[0];
         return {
-            shape, unique: axis.unique, linear: axis.linear,
+            shape, axes, sourceShape, unique: axis.unique, linear: axis.linear,
             offsetAt: axis.indexAt,
         };
     }
     return {
-        shape, axes, sourceShape: source.shape, linear: linearSelection(axes, source.shape),
+        shape, axes, sourceShape, linear: linearSelection(axes, sourceShape),
         offsetAt(index) {
             const output = coordinatesAt(shape, index);
             let outputAxis = 0;
@@ -178,7 +186,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
                 if (!axis.preserve) return axis.indexAt(0);
                 return axis.indexAt(output[outputAxis++]);
             });
-            return arrayOffset(source.shape, sourceCoordinates);
+            return arrayOffset(sourceShape, sourceCoordinates);
         },
     };
 }
@@ -206,6 +214,41 @@ function linearSelection(axes: readonly SelectedAxis[], sourceShape: readonly nu
     return { offset, stride: stride ?? 1 };
 }
 
+/** Select producer cells before flattening their zero-sized trailing axes. */
+function producerSelection(source: RankArray, selection: TensorSelection, observation?: ArrayCellRead): RankValue | undefined {
+    const cells = arrayCells(source);
+    const axes = selection.axes;
+    const cellShape = cells?.cellShape();
+    if (!cells || !axes || !cellShape || cells.frameShape.length + cellShape.length !== axes.length) return undefined;
+    const framePositions = arrayFrameAxes(cells);
+    const cellPositions = axes.map((_, axis) => axis).filter(axis => !framePositions.includes(axis));
+    const frameAxes = framePositions.map(axis => axes[axis]);
+    const cellAxes = cellPositions.map(axis => axes[axis]);
+    const frameShape = frameAxes.filter(axis => axis.preserve).map(axis => axis.size);
+    const selectedCellShape = cellAxes.filter(axis => axis.preserve).map(axis => axis.size);
+    const wholeCell = cellAxes.every((axis, index) => axis.preserve && axis.size === cellShape[index]
+        && axis.linear?.offset === 0 && axis.linear.stride === 1);
+    const read = (index: number, current = observation): RankValue => {
+        const coordinates = coordinatesAt(frameShape, index);
+        let axisIndex = 0;
+        const original = frameAxes.map(axis => axis.indexAt(axis.preserve ? coordinates[axisIndex++] : 0));
+        const cell = cells.read(arrayOffset(cells.frameShape, original), current);
+        if (wholeCell || cellAxes.length === 0) return cell;
+        if (!isRankArray(cell)) throw new RankError('ranked cell selection expects an array');
+        return sliceArray(cell, selectionFromAxes(cell.shape, cellAxes));
+    };
+    if (frameShape.length === 0) return read(0);
+    if (frameShape.some(n => n === 0)) return ownedArray([], selection.shape);
+    const selected = registerArrayDependencies(framedArray(frameShape, read, {
+        shape: selectedCellShape, ownFiles: () => {},
+        mismatch: () => new RankError('selected ranked cells must have one shape', 'DimensionMismatch'),
+    }), [source]);
+    const stackedAxes = [...framePositions, ...cellPositions].filter(axis => axes[axis].preserve);
+    const permutation = axes.map((_, axis) => axis).filter(axis => axes[axis].preserve)
+        .map(axis => stackedAxes.indexOf(axis));
+    return permutation.some((axis, position) => axis !== position) ? permutedArray(selected, permutation) : selected;
+}
+
 export function atArray(source: RankArray, indices: readonly bigint[]): RankValue {
     const shape = source.shape;
     if (indices.length > shape.length) {
@@ -226,6 +269,14 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     }
     for (let axis = indices.length; axis < shape.length; axis += 1) offset *= shape[axis];
     if (indices.length === shape.length) return arrayItem(source, offset);
+    if (arrayCells(source)) {
+        const axes = shape.map((size, axis): SelectedAxis => axis < indices.length
+            ? { preserve: false, size: 1, indexAt: () => Number(indices[axis]),
+                linear: { offset: Number(indices[axis]), stride: 0 } }
+            : { preserve: true, size, indexAt: coordinate => coordinate, linear: { offset: 0, stride: 1 } });
+        const selected = producerSelection(source, selectionFromAxes(shape, axes));
+        if (selected !== undefined) return selected;
+    }
     if (source.columnNames && shape.length === 2 && indices.length === 1) {
         return positionalValue(Array.from({ length: shape[1] }, (_, column) => arrayItem(source, offset + column)));
     }
@@ -242,9 +293,11 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
 
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
 export function sliceArray(
-    source: RankArray, selection: TensorSelection,
+    source: RankArray, selection: TensorSelection, observation?: ArrayCellRead,
 ): RankValue {
     if (selection.shape.length === 0) return arrayItem(source, selection.offsetAt(0));
+    const produced = producerSelection(source, selection, observation);
+    if (produced !== undefined) return produced;
     const columnAxis = source.columnNames && source.shape.length === 2 ? selection.axes?.[1] : undefined;
     if (columnAxis?.preserve && selection.axes?.[0].preserve === false) {
         return positionalValue(Array.from({ length: columnAxis.size }, (_, column) => arrayItem(source, selection.offsetAt(column))));

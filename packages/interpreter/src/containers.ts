@@ -1,12 +1,15 @@
+import { checkValueMutable } from './value-protection.js';
 import { MissingValueError, RankError } from './errors.js';
 import { compareOrderedValues, orderedKind, type OrderedKind } from './ordered.js';
 import { noteArrayBinding } from './array-storage.js';
-import { checkCollectionElementType, isRankQueue, type CollectionElementType, type RankValue } from './value.js';
+import { checkCollectionElementType, isRankQueue, type CollectionElementType, type RankQueue, type RankValue } from './value.js';
 import { ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 
 /** Queue-family storage. Removed entries release their references immediately. */
 export class RankDeque {
     private readonly resources = new ResourceSummary();
+    private readonly stored = new StoredValueSummary();
     readonly kind = 'queue' as const;
     private readonly entries = new Map<number, RankValue>();
     private stack?: RankValue[];
@@ -17,6 +20,7 @@ export class RankDeque {
 
     constructor(readonly mode: 'queue' | 'deque' | 'stack' = 'queue') {
         this.resources.track(this);
+        this.stored.track(this);
         if (mode === 'stack') this.stack = [];
     }
 
@@ -36,8 +40,10 @@ export class RankDeque {
         return this.typeSummary.types;
     }
     push(value: RankValue): this {
+        checkValueMutable(this);
         this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
+        this.stored.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
         if (this.stack) this.stack.push(value);
@@ -45,8 +51,10 @@ export class RankDeque {
         return this;
     }
     pushFront(value: RankValue): this {
+        checkValueMutable(this);
         this.acceptedElementType = checkCollectionElementType(this.mode, () => this.acceptedElementType, value);
         this.resources.include(value);
+        this.stored.include(value);
         noteArrayBinding(value);
         this.typeSummary = undefined;
         this.mapStorage();
@@ -59,6 +67,7 @@ export class RankDeque {
             : this.entries.get(back ? this.last - 1 : this.first)!;
     }
     pop(back = this.mode === 'stack'): RankValue {
+        checkValueMutable(this);
         const value = this.peek(back);
         this.typeSummary = undefined;
         if (this.stack && back) { this.stack.pop(); return value; }
@@ -83,16 +92,20 @@ interface HeapEntry { readonly priority: RankValue; readonly value: RankValue; r
 /** Stable priority queue; ties retain insertion order. */
 export class RankHeap {
     private readonly resources = new ResourceSummary();
+    private readonly stored = new StoredValueSummary();
     readonly kind = 'heap' as const;
     private readonly entries: HeapEntry[] = [];
     private priorityKind?: OrderedKind;
     private elementType?: CollectionElementType;
     private nextOrder = 0;
 
-    constructor(readonly descending = false) { this.resources.track(this); }
+    constructor(readonly descending = false) { this.resources.track(this); this.stored.track(this); }
 
     get size(): number { return this.entries.length; }
     *values(): IterableIterator<RankValue> { for (const entry of this.entries) yield entry.value; }
+    *retainedValues(): IterableIterator<RankValue> {
+        for (const entry of this.entries) { yield entry.value; yield entry.priority; }
+    }
     private entry(value: RankValue, priority: RankValue): HeapEntry {
         const kind = orderedKind(priority);
         if (typeof priority === 'number' && Number.isNaN(priority)) throw new RankError('heap priority cannot be NaN');
@@ -103,10 +116,12 @@ export class RankHeap {
         this.elementType = elementType;
         this.priorityKind = kind;
         this.resources.include(value);
+        this.stored.include(value);
         noteArrayBinding(value);
         return { value, priority, order: this.nextOrder++ };
     }
     push(value: RankValue, priority: RankValue = value): this {
+        checkValueMutable(this);
         const entry = this.entry(value, priority);
         let index = this.entries.length;
         this.entries.push(entry);
@@ -120,6 +135,7 @@ export class RankHeap {
         return this;
     }
     fill(priorities: readonly RankValue[], values: readonly RankValue[]): this {
+        checkValueMutable(this);
         if (this.size) throw new RankError('heap must be empty before filling it');
         if (priorities.length !== values.length) throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
         for (let index = 0; index < values.length; index++) {
@@ -130,11 +146,24 @@ export class RankHeap {
         }
         return this;
     }
+    /** Copy payloads without changing priorities, heap layout or tie order. */
+    copyValuesFrom(source: RankHeap, values: readonly RankValue[]): this {
+        checkValueMutable(this);
+        if (this.size || values.length !== source.size || this.descending !== source.descending) {
+            throw new RankError('heap payload copy requires an empty matching heap');
+        }
+        source.entries.forEach((entry, index) => {
+            this.entries.push({ ...this.entry(values[index], entry.priority), order: entry.order });
+        });
+        this.nextOrder = source.nextOrder;
+        return this;
+    }
     peek(): RankValue {
         if (!this.size) throw new MissingValueError('heap is empty');
         return this.entries[0].value;
     }
     pop(): RankValue {
+        checkValueMutable(this);
         const value = this.peek();
         const last = this.entries.pop()!;
         if (!this.size) { this.priorityKind = undefined; this.nextOrder = 0; return value; }
@@ -158,21 +187,25 @@ export class RankHeap {
     }
 }
 
-export function pushCollection(receiver: RankValue, value: RankValue): RankValue {
-    if (receiver instanceof RankDeque || receiver instanceof RankHeap) return receiver.push(value);
-    if (isRankQueue(receiver)) {
-        receiver.elementType = checkCollectionElementType('queue', () => {
-            let previous = receiver.elementType;
-            for (const item of receiver.items) previous = checkCollectionElementType('queue', previous, item);
-            return previous;
-        }, value);
-        receiver.items.push(value);
-        return receiver;
-    }
+export function expectPushCollection(receiver: RankValue): RankQueue | RankHeap {
+    if (receiver instanceof RankHeap || isRankQueue(receiver)) { checkValueMutable(receiver); return receiver; }
     throw new RankError('push expects a queue, deque, stack or heap receiver');
 }
 
+export function pushCollection(receiver: RankValue, value: RankValue): RankValue {
+    receiver = expectPushCollection(receiver);
+    if (receiver instanceof RankDeque || receiver instanceof RankHeap) return receiver.push(value);
+    receiver.elementType = checkCollectionElementType('queue', () => {
+        let previous = receiver.elementType;
+        for (const item of receiver.items) previous = checkCollectionElementType('queue', previous, item);
+        return previous;
+    }, value);
+    receiver.items.push(value);
+    return receiver;
+}
+
 export function peekCollection(receiver: RankValue, remove: boolean): RankValue {
+    if (remove) checkValueMutable(receiver);
     if (receiver instanceof RankDeque || receiver instanceof RankHeap) return remove ? receiver.pop() : receiver.peek();
     if (isRankQueue(receiver)) {
         if (!receiver.items.length) throw new MissingValueError('queue is empty');

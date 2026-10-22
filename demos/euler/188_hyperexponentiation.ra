@@ -29,8 +29,8 @@ fun A K M tower
     return A A M powmod
   end
   Ps = M factors array unique
-  Rad = Ps reduce *
-  Less = (Ps - 1) reduce *
+  Rad' = Ps reduce *
+  Less' = (Ps - 1) reduce *
   Phi = M // Rad * Less
   E = A (K - 1) Phi tower
   return A (E + Phi) M powmod

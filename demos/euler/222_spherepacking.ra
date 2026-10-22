@@ -20,15 +20,15 @@ rem order puts every second sphere from
 rem the largest down, then the rest back
 rem up: the smallest sit in the middle.
 Rs = Hi to Lo by -1 array
-Pos = 0 till (Rs len) array
+Pos' = 0 till (Rs len)
 Even = Pos mod 2 equal 0
-Down = Rs filter Even array
-Rest = Rs filter (not Even) array
+Down' = Rs filter Even
+Rest' = Rs filter (not Even)
 Order = concat Down (Rest reverse)
 N = Order len
-A = Order take (N - 1)
-B = Order drop 1
-Gap = 2 * ((R * (A + B - R)) sqrt)
+A' = Order take (N - 1)
+B' = Order drop 1
+Gap' = 2 * ((R * (A + B - R)) sqrt)
 Ends = Order 0 + Order (N - 1)
 Length = Ends + (Gap sum)
 Answer = Length * 1000 0 round

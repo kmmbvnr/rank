@@ -8,12 +8,12 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/004_where2.csv"
 
 Db = DbPath sqlite
-R = Db .facilities
-R = R filter
+R' = Db .facilities
+R' = R filter
   .membercost greater 0
   .membercost * 50 less .monthlymaintenance
 end
-Result = R select
+Result' = R select
   .facid = .facid
   .name = .name
   .membercost = .membercost

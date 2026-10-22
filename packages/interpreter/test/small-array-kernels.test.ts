@@ -41,7 +41,7 @@ describe('small stored array arithmetic', () => {
     }));
 
     it('leaves missing cells and failures lazy and choose can skip a bad cell', () => withRuntime(runtime => {
-        runtime.execute('A = array 7 7\nB = array 3 0\nQ = A // B');
+        runtime.execute("A = array 7 7\nB = array 3 0\nQ' = A // B");
         expect(runtime.execute('Q 0')).toBe(2n);
         expect(runtime.execute('(B equal 0 choose 0 Q) sum')).toBe(2n);
         expect(() => runtime.execute('Q 1')).toThrow('division by zero');
@@ -53,7 +53,7 @@ describe('small stored array arithmetic', () => {
         runtime.variables.set('Host', { kind: 'array', shape: [2],
             itemAt(index) { reads.push(index); return BigInt(index); },
             get items(): RankValue[] { throw new Error('materialized host'); } });
-        runtime.execute('Q = Host + 1');
+        runtime.execute("Q' = Host + 1");
         expect(reads).toEqual([]);
         expect(runtime.execute('Q 1')).toBe(2n);
         expect(reads).toEqual([1]);

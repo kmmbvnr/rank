@@ -9,10 +9,10 @@ rem Predict with one decision stump.
 fun X Feature Limit Sign stump
   N = X len
   Pred = array shape N fill 1
-  Negative = X axis 1 Feature less Limit
+  Negative' = X axis 1 Feature less Limit
 
   if Sign equal -1
-    Negative = not Negative
+    Negative' = not Negative
   end
   Pred Negative = -1
   return Pred
@@ -45,13 +45,13 @@ fun X Y Classifiers adaboost_fit
     MinError = infinity
 
     for Feature in 0 till Features
-      Column = X axis 1 Feature
+      Column' = X axis 1 Feature
       Limits = Column unique sort
 
       for Limit in Limits
         Polarity = 1
         Pred = X Feature Limit Polarity stump
-        Wrong = Y not equal Pred
+        Wrong' = Y not equal Pred
         Error = (Weight Wrong) sum
 
         if Error greater 0.5
@@ -78,7 +78,7 @@ fun X Y Classifiers adaboost_fit
     Limit = Best .threshold
     Polarity = Best .polarity
     Pred = X Feature Limit Polarity stump
-    Scale = -Alpha * Y * Pred
+    Scale' = -Alpha * Y * Pred
     Weight *= Scale exp
     Weight /= Weight sum
     Queue push Best

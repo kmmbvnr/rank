@@ -1,4 +1,4 @@
-import { DemandBudgetExhausted, InterruptedError, RankError, isRankSequenceMask, withDemandBudget, withInterrupt, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
+import { DemandBudgetExhausted, InterruptedError, RankError, checkpoint, withDemandBudget, withInterrupt, type RankSequence, type RankValue, type SequencePlan } from '@arrrank/interpreter';
 
 interface Read {
     readonly tape: Tape;
@@ -11,8 +11,6 @@ interface Entry {
     readonly reads: Read[];
     readonly outcome: { result: IteratorResult<RankValue> } | { error: unknown };
 }
-
-interface Boundary { readonly limit: bigint; readonly inclusive: boolean }
 
 interface Consumption { readonly line: number; readonly position: number }
 
@@ -37,20 +35,11 @@ function retainedBytes(value: RankValue): number {
 interface Tape {
     readonly source: RankSequence;
     readonly entries: Entry[];
-    /**
-     * A stored native source such as `primes`. It computes the same values on
-     * every pass, so it keeps a position rather than the values it yielded.
-     */
-    readonly resumable?: boolean;
     iterator?: IterableIterator<RankValue>;
     finished: boolean;
-    /** Resumable tapes: the index the iterator yields next, and the last value read. */
-    next?: number;
-    last?: { readonly index: number; readonly entry: Entry };
-    end?: number;
 }
 
-/** Bounds on one read-ahead: source values passed over, milliseconds in all, and milliseconds for one value. */
+/** Bounds on one read-ahead: cooperative work, total milliseconds and milliseconds for one value. */
 export interface ExtendLimits { readonly budget?: number; readonly total?: number; readonly each?: number }
 
 /** How reading ahead on a sequence went. */
@@ -98,12 +87,11 @@ export class SequenceReplay {
 
     /**
      * The values a stored generator has already yielded, without reading
-     * another. Absent for sequences this replay keeps no tape of, and for
-     * native sources, which keep a position rather than their values.
+     * another. Absent for repeatable sources, which have no tape.
      */
     forced(sequence: RankSequence): { readonly items: RankValue[]; readonly finished: boolean } | undefined {
         const tape = this.tapeOf.get(sequence.plan);
-        if (!tape || tape.resumable) return undefined;
+        if (!tape) return undefined;
         const items: RankValue[] = [];
         for (const { outcome } of tape.entries) {
             if ('result' in outcome && !outcome.result.done) items.push(outcome.result.value);
@@ -115,15 +103,15 @@ export class SequenceReplay {
      * Reads up to `count` more values from a stored generator into its tape, the way showing a
      * result already reads its first few, and says how it went. Nothing is consumed: the values
      * wait on the tape for whatever reads the sequence next, so reading ahead never changes what a
-     * later cell sees. It stops at the end, at `count`, when the source is asked for `budget`
-     * values without yielding the next one (a filter that may never find another), after
+     * later cell sees. It stops at the end, at `count`, when cooperative computation
+     * reaches `budget` (including work before the next yield), after
      * `limits.total` milliseconds between values, when one value takes longer than `limits.each`
      * (a generator that never yields again is interrupted and closed, as Ctrl-C would), at the
      * memory budget of the tape, or at an error of the generator itself.
      */
     extend(sequence: RankSequence, count: number, limits: ExtendLimits = {}): SequenceExtension | undefined {
         const tape = this.tapeOf.get(sequence.plan);
-        if (!tape || tape.resumable) return undefined;
+        if (!tape) return undefined;
         const { budget = 10_000, total = 3_000, each = 3_000 } = limits;
         const before = tape.entries.length;
         const started = Date.now();
@@ -139,6 +127,7 @@ export class SequenceReplay {
             try {
                 withInterrupt(signal, () => withDemandBudget(budget, () => {
                     for (let read = 0; read < count && !tape.finished; read++) {
+                        checkpoint('reading ahead');
                         if (Date.now() - started > total) { stopped = 'time'; message = 'time limit reached'; return; }
                         deadline.at = Date.now() + each;
                         this.read(tape, tape.entries.length);
@@ -157,62 +146,6 @@ export class SequenceReplay {
         }
         const added = tape.entries.slice(before).filter(entry => 'result' in entry.outcome && !entry.outcome.result.done).length;
         return { added, finished: tape.finished, ...(stopped ? { stopped, ...(message ? { message } : {}) } : {}) };
-    }
-
-    /** Store sources with numeric bounds as cursors; ranges and aliases retain their identity. */
-    readonly store = (source: RankSequence): RankSequence => {
-        // Pure derived values own their optional reuse cache. Do not add a
-        // consumption tape or turn their independent readers into a cursor.
-        if (source.plan.replay && !source.plan.replCursor) return source;
-        // Open arithmetic ranges are reusable values, including their slice metadata.
-        // A shared cursor would interleave the two reads in N * (N + 1).
-        if (source.plan.openRange) return source;
-        if (source.plan.singlePass || isRankSequenceMask(source) || !source.plan.withUpperBound) return source;
-        const tape: Tape = { source, entries: [], finished: false, resumable: true };
-        this.tapes.add(tape);
-        return { kind: 'sequence', plan: this.streamPlan(tape) };
-    };
-
-    private streamPlan(tape: Tape, upper?: Boundary, lower?: Boundary): SequencePlan {
-        const replay = this;
-        const plan: SequencePlan = {
-            name: tape.source.plan.name,
-            singlePass: true,
-            size: upper ? { kind: 'unknown' } : tape.source.plan.size,
-            *iterate() {
-                replay.claim(tape);
-                while (true) {
-                    const index = replay.position(tape);
-                    const entry = replay.read(tape, index);
-                    if ('error' in entry.outcome) throw entry.outcome.error;
-                    if (entry.outcome.result.done) return;
-                    const value = entry.outcome.result.value;
-                    if (upper || lower) {
-                        if (typeof value !== 'bigint' && typeof value !== 'number') {
-                            throw new RankError('sequence bounds expect numeric values', 'TypeError');
-                        }
-                        // Peek at the boundary without spending it. The next read starts here.
-                        if (upper && (upper.inclusive ? value > upper.limit : value >= upper.limit)) return;
-                        replay.advance(tape, index + 1);
-                        if (lower && (lower.inclusive ? value < lower.limit : value <= lower.limit)) continue;
-                    } else replay.advance(tape, index + 1);
-                    yield value;
-                }
-            },
-            withUpperBound(limit, inclusive) {
-                const next = { limit, inclusive };
-                const bound = !upper || limit < upper.limit ? next
-                    : limit > upper.limit ? upper : { limit, inclusive: inclusive && upper.inclusive };
-                return replay.streamPlan(tape, bound, lower);
-            },
-            withLowerBound(limit, inclusive) {
-                const next = { limit, inclusive };
-                const bound = !lower || limit > lower.limit ? next
-                    : limit < lower.limit ? lower : { limit, inclusive: inclusive && lower.inclusive };
-                return replay.streamPlan(tape, upper, bound);
-            },
-        };
-        return plan;
     }
 
     /** Statements above this line keep their consumption; this line is rerunnable. */
@@ -240,10 +173,7 @@ export class SequenceReplay {
         const previous = this.looking?.get(tape) ?? this.consumed.get(tape)?.at(-1);
         const position = previous?.position ?? 0;
         this.checkPosition(tape, position, expected);
-        const cached = tape.entries[position];
-        const exhausted = tape.resumable ? tape.end !== undefined && position >= tape.end
-            : cached && 'result' in cached.outcome && cached.outcome.result.done;
-        if ((this.looking?.has(tape) && !tape.resumable) || (!this.looking && previous && (!tape.resumable || exhausted))) {
+        if (this.looking?.has(tape) || !this.looking && previous) {
             throw new RankError(
                 `sequence ${tape.source.plan.name} has already been consumed; return to its consuming line to replay it`,
                 'ConsumedSequence',
@@ -289,7 +219,6 @@ export class SequenceReplay {
     }
 
     private read(tape: Tape, index: number): Entry {
-        if (tape.resumable) return this.recompute(tape, index);
         const cached = tape.entries[index];
         if (cached) {
             for (const read of cached.reads) {
@@ -308,11 +237,13 @@ export class SequenceReplay {
             entry = { reads, outcome: { result } };
         } catch (error) {
             tape.finished = true;
-            if (error instanceof InterruptedError) {
-                // A cancelled generator is closed. Do not replay a host cancellation
-                // as if the user pressed Ctrl-C again on the next command.
+            if (error instanceof InterruptedError || error instanceof DemandBudgetExhausted) {
+                // Host limits close the generator. Keep an actionable resource
+                // error on its tape, never replay a host control-flow exception.
                 tape.entries.push({ reads, outcome: { error: new RankError(
-                    `sequence ${tape.source.plan.name} was interrupted; rerun its producing cell`,
+                    error instanceof DemandBudgetExhausted
+                        ? `sequence ${tape.source.plan.name} exhausted its demand budget; rerun its producing cell`
+                        : `sequence ${tape.source.plan.name} was interrupted; rerun its producing cell`,
                     'InterruptedSequence',
                 ) } });
                 throw error;
@@ -332,38 +263,6 @@ export class SequenceReplay {
                 );
             }
         }
-        return entry;
-    }
-
-    /**
-     * Read a native source at `index` without keeping its values. A read at
-     * the last index returns the peeked value again; a read behind the
-     * iterator, after a rewind, starts a fresh pass and skips to the index.
-     */
-    private recompute(tape: Tape, index: number): Entry {
-        if (tape.last?.index === index) return tape.last.entry;
-        if (tape.iterator === undefined || tape.next === undefined || index < tape.next) {
-            if (!tape.finished) tape.iterator?.return?.();
-            tape.iterator = tape.source.plan.iterate();
-            tape.next = 0;
-            tape.finished = false;
-        }
-        let entry: Entry;
-        try {
-            let result = tape.iterator.next();
-            for (; tape.next < index && !result.done; tape.next++) result = tape.iterator.next();
-            tape.next += 1;
-            tape.finished = Boolean(result.done);
-            if (result.done) tape.end = Math.min(tape.end ?? index, index);
-            entry = { reads: [], outcome: { result } };
-        } catch (error) {
-            // The next read starts a fresh pass rather than resuming a broken one.
-            tape.iterator = undefined;
-            tape.finished = true;
-            if (error instanceof InterruptedError) throw error;
-            entry = { reads: [], outcome: { error } };
-        }
-        tape.last = { index, entry };
         return entry;
     }
 

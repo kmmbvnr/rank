@@ -95,7 +95,7 @@ describe('axis-aware stack and concat', () => {
         expect(run('concat (1 to 3) (4 to 6)')).toBe('1 2 3 4 5 6');
         expect(run('use numbers\nconcat ((1 to 6) filter even) (array 7 8) copy'))
             .toBe('2 4 6 7 8');
-        expect(run('use numbers\nJoined = concat (1 to 2) fibonacci\nJoined take 5 copy')).toBe('1 2 1 2 3');
+        expect(run("use numbers\nJoined' = concat (1 to 2) fibonacci\nJoined take 5 copy")).toBe('1 2 1 2 3');
         expect(() => run('concat (1 to 2) (array 3 4) axis 1')).toThrow(/axis 1/);
     });
 

@@ -1,13 +1,16 @@
 import { elementSource } from './element-source.js';
-import { denseScalarItems, derivedArray, materializeCells, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
+import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
-import { pureLazyFunction } from './lazy-function.js';
+import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
 import { numericKernel } from './numeric-kernels.js';
+import { hasNativeImplementation } from './native-implementation.js';
+import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
+import { reduceTensorMap } from './tensor-map.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
@@ -16,17 +19,6 @@ const MAX_OFFSET_TABLE = 1 << 20;
 const arraySize = (shape: readonly number[]): number =>
     shape.reduce((product, dimension) => product * dimension, 1);
 const array = (items: RankValue[]): RankArray => ownedArray(items);
-
-function lazyArray(shape: readonly number[], itemAt: (index: number) => RankValue): RankArray {
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array', shape, itemAt,
-        get items() {
-            materialized ??= materializeCells(arraySize(shape), itemAt);
-            return materialized;
-        },
-    };
-}
 
 /** Numeric and axis reductions share validation, cell traversal and lazy frame assembly. */
 export class ReductionEvaluator {
@@ -57,7 +49,9 @@ export class ReductionEvaluator {
             const frameShape = value.shape.slice(0, value.shape.length - cellRank);
             const cellShape = value.shape.slice(value.shape.length - cellRank);
             const cellSize = arraySize(cellShape);
+            const producer = arrayCells(value) ? dyadicCells(value, cellRank, true) : undefined;
             return derivedArray(frameShape, [value], frameIndex => {
+                if (producer) return this.reduceCell(operator, producer.cellAt(frameIndex), seed);
                 const start = frameIndex * cellSize;
                 return cellRank === 0
                     ? this.reduceCell(operator, arrayItem(value, start), seed)
@@ -92,12 +86,12 @@ export class ReductionEvaluator {
     }
 
     evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
-        if (isRankSequence(value)) operation = pureLazyFunction(operation);
+        if (isRankSequence(value)) operation = snapshotLazyFunction(operation);
         const scalar = this.scalarCallback(operation);
         return this.scanValues(value, operation.name, seed, (left, right) => {
             const arguments_ = [left, right];
             return scalar ? scalar(arguments_) : operation.call(arguments_);
-        });
+        }, isPureLazyFunction(operation), [new Map([['callback', operation]])]);
     }
 
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
@@ -155,12 +149,13 @@ export class ReductionEvaluator {
     }
 
     scanValues(value: RankValue, operator: string, seed: RankValue | undefined,
-        operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
+        operation: (left: RankValue, right: RankValue) => RankValue, pure = true,
+        captures?: readonly ReadonlyMap<string, RankValue>[]): RankValue {
         if (valueRank(value) !== 1) {
             throw new RankError(`scan ${operator} expects a rank-1 value`);
         }
         if (isRankSequence(value)) {
-            return scanSequence(value, operator, seed, operation, true);
+            return scanSequence(value, operator, seed, operation, pure, captures);
         }
         const result: RankValue[] = [];
         if (seed !== undefined) result.push(seed);
@@ -207,6 +202,11 @@ export class ReductionEvaluator {
         const frameShape = frameAxes.map(axis => value.shape[axis]);
         const reducer = this.resolve(operation);
         if (!isNativeFunction(reducer)) throw new RankError(`${operation} is not an operation`);
+        const builtin = hasNativeImplementation(reducer) && ['core', 'numbers', 'stats', 'sequences'].some(module => {
+            const definition = standardModules[module][operation];
+            return definition !== undefined && reducer === this.standardFunctions.get(definition);
+        });
+        const booleanFold = builtin && (operation === 'any' || operation === 'all');
 
         const strides = value.shape.map(() => 1);
         for (let axis = strides.length - 2; axis >= 0; axis -= 1) {
@@ -222,29 +222,44 @@ export class ReductionEvaluator {
             }
             return offset;
         };
-        // Lazy cells must still be fully read before the reducer validates them.
+        // Numeric fallback cells must still be fully read before the reducer validates them.
         // A table too big to collect is the exception: it is summed a cell at a time, nothing held.
         const streaming = shouldStream(value);
-        const directSum = operation === 'sum' && (value.itemAt === undefined || streaming)
+        const directSum = builtin && operation === 'sum' && (value.itemAt === undefined || streaming)
             && reducer === this.standardFunctions.get(standardModules.core.sum);
 
         // Stored cells are read straight from their storage, through offsets
         // worked out once for the reduced axes instead of once per cell.
         const stored = denseScalarItems(value);
+        const producer = arrayCells(value) ? tensorCells(value, frameAxes) : undefined;
+        // Reuse checked scalar views so native terminals see the original map.
+        // Boolean folds consume the same view in reference mode to short-circuit
+        // within each cell, just as a whole-array fold does.
+        const scalarCells = !producer && reducedAxes.length > 0
+            && (booleanFold || builtin && this.isTensorFusion()) ? tensorCells(value, frameAxes) : undefined;
         let reducedOffsets: Int32Array | undefined;
         if (stored && reducedSize <= MAX_OFFSET_TABLE) {
             reducedOffsets = new Int32Array(reducedSize);
             for (let index = 0; index < reducedSize; index += 1) reducedOffsets[index] = offsetAt(index, reducedAxes);
         }
         const reduceAt = (frameIndex: number): RankValue => {
+            if (producer) return reducer.call([producer.cellAt(frameIndex)]);
+            if (scalarCells && hasNativeImplementation(reducer)) {
+                const cell = scalarCells.cellAt(frameIndex);
+                if (booleanFold) return reducer.call([cell]);
+                if (isRankArray(cell)) {
+                    const native = reduceTensorMap(cell, operation);
+                    if (native !== undefined) return native;
+                }
+            }
             const start = offsetAt(frameIndex, frameAxes);
             const itemAt = stored && reducedOffsets
                 ? (index: number) => stored[start + reducedOffsets![index]]
                 : streaming && value.streamAt
                     ? (index: number) => value.streamAt!(start + offsetAt(index, reducedAxes))
                     : (index: number) => arrayItem(value, start + offsetAt(index, reducedAxes));
-            if (directSum) return sumIndexed(reducedSize, itemAt);
-            if (this.isTensorFusion()
+            if (directSum && hasNativeImplementation(reducer)) return sumIndexed(reducedSize, itemAt);
+            if (builtin && hasNativeImplementation(reducer) && this.isTensorFusion()
                 && (operation === 'mean' || operation === 'std')
                 && reducer === this.standardFunctions.get(standardModules.stats[operation])) {
                 return statisticsCell(operation, reducedSize, itemAt);
@@ -265,12 +280,7 @@ export class ReductionEvaluator {
         };
 
         if (frameShape.length === 0) return reduceAt(0);
-        const builtin = ['core', 'numbers', 'stats', 'sequences'].some(module => {
-            const definition = standardModules[module][operation];
-            return definition !== undefined && reducer === this.standardFunctions.get(definition);
-        });
-        return builtin ? derivedArray(frameShape, [value], reduceAt, true)
-            : lazyArray(frameShape, reduceAt);
+        return derivedArray(frameShape, [value, reducer], reduceAt, builtin);
     }
 
     private reduceCell(operator: string, value: RankValue, seed?: RankValue): RankValue {
@@ -297,12 +307,17 @@ export class ReductionEvaluator {
         size: number,
         seed?: RankValue,
     ): RankValue {
-        if (size === 0) return seed === undefined ? reductionIdentity(operator) : seed;
         const operation = numericKernel(operator, (a, b) => this.binary(operator, a, b));
-        if (seed === undefined && this.isTensorFusion()) {
+        if (size > 0 && seed === undefined && this.isTensorFusion()) {
             const folded = reduceWindowCell(value, start, size, operation);
             if (folded !== undefined) return folded;
         }
+        if (start === 0 && size === arraySize(value.shape) && (arrayValueTraversal(value) || arrayCells(value))) {
+            let result = seed;
+            for (const item of arrayValues(value)) result = result === undefined ? item : operation(result, item);
+            return result === undefined ? reductionIdentity(operator) : result;
+        }
+        if (size === 0) return seed === undefined ? reductionIdentity(operator) : seed;
         let result = seed === undefined
             ? arrayItem(value, start)
             : operation(seed, arrayItem(value, start));

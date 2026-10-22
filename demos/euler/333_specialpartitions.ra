@@ -15,7 +15,7 @@ fun Limit solve
   Max = (Limit log / Base) floor
   Cnt = 0 1000 0 Limit Cnt Max walk
   Ps = primes till Limit
-  Good = Cnt Ps equal 1
+  Good' = Cnt Ps equal 1
   return (Ps filter Good) sum
 end
 

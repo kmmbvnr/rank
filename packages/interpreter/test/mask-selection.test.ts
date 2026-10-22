@@ -119,9 +119,11 @@ N 1 = 9
 S`)).toBe('2 4');
     });
 
-    it('keeps lazy masks read-only while allowing composition and explicit copies', () => {
-        expect(() => run('N = array 1 2 3\nM = N greater 1\nM 1 = false'))
-            .toThrow('cannot assign to a lazy array');
+    it('completes ordinary masks and keeps explicit mask plans read-only', () => {
+        expect(run('N = array 1 2 3\nM = N greater 1\nM 1 = false\nM'))
+            .toBe('false false true');
+        expect(() => run("N = array 1 2 3\nM' = N greater 1\nM 1 = false"))
+            .toThrow('array assignment expects an array target');
         expect(run('N = array 1 2 3\nM = N greater 1\nS = N filter M\nM and= N less 3\nS'))
             .toBe('2 3');
         expect(run('N = array 1 2 3\nM = (N greater 1) copy\nS = N filter M\nM 1 = false\nS'))
@@ -137,9 +139,10 @@ S`)).toBe('2 4');
         const runtime = new Interpreter(undefined, { compilation });
         const diagnostics = new RuntimeDiagnostics();
         try {
-            diagnostics.run(() => runtime.execute('use sequences\nN = 1 to 3\nM = array false true true\nS = N filter M'));
+            diagnostics.run(() => runtime.execute("use sequences\nN' = 1 to 3\nM = array false true true\nAlias = M\nS' = N filter M"));
             expect(diagnostics.cowCopies).toBe(0);
-            diagnostics.run(() => runtime.execute('for I in 0 till 3\n M I = false\nend'));
+            expect(() => runtime.execute('M 0 = false')).toThrow(/read-only/);
+            diagnostics.run(() => runtime.execute('for I in 0 till 3\n Alias I = false\nend'));
             expect(formatValue(runtime.execute('S')!)).toBe('2 3');
             expect(diagnostics.cowCopies).toBe(1);
         } finally { runtime.dispose(); }

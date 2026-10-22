@@ -15,14 +15,14 @@ rem the terms 2, 1, 2, 1, 1, 4, ...: the
 rem determinant of a tridiagonal matrix
 rem with the terms on the diagonal.
 K = 1 till Count array
-Third = (K + 1) mod 3 equal 0
-Big = (K + 1) * 2 // 3
-Rest = Third choose Big 1
+Third' = (K + 1) mod 3 equal 0
+Big' = (K + 1) * 2 // 3
+Rest' = Third choose Big 1
 Terms = concat (array 2) Rest
 Ones = array shape (Count - 1) fill 1
-Up = Ones diag 1
-Down = Ones diag -1
-Grid = (Terms diag) + Up - Down
+Up' = Ones diag 1
+Down' = Ones diag -1
+Grid' = (Terms diag) + Up - Down
 Num = Grid det
 Answer = Num text integer rank 0 sum
 Answer print

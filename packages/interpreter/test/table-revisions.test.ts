@@ -3,7 +3,7 @@ import { arrayRevision, derivedArray, ownedArray, ownedObject } from '../src/arr
 import { projectField, projectFields } from '../src/modules/tables.js';
 
 describe('whole-table revisions', () => {
-    it('invalidates every dependent column after any field write', () => {
+    it('tracks whole-table revisions while dependent cells recompute on each read', () => {
         const row = ownedObject([['x', 1n], ['y', 2n]]);
         const table = ownedArray([row]);
         const column = projectField(table, 'x');
@@ -13,16 +13,16 @@ describe('whole-table revisions', () => {
         expect(first).toBeDefined();
         expect(result.items).toEqual([1n]);
         expect(result.itemAt!(0)).toBe(1n);
-        expect(reads).toBe(1);
-        row.entries.set('y', 3n);
-        expect(reads).toBe(1);
-        expect(arrayRevision(table)).not.toBe(first);
-        expect(reads).toBe(1);
-        expect(result.items).toEqual([1n]);
         expect(reads).toBe(2);
+        row.entries.set('y', 3n);
+        expect(reads).toBe(2);
+        expect(arrayRevision(table)).not.toBe(first);
+        expect(reads).toBe(2);
+        expect(result.items).toEqual([1n]);
+        expect(reads).toBe(3);
         row.entries.set('x', 9n);
         expect(result.items).toEqual([9n]);
-        expect(reads).toBe(3);
+        expect(reads).toBe(4);
     });
 
     it('observes row replacement, field deletion and a later insertion', () => {
@@ -39,7 +39,7 @@ describe('whole-table revisions', () => {
         expect(matrix.items).toEqual([5n, 4n]);
     });
 
-    it('does not retain a cache for untracked nested objects or cycles', () => {
+    it('declines revision proofs for untracked nested objects or cycles', () => {
         const table = ownedArray([{ kind: 'object', entries: new Map([['x', 1n]]) }]);
         expect(arrayRevision(table)).toBeUndefined();
         const cyclic = ownedArray([]);

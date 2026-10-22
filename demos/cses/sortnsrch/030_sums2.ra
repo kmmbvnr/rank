@@ -6,13 +6,13 @@ use algo
 
 N = stdin .integer
 X = stdin .integer
-A = stdin .integer N array
+A' = stdin .integer N
 
 A X count_subarray_sums print
 
 
 rem Count equal prefix-sum differences.
-fun A Target count_subarray_sums
+fun A' Target count_subarray_sums
   Index = new index
   Prefix = 0
   Answer = 0

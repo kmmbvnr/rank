@@ -9,16 +9,16 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_008.csv"
 
 Db = DbPath sqlite
-R = Db .bookings
-M = Db .members
-F = Db .facilities
-R = R M innerjoin by .memid
-R = R F innerjoin by .facid
-R = R filter
+R' = Db .bookings
+M' = Db .members
+F' = Db .facilities
+R' = R M innerjoin by .memid
+R' = R F innerjoin by .facid
+R' = R filter
   .starttime at least "2012-09-14"
   .starttime less "2012-09-15"
 end
-Priced = R select
+Priced' = R select
   Guest = .memid equal 0
   GCost = .slots * .guestcost
   MCost = .slots * .membercost
@@ -26,6 +26,6 @@ Priced = R select
   .facility = .name
   .cost = Guest GCost MCost choose
 end
-R = Priced filter .cost greater 30
-Result = R sort by .cost .descending
+R' = Priced filter .cost greater 30
+Result' = R sort by .cost .descending
 Result OutputPath csv

@@ -18,11 +18,11 @@ rem m = (k p + 1) / 10, with k from
 rem the last digit of p: 1, 3, 7, 9 take
 rem k = 9, 3, 7, 1.
 Ps = primes till Limit array
-Odd = Ps mod 2 equal 1
-Five = Ps mod 5 not equal 0
-Cop = Odd and Five
+Odd' = Ps mod 2 equal 1
+Five' = Ps mod 5 not equal 0
+Cop' = Odd and Five
 Ps = Ps filter Cop array
 Ks = array 0 9 0 3 0 0 0 7 0 1
-K = Ks (Ps mod 10)
+K' = Ks (Ps mod 10)
 Answer = ((K * Ps + 1) // 10) sum
 Answer print

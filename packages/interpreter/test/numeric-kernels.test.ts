@@ -5,6 +5,7 @@ import { mapBroadcastArrays } from '../src/tensor.js';
 import { mapStoredIntegers } from '../src/integer-array-kernel.js';
 import { typedArray, ownedArray } from '../src/array-storage.js';
 import { withInterrupt, InterruptedError } from '../src/interrupt.js';
+import { materializeValue } from '../src/materialize.js';
 
 const vector = (items: RankValue[], shape = [items.length]): RankArray => ({ kind: 'array', items, shape });
 
@@ -215,7 +216,7 @@ end
 
     it('does not pre-read lazy inputs or replay a mixed-type failure', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun A total\n  return A reduce +\nend\nfun A prefix\n  return A scan +\nend');
+        runtime.execute("fun A' total\n  return A reduce +\nend\nfun A' prefix\n  return A scan +\nend");
         const reads: number[] = [];
         const input: RankArray = {
             kind: 'array', shape: [3], containsFiles: false,
@@ -228,7 +229,7 @@ end
         };
         for (const name of ['total', 'prefix']) {
             reads.length = 0;
-            expect(() => call(runtime, name, input)).toThrow('cannot receive');
+            expect(() => materializeValue(call(runtime, name, input))).toThrow('cannot receive');
             expect(reads).toEqual([0, 1]);
         }
         runtime.dispose();
@@ -236,7 +237,7 @@ end
 
     it('retains read-before-validation order for lazy axis sum cells', () => {
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun A rows\n  return A sum axis 1\nend');
+        runtime.execute("use numbers\nfun A' rows\n  return A sum axis 1\nend");
         const reads: number[] = [];
         const input: RankArray = {
             kind: 'array', shape: [1, 3], containsFiles: false,
@@ -247,7 +248,7 @@ end
             },
             get items(): RankValue[] { throw new Error('materialized input'); },
         };
-        expect(() => items(call(runtime, 'rows', input))).toThrow('cannot receive');
+        expect(() => materializeValue(call(runtime, 'rows', input))).toThrow('cannot receive');
         expect(reads).toEqual([0, 1]);
         runtime.dispose();
     });
@@ -261,17 +262,18 @@ end
         expect(result.items).toEqual([20n, 40n]);
     });
 
-    it('retains nested-array fallback and Rank error positions', () => {
-        const runtime = new Interpreter();
-        runtime.execute('fun A total\n  return A reduce +\nend');
-        expect(items(call(runtime, 'total', vector([vector([1n, 2n]), vector([3n, 4n])]))))
+    it.each([false, true])('retains nested-array fallback and deferred error positions (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation, sourceId: 'reduction.ra' });
+        runtime.execute("fun A' total\n  return A reduce +\nend");
+        expect(items(materializeValue(call(runtime, 'total', vector([vector([1n, 2n]), vector([3n, 4n])])))))
             .toEqual([4n, 6n]);
         try {
-            call(runtime, 'total', vector([true, false]));
+            materializeValue(call(runtime, 'total', vector([true, false])));
             throw new Error('expected failure');
         } catch (error) {
             expect(error).toBeInstanceOf(RankError);
-            expect((error as RankError).location).toMatchObject({ line: 2, column: 3 });
+            expect((error as RankError).location).toMatchObject({ sourceId: 'reduction.ra',
+                line: 2, column: 10, sourceLine: '  return A reduce +' });
         }
         runtime.dispose();
     });

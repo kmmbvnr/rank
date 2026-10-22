@@ -3,6 +3,8 @@ use testing
 test "statement small value"
   use "312_sierpinski"
   Mod = 10 ** 15
+  3 Mod iterative equal 8
+  4 Mod iterative equal 13824
   5 Mod iterative equal 71328803586048
 end
 

@@ -193,7 +193,7 @@ for I in 0 to 0
 end`)).toHaveProperty('error');
     });
 
-    it('preserves the existing last duplicate parameter binding', () => {
+    it('rejects duplicate parameter bindings before compiled execution', () => {
         expect(compare(`fun X X helper
   return X
 end
@@ -201,7 +201,7 @@ Result = 0
 for I in 1 to 1
   Result = 1 2 helper
 end
-Result`)).toMatchObject({ value: '2', calls: 1 });
+Result`)).toMatchObject({ error: expect.stringContaining('Duplicate function parameter X'), calls: 0 });
     });
 
     it('uses the owning interpreter for an imported function', () => {

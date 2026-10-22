@@ -13,7 +13,7 @@ fun Basis Spectrum unmix
   Projection = BasisT Spectrum matmul
   Fractions = Gram Projection solve
   Fitted = Basis Fractions matmul
-  Residual = Spectrum - Fitted
+  Residual' = Spectrum - Fitted
   Error = Residual * Residual sum sqrt
 
   return record

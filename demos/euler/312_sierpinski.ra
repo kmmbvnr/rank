@@ -40,8 +40,8 @@ fun N Mod iterative
     C = 8 mod Mod
     for I in 4 to N
       C = 3 * C mod Mod
-      C = C * C mod Mod
-      C = C * C mod Mod
+      Square = C * C mod Mod
+      C = C * Square mod Mod
     end
   end
   return C

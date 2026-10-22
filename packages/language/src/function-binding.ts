@@ -59,7 +59,9 @@ export function prepareFunctionBindings(program: Program, signatures: ReadonlyMa
         }
         const definitions: FunctionStatement[] = [];
         const define = (parameters: string[], body: Expression): void => {
-            definitions.push({ $type: 'FunctionStatement', name: node.name, parameters, leftParameters: parameters, rightParameters: [], groups: [], ranks: [], memo: false,
+            definitions.push({ $type: 'FunctionStatement', name: node.name, parameters,
+                leftBindings: parameters.map(name => ({ $type: 'FunctionParameter', name, deferred: false })),
+                rightBindings: [], leftParameters: parameters, rightParameters: [], groups: [], ranks: [], memo: false,
                 statements: [{ $type: 'ReturnStatement', value: body, $cstNode: node.$cstNode }],
                 $cstNode: node.$cstNode } as unknown as FunctionStatement);
         };

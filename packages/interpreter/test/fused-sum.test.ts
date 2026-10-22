@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Interpreter, RankError, createArraySnapshot, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
+import { Interpreter, RankError, createArraySnapshot, demandValue, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
 
 const vector = (items: RankValue[], shape = [items.length]): RankArray => ({ kind: 'array', items, shape, containsFiles: false });
 const call = (runtime: Interpreter, name: string, ...args: RankValue[]) => {
     const fn = runtime.variables.get(name);
     if (!fn || !isNativeFunction(fn)) throw new Error(name);
-    return fn.call(args);
+    return demandValue(fn.call(args));
 };
 const source = `use numbers
 fun A B fused
@@ -15,10 +15,13 @@ fun A B ordinary
   Temp = A * B
   return Temp sum
 end
+fun A' B' deferred_fused
+  return (A * B) sum
+end
 fun A B addsum
   return (A + B) sum
 end
-fun A replacement
+fun A' replacement
   return 99
 end`;
 
@@ -77,10 +80,13 @@ describe('builtin sum semantics required by fusion', () => {
         runtime.execute(source);
         runtime.variables.set('sum', runtime.variables.get('replacement')!);
         const input: RankArray = { ...vector([1n]), itemAt: () => { throw new Error('read input'); } };
-        expect(call(runtime, 'fused', input, 2n)).toBe(99n);
+        expect(() => call(runtime, 'fused', input, 2n)).toThrow('read input');
+        expect(call(runtime, 'deferred_fused', input, 2n)).toBe(99n);
+        runtime.execute('fun A forced\n return 99\nend');
+        runtime.variables.set('sum', runtime.variables.get('forced')!);
         runtime.variables.set('A', vector([1n, 2n]));
         runtime.variables.set('B', vector([1n, 2n, 3n]));
-        expect(() => runtime.execute('(A * B + Missing) sum')).toThrow('shape mismatch');
+        expect(() => runtime.execute('(A * B + 0) sum')).toThrow('shape mismatch');
         runtime.dispose();
     });
 
@@ -95,10 +101,10 @@ describe('builtin sum semantics required by fusion', () => {
             if (failLate && index === 2) throw new Error('late read');
             return nested;
         } };
-        expect(() => call(runtime, 'fused', input, 2n)).toThrow('expected numeric input');
+        expect(() => call(runtime, 'deferred_fused', input, 2n)).toThrow('expected numeric input');
         expect(reads).toEqual([0, 1, 2]);
         failLate = true;
-        expect(() => call(runtime, 'fused', input, 2n)).toThrow('late read');
+        expect(() => call(runtime, 'deferred_fused', input, 2n)).toThrow('late read');
         runtime.dispose();
     });
 
@@ -118,25 +124,26 @@ describe('builtin sum semantics required by fusion', () => {
             if (index === 1) reads.push('b1');
             return b.items[index];
         } };
-        expect(call(runtime, 'fused', a, b)).toBe(18n);
+        expect(call(runtime, 'deferred_fused', a, b)).toBe(18n);
         expect(reads).toEqual(['a0', 'b1']);
-        expect(call(runtime, 'fused', a, b)).toBe(99n);
+        expect(call(runtime, 'deferred_fused', a, b)).toBe(99n);
         expect(reads).toEqual(['a0', 'b1']);
         runtime.dispose();
     });
 
-    it('retains lazy and repeated named caches, mutations and source positions', () => {
+    it('repeats a named plan and retains an ordinary result with its source positions', () => {
         const runtime = new Interpreter();
         runtime.execute(source);
         const a = vector([1n, 2n]);
         runtime.variables.set('A', a);
-        runtime.execute('Temp = A + A');
-        const temp = runtime.variables.get('Temp') as RankArray;
-        expect(temp.itemAt!(0)).toBe(2n);
+        runtime.execute("Temp' = A + A\nFirst = Temp 0\nSaved = Temp");
+        const temp = runtime.variables.get('Temp')!;
+        expect(runtime.variables.get('First')).toBe(2n);
         a.items[0] = 10n;
         a.items[1] = 20n;
         expect(call(runtime, 'fused', temp, 2n)).toBe(120n);
         expect(call(runtime, 'fused', temp, 2n)).toBe(120n);
+        expect(call(runtime, 'fused', runtime.variables.get('Saved')!, 2n)).toBe(12n);
         try { call(runtime, 'fused', vector([true]), 2n); }
         catch (error) {
             expect(error).toBeInstanceOf(RankError);

@@ -20,8 +20,8 @@ rem number, are decided by size alone.
 Half = Size // 2
 K = 2 to Half array
 Pairs = (K * 2) K binomial
-Pool = Size (K * 2) binomial
-Catalan = Pairs // (K + 1)
-Open = Pairs // 2 - Catalan
+Pool' = Size (K * 2) binomial
+Catalan' = Pairs // (K + 1)
+Open' = Pairs // 2 - Catalan
 Answer = (Pool * Open) sum
 Answer print

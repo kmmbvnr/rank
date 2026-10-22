@@ -9,6 +9,7 @@ end
 
 test "averages matching store family and weekday keys"
   use json
+  use tables
   use "006_storesales"
   Train = "[{\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-01\",\"sales\":10},
     {\"store_nbr\":1,\"family\":\"A\",\"date\":\"2024-01-08\",\"sales\":20},
@@ -20,6 +21,8 @@ test "averages matching store family and weekday keys"
 
   Result = Train Test forecast
   Result equal array 15.0 50.0 42.5
+  Test .sales = Result
+  Test .sales equal Result
 end
 
 test "rejects invalid calendar dates"

@@ -142,18 +142,18 @@ test('step to main leaves ranked callbacks and stops in the following cell', { t
     assert.equal((await next).ok, true);
 });
 
-test('inspection does not evaluate a ranked array shape while paused inside its callback', { timeout: 10000 }, async t => {
+test('inspection does not demand a ranked plan while paused inside its callback', { timeout: 10000 }, async t => {
     const session = await createWorkerSession();
     t.after(() => session.dispose());
     await session.execute('use text\nuse sequences', 0, []);
     const fn = 'fun X palindrome\n  Text = X text\n  Back = Text reverse\n  return Text equal Back\nend';
     await session.execute(fn, 1, []);
     session.setDebugBreakpoints([{ source: fn, line: 2 }]);
-    const execution = session.execute('Factors = 100 to 999\nProducts = Factors Factors outer *\nMask = Products palindrome rank 0', 2, []);
+    const execution = session.execute("Factors = 100 to 999\nProducts = Factors Factors outer *\nMask' = Products palindrome rank 0\nMask 0", 2, []);
     const first = await nextPause(session);
     assert.match(first.state, /X = 10000/);
     assert.match(first.state, /Products = <array shape 900 × 900>/);
-    assert.match(first.state, /Mask = <array shape not evaluated>/);
+    assert.match(first.state, /Mask = <plan>/);
     assert.equal(first.state.split('\n').filter(line => line === 'palindrome').length, 1);
     session.step();
     assert.equal((await nextPause(session)).line, 3);

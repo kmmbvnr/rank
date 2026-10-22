@@ -17,10 +17,10 @@ rem divisor sum of its partner.
 fun Limit amicable_sum
   Candidates = (2 till Limit) array
   Partners = Candidates proper_divisor_sum rank 0
-  Reverse = Partners proper_divisor_sum rank 0
+  Reverse' = Partners proper_divisor_sum rank 0
   Amicable = Partners not equal Candidates
   Amicable and= Reverse equal Candidates
-  Values = Candidates Amicable
+  Values' = Candidates Amicable
   return Values sum
 end
 
@@ -33,9 +33,9 @@ fun N proper_divisor_sum
   end
 
   Root = N isqrt
-  Divisors = 2 to Root
+  Divisors' = 2 to Root
   Factors = Divisors (N mod Divisors equal 0)
-  Pairs = N // Factors
+  Pairs' = N // Factors
   Total = 1 + (Factors sum)
   Total += Pairs sum
   if Root ** 2 equal N

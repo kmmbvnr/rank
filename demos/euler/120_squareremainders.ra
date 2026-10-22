@@ -14,7 +14,7 @@ rem mod a^2 = a (2 n mod a), whose best
 rem is a (a - 1) for odd a, a (a - 2)
 rem for even.
 A = 3 to Limit array
-Step = A - 2 + A mod 2
-Best = A * Step
+Step' = A - 2 + A mod 2
+Best' = A * Step
 Answer = Best sum
 Answer print

@@ -8,7 +8,7 @@ use sequences
 Nodes = stdin .integer
 M = stdin .integer
 Length = stdin .integer
-Raw = stdin .integer (M * 3) array
+Raw' = stdin .integer (M * 3) array
 Edges = Raw reshape M 3
 Answer = Nodes Edges Length min_path
 Answer print
@@ -56,9 +56,9 @@ fun Left Right minplus
   Result = array shape Size Size fill infinity
 
   for K in 0 till Size
-    Column = Left # K
-    Row = Right K
-    Candidate = Column Row outer +
+    Column' = Left # K
+    Row' = Right K
+    Candidate' = Column Row outer +
     Result = Result Candidate min
   end
 

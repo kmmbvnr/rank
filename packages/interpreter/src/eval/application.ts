@@ -1,14 +1,16 @@
+import { functionReference } from './function-reference.js';
 import { compileNumericApplication } from './application-numeric.js';
 import { compileSequenceApplication } from './application-sequences.js';
 import { compileStructureApplication } from './application-structures.js';
 import type { ModuleApplication } from './application-module.js';
 import { isPureLazyFunction, snapshotLazyOperand } from '../lazy-function.js';
 import { queryDefault } from '../query-default.js';
+import { demand, isRankPlan } from '../plan.js';
 import {
-    lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication,
+    lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication, groupedExpression,
     isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
     isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, renamedBuiltinCall,
-    type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
+    type KnownShape, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
     type Expression, type Operation,
 } from '@arrrank/language';
 import { checkpoint } from '../interrupt.js';
@@ -37,6 +39,8 @@ import {
 /** What evaluating application forms needs from the rest of evaluation. */
 export interface ApplicationContext {
     evaluate(expression: Expression): Evaluation<RankValue>;
+    argument(expression: Expression): Evaluation<RankValue>;
+    stageArgument(expression: Expression): Evaluation<{ expression: Expression; value: RankValue }>;
     checkInput(expression: Expression, value: RankValue, source: string): void;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of an expression that is not an application, without classifying it again. */
@@ -45,6 +49,7 @@ export interface ApplicationContext {
     /** Builtin identity a name is bound to, or false for a user value; never runs user code. */
     operationOf(name: string): Operation | undefined | false;
     resolve(name: string): RankValue;
+    findVariable(name: string): RankValue | undefined;
     select(values: RankValue[], missing?: () => RankValue): RankValue;
     requireModule(module: string, operation: string): void;
     readonly random: () => number;
@@ -84,7 +89,8 @@ export class ApplicationEvaluator {
                 let value = argument;
                 while (isParenthesizedExpression(value)) value = value.value;
                 args.push(fn.callSignature?.parameters[index]?.kind === 'function' && isNameExpression(value)
-                    ? context.resolve(value.name) : yield* resume(context.evaluate(argument)));
+                    ? context.resolve(value.name) : yield* resume(
+                        expression.ranks.length || expression.axes.length ? context.evaluate(argument) : context.argument(argument)));
             }
             const data = expression.dataParameters.map(index => args[index]);
             const ranks = expression.ranks.map(rank => {
@@ -100,12 +106,13 @@ export class ApplicationEvaluator {
                 if (tail && context.functions.transferTailCall(fn, args)) return MISSING;
                 return yield* resume(context.functions.invoke(fn, args));
             }
-            const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): readonly number[] | undefined => {
+            const resultShape = (fn: NativeFunction, cells: readonly (readonly number[])[]): KnownShape | undefined => {
                 const shapes = args.map(value => isRankArray(value) ? value.shape : []);
                 expression.dataParameters.forEach((index, i) => { shapes[index] = [...cells[i]]; });
                 return fn.resultCellShape?.(shapes);
             };
             const withOperands = (fn: NativeFunction, fixed = args): NativeFunction => ({
+                captureValues: () => [fn, ...fixed],
                 snapshot: () => withOperands(fn.snapshot?.() ?? fn, fixed.map((value, index) =>
                     expression.dataParameters.includes(index) ? value : snapshotLazyOperand(value))),
                 lazySafe: () => isPureLazyFunction(fn),
@@ -264,7 +271,7 @@ export class ApplicationEvaluator {
             case 'named-outer': {
                 const namedOuter = form;
                 return function* (): Execution<RankValue> {
-                    const operation = (yield* resume(context.evaluate(namedOuter.operation)));
+                    const operation = (yield* resume(functionReference(namedOuter.operation, context)));
                     if (!isNativeFunction(operation)) {
                         throw new RankError('outer expects a binary function');
                     }
@@ -330,9 +337,9 @@ export class ApplicationEvaluator {
             case 'repeat': {
                 return function* (): Execution<RankValue> {
                     let state = yield* resume(context.evaluate(form.source));
-                    const operation = yield* resume(context.evaluate(form.operation));
+                    const operation = yield* resume(functionReference(form.operation, context));
                     const count = yield* resume(context.evaluate(form.count));
-                    const until = form.until ? yield* resume(context.evaluate(form.until)) : undefined;
+                    const until = form.until ? yield* resume(functionReference(form.until, context)) : undefined;
                     if (!isNativeFunction(operation) || !operation.arities.includes(1)) {
                         throw new RankError('repeat requires a unary function', 'TypeError');
                     }
@@ -367,7 +374,7 @@ export class ApplicationEvaluator {
                     const source = yield* resume(context.evaluate(namedScan.source));
                     const seed = namedScan.seed === undefined
                         ? undefined : yield* resume(context.evaluate(namedScan.seed));
-                    const operation = yield* resume(context.evaluate(namedScan.operation));
+                    const operation = yield* resume(functionReference(namedScan.operation, context));
                     if (!isNativeFunction(operation) || !operation.arities.includes(2)) {
                         throw new RankError(`${form.kind === 'named-reduce' ? 'reduce' : 'scan'} requires a binary operation`);
                     }
@@ -398,7 +405,7 @@ export class ApplicationEvaluator {
                 });
                 if (fused) return fused;
                 if (parts.some((part, index) => index > 0 && isNamed(part, 'sum'))) {
-                    return function* (): Execution<RankValue> {
+                    return application.compileApplication(expression, parts, missing, tail, function* (): Execution<RankValue> {
                         let pending: RankValue[] = [];
                         for (let index = 0; index < parts.length; index += 1) {
                             const part = parts[index];
@@ -428,7 +435,7 @@ export class ApplicationEvaluator {
                         }
                         return pending.length === 1
                             ? pending[0] : context.select(pending, missing);
-                    };
+                    });
                 }
                 return application.compileApplication(expression, parts, missing, tail);
             }
@@ -437,6 +444,68 @@ export class ApplicationEvaluator {
     }
 
     private compileApplication(
+        expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
+        ordinary = this.compileNativeApplication(expression, parts, missing, tail),
+    ): () => Evaluation<RankValue> {
+        const last = parts.at(-1);
+        if (!last || !isNameExpression(last)) return ordinary;
+        return () => {
+            const fn = this.context.findVariable(last.name);
+            // A nullary call supplies an operand to preceding native operations.
+            if (!fn || !isNativeFunction(fn) || !fn.callSignature || fn.arities.includes(0) || fn.monadicRank !== 'all'
+                || fn.dyadicRanks?.some(rank => rank !== 'all')) return ordinary();
+            // Every postfix operation consumes the pending operands and leaves
+            // one result. Preserve that result's syntax as an argument recipe;
+            // evaluating its parts separately would feed plans to native calls
+            // or compute a reduction before the parameter binder sees it.
+            const prefix = parts.slice(0, -1);
+            const operations = prefix.map((part, index) => {
+                while (isParenthesizedExpression(part)) part = part.value;
+                if (!index || !isNameExpression(part)) return false;
+                const value = this.context.findVariable(part.name);
+                const builtin = value === undefined ? this.context.operationOf(part.name) : undefined;
+                const arities = value !== undefined && isNativeFunction(value) ? value.arities : builtin ? builtin.arities : undefined;
+                return !!arities?.length && !arities.includes(0);
+            });
+            return flatMapResult(this.callOperands(prefix, expression, fn.arities.join() === '1', operations), operands =>
+                flatMapResult(mapExecution(operands, part => this.context.argument(part)),
+                    values => this.apply([...values, this.context.resolve(last.name)], missing, 0, [], tail,
+                        lastArrayUseProofs(expression, operands))));
+        };
+    }
+
+    private *callOperands(
+        parts: Expression[], expression: Expression, monadic: boolean, operations: boolean[],
+    ): Execution<Expression[]> {
+        if (monadic && operations.some(Boolean)) return [applicationParts(parts, expression)];
+        const operands: Expression[] = [];
+        for (let index = 0; index < parts.length; index++) {
+            const part = parts[index];
+            const operation = operations[index];
+            if (operation && isNamed(part, 'sum')) {
+                const receiver = yield* resume(this.context.stageArgument(applicationParts(operands, expression)));
+                const types = isRankPlan(receiver.value) ? receiver.value.result?.types : undefined;
+                // Known result kinds settle method arity without reading data.
+                // An unknown kind must be demanded for receiver dispatch; keep
+                // the original recipe, not the value obtained by that demand.
+                const fenwick = types?.length && !types.includes('fenwick') ? false
+                    : types?.length === 1 ? true
+                    : isRankFenwick(yield* resume(demand(receiver.value)));
+                operands.splice(0, operands.length, receiver.expression, part);
+                if (fenwick) {
+                    const argument = parts[++index];
+                    if (!argument) throw new RankError('fenwick sum expects one integer index');
+                    operands.push(argument);
+                }
+            } else operands.push(part);
+            if (operation) {
+                operands.splice(0, operands.length, groupedExpression(applicationParts(operands, expression)));
+            }
+        }
+        return operands;
+    }
+
+    private compileNativeApplication(
         expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
     ): () => Evaluation<RankValue> {
         const context = this.context;

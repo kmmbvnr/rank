@@ -33,7 +33,8 @@ small temporary databases and compares all three tables after each program
 with its reference SQL. It also checks that `sql` and `explain` previews do
 not write.
 
-The solutions use records, filtered SQLite views and direct `insert`, `update`
+The solutions retain input records, preserve SQLite targets with apostrophe
+bindings and execute direct `insert`, `update`
 and `delete` operations. The third exercise uses SQLite `max`; the ninth keeps
 its booked-ID subquery lazy with `not in`. The sixth reads two scalar prices
 from the first court before updating the second; it never loads all facilities.

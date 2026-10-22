@@ -5,13 +5,13 @@ use io
 use algo
 
 N = stdin .integer
-A = stdin .integer N array
+A' = stdin .integer N
 
 A distinct_subarrays print
 
 
 rem Count subarrays with distinct values.
-fun A distinct_subarrays
+fun A' distinct_subarrays
   Index = new index
   Left = 0
   Answer = 0

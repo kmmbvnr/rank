@@ -153,6 +153,10 @@ empty `all` and `any` cells return `true` and `false`; an empty `mean`, `std`,
 `min` or `max` raises `.EmptyReduction`. `mean` and `std` always return real
 values. `std` uses the population denominator `N`.
 
+`all` and `any` stop within each reduced cell as soon as its result is known.
+Later elements of that cell are not read or checked. Each new demand of a
+deferred axis reduction computes its cells again.
+
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
 the coordinate dimensions that the operation consumes.
@@ -207,8 +211,9 @@ Planes = T det axis 1 rank 2
 Integer-only cells produce exact `integer` results. A cell containing any
 `real` value produces a `real`. A singular cell returns zero, and the
 determinant of a `0` by `0` matrix is one. A non-square cell raises
-`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. Batched results
-are evaluated lazily and cached.
+`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. An ordinary
+binding completes batched results; `BatchDeterminants' = Batch det` keeps a
+recipe that recomputes on demand.
 
 ## Linear solve
 
@@ -242,7 +247,9 @@ Planes = T inverse axis 1 rank 2
 The second expression applies to every trailing matrix cell. The third uses
 axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
-`.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+`.SingularMatrix`. Ordinary binding completes every ranked matrix result;
+`BatchInverse' = Batch inverse` keeps a recipe. Repeated demands recompute the
+matrix results rather than retaining them implicitly.
 
 ## Symmetric eigendecomposition
 
@@ -304,7 +311,10 @@ already defines the cells and is not combined with `rank`.
 
 Covariance divides by `N - 1`, always returns real values, and raises
 `.InsufficientData` when the observation axis has fewer than two items. The
-result and per-feature means are calculated on demand and cached.
+ordinary result is completed by `=`. Use `Cov' = Features covariance` to keep a
+recipe; each observation recomputes. A full traversal shares feature means only
+within its current batch. Independent cell reads, later traversals and retries
+after failure start fresh. Assigning `Saved = Cov` retains the completed matrix.
 
 ## Sliding windows
 
@@ -478,7 +488,7 @@ array. All other axes keep their order and size.
 ## Outer
 
 `outer` is a higher-order modifier: the operator or named binary function
-immediately before it is applied to every pair of cells:
+immediately after it is applied to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -498,11 +508,11 @@ atom-pairing operations preserve all operand axes. Left frame axes come first
 and the right frame varies fastest. The operation must accept two arguments and
 currently must return a scalar for every pair.
 
-Both operands must be finite and restartable. Construction is lazy and may
-compute a demanded pair again. A named function supplied to `outer` must
-therefore be pure: its result and observable behavior may depend only on its
-arguments and immutable captured values. The runtime does not yet prove this
-property; static effect analysis is tracked separately as tooling work.
+Both operands must be finite. Ordinary binding completes the result; use
+`Pairs' = A B outer operation` to keep a recipe. Each observation recomputes
+the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
+binding retains the completed result. A deferred assignment does not make a
+single-pass operand restartable; bind its completed data before reusing it.
 
 For paired cells with broadcasting, use the
 [ranked-call forms](sequences-arrays.md#rank). `outer` instead forms all pairs
@@ -567,7 +577,9 @@ Both axes are zero-based. Exactly two axes are required, and out-of-range axes
 are errors. Scalar or nonnumeric operands are errors; unequal contracted
 dimensions raise `.DimensionMismatch`.
 
-Array results are lazy. Each output element is calculated on demand and cached.
+A deferred binding such as `C' = A B matmul` computes output elements on
+demand. Repeated demands recompute them; `C = A B matmul` stores the completed
+array explicitly.
 The calculation uses ordinary Rank numeric promotion: integer-only terms stay
 integer, while a real term promotes that output element to real. A contraction
 over an empty dimension produces zero for every output element.

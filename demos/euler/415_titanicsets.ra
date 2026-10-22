@@ -74,8 +74,9 @@ end
 Ix = (0 to Lm) copy
 Rs = Ix // Sm
 Big = Rs greater 1
-Pc = Ph - Ph // Rs
-Ph = (Big choose Pc Ph) copy
+Pv = Ph
+Pc' = Pv - Pv // Rs
+Ph = (Big choose Pc Pv) copy
 Ph 0 = 0
 Im = Ix mod Mod
 F0 = Ph mod Mod

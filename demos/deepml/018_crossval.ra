@@ -40,7 +40,7 @@ fun N K Shuffle cross_validation
     Test = Order (First till Last)
 
     TrainMask = Positions less First
-    After = Positions at least Last
+    After' = Positions at least Last
     TrainMask or= After
     Train = (Order TrainMask) array
 

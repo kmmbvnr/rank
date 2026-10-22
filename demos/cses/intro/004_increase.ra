@@ -12,7 +12,7 @@ Values moves print
 
 rem Count increments needed to make Values nondecreasing.
 fun Values moves
-  Prefix = Values scan max
-  Diffs = Prefix - Values
+  Prefix' = Values scan max
+  Diffs' = Prefix - Values
   return Diffs sum
 end

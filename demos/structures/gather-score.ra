@@ -3,8 +3,8 @@ use sequences
 use bits
 
 fun Cipher Weights Key Slots score_key
-  KeyStream = Key Slots
-  Plain = Cipher KeyStream bxor
+  KeyStream' = Key Slots
+  Plain' = Cipher KeyStream bxor
   return Weights Plain sum
 end
 

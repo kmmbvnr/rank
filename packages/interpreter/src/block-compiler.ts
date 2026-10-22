@@ -11,7 +11,7 @@ interface Context {
 interface Step<C> {
     readonly run?: (context: C) => Value;
     readonly stream?: (context: C) => Evaluation<Value>;
-    readonly tensor?: { readonly count: number; run(): Value };
+    readonly tensor?: { run(): Value };
 }
 export type CompiledBlock<C> = (context: C, index?: number, previous?: Value) => Evaluation<Value>;
 interface Host<C> {
@@ -36,7 +36,7 @@ export function compileBlock<C extends Context>(length: number, host: Host<C>): 
             const step = s${index} ??= prepare(${index});
             if (step.tensor && !context.insideFinally && !context.insideGenerator) {
                 const value = step.tensor.run();
-                if (value !== undefined) { result = value; index += step.tensor.count; continue; }
+                if (value !== undefined) { result = value; index++; continue; }
             }
             if (step.run) result = step.run(context);
             else {

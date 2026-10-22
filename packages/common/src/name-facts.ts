@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
-    analyzeValues, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
-    isFunctionCallGroup, isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
+    analyzeValues, completedValueFacts, completionMayCall, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
+    isFunctionCallGroup, isFunctionParameter, isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -353,9 +353,10 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'input' } : undefined;
     }
     if (isFunctionStatement(node)) {
-        if (ownsLeaf(node, 'name', leaf)) return { name: text, node, kind: 'function' };
-        return ['leftParameters', 'rightParameters'].some(property => GrammarUtils.findNodesForProperty(node.$cstNode, property).some(part => part.offset === leaf.offset))
-            ? { name: text, node, kind: 'parameter' } : undefined;
+        return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'function' } : undefined;
+    }
+    if (isFunctionParameter(node) && ownsLeaf(node, 'name', leaf) && isFunctionStatement(node.$container)) {
+        return { name: text, node: node.$container, kind: 'parameter' };
     }
     if (isFunctionCallGroup(node) && ownsLeaf(node, 'parameter', leaf) && isFunctionStatement(node.$container)) {
         return { name: text, node: node.$container, kind: 'parameter' };
@@ -396,9 +397,15 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
                 : { types, rank: types.join() === 'text' ? 1 : 0, shape: types.join() === 'text' ? [null] : [] };
         }
         case 'function': return FUNCTION;
-        case 'assignment':
-            return isAssignmentStatement(node) ? node.operator === '=' ? known(node.value)
-                : analysis.assignments.get(node) ?? UNKNOWN : UNKNOWN;
+        case 'assignment': {
+            if (!isAssignmentStatement(node)) return UNKNOWN;
+            const assigned = analysis.assignments.get(node);
+            if (assigned?.types.length || node.operator !== '=') return assigned ?? UNKNOWN;
+            // Example calls can refine an expression before its local binding.
+            // Reuse that evidence only when completion cannot re-enter Rank.
+            const value = known(node.value);
+            return node.deferred ? value : completionMayCall(value) ? assigned ?? UNKNOWN : completedValueFacts(value);
+        }
         case 'loop': return bodyRead(loopOf(node)!, name, analysis);
         case 'parameter': return bodyRead(node as FunctionStatement, name, analysis);
         case 'unpack': return isUnpackStatement(node)

@@ -14,6 +14,11 @@ Data len                      rem number of rows
 Ages = Data .Age              rem one column, a rank-1 array
 ```
 
+Ordinary binding completes a column or table, including plans inside nested
+cells. `Ages' = Data .Age` instead retains the projection plan. Completion keeps
+the columnar table representation, absent cells and column order, sharing ready
+columns where possible.
+
 ### Schema
 
 A table has an ordered list of unique column names and a length. Each column has
@@ -27,9 +32,8 @@ with no values at all is a text column of absent cells.
 
 ### Values, not references
 
-A table is a value, like an array. Binding it to a second name, passing it to a
-function or returning it never lets a write through one name show through
-another:
+A table is a value, like an array. Replacing a column or cell through one name
+does not change another table version:
 
 ```rank
 fun Data fill
@@ -38,6 +42,11 @@ fun Data fill
 end
 Filled = Train fill                   rem Train still has its gaps
 ```
+
+Nested records and containers retain their shared identities. Capturing a table
+in an explicit plan protects those mutable values against writes through any
+alias. Completing a deferred nested value can produce an independent stored
+value; binding an already ready shared record does not remove its protection.
 
 Every change produces a new table version. Unchanged columns are shared with
 the old version, not copied, so replacing one column costs one buffer. A
@@ -124,7 +133,7 @@ With `use tables`, an existing SQLite database can be opened read-only:
 
 ```rank
 Db = "demos/pgexercises/data/club.sqlite3" sqlite
-Facilities = Db .facilities
+Facilities' = Db .facilities
 Query = Facilities sql
 Rows = Facilities array
 ```
@@ -133,7 +142,11 @@ To inspect the SQL and plan in a program, add `use io` and print
 `Query .text` or `(Facilities explain) .detail`.
 
 `Db .facilities` validates the table name and returns a SQLite-backed table
-view without loading rows. The variable keeps the database path and query plan.
+view without loading rows. `Facilities' = Db .facilities` retains that query
+plan. `Rows = Facilities` executes it and stores the ready row array; a column
+binding such as `Names = Facilities .name` similarly reads and stores its values.
+Each demand of the explicit plan executes against the current database state;
+it does not retain previous rows. The database handle itself remains a resource.
 `Query` is a record with `.text` (parameterized SQL) and `.params` (an ordered
 array of bound values). `Facilities explain` runs `EXPLAIN QUERY PLAN` and
 returns an ordinary Rank table of plan rows. Postfix `array` executes the query
@@ -144,11 +157,11 @@ stays integer, and row order is unspecified unless the SQL query orders it.
 The same table addressing and operators build a query without reading rows:
 
 ```rank
-Bookings = (Db .bookings) (array .memid .starttime)
-Members = (Db .members) (array .memid .firstname .surname)
-Joined = Bookings Members innerjoin by .memid
-David = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
-Result = (Joined David) (array .starttime)
+Bookings' = (Db .bookings) (array .memid .starttime)
+Members' = (Db .members) (array .memid .firstname .surname)
+Joined' = Bookings Members innerjoin by .memid
+David' = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
+Result' = (Joined David) (array .starttime)
 Statement = Result sql
 Result "bookings.csv" csv
 ```
@@ -156,9 +169,9 @@ Result "bookings.csv" csv
 For a self join, give each use of a table a short role name:
 
 ```rank
-M = Db .members alias .m
-R = Db .members alias .r
-J = M R leftjoin on
+M' = Db .members alias .m
+R' = Db .members alias .r
+J' = M R leftjoin on
   .recommendedby equal .memid
 Rows = J array
 Names = Rows .r .firstname default ""
@@ -171,21 +184,25 @@ distinct without renaming either source column. A left row with no match has no
 `.r` object, so a nested projection can use `default`. For a SQLite view, `J` is
 still lazy and `J sql` shows a query with the self join; `array` reads its rows.
 The alias changes only the Rank result shape, never the database schema.
+An ordinary alias binding reads and stores its source while keeping the role
+name; use an apostrophe to retain a SQLite source. An ordinary binding of a join
+scope, `RightRows = J .r`, stores that scope's values, with missing cells for
+unmatched right rows. `RightRows' = J .r` keeps the scope query deferred.
 An already joined SQLite view cannot itself be aliased yet; multiway joins of
 nested views need qualified join keys and nested scope composition.
 
-An ordered `record` names output columns and holds their source expressions:
+A `select` block names output columns while retaining SQL expressions:
 
 ```rank
-Cols = record
-  .memfname = J .m .firstname
-  .recfname = J .r .firstname
+Out' = J select
+  .memfname = .m .firstname
+  .recfname = .r .firstname
 end
-Out = J select Cols
 ```
 
-`select` returns a new flat view with only those fields, in record order. For a
-SQLite view, every expression must come from that exact view; scalar values
+Ordinary record fields complete their values, including SQL columns. Use the
+contextual block to keep the projection in SQL. `select` returns a new flat
+view with only those fields, in source order. For a SQLite view, every expression must come from that exact view; scalar values
 are bound parameters. The operation builds `SELECT expression AS name` without
 reading rows or changing the database. SQL `NULL` leaves the output field
 absent, so CSV writes an empty cell. On an array table, fields may be scalars
@@ -201,8 +218,8 @@ the same expression works on an array table.
 Inside a `select` block, bare `rownumber` gives each row its one-based position:
 
 ```rank
-R = Members sort by .joindate .memid
-Out = R select
+R' = Members sort by .joindate .memid
+Out' = R select
   .row_number = rownumber
   .firstname = .firstname
   .surname = .surname
@@ -220,8 +237,8 @@ Rows tied on every key receive the same one-based rank, and the next rank
 skips the positions occupied by the tie:
 
 ```rank
-R = Members sort by .hours .descending
-Out = R select
+R' = Members sort by .hours .descending
+Out' = R select
   .rank = ranknumber
   .hours = .hours
 end
@@ -237,10 +254,10 @@ For a row-dependent column, build a boolean expression and choose between two
 values from the same view:
 
 ```rank
-Guest = Rows .memid equal 0
-GCost = Rows .slots * Rows .guestcost
-MCost = Rows .slots * Rows .membercost
-Cost = Guest GCost MCost choose
+Guest' = Rows .memid equal 0
+GCost' = Rows .slots * Rows .guestcost
+MCost' = Rows .slots * Rows .membercost
+Cost' = Guest GCost MCost choose
 ```
 
 This stays in SQL as a bound `CASE` expression. An unknown SQL condition gives
@@ -249,19 +266,20 @@ an absent cost. `select` can then name the computed column.
 `Ids Keys Values lookup` finds the first matching key for each requested ID:
 
 ```rank
-Ids = Members .recommendedby
-Keys = Members .memid
-First = Members .firstname + " "
-Names = First + Members .surname
-Rec = Ids Keys Names lookup
+Ids' = Members .recommendedby
+Keys' = Members .memid
+First' = Members .firstname + " "
+Names' = First + Members .surname
+Rec' = Ids Keys Names lookup
 ```
 
 For arrays, `Keys` and `Values` must be aligned rank-1 arrays or finite
 sequences. A rank-1 `Ids`
 array produces a lazy rank-1 result; a scalar ID produces one value. The first
 match in source order wins, numeric keys compare by value, and a missing key
-or unmatched ID leaves the result cell absent. Source changes invalidate a
-derived result. For SQLite, all three operands are column expressions: `Keys`
+or unmatched ID leaves the result cell absent. An ordinary binding retains
+the result; an explicit plan recomputes it when demanded. For SQLite, all three
+operands are column expressions: `Keys`
 and `Values` belong to one source view, while `Ids` may belong to another view
 of the same database. `lookup` builds a bound correlated scalar subquery, with
 no join and no row read until the enclosing view executes. SQL `NULL` or no
@@ -281,10 +299,10 @@ cell absent where `find` raises.
 starting ID or a rank-1 array/column of IDs:
 
 ```rank
-Up = Edges 27 reach by .member .recommender
-Down = Edges 1 reach by .recommender .member
-Starts = Members .memid
-All = Edges Starts reach by .member .recommender
+Up' = Edges 27 reach by .member .recommender
+Down' = Edges 1 reach by .recommender .member
+Starts' = Members .memid
+All' = Edges Starts reach by .member .recommender
 ```
 
 The first named field identifies a current node in `Edges`; the second gives
@@ -310,7 +328,7 @@ as a table mask extend the SQL plan. Projection with an array of field labels,
 return SQLite views. `len` uses `COUNT(*)`; `sum` of a SQLite column expression
 or a product of expressions uses SQL `SUM`. `View (0 till N)` keeps the
 first `N` rows as a SQLite `LIMIT` query and checks the bounds against `len`.
-`array`, `print` and CSV output execute the
+Ordinary binding, `array`, `print` and CSV output execute the
 view. `sql` and `explain` inspect the current plan without loading its result
 rows. Generated comparisons use bound parameters; field names are checked
 against the source schema and quoted. A predicate must come from the exact
@@ -321,8 +339,8 @@ numeric and text keys stay distinct as in Rank arrays.
 The supported SQLite expression operators are `equal`, `notequal`, `less`,
 `greater`, `at least`, `at most`, `and`, `or`, `+`, `-`, `*` and `/`. Division
 uses real arithmetic even when both columns hold integers. A scalar
-`sum` executes its aggregate; ordinary columns and tables remain lazy until a
-terminal operation. Other array operations require explicit `array` for now.
+`sum` executes its aggregate. Use apostrophes on named query stages to keep
+columns and tables deferred until a consumer demands them. Other array operations require explicit `array` for now.
 SQLite `NULL` fields are absent when rows are materialized. The database view
 cannot be used as a destination for field assignment. SQL
 ordering is guaranteed when `sort by` is the final operation before the
@@ -335,7 +353,7 @@ an explicit read-only SQL source with positional bound parameters:
 ```rank
 Text = "SELECT * FROM facilities WHERE facid = ?"
 Params = array FacilityId
-Result = Db Text Params sqlquery
+Result' = Db Text Params sqlquery
 Rows = Result array
 ```
 
@@ -356,13 +374,13 @@ records separated by spaces, or a rank-1 table of rows. A filtered base table
 can be updated or deleted; projections, joins and sorts cannot be write targets.
 
 ```rank
-F = Db .facilities
+F' = Db .facilities
 F insert Spa Squash
-T = F filter .facid equal 1
+T' = F filter .facid equal 1
 T update
   .initialoutlay = 10000
 end
-Old = Db .members filter .memid equal 37
+Old' = Db .members filter .memid equal 37
 Old delete
 ```
 
@@ -620,7 +638,7 @@ scalar values broadcast. Empty output schemas, duplicate names and mismatched
 column shapes are errors. Column order follows the source text. Array rows
 are lazy and follow source revisions; SQLite builds a bound SELECT plan.
 
-For dynamic columns, use an ordered record of expressions:
+For dynamic columns in an array table, use an ordered record of completed columns:
 
 ```rank
 Cols = record
@@ -630,6 +648,7 @@ Out = Rows select Cols
 ```
 
 `Rows select Cols` uses the same projection implementation as the block form.
+For SQLite, use the contextual block to retain SQL column expressions.
 It replaces the former postfix `Rows Cols select` function call; `select` is
 now table syntax. General `record`, `choose`, `lookup`, aliases and boolean
 addressing retain their independent uses.
@@ -656,15 +675,31 @@ cells. `.field sum`, `min`, `max`, `mean`, `median`, and `std` reduce one field
 within each group. A bare reduction of a grouped column is not table syntax.
 Ordinary reductions outside this block retain their scalar or tensor meaning.
 
+`G = Source group by .key` stores completed grouping inputs, including nested
+values. The same rule applies to `rollup by` and `rolling by`. When `Source` is
+a SQLite query, this reads its rows; a later `select` uses the retained data.
+Use explicit plans to keep both stages in SQL:
+
+```rank
+G' = Source group by .key
+Totals' = G select
+  .total = .value sum
+end
+Rows = Totals
+```
+
+The ordinary `Rows` binding runs the aggregate query. Repeated demand of the
+explicit stages recomputes; it does not reuse earlier grouping or sorting results.
+
 Array groups appear in first-seen order. Missing key cells form one group per
 key combination. Missing aggregate cells are skipped; `sum` yields zero and
 `count` yields zero when no cells are present. Other reductions leave the
 result cell missing. Keys must be scalar and cannot be NaN; repeated keys and
 output names are errors.
 
-On SQLite views, `select` creates one lazy `GROUP BY` query for all requested
-columns. `count`, `sum`, `min`, `max`, and `mean` translate to SQLite. `median`
-and `std` currently require array tables; SQLite reports an error rather than
+With explicitly deferred SQLite grouping stages, `select` builds one `GROUP BY`
+query for all requested columns. `count`, `sum`, `min`, `max`, and `mean`
+translate to SQLite. `median` and `std` currently require array tables; SQLite reports an error rather than
 reading rows early. Use `sql` and `explain` to inspect the generated query,
 `filter` for conditions on totals, and `sort by` for a defined output order.
 SQLite grouping does not promise first-seen order.
@@ -676,36 +711,37 @@ prefix plus a grand total. For `.facid .month`, it groups by both fields, by
 `.facid`, and by no fields. Keys omitted at a subtotal level are absent in the
 result, including on an empty input: the grand total still has `count` and
 `sum` equal to zero. A real missing source key and a subtotal remain separate
-groups even when their visible keys are both absent. On SQLite, this remains a
-lazy view built from grouped queries joined with `UNION ALL`; bound source
+groups even when their visible keys are both absent. Explicit SQLite query
+stages build grouped queries joined with `UNION ALL`; bound source
 parameters are retained for every branch. `sort by` places absent key cells
 last for both array tables and SQLite views, in ascending and descending order.
 
 ```rank
-G = Rows rollup by .facid .month
-Totals = G select
+G' = Rows rollup by .facid .month
+Totals' = G select
   .slots = .slots sum
 end
-Totals = Totals sort by .facid .month
+Totals' = Totals sort by .facid .month
 ```
 
 `N rolling by .field` orders a table by one field and produces one trailing
 group per row: the current row and up to `N-1` predecessors. `N` must be a
 positive integer. A `select` block uses the same named reductions as `group by`
-and retains the ordering field. On arrays, the ordered result rows are lazy and
-respond to source changes. On SQLite, `count`, `sum`, `min`, `max` and `mean`
-use an ordered `ROWS` window without reading rows until output; `median` and
+and retains the ordering field. Ordinary bindings retain the ordered inputs and
+completed results; later source writes do not update them. Explicit SQLite
+stages translate `count`, `sum`, `min`, `max` and `mean` to an ordered `ROWS`
+window without reading rows until demand; `median` and
 `std` are not yet available. `sum` of a frame with no present values is zero.
 Equal ordering keys use the source order on arrays; for stable SQLite results,
 choose a unique ordering field. Filter *after* the rolling `select` when
 earlier rows must contribute to the first displayed result:
 
 ```rank
-W = Daily 15 rolling by .date
-R = W select
+W' = Daily 15 rolling by .date
+R' = W select
   .revenue = .revenue sum
 end
-R = R filter .date at least August
+R' = R filter .date at least August
 ```
 
 ## Join
@@ -776,10 +812,10 @@ text and SQLite columns. Text casts, substring membership with `in`, and text
 slices also stay in a lazy SQLite query. For example:
 
 ```rank
-F = Db .facilities
-Names = F .name lower
-Mask = Names "tennis" startswith
-Result = F filter Mask
+F' = Db .facilities
+Names' = F .name lower
+Mask' = Names "tennis" startswith
+Result' = F filter Mask
 ```
 
 The SQLite host registers deterministic `rank_*` text functions so Unicode

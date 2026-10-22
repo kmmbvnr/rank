@@ -5,7 +5,8 @@ import {
 import { resume, type Evaluation, type Execution } from './execution.js';
 import { RankError } from './errors.js';
 import { joinAliasedSqlite, joinSqlite, reachSqlite } from './modules/sqlite.js';
-import { groupTable, joinAliasedTables, joinTables, reachTable, rollingTable } from './modules/tables.js';
+import { joinAliasedTables, joinTables, reachTable } from './modules/tables.js';
+import { groupTable, rollingTable } from './grouped-table.js';
 import { groupColumnar, joinColumnar } from './table-ops.js';
 import { isRankArray, isRankSqliteTable, isRankTable, isRankTableAlias, type RankValue } from './value.js';
 

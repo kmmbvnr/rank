@@ -17,8 +17,8 @@ end
 
 rem Sum tails of the maximum.
 fun Children Choices candy_max
-  Below = 0 till Choices
-  Ratios = Below / Choices
-  Chances = Ratios ** Children
+  Below' = 0 till Choices
+  Ratios' = Below / Choices
+  Chances' = Ratios ** Children
   return Choices - (Chances sum)
 end

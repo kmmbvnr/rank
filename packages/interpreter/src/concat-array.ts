@@ -133,7 +133,7 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
         return item;
     });
     concats.set(value, { axis, dependency, shape: [...shape], root, read: value.itemAt });
-    registerArrayReadPlan(value, () => prepareIntegerConcat(root, shape, axis));
+    registerArrayReadPlan(value, { prepare: () => prepareIntegerConcat(root, shape, axis) });
     registerIntegerReadPlan(value, () => prepareIntegerConcat(root, shape, axis, true));
     return value;
 }

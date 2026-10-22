@@ -9,14 +9,14 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/agg_015.csv"
 
 Db = DbPath sqlite
-M = Db .members
+M' = Db .members
 Total = M len
-R = M select
+R' = M select
   .count = Total
   .firstname = .firstname
   .surname = .surname
   .joindate = .joindate
 end
-R = R sort by .joindate
-Result = R select .count .firstname .surname
+R' = R sort by .joindate
+Result' = R select .count .firstname .surname
 Result OutputPath csv

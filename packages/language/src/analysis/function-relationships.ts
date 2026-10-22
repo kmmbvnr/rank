@@ -2,6 +2,8 @@ import { binaryOperandFacts } from './binary-facts.js';
 import { findCompiledOperator } from '../compiled-operators.js';
 import { operatorContract } from '../operator-signature.js';
 import { parameterFacts } from './control-flow.js';
+import { completedValueFacts } from './completion-facts.js';
+import { functionCallSignature } from '../function-call-signature.js';
 import {
     isDeclaredCallExpression, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isLabelLiteral, isNameExpression, isNumberLiteral,
     isParenthesizedExpression, isReturnStatement, isStringLiteral, isTupleExpression,
@@ -18,7 +20,8 @@ export type TypeRelationship =
     | { readonly kind: 'tuple'; readonly items: readonly TypeRelationship[] }
     | { readonly kind: 'field'; readonly source: TypeRelationship; readonly name: string }
     | { readonly kind: 'binary'; readonly operation: { readonly name: string }; readonly left: TypeRelationship; readonly right: TypeRelationship }
-    | { readonly kind: 'call'; readonly callee: FunctionRelationship; readonly arguments: readonly TypeRelationship[] };
+    | { readonly kind: 'call'; readonly callee: FunctionRelationship; readonly arguments: readonly TypeRelationship[];
+        readonly deferred: readonly boolean[] };
 
 export interface RelationshipDependency {
     readonly name: string;
@@ -79,7 +82,8 @@ export function functionRelationship(definition: FunctionStatement,
                                 definition: dependency.definition, binding: dependency.binding });
                         }
                         expressions.set(last!, { kind: 'constant', value: target.binding });
-                        term = { kind: 'call', callee: target.relationship, arguments: arguments_ };
+                        term = { kind: 'call', callee: target.relationship, arguments: arguments_,
+                            deferred: functionCallSignature(target.definition).parameters.map(parameter => parameter.deferred) };
                     }
                 }
             }
@@ -121,7 +125,8 @@ export function instantiateRelationship(summary: FunctionRelationship, arguments
                 const inputs = term.arguments.map(read);
                 if (inputs.some(input => input?.bottom)) value = BOTTOM_VALUE;
                 else if (inputs.every(input => input !== undefined)) {
-                    value = instantiateRelationship(term.callee, inputs.map(parameterFacts), expressions, budget);
+                    value = instantiateRelationship(term.callee, inputs.map((input, index) => parameterFacts(
+                        term.deferred[index] ? input : completedValueFacts(input))), expressions, budget);
                 }
                 break;
             }

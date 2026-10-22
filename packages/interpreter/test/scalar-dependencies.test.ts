@@ -83,10 +83,10 @@ ${x} outer`, { maxCallDepth });
             { maxCallDepth: 1, compiledScalarTailCalls: false });
     });
 
-    it('handles primitive specialization and duplicate parameters', () => {
+    it('handles primitive specialization with distinct parameters', () => {
         for (const [argument, expected] of [['3', '6'], ['1.5', '3'], ['"x"', 'xx']]) {
-            const result = compare(`fun A A leaf
- return A + A
+            const result = compare(`fun A B leaf
+ return A + B
 end
 fun A wrapper
  Value = A A leaf
@@ -111,7 +111,7 @@ end`;
         expect(compare('use io\nfun X noisy\n X print\n return X\nend\nfun X wrapper\n return X noisy\nend\n3 wrapper')).toMatchObject({ value: '3', output: ['3'], calls: 0 });
     });
 
-    it('keeps memo hits outside the nested kernels and preserves mixed duplicate errors', () => {
+    it('keeps memo hits outside the nested kernels and rejects duplicate parameters before execution', () => {
         const result = compare(`fun X leaf
  return X + 1
 end
@@ -121,7 +121,8 @@ memo X wrapper
 end
 array (3 wrapper) (3 wrapper)`);
         expect(result).toMatchObject({ value: '8 8', calls: 2 });
-        compare('fun A A leaf\n return A\nend\nfun X wrapper\n return 1 X leaf\nend\n1.5 wrapper');
+        expect(compare('fun A A leaf\n return A\nend\nfun X wrapper\n return 1 X leaf\nend\n1.5 wrapper'))
+            .toMatchObject({ error: expect.stringContaining('Duplicate function parameter A'), calls: 0 });
     });
 
     it('bounds long and cyclic call graphs without poisoning shallow helpers', () => {
@@ -183,10 +184,14 @@ describe('trusted sequence membership', () => {
         let calls = 0, hostCalls = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
         try {
-            runtime.execute('use sequences\nAllowed = primes till 10\nfun X helper\n return X in Allowed\nend');
+            runtime.execute('use sequences');
+            // Keep a native source in this host guard test: a language plan
+            // would construct a new sequence on each demand.
+            runtime.variables.set('Allowed', runtime.execute('primes till 10')!);
+            runtime.execute('fun X helper\n return X in Allowed\nend');
             expect(runtime.execute('7 helper')).toBe(true);
             expect(calls).toBe(1);
-            runtime.execute('Allowed = primes from 11 till 20');
+            runtime.variables.set('Allowed', runtime.execute('primes from 11 till 20')!);
             expect(runtime.execute('7 helper')).toBe(false);
             expect(calls).toBe(2);
             const allowed = runtime.variables.get('Allowed')!;
@@ -227,9 +232,9 @@ array (5 outer) (10 outer) (5 outer)`);
         const runtime = new Interpreter(undefined, { scalarEntryCompilation: false,
             onIntegerLoopExecuted: () => loops++ });
         try {
-            runtime.execute(`use sequences
-Allowed = primes till 10
-fun work
+            runtime.execute('use sequences');
+            runtime.variables.set('Allowed', runtime.execute('primes till 10')!);
+            runtime.execute(`fun work
  Count = 0
  for I in 1 to 10
   if I in Allowed

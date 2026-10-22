@@ -22,14 +22,14 @@ N = Ps reduce *
 Sums = array 0
 for P in Ps
   Xs = 0 till P array
-  Cube = (Xs * Xs * Xs) mod P
+  Cube' = (Xs * Xs * Xs) mod P
   Roots = Xs filter (Cube equal 1) array
   Q = N // P
   Inv = (Q mod P) (P - 2) P powmod
   Terms = (Roots * Q * Inv) mod N
   Rows = Sums len
-  Col = Sums reshape Rows 1
-  Both = (Col + Terms) mod N
+  Col' = Sums reshape Rows 1
+  Both' = (Col + Terms) mod N
   Cells = Rows * (Terms len)
   Sums = Both reshape Cells
 end

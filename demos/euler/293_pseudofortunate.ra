@@ -24,13 +24,13 @@ All = array 1
 Found = array shape 0 fill 0
 for P in Pr
   Pw = P ** (1 to Bits array)
-  Fit = Pw at most Limit
+  Fit' = Pw at most Limit
   Pw = Pw filter Fit array
   Rows = All len
   Cells = Rows * (Pw len)
-  Col = All reshape Rows 1
+  Col' = All reshape Rows 1
   Prod = (Col * Pw) reshape Cells
-  Ok = Prod less Limit
+  Ok' = Prod less Limit
   All = Prod filter Ok array
   Found = concat Found All copy
 end

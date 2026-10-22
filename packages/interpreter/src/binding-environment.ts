@@ -1,8 +1,11 @@
 import {
     acceptsBindingType, availableBuiltin, bindingTypeMessage, builtinBindingMessage, possibleBindingTypeConflict,
-    settledBindingTypes,
+    settledBindingTypes, deferredBindingMessage,
 } from '@arrrank/language';
+import { checkPlan, isRankPlan } from './plan.js';
 import { RankError } from './errors.js';
+import { prepareCaptureProtection } from './capture-protection.js';
+import { checkValueMutable } from './value-protection.js';
 import { LocalFrame } from './frame.js';
 import { typeName, type RankValue } from './value.js';
 
@@ -65,6 +68,18 @@ export class BindingEnvironment {
         const scope = this.assignmentScope(name);
         if (scope === this.globals) this.sourceBindings.add(name);
         if (this.isConstant(name, scope)) throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
+        if (isRankPlan(value)) {
+            scope.set(name, checkPlan(value, computed => {
+                const received = typeName(computed);
+                const expected = scope.typeOf(name);
+                if (expected && !acceptsBindingType(expected, received)) {
+                    throw new RankError(bindingTypeMessage(name, expected, [received], true));
+                }
+                scope.declareType(name, expected ? settledBindingTypes(expected, [received]) : new Set([received]));
+                return scope.checkValue(name, computed);
+            }));
+            return;
+        }
         const received = typeName(value);
         if (received === 'function' && /^[A-Z]/.test(name.split('.').at(-1)!)) {
             throw new RankError(`Function bindings use lowercase names: ${name}`, 'TypeError');
@@ -89,7 +104,7 @@ export class BindingEnvironment {
             return;
         }
         const previous = scope.get(name);
-        const expected = previous === undefined ? undefined : new Set([typeName(previous)]);
+        const expected = previous === undefined || isRankPlan(previous) ? undefined : new Set([typeName(previous)]);
         if (expected !== undefined && !acceptsBindingType(expected, received)) {
             throw new RankError(bindingTypeMessage(name, expected, [received], true));
         }
@@ -109,6 +124,7 @@ export class BindingEnvironment {
             if (this.isConstant(name, this.assignmentScope(name))) {
                 throw new RankError(`cannot reassign function declaration: ${name}`, 'TypeError');
             }
+            if (isRankPlan(value)) { this.assign(name, value); return; }
             const received = typeName(value);
             const frame = this.current;
             if (frame === undefined) {
@@ -130,6 +146,30 @@ export class BindingEnvironment {
             if (slot >= 0 && frame.store(slot, name, value, received)) return;
             this.assign(name, value);
         };
+    }
+
+    /** Protection belongs to a name's scope and survives ordinary rebinding. */
+    protect(name: string, plan: string): () => void {
+        const frame = this.current?.find(name) ?? this.globals;
+        const value = frame.get(name);
+        if (value === undefined) return () => undefined;
+        const message = deferredBindingMessage(name, plan);
+        const publish = prepareCaptureProtection(value, message);
+        return () => { publish(); frame.protectName(name, message); };
+    }
+
+    checkMutable(name: string, local = false): void {
+        for (let frame = this.current; frame; frame = frame.parent) {
+            const message = frame.mutationError(name);
+            if (message) throw new RankError(message, 'Scope');
+            const value = frame.get(name);
+            if (value !== undefined) { checkValueMutable(value); return; }
+            if (frame.layout.has(name) || frame.blockNames?.has(name)) return;
+        }
+        const message = !local && this.globals.mutationError(name);
+        if (message) throw new RankError(message, 'Scope');
+        const value = local ? undefined : this.globals.get(name);
+        if (value !== undefined) checkValueMutable(value);
     }
 
     /** A private region can publish once only when all its binding stores are total.

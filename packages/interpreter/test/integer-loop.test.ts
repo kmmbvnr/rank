@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { registerCachedArray, typedArray, typedElementKind } from '../src/array-storage.js';
+import { typedArray, typedElementKind } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
 
@@ -1579,22 +1579,25 @@ end`);
 });
 
 
-it('does not make a cached lazy input writable through a local alias', () => {
+it('materializes a native lazy input before writing an ordinary local alias', () => {
     for (const integerLoopCompilation of [false, true]) {
         let loops = 0;
         const runtime = new Interpreter(undefined, { integerLoopCompilation,
             onIntegerLoopExecuted: () => loops++ });
         const read = vi.fn(() => 1n);
-        runtime.variables.set('Source', registerCachedArray({ kind: 'array', shape: [1],
-            get items() { return [1n]; }, itemAt: read }, () => [1n]));
+        runtime.variables.set('Source', { kind: 'array', shape: [1],
+            get items() { return [1n]; }, itemAt: read });
         try {
-            expect(() => runtime.execute(`for I in 0 till 1
+            runtime.execute(`Alias = array shape 0 fill 0
+for I in 0 till 1
   Seen = Source 0
   Alias = Source
   Alias 0 = 2
-end`)).toThrow('cannot assign to a lazy array');
+end`);
+            expect(runtime.execute('Alias 0')).toBe(2n);
+            expect(runtime.execute('Source 0')).toBe(1n);
             expect(loops).toBe(0);
-            expect(read).toHaveBeenCalledTimes(1);
+            expect(read).toHaveBeenCalledTimes(3);
         } finally { runtime.dispose(); }
     }
 });

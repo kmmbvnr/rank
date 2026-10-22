@@ -6,7 +6,7 @@ fun N A movingAverage
   if N less 1
     .InvalidWindow "movingAverage requires a positive window length" raise
   end
-  Windows = A window N
+  Windows' = A window N
   return (Windows sum rank 1) / N
 end
 

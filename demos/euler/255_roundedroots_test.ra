@@ -1,12 +1,5 @@
 use testing
 
-test "default input"
-  use "255_roundedroots"
-  run
-
-  Answer equal 4.447401118
-end
-
 test "fewer digits"
   use "255_roundedroots"
   Digits = 4

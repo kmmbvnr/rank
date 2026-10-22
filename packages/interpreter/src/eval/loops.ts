@@ -2,7 +2,7 @@ import {
     flattenApplication, forIteration, isNameExpression, isNumberLiteral,
     type Expression, type ForBinding, type ForStatement, type Statement,
 } from '@arrrank/language';
-import { ownedArray } from '../array-storage.js';
+import { arrayCells, arrayValues, materializedArrayItems, ownedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { BreakSignal, ContinueSignal } from '../control-signals.js';
 import { RankDeque, RankHeap } from '../containers.js';
@@ -11,8 +11,10 @@ import { resume, type Evaluation } from '../execution.js';
 import type { CompiledLoop } from '../fast-paths.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { materializeValue } from '../materialize.js';
+import { isRankPlan } from '../plan.js';
 import { compileGeneratorLoop } from '../generator-loop.js';
-import { tensorFrameAxes } from '../rank-application.js';
+import { tensorCells, tensorFrameAxes } from '../rank-application.js';
 import { sequenceValues } from '../sequence.js';
 import type { ExecutionContext, LoopControl, PreparedStatement } from '../statement-control.js';
 import { compileTensorCellCopy } from '../tensor-cell-compiler.js';
@@ -52,8 +54,9 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         ? loop.compileDirect(statement.condition) : undefined;
     // The names a binding writes never change, so each gets its write
     // site once here rather than a name lookup on every iteration.
-    const bindValue = binding && binding.names[0] !== '#'
+    const writeValue = binding && binding.names[0] !== '#'
         ? loop.compileAssign(binding.names[0]) : undefined;
+    const bindValue = writeValue ? (value: RankValue) => writeValue(materializeValue(value)) : undefined;
     const bindIndex = binding
         ? binding.names.slice(1).map(name =>
             name === '#' ? undefined : loop.compileAssign(name))
@@ -173,7 +176,7 @@ function* forEntries(
         const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
         validateForBindings(binding.names, frameAxes.length);
         bindings.declareTypes(binding.names, [
-            spec.cellRank === 0 ? typesOf(value.items) : new Set(['array']),
+            spec.cellRank === 0 ? typesOf(materializedArrayItems(value) ?? []) : new Set(['array']),
             ...frameAxes.map(() => new Set(['integer'])),
         ]);
         yield* tensorEntries(value, frameAxes, tensorCells);
@@ -230,10 +233,12 @@ export function declareIterationTypes(
     validateForBindings(binding.names, 1);
     if (isRankArray(value)) {
         const types = provenType
-            ? new Set(value.items.length ? [provenType] : []) : typesOf(value.items);
+            ? new Set(value.shape.every(n => n !== 0) ? [provenType] : [])
+            : typesOf(materializedArrayItems(value) ?? []);
         bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
     } else if (isRankQueue(value)) {
-        const types = value instanceof RankDeque ? value.iterationTypes(typeName) : typesOf(value.items);
+        const types = value instanceof RankDeque
+            ? new Set([...value.iterationTypes(iterationType)].filter(type => type !== 'unknown')) : typesOf(value.items);
         bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
     } else if (isRankSet(value)) {
         bindings.declareTypes(binding.names, [
@@ -302,10 +307,16 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[], compile
     const frameSet = new Set(frameAxes);
     const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
     const cellShape = cellAxes.map(axis => source.shape[axis]);
-    const copy = compiled && cellAxes.length > 0
+    const producer = arrayCells(source) ? tensorCells(source, frameAxes) : undefined;
+    let frameIndex = 0;
+    const copy = compiled && cellAxes.length > 0 && !('itemAt' in source)
         ? compileTensorCellCopy(frameAxes.length + cellAxes.length, cellAxes) : undefined;
 
     for (const frameCoordinates of coordinates(frameShape)) {
+        if (producer) {
+            yield { value: producer.cellAt(frameIndex++), indices: frameCoordinates.map(BigInt) };
+            continue;
+        }
         const fullCoordinates = Array(source.shape.length).fill(0) as number[];
         frameAxes.forEach((axis, position) => {
             fullCoordinates[axis] = frameCoordinates[position];
@@ -328,7 +339,9 @@ function* tensorEntries(source: RankArray, frameAxes: readonly number[], compile
                     remaining = Math.floor(remaining / cellShape[position]);
                 }
             }
-            items.push(source.items[arrayOffset(source.shape, fullCoordinates)]);
+            const reader = source.itemAt;
+            items.push(reader ? reader.call(source, arrayOffset(source.shape, fullCoordinates))
+                : source.items[arrayOffset(source.shape, fullCoordinates)]);
         }
         yield {
             value: cellShape.length === 0
@@ -355,7 +368,7 @@ function* coordinates(shape: readonly number[]): IterableIterator<number[]> {
 function iterationValues(value: RankValue): Iterable<RankValue> {
     if (value instanceof RankDeque || value instanceof RankHeap) return value.values();
     if (isRankSequence(value)) return sequenceValues(value, 'for');
-    if (isRankArray(value)) return value.items;
+    if (isRankArray(value)) return arrayValues(value);
     if (isRankQueue(value)) return value.items;
     if (isRankSet(value)) return value.entries.values();
     if (isRankCounter(value)) return Array.from(value.entries.values(), entry => entry.value);
@@ -365,5 +378,12 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
 }
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {
-    return new Set([...values].map(typeName));
+    return new Set([...values].map(iterationType).filter(type => type !== 'unknown'));
+}
+
+function iterationType(value: RankValue): string {
+    if (isRankSequence(value)) return 'array';
+    if (!isRankPlan(value)) return typeName(value);
+    const types = value.result?.types;
+    return types?.length === 1 ? types[0] === 'sequence' ? 'array' : types[0] : 'unknown';
 }

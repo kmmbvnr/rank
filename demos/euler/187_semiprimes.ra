@@ -31,17 +31,17 @@ for P in primes to R
   if Kmax greater 0
     Ks = 1 to Kmax array
     Kp = Ks * P
-    Pos = Kp R min
-    Low = (M // Kp) R min
+    Pos' = Kp R min
+    Low' = (M // Kp) R min
     Near = Hi Pos
     Far = Lo Low
-    Big = Kp at most R
+    Big' = Kp at most R
     Src = Big choose Near Far
     Cur = Hi (1 to Kmax)
     Hi (1 to Kmax) = Cur - (Src - Sp)
   end
   if P * P at most R
-    Vs = P * P to R array
+    Vs' = P * P to R array
     Cur = Lo (P * P to R)
     Back = Lo (Vs // P)
     Lo (P * P to R) = Cur - (Back - Sp)

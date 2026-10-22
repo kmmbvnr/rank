@@ -47,10 +47,10 @@ Analysis may join possible types from different paths. This does not permit an
 existing runtime binding to change type. A loop variable over a finite
 heterogeneous collection receives a fixed union of its element types:
 ```rank
-Values = array 1 "two"
+Values = array 1 2
 for Value in Values
   Value = Value
-  rem Value accepts integer or text, but not boolean.
+  rem Value accepts integer, but not text or boolean.
 end
 ```
 The loop variable is block-local; it does not remain available after `end`.
@@ -72,7 +72,9 @@ bindings, and a new function invocation gets fresh local binding contracts.
 Ordinary array bindings also retain a recursive element contract. Empty and missing-only
 arrays defer the element domain; an established union accepts subsets. Infinity-only
 numeric seeds settle on the first finite numeric domain while retaining infinity as
-a sentinel. Validation of unread lazy cells is deferred. See the
+a sentinel. Ordinary bindings complete nested plans and validate stored cells
+at assignment. Deferred bindings and deferred parameters retain result facts
+without forcing unread cells; validation then follows demand. See the
 [type-contract comparison](../../language/type-contracts.md) for timing and exceptions.
 
 Record fields have the recursive contracts in

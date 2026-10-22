@@ -6,7 +6,7 @@ import { type RankArray } from '../src/value.js';
 
 for (const compiled of [true, false]) describe(`array construction (compiled ${compiled})`, () => {
     const runtime = () => {
-        const r = new Interpreter(() => {}, { integerLoopCompilation: compiled,
+        const r = new Interpreter(() => {}, { compilation: compiled, integerLoopCompilation: compiled,
             scalarCompilation: compiled, tensorCellCompilation: compiled });
         r.execute('use sequences');
         return r;
@@ -39,16 +39,22 @@ for (const compiled of [true, false]) describe(`array construction (compiled ${c
         expect(formatValue(r.execute('Framed shape')!)).toBe('1 2 2');
         expect(analyzeValues(parse('V = array 1 2\nFramed = array shape 1 2\n V V\nend')).diagnostics).toEqual([]);
     });
-    it('checks shapes without reading lazy cells and preserves named values on writes', () => {
+    it('checks deferred shapes without reading cells and completes ordinary storage before writes', () => {
         const r = runtime();
         let reads = 0;
         const lazy: RankArray = { kind: 'array', shape: [2], items: [],
             itemAt: index => { reads++; return BigInt(index + 1); } };
         r.variables.set('Lazy', lazy);
-        r.execute('M = array Lazy Lazy');
+        r.execute("M' = array Lazy Lazy");
+        expect(reads).toBe(0);
+        expect(formatValue(r.execute('M shape')!)).toBe('2 2');
         expect(reads).toBe(0);
         expect(r.execute('M 1 0')).toBe(1n);
         expect(reads).toBe(1);
+        r.execute('Saved = M');
+        expect(reads).toBe(5);
+        expect(r.execute('Saved 1 0')).toBe(1n);
+        expect(reads).toBe(5);
         r.execute('A = array 1 2\nB = array A A\nA 0 = 9');
         expect(formatValue(r.execute('B')!)).toBe('1 2 1 2');
         r.execute('B 0 0 = 7');

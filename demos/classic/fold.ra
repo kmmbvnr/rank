@@ -1,7 +1,7 @@
 rem A user-defined reduction: the signature places its operation after the name.
 use io
 
-fun Values fold op .with Seed
+fun Values' fold op .with Seed
   Result = Seed
   for Value in Values
     if Result is .missing

@@ -18,9 +18,9 @@ fun solve
     Lower = Power
     Upper = (10 * Power - 1) // 6
 
-    N = Lower to Upper array
-    M9 = N mod 9 equal 0
-    Candidates = N M9
+    N' = Lower to Upper
+    M9' = N mod 9 equal 0
+    Candidates' = N M9
 
     for X in Candidates
       if X permuted

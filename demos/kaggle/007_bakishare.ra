@@ -46,8 +46,8 @@ fun Train Test Rate Steps solve
   Xtest = Test bike_features
   Y = Train .count + 1 log
   Model = X Y Rate Steps Regression.linear
-  LogPred = Xtest Model Regression.linear_predict
-  Pred = (LogPred exp - 1) 0.0 max
+  LogPred' = Xtest Model Regression.linear_predict
+  Pred' = (LogPred exp - 1) 0.0 max
   Test .count = Pred
   return Test (array .datetime .count)
 end

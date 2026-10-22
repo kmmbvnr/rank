@@ -25,10 +25,11 @@ fun Train Test forecast
   Global = Train .sales mean
   Train .weekday = Train .date date weekday
   Test .weekday = Test .date date weekday
-  Groups = Train group by .store_nbr .family .weekday
-  Means = Groups select
+  Groups' = Train group by .store_nbr .family .weekday
+  Means' = Groups select
     .sales = .sales mean
   end
+  rem Materialize before the caller adds the prediction column.
   Joined = Test Means leftjoin by .store_nbr .family .weekday
   return Joined .sales default Global
 end

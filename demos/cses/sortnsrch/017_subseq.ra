@@ -5,13 +5,13 @@ use io
 use algo
 
 N = stdin .integer
-A = stdin .integer N array
+A' = stdin .integer N
 
 A distinct_subsequences print
 
 
 rem Choose zero or one copy of each value.
-fun A distinct_subsequences
+fun A' distinct_subsequences
   Index = new index
   Seen = new set
   for Value in A

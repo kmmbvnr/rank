@@ -41,16 +41,16 @@ for Mask in Masks
     NL = L len
     NR = R len
     Cnt = NL * NR
-    Add = (L R outer +) reshape Cnt
-    Mul = (L R outer *) reshape Cnt
-    Dif = (L R outer -) reshape Cnt
-    Rev = (R L outer -) reshape Cnt
+    Add' = (L R outer +) reshape Cnt
+    Mul' = (L R outer *) reshape Cnt
+    Dif' = (L R outer -) reshape Cnt
+    Rev' = (R L outer -) reshape Cnt
     QR = Rn len
     QL = Ln len
     CntQ = NL * QR
     CntI = NR * QL
-    Quo = (L Rn outer /) reshape CntQ
-    Inv = (R Ln outer /) reshape CntI
+    Quo' = (L Rn outer /) reshape CntQ
+    Inv' = (R Ln outer /) reshape CntI
     Out = concat Out Add Mul Dif
     Out = concat Out Rev Quo Inv
   end

@@ -1,3 +1,5 @@
+import { isRankPlan } from './plan.js';
+import { arrayResourceValues, storedArrayValues } from './array-storage.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { normalizeStackError } from './execution.js';
 import { closeFile } from './modules/io.js';
@@ -131,13 +133,17 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         seen.add(item);
         if (isRankFile(item)) {
             files.add(item);
-        } else if (isRankArray(item) && item.containsFiles === false) {
-            continue;
         } else if (item instanceof RankDeque || item instanceof RankHeap) {
             pending.push(item.values());
         } else if (isRankSegment(item)) {
             pending.push(item.values());
-        } else if (isRankTuple(item) || isRankArray(item) || isRankQueue(item)) {
+        } else if (isRankArray(item)) {
+            const dependencies = arrayResourceValues(item);
+            // A recipe can return only numbers while its reader still needs a
+            // captured file. Output-cell facts cannot discharge dependencies.
+            if (dependencies) pending.push(dependencies[Symbol.iterator]());
+            else if (item.containsFiles !== false) pending.push(storedArrayValues(item)[Symbol.iterator]());
+        } else if (isRankTuple(item) || isRankQueue(item)) {
             pending.push(item.items.values());
         } else if (isRankIndex(item) || isRankSet(item)
             || isRankObject(item) || isRankRecord(item)) {
@@ -149,9 +155,13 @@ function containedFiles(value: RankValue | undefined): Set<RankFile> {
         } else if (isRankErrorValue(item)) {
             pending.push([item.value, item.cause].values());
         } else if (isNativeFunction(item)) {
+            const dependencies = item.captureValues?.();
+            if (dependencies) pending.push(dependencies[Symbol.iterator]());
             if (item.captures) pending.push(captures(item.captures));
         } else if (isRankGraph(item) && 'captures' in item) {
             pending.push(captures(item.captures));
+        } else if (isRankPlan(item)) {
+            pending.push(item.dependencies.values());
         } else if (isRankSequence(item)) {
             if (item.plan.captures) pending.push(captures(item.plan.captures));
         }

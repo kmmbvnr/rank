@@ -4,7 +4,7 @@ import {
     isExpression, isExpressionStatement, isFunctionBindingStatement, isFunctionStatement, isKeyedSortExpression,
     isMaterializeExpression, isNameExpression, isParenthesizedExpression, isPushStatement,
     isRecordExpression, isReturnStatement, isTableFilterExpression, isTupleExpression, isYieldStatement,
-    type Expression, type FunctionStatement,
+    type AssignmentStatement, type FunctionBindingStatement, type FunctionStatement,
 } from '../generated/ast.js';
 import { flattenApplication } from '../expressions.js';
 import { applicationForm } from '../application-forms.js';
@@ -14,8 +14,13 @@ import { lexicalBinding, type FunctionScopeAnalysis, type LexicalBinding } from 
 
 import { empty, union, escapeCalls, type Environment, type Flow } from './function-escape-calls.js';
 
-// Materialization consumes the outer iterator, not lazy values inside its cells.
-const materialized = (source: Flow): Flow => ({ ...source, lazy: new Set(source.stored) });
+// Completion is recursive. Opaque live callbacks (for example graph relations)
+// survive it; snapshotted computation callbacks need no lifetime provenance.
+const materialized = (source: Flow): Flow => source.lazy.size || source.cells.size
+    ? { ...source, lazy: new Set(), cells: new Set() } : source;
+const consumed = (source: Flow): Flow => source.lazy.size ? { ...source, lazy: new Set() } : source;
+const retained = (source: Flow): Set<FunctionStatement> =>
+    new Set([...source.lazy, ...source.cells, ...source.opaque, ...source.stored]);
 
 /** Follow callback values through local bindings and ordinary Rank helpers.
  * A helper is inspected with its actual callback arguments; it needs no annotation. */
@@ -47,17 +52,17 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             }
             const supplied = env.get(binding);
             if (supplied) {
-                if (asCallback) return supplied;
+                if (asCallback || !supplied.functions.size) return supplied;
                 return union([{ functions: new Set([...supplied.functions].filter(fn => functionCallSignature(fn).arity > 0)),
-                    lazy: supplied.lazy, stored: supplied.stored }, ...[...supplied.functions].filter(fn => functionCallSignature(fn).arity === 0)
+                    lazy: supplied.lazy, cells: supplied.cells, opaque: supplied.opaque, stored: supplied.stored }, ...[...supplied.functions].filter(fn => functionCallSignature(fn).arity === 0)
                     .map(fn => invoke(fn, [], env, node))]);
             }
             if (reading.has(binding)) return empty();
             reading.add(binding);
             try {
                 const expressions = values.get(binding) ?? [];
-                const result = expressions.length === 1 ? value(expressions[0], env)
-                    : union(expressions.map(expression => value(expression, env)));
+                const result = expressions.length === 1 ? bindingValue(expressions[0], env)
+                    : union(expressions.map(expression => bindingValue(expression, env)));
                 env.set(binding, result);
                 return result;
             }
@@ -71,34 +76,36 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         if (isMaterializeExpression(node)) return materialized(value(node.source, env));
         if (isTableFilterExpression(node)) {
             const source = value(node.source, env);
-            const predicates = union((node.condition ? [node.condition] : node.conditions).map(condition => {
+            for (const condition of node.condition ? [node.condition] : node.conditions) {
                 const parts = flattenApplication(condition);
                 const last = parts.at(-1)!;
                 const callback = value(last, env, true);
-                if (callback.functions.size) return union([callback, ...parts.slice(0, -1).map(part => value(part, env))]);
-                return value(condition, env);
-            }));
-            return { ...source, lazy: new Set([...source.lazy, ...predicates.functions, ...predicates.lazy]) };
+                if (callback.functions.size) for (const part of parts.slice(0, -1)) value(part, env);
+                else value(condition, env);
+            }
+            // Runtime filters snapshot their callbacks. Only the source data
+            // can carry an opaque/live value out through the result.
+            return source;
         }
-        if (isKeyedSortExpression(node)) return materialized(value(node.source, env));
+        if (isKeyedSortExpression(node)) return consumed(value(node.source, env));
         if (isDeclaredCallExpression(node)) {
             const fn = value(node.callee, env, true);
             const args = node.arguments.map((argument, index) => value(argument, env,
                 [...fn.functions].some(callee => functionCallSignature(callee).parameters[index]?.acceptsFunction)));
             if (!fn.functions.size) {
-                for (const callback of union(args).functions) if (nested(callback)) report(node, callback, false);
+                const input = union(args);
+                for (const callback of input.functions) if (nested(callback)) report(node, callback, false);
+                for (const callback of retained(input)) if (nested(callback)) report(node, callback, true);
             }
             const result = union([...fn.functions].map(callee => invoke(callee, args, env, node)));
-            if (node.ranks.length || [...fn.functions].some(callee => callee.ranks.length)) {
-                return { ...result, lazy: new Set([...fn.functions, ...union(args).lazy, ...result.stored]) };
-            }
             return result;
         }
         if (isApplicationExpression(node)) {
             const form = applicationForm(node);
             if (form.kind === 'new-graph' && (form.predicate || form.successor)) {
                 const callback = value((form.predicate ?? form.successor)!, env, true);
-                return { ...empty(), lazy: new Set([...callback.functions, ...callback.lazy]) };
+                const retained = new Set([...callback.functions, ...callback.lazy]);
+                return { ...empty(), opaque: retained };
             }
             if (form.kind === 'named-reduce') {
                 const source = value(form.source, env);
@@ -121,50 +128,76 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             const modifier = parts.findIndex(part => isNameExpression(part) && ['rank', 'outer', 'scan', 'segment'].includes(part.name));
             if (modifier >= 0) {
                 const input = union(parts.slice(0, modifier).map(part => value(part, env)));
-                return { ...input, functions: new Set(), lazy: new Set([...input.functions, ...input.lazy]) };
+                return { ...input, functions: new Set() };
             }
             const last = parts.at(-1)!;
             const fn = value(last, env, true), args = parts.slice(0, -1).map(part => value(part, env));
             if (fn.functions.size) return union([...fn.functions].map(callee => invoke(callee, args, env, node)));
-            const operation = isNameExpression(last) ? findOperation(last.name) : undefined;
+            const operation = isNameExpression(last) && !lexicalBinding(scope, last.name) ? findOperation(last.name) : undefined;
+            const callableName = isNameExpression(last) && /^[a-z]/.test(last.name.split('.').at(-1)!);
             if (operation && ['integer', 'real', 'number', 'boolean', 'text', 'bytes', 'date', 'datetime', 'duration'].includes(operation.result)) return empty();
             // Local graph traversals eagerly consume the relation and return only
             // scalar vertex/weight data, never the graph's retained callback.
             if (operation?.module === 'graph' && ['bfs', 'dfs', 'dijkstra'].includes(operation.name)
                 && isNameExpression(last) && !lexicalBinding(scope, last.name)) return empty();
-            if (operation?.name === 'array' || operation?.name === 'copy') return materialized(union(args));
+            if (operation?.name === 'array' || operation?.name === 'copy') return consumed(union(args));
             const result = union(args);
             // Opaque helpers cannot promise not to retain a nested callback.
-            if (isNameExpression(last) && (!operation || lexicalBinding(scope, last.name))) {
+            if (callableName && (!operation || lexicalBinding(scope, last.name))) {
                 for (const callback of result.functions) if (nested(callback)) report(node, callback, false);
+                for (const callback of retained(result)) {
+                    if (nested(callback)) report(node, callback, true);
+                }
+            }
+            // Applying a live relation produces a stream of vertices/edges,
+            // rather than returning the relation itself. Completing that stream
+            // detaches the callback; nested opaque values remain conservative.
+            if (args[0]?.opaque.size && (form.kind === 'graph-edges'
+                || !callableName)) {
+                for (const fn of result.opaque) result.lazy.add(fn);
+                result.opaque.clear();
             }
             return result;
         }
         const result = union([...AstUtils.streamContents(node)].map(child => value(child, env)));
         if (isArrayExpression(node) || isRecordExpression(node) || isTupleExpression(node)) {
-            for (const fn of result.lazy) result.stored.add(fn);
+            for (const fn of result.opaque) result.stored.add(fn);
+            for (const fn of result.lazy) result.cells.add(fn);
+            result.opaque.clear();
+            result.lazy.clear();
         }
-        return result;
+        return isRecordExpression(node) ? materialized(result) : result;
+    };
+    const bindingValue = (binding: AssignmentStatement | FunctionBindingStatement, env: Environment): Flow => {
+        const result = value(binding.value, env);
+        return isAssignmentStatement(binding) && !binding.deferred ? materialized(result) : result;
     };
     const check = (node: AstNode, env: Environment, owner?: FunctionStatement): Flow | undefined => {
         let result: Flow | undefined;
         if (isExpressionStatement(node)) value(node.value, env);
         if (isReturnStatement(node) || isYieldStatement(node)) {
             result = value(node.value, env);
-            for (const fn of result.lazy) {
+            for (const fn of retained(result)) {
                 if (nested(fn) && analysis.functions.get(fn)?.scope.parent?.owner === owner) report(node, fn, true);
             }
         } else if (isAssignmentStatement(node) || isFunctionBindingStatement(node)
             || isArrayAssignmentStatement(node) || isPushStatement(node)) result = value(node.value, env);
+        if (result && (isAssignmentStatement(node) && !node.deferred
+            || isArrayAssignmentStatement(node) || isPushStatement(node))) result = materialized(result);
+        if (result && (isAssignmentStatement(node) || isFunctionBindingStatement(node))) {
+            const binding = lexicalBinding(analysis.scopes.get(node), node.name);
+            if (binding) env.set(binding, result);
+        }
         if (result && (isArrayAssignmentStatement(node) || isPushStatement(node))) {
             const scope = analysis.scopes.get(node);
             const receiver = isPushStatement(node) ? flattenApplication(node.receiver)[0] : undefined;
             const name = isArrayAssignmentStatement(node) ? node.name : isNameExpression(receiver) ? receiver.name : undefined;
             const binding = name ? lexicalBinding(scope, name) : undefined;
             if (binding) {
-                const target = env.get(binding) ?? union((values.get(binding) ?? []).map(expression => value(expression, env)));
+                const target = env.get(binding) ?? union((values.get(binding) ?? []).map(expression => bindingValue(expression, env)));
                 for (const fn of result.functions) target.functions.add(fn);
-                for (const fn of result.lazy) { target.lazy.add(fn); target.stored.add(fn); }
+                for (const fn of [...result.lazy, ...result.cells]) target.cells.add(fn);
+                for (const fn of [...result.opaque, ...result.stored]) target.stored.add(fn);
                 env.set(binding, target);
             }
         }
@@ -175,9 +208,13 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         const info = analysis.functions.get(fn)!;
         const env = new Map(outer);
         for (const binding of env.keys()) if (binding.scope.owner === fn) env.delete(binding);
+        const inputs: Flow[] = [];
         for (const [index, parameter] of functionCallSignature(fn).parameters.entries()) {
             const binding = lexicalBinding(info.scope, parameter.name)!;
-            env.set(binding, args[index] ?? empty());
+            const argument = args[index] ?? empty();
+            const bound = parameter.deferred ? argument : materialized(argument);
+            inputs.push(bound);
+            env.set(binding, bound);
         }
 
         const nodes = bodies.get(fn) ?? [];
@@ -189,8 +226,11 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
             if (result && isYieldStatement(node)) yields.push(result);
         }
         if (yields.length) {
-            const emitted = union(yields);
-            return { functions: emitted.functions, lazy: new Set([fn, ...emitted.lazy]), stored: new Set(emitted.lazy) };
+            const emitted = union(yields), input = union(inputs);
+            // Generator arguments remain in its live frame until consumed.
+            return { ...empty(), functions: emitted.functions,
+                lazy: new Set([fn, ...input.functions, ...retained(input)]),
+                cells: new Set([...emitted.lazy, ...emitted.cells]), stored: new Set([...emitted.opaque, ...emitted.stored]) };
         }
         return union(returns);
     };
@@ -199,6 +239,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
         if (analysis.functions.has(fn)) return calls(fn, args, outer);
         const result = union(args);
         for (const callback of result.functions) if (nested(callback)) report(site, callback, false);
+        for (const callback of retained(result)) if (nested(callback)) report(site, callback, true);
         return result;
     };
     for (const fn of analysis.functions.keys()) {
@@ -219,7 +260,7 @@ export function functionEscapeDiagnostics(analysis: FunctionScopeAnalysis): { no
 
 /** Index lexical inputs once; expression evaluation uses these binding identities. */
 function escapeInputs(analysis: FunctionScopeAnalysis) {
-    const values = new Map<LexicalBinding, Expression[]>();
+    const values = new Map<LexicalBinding, (AssignmentStatement | FunctionBindingStatement)[]>();
     const bodies = new Map<FunctionStatement, AstNode[]>();
     for (const [node, scope] of analysis.scopes) {
         if (isFunctionStatement(scope.owner)) {
@@ -231,7 +272,7 @@ function escapeInputs(analysis: FunctionScopeAnalysis) {
             const binding = lexicalBinding(scope, node.name);
             if (binding) {
                 const expressions = values.get(binding) ?? [];
-                expressions.push(node.value);
+                expressions.push(node);
                 values.set(binding, expressions);
             }
         }

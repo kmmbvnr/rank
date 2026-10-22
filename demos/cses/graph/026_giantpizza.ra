@@ -40,7 +40,7 @@ end
 rem Solve the wishes as a 2-SAT graph.
 fun N Clauses giant_pizza
   LiteralCount = 2 * N
-  Literals = 1 to LiteralCount
+  Literals' = 1 to LiteralCount
   Graph = new graph Literals .directed
   for Clause in Clauses
     unpack WishA WishB = Clause

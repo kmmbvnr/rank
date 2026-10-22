@@ -13,7 +13,7 @@ fun N removing_digits
   Steps 0 = 0
 
   for Value in 1 to N
-    Digits = Value text integer rank 0
+    Digits' = Value text integer rank 0
 
     for Digit in Digits
       if Digit equal 0

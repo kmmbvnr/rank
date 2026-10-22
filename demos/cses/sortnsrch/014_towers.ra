@@ -5,13 +5,13 @@ use io
 use algo
 
 N = stdin .integer
-A = stdin .integer N array
+A' = stdin .integer N
 
 A tower_count print
 
 
 rem Keep the smallest possible top for every tower.
-fun A tower_count
+fun A' tower_count
   Towers = new multiset
 
   for Cube in A

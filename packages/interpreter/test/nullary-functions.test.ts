@@ -46,11 +46,11 @@ for (const compiled of [true, false]) describe(`nullary calls (compiled: ${compi
             expect(formatValue(second!)).toBe('1 2 3');
             expect(interpreter.execute('tst sum')).toBe(6n);
             expect(interpreter.execute('tst 1')).toBe(2n);
-            interpreter.execute('G = tst');
+            interpreter.execute("G' = tst");
             expect(formatValue(interpreter.execute('G array')!)).toBe('1 2 3');
             expect(() => interpreter.execute('G array')).toThrow('already been consumed');
-            expect(interpreter.execute(`G = tst
-Mask = G mod 2 equal 0 or G mod 3 equal 0
+            expect(interpreter.execute(`G' = tst
+Mask' = G mod 2 equal 0 or G mod 3 equal 0
 G Mask sum`)).toBe(5n);
             // Masks of two instances combine position by position.
             expect(formatValue(interpreter.execute('(tst mod 2 equal 0 or tst mod 3 equal 0) array')!))
@@ -173,7 +173,7 @@ fail`)).toThrow('division by zero');
             expect(interpreter.execute('fibonacci')).toBe(interpreter.execute('fibonacci'));
             expect(run(`use numbers
 use sequences
-Fibs = fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0
+Fibs' = fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0
 fibonacci Fibs till 1000 sum`)).toBe('1825');
         } finally { interpreter.dispose(); }
     });

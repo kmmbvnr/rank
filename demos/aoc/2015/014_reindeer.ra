@@ -52,9 +52,9 @@ end
 rem Calculate distance for reindeer after Time seconds.
 fun Speed Fly Rest Time distance
   Cycle = Fly + Rest
-  Full = Time // Cycle
-  Left = Time mod Cycle
-  Active = Left Fly min
-  FlyTime = Full * Fly + Active
+  Full' = Time // Cycle
+  Left' = Time mod Cycle
+  Active' = Left Fly min
+  FlyTime' = Full * Fly + Active
   return FlyTime * Speed
 end

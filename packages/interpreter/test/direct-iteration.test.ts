@@ -89,13 +89,13 @@ fun X echo
   "callee" print
   return X
 end
-fun S first
+fun S' first
   for V in S
     return V echo
   end
   return 0
 end
-S = 7 values
+S' = 7 values
 S first`);
         expect(result.value).toBe('7');
         expect(result.output).toEqual(['callee', 'closed']);
@@ -111,7 +111,7 @@ fun X values
     "closed" print
   end
 end
-S = 7 values
+S' = 7 values
 for V in S
   Bad = 1 // 0
 end`);

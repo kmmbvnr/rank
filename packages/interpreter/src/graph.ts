@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { registerSequenceMembership } from './sequence-membership.js';
 import { MissingValueError, RankError } from './errors.js';
 import { setValueKey } from './set.js';
@@ -79,6 +80,7 @@ export class GraphValue implements TraversalGraph {
     }
 
     addVertex(value: RankValue): void {
+        checkValueMutable(this);
         const key = graphKey(value);
         if (this.vertices.has(key)) return;
         this.vertices.set(key, value);
@@ -86,6 +88,7 @@ export class GraphValue implements TraversalGraph {
     }
 
     addEdge(left: RankValue, right: RankValue, weight: RankValue = 1n): void {
+        checkValueMutable(this);
         const numericWeight = graphWeight(weight);
         const id = this.nextEdgeId++;
         if (this.open) {
@@ -102,6 +105,7 @@ export class GraphValue implements TraversalGraph {
     }
 
     add(arguments_: readonly RankValue[]): void {
+        checkValueMutable(this);
         if (arguments_.length === 2 || arguments_.length === 3) {
             this.addEdge(arguments_[0], arguments_[1], arguments_[2]);
             return;

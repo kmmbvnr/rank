@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { IndexEntries } from './index-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap } from './resource-summary.js';
@@ -38,7 +39,7 @@ export function newStructure(name: string): RankValue {
 }
 
 export function expectAddCollection(value: RankValue) {
-    if (isRankSet(value) || isRankCounter(value) || isRankMultiset(value)) return value;
+    if (isRankSet(value) || isRankCounter(value) || isRankMultiset(value)) { checkValueMutable(value); return value; }
     // A graph takes `add` too, through its own dispatch, so name it here: the
     // usual mistake is a receiver that never became the collection it looks like.
     throw new RankError('add expects a graph, set, counter or multiset');
@@ -61,6 +62,7 @@ export function addToCollection(target: RankValue, value: RankValue): RankValue 
 }
 
 export function removeFromCollection(target: RankValue, value: RankValue): RankValue {
+    checkValueMutable(target);
     if (isRankMultiset(target)) return target.remove(value);
     if (isRankCounter(target)) {
         const key = setValueKey(value);

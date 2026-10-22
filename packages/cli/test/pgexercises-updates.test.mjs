@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -80,7 +82,7 @@ test('all 9 Updates programs change SQLite like the reference SQL', async t => {
                     expectedDb.exec(reference[index]);
                     const result = spawnSync(process.execPath,
                         [cli, path.join(updates, program), actualPath],
-                        { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
+                        { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 15_000 });
                     assert.equal(result.status, 0, result.stderr);
                     assert.deepEqual(snapshot(actualDb), snapshot(expectedDb));
                 } finally {
@@ -109,7 +111,7 @@ use sequences
 use tables
 argument DbPath path
 Db = DbPath sqlite
-F = Db .facilities
+F' = Db .facilities
 Spa = record
   .facid = 9
   .name = "Spa"
@@ -119,7 +121,7 @@ I .text print
 I .params print
 P = explain F insert Spa
 P len print
-T = F filter .facid equal 1
+T' = F filter .facid equal 1
 U = sql T update
   .initialoutlay = 10000
 end
@@ -128,7 +130,7 @@ D = explain T delete
 D len print
 `);
         const result = spawnSync(process.execPath, [cli, source, dbPath],
-            { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
+            { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         assert.match(result.stdout, /INSERT INTO "facilities"/);
         assert.match(result.stdout, /UPDATE "facilities"/);
@@ -150,8 +152,8 @@ test('filtered update reads the old row and insert binds quoted text', () => {
 use tables
 argument DbPath path
 Db = DbPath sqlite
-F = Db .facilities
-T = F filter .facid equal 1
+F' = Db .facilities
+T' = F filter .facid equal 1
 T update
   .membercost = .membercost * 1.1
 end
@@ -162,7 +164,7 @@ end
 F insert New
 `);
         const result = spawnSync(process.execPath, [cli, source, dbPath],
-            { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024 });
+            { cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         assert.equal(db.prepare('SELECT membercost FROM facilities WHERE facid = 0').get().membercost, 5);
         assert.equal(db.prepare('SELECT membercost FROM facilities WHERE facid = 1').get().membercost, 5.5);
@@ -172,3 +174,80 @@ F insert New
         fs.rmSync(directory, { recursive: true, force: true });
     }
 });
+
+for (const compilation of [false, true]) {
+    test(`write targets stay planned and stored results do not repeat writes (compilation=${compilation})`, async t => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-write-plans-'));
+        try {
+            const programs = fs.readdirSync(updates).filter(name => /^\d{3}_.*\.ra$/.test(name)).sort();
+            assert.equal(programs.length, reference.length);
+            for (const [index, file] of programs.entries()) await t.test(file, () => {
+                const actualPath = path.join(directory, `actual-${index}.sqlite3`);
+                const expectedPath = path.join(directory, `expected-${index}.sqlite3`);
+                const actualDb = makeDatabase(actualPath);
+                const expectedDb = makeDatabase(expectedPath);
+                let reads = 0, writes = 0, opens = 0, closes = 0;
+                const io = { ...nodeIo, openSqliteWrite(file) { return this.openSqlite(file, true); }, openSqlite(file, writable = false) {
+                    opens++;
+                    const connection = writable ? nodeIo.openSqliteWrite(file) : nodeIo.openSqlite(file);
+                    return { ...connection, prepare(sql) {
+                        const statement = connection.prepare(sql);
+                        return { ...statement, all(params) {
+                            if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) reads++;
+                            return statement.all(params);
+                        }, run(params) { writes++; return statement.run(params); } };
+                    }, close() { closes++; connection.close(); } };
+                } };
+                const runtime = new Interpreter(undefined, { io, compilation });
+                try {
+                    const source = fs.readFileSync(path.join(updates, file), 'utf8');
+                    const boundary = source.search(/^(?:F insert|T update|Db \.bookings delete|T delete|Unused delete)/m);
+                    assert.ok(boundary > 0);
+                    const before = snapshot(actualDb);
+                    runtime.executeProgram(parse(source.slice(0, boundary)), [actualPath]);
+                    assert.deepEqual(snapshot(actualDb), before);
+                    assert.equal(writes, 0);
+                    assert.equal(reads, index === 2 ? 1 : index === 5 ? 2 : 0);
+                    const expectedChanges = BigInt(expectedDb.prepare(reference[index]).run().changes);
+                    const result = runtime.execute(`Changed = ${source.slice(boundary)}`);
+                    assert.equal(result, expectedChanges);
+                    assert.equal(writes, 1);
+                    assert.deepEqual(snapshot(actualDb), snapshot(expectedDb));
+                    assert.equal(runtime.execute('Changed'), expectedChanges);
+                    assert.equal(runtime.execute('Changed'), expectedChanges);
+                    assert.equal(writes, 1);
+                    assert.deepEqual(snapshot(actualDb), snapshot(expectedDb));
+                } finally {
+                    runtime.dispose(); actualDb.close(); expectedDb.close();
+                }
+                assert.equal(opens, closes);
+            });
+        } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+    });
+}
+
+for (const compilation of [false, true]) {
+    test(`a deferred write repeats only when demanded (compilation=${compilation})`, () => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-write-effects-'));
+        const dbPath = path.join(directory, 'club.sqlite3');
+        const db = makeDatabase(dbPath);
+        const runtime = new Interpreter(undefined, { io: nodeIo, compilation });
+        const price = () => db.prepare('SELECT membercost FROM facilities WHERE facid=1').pluck().get();
+        try {
+            runtime.execute([
+                'use tables', `Db = ${JSON.stringify(dbPath)} sqlite`,
+                "F' = Db .facilities", "T' = F filter .facid equal 1",
+                "Changed' = T update", ' .membercost = .membercost + 1', 'end',
+            ].join('\n'));
+            assert.equal(price(), 5);
+            assert.equal(runtime.execute('Saved = Changed'), 1n);
+            assert.equal(price(), 6);
+            assert.equal(runtime.execute('Changed'), 1n);
+            assert.equal(price(), 7);
+            assert.equal(runtime.execute('Saved'), 1n);
+            assert.equal(price(), 7);
+        } finally {
+            runtime.dispose(); db.close(); fs.rmSync(directory, { recursive: true, force: true });
+        }
+    });
+}

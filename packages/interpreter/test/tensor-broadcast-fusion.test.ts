@@ -3,6 +3,7 @@ import { Interpreter, createArraySnapshot, MISSING, formatValue, parse, type Ran
 import { isFunctionStatement } from '@arrrank/language';
 import { compileTensorKernel } from '../src/tensor-kernel.js';
 import { withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { materializeValue } from '../src/materialize.js';
 
 function run(shapes: number[][], body: string, fused: boolean) {
     let kernels = 0;
@@ -71,17 +72,18 @@ fun normalize Data Mean Dev
 end`);
                 const fn = runtime.variables.get('normalize')!;
                 if (typeof fn !== 'object' || fn.kind !== 'function') throw new Error('missing function');
+                const invoke = (args: RankValue[]) => materializeValue(fn.call(args));
                 const a = createArraySnapshot([3n, 5n, 7n, 9n], [2, 2]);
                 const mean = createArraySnapshot([1n, 1n], [2]);
-                const retained = fn.call([a, mean, 2n]);
-                const outputs = [retained, fn.call([a, mean, 4n])];
+                const retained = invoke([a, mean, 2n]);
+                const outputs = [retained, invoke([a, mean, 4n])];
                 a.items[0] = 11n;
-                outputs.push(fn.call([a, mean, 2n]));
-                outputs.push(fn.call([createArraySnapshot([9n, 13n, 17n, 21n], [2, 2]), mean, 4n]));
-                outputs.push(fn.call([createArraySnapshot([5n, 9n], [1, 2]), mean, 2n]));
+                outputs.push(invoke([a, mean, 2n]));
+                outputs.push(invoke([createArraySnapshot([9n, 13n, 17n, 21n], [2, 2]), mean, 4n]));
+                outputs.push(invoke([createArraySnapshot([5n, 9n], [1, 2]), mean, 2n]));
                 // Keep the warmed shape when a missing cell forces fallback.
-                outputs.push(fn.call([createArraySnapshot([MISSING, 9n], [1, 2]), mean, 2n]));
-                outputs.push(fn.call([createArraySnapshot([], [0, 2]), mean, 2n]));
+                outputs.push(invoke([createArraySnapshot([MISSING, 9n], [1, 2]), mean, 2n]));
+                outputs.push(invoke([createArraySnapshot([], [0, 2]), mean, 2n]));
                 // Read earlier outputs only after later calls have completed.
                 return { outputs: outputs.map(value => {
                     if (typeof value !== 'object' || value.kind !== 'array') throw new Error('missing array');
@@ -154,7 +156,7 @@ it('keeps the active layout when an interrupt callback reenters the kernel', () 
     const inner = createArraySnapshot([5n]);
     let input = outer, armed = false, entered = false;
     let nested: RankValue | undefined;
-    const kernel = compileTensorKernel(statement.statements, { lookup: () => input, builtin: () => true })!;
+    const kernel = compileTensorKernel(statement.statements[0], { lookup: () => input, builtin: () => true })!;
     const signal: InterruptSignal = {
         length: 1, load: () => 0, store() {}, wait() {},
         exchange: () => {
@@ -183,7 +185,7 @@ it('pairs a layout with its own code when the compilation hook reenters', () => 
     const outerB = createArraySnapshot([10n, 20n]);
     let a = outerA, b = outerB, entered = false;
     let nested: RankValue | undefined;
-    const kernel = compileTensorKernel(statement.statements, {
+    const kernel = compileTensorKernel(statement.statements[0], {
         lookup: name => name === 'A' ? a : b, builtin: () => true,
         compiled() {
             if (entered) return;

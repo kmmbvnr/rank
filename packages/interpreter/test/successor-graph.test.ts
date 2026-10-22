@@ -35,7 +35,7 @@ fun N next
   return array (N + 1)
 end
 G = new graph with next .directed
-N = G 1`);
+N' = G 1`);
             expect(formatValue(runtime.variables.get('G')!)).toBe('<graph directed successor>');
             expect(formatValue(runtime.execute('R = G 1 1 0 bfs\ntuple (R .status) (R .path) (R .examined)')!))
                 .toBe('.reached 1 0');
@@ -78,7 +78,7 @@ use sequences
 Offset = 1
 fun N next = array (N + Offset)
 G = new graph with next .directed
-N = G 4
+N' = G 4
 First = N array
 Offset = 2
 tuple First (N array) ((G edges 4) array)`)).toBe('5 6 6 1');

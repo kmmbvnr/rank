@@ -48,8 +48,8 @@ Tens = array shape 10
   "ninety"
 end len rank 0 copy
 
-Numbers = 1 to Limit
-Counts = Numbers letters rank 0
+Numbers' = 1 to Limit
+Counts' = Numbers letters rank 0
 Counts sum print
 
 fun Value letters

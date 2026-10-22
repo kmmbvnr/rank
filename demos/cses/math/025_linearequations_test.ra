@@ -11,6 +11,22 @@ test "official example"
   3 3 A solve_mod equal Expected
 end
 
+test "row swaps and repeated solves preserve caller storage"
+  use "025_linearequations"
+  A = array shape 2 3
+    0 2 6
+    1 1 4
+  end
+  First = 2 2 A solve_mod
+  Second = 2 2 A solve_mod
+  First equal array 1 3
+  Second equal array 1 3
+  A equal array shape 2 3
+    0 2 6
+    1 1 4
+  end
+end
+
 test "dependent equations"
   use "025_linearequations"
   A = array shape 2 3

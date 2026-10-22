@@ -191,8 +191,7 @@ function mapUnaryNumeric(
             if (!(error instanceof RankError)) throw error;
         }
     }
-    return derivedArray(value.shape, [value], index =>
-        apply(value.itemAt?.(index) ?? value.items[index]), true);
+    return mapScalarArrays([value], ([item]) => apply(item));
 }
 
 function mapBinaryValue(
@@ -550,14 +549,12 @@ function factorPlan(value: bigint, factorizer: Factorizer): SequencePlan {
 }
 
 function divisorPlan(value: bigint, factorizer: Factorizer): SequencePlan {
-    let cached: readonly [bigint, number][] | undefined;
-    const powers = () => cached ??= factorPowers(value, factorizer);
     return {
         name: `divisors of ${value}`,
         size: { kind: 'unknown' },
         *iterate() {
             const values = [1n];
-            for (const [prime, exponent] of powers()) {
+            for (const [prime, exponent] of factorPowers(value, factorizer)) {
                 checkpoint('computing numbers');
                 const previous = values.length;
                 let multiplier = 1n;
@@ -580,7 +577,7 @@ function divisorPlan(value: bigint, factorizer: Factorizer): SequencePlan {
         },
         reduce(operation) {
             if (operation !== 'count') return undefined;
-            return powers().reduce(
+            return factorPowers(value, factorizer).reduce(
                 (count, [, exponent]) => count * BigInt(exponent + 1),
                 1n,
             );

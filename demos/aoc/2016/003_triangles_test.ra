@@ -7,6 +7,12 @@ test "impossible triangle"
   Answer 0 equal 2
 end
 
+test "two blocks retain the side axis in a non-cubic tensor"
+  use "003_triangles"
+  Text = "101 301 501\n102 302 502\n103 303 503\n201 401 601\n202 402 602\n203 403 603"
+  Text solve equal array 3 6
+end
+
 test "rows and columns give different counts"
   use "003_triangles"
   use text

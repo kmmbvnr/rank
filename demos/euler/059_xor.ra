@@ -32,10 +32,10 @@ end
 rem Gather repeats the key; bxor applies to corresponding bytes.
 fun Cipher Key decrypt
   Size = Cipher len
-  Positions = 0 till Size
+  Positions' = 0 till Size
   KeyLen = Key len
-  Slots = Positions mod KeyLen
-  KeyStream = Key Slots
+  Slots' = Positions mod KeyLen
+  KeyStream' = Key Slots
   return Cipher KeyStream bxor
 end
 
@@ -66,7 +66,7 @@ fun Bytes Weights best_byte
   BestScore = -101 * (Bytes len) - 1
   BestByte = 97
   for Byte in 97 to 122
-    Plain = Bytes Byte bxor
+    Plain' = Bytes Byte bxor
     Score = Weights Plain sum
     if Score greater BestScore
       BestScore = Score

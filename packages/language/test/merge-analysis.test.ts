@@ -14,11 +14,11 @@ it('recognizes lazy merge and keyed merge as sequences without reading their ite
         'end',
         'A = array 1 3 5',
         'B = array 2 4 6',
-        'Plain = A B merge',
-        'Keyed = A B merge by identity',
+        "Plain' = A B merge",
+        "Keyed' = A B merge by identity",
         'C = array 5 3 1',
         'D = array 6 4 2',
-        'Directed = C D merge .descending',
+        "Directed' = C D merge .descending",
     ].join('\n');
     const parsed = parser.parse<Program>(source);
     expect(parsed.parserErrors).toEqual([]);
@@ -41,7 +41,7 @@ it('reserves the contextual graph merge name when graph is open', () => {
 
 it('preserves typed scalar merge cells through a filter with a later pure predicate', () => {
     const parsed = parser.parse<Program>('use sequences\nProducts = array 9009 9010 shape 1 2\n'
-        + 'Candidates = Products merge .descending\nAnswer = Candidates filter palindrome first\n'
+        + "Candidates' = Products merge .descending\nAnswer = Candidates filter palindrome first\n"
         + 'fun X palindrome\n Text = X text\n return Text equal (Text reverse)\nend');
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value);

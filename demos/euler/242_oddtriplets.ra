@@ -25,7 +25,7 @@ rem the set bits above it.
 M = (Limit - 1) // 4 + 1
 I = 0 to ((M binary len) - 1) array
 Bit = (M I bit) choose 1 0
-Above = (Bit sum) - (Bit scan +)
-Share = Bit * 2 ** Above * 3 ** I
+Above' = (Bit sum) - (Bit scan +)
+Share' = Bit * 2 ** Above * 3 ** I
 Answer = Share sum
 Answer print

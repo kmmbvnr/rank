@@ -10,7 +10,24 @@ fun N costs
   Dp = array shape (N + 1) fill 0
   Ok = array shape (N + 1) fill false
   for I in 1 till (N + 1)
-    I Ok good
+    if I less 2
+      continue
+    end
+    H = I height
+    if I equal 2 ** (H + 1) - 1
+      Ok I = H at least 2
+      continue
+    end
+    L = 0
+    R = 0
+    if I at least (2 ** H + 2 ** (H - 1))
+      L = 2 ** H - 1
+      R = I - 1 - L
+    else
+      R = 2 ** (H - 1) - 1
+      L = I - 1 - R
+    end
+    Ok I = (Ok L) and (Ok R)
   end
   Sum = 0
   for I in 2 till (N + 1)
@@ -30,29 +47,6 @@ fun N costs
     Sum += Best
   end
   return Sum
-end
-
-fun N Good good
-  if N less 2
-    Good N = false
-    return 0
-  end
-  H = N height
-  if N equal 2 ** (H + 1) - 1
-    Good N = H at least 2
-    return 0
-  end
-  L = 0
-  R = 0
-  if N at least (2 ** H + 2 ** (H - 1))
-    L = 2 ** H - 1
-    R = N - 1 - L
-  else
-    R = 2 ** (H - 1) - 1
-    L = N - 1 - R
-  end
-  Good N = (Good L) and (Good R)
-  return 0
 end
 
 fun Base Size tree

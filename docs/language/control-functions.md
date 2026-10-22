@@ -80,6 +80,10 @@ I print
 rem 10
 ```
 
+Each named loop item is recursively completed when bound. The iterable is
+consumed directly without retaining its whole source. Loop names have no
+apostrophe form. Index and coordinate names bind ready integers.
+
 A condition after `for` is evaluated before every iteration:
 
 ```rank
@@ -331,6 +335,39 @@ G = A B gcd
 Result print
 ```
 
+### Parameter evaluation and argument boundaries
+
+`fun Values use_values` completes an incoming plan on entry, including plans
+inside tuples, records and containers. `fun Values' use_values` keeps the
+argument without completing it. The body executes at the call; returning a
+plan leaves the receiving binding to keep or complete it.
+
+Ordinary expression evaluation follows operand order and stops at the first
+error. During plan construction, whole user calls run immediately; the remaining
+operations stay deferred. Ranked and filter callbacks run when their cells or
+items are demanded.
+
+A completed postfix operation can itself be an argument:
+
+```rank
+use sequences
+fun Values' Factor weighted = Values * Factor
+Source' = 1 to 4
+Result' = Source sum 2 weighted
+Saved = Result
+```
+
+`Saved` is `20`. The reduction stays deferred through `weighted`; an ordinary
+`Values` parameter would complete it once on entry instead.
+
+Receiver methods can change argument boundaries. `Tree sum Index` is a Fenwick
+query, while `Values sum` is a reduction. When such a call precedes another
+function, a known receiver kind settles the grouping without reading cells.
+An unknown kind is demanded for dispatch; that demand does not retain its
+result. Parenthesizing the complete argument fixes its boundary:
+`(Tree sum Index) Factor weighted` can pass the whole query without inspecting
+the receiver first. Each later demand still runs the query again.
+
 ### Call-shaped signatures
 
 A header places each parameter where its argument appears in a call. Uppercase
@@ -390,7 +427,8 @@ ranks; `rank L` changes the first and keeps the second operand's declared rank
 and empty-frame limits.
 
 The [fold demo](../../demos/classic/fold.ra) implements reduction with
-`fun Values fold op .with Seed`. An omitted seed starts from the first item;
+`fun Values' fold op .with Seed`. The deferred input is consumed once.
+An omitted seed starts from the first item;
 an explicit seed processes every item. Empty input requires a seed and returns
 it unchanged.
 
@@ -751,31 +789,41 @@ state to an opaque helper is also rejected when its mutation behavior is unknown
 pass that state explicitly through the enclosing function's parameters.
 
 A nested function cannot be returned, assigned to another name, or stored in a
-container or record. A lazy result retaining it must be materialized before it
-leaves the enclosing call:
+container or record as a function value. A computation plan may retain a
+snapshot of the function and its dependencies and leave the enclosing call:
 
 ```rank
 fun Limit small
   fun X below = X less Limit
-  S = 1 to 10 filter below
+  S' = 1 to 10 filter below
   Limit = 3
-  return S array
+  return S
 end
-rem 6 small returns 1 2 3 4 5
+Selected' = 6 small
+Selected sum
+rem 15
 ```
 
-Materialize a lazy value before storing it in a container that will leave the
-call. Converting a queue to an array or copying that array does not evaluate
-lazy sequences stored inside its elements.
+Each demand of `Selected` uses the captured value `6`. Ordinary bindings,
+ordinary parameters and writes to records or containers complete nested plans
+recursively. Postfix `array` also completes nested values and accepts an already
+computed array. A plain `copy` does not recursively complete nested resources.
 
-Lazy operations record the current values of external dependencies when the
-operation is created. This includes module data and dependencies read through
-called helpers. Later reassignment does not change the pipeline. Scalar values
-and owned scalar arrays support capture snapshots; array storage is shared
-through copy-on-write without copying cells at creation. Mutable containers,
-resources and arbitrary lazy values cannot be captured by a lazy operation;
-pass explicit operands or materialize the data first. Ordinary direct calls
-read current values each time.
+Live nested generators and opaque relations keep separate lifetime rules. A
+relation retaining a local predicate cannot leave the call merely by being
+stored in a tuple, record or container. Consume its neighbors or traversal
+result before returning, rather than returning the live relation itself.
+
+A named callback captured by a plan retains the current values of its external
+dependencies, including module data and reads through called helpers. Later
+reassignment does not change the plan. Arrays keep copy-on-write storage;
+captured records and mutable containers reject writes through every alias.
+Resources retain their own state and are not restarted by an apostrophe.
+Ordinary direct calls read current enclosing bindings each time.
+
+Callbacks in plans may print, use randomness or call an unannotated host function.
+Each demand can repeat these effects. Bind the result without an apostrophe to
+compute it once and retain it. The read-only rules for captured state still apply.
 
 A multiline function may also be declared directly inside a `for` body:
 
@@ -802,10 +850,13 @@ contain further direct local functions.
 ## Generator functions
 
 A function containing `yield` returns a lazy sequence. Calling it creates the
-sequence without running the body; execution starts when an operation first
-asks for an element:
+sequence without running the body. `Stream' = 7 weird` preserves that instance;
+`Values = 7 weird` immediately consumes it into a retained array. Execution starts
+when a consumer first asks for an element:
 
 ```rank
+use numbers
+
 rem Generate the Collatz values beginning with N.
 fun N weird
   yield N

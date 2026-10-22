@@ -9,14 +9,14 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/agg_005.csv"
 
 Db = DbPath sqlite
-R = Db .bookings
-R = R filter
+R' = Db .bookings
+R' = R filter
   .starttime at least "2012-09-01"
   .starttime less "2012-10-01"
 end
-G = R group by .facid
-Result = G select
+G' = R group by .facid
+Result' = G select
   .slots = .slots sum
 end
-Result = Result sort by .slots
+Result' = Result sort by .slots
 Result OutputPath csv

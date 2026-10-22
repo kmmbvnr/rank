@@ -10,8 +10,8 @@ option Limit integer = 10 ** 8
 
 rem Wilson gives S(p) = -3 / 8 mod p.
 Ps = primes from 5 till Limit array
-K = 8 - Ps mod 8
-Inv = (K * Ps + 1) // 8
-Terms = (Ps - 3 * Inv) mod Ps
+K' = 8 - Ps mod 8
+Inv' = (K * Ps + 1) // 8
+Terms' = (Ps - 3 * Inv) mod Ps
 Answer = Terms sum
 Answer print

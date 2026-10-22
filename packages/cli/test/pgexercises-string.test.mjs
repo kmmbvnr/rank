@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, isRankPlan, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -14,7 +16,7 @@ const examples = path.join(root, 'demos/pgexercises/string');
 function run(file, database, output, source = path.join(examples, file)) {
     const result = spawnSync(process.execPath,
         [cli, source, database, output],
-        { cwd: root, encoding: 'utf8' });
+        { cwd: root, encoding: 'utf8', timeout: 15_000 });
     assert.equal(result.status, 0, result.stderr);
     return fs.readFileSync(output, 'utf8').trimEnd();
 }
@@ -44,7 +46,7 @@ test('member names concatenate lazily on SQLite and arrays', () => {
             fs.readFileSync(path.join(examples, '001_names.ra'), 'utf8')
                 .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspectFile, database],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /"surname" \|\| \?/);
         assert.match(plan.stdout, /\|\| "firstname"/);
@@ -116,6 +118,35 @@ test('all string exercises agree with SQLite oracles on SQLite and arrays', asyn
             await t.test(file, () => {
                 const expected = csv(db.prepare(sql).all(...params), columns);
                 assert.equal(run(file, database, output), expected);
+                for (const compilation of [false, true]) {
+                    let reads = 0, opens = 0, closes = 0;
+                    const io = { ...nodeIo, openSqlite(file) {
+                        opens++;
+                        const connection = nodeIo.openSqlite(file);
+                        return { ...connection, prepare(sql) {
+                            const statement = connection.prepare(sql);
+                            return { ...statement, all(params) {
+                                if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) reads++;
+                                return statement.all(params);
+                            } };
+                        }, close() { closes++; connection.close(); } };
+                    } };
+                    const runtime = new Interpreter(undefined, { io, compilation });
+                    try {
+                        const text = fs.readFileSync(path.join(examples, file), 'utf8');
+                        const boundary = '\nResult OutputPath csv';
+                        assert.ok(text.includes(boundary));
+                        runtime.executeProgram(parse(text.replace(boundary, '')), [database, output]);
+                        assert.equal(reads, 0);
+                        assert.ok(isRankPlan(runtime.variables.get('Result')));
+                        for (const count of [1, 2]) {
+                            runtime.execute('Result OutputPath csv');
+                            assert.equal(reads, count);
+                            assert.equal(fs.readFileSync(output, 'utf8').trimEnd(), expected);
+                        }
+                    } finally { runtime.dispose(); }
+                    assert.equal(opens, closes);
+                }
                 const source = fs.readFileSync(path.join(examples, file), 'utf8')
                     .replace('Db = DbPath sqlite',
                         `use json\nDb = ${JSON.stringify(JSON.stringify(arrays))} json`);
@@ -127,7 +158,7 @@ test('all string exercises agree with SQLite oracles on SQLite and arrays', asyn
                     fs.readFileSync(path.join(examples, file), 'utf8')
                         .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
                 const plan = spawnSync(process.execPath,
-                    [cli, inspectFile, database], { cwd: root, encoding: 'utf8' });
+                    [cli, inspectFile, database], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(plan.status, 0, plan.stderr);
                 assert.match(plan.stdout, plans[index]);
             });
@@ -152,19 +183,19 @@ test('Unicode text functions and slices agree on SQLite and arrays', () => {
         const program = [
             'use cli', 'use tables', 'use text',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'R = Db .strings',
-            'Texts = R .value', 'Lower = Texts lower',
-            'Padded = Texts 7 "é🙂" lpad',
-            'Clean = Texts "Ä(" "a" translate',
-            'First = Texts initial rank 0',
-            'IsA = Texts equal "A"',
-            'Label = IsA text rank 0',
-            'Result = R select',
+            'Db = DbPath sqlite', 'R\' = Db .strings',
+            'Texts\' = R .value', 'Lower\' = Texts lower',
+            'Padded\' = Texts 7 "é🙂" lpad',
+            'Clean\' = Texts "Ä(" "a" translate',
+            'First\' = Texts initial rank 0',
+            'IsA\' = Texts equal "A"',
+            'Label\' = IsA text rank 0',
+            'Result\' = R select',
             '  .lower = Lower', '  .padded = Padded',
             '  .clean = Clean', '  .first = First',
             '  .label = Label', 'end',
             'Result OutputPath csv',
-            'fun Text initial', '  return Text (0 till 1)', 'end',
+            "fun Text' initial", '  return Text (0 till 1)', 'end',
         ].join('\n');
         fs.writeFileSync(sourceFile, program);
         const expected = csv(values.map(value => {

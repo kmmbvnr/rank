@@ -17,7 +17,7 @@ Answer print
 
 
 rem Compare each deal's category and tie-break cards.
-fun Hands poker_wins
+fun Hands' poker_wins
   Wins = 0
   for Line in Hands
     if Line len equal 0
@@ -39,7 +39,7 @@ end
 rem Category followed by five tie-break ranks, highest first.
 fun Cards hand_score
   Values = Cards card_value rank 0
-  Suits = Cards card_suit rank 0
+  Suits' = Cards card_suit rank 0
 
   Sorted = Values sort
   Distinct = Sorted unique len
@@ -53,7 +53,7 @@ fun Cards hand_score
 
   Flush = Suits unique len equal 1
 
-  Same = Values Values outer equal
+  Same' = Values Values outer equal
   Freq = Same count rank 1
 
   MaxFreq = Freq max
@@ -84,7 +84,7 @@ fun Cards hand_score
     Kind = 1
   end
 
-  Keys = Freq * 13 + Values
+  Keys' = Freq * 13 + Values
   Order = Keys argsort .descending
   Ties = Values Order
 

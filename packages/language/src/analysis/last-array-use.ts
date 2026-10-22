@@ -1,6 +1,6 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isArrayAssignmentStatement, isAssignmentStatement, isExpression, isExpressionStatement, isForStatement, isFunctionBindingStatement, isFunctionStatement,
+    isArrayAssignmentStatement, isAssignmentStatement, isExpression, isExpressionStatement, isForStatement, isFunctionBindingStatement, isFunctionParameter, isFunctionStatement,
     isNameExpression, isParenthesizedExpression, isReturnStatement, isStatement, isTryStatement, isUnpackStatement, isYieldStatement,
     type Expression, type FunctionStatement, type NameExpression, type Statement,
 } from '../generated/ast.js';
@@ -104,7 +104,8 @@ function unchangedSelector(name: string, read: Statement, caller: FunctionStatem
     if (nodes.some(node => isUnpackStatement(node) && node.names.includes(name)
         || isForStatement(node) && node.condition
             && [node.condition, ...AstUtils.streamAllContents(node.condition)].some(part => isNameExpression(part) && part.name === name))) return false;
-    const writes = nodes.filter(node => !isNameExpression(node) && 'name' in node && node.name === name);
+    const writes = nodes.filter(node => !isNameExpression(node) && !isFunctionParameter(node)
+        && 'name' in node && node.name === name);
     if (caller.parameters.includes(name)) return writes.length === 0;
     const definition = writes[0];
     return writes.length === 1 && isAssignmentStatement(definition) && definition.$container === caller

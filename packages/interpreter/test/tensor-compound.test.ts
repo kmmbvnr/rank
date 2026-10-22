@@ -53,10 +53,11 @@ fun X f rank 0
   return X + 1
 end
 A = 1 to 2000 array
-B = (1 to 2000) f rank 0
+B' = (1 to 2000) f rank 0
 A += B
 A sum`;
         expect(run(source,true).value).toBe(run(source,false).value);
+        expect(run(source,true).value).toBe('4004000');
         expect(run(source,true).kernels).toBe(0);
     });
 

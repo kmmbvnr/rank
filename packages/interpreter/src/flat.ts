@@ -1,4 +1,5 @@
 import { ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankRecord, type RankPlainArray, type RankRecord, type RankValue } from './value.js';
 
@@ -16,6 +17,9 @@ export class FlatRecords implements RankPlainArray {
     constructor(count: number, state: RankRecord, initialize = true) {
         if (!Number.isSafeInteger(count) || count < 0) throw new RankError('flat size must be a nonnegative safe integer');
         new ResourceSummary(() => true).track(this);
+        // The encoded scalar fields are already stored. Keep native by-value
+        // reads rather than expanding them into a reference-valued record array.
+        new StoredValueSummary(() => true).track(this);
         this.shape = [count];
         this.fields = [...state.entries].map(([name, value]) => {
             const type = typeof value === 'bigint' ? 'integer'

@@ -24,8 +24,7 @@ rem with the same sum pair up.
 Mod = 3 ** 15
 Size = 9 * Digits + 10
 Z = array shape Size fill 0
-Cb = Z
-Cb 0 = 1
+Cb = concat (array 1) (Z drop 1)
 Sb = Z
 Ca = Z
 Sa = Z
@@ -42,7 +41,7 @@ for K in 1 to ((Digits + 1) // 2)
   for D in 0 to 9
     Pad = array shape D fill 0
     Fc = concat Pad (Cb take (Size - D))
-    Fs = concat Pad (Sb take (Size - D))
+    Fs' = concat Pad (Sb take (Size - D))
     Fv = (Fs + D * P * Fc) mod Mod
     Nc += Fc
     Ns += Fv
@@ -57,7 +56,7 @@ for K in 1 to ((Digits + 1) // 2)
   Sa = Ms mod Mod
   Pk = 10 ** K mod Mod
   if 2 * K at most Digits
-    Two = Sa * Pk * Cb + Ca * Sb mod Mod
+    Two' = Sa * Pk * Cb + Ca * Sb mod Mod
     Total += Two sum
   end
   if 2 * K + 1 at most Digits

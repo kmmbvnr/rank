@@ -5,7 +5,7 @@ import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType }
 import { FlatRecords } from './flat.js';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
-import { evaluateArrayItem, registerArrayCellEvaluation, arrayRevision, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies, registerCachedArray } from './array-storage.js';
+import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, arrayCells, arrayValues, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { registerScalarView } from './integer-view.js';
@@ -36,9 +36,14 @@ export class ArrayBindingContract {
     private version?: RankArray;
 
     private commit(next: Contract | undefined): void {
-        if (next !== this.contract) { this.contract = next; if (this.version) this.version.items[0] = 0n; }
+        if (next !== this.contract) {
+            this.contract = next;
+            if (this.version) this.version.items[0] = 0n;
+            if (next) this.observe?.(next);
+        }
     }
-    constructor(private readonly name: string, private readonly errorKind = 'TypeError') {}
+    constructor(private readonly name: string, private readonly errorKind = 'TypeError',
+        private readonly observe?: (contract: Contract) => void) {}
 
     copy(): ArrayBindingContract {
         const copy = new ArrayBindingContract(this.name, this.errorKind);
@@ -261,63 +266,72 @@ export class ArrayBindingContract {
     private lazy(value: RankArray, base: Contract, path: Path | undefined): Prepared {
         const version = this.version ??= ownedArray([0n]);
         const prepared: Prepared = { value, contract: base };
-        const size = value.shape.reduce((a, b) => a * b, 1);
         const validate = this.validator(value, base, path);
-        const evaluate = function* (index: number): Execution<RankValue> {
-            let item: RankValue;
-            let missing: MissingValueError | undefined;
-            try { item = yield* resume(evaluateArrayItem(value, index)); }
-            catch (error) {
-                if (!(error instanceof MissingValueError) || !error.soft) throw error;
-                item = MISSING;
-                missing = error;
-            }
-            const result = validate(item);
-            if (missing) throw missing;
-            return result;
+        const wrap = (source: RankArray): RankArray => {
+            const evaluate = function* (index: number): Execution<RankValue> {
+                let item: RankValue;
+                let missing: MissingValueError | undefined;
+                try { item = yield* resume(evaluateArrayItem(source, index)); }
+                catch (error) {
+                    if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                    item = MISSING;
+                    missing = error;
+                }
+                const result = validate(item);
+                if (missing) throw missing;
+                return result;
+            };
+            const sourceRead = (index: number) => readArrayItem(source, index);
+            const read = (index: number, source = sourceRead): RankValue => {
+                let item: RankValue;
+                let missing: MissingValueError | undefined;
+                try { item = source(index); }
+                catch (error) {
+                    if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                    item = MISSING;
+                    missing = error;
+                }
+                const result = validate(item);
+                if (missing) throw missing;
+                return result;
+            };
+            // Validation evidence can change after another assignment. Check each
+            // demand without retaining the values produced by an earlier read.
+            const prepare = (): ((index: number) => RankValue) | undefined => {
+                const preparedRead = prepareArrayRead(source);
+                return preparedRead ? index => read(index, preparedRead) : undefined;
+            };
+            const checked: RankArray = registerArrayDependencies({ kind: 'array' as const,
+                shape: source.shape, itemAt: read, containsFiles: source.containsFiles,
+                get items() { return collectArrayCells(checked); } }, [source, version]);
+            if (path === undefined) inheritConcatCheck(source, checked, this, validate, version);
+            const cells = arrayCells(source);
+            registerArrayReadPlan(checked, { prepare,
+                cells: cells && { frameAxes: cells.frameAxes, frameShape: cells.frameShape, cellShape: () => cells.cellShape(), read(index, observation) {
+                    const item = cells.read(index, observation);
+                    return isRankArray(item) ? wrap(item) : validate(item);
+                } },
+                *values() {
+                    for (const item of arrayValues(source)) {
+                        let result: RankValue;
+                        try { result = validate(item); }
+                        catch (error) {
+                            if (!(error instanceof MissingValueError) || !error.soft) throw error;
+                            result = MISSING;
+                        }
+                        yield result;
+                    }
+                },
+            });
+            registerArrayCellEvaluation(checked, evaluate);
+            this.metadata(source, checked);
+            holdArraySource(checked, source);
+            registerScalarView(checked, source, index => index, { accepts: () =>
+                this.at(path)?.elements?.some(cell => cell.type === 'integer') === true,
+                check: validate, scalarCheck: true, linear: () => ({ offset: 0, stride: 1 }) });
+            return checked;
         };
-        const sourceRead = (index: number) => readArrayItem(value, index);
-        const read = (index: number, source = sourceRead): RankValue => {
-            let item: RankValue;
-            let missing: MissingValueError | undefined;
-            try { item = source(index); }
-            catch (error) {
-                if (!(error instanceof MissingValueError) || !error.soft) throw error;
-                item = MISSING;
-                missing = error;
-            }
-            const result = validate(item);
-            if (missing) throw missing;
-            return result;
-        };
-        // Check every read, even a cached source cell: another assignment may
-        // have refined this binding since the wrapper was created.
-        let cache: { source: number; version: number; items: RankValue[] } | undefined;
-        const peek = (): RankValue[] | undefined => cache && arrayRevision(value) === cache.source
-            && arrayRevision(version) === cache.version ? cache.items : undefined;
-        const prepare = (): ((index: number) => RankValue) | undefined => {
-            const source = prepareArrayRead(value);
-            return source ? index => read(index, source) : undefined;
-        };
-        const all = (): RankValue[] => {
-            const previous = peek();
-            if (previous) return previous;
-            const items = materializeCells(size, prepare() ?? read);
-            const source = arrayRevision(value);
-            if (source !== undefined) cache = { source, version: arrayRevision(version)!, items };
-            return items;
-        };
-        const checked = registerCachedArray(registerArrayDependencies({ kind: 'array' as const,
-            shape: value.shape, itemAt: read, containsFiles: value.containsFiles,
-            get items() { return all(); } }, [value, version]), peek);
-        if (path === undefined) inheritConcatCheck(value, checked, this, validate, version);
-        registerArrayReadPlan(checked, prepare);
-        registerArrayCellEvaluation(checked, evaluate);
-        this.metadata(value, checked);
-        holdArraySource(checked, value);
-        registerScalarView(checked, value, index => index, { accepts: () =>
-            this.at(path)?.elements?.some(cell => cell.type === 'integer') === true,
-            check: validate, scalarCheck: true, linear: () => ({ offset: 0, stride: 1 }) });
+        const checked = wrap(value);
         prepared.value = checked;
         return prepared;
     }

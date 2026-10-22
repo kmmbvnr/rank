@@ -1,12 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import type { RankIo } from '@arrrank/interpreter';
 import { createReplSession } from '../src/repl-session.js';
 import type { InspectedValue, Inspection } from '../src/value-inspection.js';
 import { buildValueView } from '../src/value-view.js';
 
+const sessions: ReturnType<typeof createReplSession>[] = [];
+afterEach(() => { for (const session of sessions.splice(0)) session.dispose(); });
+
 /** Runs `cells` as numbered cells and returns the session with the last cell's reference. */
-async function run(cells: string[], io?: Partial<RankIo>) {
-    const session = createReplSession(io ? { options: { io: io as RankIo } } : {});
+async function run(cells: string[], io?: Partial<RankIo>, compilation = true) {
+    const session = createReplSession({ options: { compilation, ...(io ? { io: io as RankIo } : {}) } });
+    sessions.push(session);
     let last: Awaited<ReturnType<typeof session.execute>> | undefined;
     for (const [id, source] of cells.entries()) last = await session.execute(source, id, []);
     return { session, last: last!, ref: last!.valueRef! };
@@ -184,7 +188,7 @@ describe('inspect: tables', () => {
 
 describe('inspect: sequences', () => {
     it('shows only the front of an unbounded native sequence', async () => {
-        const { session, ref } = await run(['use sequences', 'Primes = primes', 'Primes']);
+        const { session, ref } = await run(['use sequences', 'Primes\' = primes', 'Primes']);
         const value = opened(session.inspect(ref));
         expect(value).toMatchObject({ kind: 'sequence', size: { kind: 'infinite' }, forced: 100 });
         if (value.kind !== 'sequence') throw new Error('expected a sequence');
@@ -196,7 +200,7 @@ describe('inspect: sequences', () => {
         const { session } = await run([
             'use sequences',
             'fun N upto\n for I in 1 to N\n  yield I\n end\nend',
-            'Source = 5 upto',
+            'Source\' = 5 upto',
         ]);
         const before = await session.execute('Source', 3, []);
         for (let times = 0; times < 3; times++) session.inspect(before.valueRef!);
@@ -206,7 +210,7 @@ describe('inspect: sequences', () => {
 
     it('shows the items a generator has already yielded, windowed', async () => {
         const { session } = await run(['fun N upto\n for I in 1 to N\n  yield I\n end\nend']);
-        const made = await session.execute('Source = 5 upto', 1, []);
+        const made = await session.execute('Source\' = 5 upto', 1, []);
         const value = opened(session.inspect(made.valueRef!));
         if (value.kind !== 'sequence') throw new Error('expected a sequence');
         expect(value).toMatchObject({ forced: 5, offset: 0, size: { kind: 'unknown' } });
@@ -217,7 +221,7 @@ describe('inspect: sequences', () => {
     });
 
     it('shows the front of a range with its exact size, however long it is', async () => {
-        const { session, ref } = await run(['V = 1 to 10000000000000', 'V']);
+        const { session, ref } = await run(['V\' = 1 to 10000000000000', 'V']);
         const value = opened(session.inspect(ref, { count: [3] }));
         expect(value).toMatchObject({ kind: 'sequence', size: { kind: 'exact', value: '10000000000000' }, forced: 100 });
         if (value.kind !== 'sequence') throw new Error('expected a sequence');
@@ -225,7 +229,7 @@ describe('inspect: sequences', () => {
     });
 
     it('shows the front of a computed sequence', async () => {
-        const { session, ref } = await run(['N = 1 to 10000000000000', 'N mod 3 equal 0 or N mod 5 equal 0']);
+        const { session, ref } = await run(['N\' = 1 to 10000000000000', 'N mod 3 equal 0 or N mod 5 equal 0']);
         const value = opened(session.inspect(ref, { count: [4] }));
         if (value.kind !== 'sequence') throw new Error('expected a sequence');
         expect(value.items.map(item => item.text)).toEqual(['false', 'false', 'true', 'false']);
@@ -242,7 +246,7 @@ describe('reading ahead of a sequence', () => {
 
     it('reads more of an endless generator, a bounded number at a time', async () => {
         const { session } = await run(every);
-        const made = await session.execute('N = stream', 2, []);
+        const made = await session.execute('N\' = stream', 2, []);
         const before = forced(session, made.valueRef!).forced;
         const more = session.extend(made.valueRef!, 50);
         expect(more).toMatchObject({ status: 'ok', added: 50, finished: false });
@@ -254,7 +258,7 @@ describe('reading ahead of a sequence', () => {
 
     it('never asks for more than the limit in one go', async () => {
         const { session } = await run(every);
-        const made = await session.execute('N = stream', 2, []);
+        const made = await session.execute('N\' = stream', 2, []);
         const more = session.extend(made.valueRef!, 1_000_000);
         expect(more).toMatchObject({ status: 'ok' });
         expect(more.status === 'ok' && more.added).toBeLessThanOrEqual(1000);
@@ -262,14 +266,14 @@ describe('reading ahead of a sequence', () => {
 
     it('stops at the end of a finite generator and says it ended', async () => {
         const { session } = await run(['fun N upto\n for I in 1 to N\n  yield I\n end\nend']);
-        const made = await session.execute('Source = 5 upto', 1, []);
+        const made = await session.execute('Source\' = 5 upto', 1, []);
         expect(session.extend(made.valueRef!, 100)).toMatchObject({ status: 'ok', added: 0, finished: true });
         expect(session.extend(made.valueRef!, 100)).toMatchObject({ status: 'ok', added: 0, finished: true });
     });
 
     it('consumes nothing: the values wait on the tape for the next reader', async () => {
         const { session } = await run(every);
-        const made = await session.execute('N = stream', 2, []);
+        const made = await session.execute('N\' = stream', 2, []);
         session.extend(made.valueRef!, 30);
         const total = await session.execute('N till 25 sum', 3, []);
         expect(total.output.map(line => line.text)).toEqual(['156']);
@@ -277,15 +281,15 @@ describe('reading ahead of a sequence', () => {
 
     it('gives up on a generator that never yields again, and closes it', async () => {
         const { session } = await run([
-            // Shows its first twenty values at once, then loops without yielding another.
+            // Shows its first ten values at once, then loops without yielding another.
             'fun stuck\n for I in 1 to 30\n  yield I\n end\n for J in 1 to 1000000000000\n  if J less 0\n   yield J\n  end\n end\nend']);
-        const made = await session.execute('S = stuck', 2, []);
+        const made = await session.execute('S\' = stuck', 2, []);
         const result = session.extend(made.valueRef!, 50);
-        expect(result).toMatchObject({ status: 'ok', stopped: 'time' });
+        expect(result).toMatchObject({ status: 'ok', stopped: 'budget' });
         expect(result.status === 'ok' && result.added).toBeGreaterThan(0);
         // The generator was closed, as Ctrl-C would: the values read stay, and nothing more comes.
         expect(session.extend(made.valueRef!, 5)).toMatchObject({ status: 'ok', added: 0, finished: true });
-    }, 30_000);
+    });
 
     it('answers stale for a released reference and unsupported for what keeps no tape', async () => {
         const { session } = await run(['V = 1 to 100', 'V']);
@@ -446,7 +450,7 @@ describe('value view model', () => {
     it('lists a record as keyed rows, and a sequence by what it has read', async () => {
         const { session, ref } = await run(['A = record\n .x = 1\nend', 'A']);
         expect(buildValueView('A', opened(session.inspect(ref)))).toMatchObject({ kind: 'list', typeLine: 'record · 1', rows: [['x', '1']] });
-        const primes = await run(['use sequences', 'P = primes', 'P']);
+        const primes = await run(['use sequences', 'P\' = primes', 'P']);
         expect(buildValueView('P', opened(primes.session.inspect(primes.ref)))).toMatchObject({
             kind: 'list', typeLine: 'c · unbounded', rows: expect.arrayContaining([['0', '2']]), note: '100 read so far' });
     });
@@ -476,4 +480,22 @@ end
 G = new graph with next .directed
 G`]);
     expect(opened(session.inspect(ref))).toMatchObject({ kind: 'opaque', type: 'graph' });
+});
+
+
+it.each([false, true])('distinguishes completed generator data from a kept resource (compilation=%s)', async compilation => {
+    const definition = 'fun N upto\n for I in 1 to N\n  yield I\n end\nend';
+    const stored = await run([definition, 'Source = 5 upto', 'Source'], undefined, compilation);
+    expect(opened(stored.session.inspect(stored.ref))).toMatchObject({ kind: 'array', shape: [5] });
+    expect(stored.session.extend(stored.ref, 10)).toEqual({ status: 'unsupported' });
+    for (const id of [3, 4]) {
+        const result = await stored.session.execute('Source sum', id, []);
+        expect(result.output.map(line => line.text)).toEqual(['15']);
+    }
+    const kept = await run([definition, "Source' = 5 upto", 'Source'], undefined, compilation);
+    expect(opened(kept.session.inspect(kept.ref))).toMatchObject({ kind: 'sequence', forced: 5 });
+    const first = await kept.session.execute('Source sum', 3, []);
+    expect(first.output.map(line => line.text)).toEqual(['15']);
+    const second = await kept.session.execute('Source sum', 4, []);
+    expect(second.output.some(line => line.error && line.text.includes('consumed'))).toBe(true);
 });

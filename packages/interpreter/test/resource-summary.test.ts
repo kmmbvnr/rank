@@ -1,11 +1,75 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Interpreter, isNativeFunction, isRankIndex, isRankRecord, type RankFile } from '../src/index.js';
+import { Interpreter, isNativeFunction, isRankIndex, isRankRecord, type RankArray, type RankFile } from '../src/index.js';
 import { newStructure } from '../src/collections.js';
 import { RankDeque, RankHeap } from '../src/containers.js';
 import { isKnownFileFree } from '../src/resource-summary.js';
+import { ResourceOwnership } from '../src/resource-ownership.js';
+import { derivedArray, ownedArray, readArrayItem } from '../src/array-storage.js';
+import { shiftValue, windowValue } from '../src/sequence.js';
+import { chooseValue } from '../src/modules/sequences.js';
 import { MemoryIo } from './support.js';
 
 describe('container resource summaries', () => {
+    it.each(['window', 'shift', 'choose'])('preserves a captured %s value without computing cells', operation => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const file: RankFile = { kind: 'file', handle: io.open('/input', 'read'), closed: false };
+        const ownership = new ResourceOwnership();
+        try {
+            const result = ownership.withResourceScope(() => {
+                ownership.ownFile(file);
+                return operation === 'window'
+                    ? windowValue(ownedArray([], [0]), 1n, undefined, undefined, 1n, file)
+                    : operation === 'shift' ? shiftValue(ownedArray([0n]), 1n, file)
+                        : chooseValue(ownedArray([true]), file, file);
+            });
+            expect(file.closed).toBe(false);
+            expect(readArrayItem(result as RankArray, 0)).toBe(file);
+        } finally { ownership.dispose(); }
+        expect(file.closed).toBe(true);
+    });
+
+    it('transfers resources through declared array dependencies without reading lazy cells', () => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const file: RankFile = { kind: 'file', handle: io.open('/input', 'read'), closed: false };
+        const ownership = new ResourceOwnership();
+        let reads = 0;
+        try {
+            const view = ownership.withResourceScope(() => {
+                ownership.ownFile(file);
+                const source = ownedArray([file]);
+                return derivedArray([1], [source], index => { reads++; return readArrayItem(source, index); });
+            });
+            expect(reads).toBe(0);
+            expect(file.closed).toBe(false);
+            expect(readArrayItem(view, 0)).toBe(file);
+            expect(reads).toBe(1);
+        } finally { ownership.dispose(); }
+        expect(file.closed).toBe(true);
+    });
+
+    it.each([false, true])('retains a computed file only when returned explicitly (retained=%s)', retained => {
+        const io = new MemoryIo({ '/input': 'Rank' });
+        const file: RankFile = { kind: 'file', handle: io.open('/input', 'read'), closed: false };
+        const ownership = new ResourceOwnership();
+        let reads = 0;
+        try {
+            ownership.withResourceScope(() => {
+                ownership.ownFile(file);
+                const view = derivedArray([2], [], index => {
+                    reads++;
+                    if (index) throw new Error('unread cell');
+                    return file;
+                });
+                const cell = readArrayItem(view, 0);
+                expect(cell).toBe(file);
+                return retained ? { kind: 'tuple' as const, items: [cell, view] } : view;
+            });
+            expect(reads).toBe(1);
+            expect(file.closed).toBe(!retained);
+        } finally { ownership.dispose(); }
+        expect(file.closed).toBe(true);
+    });
+
     it.each(['index', 'set', 'counter'])('does not walk a growing numeric %s on return', kind => {
         const runtime = new Interpreter();
         runtime.execute(`use algo\nfun A identity\n  return A\nend\nValues = new ${kind}`);

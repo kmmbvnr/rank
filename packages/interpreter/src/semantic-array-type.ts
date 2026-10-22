@@ -1,9 +1,12 @@
 import { arrayDeclaration, inheritArrayDeclaration } from './array-declaration.js';
-import { binaryType } from '@arrrank/language';
+import { binaryType, type ValueFacts } from '@arrrank/language';
+import { isRankPlan } from './plan.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { arrayRevision } from './array-storage.js';
 import { collectionElementType, isRankArray, isRankRecord, isRankTuple, typeName, valueRank,
     type CollectionElementType, type RankArray, type RankValue } from './value.js';
+
+type ArrayElementContract = NonNullable<ValueFacts['declaredArrayContract']>;
 
 /** A type is independent of the storage cache. Unresolved domains stay
  * unresolved across reads/copies; stored cells are not a declaration. */
@@ -56,11 +59,48 @@ export function semanticArrayContract(contract: CollectionElementType): Semantic
 
 /** Structural types, not values, lengths, or evaluation/storage properties. */
 export function semanticValueType(value: RankValue, elements = true): unknown {
+    if (isRankPlan(value)) return semanticFactType(value.result, elements);
     if (isRankArray(value)) return [typeName(value), valueRank(value), elements ? semanticArrayType(value).key : null];
     if (isRankTuple(value)) return ['tuple', 0, value.items.map(item => semanticValueType(item, elements))];
     // Records already require eager field validation, independently of calls.
     if (isRankRecord(value)) return ['record', 0, contractType(collectionElementType(value, new Set(), true), elements)];
     return [typeName(value), valueRank(value)];
+}
+
+/** Result facts describe a plan without demanding it or observing host cells. */
+function semanticFactType(value: ValueFacts | undefined, elements: boolean): unknown {
+    const type = value?.types.length === 1 ? value.types[0] : 'unknown';
+    const rank = value?.rank ?? (type === 'text' ? 1 : 0);
+    if (type === 'array' || type === 'bytes') {
+        const contract = factContract(value!);
+        return [type, rank, elements ? semanticArrayContract(contract).key : null];
+    }
+    if (type === 'tuple') return [type, 0, value?.tupleItems?.map(item => semanticFactType(item, elements))];
+    if (type === 'record') return [type, 0, contractType(factContract(value!), elements)];
+    return [type, rank];
+}
+
+function factContract(value: ValueFacts): CollectionElementType {
+    const declared = value.acceptedArrayContract ?? value.declaredArrayContract;
+    if (declared) return declaredContract(declared);
+    const type = value.types.length === 1 ? value.types[0] : 'unknown';
+    const array = type === 'array' || type === 'bytes';
+    return { type, ...(array ? { rank: value.rank,
+        elements: value.elements?.map(type => type === 'record' && value.elementRecord
+            ? factContract(value.elementRecord) : { type }) } : {}),
+        ...(type === 'tuple' ? { positions: value.tupleItems?.map(factContract) } : {}),
+        ...(type === 'record' && value.closedRecord && value.fields ? {
+            fields: new Map(Object.entries(value.fields).map(([name, field]) => [name, factContract(field)])),
+        } : {}) };
+}
+
+function declaredContract(value: ArrayElementContract): CollectionElementType {
+    const position = (choices: readonly ArrayElementContract[]): CollectionElementType =>
+        choices.length === 1 ? declaredContract(choices[0]) : { type: 'unknown' };
+    return { type: value.type, rank: value.rank,
+        positions: value.positions?.map(position), elements: value.elements?.map(declaredContract),
+        fields: value.fields && new Map(Object.entries(value.fields).map(([name, choices]) => [name, position(choices)])),
+    };
 }
 
 function contractType(value: CollectionElementType, elements: boolean): unknown {

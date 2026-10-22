@@ -1,6 +1,7 @@
 import { RankError } from './errors.js';
 import { ResourceSummary } from './resource-summary.js';
-import type { RankArray, RankObject, RankValue } from './value.js';
+import { StoredValueSummary } from './stored-value.js';
+import { isRankArray, type RankArray, type RankObject, type RankValue } from './value.js';
 import {
     ownedStorage, derivedRevisions, writeRevision, creationSerial, onlyNewObjectsChanged, noteMutation,
     nextCreationSerial, type OwnedStorage, type DerivedRecord,
@@ -9,6 +10,11 @@ import {
 /** Unknown host storage has no reliable revision and must not retain derived caches. */
 export function arrayRevision(value: RankArray): number | undefined {
     return valueRevision(value);
+}
+
+/** Inspect declared dependencies without evaluating a native cell recipe. */
+export function arrayResourceValues(value: RankArray): Iterable<RankValue> | undefined {
+    return derivedRevisions.get(value)?.values();
 }
 
 const revisiting = new WeakSet<object>();
@@ -107,17 +113,24 @@ class OwnedEntries extends Map<string, RankValue> {
     revision = writeRevision;
     readonly birth = nextCreationSerial();
     readonly resources = new ResourceSummary();
+    private scalarOnly = true;
+    private readonly stored = new StoredValueSummary(() => this.scalarOnly);
 
     constructor(entries: Iterable<readonly [string, RankValue]>) {
         super();
+        this.stored.track(this);
         for (const [key, value] of entries) {
             this.resources.include(value);
+            this.stored.include(value);
+            this.scalarOnly &&= typeof value !== 'object';
             Map.prototype.set.call(this, key, value);
         }
     }
 
     override set(key: string, value: RankValue): this {
         this.resources.include(value);
+        this.stored.include(value);
+        this.scalarOnly &&= typeof value !== 'object';
         this.revision = noteMutation(this.birth);
         return super.set(key, value);
     }
@@ -152,9 +165,9 @@ export function arrayDependencyNode(sources: readonly RankArray[]): RankArray {
     return node;
 }
 
-/** Publish dependencies for a pure producer with a dynamically inferred shape. */
-export function registerArrayDependencies<T extends RankArray>(value: T, sources: readonly RankArray[]): T {
-    const depth = arrayReaderDepth(sources, 1);
+/** Publish dependencies for a native producer with a dynamically inferred shape. */
+export function registerArrayDependencies<T extends RankArray>(value: T, sources: readonly RankValue[]): T {
+    const depth = arrayReaderDepth(sources.filter(isRankArray), 1);
     derivedRevisions.set(value, { epoch: -1, values: () => sources });
     lazyDepth.set(value, depth);
     return value;

@@ -14,7 +14,7 @@ Spf = array shape (Top + 1) fill 0
 for P in Ps
   Ix = P to Top by P array
   Old = Spf Ix
-  Free = Ix filter Old equal 0 array
+  Free' = Ix filter Old equal 0 array
   Spf Free = P
 end
 Start = 2

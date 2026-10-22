@@ -11,7 +11,7 @@ option Limit integer = 2000000
 fun N lpf
   X = N
   Last = 1
-  for P in primes till (X isqrt)
+  for P in primes to (X isqrt)
     for X mod P equal 0
       Last = P
       X //= P

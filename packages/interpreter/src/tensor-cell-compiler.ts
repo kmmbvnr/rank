@@ -41,7 +41,13 @@ export function compileTensorCellCopy(rank: number, axes: readonly number[]): Co
         return items;
     };`;
     try {
-        const copy = new Function('checkpoint', source)(checkpoint) as Copy;
+        const kernel = new Function('checkpoint', source)(checkpoint) as Copy;
+        // A stored generator can resume under a later preview or interrupt.
+        // Keep its unchecked specialization behind a call-time scope guard.
+        const routes = [...axes];
+        const copy: Copy = interruptible ? kernel : (value, coordinates, shape) =>
+            interruptsEnabled() ? compileTensorCellCopy(rank, routes)?.(value, coordinates, shape)
+                : kernel(value, coordinates, shape);
         kernels.set(key, copy);
         return copy;
     } catch { return undefined; }

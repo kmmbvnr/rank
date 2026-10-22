@@ -29,17 +29,17 @@ end
 rem Count words whose value makes 8N + 1 an
 rem odd square, the triangular-number test.
 fun Words triangle_word_count
-  Values = Words word_value rank 0
+  Values' = Words word_value rank 0
   Discriminants = 8 * Values + 1
-  Roots = Discriminants isqrt
-  Triangular = Roots ** 2 equal Discriminants
+  Roots' = Discriminants isqrt
+  Triangular' = Roots ** 2 equal Discriminants
   return Triangular count
 end
 
 
 rem Convert A through Z to values 1 through 26.
 fun Word word_value
-  Letters = Word codepoint rank 0
-  Values = Letters - 64
+  Letters' = Word codepoint rank 0
+  Values' = Letters - 64
   return Values sum
 end

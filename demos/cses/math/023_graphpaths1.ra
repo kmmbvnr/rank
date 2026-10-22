@@ -9,7 +9,7 @@ use sequences
 Nodes = stdin .integer
 M = stdin .integer
 Length = stdin .integer
-Raw = stdin .integer (M * 2) array
+Raw' = stdin .integer (M * 2) array
 Edges = Raw reshape M 2
 Nodes Edges Length path_count print
 

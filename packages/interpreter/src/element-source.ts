@@ -1,6 +1,7 @@
 import { checkpoint } from './interrupt.js';
+import { reduceTensorMap } from './tensor-map.js';
 import { collectionProtocol, type CollectionProtocolFor, type CollectionCapability } from '@arrrank/language';
-import { denseScalarItems, float64Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
+import { arrayValues, denseScalarItems, float64Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
 import { extremeMasked, presentReals, sumMasked } from './masked-kernels.js';
 import { reduceSequence, sequenceValues } from './sequence.js';
 import type { RankHeap } from './containers.js';
@@ -37,12 +38,10 @@ interface ProtocolValues {
 const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operation: string) => ElementSource } = {
     array: value => ({
         rank: value.shape.length,
-        *values() {
-            if (shouldStream(value)) { yield* streamCells(value); return; }
-            const size = value.shape.reduce((product, length) => product * length, 1);
-            for (let index = 0; index < size; index++) yield readArrayItem(value, index);
-        },
+        values: () => arrayValues(value, shouldStream(value)),
         reduce: operation => {
+            const tensor = reduceTensorMap(value, operation);
+            if (tensor !== undefined) return tensor;
             if (operation === 'sum') return sumMasked(value);
             if (operation !== 'min' && operation !== 'max') return undefined;
             const masked = extremeMasked(value, operation === 'min' ? (a, b) => a < b : (a, b) => a > b);
@@ -60,6 +59,7 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
         streamingValues: () => shouldStream(value) ? streamCells(value) : undefined,
         *presentValues() {
             const size = value.shape.reduce((product, length) => product * length, 1);
+            if (size === 0) { yield* arrayValues(value); return; }
             for (let index = 0; index < size; index++) {
                 checkpoint('computing statistics');
                 try {

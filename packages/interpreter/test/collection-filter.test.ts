@@ -142,7 +142,7 @@ describe('filter over plain collections', () => {
     it('rejects a condition that is not a mask over the value', () => {
         expect(() => run(`${NUMBERS}N filter 1`))
             .toThrow(/boolean mask/);
-        expect(() => run('use sequences\nN = 1 to 10\nfun X number\n  return X + 1\nend\nN filter number first'))
+        expect(() => run("use sequences\nN' = 1 to 10\nfun X number\n  return X + 1\nend\nN filter number first"))
             .toThrow(/filter predicate must return boolean/);
         expect(() => run('use numbers\nX = 3\nX filter greater 1'))
             .toThrow(/array, sequence or table/);

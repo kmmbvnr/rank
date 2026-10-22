@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, isRankPlan, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -14,7 +16,7 @@ const directory = path.join(root, 'demos/pgexercises/date');
 function run(name, ...args) {
     const result = spawnSync(process.execPath,
         [cli, path.join(directory, name), ...args],
-        { cwd: root, encoding: 'utf8' });
+        { cwd: root, encoding: 'utf8', timeout: 15_000 });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.trim();
 }
@@ -41,14 +43,14 @@ test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => 
         const program = [
             'use cli', 'use dates', 'use tables',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'M = Db .moments',
-            'Moment = M .time datetime',
-            'Today = Moment date datetime',
-            'Next = Moment nextmonth',
-            'Remaining = Next - Today',
+            'Db = DbPath sqlite', 'M\' = Db .moments',
+            'Moment\' = M .time datetime',
+            'Today\' = Moment date datetime',
+            'Next\' = Moment nextmonth',
+            'Remaining\' = Next - Today',
             'Bound = "2012-02-11" date datetime',
-            'Since = Today - Bound',
-            'Result = M select',
+            'Since\' = Today - Bound',
+            'Result\' = M select',
             '  .today = Today',
             '  .remaining = Remaining seconds',
             '  .since = Since seconds',
@@ -57,7 +59,7 @@ test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => 
         ].join('\n');
         fs.writeFileSync(script, program);
         const result = spawnSync(process.execPath,
-            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         const expected = db.prepare(`SELECT datetime(date(time)) AS today,
             unixepoch(datetime(time, 'start of month', '+1 month'))
@@ -70,7 +72,7 @@ test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => 
         fs.writeFileSync(script, program.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
-            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /datetime\(date\("time"\)\)/);
         assert.match(plan.stdout, /unixepoch\(\?\)/);
@@ -101,7 +103,7 @@ test('October calendar matches a recursive SQLite oracle', () => {
         fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspect, dbPath],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /WITH RECURSIVE days/);
         assert.match(plan.stdout, /SELECT \? WHERE \? <= \?/);
@@ -126,13 +128,13 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
         const program = [
             'use cli', 'use dates', 'use tables',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'E = Db .events',
-            'Start = E .started datetime',
-            'End = E .ended datetime',
-            'Elapsed = End - Start',
+            'Db = DbPath sqlite', 'E\' = Db .events',
+            'Start\' = E .started datetime',
+            'End\' = E .ended datetime',
+            'Elapsed\' = End - Start',
             'Baseline = "2024-02-28 00:00:00" datetime',
-            'Since = End - Baseline',
-            'Result = E select',
+            'Since\' = End - Baseline',
+            'Result\' = E select',
             '  .elapsed = Elapsed seconds',
             '  .since = Since seconds',
             'end',
@@ -140,7 +142,7 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
         ].join('\n');
         fs.writeFileSync(script, program);
         const result = spawnSync(process.execPath,
-            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         const actual = fs.readFileSync(output, 'utf8').trim().split('\n');
         const expected = db.prepare(`SELECT
@@ -152,7 +154,7 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
         fs.writeFileSync(script, program.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, script, dbPath, output],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /unixepoch\("ended"\) - unixepoch\("started"\)/);
         assert.match(plan.stdout, /unixepoch\(\?\)/);
@@ -200,11 +202,11 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
         const program = [
             'use cli', 'use dates', 'use tables',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'M = Db .moments',
-            'Time = M .time datetime',
-            'First = Time monthstart',
-            'Next = Time nextmonth',
-            'Result = M select',
+            'Db = DbPath sqlite', 'M\' = Db .moments',
+            'Time\' = M .time datetime',
+            'First\' = Time monthstart',
+            'Next\' = Time nextmonth',
+            'Result\' = M select',
             '  .first = First',
             '  .next = Next',
             'end',
@@ -212,7 +214,7 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
         ].join('\n');
         fs.writeFileSync(script, program);
         const result = spawnSync(process.execPath,
-            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), [
             'first,next',
@@ -222,7 +224,7 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
         fs.writeFileSync(script, program.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, script, dbPath, output],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /datetime\("time", 'start of month'\)/);
         assert.match(plan.stdout, /datetime\("time", 'start of month', '\+1 month'\)/);
@@ -263,21 +265,21 @@ test('booking end times match SQL on SQLite and arrays', () => {
         run('008_endtimes.ra', dbPath, output);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
         fs.writeFileSync(arrayScript, source.replace(
-            'Db = DbPath sqlite\nB = Db .bookings', 'B = DbPath csv'));
+            'Db = DbPath sqlite\nB\' = Db .bookings', 'B = DbPath csv'));
         const array = spawnSync(process.execPath,
-            [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(array.status, 0, array.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
         fs.writeFileSync(inspect, source.replace(
-            'Span = B .slots * Slot', 'Span = B .slots * 1800 duration'));
+            'Span\' = B .slots * Slot', 'Span\' = B .slots * 1800 duration'));
         const direct = spawnSync(process.execPath,
-            [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(direct.status, 0, direct.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
         fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
-            [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /datetime\("starttime", printf\('%\+d seconds',/);
         assert.match(plan.stdout, /ORDER BY/);
@@ -304,13 +306,13 @@ test('SQLite datetime addition leaves nonintegral duration seconds missing', () 
         fs.writeFileSync(script, [
             'use cli', 'use dates', 'use tables',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'M = Db .moments',
-            'Moment = M .time datetime',
-            'Span = M .offset duration',
-            'End = Moment + Span',
+            'Db = DbPath sqlite', 'M\' = Db .moments',
+            'Moment\' = M .time datetime',
+            'Span\' = M .offset duration',
+            'End\' = Moment + Span',
             'Base = "2024-02-29 23:59:59" datetime',
-            'BaseEnd = Base + Span',
-            'Result = M select',
+            'BaseEnd\' = Base + Span',
+            'Result\' = M select',
             '  .offset = .offset',
             '  .endtime = End',
             '  .baseend = BaseEnd',
@@ -318,7 +320,7 @@ test('SQLite datetime addition leaves nonintegral duration seconds missing', () 
             'Result OutputPath csv',
         ].join('\n'));
         const result = spawnSync(process.execPath,
-            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(result.status, 0, result.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), [
             'offset,endtime,baseend', '1.5,,',
@@ -362,15 +364,15 @@ test('monthly booking counts match SQL on SQLite and arrays', () => {
         run('009_monthly.ra', dbPath, output);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), expected);
         fs.writeFileSync(arrayScript, source.replace(
-            'Db = DbPath sqlite\nB = Db .bookings', 'B = DbPath csv'));
+            'Db = DbPath sqlite\nB\' = Db .bookings', 'B = DbPath csv'));
         const array = spawnSync(process.execPath,
-            [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8' });
+            [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(array.status, 0, array.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), expected);
         fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspect, dbPath, output],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /datetime\("starttime", 'start of month'\)/);
         assert.match(plan.stdout, /GROUP BY/);
@@ -426,19 +428,19 @@ test('monthly facility utilisation matches SQL and arrays while staying lazy', (
         const arraySource = source.replace(
             'argument DbPath path = "demos/pgexercises/data/club.sqlite3"',
             'argument BookingPath path\nargument FacilityPath path')
-            .replace('Db = DbPath sqlite\nB = Db .bookings\nF = Db .facilities',
+            .replace('Db = DbPath sqlite\nB\' = Db .bookings\nF\' = Db .facilities',
                 'B = BookingPath csv\nF = FacilityPath csv');
         fs.writeFileSync(arrayScript, arraySource);
         const array = spawnSync(process.execPath,
             [cli, arrayScript, bookingsCsv, facilitiesCsv, output],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(array.status, 0, array.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'),
             ['name,month,utilisation', ...rows]);
         fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspect, dbPath],
-            { cwd: root, encoding: 'utf8' });
+            { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
         assert.match(plan.stdout, /INNER JOIN/);
         assert.match(plan.stdout, /GROUP BY/);
@@ -450,3 +452,63 @@ test('monthly facility utilisation matches SQL and arrays while staying lazy', (
         fs.rmSync(temporary, { recursive: true, force: true });
     }
 });
+
+for (const compilation of [false, true]) {
+    test(`date query plans and retained months (compilation=${compilation})`, async t => {
+        const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-date-plans-'));
+        const dbPath = path.join(temporary, 'club.sqlite3');
+        const output = path.join(temporary, 'out.csv');
+        const db = new Database(dbPath);
+        try {
+            db.exec(`CREATE TABLE facilities (facid INTEGER, name TEXT);
+                CREATE TABLE bookings (facid INTEGER, starttime TEXT, slots INTEGER);
+                INSERT INTO facilities VALUES (1,'Court');
+                INSERT INTO bookings VALUES (1,'2012-08-01 10:00:00',2),
+                (1,'2012-09-01 10:00:00',3),(1,'2012-09-30 22:00:00',4),
+                (1,'2012-02-29 23:00:00',2),(1,'2012-12-31 23:00:00',2),
+                (1,'2012-09-15 10:00:00',3),(1,'2012-09-16 10:00:00',3),
+                (1,'2012-09-17 10:00:00',3),(1,'2012-09-18 10:00:00',3),
+                (1,'2012-09-19 10:00:00',3),(1,'2012-09-20 10:00:00',3);`);
+            for (const file of ['003_calendar.ra', '008_endtimes.ra', '009_monthly.ra', '010_usage.ra']) {
+                await t.test(file, () => {
+                    let reads = 0, opens = 0, closes = 0;
+                    const io = { ...nodeIo, openSqlite(file) {
+                        opens++;
+                        const connection = nodeIo.openSqlite(file);
+                        return { ...connection, prepare(sql) {
+                            const statement = connection.prepare(sql);
+                            return { ...statement, all(params) {
+                                if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) reads++;
+                                return statement.all(params);
+                            } };
+                        }, close() { closes++; connection.close(); } };
+                    } };
+                    const runtime = new Interpreter(undefined, { io, compilation });
+                    try {
+                        const source = fs.readFileSync(path.join(directory, file), 'utf8');
+                        const boundary = '\nResult OutputPath csv';
+                        assert.ok(source.trimEnd().endsWith(boundary));
+                        runtime.executeProgram(parse(source.slice(0, source.lastIndexOf(boundary))), [dbPath, output]);
+                        assert.equal(reads, 0);
+                        assert.ok(isRankPlan(runtime.variables.get('Result')));
+                        runtime.execute('Result OutputPath csv');
+                        const expectedReads = file === '008_endtimes.ra' ? 2 : 1;
+                        assert.equal(reads, expectedReads);
+                        const first = fs.readFileSync(output, 'utf8');
+                        runtime.execute('Result OutputPath csv');
+                        assert.equal(reads, expectedReads * 2);
+                        assert.equal(fs.readFileSync(output, 'utf8'), first);
+                    } finally { runtime.dispose(); }
+                    assert.equal(opens, closes);
+                });
+            }
+            const runtime = new Interpreter(undefined, { io: nodeIo, compilation });
+            try {
+                runtime.executeProgram(parse(fs.readFileSync(path.join(directory, '006_monthlen.ra'), 'utf8')), [output]);
+                assert.ok(isRankPlan(runtime.variables.get('Days')));
+                assert.deepEqual(runtime.variables.get('Months').shape, [12]);
+                assert.equal(isRankPlan(runtime.variables.get('Months')), false);
+            } finally { runtime.dispose(); }
+        } finally { db.close(); fs.rmSync(temporary, { recursive: true, force: true }); }
+    });
+}

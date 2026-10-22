@@ -175,7 +175,7 @@ describe('missing cells in typed storage', () => {
 
 describe('a whole array holds data without a value as .NA', () => {
     const lookup = 'use tables\nIds = array 2 1 9\nKeys = array 1 2 2\nNames = array "Ada" "Bea" "Later"\n'
-        + 'Found = Ids Keys Names lookup\n';
+        + "Found' = Ids Keys Names lookup\n";
 
     it('shows a lookup with no match as .NA, while one read of it still raises', () => {
         expect(run(`${lookup}Found`)).toBe('Bea Ada .NA');
@@ -183,6 +183,7 @@ describe('a whole array holds data without a value as .NA', () => {
         expect(run(`${lookup}Found default "?"`)).toBe('Bea Ada ?');
         expect(() => run(`${lookup}Found 2`)).toThrowError('lookup key not found');
         expect(run(`${lookup}Found 2 default ""`)).toBe('');
+        expect(run(`${lookup}Saved = Found\nSaved 2`)).toBe('.NA');
     });
 
     it('propagates a missing lookup through arithmetic', () => {

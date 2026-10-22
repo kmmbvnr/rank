@@ -17,19 +17,19 @@ rem prefix sums P, the best run ending
 rem at j is P[j] - min P[i < j]. A
 rem column of huge negative cells ends
 rem every row, so runs cannot join.
-fun X best
+fun X' best
   Rows = X len
-  Pad = (X # 0) * 0 - 1000000000000
-  End = Pad reshape Rows 1
-  Flat = (concat X End axis 1) copy
+  Pad' = (X # 0) * 0 - 1000000000000
+  End' = Pad reshape Rows 1
+  Flat' = concat X End axis 1
   Row = X 0
   Count = Rows * (Row len + 1)
-  Line = Flat reshape Count
+  Line' = Flat reshape Count
   Sums = Line scan + with 0 copy
   Low = Sums scan min copy
-  Ends = Sums drop 1
-  Before = Low take Count
-  Gain = Ends - Before
+  Ends' = Sums drop 1
+  Before' = Low take Count
+  Gain' = Ends - Before
   return Gain max
 end
 
@@ -52,17 +52,17 @@ for K in 56 to Len
 end
 G = (S take Cells) reshape N N
 Gap = 0 - 1000000000000
-Pad = Gap + (G # 0) * 0
-End = Pad reshape N 1
+Pad' = Gap + (G # 0) * 0
+End' = Pad reshape N 1
 Size = N * (N + 1)
 Tall = N + 1
-Wide = concat G End axis 1
-Flat1 = Wide reshape Size
-Skew = Flat1 reshape Tall N
-Turn = (G transpose reverse) transpose
-Wide2 = concat Turn End axis 1
-Flat2 = Wide2 reshape Size
-Skew2 = Flat2 reshape Tall N
+Wide' = concat G End axis 1
+Flat1' = Wide reshape Size
+Skew' = Flat1 reshape Tall N
+Turn' = (G transpose reverse) transpose
+Wide2' = concat Turn End axis 1
+Flat2' = Wide2 reshape Size
+Skew2' = Flat2 reshape Tall N
 Rows = G best
 Cols = G transpose best
 Down = Skew transpose best

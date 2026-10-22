@@ -21,9 +21,9 @@ for M in 2 to Root
   Top = Reach (M - 1) min
   First = 1 + M mod 2
   Ns = First to Top by 2 array
-  Coprime = Ns M gcd equal 1
+  Coprime' = Ns M gcd equal 1
   Pick = Ns Coprime copy
-  Per = 2 * M * (M + Pick)
+  Per' = 2 * M * (M + Pick)
   for P in Per
     Cnt (P to Limit by P) += 1
   end

@@ -1,4 +1,5 @@
 import { derivedArray, evaluateArrayItem } from './array-storage.js';
+import { mapArrayCells } from './array-cell-mapping.js';
 import { completed, mapExecution, mapResult, runExecution } from './execution.js';
 import { arrayStrides, broadcastOffset, broadcastShape } from './tensor-layout.js';
 import { isRankArray, type RankValue } from './value.js';
@@ -17,5 +18,6 @@ export function mapScalarArrays(args: RankValue[], operation: (cells: RankValue[
             same ? index : broadcastOffset(index, shape, value.shape, strides));
     });
     const evaluate = (index: number) => mapResult(mapExecution(readers, read => read(index)), operation);
-    return derivedArray(shape, arrays, index => runExecution(evaluate(index)), true, evaluate);
+    return mapArrayCells(derivedArray(shape, args, index => runExecution(evaluate(index)), true, evaluate),
+        args, cells => mapScalarArrays(cells, operation));
 }

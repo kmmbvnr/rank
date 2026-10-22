@@ -25,7 +25,7 @@ R2 = array 0 1 0 0
 R3 = array 0 0 1 0
 Step = (concat R0 R1 R2 R3) reshape 4 4
 Ids = 0 till 4 array
-Unit = (Ids reshape 4 1) equal Ids
+Unit' = (Ids reshape 4 1) equal Ids
 Acc = Unit choose 1 0
 Start = array 8 4 1 1
 for B in 0 to 40
@@ -34,6 +34,6 @@ for B in 0 to 40
   end
   Step = (Step Step matmul) mod Mod
 end
-Last = Acc Start matmul
+Last' = Acc Start matmul
 Answer = (Last 0) mod Mod
 Answer print

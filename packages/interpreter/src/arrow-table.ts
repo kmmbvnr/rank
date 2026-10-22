@@ -1,5 +1,6 @@
 import { Bool, Dictionary, Float64, Int32, Int64, Utf8, Vector, makeData, type DataType } from 'apache-arrow';
 import { checkpoint } from './interrupt.js';
+import { StoredValueSummary } from './stored-value.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ownedArray, ownedObject, sharedTypedArray, maskedArray, validityWords } from './array-storage.js';
 import { collectionElementType, mergeCollectionElementType, MISSING, type CollectionElementType, type RankArray, type RankObject, type RankRecord, type RankValue } from './value.js';
@@ -26,7 +27,15 @@ export class RankArrowTable {
     /** The keys of the `sort by` that produced this table, in row order; `ranknumber` reads them. */
     sortKeys?: readonly (readonly (RankValue | undefined)[])[];
 
-    constructor(readonly length: number, readonly columns: readonly RankArrowColumn[]) {}
+    constructor(readonly length: number, readonly columns: readonly RankArrowColumn[]) {
+        const scalar = columns.every(column => column.cells === undefined
+            || column.cells.every(value => typeof value !== 'object'));
+        const stored = new StoredValueSummary(() => scalar);
+        if (!scalar) for (const column of columns) for (const value of column.cells ?? []) {
+            if (value !== undefined) stored.include(value);
+        }
+        stored.track(this);
+    }
 
     withSortKeys(keys: readonly (readonly (RankValue | undefined)[])[]): RankArrowTable {
         const sorted = new RankArrowTable(this.length, this.columns);
@@ -207,6 +216,29 @@ function columnKindOf(value: RankValue): RankColumnKind {
     return 'values';
 }
 
+/** Check completed nested cells after mutable aggregate shells are populated. */
+export function checkColumnValues(name: string, values: readonly (RankValue | undefined)[]): void {
+    columnSummary(name, values);
+}
+
+function columnSummary(name: string, values: readonly (RankValue | undefined)[]): {
+    kind: RankColumnKind | undefined; present: number;
+} {
+    let kind: RankColumnKind | undefined;
+    let present = 0;
+    let schema: CollectionElementType | undefined;
+    for (const value of values) {
+        checkpoint('processing table');
+        if (value === undefined || value === MISSING) continue;
+        schema = mergeCollectionElementType(`table column .${name}`, schema, collectionElementType(value, new Set(), true));
+        present += 1;
+        const next = columnKindOf(value);
+        if (kind === undefined) kind = next;
+        else if (kind !== next) kind = 'values';
+    }
+    return { kind, present };
+}
+
 /** A column from JS cells (undefined is absent). A column holding one type gets
  * a typed buffer; unsupported types keep their original representation. `hint` names
  * the type of a column with no present cell. */
@@ -215,17 +247,7 @@ export function columnFromValues(
 ): RankArrowColumn {
     values = values.map(value => value === MISSING ? undefined : value);
     const rows = values.length;
-    let kind: RankColumnKind | undefined;
-    let present = 0;
-    let schema: CollectionElementType | undefined;
-    for (const value of values) {
-        if (value === undefined || value === MISSING) continue;
-        schema = mergeCollectionElementType(`table column .${name}`, schema, collectionElementType(value, new Set(), true));
-        present += 1;
-        const next = columnKindOf(value);
-        if (kind === undefined) kind = next;
-        else if (kind !== next) kind = 'values';
-    }
+    let { kind, present } = columnSummary(name, values);
     if (kind === undefined) kind = hint === undefined || hint === 'values' ? 'text' : hint;
     if (kind === 'integer'
         && values.some(value => value !== undefined && ((value as bigint) < INT64_MIN || (value as bigint) > INT64_MAX))) {

@@ -9,7 +9,7 @@ use tables
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 
 Db = DbPath sqlite
-Ids = Db .bookings select .memid
-Unique = Ids unique
+Ids' = Db .bookings select .memid
+Unique' = Ids unique
 Count = Unique len
 Count print

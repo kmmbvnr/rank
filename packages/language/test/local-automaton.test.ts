@@ -39,9 +39,8 @@ describe('Euler 305 local automaton', () => {
             'nested function id cannot be returned, assigned, or stored; call it or pass it directly to a helper.');
     });
 
-    it('rejects a lazy result retaining a callback from solve', () => {
+    it('permits a filtered result whose callback captures are snapshotted', () => {
         const program = parse(source.replace('  return State Need nth', '  fun X below = X less Need\n  return 1 to 10 filter below'));
-        expect(functionScopeDiagnostics(program).map(item => item.message)).toContain(
-            'lazy result retains nested function below; materialize it before leaving its enclosing call.');
+        expect(functionScopeDiagnostics(program)).toEqual([]);
     });
 });

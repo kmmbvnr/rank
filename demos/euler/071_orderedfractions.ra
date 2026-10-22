@@ -11,8 +11,8 @@ option Limit integer = 1000000
 
 rem Best numerator for each denominator
 rem below 3/7; keep the largest ratio.
-D = 1 to Limit array
+D' = 1 to Limit
 N = (3 * D - 1) // 7
-Ratio = N / D
+Ratio' = N / D
 Answer = N (Ratio max .index)
 Answer print

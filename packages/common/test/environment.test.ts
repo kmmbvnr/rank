@@ -55,7 +55,7 @@ describe('session environments', () => {
         const session = createReplSession();
         try {
             await session.execute('use cli\nenv "HOST" = "base"\nfun changes\n  env "HOST" = "preview"\n  yield "HOST" env\nend', 0, [], 40, true);
-            await session.execute('Values = changes', 1, [], 40, true, false, true);
+            await session.execute("Values' = changes", 1, [], 40, true, false, true);
             expect(session.preview('Values').ok).toBe(true);
             expect((await session.execute('"HOST" env', 2, [], 40, true)).output.map(line => line.text)).toEqual(['base']);
         } finally { session.dispose(); }

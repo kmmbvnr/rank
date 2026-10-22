@@ -19,11 +19,9 @@ D = (1 to 9 array) reshape 1 9 1
 K = (1 to 9 array) reshape 1 1 9
 Num = D * (10 ** (L - 1) - K)
 Den = 10 * K - 1
-Ok = Num mod Den equal 0
 A = Num // Den
-Ok and= A at least 10 ** (L - 2)
-Ok and= A less 10 ** (L - 1)
-N = (10 * A + D) filter Ok array
-Total = N sum
+Ok' = Num mod Den equal 0 and A at least 10 ** (L - 2) and A less 10 ** (L - 1)
+N' = (10 * A + D) filter Ok array
+Total' = N sum
 Answer = Total mod 100000
 Answer print

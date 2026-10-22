@@ -19,12 +19,12 @@ rem modulo the divisor.
 Root = Limit isqrt
 K = 1 to Root array
 Odd = K mod 2 * 2 - 1
-Low = K * (3 * K - 1) // 2
-High = K * (3 * K + 1) // 2
+Low' = K * (3 * K - 1) // 2
+High' = K * (3 * K + 1) // 2
 Size = K len * 2
-Gens = stack Low High transpose
+Gens' = stack Low High transpose
 Gen = Gens reshape Size
-Signs = stack Odd Odd transpose
+Signs' = stack Odd Odd transpose
 Sign = Signs reshape Size
 rem Reverse storage lets future terms be
 rem zero padding, with no negative indices.

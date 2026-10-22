@@ -32,13 +32,13 @@ for G in 0 to 1
   end
   for P in Pr filter Mask array
     Pw = P ** (0 to Bits array)
-    Ok = Pw at most Limit
+    Ok' = Pw at most Limit
     Pw = Pw filter Ok array
     Rows = All len
-    Col = All reshape Rows 1
+    Col' = All reshape Rows 1
     Cells = Rows * (Pw len)
     Prod = (Col * Pw) reshape Cells
-    Ok = Prod at most Limit
+    Ok' = Prod at most Limit
     All = Prod filter Ok array
   end
   if G equal 0
@@ -48,10 +48,10 @@ for G in 0 to 1
   end
 end
 Cap = Limit // Lo
-Keys = concat (Hi * 2) (Cap * 2 + 1)
-Tag = concat (Hi * 0) (Cap * 0 + 1)
+Keys' = concat (Hi * 2) (Cap * 2 + 1)
+Tag' = concat (Hi * 0) (Cap * 0 + 1)
 Sorted = Tag (Keys argsort)
-Below = (1 - Sorted) scan +
-Query = Sorted equal 1
-Answer = Below filter Query array sum
+Below' = (1 - Sorted) scan +
+Query' = Sorted equal 1
+Answer = Below filter Query sum
 Answer print

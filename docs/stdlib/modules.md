@@ -143,13 +143,18 @@ using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt
-Roots = Values isqrt
+Roots' = Values isqrt
+Saved = Roots
 Perfect = Root ** 2 equal Value
 ```
 
 It maps lazily over arrays and sequences. A negative integer raises
 `.DomainError`, and a `real` raises `.TypeError`. The computation uses only
 integer arithmetic, so large values do not lose precision.
+
+Ordinary binding stores all roots; a deferred binding recomputes on demand.
+For an array, the known scalar-map result shape is available without reading
+its cells. Domain errors arise when a selected cell or the full result is read.
 
 `log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
 
@@ -906,7 +911,9 @@ earlier axes are independent batches. The explicit `axis F O` form selects the
 feature and observation axes in that order. It preserves the other axes and
 replaces the selected axes with two feature axes. The operation uses the sample
 denominator `N - 1`, returns real values, and requires at least two
-observations. Its result and feature means are calculated lazily and cached.
+observations. Ordinary binding stores the completed result. Deferred binding
+recomputes on demand; a traversal may share feature means within its current
+batch, but later observations start fresh.
 
 ## Text
 

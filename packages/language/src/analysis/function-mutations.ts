@@ -13,11 +13,18 @@ import { analyzeFunctionScopes, lexicalBinding, type FunctionScopeAnalysis, type
 interface MutationAnalysis {
     readonly diagnostics: { node: AstNode; message: string }[];
     readonly parameters: ReadonlyMap<FunctionStatement, ReadonlySet<number>>;
+    readonly sites: ReadonlyMap<AstNode, ReadonlySet<LexicalBinding>>;
 }
 const summaries = new WeakMap<FunctionScopeAnalysis, MutationAnalysis>();
 
 export function functionMutationDiagnostics(analysis: FunctionScopeAnalysis): { node: AstNode; message: string }[] {
     return analyzeMutations(analysis).diagnostics;
+}
+
+/** Names reached by each mutation, substituting helper parameters and callbacks
+ * at their call sites. Direct aliases remain separate source-level names. */
+export function bindingMutationSites(analysis: FunctionScopeAnalysis): ReadonlyMap<AstNode, ReadonlySet<LexicalBinding>> {
+    return analyzeMutations(analysis).sites;
 }
 
 /** Possible writes through parameters, including aliases and transitive helpers.
@@ -38,6 +45,13 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
     const builtinAliases = new Map<LexicalBinding, Operation>();
     const aliases = new Map<LexicalBinding, Set<LexicalBinding>>();
     const writes = new Map<FunctionStatement, Map<LexicalBinding, AstNode>>();
+    const sites = new Map<AstNode, Set<LexicalBinding>>();
+    const noteSite = (node: AstNode, binding: LexicalBinding | undefined): void => {
+        if (!binding) return;
+        const targets = sites.get(node) ?? new Set<LexicalBinding>();
+        targets.add(binding);
+        sites.set(node, targets);
+    };
     const calls: { node: AstNode; owner?: FunctionStatement; callee: LexicalBinding;
         arguments: readonly Expression[]; scope: LexicalScope }[] = [];
     const receiver = (expression: Expression, scope: LexicalScope): LexicalBinding | undefined => {
@@ -51,8 +65,9 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
         }
         return undefined;
     };
-    const add = (owner: FunctionStatement, binding: LexicalBinding | undefined, node: AstNode): boolean => {
-        if (!binding) return false;
+    const add = (owner: FunctionStatement | undefined, binding: LexicalBinding | undefined, node: AstNode): boolean => {
+        noteSite(node, binding);
+        if (!owner || !binding) return false;
         let own = writes.get(owner);
         if (!own) writes.set(owner, own = new Map());
         if (own.has(binding)) return false;
@@ -88,9 +103,10 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
                 sources.add(source);
             }
         }
-        if (owner && (isArrayAssignmentStatement(node) || isOperationAssignmentStatement(node))) {
+        if (isAssignmentStatement(node) && node.operator !== '=') noteSite(node, lexicalBinding(scope, node.name));
+        if (isArrayAssignmentStatement(node) || isOperationAssignmentStatement(node)) {
             add(owner, lexicalBinding(scope, node.name), node);
-        } else if (owner && isPushStatement(node)) {
+        } else if (isPushStatement(node)) {
             add(owner, receiver(node.receiver, scope), node);
         } else if (isDeclaredCallExpression(node)) {
             const callee = isNameExpression(node.callee) && lexicalBinding(scope, node.callee.name);
@@ -103,9 +119,9 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
                 calls.push({ node, owner, callee: binding, arguments: parts.slice(0, -1), scope });
             }
             const form = applicationForm(node);
-            if (owner && (form?.kind === 'collection-mutation' || form?.kind === 'dsu-method' && form.operation === 'merge')) {
+            if (form?.kind === 'collection-mutation' || form?.kind === 'dsu-method' && form.operation === 'merge') {
                 add(owner, receiver(form.receiver, scope), node);
-            } else if (owner && !binding && last && isNameExpression(last)
+            } else if (!binding && last && isNameExpression(last)
                 && findOperation(last.name)?.effects?.includes('mutates')) {
                 add(owner, receiver(parts[0], scope), node);
             }
@@ -147,6 +163,10 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
         changed = true;
     };
     const visit = (call: typeof calls[number], caller?: Context): void => {
+        const noteMutation = (binding: LexicalBinding | undefined): void => {
+            noteSite(call.node, binding);
+            if (caller) addWrite(caller, binding, call.node);
+        };
         const environment = caller?.callbacks ?? new Map();
         const callees = targets(call.callee, environment);
         const opaque = isDeclaredCallExpression(call.node)
@@ -154,19 +174,20 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
                 && functionCallSignature(call.callee.scope.owner).parameters.some(parameter =>
                     parameter.name === call.callee.name && parameter.acceptsFunction)
             || isFunctionBindingStatement(call.callee.declaration)
-            || call.callee.scope.owner.$type === 'Program' && isNameExpression(call.callee.declaration)
+            || call.callee.scope.owner.$type === 'Program'
+                && (isNameExpression(call.callee.declaration) || call.callee.declaration === call.callee.scope.owner)
                 && /^[a-z]/.test(call.callee.name);
         // Unknown callbacks may mutate any argument. Keep this conservative
         // effect in their parameter summary and substitute at the call site.
         // Memo validates scalar argument keys before entering its body, so an
         // unknown function parameter cannot execute there in the first place.
-        if (caller && !caller.owner.memo && !callees.size && opaque) {
-            for (const argument of call.arguments) addWrite(caller, receiver(argument, call.scope), call.node);
+        if (!caller?.owner.memo && !callees.size && opaque) {
+            for (const argument of call.arguments) noteMutation(receiver(argument, call.scope));
         }
         for (const callee of callees) {
             if (!isFunctionStatement(callee)) {
-                if (caller && callee.effects?.includes('mutates') && call.arguments[0]) {
-                    addWrite(caller, receiver(call.arguments[0], call.scope), call.node);
+                if (callee.effects?.includes('mutates') && call.arguments[0]) {
+                    noteMutation(receiver(call.arguments[0], call.scope));
                 }
                 continue;
             }
@@ -179,13 +200,12 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
                 if (binding) supplied.set(binding, argumentTargets(call.arguments[index], call.scope, environment));
             }
             const called = context(callee, supplied);
-            if (!caller) continue;
             for (const [binding] of called.writes) {
-                if (binding.scope.owner !== callee) addWrite(caller, binding, call.node);
+                if (binding.scope.owner !== callee) noteMutation(binding);
                 else if (binding.kind === 'parameter') {
                     const index = parameters.findIndex(parameter => parameter.name === binding.name);
                     const argument = call.arguments[index];
-                    if (argument) addWrite(caller, receiver(argument, call.scope), call.node);
+                    if (argument) noteMutation(receiver(argument, call.scope));
                 }
             }
         }
@@ -215,7 +235,7 @@ function analyzeMutations(analysis: FunctionScopeAnalysis): MutationAnalysis {
             parameters.get(owner)!.add(names.findIndex(parameter => parameter.name === binding.name));
         }
     }
-    const result = { parameters, diagnostics: diagnostics.filter((item, index) => !diagnostics.slice(0, index)
+    const result = { parameters, sites, diagnostics: diagnostics.filter((item, index) => !diagnostics.slice(0, index)
         .some(previous => previous.node === item.node && previous.message === item.message)) };
     summaries.set(analysis, result);
     return result;

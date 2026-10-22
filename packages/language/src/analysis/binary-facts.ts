@@ -3,6 +3,7 @@ import {
     type BinaryExpression, type Expression,
 } from '../generated/ast.js';
 import { rangeSliceOperands } from '../expressions.js';
+import { completionMayCall } from './completion-facts.js';
 import { applicationForm, type ApplicationForm } from '../application-forms.js';
 import { rankedOperandShapes } from './operation-shape.js';
 import { findOperation } from '../operations.js';
@@ -31,17 +32,19 @@ export function binaryExpressionFacts(
             elements: ['boolean'], callbackFreeScalarCells: true };
     }
     if (expression.operator === 'default') {
+        const completion = !completionMayCall(left) && !completionMayCall(right)
+            ? { completion: 'pure' as const } : {};
         // `default` replaces `.NA`, so what it leaves holds no `missing` unless the fallback does.
         if (left.types.join() === 'array' && left.elements?.includes('missing') && left.rank !== undefined
             && left.shape && right.rank === 0 && right.types.length) {
-            return { types: ['array'], rank: left.rank, shape: left.shape,
+            return { types: ['array'], rank: left.rank, shape: left.shape, ...completion,
                 elements: [...new Set([...left.elements.filter(type => type !== 'missing'), ...right.types])] as Types };
         }
         const present = left.types.filter(type => type !== 'missing');
         const types = left.types.length && right.types.length
             ? [...new Set([...present, ...right.types])] as Types : [];
         return left.rank === 0 && right.rank === 0 && types.length
-            ? { types, rank: 0, shape: [] } : { types };
+            ? { types, rank: 0, shape: [], ...completion } : { types, ...completion };
     }
     if (['to', 'till'].includes(expression.operator) && isAllAxisExpression(expression.right)) {
         return { types: ['sequence'], elements: ['integer'], rank: 1, shape: [null],

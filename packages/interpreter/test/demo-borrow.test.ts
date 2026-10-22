@@ -110,7 +110,7 @@ it('invalidates a cached reader-helper proof when that helper starts returning t
     } finally { runtime.dispose(); }
 });
 
-it('requires every other array read by the vacation function to be flat', () => {
+it('completes an eager view argument before borrowing the vacation inputs', () => {
     const runtime = new Interpreter();
     try {
         const vacation = demo(runtime, 'demos/atcoder/edpc/03_vacation.ra', 'best_score');
@@ -121,10 +121,10 @@ it('requires every other array read by the vacation function to be flat', () => 
         const stats = new RuntimeDiagnostics();
         stats.run(() => {
             expect(vacation.call([first, middle, third])).toBe(160n);
-            expect(arrayForWrite(first)).not.toBe(first);
-            expect(arrayForWrite(third)).not.toBe(third);
+            expect(arrayForWrite(first) ?? first).toBe(first);
+            expect(arrayForWrite(third) ?? third).toBe(third);
         });
-        expect(stats.cowCopies).toBe(2);
+        expect(stats.cowCopies).toBe(0);
     } finally { runtime.dispose(); }
 });
 

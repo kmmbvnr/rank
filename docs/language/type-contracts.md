@@ -188,26 +188,29 @@ checking costs work proportional to the inspected structure; repeated scalar
 summaries use revision-aware caches. Deep array traversal and contract merging
 use explicit stacks.
 
-Unread lazy cells stay lazy. A checked view validates each demanded cell against
-any established contract. Its first concrete observed cell settles its element
-type. Nested lazy arrays settle their own types as cells are demanded. Later
-reads of a retained lazy value must satisfy the established contract.
+Ordinary assignment completes the result recursively before installing it.
+That completion reads planned cells and validates their recursive contracts.
+An ordinary parameter performs the same completion once on entry. A deferred
+binding or parameter preserves unread cells; checked views validate those
+cells when demanded. The first concrete observation settles an unresolved
+element domain. Subsequent results must satisfy the established contract.
 
-Missing-cell exceptions retain their usual behavior: a whole-array read can
-represent absence as `.NA`, while a direct missing-cell read still raises.
+Completion stores recoverable missing cells as `.NA`. Direct access to an
+uncompleted projection can still raise its missing-cell error. A stored `.NA`
+remains `.NA` and works with `default`.
 
-Lazy validation can therefore fail after assignment, when a consumer reads a
-cell. The rejected cell is not returned, but the binding already holds the lazy
-value. There is no rollback to a previous binding at that later point. Cached
-cells cannot bypass a subsequently refined contract. Compact record storage
-retains its native layout checks and value-copy reads.
+A deferred result can fail when a consumer demands it. The rejected cell is
+not returned, and earlier callback effects are not rolled back. Failure while
+completing an ordinary assignment keeps the previous binding value. A plan
+recomputes on another demand; it has no automatic result or cell cache. Compact
+record storage retains its native layout checks and value-copy reads.
 
 ## Writes, aliases, and scope
 
 Whole-array assignments, compound assignments, scalar selections, slices,
 gathers, and masks pass the contract. Selection replacements are evaluated and
-checked as a batch before cells are changed. A lazy whole-array arithmetic result
-can instead fail on observation, as described above.
+checked as a batch before cells are changed. Whole-array arithmetic assigned
+with `=` is completed before the new binding is installed.
 
 The RHS and selectors may already have run callbacks or other effects before a
 write fails. Those effects are not rolled back. A failed eager assignment keeps
@@ -217,8 +220,8 @@ Record-field mutation continues to use the existing record-field checks.
 Arrays retain value semantics: writing one ordinary array name does not change
 another name's stored cells. Each new name establishes its own contract from the
 value it receives. Records inside arrays keep their existing shared
-identity. Retained lazy values also retain their deferred validation obligations,
-including when reached through another name.
+identity. Deferred values retain their validation obligations when reached
+through another name. An ordinary binding completes them recursively.
 
 Parameters get contracts for the current call. Captured names use the enclosing
 frame's contracts. A fresh invocation or a name leaving its block ends that
@@ -231,8 +234,8 @@ rather than rebinding a global. Stateful callbacks remain allowed.
 | --- | --- | --- | --- | --- | --- |
 | Ordinary scalar name | Fixed, with missing and infinity-seed rules | Text stays rank 1 | Text length may change | Not applicable | Binding lifetime; assignment |
 | Ordinary record name | Fixed | Field ranks fixed | May change | Recursive field names and structural field contracts | Binding lifetime; checked replacement, aliases keep identity |
-| Ordinary array name | Fixed | Fixed | May change | One recursive element type | Binding lifetime; eager validation or deferred lazy reads |
-| Parameter / captured array | Same as ordinary array | Fixed | May change | Same recursive contract | Invocation / enclosing frame |
+| Ordinary array name | Fixed | Fixed | May change | One recursive element type | Binding lifetime; recursive completion and validation at assignment |
+| Parameter / captured array | Same as ordinary array | Fixed | May change | Same recursive contract | Ordinary parameter completes once; deferred parameter validates on demand; enclosing frame for captures |
 | Record field | Fixed | Fixed | May change | Recursive, including field names; homogeneous array fields | Record identity; eager field validation can read lazy cells |
 | Mutable collection | First insertion establishes element type | Array element rank fixed | May change | Array cells recursive; plain record elements retain identity semantics | Collection identity, including after removal to empty; insertion checks |
 | Index / object payload | May vary | Not fixed by payload storage | May change | Heterogeneous payloads | Existing structure rules |
@@ -277,27 +280,28 @@ graph edge pairs and SQL parameter bundles are tuples. JSON `.flat` keeps `.valu
 as text so that its column is homogeneous; filter `.kind` and convert explicitly
 before numeric operations.
 
-## Lazy call specialization
+## Deferred calls and specialization
 
-Laziness and materialization are evaluation/storage properties, not language
-types. Call specialization uses stable element-type information separately
-from the cell cache:
+Apostrophes select evaluation and storage behavior at binding sites. They do
+not introduce a `Plan<T>` language type. Specialization uses available result
+type and rank facts without evaluating a deferred argument merely to inspect
+its cells. The parameter's binding mode separately decides completion:
 
 ```rank
 use sequences
-fun Values twice
+fun Values' twice
   return Values * 2
 end
 Source = array 1 2
-Lazy = Source * 2
-A = Lazy twice
-Material = Lazy copy
+Deferred' = Source * 2
+A = Deferred twice
+Material = Deferred
 B = Material twice
 ```
 
-`Source`, `Lazy`, `Material`, `A`, and `B` have the same integer-array
-specialization. Reading cells, or calling `copy`, does not create another
-specialization. Multiplication propagates its result type using the same scalar
+`Source`, `Deferred`, `Material`, `A`, and `B` have integer-array result
+facts. `Material` retains the first computed result; another demand of
+`Deferred` recomputes it. Evaluation mode does not itself add a specialization. Multiplication propagates its result type using the same scalar
 operator rules as the analyzer; it does not execute a cell to discover its type.
 For matrices, transpose displays `c[n, m]<a> → c[m, n]<a>`.
 Its generic array alternative remains available for other ranks. Known
@@ -306,21 +310,23 @@ input axes appear reversed in the result, including zero-length axes.
 Slices, transpose, reshape, binding wrappers, and preview copies preserve the
 available element information. Tuples carry it at each position.
 
-A lazy value whose type is genuinely unknown retains an unresolved element
-domain, including after materialization and copying. Unresolved arguments use
-an unresolved specialization; runtime return checks still apply. A cache of
-observed cells is not a declaration that authorizes a new specialization.
+A deferred value with no proven element type has an unresolved domain until
+validation observes concrete values. Empty results can leave that domain
+unresolved after completion. Such arguments use an unresolved specialization;
+runtime return checks still apply. Evaluation history does not authorize a
+different specialization.
 Explicit fills provide type evidence even for empty arrays. External-data
 validation remains in #33/#116. An already typed binding keeps its domain through empty
 or all-missing replacements. This change preserves existing specialization granularity:
 array argument keys describe direct element kinds, while recursive binding and
 return contracts validate nested structure.
 
-Calling `twice` with unread cells leaves them unread, including at sizes eligible
-for dense kernels. Those kernels only borrow cells already stored. A demanded
-cell still runs its callback and raises its errors at that point. Known type
-information does not imply purity, permit callback reordering, or suppress
-validation of the actual result.
+The deferred parameter in `twice` preserves unread input cells. Ordinary local
+bindings inside a function still complete their results during the call, and
+the receiving binding decides whether to keep or complete the returned plan.
+Changing the signature to `fun Values twice` instead completes the input once
+on entry. Known type information does not imply purity, permit callback
+reordering, or suppress validation of the actual result.
 
 ## Static analysis
 

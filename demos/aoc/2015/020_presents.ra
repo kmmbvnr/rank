@@ -8,7 +8,7 @@ use algo
 
 argument Input path
 
-Target = Input read integer
+Target = (Input readlines 0) integer
 Part1 = Target 10 0 firsthouse
 Part2 = Target 11 50 firsthouse
 Part1 print

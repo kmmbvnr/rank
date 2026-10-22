@@ -15,7 +15,7 @@ Part2 print
 
 
 rem Count strings accepted by each rule set.
-fun Lines solve
+fun Lines' solve
   Part1 = 0
   Part2 = 0
 

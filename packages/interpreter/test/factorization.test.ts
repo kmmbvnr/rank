@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { describe, expect, it, vi } from 'vitest';
+import { Interpreter, formatValue, isNativeFunction, isRankSequence } from '../src/index.js';
 import { Factorizer } from '../src/factorization.js';
 import { InterruptedError, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 
@@ -71,7 +71,7 @@ describe('bounded factorization', () => {
     it('preserves replay, ordering, divisors and input validation in Rank', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use numbers\nuse sequences\nF = 360 factors');
+            runtime.execute("use numbers\nuse sequences\nF' = 360 factors");
             expect(formatValue(runtime.execute('F array')!)).toBe('2 2 2 3 3 5');
             expect(runtime.execute('F sum')).toBe(17n);
             expect(formatValue(runtime.execute('F array')!)).toBe('2 2 2 3 3 5');
@@ -82,6 +82,32 @@ describe('bounded factorization', () => {
             expect(() => runtime.execute('(-1) factors')).toThrow('factors expects a positive integer');
             expect(() => runtime.execute('1.5 factors')).toThrow('expected integer input');
         } finally { runtime.dispose(); }
+    });
+});
+
+describe('number plan demand', () => {
+    it('recomputes factor powers for separate divisor counts and traversals', () => {
+        const calls = vi.spyOn(Factorizer.prototype, 'factors');
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('use numbers');
+            const divisors = runtime.execute('divisors');
+            if (!divisors || !isNativeFunction(divisors)) throw Error('expected divisors function');
+            const value = divisors.call([12n]);
+            if (!isRankSequence(value)) throw Error('expected divisor recipe');
+            expect(calls).toHaveBeenCalledTimes(0);
+            expect(value.plan.reduce?.('count')).toBe(6n);
+            expect(value.plan.reduce?.('count')).toBe(6n);
+            expect(calls).toHaveBeenCalledTimes(2);
+            expect([...value.plan.iterate()]).toEqual([1n, 2n, 3n, 4n, 6n, 12n]);
+            expect([...value.plan.iterate()]).toEqual([1n, 2n, 3n, 4n, 6n, 12n]);
+            expect(calls).toHaveBeenCalledTimes(4);
+            expect(value.plan.contains?.(3n)).toBe(true);
+            expect(calls).toHaveBeenCalledTimes(4);
+        } finally {
+            runtime.dispose();
+            calls.mockRestore();
+        }
     });
 });
 

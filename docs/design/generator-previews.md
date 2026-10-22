@@ -1,11 +1,10 @@
 # Looking at a sequence without spending it
 
-Implemented in the CLI. `SequenceReplay` in `packages/cli/src/sequence-replay.ts`
-keeps yielded values and records the consuming source line and read position of
-each generator. Stored native ordered sources such as `primes` and `fibonacci`
-also keep a cursor and a history of positions by source line. The interpreter
-exposes creation and assignment hooks; ordinary file execution does not install
-them or allocate replay tapes.
+Implemented in the shared REPL runtime. `SequenceReplay` in
+`packages/common/src/sequence-replay.ts` keeps yielded values and records the
+consuming source line and read position of single-pass generators. The
+interpreter exposes a resource creation hook; ordinary file execution does not
+install it or allocate replay tapes. Repeatable native sources keep no tape.
 
 ## Looking and consuming
 
@@ -16,7 +15,7 @@ fun N nums
   yield N
   yield N + 1
 end
-G = 3 nums
+G' = 3 nums
 G
 A = G array
 A sum
@@ -31,8 +30,10 @@ As before, requesting an endless value in full does not terminate.
 
 A preview of a sequence with unknown size takes at most ten items. It does not
 scan for a count or pull an extra item just to discover whether there is more.
-If the end was not reached, the note says `size unknown`. Finite sequences with
-a known size retain the existing bounded scan for their two ends.
+If the end was not reached, the note says `size unknown`, unless the work limit
+stopped the read. Finite sequences with a known size use a bounded scan for their
+two ends. If that scan reaches its work limit, it keeps the computed head and
+shows `preview demand budget exhausted`.
 Automatic result previews use at most 40 text columns, reduced further when the
 terminal has less space after the source gutter. A wider terminal does not expand
 these previews; `full` still prints the complete value.
@@ -42,42 +43,43 @@ for the first program consumer. Repeated looks use that buffer. Side effects
 needed to produce the values happen when they are first requested, including
 when that request comes from a preview.
 
-## Stored native sources
+## Repeatable native sources
 
-In the REPL, assigning `primes`, `fibonacci`, or a reusable bounded view of
-these sources creates a fresh stream. A plain alias shares the existing stream.
-Ranges remain repeatable values. Merely inspecting any stream leaves its
-position unchanged:
+Native sources such as `primes` and `fibonacci` remain repeatable in both the
+REPL and file execution. A deferred binding saves the expression:
 
 ```rank
 use sequences
-G = primes
-G till 100
+G' = primes
+G till 100 sum
 G till 100 sum
 G
 ```
 
-The sum is `1060`; the final preview begins `101 103 107`. `till` peeks at
-the first excluded value and leaves it buffered for the next consumer.
-`G to 101 sum` would consume `101`, whereas `G till 101 sum` would
-return zero and leave it in place. Bounds on a stored view can narrow its limit but cannot
-widen it. Filtering a stream and then bounding it uses the same cursor.
+Both sums are `1060`; the final preview begins `2 3 5 7`. `H' = G` also
+starts each demand from the beginning. No cursor or computed results are
+retained. Bounds compose by intersection, so bounding an already bounded
+source cannot widen it. Filters and nested readers preserve independent reads.
 
-`H = G` shares consumption. `H = primes` creates a separate stream beginning
-with `2`. Native streams support successive partial consumers; asking again
-after a finite stream is exhausted raises `.ConsumedSequence`. Native planner
-shortcuts never bypass the cursor: indexing, filtering and reductions must
-account for the values they read.
+An ordinary binding completes its result. `A = G till 100` stores the finite
+values, while `A = primes` rejects a known infinite result. An apostrophe on a
+generator binding preserves its single-pass resource; it does not restart the
+body. Preview and inspection demand deferred expressions within a work budget.
+`full` demands the expression without the preview limit.
 
-Each consuming line records the resulting cursor position. Rewinding a later
-consumer restores the position left by the preceding consumer. Rewinding the
-first consumer restores the stream's beginning. Cached output from a nested
-generator also checks the source position it originally read; if another
-consumer has since advanced that source, it reports `.ConsumedSequence` and
-asks to return to the consuming line rather than moving the source backwards.
+The work budget covers cooperative computation, including loops that produce
+values and loops still computing the next value. Nested previews and inspection
+cells share the enclosing allowance. Raw lazy arrays, sequence scans and
+first-cell type labels use the same protection as expression plans. Inspection
+stops a costly window with `Inspection work limit reached`; ordinary cell errors
+remain visible as cell errors. Another request starts a fresh observation.
+Ordinary execution and `full` do not install this preview allowance.
 
-This is REPL behavior. Executing a Rank file normally retains repeatable native
-sequences and the existing single-pass user-generator rules.
+Read-ahead that reaches its limit between values leaves the resource suspended.
+A limit raised while computing the next value closes that iterator. Its tape
+keeps the yielded prefix; trying to consume beyond it asks the user to rerun the
+producing cell. A host limit is never replayed as a new cancellation or a new
+budget exhaustion.
 
 ## Returning to a line
 
@@ -119,9 +121,9 @@ Only values already produced can be replayed without executing more code.
 
 Tapes grow with the values generated during the session and are retained until
 exit. There is no implicit materialization of an entire generator and no cache
-in ordinary file execution. User generators still permit one consumer per forward run. Stored native
-streams can consume successive prefixes. Returning to a consuming statement
-permits its reads again in either case.
+in ordinary file execution. User generators still permit one consumer per forward
+run. Returning to a consuming statement permits its reads again. Repeatable
+expressions compute again on each demand, including any effects they perform.
 
 The CLI tests cover previews, line boundaries, shared names, partial and endless
 generators, filters, nested generators, errors, imported functions, stdin,

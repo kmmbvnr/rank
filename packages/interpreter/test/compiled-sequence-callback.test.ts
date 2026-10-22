@@ -3,6 +3,7 @@ import { Interpreter, isRankArray, type RankValue } from '../src/index.js';
 import { isNativeFunction, isRankSequence } from '../src/value.js';
 import { sequence } from '../src/sequence.js';
 import { native } from '../src/modules/shared.js';
+import { demandValue } from '../src/plan.js';
 
 function setup(compiled: boolean, declaration: string) {
     const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled });
@@ -26,9 +27,9 @@ describe('prepared sequence and dyadic callbacks', () => {
                     }
                 },
             }));
-            runtime.execute('Mapped = Source helper rank 0');
+            runtime.execute("Mapped' = Source helper rank 0");
             expect(reads).toEqual([]);
-            const mapped = runtime.variables.get('Mapped');
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankSequence(mapped)) throw new Error('missing sequence');
             const iterator = mapped.plan.iterate()[Symbol.iterator]();
             expect(iterator.next().value).toBe('21');
@@ -99,9 +100,9 @@ describe('prepared sequence and dyadic callbacks', () => {
                         }
                     },
                 }));
-                runtime.execute('Mapped = Source scan helper');
+                runtime.execute("Mapped' = Source scan helper");
                 expect(reads).toEqual([]);
-                const mapped = runtime.variables.get('Mapped');
+                const mapped = demandValue(runtime.variables.get('Mapped')!);
                 if (!mapped || !isRankSequence(mapped)) throw new Error('missing sequence');
                 const iterator = mapped.plan.iterate()[Symbol.iterator]();
                 const values = [iterator.next().value, iterator.next().value, iterator.next().value];

@@ -1,6 +1,7 @@
+import { functionReference } from './function-reference.js';
 import { queryDefault } from '../query-default.js';
 import {
-    assertNever, flattenApplication, isParenthesizedExpression, isNameExpression, type ApplicationForm,
+    assertNever, flattenApplication, type ApplicationForm,
     type Expression,
 } from '@arrrank/language';
 import { RankError } from '../errors.js';
@@ -8,6 +9,7 @@ import { runExecution, mapExecution, resume, type Evaluation, type Execution } f
 import { graphConstructor, PredicateGraph, SuccessorGraph } from '../graph.js';
 import { addToCollection, newStructure } from '../collections.js';
 import { pushCollection, RankHeap } from '../containers.js';
+import { materializeValue } from '../materialize.js';
 import { dsuFrom } from '../dsu.js';
 import { finiteValues } from '../multiset.js';
 import { multisetQuery, namedSegment, symbolicSegment } from '../modules/algo.js';
@@ -42,10 +44,7 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 context.requireModule('graph', 'new graph');
                 if (form.predicate || form.successor) {
                     const domain = form.domain ? yield* resume(context.evaluate(form.domain)) : undefined;
-                    let callback = (form.predicate ?? form.successor)!;
-                    while (isParenthesizedExpression(callback)) callback = callback.value;
-                    const predicate = isNameExpression(callback) ? context.resolve(callback.name)
-                        : yield* resume(context.evaluate(callback));
+                    const predicate = yield* resume(functionReference((form.predicate ?? form.successor)!, context));
                     const direction = yield* resume(context.evaluate(form.direction!));
                     if (!isNativeFunction(predicate)) throw new RankError(form.successor ? 'graph successor expects a function' : 'graph predicate expects a function');
                     if (form.successor) return new SuccessorGraph(direction, predicate, vertex =>
@@ -80,8 +79,9 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 const filled = newStructure(structure);
                 const items = yield* resume(context.evaluate(parts[1]));
                 for (const item of finiteValues(items)) {
-                    if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, item);
-                    else addToCollection(filled, item);
+                    const value = materializeValue(item);
+                    if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, value);
+                    else addToCollection(filled, value);
                 }
                 return filled;
             };
@@ -108,11 +108,12 @@ export function compileStructureApplication(context: ApplicationContext, applica
                         throw new RankError('heap priorities and values must have the same length', 'DimensionMismatch');
                     }
                     const cells = dyadicCells(values, values.shape.length - 1);
-                    const payloads = Array.from({ length: values.shape[0] }, (_, index) => cells.cellAt(index));
-                    return heap.fill([...finiteValues(priorities)], payloads);
+                    const priorityValues = [...finiteValues(priorities)].map(materializeValue);
+                    const payloads = Array.from({ length: values.shape[0] }, (_, index) => materializeValue(cells.cellAt(index)));
+                    return heap.fill(priorityValues, payloads);
                 }
                 if (values !== undefined) {
-                    const items = [...finiteValues(values)];
+                    const items = [...finiteValues(values)].map(materializeValue);
                     return heap.fill(items, items);
                 }
                 return heap;
@@ -126,7 +127,7 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 const source = yield* resume(context.evaluate(segment.source));
                 const identity = segment.identity
                     ? yield* resume(context.evaluate(segment.identity)) : undefined;
-                const operation = yield* resume(context.evaluate(segment.operation));
+                const operation = yield* resume(functionReference(segment.operation, context));
                 return namedSegment(source, operation, identity, context.builtins.standard('algo', 'maxsum'));
             };
         }

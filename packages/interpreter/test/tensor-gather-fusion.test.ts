@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { demandValue } from '../src/plan.js';
 import { Interpreter, formatValue, MISSING, createArraySnapshot, type RankSequence, type RankValue, parse } from '../src/index.js';
 
 import { isFunctionStatement } from '@arrrank/language';
@@ -73,8 +74,11 @@ describe('indirect gather bitwise reduction fusion', () => {
     it('preserves escaped intermediate values', () => {
         const actual = compare(program.replace('use bits', 'use bits\nuse io')
             .replace('return Score', 'Plain print\n  return Score'));
-        expect(actual.kernels).toBe(0);
-        expect(actual.output).toHaveLength(1);
+        // The final gather/reduction may fuse after Plain is stored; the
+        // escaped XOR result must remain available for the print.
+        expect(actual.kernels).toBe(1);
+        expect(actual.compiled[0]).not.toContain('^');
+        expect(actual.output).toEqual(['5 7 5 6 10 10']);
     });
     it('refreshes source arrays, selectors and lookup table on repeated calls', () => {
         const actual = compare(program.replace('use bits', 'use bits\nuse io') + ` print
@@ -124,43 +128,62 @@ it('preserves missing cells through bitwise lookup fallback', () => {
 it('does not invoke unproved sequence readers while binding a kernel', () => {
     function execute(tensorFusion: boolean) {
         const reads: string[] = [];
+        const readsAtCompilation: string[][] = [];
         let kernels = 0;
-        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
+        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++,
+            onTensorKernelCompiled: () => readsAtCompilation.push([...reads]) });
         try {
-            runtime.execute(program);
+            runtime.execute(program.replace('\nCipher Weights Key Slots score', '')
+                .replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
+                .replace('KeyStream =', "KeyStream' =").replace('Plain =', "Plain' =").replace('Score =', "Score' ="));
             kernels = 0;
+            readsAtCompilation.length = 0;
             const slots: RankSequence = { kind: 'sequence', plan: {
                 name: 'host range', size: { kind: 'exact', value: 6n },
                 *iterate() { for (let i = 0n; i < 6n; i++) { reads.push(`iterate:${i}`); yield i % 3n; } },
                 at(i) { reads.push(`at:${i}`); return i % 3n; },
             } };
             runtime.variables.set('Slots', slots);
-            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels };
+            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels, readsAtCompilation };
         } finally { runtime.dispose(); }
     }
-    expect(execute(true)).toEqual({ ...execute(false), kernels: 0 });
+    const reference = execute(false), actual = execute(true);
+    expect(reference.reads).toEqual(Array.from({ length: 6 }, (_, i) => `iterate:${i}`));
+    // The ordinary selector path finishes reading the opaque sequence before
+    // a native kernel may reduce the resulting selection of stored Weights.
+    expect(actual).toEqual({ ...reference, kernels: 1, readsAtCompilation: [reference.reads] });
 });
 
-it('does not reinterpret sequence zip arithmetic as array broadcasting', () => {
+it.each([
+    { marker: "'", value: '0', kernels: 0 },
+    { marker: '', value: '3', kernels: 0 },
+])('preserves zip or broadcast for binding marker "$marker"', ({ marker, value, kernels }) => {
     const source = `use sequences
-fun A B score
-  Values = A + B
+fun A${marker} B${marker} score
+  Values${marker} = A + B
   return Values sum
 end
-A = 0 till 1
-B = 0 till 3
+A${marker} = 0 till 1
+B${marker} = 0 till 3
 A B score`;
-    expect(compare(source)).toMatchObject({ value: '0', kernels: 0 });
+    expect(compare(source)).toMatchObject({ value, kernels });
 });
 
 it.each(['at', 'iterate'] as const)('revalidates a modified modular sequence %s hook', hook => {
     function execute(tensorFusion: boolean) {
         let reads = 0, kernels = 0;
-        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
+        const readsAtCompilation: number[] = [];
+        const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++,
+            onTensorKernelCompiled: () => readsAtCompilation.push(reads) });
         try {
-            runtime.execute(program);
+            runtime.execute(program.replace('\nCipher Weights Key Slots score', '')
+                .replace('fun Cipher Weights Key Slots score', "fun Cipher Weights Key Slots' score")
+                .replace('KeyStream =', "KeyStream' =").replace('Plain =', "Plain' =").replace('Score =', "Score' =")
+                .replace('Slots =', "Slots' ="));
             kernels = 0;
-            const slots = runtime.variables.get('Slots') as RankSequence;
+            readsAtCompilation.length = 0;
+            const slots = demandValue(runtime.variables.get('Slots')!) as RankSequence;
+            runtime.variables.set('Slots', slots);
             if (hook === 'at') {
                 const original = slots.plan.at!;
                 slots.plan.at = function(index) { reads++; return original.call(this, index); };
@@ -168,10 +191,12 @@ it.each(['at', 'iterate'] as const)('revalidates a modified modular sequence %s 
                 const original = slots.plan.iterate;
                 slots.plan.iterate = function* () { reads++; yield* original.call(this); };
             }
-            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels };
+            return { value: runtime.execute('Cipher Weights Key Slots score'), reads, kernels, readsAtCompilation };
         } finally { runtime.dispose(); }
     }
-    expect(execute(true)).toEqual({ ...execute(false), kernels: 0 });
+    const reference = execute(false);
+    expect(reference.reads).toBe(hook === 'at' ? 0 : 1);
+    expect(execute(true)).toEqual({ ...reference, kernels: 1, readsAtCompilation: [reference.reads] });
 });
 
 
@@ -179,11 +204,12 @@ it('keeps gather bindings local when the compilation callback reenters', () => {
     const runtime = new Interpreter();
     try {
         runtime.execute(program);
-        const statement = parse(program).statements.find(isFunctionStatement)!;
+        const statement = parse('fun Cipher Weights Key Slots score\n return (Weights (Cipher (Key Slots) bxor)) sum\nend').statements[0];
+        if (!isFunctionStatement(statement)) throw Error('expected function');
         const outer = new Map(['Cipher', 'Weights', 'Key', 'Slots'].map(name => [name, runtime.variables.get(name)!]));
         let values = outer, entered = false;
         let nested: RankValue | undefined;
-        const kernel = compileTensorKernel(statement.statements, {
+        const kernel = compileTensorKernel(statement.statements[0], {
             lookup: name => values.get(name), builtin: () => true,
             compiled() {
                 if (entered) return;
@@ -209,9 +235,7 @@ it.each([
     const source = `use sequences
 use bits
 fun Cipher Key Slots score
-  KeyStream = Key Slots
-  Plain = Cipher KeyStream bxor
-  return Plain sum
+  return (Cipher (Key Slots) bxor) sum
 end
 Cipher = ${cipher}
 Key = array 1 2 3

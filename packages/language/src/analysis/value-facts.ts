@@ -1,4 +1,5 @@
 import { valueElementContracts } from './array-binding-contract.js';
+import { completedValueFacts, completionMayCall } from './completion-facts.js';
 import { freshDim } from './shape-index.js';
 import {
     isDeclaredCallExpression, isFunctionOperator, isTupleExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isBooleanLiteral, isMaterializeExpression,
@@ -55,11 +56,10 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
                     ...(builtin.name === 'infinity' ? { infinite: true as const } : {}),
                 } : builtin ? { types: [], builtinOperation: builtin.name } : UNKNOWN_VALUE);
     }
-    if (isNewStructureExpression(expression) && expression.structure === 'index') {
-        return { types: ['index'], elements: [] };
-    }
-    if (isNewStructureExpression(expression) && TRACKED_COLLECTIONS.includes(expression.structure)) {
-        return { types: [expression.structure], elements: [] };
+    if (isNewStructureExpression(expression)) {
+        return { types: typeOf(expression, name => lookup(name)?.types), completion: 'ready',
+            ...(expression.structure === 'index' || TRACKED_COLLECTIONS.includes(expression.structure)
+                ? { elements: [] } : {}) };
     }
     if (isNumberLiteral(expression)) return {
         types: [typeof expression.value === 'bigint' ? 'integer' : 'real'], rank: 0, shape: [],
@@ -86,9 +86,13 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
     if (isStringLiteral(expression)) return { types: ['text'], rank: 1,
         shape: [[...expression.value].length], textLiteral: expression.value };
     if (isBooleanLiteral(expression)) return { types: ['boolean'], rank: 0, shape: [], boolean: expression.value };
-    if (isRecordExpression(expression)) return { types: ['record'], rank: 0, shape: [], closedRecord: true,
-        fields: Object.fromEntries(expression.fields.map(field =>
-            [field.name, stableRecordField(expressionFacts(field.value, lookup), true)])) };
+    if (isRecordExpression(expression)) {
+        const fields = expression.fields.map(field => [field.name, expressionFacts(field.value, lookup)] as const);
+        return { types: ['record'], rank: 0, shape: [], closedRecord: true,
+            completion: fields.some(([, value]) => completionMayCall(value)) ? 'may-call' : 'pure',
+            fields: Object.fromEntries(fields.map(([name, value]) =>
+                [name, stableRecordField(completedValueFacts(value), true)])) };
+    }
     if (isRecordUpdateExpression(expression)) {
         const source = expressionFacts(expression.source, lookup);
         if (source.types.join() !== 'record') return { types: ['record'] };
@@ -97,7 +101,8 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
         for (const field of expression.fields) if (fields[field.name]) {
             fields[field.name] = stableRecordField(fields[field.name]);
         }
-        return { ...source, fields };
+        return { ...source, fields, completion: completionMayCall(source)
+            || expression.fields.some(field => completionMayCall(expressionFacts(field.value, lookup))) ? 'may-call' : 'pure' };
     }
     if (isUnaryExpression(expression) && expression.operator === 'not') {
         const operand = expressionFacts(expression.operand, lookup);
@@ -174,9 +179,9 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             const dims = expression.dimensions.map((item, axis) =>
                 shape[axis] === null && item.sign !== '-' ? dimensionFacts[axis].dim ?? null : null);
             const fill = expression.fill && expressionFacts(expression.fill, lookup);
-            const eagerScalarCells = fill
+            const eagerScalarCells = shape.some(size => size === 0) || (fill
                 ? fill.types.length > 0 && isAtom(fill)
-                : items.length > 0 && items.every(item => item.types.length > 0 && isAtom(item));
+                : items.length > 0 && items.every(item => item.types.length > 0 && isAtom(item)));
             const elements = fill ? fill.types.filter(type => type !== 'missing')
                 : !fill && items.length && items.every(isAtom)
                     ? [...new Set(items.flatMap(item => item.types))] : undefined;

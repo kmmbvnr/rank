@@ -1,13 +1,33 @@
-import { bindingTypeMessage } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
-import type { Operators } from './operators.js';
-import { noteArrayBinding, readArrayItem } from './array-storage.js';
+import { ArrayBindingContract } from './array-binding-contract.js';
+import { readArrayItem } from './array-storage.js';
 import { collectionElementType, isRankTuple, isRankArray, isRankRecord, mergeCollectionElementType, typeName,
     type CollectionElementType, type RankRecord, type RankValue } from './value.js';
 
+const inspecting = new Set<RankRecord>();
 /** Native records acquire the same contract before their first mutation or use as a return value. */
 export function recordContract(value: RankRecord): CollectionElementType {
-    const contract = collectionElementType(value, new Set(), true);
+    if (!value.fieldContracts) {
+        if (inspecting.has(value)) throw new RankError('cyclic records cannot establish a structural type', 'TypeError');
+        inspecting.add(value);
+        try {
+            const fields = new Map<string, CollectionElementType>();
+            const checked: [string, RankValue][] = [];
+            let constructing = true;
+            for (const [name, item] of value.entries) {
+                let bound = item;
+                const field = new ArrayBindingContract(`record field .${name}`, 'TypeError', contract => {
+                    if (constructing || value.entries.get(name) === bound) fields.set(name, contract);
+                });
+                bound = field.check(item);
+                checked.push([name, bound]);
+            }
+            for (const [name, item] of checked) if (value.entries.get(name) !== item) value.entries.set(name, item);
+            value.fieldContracts = fields;
+            constructing = false;
+        } finally { inspecting.delete(value); }
+    }
+    const contract = { type: 'record', fields: value.fieldContracts };
     retainRecordContract(value, contract);
     return contract;
 }
@@ -58,31 +78,4 @@ export function checkRecordField(record: RankRecord, field: string, value: RankV
     }
     retainRecordContract(value, contract);
     record.fieldContracts!.set(field, isRankRecord(value) ? { ...contract, fields: value.fieldContracts } : contract);
-}
-
-/** `Record .field = Value` or `op=`: the field keeps its type and contract. */
-export function assignRecordField(
-    record: RankRecord,
-    field: string,
-    operator: string,
-    value: RankValue,
-    operators: Operators,
-): RankValue {
-    const previous = record.entries.get(field);
-    if (previous === undefined) {
-        throw new RankError(`unknown record field: .${field}`);
-    }
-    const result = operator === '='
-        ? value
-        : operators.evaluateBinary(operator.slice(0, -1), previous, value);
-    const expected = record.types.get(field)!;
-    const received = typeName(result);
-    if (expected !== received) {
-        throw new RankError(bindingTypeMessage(`record field .${field}`, [expected], [received]));
-    }
-    checkRecordField(record, field, result);
-    noteArrayBinding(result);
-    record.entries.set(field, result);
-    record.key = undefined;
-    return result;
 }

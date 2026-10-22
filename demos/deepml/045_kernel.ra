@@ -3,6 +3,6 @@ rem https://www.deep-ml.com/problems/45
 
 use linalg
 
-fun X Y kernel_function
+fun X' Y' kernel_function
   return X Y matmul
 end

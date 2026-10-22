@@ -712,6 +712,8 @@ it('keeps unrelated facts through scalar set additions but not lazy array keys',
     expect(messages('use algo\nCount = 1\nCounts = new counter\nCounts add "x"\nX = Counts "x"\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nCounts = new counter\nX = Counts (A 0)\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nA = array 0\nCount = 1\nCounts = new counter\nX = Counts (A 0)\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
@@ -749,6 +751,8 @@ it('keeps types through a scalar lookup in the local index', () => {
         + 'Result = "x" read\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nFirst = Index (A 0) default -1\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nA = array 0\nCount = 1\nIndex = new index\nFirst = Index (A 0) default -1\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
@@ -1371,15 +1375,15 @@ it('retains caller facts across the unchanged modular-power demo for proven inte
     expect(messages(`${definition}\nCount = 1\nUnknown 4 power\nCount + "bad"`)).toEqual([]);
 });
 
-it('retains caller facts across the unchanged sigmoid demo only for scalar input', () => {
+it('retains caller facts across the sigmoid demo only for scalar input', () => {
     const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
-    const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*sigmoid\b/));
+    const definition = source;
     expect(messages(`${definition}\nCount = 1\n0.5 sigmoid\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages(`${definition}\nCount = 1\n(array 0 1) sigmoid\nCount + "bad"`)).toEqual([]);
 });
 
-it('retains caller facts across the unchanged recall demo only for callback-free cells', () => {
+it('retains caller facts across the recall demo only for callback-free cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*recall\b/));
     expect(messages(`${definition}\nCount = 1\n(array 1 0) (array 1 1) recall\nCount + "bad"`))
@@ -1390,12 +1394,15 @@ it('retains caller facts across the unchanged recall demo only for callback-free
         .toEqual([]);
 });
 
-it('drops a derived mask read proof after an indexed replacement', () => {
+it('checks indexed replacements against a completed mask domain', () => {
     const reader = 'fun Mask count_mask\n return Mask count\nend';
     const before = `${reader}\nMask = (array 1 0) equal 1\nCount = 1`;
     expect(messages(`${before}\nMask count_mask\nCount + "bad"`))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages(`${before}\nMask 0 = "text"\nMask count_mask\nCount + "bad"`)).toEqual([]);
+    expect(messages(`${before}\nMask 0 = false\nMask count_mask\nCount + "bad"`))
+        .toEqual(['operator + does not accept integer and text']);
+    expect(messages(`${before}\nMask 0 = "text"\nMask count_mask\nCount + "bad"`))
+        .toEqual(['Mask has array elements of type boolean and cannot receive text']);
 });
 
 it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
@@ -1409,7 +1416,7 @@ it('retains caller facts after the unchanged CSES sum-and-max reader', () => {
         .toEqual([]);
 });
 
-it('retains caller facts across the unchanged softmax pipeline only for safe cells', () => {
+it('retains caller facts across the softmax pipeline only for safe cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/023_softmax.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*softmax\b/));
     expect(messages(`${definition}\nCount = 1\n(array 1 2 3) softmax\nCount + "bad"`))
@@ -1420,7 +1427,7 @@ it('retains caller facts across the unchanged softmax pipeline only for safe cel
         .toEqual([]);
 });
 
-it('retains a caller fact after the unchanged normal-equation pipeline on eager arrays', () => {
+it('retains a caller fact after the normal-equation pipeline on eager arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/014_linreg.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
@@ -1435,7 +1442,7 @@ it('retains a caller fact after the unchanged normal-equation pipeline on eager 
         .toEqual([]);
 });
 
-it('retains a caller fact after the unchanged gradient-descent loop on numeric arrays', () => {
+it('retains a caller fact after the gradient-descent loop on numeric arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*linear_regression\b/));
     const matrix = 'X = array shape 3 2\n 1 1\n 1 2\n 1 3\nend';
@@ -1656,11 +1663,13 @@ it('keeps unrelated facts across a nested reader of its parent eager array', () 
         .toEqual(['operator + does not accept integer and text']);
 });
 
-it('does not trust indexed readers of lazy or unsupported array values', () => {
+it('does not trust unknown receivers or writes whose completion may rebind them', () => {
     const reader = 'fun X read\n return X 0\nend\n';
     expect(messages(reader + 'A = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
-    expect(messages(reader + 'A = array 1 2\nA # = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
-    expect(messages(reader + 'A = array 1 2\nA 0 = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
+    expect(messages(reader + 'A = array 1 2\nA # = Unknown\nCount = 3\nA read\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages(reader + 'A = array 1 2\nA 0 = Unknown\nCount = 3\nA read\nCount + "bad"'))
+        .toEqual([]);
 });
 
 it('does not retain facts across direct or transitive stdin reads', () => {
@@ -2063,7 +2072,7 @@ it('passes a safe indexed scalar to a call before the callee changes its array',
     }] }]).functionResults[0].types).toEqual(['integer']);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'outer', arguments: [{
         types: ['array'], rank: 1, shape: [2], elements: ['integer'],
-    }] }]).functionResults[0].types).toEqual([]);
+    }] }]).functionResults[0].types).toEqual(['integer']);
     const apples = readFileSync(new URL('../../../demos/cses/intro/016_apples.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/cses/intro/016_apples_test.ra', import.meta.url), 'utf8');
     const appleProgram = services.Rank.parser.LangiumParser.parse<Program>(apples);
@@ -2574,14 +2583,15 @@ it('retains a private text local through indirect index writes in a loop', () =>
         .toEqual(examples.map(() => ['text']));
 });
 
-it('retains stdin element types in the unchanged subarray-sums program', () => {
+it('retains stdin element types in the deferred subarray-sums input', () => {
     const moduleName = '030_sums2';
     const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const input = program.value.statements.filter(isAssignmentStatement).find(statement => statement.name === 'A');
     expect(input).toBeDefined();
-    expect(analyzeValues(program.value).expressions.get(input!.value)).toMatchObject({ types: ['array'],
-        rank: 1, elements: ['integer'], eagerScalarCells: true });
+    expect(input!.deferred).toBe(true);
+    expect(analyzeValues(program.value).expressions.get(input!.value)).toMatchObject({ types: ['sequence'],
+        rank: 1, elements: ['integer'] });
     expect(messages('use io\nA = stdin .integer 2 array\nfor Value in A\n Value + "bad"\nend'))
         .toEqual(['operator + does not accept integer and text']);
 });
@@ -2598,7 +2608,7 @@ it('uses a proved array length as a later shape dimension', () => {
 });
 
 it('invalidates captured facts when len consumes a generator', () => {
-    const generator = 'fun stream\n A 0 = "x"\n yield 1\nend\nS = stream\nA = array 1 2\n';
+    const generator = "fun stream\n A 0 = \"x\"\n yield 1\nend\nS' = stream\nA = array 1 2\n";
     expect(messages(generator + 'N = S len\nA 0 + "bad"')).toEqual([]);
     expect(messages('use sequences\n' + generator + 'N = S len axis 0\nA 0 + "bad"')).toEqual([]);
     expect(messages('A = array 1 2\nS = 1 to 5\nN = S len\nA 0 + "bad"'))
@@ -2696,10 +2706,10 @@ it('uses the preceding join result for an imported unary function example', () =
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
     const examples = functionTestExamples(testProgram.value, moduleName, new Set(['solve']));
-    expect(examples).toHaveLength(1);
-    expect(examples[0].arguments.map(fact => fact.types)).toEqual([['text']]);
-    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults[0].types)
-        .toEqual(['array']);
+    expect(examples).toHaveLength(2);
+    for (const example of examples) expect(example.arguments.map(fact => fact.types)).toEqual([['text']]);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['array'], ['array']]);
 });
 
 it('checks scalar cells after reshaping eager input', () => {
@@ -2796,7 +2806,7 @@ it('does not analyze statements after a definite no-return call', () => {
 });
 
 it('infers a generator sequence without executing its body', () => {
-    const source = 'fun stream\n if false\n  yield 1\n end\nend\nS = stream\n';
+    const source = "fun stream\n if false\n  yield 1\n end\nend\nS' = stream\n";
     expect(messages(source + 'S = 1')).toEqual(['S has type sequence and cannot receive integer']);
     // An unreachable yield supplies no cell facts for materialization.
     expect(messages(source + 'A = S array\nA # #')).toEqual([]);
@@ -2806,7 +2816,7 @@ it('infers a generator sequence without executing its body', () => {
     expect(messages('fun outer\n fun inner\n  yield 1\n end\n return 2\nend\nA = outer\nA = true'))
         .toEqual(['A has type integer and cannot receive boolean']);
     const parse = (source: string) => services.Rank.parser.LangiumParser.parse<Program>(source + '\n').value;
-    expect(analyzeValues(parse('fun X stream\n yield X\nend\nS = 1 stream')).bindings.get('S'))
+    expect(analyzeValues(parse("fun X stream\n yield X\nend\nS' = 1 stream")).bindings.get('S'))
         .toMatchObject({ types: ['sequence'], elements: ['integer'], rank: 1 });
     expect(analyzeValues(parse('fun stream\n yield 1\n yield "x"\nend\nS = stream')).bindings.get('S')?.elements)
         .toEqual(['integer', 'text']);

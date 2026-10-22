@@ -26,6 +26,7 @@ interface ReturnPathContext {
     loop(statement: ForStatement, env: Map<string, ValueFacts>): void;
     loopReturnPaths(statement: ForStatement, env: Map<string, ValueFacts>): { values: ValueFacts[]; fallsThrough: boolean };
     statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean;
+    pendingValue(expression: Expression, value: ValueFacts, env: ReadonlyMap<string, ValueFacts>): ValueFacts;
 }
 
 /** Return values and surviving environments for calls, branches and loops. */
@@ -47,7 +48,9 @@ export function createReturnPathAnalysis(context: ReturnPathContext) {
                         ? env.get(statement.value.name) : undefined;
                     const result = observed.types.length || !contract?.acceptedTypes?.length ? observed
                         : { types: contract.acceptedTypes, acceptedArrayRank: contractRank(contract) };
-                    if (!statement.value || !context.directNoReturnCall(statement.value, env)) values.push(result);
+                    if (!statement.value || !context.directNoReturnCall(statement.value, env)) {
+                        values.push(statement.value ? context.pendingValue(statement.value, result, env) : result);
+                    }
                     return { values, fallsThrough: false, breaks, continues };
                 }
                 if (isIfStatement(statement)) {

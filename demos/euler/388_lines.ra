@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=388
 
 use numbers
 use sequences
+use algo
 use io
 use cli
 
@@ -24,9 +25,7 @@ for I in 1 to Cut
   Mu I += Mu (I - 1)
 end
 
-Sent = N + 1
-Size = N isqrt + 2
-Cache = array shape Size fill Sent
+Cache = new index
 Answer = 0
 L = 1
 for L at most N
@@ -53,7 +52,7 @@ fun X Cache mertens
     return Mu X
   end
   Slot = N // X
-  if Cache Slot not equal Sent
+  if Slot in Cache
     return Cache Slot
   end
   Total = 1

@@ -274,6 +274,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 return index === commands.length - 1 ? null : reject(commands[index + 1], 'unreachable');
             }
             if (isAssignmentStatement(command) && !command.name.includes('.')) {
+                if (command.deferred) return reject(command, 'deferred-binding');
                 const value = type(command.value, env);
                 if (!value || settled.has(command.name) && !sameCompiledCalleeType(settled.get(command.name)!, value)) return reject(command, 'binding-type');
                 if (command.operator !== '=') {

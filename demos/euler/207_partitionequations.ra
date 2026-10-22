@@ -19,10 +19,10 @@ rem when x is a power of two. To X the
 rem count is X - 1 and the perfect ones
 rem are the powers of two up to X.
 Xs = 2 to (Q * 50) array
-Pow = (Xs (Xs - 1) band) equal 0
+Pow' = (Xs (Xs - 1) band) equal 0
 Perf = (Pow choose 1 0) scan +
-Low = (Xs - 1) greater Q * Perf
-Hits = Xs filter Low array
+Low' = (Xs - 1) greater Q * Perf
+Hits' = Xs filter Low
 X = Hits min
 Answer = X * (X - 1)
 Answer print

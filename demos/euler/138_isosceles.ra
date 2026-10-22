@@ -16,6 +16,6 @@ rem Fibonacci starts at F(2), so these
 rem sit at positions 7, 13, 19...
 Len = 6 * Count + 2
 Fs = fibonacci take Len array
-Legs = Fs (7 to # by 6) // 2
+Legs' = Fs (7 to # by 6) // 2
 Answer = Legs sum
 Answer print

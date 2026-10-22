@@ -363,8 +363,8 @@ even at length zero: `array shape 0 fill 0` is an integer array, while
 tuples for positional values of different types. Infinity seeds defer their finite
 numeric domain until concrete cells settle it.
 
-Eager writes are checked before changing cells. Lazy arrays retain checks that run
-when their cells are read. See [Type-stability contracts](language/type-contracts.md) for
+Ordinary bindings and writes complete planned cells before storing them.
+Deferred bindings retain checks that run when their results are demanded. See [Type-stability contracts](language/type-contracts.md) for
 nested arrays, numeric settlement, aliases, failure timing, and the comparison
 with record fields, collections, and function returns.
 
@@ -453,6 +453,20 @@ Records have reference semantics, one of the few exceptions to
 [values and sharing](language/values-addressing.md#values-and-sharing). Assignment,
 function arguments and storage inside another structure preserve the same record
 identity, so mutation through one alias is visible through the others.
+
+Capturing a record or mutable container in a deferred binding (`Plan' = Expr`)
+or a deferred parameter makes its shared state read-only. Writes through any
+alias fail, including aliases created before capture and nested records or
+containers reachable from the captured value. Arrays keep copy-on-write
+semantics. A fresh record made with `with`, or a newly constructed container,
+has independent writable storage. Consuming or forgetting the plan does not
+make the captured state writable again.
+
+When a plan captures a named callback, it also retains that function's data
+dependencies, including transitive helper dependencies from each defining scope. Rebinding those names
+later does not change the existing plan. Ordinary calls to the original
+function continue to read its current enclosing bindings.
+
 Addressing may continue through arrays, queues and nested records:
 
 ```rank
@@ -539,8 +553,9 @@ unpack A B C = M axis 1
 ```
 
 The number of names and items must match exactly. Unpacking supports only `=`;
-compound assignment always has one target. Each target keeps the same
-inferred-type rule as an ordinary assignment. The explicit keyword keeps a
+compound assignment always has one target. Each named target recursively
+completes its selected value and keeps the ordinary inferred-type rule. Targets
+have no apostrophe form; a discarded `#` child is not completed for a binding. The explicit keyword keeps a
 multi-part target available for addressed assignment: `A i j = Value` changes
 one cell, while `unpack A B = Values` assigns separate variables. This form is
 especially useful with structured text parsing:
@@ -1046,11 +1061,16 @@ everywhere else, as in `Number text` and `use text`.
 
 ## Standard modules
 
-In the REPL, a saved native source has a consumption cursor: after `G = primes`
-and `G till 100 sum`, the next preview of `G` begins at `101`. Previews do not
-consume values. `H = G` shares the cursor; `H = primes` starts fresh. Replaying
-a consuming line restores the position before that line. Normal file execution
-keeps native sources repeatable. See [sequence previews](design/generator-previews.md).
+Native sources remain repeatable in the REPL and file execution. After
+`G' = primes`, every `G till 100 sum` returns `1060` and a preview of `G`
+begins at `2`. `H' = G` preserves repeatability. Ordinary binding completes
+finite results; binding `G = primes` rejects a known infinite result.
+Single-pass generators retain their resource identity and REPL replay tapes.
+Preview and inspection share a cooperative computation budget, including work
+before the next value is yielded. Reaching it stops that observation without
+retaining a repeatable plan's result; a later observation recomputes. The viewer
+shows `Inspection work limit reached` for a window stopped by this limit.
+See [sequence previews](design/generator-previews.md).
 
 Ranges (`to`, `till`, `by`), `len`, `sum`, `min`, `max`, and explicit
 conversions `integer`, `real`, `text`, `bytes` are available
@@ -1398,23 +1418,32 @@ numbers, text, symbols, dates, arrays and tensors — is a value.
 
 ### Naming a lazy result
 
-A derived array such as `A * 2` computes its cells when they are demanded. A
-name freezes what it reports: writing to a source afterwards builds a new value
-for that source and leaves the named result alone.
+`B = A * 2` completes the result and stores its cells. `Plan' = A * 2`
+saves an expression that computes again when demanded:
 
 ```rank
-use sequences
 A = array 1 2
 B = A * 2
 A 0 = 5
+Plan' = A * 2
+A = array 7 8
+Saved = Plan
 ```
 
-`B` remains `2 4` while `A` becomes `5 2`. This holds through a chain of lazy
-readers: naming the last one freezes every source it reads through. To compute
-a result from current values, write the expression again.
+`B` holds `2 4`; `Plan` computes `10 4` from the captured value of `A`, and
+`Saved` holds that completed result. Rebinding `A` does not retarget the plan.
+Repeated reads of `Saved` use its stored cells; repeated demands of `Plan`
+compute again, including any effects of its expression.
 
-`copy` remains the way to force storage for a lazy result, and is no longer
-needed to protect one name from another's writes.
+A name captured by an apostrophe binding is read-only for the rest of its
+scope. A later indexed or field write through that name is rejected, while
+rebinding remains allowed. Shared records and containers also reject writes
+through aliases after capture. Array aliases keep copy-on-write value semantics.
+
+Ordinary binding completes plans recursively inside tuples, records and
+containers. A known infinite result is an error. Deferred binding preserves
+single-pass resources without making them restartable. `copy` remains an array
+copy operation; ordinary binding already provides a storage boundary.
 
 ## General form
 
@@ -1888,6 +1917,10 @@ I print
 rem 10
 ```
 
+Each named loop item is recursively completed when bound. The iterable is
+consumed directly without retaining its whole source. Loop names have no
+apostrophe form. Index and coordinate names bind ready integers.
+
 A condition after `for` is evaluated before every iteration:
 
 ```rank
@@ -2155,6 +2188,43 @@ G = A B gcd
 Result print
 ```
 
+### Parameter evaluation and argument boundaries
+
+`fun Values use_values` completes an incoming plan on entry, including plans
+inside tuples, records and containers. `fun Values' use_values` keeps the
+argument without completing it. The body executes at the call; returning a
+plan leaves the receiving binding to keep or complete it.
+
+A native consumer demands a returned plan before dispatching on its value or
+rank. For example, `Source total print` computes a plan returned by `total`
+before printing it. This demand does not retain the result for a later call.
+
+Ordinary expression evaluation follows operand order and stops at the first
+error. During plan construction, whole user calls run immediately; the remaining
+operations stay deferred. Ranked and filter callbacks run when their cells or
+items are demanded.
+
+A completed postfix operation can itself be an argument:
+
+```rank
+use sequences
+fun Values' Factor weighted = Values * Factor
+Source' = 1 to 4
+Result' = Source sum 2 weighted
+Saved = Result
+```
+
+`Saved` is `20`. The reduction stays deferred through `weighted`; an ordinary
+`Values` parameter would complete it once on entry instead.
+
+Receiver methods can change argument boundaries. `Tree sum Index` is a Fenwick
+query, while `Values sum` is a reduction. When such a call precedes another
+function, a known receiver kind settles the grouping without reading cells.
+An unknown kind is demanded for dispatch; that demand does not retain its
+result. Parenthesizing the complete argument fixes its boundary:
+`(Tree sum Index) Factor weighted` can pass the whole query without inspecting
+the receiver first. Each later demand still runs the query again.
+
 ### Call-shaped signatures
 
 A header places each parameter where its argument appears in a call. Uppercase
@@ -2212,7 +2282,8 @@ ranks; `rank L` changes the first and keeps the second operand's declared rank
 (or its whole value). These modifiers never bind a parameter in the body.
 
 The [fold demo](../demos/classic/fold.ra) implements reduction with
-`fun Values fold op .with Seed`. An omitted seed starts from the first item;
+`fun Values' fold op .with Seed`. The deferred input is consumed once.
+An omitted seed starts from the first item;
 an explicit seed processes every item. Empty input requires a seed and returns
 it unchanged.
 
@@ -2572,31 +2643,41 @@ state to an opaque helper is also rejected when its mutation behavior is unknown
 pass that state explicitly through the enclosing function's parameters.
 
 A nested function cannot be returned, assigned to another name, or stored in a
-container or record. A lazy result retaining it must be materialized before it
-leaves the enclosing call:
+container or record as a function value. A computation plan may retain a
+snapshot of the function and its dependencies and leave the enclosing call:
 
 ```rank
 fun Limit small
   fun X below = X less Limit
-  S = 1 to 10 filter below
+  S' = 1 to 10 filter below
   Limit = 3
-  return S array
+  return S
 end
-rem 6 small returns 1 2 3 4 5
+Selected' = 6 small
+Selected sum
+rem 15
 ```
 
-Materialize a lazy value before storing it in a container that will leave the
-call. Converting a queue to an array or copying that array does not evaluate
-lazy sequences stored inside its elements.
+Each demand of `Selected` uses the captured value `6`. Ordinary bindings,
+ordinary parameters and writes to records or containers complete nested plans
+recursively. Postfix `array` also completes nested values and accepts an already
+computed array. A plain `copy` does not recursively complete nested resources.
 
-Lazy operations record the current values of external dependencies when the
-operation is created. This includes module data and dependencies read through
-called helpers. Later reassignment does not change the pipeline. Scalar values
-and owned scalar arrays support capture snapshots; array storage is shared
-through copy-on-write without copying cells at creation. Mutable containers,
-resources and arbitrary lazy values cannot be captured by a lazy operation;
-pass explicit operands or materialize the data first. Ordinary direct calls
-read current values each time.
+Live nested generators and opaque relations keep separate lifetime rules. A
+relation retaining a local predicate cannot leave the call merely by being
+stored in a tuple, record or container. Consume its neighbors or traversal
+result before returning, rather than returning the live relation itself.
+
+A named callback captured by a plan retains the current values of its external
+dependencies, including module data and reads through called helpers. Later
+reassignment does not change the plan. Arrays keep copy-on-write storage;
+captured records and mutable containers reject writes through every alias.
+Resources retain their own state and are not restarted by an apostrophe.
+Ordinary direct calls read current enclosing bindings each time.
+
+Callbacks in plans may print, use randomness or call an unannotated host function.
+Each demand can repeat these effects. Bind the result without an apostrophe to
+compute it once and retain it. The read-only rules for captured state still apply.
 
 A multiline function may also be declared directly inside a `for` body:
 
@@ -2623,8 +2704,9 @@ contain further direct local functions.
 ## Generator functions
 
 A function containing `yield` returns a lazy sequence. Calling it creates the
-sequence without running the body; execution starts when an operation first
-asks for an element.
+sequence without running the body. `Stream' = 7 weird` preserves that instance;
+`Values = 7 weird` immediately consumes it into a retained array. Execution starts
+when a consumer first asks for an element.
 
 Generators may also have no parameters:
 
@@ -2652,6 +2734,8 @@ See [generator previews](design/generator-previews.md).
 With parameters, arguments precede the generator's name:
 
 ```rank
+use numbers
+
 rem Generate the Collatz values beginning with N.
 fun N weird
   yield N
@@ -2764,81 +2848,74 @@ Floor = -5 // 2
 
 ## Sequences
 
-Ranges and algorithmic sources are sequences:
+Ranges and algorithmic sources build sequence plans. An apostrophe binding
+keeps the plan; an ordinary binding computes a finite result and stores an array:
 
 ```rank
-Range = 1 till 1000
-Primes = primes
+use sequences
+Range' = 1 till 1000
+Primes' = primes
 Fib = fibonacci to 4000000
 ```
 
-Sequences are lazy by default. Constructing, transforming or filtering a
-sequence builds a plan. A terminal operation such as `sum`, explicit
-materialization, or iteration demands values from that plan. A terminal
-operation that would consume an unbounded sequence is an error.
+`sum`, printing and iteration demand values. A bounded consumer such as `take`
+can stop before the source ends. Materializing a known-infinite result is an
+error; use an apostrophe to keep that source as a plan.
 
 `fibonacci` starts with `1 2 3 5 8 ...` and `primes` with `2 3 5 7 11 ...`.
 Both are infinite until a bound ends them, and both support ordinary
 zero-based sequence addressing:
 
 ```rank
-Fib = fibonacci to 100
+Fib' = fibonacci to 100
 SixthPrime = primes 5
 ```
 
-### Reusing pure sequences
+### Recomputing and retaining results
 
-A pure sequence may reuse computed items when the current program has multiple
-consumers. Direct aliases and ordinary helper parameters participate in this
-analysis. A source used by only one pipeline stage can remain a stream; naming
-an intermediate does not require saving its history. Cheap arithmetic ranges
-continue to compute their values directly. Constructor-certified membership
-queries and modular range selectors also keep their specialized plans.
+Each demand of an explicit plan recomputes its result. An ordinary binding
+retains a computed value for later use. The choice belongs to the program:
 
 ```rank
 use sequences
 fun X odd = X mod 2 equal 1
-Candidates = 1 to 100
-Selected = Candidates filter odd
+Candidates' = 1 to 100
+Selected' = Candidates filter odd
 Count = Selected len
 Total = Selected sum
+Saved = Selected
+Again = Saved sum
 ```
 
-Here the filter retains its 50 accepted values for the second read. It does not
-retain the 100 candidates. Readers have independent positions; reading a prefix
-does not force the tail. Completing a retained sequence also discovers its
-length, including zero for an empty result.
+`Count`, `Total` and `Saved` each run the filter. `Again` reads the stored array.
+A plan does not retain the accepted items automatically. Finite prefix consumers
+read only the values they need. Arithmetic ranges, membership queries and bounds
+may use specialized implementations while preserving these observations.
 
-Lazy sequence predicates, rank-0 callbacks and scan callbacks must be pure.
-They may use local working state, but cannot mutate their inputs, perform
-input/output, use randomness, or depend on changing external state. Copy an input
-before modifying it. Captures use the creation-time snapshots
-described under [local functions](language/control-functions.md#local-functions-and-closures).
-Unresolved callable behavior is rejected conservatively. Ordinary eager calls
-and effectful single-pass generators keep their existing contracts.
+Deferred clauses capture their source and the values read by their bounds or
+conditions. For example, `View' = Values till Limit` keeps the current values
+of `Values` and `Limit`; finding an array's endpoint waits until demand.
+Rebinding either name does not retarget `View`. The same capture rule applies
+to `from`, `after`, `take`, `drop` and `first where`.
 
-Caching is an optimization, not a promise never to recompute. In particular,
-future REPL commands are unknown when a sequence is created. A later command can
-reuse retained results or recompute a pure value. Existing stored native cursors
-and user generators keep their consumption and rewind rules.
+Callbacks may perform effects, including printing or calling an unannotated
+host function. A later demand repeats those effects. Ordinary function bodies
+execute at the call; an outer apostrophe does not postpone their eager local
+bindings. Named callbacks retain their creation-time data dependencies as
+specified under [local functions](language/control-functions.md#local-functions-and-closures).
+Writes to captured record or container state remain forbidden through every
+alias. Purity can justify an optimization; it is not required to construct a plan.
 
-Retention is bounded. The default interpreter limit is 8 MiB of estimated
-payload per cached sequence; it counts scalar-array cells as well as outer
-items. It is not a measurement of JavaScript heap overhead. Crossing the limit,
-or encountering a result without a supported stable-value representation,
-discards that cache and continues streaming. Subsequent readers may recompute.
-Supported retained values include scalars and owned eager scalar arrays; Rank
-writes to a reader's array do not modify the retained value.
+A failed computation does not retain its successful prefix. A later demand
+starts the computation again and may repeat the effects before the failure.
+Cancellation also leaves no computed result for later reuse. Single-pass
+resources keep their own consumption state: an apostrophe does not reopen an
+input stream or restart a generator.
 
-A retained source failure is reported at its position on later reads. Host
-cancellation and preview-budget exhaustion are different: a later read may
-restart pure computation to recover the interrupted iterator. It does not replay
-an old cancellation event. A new budget must be sufficient to reach the requested
-position; interrupted work is not guaranteed to resume without recomputation.
-
-Use `array` when an operation needs an array's shape or indexing interface, and
-`copy` when materialized independent storage is needed. Neither is required solely
-to request reuse of a pure sequence with known repeated consumers.
+Use postfix `array` when an operation needs a sequence's array shape or indexing
+interface. It completes nested plans too; applying it to an existing array
+preserves its shape and completes any remaining cells. Use an ordinary binding
+to keep the computed result.
 
 ## Open numeric ranges
 
@@ -2968,9 +3045,9 @@ Bounds read items in order and work on any rank-1 value. An ordered source
 seeks instead: `primes from 100` starts its sieve at 100, `fibonacci` advances
 its recurrence to the bound, and a filter over such a source keeps the
 ability. Seeking applies to a plain bound and to `greater` and `at least`
-conditions, and gives the same items as reading. On a stored native stream,
-`to` and `till` look at the first excluded value and leave it for the next
-consumer.
+conditions, and gives the same items as reading. Repeated bounds intersect:
+`to` and `till` cannot widen a previously bounded native source. Each demand
+of a deferred source begins an independent evaluation.
 
 Sequence sources may also accept filters and reductions in their own plan.
 For example, filtering `fibonacci` by `even` lets the source produce only
@@ -3181,14 +3258,23 @@ source precedes `window`, and the size follows it:
 
 ```rank
 Pairs = Text window 2
-Windows = Values window Width
+Windows' = Values window Width
 ```
 
 Text windows are text values, so ordinary text comparison and addressing keep
 working. Windows over a finite numeric vector form a rank-2 tensor whose first
 axis selects the window and whose trailing axis contains the window cell. The
-operation is lazy and does not copy all overlapping cells before they are
-demanded. An unbounded sequence may likewise produce windows indefinitely.
+deferred expression reads overlapping cells on demand. `Windows = Values
+window Width` completes and stores every window cell. An unbounded sequence
+may produce windows indefinitely and needs a deferred binding or a finite
+consumer.
+
+Exact sequence windows keep their tensor shape. For a source without direct
+indexing, full collection and sequential whole-array traversal use a fresh
+rolling reader: overlapping cells share source values only within that pass.
+The next pass starts the source again. Individual indexed reads may replay a
+prefix; indexed sources keep their direct-access algorithms. Strides leave an
+unused source suffix unread, and early termination closes the current reader.
 
 For a tensor, write one size per selected axis directly, pass a rank-1
 integer array, or unpack a vector of sizes. These forms produce the same windows:
@@ -3372,9 +3458,8 @@ selectors, previous cell values and right side are evaluated before any write.
 This gives both ordinary and compound assignment snapshot semantics when
 selections overlap.
 
-Lazy arrays produced by operations such as `outer` and `window` are not
-writable. Copy a finite result explicitly with postfix `copy` before changing
-its cells.
+Deferred results of `outer` and `window` are read-only recipes. Bind a finite
+result with `Saved = Plan`, or use postfix `copy`, before changing its cells.
 
 A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
@@ -3719,7 +3804,8 @@ Result = M + Row
 rem Result shape is 2 3
 ```
 
-Broadcast results are lazy and cached. Incompatible shapes raise
+A deferred broadcast computes on demand; an ordinary binding stores the
+completed result. Repeated plan demands recompute. Incompatible shapes raise
 `.DimensionMismatch`. Scalar broadcasting is the rank-0 case of the same rule.
 Two sequences retain their lazy elementwise zip behavior, ending at the shorter
 input. A sequence mixed with an array uses the shape and broadcasting rules of
@@ -3873,11 +3959,23 @@ the tensor rank. Frame axes are zero-based, unique and in bounds.
 
 Every cell result must have the same shape. Scalar results leave only the frame
 shape; array results append their shape to the frame. Source cells and the
-assembled result are lazy views, and a demanded cell result is cached.
+assembled result are native readers. Shape facts can survive a read, but
+computed cell values are retained only within one traversal. Ordinary binding
+completes the result; deferred binding recomputes on demand.
 
-An empty frame has no cells to call, but its result keeps the cell axes, so the
-result rank does not depend on whether the input is empty. A declared result
-shape takes precedence. If a pure standard-library function has no result-shape
+Selecting a result cell also demands its producer when the cell has no scalar
+elements. Indexing, gathers and ranked loop bindings preserve this boundary;
+they do not demand unrelated frame cells. Repeated indices are repeated
+observations, and an empty selection calls no producer. A loop completes its
+selected cell before entering the body, so an early `break` leaves later cells
+unevaluated.
+
+Ranked and axis reductions preserve this producer boundary. The identity of an
+empty reduction does not replace the callback that produces its input cell.
+
+An empty application frame makes no call to its operation, but keeps the result
+cell axes, so its rank does not depend on whether the input is empty. A declared
+result shape takes precedence. If a pure standard-library function has no result-shape
 hook, the runtime may call it once on a zero cell of the argument cell shape
 when that cell is small enough; only the resulting shape is kept. A user
 function is not called. Its result shape comes from the analysis of its body,
@@ -3889,6 +3987,12 @@ M = array shape 0 3 fill 1
 Sorted = M sort rank 1
 rem shape 0 3
 ```
+
+An operand can still contain nonempty producer frames of empty cells. Completing
+the new result observes the selected upstream producers without calling the new
+operation. Producer axes retained by framing remain selectable; consumed axes
+are observed together within a result cell. A genuinely empty combined producer
+frame makes no calls. This does not force unused nonempty operands.
 
 `integer` converts a complete text value by default and maps arrays while
 preserving their shape. Explicit `rank 0` converts individual Unicode code
@@ -3939,7 +4043,8 @@ The leading frame shapes use trailing-axis broadcasting. For example, a
 matrix and a vector with `rank 1` compare every matrix row with that vector.
 Incompatible frame shapes raise `.DimensionMismatch`. Different cell shapes
 are unequal; they are not broadcast inside a whole-cell comparison. Results
-are lazy over array frames and reflect changes to their source arrays.
+are computed on demand over array frames. Ordinary binding stores their values;
+deferred binding keeps the captured inputs and recomputes.
 
 An explicit `axis` list names frame axes for **both** array operands, retaining
 the listed order. The remaining axes form each cell:
@@ -4154,7 +4259,7 @@ The leading run that meets a condition is `till not Condition`; see
 ## Outer
 
 `outer` is a higher-order modifier. It applies the operator or named binary
-function immediately before it to every pair of cells:
+function immediately after it to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -4181,9 +4286,14 @@ pairing `A B outer *` has shape:
 
 `outer` combines axes. `matmul` contracts axes.
 
+Broadcast arithmetic and axis permutations preserve the logical producer cells
+of a native result. Completing an empty view still observes those selected
+producers; selecting one frame does not evaluate unrelated frames. A transpose
+can move frame axes among empty cell axes without erasing these observations.
+
 The left frame axes come first and the right frame varies fastest. The operation
 must accept two arguments and currently must return a scalar for every pair.
-Both operands must be finite and restartable.
+Both operands must be finite.
 
 A range operand is addressed by arithmetic (`Start + Index * Step`), and so is arithmetic over ranges
 (`Range * 2 + 1`, `Range - Range`), so building the table reads nothing from them, however long they are. Any other operand of known size is read only as far as a demanded
@@ -4196,11 +4306,11 @@ A lazy array of a million cells or more is reduced one cell at a time by `sum` (
 compute each of them. An operation that must hold the whole array, such as `copy`, raises
 `array is too large to hold in memory` past 4294967295 cells.
 
-Construction is lazy and may compute a demanded pair again. A named function
-supplied to `outer` must therefore be pure: its result and observable behavior
-may depend only on its arguments and immutable captured values. The runtime does
-not yet prove this property; static effect analysis is tracked separately as
-tooling work.
+Ordinary binding completes the result; use `Pairs' = A B outer operation` to
+keep a recipe. Each observation recomputes the demanded pairs, including
+callback effects. An ordinary `Saved = Pairs` binding retains the completed
+result. A deferred assignment does not make a single-pass operand restartable;
+bind its completed data before reusing it.
 
 Explicit binary comparison rank and frame axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
@@ -4881,7 +4991,8 @@ Its public behavior does not expose adjacency-list, CSR or other physical storag
 scalar domain and evaluates its binary Boolean predicate on demand. `Graph U V
 adjacent` tests one pair; membership in `Graph U` tests only the requested candidate.
 Predicate graphs support BFS, DFS and unit-weight Dijkstra, and reject mutation and
-other graph algorithms. For callback lifetime, symmetry, iteration and complexity
+other graph algorithms. `Neighbors = Graph U` materializes neighbor values;
+`Neighbors' = Graph U` preserves the query plan. For callback lifetime, symmetry, iteration and complexity
 contracts, see [predicate graphs](language/graphs.md#predicate-graphs).
 
 `new graph with Successor .directed` creates an open, unweighted state space.
@@ -4900,7 +5011,7 @@ isolated vertices and makes an unknown endpoint an error:
 ```rank
 use graph
 
-Nodes = 1 to NodeCount
+Nodes' = 1 to NodeCount
 Graph = new graph Nodes .undirected
 ```
 
@@ -5118,12 +5229,14 @@ distinct vertices. Each pair occurs once, and an `N`-vertex tree therefore has
 `N * (N - 1) // 2` logical path lengths:
 
 ```rank
-Lengths = Tree pathlengths
+Lengths' = Tree pathlengths
 Exact = (Lengths equal K) count
-Mask = Lengths at least Low
-Mask and= Lengths at most High
+Mask' = (Lengths at least Low) and (Lengths at most High)
 Within = Mask count
 ```
+
+The deferred binding captures `Tree` read-only. Ordinary binding instead stores
+all pair distances.
 
 Iteration or materialization enumerates the logical sequence and takes
 quadratic time. Integer comparisons followed by `count` are planned without
@@ -5220,13 +5333,19 @@ blocking-flow algorithm and returns:
 
 Tables reuse Rank's normal addressing model.
 
+Ordinary bindings complete tables and columns, including plans in nested cells.
+Completion preserves columnar storage, column order and absent cells, sharing
+ready columns. `Ages' = Data .Age` retains a projection plan instead. Table writes
+produce new versions; nested records and containers retain shared identities
+and cannot be mutated through any alias after capture.
+
 ## SQLite
 
 With `use tables`, an existing SQLite database can be opened read-only:
 
 ```rank
 Db = "demos/pgexercises/data/club.sqlite3" sqlite
-Facilities = Db .facilities
+Facilities' = Db .facilities
 Query = Facilities sql
 Rows = Facilities array
 ```
@@ -5235,7 +5354,11 @@ To inspect the SQL and plan in a program, add `use io` and print
 `Query .text` or `(Facilities explain) .detail`.
 
 `Db .facilities` validates the table name and returns a SQLite-backed table
-view without loading rows. The variable keeps the database path and query plan.
+view without loading rows. `Facilities' = Db .facilities` retains the query;
+`Rows = Facilities` executes it and stores a ready row array. Ordinary column
+bindings and nested record/container values also materialize. Repeated demand
+of an explicit query plan reads the current database state without retaining
+previous rows. The database handle remains a resource.
 `Query` is a record with `.text` (parameterized SQL) and `.params` (an ordered
 array of bound values). `Facilities explain` runs `EXPLAIN QUERY PLAN` and
 returns an ordinary Rank table of plan rows. Postfix `array` executes the query
@@ -5254,17 +5377,21 @@ shapes are errors.
 `Index choose Choices` selects among more than two branches: each integer index
 cell names a leading-axis cell of `Choices`, with trailing-axis broadcasting
 and only the chosen value read. An index outside the choices raises `.Missing`.
-`M = Db .members alias .m` gives a table view a join role without reading or
+`M' = Db .members alias .m` gives a table view a join role without reading or
 renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under
 the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
 `default` after materialization. The SQL join remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
-`Cols = record ... end` followed by `Out = View select Cols` builds an ordered,
-named projection. SQLite expressions must belong to `View`; constants become
-bound parameters. It returns a flat lazy SQLite view without changing its
-source. An array source produces lazy rank-1 object rows from scalar fields or
+An ordinary alias binding materializes its source and preserves the role name.
+`RightRows = J .r` materializes a join scope, with missing cells for unmatched
+right rows; an apostrophe keeps that scope query deferred.
+`Out' = View select ... end` builds an ordered, named projection without
+reading rows. SQLite expressions must belong to `View`; constants become bound
+parameters. Ordinary record fields complete SQL columns, so use the contextual
+`select` block to retain their expressions. The projection returns a flat query
+view without changing its source. An array source produces lazy rank-1 object rows from scalar fields or
 same-length rank-1 columns. Missing array cells and SQLite `NULL` omit the
 corresponding output field. Boolean SQL expressions materialize as Rank
 booleans. A final `sort by` after `select` orders the exported rows.
@@ -5297,7 +5424,7 @@ join keys compare by numeric value, while text and numeric keys do not match.
 rows and applies named `select` reductions over the current row and up to
 `N-1` predecessors; on SQLite this compiles to an ordered `ROWS` window.
 `sql` exposes the current query and ordered parameters; `explain` inspects its
-SQLite plan. `array`, `print` or CSV output materializes a view. SQLite-backed views are
+SQLite plan. Ordinary binding, `array`, `print` or CSV output materializes a view. SQLite-backed views are
 read-only; derived-column assignment and operations beyond this set require
 materialization. An expression used as a mask must belong to that exact view.
 
@@ -5307,7 +5434,7 @@ an explicit read-only SQL source with positional bound parameters:
 ```rank
 Text = "SELECT * FROM facilities WHERE facid = ?"
 Params = array FacilityId
-Result = Db Text Params sqlquery
+Result' = Db Text Params sqlquery
 Rows = Result array
 ```
 
@@ -5604,7 +5731,7 @@ scalar values broadcast. Empty output schemas, duplicate names and mismatched
 column shapes are errors. Column order follows the source text. Array rows
 are lazy and follow source revisions; SQLite builds a bound SELECT plan.
 
-For dynamic columns, use an ordered record of expressions:
+For dynamic columns in an array table, use an ordered record of completed columns:
 
 ```rank
 Cols = record
@@ -5614,6 +5741,7 @@ Out = Rows select Cols
 ```
 
 `Rows select Cols` uses the same projection implementation as the block form.
+For SQLite, use the contextual block to retain SQL column expressions.
 It replaces the former postfix `Rows Cols select` function call; `select` is
 now table syntax. General `record`, `choose`, `lookup`, aliases and boolean
 addressing retain their independent uses.
@@ -5640,15 +5768,31 @@ cells. `.field sum`, `min`, `max`, `mean`, `median`, and `std` reduce one field
 within each group. A bare reduction of a grouped column is not table syntax.
 Ordinary reductions outside this block retain their scalar or tensor meaning.
 
+`G = Source group by .key` stores completed grouping inputs, including nested
+values. The same rule applies to `rollup by` and `rolling by`. When `Source` is
+a SQLite query, this reads its rows; a later `select` uses the retained data.
+Use explicit plans to keep both stages in SQL:
+
+```rank
+G' = Source group by .key
+Totals' = G select
+  .total = .value sum
+end
+Rows = Totals
+```
+
+The ordinary `Rows` binding runs the aggregate query. Repeated demand of the
+explicit stages recomputes; it does not reuse earlier grouping or sorting results.
+
 Array groups appear in first-seen order. Missing key cells form one group per
 key combination. Missing aggregate cells are skipped; `sum` yields zero and
 `count` yields zero when no cells are present. Other reductions leave the
 result cell missing. Keys must be scalar and cannot be NaN; repeated keys and
 output names are errors.
 
-On SQLite views, `select` creates one lazy `GROUP BY` query for all requested
-columns. `count`, `sum`, `min`, `max`, and `mean` translate to SQLite. `median`
-and `std` currently require array tables; SQLite reports an error rather than
+With explicitly deferred SQLite grouping stages, `select` builds one `GROUP BY`
+query for all requested columns. `count`, `sum`, `min`, `max`, and `mean`
+translate to SQLite. `median` and `std` currently require array tables; SQLite reports an error rather than
 reading rows early. Use `sql` and `explain` to inspect the generated query,
 `filter` for conditions on totals, and `sort by` for a defined output order.
 SQLite grouping does not promise first-seen order.
@@ -5658,22 +5802,23 @@ prefix plus a grand total. For `.facid .month`, it groups by both fields, by
 `.facid`, and by no fields. Keys omitted at a subtotal level are absent in the
 result, including on an empty input: the grand total still has `count` and
 `sum` equal to zero. A real missing source key and a subtotal remain separate
-groups even when their visible keys are both absent. On SQLite, this remains a
-lazy view built from grouped queries joined with `UNION ALL`; bound source
+groups even when their visible keys are both absent. Explicit SQLite query
+stages build grouped queries joined with `UNION ALL`; bound source
 parameters are retained for every branch. `sort by` places absent key cells
 last for both array tables and SQLite views, in ascending and descending order.
 
 ```rank
-G = Rows rollup by .facid .month
-Totals = G select
+G' = Rows rollup by .facid .month
+Totals' = G select
   .slots = .slots sum
 end
-Totals = Totals sort by .facid .month
+Totals' = Totals sort by .facid .month
 ```
 
 `N rolling by .field` yields one trailing group per ordered row. `N` is a
-positive integer, and a grouped `select` retains the ordering field. On array
-tables, the result rows remain lazy and follow source changes. SQLite uses
+positive integer, and a grouped `select` retains the ordering field. Ordinary
+bindings retain the ordered inputs and completed results; source writes do not
+update them. Explicit SQLite query stages use
 `ROWS BETWEEN N-1 PRECEDING AND CURRENT ROW` for `count`, `sum`, `min`, `max`
 and `mean`; `median` and `std` are not yet available there. Missing values are
 skipped, and an empty `sum` is zero. Equal keys preserve source order on arrays;
@@ -5900,6 +6045,10 @@ empty `mean`, `median`, `std`, `min` or `max` raises `.EmptyReduction`. `mean`,
 `median` and `std` always return real values. `std` uses the population
 denominator `N`.
 
+`all` and `any` stop within each reduced cell as soon as its result is known.
+Later elements of that cell are not read or checked. Each new demand of a
+deferred axis reduction computes its cells again.
+
 `rank` and `axis` answer different questions. `rank` chooses trailing cells and
 applies the whole operation to every cell in the leading frame. `axis` names
 the coordinate dimensions that the operation consumes.
@@ -5954,8 +6103,9 @@ Planes = T det axis 1 rank 2
 Integer-only cells produce exact `integer` results. A cell containing any
 `real` value produces a `real`. A singular cell returns zero, and the
 determinant of a `0` by `0` matrix is one. A non-square cell raises
-`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. Batched results
-are evaluated lazily and cached.
+`.DimensionMismatch`; a nonnumeric element raises `.TypeError`. An ordinary
+binding completes batched results; `BatchDeterminants' = Batch det` keeps a
+recipe that recomputes on demand.
 
 ## Linear solve
 
@@ -5989,7 +6139,9 @@ Planes = T inverse axis 1 rank 2
 The second expression applies to every trailing matrix cell. The third uses
 axis 1 as the frame and forms each matrix from the remaining two axes. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
-`.SingularMatrix`. Ranked matrix cells are evaluated lazily and cached.
+`.SingularMatrix`. Ordinary binding completes every ranked matrix result;
+`BatchInverse' = Batch inverse` keeps a recipe. Repeated demands recompute the
+matrix results rather than retaining them implicitly.
 
 ## Symmetric eigendecomposition
 
@@ -6051,7 +6203,10 @@ already defines the cells and is not combined with `rank`.
 
 Covariance divides by `N - 1`, always returns real values, and raises
 `.InsufficientData` when the observation axis has fewer than two items. The
-result and per-feature means are calculated on demand and cached.
+ordinary result is completed by `=`. Use `Cov' = Features covariance` to keep a
+recipe; each observation recomputes. A full traversal shares feature means only
+within its current batch. Independent cell reads, later traversals and retries
+after failure start fresh. Assigning `Saved = Cov` retains the completed matrix.
 
 ## Sliding windows
 
@@ -6230,7 +6385,7 @@ array. All other axes keep their order and size.
 ## Outer
 
 `outer` is a higher-order modifier: the operator or named binary function
-immediately before it is applied to every pair of cells:
+immediately after it is applied to every pair of cells:
 
 ```rank
 Sums = A B outer +
@@ -6274,11 +6429,26 @@ atom-pairing operations preserve all operand axes. Left frame axes come first
 and the right frame varies fastest. The operation must accept two arguments and
 currently must return a scalar for every pair.
 
-Both operands must be finite and restartable. Construction is lazy and may
-compute a demanded pair again. A named function supplied to `outer` must
-therefore be pure: its result and observable behavior may depend only on its
-arguments and immutable captured values. The runtime does not yet prove this
-property; static effect analysis is tracked separately as tooling work.
+Both operands must be finite. Ordinary binding completes the result; use
+`Pairs' = A B outer operation` to keep a recipe. Each observation recomputes
+the demanded pairs, including callback effects. An ordinary `Saved = Pairs`
+binding retains the completed result. A deferred assignment does not make a
+single-pass operand restartable; bind its completed data before reusing it.
+
+Repeatable sequences with an exact size retain no item history between
+observations. Their equally shaped array items are stacked before pairing, so
+trailing item axes participate just as they do after an ordinary binding.
+Determining the shape can read the first item; indexing reads only the prefix
+needed to reach its selected item when direct addressing is unavailable.
+A full traversal owns and closes its cursors, including when stopped early.
+Unknown-size operands and single-pass resources are completed by the current
+`outer` evaluation; this does not make the original resource restartable.
+
+An empty pair frame makes no call to the pair operation. Operands can still
+produce empty cells, whose selected producers must run when the result is
+completed. Arithmetic and axis permutations preserve these observations;
+selecting no producer positions makes no producer calls. Unused nonempty
+scalar operands are not evaluated for an empty product.
 
 Explicit binary comparison rank and frame axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
@@ -6322,7 +6492,9 @@ Both axes are zero-based. Exactly two axes are required, and out-of-range axes
 are errors. Scalar or nonnumeric operands are errors; unequal contracted
 dimensions raise `.DimensionMismatch`.
 
-Array results are lazy. Each output element is calculated on demand and cached.
+A deferred binding such as `C' = A B matmul` computes output elements on
+demand. Repeated demands recompute them; `C = A B matmul` stores the completed
+array explicitly.
 The calculation uses ordinary Rank numeric promotion: integer-only terms stay
 integer, while a real term promotes that output element to real. A contraction
 over an empty dimension produces zero for every output element.
@@ -6447,13 +6619,18 @@ using exact integer arithmetic; larger inputs use integer Newton iteration:
 
 ```rank
 Root = Value isqrt
-Roots = Values isqrt
+Roots' = Values isqrt
+Saved = Roots
 Perfect = Root ** 2 equal Value
 ```
 
 It maps lazily over arrays and sequences. A negative integer raises
 `.DomainError`, and a `real` raises `.TypeError`. The computation uses only
 integer arithmetic, so large values do not lose precision.
+
+Ordinary binding stores all roots; a deferred binding recomputes on demand.
+For an array, the known scalar-map result shape is available without reading
+its cells. Domain errors arise when a selected cell or the full result is read.
 
 `log` has intrinsic rank 0 and returns the natural logarithm as a `real`:
 
@@ -7136,7 +7313,9 @@ earlier axes are independent batches. The explicit `axis F O` form selects the
 feature and observation axes in that order. It preserves the other axes and
 replaces the selected axes with two feature axes. The operation uses the sample
 denominator `N - 1`, returns real values, and requires at least two
-observations. Its result and feature means are calculated lazily and cached.
+observations. Ordinary binding stores the completed result. Deferred binding
+recomputes on demand; a traversal may share feature means within its current
+batch, but later observations start fresh.
 
 ## Text
 
@@ -7367,7 +7546,7 @@ the requested shape. An infinite source is an error.
 
 ```rank
 Pairs = Text window 2
-Windows = Values window Width
+Windows' = Values window Width
 WindowShape = array 2 3
 Blocks = M window WindowShape
 Columns = M window 3 axis 1
@@ -8149,7 +8328,7 @@ rem Project Euler 16
 rem https://projecteuler.net/problem=16
 
 Digits = (2 ** 1000) text
-Values = Digits integer rank 0
+Values' = Digits integer rank 0
 Answer = Values sum
 ```
 
@@ -8162,13 +8341,13 @@ digit, and `sum` reduces the resulting sequence to `1366`.
 rem Project Euler 17
 rem https://projecteuler.net/problem=17
 
-Numbers = 1 to Limit
-Counts = Numbers letters rank 0
+Numbers' = 1 to Limit
+Counts' = Numbers letters rank 0
 Answer = Counts sum
 ```
 
-`number_letter_total` creates the small English length tables once and defines
-a local `letters` helper that captures them. Rank-0 application converts every
+The program creates the small English length tables once. Its `letters`
+helper reads those retained tables. Rank-0 application converts every
 number to a letter count, and `sum` adds the counts. The helper
 implements British `and` without constructing the spelled-out text. The total
 is `21124`.
@@ -8203,12 +8382,30 @@ larger form of the problem. The first cell becomes `1074`.
 rem Project Euler 19
 rem https://projecteuler.net/problem=19
 
-Answer = 1901 2000 count_sundays
+Years = (1900 to 2000) array
+Leap = Years mod 4 equal 0
+Leap and= (
+  not Years mod 100 equal 0
+  or Years mod 400 equal 0
+)
+Base = array shape 12
+  31 28 31 30 31 30
+  31 31 30 31 30 31
+end
+Feb = (0 till 12) equal 1
+Extra' = Leap Feb outer and
+Lens' = Extra integer + Base
+Flat = Lens reshape #
+Start' = Flat scan + with 1
+Cent' = Start drop 12 take 1200
+Answer = Cent mod 7 equal 0 count
 ```
 
-The helper advances the weekday of each month start from the stated 1900
-anchor. Leap years use ordinary divisibility masks and boolean composition.
-The twentieth-century count is `171`.
+An outer `and` of the leap-year mask with a February mask adds the leap day
+to a 101 by 12 table of month lengths. Its running sum from the stated 1900
+Monday gives the weekday of every month start; `drop 12` skips 1900 and
+`take 1200` drops the extra start of January 2001. The twentieth-century
+count of Sundays is `171`.
 
 ## 20. Factorial digit sum
 
@@ -8218,7 +8415,7 @@ rem https://projecteuler.net/problem=20
 
 Factorial = (1 to 100) reduce *
 Digits = Factorial text
-Values = Digits integer rank 0
+Values' = Digits integer rank 0
 Answer = Values sum
 ```
 
@@ -8233,10 +8430,10 @@ rem https://projecteuler.net/problem=21
 
 Candidates = (2 till Limit) array
 Partners = Candidates proper_divisor_sum rank 0
-Reverse = Partners proper_divisor_sum rank 0
+Reverse' = Partners proper_divisor_sum rank 0
 Amicable = Partners not equal Candidates
 Amicable and= Reverse equal Candidates
-Values = Candidates Amicable
+Values' = Candidates Amicable
 Answer = Values sum
 ```
 
@@ -8254,10 +8451,10 @@ rem https://projecteuler.net/problem=22
 Text = Input read
 Names = Text names_from_text
 Sorted = Names sort
-Values = Sorted name_value rank 0
+Values' = Sorted name_value rank 0
 Count = Sorted len
-Positions = (1 to Count) array
-Scores = Values * Positions
+Positions' = 1 to Count
+Scores' = Values * Positions
 Answer = Scores sum
 ```
 
@@ -8354,14 +8551,14 @@ The coefficient product is `-59231`.
 rem Project Euler 28
 rem https://projecteuler.net/problem=28
 
-Layers = 1 to (Size - 1) // 2
-Sides = Layers * 2 + 1
-Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
+Layers' = 1 to (Size - 1) // 2
+Sides' = Layers * 2 + 1
+Corners' = 4 * Sides ** 2 - 6 * (Sides - 1)
 Answer = 1 + (Corners sum)
 ```
 
-Each concentric layer contributes its four corners. Array arithmetic evaluates
-all layer contributions, and the separate `1` includes the center cell even
+Each concentric layer contributes its four corners. Deferred arithmetic feeds
+the sum without retaining each named stage, and the separate `1` includes the center cell even
 when there are no outer layers. The formula gives `669171001` for a 1001 by
 1001 spiral without constructing the matrix.
 
@@ -8388,8 +8585,8 @@ rem Project Euler 30
 rem https://projecteuler.net/problem=30
 
 Text = N text
-Digits = Text integer rank 0
-Powers = Digits ** Power
+Digits' = Text integer rank 0
+Powers' = Digits ** Power
 Sum = Powers sum
 ```
 
@@ -8471,8 +8668,8 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
-Candidates = primes till Limit
-Circular = Candidates circular_prime rank 0
+Candidates' = primes till Limit
+Circular' = Candidates circular_prime rank 0
 Answer = Circular count
 
 for Shift in 1 till Length
@@ -8554,7 +8751,7 @@ productive perimeter through 1000.
 rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
-Digits = Positions champernowne_digit rank 0
+Digits' = Positions champernowne_digit rank 0
 Answer = Digits reduce *
 
 for Remaining greater Digits * Count
@@ -8573,9 +8770,9 @@ program never constructs the million-character prefix. The product is `210`.
 ## 41. Pandigital prime
 
 ```rank
-CandidateTexts = Digits permutations
-Candidates = CandidateTexts integer rank 0
-Prime = Candidates in primes
+CandidateTexts' = Digits permutations
+Candidates' = CandidateTexts integer rank 0
+Prime' = Candidates in primes
 Answer = (Candidates first where Prime) default 0
 ```
 
@@ -8586,10 +8783,10 @@ first match. The first prime is `7652413`.
 ## 42. Coded triangle numbers
 
 ```rank
-Values = Words word_value rank 0
+Values' = Words word_value rank 0
 Discriminants = 8 * Values + 1
-Roots = Discriminants isqrt
-Triangular = Roots ** 2 equal Discriminants
+Roots' = Discriminants isqrt
+Triangular' = Roots ** 2 equal Discriminants
 Answer = Triangular count
 ```
 
@@ -8669,8 +8866,9 @@ run of four integers begins at `134043`.
 ## 48. Self powers
 
 ```rank
-Numbers = 1 to Limit
-Powers = Numbers modular_self_power rank 0
+Modulus = 10 ** Digits
+Numbers' = 1 to Limit
+Powers' = Numbers Modulus modular_self_power rank 0 0
 Total = Powers sum
 Answer = Total mod Modulus
 ```
@@ -8715,7 +8913,7 @@ smallest. The result below one million is `997651`.
 ## 51. Prime digit replacements
 
 ```rank
-Places = 0 till (Digits len - 1)
+Places' = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
 for Pick in Same 3 combinations
@@ -8734,9 +8932,9 @@ membership in `primes` checks the whole family. The smallest match is `121313`.
 ## 53. Combinatoric selections
 
 ```rank
-Top = (N to 1 by -1) scan * with 1
-Bottom = (1 to N) scan * with 1
-Choices = Top // Bottom
+Top' = (N to 1 by -1) scan * with 1
+Bottom' = (1 to N) scan * with 1
+Choices' = Top // Bottom
 ```
 
 The two seeded scans build the numerator and denominator products for every
@@ -9311,8 +9509,8 @@ observe the strict **parenthesis budget of at most one pair of parentheses per
 line** to avoid mobile keyboard friction.
 
 ```rank
-Range = 1 till 1000
-States = Range scan next with Start
+Range' = 1 till 1000
+States' = Range scan next with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.

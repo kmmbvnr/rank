@@ -19,7 +19,7 @@ fun X Degree polynomial_features
 
   Width = 0
   for D in 0 to Degree
-    Choices = Indices D multicomb
+    Choices' = Indices D multicomb
     Width += Choices len
   end
 

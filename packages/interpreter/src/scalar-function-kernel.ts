@@ -1,3 +1,4 @@
+import { materializeValue } from './materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
@@ -218,10 +219,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             } else if (isAssignmentStatement(command)) {
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
+                // An ordinary local is a completion boundary just as in the
+                // reference binder; typed array results may still be views.
+                if (typeof expressions.get(command.value)!.type !== 'string') value = `materializeValue(${value})`;
                 lines.push(`${slot(command.name)} = ${value};`);
                 lines.push(`reader${slots.get(command.name)} = undefined;`);
                 if (writtenSlots.has(command.name)) lines.push(`write${slots.get(command.name)} = undefined;`);
-                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
+                if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${slot(command.name)});`);
             } else if (isBreakStatement(command)) lines.push('break;');
             else if (isContinueStatement(command)) lines.push('continue;');
             else if (isPushStatement(command) && isNameExpression(command.receiver)) {
@@ -330,7 +334,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

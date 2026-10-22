@@ -29,8 +29,9 @@ A and B`)).toBe('false true true false false false');
     });
 
     it('keeps invalid operand errors deferred until an affected cell is demanded', () => {
-        expect(run('A = array 1 2\nB = array true false\nResult = A and B\n7')).toBe('7');
-        expect(() => run('A = array 1 2\nB = array true false\nResult = A and B\nResult 0')).toThrow();
+        expect(() => run('A = array 1 2\nB = array true false\nResult = A and B\n7')).toThrow(/expected boolean/);
+        expect(run("A = array 1 2\nB = array true false\nResult' = A and B\n7")).toBe('7');
+        expect(() => run("A = array 1 2\nB = array true false\nResult' = A and B\nResult 0")).toThrow();
         expect(() => run('A = array true false\nB = array true false true\nA and B')).toThrow(/shape mismatch/);
     });
 });

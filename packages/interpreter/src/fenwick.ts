@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { MissingValueError, RankError } from './errors.js';
 
 /** A fixed-size integer array with logarithmic prefix sums. */
@@ -25,6 +26,7 @@ export class RankFenwick {
     }
 
     set(index: bigint, value: bigint): void {
+        checkValueMutable(this);
         const position = this.position(index);
         const delta = value - this.values[position];
         this.values[position] = value;

@@ -14,6 +14,8 @@ interface View {
     readonly regular?: boolean;
     /** Internal binding validation depends on scalar kind, not scalar value. */
     readonly scalarCheck?: boolean;
+    /** A selection may detach its source and offset together before a write. */
+    readonly capture?: () => { source: RankArray; offset: (index: number) => number };
 }
 const views = new WeakMap<RankArray, View>();
 const deferredCopies = new WeakSet<RankArray>();
@@ -33,9 +35,37 @@ export function registerIntegerReadPlan<T extends RankArray>(value: T,
 /** Only runtime-created selections and contract wrappers may publish views.
  * The public reader still owns its ordinary cache and validation behavior. */
 export function registerScalarView<T extends RankArray>(value: T, source: RankArray | (() => RankArray),
-    offset: (index: number) => number, options: Pick<View, 'accepts' | 'check' | 'linear' | 'regular' | 'scalarCheck'> = {}): T {
+    offset: (index: number) => number, options: Pick<View, 'accepts' | 'check' | 'linear' | 'regular' | 'scalarCheck' | 'capture'> = {}): T {
     views.set(value, { source, offset, ...options, reader: value.itemAt });
     return value;
+}
+
+/** Native views expose addressing and scalar contracts without reading cells.
+ * Capture a consistent source/offset pair; later detachment invalidates it.
+ * False means a registered view is opaque or stale, not a stored input. */
+export function prepareNativeScalarView(value: RankArray): {
+    source: RankArray; shape: readonly number[]; offset(index: number): number;
+    linear?: LinearView; valid(): boolean;
+    validate(cell: RankValue, index: number): RankValue;
+} | false | undefined {
+    const view = views.get(value);
+    if (!view) return undefined;
+    if (value.itemAt !== view.reader || view.check && !view.scalarCheck) return false;
+    const capture = () => view.capture?.() ?? {
+        source: typeof view.source === 'function' ? view.source() : view.source, offset: view.offset,
+    };
+    const snapshot = capture();
+    const shape = [...value.shape];
+    const linear = view.linear?.();
+    const validate = arrayCellValidator(value);
+    return { ...snapshot, shape, linear: linear && { ...linear }, valid() {
+        const current = capture();
+        return value.itemAt === view.reader && current.source === snapshot.source && current.offset === snapshot.offset
+            && value.shape.length === shape.length && value.shape.every((n, axis) => n === shape[axis]);
+    }, validate(cell, index) {
+        validate?.(cell, index);
+        return view.check ? view.check(cell) : cell;
+    } };
 }
 
 /** A selection that previously gathered eagerly keeps its writable value
@@ -91,6 +121,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
     const plan = integerPlans.get(source);
     const segmented = plan?.reader === source.itemAt ? plan?.prepare() : undefined;
     if (segmented) return wrap(segmented);
+    if (source.itemAt !== undefined) return undefined;
     const items = denseScalarItems(source) ?? materializedArrayItems(source);
     if (!items) return undefined;
     const kinds = storedScalarKinds(source);
@@ -128,6 +159,7 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
             scalarCheck: !needsCheck || view.scalarCheck === true, columns: source.columnNames !== undefined });
         source = typeof view.source === 'function' ? view.source() : view.source;
     }
+    if (source.itemAt !== undefined) return undefined;
     const items = denseScalarItems(source) && storedOperandItems(source);
     if (!items) return undefined;
     let read = (index: number): RankValue => items[index];

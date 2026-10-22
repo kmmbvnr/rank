@@ -16,9 +16,9 @@ fun X adam_optimizer grad
     G = X grad
     M = Beta1 * M + (1 - Beta1) * G
     V = Beta2 * V + (1 - Beta2) * G ** 2
-    Mhat = M / (1 - Beta1 ** T)
-    Vhat = V / (1 - Beta2 ** T)
-    Denom = Vhat sqrt + Epsilon
+    Mhat' = M / (1 - Beta1 ** T)
+    Vhat' = V / (1 - Beta2 ** T)
+    Denom' = Vhat sqrt + Epsilon
     X -= Rate * Mhat / Denom
   end
 

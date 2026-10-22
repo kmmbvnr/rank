@@ -70,7 +70,7 @@ C = B + array 1 2 3 4`);
         runtime.variables.set('Host', { kind: 'array', shape: [2], items: [],
             itemAt(index) { reads.push(index); return BigInt(index + 1); } });
         try {
-            runtime.execute('use sequences\nA = array 3 4\nB = concat A A\nQ = B mod (array 2 2 0 2)\nH = Host + 1');
+            runtime.execute("use sequences\nA = array 3 4\nB = concat A A\nQ' = B mod (array 2 2 0 2)\nH' = Host + 1");
             expect(reads).toEqual([]);
             expect(runtime.execute('Q 0')).toBe(1n);
             expect(() => runtime.execute('Q 2')).toThrow('division by zero');

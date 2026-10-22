@@ -28,14 +28,14 @@ fun Data K pca
   if (Dev equal 0) any
     .DomainError raise
   end
-  X = (Data - Mean) / Dev
+  X' = (Data - Mean) / Dev
 
   Cov = X covariance axis 1 0
   unpack Values Vectors = Cov eigh
 
   Last = Features - 1
   First = Features - K
-  Columns = Last to First by -1
+  Columns' = Last to First by -1
   Components = (Vectors # Columns) copy
 
   rem Fix sign at the first nonzero

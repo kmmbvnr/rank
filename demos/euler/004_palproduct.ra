@@ -17,8 +17,8 @@ Upper = Lower * 10 - 1
 rem Every product row is descending. Merge the
 rem rows without materializing the product table.
 Factors = Upper to Lower by -1
-Products = Factors Factors outer *
-Candidates = Products merge .descending
+Products' = Factors Factors outer *
+Candidates' = Products merge .descending
 
 Answer = Candidates filter palindrome first
 Answer print

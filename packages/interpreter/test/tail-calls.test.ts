@@ -203,7 +203,7 @@ end
 fun N forward
   return N values
 end
-Values = 7 forward
+Values' = 7 forward
 `);
         const value = interpreter.variables.get('Values');
         if (!value || !isRankSequence(value)) throw new Error('expected sequence');

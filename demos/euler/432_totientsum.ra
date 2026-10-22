@@ -38,8 +38,9 @@ end
 Ix = (0 to Lm) copy
 Rs = Ix // Sm
 Big = Rs greater 1
-Pc = Ph - Ph // Rs
-Ph = (Big choose Pc Ph) copy
+Pv = Ph
+Pc' = Pv - Pv // Rs
+Ph = (Big choose Pc Pv) copy
 Ph 0 = 0
 Cs = Ph scan + with 0
 C0 = (Cs (1 to Lm + 1)) mod Mod

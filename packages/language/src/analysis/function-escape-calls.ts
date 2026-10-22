@@ -1,19 +1,32 @@
 import type { FunctionStatement } from '../generated/ast.js';
 import type { LexicalBinding } from './function-scopes.js';
 
-export type Flow = { functions: Set<FunctionStatement>; lazy: Set<FunctionStatement>; stored: Set<FunctionStatement> };
+export type Flow = {
+    /** Direct function values remain subject to the local-function escape rule. */
+    functions: Set<FunctionStatement>;
+    /** Live stream dependencies disappear when the result is completed. */
+    lazy: Set<FunctionStatement>;
+    /** Stream dependencies nested inside values need recursive completion. */
+    cells: Set<FunctionStatement>;
+    /** Direct opaque capsules keep live callbacks after completion. */
+    opaque: Set<FunctionStatement>;
+    /** The same opaque callbacks nested inside stored data. */
+    stored: Set<FunctionStatement>;
+};
 export type Environment = Map<LexicalBinding, Flow>;
-export const empty = (): Flow => ({ functions: new Set(), lazy: new Set(), stored: new Set() });
+export const empty = (): Flow => ({ functions: new Set(), lazy: new Set(), cells: new Set(), opaque: new Set(), stored: new Set() });
 export function union(values: readonly Flow[]): Flow {
     return { functions: new Set(values.flatMap(value => [...value.functions])),
         lazy: new Set(values.flatMap(value => [...value.lazy])),
+        cells: new Set(values.flatMap(value => [...value.cells])),
+        opaque: new Set(values.flatMap(value => [...value.opaque])),
         stored: new Set(values.flatMap(value => [...value.stored])) };
 }
 
 /** Add provenance monotonically; recursive call summaries have a finite domain. */
 function merge(target: Flow, source: Flow): boolean {
     let changed = false;
-    for (const field of ['functions', 'lazy', 'stored'] as const) for (const fn of source[field]) {
+    for (const field of ['functions', 'lazy', 'cells', 'opaque', 'stored'] as const) for (const fn of source[field]) {
         if (!target[field].has(fn)) { target[field].add(fn); changed = true; }
     }
     return changed;
@@ -34,7 +47,7 @@ export function escapeCalls(evaluate: (fn: FunctionStatement, args: readonly Flo
         if (!ids.has(object)) ids.set(object, ids.size);
         return ids.get(object)!;
     };
-    const signature = (flow: Flow): string => [flow.functions, flow.lazy, flow.stored]
+    const signature = (flow: Flow): string => [flow.functions, flow.lazy, flow.cells, flow.opaque, flow.stored]
         .map(set => [...set].map(id).sort((a, b) => a - b).join(',')).join('/');
     let current: Call | undefined;
     const run = (call: Call): void => {

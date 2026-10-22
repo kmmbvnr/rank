@@ -18,7 +18,8 @@ function programs(directory) {
 }
 assert.deepEqual(summaries.flatMap(result => result.files).sort(), programs(demos).filter(file => !exclusions.has(file)).sort(), 'every eligible demo must be audited exactly once');
 const totals = summaries.reduce((sum, result) => ({ ran: sum.ran + result.ran,
-    asked: sum.asked + result.asked, known: sum.known + result.known }), { ran: 0, asked: 0, known: 0 });
+    asked: sum.asked + result.asked, known: sum.known + result.known,
+    plans: sum.plans + result.plans }), { ran: 0, asked: 0, known: 0, plans: 0 });
 assert.ok(totals.ran > 100, 'successful execution coverage dropped');
 assert.ok(totals.known > 50, 'name facts coverage dropped');
 console.log('Name facts coverage:', totals);

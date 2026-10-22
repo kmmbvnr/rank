@@ -22,15 +22,12 @@ describe('stored mask materialization', () => {
             .toEqual(kind === 'integer' ? [-9223372036854775808n, 9223372036854775807n] : [1.25, Infinity]);
     });
 
-    it('reuses stored mask positions until a write changes its revision', () => {
+    it('constructs independent selection snapshots from the current mask', () => {
         const source = ownedArray([1n, 2n, 3n]), mask = ownedArray([false, true, true]);
-        const diagnostics = new RuntimeDiagnostics();
-        const first = diagnostics.run(() => maskSelection(source, mask));
-        const second = diagnostics.run(() => maskSelection(source, mask));
-        expect(diagnostics.maskPositionReuses).toBe(1);
+        const first = maskSelection(source, mask);
+        const second = maskSelection(source, mask);
         mask.items[1] = false;
-        const third = diagnostics.run(() => maskSelection(source, mask));
-        expect(diagnostics.maskPositionReuses).toBe(1);
+        const third = maskSelection(source, mask);
         expect(cells(materializeSequence(first))).toEqual([2n, 3n]);
         expect(cells(materializeSequence(second))).toEqual([2n, 3n]);
         expect(cells(materializeSequence(third))).toEqual([3n]);
@@ -101,9 +98,9 @@ for (const compilation of [false, true]) describe(`mask materialization (compile
 A = 1 to 10000 array
 V = A (9999 to 0 by -2)
 M = V greater 5000
-S = V filter M
-M = M copy
-M 0 = false
+S' = V filter M
+Changed = M copy
+Changed 0 = false
 A 9999 = 0`);
             const result = diagnostics.run(() => runtime.execute('B = S array\nB sum'));
             expect(result).toBe(18752500n);

@@ -4,8 +4,8 @@ import {
     functionScopeDiagnostics, availableBuiltin, builtinBindingDiagnostics, builtinBindingMessage, isFunctionStatement, isFunctionBindingStatement, isUseStatement,
     type Expression, type FunctionStatement, type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { enterRuntime, leaveRuntime } from './array-storage.js';
 import { BindingEnvironment } from './binding-environment.js';
+import { MutationGuards } from './mutation-guards.js';
 import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
 import { bindInputs } from './cli-args.js';
 import { CheckedInputContracts } from './checked-input.js';
@@ -35,6 +35,7 @@ import { ReductionEvaluator } from './reduction.js';
 import { ResourceOwnership } from './resource-ownership.js';
 import { locateError, registerSource, sourceIdOf } from './source-location.js';
 import { selectValues } from './value-selection.js';
+import { withoutAmbientTensorPlan } from './tensor-map.js';
 import { isNativeFunction, type RankValue } from './value.js';
 
 type Output = (text: string) => void;
@@ -77,6 +78,9 @@ export class Interpreter {
     private syntheticNames: ReadonlySet<string> = new Set();
 
     private readonly bindings = new BindingEnvironment(this.variables, this.modules);
+    private readonly mutations = new MutationGuards(
+        (name, local) => this.checkMutable(name, local), (error, node) => this.locateError(error, node),
+    );
     private readonly resources = new ResourceOwnership();
     private readonly checkedInputs = new CheckedInputContracts();
     private readonly operators = new Operators(value => this.resources.ownFiles(value),
@@ -146,6 +150,7 @@ export class Interpreter {
         this.functions = new FunctionInvocation(this.bindings, this.resources, this.builtins, this.inspection,
             this.modules, () => this.options, {
                 resolve: name => this.resolve(name),
+                evaluateReturn: expression => this.expressions.returnValue(expression),
                 inputs: this.checkedInputs,
                 apply: (fn, args) => this.rankApplication.applyIntrinsicRank(fn, args),
                 compileDirect: expression => this.expressions.compileDirect(expression),
@@ -167,6 +172,7 @@ export class Interpreter {
             (fn, source, axes) => this.functions.arrayBatch(fn, source, axes),
         );
         this.fastPaths = new FastPaths({
+            checkMutation: statement => this.mutations.statement(statement),
             bindings: this.bindings,
             modules: this.modules,
             builtins: this.builtins,
@@ -176,12 +182,15 @@ export class Interpreter {
             locate: (error, node) => this.locateError(error, node),
             options: () => this.options,
             evaluate: expression => this.expressions.evaluate(expression),
+            evaluateReturn: (expression, tail) => this.expressions.returnValue(expression, tail),
             compileDirect: expression => this.expressions.compileDirect(expression),
-            compileTail: expression => this.expressions.compile(expression, undefined, true),
             operationOf: name => this.expressions.operationOf(name),
             operators: this.operators,
         });
         this.application = new ApplicationEvaluator({
+            findVariable: name => this.findVariable(name),
+            argument: expression => this.expressions.argument(expression),
+            stageArgument: expression => this.expressions.stageArgument(expression),
             checkInput: (expression, value, source) => this.checkedInputs.check(expression, value, source),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
@@ -203,6 +212,7 @@ export class Interpreter {
         this.expressions = new ExpressionEvaluator({
             inputCall: (expression, run) => this.checkedInputs.expression(expression, run),
             bindings: this.bindings,
+            findVariable: name => this.findVariable(name),
             resolve: name => this.resolve(name),
             select,
             requireModule: requireOpen,
@@ -219,7 +229,7 @@ export class Interpreter {
         this.blocks = new BlockExecution({
             bindings: this.bindings,
             fastPaths: this.fastPaths,
-            prepare: statement => prepareStatement(statement, this.statements),
+            prepare: statement => this.mutations.wrap(statement, prepareStatement(statement, this.statements)),
             point: statement => this.inspection.point(statement),
             locate: (error, node) => this.locateError(error, node),
             syntheticNames: () => this.syntheticNames,
@@ -240,6 +250,11 @@ export class Interpreter {
             locate: (error, statement) => this.locateError(error, statement),
         };
         this.writes = {
+            protect: (names, plan) => {
+                const publish = names.map(name => this.protect(name, plan));
+                return () => { for (const apply of publish) apply(); };
+            },
+            defer: expression => this.expressions.defer(expression),
             checkArrayWrite: (name, target, values, offsets) => this.checkArrayWrite(name, target, values, offsets),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
@@ -252,11 +267,12 @@ export class Interpreter {
             operators: this.operators,
         };
         this.statements = {
+            evaluateReturn: (expression, tail) => this.expressions.returnValue(expression, tail),
             resolve: name => this.resolve(name),
             bindings: this.bindings,
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),
-            compileTail: expression => this.expressions.compile(expression, undefined, true),
+            compileTail: expression => () => this.expressions.returnValue(expression, true),
             operationOf: name => this.expressions.operationOf(name),
             execute: (statements, context) => this.blocks.executeIn(statements, context),
             assign: (name, value) => this.assign(name, value),
@@ -277,22 +293,19 @@ export class Interpreter {
     }
 
     execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
-        enterRuntime(this.bindings);
         const previous = this.syntheticNames;
         this.syntheticNames = syntheticNames;
-        try { return this.environmentOverride
-            ? withEnvironment(this.environmentOverride, () => this.executeSource(source)) : this.executeSource(source); }
-        finally { this.syntheticNames = previous; leaveRuntime(); }
+        try { return this.inEnvironment(() => this.executeSource(source)); }
+        finally { this.syntheticNames = previous; }
     }
 
     evaluate(expression: Expression): RankValue {
-        enterRuntime(this.bindings);
         try {
             const run = () => runExecution(this.expressions.evaluate(expression));
-            return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+            return this.inEnvironment(run);
         } catch (error) {
             throw this.locateError(error, expression);
-        } finally { leaveRuntime(); }
+        }
     }
 
     executeProgram(
@@ -300,11 +313,8 @@ export class Interpreter {
         args: readonly string[] = [],
         assertBooleanExpressions = false,
     ): RankValue | undefined {
-        enterRuntime(this.bindings);
-        try {
-            const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
-            return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
-        } finally { leaveRuntime(); }
+        const run = () => this.executeProgramBody(program, args, assertBooleanExpressions);
+        return this.inEnvironment(run);
     }
 
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
@@ -312,6 +322,7 @@ export class Interpreter {
         const scopeError = functionScopeDiagnostics(program)[0];
         if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
+        this.mutations.program(program);
         const declarations = new Map<string, FunctionStatement>();
         const initial = new Map<string, ValueFacts>();
         for (const [name, value] of this.variables) {
@@ -359,14 +370,15 @@ export class Interpreter {
         return this.bindings.globals.rankOf(name);
     }
 
-    /** Hosts force lazy preview results inside the same disposable environment. */
+    /** Hosts force preview results in this environment, without borrowing a caller's compiler. */
     inEnvironment<T>(run: () => T): T {
-        return this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run();
+        return withoutAmbientTensorPlan(() => this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run(),
+            this.options.tensorFusion !== false);
     }
 
     /** Copy the current bindings without rerunning the program that produced them. */
     forkForPreview(output: Output = this.output, environment: RankEnvironment = new EnvironmentOverlay(this.options.environment)): Interpreter {
-        const { wrapSinglePassSequence: _singlePass, wrapStoredSequence: _stored,
+        const { wrapSinglePassSequence: _singlePass,
             persistentResources: _persistent, ...options } = this.options;
         const fork = new Interpreter(output, { ...options, environment });
         fork.environmentOverride = environment;
@@ -481,6 +493,14 @@ export class Interpreter {
     // Names: module aliases own dotted names, the implicit structures own
     // theirs, then bindings and finally the open builtins.
 
+    /** Look up data/functions without invoking a function or falling back to builtins. */
+    private findVariable(name: string): RankValue | undefined {
+        const qualified = splitQualified(name);
+        if (!qualified) return this.bindings.find(name);
+        return this.bindings.current?.lookup(name)
+            ?? this.aliases.get(qualified.alias)?.findVariable(qualified.member);
+    }
+
     private resolve(name: string): RankValue {
         const qualified = splitQualified(name);
         if (qualified) {
@@ -519,6 +539,18 @@ export class Interpreter {
             throw new RankError(`unknown variable: ${name}`);
         }
         return value;
+    }
+
+    private protect(name: string, plan: string): () => void {
+        const qualified = splitQualified(name);
+        if (qualified) return this.aliases.get(qualified.alias)?.protect(qualified.member, plan) ?? (() => undefined);
+        return this.bindings.protect(name, plan);
+    }
+
+    private checkMutable(name: string, local = false): void {
+        const qualified = splitQualified(name);
+        if (qualified) this.aliases.get(qualified.alias)?.checkMutable(qualified.member);
+        else this.bindings.checkMutable(name, local);
     }
 
     private checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[] {

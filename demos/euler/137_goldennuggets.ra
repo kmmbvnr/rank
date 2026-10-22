@@ -14,8 +14,8 @@ rem The nuggets are products of
 rem consecutive Fibonacci numbers,
 rem F(2n) F(2n+1), from 2, 3, 5, 8...
 Fs = fibonacci take (2 * Nth) array
-Even = Fs (0 to # by 2)
-Odd = Fs (1 to # by 2)
-Nugget = Even * Odd
+Even' = Fs (0 to # by 2)
+Odd' = Fs (1 to # by 2)
+Nugget' = Even * Odd
 Answer = Nugget (Nth - 1)
 Answer print

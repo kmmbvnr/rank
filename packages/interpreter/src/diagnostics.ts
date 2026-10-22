@@ -2,26 +2,14 @@ import type { CompilerRejection } from './compiler-rejection.js';
 
 /** Optional counters and bounded compilation-failure syntax snapshots. */
 export class RuntimeDiagnostics {
-    validationRequests = 0;
-    dependencyValidations = 0;
-    cacheHits = 0;
-    cacheMisses = 0;
     memoHits = 0;
     memoMisses = 0;
     indexReads = 0;
     indexReadHits = 0;
     indexReadMisses = 0;
     indexWrites = 0;
-    sequenceReplayHits = 0;
     sequencePredicateCalls = 0;
-    sequenceCachedValues = 0;
-    /** Accounted payload minus explicit evictions, without observing host GC.
-     * Use heap/RSS measurements for actual process memory. */
-    sequenceCacheBytes = 0;
-    sequenceCachePeakBytes = 0;
-    sequenceCacheEvictions = 0;
     cellsComputed = 0;
-    invalidations = 0;
     hoistedReaders = 0;
     loopElementScans = 0;
     compiledLoops = 0;
@@ -40,7 +28,6 @@ export class RuntimeDiagnostics {
     rankedArrayBatches = 0;
     /** Full materialization attempts over a prepared scalar callback. */
     rankedBatches = 0;
-    maskPositionReuses = 0;
     maskMaterializations = 0;
     maskMaterializedCells = 0;
     bulkArrayWrites = 0;

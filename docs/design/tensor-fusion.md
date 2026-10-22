@@ -7,19 +7,17 @@ architectural direction of Rank. It is not a special optimization for one contes
 problem. The reference interpreter and compiler will progressively implement this
 model while the language continues to develop.
 
-Readable source remains the priority. Short lines and named intermediate values
-must not inherently require temporary arrays or additional passes:
+Readable pipelines name recomputable stages explicitly:
 
 ```rank
-Squared = Error * Error
+Squared' = Error * Error
 Mse = Squared mean
 ```
 
-When use analysis and runtime guards establish that `Squared` is private to this
-calculation, the implementation may combine multiplication and reduction. Values
-that escape, are reused or are observable through mutation/capture must retain
-their specified behavior. Fusion is an implementation freedom, not a guarantee
-that every expression runs in one pass.
+An ordinary `Squared = Error * Error` completes and retains the array. The
+compiler preserves that boundary regardless of consumer count. Supported native
+plan stages can compose after normal demand and binding checks. Fusion remains
+an implementation capability, not a guarantee that every plan uses one loop.
 
 ## Common execution representation
 
@@ -37,16 +35,15 @@ may remain optimized calls with surrounding elementwise work combined where safe
 ## Semantic requirements
 
 Optimizations must preserve inferred types, exact integer arithmetic,
-floating-point evaluation order, observable errors, lexical bindings, lazy
-snapshots, mutation and resource ownership. Associativity must not be assumed for
+floating-point evaluation order, observable errors, lexical bindings, captured
+values, mutation and resource ownership. Associativity must not be assumed for
 floating-point reduction. Eager error checks must not disappear behind a
-short-circuit reduction. Impure calls form boundaries unless a stronger analysis
-proves otherwise.
+short-circuit reduction. Repeated plan demand repeats its effects. Opaque callbacks keep their canonical
+execution and cannot acquire a native capability from a numeric annotation.
 
 Guards must run before visible writes or other effects. A rejected plan uses
 ordinary execution without replaying user effects. Browsers that prohibit dynamic
-code generation must retain a working reference path. Debugger inspection of
-eliminated intermediates will require reconstruction or disabling that optimization.
+code generation must retain a working reference path. Debugger inspection uses reference statement execution.
 
 ## Delivery policy
 
@@ -59,7 +56,7 @@ of each implementation revision, not promises of the language specification.
 ## Current implementation
 
 The default interpreter now uses `tensor-kernel.ts` for compatible assignment
-expressions and groups of consecutive assignments. It lowers them into input,
+expressions. It lowers one statement into input,
 binary, unary, selection, first-axis slice and default-axis concat nodes with a
 terminal reduction or explicit `copy`. Ordinary assignments and returns containing
 at least two arithmetic operations from `+`, `-`, `*`, `/`, `//`, `mod`, `**`
@@ -81,8 +78,7 @@ execution.
 
 Runtime binding
 supplies shapes, scalar values and storage offsets before emitting a cached
-JavaScript loop. `tensor-use.ts` provides lexical read/definition counts and
-conservative barriers for escaping or multiply defined intermediates.
+JavaScript loop. Source kernels never eliminate or skip other assignments.
 Typed input buffers are read in place rather than unpacked into ordinary arrays.
 `benchmarks/tensor-expression.mjs` compares implicit expression fusion against
 separate passes for integer polynomials, real arithmetic and matrix/vector
@@ -104,15 +100,17 @@ and gathered domains are currently restricted to vectors.
 
 Unread lazy inputs, arbitrary sequences, explicit `axis`/`rank` reductions and
 unsupported calls retain reference execution. Checked contiguous stored integer
-views can be borrowed without forcing lazy cells. Named intermediates can be
-eliminated inside functions or top-level counted loops after checking their
-definitions, uses and existing lexical bindings. Function-wide capture barriers
-still apply inside functions; an existing outer binding prevents elimination at
-runtime. Top-level global names remain observable; inline assignment expressions
-can still be fused there. Private slice groups decline during inspection or
-arbitrary host polling.
-Private temporary names may have multiple reads within the fused calculation,
-for example `Difference * Difference`.
+views can be borrowed without forcing lazy cells. Deferred native maps and
+scalar views also publish capabilities for the same IR. View addresses preserve
+source coordinates and result-check coordinates separately. Completed storage
+ends native graph traversal; eager bindings remain storage boundaries.
+Native outer maps preserve the Cartesian domain, including all operand axes,
+and compose mapped operands and nested products. Unproved sequence operands and
+named outer callbacks continue through their existing runtime readers.
+
+The [tensor kernel ADR](../adr/implementation/0003-tensor-kernel-fusion-and-execution-planner.md)
+describes native composition, per-demand checks, early boolean terminals and
+code-only caching. Unsupported sources retain their canonical capabilities.
 
 Total numeric `+`, `-`, `*` and unary signs can fold before the array domain.
 Other scalar operation subexpressions retain reference execution, so their
@@ -144,8 +142,8 @@ stages: explicit materialization through `copy`, readable expression forms and
 measured iteration-domain extensions. The [worker experiment](tensor-workers-results.md)
 provides the evidence for improving local fusion before automatic parallelism.
 
-Use benchmark evidence to extend coverage: preserve observable caches while
-supporting lazy readers, add range/sequence plans, describe `axis` and `rank` in
+Use benchmark evidence to extend coverage: preserve explicit retention and recomputation while
+supporting native readers, add range/sequence plans, describe `axis` and `rank` in
 the iteration domain, and support further expression positions and library
 operations. Existing inline arithmetic/reduction helpers remain available while
 this representation grows. Each extension must justify its eligibility and
@@ -157,9 +155,8 @@ coverage and known limitations of the current revision.
 ## Incremental implementation results
 
 See [compiler progress](compiler-progress.md) for subsequent optimizations,
-including cached queue type summaries and compiled access to completed lazy
-`round` caches. These extend the initial eager-input coverage without forcing
-previously unevaluated values.
+including queue type summaries and specialized array access. Computed arrays
+can feed kernels without forcing a deferred input merely to establish eligibility.
 
 See [explicit copy fusion](array-output-fusion.md) for the first array-output
 implementation and its measurements.

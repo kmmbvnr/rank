@@ -15,7 +15,7 @@ end
 
 
 fun Lines interpolate_readings
-  Readings = Lines real rank 0 copy
+  Readings = Lines real rank 0
   N = Readings len
 
   for Start in 0 till N

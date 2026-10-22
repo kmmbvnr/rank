@@ -4,7 +4,7 @@ import type { RankServices } from './rank-module.js';
 import { expressionDiagnostics } from './expression-grouping.js';
 import { analyzeValues } from './analysis/value-diagnostics.js';
 import { declaredRanks } from './function-ranks.js';
-import { functionScopeDiagnostics } from './analysis/function-scope-diagnostics.js';
+import { functionScopeDiagnostics, type ScopeDiagnostic } from './analysis/function-scope-diagnostics.js';
 import { blockScopeDiagnostics } from './analysis/block-scope.js';
 
 export function registerValidationChecks(services: RankServices): void {
@@ -53,8 +53,16 @@ export class RankValidator {
         }
         const parsed = program.$document?.parseResult;
         if (parsed?.lexerErrors.length || parsed?.parserErrors.length || expressionDiagnostics(program).length) return;
-        for (const diagnostic of [...blockScopeDiagnostics(program), ...functionScopeDiagnostics(program)]) {
-            accept('error', diagnostic.message, { node: diagnostic.node });
+        const scopeDiagnostics: readonly ScopeDiagnostic[] = [
+            ...blockScopeDiagnostics(program), ...functionScopeDiagnostics(program),
+        ];
+        for (const diagnostic of scopeDiagnostics) {
+            const range = diagnostic.source?.$cstNode?.range;
+            const uri = program.$document?.uri.toString();
+            accept('error', diagnostic.message, { node: diagnostic.node,
+                relatedInformation: range && uri ? [{ location: { uri, range },
+                    message: 'This binding makes the name read-only.' }] : undefined,
+            });
         }
         const loadModule = this.services && program.$document ? documentModuleLoader(this.services, program.$document) : undefined;
         for (const diagnostic of analyzeValues(program, new Map(), new Map(), [], loadModule).diagnostics) {

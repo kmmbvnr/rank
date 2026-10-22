@@ -11,14 +11,14 @@ argument DataPath path = "demos/tidytuesday/data/brazil.csv"
 argument OutputPath path = "demos/tidytuesday/brazil_legal_nature_summary.csv"
 
 Data = DataPath csv
-Summary = Data solve
+Summary' = Data solve
 Summary OutputPath csv
 
 
 rem Summarize capital stock statistics by legal nature.
 fun Data legal_nature_stats
-  Groups = Data group by .legal_nature
-  Summary = Groups select
+  Groups' = Data group by .legal_nature
+  Summary' = Groups select
     .companies_count = count
     .total_capital = .capital_stock sum
     .avg_capital = .capital_stock mean
@@ -31,8 +31,8 @@ end
 
 rem Summarize capital stock dispersion by company size.
 fun Data company_size_stats
-  Groups = Data group by .company_size
-  Summary = Groups select
+  Groups' = Data group by .company_size
+  Summary' = Groups select
     .companies_count = count
     .avg_capital = .capital_stock mean
     .median_capital = .capital_stock median
@@ -47,9 +47,9 @@ end
 rem Filter top capital stock companies and group by owner qualification.
 fun Data top_capital_owners
   Threshold = Data .capital_stock 0.95 quantile
-  TopCompanies = Data filter .capital_stock greater Threshold
-  Groups = TopCompanies group by .owner_qualification
-  Summary = Groups select
+  TopCompanies' = Data filter .capital_stock greater Threshold
+  Groups' = TopCompanies group by .owner_qualification
+  Summary' = Groups select
     .owners_count = count
     .total_capital = .capital_stock sum
   end
@@ -59,8 +59,8 @@ end
 
 rem Summarize multi-category breakdown by legal nature and company size.
 fun Data multicategory_summary
-  Groups = Data group by .legal_nature .company_size
-  Summary = Groups select
+  Groups' = Data group by .legal_nature .company_size
+  Summary' = Groups select
     .companies_count = count
     .median_capital = .capital_stock median
     .p95_capital = .capital_stock 0.95 quantile

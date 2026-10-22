@@ -69,8 +69,8 @@ observe the strict **parenthesis budget of at most one pair of parentheses per
 line** to avoid mobile keyboard friction.
 
 ```rank
-Range = 1 till 1000
-States = Range scan next with Start
+Range' = 1 till 1000
+States' = Range scan next with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.

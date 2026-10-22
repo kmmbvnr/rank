@@ -26,24 +26,24 @@ Val = array 0
 Win = array 0
 Used = array 1
 for T in 1 to (Len - N)
-  Pair = concat (Win * 2) (Win * 2 + 1)
+  Pair' = concat (Win * 2) (Win * 2 + 1)
   Win = Pair Full band
   Val = concat (Val * 2) (Val * 2 + 1)
   Old = concat Used Used
-  Seen = (Old Win shr) 1 band
+  Seen' = (Old Win shr) 1 band
   Free = Seen equal 0
-  Bit = 1 Win shl
+  Bit' = 1 Win shl
   Used = (Old Bit bor) filter Free array
   Val = Val filter Free array
   Win = Win filter Free array
 end
 for J in 1 to (N - 1)
-  Tail = Val mod (1 (N - J) shl)
+  Tail' = Val mod (1 (N - J) shl)
   Win = Tail J shl
-  Seen = (Used Win shr) 1 band
+  Seen' = (Used Win shr) 1 band
   Free = Seen equal 0
-  Bit = 1 Win shl
-  Next = Used Bit bor
+  Bit' = 1 Win shl
+  Next' = Used Bit bor
   Used = Next filter Free array
   Val = Val filter Free array
 end

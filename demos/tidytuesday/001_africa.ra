@@ -11,14 +11,14 @@ argument DataPath path = "demos/tidytuesday/data/africa.csv"
 argument OutputPath path = "demos/tidytuesday/africa_family_summary.csv"
 
 Data = DataPath csv
-Summary = Data solve
+Summary' = Data solve
 Summary OutputPath csv
 
 
 rem Summarize families by native speakers.
 fun Data family_statistics
-  Groups = Data group by .family
-  Summary = Groups select
+  Groups' = Data group by .family
+  Summary' = Groups select
     .languages_count = count
     .total_speakers = .native_speakers sum
     .avg_speakers = .native_speakers mean
@@ -29,8 +29,8 @@ end
 
 rem Summarize language counts per country.
 fun Data languages_by_country
-  Groups = Data group by .country
-  Summary = Groups select
+  Groups' = Data group by .country
+  Summary' = Groups select
     .languages_count = count
     .total_speakers = .native_speakers sum
     .avg_speakers = .native_speakers mean
@@ -41,12 +41,12 @@ end
 
 rem Summarize multi-country languages.
 fun Data multi_country_summary
-  Groups = Data group by .language .family
-  Summary = Groups select
+  Groups' = Data group by .language .family
+  Summary' = Groups select
     .country_count = count
     .native_speakers = .native_speakers max
   end
-  Multi = Summary filter .country_count greater 1
+  Multi' = Summary filter .country_count greater 1
   return Multi sort by .country_count .descending
 end
 

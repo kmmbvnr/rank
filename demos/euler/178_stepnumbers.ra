@@ -31,15 +31,15 @@ Cnt (Ds * 1024 + 2 ** Ds) = 1
 Answer = 0
 for Step in 1 to Len
   Mat = Cnt reshape 10 1024
-  Full = Mat # 1023
+  Full' = Mat # 1023
   Answer += Full sum
-  Up = Mat 1 shift axis 0
-  Down = Mat -1 shift axis 0
+  Up' = Mat 1 shift axis 0
+  Down' = Mat -1 shift axis 0
   Near = Up + Down
-  Flat = Near reshape 10240
-  Pick = (Flat Gf) reshape 10 1024
-  Both = Near + Pick
-  Next = Has choose Both 0
+  Flat' = Near reshape 10240
+  Pick' = (Flat Gf) reshape 10 1024
+  Both' = Near + Pick
+  Next' = Has choose Both 0
   Cnt = Next reshape 10240
 end
 Answer print

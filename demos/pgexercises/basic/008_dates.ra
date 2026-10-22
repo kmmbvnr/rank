@@ -8,9 +8,9 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/008_dates.csv"
 
 Db = DbPath sqlite
-R = Db .members
-R = R filter .joindate at least "2012-09-01"
-Result = R select
+R' = Db .members
+R' = R filter .joindate at least "2012-09-01"
+Result' = R select
   .memid = .memid
   .surname = .surname
   .firstname = .firstname

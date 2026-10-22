@@ -1,3 +1,7 @@
+import { AstUtils } from 'langium';
+import { PlanConstruction } from './plan-construction.js';
+import { demand, demandValue } from '../plan.js';
+import { materializeValue } from '../materialize.js';
 import { checkedArrayDimension } from '../tensor-index.js';
 export { checkedArrayDimension } from '../tensor-index.js';
 import { ArrayBindingContract } from '../array-binding-contract.js';
@@ -32,11 +36,9 @@ import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-s
 import { mergeSorted } from '../modules/sorted-merge.js';
 import { materializeCollection } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
-import {
-    materializeSqlite, materializeSqliteExpression,
-} from '../modules/sqlite.js';
 import { expectInteger, type Operators } from '../operators.js';
-import { assignRecordField, recordContract } from '../record-contract.js';
+import { recordContract } from '../record-contract.js';
+import { assignRecordField } from '../record-write.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ResourceMap } from '../resource-summary.js';
 import { ALL_AXIS } from '../selectors.js';
@@ -45,7 +47,7 @@ import { compileTableExpression } from '../table-query-expression.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
     isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence, isRankSqliteExpression,
-    isRankSqliteTable, isRankTable, isRankTableAlias, MISSING, typeName,
+    isRankSqliteTable, isRankSqliteScope, isRankTable, isRankTableAlias, MISSING, typeName,
     type NativeFunction, type RankArray, type RankRecord, type RankSequence, type RankValue,
 } from '../value.js';
 import type { ApplicationEvaluator } from './application.js';
@@ -55,6 +57,7 @@ import { isNamed } from './application.js';
 export interface ExpressionContext {
     inputCall?(expression: Expression, run: () => Evaluation<RankValue>): Evaluation<RankValue>;
     readonly bindings: BindingEnvironment;
+    findVariable(name: string): RankValue | undefined;
     resolve(name: string): RankValue;
     select(values: RankValue[], missing?: () => RankValue): RankValue;
     requireModule(module: string, operation: string): void;
@@ -78,11 +81,64 @@ export interface ExpressionContext {
 export class ExpressionEvaluator {
     private readonly prepared = new WeakMap<Expression, () => Evaluation<RankValue>>();
 
-    constructor(private readonly context: ExpressionContext) {}
+    private readonly plans: PlanConstruction;
 
-    /** The evaluation of an expression; its preparation is cached per syntax node. */
+    constructor(private readonly context: ExpressionContext) {
+        this.plans = new PlanConstruction({ bindings: context.bindings, findVariable: name => context.findVariable(name),
+            resolve: name => context.resolve(name), operationOf: name => this.operationOf(name),
+            builtinValue: name => context.builtins.lookup(name),
+            snapshotFunction: (fn, seen) => context.functions.snapshot(fn, seen),
+            execute: (expression, tail) => tail ? this.compile(expression, undefined, true)() : this.prepare(expression)(),
+            locate: (error, expression) => context.locate(error, expression),
+            compileReduction: expression => context.fastPaths.planReduction(expression),
+            tensorPlanScope: expression => context.fastPaths.tensorPlanScope(expression),
+        });
+    }
+
+    /** Ordinary evaluation keeps operand order; only plan construction stages calls. */
     evaluate(expression: Expression): Evaluation<RankValue> {
-        return this.prepare(expression)();
+        return flatMapResult(this.prepare(expression)(), demand);
+    }
+
+    defer(expression: Expression): Evaluation<RankValue> {
+        return this.plans.build(expression, 'defer');
+    }
+
+    /** Callers pass plans through; the parameter binder decides completion. */
+    argument(expression: Expression): Evaluation<RankValue> {
+        let source = expression;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source)) {
+            const value = this.context.findVariable(source.name);
+            if (value !== undefined && (!isNativeFunction(value) || this.plans.isReference(source))) return completed(value);
+        }
+        return this.plans.hasInput(expression) || this.plans.hasUserFunction(expression)
+            ? this.plans.build(expression, 'propagate') : this.prepare(expression)();
+    }
+
+    /** Stage argument construction once while a surrounding call decides its grouping. */
+    stageArgument(expression: Expression): Evaluation<{ expression: Expression; value: RankValue }> {
+        return mapResult(this.argument(expression), value => ({ expression: this.plans.reference(value, expression), value }));
+    }
+
+    /** Return does not add a storage or demand boundary. */
+    returnValue(expression: Expression, tail = false): Evaluation<RankValue> {
+        let source = expression;
+        while (isParenthesizedExpression(source)) source = source.value;
+        if (isNameExpression(source)) {
+            const value = this.context.findVariable(source.name);
+            if (value !== undefined && (!isNativeFunction(value) || this.plans.isReference(source))) return completed(value);
+        }
+        const demandsEffects = AstUtils.streamAst(expression).some(node => {
+            if (!isNameExpression(node)) return false;
+            const operation = this.operationOf(node.name);
+            return operation && operation.effects?.includes('io');
+        });
+        if (demandsEffects) return this.plans.build(expression, 'demand', tail);
+        if (this.plans.hasInput(expression) || this.plans.hasUserFunction(expression)) {
+            return this.plans.build(expression, 'propagate', tail);
+        }
+        return tail ? this.compile(expression, undefined, true)() : this.prepare(expression)();
     }
 
     private prepare(expression: Expression): () => Evaluation<RankValue> {
@@ -105,6 +161,10 @@ export class ExpressionEvaluator {
     // Rank functions. Keep those syntax trees synchronous to avoid allocating a task
     // for every atom of a counted loop. Bindings and values remain runtime work.
     compileDirect(expression: Expression): (() => RankValue) | undefined {
+        if (this.plans.isReference(expression) && isNameExpression(expression)) {
+            return () => demandValue(this.context.resolve(expression.name));
+        }
+        if (this.plans.hasUserFunction(expression)) return undefined;
         const evaluate = this.compileDirectValue(expression);
         return evaluate && requiresDataOperand(expression)
             ? () => this.checkDataOperand(expression, evaluate()) : evaluate;
@@ -340,7 +400,7 @@ export class ExpressionEvaluator {
             select: values => expressions.context.select(values),
             binary: (operator, left, right) => expressions.context.operators.evaluateBinary(operator, left, right),
             resolve: name => expressions.context.resolve(name),
-            findVariable: name => expressions.context.bindings.find(name),
+            findVariable: name => expressions.context.findVariable(name),
             isStandardFunction: (module, name, value) => expressions.context.builtins.is(module, name, value),
             maskSelection,
         }));
@@ -359,7 +419,7 @@ export class ExpressionEvaluator {
                     if (record.entries.has(field.name)) {
                         throw new RankError(`duplicate record field: .${field.name}`);
                     }
-                    const value = yield* resume(expressions.evaluate(field.value));
+                    const value = materializeValue(yield* resume(expressions.evaluate(field.value)));
                     record.entries.set(field.name, value);
                     record.types.set(field.name, typeName(value));
                 }
@@ -445,7 +505,7 @@ export class ExpressionEvaluator {
         }
         if (isNameExpression(expression)) {
             return () => {
-                const value = expressions.context.resolve(expression.name);
+                const value = demandValue(expressions.context.resolve(expression.name));
                 if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
                 if (tail && expressions.context.resources.currentScopeEmpty()
                     && expressions.context.functions.transferTailCall(value, [])) return completed(MISSING);
@@ -573,16 +633,13 @@ export class ExpressionEvaluator {
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(expressions.evaluate(expression.source)));
-                if (isRankTableAlias(source) && isRankSqliteTable(source.source)) {
-                    return materializeSqlite(source.source);
-                }
-                if (isRankSqliteTable(source)) return materializeSqlite(source);
-                if (isRankTable(source)) return source.toRows();
-                if (isRankSqliteExpression(source)) return materializeSqliteExpression(source);
-                if (isRankSequence(source)) return materializeSequence(source);
-                const collection = materializeCollection(source);
-                if (collection) return collection;
-                throw new RankError('postfix array expects a sequence, queue, stack, deque, set, multiset, table or SQLite table');
+                const result = isRankArray(source) || isRankSequence(source)
+                    || isRankSqliteTable(source) || isRankSqliteExpression(source) || isRankSqliteScope(source) ? source
+                    : isRankTableAlias(source) && isRankSqliteTable(source.source) ? source.source
+                    : isRankTable(source) ? source.toRows()
+                    : materializeCollection(source);
+                if (result) return materializeValue(result);
+                throw new RankError('postfix array expects an array, sequence, queue, stack, deque, set, multiset, table or SQLite table');
             };
         }
         if (isAllAxisExpression(expression)) {
@@ -593,7 +650,7 @@ export class ExpressionEvaluator {
 
     /** Binding identity, including aliases; no user function is executed by classification. */
     operationOf(name: string): ReturnType<typeof findOperation> | false {
-        const value = this.context.bindings.find(name);
+        const value = this.context.findVariable(name);
         if (value === undefined) return findOperation(name);
         return isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
     }
@@ -673,11 +730,12 @@ export class ExpressionEvaluator {
             set localFrame(frame) { expressions.context.bindings.current = frame; },
             evaluate: node => expressions.evaluate(node),
             binary: (operator, left, right) => expressions.context.operators.evaluateBinary(operator, left, right),
-            findVariable: name => expressions.context.bindings.find(name),
+            findVariable: name => expressions.context.findVariable(name),
         };
     }
 
     private directNameValue(value: RankValue): RankValue {
+        value = demandValue(value);
         if (!isNativeFunction(value) || !value.arities.includes(0)) return nameMask(value);
         const result = value.call([]);
         this.context.resources.ownFiles(result);

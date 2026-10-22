@@ -90,7 +90,7 @@ A 1 0 = 99`));
         } finally { runtime.dispose(); }
     });
 
-    it('keeps host writes live until the first Rank write, then detaches every retained reader', () => {
+    it('completes ordinary selections before host and Rank writes', () => {
         const runtime = session();
         const diagnostics = new RuntimeDiagnostics();
         try {
@@ -98,17 +98,17 @@ A 1 0 = 99`));
             const source = runtime.variables.get('A') as RankArray;
             expect(runtime.execute('S sum')).toBe(8n);
             source.items[0] = 10n;
-            expect(runtime.execute('S sum')).toBe(16n);
+            expect(runtime.execute('S sum')).toBe(8n);
             diagnostics.run(() => runtime.execute('A 0 = 99'));
             expect(runtime.variables.get('A')).toBe(source);
-            expect(runtime.execute('S sum')).toBe(16n);
-            expect(runtime.execute('T sum')).toBe(36n);
+            expect(runtime.execute('S sum')).toBe(8n);
+            expect(runtime.execute('T sum')).toBe(20n);
             source.items[0] = 20n;
-            expect(runtime.execute('S sum')).toBe(16n);
-            expect(runtime.execute('T sum')).toBe(36n);
+            expect(runtime.execute('S sum')).toBe(8n);
+            expect(runtime.execute('T sum')).toBe(20n);
             expect(diagnostics.cowCopies).toBe(0);
-            expect(diagnostics.selectionSnapshots).toBe(2);
-            expect(diagnostics.selectionSnapshotCells).toBe(4);
+            expect(diagnostics.selectionSnapshots).toBe(0);
+            expect(diagnostics.selectionSnapshotCells).toBe(0);
         } finally { runtime.dispose(); }
     });
 
@@ -116,7 +116,10 @@ A 1 0 = 99`));
         const runtime = session();
         const diagnostics = new RuntimeDiagnostics();
         try {
-            runtime.execute('use sequences\nA = 0 to 9 array\nS = A (array 0 9)');
+            runtime.execute('use sequences\nA = 0 to 9 array');
+            const selection = applySelectors([runtime.variables.get('A')!, createArraySnapshot([0n, 9n])]);
+            noteArrayBinding(selection);
+            runtime.variables.set('S', selection);
             diagnostics.run(() => runtime.execute('for I in 0 to 9\n A I += 1\nend'));
             expect(runtime.execute('S sum')).toBe(9n);
             expect(runtime.execute('A sum')).toBe(55n);
@@ -128,8 +131,11 @@ A 1 0 = 99`));
     it('can retry an interrupted snapshot without losing ownership protection', () => {
         const runtime = session();
         try {
-            runtime.execute('use sequences\nA = 0 to 10000 array\nS = A (0 till 5000)');
+            runtime.execute('use sequences\nA = 0 to 10000 array');
             const source = runtime.variables.get('A')!;
+            const selection = applySelectors([source, runtime.execute('0 till 5000')!]);
+            noteArrayBinding(selection);
+            runtime.variables.set('S', selection);
             const signal = new Int32Array(new SharedArrayBuffer(4));
             signal[0] = 1;
             expect(() => withInterrupt(signal, () => arrayForWrite(source))).toThrow();
@@ -148,7 +154,7 @@ A 1 0 = 99`));
             Object.defineProperty(source.items, '0', change === 'getter'
                 ? { get() { return 10n; } } : { value: 10n, writable: false });
             diagnostics.run(() => runtime.execute('A 0 = 99'));
-            expect(runtime.execute('S sum')).toBe(16n);
+            expect(runtime.execute('S sum')).toBe(8n);
             expect(runtime.execute('A 0')).toBe(99n);
             expect(runtime.variables.get('A')).not.toBe(source);
             expect(diagnostics.cowCopies).toBe(1);
@@ -175,14 +181,14 @@ A 1 0 = 99`));
         try {
             runtime.variables.set('Lazy', { kind: 'array', shape: [3], items: [],
                 itemAt(index: number) { reads++; return BigInt(index); } });
-            runtime.execute('S = Lazy (array 0 2)');
+            runtime.execute("S' = Lazy (array 0 2)");
             expect(reads).toBe(0);
             expect(runtime.execute('S 1')).toBe(2n);
             const host: RankArray = { kind: 'array', shape: [3], items: [1n, 2n, 3n] };
             Object.defineProperty(host.items, '0', { get() { reads++; return 1n; } });
             runtime.variables.set('Host', host);
             const before = reads;
-            runtime.execute('H = Host (array 0 2)');
+            runtime.execute("H' = Host (array 0 2)");
             expect(reads).toBe(before);
             const stored = createArraySnapshot([1n, 2n, 3n]);
             setSemanticArrayType(stored, { key: 'unresolved' });

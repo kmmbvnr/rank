@@ -26,8 +26,8 @@ Xs = concat X0 X0
 Ys = concat Y0 (0 - Y0)
 All = array shape 0 fill 0
 for Step in 1 to 14
-  Ok = Xs mod 5 equal 2 and Xs greater 7
-  Hit = Xs filter Ok array
+  Ok' = Xs mod 5 equal 2 and Xs greater 7
+  Hit' = Xs filter Ok array
   All = concat All ((Hit - 7) // 5)
   Next = 9 * Xs + 20 * Ys
   Ys = 4 * Xs + 9 * Ys

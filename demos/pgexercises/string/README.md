@@ -3,7 +3,7 @@
 The seven [String questions](https://pgexercises.com/questions/string/) are
 solved in published order. They use the ignored SQLite database described in
 [Basic](../basic/README.md), and every program also runs with an in-memory
-array of the same records. Each SQLite view remains lazy until CSV output.
+array of the same records. Apostrophe bindings keep each SQLite query as a plan until CSV output.
 
 | # | Question | Rank program |
 |---|---|---|
@@ -14,6 +14,9 @@ array of the same records. Each SQLite view remains lazy until CSV output.
 | 5 | [Padded ZIP codes](https://pgexercises.com/questions/string/default.html) | [005](005_zip.ra) |
 | 6 | [Surname initials](https://pgexercises.com/questions/string/substr.html) | [006](006_initial.ra) |
 | 7 | [Clean telephone numbers](https://pgexercises.com/questions/string/translate.html) | [007](007_clean.ra) |
+
+The `hasparens` and `initial` helpers accept deferred parameters so their
+arguments can remain SQL expressions.
 
 `lower`, `startswith`, `lpad`, `translate`, text casts, substring membership
 and text slices compile into SQLite expressions. Rank registers deterministic

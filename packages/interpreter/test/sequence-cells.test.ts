@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray, isRankSequence } from '../src/index.js';
+import { Interpreter, demand, isRankArray, isRankPlan, isRankSequence } from '../src/index.js';
+import { runExecution } from '../src/execution.js';
 import { materializedArrayItems } from '../src/array-storage.js';
 import { run } from './support.js';
 
@@ -17,12 +18,14 @@ describe('sequences of array cells', () => {
         runtime.execute(`use algo
 use sequences
 Columns = 0 till 3 array
-Sols = Columns permutations
-Mask = Sols Columns outer equal
-Boards = Mask choose "Q" "."
+Sols' = Columns permutations
+Mask' = Sols Columns outer equal
+Boards' = Mask choose "Q" "."
 Expected = (Sols copy) Columns outer equal choose "Q" "."`);
-        expect(runtime.variables.get('Mask')).toMatchObject({ shape: [6, 3, 3] });
-        expect(runtime.variables.get('Boards')).toMatchObject({ shape: [6, 3, 3] });
+        expect(isRankPlan(runtime.variables.get('Mask')!)).toBe(true);
+        expect(runtime.execute('Mask')).toMatchObject({ shape: [6, 3, 3] });
+        expect(isRankPlan(runtime.variables.get('Boards')!)).toBe(true);
+        expect(runtime.execute('Boards')).toMatchObject({ shape: [6, 3, 3] });
         expect(runtime.execute('Boards equal Expected all')).toBe(true);
         expect(run(`${rows}\nrows (array 1 2) outer + shape`)).toBe('2 3 2');
         expect(run(`${rows}\n(array 1 2) rows outer + shape`)).toBe('2 2 3');
@@ -101,7 +104,7 @@ rows copy`)).toThrowError('materialized sequence items must have the same shape'
 
     it('keeps streams single-pass and requires explicit copying before transpose', () => {
         const runtime = new Interpreter();
-        runtime.execute(`${rows}\nRows = rows`);
+        runtime.execute(`${rows}\nRows' = rows`);
         expect(isRankSequence(runtime.variables.get('Rows')!)).toBe(true);
         expect(() => runtime.execute('Rows transpose')).toThrowError('use copy to materialize the sequence');
         expect(runtime.execute('Rows copy')).toMatchObject({ shape: [2, 3] });
@@ -157,10 +160,12 @@ end`);
 Key = array 101 120 112
 Slots = array 0 1 2 0
 Cipher = array 36 22 80 0
-KeyStream = Key Slots
-Plain = Cipher KeyStream bxor`);
+KeyStream' = Key Slots
+Plain' = Cipher KeyStream bxor`);
         for (const name of ['KeyStream', 'Plain']) {
-            const value = runtime.variables.get(name)!;
+            const plan = runtime.variables.get(name)!;
+            expect(isRankPlan(plan)).toBe(true);
+            const value = runExecution(demand(plan));
             expect(isRankArray(value)).toBe(true);
             if (isRankArray(value)) expect(materializedArrayItems(value)).toBeUndefined();
         }

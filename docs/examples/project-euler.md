@@ -334,7 +334,7 @@ rem Project Euler 16
 rem https://projecteuler.net/problem=16
 
 Digits = (2 ** 1000) text
-Values = Digits integer rank 0
+Values' = Digits integer rank 0
 Answer = Values sum
 ```
 
@@ -347,13 +347,13 @@ digit, and `sum` reduces the resulting sequence to `1366`.
 rem Project Euler 17
 rem https://projecteuler.net/problem=17
 
-Numbers = 1 to Limit
-Counts = Numbers letters rank 0
+Numbers' = 1 to Limit
+Counts' = Numbers letters rank 0
 Answer = Counts sum
 ```
 
-`number_letter_total` creates the small English length tables once and defines
-a local `letters` helper that captures them. Rank-0 application converts every
+The program creates the small English length tables once. Its `letters`
+helper reads those retained tables. Rank-0 application converts every
 number to a letter count, and `sum` adds the counts. The helper
 implements British `and` without constructing the spelled-out text. The total
 is `21124`.
@@ -397,11 +397,11 @@ Base = array shape 12
   31 31 30 31 30 31
 end
 Feb = (0 till 12) equal 1
-Extra = Leap Feb outer and
-Lens = Extra integer + Base
+Extra' = Leap Feb outer and
+Lens' = Extra integer + Base
 Flat = Lens reshape #
-Start = Flat scan + with 1
-Cent = Start drop 12 take 1200
+Start' = Flat scan + with 1
+Cent' = Start drop 12 take 1200
 Answer = Cent mod 7 equal 0 count
 ```
 
@@ -419,7 +419,7 @@ rem https://projecteuler.net/problem=20
 
 Factorial = (1 to 100) reduce *
 Digits = Factorial text
-Values = Digits integer rank 0
+Values' = Digits integer rank 0
 Answer = Values sum
 ```
 
@@ -434,10 +434,10 @@ rem https://projecteuler.net/problem=21
 
 Candidates = (2 till Limit) array
 Partners = Candidates proper_divisor_sum rank 0
-Reverse = Partners proper_divisor_sum rank 0
+Reverse' = Partners proper_divisor_sum rank 0
 Amicable = Partners not equal Candidates
 Amicable and= Reverse equal Candidates
-Values = Candidates Amicable
+Values' = Candidates Amicable
 Answer = Values sum
 ```
 
@@ -455,10 +455,10 @@ rem https://projecteuler.net/problem=22
 Text = Input read
 Names = Text names_from_text
 Sorted = Names sort
-Values = Sorted name_value rank 0
+Values' = Sorted name_value rank 0
 Count = Sorted len
-Positions = (1 to Count) array
-Scores = Values * Positions
+Positions' = 1 to Count
+Scores' = Values * Positions
 Answer = Scores sum
 ```
 
@@ -555,14 +555,14 @@ The coefficient product is `-59231`.
 rem Project Euler 28
 rem https://projecteuler.net/problem=28
 
-Layers = 1 to (Size - 1) // 2
-Sides = Layers * 2 + 1
-Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
+Layers' = 1 to (Size - 1) // 2
+Sides' = Layers * 2 + 1
+Corners' = 4 * Sides ** 2 - 6 * (Sides - 1)
 Answer = 1 + (Corners sum)
 ```
 
-Each concentric layer contributes its four corners. Array arithmetic evaluates
-all layer contributions, and the separate `1` includes the center cell even
+Each concentric layer contributes its four corners. Deferred arithmetic feeds
+the sum without retaining each named stage, and the separate `1` includes the center cell even
 when there are no outer layers. The formula gives `669171001` for a 1001 by
 1001 spiral without constructing the matrix.
 
@@ -589,8 +589,8 @@ rem Project Euler 30
 rem https://projecteuler.net/problem=30
 
 Text = N text
-Digits = Text integer rank 0
-Powers = Digits ** Power
+Digits' = Text integer rank 0
+Powers' = Digits ** Power
 Sum = Powers sum
 ```
 
@@ -672,8 +672,8 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
-Candidates = primes till Limit
-Circular = Candidates circular_prime rank 0
+Candidates' = primes till Limit
+Circular' = Candidates circular_prime rank 0
 Answer = Circular count
 
 for Shift in 1 till Length
@@ -755,7 +755,7 @@ productive perimeter through 1000.
 rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
-Digits = Positions champernowne_digit rank 0
+Digits' = Positions champernowne_digit rank 0
 Answer = Digits reduce *
 
 for Remaining greater Digits * Count
@@ -774,9 +774,9 @@ program never constructs the million-character prefix. The product is `210`.
 ## 41. Pandigital prime
 
 ```rank
-CandidateTexts = Digits permutations
-Candidates = CandidateTexts integer rank 0
-Prime = Candidates in primes
+CandidateTexts' = Digits permutations
+Candidates' = CandidateTexts integer rank 0
+Prime' = Candidates in primes
 Answer = (Candidates first where Prime) default 0
 ```
 
@@ -787,10 +787,10 @@ first match. The first prime is `7652413`.
 ## 42. Coded triangle numbers
 
 ```rank
-Values = Words word_value rank 0
+Values' = Words word_value rank 0
 Discriminants = 8 * Values + 1
-Roots = Discriminants isqrt
-Triangular = Roots ** 2 equal Discriminants
+Roots' = Discriminants isqrt
+Triangular' = Roots ** 2 equal Discriminants
 Answer = Triangular count
 ```
 
@@ -870,8 +870,9 @@ run of four integers begins at `134043`.
 ## 48. Self powers
 
 ```rank
-Numbers = 1 to Limit
-Powers = Numbers modular_self_power rank 0
+Modulus = 10 ** Digits
+Numbers' = 1 to Limit
+Powers' = Numbers Modulus modular_self_power rank 0 0
 Total = Powers sum
 Answer = Total mod Modulus
 ```
@@ -916,7 +917,7 @@ smallest. The result below one million is `997651`.
 ## 51. Prime digit replacements
 
 ```rank
-Places = 0 till (Digits len - 1)
+Places' = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
 for Pick in Same 3 combinations
@@ -935,9 +936,9 @@ membership in `primes` checks the whole family. The smallest match is `121313`.
 ## 53. Combinatoric selections
 
 ```rank
-Top = (N to 1 by -1) scan * with 1
-Bottom = (1 to N) scan * with 1
-Choices = Top // Bottom
+Top' = (N to 1 by -1) scan * with 1
+Bottom' = (1 to N) scan * with 1
+Choices' = Top // Bottom
 ```
 
 The two seeded scans build the numerator and denominator products for every
@@ -948,24 +949,25 @@ the row function with `rank 0` and reducing its counts with seed `0` gives
 ## 59. XOR decryption
 
 ```rank
-for Key in keys
-  KeyStream = Key Slots
-  Plain = Cipher KeyStream bxor
-  Score = Weights Plain sum
-  if Score greater BestScore
-    BestScore = Score
-    BestKey = Key
-  end
+fun Cipher Key decrypt
+  Size = Cipher len
+  Positions' = 0 till Size
+  KeyLen = Key len
+  Slots' = Positions mod KeyLen
+  KeyStream' = Key Slots
+  return Cipher KeyStream bxor
 end
 ```
 
-The generator yields each three-letter key as an array. The loop consumes one
-key at a time; it does not build a `17576 3` matrix. `Slots` holds the repeating
-positions `0 1 2`, and an ASCII weight table scores the decrypted bytes. The
-official fixture gives key `exp` and ASCII sum `129448`.
+`best_key` solves each strided byte slice independently. Each slice is copied
+once and reused while `best_byte` tries the 26 lowercase key bytes. The
+candidate plaintext stays deferred until the weight-table sum. The main program
+retains the cipher, key and decrypted bytes. The official fixture gives key
+`exp` and ASCII sum `129448`.
 
-To inspect every key as a matrix, use `Keys = keys copy` explicitly. The copy
-stacks the rows, after which `Keys transpose` and column addressing are available.
+The `keys` generator also supports explicit enumeration. `Keys = keys copy`
+stacks all rows into a `17576 3` matrix, after which `Keys transpose` and column
+addressing are available.
 
 ## 60. Prime pair sets
 

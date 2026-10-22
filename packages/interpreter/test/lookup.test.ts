@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, MISSING } from '../src/index.js';
 
 describe('lookup', () => {
     it('takes the first array match and keeps missing requests absent', () => {
@@ -11,7 +11,8 @@ describe('lookup', () => {
         expect(formatValue(runtime.execute('Found 0')!)).toBe('Bea');
         expect(formatValue(runtime.execute('Found 1')!)).toBe('Ada');
         expect(formatValue(runtime.execute('Found 2 default ""')!)).toBe('');
-        expect(() => runtime.execute('Found 2')).toThrowError('lookup key not found');
+        expect(runtime.execute('Found 2')).toBe(MISSING);
+        expect(() => runtime.execute('(Ids Keys Names lookup) 2')).toThrowError('lookup key not found');
         // Found holds the result it was given; changing a key builds a new one.
         runtime.execute('Keys 1 = 3');
         expect(formatValue(runtime.execute('Found 0')!)).toBe('Bea');

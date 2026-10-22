@@ -17,6 +17,7 @@ export * from './analysis/bindings.js';
 export * from './analysis/types.js';
 export * from './analysis/value-domain.js';
 export * from './analysis/value-facts.js';
+export { completedValueFacts, completionMayCall } from './analysis/completion-facts.js';
 export * from './analysis/value-diagnostics.js';
 export type { ImportedFunction, FunctionCallFacts } from './analysis/function-calls.js';
 export { functionBodyKey } from './analysis/function-calls.js';
@@ -46,7 +47,8 @@ export * from './function-call-signature.js';
 
 export * from './analysis/last-array-use.js';
 export * from './analysis/function-scopes.js';
-export * from './analysis/sequence-consumers.js';
 export * from './analysis/lazy-function.js';
 export * from './analysis/function-mutations.js';
 export * from './analysis/function-scope-diagnostics.js';
+
+export * from './analysis/deferred-bindings.js';

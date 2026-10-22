@@ -125,10 +125,11 @@ end
 Wd = 2 * Turns + 3
 Off = Turns + 1
 Sl = 2 ** 48
-Dp = array shape (Ns * Wd) fill 0
+Size = Ns * Wd
+Dp = array shape Size fill 0
 Dp Off = Sl
 for T in 0 till Turns
-  New = array shape (Ns * Wd) fill 0
+  New = array shape Size fill 0
   for X in 0 till Nt
     Fs = Tf X * Wd
     Ts = Tt X * Wd + Td X
@@ -140,8 +141,8 @@ for T in 0 till Turns
   end
   Dp = New
 end
-Cols = 0 till (Ns * Wd) array mod Wd
-Ab = (Cols - Off) abs
+Cols' = 0 till Size array mod Wd
+Ab' = (Cols - Off) abs
 Total = (Dp * Ab) sum
 Answer = Total / Sl 8 round
 Answer print

@@ -47,7 +47,7 @@ fun X Y hgt
 end
 Gn = 1600 // Step + 1
 Xs = (0 till Gn array) * (Step * 1.0)
-Hh = (Xs reshape Gn 1) Xs hgt
+Hh' = (Xs reshape Gn 1) Xs hgt
 Hf = Hh reshape (Gn * Gn) copy
 Ord = Hf argsort
 Par = (0 till (Gn * Gn) array) copy
@@ -125,8 +125,8 @@ S4 = S4 + In (G1 till (G1 + Ln))
 S4 = S4 + In (1 till (1 + Ln))
 Cx = 0 till Ln array
 Wm = Gn - 1
-Vi = ((Cx mod Gn) less Wm) choose 1 0
-Xc = S4 * (4 - S4) * Vi
+Vi' = ((Cx mod Gn) less Wm) choose 1 0
+Xc' = S4 * (4 - S4) * Vi
 Cells = Cx filter (Xc greater 0) array
 Nc = Cells len
 Ep = new index
@@ -264,15 +264,15 @@ end
 Lid = Ord2 take Bl
 Lx = Px Lid copy
 Ly = Py Lid copy
-Rx = Lx (1 till Bl)
-Hx = Lx (0 till 1)
-Ry = Ly (1 till Bl)
-Hy = Ly (0 till 1)
-Nx1 = concat Rx Hx
-Ny1 = concat Ry Hy
+Rx' = Lx (1 till Bl)
+Hx' = Lx (0 till 1)
+Ry' = Ly (1 till Bl)
+Hy' = Ly (0 till 1)
+Nx1' = concat Rx Hx
+Ny1' = concat Ry Hy
 Ex = Nx1 - Lx
 Ey = Ny1 - Ly
-Sg = (Ex * Ex + Ey * Ey) sqrt
+Sg' = (Ex * Ex + Ey * Ey) sqrt
 Cs = Sg scan + with 0.0
 Sc = Cs (0 till Bl) copy
 Lt = Cs Bl
@@ -287,7 +287,7 @@ fun Bx By Cx Cy vis
   Tq = (0 till Ms array) / (Ms - 1.0)
   Xq = Bx + (Cx - Bx) * Tq
   Yq = By + (Cy - By) * Tq
-  Hq = Xq Yq hgt
+  Hq' = Xq Yq hgt
   return Hq max
 end
 Lim = F + 0.000000001
@@ -325,8 +325,8 @@ Sb = Sc Jb copy
 Dbb = Db Jb copy
 for I in Ja
   Dd = (Sb - Sc I) abs
-  Rv = Lt - Dd
-  Arc = Dd Rv min
+  Rv' = Lt - Dd
+  Arc' = Dd Rv min
   Tt2 = Da I + Arc + Dbb
   Tm = Tt2 min
   Best = Best Tm min

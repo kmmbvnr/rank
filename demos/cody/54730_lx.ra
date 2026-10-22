@@ -8,18 +8,18 @@ use numbers
 rem Keep strict eight-neighbor extrema.
 fun Grid local_extrema
   Size = array 3 3
-  Above = Grid window Size padding 1 with -infinity
-  Below = Grid window Size padding 1 with infinity
-  Peaks = Above peak rank 2
-  Valleys = Below valley rank 2
-  Marks = Peaks Valleys max
+  Above' = Grid window Size padding 1 with -infinity
+  Below' = Grid window Size padding 1 with infinity
+  Peaks' = Above peak rank 2
+  Valleys' = Below valley rank 2
+  Marks' = Peaks Valleys max
   return Grid * Marks
 end
 
 
 rem One when no other cell reaches the center.
 fun Cell peak
-  Ties = Cell at least Cell 1 1
+  Ties' = Cell at least Cell 1 1
   if Ties count equal 1
     return 1
   end
@@ -29,7 +29,7 @@ end
 
 rem One when no other cell falls to the center.
 fun Cell valley
-  Ties = Cell at most Cell 1 1
+  Ties' = Cell at most Cell 1 1
   if Ties count equal 1
     return 1
   end

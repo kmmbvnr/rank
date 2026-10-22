@@ -45,6 +45,8 @@ interface DeclaredCallExpression extends Expression {
 interface FunctionStatement {
     name: string
     memo: boolean
+    leftBindings: FunctionParameter[]
+    rightBindings: FunctionParameter[]
     leftParameters: string[]
     rightParameters: string[]
     parameters: string[]
@@ -109,18 +111,24 @@ TestStatement:
     NL* 'end';
 
 FunctionStatement returns FunctionStatement:
-    ('fun' | memo?='memo') leftParameters+=VARIABLE* name=FunctionName rightParameters+=Identifier*
+    ('fun' | memo?='memo') leftBindings+=LeftFunctionParameter* name=FunctionName rightBindings+=FunctionParameter*
     groups+=FunctionCallGroup* ('rank' ranks+=RankSpec+)?
     ('=' expressionBody=Expression |
         (NL+ groups+=FunctionCallGroup+)* NL+
         (statements+=Statement (NL+ statements+=Statement)*)?
         NL* 'end');
 
+LeftFunctionParameter infers FunctionParameter:
+    name=VARIABLE (deferred?="'")?;
+
+FunctionParameter:
+    name=Identifier (deferred?="'")?;
+
 FunctionName returns string:
     WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending';
 
 FunctionCallGroup:
-    word=SIGNATURE_WORD parameter=VARIABLE ('=' defaultValue=FunctionDefault)?;
+    word=SIGNATURE_WORD parameter=VARIABLE (deferred?="'")? ('=' defaultValue=FunctionDefault)?;
 
 FunctionDefault returns Expression:
     NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
@@ -204,7 +212,7 @@ ArrayAssignmentStatement:
     operator=AssignmentOperator value=Expression;
 
 AssignmentStatement:
-    name=AssignableName operator=AssignmentOperator value=Expression;
+    name=AssignableName (deferred?="'" operator='=' | operator=AssignmentOperator) value=Expression;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' |

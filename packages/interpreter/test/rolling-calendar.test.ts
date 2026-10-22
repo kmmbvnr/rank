@@ -17,7 +17,7 @@ describe('calendar and trailing table groups', () => {
             .toThrow(/invalid date/);
     });
 
-    it('keeps one ordered output per row and refreshes after a source write', () => {
+    it('retains one ordered output per row after a source write', () => {
         const runtime = new Interpreter();
         runtime.execute('use json\nuse tables\nuse numbers\nuse sequences\n'
             + 'Rows = "[{\\"date\\":\\"2024-01-03\\",\\"value\\":3},'
@@ -28,7 +28,7 @@ describe('calendar and trailing table groups', () => {
         expect(formatValue(runtime.execute('Out .total')!)).toBe('1 1 3');
         expect(formatValue(runtime.execute('Out .present')!)).toBe('1 1 1');
         runtime.execute('Rows .value = 5');
-        expect(formatValue(runtime.execute('Out .total')!)).toBe('5 10 10');
+        expect(formatValue(runtime.execute('Out .total')!)).toBe('1 1 3');
         expect(() => runtime.execute('Rows 0 rolling by .date'))
             .toThrow(/positive integer/);
     });

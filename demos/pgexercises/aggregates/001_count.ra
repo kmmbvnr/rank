@@ -8,6 +8,6 @@ use tables
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 
 Db = DbPath sqlite
-F = Db .facilities
+F' = Db .facilities
 Count = F len
 Count print

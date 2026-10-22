@@ -62,7 +62,9 @@ for (const operator of ['//', 'mod']) describe(`dense ${operator}`, () => {
     }));
 
     it('defers a bad cell and lets choose skip it', () => withRuntime(runtime => {
-        runtime.execute(`use sequences\nA = array shape 2048 fill 7\nB = array shape 2048 fill 3\nB 2047 = 0\nQ = A ${operator} B`);
+        runtime.execute(`use sequences\nA = array shape 2048 fill 7\nB = array shape 2048 fill 3\nB 2047 = 0`);
+        expect(() => runtime.execute(`Q = A ${operator} B`)).toThrow('division by zero');
+        runtime.execute(`Q' = A ${operator} B`);
         expect(runtime.execute('Q 0')).toBe(operator === '//' ? 2n : 1n);
         expect(() => runtime.execute('Q 2047')).toThrow('division by zero');
         const result = runtime.execute('Mask = B equal 0\nSafe = Mask choose 0 Q\nSafe sum');
@@ -85,7 +87,7 @@ for (const operator of ['//', 'mod']) describe(`dense ${operator}`, () => {
             itemAt(index: number) { reads.push(index); return index === 0 ? 7n : 0n; },
             get items(): RankValue[] { throw new Error('materialized host'); },
         });
-        runtime.execute(`Q = 7 ${operator} Host`);
+        runtime.execute(`Q' = 7 ${operator} Host`);
         expect(reads).toEqual([]);
         expect(runtime.execute('Q 0')).toBe(operator === '//' ? 1n : 0n);
         expect(reads).toEqual([0]);

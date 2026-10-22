@@ -13,7 +13,7 @@ for i in 1 till N
   B = stdin .integer
   Tree add A B
 end
-Values = stdin .integer (M * 2) array
+Values' = stdin .integer (M * 2) array
 Paths = Values reshape M 2
 Rooted = Tree 1 root
 Rooted Paths path_counts print

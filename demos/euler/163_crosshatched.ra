@@ -43,27 +43,19 @@ for D1 in 0 to 3
       Rb = B - W D2
       An = Ra * V D2 - Rb * V D1
       Bn = U D1 * Rb - U D2 * Ra
-      In12 = An * Det12 at least 0
-      In12 and= Bn * Det12 at least 0
       Rest = M * Det12 - An - Bn
-      In12 and= Rest * Det12 at least 0
+      In12 = An * Det12 at least 0 and Bn * Det12 at least 0 and Rest * Det12 at least 0
       Rc = C - W D3
       Cn = Ra * V D3 - Rc * V D1
       En = U D1 * Rc - U D3 * Ra
-      In13 = Cn * Det13 at least 0
-      In13 and= En * Det13 at least 0
       Rest = M * Det13 - Cn - En
-      In13 and= Rest * Det13 at least 0
+      In13 = Cn * Det13 at least 0 and En * Det13 at least 0 and Rest * Det13 at least 0
       Fn = Rb * V D3 - Rc * V D2
       Gn = U D2 * Rc - U D3 * Rb
-      In23 = Fn * Det23 at least 0
-      In23 and= Gn * Det23 at least 0
       Rest = M * Det23 - Fn - Gn
-      In23 and= Rest * Det23 at least 0
-      Val = U D3 * An + V D3 * Bn
-      Val += W D3 * Det12
-      Ok = In12 and In13 and In23
-      Ok and= Val not equal C * Det12
+      In23 = Fn * Det23 at least 0 and Gn * Det23 at least 0 and Rest * Det23 at least 0
+      Val = U D3 * An + V D3 * Bn + W D3 * Det12
+      Ok' = In12 and In13 and In23 and Val not equal C * Det12
       Answer += Ok count
     end
   end

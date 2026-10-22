@@ -125,6 +125,19 @@ tuple (Lengths len) ((Lengths equal 1) count)
 `)).toBe('0 0');
     });
 
+    it('enumerates path lengths when the mask has no native distance bounds', () => {
+        expect(run(`${prelude}Tree = new graph (1 to 5) .undirected
+for Node in 1 till 5
+  Tree add Node (Node + 1)
+end
+fun Lengths' even_count
+  Mask' = Lengths mod 2 equal 0
+  return Mask count
+end
+(Tree pathlengths) even_count
+`)).toBe('4');
+    });
+
     it('validates path-length tree inputs', () => {
         expect(() => run(`${prelude}
 Tree = new graph .directed

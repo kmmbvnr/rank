@@ -3,6 +3,8 @@ import type { Expression, FunctionStatement } from './generated/ast.js';
 export interface CallParameter {
     readonly name: string;
     readonly index: number;
+    /** Keep an argument plan at function entry instead of materializing it. */
+    readonly deferred: boolean;
     readonly acceptsFunction: boolean;
     readonly kind: 'data' | 'function' | 'option';
 }
@@ -30,8 +32,9 @@ export function functionCallSignature(statement: FunctionStatement): FunctionCal
     if (!signature) {
         const leftCount = statement.leftParameters.length;
         const rightEnd = leftCount + statement.rightParameters.length;
+        const bindings = [...statement.leftBindings, ...statement.rightBindings, ...statement.groups];
         const parameters = statement.parameters.map((name, index): CallParameter => ({
-            name, index, acceptsFunction: !/^[A-Z]/.test(name),
+            name, index, deferred: bindings[index]?.deferred ?? false, acceptsFunction: !/^[A-Z]/.test(name),
             kind: index >= rightEnd ? 'option' : index >= leftCount && /^[a-z]/.test(name) ? 'function' : 'data',
         }));
         signature = {

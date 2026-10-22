@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RankError, createArraySnapshot, isNativeFunction, isRankArray, type RankArray, type RankValue } from '../src/index.js';
+import { demandValue } from '../src/plan.js';
 
 const vector = (items: RankValue[], shape = [items.length]): RankArray => createArraySnapshot(items, shape);
 function call(runtime: Interpreter, name: string, ...args: RankValue[]): RankValue {
     const fn = runtime.variables.get(name)!;
     if (!isNativeFunction(fn)) throw new Error(name);
-    return fn.call(args);
+    return demandValue(fn.call(args));
 }
 function force(value: RankValue): unknown {
+    value = demandValue(value);
     return isRankArray(value) ? { shape: value.shape, items: value.items.map(force) } : value;
 }
 
@@ -75,7 +77,7 @@ end
 
     it('retains lazy read order and stops without replay on failure', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
+        runtime.execute("fun A' B' fused\n  return (A * 2 + B) reduce +\nend");
         const reads: string[] = [];
         const lazy = (name: string): RankArray => ({
             kind: 'array', shape: [3], containsFiles: false,
@@ -94,7 +96,7 @@ end
 
     it('does not probe host array cells while choosing the fast path', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun A B fused\n  return (A * 2 + B) reduce +\nend');
+        runtime.execute("fun A' B' fused\n  return (A * 2 + B) reduce +\nend");
         const reads: string[] = [];
         const host = (name: string): RankArray => ({
             kind: 'array', shape: [2], containsFiles: false,
@@ -112,7 +114,7 @@ end
 
     it('reads lazy operands in tree order and observes mutations between calls', () => {
         const runtime = new Interpreter();
-        runtime.execute('fun A B fused\n  return (A + (B * 2)) reduce +\nend');
+        runtime.execute("fun A' B' fused\n  return (A + (B * 2)) reduce +\nend");
         const reads: string[] = [];
         const a: RankArray = { ...vector([1n, 2n]), itemAt: index => {
             if (index === 0) { reads.push('a0'); b.items[0] = 10n; }

@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, RuntimeDiagnostics, isRankArray, type RankValue } from '../src/index.js';
+import { Interpreter, demandValue, RankError, RuntimeDiagnostics, isRankArray, type RankValue } from '../src/index.js';
 import { MissingValueError } from '../src/errors.js';
 import { MISSING } from '../src/value.js';
+import { readArrayItem } from '../src/array-storage.js';
 import { native } from '../src/modules/shared.js';
 import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 
 function scenario(compiled: boolean, body: string, values: RankValue[],
     read: (index: number, runtime: Interpreter) => void = () => {},
     consume: (runtime: Interpreter) => unknown = runtime => {
-        const mapped = runtime.variables.get('Mapped');
+        const mapped = demandValue(runtime.variables.get('Mapped')!);
         if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
         return [...mapped.items];
     }) {
@@ -22,7 +23,7 @@ function scenario(compiled: boolean, body: string, values: RankValue[],
             items: [], itemAt: index => { reads.push(index); read(index, runtime); return values[index]; } });
         const diagnostics = new RuntimeDiagnostics();
         const { before, value } = diagnostics.run(() => {
-            runtime.execute('Mapped = Source helper rank 0');
+            runtime.execute("Mapped' = Source helper rank 0");
             const before = [...reads];
             return { before, value: consume(runtime) };
         });
@@ -38,10 +39,10 @@ function compare(body: string, values: RankValue[], read?: Parameters<typeof sce
 }
 
 describe('compiled ranked callbacks', () => {
-    it('retains partial read order and materializes each remaining cell once', () => {
+    it('recomputes partial and whole reads independently', () => {
         const result = compare('return X * 2', [1n, 2n, 3n, 4n], undefined, runtime => {
             expect(runtime.execute('Mapped 2')).toBe(6n);
-            const mapped = runtime.variables.get('Mapped');
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             const first = mapped.items;
             expect(mapped.items).toEqual(first);
@@ -49,9 +50,9 @@ describe('compiled ranked callbacks', () => {
             return [...first];
         });
         expect(result.value).toEqual([2n, 4n, 6n, 8n]);
-        expect(result.before).toEqual([0]);
-        expect(result.reads).toEqual([0, 2, 1, 3]);
-        expect(result.kernels).toBe(4);
+        expect(result.before).toEqual([]);
+        expect(result.reads).toEqual([2, 0, 1, 2, 3, 0, 1, 2, 3, 2]);
+        expect(result.kernels).toBe(10);
         expect(result.batches).toBeGreaterThan(0);
     });
 
@@ -64,9 +65,9 @@ describe('compiled ranked callbacks', () => {
         expect(result.kernels).toBe(2);
     });
 
-    it('retains successful cells after failure and retries only the failing cell', () => {
+    it('restarts failed materialization without retaining successful cells', () => {
         const result = compare('return X character', [65n, 66n, -1n, 67n], undefined, runtime => {
-            const mapped = runtime.variables.get('Mapped');
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             const errors: string[] = [];
             for (let attempt = 0; attempt < 2; attempt++) {
@@ -78,8 +79,8 @@ describe('compiled ranked callbacks', () => {
             }
             return errors;
         });
-        expect(result.reads).toEqual([0, 1, 2, 2]);
-        expect(result.kernels).toBe(4);
+        expect(result.reads).toEqual([0, 1, 2, 0, 1, 2]);
+        expect(result.kernels).toBe(6);
         expect(result.batches).toBeGreaterThan(0);
     });
 
@@ -90,8 +91,8 @@ describe('compiled ranked callbacks', () => {
             runtime.execute('Mapped = array 1 2 3\nfun X helper\nreturn X text\nend');
             runtime.variables.set('Source', { kind: 'array', shape: [3], containsFiles: false, items: [],
                 itemAt: index => { reads.push(index); return BigInt(index); } });
-            runtime.execute('Mapped = Source helper rank 0');
-            const mapped = runtime.variables.get('Mapped');
+            runtime.execute("Mapped' = Source helper rank 0");
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             expect(() => mapped.items).toThrow(/Mapped/);
             expect(reads).toEqual([0]);
@@ -111,8 +112,9 @@ describe('compiled ranked callbacks', () => {
                         return BigInt(index + 1);
                     } });
                 const value = runtime.execute(`${bound ? 'Mapped = ' : ''}Source helper rank 0`);
-                const mapped = bound ? runtime.variables.get('Mapped') : value;
+                const mapped = bound ? demandValue(runtime.variables.get('Mapped')!) : value;
                 if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
+                if (!bound) expect(() => readArrayItem(mapped, 1)).toThrow('missing source cell');
                 try { return { value: [...mapped.items], reads }; }
                 catch (error) {
                     if (!(error instanceof RankError)) throw error;
@@ -121,8 +123,7 @@ describe('compiled ranked callbacks', () => {
             } finally { runtime.dispose(); }
         });
         expect(outcomes[1]).toEqual(outcomes[0]);
-        if (bound) expect(outcomes[1].value).toEqual([2n, MISSING, 6n]);
-        else expect(outcomes[1].error).toContain('missing source cell');
+        expect(outcomes[1].value).toEqual([2n, MISSING, 6n]);
     });
 
     it('does not run a callback for an empty frame', () => {
@@ -161,8 +162,8 @@ memo X helper
   end
   return X + 1
 end
-Mapped = (array 1 2 1) helper rank 0`);
-            const mapped = runtime.variables.get('Mapped');
+Mapped' = (array 1 2 1) helper rank 0`);
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             for (let attempt = 0; attempt < 2; attempt++) {
                 expect(() => diagnostics.run(() => mapped.items)).toThrow('.Oops');
@@ -183,7 +184,7 @@ memo X helper rank 0
   return X + 1
 end
 alias_fn = helper
-Values = 1 to 3 helper`);
+Values' = 1 to 3 helper`);
             expect(execute('Values sum')).toBe(9n);
             expect(execute('Values sum')).toBe(9n);
             expect(execute('1 to 3 alias_fn sum')).toBe(9n);
@@ -194,12 +195,12 @@ Values = 1 to 3 helper`);
 
     it('keeps inspection on the ordinary callback path for unread cells', () => {
         const result = scenario(true, 'return X * 2', [1n, 2n, 3n], undefined, runtime => {
-            const mapped = runtime.variables.get('Mapped');
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             return withInterrupt(new Int32Array(new SharedArrayBuffer(4)), () => [...mapped.items], () => {});
         });
         expect(result.value).toEqual([2n, 4n, 6n]);
-        expect(result.kernels).toBe(1); // Shape discovery preceded inspection.
+        expect(result.kernels).toBe(0); // Shape facts require no callback before inspection.
     });
 
     it.each([false, true])('interrupts full materialization with compilation %s', compiled => {
@@ -208,7 +209,7 @@ Values = 1 to 3 helper`);
         expect(() => scenario(compiled, 'return X * 2', Array<RankValue>(10000).fill(1n), () => {
             if (++reads === 1500) Atomics.store(signal, 0, 1);
         }, runtime => {
-            const mapped = runtime.variables.get('Mapped');
+            const mapped = demandValue(runtime.variables.get('Mapped')!);
             if (!mapped || !isRankArray(mapped)) throw new Error('missing mapped array');
             return withInterrupt(signal, () => mapped.items);
         })).toThrow(InterruptedError);

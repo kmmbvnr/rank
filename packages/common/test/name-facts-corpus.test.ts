@@ -9,7 +9,7 @@ import {
     isAssignmentStatement, isForStatement, isFunctionStatement, isNameExpression,
     isUnpackStatement, type Program,
 } from '@arrrank/language';
-import { Interpreter, isRankArray, parse, typeName } from '@arrrank/interpreter';
+import { Interpreter, isRankArray, isRankPlan, parse, typeName } from '@arrrank/interpreter';
 import { nameFactsIn } from '../src/name-facts.js';
 
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
@@ -61,6 +61,7 @@ describe('facts at a name against the values a run produced', () => {
     let ran = 0;
     let asked = 0;
     let known = 0;
+    let plans = 0;
     let finished = 0;
 
     for (const file of files) {
@@ -88,6 +89,8 @@ describe('facts at a name against the values a run produced', () => {
                 const found = lookup(offset);
                 asked += 1;
                 if (!found) { contradictions.push(`${label} ${name}@${offset}: no name found at its own offset`); continue; }
+                // Inspecting a name must not demand its retained recipe.
+                if (isRankPlan(value)) { plans += 1; continue; }
                 const { facts } = found;
                 if (!facts.types.length) continue;
                 known += 1;
@@ -111,7 +114,7 @@ describe('facts at a name against the values a run produced', () => {
     afterAll(() => {
         // A name-filtered run checks its selected programs; only a full run owns the coverage gate.
         if (finished !== files.length) return;
-        console.log(`name facts: ${ran} demos run, ${asked} names asked, ${known} known`);
+        console.log(`name facts: ${ran} demos run, ${asked} names asked, ${known} known, ${plans} plan occurrences unobserved`);
         // A vacuous pass proves nothing: the corpus must be run and the analyzer must answer for some of it.
         if (count === 1) {
             expect(ran).toBeGreaterThan(100);
@@ -119,7 +122,7 @@ describe('facts at a name against the values a run produced', () => {
         } else {
             const summary = process.env.RANK_NAME_FACTS_SUMMARY;
             if (!summary) throw new Error('Missing name facts summary path');
-            fs.writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => path.relative(demos, file)), ran, asked, known }));
+            fs.writeFileSync(summary, JSON.stringify({ shard, count, files: files.map(file => path.relative(demos, file)), ran, asked, known, plans }));
         }
     });
 });

@@ -86,8 +86,8 @@ Keep lines near 40 columns. Reduce parentheses by naming intermediate values
 with short names that describe their contents or role. For example:
 
 ```rank
-Range = 1 till 1000
-States = Range scan next with Start
+Range' = 1 till 1000
+States' = Range scan next with Start
 ```
 
 Keep parentheses when they are needed for grouping. See the

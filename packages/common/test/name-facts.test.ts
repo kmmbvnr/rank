@@ -28,6 +28,13 @@ describe('factsAt: each kind of name position', () => {
         expect(formatNameFacts(found)).toBe('M · integer [3 4]');
     });
 
+    it.each([['', 'array'], ["'", 'sequence']])('shows the binding result for a range marked %s', (marker, type) => {
+        const source = `Values${marker} = 1 to 3\nValues print`;
+        for (const offset of [source.indexOf('Values'), source.lastIndexOf('Values')]) {
+            expect(factsAt(source, offset)?.facts.types).toEqual([type]);
+        }
+    });
+
     it('finds a loop name and reports one element of the iterable', () => {
         const found = factsAt(source, at(source, 'Row'))!;
         expect(found).toMatchObject({ name: 'Row', source: 'static' });
@@ -104,6 +111,15 @@ describe('factsAt: functions with example arguments', () => {
         const rewritten = 'fun X twice\n X = "a"\n return X\nend\n';
         expect(formatNameFacts(factsAt(rewritten, at(rewritten, 'X'), [], examples)!)).toBe('X · unknown');
     });
+
+    it.each(["fun X' plus Y", "fun X plus Y'"])(
+        'finds ordinary and deferred parameter names in %s', header => {
+            const source = `${header}\n return X + Y\nend`;
+            const inputs = [{ name: 'plus', arguments: [integer(), integer()] }];
+            for (const name of ['X', 'Y']) {
+                expect(formatNameFacts(factsAt(source, source.indexOf(name), [], inputs)!)).toBe(`${name} · integer`);
+            }
+        });
 });
 
 describe('factsAt: runtime facts', () => {
@@ -231,7 +247,7 @@ describe('function signatures in the type footer', () => {
         expect(rows.join(' ')).not.toContain('c:');
         expect(rows.every(row => row.length <= 40)).toBe(true);
         const source = 'N = 1 to 999\nN sum';
-        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe("c<number> → number");
+        expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe("c[999]<number> → number");
     });
     it('uses explicit builtin signatures with their actual overloads', () => {
         const split = 'use text\n"a,b" "," split';
@@ -352,22 +368,22 @@ describe('layoutNameFacts', () => {
     });
 
     it('keeps a signature that fits on one row', () => {
-        expect(layoutNameFacts(outer(), 80)).toEqual(["outer * · c<i> c<i> → c[9, 9]<i>"]);
+        expect(layoutNameFacts(outer(), 80)).toEqual(["outer * · c[9]<i> c[9]<i> → c[9, 9]<i>"]);
     });
 
     it('puts one parameter per row and the result beside the last one', () => {
         expect(layoutNameFacts(outer(), 24)).toEqual([
             'outer * ·',
-            '  c<i>',
-            "  c<i> → c[9, 9]<i>",
+            '  c[9]<i>',
+            "  c[9]<i> → c[9, 9]<i>",
         ]);
     });
 
     it('moves the result to its own row when it would not fit beside the last parameter', () => {
         expect(layoutNameFacts(outer(), 18)).toEqual([
             'outer * ·',
-            '  c<i>',
-            '  c<i>',
+            '  c[9]<i>',
+            '  c[9]<i>',
             "  → c[9, 9]<i>",
         ]);
     });
@@ -411,7 +427,7 @@ it('keeps both Products axes visible when their sizes are not proven', () => {
 it('infers every Euler palindrome pipeline name before running the notebook', () => {
     const source = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
-        ['Candidates =', 'Candidates · c<integer>'],
+        ["Candidates' =", 'Candidates · c<integer>'],
         ['Candidates filter', 'Candidates · c<integer>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
@@ -458,13 +474,13 @@ it('shows builtin signatures at their own boundary in a pipeline', () => {
 });
 
 
-it('keeps Euler 1 integer sequence sums and boolean masks, including compound assignment targets', () => {
+it('keeps Euler 1 computed integer arrays and boolean masks, including compound assignment targets', () => {
     const source = readFileSync(new URL('../../../demos/euler/001_multiples.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
-        ['N =', 'N · c<integer>'],
-        ['Mask =', 'Mask · c<boolean>'],
-        ['Mask or=', 'Mask · c<boolean>'],
-        ['Mask sum', 'Mask · c<boolean>'],
+        ['N =', 'N · c[#]<integer>'],
+        ['Mask =', 'Mask · c[#]<boolean>'],
+        ['Mask or=', 'Mask · c[#]<boolean>'],
+        ['Mask sum', 'Mask · c[#]<boolean>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
     ]) expect(formatNameFacts(factsAt(source, source.indexOf(site))!)).toBe(expected);

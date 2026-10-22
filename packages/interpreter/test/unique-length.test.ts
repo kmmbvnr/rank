@@ -89,7 +89,9 @@ describe('unique followed by len', () => {
         const setup = 'use sequences\nV = (array 1 1 2 2) reshape 2 2\n';
         expect(run(setup + 'V unique len')).toBe(run(setup + 'U = V unique\nU len'));
         const ragged = 'use sequences\nV = (array 1 1 2 3) reshape 2 2\n';
-        expect(() => run(ragged + 'V unique len')).toThrow(/rank results must have one shape/);
+        // The leading frame is known before the result cells are completed.
+        expect(run(ragged + 'V unique len')).toBe('2');
+        expect(() => run(ragged + 'V unique')).toThrow(/rank results must have one shape/);
         expect(() => run(ragged + 'U = V unique\nU len')).toThrow(/rank results must have one shape/);
     });
 

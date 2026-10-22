@@ -1,6 +1,7 @@
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 import { RankError } from './errors.js';
 import { isRankArray, typeName, requireHomogeneous, MISSING, type RankArray, type RankValue } from './value.js';
 import {
@@ -9,6 +10,8 @@ import {
 import { borrowedStorage, materializedArrayItems, readArrayItem } from './array-read.js';
 import { arrayRevision } from './array-revision.js';
 import { scanForMissing } from './array-validity.js';
+
+type ArrayMetadata = Pick<RankArray, 'tableScopes' | 'sortKeys'>;
 
 /** A shallow copy for our JS callers, not an immutability or isolation boundary. */
 export function createArraySnapshot(items: Iterable<RankValue>, shape?: readonly number[]): RankArray {
@@ -267,7 +270,7 @@ export function eagerOperandItems(value: RankArray): ArrayLike<RankValue> | unde
  * internal read kernels may borrow the raw storage without proxy overhead. */
 export function ownedArray(
     items: RankValue[], shape: readonly number[] = [items.length], scalarOnly = false,
-    columnNames?: readonly string[],
+    columnNames?: readonly string[], metadata?: ArrayMetadata,
 ): RankArray {
     let scalarKinds: Map<string, number> | undefined;
     if (!columnNames) {
@@ -296,8 +299,8 @@ export function ownedArray(
         }
     }
     const packed = scalarKinds?.size === 1 && scalarKinds.has('integer') ? packedIntegers(items) : undefined;
-    if (packed) return typedArray(packed, shape);
-    const value = createOwned(items, shape, scalarOnly, columnNames);
+    if (packed) return createOwned(packed, shape, true, columnNames, undefined, metadata);
+    const value = createOwned(items, shape, scalarOnly, columnNames, undefined, metadata);
     if (scalarKinds) ownedStorage.get(value)!.elementKinds = scalarKinds;
     return value;
 }
@@ -448,12 +451,14 @@ export function hasMaskedCells(value: RankArray): boolean {
 function changedCell(state: OwnedStorage, value: RankValue): void {
     state.revision = noteMutation(state.birth);
     state.resources.include(value);
+    state.stored.include(value);
     state.scalarOnly &&= typeof value !== 'object';
 }
 
 function uncertainStorage(state: OwnedStorage): void {
     state.revision = noteMutation(state.birth);
     state.resources.invalidate();
+    state.stored.invalidate();
     state.scalarOnly = false;
     state.stable = false;
     state.elementKinds = undefined;
@@ -547,7 +552,7 @@ const ownedValueHandler: ProxyHandler<RankArray> = {
 
 export function createOwned(
     cells: RankValue[] | Float64Array | BigInt64Array, shape: readonly number[], scalarOnly: boolean,
-    columnNames?: readonly string[], validity?: Uint32Array,
+    columnNames?: readonly string[], validity?: Uint32Array, metadata?: ArrayMetadata,
 ): RankArray {
     const typed = Array.isArray(cells) ? undefined : cells;
     const items = cells as RankValue[];
@@ -555,16 +560,19 @@ export function createOwned(
         // Cells with no value are kept beside a numeric buffer, not in it.
         const found = scanForMissing(items);
         if (found === 'scalar') scalarOnly = true;
-        else if (found) return createOwned(found.values, shape, false, columnNames, found.validity);
+        else if (found) return createOwned(found.values, shape, false, columnNames, found.validity, metadata);
     }
     const state: OwnedStorage = {
         items, typed, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
         scalarOnly: !validity && (typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object')),
-        stable: true, resources: undefined!,
+        stable: true, resources: undefined!, stored: undefined!,
     };
     state.resources = new ResourceSummary(() => state.scalarOnly && state.stable);
+    state.stored = new StoredValueSummary(() => state.stable && (state.scalarOnly || state.validity !== undefined));
     if (!state.scalarOnly && !typed) for (const item of items) state.resources.include(item);
+    if (!state.scalarOnly && !typed) for (const item of items) state.stored.include(item);
     const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
+        ...metadata,
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
     if (typed) {
         Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
@@ -593,6 +601,8 @@ export function createOwned(
     ownedStorage.set(raw, state);
     const value: RankArray = new Proxy(raw, ownedValueHandler);
     ownedStorage.set(value, state);
+    state.stored.track(raw);
+    state.stored.track(value);
     return state.resources.track(value);
 }
 

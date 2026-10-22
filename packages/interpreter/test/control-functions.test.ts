@@ -480,8 +480,8 @@ array (2 caller) (5 caller)`)).toBe('12 15');
             '  Base += 1',
             '  yield Base',
             'end',
-            'A = 10 values',
-            'B = 20 values',
+            "A' = 10 values",
+            "B' = 20 values",
         ].join('\n'));
         const a = interpreter.variables.get('A')!;
         const b = interpreter.variables.get('B')!;

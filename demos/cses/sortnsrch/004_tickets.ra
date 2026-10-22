@@ -6,14 +6,14 @@ use algo
 
 N = stdin .integer
 M = stdin .integer
-Prices = stdin .integer N array
-Customers = stdin .integer M array
+Prices' = stdin .integer N
+Customers' = stdin .integer M
 
 Prices Customers sell print
 
 
 rem Sell the best affordable ticket.
-fun Prices Customers sell
+fun Prices' Customers' sell
   Queue = new queue
   Tickets = Prices multiset
 

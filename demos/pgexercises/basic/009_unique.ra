@@ -9,9 +9,9 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/009_unique.csv"
 
 Db = DbPath sqlite
-R = Db .members select .surname
-R = R unique
-R = R sort by .surname
+R' = Db .members select .surname
+R' = R unique
+R' = R sort by .surname
 Rows = R array
 Result = Rows (0 till 10)
 Result OutputPath csv

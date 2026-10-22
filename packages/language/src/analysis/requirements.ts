@@ -167,14 +167,15 @@ export function inferRequirements(program: Program, options: RequirementOptions 
         };
         const requireRank = (value: Value, min: number, max: number, node: AstNode, reason: string) =>
             graph.solver.bound(value.rank, min, max, site(node, reason));
-        const entersCells = (arg: Value, rank: number, axes?: readonly number[]): boolean => {
+        const frameLengths = (arg: Value, rank: number, axes?: readonly number[]) => {
             const shape = graph.shape(arg);
-            if (shape.rank === undefined) return false;
+            if (shape.rank === undefined) return undefined;
             const cell = rank < 0 ? Math.max(0, shape.rank + rank) : Math.min(rank, shape.rank);
             const frame = shape.rank - cell;
-            const lengths = axes ? axes.map(axis => shape.shape?.[axis]) : shape.shape?.slice(0, frame);
-            return frame === 0 || lengths?.every(n => n !== null && n !== undefined && n > 0) === true;
+            return frame === 0 ? [] : axes ? axes.map(axis => shape.shape?.[axis]) : shape.shape?.slice(0, frame);
         };
+        const entersCells = (arg: Value, rank: number, axes?: readonly number[]): boolean =>
+            frameLengths(arg, rank, axes)?.every(n => n !== null && n !== undefined && n > 0) === true;
         const signature = (operation: Operation, args: Value[], result: Value, node: AstNode,
             ranks?: readonly IntrinsicRank[], axes?: readonly number[]) => {
             const shape = operation.shape?.find(shape => shape.args.length === args.length);
@@ -188,6 +189,17 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             })) return;
             const cellRanks = ranks ?? (args.length === 1 ? [operation.monadicRank ?? 'all']
                 : operation.dyadicRanks ?? args.map(() => 'all'));
+            const unaryRank = args.length === 1 ? cellRanks[0] : undefined;
+            const unaryPattern = args.length === 1 ? shape.args[0] : undefined;
+            if (typeof unaryRank === 'number' && unaryPattern
+                && frameLengths(args[0], unaryRank, axes)?.some(length => length === 0)) {
+                const sourceRank = graph.shape(args[0]).rank!;
+                const cellRank = unaryRank < 0 ? Math.max(0, sourceRank + unaryRank) : Math.min(unaryRank, sourceRank);
+                const minimum = unaryPattern.length - (unaryPattern.some(spread) ? 1 : 0);
+                // No operation cell is called. A too-small cell has no shape
+                // to validate, while existing matrix axes still must agree.
+                if (cellRank < minimum) return;
+            }
             // Unary declared shape constraints also hold for empty frames.
             if (args.length > 1 && cellRanks.some((rank, index) => typeof rank === 'number' && !entersCells(args[index], rank, axes))) return;
             const dims = new Map<string, number>(), tails = new Map<string, Value>();

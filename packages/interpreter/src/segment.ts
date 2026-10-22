@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { flatCombine, type FlatCombine } from './flat-combine.js';
 import { FlatRecords } from './flat.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -79,6 +80,7 @@ export class RankSegment implements RankSegmentValue {
     }
 
     set(index: bigint, value: RankValue): void {
+        checkValueMutable(this);
         let position = this.base + this.position(index);
         if (!(this.nodes instanceof FlatRecords)) {
             this.put(position, value);
@@ -305,16 +307,19 @@ export class RankRangeSumSegment implements RankSegmentValue {
     }
 
     set(index: bigint, value: RankValue): void {
+        checkValueMutable(this);
         this.setRange(index, index, value);
     }
 
     setRange(left: bigint, right: bigint, value: RankValue): void {
+        checkValueMutable(this);
         const [low, high] = this.range(left, right);
         const numeric = expectSumNumeric(value);
         this.setArray(1, 0, this.size - 1, low, high, numeric);
     }
 
     addRange(left: bigint, right: bigint, value: RankValue): void {
+        checkValueMutable(this);
         const [low, high] = this.range(left, right);
         const numeric = expectSumNumeric(value);
         this.addArray(1, 0, this.size - 1, low, high, numeric);
@@ -497,10 +502,12 @@ export class RankPersistentSumSegment implements RankSegmentValue {
     }
 
     set(index: bigint, value: RankValue): void {
+        checkValueMutable(this);
         this.setRange(index, index, value);
     }
 
     setRange(left: bigint, right: bigint, value: RankValue): void {
+        checkValueMutable(this);
         const [low, high] = this.range(left, right);
         this.root = updateSumNode(
             this.root!, 0, this.size - 1,
@@ -509,6 +516,7 @@ export class RankPersistentSumSegment implements RankSegmentValue {
     }
 
     addRange(left: bigint, right: bigint, value: RankValue): void {
+        checkValueMutable(this);
         const [low, high] = this.range(left, right);
         this.root = updateSumNode(
             this.root!, 0, this.size - 1,
@@ -668,6 +676,7 @@ export class RankMaxSumSegment implements RankSegmentValue {
     }
 
     set(index: bigint, value: RankValue): void {
+        checkValueMutable(this);
         let position = this.base + this.position(index);
         this.nodes[position] = maxSumLeaf(expectNumeric(value));
         while (position > 1) {

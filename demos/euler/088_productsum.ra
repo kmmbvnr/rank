@@ -20,7 +20,7 @@ Sum = array 0
 Cnt = array 0
 Low = array 2
 for Prod len greater 0
-  K = Prod - Sum + Cnt
+  K' = Prod - Sum + Cnt
   Ok = Cnt greater 1 and K at most Limit
   Ks = K Ok array
   Ps = Prod Ok array
@@ -30,7 +30,7 @@ for Prod len greater 0
   rem put its smallest value last.
   Ord = Val argsort .descending
   Best (Ks Ord) = Val Ord
-  Num = (Big // Prod) - Low + 1
+  Num' = (Big // Prod) - Low + 1
   Num0 = Num 0 max
   Has = Num0 greater 0
   P1 = Prod Has array
@@ -43,8 +43,8 @@ for Prod len greater 0
   Marks = array shape Total fill 0
   Marks (Starts take (N1 len)) += 1
   Owner = (Marks scan +) - 1
-  Each = 0 till Total array
-  Pos = Each - (Starts Owner)
+  Each' = 0 till Total
+  Pos' = Each - (Starts Owner)
   F = (L1 Owner) + Pos
   Prod = (P1 Owner) * F
   Sum = (S1 Owner) + F

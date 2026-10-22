@@ -28,15 +28,15 @@ rem square as large, found by a
 rem depth-first walk.
 Steps = Right + Up
 Paths = 0 till (1 Steps shl) array
-Ones = Paths popcount
-Fit = Ones equal Right
+Ones' = Paths popcount
+Fit' = Ones equal Right
 Paths = Paths filter Fit array
 A = Paths - Paths + 1.0
 B = A - A
 for T in 0 till Steps
   Tot = A + B
   Disc = Tot * Tot - 4 * (A * B - 1)
-  Rt = Disc sqrt
+  Rt' = Disc sqrt
   S = (Rt - Tot) / 2
   Go = (Paths T bit) choose 1.0 0.0
   A += S * Go
@@ -44,7 +44,7 @@ for T in 0 till Steps
 end
 Tot = A + B
 Rt = (Tot * Tot - 4 * (A * B - 1)) sqrt
-Sides = (Rt - Tot) / 2
+Sides' = (Rt - Tot) / 2
 Eps = 1 - 0.000000000001
 Small = (Sides min) * Eps
 Xs = array shape Cap fill 0.0

@@ -1,11 +1,16 @@
+import type { ArrayCellRead } from './array-cell-read.js';
+import { demandValue } from './plan.js';
+import { constructingTensorPlan, registerTensorMap } from './tensor-map.js';
 import { membershipLookup } from './membership-lookup.js';
+import { mapArrayCells } from './array-cell-mapping.js';
+import { mapScalarArrays } from './scalar-array-map.js';
 import { registerRangePlan, registerModularRange } from './range-plan.js';
 import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } from './numeric-division.js';
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
 import { arrayMaskSource, markArrayMask } from './array-mask.js';
-import { denseScalarItems, evaluateArrayItem, derivedArray, materializeCells, ownedArray, readArrayItem, shouldStream, streamCells } from './array-storage.js';
+import { arrayValues, collectArrayCells, denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, registerArrayReadPlan, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexHas, indexKey } from './index-storage.js';
@@ -16,7 +21,7 @@ import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
-import { dyadicCells, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
+import { dyadicCells, emptyFrameArray, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
 import {
     arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
@@ -84,8 +89,8 @@ export class Operators {
             return compareCells(spec.operator, a.cellAt(0), b.cellAt(0));
         }
         return mapBroadcastArrays(
-            derivedArray(a.frameShape, [left].filter(isRankArray), a.cellAt),
-            derivedArray(b.frameShape, [right].filter(isRankArray), b.cellAt),
+            derivedArray(a.frameShape, [left], a.cellAt),
+            derivedArray(b.frameShape, [right], b.cellAt),
             (x, y) => compareCells(spec.operator, x, y),
         );
     }
@@ -93,17 +98,19 @@ export class Operators {
     evaluateOuter(operator: string, left: RankValue, right: RankValue): RankValue {
         const a = outerOperand(left, 'left');
         const b = outerOperand(right, 'right');
+        const shape = [...a.shape, ...b.shape];
         const rightSize = arraySize(b.shape);
-        requireIndexable([...a.shape, ...b.shape]);
-        return derivedArray([...a.shape, ...b.shape], [a, b], index => {
+        requireIndexable(shape);
+        if (arraySize(shape) === 0) return emptyFrameArray(shape, shape.length, [
+            { value: a, axes: a.shape.map((_, axis) => axis), offset: 0 },
+            { value: b, axes: b.shape.map((_, axis) => axis), offset: a.shape.length },
+        ]);
+        const evaluate = (x: RankValue, y: RankValue) => this.evaluateBinary(operator, x, y);
+        return registerTensorMap(derivedArray(shape, [a, b], index => {
             const leftIndex = Math.floor(index / rightSize);
             const rightIndex = index % rightSize;
-            return this.evaluateBinary(
-                operator,
-                readArrayItem(a, leftIndex),
-                readArrayItem(b, rightIndex),
-            );
-        }, true);
+            return evaluate(readArrayItem(a, leftIndex), readArrayItem(b, rightIndex));
+        }, true, undefined, () => outerValues(a, b, evaluate)), operator, [a, b], 'outer');
     }
 
     evaluateNamedOuter(
@@ -118,21 +125,26 @@ export class Operators {
         const [leftRank, rightRank] = operation.dyadicRanks ?? ['all', 'all'];
         const a = outerCells(left, leftRank, 'left');
         const b = outerCells(right, rightRank, 'right');
+        const shape = [...a.frameShape, ...b.frameShape];
         const rightFrames = arraySize(b.frameShape);
+        requireIndexable(shape);
+        if (arraySize(shape) === 0) return emptyFrameArray(shape, shape.length, [
+            { value: a.source, axes: a.frameShape.map((_, axis) => axis), offset: 0 },
+            { value: b.source, axes: b.frameShape.map((_, axis) => axis), offset: a.frameShape.length },
+        ]);
         const scalar = this.scalarCallback(operation);
-        requireIndexable([...a.frameShape, ...b.frameShape]);
-        return lazyArray([...a.frameShape, ...b.frameShape], index => {
-            const arguments_ = [
-                a.cellAt(Math.floor(index / rightFrames)),
-                b.cellAt(index % rightFrames),
-            ];
-            const result = scalar ? scalar(arguments_) : operation.call(arguments_);
+        const apply = (x: RankValue, y: RankValue): RankValue => {
+            const arguments_ = [x, y];
+            const result = demandValue(scalar ? scalar(arguments_) : operation.call(arguments_));
             if (valueRank(result) !== 0) {
                 throw new RankError(`outer operation ${operation.name} must return a scalar`);
             }
             this.ownFiles(result);
             return result;
-        });
+        };
+        return derivedArray([...a.frameShape, ...b.frameShape], [left, right, a.source, b.source, operation], index =>
+            apply(a.cellAt(Math.floor(index / rightFrames)), b.cellAt(index % rightFrames)), false, undefined,
+            leftRank === 0 && rightRank === 0 ? () => outerValues(a.source, b.source, apply) : undefined);
     }
 
     evaluateUnary(operator: string, value: RankValue): RankValue {
@@ -158,8 +170,9 @@ export class Operators {
         }
         if (isRankArray(value)) {
             // Stored cells are read in place: `items` would unpack a typed buffer for good.
-            const items = denseScalarItems(value) ?? value.items;
-            return ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape);
+            const items = constructingTensorPlan(value) ? undefined : denseScalarItems(value);
+            return items ? ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape)
+                : registerTensorMap(mapScalarArrays([value], ([item]) => this.evaluateUnary(operator, item)), operator, [value]);
         }
         if (value === MISSING && (operator === 'not' || operator === '+' || operator === '-')) return MISSING;
         if (operator === 'not' && typeof value === 'boolean') {
@@ -461,9 +474,18 @@ export function arraySize(shape: readonly number[]): number {
     return shape.reduce((product, dimension) => product * dimension, 1);
 }
 
-/** Operands up to this many values are read whole on first use: indexing a held array is cheaper than addressing. */
-const OUTER_EAGER_OPERAND = 65_536n;
+/** Each pass owns its cursors and current left scalar, with no replay tape. */
+function* outerValues(
+    left: RankArray, right: RankArray, apply: (x: RankValue, y: RankValue) => RankValue,
+): IterableIterator<RankValue> {
+    for (const x of arrayValues(left)) {
+        for (const y of arrayValues(right)) yield apply(x, y);
+    }
+}
 
+/** Exact repeatable operands retain shape evidence, never an item prefix or
+ * iterator. Sources needing a size pass and consumable resources are completed
+ * once by this outer evaluation, just like an explicit array conversion. */
 function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     if (isRankArray(value)) return value;
     if (isRankQueue(value)) {
@@ -475,69 +497,73 @@ function outerOperand(value: RankValue, side: 'left' | 'right'): RankArray {
     if (value.plan.size.kind === 'infinite') {
         throw new RankError(`outer ${side} operand must be finite`);
     }
-
-    if (value.plan.size.kind === 'exact' && value.plan.size.value > OUTER_EAGER_OPERAND) {
-        // The size is promised, so values are read only as far as a cell asks, and kept.
-        const size = safeDimension(value.plan.size.value, 'outer operand size');
-        const read: RankValue[] = [];
-        let source: Iterator<RankValue> | undefined;
-        const direct = value.plan.at;
-        return lazyArray([size], index => {
-            // A plan that can address its items (a range, arithmetic over one) is not read at all.
-            const addressed = direct?.call(value.plan, BigInt(index));
-            if (addressed !== undefined) return addressed;
-            source ??= sequenceValues(value, 'outer')[Symbol.iterator]();
-            while (read.length <= index) {
-                const next = source.next();
-                if (next.done) throw new RankError(`outer operand ended after ${read.length} values, not ${size}`);
-                read.push(next.value);
+    if (value.plan.size.kind !== 'exact' || value.plan.singlePass) return materializeSequence(value);
+    const size = safeDimension(value.plan.size.value, 'outer operand size');
+    // Consume the selected cell while its yield is suspended. Closing a
+    // generator can mutate a borrowed row, so no borrowed row escapes this call.
+    const visit = <T>(index: number, consume: (item: RankValue) => T): T => {
+        const direct = value.plan.at?.(BigInt(index));
+        if (direct !== undefined) return consume(demandValue(direct));
+        let position = 0;
+        for (const item of sequenceValues(value, 'outer')) {
+            if (position++ === index) return consume(demandValue(item));
+        }
+        throw new RankError(`outer operand ended after ${position} values, not ${size}`);
+    };
+    const cellShape = size === 0 ? [] : visit(0, item => isRankArray(item) ? [...item.shape] : []);
+    const width = arraySize(cellShape);
+    const check = (item: RankValue): RankValue => {
+        const shape = isRankArray(item) ? item.shape : [];
+        if (shape.length !== cellShape.length || shape.some((n, axis) => n !== cellShape[axis])) {
+            throw new RankError('outer operand items must have the same shape', 'DimensionMismatch');
+        }
+        return item;
+    };
+    const result = derivedArray([size, ...cellShape], [value], index =>
+        visit(Math.floor(index / width), item => {
+            item = check(item);
+            return isRankArray(item) ? readArrayItem(item, index % width) : item;
+        }), false, undefined, function* () {
+            let count = 0;
+            for (const item of sequenceValues(value, 'outer')) {
+                if (count++ >= size) throw new RankError('outer operand exceeded its declared size');
+                const cell = check(demandValue(item));
+                if (isRankArray(cell)) yield* arrayValues(cell);
+                else yield cell;
             }
-            return read[index];
+            if (count !== size) throw new RankError(`outer operand ended after ${count} values, not ${size}`);
         });
-    }
-    // Finite operands read as a whole must stack yielded array cells just as
-    // explicit array/copy does, preserving their trailing axes and snapshots.
-    return materializeSequence(value);
+    const cells = {
+        frameShape: [size], cellShape: () => cellShape,
+        *iterate() {
+            let count = 0;
+            for (const item of sequenceValues(value, 'outer')) {
+                if (count++ >= size) throw new RankError('outer operand exceeded its declared size');
+                yield check(demandValue(item));
+            }
+            if (count !== size) throw new RankError(`outer operand ended after ${count} values, not ${size}`);
+        },
+        read(index: number, observation?: ArrayCellRead): RankValue {
+            if (observation) return observation.read(cells, index);
+            return visit(index, item => {
+                item = check(item);
+                return isRankArray(item) ? ownedArray(collectArrayCells(item), [...item.shape]) : item;
+            });
+        },
+    };
+    return registerArrayReadPlan(result, { cells });
 }
 
 function outerCells(
     value: RankValue,
     rank: IntrinsicRank,
     side: 'left' | 'right',
-): OuterCells {
+): OuterCells & { source: RankArray } {
     const source = outerOperand(value, side);
-    const receivesWhole = rank === 'all' || rank >= source.shape.length;
-    const cellRank = rank === 'all' ? source.shape.length : Math.min(rank, source.shape.length);
-    const frameShape = source.shape.slice(0, source.shape.length - cellRank);
-    const cellShape = source.shape.slice(source.shape.length - cellRank);
-    const cellSize = arraySize(cellShape);
+    const cells = dyadicCells(source, rank);
     return {
-        frameShape,
-        cellShape,
-        cellAt(frameIndex) {
-            if (receivesWhole) return value;
-            const start = frameIndex * cellSize;
-            if (cellRank === 0) return readArrayItem(source, start);
-            return derivedArray(cellShape, [source], index => readArrayItem(source, start + index));
-        },
-    };
-}
-
-function lazyArray(
-    shape: readonly number[],
-    itemAt: (index: number) => RankValue,
-    fileFree = false,
-): RankArray {
-    let materialized: RankValue[] | undefined;
-    return {
-        kind: 'array',
-        shape,
-        itemAt,
-        containsFiles: fileFree ? false : undefined,
-        get items() {
-            materialized ??= materializeCells(arraySize(shape), itemAt);
-            return materialized;
-        },
+        ...cells, source,
+        cellAt: cells.frameShape.length === 0 && !isRankSequence(value) ? () => value : cells.cellAt,
     };
 }
 
@@ -715,7 +741,7 @@ function mapBinary(
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);
-    if (leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
+    if (!constructingTensorPlan(left, right) && leftArray && rightArray && (name === 'and' || name === 'or' || name === 'xor')) {
         const dense = mapBooleanArrays(leftArray, rightArray, name);
         if (dense) return dense;
     }
@@ -725,17 +751,19 @@ function mapBinary(
         const masked = mapMaskedArrays(left, right, REAL_CODES[name]);
         if (masked) return masked;
     }
-    if ((leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
+    if (!constructingTensorPlan(left, right) && (leftArray || rightArray) && DENSE_OPERATORS.has(name)) {
         const dense = mapDenseArrays(leftArray ?? left, rightArray ?? right, scalarOperation, REAL_CODES[name], !isPredicateOperator(name), name);
         if (dense) return dense;
     }
     if (leftArray && rightArray) {
-        return mapBroadcastArrays(leftArray, rightArray, scalarOperation);
+        return registerTensorMap(mapBroadcastArrays(leftArray, rightArray, scalarOperation), name, [leftArray, rightArray]);
     }
     const source = leftArray ?? rightArray!;
     const evaluate = (index: number) => mapResult(evaluateArrayItem(source, index), item =>
         leftArray ? scalarOperation(item, right) : scalarOperation(left, item));
-    return derivedArray(source.shape, [source], index => runExecution(evaluate(index)), true, evaluate);
+    return registerTensorMap(mapArrayCells(derivedArray(source.shape, [left, right, source], index => runExecution(evaluate(index)), true, evaluate),
+        [leftArray ?? left, rightArray ?? right], cells => mapScalarArrays(cells, ([a, b]) => scalarOperation(a, b))),
+        name, [leftArray ?? left, rightArray ?? right]);
 }
 
 function asRankArray(value: RankValue): RankArray | undefined {

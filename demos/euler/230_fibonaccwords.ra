@@ -36,22 +36,22 @@ Fib = concat (array 0 1) Fs
 Lens = 100 * Fib
 N = 0 to 17 array
 Pos = (127 + 19 * N) * 7 ** N
-Col = Pos reshape 18 1
+Col' = Pos reshape 18 1
 Lv = (Lens less Col) count axis 1
 for Step in 1 to Top
   Live = Lv at least 3
-  Bk = (Lv - 2) 0 max
+  Bk' = (Lv - 2) 0 max
   Prev = Lens Bk
   Back = Live and (Pos greater Prev)
   Pos = Back choose (Pos - Prev) Pos
-  Skip = Back choose 1 2
+  Skip' = Back choose 1 2
   Lv = Live choose (Lv - Skip) Lv
 end
 Ia = (Pos - 1) mod 100
-Ta = A Ia
-Tb = B Ia
-Da = Ta integer rank 0
-Db = Tb integer rank 0
-Digit = (Lv equal 1) choose Da Db
+Ta' = A Ia
+Tb' = B Ia
+Da' = Ta integer rank 0
+Db' = Tb integer rank 0
+Digit' = (Lv equal 1) choose Da Db
 Answer = (Digit * 10 ** N) sum
 Answer print

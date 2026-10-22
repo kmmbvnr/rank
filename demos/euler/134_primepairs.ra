@@ -13,8 +13,8 @@ option Limit integer = 1000000
 rem For p1 with d digits, n = p1 + 10^d
 rem k with 10^d k = -p1 mod p2. Invert
 rem 10^d by Fermat, p2 - 2, in all
-rem pairs at once; copy keeps lazy
-rem chains from growing.
+rem pairs at once. Ordinary Res and
+rem Base bindings store each step.
 Top = Limit + 200
 All = primes from 5 till Top array
 P1 = All filter at most Limit array
@@ -24,12 +24,12 @@ Base = Pw mod P2
 Res = array shape (P1 len) fill 1
 E = P2 - 2
 for E max greater 0
-  Bit = E mod 2 equal 1
-  Mul = Res * Base mod P2
+  Bit' = E mod 2 equal 1
+  Mul' = Res * Base mod P2
   Res = Bit choose Mul Res copy
   Base = Base * Base mod P2 copy
   E = E // 2
 end
-K = (P2 - P1 mod P2) * Res mod P2
+K' = (P2 - P1 mod P2) * Res mod P2
 Answer = (P1 + Pw * K) sum
 Answer print

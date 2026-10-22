@@ -7,60 +7,107 @@
 
 ## Context
 
-Idiomatic Rank code emphasizes short lines (~40 columns, ADR-0000) and intentional intermediate variables (ADR-0300):
+Rank distinguishes computation plans from retained results. An ordinary binding
+`A = Expr` completes its result before execution proceeds to the next statement.
+An apostrophe binding `A' = Expr` captures a recipe; every demand recomputes it.
+This includes scalar reductions. Neither unused names nor a single consumer
+permit the compiler to discard an ordinary binding's completion boundary.
+
+Readable pipelines can name deferred stages:
+
 ```rank
-Squared = Error * Error
+Difference' = A - B
+Squared' = Difference * Difference
 Mse = Squared mean
 ```
 
-In traditional interpreted environments (like naive Python/NumPy):
-1. **Memory bandwidth bottleneck:** Evaluating `Squared` allocates a full-sized intermediate heap array, writes all elements to RAM, and then reads them back into CPU caches during `mean`. For large arrays, memory bandwidth saturation—not arithmetic computation—dominates runtime.
-2. **Pressure against clean code:** To avoid allocations in conventional languages, developers are forced to write massive, unreadable monolithic one-liners (`Mse = (Error * Error).mean()`) or manual C loops.
-3. **Loss of REPL transparency:** Compilers that aggressively optimize whole programs often break step-by-step interactive debugging and REPL inspection.
-
-Rank requires an execution architecture where naming intermediate values does not penalize performance, and compatible tensor operations are automatically fused into single-pass loops without intermediate heap allocations.
+The compiler must compose supported stages without adding a second set of
+binding, demand or type rules. Completing a result does not require allocating
+every intermediate expression: `(A * A + 1) sum` may use a single scalar loop.
 
 ## Decision
 
-Rank establishes **Tensor Kernel Fusion and the JIT Execution Planner** as the core execution architecture:
+### Bindings and source expressions
 
-```mermaid
-flowchart TD
-    AST["AST Assignment Sequence"] --> UseAnalysis["Lexical Use Analysis (tensor-use.ts)"]
-    UseAnalysis -->|Private Intermediates| Lowering["Kernel IR Lowering"]
-    Lowering --> GuardCheck["Runtime Shape & Type Guards"]
-    GuardCheck -->|Pass| JIT["Emitted Single-Pass Loop (Registers)"]
-    GuardCheck -->|Fail| Fallback["Resumable Reference Interpreter"]
-```
+A source tensor kernel compiles exactly one assignment or return expression.
+It never skips following statements or substitutes other bindings' expressions.
+Ordinary array outputs pass through the shared `materializeValue` binding path.
+Typed function kernels and compiled loops use that same completion contract.
+A proved element type alone does not establish that an array is completed.
 
-### 1. Fused Single-Pass Execution
-- The interpreter analyzes groups of consecutive tensor assignment expressions.
-- Operations including elementwise arithmetic (`+`, `-`, `*`, `/`, `**`), comparisons, boolean masks, vector gathers, and reductions (`sum`, `mean`, `min`, `max`, `all`, `any`, `count`) are combined into a **single fused execution kernel**.
-- Intermediate values (`Squared`) are computed directly in CPU registers and fed immediately into subsequent operations without allocating intermediate arrays on the heap.
+A function body executes when called. Its ordinary locals complete during that
+call. Bare `return` passes the result through without adding completion;
+an explicit `copy` requests independent writable storage. Deferred assignments
+use the reference plan-capture and binding path.
 
-### 2. Lexical Barriers and Use Analysis (`tensor-use.ts`)
-The planner preserves full linguistic transparency through static use analysis:
-- **Private Intermediates:** A named variable is eliminated only if lexical use analysis proves it is private to the fused block, never read downstream, and not captured by a closure.
-- **Escaping Intermediates:** If a variable is read later in the function or returned to the caller, the planner computes and stores its value without sacrificing fusion opportunities for other variables.
+A scalar reduction inside a deferred expression may enter the source kernel
+at demand. It runs in the captured frame and returns through normal binding
+checks. Array-valued plans retain their native result. Boolean reductions use
+the native graph below to preserve selection validation and early termination.
 
-### 3. Strict Semantic Invariants
-Tensor kernel fusion must be invisible to program semantics:
-- **Exact Number Semantics:** Preserves arbitrary-precision BigInt integers and mixed-precision promotion rules.
-- **Floating-Point Order:** Preserves IEEE-754 evaluation order; associativity is never assumed for floating-point operations.
-- **Error Preservation:** Eager error checks (such as division by zero) are preserved; fusion never hides an observable runtime error.
+### Native composition
 
-### 4. Guarded Fallback to Reference Execution
-- Every compiled kernel includes runtime shape and type guards.
-- If shapes do not align, or if operands are lazy infinite sequences, execution cleanly falls back to the reference interpreter without re-executing side effects.
-- Tensor fusion can be toggled globally via `InterpreterOptions.tensorFusion = false` for debugging.
+Normal demand creates a stage's native result and applies its binding contract.
+Native array maps publish their operator and actual operands independently of
+the source AST. Scalar views publish their source and address mapping. The
+compiler lowers these capabilities into the same tensor IR and emitter used by
+source expressions. Captured plan ASTs are never inlined into consumers.
+
+The native graph covers supported arithmetic, numeric comparisons, boolean
+logic and unary signs. Signatures come from the shared operator catalogue.
+Slices, index-array selections and axis permutations compose through address
+nodes. Checks around a source run in source coordinates; checks around its view
+run in result coordinates. Duplicate and reordered indices retain visit order.
+Native outer maps concatenate both operand shapes and address each scalar pair
+in row-major order. They support mapped operands and nested products through the
+same IR. Their lazy inputs need no proof of eager completion; a later boolean
+consumer can stop before a failing unvisited row or column. Source-expression
+structural rewrites retain their separate completion guards. Named outer
+callbacks and unproved sequence operands keep their canonical traversal.
+Opaque readers and unsupported operations retain canonical traversal.
+
+Completed storage ends graph traversal. Arithmetic while constructing a plan,
+or over an escaped native plan result, avoids allocating a dense intermediate
+merely because the operands happen to be stored. An ordinary receiving binding
+still completes the final value. Reshape retains its source completion boundary.
+
+The native graph supports `sum`, `mean`, `min`, `max`, `count`, `any` and `all`.
+Boolean terminals stop as soon as their answer is known; unvisited contracts do
+not run. Selection validates indices before producing its result, so an early
+answer cannot hide an invalid index. Named masks reject numeric reductions;
+`count` reads their boolean cells. Empty means and extrema preserve their errors.
+
+### Guards, ownership and fallback
+
+Every demand checks compilation policy, builtin identity, input storage, shape
+and numeric domains. Reader, revision and address guards are checked again after
+compilation callbacks. If a selection detaches, fallback uses its current
+snapshot. An unproved reader is not invoked merely to make a guard pass.
+Unsupported domains decline before observable guest computation. A failed kernel
+does not publish a partial eager binding or replay completed guest effects.
+
+A demand owns its graph, checks and address closures. Expression sites may retain
+a bounded cache of generated code, with fresh data, checks and routes for each
+run. Escaped native arrays retain their compiler capability. No plan result or
+prefix is retained across demands. Parser and code caches are separate from
+value retention.
+
+Interruption and demand budgets apply to warm as well as cold code. Inspection
+uses the reference paths. `InterpreterOptions.tensorFusion = false` disables
+this optimization without changing binding semantics.
 
 ## Consequences
 
-### Positive
-* **Zero penalty for clean code:** Programmers can freely name intermediate steps on narrow 40-column screens without paying any heap allocation or memory bandwidth penalties.
-* **Cache-optimal performance:** Single-pass loops keep data resident in CPU L1/L2 caches and registers.
-* **Transparent fallback:** Safe execution guarantees that unsupported operations never crash the compiler.
-* **Foundation for hardware backends:** The Kernel IR serves as the direct compilation target for future WebGPU compute shaders and NPU accelerators.
+Ordinary names explicitly pay for retained storage. Apostrophe bindings name
+recomputable stages and expose supported native composition. A missing apostrophe
+may allocate more storage; the compiler does not infer retention intent from
+consumer counts.
 
-### Negative / Trade-offs
-* **JIT compilation overhead:** Compiling and caching fused loops introduces a slight setup latency; for very small arrays ($N < 10$), the reference interpreter may be faster.
+Integer kernels preserve arbitrary precision. Real kernels preserve expression
+and accumulation order. Shape/type guards and code generation have costs;
+compilation coverage alone proves neither a speedup nor lower memory use.
+Measurements must separate these outcomes and include the cost of completion.
+
+Source-specific operations and unsupported graph nodes keep their canonical
+capabilities. This IR does not imply that every deferred stage has a specialized
+kernel, or that another backend may bypass the shared demand/binding contract.

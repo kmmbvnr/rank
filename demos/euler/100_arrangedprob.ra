@@ -19,10 +19,10 @@ Root = 2 sqrt
 Odd = 1 to 61 by 2 array
 Up = (1 + Root) ** Odd
 Down = (1 - Root) ** Odd
-X = (Up + Down) / 2
-Y = (Up - Down) / (Root * 2)
-All = ((X + 1) / 2) 0 round
-Blue = ((Y + 1) / 2) 0 round
-Past = All greater Limit
+X' = (Up + Down) / 2
+Y' = (Up - Down) / (Root * 2)
+All' = ((X + 1) / 2) 0 round
+Blue' = ((Y + 1) / 2) 0 round
+Past' = All greater Limit
 Answer = (Blue Past) first integer
 Answer print

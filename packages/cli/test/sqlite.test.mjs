@@ -51,11 +51,11 @@ test('PostgreSQL Exercises basic 1 reads every facility column from SQLite', () 
 
 test('SQLite SQL inspection, EXPLAIN and bound raw query share the same plan', () => fixture((directory, dbPath) => {
     const result = runSource(directory, `use io\nuse sequences\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
-        + `Facilities = Db .facilities\nStatement = Facilities sql\n`
+        + `Facilities' = Db .facilities\nStatement = Facilities sql\n`
         + `Statement .text print\nStatement .params len print\n`
         + `Text = "SELECT name FROM facilities WHERE name = ?"\n`
         + `Params = array "O'Brien Court"\n`
-        + `Selected = Db Text Params sqlquery\n`
+        + `Selected' = Db Text Params sqlquery\n`
         + `Query = Selected sql\nQuery .text print\n`
         + `Plan = Selected explain\nPlan len print\n`
         + `Rows = Selected array\nRows .name print\n`);
@@ -103,10 +103,12 @@ test('SQLite floor division matches array floor division for negative values', (
             : `use json\nDb = ${JSON.stringify(JSON.stringify({
                 values_test: [-11, -10, -9, 9, 10, 11].map(n => ({ n })),
             }))} json\n`;
-        const result = runSource(directory, `use numbers\nuse tables\n${source}`
-            + 'R = Db .values_test\nOut = R select\n  .q = .n // 10\nend\n'
+        const result = runSource(directory, `use io\nuse numbers\nuse tables\n${source}`
+            + `R' = Db .values_test\nOut' = R select\n  .q = .n // 10\nend\n`
+            + (storage === 'sqlite' ? 'Statement = Out sql\nStatement .text print\n' : '')
             + `Out ${JSON.stringify(output)} csv\n`);
         assert.equal(result.status, 0, result.stderr);
+        if (storage === 'sqlite') assert.match(result.stdout, /^SELECT /);
         assert.equal(fs.readFileSync(output, 'utf8'), 'q\n-2\n-1\n-1\n0\n1\n1\n');
     }
 }));
@@ -134,12 +136,12 @@ test('Rank table projection, masks, joins, distinct and sort compose into SQL', 
     const output = path.join(directory, 'result.csv');
     const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
         + `Db = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Bookings = (Db .bookings) (array .memid .starttime)\n'
-        + 'Members = (Db .members) (array .memid .firstname .surname)\n'
-        + 'Selected = Members (Members .firstname equal "David")\n'
-        + 'Joined = Bookings Selected innerjoin by .memid\n'
-        + 'Rows = (Joined (Joined .surname equal "Farrell")) (array .starttime .surname)\n'
-        + 'Result = (Rows unique) sort by .starttime .surname\n'
+        + `Bookings' = (Db .bookings) (array .memid .starttime)\n`
+        + `Members' = (Db .members) (array .memid .firstname .surname)\n`
+        + `Selected' = Members (Members .firstname equal "David")\n`
+        + `Joined' = Bookings Selected innerjoin by .memid\n`
+        + `Rows' = (Joined (Joined .surname equal "Farrell")) (array .starttime .surname)\n`
+        + `Result' = (Rows unique) sort by .starttime .surname\n`
         + 'Query = Result sql\nQuery .text print\nQuery .params print\n'
         + `Result ${JSON.stringify(output)} csv\nResult .surname print\n`);
     assert.equal(result.status, 0, result.stderr);
@@ -162,13 +164,16 @@ test('SQLite equality keeps Rank numeric and text keys distinct', () => fixture(
     db.close();
     const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
         + `Db = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Ints = Db .ints\nReals = Db .reals\nTexts = Db .texts\n'
+        + `Ints' = Db .ints\nReals' = Db .reals\nTexts' = Db .texts\n`
+        + 'Statement = (Ints Reals innerjoin by .k) sql\nStatement .text print\n'
         + '(Ints Reals innerjoin by .k) len print\n'
         + '(Ints Texts innerjoin by .k) len print\n'
         + '(Ints (Ints .k equal "1")) len print\n'
         + '(Ints (Ints .k equal 1)) len print\n');
     assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stdout, '1\n0\n0\n1\n');
+    const [statement, ...counts] = result.stdout.trimEnd().split('\n');
+    assert.match(statement, /INNER JOIN/);
+    assert.deepEqual(counts, ['1', '0', '0', '1']);
 }));
 
 test('left join keeps absent right columns in an empty-first-row CSV', () => fixture((directory, dbPath) => {
@@ -180,9 +185,9 @@ test('left join keeps absent right columns in an empty-first-row CSV', () => fix
     db.close();
     const output = path.join(directory, 'joined.csv');
     const result = runSource(directory, `use tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Requests = Db .requests\nRecs = Db .recommenders\n'
-        + 'Joined = Requests Recs leftjoin on .recommendedby equal .memid\n'
-        + 'Result = Joined (array .requestid .recname)\n'
+        + `Requests' = Db .requests\nRecs' = Db .recommenders\n`
+        + `Joined' = Requests Recs leftjoin on .recommendedby equal .memid\n`
+        + `Result' = Joined (array .requestid .recname)\n`
         + `Result ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(fs.readFileSync(output, 'utf8'), 'requestid,recname\n1,\n2,Anne\n');
@@ -194,10 +199,10 @@ test('aliased self join stays in SQLite and exposes nested fields', () => fixtur
         + "INSERT INTO members VALUES (1, 'Ada', NULL), (2, 'Bea', 1)");
     db.close();
     const result = runSource(directory, `use io\nuse sequences\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'M = Db .members alias .m\nR = Db .members alias .r\n'
-        + 'J = M R leftjoin on\n  .recommendedby equal .memid\n'
+        + `M' = Db .members alias .m\nR' = Db .members alias .r\n`
+        + `J' = M R leftjoin on\n  .recommendedby equal .memid\n`
         + 'Q = J sql\nQ .text print\n'
-        + 'F = J (J .m .firstname equal "Bea")\nF len print\nRows = J array\n'
+        + `F' = J (J .m .firstname equal "Bea")\nF len print\nRows = J array\n`
         + 'Rows .m .firstname print\nRF = Rows .r .firstname default ""\nRF print\n');
     assert.equal(result.status, 0, result.stderr);
     const lines = result.stdout.trimEnd().split('\n');
@@ -213,15 +218,14 @@ test('named computed columns stay in SQL with bound parameters', () => fixture((
     const output = path.join(directory, 'selected.csv');
     const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
         + `Db = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Rows = Db .facilities\n'
-        + 'Filtered = Rows (Rows .name equal "Tennis Court 1")\n'
-        + 'Caption = Filtered .name + "!"\n'
-        + 'Cols = record\n'
+        + `Rows' = Db .facilities\n`
+        + `Filtered' = Rows (Rows .name equal "Tennis Court 1")\n`
+        + `Caption' = Filtered .name + "!"\n`
+        + `Out' = Filtered select\n`
         + '  .caption = Caption\n'
-        + '  .ok = Filtered .facid equal 0\n'
-        + '  .price = Filtered .membercost + 1\n'
+        + '  .ok = .facid equal 0\n'
+        + '  .price = .membercost + 1\n'
         + 'end\n'
-        + 'Out = Filtered select Cols\n'
         + 'Q = Out sql\nQ .text print\nQ .params len print\n'
         + `Out ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
@@ -244,12 +248,12 @@ test('choose stays in SQL and leaves an unknown condition missing', () => fixtur
     const output = path.join(directory, 'choices.csv');
     const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
         + `Db = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Rows = Db .choices\n'
-        + 'Flag = Rows .marked greater 0\n'
-        + 'Value = Flag choose "yes" "no"\n'
-        + 'Ok = Flag choose true false\n'
-        + 'Cols = record\n  .id = Rows .id\n  .value = Value\n  .ok = Ok\nend\n'
-        + 'Out = (Rows select Cols) sort by .id\n'
+        + `Rows' = Db .choices\n`
+        + `Flag' = Rows .marked greater 0\n`
+        + `Value' = Flag choose "yes" "no"\n`
+        + `Ok' = Flag choose true false\n`
+        + `Projected' = Rows select\n  .id = .id\n  .value = Value\n  .ok = Ok\nend\n`
+        + `Out' = Projected sort by .id\n`
         + 'Q = Out sql\nQ .text print\n'
         + `Out ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
@@ -270,14 +274,14 @@ test('lookup builds a correlated self-query without joining or reading rows', ()
     const output = path.join(directory, 'lookup.csv');
     const result = runSource(directory, `use io\nuse sequences\nuse tables\n`
         + `Db = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'M = Db .members\n'
-        + 'R = M (M .name greater "A")\n'
-        + 'Ids = M .recommendedby + 0\nKeys = R .memid + 0\n'
-        + 'Names = R .name + "!"\n'
-        + 'Member = M .name + "!"\n'
-        + 'Rec = Ids Keys Names lookup\n'
-        + 'Cols = record\n  .member = Member\n  .recommender = Rec\nend\n'
-        + 'Out = (M select Cols) sort by .member\n'
+        + `M' = Db .members\n`
+        + `R' = M (M .name greater "A")\n`
+        + `Ids' = M .recommendedby + 0\nKeys' = R .memid + 0\n`
+        + `Names' = R .name + "!"\n`
+        + `Member' = M .name + "!"\n`
+        + `Rec' = Ids Keys Names lookup\n`
+        + `Projected' = M select\n  .member = Member\n  .recommender = Rec\nend\n`
+        + `Out' = Projected sort by .member\n`
         + 'Q = Out sql\nQ .text print\nQ .params len print\n'
         + `Out ${JSON.stringify(output)} csv\n`);
     assert.equal(result.status, 0, result.stderr);
@@ -315,8 +319,8 @@ test('raw SQL accepts mixed tuple parameters and reuses inspected parameters', (
     const result = runSource(directory, `use io\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
         + `Q = "SELECT name FROM facilities WHERE facid = ? AND name = ?"\n`
         + `P = tuple 1 "O'Brien Court"\n`
-        + `Selected = Db Q P sqlquery\nStatement = Selected sql\n`
-        + `Again = Db (Statement .text) (Statement .params) sqlquery\n`
+        + `Selected' = Db Q P sqlquery\nStatement = Selected sql\n`
+        + `Again' = Db (Statement .text) (Statement .params) sqlquery\n`
         + `Rows = Again array\nRows .name print\n`);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout, "O'Brien Court\n");
@@ -325,7 +329,7 @@ test('raw SQL accepts mixed tuple parameters and reuses inspected parameters', (
 
 test('explicit numeric conversions keep SQLite columns lazy and preserve missing cells', () => fixture((directory, dbPath) => {
     const result = runSource(directory, `use io\nuse sequences\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Facilities = Db .facilities\nConverted = Facilities select\n'
+        + `Facilities' = Db .facilities\nConverted' = Facilities select\n`
         + ' .id = .facid real rank 0\n .cost = .guestcost integer rank 0\n'
         + ' .maintenance = .monthlymaintenance real rank 0\nend\n'
         + 'Query = Converted sql\nQuery .text print\nRows = Converted array\n'
@@ -336,7 +340,7 @@ test('explicit numeric conversions keep SQLite columns lazy and preserve missing
     assert.match(result.stdout, /rank_integer\("guestcost"\)/);
     assert.deepEqual(result.stdout.trim().split('\n').slice(-3), ['0.5 1.5', '26 16', '200 0']);
     const invalid = runSource(directory, `use io\nuse tables\nDb = ${JSON.stringify(dbPath)} sqlite\n`
-        + 'Facilities = Db .facilities\nConverted = Facilities select\n'
+        + `Facilities' = Db .facilities\nConverted' = Facilities select\n`
         + ' .name = .name real rank 0\nend\nConverted print\n');
     assert.notEqual(invalid.status, 0);
     assert.match(invalid.stderr, /invalid real text/);

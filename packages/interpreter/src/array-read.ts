@@ -1,3 +1,4 @@
+import { ArrayCellRead } from './array-cell-read.js';
 import { completed, type Evaluation, type Execution } from './execution.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
@@ -6,14 +7,14 @@ import { isRankArray, MISSING, type RankArray, type RankValue } from './value.js
 import { ownedStorage, type OwnedStorage } from './array-storage-state.js';
 import { arrayRevision } from './array-revision.js';
 
-/** Eager numeric cells only. Lazy Rank readers must retain their caches. */
+/** Eager numeric cells only. Never probe a lazy reader for an optimization. */
 export function eagerArrayStorage(value: RankValue): {
     shape: readonly number[]; read: (index: number) => RankValue;
 } | undefined {
     const owned = typeof value === 'object' ? ownedStorage.get(value as RankArray) : undefined;
     // A host array may expose observable item getters (including through a
     // Proxy). Inspecting its cells to select a fast path would read ahead.
-    if (!owned?.stable) return undefined;
+    if (!owned?.stable || isRankArray(value) && value.itemAt !== undefined) return undefined;
     const items = owned.items;
     if (!Array.isArray(items)
         || !items.every(item => typeof item === 'number' || typeof item === 'bigint' || typeof item === 'boolean')) {
@@ -22,52 +23,163 @@ export function eagerArrayStorage(value: RankValue): {
     return { shape: owned.shape, read: index => items[index] };
 }
 
-// Only runtime-owned readers may publish a stable, already-computed cache.
-// Looking up storage must never evaluate a lazy element or call user code.
-const cachedStorage = new WeakMap<RankArray, () => RankValue[] | undefined>();
-
-export function registerCachedArray<T extends RankArray>(
-    value: T, peek: () => RankValue[] | undefined,
-): T {
-    cachedStorage.set(value, peek);
-    return value;
-}
-
+/** Completed storage only; this query never evaluates a cell or a getter. */
 export function materializedArrayItems(value: RankArray): RankValue[] | undefined {
     const owned = ownedStorage.get(value);
     if (owned) {
         owned.convert?.();
         return owned.stable ? owned.items : undefined;
     }
-    if ('itemAt' in value) return cachedStorage.get(value)?.();
+    if ('itemAt' in value) return undefined;
     const items = Object.getOwnPropertyDescriptor(value, 'items')?.value;
     return Array.isArray(items) ? items : undefined;
+}
+
+/** Stored references only. Ownership/capture scans must not call a host getter
+ * or evaluate a recipe merely to discover values that it could produce later. */
+export function* storedArrayValues(value: RankArray): IterableIterator<RankValue> {
+    const owned = ownedStorage.get(value);
+    if (owned?.stable) { yield* owned.items; return; }
+    const items: unknown = Object.getOwnPropertyDescriptor(value, 'items')?.value;
+    if (!Array.isArray(items)) return;
+    const length: number = Object.getOwnPropertyDescriptor(items, 'length')!.value;
+    for (let index = 0; index < length; index++) {
+        checkpoint('inspecting stored array');
+        const cell = Object.getOwnPropertyDescriptor(items, String(index))?.value as RankValue | undefined;
+        if (cell !== undefined) yield cell;
+    }
 }
 
 /** Copy only our completed storage: host arrays may override slice or expose
  * observable index getters, and must keep the ordinary cell-reading path. */
 export function copyMaterializedArrayItems(value: RankArray, size: number): RankValue[] | undefined {
     const owned = ownedStorage.get(value);
-    if (owned?.typed || (!owned && !cachedStorage.has(value)) || size >= STREAM_CELLS) return undefined;
+    if (!owned?.stable || owned.typed || size >= STREAM_CELLS) return undefined;
     const items = materializedArrayItems(value);
     if (items?.length !== size) return undefined;
     checkpoint('copying array', size);
     return items.slice();
 }
 
-/** Prepared readers remove view dispatch, not validation or effects. Preparing
- * one must not read cells; using it may still execute callbacks or throw. */
-const arrayReadPlans = new WeakMap<RankArray, () => ((index: number) => RankValue) | undefined>();
+/** Producer-cell geometry survives views even when no scalar address exists. */
+export interface ArrayCells {
+    /** Positions of frame axes in the tensor; omitted for leading frames. */
+    readonly frameAxes?: readonly number[];
+    readonly frameShape: readonly number[];
+    /** Peek only: geometry becomes known when the array's shape is observed. */
+    cellShape(): readonly number[] | undefined;
+    /** With an observation, consume a borrowed cell before the next read in
+     * that operand branch. A standalone read returns a stable cell. */
+    read(index: number, observation?: ArrayCellRead): RankValue;
+    /** Borrowed cells, consumed before advancing; the observer closes the cursor. */
+    iterate?(): IterableIterator<RankValue>;
+}
+interface ArrayReadPlan {
+    readonly prepare?: () => ((index: number) => RankValue) | undefined;
+    readonly values?: () => IterableIterator<RankValue>;
+    /** Keep a dynamic shape probe within the same full observation. */
+    readonly collect?: () => RankValue[];
+    readonly cells?: ArrayCells;
+}
+
+/** Logical producer cells retain meaning even when they contain no scalars. */
+export function arrayCells(value: RankArray): ArrayCells | undefined {
+    return arrayReadPlans.get(value)?.cells;
+}
+export function arrayFrameAxes(cells: ArrayCells): readonly number[] {
+    return cells.frameAxes ?? cells.frameShape.map((_, axis) => axis);
+}
+const arrayReadPlans = new WeakMap<RankArray, ArrayReadPlan>();
 
 export function registerArrayReadPlan<T extends RankArray>(
-    value: T, prepare: () => ((index: number) => RankValue) | undefined,
+    value: T, plan: ArrayReadPlan,
 ): T {
-    arrayReadPlans.set(value, prepare);
+    // Adding geometry must retain an existing checked traversal or collector.
+    arrayReadPlans.set(value, { ...arrayReadPlans.get(value), ...plan });
     return value;
 }
 
+/** Preparing a reader must not read cells; using it can validate or perform effects. */
 export function prepareArrayRead(value: RankArray): ((index: number) => RankValue) | undefined {
-    return arrayReadPlans.get(value)?.();
+    return arrayReadPlans.get(value)?.prepare?.();
+}
+
+/** Observe empty producer cells, owning cursors through their nested demands. */
+export function* arrayCellValues(cells: ArrayCells, start = 0): IterableIterator<RankValue> {
+    const observation = new ArrayCellRead();
+    let failed = false;
+    try {
+        const size = cells.frameShape.reduce((total, n) => total * n, 1);
+        for (let index = start; index < size; index++) {
+            checkpoint('reading empty array cells');
+            const cell = cells.read(index, observation);
+            if (isRankArray(cell)) yield* arrayValues(cell);
+        }
+    } catch (error) { failed = true; throw error; }
+    finally { observation.close(failed); }
+}
+
+/** Looking up a traversal must not start a reader or evaluate cells. */
+export function arrayValueTraversal(value: RankArray): (() => IterableIterator<RankValue>) | undefined {
+    return arrayReadPlans.get(value)?.values;
+}
+
+/** Each consumer owns its traversal, including its temporary buffers. */
+export function* arrayValues(value: RankArray, streaming = false): IterableIterator<RankValue> {
+    const traverse = arrayValueTraversal(value);
+    if (traverse) { yield* traverse(); return; }
+    const read = (streaming ? value.streamAt : undefined) ?? prepareArrayRead(value)
+        ?? ((index: number) => readArrayItem(value, index));
+    const size = value.shape.reduce((total, n) => total * n, 1);
+    const cells = arrayCells(value);
+    if (size === 0 && cells) {
+        yield* arrayCellValues(cells);
+        return;
+    }
+    for (let index = 0; index < size; index++) {
+        checkpoint('reading array');
+        let item: RankValue;
+        try { item = read(index); }
+        catch (error) {
+            if (!(error instanceof MissingValueError) || !error.soft) throw error;
+            item = MISSING;
+        }
+        yield item;
+    }
+}
+
+/** Even a zero-element result must finish its traversal: a nonempty rank frame
+ * can contain callbacks producing empty cells. Always close abandoned readers. */
+export function collectArrayValues(size: number, values: IterableIterator<RankValue>): RankValue[] {
+    let finished = false;
+    let failed = false;
+    try {
+        if (size > MAX_HELD_CELLS) {
+            throw new RankError(`array is too large to hold in memory: ${size} cells (at most ${MAX_HELD_CELLS})`);
+        }
+        const items = new Array<RankValue>(size);
+        let index = 0;
+        while (true) {
+            const next = values.next();
+            if (next.done) { finished = true; break; }
+            if (index >= size) throw new RankError('array reader exceeded its declared shape', 'DimensionMismatch');
+            items[index++] = next.value;
+        }
+        if (index !== size) throw new RankError('array reader ended before its declared shape', 'DimensionMismatch');
+        return items;
+    } catch (error) { failed = true; throw error; }
+    finally {
+        if (!finished) {
+            try { values.return?.(); }
+            catch (error) { if (!failed) throw error; }
+        }
+    }
+}
+
+export function collectArrayCells(value: RankArray): RankValue[] {
+    const collect = arrayReadPlans.get(value)?.collect;
+    if (collect) return collect();
+    return collectArrayValues(value.shape.reduce((total, n) => total * n, 1), arrayValues(value));
 }
 
 /**
@@ -88,16 +200,7 @@ export function shouldStream(value: RankArray): boolean {
 
 /** The cells of an array in order, read one at a time; a cell that is softly missing reads as `.NA`. */
 export function* streamCells(value: RankArray): IterableIterator<RankValue> {
-    const read = value.streamAt ?? value.itemAt!;
-    const size = value.shape.reduce((product, dimension) => product * dimension, 1);
-    for (let index = 0; index < size; index += 1) {
-        try {
-            yield read(index);
-        } catch (error) {
-            if (error instanceof MissingValueError && error.soft) yield MISSING;
-            else throw error;
-        }
-    }
+    yield* arrayValues(value, true);
 }
 
 export function materializeCells(size: number, read: (index: number) => RankValue): RankValue[] {
@@ -140,7 +243,7 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     return view;
 }
 
-/** Both scalar and tensor readers use the same borrowed/cache eligibility.
+/** Both scalar and tensor readers use the same completed-storage eligibility.
  * Keep storage in an object: a writer may replace its packed cell buffer. */
 function preparedReaderStorage(
     value: RankValue | undefined,
@@ -149,7 +252,7 @@ function preparedReaderStorage(
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     // The caller proves no array writes, callbacks or iterators in the region.
-    // Only already-computed, revision-tracked caches qualify: never force cells.
+    // Only completed, revision-tracked storage qualifies: never force cells.
     const cached = !state && stableReads && array && arrayRevision(array) !== undefined
         ? materializedArrayItems(array) : undefined;
     if (!state && !cached) return undefined;

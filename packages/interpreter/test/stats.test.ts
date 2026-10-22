@@ -145,9 +145,9 @@ describe('Rank statistics', () => {
     it('keeps framed error reductions lazy', () => {
         expect(run([
             'use stats',
-            'Actual = (array shape 2 2\n 1 2\n 3 4\nend) // (array shape 2 2\n 1 1\n 0 1\nend)',
+            "Actual' = (array shape 2 2\n 1 2\n 3 4\nend) // (array shape 2 2\n 1 1\n 0 1\nend)",
             'Target = array 1 1',
-            'Result = Actual Target mse axis 1',
+            "Result' = Actual Target mse axis 1",
             'Result 0',
         ].join('\n'))).toBe('0.5');
     });
@@ -223,11 +223,13 @@ describe('Rank statistics', () => {
     it('evaluates batches lazily', () => {
         const source = [
             'use stats',
-            'Data = (array shape 2 2 3\n 1 2 3 4 5 6\n 1 2 3 4 5 6\nend) // (array shape 2 2 3\n 1 1 1 1 1 1\n 0 1 1 1 1 1\nend)',
-            'Result = Data covariance',
+            "Data' = (array shape 2 2 3\n 1 2 3 4 5 6\n 1 2 3 4 5 6\nend) // (array shape 2 2 3\n 1 1 1 1 1 1\n 0 1 1 1 1 1\nend)",
+            "Result' = Data covariance",
         ];
         expect(run([...source, 'Result 0 0 0'].join('\n'))).toBe('1');
         expect(() => run([...source, 'Result 1 0 0'].join('\n')))
+            .toThrowError('division by zero');
+        expect(() => run([...source, 'Saved = Result'].join('\n')))
             .toThrowError('division by zero');
     });
 

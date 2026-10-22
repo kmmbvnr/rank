@@ -29,6 +29,7 @@ interface LoopAnalysisContext {
     statements(items: readonly Statement[], env: Map<string, ValueFacts>): boolean;
     returnPaths(items: readonly Statement[], env: Map<string, ValueFacts>): ReturnPaths;
     forgetNonFunctions(env: Map<string, ValueFacts>): void;
+    complete(value: ValueFacts, env: Map<string, ValueFacts>): ValueFacts;
 }
 
 /** Loop-specific widening, closure proofs and return paths. */
@@ -85,6 +86,10 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
                                 ? { rank: collection.elementRank, acceptedArrayRank: collection.elementRank,
                                     shape: Array(collection.elementRank).fill(null), elements: collection.elementCells } : {}) });
             }
+        }
+        if (names[0] !== '#') {
+            const value = context.complete(env.get(names[0])!, env);
+            env.set(names[0], value);
         }
         if (names[1] && names[1] !== '#') env.set(names[1], {
             types: ['integer'], acceptedTypes: ['integer'], rank: 0, shape: [],

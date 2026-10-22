@@ -30,7 +30,12 @@ Rank introduces **word-based, first-class numeric range sequences**:
   1 till 3  =>  1 2
   ```
 
-Ranges are first-class, lazy sequence values. They can be bound to names (`R = 1 till 1000`), iterated in `for` loops (`for i in 1 to 10`), or evaluated as arrays.
+Ranges are first-class sequence values. `R' = 1 till 1000` preserves a range;
+`R = 1 till 1000` computes and stores an array. A loop such as
+`for i in 1 to 10` consumes the range directly without storing the whole source.
+`R' = 1 to #` preserves an unbounded range. `R = 1 to #` is an error because
+ordinary binding cannot complete a known-infinite source. Unknown termination
+remains runtime work and can be interrupted.
 
 The same two words bound any other sequence by value: `fibonacci to 100` keeps the items at most 100 and `primes till 100` those below 100. Addressing with a range slices by position (`Text (1 till 3)`). [ADR-0205](0205-slices-and-sequence-bounds.md) describes both, with `from` and `after` for lower bounds.
 

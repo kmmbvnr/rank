@@ -28,7 +28,7 @@ for N in 8 to 15
   T = ((R5 - R2) * Inv) mod M5
   Vals N = (R2 + M2 * T) mod Mod
 end
-Sum = (Vals (1 to 15) - 2) sum
+Sum' = (Vals (1 to 15) - 2) sum
 Answer = Sum mod Mod
 Answer print
 

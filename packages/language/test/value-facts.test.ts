@@ -410,10 +410,10 @@ it('keeps known record field facts and builtin record contracts', () => {
     expect(facts('(record\n  .count = 3\n  .name = "a"\nend) .count'))
         .toMatchObject({ types: ['integer'], rank: 0 });
     expect(facts('(record\n  .items = array 1 2\nend) .items'))
-        .toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
+        .toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
     expect(facts('((record\n  .count = 3\nend) with\n  .count += 2\nend) .count'))
-        .toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('(record\n  .count = 3\nend) .missing')).toEqual({ types: [] });
+        .toMatchObject({ types: ['integer'], rank: 0, shape: [], completion: 'ready' });
+    expect(facts('(record\n  .count = 3\nend) .missing')).toEqual({ types: [], completion: 'ready' });
     const bindings = new Map<string, ValueFacts>([['Graph', { types: ['graph'] }]]);
     expect(facts('(Graph 1 2 maxflow) .value', bindings)).toEqual({
         types: ['integer', 'real'], rank: 0, shape: [],
@@ -437,7 +437,7 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
     });
     expect(facts('new graph .directed')).toEqual({ types: ['graph'] });
     expect(facts('(Graph topological) .order', new Map([['Graph', graph]]))).toEqual({
-        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true, completion: 'ready',
     });
     const sorted = facts('Graph topological', new Map([['Graph', graph]]));
     expect(facts('Sorted .order 0', new Map([['Sorted', sorted]]))).toEqual({
@@ -447,19 +447,19 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
         types: ['integer'], rank: 0, shape: [], dim: expect.objectContaining({ constant: 0 }),
     });
     expect(facts('(Graph 1 bfs) .distance 1', new Map([['Graph', graph]]))).toEqual({
-        types: ['integer'], rank: 0, shape: [],
+        types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
     expect(facts('(Graph 1 bfs) .parent 2', new Map([['Graph', graph]]))).toEqual({
-        types: ['integer'], rank: 0, shape: [],
+        types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
     expect(facts('(Graph 1 root) .order', new Map([['Graph', graph]]))).toEqual({
-        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
+        types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true, completion: 'ready',
     });
     expect(facts('(Graph 1 root) .parent 2', new Map([['Graph', graph]]))).toEqual({
-        types: ['integer'], rank: 0, shape: [],
+        types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
     expect(facts('(Graph 1 root) .size 2', new Map([['Graph', graph]]))).toEqual({
-        types: ['integer'], rank: 0, shape: [],
+        types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
     const rooted = facts('Graph 1 root', new Map([['Graph', graph]]));
     expect(rooted.elements).toEqual(['integer']);
@@ -470,7 +470,7 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
     expect(facts('Rooted 2 3 lca', new Map([['Rooted', { types: ['record'] }]])))
         .toEqual({ types: [] });
     expect(facts('((Graph topological) with\n  .order = array "x"\nend) .order',
-        new Map([['Graph', graph]]))).toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
+        new Map([['Graph', graph]]))).toMatchObject({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
 });
 
 it('types a filled collection by its structure, not its operand', () => {
@@ -695,8 +695,25 @@ it('infers integer bitwise segment combines only for built-in operations', () =>
     }
 });
 
+it('proves integer conversions only for arrays with safe primitive cells', () => {
+    for (const elements of [['boolean'], ['text'], ['integer', 'real']] as const) {
+        const input: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: [...elements] };
+        expect(facts('Input integer', new Map([['Input', { ...input, eagerScalarCells: true }]])))
+            .toMatchObject({ elements: ['integer'], callbackFreeScalarCells: true });
+        expect(facts('Input integer', new Map([['Input', input]])).callbackFreeScalarCells).toBeUndefined();
+    }
+});
+
+it('limits native graph record completion proofs to closed graphs and safe arguments', () => {
+    const graph = facts('new graph (1 to 4) .directed');
+    expect(facts('Graph 1 bfs', new Map([['Graph', graph]])).completion).toBe('pure');
+    expect(facts('Graph Unknown bfs', new Map([['Graph', graph]])).completion).toBeUndefined();
+    expect(facts('Graph 1 bfs', new Map<string, ValueFacts>([['Graph', { types: ['graph'] }]]))
+        .completion).toBeUndefined();
+});
+
 it('starts each explicit index with a known empty value set', () => {
-    expect(facts('new index')).toEqual({ types: ['index'], elements: [] });
+    expect(facts('new index')).toEqual({ types: ['index'], elements: [], completion: 'ready' });
 });
 
 it('keeps integer cells through integer-only array arithmetic', () => {
@@ -1440,7 +1457,7 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     const cells = facts('array 1.0 .NA 3.0');
     expect(cells).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['real', 'missing'] });
     const env = new Map<string, ValueFacts>([['P', cells], ['N', facts('.NA')], ['R', facts('1.5')]]);
-    expect(facts('P default 0.0', env)).toEqual({ types: ['array'], rank: 1, shape: [3], elements: ['real'] });
+    expect(facts('P default 0.0', env)).toEqual({ types: ['array'], rank: 1, shape: [3], elements: ['real'], completion: 'pure' });
     expect(facts('P default false', env)).toMatchObject({ elements: ['real', 'boolean'] });
     expect(facts('P 1 default 0.0', env).types).toEqual(['real']);
     expect(facts('N + 1', env)).toEqual({ types: ['missing'], rank: 0, shape: [] });
@@ -1545,16 +1562,16 @@ it('gives each `many` command-line value one symbolic length', async () => {
     expect(provenSameShape(names.get('Xs')!, names.get('Ys')!)).toBe(false);
 });
 
-it('keeps declared stdin lengths across later reads', async () => {
+it('keeps declared stdin lengths across deferred read plans', async () => {
     const { provenSameShape } = await import('../src/analysis/value-domain.js');
     const names = bound([
         'use io',
         'N = stdin .integer',
-        'A = stdin .integer N array',
-        'B = stdin .integer N array',
-        'S = stdin .integer N',
-        'Total = A + B',
-        'Fixed = stdin .integer 3 array',
+        "A' = stdin .integer N array",
+        "B' = stdin .integer N array",
+        "S' = stdin .integer N",
+        "Total' = A + B",
+        "Fixed' = stdin .integer 3 array",
     ].join('\n') + '\n');
     expect(names.get('N')!.dim).toBeDefined();
     expect(provenSameShape(names.get('A')!, names.get('B')!)).toBe(true);
@@ -1661,6 +1678,13 @@ it('infers configured diagonal shapes without treating parameters as data', () =
     }
 });
 
+it('preserves native diagonal cell facts without proving opaque host reads safe', () => {
+    const input: ValueFacts = { types: ['array'], rank: 2, shape: [2, 2], elements: ['integer'] };
+    expect(facts('M diag', new Map([['M', { ...input, eagerScalarCells: true }]])))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'], callbackFreeScalarCells: true });
+    expect(facts('M diag', new Map([['M', input]])).callbackFreeScalarCells).toBeUndefined();
+});
+
 it('tracks absent endpoints separately from numeric infinity and slice boundaries', () => {
     const range = facts('2 to #');
     expect(range).toMatchObject({ types: ['sequence'], rank: 1, shape: [null],
@@ -1680,9 +1704,21 @@ it('tracks absent endpoints separately from numeric infinity and slice boundarie
 });
 
 
+it('keeps integer sums after a completed boolean mask of unknown length', () => {
+    const values = bound(`use numbers
+option Limit integer = 1000
+N = 1 till Limit
+Mask = N mod 3 equal 0
+Mask or= N mod 5 equal 0
+Answer = N Mask sum`);
+    expect(values.get('N')).toMatchObject({ types: ['array'], elements: ['integer'] });
+    expect(values.get('Mask')).toMatchObject({ types: ['array'], elements: ['boolean'] });
+    expect(values.get('Answer')?.types).toEqual(['integer']);
+});
+
 it('keeps infinite cardinality through scalar mapping but not filtering', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'use numbers\nuse sequences\nN = 1 to #\nMapped = N abs rank 0\nFiltered = N filter greater 5',
+        "use numbers\nuse sequences\nN' = 1 to #\nMapped' = N abs rank 0\nFiltered' = N filter greater 5",
     );
     expect(parsed.parserErrors).toEqual([]);
     const analysis = analyzeValues(parsed.value);

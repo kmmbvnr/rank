@@ -3,6 +3,9 @@ use testing
 test "fractional last value"
   use "343_fractional"
   2 lpf equal 2
+  4 lpf equal 2
+  9 lpf equal 3
+  49 lpf equal 7
   21 lpf equal 7
   Limit = 1
   run

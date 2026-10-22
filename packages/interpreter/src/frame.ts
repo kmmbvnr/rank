@@ -25,6 +25,7 @@ export class LocalFrame {
     private arrayElements: Map<string, ArrayBindingContract> | undefined;
     private records: Map<string, CollectionElementType> | undefined;
     private arrayRanks: Map<string, number> | undefined;
+    private protectedNames: Map<string, string> | undefined;
     // Set for the globals; see publish().
     private shared = false;
 
@@ -146,8 +147,16 @@ export class LocalFrame {
         }
     }
 
+    protectName(name: string, message: string): void {
+        const names = this.protectedNames ??= new Map();
+        if (!names.has(name)) names.set(name, message);
+    }
+
+    mutationError(name: string): string | undefined { return this.protectedNames?.get(name); }
+
     /** Forgets a name that ended with its block: its value and the types it accepted. */
     unset(name: string): void {
+        this.protectedNames?.delete(name);
         this.records?.delete(name);
         this.arrayRanks?.delete(name);
         this.arrayElements?.delete(name);
@@ -193,6 +202,8 @@ export class LocalFrame {
     /** Copies another frame's contracts, so a fork rejects what the original would. */
     adoptContracts(source: LocalFrame): void {
         for (const name of source.names()) {
+            const protection = source.mutationError(name);
+            if (protection) this.protectName(name, protection);
             const types = source.typeOf(name);
             if (types !== undefined) this.declareType(name, types);
             const record = source.records?.get(name);
@@ -212,6 +223,7 @@ export class LocalFrame {
         if (this.mappedValues) return false;
         this.slots.length = 0;
         this.slotTypes.length = 0;
+        this.protectedNames?.clear();
         this.records?.clear();
         this.arrayRanks?.clear();
         this.arrayElements?.clear();
@@ -240,6 +252,11 @@ export class LocalFrame {
             throw error;
         }
         noteBinding(value);
+    }
+
+    /** Validate a demanded value without publishing it over its plan. */
+    checkValue(name: string, value: RankValue): RankValue {
+        return this.checkBinding(name, value);
     }
 
     private checkBinding(name: string, value: RankValue): RankValue {

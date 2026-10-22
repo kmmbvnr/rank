@@ -10,8 +10,8 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/010_union.csv"
 
 Db = DbPath sqlite
-M = Db .members select .surname
-F = Db .facilities select
+M' = Db .members select .surname
+F' = Db .facilities select
   .surname = .name
 end
 All = new queue

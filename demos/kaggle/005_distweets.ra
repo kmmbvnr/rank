@@ -46,7 +46,7 @@ fun Texts Vocab term_counts
     (Positions Term) push Column
   end
   for Text Row in Texts
-    Words = Text words
+    Words' = Text words
     for Word in Words
       if Word in Positions
         for Column in Positions Word
@@ -63,11 +63,11 @@ rem Fit smoothed inverse document frequencies on Train only.
 fun Texts Vocab tfidf_fit
   Counts = Texts Vocab term_counts
   Documents = Texts len
-  Present = (Counts greater 0.0) 1.0 0.0 choose
-  Frequency = Present sum axis 0
+  Present' = (Counts greater 0.0) 1.0 0.0 choose
+  Frequency' = Present sum axis 0
   TotalDocs = (Documents real) + 1.0
-  FreqSmoothed = Frequency + 1.0
-  Idf = TotalDocs / FreqSmoothed log + 1.0
+  FreqSmoothed' = Frequency + 1.0
+  Idf' = TotalDocs / FreqSmoothed log + 1.0
   return record
     .vocab = Vocab
     .idf = Idf

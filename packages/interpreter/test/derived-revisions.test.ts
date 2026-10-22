@@ -1,17 +1,15 @@
 import { Interpreter } from '../src/index.js';
 import { describe, expect, it } from 'vitest';
-import { createArraySnapshot, derivedArray, materializedArrayItems, ownedArray } from '../src/array-storage.js';
+import { arrayRevision, createArraySnapshot, derivedArray, materializedArrayItems, ownedArray } from '../src/array-storage.js';
 import type { RankArray, RankPlainArray } from '../src/value.js';
 
-describe('derived array revisions', () => {
-    it('tracks materialized sequences through cached outer products', () => {
+describe('native array reads and dependency revisions', () => {
+    it('recomputes native outer-product cells without retaining reads', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute(`A = (1 to 3) array
-B = A A outer +`);
+            runtime.execute('A = (1 to 3) array');
             const source = runtime.variables.get('A') as RankArray;
-            const result = runtime.variables.get('B') as RankArray;
-            result.items; // Settle the binding contract before measuring dependent cache reads.
+            const result = runtime.execute('A A outer +') as RankArray;
             let reads = 0;
             const observed = derivedArray([9], [result], i => {
                 reads++;
@@ -19,19 +17,17 @@ B = A A outer +`);
             });
             expect(observed.items).toEqual([2n, 3n, 4n, 3n, 4n, 5n, 4n, 5n, 6n]);
             expect(observed.itemAt!(0)).toBe(2n);
-            expect(reads).toBe(9);
-            source.items[0] = 10n;
-            expect(reads).toBe(9);
-            expect(observed.itemAt!(0)).toBe(20n);
             expect(reads).toBe(10);
+            source.items[0] = 10n;
+            expect(reads).toBe(10);
+            expect(observed.itemAt!(0)).toBe(20n);
+            expect(reads).toBe(11);
             expect(observed.itemAt!(1)).toBe(12n);
         } finally { runtime.dispose(); }
     });
 
-    // Retaining B freezes A, so the loop writes storage of its own. Batching a
-    // compiled region's writes is safe for exactly that reason: nothing a name
-    // still holds can read the cells it changes.
-    it('keeps a compiled loop away from a retained lazy dependent', () => {
+    // Ordinary binding stores B independently before the loop mutates A.
+    it('keeps a compiled loop away from a stored result', () => {
         let loops = 0;
         const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => { loops++; } });
         try {
@@ -82,13 +78,15 @@ end`)).toThrow('division by zero');
         const source = ownedArray([1n]);
         const result = derivedArray([1], [source], () => source.items[0]);
         expect(result.itemAt!(0)).toBe(1n);
+        const revision = arrayRevision(result)!;
         source.items[0] = 9n;
         const temporary = ownedArray([0n]);
         for (let i = 0; i < 2048; i++) temporary.items[0] = BigInt(i);
         expect(result.itemAt!(0)).toBe(9n);
+        expect(arrayRevision(result)).toBeGreaterThan(revision);
     });
 
-    it('reuses shared dependencies in deep expression DAGs', () => {
+    it('retains dependency evidence through deep expression DAGs', () => {
         const source = createArraySnapshot([1n]);
         let result = source;
         let reads = 0;
@@ -119,11 +117,8 @@ end`)).toThrow('division by zero');
         try {
             const source = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
             runtime.variables.set('A', source);
-            runtime.execute(`use numbers
-use sequences
-use linalg
-Result = ${expression}`);
-            const result = runtime.variables.get('Result') as RankArray;
+            runtime.execute('use numbers\nuse sequences\nuse linalg');
+            const result = runtime.execute(expression) as RankArray;
             expect(result.items).toEqual(before);
             source.items[0] = 5n;
             expect(result.items).toEqual(after);
@@ -136,10 +131,8 @@ Result = ${expression}`);
         try {
             const source = createArraySnapshot([1n, 2n, 3n]);
             runtime.variables.set('A', source);
-            runtime.execute(`use sequences
-W = A window 2
-Result = W * 2`);
-            const result = runtime.variables.get('Result') as RankArray;
+            runtime.execute("use sequences\nW' = A window 2");
+            const result = runtime.execute('W * 2') as RankArray;
             expect(result.items).toEqual([2n, 4n, 4n, 6n]);
             source.items[1] = 5n;
             expect(result.items).toEqual([2n, 10n, 10n, 6n]);
@@ -162,7 +155,7 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('invalidates indexed and materialized caches transitively', () => {
+    it('recomputes indexed and whole native reads transitively', () => {
         const source = createArraySnapshot([2n, 3n]);
         let reads = 0;
         const doubled = derivedArray([2], [source], i => {
@@ -172,16 +165,16 @@ end`);
         const shifted = derivedArray([2], [doubled], i => (doubled.itemAt!(i) as bigint) + 1n);
         expect(shifted.items).toEqual([5n, 7n]);
         expect(shifted.itemAt!(0)).toBe(5n);
-        expect(reads).toBe(2);
+        expect(reads).toBe(3);
         source.items[0] = 10n;
-        expect(reads).toBe(2);
+        expect(reads).toBe(3);
         expect(materializedArrayItems(shifted)).toBeUndefined();
-        expect(reads).toBe(2);
+        expect(reads).toBe(3);
         expect(shifted.items).toEqual([21n, 7n]);
-        expect(reads).toBe(4);
+        expect(reads).toBe(5);
     });
 
-    it('does not invalidate a result after an unrelated array write', () => {
+    it('does not turn stable dependencies into retained results', () => {
         const source = createArraySnapshot([2n]);
         const other = createArraySnapshot([0n]);
         let reads = 0;
@@ -189,7 +182,7 @@ end`);
         expect(result.itemAt!(0)).toBe(2n);
         other.items[0] = 1n;
         expect(result.itemAt!(0)).toBe(2n);
-        expect(reads).toBe(1);
+        expect(reads).toBe(2);
     });
 
     it('keeps untracked host aliases live without publishing a persistent cache', () => {
@@ -203,10 +196,9 @@ end`);
         expect(materializedArrayItems(result)).toBeUndefined();
     });
 
-    // Each reader here reads the one below it twice, so without a cache the
-    // chain costs two to the power of its depth. The host cannot write between
-    // the cells of one materialization, which is what lets the cells be kept.
-    it('reads an untracked chain once per cell rather than once per path', () => {
+    // Repeated native reads deliberately recompute. Programs that reuse costly
+    // intermediates retain them at ordinary binding boundaries.
+    it('recomputes each path of an unretained native chain', () => {
         const source: RankPlainArray = { kind: 'array', items: [1n, 2n], shape: [2] };
         let reads = 0;
         let below: RankArray = source;
@@ -219,7 +211,7 @@ end`);
             });
         }
         expect(below.items).toEqual([4096n, 8192n]);
-        expect(reads).toBe(24);
+        expect(reads).toBe(8190);
         // A write the host makes between two stretches of work is still seen.
         source.items[0] = 2n;
         expect(below.items).toEqual([8192n, 8192n]);

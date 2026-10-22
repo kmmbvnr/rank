@@ -240,7 +240,7 @@ it('proves numeric full reductions without invoking lazy cells', () => {
     expect(analyze(source, 'helper', [], [{ ...numeric, callbackFreeScalarCells: undefined }]).unknown).toBe(true);
 });
 
-it('summarizes guarded scalar numeric operations in the unchanged sigmoid demo', () => {
+it('summarizes guarded scalar numeric operations in the sigmoid demo', () => {
     const source = readFileSync(new URL('../../../demos/deepml/022_sigmoid.ra', import.meta.url), 'utf8');
     const scalar: ValueFacts = { types: ['real'], rank: 0, shape: [] };
     const vector: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
@@ -251,7 +251,7 @@ it('summarizes guarded scalar numeric operations in the unchanged sigmoid demo',
     expect(analyze(source, 'sigmoid', [], [{ types: [] }]).unknown).toBe(true);
 });
 
-it('summarizes the unchanged recall demo only with callback-free array cells', () => {
+it('summarizes the recall demo only with callback-free array cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/052_recall.ra', import.meta.url), 'utf8');
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
         eagerScalarCells: true };
@@ -282,7 +282,7 @@ it('summarizes the unchanged CSES sum-and-max reader only for safe cells', () =>
     expect(analyze(source, 'minimum_reading_time', ['sum'], [input]).unknown).toBe(true);
 });
 
-it('summarizes the unchanged softmax pipeline only with callback-free numeric cells', () => {
+it('summarizes the softmax pipeline only with callback-free numeric cells', () => {
     const source = readFileSync(new URL('../../../demos/deepml/023_softmax.ra', import.meta.url), 'utf8');
     const input: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'],
         eagerScalarCells: true };
@@ -291,7 +291,7 @@ it('summarizes the unchanged softmax pipeline only with callback-free numeric ce
     expect(analyze(source, 'softmax', ['exp'], [input]).unknown).toBe(true);
 });
 
-it('summarizes the unchanged normal-equation pipeline for callback-free numeric arrays', () => {
+it('summarizes the normal-equation pipeline for callback-free numeric arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/014_linreg.ra', import.meta.url), 'utf8');
     const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'],
         eagerScalarCells: true };

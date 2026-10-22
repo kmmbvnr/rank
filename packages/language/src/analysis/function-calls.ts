@@ -1,5 +1,6 @@
 import { functionCallSignature } from '../function-call-signature.js';
 import { expressionFacts } from './value-facts.js';
+import { completedValueFacts } from './completion-facts.js';
 import { declaredRanks } from '../function-ranks.js';
 import { rankedFunctionFacts } from './ranked-function-facts.js';
 import { functionRelationship, instantiateRelationship, type FunctionRelationship } from './function-relationships.js';
@@ -181,6 +182,10 @@ export function createCallAnalysis(
                     }
                 }
                 arguments_ = bound;
+            }
+            if (!target.ranks.length || cellCall) {
+                arguments_ = arguments_.map((value, index) => declared.parameters[index]?.deferred
+                    ? value : completedValueFacts(value));
             }
         }
         if (external && caller.get(name) === external.binding

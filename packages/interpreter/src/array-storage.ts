@@ -7,18 +7,18 @@ export {
     maskedNumericCells, hasMaskedCells, prepareScalarArrayWriter,
 } from './owned-array.js';
 export {
-    eagerArrayStorage, registerCachedArray, materializedArrayItems, copyMaterializedArrayItems,
-    registerArrayReadPlan, prepareArrayRead, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
+    eagerArrayStorage, materializedArrayItems, storedArrayValues, copyMaterializedArrayItems,
+    registerArrayReadPlan, prepareArrayRead, arrayCells, arrayCellValues, arrayFrameAxes, arrayValueTraversal, arrayValues, collectArrayValues, collectArrayCells, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
     materializeCells, readCellOrMissing, borrowArrayStorage, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader,
     readArrayItem, readArrayShape, registerArrayCellEvaluation, evaluateArrayItem,
 } from './array-read.js';
+export type { ArrayCells } from './array-read.js';
 export { validityWords, allPresent, isPresentAt, allValid } from './array-validity.js';
 export {
     retainSelectionSnapshot, holdArraySource, noteArrayBinding, noteArrayBorrow, isSharedArray, hasPendingSelections,
     privateArrayCopy, arrayForWrite,
 } from './array-ownership.js';
 export {
-    arrayRevision, ownedObject, arrayDependencyNode, registerArrayDependencies,
+    arrayRevision, arrayResourceValues, ownedObject, arrayDependencyNode, registerArrayDependencies,
 } from './array-revision.js';
 export { arrayCellValidator, derivedArray } from './derived-array.js';
-export { enterRuntime, leaveRuntime } from './array-storage-state.js';

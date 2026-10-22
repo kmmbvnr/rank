@@ -68,7 +68,7 @@ Q mask`;
             runtime.variables.set('Host', { kind: 'array', shape: [2], get items(): RankValue[] { throw Error('forced'); },
                 itemAt: index => { reads++; return BigInt(index + 1); } });
             const diagnostics = new RuntimeDiagnostics();
-            const result = diagnostics.run(() => runtime.execute(source.replace('Q = array 1 3', 'Q = Host')));
+            const result = diagnostics.run(() => runtime.execute(source.replace('fun Q mask', "fun Q' mask").replace('Q = array 1 3', "Q' = Host")));
             outputs.push({ result: formatValue(result!), reads });
             expect(diagnostics.compiledArrayFunctions).toBe(0);
         }
@@ -124,8 +124,8 @@ R reshape 8`;
     it('keeps the creation-time capture snapshot across prepared reads', () => {
         const runtime = new Interpreter(() => {});
         runtime.execute(source.slice(0, source.lastIndexOf('Q mask')));
-        runtime.execute('M = (array 1 3 1 3 1 3) reshape 3 2\nM = M copy\nR = M mask rank 1');
-        const value = runtime.variables.get('R')!;
+        runtime.execute('M = (array 1 3 1 3 1 3) reshape 3 2\nM = M copy');
+        const value = runtime.execute('M mask rank 1')!;
         expect(isRankArray(value)).toBe(true);
         if (!isRankArray(value)) return;
         expect(value.shape).toEqual([3, 6]);
@@ -167,9 +167,9 @@ R reshape ${size}`);
         runtime.execute(source.slice(0, source.lastIndexOf('Q mask')));
         const input = createArraySnapshot([1n, 3n, 1n, 3n, 1n, 3n], [3, 2]);
         runtime.variables.set('Input', input);
-        runtime.execute('R = Input mask rank 1');
-        const value = runtime.variables.get('R')!;
+        const value = runtime.execute('Input mask rank 1')!;
         if (!isRankArray(value)) throw Error('expected ranked mask');
+        expect(value.shape).toEqual([3, 6]);
         const read = prepareArrayRead(value)!;
         expect(read).toBeTypeOf('function');
         read(6);

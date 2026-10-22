@@ -54,7 +54,10 @@ not interchangeable with a wider one. Empty cell contracts may still be refined.
 These checks apply through aliases and function calls. Failed validation does not
 install a partial replacement contract.
 
-Checking array cells can evaluate lazy callbacks. Absent table cells contribute
+Record construction and field writes complete plans recursively before storing
+their results. An ordinary record binding also completes any nested plans it
+receives. A deferred expression can postpone construction, but field syntax
+does not provide an independent apostrophe binding. Absent table cells contribute
 no type. Callback side effects are not rolled back when validation fails.
 Static analysis preserves proven field types and ranks but drops mutable axis
 lengths and read-safety facts; runtime checks cover cases it cannot prove.
@@ -62,11 +65,14 @@ lengths and read-safety facts; runtime checks cover cases it cannot prove.
 ### 4. Reference Identity Semantics (ADR-0101 Exception)
 Records are part of the deliberate, closed list of reference types (ADR-0101):
 - Assignment (`B = Node`) and argument passing share the record instance.
-- Mutations through one name are immediately visible through all aliases:
+- Before capture, mutations through one name are immediately visible through all aliases:
   ```rank
   Node .parent .grad += Change
   ```
-  This is critical for autograd graphs, Disjoint-Set Union (DSU), and tree representations.
+  This supports autograd graphs, Disjoint-Set Union (DSU), and trees. Once a
+  deferred binding or parameter captures a record, writes through all aliases
+  are rejected, including nested references. Use a fresh `with` record for
+  changed fields; rebinding a name does not change a plan's captured instance.
 
 ### 5. Functional Update with a `with` Block
 Because records share identity, deriving a new state from an old one (search nodes, game states, simulations) must not mutate the original. A `with` block makes a shallow copy and changes only the listed fields:
@@ -111,7 +117,7 @@ and array lengths do not. See [ADR-0302](0302-function-declarations-closures-and
 
 ### Negative & Trade-offs
 * **Mutable reference discipline:** Because records share state, developers must exercise care when mutating records stored in sets or memoization caches.
-* **Validation cost:** Establishing and checking array field contracts reads their cells, including lazy cells. Work grows with the values inspected.
+* **Validation cost:** Completing field values and checking their contracts can evaluate planned cells. Work grows with the values inspected.
 
 ## References
 * Section "Record types" in [docs/language/lexical-syntax.md](../../language/lexical-syntax.md)

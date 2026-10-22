@@ -9,8 +9,8 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/007_case.csv"
 
 Db = DbPath sqlite
-R = Db .facilities
-Result = R select
+R' = Db .facilities
+Result' = R select
   High = .monthlymaintenance greater 100
   .name = .name
   .cost = High "expensive" "cheap" choose

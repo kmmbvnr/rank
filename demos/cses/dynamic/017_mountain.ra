@@ -5,12 +5,12 @@ use algo
 use io
 
 N = stdin .integer
-Heights = stdin .integer N array
+Heights' = stdin .integer N
 Heights mountain_route print
 
 
 rem Collapse valleys into a stack.
-fun Heights mountain_route
+fun Heights' mountain_route
   Mountains = new stack
 
   fun Height Mountains add_height

@@ -6,9 +6,9 @@ use numbers
 
 fun Inputs H Wx Wh Bias rnn_forward
   for X in Inputs
-    FromInput = Wx X matmul
-    FromHidden = Wh H matmul
-    H = FromInput + FromHidden + Bias
+    FromInput' = Wx X matmul
+    FromHidden' = Wh H matmul
+    H' = FromInput + FromHidden + Bias
     H = H tanh
   end
 

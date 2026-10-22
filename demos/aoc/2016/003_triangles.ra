@@ -34,9 +34,9 @@ end
 rem Count the triangles whose sides lie along axis 1 of the data.
 rem A triangle is valid when the longest side is shorter than the other two.
 fun Data triangles
-  Total = Data sum axis 1
-  Longest = Data max axis 1
-  Twice = 2 * Longest
-  Valid = Total greater Twice
+  Total' = Data sum axis 1
+  Longest' = Data max axis 1
+  Twice' = 2 * Longest
+  Valid' = Total greater Twice
   return Valid count
 end

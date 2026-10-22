@@ -1,3 +1,4 @@
+import { checkValueMutable } from './value-protection.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
 import { setValueKey } from './set.js';
@@ -22,6 +23,7 @@ export class RankDsu {
     get components(): bigint { return BigInt(this.componentCount); }
 
     add(value: RankValue): void {
+        checkValueMutable(this);
         const key = dsuKey(value);
         if (this.values.has(key)) return;
         this.values.set(key, value);
@@ -36,6 +38,7 @@ export class RankDsu {
     }
 
     merge(left: RankValue, right: RankValue): boolean {
+        checkValueMutable(this);
         let a = this.root(this.require(left));
         let b = this.root(this.require(right));
         if (a === b) return false;

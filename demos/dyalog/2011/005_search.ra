@@ -22,7 +22,7 @@ end
 
 fun Dict Text dictCount rank 1 0
   Words = Text tokenize
-  Matches = Dict Words outer equal
+  Matches' = Dict Words outer equal
   return Matches count axis 1
 end
 
@@ -43,9 +43,9 @@ fun Titles Query seek
   rem Positive overlap also excludes tokenless titles before cosine.
   Hits = (TitleVecs QueryVec matmul) greater 0
   HitTitles = Titles Hits array
-  HitVecs = TitleVecs axis 0 Hits
-  HitScores = HitVecs QueryVec cosine rank 1 1
-  Order = HitScores argsort .descending
+  HitVecs' = TitleVecs axis 0 Hits
+  HitScores' = HitVecs QueryVec cosine rank 1 1
+  Order' = HitScores argsort .descending
   Best = Order take 10
   return HitTitles Best
 end

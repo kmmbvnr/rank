@@ -17,9 +17,9 @@ rem the root of Limit suffices.
 Top = Limit isqrt
 Ps = primes take Top array
 N = 1 to Top array
-Odd = N mod 2 equal 1
-Big = 2 * N * Ps mod (Ps * Ps)
-R = Odd choose Big 2
-Hit = R greater Limit
+Odd' = N mod 2 equal 1
+Big' = 2 * N * Ps mod (Ps * Ps)
+R' = Odd choose Big 2
+Hit' = R greater Limit
 Answer = (N Hit) first
 Answer print

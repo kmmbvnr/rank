@@ -3,6 +3,7 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { MISSING, type RankArray } from '../src/value.js';
 import { LocalFrame } from '../src/frame.js';
 import { ownedArray, readArrayItem, typedArray } from '../src/array-storage.js';
+import { demandValue } from '../src/plan.js';
 
 for (const compiled of [true, false]) describe(`array binding contracts (compiled ${compiled})`, () => {
     const runtime = () => new Interpreter(() => {}, { integerLoopCompilation: compiled, scalarCompilation: compiled,
@@ -13,7 +14,7 @@ for (const compiled of [true, false]) describe(`array binding contracts (compile
         let reads = 0;
         r.variables.set('Source', { kind: 'array', shape: [2], items: [],
             itemAt: () => { reads++; return current; } });
-        r.execute('A = Source');
+        r.execute("A' = Source");
         const before = reads;
         expect(r.execute('A 0')).toBe(initial);
         expect(r.execute('A 1')).toBe(initial);
@@ -86,9 +87,9 @@ it('validates lazy cells at observation without reading ahead', () => {
     const lazy: RankArray = { kind: 'array', shape: [2], items: [],
         itemAt: i => { reads++; return i ? 'bad' : 1n; } };
     r.variables.set('Lazy', lazy);
-    r.execute('A = array 1\nA = Lazy');
+    r.execute("A = array 1\nA' = Lazy");
     expect(reads).toBe(0);
-    const a = r.variables.get('A') as RankArray;
+    const a = demandValue(r.variables.get('A')!) as RankArray;
     expect(readArrayItem(a, 0)).toBe(1n);
     expect(() => readArrayItem(a, 1)).toThrow(/array elements/);
     expect(reads).toBe(2);

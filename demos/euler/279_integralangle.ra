@@ -38,9 +38,9 @@ for M in 2 to Top
     Ns = 1 to Hi array
     Co = Ns M gcd equal 1
     Odd = (M - Ns) mod 2 equal 1
-    P = 2 * M * (M + Ns)
+    P' = 2 * M * (M + Ns)
     Ok = Co and Odd
-    Pk = P filter Ok array
+    Pk = P filter Ok
     Total += (Limit // Pk) sum
   end
   Disc = (M * M + 12 * Limit) isqrt
@@ -53,7 +53,7 @@ for M in 2 to Top
     Div = 1 + 2 * (By3 choose 1 0)
     Q = (2 * M + Ns) * (M + Ns) // Div
     Ok = Co and (Q at most Limit)
-    Qk = Q filter Ok array
+    Qk = Q filter Ok
     Twice += (Limit // Qk) sum
   end
 end
@@ -68,7 +68,7 @@ for N in 1 to Top
     Div = 1 + 2 * (By3 choose 1 0)
     P = (2 * Ms - N) * (Ms + N) // Div
     Ok = Co and (P at most Limit)
-    Pk = P filter Ok array
+    Pk = P filter Ok
     Total += (Limit // Pk) sum
   end
 end

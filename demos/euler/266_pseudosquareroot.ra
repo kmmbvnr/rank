@@ -33,18 +33,18 @@ end
 Sa = A sort
 NA = Sa len
 Cut = Root // B
-Keys = concat (Sa * 2) (Cut * 2 + 1)
-Mark = concat (Sa - Sa) (Cut - Cut + 1)
+Keys' = concat (Sa * 2) (Cut * 2 + 1)
+Mark' = concat (Sa - Sa) (Cut - Cut + 1)
 Ord = Keys argsort
 Tag = Mark Ord
-Before = (1 - Tag) scan +
+Before' = (1 - Tag) scan +
 Asked = Tag equal 1
-Where = (Before filter Asked array) - 1
-Which = (Ord filter Asked array) - NA
+Where = (Before filter Asked) - 1
+Which' = (Ord filter Asked) - NA
 Ok = Where at least 0
-Pick = Sa (Where filter Ok array)
-Mate = B (Which filter Ok array)
-Prod = Pick * Mate
+Pick' = Sa (Where filter Ok array)
+Mate' = B (Which filter Ok array)
+Prod' = Pick * Mate
 Best = Prod max
 Answer = Best mod 10000000000000000
 Answer print

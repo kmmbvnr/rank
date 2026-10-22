@@ -33,7 +33,7 @@ end
 fun Prime has_eight_prime_family
   Digits = Prime text integer rank 0
   Last = Digits len - 1
-  Places = 0 till Last
+  Places' = 0 till Last
 
   for Digit in 0 to 2
     Same = (Digits Places equal Digit) indices
@@ -62,9 +62,9 @@ fun Prime Pick replacement_family
     Weight += 10 ** (Width - Place - 1)
   end
 
-  Replacements = 0 to 9
+  Replacements' = 0 to 9
   if 0 in Pick
-    Replacements = 1 to 9
+    Replacements' = 1 to 9
   end
 
   return Prime + (Replacements - Digit) * Weight

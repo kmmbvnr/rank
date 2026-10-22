@@ -9,15 +9,15 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_004.csv"
 
 Db = DbPath sqlite
-M = Db .members alias .m
-R = Db .members alias .r
-J = M R leftjoin on
+M' = Db .members alias .m
+R' = Db .members alias .r
+J' = M R leftjoin on
   .recommendedby equal .memid
-Out = J select
+Out' = J select
   .memfname = .m .firstname
   .memsname = .m .surname
   .recfname = .r .firstname
   .recsname = .r .surname
 end
-Result = Out sort by .memsname .memfname
+Result' = Out sort by .memsname .memfname
 Result OutputPath csv

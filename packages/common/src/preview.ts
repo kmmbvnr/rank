@@ -1,5 +1,5 @@
 import {
-    DemandBudgetExhausted, withDemandBudget, formatValue, isRankArray, isRankSequence, isRankSequenceMask,
+    DemandBudgetExhausted, checkpoint, withDemandBudget, demandValue, isRankPlan, formatValue, isRankArray, isRankSequence, isRankSequenceMask,
     type RankArray, type RankValue,
 } from '@arrrank/interpreter';
 
@@ -16,8 +16,8 @@ export const PREVIEW_TEXT = 200;
 export const SCAN_LIMIT = 100_000;
 
 /**
- * How many source items a preview of unknown size reads in search of the few
- * it shows. A selection may never find another item, and nothing can prove it.
+ * Cooperative work allowed for a preview, including computation before the
+ * next value is produced. Nested observations share this allowance.
  */
 export const DEMAND_LIMIT = 10_000;
 
@@ -42,6 +42,15 @@ const DOTS = '...';
  * are scanned up to SCAN_LIMIT to retain both ends.
  */
 export function preview(value: RankValue, width = Infinity): Preview {
+    try { return withDemandBudget(DEMAND_LIMIT, () => previewValue(value, width)); }
+    catch (error) {
+        if (error instanceof DemandBudgetExhausted) return { text: DOTS, note: 'preview demand budget exhausted' };
+        throw error;
+    }
+}
+
+function previewValue(value: RankValue, width: number): Preview {
+    if (isRankPlan(value)) return previewValue(demandValue(value), width);
     if (typeof value === 'string') return textPreview([...value], value, width);
     if (isRankArray(value) && value.kind === 'array') return arrayPreview(value, width);
     if (typeof value === 'object' && value.kind === 'queue') {
@@ -124,20 +133,26 @@ function sequencePreview(
         const line = fit(head.items, [], width, !head.whole);
         return {
             text: line.text,
-            note: head.whole ? (line.cut ? `${head.items.length} values` : '')
+            note: head.exhausted ? 'preview demand budget exhausted'
+                : head.whole ? (line.cut ? `${head.items.length} values` : '')
                 : plan.size.kind === 'infinite' ? 'unbounded' : 'size unknown',
         };
     }
-    const { head, tail, count, whole } = scan(plan, map);
-    const shown = head.map(item => formatValue(item));
+    const { head: shown, tail, count, whole, exhausted } = scan(plan, map);
+    if (exhausted) return { text: fit(shown, [], width, true).text, note: 'preview demand budget exhausted' };
+    const ending: string[] = [];
+    try { for (const item of tail) ending.push(formatValue(item)); }
+    catch (error) {
+        if (error instanceof DemandBudgetExhausted) return { text: fit(shown, [], width, true).text, note: 'preview demand budget exhausted' };
+        throw error;
+    }
     if (whole && count <= PREVIEW_ITEMS) {
-        const line = fit([...shown, ...tail.map(item => formatValue(item))], [], width, false);
+        const line = fit([...shown, ...ending], [], width, false);
         return { text: line.text, note: line.cut ? `${count} values` : '' };
     }
     if (!whole) {
         return { text: fit(shown, [], width, true).text, note: `over ${SCAN_LIMIT} values` };
     }
-    const ending = tail.map(item => formatValue(item));
     return { text: fit(shown, ending, width, true).text, note: `${count} values` };
 }
 
@@ -149,18 +164,24 @@ function sequencePreview(
 function scan(
     plan: { iterate(): IterableIterator<RankValue> },
     map: (item: RankValue) => RankValue,
-): { head: RankValue[]; tail: RankValue[]; count: number; whole: boolean } {
-    const head: RankValue[] = [];
+): { head: string[]; tail: RankValue[]; count: number; whole: boolean; exhausted?: boolean } {
+    const head: string[] = [];
     const ring: RankValue[] = [];
     let count = 0;
-    for (const item of plan.iterate()) {
-        count += 1;
-        if (count > SCAN_LIMIT) return { head, tail: [], count, whole: false };
-        if (head.length < edge()) head.push(map(item));
-        else {
-            ring.push(map(item));
-            if (ring.length > edge()) ring.shift();
+    try {
+        for (const item of plan.iterate()) {
+            checkpoint('previewing sequence');
+            count += 1;
+            if (count > SCAN_LIMIT) return { head, tail: [], count, whole: false };
+            if (head.length < edge()) head.push(formatValue(map(item)));
+            else {
+                ring.push(map(item));
+                if (ring.length > edge()) ring.shift();
+            }
         }
+    } catch (error) {
+        if (error instanceof DemandBudgetExhausted) return { head, tail: [], count, whole: false, exhausted: true };
+        throw error;
     }
     return { head, tail: ring, count, whole: true };
 }
@@ -169,11 +190,12 @@ function take(
     plan: { iterate(): IterableIterator<RankValue> },
     map: (item: RankValue) => RankValue,
     count: number,
-): { items: string[]; whole: boolean } {
+): { items: string[]; whole: boolean; exhausted?: boolean } {
     const shown: string[] = [];
     try {
         return withDemandBudget(DEMAND_LIMIT, () => {
             for (const item of plan.iterate()) {
+                checkpoint('previewing sequence');
                 shown.push(formatValue(map(item)));
                 if (shown.length >= count) return { items: shown, whole: false };
             }
@@ -181,7 +203,7 @@ function take(
         });
     } catch (error) {
         // Not proven empty from here on, only not worth waiting for.
-        if (error instanceof DemandBudgetExhausted) return { items: shown, whole: false };
+        if (error instanceof DemandBudgetExhausted) return { items: shown, whole: false, exhausted: true };
         throw error;
     }
 }

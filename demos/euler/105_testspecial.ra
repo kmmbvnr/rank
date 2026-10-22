@@ -27,12 +27,12 @@ for Line in Input readlines
   Places = 0 till Size array
   Rows = Subsets reshape Count 1
   Cols = Places reshape 1 Size
-  Bits = Rows Cols bit integer
-  Sums = Bits Items matmul
+  Bits' = Rows Cols bit integer
+  Sums' = Bits Items matmul
   Half = (Size - 1) // 2
   Ks = 1 to Half array
   Small = (Items scan +) Ks
-  Back = Items reverse
+  Back' = Items reverse
   Big = (Back scan +) (Ks - 1)
   Apart = Sums unique len equal Count
   Heavy = (Small greater Big) all

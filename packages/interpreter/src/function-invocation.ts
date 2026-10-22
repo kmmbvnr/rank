@@ -1,3 +1,4 @@
+import { materializeArguments } from './materialize.js';
 import {
     functionArgumentBinder, functionReturnSpecializations, memoizedFunctionBody, memoCallKey,
 } from './function-definition.js';
@@ -12,10 +13,10 @@ import {
     writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan,
     groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects,
     isReturnStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
-    type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
+    type KnownShape, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
-import { isFlatScalarArray, arrayRevision, enterRuntime, leaveRuntime } from './array-storage.js';
+import { arrayRevision } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import type { CompiledBlock } from './block-compiler.js';
@@ -45,13 +46,14 @@ import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
-    MISSING, isNativeFunction, isRankArray, isRankDate, isRankLabel, type NativeFunction, type RankArray,
+    isNativeFunction, isRankArray, type NativeFunction, type RankArray,
     type RankFile, type RankSequence, type RankValue,
 } from './value.js';
 
 /** A user function as its call sites see it. `owner` tells this interpreter's functions from a module child's. */
 export interface FunctionDefinition {
     readonly specialization: (arguments_: RankValue[]) => ReturnContract;
+    readonly bindParameters: (arguments_: RankValue[]) => RankValue[];
     readonly owner: FunctionInvocation;
     readonly statement: FunctionStatement;
     readonly context: LocalFrame | undefined;
@@ -61,6 +63,7 @@ export interface FunctionDefinition {
 /** What defining and running a function body needs from execution and the fast-path owner. */
 export interface FunctionHost {
     resolve(name: string): RankValue;
+    evaluateReturn(expression: Expression): Evaluation<RankValue>;
     apply(fn: NativeFunction, arguments_: RankValue[]): Evaluation<RankValue>;
     readonly inputs?: Pick<CheckedInputContracts, 'pending' | 'call' | 'tail'>;
     /** A synchronous closure for an expression that cannot call Rank code, when one exists. */
@@ -154,7 +157,8 @@ export class FunctionInvocation {
     transferTailCall(fn: NativeFunction, arguments_: RankValue[]): boolean {
         const definition = functionDefinitions.get(fn);
         if (definition?.owner !== this) return false;
-        const transfer = new TailCallSignal(definition, arguments_, undefined, this.host.inputs?.pending);
+        const bound = definition.bindParameters(arguments_);
+        const transfer = new TailCallSignal(definition, bound, undefined, this.host.inputs?.pending);
         if (!this.control) throw transfer;
         this.control.returned = true;
         this.control.tail = transfer;
@@ -226,6 +230,11 @@ export class FunctionInvocation {
                 return definition && this.userResultCellShape(definition, context, new Map(), [left, right]);
             },
             captures: this.bindings.current?.captures(),
+            captureValues: () => plain ? this.bindings.withFrame(context, () => stages!.map(stage => {
+                const head = stage[0];
+                if (!isNameExpression(head)) throw new RankError('Pipeline stage must name a function');
+                return resolve(head.name);
+            })) : alternatives.values(),
             call: args => {
                 if (plain) return this.bindings.withFrame(context, () => {
                     let operands = args;
@@ -254,6 +263,7 @@ export class FunctionInvocation {
             const frozen: NativeFunction = {
                 ...fn,
                 snapshot: () => frozen,
+                captureValues: () => operations,
                 lazySafe: () => operations.every(isPureLazyFunction),
                 call: args => {
                     if (plain) {
@@ -301,15 +311,22 @@ export class FunctionInvocation {
             const value = this.bindings.withFrame(context, () => this.host.resolve(binding.name));
             if (value === undefined) throw new RankError(`snapshot dependency ${binding.name} is not initialized`, 'Scope');
             if (isNativeFunction(value)) frame.set(binding.name, this.snapshot(value, seen));
-            else {
-                if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)
-                    && value !== MISSING && !isFlatScalarArray(value)) {
-                    throw new RankError(`snapshot capture ${binding.name} does not support value snapshots; pass explicit data or materialize it first`, 'Scope');
-                }
-                frame.set(binding.name, value);
-            }
+            // The snapshot retains the value/version. Explicit plan capture
+            // separately protects shared mutable storage; arrays keep CoW.
+            else frame.set(binding.name, value);
         }
         return result;
+    }
+
+    private *captureValues(statement: FunctionStatement, context: LocalFrame | undefined): IterableIterator<RankValue> {
+        const scope = functionScope(statement);
+        if (!scope) return;
+        const bindings = new Set([...scope.reads.values(), ...[...scope.captures].filter(binding =>
+            lexicalBinding(scope.scope, binding.name) === binding)]);
+        for (const binding of bindings) {
+            if (binding.scope.owner === statement) continue;
+            yield this.bindings.withFrame(context, () => this.host.resolve(binding.name));
+        }
     }
 
     private lazySafe(fn: NativeFunction, seen = new Set<NativeFunction>(), checkParameters = true): boolean {
@@ -355,10 +372,11 @@ export class FunctionInvocation {
         if (statement.memo && generator) throw new RankError('memo functions cannot yield');
         const context = this.bindings.current;
         const only = statement.statements.length === 1 ? statement.statements[0] : undefined;
-        const compiled = !inspectionEnabled() && only && isReturnStatement(only) && only.value
-            ? this.host.compileDirect(only.value) : undefined;
+        const returnExpression = only && isReturnStatement(only) ? only.value : undefined;
+        const compiled = !inspectionEnabled() && returnExpression
+            ? this.host.compileDirect(returnExpression) : undefined;
         const direct = compiled ? () => {
-            try { return compiled(); }
+            try { return runExecution(this.host.evaluateReturn(returnExpression!)); }
             catch (error) { throw this.host.locate(error, only!); }
         } : undefined;
         const { specialization, returnRanks } = functionReturnSpecializations(statement.name);
@@ -389,10 +407,11 @@ export class FunctionInvocation {
         };
         const { executeBound, memoMiss, cachedMemoValue } = memoizedFunctionBody(statement.memo, signature.arity, checkedBody);
         const bindArguments = functionArgumentBinder(statement.name, signature, value => this.host.compileDirect(value));
-        const execute = signature.words.length || signature.rightParameters.some(parameter => parameter.kind === 'function')
-            ? (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> =>
-                executeBound(bindArguments(arguments_), inputRequirement)
-            : executeBound;
+        const bindParameters = (arguments_: RankValue[]): RankValue[] => materializeArguments(
+            signature.parameters, bindArguments(arguments_),
+        );
+        const execute = (arguments_: RankValue[], inputRequirement?: CallRequirement): Evaluation<RankValue> =>
+            executeBound(bindParameters(arguments_), inputRequirement);
         const declared = declaredRanks(statement);
         if (typeof declared === 'string') throw this.host.locate(new RankError(declared, 'TypeError'), statement);
         const fn: NativeFunction = {
@@ -413,23 +432,17 @@ export class FunctionInvocation {
                 ? declared?.ranks.length === 2 ? [declared.ranks[0], declared.ranks[1]] : ['all', 'all']
                 : undefined,
             captures: context?.captures(),
+            captureValues: () => this.captureValues(statement, context),
             snapshot: () => this.snapshot(fn),
             lazySafe: () => this.lazySafe(fn),
-            // What a caller outside the runtime reaches. A Rank call made from a
-            // Rank body takes a shorter path, so the stretch this opens is the
-            // work our embedder asked for; readers over storage we cannot track
-            // keep their cells for exactly that long. See enterRuntime.
             call: arguments_ => {
-                enterRuntime(this.bindings);
-                try {
-                    if (generator && !frozenFunctions.has(fn)) {
-                        const frozen = this.snapshot(fn);
-                        if (frozen !== fn) return frozen.call(arguments_);
-                    }
-                    return generator
-                        ? this.callGeneratorFunction(statement, bindArguments(arguments_), context)
-                        : runExecution(execute(arguments_));
-                } finally { leaveRuntime(); }
+                if (generator && !frozenFunctions.has(fn)) {
+                    const frozen = this.snapshot(fn);
+                    if (frozen !== fn) return frozen.call(arguments_);
+                }
+                return generator
+                    ? this.callGeneratorFunction(statement, bindParameters(arguments_), context)
+                    : runExecution(execute(arguments_));
             },
         };
         this.sources.set(fn, statement);
@@ -439,7 +452,7 @@ export class FunctionInvocation {
             functionExecutions.set(fn, execute);
             // A memo call must return through its cache writer. Do not bypass it
             // via the tail-call path that enters an ordinary function body.
-            if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization });
+            if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization, bindParameters });
             // Hits already passed the return contract. Misses retain the same
             // execution stack, validation and cache writer as ordinary calls.
             if (memoMiss && this.options().scalarFunctionCompilation !== false
@@ -447,9 +460,7 @@ export class FunctionInvocation {
                 const key = memoCallKey(arguments_, signature.arity);
                 const cached = cachedMemoValue!(key);
                 if (cached !== undefined) return cached;
-                enterRuntime(this.bindings);
-                try { return runExecution(memoMiss(arguments_, key)); }
-                finally { leaveRuntime(); }
+                return runExecution(memoMiss(arguments_, key));
             });
             if (!statement.memo && this.options().scalarFunctionCompilation !== false
                 && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
@@ -457,11 +468,8 @@ export class FunctionInvocation {
                 // those same values and keeps memo/generator paths untouched.
                 const selected = selectScalar(arguments_);
                 if (!selected) return fn.call(arguments_);
-                enterRuntime(this.bindings);
-                try {
-                    const contract = specialization(arguments_);
-                    return checkReturn(contract, arguments_, selected(arguments_));
-                } finally { leaveRuntime(); }
+                const contract = specialization(arguments_);
+                return checkReturn(contract, arguments_, selected(arguments_));
             });
         }
         if (!generator && !statement.memo) {
@@ -599,14 +607,15 @@ export class FunctionInvocation {
      * The result cell shape of a user function over an empty frame, found
      * without calling it: its body may print or loop. Static result facts for
      * an integer cell of that shape come first, then a return rank that earlier
-     * calls settled. Lengths the facts leave open are zero.
+     * calls settled. Unknown lengths remain unknown until a caller chooses an
+     * empty-frame fill shape or observes a result cell.
      */
     private userResultCellShape(
         statement: FunctionStatement,
         context: LocalFrame | undefined,
         returnRanks: ReadonlyMap<string, { rank?: number }>,
         cellShapes: readonly (readonly number[])[],
-    ): readonly number[] | undefined {
+    ): KnownShape | undefined {
         const valueOf = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
         const functionValue = (name: string) => {
             const value = valueOf(name);
@@ -636,7 +645,7 @@ export class FunctionInvocation {
         // Like a called cell, a non-array result leaves only the frame.
         if (result?.types.length && !result.types.some(type => ['array', 'bytes'].includes(type))) return [];
         if (result?.types.join() === 'array' && result.shape?.length === result.rank) {
-            return result.shape!.map(dimension => dimension ?? 0);
+            return result.shape;
         }
         const settled = new Set<number>();
         for (const [key, contract] of returnRanks) {
@@ -646,7 +655,7 @@ export class FunctionInvocation {
                     || cellShapes[index].length > 0 && argument[0] !== 'array')) continue;
             settled.add(contract.rank);
         }
-        return settled.size === 1 ? Array<number>([...settled][0]).fill(0) : undefined;
+        return settled.size === 1 ? Array<number | null>([...settled][0]).fill(null) : undefined;
     }
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
@@ -949,7 +958,6 @@ export class FunctionInvocation {
         resources: Set<RankFile>,
         operation: () => T,
     ): T {
-        enterRuntime(this.bindings);
         const callerControl = this.control;
         this.control = undefined;
         this.resources.pushScope(resources);
@@ -958,7 +966,6 @@ export class FunctionInvocation {
         } finally {
             this.resources.popScope();
             this.control = callerControl;
-            leaveRuntime();
         }
     }
 

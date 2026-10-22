@@ -11,7 +11,7 @@ import { flattenApplication, forIteration } from '../expressions.js';
 import { functionBindingPlan } from '../function-binding.js';
 import { functionCallSignature } from '../function-call-signature.js';
 import { findOperation } from '../operations.js';
-import { programFunctionDeclarations } from '../expression-grouping.js';
+import { programExternalBindings, programFunctionDeclarations } from '../expression-grouping.js';
 
 /** Identity is the binding object, not its spelling or source position. */
 export interface LexicalBinding {
@@ -70,10 +70,11 @@ export function analyzeFunctionScopes(program: Program): FunctionScopeAnalysis {
     const root = scope(program);
     const bind = (target: LexicalScope, name: string, declaration: AstNode,
         kind: LexicalBinding['kind'] = 'data', definition?: FunctionStatement): void => {
-        if (name === '#' || target.bindings.has(name)) return;
+        if (name === '#' || target.bindings.has(name) && target.bindings.get(name)!.declaration !== program) return;
         (target.bindings as Map<string, LexicalBinding>).set(name,
             { name, scope: target, declaration, kind, function: definition });
     };
+    for (const name of programExternalBindings(program)) bind(root, name, program);
     const local = (target: LexicalScope, name: string, node: AstNode): void => {
         // A block updates an existing binding in its own function. It never
         // turns an enclosing function's binding into a writable local.

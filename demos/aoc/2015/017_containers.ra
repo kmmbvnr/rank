@@ -8,8 +8,7 @@ use bits
 
 argument Input path
 
-Lines = Input readlines
-Containers = Lines integer rank 0
+Containers = Input readlines integer rank 0
 unpack Part1 Part2 = Containers 150 solve
 Part1 print
 Part2 print

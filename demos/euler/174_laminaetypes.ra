@@ -23,7 +23,5 @@ Ways = array shape (Pairs + 1) fill 0
 for K in 1 to Lim
   Ways (K * (K + 1) to Pairs by K) += 1
 end
-Fit = Ways at least 1
-Fit and= Ways at most Most
-Answer = Fit count
+Answer = (Ways at least 1 and Ways at most Most) count
 Answer print

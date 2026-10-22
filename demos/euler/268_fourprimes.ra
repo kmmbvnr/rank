@@ -38,18 +38,18 @@ for P in Ps drop H
   Kb = concat Kb (Kb + 1)
 end
 Ks = 0 to (Ps len) array
-Sign = 1 - 2 * ((Ks - Least) mod 2)
-Top = (Ks - 1) (Least - 1) max
-Pick = Top (Least - 1) binomial
-Used = Ks at least Least
+Sign' = 1 - 2 * ((Ks - Least) mod 2)
+Top' = (Ks - 1) (Least - 1) max
+Pick' = Top (Least - 1) binomial
+Used' = Ks at least Least
 Weights = Used choose (Sign * Pick) 0
 Answer = 0
 for I in 0 till (Pa len)
   A = Pa I
   Fit = Pb at most (Max // A)
-  Ds = Pb filter Fit array
-  Sizes = (Kb filter Fit array) + Ka I
-  Mult = Max // (A * Ds)
+  Ds' = Pb filter Fit array
+  Sizes' = (Kb filter Fit array) + Ka I
+  Mult' = Max // (A * Ds)
   Answer += (Weights Sizes * Mult) sum
 end
 Answer print

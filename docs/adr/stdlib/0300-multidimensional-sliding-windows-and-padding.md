@@ -1,97 +1,106 @@
-# 0300. Multidimensional Sliding Windows, Stride, and Padding (use sequences)
+# 0300. Sliding windows, stride and padding
 
 * **Status:** Accepted
 * **Date:** 2026-09-08
 * **Deciders:** @kmmbvnr
-* **Consulted:** Rank Language Specification, Sequences and Arrays Specification, Numerical Scripting Roadmap
 
 ## Context
 
-Sliding window algorithms (signal filtering, n-grams, rolling moving averages, image convolutions, patch extraction in deep learning) traditionally force programmers into writing low-level imperative boilerplate:
-1. **Manual coordinate index math:** Calculating offsets (`i + j`), edge boundary checks, and buffer indices is verbose, error-prone, and prone to off-by-one bugs.
-2. **Excessive memory duplication:** Naive window extraction in Python (`[arr[i:i+w] for i in range(...)]`) allocates duplicate array copies for every overlapping slice, rapidly exhausting memory on large sequences or images.
-3. **Complex strides and padding implementations:** Adding strides or zero padding around multidimensional borders requires writing custom padding matrices or calling complex specialized libraries (like `torch.nn.functional.unfold` or `scipy.signal.convolve`).
-
-Rank needs a declarative, zero-copy windowing operation that scales naturally from 1D text n-grams to multidimensional tensor convolutions, integrated with Rank's rank polymorphism (ADR-0200).
+Window operations need consistent coordinates, shape and border rules across
+vectors and tensors. A program should choose whether it stores overlapping
+cells or reads them as part of a downstream computation.
 
 ## Decision
 
-Rank establishes **Multidimensional Sliding Windows with Stride and Padding via `use sequences`**:
+`window` belongs to `use sequences`. Binding mode determines whether a named
+result is a recipe or completed storage:
 
 ```rank
 use sequences
-
-Windows = Values window Width
-Blocks = Matrix window (array 3 3) stride 2 padding 1
+use numbers
+Windows' = Values window Width
+Stored = Values window Width
+Products' = Windows reduce * rank 1
+Answer = Products max
 ```
 
-### 1. Zero-Copy Lazy Windowing (`window`)
-- Applying `window` lifts a sequence of rank $R$ to rank $R+1$ (or $R+K$ for $K$ windowed axes).
-- The window-position axes form the leading frame, and the requested window dimensions form the trailing cells:
-  ```rank
-  rem Source shape: 4 5
-  WindowShape = array 2 3
-  Blocks = Matrix window WindowShape
-  rem Blocks shape: 3 3 2 3
-  ```
-- Window views are lazy and read-only: overlapping cells are computed on demand without eagerly copying memory.
+`Windows` and `Products` compute on demand. Repeated demands recompute them.
+`Stored` completes every window cell and can be mutated independently. The
+operation has no implicit result cache. Captured data follows the language's
+read-only and value-semantics rules.
 
-### 2. Composition with Rank Polymorphism
-Because windowed cells form the trailing dimensions, Rank's core `rank` combinators apply directly to every window:
+### Shape and axes
+
+The leading axes select window positions; the trailing axes hold the window
+cells. For a source with shape `4 5` and window sizes `2 3`, the result has
+shape `3 3 2 3`. Empty position axes retain the requested trailing cell shape.
+
 ```rank
-rem Compute max product across all 13-digit sliding windows:
-Windows = Digits window 13
-Products = Windows reduce * rank 1
-MaxProduct = Products max
+WindowShape = array 2 3
+Blocks' = Matrix window WindowShape
+Columns' = Matrix window 3 axis 1
 ```
-This solves complex window-aggregation problems in just 3–4 concise lines.
 
-### 3. Strided Windows (`stride`)
-- The `stride` modifier skips positions along the position frame:
-  ```rank
-  Downsampled = Matrix window WindowShape stride 2
-  ```
-- Stride must be a positive integer or a rank-1 array with one stride per windowed axis.
+Sizes may be separate integers, a rank-1 integer array, or unpacked sizes.
+`axis` chooses distinct zero-based source axes in window-size order. Without
+`axis`, the sizes cover all tensor axes, except the ordinary one-dimensional
+case. Sizes must be positive.
 
-### 4. Symmetric Zero Padding (`padding`)
-- The `padding` modifier adds conceptual zero borders before windows are selected:
-  ```rank
-  Padded = Matrix window WindowShape padding 1
-  ```
-- Padding must be a non-negative integer or a rank-1 array of padding amounts.
-- For source length $N$, window width $W$, stride $S$, and padding $P$, the output position length matches the standard convolution formula:
-  $$\text{length} = \max\left(0, \left\lfloor \frac{N + 2P - W}{S} \right\rfloor + 1\right)$$
+### Stride and borders
 
-- `with` sets the border value; it defaults to integer zero:
-  ```rank
-  Peaks = Matrix window WindowShape padding 1 with -infinity
-  ```
-  The value must be a single value, and `with` is valid only directly after
-  `padding`. Padding stays `stride`, `padding`, `axis` in that order.
+`stride` is a positive integer or one stride per selected axis. `padding` is a
+nonnegative integer or one padding amount per selected axis. The modifier order
+is `stride`, `padding`, `axis`; `with` follows `padding` and supplies its single
+border value. The default border value is integer zero.
 
-### 5. Selective Axis Windowing (`axis`)
-- `axis` targets specific dimensions without windowing the entire tensor:
-  ```rank
-  Columns = Matrix window 3 axis 1
-  ```
+```rank
+Blocks' = Matrix window 3 3 stride 2 padding 1
+Peaks' = Matrix window 3 3 padding 1 with -infinity
+Wrapped' = Matrix window 3 3 padding 1 wrap
+```
 
-### 6. Axis Shift (`shift`)
-- `shift` keeps the shape and moves items along one axis, aligning neighbors:
-  ```rank
-  Previous = Values 1 shift
-  Down = Matrix 1 shift with 9 axis 0
-  ```
-- A positive count moves toward higher positions; vacated positions read zero
-  or the single `with` value. `axis` defaults to zero and follows `with`.
-- The result is a lazy, read-only view for arrays.
+For source length `N`, width `W`, stride `S` and symmetric padding `P`, the
+position length is `max(0, floor((N + 2P - W) / S) + 1)`. `wrap` maps border
+coordinates around the source instead of filling them. It cannot pad an empty
+axis. Padding and wrapping apply to arrays.
+
+### Sources and demand
+
+Text windows yield text. Exact, repeatable sequence sources form array windows
+with known shape. Indexed sources retain their direct indexing algorithms;
+indexing a source without that capability may replay its prefix. Full collection
+and sequential whole-array traversal of a non-indexed source use a rolling reader
+local to that traversal. It reads each needed source value once, shares overlap
+inside that pass, and leaves unused suffix values unread. Errors, cancellation
+and early termination close the reader. No prefix is retained between independent
+demands. Programs can explicitly store an expensive source before separate
+indexed demands or repeated traversals.
+
+Unknown-size, infinite and single-pass sequence sources produce windows with a
+bounded rolling buffer inside each traversal. Single-pass sources remain
+single-pass; an apostrophe does not restart them. A finite consumer is required
+to complete windows over an endless source.
+
+A complete appended window cell can compose with a reduction. The traversal
+keeps operand order, numeric promotion, errors and observable reader effects.
+This optimization does not erase an ordinary binding's completion boundary.
+
+### Shift
+
+`shift` moves cells along an array axis while keeping its shape. A positive
+count moves toward higher positions. Vacated positions use integer zero or the
+single `with` value; `axis` defaults to zero and follows `with`.
+
+```rank
+Previous' = Values 1 shift
+Down = Matrix 1 shift with 9 axis 0
+```
+
+`Previous` remains a recipe. `Down` is completed storage.
 
 ## Consequences
 
-### Positive
-* **APL-level power with English words:** Replaces nested index loops with clean, declarative window operations that fit the 40-column mobile line budget.
-* **Zero memory duplication:** Lazy read-only views avoid allocating gigabytes of overlapping duplicate buffers.
-* **Unified ML primitive:** Unifies text n-grams, time-series moving averages, and 2D/3D convolutional filter patches under a single syntax.
-* **Seamless fusion:** Downstream reductions (`reduce + rank 1`, `max`) fuse with window traversal, computing aggregates in registers.
-
-### Negative / Trade-offs
-* **Read-only views:** Windows cannot be directly written to in place; mutating windowed results requires materializing an independent dense copy via `copy`.
+Deferred windows avoid storing every overlapping cell. Ordinary bindings offer
+explicit retention and writable results at the corresponding memory cost.
+Repeated deferred reads can repeat source work and effects. Window geometry and
+ranked reductions share the same shape rules for one or several selected axes.

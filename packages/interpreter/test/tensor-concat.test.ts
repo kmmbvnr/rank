@@ -28,37 +28,32 @@ function compare(source: string) {
 describe('concat in tensor expressions', () => {
     it('does not establish an unread input contract when a slice guard declines', () => {
         const loop = parse(`for K in 1 to 1
- Head = A take R
- Tail = A drop R
- Result = (A + concat Tail Head) mod M copy
+ Result = (A + concat (A drop R) (A take R)) mod M copy
 end`).statements[0];
         if (!isForStatement(loop)) throw new Error('expected loop');
         const contract = new ArrayBindingContract('Input');
         const source = sliceSource(ownedArray([1n, 2n]))!.slice(2n, false);
         const values = new Map<string, RankValue>([['A', contract.check(source)], ['R', -1n], ['M', 10n]]);
-        const kernel = compileTensorKernel(loop.statements, { lookup: name => values.get(name), builtin: () => true })!;
+        const kernel = compileTensorKernel(loop.statements[0], { lookup: name => values.get(name), builtin: () => true })!;
         expect(kernel.run()).toBeUndefined();
         expect(() => contract.check(ownedArray(['text']))).not.toThrow();
     });
-    it('fuses private loop slices and declines if an outer name or inspection observes them', () => {
+    it('fuses inline slices independently of existing bindings and declines during inspection', () => {
         const loop = parse(`for K in 1 to 1
- Head = A take R
- Tail = A drop R
- Result = (A + concat Tail Head) mod M copy
+ Result = (A + concat (A drop R) (A take R)) mod M copy
 end`).statements[0];
         if (!isForStatement(loop)) throw new Error('expected loop');
         const values = new Map<string, RankValue>([
             ['A', ownedArray([1n, 2n, 3n])], ['R', 1n], ['M', 10n],
         ]);
-        const kernel = compileTensorKernel(loop.statements, {
+        const kernel = compileTensorKernel(loop.statements[0], {
             lookup: name => values.get(name), builtin: () => true,
         })!;
-        expect(kernel.count).toBe(3);
         expect(formatValue(kernel.run()!)).toBe('3 5 4');
         values.set('R', 2n ** 100n);
         expect(formatValue(kernel.run()!)).toBe('2 4 6');
         values.set('Head', ownedArray([9n]));
-        expect(kernel.run()).toBeUndefined();
+        expect(formatValue(kernel.run()!)).toBe('2 4 6');
         values.delete('Head');
         const signal = new Int32Array(new SharedArrayBuffer(12));
         withInterrupt(signal, () => expect(kernel.run()).toBeUndefined(), () => {});
@@ -67,7 +62,7 @@ end`).statements[0];
         const values = new Map<string, RankValue>([
             ['A', ownedArray([1n, 2n])], ['B', ownedArray([3n])], ['M', 7n],
         ]);
-        const kernel = compileTensorKernel(parse('X = ((concat A B) + M) copy').statements, {
+        const kernel = compileTensorKernel(parse('X = ((concat A B) + M) copy').statements[0], {
             lookup: name => values.get(name), builtin: () => true,
         })!;
         expect(formatValue(kernel.run()!)).toBe('8 9 10');

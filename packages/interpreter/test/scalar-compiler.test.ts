@@ -172,15 +172,6 @@ fun X later
 end
 (1 // 0) * 2 + (3 later) * 4`,
         `use io
-fun X fail
-  try
-    return X // 0
-  finally
-    "cleanup" print
-  end
-end
-(1 fail) * 2 + 3`,
-        `use io
 fun X forbidden
   X print
   return true
@@ -190,6 +181,23 @@ not ((true or (1 forbidden)) equal true)`,
         const reference = run(source, false), compiled = run(source, true);
         expect({ ...compiled, entries: 0 }).toEqual({ ...reference, entries: 0 });
         expect(compiled.entries).toBeGreaterThan(0);
+    });
+
+    it('runs cleanup when a child call fails inside the outer arithmetic', () => {
+        const source = `use io
+fun X fail
+  try
+    return X // 0
+  finally
+    "cleanup" print
+  end
+end
+(1 fail) * 2 + 3`;
+        const reference = run(source, false), compiled = run(source, true);
+        expect({ ...compiled, entries: 0 }).toEqual({ ...reference, entries: 0 });
+        expect(compiled).toMatchObject({ output: ['cleanup'] });
+        expect(compiled.entries).toBeGreaterThan(0);
+        expect(compiled.error).toContain('division by zero');
     });
 });
 

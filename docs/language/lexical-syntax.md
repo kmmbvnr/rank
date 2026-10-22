@@ -264,8 +264,8 @@ defer their element domain. An explicitly mixed array establishes a union, and
 later values may use a subset of that union. Infinity seeds defer their finite
 numeric domain until concrete cells settle it.
 
-Eager writes are checked before changing cells. Lazy arrays retain checks that run
-when their cells are read. See [Type-stability contracts](type-contracts.md) for
+Ordinary bindings and writes complete planned cells before storing them.
+Deferred bindings retain checks that run when their results are demanded. See [Type-stability contracts](type-contracts.md) for
 nested arrays, numeric settlement, aliases, failure timing, and the comparison
 with record fields, collections, and function returns.
 
@@ -415,8 +415,9 @@ unpack A B C = M axis 1
 ```
 
 The number of names and items must match exactly. Unpacking supports only `=`;
-compound assignment always has one target. Each target keeps the same
-inferred-type rule as an ordinary assignment. The explicit keyword keeps a
+compound assignment always has one target. Each named target recursively
+completes its selected value and keeps the ordinary inferred-type rule. Targets
+have no apostrophe form; a discarded `#` child is not completed for a binding. The explicit keyword keeps a
 multi-part target available for addressed assignment: `A i j = Value` changes
 one cell, while `unpack A B = Values` assigns separate variables. This form is
 especially useful with structured text parsing:

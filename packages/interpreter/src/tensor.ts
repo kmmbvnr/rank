@@ -1,4 +1,6 @@
 import { mapStoredIntegers } from './integer-array-kernel.js';
+import { mapArrayCells } from './array-cell-mapping.js';
+import { mapScalarArrays } from './scalar-array-map.js';
 import { prepareDenseOperands, isArrayValue, numericKinds, DENSE_MIN_CELLS } from './tensor-operands.js';
 import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './tensor-layout.js';
 export { broadcastShape } from './tensor-layout.js';
@@ -24,7 +26,8 @@ export function mapBroadcastArrays(
         () => evaluateArrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
         operation,
     );
-    return derivedArray(shape, [left, right], index => runExecution(evaluate(index)), true, evaluate);
+    return mapArrayCells(derivedArray(shape, [left, right], index => runExecution(evaluate(index)), true, evaluate),
+        [left, right], cells => mapScalarArrays(cells, ([a, b]) => operation(a, b)));
 }
 
 /** Join already stored boolean masks without creating a lazy reader chain.

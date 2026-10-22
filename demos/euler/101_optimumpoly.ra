@@ -17,23 +17,23 @@ rem u(1), the fit to k terms predicts
 rem sum of C(k, i) d_i over i below k at
 rem n = k + 1. d_i is a binomial sum.
 N = 1 to (Degree + 1) array
-Pow = (0 - N) ** (Degree + 1)
+Pow' = (0 - N) ** (Degree + 1)
 U = (1 - Pow) // (1 + N)
 Cells = Degree + 1
 Ids = 0 to Degree array
 Row = Ids reshape Cells 1
 Col = Ids reshape 1 Cells
 Below = Col at most Row
-Safe = Below choose Col Row
-Pick = Row Safe binomial
-Flip = Below choose (Row - Col) 0
-Sign = (0 - 1) ** Flip
-Terms = Below choose (Pick * Sign) 0
+Safe' = Below choose Col Row
+Pick' = Row Safe binomial
+Flip' = Below choose (Row - Col) 0
+Sign' = (0 - 1) ** Flip
+Terms' = Below choose (Pick * Sign) 0
 Firsts = Terms U matmul
 K = 1 to Degree array
 J = 0 to (Degree - 1) array
-Bin = K J outer binomial
-Terms = Bin * (Firsts take Degree)
-Used = (K reshape Degree 1) greater J
+Bin' = K J outer binomial
+Terms' = Bin * (Firsts take Degree)
+Used' = (K reshape Degree 1) greater J
 Answer = (Used choose Terms 0) sum
 Answer print

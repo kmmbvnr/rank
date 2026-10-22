@@ -134,7 +134,7 @@ tuple Source Current`);
         expect(result.loops).toBe(1);
     });
 
-    it('retains the lazy-write error for a selected local array', () => {
+    it('completes a selected local array before writing it', () => {
         const result = compare(`fun A sliced
  Part = A take 2
  Part 0 += 10
@@ -146,7 +146,10 @@ for I in 1 to 2
  Current = Source sliced
 end
 tuple Source Current`);
-        expect(result.observation.error).toContain('cannot assign to a lazy array');
+        expect(result.observation.error).toBeUndefined();
+        expect(result.observation.value).toBe('3 5 7 13 5');
+        expect(result.observation.variables).toContainEqual(['Source', '3 5 7']);
+        expect(result.observation.variables).toContainEqual(['Current', '13 5']);
         expect(result.loops).toBe(1);
     });
 

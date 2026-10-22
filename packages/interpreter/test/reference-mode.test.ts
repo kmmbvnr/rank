@@ -14,12 +14,12 @@ const probes: { tier: keyof InterpreterOptions; source: string; options?: Interp
 fun A B Limit probe
  Result = false
  for Tick in 1 to 2
-  Mask = A less Limit
-  Chosen = A Mask
-  Scaled = Chosen * 2
-  Indices = Scaled - 1
-  Gathered = B Indices
-  Inverted = not Gathered
+  Mask' = A less Limit
+  Chosen' = A Mask
+  Scaled' = Chosen * 2
+  Indices' = Scaled - 1
+  Gathered' = B Indices
+  Inverted' = not Gathered
   Result = Inverted all
  end
  return Result

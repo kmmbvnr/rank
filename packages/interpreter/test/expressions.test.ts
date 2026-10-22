@@ -259,9 +259,9 @@ Result`)).toBe('itb');
 
         expect(run([
             'use bits',
-            'A = (array 1 0) // (array 1 0)',
+            "A' = (array 1 0) // (array 1 0)",
             'B = array 2',
-            'Grid = A B outer bxor',
+            "Grid' = A B outer bxor",
             'Grid 0 0',
         ].join('\n'))).toBe('3');
 
@@ -734,14 +734,18 @@ Result`)).toBe('itb');
         expect(run(setup + 'Mask count')).toBe('3');
         expect(run(setup + '(Fib Mask) 1')).toBe('8');
         expect(run(setup + 'Pairs = (Fib Mask) window 2\nPairs 1 reduce +')).toBe('42');
-        expect(run('use sequences\nuse numbers\nFib = fibonacci\nMask = Fib even\nFib Mask till 100'))
+        expect(run("use sequences\nuse numbers\nFib' = fibonacci\nMask' = Fib even\nFib Mask till 100"))
             .toBe('2 8 34');
         // A mask is positional: a finite one bounds the selection from an endless source.
-        expect(run('use sequences\nuse numbers\nMask = fibonacci till 100 even\nfibonacci Mask array'))
+        expect(run("use sequences\nuse numbers\nMask' = fibonacci till 100 even\nfibonacci Mask array"))
             .toBe('2 8 34');
+        expect(() => run('use sequences\nuse numbers\nMask = fibonacci till 100 even\nfibonacci Mask array'))
+            .toThrowError('cannot apply finite array mask to an infinite sequence');
         expect(run('use sequences\nuse numbers\nMask = (1 to 5) even\n(100 to 104) Mask array'))
             .toBe('101 103');
         expect(() => run('use sequences\nuse numbers\nMask = (1 to 5) even\n(1 to 2) Mask array'))
+            .toThrowError('mask shape [5] does not match sequence size 2');
+        expect(() => run("use sequences\nuse numbers\nMask' = (1 to 5) even\n(1 to 2) Mask array"))
             .toThrowError('mask is longer than the values it selects from');
     });
 
@@ -770,8 +774,8 @@ Result`)).toBe('itb');
         expect(run(setup + 'Mask = A greater 2\nA Mask sum')).toBe('12');
         expect(run(setup + 'Mask = A greater 1 and (A less 5)\nA Mask sum')).toBe('9');
         expect(run(setup + 'Mask = not (A even)\nA Mask sum')).toBe('9');
-        expect(() => run(setup + 'Mask = A greater 2\nMask sum')).toThrowError('sum of a named mask');
-        expect(() => run(setup + 'Mask = A greater 2\nMask mean')).toThrowError('mean of a named mask');
+        expect(() => run(setup + 'Mask = A greater 2\nMask sum')).toThrowError('expected numeric input');
+        expect(() => run(setup + 'Mask = A greater 2\nMask mean')).toThrowError('expected numeric input');
         expect(run(setup + 'A even')).toBe('false true false true false');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM even sum')).toBe('12');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM (M even)')).toBe('2 4 6');
@@ -807,24 +811,24 @@ Result`)).toBe('itb');
         expect(run('use sequences\n18 in primes')).toBe('false');
         expect(run('use sequences\n23 in (primes till 20)')).toBe('false');
         expect(run('use sequences\n8 in (fibonacci till 20)')).toBe('true');
-        expect(run('use sequences\nP = primes from 10\nP 0')).toBe('11');
-        expect(run('use sequences\nP = primes from 11\nP 0')).toBe('11');
+        expect(run("use sequences\nP' = primes from 10\nP 0")).toBe('11');
+        expect(run("use sequences\nP' = primes from 11\nP 0")).toBe('11');
         expect(run([
             'use sequences',
-            'P = primes from 10',
-            'P = P till 20',
+            "P' = primes from 10",
+            "P' = P till 20",
             'P',
         ].join('\n'))).toBe('11 13 17 19');
         expect(run([
             'use sequences',
-            'P = primes from 100',
-            'P = P from 10',
+            "P' = primes from 100",
+            "P' = P from 10",
             'P 0',
         ].join('\n'))).toBe('101');
         expect(run([
             'use sequences',
-            'F = fibonacci from 8',
-            'F = F to 34',
+            "F' = fibonacci from 8",
+            "F' = F to 34",
             'F',
         ].join('\n'))).toBe('8 13 21 34');
         // `from` is a condition, so any sequence of comparable values accepts it.

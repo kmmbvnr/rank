@@ -18,13 +18,13 @@ Base = array shape 12
   31 31 30 31 30 31
 end
 Feb = (0 till 12) equal 1
-Extra = Leap Feb outer and
-Lens = Extra integer + Base
+Extra' = Leap Feb outer and
+Lens' = Extra integer + Base
 Flat = Lens reshape #
 
 rem Month starts from Monday 1 Jan 1900;
 rem keep 1901-2000.
-Start = Flat scan + with 1
-Cent = Start drop 12 take 1200
+Start' = Flat scan + with 1
+Cent' = Start drop 12 take 1200
 Answer = Cent mod 7 equal 0 count
 Answer print

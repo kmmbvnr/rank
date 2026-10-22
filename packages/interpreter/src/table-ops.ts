@@ -1,9 +1,10 @@
 import { RankArrowTable, columnFromValues } from './arrow-table.js';
+import { ownedGroupedTable } from './grouped-table.js';
 import { readArrayItem, readCellOrMissing } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { checkpoint } from './interrupt.js';
 import { aggregateGroup, type GroupAggregateSpec } from './modules/tables.js';
-import { sortByKeys } from './modules/sequences.js';
+import { sortByKeys } from './modules/sequence-order.js';
 import { setValueKey } from './set.js';
 import {
     isRankArray, isRankDate, isRankLabel, isRankSqliteExpression,
@@ -122,7 +123,7 @@ export function groupColumnar(table: RankArrowTable, fields: readonly string[], 
         }
     }
     if (rollup && table.length === 0) groups.push({ keys: fields.map(() => undefined), rows: [] });
-    return { kind: 'grouped-table', fields, groups: [], rollup, columnar: { table, groups } };
+    return ownedGroupedTable({ fields, groups: [], rollup, columnar: { table, groups } });
 }
 
 /** Aggregates of a columnar grouping, one table row per group. */
