@@ -13,7 +13,7 @@ async page => {
     await input.fill('use sequences');
     await input.press('Enter');
     await settled();
-    await input.fill('T = (1 to 3000000) (array 1000000 3) reshape');
+    await input.fill('T = (1 to 3000000) reshape 1000000 3');
     await input.press('Enter');
     await settled();
     await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('integer [1000000 3]'));
@@ -103,7 +103,7 @@ async page => {
     step = 'Back to the prompt: the first Escape leaves a focused result row, the ';
     await input.press('Escape');
     await input.press('Control+End');
-    await input.fill('A = (1 to 24) (array 2 3 4) reshape');
+    await input.fill('A = (1 to 24) reshape 2 3 4');
     await input.press('Enter');
     await settled();
     await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('integer [2 3 4]'));
@@ -113,7 +113,7 @@ async page => {
     const firstRow = () => page.evaluate(() => [...document.querySelector('#value-viewer tbody tr').querySelectorAll('td')].map(cell => cell.textContent));
     const rowCount = () => dialog.locator('tbody tr').count();
     const waitFirstRow = async expected => {
-        await page.waitForFunction(want => JSON.stringify([...document.querySelector('#value-viewer tbody tr').querySelectorAll('td')].map(cell => cell.textContent)) === want,
+        await page.waitForFunction(want => JSON.stringify([...document.querySelector('#value-viewer tbody tr')?.querySelectorAll('td') ?? []].map(cell => cell.textContent)) === want,
             JSON.stringify(expected), { timeout: 5000 });
     };
     const pressed = label => page.evaluate(name => [...document.querySelectorAll('#value-viewer .viewer-axis-row button[aria-pressed="true"]')]
@@ -142,7 +142,7 @@ async page => {
     await input.fill('fun stream\n for I in 1 to 1000000000\n  yield I * 2\n end\nend');
     await input.press('Enter');
     await settled();
-    await input.fill('N = stream');
+    await input.fill("N' = stream");
     await input.press('Enter');
     await settled();
     await page.waitForFunction(() => document.querySelector('#screen').textContent.includes('size unknown'));
