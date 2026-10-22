@@ -2846,6 +2846,12 @@ A plan does not retain the accepted items automatically. Finite prefix consumers
 read only the values they need. Arithmetic ranges, membership queries and bounds
 may use specialized implementations while preserving these observations.
 
+Deferred clauses capture their source and the values read by their bounds or
+conditions. For example, `View' = Values till Limit` keeps the current values
+of `Values` and `Limit`; finding an array's endpoint waits until demand.
+Rebinding either name does not retarget `View`. The same capture rule applies
+to `from`, `after`, `take`, `drop` and `first where`.
+
 Callbacks may perform effects, including printing or calling an unannotated
 host function. A later demand repeats those effects. Ordinary function bodies
 execute at the call; an outer apostrophe does not postpone their eager local

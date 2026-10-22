@@ -402,3 +402,26 @@ end`);
     expect(reads.map(read => read.name)).toEqual(['Data', 'Flag', 'Outside']);
     expect(expressionFreeReads(statement.value)).toBe(reads);
 });
+
+it.each([
+    ['Source take Count', ['Source', 'Count']],
+    ['Source drop Count', ['Source', 'Count']],
+    ['Source from Limit', ['Source', 'Limit']],
+    ['Source after Limit', ['Source', 'Limit']],
+    ['Source till greater Limit', ['Source', 'Limit']],
+    ['Source from mod Divisor equal Limit', ['Source', 'Divisor', 'Limit']],
+    ['Source first where greater Limit', ['Source', 'Limit']],
+    ['Source first index where greater Limit', ['Source', 'Limit']],
+    ['Source take while greater Limit', ['Source', 'Limit']],
+    ['Source alias .items', ['Source']],
+    ['Source Width rolling by .date', ['Source', 'Width']],
+])('tracks every free read in %s', async (expression, expected) => {
+    const document = await parse(`Plan' = ${expression}`);
+    expect(document.parseResult.lexerErrors).toEqual([]);
+    expect(document.parseResult.parserErrors).toEqual([]);
+    const program = document.parseResult.value;
+    const statement = program.statements[0];
+    if (!isAssignmentStatement(statement)) throw Error('expected assignment');
+    expect(expressionFreeReads(statement.value).map(read => read.name)).toEqual(expected);
+    expect(analyzeBindings(program).words.map(word => word.name).sort()).toEqual([...expected].sort());
+});

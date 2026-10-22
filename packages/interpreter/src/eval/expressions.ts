@@ -86,6 +86,7 @@ export class ExpressionEvaluator {
     constructor(private readonly context: ExpressionContext) {
         this.plans = new PlanConstruction({ bindings: context.bindings, findVariable: name => context.findVariable(name),
             resolve: name => context.resolve(name), operationOf: name => this.operationOf(name),
+            builtinValue: name => context.builtins.lookup(name),
             snapshotFunction: (fn, seen) => context.functions.snapshot(fn, seen),
             execute: (expression, tail) => tail ? this.compile(expression, undefined, true)() : this.prepare(expression)(),
             compileReduction: expression => context.fastPaths.planReduction(expression),

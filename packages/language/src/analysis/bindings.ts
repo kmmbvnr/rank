@@ -14,10 +14,12 @@ import { flattenApplication as flatten, forIteration } from '../expressions.js';
 
 import {
     isDeclaredCallExpression, isTupleExpression, isApplicationExpression, isArgsStatement, isArgumentStatement,
+    isAliasedTableExpression, isBoundClauseExpression, isCountClauseExpression,
+    isFirstWhereExpression, isFirstIndexWhereExpression, isTakeWhileExpression, isSubjectComparisonExpression,
     isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression, isExpressionStatement, isFlagStatement,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
     isOperationAssignmentStatement,
-    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression,
+    isKeyedGroupExpression, isKeyedJoinExpression, isKeyedReachExpression, isKeyedSortExpression, isKeyedMergeExpression, isKeyedRollingExpression,
     isMaterializeExpression, isNameExpression, isOptionStatement, isParenthesizedExpression,
     isTableFilterExpression, isTableSelectExpression, isTableWriteExpression, isTableWritePreviewExpression, isSelectLocal,
     isPushStatement, isRecordExpression, isRecordField, isRecordUpdateExpression, isReturnStatement, isStdinExpression,
@@ -472,6 +474,26 @@ class Analyzer {
             this.expression(expression.operand);
             return;
         }
+        if (isSubjectComparisonExpression(expression)) {
+            this.expression(expression.stepOperand);
+            this.expression(expression.right);
+            return;
+        }
+        if (isCountClauseExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.count);
+            return;
+        }
+        if (isBoundClauseExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.condition);
+            return;
+        }
+        if (isFirstWhereExpression(expression) || isFirstIndexWhereExpression(expression) || isTakeWhileExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.mask);
+            return;
+        }
         if (isApplicationExpression(expression)) {
             const parts = flatten(expression);
             for (const [index, part] of parts.entries()) {
@@ -485,7 +507,7 @@ class Analyzer {
             this.expression(expression.value);
             return;
         }
-        if (isMaterializeExpression(expression)) {
+        if (isMaterializeExpression(expression) || isAliasedTableExpression(expression)) {
             this.expression(expression.source);
             return;
         }
@@ -558,6 +580,11 @@ class Analyzer {
         }
         if (isKeyedGroupExpression(expression)) {
             this.expression(expression.source);
+            return;
+        }
+        if (isKeyedRollingExpression(expression)) {
+            this.expression(expression.source);
+            this.expression(expression.width);
             return;
         }
         if (isKeyedJoinExpression(expression)) {

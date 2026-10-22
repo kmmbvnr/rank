@@ -2,7 +2,7 @@ import { checkpoint } from './interrupt.js';
 import { PrimeSieve, maxSieveInteger, primeSegmentSpan } from './prime-sieve.js';
 import { primeMembership } from './primality.js';
 import { registerSequenceMembership } from './sequence-membership.js';
-import { above, within, strongerLower, strongerUpper, membershipInteger, type Boundary } from './sequence-bounds.js';
+import { above, within, strongerLower, strongerUpper, membershipInteger, registerMetadataBounds, type Boundary } from './sequence-bounds.js';
 import type { SequencePlan } from './value.js';
 
 export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
@@ -45,6 +45,7 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
         },
     };
     registerSequenceMembership(plan);
+    registerMetadataBounds(plan);
     return plan;
 }
 

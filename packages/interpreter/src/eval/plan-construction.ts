@@ -1,8 +1,8 @@
-import { AstUtils, isAstNode, type AstNode } from 'langium';
+import { isAstNode, type AstNode } from 'langium';
 import {
     applicationExpression, applicationForm, expressionFacts, expressionFreeReads, flattenApplication,
-    isApplicationExpression, isBinaryExpression, isBooleanLiteral, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
-    isExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, nameNeedsExecution, UNKNOWN_VALUE,
+    isAllAxisExpression, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isBoundClauseExpression, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
+    isExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, isSubjectComparisonExpression, isUnaryExpression, nameNeedsExecution, UNKNOWN_VALUE,
     type Expression, type NameExpression, type Operation,
 } from '@arrrank/language';
 import { denseScalarItems } from '../array-storage.js';
@@ -14,11 +14,13 @@ import { isRankPlan, type RankPlan } from '../plan.js';
 import { isNativeFunction, isRankArray, isRankSequence, MISSING, type NativeFunction, type RankValue } from '../value.js';
 import { identifySqliteSource } from '../sqlite-source.js';
 import { registerTensorResult } from '../tensor-map.js';
+import { hasMetadataBounds } from '../sequence-bounds.js';
 
 interface ConstructionContext {
     readonly bindings: BindingEnvironment;
     findVariable(name: string): RankValue | undefined;
     resolve(name: string): RankValue;
+    builtinValue(name: string): RankValue | undefined;
     operationOf(name: string): Operation | undefined | false;
     snapshotFunction(fn: NativeFunction, seen: Map<NativeFunction, NativeFunction>): NativeFunction;
     execute(expression: Expression, tail: boolean): Evaluation<RankValue>;
@@ -71,13 +73,49 @@ export class PlanConstruction {
             if (value !== undefined && (!isNativeFunction(value) || this.isReference(source)
                 || !value.arities.includes(0))) return value;
         }
-        if (mode === 'demand' || mode === 'propagate' && !this.hasInput(rewritten)
-            || isBinaryExpression(source) && ['to', 'till'].includes(source.operator)
-                && !AstUtils.streamAst(rewritten).some(node => isNameExpression(node)
-                    && isRankPlan(this.context.findVariable(node.name) ?? MISSING))) {
+        // A ready integer range is metadata only. The same `to`/`till` syntax
+        // can also bound a collection and read cells to find its endpoint;
+        // that work belongs to demand, even when all names hold ready values.
+        const range = isBinaryExpression(source) && ['to', 'till'].includes(source.operator)
+            && this.readyInteger(source.left) && (isAllAxisExpression(source.right) || this.readyInteger(source.right))
+            && (!source.step || this.readyInteger(source.step));
+        if (mode === 'demand' || mode === 'propagate' && !this.hasInput(rewritten) || range
+            || this.metadataBound(source)) {
             return yield* resume(this.context.execute(rewritten, tail));
         }
         return this.capture(rewritten);
+    }
+
+    private metadataBound(expression: Expression): boolean {
+        let source = expression, bounded = false;
+        for (let remaining = 1024; remaining > 0; remaining--) {
+            if (isParenthesizedExpression(source)) { source = source.value; continue; }
+            const operand = isBoundClauseExpression(source) ? source.source
+                : isBinaryExpression(source) && ['to', 'till'].includes(source.operator) && !source.step
+                    ? source.left : undefined;
+            let limit = isBoundClauseExpression(source) ? source.condition
+                : isBinaryExpression(source) ? source.right : undefined;
+            if (operand) {
+                if (isSubjectComparisonExpression(limit) && !limit.stepOperator
+                    && ['greater', 'atleast'].includes(limit.operator.replace(/\s+/g, ''))
+                    && (isBoundClauseExpression(source) && source.operator === 'from'
+                        || isBinaryExpression(source) && source.operator === 'till')) limit = limit.right;
+                if (!limit || !this.readyInteger(limit)) return false;
+                bounded = true;
+                source = operand;
+                continue;
+            }
+            if (!bounded || !isNameExpression(source)) return false;
+            let value = this.readyValue(source);
+            if (value === undefined) {
+                const operation = this.context.operationOf(source.name);
+                if (!operation || operation.result !== 'sequence' || operation.arities.length
+                    || !operation.lazy || !operation.valueCallbackFree || operation.effects?.length) return false;
+                value = this.context.builtinValue(source.name);
+            }
+            return value !== undefined && isRankSequence(value) && hasMetadataBounds(value.plan);
+        }
+        return false;
     }
 
     private userFunction(expression: NameExpression): NativeFunction | undefined {
@@ -197,6 +235,15 @@ export class PlanConstruction {
         }
         if (isBooleanLiteral(expression) || isNumberLiteral(expression) || isStringLiteral(expression)) return expression.value;
         return isLabelLiteral(expression) && expression.name === 'NA' ? MISSING : undefined;
+    }
+
+    private readyInteger(expression: Expression): boolean {
+        for (let remaining = 1024; remaining > 0; remaining--) {
+            if (isParenthesizedExpression(expression)) expression = expression.value;
+            else if (isUnaryExpression(expression) && ['+', '-'].includes(expression.operator)) expression = expression.operand;
+            else return typeof this.readyValue(expression) === 'bigint';
+        }
+        return false;
     }
 
     private deferredChild(expression: Expression, key: string): boolean {
