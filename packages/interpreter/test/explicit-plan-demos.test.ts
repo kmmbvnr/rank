@@ -11,6 +11,48 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains the triangle prefix and mutable Moebius table while deferring the final lookup', () => {
+        const source = readFileSync(new URL('../../../demos/euler/276_primitivetriangles.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(6033n);
+            for (const name of ['N', 'Cum', 'Mu']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Odd', 'Base', 'Tri', 'Quot', 'Pick']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it('completes the pizza factorial prefix once from a deferred range', () => {
+        const source = readFileSync(new URL('../../../demos/euler/281_pizzatoppings.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--max-m=3', '--max-n=2', '--limit=2'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(5n);
+            expect(isRankPlan(runtime.variables.get('Facts')!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('Fact')!)).toBe(true);
+            expect(formatValue(runtime.variables.get('Fact')!)).toBe('1 1 2 6 24 120 720');
+        } finally { runtime.dispose(); }
+    });
+
+    it('allows repeated steady-square digit-table construction before the deferred sums', () => {
+        const source = readFileSync(new URL('../../../demos/euler/284_steadysquares.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--n=9'] });
+        try {
+            for (let run = 0; run < 2; run++) {
+                runtime.execute(source);
+                expect(runtime.variables.get('Answer')).toBe('2d8');
+                for (const name of ['D', 'Cum', 'Top', 'TopB', 'Ds']) {
+                    expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+                }
+                for (const name of ['SumB', 'Zero', 'Rest']) {
+                    expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+                }
+            }
+        } finally { runtime.dispose(); }
+    });
+
     it('evaluates the actual mountain height and deferred visibility helpers without the contour search', () => {
         const source = readFileSync(new URL('../../../demos/euler/262_mountainrange.ra', import.meta.url), 'utf8');
         const program = parse(source);

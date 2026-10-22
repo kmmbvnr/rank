@@ -24,7 +24,7 @@ rem all such z. List the z for two
 rem halves of the primes, then multiply
 rem every pair of them.
 Ps = primes till Limit array
-Quad = Ps mod 4 equal 1
+Quad' = Ps mod 4 equal 1
 Ones = Ps filter Quad array
 H = Ones len // 2
 Ar = array 1
@@ -35,24 +35,24 @@ for P in Ones
   Us = 1 to (P isqrt) array
   Vq = P - Us * Us
   Root = Vq isqrt
-  Hit = Root * Root equal Vq
-  U = (Us filter Hit array) 0
+  Hit' = Root * Root equal Vq
+  U = (Us filter Hit) 0
   V = (P - U * U) isqrt
   First = Ones take H
-  Same = First equal P
-  Mine = (First filter Same array) len
+  Same' = First equal P
+  Mine = (First filter Same) len
   if Mine greater 0
-    Tr = Ar * U - Ai * V
-    Ti = Ar * V + Ai * U
-    Sr = Ar * U + Ai * V
-    Si = Ai * U - Ar * V
+    Tr' = Ar * U - Ai * V
+    Ti' = Ar * V + Ai * U
+    Sr' = Ar * U + Ai * V
+    Si' = Ai * U - Ar * V
     Ar = concat Ar Tr Sr
     Ai = concat Ai Ti Si
   else
-    Tr = Br * U - Bi * V
-    Ti = Br * V + Bi * U
-    Sr = Br * U + Bi * V
-    Si = Bi * U - Br * V
+    Tr' = Br * U - Bi * V
+    Ti' = Br * V + Bi * U
+    Sr' = Br * U + Bi * V
+    Si' = Bi * U - Br * V
     Br = concat Br Tr Sr
     Bi = concat Bi Ti Si
   end
@@ -61,10 +61,10 @@ Total = 0
 for I in 0 till (Ar len)
   Xr = Ar I
   Xi = Ai I
-  Re = Xr * Br - Xi * Bi
-  Im = Xr * Bi + Xi * Br
-  Lo = Re abs
-  Hi = Im abs
+  Re' = Xr * Br - Xi * Bi
+  Im' = Xr * Bi + Xi * Br
+  Lo' = Re abs
+  Hi' = Im abs
   Total += (Lo Hi min) sum
 end
 Answer = Total // 2

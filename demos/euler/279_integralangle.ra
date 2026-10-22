@@ -36,11 +36,11 @@ for M in 2 to Top
   Hi = Room (M - 1) min
   if Hi at least 1
     Ns = 1 to Hi array
-    Co = Ns M gcd equal 1
-    Odd = (M - Ns) mod 2 equal 1
-    P = 2 * M * (M + Ns)
-    Ok = Co and Odd
-    Pk = P filter Ok array
+    Co' = Ns M gcd equal 1
+    Odd' = (M - Ns) mod 2 equal 1
+    P' = 2 * M * (M + Ns)
+    Ok' = Co and Odd
+    Pk' = P filter Ok
     Total += (Limit // Pk) sum
   end
   Disc = (M * M + 12 * Limit) isqrt
@@ -48,12 +48,12 @@ for M in 2 to Top
   Hi = Cap (M - 1) min
   if Hi at least 1
     Ns = 1 to Hi array
-    Co = Ns M gcd equal 1
-    By3 = (M - Ns) mod 3 equal 0
-    Div = 1 + 2 * (By3 choose 1 0)
+    Co' = Ns M gcd equal 1
+    By3' = (M - Ns) mod 3 equal 0
+    Div' = 1 + 2 * (By3 choose 1 0)
     Q = (2 * M + Ns) * (M + Ns) // Div
-    Ok = Co and (Q at most Limit)
-    Qk = Q filter Ok array
+    Ok' = Co and (Q at most Limit)
+    Qk' = Q filter Ok
     Twice += (Limit // Qk) sum
   end
 end
@@ -63,12 +63,12 @@ for N in 1 to Top
   Hi = Hi (2 * N - 1) min
   if Hi at least N + 1
     Ms = (N + 1) to Hi array
-    Co = Ms N gcd equal 1
-    By3 = (Ms + N) mod 3 equal 0
-    Div = 1 + 2 * (By3 choose 1 0)
+    Co' = Ms N gcd equal 1
+    By3' = (Ms + N) mod 3 equal 0
+    Div' = 1 + 2 * (By3 choose 1 0)
     P = (2 * Ms - N) * (Ms + N) // Div
-    Ok = Co and (P at most Limit)
-    Pk = P filter Ok array
+    Ok' = Co and (P at most Limit)
+    Pk' = P filter Ok
     Total += (Limit // Pk) sum
   end
 end

@@ -24,15 +24,15 @@ rem - sqrt(R^2 - 1) + 1.
 K = 1 to N array
 Rs = concat (K + 0.5) (K - 0.5)
 Rc = Rs 1.5 max
-Hit = Rs * Rs at least 2
-Arc = (1 / Rc) asin
-Sq = Rc * Rc
+Hit' = Rs * Rs at least 2
+Arc' = (1 / Rc) asin
+Sq' = Rc * Rc
 Half = 1 asin
-Core = Sq * (Half - 2 * Arc) / 2
-Area = Core - ((Rc * Rc - 1) sqrt) + 1
+Core' = Sq * (Half - 2 * Arc) / 2
+Area' = Core - ((Rc * Rc - 1) sqrt) + 1
 Cut = Hit choose Area 0.0
-Outer = Cut take N
-Inner = Cut drop N
-Gain = (Outer - Inner) / K
+Outer' = Cut take N
+Inner' = Cut drop N
+Gain' = (Outer - Inner) / K
 Answer = Gain sum 5 round
 Answer print

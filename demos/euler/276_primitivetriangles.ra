@@ -19,9 +19,9 @@ rem scaled by each d, so by Moebius the
 rem primitive ones are the sum of mu(d)
 rem times the sum of T(n), n <= L / d.
 N = 1 to Limit array
-Odd = N mod 2 equal 1
-Base = Odd choose (N + 3) N
-Tri = (Base * Base + 24) // 48
+Odd' = N mod 2 equal 1
+Base' = Odd choose (N + 3) N
+Tri' = (Base * Base + 24) // 48
 Cum = Tri scan +
 Mu = array shape (Limit + 1) fill 1
 for P in primes to Limit
@@ -30,7 +30,7 @@ for P in primes to Limit
     Mu (P * P to Limit by P * P) = 0
   end
 end
-Quot = Limit // N
-Pick = Cum (Quot - 1)
+Quot' = Limit // N
+Pick' = Cum (Quot - 1)
 Answer = ((Mu drop 1) * Pick) sum
 Answer print

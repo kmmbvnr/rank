@@ -28,8 +28,8 @@ for I in 1 to 100
   Dist = array 1.0
   for X in Xs
     P = 1 - X / Q
-    Stay = concat Dist Zero * (1 - P)
-    Move = concat Zero Dist * P
+    Stay' = concat Dist Zero * (1 - P)
+    Move' = concat Zero Dist * P
     Dist = Stay + Move
   end
   Mid = Dist Hits
