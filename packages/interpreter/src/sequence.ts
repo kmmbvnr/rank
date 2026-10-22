@@ -488,7 +488,14 @@ export function stackItems(
 }
 
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
-    return value.plan.reduce?.(operation);
+    const planned = value.plan.reduce?.(operation);
+    if (planned !== undefined) return planned;
+    // Counting true mask items is counting the source items selected by the
+    // same predicate. Preserve native reductions such as tree distance bounds.
+    if (operation === 'count' && isRankSequenceMask(value)) {
+        return value.source.plan.withFilter?.(value.predicate)?.reduce?.('count');
+    }
+    return undefined;
 }
 
 export function windowValue(

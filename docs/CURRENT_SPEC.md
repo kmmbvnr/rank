@@ -5212,12 +5212,14 @@ distinct vertices. Each pair occurs once, and an `N`-vertex tree therefore has
 `N * (N - 1) // 2` logical path lengths:
 
 ```rank
-Lengths = Tree pathlengths
+Lengths' = Tree pathlengths
 Exact = (Lengths equal K) count
-Mask = Lengths at least Low
-Mask and= Lengths at most High
+Mask' = (Lengths at least Low) and (Lengths at most High)
 Within = Mask count
 ```
+
+The deferred binding captures `Tree` read-only. Ordinary binding instead stores
+all pair distances.
 
 Iteration or materialization enumerates the logical sequence and takes
 quadratic time. Integer comparisons followed by `count` are planned without

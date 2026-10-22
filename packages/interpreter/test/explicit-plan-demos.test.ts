@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan, isRankTuple, isNativeFunction, type RankArray, type NativeFunction } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan, isRankTuple, isNativeFunction, isRankSequence, type RankArray, type NativeFunction, type SequencePlan } from '../src/index.js';
 import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
@@ -11,6 +11,54 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('counts the tree snapshot with native bounds without enumerating pair distances', () => {
+        const source = readFileSync(new URL('../../../demos/cses/tree/016_fixedpaths2.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            runtime.execute(`Tree = new graph (1 to 5) .undirected
+for Node in 1 till 5
+  Tree add Node (Node + 1)
+end`);
+            const lengths = runtime.execute('Tree pathlengths');
+            if (lengths === undefined || !isRankSequence(lengths)) throw new Error('Expected native tree path lengths');
+            const withoutEnumeration = (plan: SequencePlan): SequencePlan => ({
+                ...plan,
+                *iterate() { throw new Error('Pair distances must not be enumerated'); },
+                withFilter: predicate => {
+                    const filtered = plan.withFilter?.(predicate);
+                    return filtered && withoutEnumeration(filtered);
+                },
+            });
+            runtime.variables.set('Lengths', sequence(withoutEnumeration(lengths.plan)));
+            expect(runtime.execute('Lengths 1 2 count_lengths')).toBe(7n);
+            expect(runtime.execute('Lengths 2 2 count_lengths')).toBe(3n);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
+        ['009_countpaths', '5 2 1 2 2 3 3 4 4 5 1 3 2 5', '1 2 2 1 1', 'Values', 'Paths'],
+        ['012_pathqueries2', '3 3 1 2 3 1 2 2 3 2 1 3 1 2 10 2 1 3', '3 10', 'RawQueries', 'Queries'],
+    ] as const)('completes the deferred query input once in tree %s', (name, input, expected, raw, table) => {
+        const source = readFileSync(new URL(`../../../demos/cses/tree/${name}.ra`, import.meta.url), 'utf8');
+        const tokens = input.split(' ');
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual([expected]);
+            expect(reads).toBe(tokens.length);
+            expect(isStoredValue(runtime.variables.get(raw)!)).toBe(false);
+            expect(isStoredValue(runtime.variables.get(table)!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         ['008_routes1', '3 3 1 2 5 2 3 7 1 3 20', ['0 5 12']],
         ['009_routes2', '4 2 3 1 2 5 2 3 7 1 3 1 4 2 2', ['12', '-1', '0']],

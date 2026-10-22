@@ -37,7 +37,7 @@ fun Values Rooted Queries paths
   Entry = Rooted .entry
   Sizes = Rooted .size
   N = Order len
-  Current = Values copy
+  Current = Values
   Sums = N fenwick
 
   for Node in Order

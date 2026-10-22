@@ -24,6 +24,28 @@ test "official example"
   Actual equal array 11 8
 end
 
+test "keeps caller values unchanged across updates and repeated runs"
+  use "011_pathqueries"
+  use algo
+  use graph
+  use sequences
+  Graph = new graph (1 to 3) .undirected
+  Graph add 1 2
+  Graph add 2 3
+  Rooted = Graph 1 root
+  Values = array 1 2 3
+  Queries = array shape 3 3
+    2 3 0
+    1 2 10
+    2 3 0
+  end
+  First = Values Rooted Queries paths
+  Second = Values Rooted Queries paths
+  First equal array 6 14
+  Second equal array 6 14
+  Values equal array 1 2 3
+end
+
 test "root path contains only root"
   use "011_pathqueries"
   use algo

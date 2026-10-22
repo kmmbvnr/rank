@@ -15,6 +15,17 @@ test "official example"
   Tree 2 count_paths equal 4
 end
 
+test "allows extending the tree after counting its snapshot"
+  use "015_fixedpaths1"
+  use graph
+  Tree = new graph .undirected
+  Tree add 1 2
+  Tree 1 count_paths equal 1
+  Tree add 2 3
+  Tree 1 count_paths equal 2
+  Tree 2 count_paths equal 1
+end
+
 test "single vertex has no pair"
   use "015_fixedpaths1"
   use graph
