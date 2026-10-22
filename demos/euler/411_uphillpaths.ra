@@ -56,40 +56,41 @@ for K in First to Count
   O3 = 3 N3 order
   T = O2 O3 lcm
   Len = (2 * N + 1) (Al Be max + T) min
-  rem Doubling: first Len powers.
-  Xs = array 1 mod N
-  Ys = array 1 mod N
-  for Xs len less Len
-    H = Xs len
-    Px = 2 H N powmod
-    Py = 3 H N powmod
-    Xs = concat Xs (Xs * Px mod N)
-    Ys = concat Ys (Ys * Py mod N)
+  rem Keys x * n + y of the first Len
+  rem stations, sorted by x then y.
+  Ks = array shape Len fill 0
+  X = 1
+  Y = 1
+  for I in 0 to Len - 1
+    Ks I = X * N + Y
+    X = X * 2 mod N
+    Y = Y * 3 mod N
   end
-  Xs = Xs (0 to Len - 1)
-  Ys = Ys (0 to Len - 1)
-  Ks = Xs * N + Ys sort
-  Kp = concat (array -1) Ks
-  Nw = Ks len
-  Nx = Kp (1 to Nw)
-  Keep = Nx not equal Kp (0 to Nw - 1)
-  Ys = (Ks (Keep indices)) mod N copy
-  Tl = array shape (Ys len) fill 0
+  Ks = Ks sort
+  rem Longest nondecreasing run of y,
+  rem skipping repeated stations.
+  Tl = array shape Len fill 0
   Ln = 0
-  for V in Ys
-    Lo = 0
-    Hi = Ln
-    for Lo less Hi
-      Mid = (Lo + Hi) // 2
-      if Tl Mid greater V
-        Hi = Mid
-      else
-        Lo = Mid + 1
+  Pv = 0 - 1
+  for I in 0 to Len - 1
+    Cu = Ks I
+    if Cu not equal Pv
+      Pv = Cu
+      V = Cu mod N
+      Lo = 0
+      Hi = Ln
+      for Lo less Hi
+        Mid = (Lo + Hi) // 2
+        if Tl Mid greater V
+          Hi = Mid
+        else
+          Lo = Mid + 1
+        end
       end
-    end
-    Tl Lo = V
-    if Lo equal Ln
-      Ln += 1
+      Tl Lo = V
+      if Lo equal Ln
+        Ln += 1
+      end
     end
   end
   Tot += Ln
