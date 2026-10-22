@@ -127,7 +127,8 @@ export class PlanConstruction {
         return fn.monadicRank === 'all' && !fn.dyadicRanks?.some(rank => rank !== 'all');
     }
 
-    private reference(value: RankValue, original: Expression): NameExpression {
+    /** Keep a staged value in the current construction scope without running it again. */
+    reference(value: RankValue, original: Expression): NameExpression {
         const name = `$plan${this.nextReference++}`;
         this.context.bindings.scope.set(name, value);
         const reference = { $type: 'NameExpression', name, $cstNode: original.$cstNode } as NameExpression;

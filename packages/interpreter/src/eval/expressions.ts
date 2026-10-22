@@ -116,6 +116,11 @@ export class ExpressionEvaluator {
             ? this.plans.build(expression, 'propagate') : this.prepare(expression)();
     }
 
+    /** Stage argument construction once while a surrounding call decides its grouping. */
+    stageArgument(expression: Expression): Evaluation<{ expression: Expression; value: RankValue }> {
+        return mapResult(this.argument(expression), value => ({ expression: this.plans.reference(value, expression), value }));
+    }
+
     /** Return does not add a storage or demand boundary. */
     returnValue(expression: Expression, tail = false): Evaluation<RankValue> {
         let source = expression;

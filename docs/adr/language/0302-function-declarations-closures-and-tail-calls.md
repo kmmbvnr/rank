@@ -36,6 +36,15 @@ parameters cannot redefine available builtin names; see
 [ADR-0003](0003-modular-vocabulary-and-grammar-independence.md). Differently named
 aliases still hold builtin function objects and preserve their application forms.
 
+Data parameters follow the binding rule: `fun X f` completes its argument
+recursively on entry; `fun X' f` preserves a value or plan and is read-only.
+The body executes at the call. `return` passes a plan through; the receiving
+binding chooses whether to keep or complete it. Postfix argument expressions
+retain these boundaries, including reductions. A receiver method whose kind
+is unknown may demand that receiver to settle argument grouping. Explicit
+parentheses fix the argument boundary without that dispatch demand. See
+[parameter evaluation](../../language/control-functions.md#parameter-evaluation-and-argument-boundaries).
+
 ### 2. File-Level Declaration Hoisting
 All top-level functions in a source file are parsed and registered before top-level executable statements begin:
 ```rank

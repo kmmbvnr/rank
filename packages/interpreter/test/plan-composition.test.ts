@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankPlan, formatValue, parse } from '../src/index.js';
 import { sequence } from '../src/sequence.js';
+import { completed } from '../src/execution.js';
 
 function counted() {
     let reads = 0;
@@ -15,13 +16,16 @@ describe.each([false, true])('compositional plan construction (compilation=%s)',
         ['Matrix transpose 2 scale', '2 6 4 8'],
         ['Matrix transpose reverse pass', '2 4 1 3'],
         ['Input sum pass', '10'],
+        ['Input sum 2 scale', '20'],
+        ['Matrix sum 2 scale', '20'],
+        ['Input sum abs 2 scale', '20'],
     ])('passes a complete postfix argument recipe to a deferred parameter: %s', (expression, expected) => {
         const source = counted();
         const output: string[] = [];
         const runtime = new Interpreter(text => output.push(text), { compilation });
         runtime.variables.set('Input', source.value);
         try {
-            runtime.execute(`use sequences\nuse io
+            runtime.execute(`use sequences\nuse numbers\nuse io
 fun X' pass
  "entered" print
  return X
@@ -73,6 +77,145 @@ Tree 0 = 2
 Tree 1 = 5`);
             expect(runtime.execute('Tree sum 1 pass')).toBe(7n);
             expect(runtime.execute('Tree sum 1 10 plusvalue')).toBe(17n);
+            expect(() => runtime.execute('Tree sum plusvalue')).toThrowError('fenwick sum expects one integer index');
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps a Fenwick query and its right-hand index deferred in a multi-argument call', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            runtime.execute(`use algo\nuse io
+fun X' Y plusvalue
+ "entered" print
+ return X + Y
+end
+Tree' = 3 fenwick
+Result' = Tree sum (1 print) 10 plusvalue`);
+            expect(output).toEqual(['entered']);
+            expect(runtime.execute('Result')).toBe(10n);
+            expect(runtime.execute('Result')).toBe(10n);
+            expect(output).toEqual(['entered', '1', '1']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('executes a user-defined Fenwick index producer at the call, once', () => {
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            runtime.execute(`use algo\nuse io
+fun query_index
+ "index" print
+ return 1
+end
+fun X' Y plusvalue
+ "entered" print
+ return X + Y
+end
+Tree' = 3 fenwick
+Result' = Tree sum query_index 10 plusvalue`);
+            expect(output).toEqual(['index', 'entered']);
+            expect(runtime.execute('Result')).toBe(10n);
+            expect(runtime.execute('Result')).toBe(10n);
+            expect(output).toEqual(['index', 'entered']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('stages a receiver-producing call once before grouping a reduction argument', () => {
+        const source = counted();
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        runtime.variables.set('Input', source.value);
+        try {
+            runtime.execute(`use sequences\nuse io
+fun N produce
+ "producer" print
+ return Input
+end
+fun X' Factor scale
+ "entered" print
+ return X * Factor
+end
+Result' = (0 produce) sum 2 scale`);
+            expect(output).toEqual(['producer', 'entered']);
+            expect(source.reads()).toBe(0);
+            expect(runtime.execute('Result')).toBe(20n);
+            expect(runtime.execute('Result')).toBe(20n);
+            expect(source.reads()).toBe(8);
+            expect(output).toEqual(['producer', 'entered']);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each(['Holder .tree', 'Later'])('dispatches a Fenwick query from a field receiver: %s', receiver => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`use algo
+fun X' Y plusvalue = X + Y
+Tree = 3 fenwick
+Tree 0 = 2
+Tree 1 = 5
+Holder = record
+ .tree = Tree
+end
+Later' = Holder .tree
+Result' = ${receiver} sum 1 10 plusvalue`);
+            expect(runtime.execute('Result')).toBe(17n);
+            expect(runtime.execute('Result')).toBe(17n);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
+        ['Unknown sum 2 scale', [], 1],
+        ['(Unknown sum) 2 scale', [], 0],
+        ['Unknown sum 2 scale', ['sequence', 'array'], 0],
+    ] as const)('demands an unknown receiver kind only when grouping needs it: %s %s', (expression, types, entryDemands) => {
+        const source = counted();
+        const runtime = new Interpreter(undefined, { compilation });
+        let demands = 0;
+        runtime.variables.set('Unknown', { kind: 'plan', dependencies: new Map(), result: { types },
+            evaluate() { demands++; return completed(source.value); },
+        });
+        try {
+            runtime.execute(`use sequences
+fun X' Factor scale = X * Factor
+Result' = ${expression}`);
+            expect(demands).toBe(entryDemands);
+            expect(source.reads()).toBe(0);
+            expect(runtime.execute('Result')).toBe(20n);
+            expect(runtime.execute('Result')).toBe(20n);
+            expect(demands).toBe(entryDemands + 2);
+            expect(source.reads()).toBe(8);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retries failed receiver dispatch without retaining its construction scope', () => {
+        const source = counted();
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        let demands = 0;
+        runtime.variables.set('Unknown', { kind: 'plan', dependencies: new Map(),
+            evaluate() {
+                if (++demands === 1) throw new Error('receiver dispatch failed');
+                return completed(source.value);
+            },
+        });
+        try {
+            runtime.execute(`use sequences\nuse io
+fun X' Factor scale
+ "entered" print
+ return X * Factor
+end`);
+            const program = parse("Result' = Unknown sum 2 scale");
+            expect(() => runtime.executeProgram(program)).toThrowError('receiver dispatch failed');
+            expect(output).toEqual([]);
+            runtime.executeProgram(program);
+            expect(output).toEqual(['entered']);
+            expect(source.reads()).toBe(0);
+            expect(runtime.execute('Result')).toBe(20n);
+            expect(runtime.execute('Result')).toBe(20n);
+            expect(demands).toBe(4);
+            expect(source.reads()).toBe(8);
+            expect(output).toEqual(['entered']);
         } finally { runtime.dispose(); }
     });
 

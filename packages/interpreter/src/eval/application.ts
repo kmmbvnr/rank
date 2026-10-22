@@ -5,6 +5,7 @@ import { compileStructureApplication } from './application-structures.js';
 import type { ModuleApplication } from './application-module.js';
 import { isPureLazyFunction, snapshotLazyOperand } from '../lazy-function.js';
 import { queryDefault } from '../query-default.js';
+import { demand, isRankPlan } from '../plan.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication, groupedExpression,
     isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
@@ -39,6 +40,7 @@ import {
 export interface ApplicationContext {
     evaluate(expression: Expression): Evaluation<RankValue>;
     argument(expression: Expression): Evaluation<RankValue>;
+    stageArgument(expression: Expression): Evaluation<{ expression: Expression; value: RankValue }>;
     checkInput(expression: Expression, value: RankValue, source: string): void;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     /** Evaluation of an expression that is not an application, without classifying it again. */
@@ -456,9 +458,6 @@ export class ApplicationEvaluator {
             // evaluating its parts separately would feed plans to native calls
             // or compute a reduction before the parameter binder sees it.
             const prefix = parts.slice(0, -1);
-            // Receiver-specific `sum` can take its index on the right. Its
-            // dispatcher owns that grouping for multi-argument calls.
-            if (fn.arities.join() !== '1' && prefix.some(part => isNamed(part, 'sum'))) return ordinary();
             const operations = prefix.map((part, index) => {
                 while (isParenthesizedExpression(part)) part = part.value;
                 if (!index || !isNameExpression(part)) return false;
@@ -467,19 +466,42 @@ export class ApplicationEvaluator {
                 const arities = value !== undefined && isNativeFunction(value) ? value.arities : builtin ? builtin.arities : undefined;
                 return !!arities?.length && !arities.includes(0);
             });
-            const operands: Expression[] = [];
-            if (fn.arities.join() === '1' && operations.some(Boolean)) {
-                operands.push(applicationParts(prefix, expression));
-            } else for (const [index, part] of prefix.entries()) {
-                operands.push(part);
-                if (operations[index]) {
-                    operands.splice(0, operands.length, groupedExpression(applicationParts(operands, expression)));
-                }
-            }
-            return flatMapResult(mapExecution(operands, part => this.context.argument(part)),
-                values => this.apply([...values, this.context.resolve(last.name)], missing, 0, [], tail,
-                    lastArrayUseProofs(expression, operands)));
+            return flatMapResult(this.callOperands(prefix, expression, fn.arities.join() === '1', operations), operands =>
+                flatMapResult(mapExecution(operands, part => this.context.argument(part)),
+                    values => this.apply([...values, this.context.resolve(last.name)], missing, 0, [], tail,
+                        lastArrayUseProofs(expression, operands))));
         };
+    }
+
+    private *callOperands(
+        parts: Expression[], expression: Expression, monadic: boolean, operations: boolean[],
+    ): Execution<Expression[]> {
+        if (monadic && operations.some(Boolean)) return [applicationParts(parts, expression)];
+        const operands: Expression[] = [];
+        for (let index = 0; index < parts.length; index++) {
+            const part = parts[index];
+            const operation = operations[index];
+            if (operation && isNamed(part, 'sum')) {
+                const receiver = yield* resume(this.context.stageArgument(applicationParts(operands, expression)));
+                const types = isRankPlan(receiver.value) ? receiver.value.result?.types : undefined;
+                // Known result kinds settle method arity without reading data.
+                // An unknown kind must be demanded for receiver dispatch; keep
+                // the original recipe, not the value obtained by that demand.
+                const fenwick = types?.length && !types.includes('fenwick') ? false
+                    : types?.length === 1 ? true
+                    : isRankFenwick(yield* resume(demand(receiver.value)));
+                operands.splice(0, operands.length, receiver.expression, part);
+                if (fenwick) {
+                    const argument = parts[++index];
+                    if (!argument) throw new RankError('fenwick sum expects one integer index');
+                    operands.push(argument);
+                }
+            } else operands.push(part);
+            if (operation) {
+                operands.splice(0, operands.length, groupedExpression(applicationParts(operands, expression)));
+            }
+        }
+        return operands;
     }
 
     private compileNativeApplication(

@@ -189,6 +189,7 @@ export class Interpreter {
         this.application = new ApplicationEvaluator({
             findVariable: name => this.findVariable(name),
             argument: expression => this.expressions.argument(expression),
+            stageArgument: expression => this.expressions.stageArgument(expression),
             checkInput: (expression, value, source) => this.checkedInputs.check(expression, value, source),
             evaluate: expression => this.expressions.evaluate(expression),
             compileDirect: expression => this.expressions.compileDirect(expression),

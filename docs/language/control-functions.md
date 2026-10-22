@@ -331,6 +331,34 @@ G = A B gcd
 Result print
 ```
 
+### Parameter evaluation and argument boundaries
+
+`fun Values use_values` completes an incoming plan on entry, including plans
+inside tuples, records and containers. `fun Values' use_values` keeps the
+argument without completing it. The body executes at the call; returning a
+plan leaves the receiving binding to keep or complete it.
+
+A completed postfix operation can itself be an argument:
+
+```rank
+use sequences
+fun Values' Factor weighted = Values * Factor
+Source' = 1 to 4
+Result' = Source sum 2 weighted
+Saved = Result
+```
+
+`Saved` is `20`. The reduction stays deferred through `weighted`; an ordinary
+`Values` parameter would complete it once on entry instead.
+
+Receiver methods can change argument boundaries. `Tree sum Index` is a Fenwick
+query, while `Values sum` is a reduction. When such a call precedes another
+function, a known receiver kind settles the grouping without reading cells.
+An unknown kind is demanded for dispatch; that demand does not retain its
+result. Parenthesizing the complete argument fixes its boundary:
+`(Tree sum Index) Factor weighted` can pass the whole query without inspecting
+the receiver first. Each later demand still runs the query again.
+
 ### Call-shaped signatures
 
 A header places each parameter where its argument appears in a call. Uppercase
