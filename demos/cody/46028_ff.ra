@@ -22,7 +22,7 @@ fun Grid StartY StartX T tolerance_fill
     Position = Pending Head
     Y = Position // W
     X = Position mod W
-    Neighbors = Grid Y X neighbors
+    Neighbors' = Grid Y X neighbors
 
     for Point in Neighbors
       unpack NextY NextX = Point
