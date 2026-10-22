@@ -1,0 +1,33 @@
+use testing
+
+test "statement grids"
+  use "453_latticequadrilaterals"
+  Md = 1000000007
+  M = 2
+  N = 2
+  run
+  Answer equal 94
+  M = 3
+  N = 7
+  run
+  Answer equal 39590
+  M = 12
+  N = 3
+  run
+  Answer equal 309000
+end
+
+test "exact 123 by 45"
+  use "453_latticequadrilaterals"
+  M = 123
+  N = 45
+  Md = 1000000000000037
+  run
+  Answer equal 70542215894646
+end
+
+test "default input"
+  use "453_latticequadrilaterals"
+  run
+  Answer equal 104354107
+end

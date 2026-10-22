@@ -1,0 +1,82 @@
+rem Lattice Quadrilaterals
+rem https://projecteuler.net/problem=453
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 12345
+option N integer = 6789
+option Md integer = 135707531
+
+rem Q = C(T,4) - bad sets + 2 (points
+rem inside triangles). Collinear sets
+rem come from gcds of displacements,
+rem the inside points from Pick's
+rem theorem: sums of doubled areas and
+rem of boundary points. The gcd sums
+rem over i, j become sums over d of
+rem phi(d) or J2(d) times sums over
+rem the multiples of d.
+T = (M + 1) * (N + 1)
+I3 = 3 (Md - 2) Md powmod
+rem Axis segments: g is the length.
+Ia = (1 to M) copy
+Ja = (1 to N) copy
+Mi = (N + 1) * (M + 1 - Ia)
+Mj = (M + 1) * (N + 1 - Ja)
+Ma = concat Mi Mj
+Ga = concat Ia Ja
+Ma = Ma mod Md
+C2 = (Ga - 1) * (Ga - 2) // 2 mod Md
+L3 = (Ma * (Ga - 1) mod Md) sum
+L4 = (Ma * C2 mod Md) sum
+Sg = (Ma * Ga mod Md) sum
+rem Inner segments: sums of
+rem (M+1-i)(N+1-j) h(gcd(i, j)).
+Dm = M N min
+Ph = (0 to Dm) copy
+Jt = Ph * Ph
+for P in primes to Dm
+  Sl = P to Dm by P
+  Ph Sl -= Ph Sl // P
+  Jt Sl -= Jt Sl // (P * P)
+end
+Ds = (1 to Dm) copy
+K = M // Ds
+L = N // Ds
+A = K * (M + 1) - Ds * K * (K + 1) // 2
+B = L * (N + 1) - Ds * L * (L + 1) // 2
+Ab = A mod Md * (B mod Md) mod Md
+Tg = (Ab * Ph Ds mod Md) sum mod Md
+Tq = (Ab * Jt Ds mod Md) sum mod Md
+Pa = M * (M + 1) // 2 mod Md
+Pb = N * (N + 1) // 2 mod Md
+P2 = Pa * Pb mod Md
+L3 = L3 + 2 * (Tg - P2)
+L4 = L4 + Tq - 3 * Tg + 2 * P2
+Sg = Sg + 2 * Tg
+L3 = L3 mod Md
+L4 = L4 mod Md
+Sg = Sg mod Md
+rem Doubled areas by bounding box i x
+rem j: (i^2 + j^2 + 11 i^2 j^2 - g^2)
+rem / 3 times (M+1-i)(N+1-j).
+Qa = ((M + 1 - Ia) * Ia * Ia) sum
+Qb = ((N + 1 - Ja) * Ja * Ja) sum
+Qa = Qa mod Md
+Qb = Qb mod Md
+Sa = Qa * Pb + Pa * Qb
+Sa = Sa + 11 * (Qa * Qb mod Md) - Tq
+Sa = Sa mod Md * I3 mod Md
+Tc = T mod Md
+B2 = T 2 binomial mod Md
+Sb = Tc * Sg - 2 * B2 - 6 * L3 - 4 * L4
+Sb = Sb mod Md
+Bd = (Tc - 3) * L3 - 3 * L4 mod Md
+B3 = T 3 binomial mod Md
+B4 = T 4 binomial mod Md
+Q = B4 - Bd + 2 * B3 - 2 * L3 + Sa - Sb
+Answer = Q mod Md
+Answer print
