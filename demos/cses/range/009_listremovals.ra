@@ -7,13 +7,13 @@ use sequences
 
 N = stdin .integer
 Values = stdin .integer N array
-Positions = stdin .integer N array
+Positions' = stdin .integer N
 
 Values Positions removals print
 
 
 rem Select by live prefix count.
-fun Values Positions removals
+fun Values Positions' removals
   N = Values len
   Alive = (array shape N fill 1) segment +
   Removed = array shape N fill 0

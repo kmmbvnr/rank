@@ -42,11 +42,11 @@ fun Grid Queries forest_updates
   Columns = 1 to Size
 
   for Row InitialRow in Grid
-    Codes = Row codepoint rank 0
-    Values = (46 - Codes) // 4
+    Codes' = Row codepoint rank 0
+    Values' = (46 - Codes) // 4
     Cells = Values
     Trees InitialRow # = Cells
-    Running = Cells scan +
+    Running' = Cells scan +
     Above = Prefix InitialRow Columns
     Prefix (InitialRow + 1) Columns = Above + Running
   end

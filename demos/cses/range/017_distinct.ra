@@ -18,9 +18,9 @@ rem Sweep query right endpoints.
 rem Keep each value's latest position.
 fun Values Queries distinct
   Q = Queries len
-  Right = Queries # 1
-  Indices = 0 till Q array
-  Keys = Right * (Q + 1) + Indices
+  Right' = Queries # 1
+  Indices' = 0 till Q array
+  Keys' = Right * (Q + 1) + Indices
   Order = Keys argsort
   Latest = new index
   Present = Values len fenwick

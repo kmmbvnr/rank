@@ -17,9 +17,9 @@ Values Queries range_xors print
 rem Answer inclusive xor ranges.
 fun Values Queries range_xors
   Prefix = Values scan bxor with 0
-  Left = Queries # 0
-  Right = Queries # 1
-  Before = Prefix (Left - 1)
-  After = Prefix Right
+  Left' = Queries # 0
+  Right' = Queries # 1
+  Before' = Prefix (Left - 1)
+  After' = Prefix Right
   return After Before bxor
 end
