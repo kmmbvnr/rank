@@ -22,7 +22,7 @@ rem table of nodes; part 2 needs the nesting, so it walks
 rem the tree.
 fun Text solve
   Nodes = Text json .flat
-  Numbers = Nodes filter .kind equal "integer"
+  Numbers' = Nodes filter .kind equal "integer"
   Part1 = Numbers .value integer rank 0 sum
   Part2 = Text json sumnored
   return tuple Part1 Part2

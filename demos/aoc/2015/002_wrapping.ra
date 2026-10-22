@@ -14,7 +14,7 @@ Part2 print
 
 
 rem Return the required wrapping paper and ribbon.
-fun Lines solve
+fun Lines' solve
   Paper = 0
   Ribbon = 0
 

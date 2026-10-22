@@ -4,6 +4,7 @@ import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan
 import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
+import { MemoryIo } from './support.js';
 import { denseScalarItems, materializedArrayItems, derivedArray } from '../src/array-storage.js';
 
 const euler4 = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
@@ -11,6 +12,64 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it.each(['150', '150\n', '150\r\n'])('reads the AoC present target with its line ending: %j', input => {
+        const source = readFileSync(new URL('../../../demos/aoc/2015/020_presents.ra', import.meta.url), 'utf8');
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, io: new MemoryIo({ 'input.txt': input }), args: ['input.txt'],
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual(['8', '8']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('validates each AoC wrapping line before pulling the next one', () => {
+        const source = readFileSync(new URL('../../../demos/aoc/2015/002_wrapping.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let reads = 0;
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            runtime.variables.set('Lines', sequence({
+                name: 'wrapping input', size: { kind: 'exact', value: 2n },
+                *iterate() {
+                    reads++;
+                    yield 'bad';
+                    reads++;
+                    yield '2x3x4';
+                },
+            }));
+            expect(() => runtime.execute('Lines solve')).toThrow(/integer|number/i);
+            expect(reads).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it('runs both AoC door-password searches with deterministic matching hashes', () => {
+        const source = readFileSync(new URL('../../../demos/aoc/2016/005_chess.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const matches = [[16, 0], [1, 5], [1, 10], [8, 11], [0, 9],
+            [2, 12], [3, 13], [4, 14], [5, 15], [6, 0], [7, 1]];
+        const runtime = new Interpreter(() => {}, { compilation, md5: input => {
+            const index = Number(String(input).slice('door'.length));
+            const match = matches[index];
+            if (!match) throw new Error('Password search passed the final matching hash');
+            const hash = new Uint8Array(16);
+            hash[2] = match[0]!;
+            hash[3] = match[1]! * 16;
+            return hash;
+        } });
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            expect(runtime.execute('"door" part1')).toBe('11802345');
+            expect(runtime.execute('"door" part2')).toBe('95cdef01');
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         ['005_commondivisors', '5 3 14 15 7 9', '7'],
         ['009_coprimepairs', '5 2 3 4 9 5', '8'],

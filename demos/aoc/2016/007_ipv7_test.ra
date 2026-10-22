@@ -9,6 +9,16 @@ test "official TLS examples"
   "ioxxoj[asdfgh]zxcvbn" tls
 end
 
+test "short addresses have no matching windows"
+  use "007_ipv7"
+  not "" tls
+  not "a" tls
+  not "aba" tls
+  not "" ssl
+  not "a" ssl
+  not "aba" ssl
+end
+
 test "official SSL examples"
   use "007_ipv7"
 

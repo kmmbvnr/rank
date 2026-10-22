@@ -10,14 +10,13 @@ use text
 
 argument Input path
 
-Lines = Input readlines
-unpack Part1 Part2 = Lines solve
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
 
 rem Parse the ingredients and search all allocations of 100 teaspoons.
-fun Lines solve
+fun Lines' solve
   Queue = new queue
   Pattern = "/word: capacity /integer, durability /integer, flavor /integer, texture /integer, calories /integer"
 
@@ -67,7 +66,7 @@ end
 
 rem Clamp four properties at zero and multiply them into one score.
 fun Totals cookiescore
-  Clamped = Totals 0 max
+  Clamped' = Totals 0 max
   unpack Cap Dur Fla Tex Cal = Clamped
   return Cap * Dur * Fla * Tex
 end

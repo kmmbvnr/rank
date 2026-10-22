@@ -15,14 +15,13 @@ use text
 
 argument Input path
 
-Lines = Input readlines
-unpack Part1 Part2 = Lines solve
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
 
 rem Find the best circular seating before and after adding yourself.
-fun Lines solve
+fun Lines' solve
   Index = new index
   Seen = new set
   Pattern = "/word would /word /integer happiness units by sitting next to /word."

@@ -9,14 +9,13 @@ use sequences
 
 argument Input path
 
-Lines = Input readlines
-unpack Part1 Part2 = Lines solve
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
 
 rem Find the shortest and longest routes that visit every city once.
-fun Lines solve
+fun Lines' solve
   Index = new index
   Queue = new queue
   Seen = new set

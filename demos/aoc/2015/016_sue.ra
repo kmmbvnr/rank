@@ -9,14 +9,13 @@ use text
 
 argument Input path
 
-Lines = Input readlines
-unpack Part1 Part2 = Lines solve
+unpack Part1 Part2 = Input readlines solve
 Part1 print
 Part2 print
 
 
 rem Find the candidates matching exact and corrected evidence rules.
-fun Lines solve
+fun Lines' solve
   Index = new index
   Index "children" = 3
   Index "cats" = 7
