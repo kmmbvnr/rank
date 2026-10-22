@@ -4,13 +4,54 @@ import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan
 import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
-import { denseScalarItems, materializedArrayItems } from '../src/array-storage.js';
+import { denseScalarItems, materializedArrayItems, derivedArray } from '../src/array-storage.js';
 
 const euler4 = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
 const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', import.meta.url), 'utf8');
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('runs the actual matrix-product dot plans through native reductions when compilation is enabled', () => {
+        const source = readFileSync(new URL('../../../demos/deepml/009_matmul.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute(source);
+            const result = diagnostics.run(() => runtime.execute([
+                'A = array shape 2 3', '1 2 3', '4 5 6', 'end',
+                'B = array shape 3 2', '7 8', '9 10', '11 12', 'end',
+                'Result = A B matrixmul',
+            ].join('\n')))!;
+            expect(result).toMatchObject({ kind: 'array', shape: [2, 2] });
+            expect(formatValue(result)).toBe('58 64 139 154');
+            expect(isStoredValue(result)).toBe(true);
+            expect(diagnostics.compiledTensors).toBe(compilation ? 4 : 0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('passes a planned tensor through the actual scalar-multiply helper without reading it on entry', () => {
+        const source = readFileSync(new URL('../../../demos/deepml/005_scalmul.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let reads = 0;
+        runtime.variables.set('Input', derivedArray([2, 2], [], index => { reads++; return BigInt(index + 1); }));
+        try {
+            runtime.execute(source);
+            runtime.execute("Result' = Input 3 scalar_multiply");
+            expect(reads).toBe(0);
+            expect(isRankPlan(runtime.variables.get('Result')!)).toBe(true);
+            const saved = runtime.execute('Saved = Result')!;
+            expect(formatValue(saved)).toBe('3 6 9 12');
+            expect(isStoredValue(saved)).toBe(true);
+            const afterSaved = reads;
+            expect(afterSaved).toBeGreaterThan(0);
+            expect(runtime.execute('Result sum')).toBe(30n);
+            expect(reads).toBeGreaterThan(afterSaved);
+            const afterDemand = reads;
+            expect(runtime.execute('Saved sum')).toBe(30n);
+            expect(reads).toBe(afterDemand);
+        } finally { runtime.dispose(); }
+    });
+
     it('streams values through the actual fold helper without completing its input on entry', () => {
         const source = readFileSync(new URL('../../../demos/classic/fold.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });

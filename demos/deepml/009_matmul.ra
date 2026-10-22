@@ -17,8 +17,8 @@ fun A B matrixmul
   for i in 0 till Rows
     Row = A i
     for j in 0 till Cols
-      Col = B # j
-      Dot = Row * Col
+      Col' = B # j
+      Dot' = Row * Col
       Result i j = (Dot sum) * 1.0
     end
   end

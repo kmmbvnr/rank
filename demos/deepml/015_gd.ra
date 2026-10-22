@@ -30,8 +30,8 @@ fun X Y Rate Steps linear_regression
     Pred = Features Theta matmul
     Error = Pred - Targets
 
-    Grad = Features transpose Error matmul
-    Grad = Grad / (M real)
+    Grad' = Features transpose Error matmul
+    Grad' = Grad / (M real)
 
     Theta -= Rate * Grad
   end

@@ -12,10 +12,10 @@ fun Data feature_scaling
   High = Data max axis 0
 
   Range = High - Low
-  Std = Delta / Dev
-  Norm = (Data - Low) / Range
-  Std = Std round 4
-  Norm = Norm round 4
+  Std' = Delta / Dev
+  Norm' = (Data - Low) / Range
+  Std' = Std round 4
+  Norm' = Norm round 4
 
   return array Std Norm
 end

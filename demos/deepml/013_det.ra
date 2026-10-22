@@ -25,9 +25,9 @@ fun A determinant
   Cols = 0 till N array
 
   for c in Cols
-    Keep = Cols not equal c
-    Minor = A (1 till N)
-    Minor = Minor axis 1 Keep
+    Keep' = Cols not equal c
+    Minor' = A (1 till N)
+    Minor' = Minor axis 1 Keep
 
     Sign = 1 - 2 * (c mod 2)
     Cof = Minor determinant
