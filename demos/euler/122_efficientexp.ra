@@ -25,13 +25,13 @@ for Ch len greater 0
   New = (Last reshape R 1) + Ch
   Ok = New at most Limit
   Pos = Ok indices
-  Rows = Ch (Pos # 0)
+  Rows' = Ch (Pos # 0)
   Val = New filter Ok array
   Cur = Best Val
   Best Val = Cur Lv min
   Keep = (Best Val) equal Lv
-  Ext = Val reshape (Val len) 1
-  Nxt = concat Rows Ext axis 1
+  Ext' = Val reshape (Val len) 1
+  Nxt' = concat Rows Ext axis 1
   Ch = Nxt (Keep indices)
 end
 Answer = Best sum

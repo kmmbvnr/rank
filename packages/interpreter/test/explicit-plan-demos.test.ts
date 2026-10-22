@@ -11,6 +11,28 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('completes repunit tables before deferred searches read the final version', () => {
+        const source = readFileSync(new URL('../../../demos/euler/129_repunitdiv.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=10'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(17n);
+            const table = runtime.variables.get('Tab')!;
+            expect(table).toMatchObject({ kind: 'array', shape: [12, 16] });
+            expect(isStoredValue(table)).toBe(true);
+            const cut = runtime.variables.get('Cut')!;
+            expect(isRankPlan(cut)).toBe(true);
+            if (!isRankPlan(cut)) throw new Error('expected a table selection plan');
+            expect(cut.dependencies.get('Tab')).toBe(table);
+            expect(runExecution(demand(cut))).toMatchObject({ kind: 'array', shape: [12, 10] });
+            expect(runtime.executeProgram(parse('Tab 0 0'), [])).toBe(10n);
+            expect(runtime.executeProgram(parse('Tab 0 1'), [])).toBe(1n);
+            expect(runtime.executeProgram(parse('Tab 0 15'), [])).toBe(1n);
+            expect(isRankPlan(runtime.variables.get('Short')!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Long')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains shared block masks while deferring the combinatorial reduction', () => {
         const source = readFileSync(new URL('../../../demos/euler/114_blocks1.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--size=7'] });
@@ -372,6 +394,7 @@ describe.each([false, true])('explicit-plan demo migration (compilation=%s)', co
     it.each([
         ['001_multiples', 1000, 'Mask', 'Mask 0 = true', 233168n],
         ['014_collatz', 14, 'Lengths', 'Lengths 0 = 999', 9n],
+        ['127_abchits', 1000, 'Rad', 'Rad 0 = 999', 12523n],
     ] as const)('retains writable working data in Euler %s', (name, limit, binding, mutation, expected) => {
         const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: [`--limit=${limit}`] });

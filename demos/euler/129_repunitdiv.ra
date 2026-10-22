@@ -17,22 +17,21 @@ rem Limit. Build the powers 10^1 to 10^k
 rem of every candidate at once, doubling
 rem the table: 10^(w+i) = 10^w 10^i.
 N = Limit + 1 to Limit + Window array
-Free = N mod 2 equal 1
-Free and= N mod 5 not equal 0
+Free' = N mod 2 equal 1 and N mod 5 not equal 0
 N = N filter Free array
 Rows = N len
 M = (9 * N) reshape Rows 1
 Tab = 10 mod M
 Width = 1
 for Width at most Limit
-  Col = Tab # (Width - 1)
-  Last = Col reshape Rows 1
-  Next = Tab * Last mod M
+  Col' = Tab # (Width - 1)
+  Last' = Col reshape Rows 1
+  Next' = Tab * Last mod M
   Tab = (concat Tab Next axis 1) copy
   Width = Width * 2
 end
-Cut = Tab # (0 till Limit)
-Short = (Cut equal 1) any axis 1
-Long = N filter (not Short) array
+Cut' = Tab # (0 till Limit)
+Short' = (Cut equal 1) any axis 1
+Long' = N filter (not Short) array
 Answer = Long first
 Answer print
