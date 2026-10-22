@@ -23,9 +23,9 @@ Mu = Mu drop 1 copy
 rem All fractions strictly between, by
 rem denominator, then prefix totals. A
 rem Moebius sum keeps the reduced ones.
-D = 1 to Limit array
-Per = (D - 1) // 2 - D // 3
+D' = 1 to Limit
+Per' = (D - 1) // 2 - D // 3
 Tot = Per scan + with 0
-Quot = Limit // D
+Quot' = Limit // D
 Answer = (Mu * (Tot Quot)) sum
 Answer print

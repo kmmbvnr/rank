@@ -38,8 +38,8 @@ Far = Id (Col equal Last) array
 Gate = First * 0 + Count
 From = concat Right Down South Gate
 To = concat East South Down First
-Cost = Cells To
-Edges = stack From To Cost transpose
+Cost' = Cells To
+Edges' = stack From To Cost transpose
 Net = new graph .directed
 Net add Id
 Net add Edges

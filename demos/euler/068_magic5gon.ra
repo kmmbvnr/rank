@@ -18,10 +18,10 @@ for Inner in (1 to 9) 5 combinations
     continue
   end
   Side = (55 + Total) // 5
-  Out = (1 to 10) filter not in Inner
+  Out' = (1 to 10) filter not in Inner
   Rest = Out array
   for Ring in Inner permutations
-    Tail = Ring drop 1
+    Tail' = Ring drop 1
     Next = concat Tail (Ring take 1)
     Outer = Side - Ring - Next
     Sorted = Outer sort
@@ -32,12 +32,12 @@ for Inner in (1 to 9) 5 combinations
     rem Lines clockwise from the least
     rem outer node, as one integer.
     Cols = stack Outer Ring Next
-    Rows = Cols transpose
+    Rows' = Cols transpose
     Start = Outer min .index
-    Order = ((0 to 4) + Start) mod 5
-    Picked = Rows Order
+    Order' = ((0 to 4) + Start) mod 5
+    Picked' = Rows Order
     Flat = Picked reshape 15
-    Digits = Flat text rank 0
+    Digits' = Flat text rank 0
     Joined = Digits "" join
     Value = Joined integer
     Answer = Answer Value max

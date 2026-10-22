@@ -19,7 +19,7 @@ rem the distinct primes dividing k.
 Ps = primes to Limit array
 Ids = 1 to Limit array
 Row = Ids reshape Limit 1
-Dividing = Row mod Ps equal 0
+Dividing' = Row mod Ps equal 0
 Sums = (Dividing choose Ps 0) sum rank 1
 rem Reverse storage gives zero for
 rem terms beyond the current n.
@@ -31,6 +31,6 @@ for N in 1 to Limit
   Ways Base = Sum // N
 end
 Ways = Ways (Limit to 0 by -1) copy
-Over = Ways greater Target
+Over' = Ways greater Target
 Answer = Ways first index where Over
 Answer print

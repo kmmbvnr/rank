@@ -11,6 +11,23 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains Monopoly state while composing deferred matrices through native kernels', () => {
+        const source = readFileSync(new URL('../../../demos/euler/084_monopolyodds.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(source));
+            expect(runtime.variables.get('Answer')).toBe(101524n);
+            expect(isRankPlan(runtime.variables.get('Mat')!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('Land')!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('Seen')!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('Sq')!)).toBe(true);
+            expect(runtime.execute('Land 36 5')).toBe(0.1875);
+            if (compilation) expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            else expect(diagnostics.compiledTensors).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it('stops the actual pandigital-prime pipeline before completing all permutations', () => {
         const source = readFileSync(new URL('../../../demos/euler/041_pandigitalprime.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });
