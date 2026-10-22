@@ -712,6 +712,8 @@ it('keeps unrelated facts through scalar set additions but not lazy array keys',
     expect(messages('use algo\nCount = 1\nCounts = new counter\nCounts add "x"\nX = Counts "x"\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nCounts = new counter\nX = Counts (A 0)\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nA = array 0\nCount = 1\nCounts = new counter\nX = Counts (A 0)\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
@@ -749,6 +751,8 @@ it('keeps types through a scalar lookup in the local index', () => {
         + 'Result = "x" read\nResult + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     expect(messages('use algo\nCount = 1\nA = Unknown\nIndex = new index\nFirst = Index (A 0) default -1\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages('use algo\nA = array 0\nCount = 1\nIndex = new index\nFirst = Index (A 0) default -1\nCount + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
 });
 
@@ -1659,11 +1663,13 @@ it('keeps unrelated facts across a nested reader of its parent eager array', () 
         .toEqual(['operator + does not accept integer and text']);
 });
 
-it('does not trust indexed readers of lazy or unsupported array values', () => {
+it('does not trust unknown receivers or writes whose completion may rebind them', () => {
     const reader = 'fun X read\n return X 0\nend\n';
     expect(messages(reader + 'A = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
-    expect(messages(reader + 'A = array 1 2\nA # = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
-    expect(messages(reader + 'A = array 1 2\nA 0 = Unknown\nCount = 3\nA read\nCount + "bad"')).toEqual([]);
+    expect(messages(reader + 'A = array 1 2\nA # = Unknown\nCount = 3\nA read\nCount + "bad"'))
+        .toEqual([]);
+    expect(messages(reader + 'A = array 1 2\nA 0 = Unknown\nCount = 3\nA read\nCount + "bad"'))
+        .toEqual([]);
 });
 
 it('does not retain facts across direct or transitive stdin reads', () => {
@@ -2066,7 +2072,7 @@ it('passes a safe indexed scalar to a call before the callee changes its array',
     }] }]).functionResults[0].types).toEqual(['integer']);
     expect(analyzeValues(program.value, new Map(), new Map(), [{ name: 'outer', arguments: [{
         types: ['array'], rank: 1, shape: [2], elements: ['integer'],
-    }] }]).functionResults[0].types).toEqual([]);
+    }] }]).functionResults[0].types).toEqual(['integer']);
     const apples = readFileSync(new URL('../../../demos/cses/intro/016_apples.ra', import.meta.url), 'utf8');
     const tests = readFileSync(new URL('../../../demos/cses/intro/016_apples_test.ra', import.meta.url), 'utf8');
     const appleProgram = services.Rank.parser.LangiumParser.parse<Program>(apples);

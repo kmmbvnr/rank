@@ -11,6 +11,8 @@ export interface ValueFacts {
     /** Internal recursion seed: no returning path has been observed yet. */
     readonly bottom?: true;
     readonly types: Types;
+    /** Read-effect evidence, separate from the type of a deferred result. */
+    readonly completion?: 'ready' | 'pure' | 'may-call';
     readonly tupleItems?: readonly ValueFacts[];
     readonly acceptedTypes?: Types;
     readonly acceptedArrayRank?: number;
@@ -277,6 +279,8 @@ export function joinValueFacts(values: readonly ValueFacts[]): ValueFacts {
         ...(first.collectionId !== undefined && values.every(value => value.collectionId === first.collectionId)
             ? { collectionId: first.collectionId } : {}),
         ...(positions ? { positions } : {}),
+        ...(values.every(value => value.completion === 'ready') ? { completion: 'ready' as const }
+            : values.some(value => value.completion === 'may-call') ? { completion: 'may-call' as const } : {}),
         ...(fields ? { fields } : {}),
         ...(checkedInputId !== undefined ? { checkedInputId } : {}),
         ...(checkedColumns ? { checkedColumns } : {}),

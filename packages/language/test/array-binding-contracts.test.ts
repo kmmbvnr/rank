@@ -42,7 +42,7 @@ describe('array binding element contracts', () => {
             .some(message => message.includes('array elements'))).toBe(true);
     });
     it('checks recursive nested ranks and cells when they are established facts', () => {
-        const nested = (type: string, rank = 1): ValueFacts => ({ types: ['array'], rank: 1, shape: [1],
+        const nested = (type: string, rank = 1): ValueFacts => ({ types: ['array'], completion: 'ready', rank: 1, shape: [1],
             elements: ['array'], positionFacts: [{ types: ['array'], rank, shape: Array(rank).fill(1),
                 elements: [type], eagerScalarCells: true }] });
         for (const replacement of [nested('text'), nested('integer', 2)]) {

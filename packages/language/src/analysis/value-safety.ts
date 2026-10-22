@@ -123,14 +123,16 @@ export const scalarBitwise = (node: Expression, env: ReadonlyMap<string, ValueFa
         && parts.slice(0, -1).every(part => directValue(part)
             && expressionFacts(part, name => env.get(name)).types.join() === 'integer');
 };
-export const safeRead = (fact: ValueFacts | undefined): boolean => fact?.eagerScalarCells === true
+export const safeRead = (fact: ValueFacts | undefined): boolean => fact?.completion === 'ready'
+    && fact.types.length > 0 && fact.types.every(type => ['array', 'bytes', 'tuple', 'record', 'object'].includes(type))
+    || fact?.eagerScalarCells === true
     || fact?.callbackFreeScalarCells === true || fact?.types.join() === 'text'
     || fact?.types.join() === 'index';
 export function safeIndexedIteration(collection: ValueFacts): boolean {
     const kind = collection.types.join();
     return kind === 'text' || kind === 'queue'
         || collection.rank !== undefined && collection.rank > 0 && ['array', 'sequence'].includes(kind)
-            && (collection.eagerScalarCells === true || collection.callbackFreeScalarCells === true)
+            && safeRead(collection)
         // A materialized array of records with a proved schema holds no lazy cells.
         || kind === 'array' && collection.rank === 1 && collection.elements?.join() === 'record'
             && collection.elementRecord !== undefined;

@@ -2,12 +2,16 @@ import { mapsScalarCells } from './types.js';
 import { matchCompiledCallSignature, type CompiledAtomType, type Operation } from '../operations.js';
 import { isAtom, type ValueFacts } from './value-domain.js';
 
+const inScalarDomain = (domain: Operation['scalarNoCallback'], type: string): boolean =>
+    domain === 'primitive' ? ['integer', 'real', 'boolean', 'text'].includes(type)
+        : type === 'integer' || domain === 'number' && type === 'real';
+
 /** A catalogue contract applies only to proven scalar operands in its domain. */
 export function hasScalarNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
     const domain = operation.scalarNoCallback;
     return !!domain && !operation.effects?.length && operation.arities.includes(operands.length)
-        && operands.every(value => value.rank === 0 && value.types.length > 0
-            && value.types.every(type => type === 'integer' || domain === 'number' && type === 'real'));
+        && operands.every(value => (value.rank === 0 || domain === 'primitive' && value.types.join() === 'text')
+            && value.types.length > 0 && value.types.every(type => inScalarDomain(domain, type)));
 }
 
 /** A scalar-cell array may be eager or a lazy array with a proved callback-free reader. */
@@ -22,7 +26,7 @@ export function hasScalarCellArrayNoCallbackProof(operation: Operation, operands
             ? type === 'boolean' : type === 'integer' || type === 'real');
 }
 
-/** A mapped scalar builtin reads only proved numeric cells from its array input. */
+/** A mapped scalar builtin reads only proved cells within its declared domain. */
 export function hasMappedScalarNoCallbackProof(operation: Operation, operands: readonly ValueFacts[]): boolean {
     const value = operands[0];
     const domain = operation.scalarNoCallback;
@@ -30,8 +34,7 @@ export function hasMappedScalarNoCallbackProof(operation: Operation, operands: r
         && operands.length === 1 && mapsScalarCells(operation)
         && value.types.join() === 'array' && !!value.shape
         && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
-        && !!value.elements?.length && value.elements.every(type => type === 'integer'
-            || domain === 'number' && type === 'real');
+        && !!value.elements?.length && value.elements.every(type => inScalarDomain(domain, type));
 }
 
 /** Every array read by this builtin has numeric cells that cannot run Rank code. */

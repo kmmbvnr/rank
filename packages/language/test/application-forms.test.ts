@@ -265,8 +265,8 @@ it('keeps successor neighbors callback-bearing', () => {
     const parsed = parser.parse<Program>(`use graph
 fun N next = array (N + 1)
 G = new graph with next .directed
-N = G 1
-R = G 0 5 10 bfs
+N' = G 1
+R' = G 0 5 10 bfs
 `);
     expect(parsed.parserErrors).toEqual([]);
     const result = analyzeValues(parsed.value);

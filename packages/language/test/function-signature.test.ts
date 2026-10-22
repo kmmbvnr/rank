@@ -45,8 +45,11 @@ it('displays proven literals independently of unknown operands', () => {
     expect(signature('fun answer\n return 42\nend', 'answer')).toBe('→ i');
 });
 
-it('retains ordinary result facts when a relationship cannot prove reader safety', () => {
+it('completes ordinary inputs while deferred inputs retain their read-safety limits', () => {
     expect(signature('fun Value twice\n return Value * 2\nend', 'twice', [
+        { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
+    ])).toBe("c[3]<i> → c[3]<i>");
+    expect(signature("fun Value' twice\n return Value * 2\nend", 'twice', [
         { types: ['array'], rank: 1, shape: [3], elements: ['integer'] },
     ])).toBe("c[3]<i> → c[3]<?>");
 });

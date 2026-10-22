@@ -1,10 +1,80 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeBindings, analyzeValues } from '@arrrank/language';
 import { Interpreter, isRankArray, isRankRecord, isRankTuple, parse, typeName } from '../src/index.js';
+import { ownedArray } from '../src/array-storage.js';
 
 // Exercise both analysis APIs against actual values, rather than agreeing on
 // an expected static label that could itself be wrong.
 describe.each([false, true])('selection and contraction facts (compilation=%s)', compilation => {
+    it.each([
+        'Saved = Host',
+        "Nested' = tuple Host 7\nSaved = Nested",
+        "Nested' = tuple Host 7\nunpack Saved # = Nested",
+        "Nested' = record\n .items = Host\nend\nSaved = Nested",
+        "Nested' = record\n .total = Host sum\nend\nSaved = Nested",
+        "Nested' = tuple (Host sum) 7\nSaved = Nested",
+        'Target = array 0\nTarget # = Host',
+        'use algo\nQ = new queue\nQ push Host',
+        'fun X take_value\n return X\nend\nSaved = Host take_value',
+        'fun deferred_total\n return Host sum\nend\nSaved = deferred_total',
+    ])('forgets stale caller shapes when completion reads host cells: %s', receiving => {
+        const source = `A = array 1 2\n${receiving}\nResult = A + (array 10 20 30)`;
+        const analysis = analyzeValues(parse(source), new Map([['Host', {
+            types: ['array'], rank: 1, shape: [1], elements: ['integer'],
+        }]]));
+        const runtime = new Interpreter(undefined, { compilation });
+        let reads = 0;
+        runtime.variables.set('Host', { kind: 'array', shape: [1], items: [], itemAt() {
+            reads++;
+            runtime.variables.set('A', ownedArray([1n]));
+            return 0n;
+        } });
+        try {
+            runtime.execute(source);
+            expect(reads).toBe(1);
+            expect(runtime.variables.get('Result')).toMatchObject({ shape: [3], items: [11n, 21n, 31n] });
+            expect(analysis.diagnostics.map(diagnostic => diagnostic.message)).toEqual([]);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
+        "Saved' = Host",
+        "Saved' = record\n .items = Host\nend",
+        "fun X' retain = X\nSaved' = Host retain",
+    ])('preserves caller shapes when a host source stays unread: %s', receiving => {
+        const source = `A = array 1 2\n${receiving}\nA + (array 10 20 30)`;
+        const analysis = analyzeValues(parse(source), new Map([['Host', {
+            types: ['array'], rank: 1, shape: [1], elements: ['integer'],
+        }]]));
+        const runtime = new Interpreter(undefined, { compilation });
+        let reads = 0;
+        runtime.variables.set('Host', { kind: 'array', shape: [1], items: [], itemAt() { reads++; return 0n; } });
+        try {
+            expect(() => runtime.execute(source)).toThrow('shape mismatch');
+            expect(reads).toBe(0);
+            expect(analysis.diagnostics.map(diagnostic => diagnostic.message)).toEqual(['shape mismatch: [2] and [3]']);
+        } finally { runtime.dispose(); }
+    });
+
+    it('keeps later caller shapes when rebinding an already completed host result', () => {
+        const source = 'A = array 1 2\nInitial = Host\nA = array 1 2\nSaved = Initial\nA + (array 10 20 30)';
+        const analysis = analyzeValues(parse(source), new Map([['Host', {
+            types: ['array'], rank: 1, shape: [1], elements: ['integer'],
+        }]]));
+        const runtime = new Interpreter(undefined, { compilation });
+        let reads = 0;
+        runtime.variables.set('Host', { kind: 'array', shape: [1], items: [], itemAt() {
+            reads++;
+            runtime.variables.set('A', ownedArray([1n]));
+            return 0n;
+        } });
+        try {
+            expect(() => runtime.execute(source)).toThrow('shape mismatch');
+            expect(reads).toBe(1);
+            expect(analysis.diagnostics.map(diagnostic => diagnostic.message)).toEqual(['shape mismatch: [2] and [3]']);
+        } finally { runtime.dispose(); }
+    });
+
     it('completes unpacked values, record fields and inserted collection values', () => {
         const source = `use algo
 Recipe' = 1 to 3

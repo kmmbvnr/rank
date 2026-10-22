@@ -1,4 +1,6 @@
 import { functionBindingPlan } from '../function-binding.js';
+import { functionCallSignature } from '../function-call-signature.js';
+import { expressionFreeReads } from './bindings.js';
 import { signatureType } from '../type-signature.js';
 import { instantiateTypeSignatures } from '../signature-matching.js';
 import { declaredRanks } from '../function-ranks.js';
@@ -41,7 +43,7 @@ import { createLoopAnalysis } from './loop-analysis.js';
 import { freshDim } from './shape-index.js';
 import { directValue, safeCollectionValue, safeIndexDefault, safeRead, scalarArithmetic, scalarBitwise } from './value-safety.js';
 import { expressionFacts } from './value-facts.js';
-import { completedValueFacts } from './completion-facts.js';
+import { completedValueFacts, completionMayCall } from './completion-facts.js';
 import { filterPredicateForm } from '../clause-conditions.js';
 import { rankedFrameConflict } from './operation-shape.js';
 import { withInsertedElement } from './collection-facts.js';
@@ -146,10 +148,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         loop: (statement, env) => loops.loop(statement, env),
         loopReturnPaths: (statement, env) => loops.loopReturnPaths(statement, env),
         statements: (items, env) => statements(items, env),
+        pendingValue: (expression, value, env) => pendingValue(expression, value, env),
     });
     function insertCollectionElement(name: string, value: ValueFacts, node: Expression,
         env: Map<string, ValueFacts>): void {
-        value = completedValueFacts(value);
+        value = complete(value, env);
         const collection = env.get(name);
         if (!collection || !['set', 'counter', 'queue', 'stack', 'deque', 'heap'].includes(collection.types.join())) return;
         if (!value.types.length) {
@@ -311,6 +314,24 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                             : invalidate(fact));
         }
     };
+    function forgetEffects(env: Map<string, ValueFacts>, closureOnly = false): void {
+        forgetNonFunctions(env, closureOnly);
+        const global = globalCallEnvs.at(-1);
+        if (global && global !== env) for (const [name, fact] of global) {
+            if (!fact.types.includes('function')) global.set(name, invalidate(fact));
+        }
+    }
+    function complete(value: ValueFacts, env: Map<string, ValueFacts>): ValueFacts {
+        if (completionMayCall(value)) forgetEffects(env);
+        return completedValueFacts(value);
+    }
+    function pendingValue(expression: Expression, value: ValueFacts, env: ReadonlyMap<string, ValueFacts>): ValueFacts {
+        const effects = completionMayCall(value) || expressionFreeReads(expression).some(read => {
+            const dependency = env.get(read.name);
+            return dependency !== undefined && completionMayCall(dependency);
+        });
+        return { ...value, completion: effects ? 'may-call' : value.completion ?? 'pure' };
+    }
     const loops = createLoopAnalysis({
         diagnostics, expressions, functions, functionBindings,
         globalEnv: () => globalCallEnvs.at(-1),
@@ -319,8 +340,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         statements: (items, env) => statements(items, env),
         returnPaths: (items, env) => paths.returnPaths(items, env),
         forgetNonFunctions,
+        complete,
     });
-    function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>): void {
+    function invalidateCalls(expression: AstNode, env: Map<string, ValueFacts>, deferred = false): void {
         const syntax = new Set(['reduce', 'scan', 'outer', 'rank', 'axis', 'with', 'segment', 'from', 'check', 'repeat', 'till']);
         const effects = functionEffects(name => env.get(name) === functionBindings.get(name) ? functions.get(name) : undefined,
             name => env.get(name)?.types.includes('function') ?? false,
@@ -336,10 +358,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const unprovenWrittenGlobals = new Set<string>();
         const rebound = new Set<string>();
         for (const node of nodes) {
-            if (isRecordExpression(node) || isRecordUpdateExpression(node)) {
+            if (!deferred && (isRecordExpression(node) || isRecordUpdateExpression(node))) {
                 for (const field of node.fields) {
                     const value = expressionFacts(field.value, name => env.get(name));
-                    if (value.types.includes('array') && !safeRead(value)) unknown = true;
+                    if (completionMayCall(value)) unknown = true;
                 }
             }
             if (!isNameExpression(node)) continue;
@@ -381,6 +403,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const partition = ranked && operands ? rankedFunctionInputs(operands,
                     ranked.rightRank === undefined ? [Number(ranked.rank)] : [Number(ranked.rank), Number(ranked.rightRank)], ranked.axes) : undefined;
                 const inputs = ranked ? partition?.inputs : operands;
+                const definition = external && env.get(node.name) === external.binding
+                    ? external.functions.get(external.name) : functions.get(node.name);
+                if (definition && inputs) {
+                    const parameters = functionCallSignature(definition).parameters;
+                    unknown ||= inputs.some((value, index) => !parameters[index]?.deferred && completionMayCall(value)
+                        && (value.types.length > 0 || !arguments_?.[index]
+                            || expressionFreeReads(arguments_[index]).some(read => {
+                                const dependency = env.get(read.name);
+                                return dependency ? completionMayCall(dependency) : /^[A-Z]/.test(read.name);
+                            })));
+                }
                 const result = external && env.get(node.name) === external.binding
                     ? functionEffects(name => external.functions.get(name), name => external.functions.has(name),
                         name => external.functions.has(name))(external.name, inputs)
@@ -535,11 +568,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         // An unknown call can change captured bindings. Do not use a pre-call
         // shape, even in another operand of the same expression.
         if (unknown || closureUnknown) {
-            forgetNonFunctions(env, !unknown);
-            const global = globalCallEnvs.at(-1);
-            if (global && global !== env) for (const [name, fact] of global) {
-                if (!fact.types.includes('function')) global.set(name, invalidate(fact));
-            }
+            forgetEffects(env, !unknown);
             return;
         }
         // Parameter arrays have value semantics. A write to one parameter
@@ -989,7 +1018,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             : expressionFacts({ $type: 'BinaryExpression', operator: operator.slice(0, -1),
                 left: { $type: 'NameExpression', name: '$field' }, right: value } as Expression,
             key => key === '$field' ? expected : env.get(key));
-        const conflict = recordFieldConflict(expected, completedValueFacts(received), name);
+        const conflict = recordFieldConflict(expected, complete(received, env), name);
         if (conflict) diagnostics.push({ node: value, ...conflict });
     }
 
@@ -1093,7 +1122,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     invalidateImportedAlias(statement.name.slice(0, dot), env);
                 }
                 const beforeEffects = statement.operator === '=' ? directCallBeforeEffects(statement.value, env) : undefined;
-                invalidateCalls(statement.value, env);
+                invalidateCalls(statement.value, env, statement.deferred);
                 const previous = env.get(statement.name);
                 let next = beforeEffects ?? inspect(statement.value, env);
                 if (beforeEffects) expressions.set(statement.value, beforeEffects);
@@ -1114,7 +1143,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     next = { ...combined, types: combined.types.length ? combined.types
                         : compoundType(statement.operator, previous?.types ?? [], next.types) };
                 }
-                bind(statement.name, statement.deferred ? next : completedValueFacts(next), statement.value, env);
+                bind(statement.name, statement.deferred
+                    ? pendingValue(statement.value, next, env)
+                    : complete(next, env), statement.value, env);
                 assignments.set(statement, env.get(statement.name)!);
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isUnpackStatement(statement)) {
@@ -1139,11 +1170,13 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     const scalarCell = types.length && types.every(type =>
                         ['integer', 'real', 'boolean', 'symbol', 'date', 'datetime', 'duration'].includes(type));
                     const textCell = types.join() === 'text';
-                    bind(name, completedValueFacts({ ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
+                    bind(name, complete({ ...(cell ?? (scalarCell ? { rank: 0, shape: [] }
                             : textCell ? { rank: 1, shape: [null] } : {})),
                         types,
+                        ...(source.completion === 'ready' || source.completion === 'pure'
+                            ? { completion: source.completion } : {}),
                         ...(source.integers?.[index] != null ? { integer: String(source.integers[index]) } : {}),
-                    }), statement, env);
+                    }, env), statement, env);
                 }
             } else if (isPushStatement(statement)) {
                 const receiver = isNameExpression(statement.receiver) ? statement.receiver.name : undefined;
@@ -1170,7 +1203,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     return inspect(index.value, env);
                 });
                 invalidateCalls(statement.value, env);
-                const replacement = completedValueFacts(inspect(statement.value, env));
+                const replacement = complete(inspect(statement.value, env), env);
                 if (operation && !operation.write) diagnostics.push({ node: statement, kind: 'TypeError',
                     message: `${statement.name} does not support addressed assignment` });
                 if (statement.operator !== '=') diagnostics.push({ node: statement, kind: 'TypeError',
@@ -1187,7 +1220,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     return inspect(index.value, env);
                 });
                 invalidateCalls(statement.value, env);
-                const replacement = inspect(statement.value, env);
+                const replacement = complete(inspect(statement.value, env), env);
                 let fact = env.get(statement.name);
                 if (fact?.checkedInputId !== undefined) {
                     for (const [name, alias] of env) if (alias.checkedInputId === fact.checkedInputId) {
@@ -1409,8 +1442,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isOptionStatement(statement) || isArgumentStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
-                env.set(statement.name, statement.many ? externalArray(statement.valueType)
-                    : externalScalar(statement.valueType, env.get(statement.name)));
+                env.set(statement.name, completedValueFacts(statement.many ? externalArray(statement.valueType)
+                    : externalScalar(statement.valueType, env.get(statement.name))));
             } else if (isFlagStatement(statement)) {
                 env.set(statement.name, externalScalar('boolean', env.get(statement.name)));
             } else if (isUseStatement(statement) && statement.path && statement.alias && loadModule) {

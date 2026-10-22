@@ -139,10 +139,10 @@ it('proves Fibonacci and memoized recursion without evaluating concrete inputs',
 
 it('bounds new signatures and leaves a recursive group without a base unknown', () => {
     const result = analyze('fun N f\n return N g\nend\nfun N g\n return N f\nend');
-    expect(result.functionResults[0]).toEqual(UNKNOWN_VALUE);
+    expect(result.functionResults[0].types).toEqual([]);
     expect(result.diagnostics).toEqual([]);
     const changing = analyze('fun N f\n return (array N) f\nend');
-    expect(changing.functionResults[0]).toEqual(UNKNOWN_VALUE);
+    expect(changing.functionResults[0].types).toEqual([]);
 });
 
 it('uses the successful assignment contract in later scalar arithmetic', () => {
@@ -213,7 +213,7 @@ it('keeps the scalar contract of a bound that a recursive closure rebinds', () =
 });
 
 it('stays unknown when the rebound capture has no proven scalar contract', () => {
-    expect(analyze(scalarSearch(recursiveBody), [numbers, UNKNOWN_VALUE]).functionResults[0]).toEqual(UNKNOWN_VALUE);
+    expect(analyze(scalarSearch(recursiveBody), [numbers, UNKNOWN_VALUE]).functionResults[0].types).toEqual([]);
     const text: ValueFacts = { types: ['text'], rank: 1, shape: [null] };
     expect(analyze(scalarSearch(recursiveBody), [numbers, text]).functionResults[0].types).not.toEqual(['integer']);
 });

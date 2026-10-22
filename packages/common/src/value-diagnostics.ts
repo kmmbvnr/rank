@@ -98,14 +98,15 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
         for (const [name, fact] of runtime) {
             const inferred = bindings.get(name);
             // Runtime metadata omits array cells. Keep proven source element
-            // types only for an unchanged sequential prefix with matching shape.
+            // types and completion only for an unchanged sequential prefix with matching shape.
             // Effectful calls and unsupported writes invalidate these facts in
             // the analyzer; proven single-cell scalar writes may retain them.
-            const elements = sequential && inferred?.types.join() === fact.types.join()
+            const matches = sequential && inferred?.types.join() === fact.types.join()
                 && inferred.rank === fact.rank && inferred.shape?.length === fact.shape?.length
-                && inferred.shape?.every((size, axis) => size === fact.shape![axis])
-                ? inferred.elements : undefined;
-            bindings.set(name, { ...fact, ...(elements && !fact.elements ? { elements } : {}) });
+                && inferred.shape?.every((size, axis) => size === fact.shape![axis]);
+            const elements = matches ? inferred.elements : undefined;
+            bindings.set(name, { ...fact, ...(elements && !fact.elements ? { elements } : {}),
+                ...(matches && inferred.completion ? { completion: inferred.completion } : {}) });
         }
     }
     return { bindings, functions, clean: cleanPrefix, imports, functionCalls };

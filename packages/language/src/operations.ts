@@ -133,7 +133,7 @@ export interface Operation {
     /** Assignment is a separate effectful entry, not an overload of the read call. */
     readonly write?: { readonly arity: number; readonly signatures: readonly TypeSignature[]; readonly effects: readonly Effect[] };
     /** Operand domain in which scalar calls cannot invoke Rank callbacks. Throws are allowed. */
-    readonly scalarNoCallback?: 'integer' | 'number';
+    readonly scalarNoCallback?: 'integer' | 'number' | 'primitive';
     /** Scalar application maps array cells; unary forms also map sequences. */
     readonly mapsScalarCells?: true;
     /** Accepted cells for a callback-free reduction of one scalar-cell array. */
@@ -1219,6 +1219,7 @@ export const operations: readonly Operation[] = [
         compiledCall: { inputs: ['text-or-bytes'], result: 'bytes', callbacks: 'none', cost: 'input-dependent' },
         summary: 'Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes.' },
     { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
+        scalarNoCallback: 'primitive',
         signatures: mappingSignatures({ union: ['integer', 'real', 'boolean', 'text'] }, 'integer'),
         compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         shape: [{ args: [null], result: null }],

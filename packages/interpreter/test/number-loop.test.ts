@@ -179,9 +179,12 @@ describe('private safe-integer loop registers', () => {
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
 
-    it('retains publishing writes when a selection must detach before mutation', () => {
+    it('uses private writes after an ordinary selection has been completed', () => {
         const source = 'A = array 1 2 3\nSelection = A (0 to 1)\nfor I in 0 to 2\n A I += 1\nend\nOld = Selection 0';
-        expect(compare(source).numberLoops).toBe(0);
+        expect(compare(source).numberLoops).toBe(1);
+        const values = execute(source).observation.variables;
+        expect(values).toContainEqual(['Old', '1']);
+        expect(values).toContainEqual(['A', '2 3 4']);
     });
 
     it('retains exact Int64 promotion for unsafe stored integers', () => {

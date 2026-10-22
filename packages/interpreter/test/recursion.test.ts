@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, isNativeFunction, isRankSequence, type RankValue } from '../src/index.js';
+import { Interpreter, RankError, isNativeFunction, isRankArray, isRankSequence, type RankValue } from '../src/index.js';
 import { MemoryIo, run } from './support.js';
 
 const down = `
@@ -154,8 +154,8 @@ fun N values
   yield N down
   yield (N + 1) down
 end
-A = 1000 values
-B = 2000 values
+A' = 1000 values
+B' = 2000 values
 `);
         const a = interpreter.variables.get('A');
         const b = interpreter.variables.get('B');
@@ -205,7 +205,7 @@ fun N values
     "outer" print
   end
 end
-Values = 1 values
+Values' = 1 values
 `);
         const values = interpreter.variables.get('Values');
         if (!values || !isRankSequence(values)) throw new Error('expected a sequence');
@@ -246,12 +246,19 @@ end
         expect(interpreter.execute('1 + 2')).toBe(3n);
     });
 
-    it('traverses deeply nested returned values for resource ownership without host recursion', () => {
+    it.each(['A', "A'"])('traverses deeply nested returned values without host recursion (%s)', parameter => {
         let value: RankValue = 1n;
         for (let i = 0; i < 10000; i += 1) value = { kind: 'array', shape: [1], items: [value] };
         const interpreter = new Interpreter();
         interpreter.variables.set('Data', value);
-        expect(interpreter.execute('fun A identity\n  return A\nend\nData identity')).toBe(value);
+        let result = interpreter.execute(`fun ${parameter} identity\n  return A\nend\nData identity`)!;
+        if (parameter === "A'") expect(result === value).toBe(true);
+        let depth = 0;
+        while (isRankArray(result)) { depth++; result = result.items[0]; }
+        expect(depth).toBe(10000);
+        expect(result).toBe(1n);
+        expect(interpreter.variables.get('Data') === value).toBe(true);
+        interpreter.dispose();
     });
 
     it.each([
@@ -319,7 +326,7 @@ fun N values
   N print
   yield N
 end
-Values = 7 values
+Values' = 7 values
 `);
         expect(lines).toEqual([]);
         const value = interpreter.variables.get('Values');
