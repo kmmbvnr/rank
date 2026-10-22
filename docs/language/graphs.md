@@ -244,9 +244,12 @@ only as demanded. The total number of routes can be exponential. Use `take`
 or `first` when only a prefix is needed:
 
 ```rank
-Routes = Graph "LAX" "LHR" 2 trips
+Routes' = Graph "LAX" "LHR" 2 trips
 FirstRoute = Routes first
 ```
+
+The apostrophe keeps enumeration deferred. Ordinary assignment collects the
+routes into an array and requires all routes to have the same shape.
 
 `Graph From To edgeweight` returns the minimum weight among the current
 connections from `From` to `To`. It respects graph direction and raises

@@ -4,14 +4,14 @@ use numbers
 use sequences
 use stats
 
-fun Pixels toGray
-  RGB = Pixels (array 256 256 256) digits
+fun Pixels' toGray
+  RGB' = Pixels (array 256 256 256) digits
   return RGB mean axis 0 / 255.0
 end
 
 rem Nearest-even byte quantization before integer conversion.
-fun Gray toRGB
-  Levels = (Gray * 255.0) 0 round
+fun Gray' toRGB
+  Levels' = (Gray * 255.0) 0 round
   return (Levels integer rank 0) * 65793
 end
 
@@ -24,9 +24,9 @@ fun Factors Image scale
   if V equal 0 or H equal 0
     return array shape (Rows * V) (Cols * H) fill 0
   end
-  RowIdx = ((0 till (Rows * V)) // V) array
-  ColIdx = ((0 till (Cols * H)) // H) array
-  Out = Image axis 0 RowIdx
+  RowIdx' = ((0 till (Rows * V)) // V) array
+  ColIdx' = ((0 till (Cols * H)) // H) array
+  Out' = Image axis 0 RowIdx
   return Out axis 1 ColIdx
 end
 
@@ -44,20 +44,19 @@ fun Kernel Image convolve
   end
   K = Kernel / Divisor
   Pad = (Shape - 1) // 2
-  Blocks = Image window Shape padding Pad wrap
-  Weighted = Blocks * K
-  Result = Weighted sum rank 2
-  Result = 0.0 Result max
+  Blocks' = Image window Shape padding Pad wrap
+  Weighted' = Blocks * K
+  Result' = (Weighted sum rank 2) 0.0 max
   return Result 1.0 min
 end
 
 fun Kernel Image convolveRGB
   Base = array 256 256 256
-  RGB = Image Base digits
-  Normalized = RGB / 255.0
-  Filtered = Kernel Normalized convolve rank 2 2
-  Rounded = (Filtered * 255.0) 0 round
-  Bytes = Rounded integer rank 0
+  RGB' = Image Base digits
+  Normalized' = RGB / 255.0
+  Filtered' = Kernel Normalized convolve rank 2 2
+  Rounded' = (Filtered * 255.0) 0 round
+  Bytes' = Rounded integer rank 0
   return Bytes Base fromDigits
 end
 
@@ -68,7 +67,7 @@ fun Sigma gaussianMat
   end
   Radius = (3.0 * Sigma) ceil
   X = (-Radius to Radius) array
-  Powers = -(X ** 2) / (2.0 * Sigma ** 2)
+  Powers' = -(X ** 2) / (2.0 * Sigma ** 2)
   Line = Powers exp
   Kernel = Line Line outer *
   return Kernel / (Kernel sum)

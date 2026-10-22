@@ -32,7 +32,7 @@ rem Build flight records, then weighted adjacency.
 Flights = Segments Coordinates flight
 Graph = new graph (0 to 4) .undirected
 Graph add Flights
-Routes = Graph 0 3 MaxStops trips
+Routes' = Graph 0 3 MaxStops trips
 Distances = new queue
 for Route in Routes
   Distances push Route Graph tripdistance

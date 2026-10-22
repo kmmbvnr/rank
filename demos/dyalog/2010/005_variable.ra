@@ -63,9 +63,9 @@ fun Changes Start Params difference
       Payment = Balance Rate (Term - Month) payment
     end
     Interest = Balance * Rate
-    Principal = Payment - Interest
+    Principal' = Payment - Interest
     Balance = Balance - Principal
-    Flow = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
+    Flow' = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
     Saving = Saving * Growth + Flow
     if Month mod 3 equal 2
       Official = (Official + Changes (Month // 3)) 0.0 max
@@ -81,8 +81,8 @@ rem Sums of quarterly steps can leave a rate a rounding
 rem error above zero, where 1 + Rate is exactly 1, so
 rem a rate below 1e-9 counts as zero.
 fun Balance Rate Months payment
-  Annuity = Balance * Rate / (1 - (1 + Rate) ** -Months)
-  Zero = Rate less 0.000000001
+  Annuity' = Balance * Rate / (1 - (1 + Rate) ** -Months)
+  Zero' = Rate less 0.000000001
   return Zero (Balance / Months) Annuity choose
 end
 

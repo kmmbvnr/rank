@@ -4,8 +4,8 @@ use text
 use io
 
 fun Text wordCount
-  Words = Text " " split
-  Lengths = Words len rank 0
+  Words' = Text " " split
+  Lengths' = Words len rank 0
   return (Lengths greater 0) count
 end
 

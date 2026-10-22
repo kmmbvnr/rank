@@ -3,7 +3,7 @@ use sequences
 use io
 
 fun N firstOdds
-  Indices = 0 till N array
+  Indices' = 0 till N array
   return 2 * Indices + 1
 end
 

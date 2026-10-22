@@ -5,7 +5,7 @@ test "bounded trips and their segment distances"
   use "001_air"
   run
   Values = Totals
-  (Values len equal 2) and ((Values 0 - 9529.425743) abs less 0.001) and ((Values 1 - 9145.506301) abs less 0.001)
+  (Routes len equal 2) and (Values len equal 2) and ((Values 0 - 9529.425743) abs less 0.001) and ((Values 1 - 9145.506301) abs less 0.001)
 end
 
 test "one intermediate stop and disconnected airport"
