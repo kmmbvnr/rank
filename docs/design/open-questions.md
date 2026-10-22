@@ -599,8 +599,33 @@ several distinct — and sometimes opposite — meanings depending on context:
 
 - *Open questions:*
   - Should the "collapsed axis" role and the "preserved frame axis" role use
-    distinct vocabulary (or clearer teaching/diagnostic separation) so that
-    `axis` does not mean "dimension consumed by the operation" in one line and
-    "outer frame dimension kept outside the operation" in the next?
+    distinct vocabulary (e.g. `along` / `axis` vs frame selection, or clearer
+    teaching/diagnostic separation) so that `axis` does not mean "dimension
+    consumed by the operation" in one line and "outer frame dimension kept
+    outside the operation" in the next?
   - How can the mental model progress smoothly from BASIC-level 1D/2D loops to
     APL/J-style frame/cell rank polymorphism without a steep cognitive cliff?
+
+## Smoothing the "modern BASIC" learning curve (follow-up directions)
+
+To keep the entry threshold true to the *"modern BASIC"* promise while retaining
+Rank's APL/J and lazy-pipeline power, three concrete directions are recorded for
+future design evaluation:
+
+1. **Referential consistency between inline predicates and named variables
+   (`Fib even sum` vs `Mask = Fib even`):**
+   Make the behavior of a named variable (`Mask = Fib even`) and an inline
+   subexpression (`Fib even sum`) consistent so that extracting an intermediate
+   variable — Rank's primary stylistic tool for staying within the 40-column and
+   one-parenthesis budget — never silently alters pipeline semantics or turns a
+   working expression into a type error.
+2. **Unifying everyday materialization (`=`, `array`, and `copy`):**
+   Spare basic users from having to track four different materialization and
+   writability modes (`=` completing sequences vs keeping lazy array views,
+   `'= ` deferred plans freezing captured bindings, prefix/postfix `array`, and
+   postfix `copy` for writable storage) during ordinary array work.
+3. **Separating axis collapse from frame selection (`along` / `axis` vs `rank`):**
+   Clearly separate in teaching materials — and potentially in surface keywords
+   (such as distinguishing collapsing an axis via `along` / `axis` from choosing
+   frame axes for `rank`) — so that the single word `axis` does not mean opposite
+   things in two adjacent lines of code.
