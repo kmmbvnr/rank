@@ -12,6 +12,13 @@ function parse(source: string): Program {
 }
 const infer = (source: string) => inferRequirements(parse(source));
 const binding = (source: string, name: string) => infer(source).bindings.find(item => item.name === name)!;
+it.each(['sort', 'det', 'inverse'])('does not require a nonexistent scalar cell in an empty ranked %s', operation => {
+    for (const rank of [0, -1]) {
+        const prelude = 'use sequences\nuse linalg\n';
+        expect(infer(`${prelude}X = array shape 0 fill 0\nX ${operation} rank ${rank}`).conflicts).toHaveLength(0);
+        expect(infer(`${prelude}X = array 1 2\nX ${operation} rank ${rank}`).conflicts.length).toBeGreaterThan(0);
+    }
+});
 it('infers selectors on an unknown producer without manufacturing a forward fact', () => {
     const program = parse('Rows = Data decode\nRows # 2');
     expect(inferRequirements(program).bindings[0].rank.min).toBe(2);

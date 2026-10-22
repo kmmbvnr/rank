@@ -24,8 +24,8 @@ Pool = concat Pool (array 1 3 2)
 Pool unique`))!)).toBe('3 1 2');
             expect(d.numericDistincts).toBe(1);
             runtime.variables.set('Host', { kind: 'array', shape: [1], items: [], itemAt: () => 'wrong' });
-            runtime.execute('Pool = concat Pool Host');
-            expect(() => runtime.execute('Pool unique')).toThrow(/integer/);
+            expect(() => runtime.execute('Pool = concat Pool Host')).toThrow(/integer|element type/);
+            expect(formatValue(runtime.execute('Pool unique')!)).toBe('3 1 2');
         } finally { runtime.dispose(); }
     });
 

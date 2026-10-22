@@ -195,8 +195,9 @@ binding or parameter preserves unread cells; checked views validate those
 cells when demanded. The first concrete observation settles an unresolved
 element domain. Subsequent results must satisfy the established contract.
 
-Missing-cell exceptions retain their usual behavior: a whole-array read can
-represent absence as `.NA`, while a direct missing-cell read still raises.
+Completion stores recoverable missing cells as `.NA`. Direct access to an
+uncompleted projection can still raise its missing-cell error. A stored `.NA`
+remains `.NA` and works with `default`.
 
 A deferred result can fail when a consumer demands it. The rejected cell is
 not returned, and earlier callback effects are not rolled back. Failure while

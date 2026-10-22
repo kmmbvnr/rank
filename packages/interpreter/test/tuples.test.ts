@@ -3,7 +3,7 @@ import { Interpreter, formatValue } from '../src/index.js';
 import { tuple, type RankArray } from '../src/value.js';
 
 for (const compiled of [true, false]) describe(`tuples and homogeneous arrays (compiled ${compiled})`, () => {
-    const runtime = () => new Interpreter(() => {}, { scalarCompilation: compiled, integerLoopCompilation: compiled,
+    const runtime = () => new Interpreter(() => {}, { compilation: compiled, scalarCompilation: compiled, integerLoopCompilation: compiled,
         tensorCellCompilation: compiled });
     it('unpacks fixed positions across repeated calls', () => {
         const r = runtime();
@@ -33,15 +33,19 @@ for (const compiled of [true, false]) describe(`tuples and homogeneous arrays (c
         expect(formatValue(r.execute('(tuple 1 "x") type')!)).toBe('.tuple');
         expect(r.execute('(tuple) len')).toBe(0n);
     });
-    it('does not eagerly inspect arrays inside a tuple', () => {
+    it('preserves nested tuple cells in a plan and completes them at ordinary binding', () => {
         const r = runtime();
         let reads = 0;
         const values: RankArray = { kind: 'array', shape: [2], items: [], itemAt: index => { reads++; return BigInt(index); } };
         r.variables.set('Input', tuple([values, 'label']));
-        r.execute('T = Input');
+        r.execute("T' = Input");
         expect(reads).toBe(0);
         expect(r.execute('T 0 1')).toBe(1n);
         expect(reads).toBe(1);
+        r.execute('Saved = T');
+        expect(reads).toBe(3);
+        expect(r.execute('Saved 0 1')).toBe(1n);
+        expect(reads).toBe(3);
     });
     it('preserves arrays by value and records by reference inside tuples', () => {
         const r = runtime();

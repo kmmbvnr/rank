@@ -12,7 +12,10 @@ it('accepts runtime-valid rank applications across scalar, text, tensor and empt
                 try { formatValue(new Interpreter().execute(source)!); }
                 catch { continue; } // The oracle here is successful, fully forced evaluation.
                 checked++;
-                expect(inferRequirements(parse(source)).conflicts, source).toEqual([]);
+                const conflicts = inferRequirements(parse(source)).conflicts.map(conflict => ({
+                    kind: conflict.kind, first: conflict.first.reason, second: conflict.second.reason,
+                }));
+                expect(conflicts, source).toEqual([]);
             }
         }
     }

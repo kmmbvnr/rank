@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isNativeFunction, isRankQueue, type RankArray } from '../src/index.js';
 import { createArraySnapshot } from '../src/array-storage.js';
+import { materializeValue } from '../src/materialize.js';
 
 describe('numerical demo host oracles', () => {
     it.each([[10, 4n], [100, 82073668n], [10000, 73808307n]])('runs Euler 337 at limit %s on both numeric backends and the interpreter', (limit, expected) => {
@@ -22,14 +23,14 @@ describe('numerical demo host oracles', () => {
         }
     });
 
-    it('returns a distance matrix from the unchanged Cody pair-distances demo', () => {
+    it('completes the deferred Cody pair-distance result at its host storage boundary', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute(readFileSync(new URL('../../../demos/cody/43007_pd.ra', import.meta.url), 'utf8'));
             const fn = runtime.variables.get('pair_distances');
             if (!fn || !isNativeFunction(fn)) throw new Error('missing demo function');
             const points: RankArray = { kind: 'array', items: [0n, 0n, 3n, 4n, 0n, 4n], shape: [3, 2] };
-            const result = fn.call([points]);
+            const result = materializeValue(fn.call([points]));
             expect(result).toMatchObject({ kind: 'array', shape: [3, 3] });
             if (!result || typeof result !== 'object' || result.kind !== 'array') throw new Error('expected array');
             expect(result.items).toEqual([0, 5, 4, 5, 0, 3, 4, 3, 0]);
