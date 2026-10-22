@@ -13,9 +13,9 @@ A collecting_rounds print
 rem Count increasing position runs.
 fun A collecting_rounds
   Positions = A argsort
-  Pairs = Positions window 2
-  Left = Pairs # 0
-  Right = Pairs # 1
-  Breaks = Left greater Right
+  Pairs' = Positions window 2
+  Left' = Pairs # 0
+  Right' = Pairs # 1
+  Breaks' = Left greater Right
   return Breaks count + 1
 end

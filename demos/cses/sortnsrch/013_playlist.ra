@@ -5,13 +5,13 @@ use io
 use algo
 
 N = stdin .integer
-A = stdin .integer N array
+A' = stdin .integer N
 
 A longest_distinct print
 
 
 rem Find the longest distinct segment.
-fun A longest_distinct
+fun A' longest_distinct
   Index = new index
   Left = 0
   Best = 0

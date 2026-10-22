@@ -11,6 +11,43 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('consumes ticket prices before customers through two explicit stdin resources', () => {
+        const source = readFileSync(new URL('../../../demos/cses/sortnsrch/004_tickets.ra', import.meta.url), 'utf8');
+        const tokens = ['5', '3', '5', '3', '7', '8', '5', '4', '8', '3'];
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual(['3 8 -1']);
+            expect(reads).toBe(tokens.length);
+            for (const name of ['Prices', 'Customers']) {
+                expect(runtime.variables.get(name)).toMatchObject({ kind: 'sequence' });
+                expect(isStoredValue(runtime.variables.get(name)!)).toBe(false);
+            }
+            expect(() => runtime.executeProgram(parse('Again = Prices sum'), [])).toThrow(/already been consumed/);
+            expect(reads).toBe(tokens.length);
+        } finally { runtime.dispose(); }
+    });
+
+    it('leaves the unread stdin tail after finding a CSES sum pair', () => {
+        const source = readFileSync(new URL('../../../demos/cses/sortnsrch/007_twovalues.ra', import.meta.url), 'utf8');
+        const tokens = ['5', '5', '2', '3', '99', '100', '101'];
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(output).toEqual(['1 2']);
+            expect(reads).toBe(4);
+            expect(runtime.variables.get('Values')).toMatchObject({ kind: 'sequence' });
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         ['002_misnum', ['5', '2', '3', '1', '5'], ['4'], 'Values'],
         ['022_digits', ['3', '7', '19', '12'], ['7', '4', '1'], 'Queries'],

@@ -7,7 +7,7 @@ use sequences
 
 N = stdin .integer
 X = stdin .integer
-Values = stdin .integer N array
+Values' = stdin .integer N
 
 Answer = Values X find_pair
 
@@ -19,7 +19,7 @@ end
 
 
 rem Find one pair with the target sum.
-fun A Target find_pair
+fun A' Target find_pair
   Index = new index
   for Value i in A
     Need = Target - Value
