@@ -18,8 +18,13 @@ rem difference of order n - t at
 rem x = 1 .. t + 1 uses a_0 .. a_t only
 rem and bounds a_t on both sides. The
 rem sum of |coefficients| is
-rem |P(-1)| - 1. A leaf alternates
-rem strictly or is checked in floats.
+rem |P(-1)| - 1. The last a_N only
+rem shifts every P(K) by a_N, so the
+rem strict sign alternation is an
+rem interval of a_N (counted with a
+rem closed sum); the few a_N that
+rem make some P(K) zero are checked
+rem in floats.
 W = N + 2
 Af = array shape (W * W) fill 0
 for I in 0 to N + 1
@@ -64,6 +69,105 @@ for T at least 1
     Hi T = Hg
     Cu T = Lw
     Nb = 0
+    if T equal N
+      Mno = Big
+      Mxo = 0 - Big
+      Mne = Big
+      Mxe = 0 - Big
+      for K in 1 to N + 1
+        R = 0
+        for I in 0 to N - 1
+          R = R * (K + I - N) + Ac I
+        end
+        Bk = R * K
+        Vs K = Bk
+        if K mod 2 equal 1
+          if Bk less Mno
+            Mno = Bk
+          end
+          if Bk greater Mxo
+            Mxo = Bk
+          end
+        else
+          if Bk less Mne
+            Mne = Bk
+          end
+          if Bk greater Mxe
+            Mxe = Bk
+          end
+        end
+      end
+      R = 0
+      for I in 0 to N - 1
+        R = R * (I - 1 - N) + Ac I
+      end
+      Cm = 0 - R
+      rem Odd positive, even negative.
+      P1 = (1 - Mno) Lw max
+      Q1 = (0 - Mxe - 1) Hg min
+      rem Odd negative, even positive.
+      P2 = (1 - Mne) Lw max
+      Q2 = (0 - Mxo - 1) Hg min
+      for Pt in 0 to 1
+        P = P1
+        Q = Q1
+        if Pt equal 1
+          P = P2
+          Q = Q2
+        end
+        if P at most Q
+          Nq = Q - P + 1
+          U = Cm + P
+          V = Cm + Q
+          Sa = 0
+          if U at least 0
+            Sa = (U + V) * Nq // 2
+          elif V at most 0
+            Sa = 0 - (U + V) * Nq // 2
+          else
+            Sa = (0 - U) * (1 - U) // 2
+            Sa += V * (V + 1) // 2
+          end
+          Cnt += Nq
+          Tot += Sa - Nq
+        end
+      end
+      rem a_N that zeroes some P(K).
+      for K in 1 to N + 1
+        A0 = 0 - Vs K
+        Dup = 0
+        for J in 1 to K - 1
+          if Vs J equal Vs K
+            Dup = 1
+          end
+        end
+        if Dup equal 0
+          if A0 at least Lw
+            if A0 at most Hg
+              Ok = 1
+              for J in 1 to N
+                Xr = J + 0.9999
+                Rf = 0.0
+                for I in 0 to N - 1
+                  Qf = Xr + I - N
+                  Rf = Rf * Qf + Ac I
+                end
+                Rf = Rf * Xr + A0
+                Vj = Vs J + A0
+                if Vj * Rf greater 0
+                  Ok = 0
+                end
+              end
+              if Ok equal 1
+                Cnt += 1
+                Tot += (Cm + A0) abs - 1
+              end
+            end
+          end
+        end
+      end
+      Cu T = Hi T + 1
+    end
   end
   if Cu T greater Hi T
     T -= 1
@@ -72,53 +176,8 @@ for T at least 1
     end
   else
     Ac T = Cu T
-    if T less N
-      T += 1
-      Nb = 1
-    else
-      Ok = 1
-      Zr = 0
-      for K in 1 to N + 1
-        R = 0
-        for I in 0 to N
-          R = R * (K + I - N) + Ac I
-        end
-        Vs K = R
-        if R equal 0
-          Zr = 1
-        end
-      end
-      for K in 1 to N
-        if Vs K * Vs (K + 1) at least 0
-          Ok = 0
-        end
-      end
-      if Ok equal 0
-        if Zr equal 1
-          Ok = 1
-          for K in 1 to N
-            Xr = K + 0.9999
-            Rf = 0.0
-            for I in 0 to N
-              Qf = Xr + I - N
-              Rf = Rf * Qf + Ac I
-            end
-            if Vs K * Rf greater 0
-              Ok = 0
-            end
-          end
-        end
-      end
-      if Ok equal 1
-        R = 0
-        for I in 0 to N
-          R = R * (I - 1 - N) + Ac I
-        end
-        Cnt += 1
-        Tot += R abs - 1
-      end
-      Cu T += 1
-    end
+    T += 1
+    Nb = 1
   end
 end
 Answer = Tot
