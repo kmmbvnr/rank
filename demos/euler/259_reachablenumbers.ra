@@ -45,8 +45,8 @@ for L in 1 to Top
       Nb = Cnt ((K + 1) * 10 + J)
       Ka = Keys (Ia till (Ia + Na))
       Kb = Keys (Ib till (Ib + Nb))
-      An = Ka // Wide - Shift
-      Ad = Ka mod Wide
+      An' = Ka // Wide - Shift
+      Ad' = Ka mod Wide
       Bn = Kb // Wide - Shift
       Bd = Kb mod Wide
       Cn = An reshape Na 1
@@ -79,15 +79,15 @@ for L in 1 to Top
           Dd = Qd
           Use = Ok
         end
-        Flat = Num reshape (Na * Nb)
-        Fd = Dd reshape (Na * Nb)
+        Flat' = Num reshape (Na * Nb)
+        Fd' = Dd reshape (Na * Nb)
         Mask = Use reshape (Na * Nb)
         Fn = Flat filter Mask array
         Fq = Fd filter Mask array
         G = Fn abs Fq gcd
-        Rn = Fn // G
-        Rd = Fq // G
-        More = (Rn + Shift) * Wide + Rd
+        Rn' = Fn // G
+        Rd' = Fq // G
+        More' = (Rn + Shift) * Wide + Rd
         Pool = concat Pool More
       end
     end
@@ -103,8 +103,8 @@ Whole = 10 + Top
 From = Off Whole
 Total = Cnt Whole
 Fin = Keys (From till (From + Total))
-Unit = Fin mod Wide equal 1
+Unit' = Fin mod Wide equal 1
 Vals = Fin // Wide - Shift
-Good = Unit and (Vals greater 0)
-Answer = (Vals filter Good array) sum
+Good' = Unit and (Vals greater 0)
+Answer = (Vals filter Good) sum
 Answer print

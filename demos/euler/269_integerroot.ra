@@ -36,12 +36,12 @@ Total = 10 ** (K - 1)
 Zero = array 0
 Pos = 0 to 8 array
 for Mask in 1 to 511
-  Sel = (Mask Pos shr) 1 band equal 1
+  Sel' = (Mask Pos shr) 1 band equal 1
   Rs = (1 to 9 array) filter Sel array
   G = array 1
   for R in Rs
-    Up = concat G Zero
-    Sh = concat Zero G
+    Up' = concat G Zero
+    Sh' = concat Zero G
     G = Up * R + Sh
   end
   D = G len - 1
@@ -57,8 +57,8 @@ for Mask in 1 to 511
     if N equal 0
       break
     end
-    Col = Keys reshape N 1
-    Lag = (Col // Pw) mod Base - Off
+    Col' = Keys reshape N 1
+    Lag' = (Col // Pw) mod Base - Off
     Back = (Lag * Gw) sum axis 1
     Tail = Keys mod Keep
     NK = array shape 0 fill 0
@@ -77,10 +77,10 @@ for Mask in 1 to 511
       Fit = Acc mod Lead equal 0
       Fit = Fit and (Q at most Off - 1)
       Fit = Fit and (Q at least 1 - Off)
-      Nk = (Q + Off) + Base * Tail
-      Na = Nk filter Fit array
+      Nk' = (Q + Off) + Base * Tail
+      Na' = Nk filter Fit
       NK = concat NK Na
-      Ca = Cnts filter Fit array
+      Ca' = Cnts filter Fit
       NC = concat NC Ca
     end
     Keys = NK
@@ -90,20 +90,20 @@ for Mask in 1 to 511
     end
     Ord = Keys argsort
     Ks = Keys Ord
-    Cum = (Cnts Ord) scan +
-    Tl = Ks drop 1
-    Nx = concat Tl (array -1)
+    Cum' = (Cnts Ord) scan +
+    Tl' = Ks drop 1
+    Nx' = concat Tl (array -1)
     Last = Ks not equal Nx
     Ke = Ks filter Last array
     Ce = Cum filter Last array
     H = Ke len
-    Hd = Ce take (H - 1)
-    Pc = concat Zero Hd
+    Hd' = Ce take (H - 1)
+    Pc' = concat Zero Hd
     Keys = Ke
     Cnts = Ce - Pc
   end
-  Hit = Keys equal Key0
-  Done = Cnts filter Hit array
+  Hit' = Keys equal Key0
+  Done' = Cnts filter Hit
   Count = Done sum
   Sign = 1 - 2 * ((Rs len + 1) mod 2)
   Total += Sign * Count

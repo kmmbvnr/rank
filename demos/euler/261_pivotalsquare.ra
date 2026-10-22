@@ -30,9 +30,9 @@ rem counts. Step by (A, B) = (X, Y).
 fun N core
   Ps = N factors array
   Us = Ps unique
-  Col = Us reshape (Us len) 1
-  Hits = (Ps equal Col) count axis 1
-  Odd = Hits mod 2
+  Col' = Us reshape (Us len) 1
+  Hits' = (Ps equal Col) count axis 1
+  Odd' = Hits mod 2
   return (Us ** Odd) reduce *
 end
 Top = (Limit // 2) isqrt + 2
@@ -125,6 +125,5 @@ for M in 1 to Top
     end
   end
 end
-Used = Out take At
-Answer = Used unique sum
+Answer = (Out take At) unique sum
 Answer print

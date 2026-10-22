@@ -53,7 +53,7 @@ for Ai in 0 till N
   Ay = Py Ai
   Dx = Px - Ax
   Dy = Py - Ay
-  Pos = Dy * 4000 + Dx
+  Pos' = Dy * 4000 + Dx
   Sel = Pos greater 0
   Ux = Dx filter Sel array
   Uy = Dy filter Sel array
@@ -61,13 +61,13 @@ for Ai in 0 till N
   if M less 2
     continue
   end
-  Ds = Ux * Ux + Uy * Uy
+  Ds' = Ux * Ux + Uy * Uy
   O1 = Ds argsort
   Vx = Ux O1
   Vy = Uy O1
-  Dz = 1 - (Vy 1 min)
-  Dm = Vy 1 max
-  Kk = (0 - Vx) / Dm - 1000000 * Dz
+  Dz' = 1 - (Vy 1 min)
+  Dm' = Vy 1 max
+  Kk' = (0 - Vx) / Dm - 1000000 * Dz
   O2 = Kk argsort
   Sx = Vx O2 copy
   Sy = Vy O2 copy

@@ -11,6 +11,55 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('evaluates the actual mountain height and deferred visibility helpers without the contour search', () => {
+        const source = readFileSync(new URL('../../../demos/euler/262_mountainrange.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            const atOrigin = runtime.execute('0.0 0.0 hgt');
+            expect(atOrigin).toBeCloseTo(5000 * Math.exp(-0.7), 9);
+            const grid = runtime.execute('Grid = ((array 0.0 1600.0) reshape 2 1) (array 0.0 1600.0) hgt')!;
+            expect(grid).toMatchObject({ kind: 'array', shape: [2, 2] });
+            const expected = [5000 * Math.exp(-0.7), 12200 * Math.exp(-0.86),
+                12200 * Math.exp(-0.86), 6600 * Math.exp(-1.02)];
+            (grid as RankArray).items.forEach((value, index) => expect(value).toBeCloseTo(expected[index], 9));
+            // A line of zero length samples the same point twice; its maximum is that height.
+            const stationary = runtime.execute('200.0 200.0 200.0 200.0 vis');
+            expect(stationary).toBeCloseTo(9400 * Math.exp(-0.18), 9);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains sorted divisor tables and defers pseudo-square-root products', () => {
+        const source = readFileSync(new URL('../../../demos/euler/266_pseudosquareroot.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=30'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(79534n);
+            for (const name of ['A', 'B', 'Sa', 'Cut', 'Tag', 'Asked', 'Where', 'Ok']) {
+                expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            }
+            for (const name of ['Keys', 'Mark', 'Before', 'Which', 'Pick', 'Mate', 'Prod']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains the optimal betting fractions and streams the binomial tail', () => {
+        const source = readFileSync(new URL('../../../demos/euler/267_billionaire.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--n=20', '--goal=20'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(0.131587982178);
+            for (const name of ['H', 'F']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Growth', 'Need', 'Fits', 'Tail', 'Ways']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
     it('keeps race rows writable while reducing deferred action candidates', () => {
         const source = readFileSync(new URL('../../../demos/euler/232_race.ra', import.meta.url), 'utf8');
         let entries = 0, maxKernels = 0;
