@@ -31,7 +31,7 @@ rem Apply the power to every decimal digit,
 rem then reduce the resulting values.
 fun N Power digit_power_sum
   Text = N text
-  Digits = Text integer rank 0
-  Powers = Digits ** Power
+  Digits' = Text integer rank 0
+  Powers' = Digits ** Power
   return Powers sum
 end

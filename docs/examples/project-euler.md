@@ -334,7 +334,7 @@ rem Project Euler 16
 rem https://projecteuler.net/problem=16
 
 Digits = (2 ** 1000) text
-Values = Digits integer rank 0
+Values' = Digits integer rank 0
 Answer = Values sum
 ```
 
@@ -347,13 +347,13 @@ digit, and `sum` reduces the resulting sequence to `1366`.
 rem Project Euler 17
 rem https://projecteuler.net/problem=17
 
-Numbers = 1 to Limit
-Counts = Numbers letters rank 0
+Numbers' = 1 to Limit
+Counts' = Numbers letters rank 0
 Answer = Counts sum
 ```
 
-`number_letter_total` creates the small English length tables once and defines
-a local `letters` helper that captures them. Rank-0 application converts every
+The program creates the small English length tables once. Its `letters`
+helper reads those retained tables. Rank-0 application converts every
 number to a letter count, and `sum` adds the counts. The helper
 implements British `and` without constructing the spelled-out text. The total
 is `21124`.
@@ -397,11 +397,11 @@ Base = array shape 12
   31 31 30 31 30 31
 end
 Feb = (0 till 12) equal 1
-Extra = Leap Feb outer and
-Lens = Extra integer + Base
+Extra' = Leap Feb outer and
+Lens' = Extra integer + Base
 Flat = Lens reshape #
-Start = Flat scan + with 1
-Cent = Start drop 12 take 1200
+Start' = Flat scan + with 1
+Cent' = Start drop 12 take 1200
 Answer = Cent mod 7 equal 0 count
 ```
 
@@ -419,7 +419,7 @@ rem https://projecteuler.net/problem=20
 
 Factorial = (1 to 100) reduce *
 Digits = Factorial text
-Values = Digits integer rank 0
+Values' = Digits integer rank 0
 Answer = Values sum
 ```
 
@@ -434,10 +434,10 @@ rem https://projecteuler.net/problem=21
 
 Candidates = (2 till Limit) array
 Partners = Candidates proper_divisor_sum rank 0
-Reverse = Partners proper_divisor_sum rank 0
+Reverse' = Partners proper_divisor_sum rank 0
 Amicable = Partners not equal Candidates
 Amicable and= Reverse equal Candidates
-Values = Candidates Amicable
+Values' = Candidates Amicable
 Answer = Values sum
 ```
 
@@ -455,10 +455,10 @@ rem https://projecteuler.net/problem=22
 Text = Input read
 Names = Text names_from_text
 Sorted = Names sort
-Values = Sorted name_value rank 0
+Values' = Sorted name_value rank 0
 Count = Sorted len
-Positions = (1 to Count) array
-Scores = Values * Positions
+Positions' = 1 to Count
+Scores' = Values * Positions
 Answer = Scores sum
 ```
 
@@ -555,14 +555,14 @@ The coefficient product is `-59231`.
 rem Project Euler 28
 rem https://projecteuler.net/problem=28
 
-Layers = 1 to (Size - 1) // 2
-Sides = Layers * 2 + 1
-Corners = 4 * Sides ** 2 - 6 * (Sides - 1)
+Layers' = 1 to (Size - 1) // 2
+Sides' = Layers * 2 + 1
+Corners' = 4 * Sides ** 2 - 6 * (Sides - 1)
 Answer = 1 + (Corners sum)
 ```
 
-Each concentric layer contributes its four corners. Array arithmetic evaluates
-all layer contributions, and the separate `1` includes the center cell even
+Each concentric layer contributes its four corners. Deferred arithmetic feeds
+the sum without retaining each named stage, and the separate `1` includes the center cell even
 when there are no outer layers. The formula gives `669171001` for a 1001 by
 1001 spiral without constructing the matrix.
 
@@ -589,8 +589,8 @@ rem Project Euler 30
 rem https://projecteuler.net/problem=30
 
 Text = N text
-Digits = Text integer rank 0
-Powers = Digits ** Power
+Digits' = Text integer rank 0
+Powers' = Digits ** Power
 Sum = Powers sum
 ```
 
@@ -672,8 +672,8 @@ whose sum is `40730`.
 rem Project Euler 35
 rem https://projecteuler.net/problem=35
 
-Candidates = primes till Limit
-Circular = Candidates circular_prime rank 0
+Candidates' = primes till Limit
+Circular' = Candidates circular_prime rank 0
 Answer = Circular count
 
 for Shift in 1 till Length
@@ -755,7 +755,7 @@ productive perimeter through 1000.
 rem Project Euler 40
 rem https://projecteuler.net/problem=40
 
-Digits = Positions champernowne_digit rank 0
+Digits' = Positions champernowne_digit rank 0
 Answer = Digits reduce *
 
 for Remaining greater Digits * Count

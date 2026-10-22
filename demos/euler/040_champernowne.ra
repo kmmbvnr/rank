@@ -10,7 +10,7 @@ Positions = array shape 7
   10000 100000 1000000
 end
 
-Digits = Positions champernowne_digit rank 0
+Digits' = Positions champernowne_digit rank 0
 Answer = Digits reduce *
 Answer print
 

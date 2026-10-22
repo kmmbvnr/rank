@@ -12,6 +12,24 @@ const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
     it.each([
+        ['021_amicable', '300 amicable_sum', 504n],
+        ['021_amicable', '220 proper_divisor_sum', 284n],
+        ['021_amicable', '284 proper_divisor_sum', 220n],
+        ['021_amicable', '16 proper_divisor_sum', 15n],
+        ['030_digitpowers', '1634 4 digit_power_sum', 1634n],
+        ['030_digitpowers', '1 digit_power_numbers', 44n],
+        ['035_circularprimes', '100 circular_prime_count', 13n],
+    ] as const)('runs the actual Euler %s helper on a bounded input: %s', (name, expression, expected) => {
+        const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute('use numbers\nuse sequences');
+            runtime.declareFunctionSource(source);
+            expect(runtime.execute(expression)).toBe(expected);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
         ['022_sigmoid', 'sigmoid', [3], '0.2689 0.5 0.7311'],
         ['035_diag', 'make_diagonal', [3, 3], '-1 0 0 0 0 0 0 0 1'],
         ['042_relu', 'relu', [3], '0 0 1'],
