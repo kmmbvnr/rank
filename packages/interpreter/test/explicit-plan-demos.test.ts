@@ -11,6 +11,24 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('reads and stores coin probabilities once before running the mutable DP', () => {
+        const source = readFileSync(new URL('../../../demos/atcoder/edpc/09_coin.ra', import.meta.url), 'utf8');
+        const tokens = ['3', '0.30', '0.60', '0.80'];
+        const output: string[] = [];
+        let reads = 0;
+        const runtime = new Interpreter(text => output.push(text), {
+            compilation, input: { readToken: () => tokens[reads++] },
+        });
+        try {
+            runtime.execute(source);
+            expect(reads).toBe(4);
+            expect(output).toHaveLength(1);
+            expect(Number(output[0])).toBeCloseTo(0.612, 12);
+            expect(isStoredValue(runtime.variables.get('P')!)).toBe(true);
+            expect(formatValue(runtime.variables.get('P')!)).toBe('0.3 0.6 0.8');
+        } finally { runtime.dispose(); }
+    });
+
     it('streams Fibonacci forbidden-index inputs before retaining the inclusion-exclusion state', () => {
         const source = readFileSync(new URL('../../../demos/euler/399_squarefree.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--count=200', '--limit=300', '--prime-limit=53'] });

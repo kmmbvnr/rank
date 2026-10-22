@@ -10,7 +10,7 @@ A shifts print
 
 
 rem Count the shared factors of two across every value.
-fun A shifts
+fun A' shifts
   return (A trailing_twos rank 0) min
 end
 

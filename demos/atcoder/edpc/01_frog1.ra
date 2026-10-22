@@ -16,8 +16,8 @@ fun H min_cost
   N = H len
   Cost = array shape N fill 0
 
-  Prev = H 1 shift
-  Prev2 = H 2 shift
+  Prev' = H 1 shift
+  Prev2' = H 2 shift
   One = (H - Prev) abs
   Two = (H - Prev2) abs
 

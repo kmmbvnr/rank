@@ -18,7 +18,6 @@ rem Sum every value in 1..N whose digit sum falls in a range.
 fun N A B some_sums
   Values = (1 to N) array
   Sums = Values digit_sum rank 0
-  Mask = Sums at least A
-  Mask = Mask and (Sums at most B)
+  Mask' = (Sums at least A) and (Sums at most B)
   return (Values Mask) sum
 end
