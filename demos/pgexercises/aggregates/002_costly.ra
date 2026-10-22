@@ -8,7 +8,7 @@ use tables
 argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 
 Db = DbPath sqlite
-F = Db .facilities
-Costly = F filter .guestcost at least 10
+F' = Db .facilities
+Costly' = F filter .guestcost at least 10
 Count = Costly len
 Count print

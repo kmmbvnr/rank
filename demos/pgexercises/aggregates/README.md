@@ -50,3 +50,7 @@ boundaries. Grouped solutions run against both SQLite and array tables. Question
 Question 21 uses real division in the SQLite plan and groups by facility ID.
 Question 22 generates days from July 18 through August 31, sums daily revenue,
 and applies a 15-row rolling window before selecting August dates.
+
+Apostrophe bindings preserve query stages through CSV output. Scalar counts,
+the maximum in question 17 and the bucket sizes in question 20 use ordinary
+bindings to compute and retain their values before constructing the final query.

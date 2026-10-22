@@ -9,13 +9,13 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/agg_014.csv"
 
 Db = DbPath sqlite
-B = Db .bookings
-B = B filter .starttime at least "2012-09-01"
-M = Db .members
-R = B M innerjoin by .memid
-G = R group by .surname .firstname .memid
-R = G select
+B' = Db .bookings
+B' = B filter .starttime at least "2012-09-01"
+M' = Db .members
+R' = B M innerjoin by .memid
+G' = R group by .surname .firstname .memid
+R' = G select
   .starttime = .starttime min
 end
-Result = R sort by .memid
+Result' = R sort by .memid
 Result OutputPath csv

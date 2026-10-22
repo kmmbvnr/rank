@@ -9,10 +9,10 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/agg_021.csv"
 
 Db = DbPath sqlite
-B = Db .bookings
-F = Db .facilities
-R = B F innerjoin by .facid
-R = R select
+B' = Db .bookings
+F' = Db .facilities
+R' = B F innerjoin by .facid
+R' = R select
   Guest = .memid equal 0
   GCost = (.slots real rank 0) * (.guestcost real rank 0)
   MCost = (.slots real rank 0) * (.membercost real rank 0)
@@ -22,21 +22,21 @@ R = R select
   .maintenance = .monthlymaintenance real rank 0
   .revenue = Guest GCost MCost choose
 end
-G = R group by .facid
-R = G select
+G' = R group by .facid
+R' = G select
   .name = .name min
   .outlay = .outlay min
   .maintenance = .maintenance min
   .revenue = .revenue sum
 end
-R = R select
+R' = R select
   .name = .name
   .outlay = .outlay
   .net = .revenue / 3.0 - .maintenance
 end
-R = R select
+R' = R select
   .name = .name
   .months = .outlay / .net
 end
-Result = R sort by .name
+Result' = R sort by .name
 Result OutputPath csv

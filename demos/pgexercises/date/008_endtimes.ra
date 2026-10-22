@@ -10,15 +10,15 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/date_008.csv"
 
 Db = DbPath sqlite
-B = Db .bookings
-Start = B .starttime datetime
+B' = Db .bookings
+Start' = B .starttime datetime
 Slot = 30 * 60 duration
-Span = B .slots * Slot
-End = Start + Span
-R = B select
+Span' = B .slots * Slot
+End' = Start + Span
+R' = B select
   .starttime = Start
   .endtime = End
 end
-R = R sort by .endtime .descending .starttime .descending
-Result = R (0 till 10)
+R' = R sort by .endtime .descending .starttime .descending
+Result' = R (0 till 10)
 Result OutputPath csv
