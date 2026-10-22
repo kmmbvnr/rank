@@ -104,6 +104,15 @@ describe('factsAt: functions with example arguments', () => {
         const rewritten = 'fun X twice\n X = "a"\n return X\nend\n';
         expect(formatNameFacts(factsAt(rewritten, at(rewritten, 'X'), [], examples)!)).toBe('X · unknown');
     });
+
+    it.each(["fun X' plus Y", "fun X plus Y'"])(
+        'finds ordinary and deferred parameter names in %s', header => {
+            const source = `${header}\n return X + Y\nend`;
+            const inputs = [{ name: 'plus', arguments: [integer(), integer()] }];
+            for (const name of ['X', 'Y']) {
+                expect(formatNameFacts(factsAt(source, source.indexOf(name), [], inputs)!)).toBe(`${name} · integer`);
+            }
+        });
 });
 
 describe('factsAt: runtime facts', () => {
@@ -411,7 +420,7 @@ it('keeps both Products axes visible when their sizes are not proven', () => {
 it('infers every Euler palindrome pipeline name before running the notebook', () => {
     const source = readFileSync(new URL('../../../demos/euler/004_palproduct.ra', import.meta.url), 'utf8');
     for (const [site, expected] of [
-        ['Candidates =', 'Candidates · c<integer>'],
+        ["Candidates' =", 'Candidates · c<integer>'],
         ['Candidates filter', 'Candidates · c<integer>'],
         ['Answer =', 'Answer · integer'],
         ['Answer print', 'Answer · integer'],
