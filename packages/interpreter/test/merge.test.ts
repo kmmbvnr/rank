@@ -31,23 +31,24 @@ describe('sorted sequence merge', () => {
     });
 
     it('reads only one head per input before the first result', () => {
-        expect(run([
-            'use sequences',
-            'Reads = record',
-            '  .count = 0',
-            'end',
-            'fun Start Reads stream',
-            '  for I in 0 to 3',
-            '    Reads .count += 1',
-            '    yield Start + I * 2',
-            '  end',
-            'end',
-            'A = 1 Reads stream',
-            'B = 2 Reads stream',
-            'M = A B merge',
-            'First = M first',
-            'Reads .count',
-        ].join('\n'))).toBe('2');
+        const reads: string[] = [];
+        const runtime = new Interpreter(line => reads.push(line));
+        try {
+            runtime.execute(`use sequences
+use io
+fun Start stream
+  for I in 0 to 3
+    Value = Start + I * 2
+    Value print
+    yield Value
+  end
+end
+A' = 1 stream
+B' = 2 stream
+M' = A B merge
+First = M first`);
+            expect(reads).toEqual(['1', '2']);
+        } finally { runtime.dispose(); }
     });
 
     it('stops a plain filter after its first merged match', () => {
@@ -62,32 +63,30 @@ describe('sorted sequence merge', () => {
             'end',
             'A = array 11 33',
             'B = array 22 44',
-            'Candidates = A B merge',
+            "Candidates' = A B merge",
             'Answer = Candidates filter Calls hit first',
             'array Answer (Calls .count)',
         ].join('\n'))).toBe('11 1');
     });
 
     it('reads a merged source once for a plain filter predicate', () => {
-        const program = [
-            'use sequences',
-            'Reads = record',
-            '  .count = 0',
-            'end',
-            'fun Start Reads stream',
-            '  Reads .count += 1',
-            '  yield Start',
-            'end',
-            'fun X hit',
-            '  return X equal 1',
-            'end',
-            'A = 1 Reads stream',
-            'B = 2 Reads stream',
-            'First = A B merge filter hit first',
-            'Reads .count',
-        ].join('\n');
-        expect(run(program)).toBe('2');
-        expect(run(program.replace('filter hit first', 'filter hit rank 0 first'))).toBe('2');
+        for (const predicate of ['filter hit first', 'filter hit rank 0 first']) {
+            const reads: string[] = [];
+            const runtime = new Interpreter(line => reads.push(line));
+            try {
+                runtime.execute(`use sequences
+use io
+fun Start stream
+  Start print
+  yield Start
+end
+fun X hit = X equal 1
+A' = 1 stream
+B' = 2 stream
+First = A B merge ${predicate}`);
+                expect(reads).toEqual(['1', '2']);
+            } finally { runtime.dispose(); }
+        }
     });
 
     it('closes source iterators when a consumer stops early', () => {
@@ -177,7 +176,7 @@ fun X key
   X print
   return X
 end
-M = (array 1 3 5) (array 2 4 6) merge by key`);
+M' = (array 1 3 5) (array 2 4 6) merge by key`);
             expect(calls).toEqual([]);
             expect(runtime.execute('M first')).toBe(1n);
             expect(calls).toEqual(['1', '2']);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
+import { Interpreter, formatValue } from '../src/index.js';
 
 describe('argsort', () => {
     it('accepts a direction symbol or a variable holding one', () => {
@@ -220,6 +221,25 @@ describe('argsort by', () => {
 });
 
 describe('bound sort operands', () => {
+    for (const compilation of [false, true]) {
+        it(`stages a bound matrix inside a function (compilation=${compilation})`, () => {
+            const interpreter = new Interpreter(undefined, { compilation });
+            try {
+                const result = interpreter.execute(`use sequences
+fun outer
+  fun Position Board degree = Position + Board 0 0
+  fun Board board = Board
+  Board = array shape 2 2 fill 0
+  Moves = array 3 1 2
+  return Moves sort by (Board board) degree
+end
+Result = outer
+(Result equal array 1 2 3) and reduce`);
+                expect(formatValue(result!)).toBe('true');
+            } finally { interpreter.dispose(); }
+        });
+    }
+
     it('passes bound operands after each item and preserves ties', () => {
         expect(run(`use numbers
 use sequences

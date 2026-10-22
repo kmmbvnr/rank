@@ -2,7 +2,7 @@ import { isAstNode, type AstNode } from 'langium';
 import {
     applicationExpression, applicationForm, expressionFacts, expressionFreeReads, flattenApplication,
     isAllAxisExpression, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isBoundClauseExpression, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
-    isExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, isSubjectComparisonExpression, isUnaryExpression, nameNeedsExecution, UNKNOWN_VALUE,
+    isExpression, isKeyedSortExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, isSubjectComparisonExpression, isUnaryExpression, nameNeedsExecution, UNKNOWN_VALUE,
     type Expression, type NameExpression, type Operation,
 } from '@arrrank/language';
 import { denseScalarItems } from '../array-storage.js';
@@ -192,6 +192,25 @@ export class PlanConstruction {
         if (isParenthesizedExpression(expression)) {
             const value = yield* resume(this.rewrite(expression.value, tail));
             return value === expression.value ? expression : { ...expression, value } as Expression;
+        }
+        if (isKeyedSortExpression(expression) && !expression.operator.startsWith('merge')) {
+            const source = yield* resume(this.rewrite(expression.source));
+            let key = expression.key;
+            if (key) {
+                // Bound key operands are arguments to each item callback, not
+                // a standalone call without the item supplied by the sort.
+                const parts = flattenApplication(key);
+                const rewritten: Expression[] = [];
+                for (let index = 0; index < parts.length; index++) {
+                    rewritten.push(yield* resume(index === parts.length - 1
+                        ? this.rewriteCallback(parts[index]!) : this.rewrite(parts[index]!)));
+                }
+                if (rewritten.some((part, index) => part !== parts[index])) {
+                    key = applicationExpression(rewritten, key);
+                }
+            }
+            return source === expression.source && key === expression.key ? expression
+                : { ...expression, source, key } as Expression;
         }
         if (isBinaryExpression(expression) && ['and', 'or', 'default'].includes(expression.operator)) {
             const left = yield* resume(this.rewrite(expression.left));
