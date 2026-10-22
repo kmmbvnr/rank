@@ -19,7 +19,11 @@ rem use, checking every run whose sum
 rem letters are known against the digit
 rem sets that can sum to it. A full
 rem letter map then fills the empty
-rem cells by backtracking.
+rem cells by backtracking. Each run
+rem keeps its sum, digit mask and
+rem count, so a digit try is O(1),
+rem and a letter only rechecks the
+rem runs that depend on it.
 Mk = ((0 to 511) * 2) copy
 Ml = Mk * 0
 Ms = Mk * 0
@@ -158,6 +162,27 @@ for Ln in 0 to Count - 1
       end
     end
   end
+  rem Letters each run depends on.
+  Dm = array shape 64 fill 0
+  for Rr in 0 to Nr - 1
+    Le = Rn Rr + 1
+    for J in 0 to Le
+      Lw = R1 Rr
+      if J equal 1
+        Lw = R2 Rr
+      end
+      if J greater 1
+        Lw = Lt (Rc Rr (J - 2))
+      end
+      if Lw at least 0
+        Pw = P2 Lw
+        Bt = Dm Rr // Pw mod 2
+        if Bt equal 0
+          Dm Rr += Pw
+        end
+      end
+    end
+  end
   rem Letters in order of use.
   Fq = array shape 10 fill 0
   for Rr in 0 to Nr - 1
@@ -208,6 +233,21 @@ for Ln in 0 to Count - 1
         end
       end
       Nw = Whl len
+      rem Per run: sum, mask, count.
+      Sr = array shape 64 fill 0
+      Mr = array shape 64 fill 0
+      Cr = array shape 64 fill 0
+      for Rr in 0 to Nr - 1
+        Le = Rn Rr - 1
+        for J in 0 to Le
+          Dv = Dg (Rc Rr J)
+          if Dv greater 0
+            Sr Rr += Dv
+            Mr Rr += P2 Dv
+            Cr Rr += 1
+          end
+        end
+      end
       Try = array shape 64 fill 0
       Ix = 0
       Good = 0
@@ -239,54 +279,72 @@ for Ln in 0 to Count - 1
           Ix -= 1
         else
           Cc = Whl Ix
+          Ra = Ca Cc
+          Rb = Cb Cc
+          Pd = Try Ix
+          if Pd greater 0
+            if Ra at least 0
+              Sr Ra -= Pd
+              Mr Ra -= P2 Pd
+              Cr Ra -= 1
+            end
+            if Rb at least 0
+              Sr Rb -= Pd
+              Mr Rb -= P2 Pd
+              Cr Rb -= 1
+            end
+            Dg Cc = 0
+          end
           Placed = 0
-          for D in (Try Ix + 1) to 9
-            Dg Cc = D
-            Ok = 1
-            for Tr in 0 to 1
-              Rr = Ca Cc
-              if Tr equal 1
-                Rr = Cb Cc
-              end
-              if Rr at least 0
-                Sm = 0
-                Mkr = 0
-                Cn = 0
-                Le = Rn Rr - 1
-                for J in 0 to Le
-                  Dv = Dg (Rc Rr J)
-                  if Dv greater 0
-                    Sm += Dv
-                    Cn += 1
-                    Pw = P2 Dv
-                    Bt = Mkr // Pw mod 2
-                    if Bt equal 1
-                      Ok = 0
-                    end
-                    Mkr += Pw
-                  end
+          if Pd less 9
+            for D in (Pd + 1) to 9
+              Ok = 1
+              Pw = P2 D
+              for Tr in 0 to 1
+                Rr = Ra
+                if Tr equal 1
+                  Rr = Rb
                 end
-                if Sm greater (Rs Rr)
-                  Ok = 0
-                end
-                if Cn equal (Rn Rr)
-                  Rv = Rs Rr
-                  if Sm not equal Rv
+                if Rr at least 0
+                  Sn = Sr Rr + D
+                  Tg = Rs Rr
+                  Bt = Mr Rr // Pw mod 2
+                  if Bt equal 1
                     Ok = 0
                   end
+                  if Sn greater Tg
+                    Ok = 0
+                  end
+                  Cn = Cr Rr + 1
+                  if Cn equal (Rn Rr)
+                    if Sn not equal Tg
+                      Ok = 0
+                    end
+                  end
                 end
               end
-            end
-            if Ok equal 1
-              Try Ix = D
-              Ix += 1
-              Try Ix = 0
-              Placed = 1
-              break
+              if Ok equal 1
+                Dg Cc = D
+                if Ra at least 0
+                  Sr Ra += D
+                  Mr Ra += Pw
+                  Cr Ra += 1
+                end
+                if Rb at least 0
+                  Sr Rb += D
+                  Mr Rb += Pw
+                  Cr Rb += 1
+                end
+                Try Ix = D
+                Ix += 1
+                Try Ix = 0
+                Placed = 1
+                break
+              end
             end
           end
           if Placed equal 0
-            Dg Cc = 0
+            Try Ix = 0
             Ix -= 1
           end
         end
@@ -311,6 +369,10 @@ for Ln in 0 to Count - 1
               Vb = Mp (R2 Rr)
             end
             Mn = Va Vb min
+            Bt = Dm Rr // P2 Lc mod 2
+            if Bt equal 0
+              Mn = 0 - 1
+            end
             if Mn at least 0
               Sm = Va
               if R2 Rr at least 0
