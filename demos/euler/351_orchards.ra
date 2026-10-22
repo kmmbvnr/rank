@@ -2,6 +2,7 @@ rem Hexagonal Orchards
 rem https://projecteuler.net/problem=351
 
 use numbers
+use algo
 use io
 use cli
 
@@ -11,9 +12,8 @@ fun X N Root Phi Cache tots
   if X at most Root
     return Phi X
   end
-  Sent = -1
   Slot = N // X
-  if Cache Slot not equal Sent
+  if Slot in Cache
     return Cache Slot
   end
   Sum = X * (X + 1) // 2
@@ -42,7 +42,7 @@ fun N hidden
   for I in 1 to Root
     Phi I += Phi (I - 1)
   end
-  Cache = array shape (Root + 1) fill -1
+  Cache = new index
   S = N N Root Phi Cache tots
   return 6 * (N * (N + 1) // 2 - S)
 end

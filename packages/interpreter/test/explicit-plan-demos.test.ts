@@ -11,6 +11,33 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('publishes orchard recursion memo entries through an explicit shared index', () => {
+        const source = readFileSync(new URL('../../../demos/euler/351_orchards.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            runtime.execute('Prefix = array 0 1 2 4 6 10 12 18 22 28 32\nCache = new index');
+            expect(runtime.execute('100 100 10 Prefix Cache tots')).toBe(3044n);
+            expect(runtime.execute('Cache 1')).toBe(3044n);
+            expect(runtime.execute('Cache 2')).toBe(774n);
+            expect(runtime.execute('100 100 10 Prefix Cache tots')).toBe(3044n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('defers Bezier derivative stages while retaining the shared sample grids', () => {
+        const source = readFileSync(new URL('../../../demos/euler/363_bezier.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--steps=100'] });
+        try {
+            runtime.execute(source);
+            for (const name of ['Odd', 'Even']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Dx', 'Dy', 'OO', 'EE']) expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            expect(runtime.executeProgram(parse('Again = (Dx ** 2 + Dy ** 2) sqrt sum'), [])).toBe(runtime.variables.get('SE'));
+        } finally { runtime.dispose(); }
+    });
+
     it('repeats special-partition counting with fresh tables before its deferred prime selection', () => {
         const source = readFileSync(new URL('../../../demos/euler/333_specialpartitions.ra', import.meta.url), 'utf8');
         const program = parse(source);

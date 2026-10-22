@@ -4,6 +4,9 @@ test "Bezier arc"
   use "363_bezier"
   Steps = 10000
   run
-  Answer greater -2.02765
-  Answer less -2.02763
+  Area = 0.5 + 3 * V / 5 - 3 * V * V / 20
+  Area greater (Pi / 4 - 1e-12)
+  Area less (Pi / 4 + 1e-12)
+  Answer greater 0.000037209
+  Answer less 0.0000372092
 end
