@@ -543,3 +543,64 @@ tasks rather than synthetic micro-tests:
   - *Procedural WAV synthesis:* generating drum/synth waveforms with array math
     and packing 16-bit PCM (`packbytes`) into a playable `.wav` file in under
     15 lines.
+
+## Comparison grouping and named mask substitution
+
+Rank's current expression grouping and boolean-mask pipeline rules optimize for
+short one-line formulas, but introduce two substitution pitfalls for learners:
+
+1. **Asymmetric comparison grouping (`A + 1 greater 3 count` vs `A len equal B len`):**
+   As documented in [Data-first application](../language/lexical-syntax.md#data-first-application),
+   when the left operand of a comparison is a plain arithmetic expression, the
+   comparison takes the next value and a trailing postfix function processes the
+   comparison result (`A + 1 greater 3 count` means `((A + 1) greater 3) count`).
+   When the left operand is itself a call pipeline, both sides become independent
+   pipelines (`A len equal B len` means `(A len) equal (B len)`). Consequently,
+   writing a plain value on the left and a call on the right (`Head less Queue len`)
+   groups as `(Head less Queue) len` unless reordered (`Queue len greater Head`)
+   or parenthesized (`Head less (Queue len)`).
+   - *Open question:* Can comparison grouping or editor diagnostics make the
+     boundary predictable without depending on whether the left operand contains
+     a postfix call?
+
+2. **Named mask vs inline predicate (`Fib even sum` vs `Mask = Fib even`):**
+   In the pipeline that creates it, a predicate mask stands for the values it
+   selects, so `Fib even sum` sums the even numbers of `Fib`
+   (see [Selection with boolean masks](../language/sequences-arrays.md#selection-with-boolean-masks)).
+   Once bound to a variable (`Mask = Fib even`), the name refers only to the
+   boolean flags, and `Mask sum` is an error requiring `Fib Mask sum` or
+   `Mask count`. Because extracting intentional intermediate variables is a core
+   Rank style rule (to stay within the 40-column and one-parenthesis budget),
+   having variable extraction change the meaning of a pipeline violates
+   substitution intuition.
+   - *Open question:* Should inline predicate reductions and named masks share a
+     single explicit rule, or should editor hints and diagnostics bridge the
+     transition when a subexpression is extracted into a variable?
+
+## Disambiguating `axis` and `rank` roles
+
+`rank` and `axis` scale Rank from vectors to multidimensional tensors
+(see [Tensors](../language/tensors.md)), but the word `axis` currently carries
+several distinct — and sometimes opposite — meanings depending on context:
+
+1. **Consumed / reduced dimension:** In `A mean axis 0` or `T sum axis 0 2`,
+   `axis` names the coordinate dimensions collapsed by the reduction.
+2. **Preserved frame dimension (with `rank`):** In `T normalize axis 1 rank 2`
+   or `for Column j in M axis 1 rank 1`, `axis 1` names the *frame* axis that is
+   iterated or preserved on the outside, while the operation applies to the
+   remaining cell axes (`number of frame axes + cell rank = tensor rank`).
+3. **Positional slice selector:** In `M axis 1 j` or `M axis 1 array 0 2 5`,
+   `axis` selects the coordinate dimension being indexed (equivalent to `M # j`).
+4. **Operation-specific axis contract:** In `Samples covariance axis 1 0` (feature
+   axis, then observation axis), `A B matmul axis 2 0` (left contracted axis,
+   then right contracted axis), or `T transpose axis 2 0 1` (output axis
+   permutation), the numbers after `axis` have operation-specific positional
+   roles.
+
+- *Open questions:*
+  - Should the "collapsed axis" role and the "preserved frame axis" role use
+    distinct vocabulary (or clearer teaching/diagnostic separation) so that
+    `axis` does not mean "dimension consumed by the operation" in one line and
+    "outer frame dimension kept outside the operation" in the next?
+  - How can the mental model progress smoothly from BASIC-level 1D/2D loops to
+    APL/J-style frame/cell rank polymorphism without a steep cognitive cliff?
