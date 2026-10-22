@@ -54,6 +54,18 @@ export class PlanConstruction {
     }
 
     build(expression: Expression, mode: ConstructionMode, tail = false): Evaluation<RankValue> {
+        let source = expression;
+        while (isParenthesizedExpression(source)) source = source.value;
+        const callee = isNameExpression(source) ? source
+            : isDeclaredCallExpression(source) && !source.ranks.length && !source.axes.length ? source.callee
+                : isApplicationExpression(source) && applicationForm(source, name => this.context.operationOf(name)).kind === 'plain'
+                    ? flattenApplication(source).at(-1) : undefined;
+        const fn = isNameExpression(callee) && this.userFunction(callee);
+        // A whole user call already constructs its arguments and returns its
+        // result now. Keep its caller frame for ownership and tail-call proofs.
+        if (fn && (!isNameExpression(source) || fn.arities.includes(0)) && this.wholeCall(fn)) {
+            return this.context.execute(expression, tail);
+        }
         return this.inScope(expression, mode, tail);
     }
 

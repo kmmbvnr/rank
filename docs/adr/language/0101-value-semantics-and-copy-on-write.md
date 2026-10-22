@@ -66,6 +66,27 @@ Only structures that inherently represent identity or system state are exempt fr
 
 Everything else — numbers, text, symbols, dates, arrays, and tensors — is an immutable value.
 
+### 4. Captures and Read-Only Names
+
+`Plan' = Expr` keeps the values read by the expression. Those source names are
+read-only for the rest of their scope: indexed, field and compound writes are
+rejected. Rebinding is allowed and does not retarget the plan:
+
+```rank
+A = array 1 2 3
+Plan' = A * 2
+A = array 4 5 6
+Saved = Plan
+rem Saved is 2 4 6.
+```
+
+Array aliases retain value semantics through copy-on-write. Captured records
+and mutable containers reject writes through every alias, including aliases
+reached through nested fields. A fresh `with` record can hold changed fields;
+a captured container must be replaced with a newly constructed container.
+Deferred parameters follow the same read-only rule. Ordinary binding computes
+the result before storing it and does not create a deferred capture.
+
 ## Consequences
 
 ### Positive

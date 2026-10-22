@@ -41,6 +41,11 @@ for Value i in List
 end
 ```
 
+Each loop item is recursively completed when bound to its ordinary loop name.
+The iterable itself is consumed directly; it is not implicitly retained as an
+array. Loop names have no apostrophe form. Index and coordinate names bind
+ready integers, and `#` discards a value without creating a binding.
+
 ### 3. Conditional Iteration (replaces `while`)
 When `for` is followed directly by an expression, it evaluates the condition before each iteration:
 ```rank

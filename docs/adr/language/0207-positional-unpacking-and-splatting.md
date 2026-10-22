@@ -29,7 +29,8 @@ Rank introduces the **`unpack` keyword** for destructuring assignment, argument 
 ```rank
 unpack Length Width Height = array 2 3 4
 ```
-- **Exact length matching:** The number of variable names must match the array length exactly.
+- **Binding boundaries:** Each named target recursively completes its selected value before it is installed. Tuples are also unpacked positionally. `unpack` targets have no apostrophe form; a discarded `#` target does not force the discarded child.
+- **Exact length matching:** The number of targets must match the source length exactly.
 - **Discarding items with `#`:** Consistent with `for` loop bindings (ADR-0304) and tensor selectors (ADR-0204), `#` discards an element without binding a name:
   ```rank
   unpack From To # = Edge

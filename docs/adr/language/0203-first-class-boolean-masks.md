@@ -31,7 +31,7 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
    Applying a mask to a collection selects the items at the positions where the mask is `true`:
    ```rank
    Fib = fibonacci to Limit
-   Mask = Fib even
+   Mask' = Fib even
    Answer = Fib Mask sum
    ```
    For tables, the exact same syntax applies:
@@ -100,7 +100,7 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
 * **Zero-copy optimization opportunities:** Because masks are first-class and declarative, the execution planner can push selections directly into data sources (e.g. SQLite pushdown or SIMD vector masks).
 
 ### Negative & Trade-offs
-* **Need for compiler fusion:** Naive evaluation of `Mask = A greater 0; B = A Mask` would allocate an extra boolean array. The runtime engine must implement lazy mask evaluation and kernel fusion.
+* **Explicit mask storage:** `Mask = A greater 0` completes and retains the boolean array. `Mask' = A greater 0` preserves a recipe that can feed selection or reduction without a retained mask. Repeated demands repeat work. Capturing `A` makes that name read-only, so a mask intended for later writes to `A` must be completed with an ordinary binding.
 * **Two readings of `sum` after a predicate:** `Fib even sum` adds values while `Mask sum` is an error. The rule is syntactic, one pipeline, and the error message names the explicit form.
 
 ## References

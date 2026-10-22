@@ -2574,14 +2574,15 @@ it('retains a private text local through indirect index writes in a loop', () =>
         .toEqual(examples.map(() => ['text']));
 });
 
-it('retains stdin element types in the unchanged subarray-sums program', () => {
+it('retains stdin element types in the deferred subarray-sums input', () => {
     const moduleName = '030_sums2';
     const source = readFileSync(new URL(`../../../demos/cses/sortnsrch/${moduleName}.ra`, import.meta.url), 'utf8');
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const input = program.value.statements.filter(isAssignmentStatement).find(statement => statement.name === 'A');
     expect(input).toBeDefined();
-    expect(analyzeValues(program.value).expressions.get(input!.value)).toMatchObject({ types: ['array'],
-        rank: 1, elements: ['integer'], eagerScalarCells: true });
+    expect(input!.deferred).toBe(true);
+    expect(analyzeValues(program.value).expressions.get(input!.value)).toMatchObject({ types: ['sequence'],
+        rank: 1, elements: ['integer'] });
     expect(messages('use io\nA = stdin .integer 2 array\nfor Value in A\n Value + "bad"\nend'))
         .toEqual(['operator + does not accept integer and text']);
 });
@@ -2696,10 +2697,10 @@ it('uses the preceding join result for an imported unary function example', () =
     const program = services.Rank.parser.LangiumParser.parse<Program>(source);
     const testProgram = services.Rank.parser.LangiumParser.parse<Program>(tests);
     const examples = functionTestExamples(testProgram.value, moduleName, new Set(['solve']));
-    expect(examples).toHaveLength(1);
-    expect(examples[0].arguments.map(fact => fact.types)).toEqual([['text']]);
-    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults[0].types)
-        .toEqual(['array']);
+    expect(examples).toHaveLength(2);
+    for (const example of examples) expect(example.arguments.map(fact => fact.types)).toEqual([['text']]);
+    expect(analyzeValues(program.value, new Map(), new Map(), examples).functionResults.map(fact => fact.types))
+        .toEqual([['array'], ['array']]);
 });
 
 it('checks scalar cells after reshaping eager input', () => {

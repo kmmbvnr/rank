@@ -21,17 +21,18 @@ While expressive on widescreen desktop IDEs with wide horizontal margins, this p
 Rank establishes **explicit, named intermediate variables as the canonical idiom** over long vertical pipelines or dedicated pipe operators (`|>`):
 
 ```rank
-rem Canonical Rank style:
-Digits = Number integer rank 0
-Windows = Digits window Width
-Products = Windows reduce * rank 1
+use sequences
+Digits = array 1 2 3 4 5
+Width = 3
+Windows' = Digits window Width
+Products' = Windows reduce * rank 1
 Answer = Products max
 ```
 
 1. **Short, meaningful intermediate names:** Developers are encouraged to name values by their role or state (`Range`, `States`, `Windows`, `Products`), avoiding generic placeholders (`Temp`, `Result2`).
 2. **40-column line budget:** Each assignment line forms a distinct, self-contained algorithmic transformation fitting comfortably within 40 columns.
 3. **Short postfix pipelines remain supported:** Compact, unambiguous postfix expressions (`Fib Mask sum`, `Text reverse print`) are permitted where they stay readable and intuitive on a single line.
-4. **Implementation requirement (Compiler Fusion):** To ensure this style does not cause memory allocation overhead, the compiler/runtime must fuse temporary named bindings internally (Principle 14: readable temporary names must not inherently allocate intermediate memory buffers).
+4. **Explicit evaluation boundaries:** `Name' = Expr` names a deferred stage; `Name = Expr` computes and stores its result. A finite sequence becomes an array, and lazy array cells are completed recursively. Fusion can cross deferred stages. An ordinary binding retains its completion, validation and effect timing even when the compiler can reuse a buffer.
 
 ## Consequences
 
@@ -42,7 +43,7 @@ Answer = Products max
 
 ### Negative & Trade-offs
 * **Need for naming discipline:** Authors must invent concise names for intermediate stages rather than relying on anonymous pipeline stages.
-* **Optimization pressure on the compiler:** Requires lazy execution and tensor fusion so that assigning intermediate variables does not trigger expensive memory copies.
+* **Explicit retention choices:** Authors choose which stages to defer and which results to retain. Repeated demands of a plan repeat its computation and effects; an ordinary binding retains the result. Naming a stage does not promise that its operations can be fused.
 
 ## References
 * Section 2 ("Intentional intermediate variables over vertical pipelines") in [docs/design/product-decisions.md](../design/product-decisions.md)

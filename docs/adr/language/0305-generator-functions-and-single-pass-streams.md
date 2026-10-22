@@ -22,6 +22,8 @@ Rank needs an ergonomic generator mechanism that produces lazy sequences, manage
 Rank establishes **generator functions and single-pass lazy sequences via the `yield` keyword**:
 
 ```rank
+use numbers
+
 fun N weird
   yield N
   for N not equal 1
@@ -36,7 +38,12 @@ end
 ```
 
 ### 1. Implicit Generator Construction
-Any function containing the `yield` keyword returns a lazy sequence. Calling the function (`Stream = 7 weird`) initializes the sequence plan immediately without executing the body; computation begins only when a consumer demands the first element.
+Any function containing `yield` creates one single-pass sequence when called.
+`Stream' = 7 weird` preserves that instance; its body starts when a consumer
+demands the first item. `Values = 7 weird` creates the instance and immediately
+consumes it into a retained array. A surrounding deferred assignment does not
+turn the generator instance into a replayable expression recipe. Call `weird`
+again to create another instance.
 
 ### 2. Suspension and Buffer Safety
 - `yield Value` emits exactly one sequence item and suspends the generator.
@@ -48,7 +55,7 @@ Any function containing the `yield` keyword returns a lazy sequence. Calling the
 User generators represent single-pass, potentially stateful or effectful streams (which may read files, consume inputs, or rely on transient state):
 - Once a generator sequence has been traversed, **it cannot be replayed**.
 - Attempting a second consumption of an already-traversed generator raises an immediate `.ConsumedSequence` runtime error.
-- To replay the stream, the generator function must be called again, or the sequence must be explicitly materialized into an array via `copy` or `array`.
+- To replay the stream, the generator function must be called again, or its items must be retained through an ordinary binding or postfix `array`.
 
 ### 4. Deterministic Scoped Resource Cleanup
 Resources opened by a generator (such as file handles or database cursors) remain owned by its suspended execution context:
@@ -57,7 +64,7 @@ Resources opened by a generator (such as file handles or database cursors) remai
 
 ### 5. Seamless Array Materialization
 Generators compose cleanly with Rank's tensor model:
-- `Values = 7 weird array` eagerly consumes the generator and stacks yielded items into a dense, contiguous array.
+- `Values = 7 weird` consumes the generator and stacks yielded items into a ready array. Postfix `array` is also an explicit completion operation.
 - Multi-dimensional items of matching shape are automatically stacked along a new leading axis.
 
 ## Consequences
@@ -69,7 +76,7 @@ Generators compose cleanly with Rank's tensor model:
 * **Readable 40-column syntax:** Sequences are expressed as straightforward imperative functions.
 
 ### Negative & Trade-offs
-* **Non-restartable by default:** Multi-pass algorithms must explicitly store items in an array (`Source copy` or `Source array`) if they need to traverse the sequence multiple times.
+* **Explicit stream retention:** Multi-pass algorithms use `Values = Stream` or `Stream array` before the stream is consumed. `copy` is an array-copy operation and does not restart a generator.
 
 ## References
 * Section "Generator functions" and "Scoped resources" in [docs/language/control-functions.md](../../language/control-functions.md)

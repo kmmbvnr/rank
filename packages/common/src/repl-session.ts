@@ -296,8 +296,12 @@ export function createReplSession(host: ReplHost = {}) {
             errorSource = undefined;
             width = Math.min(WIDTH, textColumns(columns));
             loadedFile = undefined;
-            const localFunctions = new Set([...text.matchAll(/^\s*(?:fun|memo)\s+(?:[A-Z][A-Za-z0-9_]*\s+)*([a-z][A-Za-z0-9_]*|update)\b/gm)]
-                .map(match => match[1]));
+            const localFunctions = new Set<string>();
+            try {
+                for (const definition of parse(text).statements.filter(isFunctionStatement)) {
+                    localFunctions.add(definition.name);
+                }
+            } catch { /* An unfinished cell cannot add a reliable function name. */ }
             const source = text.split('\n').map(line => {
                 const indent = /^ */.exec(line)![0];
                 const formatted = formatLine(line.slice(indent.length));

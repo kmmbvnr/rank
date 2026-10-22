@@ -80,6 +80,10 @@ I print
 rem 10
 ```
 
+Each named loop item is recursively completed when bound. The iterable is
+consumed directly without retaining its whole source. Loop names have no
+apostrophe form. Index and coordinate names bind ready integers.
+
 A condition after `for` is evaluated before every iteration:
 
 ```rank
@@ -841,10 +845,13 @@ contain further direct local functions.
 ## Generator functions
 
 A function containing `yield` returns a lazy sequence. Calling it creates the
-sequence without running the body; execution starts when an operation first
-asks for an element:
+sequence without running the body. `Stream' = 7 weird` preserves that instance;
+`Values = 7 weird` immediately consumes it into a retained array. Execution starts
+when a consumer first asks for an element:
 
 ```rank
+use numbers
+
 rem Generate the Collatz values beginning with N.
 fun N weird
   yield N

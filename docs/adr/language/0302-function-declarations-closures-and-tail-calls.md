@@ -132,9 +132,11 @@ proof, and unresolved cases still have runtime checks.
 
 The first successful runtime return establishes the contract. Conflicts raise
 `ReturnTypeMismatch` or `ReturnRankMismatch`; memoization and tail calls do not
-bypass the checks. Direct lazy array arguments are not read for specialization,
-and returned lazy array cells are checked as consumed. Record array fields are
-validated during record construction or assignment, including lazy cells.
+bypass the checks. Deferred arguments are not read merely to select a
+specialization; ordinary parameters complete them once on entry. Returned plans
+are checked as demanded, and an ordinary receiving binding completes their
+cells recursively. Record fields are completed and validated during construction
+or field assignment.
 
 Use one tagged record schema for variant results, or separate functions with
 different contracts. A scalar leaf and a record subtree cannot be returned from
