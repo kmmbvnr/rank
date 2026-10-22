@@ -76,8 +76,8 @@ for I in Nq to 1 by -1
       Vb = Wt (X // Kb)
       Pa += (Kb * Vb mod Mod) sum
     end
-    Qm = X // (R + 1)
-    Qs = (1 to Qm) copy
+    Qz = X // (R + 1)
+    Qs = (1 to Qz) copy
     Hq = X // Qs
     Hx = concat Hq (array R)
     Od = Hx mod 2
@@ -85,8 +85,8 @@ for I in Nq to 1 by -1
     Hb = (Hx + 1) // (1 + Od)
     Tx = Ha mod Mod * (Hb mod Mod)
     Tx = Tx mod Mod
-    Tu = Tx (0 to Qm - 1)
-    Tb = Tx (1 to Qm)
+    Tu = Tx (0 to Qz - 1)
+    Tb = Tx (1 to Qz)
     Dk = (Tu - Tb) mod Mod
     Pb = (Dk * Wt Qs mod Mod) sum
     Lw I = (1 - Pa - Pb) mod Mod
