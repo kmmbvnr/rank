@@ -4,7 +4,8 @@ All three [Recursive questions](https://www.pgexercises.com/questions/recursive/
 have runnable Rank solutions. They use the ignored SQLite club database from
 [Basic](../basic/README.md), or an array table with the same members. `reach by`
 follows recommendation edges from one or more starting IDs; SQLite keeps the
-walk in a lazy recursive query until CSV output.
+walk in a recursive query until CSV output. Apostrophe bindings preserve the
+edge table, seed expressions and query stages without reading rows.
 
 | # | Question | Rank program |
 |---|---|---|

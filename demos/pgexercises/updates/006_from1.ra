@@ -7,11 +7,11 @@ use tables
 argument DbPath path
 
 Db = DbPath sqlite
-F = Db .facilities
-First = F filter .facid equal 0
+F' = Db .facilities
+First' = F filter .facid equal 0
 Member = (First .membercost) max
 Guest = (First .guestcost) max
-T = F filter .facid equal 1
+T' = F filter .facid equal 1
 T update
   .membercost = Member * 1.1
   .guestcost = Guest * 1.1

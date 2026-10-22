@@ -9,22 +9,22 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/rec_002.csv"
 
 Db = DbPath sqlite
-M = Db .members
-E = M select
+M' = Db .members
+E' = M select
   .member = .memid
   .recommender = .recommendedby
 end
-Names = M select
+Names' = M select
   .member = .memid
   .firstname = .firstname
   .surname = .surname
 end
-R = E 1 reach by .recommender .member
-R = R Names innerjoin by .member
-Result = R select
+R' = E 1 reach by .recommender .member
+R' = R Names innerjoin by .member
+Result' = R select
   .memid = .member
   .firstname = .firstname
   .surname = .surname
 end
-Result = Result sort by .memid
+Result' = Result sort by .memid
 Result OutputPath csv

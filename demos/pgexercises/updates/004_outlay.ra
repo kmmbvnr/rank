@@ -7,8 +7,8 @@ use tables
 argument DbPath path
 
 Db = DbPath sqlite
-F = Db .facilities
-T = F filter .facid equal 1
+F' = Db .facilities
+T' = F filter .facid equal 1
 T update
   .initialoutlay = 10000
 end

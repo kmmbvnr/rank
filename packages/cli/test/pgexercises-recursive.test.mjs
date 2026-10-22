@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, isRankPlan, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -13,7 +15,7 @@ const examples = path.join(root, 'demos/pgexercises/recursive');
 
 function run(source, database, output) {
     const result = spawnSync(process.execPath, [cli, source, database, output],
-        { cwd: root, encoding: 'utf8' });
+        { cwd: root, encoding: 'utf8', timeout: 15_000 });
     assert.equal(result.status, 0, result.stderr);
     return result.stdout;
 }
@@ -82,6 +84,38 @@ test('all three Recursive programs match independent SQL on SQLite and arrays', 
                 run(source, database, output);
                 assert.equal(fs.readFileSync(output, 'utf8').trimEnd(), expected);
 
+                for (const compilation of [false, true]) {
+                    const queries = [];
+                    let opens = 0, closes = 0;
+                    const io = { ...nodeIo, openSqlite(file) {
+                        opens++;
+                        const connection = nodeIo.openSqlite(file);
+                        return { ...connection, prepare(sql) {
+                            const statement = connection.prepare(sql);
+                            return { ...statement, all(params) {
+                                if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) queries.push(sql);
+                                return statement.all(params);
+                            } };
+                        }, close() { closes++; connection.close(); } };
+                    } };
+                    const runtime = new Interpreter(undefined, { io, compilation });
+                    try {
+                        const text = fs.readFileSync(source, 'utf8');
+                        const boundary = '\nResult OutputPath csv';
+                        assert.ok(text.trimEnd().endsWith(boundary));
+                        runtime.executeProgram(parse(text.slice(0, text.lastIndexOf(boundary))), [database, output]);
+                        assert.equal(queries.length, 0);
+                        assert.ok(isRankPlan(runtime.variables.get('Result')));
+                        for (const count of [1, 2]) {
+                            runtime.execute('Result OutputPath csv');
+                            assert.equal(queries.length, count);
+                            assert.match(queries.at(-1), /WITH RECURSIVE/);
+                            assert.equal(fs.readFileSync(output, 'utf8').trimEnd(), expected);
+                        }
+                    } finally { runtime.dispose(); }
+                    assert.equal(opens, closes);
+                }
+
                 const arraySource = path.join(dir, 'array.ra');
                 fs.writeFileSync(arraySource, fs.readFileSync(source, 'utf8')
                     .replace('Db = DbPath sqlite',
@@ -125,10 +159,10 @@ test('reach skips missing edges, duplicate seeds and cycle returns', () => {
         const program = [
             'use cli', 'use sequences', 'use tables',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'E = Db .edges',
+            'Db = DbPath sqlite', 'E\' = Db .edges',
             'Starts = array 1 1 4',
-            'Result = E Starts reach by .src .dst',
-            'Result = Result sort by .src .dst',
+            'Result\' = E Starts reach by .src .dst',
+            'Result\' = Result sort by .src .dst',
             'Result OutputPath csv',
         ].join('\n');
         fs.writeFileSync(source, program);
@@ -166,10 +200,10 @@ test('computed SQLite start columns retain their bound expression parameters', (
         const program = [
             'use cli', 'use sequences', 'use tables',
             'argument DbPath path', 'argument OutputPath path',
-            'Db = DbPath sqlite', 'E = Db .edges', 'S = Db .seeds',
-            'Starts = S .id + 1',
-            'Result = E Starts reach by .src .dst',
-            'Result = Result sort by .src .dst',
+            'Db = DbPath sqlite', 'E\' = Db .edges', 'S\' = Db .seeds',
+            "Starts' = S .id + 1",
+            'Result\' = E Starts reach by .src .dst',
+            'Result\' = Result sort by .src .dst',
             'Result OutputPath csv',
         ].join('\n');
         fs.writeFileSync(source, program);

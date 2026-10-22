@@ -7,7 +7,7 @@ use tables
 argument DbPath path
 
 Db = DbPath sqlite
-F = Db .facilities
+F' = Db .facilities
 Spa = record
   .facid = 9
   .name = "Spa"

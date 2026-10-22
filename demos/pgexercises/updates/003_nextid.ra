@@ -7,7 +7,7 @@ use tables
 argument DbPath path
 
 Db = DbPath sqlite
-F = Db .facilities
+F' = Db .facilities
 Next = (F .facid) max + 1
 Spa = record
   .facid = Next

@@ -7,5 +7,5 @@ use tables
 argument DbPath path
 
 Db = DbPath sqlite
-T = Db .members filter .memid equal 37
+T' = Db .members filter .memid equal 37
 T delete
