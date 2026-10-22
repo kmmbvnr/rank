@@ -24,10 +24,9 @@ rem Fj(x) = T - sum over k >= 2 of
 rem k^j Fj(x // k). Sums over l run by
 rem blocks of equal m.
 fun X Md tri
-  Ev = X mod 2 equal 0
-  Ha = Ev choose (X // 2) X
-  X1 = X + 1
-  Hb = Ev choose X1 (X1 // 2)
+  Od = X mod 2
+  Ha = X // (2 - Od)
+  Hb = (X + 1) // (1 + Od)
   Rs = Ha mod Md * (Hb mod Md)
   return Rs mod Md
 end
@@ -96,28 +95,48 @@ for I in Nq to 1 by -1
   X = N // I
   if X greater Lm
     R = X isqrt
-    Ks = (2 to R) copy
-    Ys = X // Ks
-    Sm1 = Ys at most Lm
-    Yc = Ys Lm min
-    Ic = I * Ks Nq min
-    V0 = Sm1 choose (C0 Yc) (L0 Ic)
-    V1 = Sm1 choose (C1 Yc) (L1 Ic)
-    V2 = Sm1 choose (C2 Yc) (L2 Ic)
-    K2 = Ks * Ks mod Mod
-    Pa0 = V0 sum
-    Pa1 = (Ks * V1 mod Mod) sum
-    Pa2 = (K2 * V2 mod Mod) sum
-    Qs = (1 to X // (R + 1)) copy
-    Hi = X // Qs
-    Lo = X // (Qs + 1) R max
+    K0 = (X // (Lm + 1)) R min
+    rem k <= K0: X // k > Lm, so the
+    rem recursion tables L0, L1, L2.
+    Pa0 = 0
+    Pa1 = 0
+    Pa2 = 0
+    if K0 at least 2
+      Ka = (2 to K0) copy
+      Ia = I * Ka
+      Va = L0 Ia
+      Pa0 += Va sum
+      Wa = L1 Ia
+      Pa1 += (Ka * Wa mod Mod) sum
+      Za = L2 Ia
+      Ka2 = Ka * Ka mod Mod
+      Pa2 += (Ka2 * Za mod Mod) sum
+    end
+    rem k > K0: X // k fits the prefix
+    rem tables C0, C1, C2.
+    if R greater K0
+      Kb = (K0 + 1 to R) copy
+      Yb = X // Kb
+      Pa0 += (C0 Yb) sum
+      Pa1 += (Kb * (C1 Yb) mod Mod) sum
+      Kb2 = Kb * Kb mod Mod
+      Pa2 += (Kb2 * (C2 Yb) mod Mod) sum
+    end
+    Qm = X // (R + 1)
+    Qs = (1 to Qm) copy
+    Hq = X // Qs
+    Hx = concat Hq (array R)
+    Hi = Hx (0 to Qm - 1)
+    Lo = Hx (1 to Qm)
     D0 = (Hi - Lo) mod Mod
-    Th = Hi Mod tri
-    Tl = Lo Mod tri
-    D1 = (Th - Tl) mod Mod
-    Sh = Hi Mod sqs
-    Sl = Lo Mod sqs
-    D2 = (Sh - Sl) mod Mod
+    Tx = Hx Mod tri
+    Ta = Tx (0 to Qm - 1)
+    Tb = Tx (1 to Qm)
+    D1 = (Ta - Tb) mod Mod
+    Sx = Hx Mod sqs
+    Sa = Sx (0 to Qm - 1)
+    Sb = Sx (1 to Qm)
+    D2 = (Sa - Sb) mod Mod
     Pb0 = (D0 * C0 Qs mod Mod) sum
     Pb1 = (D1 * C1 Qs mod Mod) sum
     Pb2 = (D2 * C2 Qs mod Mod) sum
