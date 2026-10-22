@@ -183,7 +183,7 @@ not ((true or (1 forbidden)) equal true)`,
         expect(compiled.entries).toBeGreaterThan(0);
     });
 
-    it('runs cleanup when a whole call fails before preparing the outer arithmetic', () => {
+    it('runs cleanup when a child call fails inside the outer arithmetic', () => {
         const source = `use io
 fun X fail
   try
@@ -194,8 +194,9 @@ fun X fail
 end
 (1 fail) * 2 + 3`;
         const reference = run(source, false), compiled = run(source, true);
-        expect(compiled).toEqual(reference);
-        expect(compiled).toMatchObject({ output: ['cleanup'], entries: 0 });
+        expect({ ...compiled, entries: 0 }).toEqual({ ...reference, entries: 0 });
+        expect(compiled).toMatchObject({ output: ['cleanup'] });
+        expect(compiled.entries).toBeGreaterThan(0);
         expect(compiled.error).toContain('division by zero');
     });
 });

@@ -90,9 +90,9 @@ describe('evaluation composition', () => {
         runtime.dispose();
     });
 
-    it('evaluates Rank call operands in order, once, and stops at the first error', () => {
+    it.each([false, true])('evaluates ordinary call operands in order and stops at the first error (compilation=%s)', compilation => {
         const output: string[] = [];
-        const runtime = new Interpreter(line => output.push(line));
+        const runtime = new Interpreter(line => output.push(line), { compilation });
         runtime.execute(`use io
 fun V visit
   V print
@@ -103,6 +103,15 @@ end`);
         output.length = 0;
         expect(() => runtime.execute('((1 visit) / 0) + (2 visit)')).toThrow('division by zero');
         expect(output).toEqual(['1']);
+        output.length = 0;
+        expect(() => runtime.execute('Saved = ((1 visit) / 0) + (2 visit)')).toThrow('division by zero');
+        expect(output).toEqual(['1']);
+        output.length = 0;
+        runtime.execute("Deferred' = ((1 visit) / 0) + (2 visit)");
+        expect(output).toEqual(['1', '2']);
+        expect(() => runtime.execute('Deferred')).toThrow('division by zero');
+        expect(() => runtime.execute('Deferred')).toThrow('division by zero');
+        expect(output).toEqual(['1', '2']);
         runtime.dispose();
     });
 

@@ -2195,6 +2195,11 @@ inside tuples, records and containers. `fun Values' use_values` keeps the
 argument without completing it. The body executes at the call; returning a
 plan leaves the receiving binding to keep or complete it.
 
+Ordinary expression evaluation follows operand order and stops at the first
+error. During plan construction, whole user calls run immediately; the remaining
+operations stay deferred. Ranked and filter callbacks run when their cells or
+items are demanded.
+
 A completed postfix operation can itself be an argument:
 
 ```rank

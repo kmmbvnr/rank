@@ -451,7 +451,8 @@ export class ApplicationEvaluator {
         if (!last || !isNameExpression(last)) return ordinary;
         return () => {
             const fn = this.context.findVariable(last.name);
-            if (!fn || !isNativeFunction(fn) || !fn.callSignature || fn.monadicRank !== 'all'
+            // A nullary call supplies an operand to preceding native operations.
+            if (!fn || !isNativeFunction(fn) || !fn.callSignature || fn.arities.includes(0) || fn.monadicRank !== 'all'
                 || fn.dyadicRanks?.some(rank => rank !== 'all')) return ordinary();
             // Every postfix operation consumes the pending operands and leaves
             // one result. Preserve that result's syntax as an argument recipe;

@@ -95,10 +95,9 @@ export class ExpressionEvaluator {
         });
     }
 
-    /** The evaluation of an expression; its preparation is cached per syntax node. */
+    /** Ordinary evaluation keeps operand order; only plan construction stages calls. */
     evaluate(expression: Expression): Evaluation<RankValue> {
-        return flatMapResult(this.plans.hasUserFunction(expression)
-            ? this.plans.build(expression, 'propagate') : this.prepare(expression)(), demand);
+        return flatMapResult(this.prepare(expression)(), demand);
     }
 
     defer(expression: Expression): Evaluation<RankValue> {

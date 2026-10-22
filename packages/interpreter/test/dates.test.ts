@@ -150,9 +150,9 @@ describe('dates', () => {
             .toBe('2012-03-01 00:00:00');
         expect(run('use dates\n"2012-12-31" date nextmonth'))
             .toBe('2013-01-01 00:00:00');
-        expect(run('use dates\nDates = (array "2012-02-11" "bad") date\nBoundaries = Dates monthstart\nBoundaries 0'))
+        expect(run("use dates\nDates' = (array \"2012-02-11\" \"bad\") date\nBoundaries' = Dates monthstart\nBoundaries 0"))
             .toBe('2012-02-01 00:00:00');
-        expect(() => run('use dates\nDates = (array "2012-02-11" "bad") date\nBoundaries = Dates nextmonth\nBoundaries 1'))
+        expect(() => run("use dates\nDates' = (array \"2012-02-11\" \"bad\") date\nBoundaries' = Dates nextmonth\nBoundaries 1"))
             .toThrowError('invalid date: bad');
         expect(() => run('use dates\n"9999-12-31" date nextmonth'))
             .toThrowError('nextmonth exceeds year 9999');
@@ -180,9 +180,11 @@ describe('dates', () => {
             'end',
             'Result equal Expected',
         ].join('\n'))).toBe('true true true true');
-        expect(run('use dates\nDates = (array "2024-01-01" "bad") date\nDates 0 weekday'))
+        expect(() => run('use dates\nDates = (array "2024-01-01" "bad") date\n1'))
+            .toThrowError('invalid date: bad');
+        expect(run("use dates\nDates' = (array \"2024-01-01\" \"bad\") date\nDates 0 weekday"))
             .toBe('0');
-        expect(() => run('use dates\nDates = (array "2024-01-01" "bad") date\nDates 1 weekday'))
+        expect(() => run("use dates\nDates' = (array \"2024-01-01\" \"bad\") date\nDates 1 weekday"))
             .toThrowError('invalid date: bad');
     });
 
@@ -227,7 +229,7 @@ describe('dates', () => {
         const io = new MemoryIo({ '/in.csv': 'when,value\n2024-01-01,1\n,2\n2024-01-03,3\n' });
         const runtime = new Interpreter(undefined, { io });
         runtime.execute('use tables\nuse dates\nRows = "/in.csv" csv');
-        expect(() => runtime.execute('Rows .when date weekday'))
+        expect(() => formatValue(runtime.execute('Rows .when date weekday')!))
             .toThrowError('missing value where text or a datetime is needed');
         expect(formatValue(runtime.execute('(Rows .when default "2024-01-02") date weekday')!))
             .toBe('0 1 2');

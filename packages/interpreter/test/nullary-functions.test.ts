@@ -173,7 +173,7 @@ fail`)).toThrow('division by zero');
             expect(interpreter.execute('fibonacci')).toBe(interpreter.execute('fibonacci'));
             expect(run(`use numbers
 use sequences
-Fibs = fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0
+Fibs' = fibonacci mod 5 equal 0 or fibonacci mod 3 equal 0
 fibonacci Fibs till 1000 sum`)).toBe('1825');
         } finally { interpreter.dispose(); }
     });
