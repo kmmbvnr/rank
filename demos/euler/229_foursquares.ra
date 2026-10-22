@@ -66,9 +66,9 @@ for R in Rc
     end
   end
   Ix = 0 till Kn array
-  Vals = Ix * 168 + R
+  Vals' = Ix * 168 + R
   Keep = Sv equal 0
-  Pm = Vals filter Keep array
+  Pm' = Vals filter Keep
   Gp = concat Gp Pm copy
 end
 Gp = Gp filter (Gp greater 1) array

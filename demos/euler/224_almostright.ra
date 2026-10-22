@@ -40,7 +40,7 @@ for K in 1 to 40
   end
 end
 for Lv in 1 to (Limit isqrt)
-  Per = A + B + C
+  Per' = A + B + C
   Fit = Per at most Limit
   A = A filter Fit array
   B = B filter Fit array
@@ -51,20 +51,20 @@ for Lv in 1 to (Limit isqrt)
   Tc = 2 * C
   Tc3 = Tc + C
   Up = A + Tc
-  Dn = Tc - A
+  Dn' = Tc - A
   Wp = B + Tc
-  Wm = Tc - B
+  Wm' = Tc - B
   Df = Ta - Tb
-  Sm = Ta + Tb
-  A1 = Up - Tb
-  A2 = Up + Tb
-  A3 = Dn + Tb
-  B1 = Ta + Wm
-  B2 = Ta + Wp
-  B3 = Wp - Ta
-  C1 = Tc3 + Df
-  C2 = Tc3 + Sm
-  C3 = Tc3 - Df
+  Sm' = Ta + Tb
+  A1' = Up - Tb
+  A2' = Up + Tb
+  A3' = Dn + Tb
+  B1' = Ta + Wm
+  B2' = Ta + Wp
+  B3' = Wp - Ta
+  C1' = Tc3 + Df
+  C2' = Tc3 + Sm
+  C3' = Tc3 - Df
   A = concat A1 A2 A3
   B = concat B1 B2 B3
   C = concat C1 C2 C3

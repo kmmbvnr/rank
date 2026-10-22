@@ -25,17 +25,17 @@ rem from a coprime pair: none of them
 rem fails, whatever the limit.
 R = 0 till Mod array
 Rc = R reshape Mod 1
-Odd = (Rc + R) mod 2 equal 1
-R3 = R mod 3 equal 0
-R7 = R mod 7 equal 0
-Three = (Rc mod 3 equal 0) and R3
-Seven = (Rc mod 7 equal 0) and R7
-Both = Three or Seven
-Pair = Odd and (not Both)
+Odd' = (Rc + R) mod 2 equal 1
+R3' = R mod 3 equal 0
+R7' = R mod 7 equal 0
+Three' = (Rc mod 3 equal 0) and R3
+Seven' = (Rc mod 7 equal 0) and R7
+Both' = Three or Seven
+Pair' = Odd and (not Both)
 M = (Rc * Rc - R * R) mod Mod
 N = 2 * Rc * R mod Mod
-A = (M * M - N * N) mod Mod
-B = 2 * M * N mod Mod
-Bad = (A * B mod Mod) not equal 0
+A' = (M * M - N * N) mod Mod
+B' = 2 * M * N mod Mod
+Bad' = (A * B mod Mod) not equal 0
 Answer = (Pair and Bad) count
 Answer print

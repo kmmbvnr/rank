@@ -21,14 +21,14 @@ rem divides some n.
 Q = 1 to Hi array
 Phi = Q
 for P in primes to Hi
-  Mult = Q mod P equal 0
-  Cut = Mult choose (Phi // P) 0
+  Mult' = Q mod P equal 0
+  Cut' = Mult choose (Phi // P) 0
   Phi = Phi - Cut
 end
 Ns = Lo to Hi array
-Rows = Q reshape Hi 1
-Zero = Ns mod Rows equal 0
-Divides = Zero any axis 1
-Used = Phi filter Divides array
+Rows' = Q reshape Hi 1
+Zero' = Ns mod Rows equal 0
+Divides' = Zero any axis 1
+Used' = Phi filter Divides
 Answer = Used sum
 Answer print

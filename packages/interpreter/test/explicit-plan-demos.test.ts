@@ -11,6 +11,50 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains flea transition lookups and state while deferring the empty-square product', () => {
+        const source = readFileSync(new URL('../../../demos/euler/213_fleacircus.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--n=4', '--rings=2'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(5.215096);
+            for (const name of ['Nb', 'Wt', 'Src', 'D', 'M', 'Mv']) {
+                expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            }
+            for (const name of ['Hit', 'Wc', 'Dm', 'Pq', 'Mh', 'Mb', 'Empty']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains crack-free wall transitions and completes each wall-height state', () => {
+        const source = readFileSync(new URL('../../../demos/euler/215_crackfree.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--width=9', '--height=3'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(8n);
+            for (const name of ['Rows', 'Ah', 'Al', 'Key', 'Ways']) {
+                expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            }
+            for (const name of ['Hc', 'Lc', 'Hx', 'Lx', 'Dh', 'Dl']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains the totient sieve while streaming the final polygon-direction selection', () => {
+        const source = readFileSync(new URL('../../../demos/euler/228_minkowski.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--lo=3', '--hi=7'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(18n);
+            for (const name of ['Q', 'Phi', 'Ns']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            for (const name of ['Rows', 'Zero', 'Divides', 'Used']) {
+                expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
+            }
+            expect(runtime.executeProgram(parse('Used sum'), [])).toBe(18n);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains dice histograms and defers pairwise win selection', () => {
         const source = readFileSync(new URL('../../../demos/euler/205_dicegame.ra', import.meta.url), 'utf8');
         let entries = 0;
