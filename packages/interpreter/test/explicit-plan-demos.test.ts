@@ -11,6 +11,37 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('repeats special-partition counting with fresh tables before its deferred prime selection', () => {
+        const source = readFileSync(new URL('../../../demos/euler/333_specialpartitions.ra', import.meta.url), 'utf8');
+        const program = parse(source);
+        const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
+            || statement.$type === 'UseStatement');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.executeProgram({ ...program, statements: helpers }, []);
+            expect(runtime.execute('Saved = 100 solve')).toBe(233n);
+            expect(runtime.execute('Saved = 100 solve')).toBe(233n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('rebuilds matrix input rows while deferring their single numeric conversion', () => {
+        const source = readFileSync(new URL('../../../demos/euler/345_matrixsum.ra', import.meta.url), 'utf8');
+        const boundary = source.indexOf('Dp = array shape');
+        expect(boundary).toBeGreaterThan(0);
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            for (let run = 0; run < 2; run++) {
+                // The official fixture covers the full DP; this checks the unchanged input stage.
+                runtime.execute(source.slice(0, boundary));
+                expect(isRankPlan(runtime.variables.get('Nums')!)).toBe(true);
+                for (const name of ['Rows', 'A']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+                expect(runtime.variables.get('A')).toMatchObject({ kind: 'array', shape: [15, 15] });
+                expect(runtime.execute('A 0 0')).toBe(7n);
+                expect(runtime.execute('A 14 14')).toBe(805n);
+            }
+        } finally { runtime.dispose(); }
+    });
+
     it('retains shared sliding-game bounds and defers the prime-count masks', () => {
         const source = readFileSync(new URL('../../../demos/euler/313_sliding.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--prime-limit=100'] });
