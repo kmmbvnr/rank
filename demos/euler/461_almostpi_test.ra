@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "461_almostpi"
+  N = 200
+  run
+  Answer equal 64658
+end
+
+test "n = 1000"
+  use "461_almostpi"
+  N = 1000
+  run
+  Answer equal 1519860
+end
