@@ -1,0 +1,27 @@
+rem Powers With Their Own Last Digits
+rem https://projecteuler.net/problem=455
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000
+
+rem Iterate x -> n^x mod 10^9 from 0
+rem for every n at once until each
+rem orbit stops. For 10 | n the orbit
+rem is 0 -> 1 -> n -> 0, so f = 0; the
+rem other orbits end in a fixed point
+rem within 13 steps.
+Md = 1000000000
+Ns = (2 to N) copy
+Ns = Ns (Ns mod 10 greater 0 indices)
+X = Ns * 0
+Nx = Ns X Md powmod
+for (Nx not equal X) any
+  X = Nx
+  Nx = Ns X Md powmod
+end
+Answer = X sum
+Answer print

@@ -1,0 +1,12 @@
+use testing
+
+test "statement values"
+  use "455_powersownlastdigits"
+  N = 1000
+  run
+  Answer equal 442530011399
+  I4 = (Ns equal 4) indices
+  X (I4 0) equal 411728896
+  Ix = (Ns equal 157) indices
+  X (Ix 0) equal 743757
+end
