@@ -147,6 +147,7 @@
   "euler/415_titanicsets.ra": "To fix later: the default input takes about 74 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/416_froggy.ra": "To fix later: the default input takes about 20 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/421_primefactors.ra": "To fix later: the default input takes about 57 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/423_consecutive.ra": "To fix later: the default input takes about 12 s compiled and about 218 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/425_primeconnection.ra": "To fix later: the default input takes about 33 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/427_nsequences.ra": "To fix later: the default input takes about 56 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/429_unitary.ra": "To fix later: the default input takes about 44 s compiled; the small _test.ra fixture stays in the audits.",
