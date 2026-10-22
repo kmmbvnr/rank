@@ -65,6 +65,11 @@ Scalar results leave the frame shape. Array results append their cell shape;
 every observed result cell must have the same shape. Text, sequences and tuples
 remain boxed frame elements. Unequal array shapes are errors, without padding.
 
+A scalar tensor cell may contain boxed text or a sequence with a logical axis.
+Its empty physical cell shape does not prove that an operation expecting a
+vector is invalid. When the header cannot establish a result shape, the actual
+call validates the value and establishes the result cell shape on demand.
+
 Known result-cell shapes can be used without calling the function. Unknown
 lengths remain unknown until observation. Determining a nonempty result's shape
 may call the function on its first cell. The resulting shape evidence is kept;

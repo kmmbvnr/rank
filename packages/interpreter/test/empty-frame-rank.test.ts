@@ -15,6 +15,8 @@ describe('Rank over an empty frame', () => {
     it('derives builtin result shapes without executing a fill cell', () => {
         const never = () => { throw new Error('shape inference must not call the builtin'); };
         expect(native('sort', 1, never).monadicResultShape?.([100_000])).toEqual([100_000]);
+        expect(native('sort', 1, never).monadicResultShape?.([])).toBeUndefined();
+        expect(native('unique', 1, never).monadicResultShape?.([])).toBeUndefined();
         expect(native('argsort', 1, never).monadicResultShape?.([3])).toEqual([3]);
         expect(native('inverse', 1, never).monadicResultShape?.([3, 3])).toEqual([3, 3]);
         expect(native('det', 1, never).monadicResultShape?.([3, 3])).toEqual([]);

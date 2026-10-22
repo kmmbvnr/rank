@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { Interpreter, isRankArray } from '../src/index.js';
+import { Interpreter, isRankArray, formatValue } from '../src/index.js';
 import { readArrayItem } from '../src/array-storage.js';
 import { completed } from '../src/execution.js';
 import { standardModules } from '../src/modules/index.js';
@@ -51,3 +51,35 @@ it.each([false, true])('preserves Unicode cells and rebinding (compilation=%s)',
         expect(runtime.execute('(Text text rank 0) 1')).toBe('y');
     } finally { runtime.dispose(); }
 });
+
+for (const compilation of [false, true]) {
+    it.each([
+        ['sort', ['ab', 'a😀😀', '']],
+        ['unique', ['ba', '😀a', '']],
+    ] as const)(`keeps variable-width boxed text scalar in ranked %s (compilation=${compilation})`, (operation, expected) => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`use sequences\nWords = array "ba" "😀a😀" ""\nPlan' = Words ${operation} rank 0`);
+            const saved = runtime.execute('Saved = Plan');
+            expect(saved).toMatchObject({ kind: 'array', shape: [3], items: expected });
+            expect(runtime.execute('Plan')).toMatchObject({ shape: [3], items: expected });
+        } finally { runtime.dispose(); }
+    });
+
+    it('composes ranked conversion and text sorting without adding character axes', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            const result = runtime.execute('use sequences\nValues = array 125 1000 8\nKeys = Values text rank 0 sort rank 0');
+            expect(result).toMatchObject({ shape: [3], items: ['125', '0001', '8'] });
+            expect(formatValue(result!)).toBe('125 0001 8');
+        } finally { runtime.dispose(); }
+    });
+
+    it('still rejects numeric scalar cells when the ranked sort is demanded', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute("use sequences\nBad' = (array 2 1) sort rank 0");
+            expect(() => runtime.execute('Saved = Bad')).toThrow(/sort expects text or a rank-1 array/);
+        } finally { runtime.dispose(); }
+    });
+}

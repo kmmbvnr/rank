@@ -29,6 +29,10 @@ export function native(
         ? (cellShape: readonly number[]): KnownShape | undefined => {
             const result = instantiateShapeSignature(signature, [cellShape]);
             if (result === undefined && signature.result !== null) {
+                // A scalar tensor cell can hold boxed text or a sequence whose
+                // logical axis is absent here. Validate it when called; its
+                // result shape cannot be inferred from the tensor header alone.
+                if (cellShape.length === 0) return undefined;
                 throw new RankError(`${name} expects cell shape ${signature.args[0]?.join(' ') ?? 'all'}, got ${cellShape.join(' ')}`, 'DimensionMismatch');
             }
             return tensorResult ? result : [];
