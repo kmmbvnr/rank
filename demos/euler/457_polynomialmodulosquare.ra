@@ -1,0 +1,69 @@
+rem A Polynomial Modulo the Square of
+rem a Prime
+rem https://projecteuler.net/problem=457
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 10000000
+
+rem 4 f(n) = (2n - 3)^2 - 13, so roots
+rem mod p are (3 +- s) / 2 with s^2 =
+rem 13. s comes from Cipolla's method
+rem for all primes at once, then each
+rem root lifts once to mod p^2 (Hensel).
+rem f has no roots mod 2, and the root
+rem mod 13 does not lift.
+Ps = primes to L array
+Ps = Ps (Ps greater 2 indices)
+Ps = Ps (Ps not equal 13 indices)
+Lg = 13 ((Ps - 1) // 2) Ps powmod
+P = Ps (Lg equal 1 indices)
+rem A non-residue w = a^2 - 13.
+Hf = (P - 1) // 2
+A = P * 0
+Ok = A equal 1
+for (Ok equal false) any
+  A = Ok choose A (A + 1)
+  Wv = A * A - 13 mod P
+  Ok = Wv Hf P powmod equal (P - 1)
+end
+Wv = A * A - 13 mod P
+rem (a + w')^((p+1)/2) in F_p(w'),
+rem w'^2 = w: bit by bit.
+Ex = (P + 1) // 2
+Rx = P * 0 + 1
+Ry = P * 0
+Bx = A
+By = P * 0 + 1
+for (Ex greater 0) any
+  Bt = Ex mod 2 equal 1
+  Nx = Rx * Bx + (Ry * By mod P) * Wv
+  Ny = Rx * By + Ry * Bx
+  Rx = Bt choose (Nx mod P) Rx
+  Ry = Bt choose (Ny mod P) Ry
+  Sx = Bx * Bx + (By * By mod P) * Wv
+  By = 2 * Bx * By mod P
+  Bx = Sx mod P
+  Ex //= 2
+end
+S = Rx
+I2 = (P + 1) // 2
+R1 = (3 + S) * I2 mod P
+R2 = (3 + P - S) * I2 mod P
+rem n = r + t p, t = -(f(r) / p) /
+rem f'(r) mod p.
+F1 = (R1 * R1 - 3 * R1 - 1) // P
+F2 = (R2 * R2 - 3 * R2 - 1) // P
+D1 = (2 * R1 - 3) mod P
+D2 = (2 * R2 - 3) mod P
+V1 = D1 (P - 2) P powmod
+V2 = D2 (P - 2) P powmod
+T1 = (0 - F1) mod P * V1 mod P
+T2 = (0 - F2) mod P * V2 mod P
+N1 = R1 + T1 * P
+N2 = R2 + T2 * P
+Answer = (N1 N2 min) sum
+Answer print
