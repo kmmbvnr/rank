@@ -13,19 +13,25 @@ describe('unique followed by sort', () => {
         'array 9223372036854775808 1 9223372036854775808',
         '(array 3 1 3 1 2 1) reshape 2 3',
         'concat (array 3 1 3) (array 2 1)',
-        '"😀a😀b"',
+        '"😀a😀b"', '1 to 5',
     ])('matches separate operations for %s', input => {
         const setup = `use sequences\nV = ${input}\n`;
         expect(run(setup + 'V unique sort')).toBe(run(setup + 'U = V unique\nU sort'));
     });
 
-    it.each(['1 to 5', '7', '(array 1 1 2 3) reshape 2 2'])('preserves errors for %s', input => {
+    it.each(['7', '(array 1 1 2 3) reshape 2 2'])('preserves errors for %s', input => {
         const setup = `use sequences\nV = ${input}\n`;
         const error = (body: string) => {
             try { run(setup + body); } catch (cause) { return (cause as Error).message; }
             throw new Error('expected failure');
         };
         expect(error('V unique sort')).toBe(error('U = V unique\nU sort'));
+    });
+
+    it('completes a deferred sequence before sorting its retained unique values', () => {
+        const setup = "use sequences\nV' = 1 to 5\n";
+        expect(() => run(setup + 'V unique sort')).toThrow('sort expects text or a rank-1 array');
+        expect(run(setup + 'U = V unique\nU sort')).toBe('1 2 3 4 5');
     });
 
     it('fuses standard function aliases and permits trailing operations', () => {

@@ -54,26 +54,31 @@ A B 5 powmod`)).toEqual({ shape: [2, 3], items: [1n, 2n, 4n, 1n, 3n, 4n] });
     ])('defers invalid cells in %s', (expression, message) => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use numbers\nA = array 2 3\nQ = ' + expression);
+            runtime.execute('use numbers\nA = array 2 3');
+            expect(() => runtime.execute('Q = ' + expression)).toThrow(message);
+            runtime.execute("Q' = " + expression);
             expect(runtime.execute('Q 0')).toBeGreaterThanOrEqual(0n);
             expect(() => runtime.execute('Q 1')).toThrow(message);
         } finally { runtime.dispose(); }
     });
 
-    it('does not speculate host cells and refreshes after a host write', () => {
+    it('does not speculate deferred host cells and retains an ordinary result', () => {
         const runtime = new Interpreter();
         const reads: number[] = [];
         runtime.variables.set('Host', { kind: 'array', shape: [2], items: [],
             itemAt(index) { reads.push(index); return BigInt(index + 2); } });
         try {
-            runtime.execute('use numbers\nQ = Host 2 7 powmod');
+            runtime.execute("use numbers\nQ' = Host 2 7 powmod");
             expect(reads).toEqual([]);
             expect(runtime.execute('Q 1')).toBe(2n);
             expect(reads).toEqual([1]);
+            expect(runtime.execute('Q 1')).toBe(2n);
+            expect(reads).toEqual([1, 1]);
             runtime.execute('A = array 2 3\nB = A 2 7 powmod');
             expect(runtime.execute('B 0')).toBe(4n);
             (runtime.variables.get('A') as RankArray).items[0] = 4n;
-            expect(runtime.execute('B 0')).toBe(2n);
+            expect(runtime.execute('B 0')).toBe(4n);
+            expect(runtime.execute('(A 2 7 powmod) 0')).toBe(2n);
         } finally { runtime.dispose(); }
     });
 
