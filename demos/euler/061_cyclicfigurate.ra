@@ -9,7 +9,7 @@ use io
 
 Sides = (3 to 8) reshape 6 1
 Ns = (1 to 150) reshape 1 150
-Edge = Ns * (Sides - 2) - Sides + 4
+Edge' = Ns * (Sides - 2) - Sides + 4
 Grid = Ns * Edge // 2
 Mask = Grid at least 1000
 Mask and= Grid at most 9999
@@ -32,9 +32,9 @@ for # in 1 to 5
   Rows = Cur len
   Ends = Tail Cur
   Last = Ends reshape Rows 1
-  Link = Head equal Last
+  Link' = Head equal Last
   Taken = Used reshape Rows 1
-  Free = (Taken Bit band) equal 0
+  Free' = (Taken Bit band) equal 0
   Pairs = (Link and Free) indices
   Old = Pairs # 0
   New = Pairs # 1
@@ -43,6 +43,6 @@ for # in 1 to 5
   Sum = (Sum Old) + (Vals New) copy
   Cur = New copy
 end
-Closed = Tail Cur equal Head First
+Closed' = Tail Cur equal Head First
 Answer = (Sum Closed) first
 Answer print

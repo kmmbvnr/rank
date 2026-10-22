@@ -10,8 +10,8 @@ use cli
 rem Largest power, 22 is enough for 9.
 option Top integer = 25
 
-Pows = 1 to Top
-Grid = (1 to 9) Pows outer **
-Size = Grid text rank 0 len rank 0
+Pows' = 1 to Top
+Grid' = (1 to 9) Pows outer **
+Size' = Grid text rank 0 len rank 0
 Answer = Size equal Pows count
 Answer print

@@ -11,6 +11,70 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('stops the actual pandigital-prime pipeline before completing all permutations', () => {
+        const source = readFileSync(new URL('../../../demos/euler/041_pandigitalprime.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let conversions = 0;
+        const integer: NativeFunction = { kind: 'function', name: 'integer', arities: [1], monadicRank: 'all',
+            call([value]) { conversions++; return BigInt(value as string); },
+        };
+        try {
+            runtime.execute('use algo\nuse sequences');
+            runtime.variables.set('integer', integer);
+            runtime.declareFunctionSource(source);
+            expect(runtime.execute('"7654321" largest_pandigital_prime')).toBe(7652413n);
+            const first = conversions;
+            expect(first).toBeGreaterThan(0);
+            expect(first).toBeLessThan(5040);
+            expect(runtime.execute('"7654321" largest_pandigital_prime')).toBe(7652413n);
+            expect(conversions - first).toBe(first);
+        } finally { runtime.dispose(); }
+    });
+
+    it('streams deals through the actual poker helper while retaining each hand for scoring', () => {
+        const source = readFileSync(new URL('../../../demos/euler/054_poker.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        let reads = 0;
+        const observed: number[] = [];
+        const deals = [
+            '5H 5C 6S 7S KD 2C 3S 8S 8D TD', '5D 8C 9S JS AC 2C 5C 7D 8S QH',
+            '2D 9C AS AH AC 3D 6D 7D TD QD', '4D 6S 9H QH QC 3D 6D 7H QD QS',
+            '2H 2D 4C 4D 4S 3C 3D 3S 9S 9D',
+        ];
+        runtime.variables.set('Deals', sequence({ name: 'poker deals', size: { kind: 'exact', value: 5n },
+            *iterate() { for (const deal of deals) { reads++; yield deal; } },
+        }));
+        try {
+            runtime.execute('use sequences\nuse text\nRanks = "23456789TJQKA"');
+            runtime.declareFunctionSource(source);
+            const score = runtime.variables.get('hand_score')!;
+            if (!isNativeFunction(score)) throw new Error('expected hand score');
+            runtime.variables.set('hand_score', { kind: 'function', name: 'hand_score', arities: [1], monadicRank: 'all',
+                call(args) { observed.push(reads); return score.call(args); },
+            });
+            expect(runtime.execute('Deals poker_wins')).toBe(3n);
+            expect(observed).toEqual([1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
+            expect(reads).toBe(5);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
+        ['047_primefactors', '2 distinct_factor_run', 14n],
+        ['051_primedigits', '121313 has_eight_prime_family', true],
+        ['052_permutedmultiples', '142857 permuted', true],
+        ['056_digitsum', '(2 ** 1000) digit_sum', 1366n],
+        ['059_xor', '((array 65) (array 42) decrypt equal (array 107)) all', true],
+        ['060_primepairs', 'Data = 20 build\nGraph = Data .graph\nGraph 3 7 adjacent', true],
+    ] as const)('runs the actual Euler %s helper on a small input', (name, expression, expected) => {
+        const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        try {
+            runtime.execute('use algo\nuse numbers\nuse sequences\nuse bits\nuse graph');
+            runtime.declareFunctionSource(source);
+            expect(runtime.execute(expression)).toBe(expected);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         ['021_amicable', '300 amicable_sum', 504n],
         ['021_amicable', '220 proper_divisor_sum', 284n],

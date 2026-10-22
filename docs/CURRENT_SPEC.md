@@ -8718,9 +8718,9 @@ program never constructs the million-character prefix. The product is `210`.
 ## 41. Pandigital prime
 
 ```rank
-CandidateTexts = Digits permutations
-Candidates = CandidateTexts integer rank 0
-Prime = Candidates in primes
+CandidateTexts' = Digits permutations
+Candidates' = CandidateTexts integer rank 0
+Prime' = Candidates in primes
 Answer = (Candidates first where Prime) default 0
 ```
 
@@ -8731,10 +8731,10 @@ first match. The first prime is `7652413`.
 ## 42. Coded triangle numbers
 
 ```rank
-Values = Words word_value rank 0
+Values' = Words word_value rank 0
 Discriminants = 8 * Values + 1
-Roots = Discriminants isqrt
-Triangular = Roots ** 2 equal Discriminants
+Roots' = Discriminants isqrt
+Triangular' = Roots ** 2 equal Discriminants
 Answer = Triangular count
 ```
 
@@ -8814,8 +8814,9 @@ run of four integers begins at `134043`.
 ## 48. Self powers
 
 ```rank
-Numbers = 1 to Limit
-Powers = Numbers modular_self_power rank 0
+Modulus = 10 ** Digits
+Numbers' = 1 to Limit
+Powers' = Numbers Modulus modular_self_power rank 0 0
 Total = Powers sum
 Answer = Total mod Modulus
 ```
@@ -8860,7 +8861,7 @@ smallest. The result below one million is `997651`.
 ## 51. Prime digit replacements
 
 ```rank
-Places = 0 till (Digits len - 1)
+Places' = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
 for Pick in Same 3 combinations
@@ -8879,9 +8880,9 @@ membership in `primes` checks the whole family. The smallest match is `121313`.
 ## 53. Combinatoric selections
 
 ```rank
-Top = (N to 1 by -1) scan * with 1
-Bottom = (1 to N) scan * with 1
-Choices = Top // Bottom
+Top' = (N to 1 by -1) scan * with 1
+Bottom' = (1 to N) scan * with 1
+Choices' = Top // Bottom
 ```
 
 The two seeded scans build the numerator and denominator products for every
@@ -9456,8 +9457,8 @@ observe the strict **parenthesis budget of at most one pair of parentheses per
 line** to avoid mobile keyboard friction.
 
 ```rank
-Range = 1 till 1000
-States = Range scan next with Start
+Range' = 1 till 1000
+States' = Range scan next with Start
 ```
 
 Here `Start` is the first state, so the 999 range items produce 1000 states.

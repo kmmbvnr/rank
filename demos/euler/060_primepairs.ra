@@ -45,17 +45,16 @@ fun Limit build
   end
 
   Id = 0 till (Vals len) array
-  Mod1 = Id (Vals mod 3 equal 1)
-  Mod2 = Id (Vals mod 3 equal 2)
-  for Positions in array Mod1 Mod2
+  for Residue in 1 to 2
+    Positions = Id (Vals mod 3 equal Residue)
     Group = Vals Positions
     Factors = Scales Positions
     for P i in Group
       Later = Group drop (i + 1) copy
       Powers = Factors drop (i + 1) copy
-      Forward = P * Powers + Later
+      Forward' = P * Powers + Later
       Candidates = Later (Forward in primes) copy
-      Backward = Candidates * (Factors i) + P
+      Backward' = Candidates * (Factors i) + P
       Good = Candidates (Backward in primes) copy
       for Q in Good
         Graph add P Q
@@ -104,7 +103,7 @@ fun Data Best min_five
     if Rest len less Need
       return Best
     end
-    Small = Rest take Need
+    Small' = Rest take Need
     if Sum + Small sum at least Best
       return Best
     end

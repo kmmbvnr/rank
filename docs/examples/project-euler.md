@@ -774,9 +774,9 @@ program never constructs the million-character prefix. The product is `210`.
 ## 41. Pandigital prime
 
 ```rank
-CandidateTexts = Digits permutations
-Candidates = CandidateTexts integer rank 0
-Prime = Candidates in primes
+CandidateTexts' = Digits permutations
+Candidates' = CandidateTexts integer rank 0
+Prime' = Candidates in primes
 Answer = (Candidates first where Prime) default 0
 ```
 
@@ -787,10 +787,10 @@ first match. The first prime is `7652413`.
 ## 42. Coded triangle numbers
 
 ```rank
-Values = Words word_value rank 0
+Values' = Words word_value rank 0
 Discriminants = 8 * Values + 1
-Roots = Discriminants isqrt
-Triangular = Roots ** 2 equal Discriminants
+Roots' = Discriminants isqrt
+Triangular' = Roots ** 2 equal Discriminants
 Answer = Triangular count
 ```
 
@@ -870,8 +870,9 @@ run of four integers begins at `134043`.
 ## 48. Self powers
 
 ```rank
-Numbers = 1 to Limit
-Powers = Numbers modular_self_power rank 0
+Modulus = 10 ** Digits
+Numbers' = 1 to Limit
+Powers' = Numbers Modulus modular_self_power rank 0 0
 Total = Powers sum
 Answer = Total mod Modulus
 ```
@@ -916,7 +917,7 @@ smallest. The result below one million is `997651`.
 ## 51. Prime digit replacements
 
 ```rank
-Places = 0 till (Digits len - 1)
+Places' = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
 for Pick in Same 3 combinations
@@ -935,9 +936,9 @@ membership in `primes` checks the whole family. The smallest match is `121313`.
 ## 53. Combinatoric selections
 
 ```rank
-Top = (N to 1 by -1) scan * with 1
-Bottom = (1 to N) scan * with 1
-Choices = Top // Bottom
+Top' = (N to 1 by -1) scan * with 1
+Bottom' = (1 to N) scan * with 1
+Choices' = Top // Bottom
 ```
 
 The two seeded scans build the numerator and denominator products for every
@@ -948,24 +949,25 @@ the row function with `rank 0` and reducing its counts with seed `0` gives
 ## 59. XOR decryption
 
 ```rank
-for Key in keys
-  KeyStream = Key Slots
-  Plain = Cipher KeyStream bxor
-  Score = Weights Plain sum
-  if Score greater BestScore
-    BestScore = Score
-    BestKey = Key
-  end
+fun Cipher Key decrypt
+  Size = Cipher len
+  Positions' = 0 till Size
+  KeyLen = Key len
+  Slots' = Positions mod KeyLen
+  KeyStream' = Key Slots
+  return Cipher KeyStream bxor
 end
 ```
 
-The generator yields each three-letter key as an array. The loop consumes one
-key at a time; it does not build a `17576 3` matrix. `Slots` holds the repeating
-positions `0 1 2`, and an ASCII weight table scores the decrypted bytes. The
-official fixture gives key `exp` and ASCII sum `129448`.
+`best_key` solves each strided byte slice independently. Each slice is copied
+once and reused while `best_byte` tries the 26 lowercase key bytes. The
+candidate plaintext stays deferred until the weight-table sum. The main program
+retains the cipher, key and decrypted bytes. The official fixture gives key
+`exp` and ASCII sum `129448`.
 
-To inspect every key as a matrix, use `Keys = keys copy` explicitly. The copy
-stacks the rows, after which `Keys transpose` and column addressing are available.
+The `keys` generator also supports explicit enumeration. `Keys = keys copy`
+stacks all rows into a `17576 3` matrix, after which `Keys transpose` and column
+addressing are available.
 
 ## 60. Prime pair sets
 

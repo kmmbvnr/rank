@@ -8,8 +8,8 @@ use io
 
 Threshold = 1000000
 
-Rows = 1 to 100
-Large = Rows large_choices rank 0
+Rows' = 1 to 100
+Large' = Rows large_choices rank 0
 Answer = Large sum
 Answer print
 
@@ -17,8 +17,8 @@ Answer print
 rem Build each row exactly from two seeded
 rem cumulative products, then compare the quotient.
 fun N large_choices
-  Top = (N to 1 by -1) scan * with 1
-  Bottom = (1 to N) scan * with 1
-  Choices = Top // Bottom
+  Top' = (N to 1 by -1) scan * with 1
+  Bottom' = (1 to N) scan * with 1
+  Choices' = Top // Bottom
   return (Choices greater Threshold) count
 end

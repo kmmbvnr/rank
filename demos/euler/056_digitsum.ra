@@ -20,6 +20,6 @@ Best print
 
 fun N digit_sum
   Digits = N text
-  Values = Digits integer rank 0
+  Values' = Digits integer rank 0
   return Values sum
 end
