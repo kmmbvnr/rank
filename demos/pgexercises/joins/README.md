@@ -31,7 +31,8 @@ reference SQL. It checks duplicate bookings, duplicate member names, absent
 recommenders, date boundaries, ordering, and member versus guest prices without
 downloaded data.
 
-All eight tasks use Rank operations on lazy SQLite views. Contextual `filter`
+All eight tasks use apostrophe bindings to preserve SQLite query plans until
+CSV demands their rows. Contextual `filter`
 and `select` blocks remove repeated table prefixes and separate column-record
 variables. Task 4 keeps short role aliases for its self join. Tasks 6 and 8
 use `choose` and `sort by .cost .descending`; their full results stay in SQLite

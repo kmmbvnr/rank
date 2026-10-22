@@ -9,19 +9,19 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/joins_005.csv"
 
 Db = DbPath sqlite
-R = Db .bookings
-M = Db .members
-F = Db .facilities
-R = R M innerjoin by .memid
-R = R F innerjoin by .facid
-R = R filter
+R' = Db .bookings
+M' = Db .members
+F' = Db .facilities
+R' = R M innerjoin by .memid
+R' = R F innerjoin by .facid
+R' = R filter
   (.name equal "Tennis Court 1"
     or .name equal "Tennis Court 2")
 end
-R = R select
+R' = R select
   .member = .firstname + " " + .surname
   .facility = .name
 end
-R = R unique
-Result = R sort by .member .facility
+R' = R unique
+Result' = R sort by .member .facility
 Result OutputPath csv

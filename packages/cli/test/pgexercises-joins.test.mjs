@@ -6,6 +6,8 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Database from 'better-sqlite3';
 import test from 'node:test';
+import { Interpreter, isRankPlan, parse } from '../../interpreter/out/index.js';
+import { nodeIo } from '../out/node-io.js';
 
 const root = fileURLToPath(new URL('../../..', import.meta.url));
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
@@ -104,10 +106,11 @@ test('all 8 PostgreSQL Exercises Joins programs match SQLite reference queries',
                         fs.writeFileSync(source, text);
                     }
                     const result = spawnSync(process.execPath, [cli, source, dbPath, output], {
-                        cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024,
+                        cwd: root, encoding: 'utf8', maxBuffer: 1024 * 1024, timeout: 15_000,
                     });
                     assert.equal(result.status, 0, result.stderr);
-                    const actual = rowsFromCsv(fs.readFileSync(output, 'utf8'));
+                    const firstCsv = fs.readFileSync(output, 'utf8');
+                    const actual = rowsFromCsv(firstCsv);
                     const statement = db.prepare(reference[index]);
                     const expected = [statement.columns().map(column => column.name),
                         ...statement.all().map(row => Object.values(row).map(value => value === null ? '' : String(value)))];
@@ -137,3 +140,65 @@ test('all 8 PostgreSQL Exercises Joins programs match SQLite reference queries',
         fs.rmSync(directory, { recursive: true, force: true });
     }
 });
+
+for (const compilation of [false, true]) {
+    test(`Joins remain SQL plans until CSV (compilation=${compilation})`, async t => {
+        const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-joins-plans-'));
+        const dbPath = path.join(directory, 'club.sqlite3');
+        const db = makeDatabase(dbPath);
+        try {
+            const programs = fs.readdirSync(joins).filter(name => /^\d{3}_.*\.ra$/.test(name)).sort();
+            for (const [index, program] of programs.entries()) await t.test(program, () => {
+                const queries = [];
+                let opens = 0, closes = 0;
+                const io = { ...nodeIo, openSqlite(file) {
+                    opens++;
+                    const connection = nodeIo.openSqlite(file);
+                    return { ...connection, prepare(sql) {
+                        const statement = connection.prepare(sql);
+                        return { ...statement, all(params) {
+                            if (!sql.includes('sqlite_master') && !sql.startsWith('EXPLAIN')) queries.push(sql);
+                            return statement.all(params);
+                        } };
+                    }, close() { closes++; connection.close(); } };
+                } };
+                const output = path.join(directory, 'out.csv');
+                const source = fs.readFileSync(path.join(joins, program), 'utf8');
+                const boundary = '\nResult OutputPath csv';
+                assert.ok(source.trimEnd().endsWith(boundary));
+                const runtime = new Interpreter(undefined, { io, compilation });
+                try {
+                    runtime.executeProgram(parse(source.slice(0, source.lastIndexOf(boundary))), [dbPath, output]);
+                    assert.equal(queries.length, 0);
+                    assert.ok(isRankPlan(runtime.variables.get('Result')));
+                    runtime.execute('Result OutputPath csv');
+                    assert.equal(queries.length, 1);
+                    const statement = db.prepare(reference[index]);
+                    const firstCsv = fs.readFileSync(output, 'utf8');
+                    const actual = rowsFromCsv(firstCsv);
+                    const expected = [statement.columns().map(column => column.name),
+                        ...statement.all().map(row => Object.values(row).map(value => value === null ? '' : String(value)))];
+                    if (index === 5 || index === 7) {
+                        for (const rows of [actual, expected]) for (const row of rows.slice(1)) row[2] = String(Number(row[2]));
+                    }
+                    assert.deepEqual(actual[0], expected[0]);
+                    assert.deepEqual(actual.slice(1).sort(), expected.slice(1).sort());
+                    if (index !== 6) assert.match(queries[0], /\bJOIN\b/);
+                    if (index === 3) assert.match(queries[0], /LEFT JOIN/);
+                    if ([1, 2, 3, 4, 5, 6, 7].includes(index)) assert.match(queries[0], /ORDER BY/);
+                    if ([2, 4, 6].includes(index)) assert.match(queries[0], /DISTINCT/);
+                    if (index === 5 || index === 7) assert.match(queries[0], /CASE/);
+                    if (index === 6) assert.match(queries[0], /SELECT.*SELECT/s);
+                    runtime.execute('Result OutputPath csv');
+                    assert.equal(queries.length, 2);
+                    assert.equal(queries[1], queries[0]);
+                    assert.equal(fs.readFileSync(output, 'utf8'), firstCsv);
+                } finally { runtime.dispose(); }
+                assert.equal(opens, closes);
+            });
+        } finally {
+            db.close();
+            fs.rmSync(directory, { recursive: true, force: true });
+        }
+    });
+}

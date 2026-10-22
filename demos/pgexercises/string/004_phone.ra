@@ -9,14 +9,14 @@ argument DbPath path = "demos/pgexercises/data/club.sqlite3"
 argument OutputPath path = "demos/pgexercises/data/string_004.csv"
 
 Db = DbPath sqlite
-M = Db .members
-Phones = M .telephone
-Mask = Phones hasparens rank 0
-R = M filter Mask
-Result = R select .memid .telephone
-Result = Result sort by .memid
+M' = Db .members
+Phones' = M .telephone
+Mask' = Phones hasparens rank 0
+R' = M filter Mask
+Result' = R select .memid .telephone
+Result' = Result sort by .memid
 Result OutputPath csv
 
-fun Phone hasparens
+fun Phone' hasparens
   return "(" in Phone or ")" in Phone
 end
