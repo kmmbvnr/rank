@@ -16,7 +16,7 @@ argument Input path = (
 )
 
 Lines = Input readlines
-Heads = Lines "Grid" startswith
+Heads' = Lines "Grid" startswith
 Rows = Lines (not Heads)
 Text = Rows "" join
 Cells = Text integer rank 0
@@ -25,8 +25,8 @@ Grids = Cells reshape Count 81
 Ids = 0 till 81 array
 RowK = Ids // 9
 ColK = Ids mod 9 + 9
-Band = Ids // 27 * 3
-Stack = Ids mod 9 // 3
+Band' = Ids // 27 * 3
+Stack' = Ids mod 9 // 3
 BoxK = Band + Stack + 18
 Bit = array 1 2 4 8 16 32 64 128 256
 Pop = (0 to 511 array) popcount

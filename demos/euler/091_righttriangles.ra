@@ -18,9 +18,9 @@ Ids = 1 to Size array
 X = Ids reshape Size 1
 Y = Ids reshape 1 Size
 G = X Y gcd
-Down = (Size - X) * G // Y
-Left = Y * G // X
-Inner = Down Left min
+Down' = (Size - X) * G // Y
+Left' = Y * G // X
+Inner' = Down Left min
 Cells = Inner sum
 Answer = 3 * Size * Size + 2 * Cells
 Answer print

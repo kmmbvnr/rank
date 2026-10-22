@@ -19,15 +19,15 @@ rem + 1, else 2x - 2. Skip the trivial x
 rem = 2.
 Root = 3 sqrt
 Pow = 2 to 40 array
-Up = (2 + Root) ** Pow
-Down = (2 - Root) ** Pow
-Half = (Up + Down) / 2
+Up' = (2 + Root) ** Pow
+Down' = (2 - Root) ** Pow
+Half' = (Up + Down) / 2
 X = Half 0 round integer
 Twice = X * 2
-Plus = (Twice + 1) mod 3 equal 0
-Long = Twice + 2
-Short = Twice - 2
+Plus' = (Twice + 1) mod 3 equal 0
+Long' = Twice + 2
+Short' = Twice - 2
 Perim = Plus choose Long Short
-Fits = Perim at most Limit
+Fits' = Perim at most Limit
 Answer = (Perim Fits) sum
 Answer print

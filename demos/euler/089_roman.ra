@@ -28,24 +28,24 @@ Face 77 = 1000
 Text = Src + "\n"
 Codes = Text codepoint rank 0
 Val = Face Codes
-Next = concat (Val drop 1) (array 0)
-Sign = (Val less Next) choose (-1) 1
+Next' = concat (Val drop 1) (array 0)
+Sign' = (Val less Next) choose (-1) 1
 Sums = (Val * Sign) scan +
 Ends = (Codes equal 10) indices
 Tot = Sums Ends
 Last = Tot len - 1
-Head = Tot take Last
-Prev = concat (array 0) Head
+Head' = Tot take Last
+Prev' = concat (array 0) Head
 Num = Tot - Prev
 
 rem Minimal letters per decimal digit,
 rem and one M per thousand.
 Cost = array 0 1 2 3 2 1 2 3 4 2
-Hundreds = Cost (Num // 100 mod 10)
-Tens = Cost (Num // 10 mod 10)
-Ones = Cost (Num mod 10)
-Thou = Num // 1000
-Short = Thou + Hundreds + Tens + Ones
+Hundreds' = Cost (Num // 100 mod 10)
+Tens' = Cost (Num // 10 mod 10)
+Ones' = Cost (Num mod 10)
+Thou' = Num // 1000
+Short' = Thou + Hundreds + Tens + Ones
 Size = Codes len
 Lines = Ends len
 Kept = Short sum

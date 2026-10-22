@@ -22,7 +22,7 @@ Sigma (Limit + 1) = Limit + 1
 Root = Limit isqrt
 for D in 2 to Root
   K = D to Limit // D array
-  At = D * K
+  At' = D * K
   Sigma At += D + K
   Sq = D * D
   Sigma Sq -= D
@@ -33,11 +33,11 @@ rem A cycle vertex has the length of its
 rem successor; a tail vertex has one
 rem more.
 Cap = Limit + 1
-Raw = Sigma drop 1
+Raw' = Sigma drop 1
 Succ = Raw Cap min copy
 Lens = Succ functional lengths
 Ids = Succ - 1 copy
-Back = Lens Ids copy
+Back' = Lens Ids copy
 Cycle = Lens equal Back copy
 Long = (Lens Cycle) max
 Best = Cycle and Lens equal Long copy

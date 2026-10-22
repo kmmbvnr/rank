@@ -22,9 +22,9 @@ Parts = Flat "," split
 Nums = Parts integer
 Rows = Lines len
 Pairs = Nums reshape Rows 2
-Bases = Pairs # 0
-Exps = Pairs # 1
-Logs = Bases log
-Size = Exps * Logs
+Bases' = Pairs # 0
+Exps' = Pairs # 1
+Logs' = Bases log
+Size' = Exps * Logs
 Answer = (Size max .index) + 1
 Answer print

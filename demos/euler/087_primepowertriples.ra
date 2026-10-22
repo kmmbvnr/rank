@@ -16,8 +16,8 @@ Ps = primes till Side array
 Sq = (Ps ** 2) filter less Limit array
 Cb = (Ps ** 3) filter less Limit array
 Fo = (Ps ** 4) filter less Limit array
-Pair = Sq Cb outer +
-Sums = Pair Fo outer +
-Few = Sums (Sums less Limit)
+Pair' = Sq Cb outer +
+Sums' = Pair Fo outer +
+Few' = Sums (Sums less Limit)
 Answer = Few unique len
 Answer print

@@ -11,6 +11,21 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('reduces deferred checkout tensors through native kernels without retaining the full totals', () => {
+        const source = readFileSync(new URL('../../../demos/euler/109_darts.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(source));
+            expect(runtime.variables.get('Answer')).toBe(38182n);
+            expect(isRankPlan(runtime.variables.get('Total')!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Fits')!)).toBe(true);
+            expect(isStoredValue(runtime.variables.get('Any')!)).toBe(true);
+            if (compilation) expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            else expect(diagnostics.compiledTensors).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains Monopoly state while composing deferred matrices through native kernels', () => {
         const source = readFileSync(new URL('../../../demos/euler/084_monopolyodds.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });
