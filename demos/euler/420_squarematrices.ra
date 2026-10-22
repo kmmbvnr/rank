@@ -26,12 +26,11 @@ Cp = Pg reshape (Pm - 1) 1
 Cq = Qg reshape 1 Pm
 Gg = Cp Cq gcd
 Sg = Cp * Cp + Cq * Cq
-Ok = (Gg equal 1) choose 1 0
-Ok = Ok * (Cq less Cp choose 1 0)
-Ok = Ok * (Sg at most Bd choose 1 0)
-Ok = Ok * (Sg at least 5 choose 1 0)
+Ok = (Gg equal 1) and (Cq less Cp)
+Ok = Ok and (Sg at most Bd)
+Ok = Ok and (Sg at least 5)
 Fl = Ok reshape ((Pm - 1) * Pm)
-Ix = Fl greater 0 indices
+Ix = Fl indices
 Ct = (Pm - 1) * Pm
 Ap = (Cp * (Cq * 0 + 1)) reshape Ct
 Aq = ((Cp * 0 + 1) * Cq) reshape Ct
@@ -59,8 +58,27 @@ for D in 1 to Xr
   Tau (D * D) -= 1
 end
 Tot = 0
+rem S0 and S1 are sorted and Bn only
+rem falls, so the counts K0 and K1
+rem of sums up to Bn only shrink.
+K0 = S0 len
+K1 = S1 len
 for Nn in 2 to Nm
   Bn = (2 * N - 1) // (Nn * Nn)
+  for K0 greater 0
+    if S0 (K0 - 1) greater Bn
+      K0 -= 1
+    else
+      break
+    end
+  end
+  for K1 greater 0
+    if S1 (K1 - 1) greater Bn
+      K1 -= 1
+    else
+      break
+    end
+  end
   Ms = (0 to Nn - 1) copy
   Lv = (Nn * Nn - Ms * Ms) // 4
   Dbl = 1 + (Ms greater 0 choose 1 0)
@@ -71,8 +89,6 @@ for Nn in 2 to Nm
   V1 = Wt * (Sm choose 1 0)
   C0 = (V0 scan + with 0) copy
   C1 = (V1 scan + with 0) copy
-  K0 = (S0 at most Bn) choose 1 0 sum
-  K1 = (S1 at most Bn) choose 1 0 sum
   if K0 greater 0
     Qs = Q0 (0 to K0 - 1)
     Ps = P0 (0 to K0 - 1)
