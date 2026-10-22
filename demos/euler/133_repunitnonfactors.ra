@@ -25,6 +25,6 @@ for E greater 0
   Base = Base * Base mod M
   E = E // 2
 end
-Never = Res not equal 1
+Never' = Res not equal 1
 Answer = Ps filter Never sum
 Answer print

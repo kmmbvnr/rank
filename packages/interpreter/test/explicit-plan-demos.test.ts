@@ -11,6 +11,32 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains row prefixes and reduces the actual maximum-run helper through native kernels', () => {
+        const source = readFileSync(new URL('../../../demos/euler/149_maxsubsequence.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use numbers\nuse sequences');
+            runtime.declareFunctionSource(source);
+            const best = runtime.variables.get('best')!;
+            if (!isNativeFunction(best)) throw new Error('expected best function');
+            const input: RankArray = { kind: 'array', items: [5n, -100n, 1n, 6n, -100n, 2n], shape: [2, 3] };
+            const result = diagnostics.run(() => best.call([input]));
+            if (!isRankPlan(result)) throw new Error('expected a maximum-run plan');
+            const gain = result.dependencies.get('Gain')!;
+            if (!isRankPlan(gain)) throw new Error('expected deferred prefix differences');
+            const ends = gain.dependencies.get('Ends')!;
+            const before = gain.dependencies.get('Before')!;
+            if (!isRankPlan(ends) || !isRankPlan(before)) throw new Error('expected deferred prefix selections');
+            expect(isStoredValue(ends.dependencies.get('Sums')!)).toBe(true);
+            expect(isStoredValue(before.dependencies.get('Low')!)).toBe(true);
+            expect(diagnostics.run(() => runExecution(demand(result)))).toBe(6n);
+            expect(diagnostics.run(() => runExecution(demand(result)))).toBe(6n);
+            if (compilation) expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            else expect(diagnostics.compiledTensors).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it('completes repunit tables before deferred searches read the final version', () => {
         const source = readFileSync(new URL('../../../demos/euler/129_repunitdiv.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=10'] });

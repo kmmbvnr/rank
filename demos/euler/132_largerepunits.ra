@@ -26,7 +26,7 @@ for E greater 0
   Base = Base * Base mod M
   E = E // 2
 end
-Hit = Res equal 1
-Found = Ps filter Hit array
+Hit' = Res equal 1
+Found' = Ps filter Hit array
 Answer = Found take Count sum
 Answer print

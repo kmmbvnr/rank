@@ -19,30 +19,30 @@ Wheel = 30030
 R = 0 till Wheel by 10 array
 for P in primes from 3 till 14
   Sq = 0 till P array
-  Hit = (Sq * Sq + Off) mod P equal 0
-  Bad = Hit any axis 0
+  Hit' = (Sq * Sq + Off) mod P equal 0
+  Bad' = Hit any axis 0
   R = R filter (not Bad (R mod P)) array
 end
 Blocks = Limit // Wheel + 1
-J = (0 till Blocks array) * Wheel
+J' = (0 till Blocks array) * Wheel
 Cols = R len
-Row = R reshape 1 Cols
-Col = J reshape Blocks 1
-Grid = Row + Col
+Row' = R reshape 1 Cols
+Col' = J reshape Blocks 1
+Grid' = Row + Col
 C = Grid reshape (Blocks * Cols)
 C = C filter C less Limit array
 for P in primes from 17 till 100
   Sq = 0 till P array
-  Hit = (Sq * Sq + Off) mod P equal 0
-  Bad = Hit any axis 0
+  Hit' = (Sq * Sq + Off) mod P equal 0
+  Bad' = Hit any axis 0
   C = C filter (not Bad (C mod P)) array
 end
 for K in array 1 3 7 9 13 27
-  Q = C * C + K
+  Q' = C * C + K
   C = C filter (Q in primes) array
 end
 for K in array 19 21
-  Q = C * C + K
+  Q' = C * C + K
   C = C filter (not Q in primes) array
 end
 Answer = C sum
