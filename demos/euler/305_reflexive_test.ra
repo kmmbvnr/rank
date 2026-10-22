@@ -5,7 +5,8 @@ test "small reflexive positions"
   Power = 1
   run
 
-  Answer equal 12
+  rem The occurrences of 3 start at 3, 17, 37, ...
+  Answer equal 37
 end
 
 test "published checkpoints"

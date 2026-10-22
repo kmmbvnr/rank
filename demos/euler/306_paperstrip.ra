@@ -21,12 +21,10 @@ for L in 1 to Last
   G L = Seen first index where not Seen
 end
 Small = Limit 100 min
-Wins = G (1 to Small)
-Answer = (Wins not equal 0) count
+Answer = ((G (1 to Small)) not equal 0) count
 if Limit greater 100
-  Rest = 101 to Limit array
-  Pos = (Rest - 100) mod 34 + 100
-  More = G Pos
-  Answer += (More not equal 0) count
+  Rest' = 101 to Limit array
+  Pos' = (Rest - 100) mod 34 + 100
+  Answer += ((G Pos) not equal 0) count
 end
 Answer print

@@ -11,6 +11,64 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('rebuilds amnesia states before deferred column weights on repeated runs', () => {
+        const source = readFileSync(new URL('../../../demos/euler/298_selectiveamnesia.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--turns=5'] });
+        try {
+            for (let run = 0; run < 2; run++) {
+                runtime.execute(source);
+                expect(runtime.variables.get('Answer')).toBe(0);
+                expect(isStoredValue(runtime.variables.get('Dp')!)).toBe(true);
+                expect(isRankPlan(runtime.variables.get('Cols')!)).toBe(true);
+                expect(isRankPlan(runtime.variables.get('Ab')!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it('allows rebuilding protein contact tables after consuming their one-use views', () => {
+        const source = readFileSync(new URL('../../../demos/euler/300_proteinfolding.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--n=5'] });
+        try {
+            for (let run = 0; run < 2; run++) {
+                runtime.execute(source);
+                expect(runtime.variables.get('Answer')).toBe(1.4375);
+                for (const name of ['Bm', 'Best', 'Cb']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
+    it('completes both Fibonacci states after deferred doubling branches', () => {
+        const source = readFileSync(new URL('../../../demos/euler/304_primonacci.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation,
+            args: ['--start=10', '--count=4', '--mod=1000000007'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(6100n);
+            for (const name of ['Pr', 'F0', 'F1']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            expect(formatValue(runtime.variables.get('F0')!)).toBe('89 233 1597 4181');
+        } finally { runtime.dispose(); }
+    });
+
+    it('streams the periodic paper-strip lookup and still permits rebuilding the Grundy table', () => {
+        const source = readFileSync(new URL('../../../demos/euler/306_paperstrip.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=200'] });
+        // Independent DP: consider every possible removed pair, without the period shortcut.
+        const grundy = Array<number>(201).fill(0);
+        for (let n = 2; n <= 200; n++) {
+            const moves = new Set(Array.from({ length: n - 1 }, (_, left) => grundy[left] ^ grundy[n - left - 2]));
+            while (moves.has(grundy[n])) grundy[n]++;
+        }
+        const wins = BigInt(grundy.slice(1).filter(value => value !== 0).length);
+        expect(wins).toBe(167n);
+        try {
+            for (let run = 0; run < 2; run++) {
+                runtime.execute(source);
+                expect(runtime.variables.get('Answer')).toBe(wins);
+                expect(isStoredValue(runtime.variables.get('G')!)).toBe(true);
+            }
+        } finally { runtime.dispose(); }
+    });
+
     it('retains the triangle prefix and mutable Moebius table while deferring the final lookup', () => {
         const source = readFileSync(new URL('../../../demos/euler/276_primitivetriangles.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100'] });

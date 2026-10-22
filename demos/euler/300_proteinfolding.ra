@@ -108,7 +108,7 @@ Sz = 2 ** N
 Ms = 0 to (Sz - 1) array
 Bm = array shape (N * Sz) fill 0
 for I in 0 till N
-  Ai = Ms I shr
+  Ai' = Ms I shr
   Lo = I * Sz
   Bm (Lo till (Lo + Sz)) = Ai 1 band
 end
@@ -121,9 +121,7 @@ for Ky in Keys array
       if (Kp 1 band) equal 1
         Li = I * Sz
         Lj = J * Sz
-        Bi = Bm (Li till (Li + Sz))
-        Bj = Bm (Lj till (Lj + Sz))
-        Cn = Cn + Bi * Bj
+        Cn = Cn + (Bm (Li till (Li + Sz))) * (Bm (Lj till (Lj + Sz)))
       end
     end
   end
@@ -132,9 +130,7 @@ end
 Cb = array shape Sz fill 0
 for I in 0 to (N - 2)
   Li = I * Sz
-  Bi = Bm (Li till (Li + Sz))
-  Bj = Bm ((Li + Sz) till (Li + 2 * Sz))
-  Cb = Cb + Bi * Bj
+  Cb = Cb + (Bm (Li till (Li + Sz))) * (Bm ((Li + Sz) till (Li + 2 * Sz)))
 end
 Answer = (Best + Cb) sum / Sz
 Answer print

@@ -11,7 +11,7 @@ option Chips integer = 1000000
 Answer = 0.0
 if Defects greater 2
   Js = 0 till Defects array
-  Frac = Js * 1.0 / Chips
+  Frac' = Js * 1.0 / Chips
   LogP = (1.0 - Frac) log sum
   P = LogP exp
   Answer = 1.0 - P

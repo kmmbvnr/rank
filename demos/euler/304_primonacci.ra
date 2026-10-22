@@ -16,13 +16,13 @@ F1 = F0 + 1
 Text = Pr max binary
 Bits = 0 till (Text len) array
 for Bit in Bits reverse
-  Twice = 2 * F1 - F0
+  Twice' = 2 * F1 - F0
   Even = F0 * Twice mod Mod
   Odd = (F0 * F0 + F1 * F1) mod Mod
-  Shifted = Pr Bit shr
+  Shifted' = Pr Bit shr
   Set = (Shifted 1 band) equal 1
   F0 = Set choose Odd Even
-  Next = (Even + Odd) mod Mod
+  Next' = (Even + Odd) mod Mod
   F1 = Set choose Next Odd
 end
 Answer = F0 sum mod Mod
