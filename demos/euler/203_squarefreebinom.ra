@@ -18,12 +18,12 @@ rem below Rows, so it is squarefree when
 rem no prime square divides it.
 N = 0 till Rows array
 Row = N reshape Rows 1
-Grid = Row (N Row min) binomial
+Grid' = Row (N Row min) binomial
 Vals = Grid reshape (Rows * Rows) unique
 Sq = (primes till Rows array) ** 2
-Col = Vals reshape (Vals len) 1
-Div = Col mod Sq equal 0
-Free = not (Div any axis 1)
-Kept = Vals filter Free array
+Col' = Vals reshape (Vals len) 1
+Div' = Col mod Sq equal 0
+Free' = not (Div any axis 1)
+Kept' = Vals filter Free
 Answer = Kept sum
 Answer print

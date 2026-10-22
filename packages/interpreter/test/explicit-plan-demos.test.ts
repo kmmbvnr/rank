@@ -11,6 +11,36 @@ const covariance = readFileSync(new URL('../../../demos/deepml/010_cov.ra', impo
 const windows = readFileSync(new URL('../../../demos/classic/windows.ra', import.meta.url), 'utf8');
 
 describe.each([false, true])('explicit-plan demo migration (compilation=%s)', compilation => {
+    it('retains dice histograms and defers pairwise win selection', () => {
+        const source = readFileSync(new URL('../../../demos/euler/205_dicegame.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--pn=1', '--cn=1'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(0.25);
+            for (const name of ['Hp', 'Hc']) {
+                const histogram = runtime.variables.get(name)!;
+                expect(histogram).toMatchObject({ kind: 'array', shape: [7] });
+                expect(isStoredValue(histogram)).toBe(true);
+            }
+            expect(formatValue(runtime.variables.get('Hp')!)).toBe('0 1 1 1 1 0 0');
+            expect(formatValue(runtime.variables.get('Hc')!)).toBe('0 1 1 1 1 1 1');
+            expect(isRankPlan(runtime.variables.get('Pair')!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Won')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains smooth-number lists while streaming the final prefix-count selection', () => {
+        const source = readFileSync(new URL('../../../demos/euler/204_hammingnumbers.ra', import.meta.url), 'utf8');
+        const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=100000000', '--max=5'] });
+        try {
+            runtime.execute(source);
+            expect(runtime.variables.get('Answer')).toBe(1105n);
+            for (const name of ['Lo', 'Hi', 'Sorted']) expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Below')!)).toBe(true);
+            expect(isRankPlan(runtime.variables.get('Query')!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+
     it('retains the colour transition tensor and completes each planned matrix sweep', () => {
         const source = readFileSync(new URL('../../../demos/euler/189_tricolouring.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--rows=3'] });

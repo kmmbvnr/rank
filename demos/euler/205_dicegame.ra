@@ -30,10 +30,10 @@ for G in 0 to 1
   Tot = array 0
   for D in 1 to Dice
     R = Tot len
-    Sum = (Tot reshape R 1) + Faces
+    Sum' = (Tot reshape R 1) + Faces
     Tot = Sum reshape (R * Sides)
   end
-  Hit = Tot equal (V reshape (Mx + 1) 1)
+  Hit' = Tot equal (V reshape (Mx + 1) 1)
   if G equal 0
     Hp = Hit count axis 1
   else
@@ -41,9 +41,9 @@ for G in 0 to 1
   end
 end
 Vp = V reshape (Mx + 1) 1
-Pair = (Hp reshape (Mx + 1) 1) * Hc
-Won = Pair filter (Vp greater V) array
-Ways = Won sum
+Pair' = (Hp reshape (Mx + 1) 1) * Hc
+Won' = Pair filter (Vp greater V)
+Ways' = Won sum
 All = 4 ** Pn * 6 ** Cn
 Answer = Ways / All 7 round
 Answer print
