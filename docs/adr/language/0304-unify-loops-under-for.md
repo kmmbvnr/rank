@@ -1,5 +1,10 @@
 # 0304. Unification of All Loops Under for
 
+> Update (#430): the explicit `axis` examples below record the original frame-axis
+> design. Current `axis` selects cell axes in source order; same-rank array
+> results retain their source-axis positions. See
+> [the current rules](../../language/sequences-arrays.md#rank).
+
 * **Status:** Accepted
 * **Date:** 2026-09-08 / 2026-09-09
 * **Deciders:** @kmmbvnr

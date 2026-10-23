@@ -183,8 +183,8 @@ end
         expect(items(runtime.execute('Empty sum axis 1')!)).toEqual([0n, 0n]);
         runtime.execute('fun A custom\n  return 99\nend');
         runtime.variables.set('sum', runtime.variables.get('custom')!);
-        // A host replacement has no builtin axis-reduction identity.
-        expect(() => runtime.execute('A sum axis 1')).toThrow('unknown name: axis');
+        // A host replacement uses generic cell-axis application, not the builtin reduction.
+        expect(items(runtime.execute('A sum axis 1')!)).toEqual([99n, 99n, 99n, 99n]);
         expect(items(runtime.execute('A sum rank 1')!)).toEqual([99n, 99n, 99n, 99n]);
         runtime.dispose();
     });

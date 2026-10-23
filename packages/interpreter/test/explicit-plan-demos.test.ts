@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankPlan, isRankTuple, isNativeFunction, isRankSequence, type RankArray, type NativeFunction, type SequencePlan } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, demand, formatValue, parse, isRankArray, isRankPlan, isRankTuple, isNativeFunction, isRankSequence, type RankArray, type NativeFunction, type SequencePlan } from '../src/index.js';
 import { sequence, windowValue } from '../src/sequence.js';
 import { isStoredValue } from '../src/stored-value.js';
 import { runExecution } from '../src/execution.js';
@@ -1210,32 +1210,22 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('retains centered data once and defers the covariance transpose', () => {
+    it('retains centered data while contracting observations without a transpose', () => {
         const runtime = new Interpreter(undefined, { compilation });
-        const diagnostics = new RuntimeDiagnostics();
         try {
-            diagnostics.run(() => runtime.execute(`${covariance}\nMatrix = array shape 2 3\n1 2 3\n4 5 6\nend\nResult' = Matrix covmatrix`));
+            runtime.execute(`${covariance}\nMatrix = array shape 2 3\n1 2 3\n4 5 6\nend\nResult' = Matrix covmatrix`);
             const result = runtime.variables.get('Result')!;
-            expect(isRankPlan(result)).toBe(true);
-            if (!isRankPlan(result)) throw new Error('expected a covariance plan');
-            const centered = result.dependencies.get('Centered') as RankArray;
-            expect(centered.shape).toEqual([2, 3]);
-            expect(denseScalarItems(centered)).toBeDefined();
-            expect(formatValue(centered)).toBe('-1 0 1 -1 0 1');
-            const transposed = result.dependencies.get('Transposed')!;
-            expect(isRankPlan(transposed)).toBe(true);
-            if (!isRankPlan(transposed)) throw new Error('expected a transpose plan');
-            expect(transposed.dependencies.get('Centered')).toBe(centered);
-            const before = diagnostics.cellsComputed;
-            const view = diagnostics.run(() => runExecution(demand(transposed))) as RankArray;
-            expect(view.shape).toEqual([3, 2]);
-            expect(denseScalarItems(view)).toBeUndefined();
-            expect(materializedArrayItems(view)).toBeUndefined();
-            expect(diagnostics.cellsComputed).toBe(before);
+            expect(isRankArray(result)).toBe(true);
+            if (!isRankArray(result)) throw new Error('expected a covariance view');
+            expect(result.shape).toEqual([2, 2]);
+            expect(denseScalarItems(result)).toBeUndefined();
+            expect(materializedArrayItems(result)).toBeUndefined();
+            expect(() => runtime.execute('Matrix 0 0 = 99')).toThrow('read-only');
             const saved = runtime.execute('Saved = Result') as RankArray;
             expect(saved.shape).toEqual([2, 2]);
             expect(formatValue(saved)).toBe('1 1 1 1');
             expect(denseScalarItems(saved)).toBeDefined();
+            expect(formatValue(runtime.execute('Result')!)).toBe('1 1 1 1');
         } finally { runtime.dispose(); }
     });
 

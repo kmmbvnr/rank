@@ -318,6 +318,17 @@ export function atArray(source: RankArray, indices: readonly bigint[]): RankValu
     return inheritSemanticArrayType(source, selectionArray(rest, source, index => offset + index, { offset, stride: 1 }));
 }
 
+/** A leading-axis reverse inside selected cells is one regular tensor slice. */
+export function reverseArrayAxis(source: RankArray, selected: number): RankValue {
+    const axes = source.shape.map((size, axis): SelectedAxis => {
+        const offset = axis === selected ? Math.max(0, size - 1) : 0;
+        const stride = axis === selected ? -1 : 1;
+        return { preserve: true, size, unique: true, linear: { offset, stride },
+            indexAt: coordinate => offset + coordinate * stride };
+    });
+    return sliceArray(source, selectionFromAxes(source.shape, axes));
+}
+
 /** The cells a selection addresses: an array, or the one cell of an empty shape. */
 export function sliceArray(
     source: RankArray, selection: TensorSelection, observation?: ArrayCellRead,

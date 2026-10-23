@@ -54,4 +54,22 @@ describe.each([false, true])('explicit operation cell axes (compilation=%s)', co
         expect(run(matrix + 'M window 2 axis 0 shape')).toBe('1 3 2');
     });
 
+    it('keeps callback-bearing host reads in cell order when reversing', () => {
+        const reads: number[] = [];
+        const items = [1n, 2n, 3n, 4n, 5n, 6n];
+        for (let index = 0; index < items.length; index++) {
+            Object.defineProperty(items, index, { get: () => { reads.push(index); return BigInt(index + 1); } });
+        }
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.variables.set('Host', { kind: 'array', shape: [2, 3], items });
+            const result = runtime.execute('use sequences\nHost reverse axis 1');
+            expect(formatValue(result!)).toBe('3 2 1 6 5 4');
+            const selectedReads = [...reads];
+            reads.length = 0;
+            expect(formatValue(runtime.execute('Host reverse rank 1')!)).toBe('3 2 1 6 5 4');
+            expect(selectedReads).toEqual(reads);
+        } finally { runtime.dispose(); }
+    });
+
 });

@@ -4,9 +4,9 @@ import { scalarBuiltinArray } from './scalar-builtin.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
-import { ALL_AXIS, atArray, sliceArray, tensorSelection } from './selectors.js';
+import { ALL_AXIS, atArray, reverseArrayAxis, sliceArray, tensorSelection } from './selectors.js';
 import { rankedNumericFind } from './numeric-search.js';
-import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, prepareArrayRead, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, denseScalarItems, prepareArrayRead, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
 import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, flatMapResult, mapExecution, type Evaluation } from './execution.js';
@@ -73,7 +73,16 @@ export class RankApplication {
             if (cellAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
             const axes = tensorFrameAxes(value.shape, cellAxes, cellRank);
             if (axes.length === 0) return this.invoke(fn, [value]);
+            // Stored operands have no callback reads to reorder. Avoid eagerly
+            // rebuilding a reversed cell for each scalar of the restored view.
+            if (cellAxes?.length && fn === this.standardFunctions.get(standardModules.sequences.reverse)
+                && denseScalarItems(value) !== undefined) {
+                return completed(reverseArrayAxis(value, Math.min(...cellAxes)));
+            }
             const result = this.applyToTensorCells(value, fn, axes);
+            // Trailing cells already have the requested placement, even when
+            // their result rank changes. Do not probe an unknown cell shape.
+            if (!cellAxes || axes.every((axis, index) => axis === index)) return completed(result);
             // Explicit cell axes retain their positions when the callback returns
             // the same cell rank. Rank-only application still stacks frame + cell.
             if (cellAxes && isRankArray(result) && result.shape.length === value.shape.length) {
