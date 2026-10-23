@@ -1,0 +1,104 @@
+rem Writing n as the product of k
+rem distinct positive integers
+rem https://projecteuler.net/problem=495
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000
+option K integer = 30
+
+rem Choose k distinct divisors: e_k of
+rem the divisor monomials, written in
+rem power sums, e_k = sum over
+rem partitions of (-1)^(k - l) p_lam /
+rem z_lam. For one prime of exponent
+rem e, p_lam gives d(e) = [x^e] prod
+rem 1/(1 - x^part); primes with the
+rem same e share it.
+Md = 1000000007
+Pr = primes to N array
+E = Pr * 0
+Pk = Pr
+for (Pk at most N) any
+  E += N // Pk
+  Lo = Pk at most N
+  Pk = Lo choose (Pk * Pr) Pk
+end
+Es = E sort
+Nx = Es -1 shift with -1
+Ei = (Es not equal Nx) indices
+Ue = Es Ei
+Fe = Ei - (Ei 1 shift with -1)
+Em = Ue last
+rem Partitions of K as multiplicity
+rem rows, parts K down to 1.
+Rm = array K
+Mt = array shape 1 K fill 0
+for V in K to 1 by -1
+  Nr = array shape 0 fill 0
+  Nm = array shape 0 K fill 0
+  for C in 0 to K // V
+    Sl = (Rm at least C * V) indices
+    if Sl len greater 0
+      Nr = concat Nr (Rm Sl - C * V)
+      Mc = Mt Sl
+      Ns = Sl len
+      Mc ((0 till Ns) copy) (V - 1) = C
+      Nm = concat Nm Mc
+    end
+  end
+  Rm = Nr
+  Mt = Nm
+end
+Mt = Mt ((Rm equal 0) indices)
+Np = Mt shape 0
+rem Per partition: a part v adds a
+rem running sum along each residue
+rem class mod v, done as a scan down
+rem the rows of a (Em/v) x v reshape.
+Fc = (1 to K) scan * with 1
+Fc = Fc mod Md
+Answer = 0
+for J in 0 till Np
+  Mv = Mt J
+  D = array shape (Em + 1) fill 0
+  D 0 = 1
+  Z = 1
+  Ln = 0
+  for V in 1 to K
+    M = Mv (V - 1)
+    if M greater 0
+      Z = Z * (V M Md powmod) mod Md
+      Z = Z * Fc M mod Md
+      Ln += M
+      Rw = (Em + V) // V
+      for I in 1 to M
+        Pd = array shape (Rw * V) fill 0
+        Pd (0 to Em) = D
+        Pm = Pd reshape Rw V
+        Sc = Pm scan + axis 0
+        Sf = Sc reshape (Rw * V)
+        D = Sf (0 to Em) mod Md
+      end
+    end
+  end
+  Pw = (D Ue) Fe Md powmod
+  for Pw len greater 1
+    if Pw len mod 2 equal 1
+      Pw = concat Pw (array 1)
+    end
+    Hh = Pw len // 2
+    Pa = Pw (0 till Hh)
+    Pw = Pa * Pw (Hh till 2 * Hh) mod Md
+  end
+  Iz = Z (Md - 2) Md powmod
+  W = (Pw 0) * Iz mod Md
+  if (K - Ln) mod 2 equal 1
+    W = (Md - W) mod Md
+  end
+  Answer = (Answer + W) mod Md
+end
+Answer print
