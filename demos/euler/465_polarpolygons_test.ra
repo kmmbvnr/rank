@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "465_polarpolygons"
+  N = 1
+  run
+  Answer equal 131
+  N = 2
+  run
+  Answer equal 1648531
+end
+
+test "n = 3 and n = 343"
+  use "465_polarpolygons"
+  N = 3
+  run
+  Answer equal 461288482
+  N = 343
+  run
+  Answer equal 937293740
+end

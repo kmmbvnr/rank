@@ -1,0 +1,99 @@
+rem Polar polygons
+rem https://projecteuler.net/problem=465
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 96889010407
+
+rem A primitive ray of level k (its
+rem max |coordinate|) holds N // k
+rem points, and each level has 4 phi(k)
+rem pairs of opposite rays. A pair of
+rem weight u gives (1 + u)^2 choices,
+rem so all choices are H^2 with
+rem H = prod (1 + u)^c(u). Choices in
+rem a closed half-plane number
+rem 1 + 2 H A1 - A2 for the moments
+rem A1 = sum c u, A2 = sum c u^2.
+Md = 1000000007
+L = ((N * 1.0) ** (2.0 / 3.0)) floor
+L += 10
+rem phi by small primes; the cofactor
+rem left in Rs is one large prime.
+Ph = (0 to L) copy
+Rs = (0 to L) copy
+Lr = L isqrt
+for P in primes to Lr
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+  Pe = P
+  for Pe at most L
+    Rs (Pe to L by Pe) //= P
+    Pe *= P
+  end
+end
+Rm = Rs 1 max
+Pr = Ph // Rm * (Rm - 1)
+Ph = (Rs greater 1) choose Pr Ph
+Fs = Ph scan +
+rem Phi(N // k) for k <= K from
+rem Phi(x) = x (x + 1) / 2 minus the
+rem sum of Phi(x // d) over d >= 2.
+K = N // (L + 1)
+Bg = array shape (K + 2) fill 0
+for Kk in K to 1 by -1
+  X = N // Kk
+  Sx = X isqrt
+  D1 = X // (L + 1)
+  V = X * (X + 1) // 2
+  if D1 at least 2
+    Ds = (2 to D1) copy
+    V -= (Bg (Kk * Ds)) sum
+  end
+  Dd = (D1 + 1 to Sx) copy
+  V -= (Fs (X // Dd)) sum
+  Qs = (1 to X // (Sx + 1)) copy
+  Ct = X // Qs - X // (Qs + 1)
+  V -= (Fs Qs * Ct) sum
+  Bg Kk = V
+end
+rem Every distinct u = N // k and its
+rem c(u) = 4 (Phi(N // u) - Phi(N //
+rem (u + 1))).
+Sn = N isqrt
+U0 = N // (Sn + 1)
+Kb = N // (U0 + 1)
+Us = concat (1 to U0) (N // (1 to Kb))
+Us = Us copy
+U1 = Us + 1
+Fa = Bg (Us (K + 1) min)
+Ga = Fs ((N // Us) L min)
+Fa = (Us at most K) choose Fa Ga
+Fb = Bg (U1 (K + 1) min)
+Gb = Fs ((N // U1) L min)
+Fb = (U1 at most K) choose Fb Gb
+Cm = 4 * (Fa - Fb)
+rem c > 0, so a positive exponent
+rem keeps (1 + u) = 0 mod Md exact.
+Ex = (Cm - 1) mod (Md - 1) + 1
+Hp = (U1 mod Md) Ex Md powmod
+for Hp len greater 1
+  if Hp len mod 2 equal 1
+    Hp = concat Hp (array 1)
+  end
+  Hh = Hp len // 2
+  Lh = Hp (0 till Hh)
+  Hp = Lh * Hp (Hh till 2 * Hh) mod Md
+end
+H = Hp 0
+Cr = Cm mod Md
+Ur = Us mod Md
+A1 = (Cr * Ur mod Md) sum mod Md
+Tw = Cr * (Ur * Ur mod Md) mod Md
+A2 = Tw sum mod Md
+Answer = H * H - 1 - 2 * H * A1 + A2
+Answer = Answer mod Md
+Answer print
