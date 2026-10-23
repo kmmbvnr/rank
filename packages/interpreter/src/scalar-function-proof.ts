@@ -349,15 +349,18 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (binding) {
                     let range = binding.iterable;
                     while (isParenthesizedExpression(range)) range = range.value;
-                    if (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
+                    const text = !(isBinaryExpression(range) && ['to', 'till'].includes(range.operator))
+                        && type(range, env) === 'text';
+                    if ((!text && (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
                         || type(range.left, env) !== 'integer' || type(range.right, env) !== 'integer'
-                        || range.step && type(range.step, env) !== 'integer'
+                        || range.step && type(range.step, env) !== 'integer'))
                         || binding.names.length > 2 || new Set(binding.names).size !== binding.names.length) return reject(command, 'loop-range');
-                    for (const name of binding.names) {
+                    for (const [index, name] of binding.names.entries()) {
                         if (name === '#') continue;
-                        if (name.includes('.') || settled.has(name) && settled.get(name) !== 'integer') return reject(command, 'loop-binding');
-                        settled.set(name, 'integer');
-                        body.set(name, 'integer');
+                        const domain = text && index === 0 ? 'text' : 'integer';
+                        if (name.includes('.') || settled.has(name) && settled.get(name) !== domain) return reject(command, 'loop-binding');
+                        settled.set(name, domain);
+                        body.set(name, domain);
                         if (!parameters.has(name)) locals.add(name);
                     }
                 } else if (command.condition && type(command.condition, env) !== 'boolean') return reject(command, 'loop-condition');

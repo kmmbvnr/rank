@@ -121,7 +121,7 @@ fun N Mod fibmod
   for Bit in N binary
     C = A * (2 * B - A) mod Mod
     C = (C + Mod) mod Mod
-    D = (A ** 2 + B ** 2) mod Mod
+    D = (A * A + B * B) mod Mod
     if Bit equal "0"
       A = C
       B = D

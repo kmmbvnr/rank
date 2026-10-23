@@ -118,7 +118,7 @@
   "euler/295_lenticularholes_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/300_proteinfolding_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/400_fibtree.ra": "Full K=10000 visits 16.7 million sparse DP states and uses about 1 GiB RSS; run benchmarks/sparse-dp.mjs manually, with small checkpoints retained in 400_fibtree_test.ra.",
-  "euler/399_squarefree.ra": "Full input prepares prime ranks through 5714285 and searches 100 million squarefree Fibonacci indices; it exceeds 30 seconds before output (issue #396). Small statement examples remain in 399_squarefree_test.ra.",
+  "euler/399_squarefree.ra": "Full-input inclusion-exclusion still exceeds the 30 s audit budget after compiled rank queries (#396). Use benchmarks/euler399.mjs for separate modulus-stage measurements. Small statement examples remain in 399_squarefree_test.ra.",
   "euler/110_reciprocals2.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
   "euler/110_reciprocals2_default_test.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
   "euler/362_squarefree.ra": "Full input visits 9.37 million memoized factor states and exceeds the 30 s audit budget even with compiled recursion (#380). Run benchmarks/recursive-search.mjs manually; the small _test.ra fixture stays in the audits.",

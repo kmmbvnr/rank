@@ -291,6 +291,18 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 if (binding) {
                     let range = binding.iterable;
                     while (isParenthesizedExpression(range)) range = range.value;
+                    if (expressions.get(range)?.type === 'text') {
+                        const text = emit(range, lines), id = serial++;
+                        const indexed = binding.names[1] !== undefined && binding.names[1] !== '#';
+                        if (indexed) lines.push(`let ordinal${id} = 0n;`);
+                        lines.push(`for (const point${id} of ${text}) { location = ${location}; checkpoint();`);
+                        binding.names.forEach((name, index) => {
+                            if (name !== '#') lines.push(`${slot(name)} = ${index ? `ordinal${id}++` : `point${id}`};`);
+                        });
+                        commands(command.statements, lines);
+                        lines.push('}}');
+                        continue;
+                    }
                     if (!isBinaryExpression(range)) throw new Error('Unproved loop range');
                     const start = emit(range.left, lines), end = emit(range.right, lines);
                     const step = range.step ? emit(range.step, lines) : '1n';

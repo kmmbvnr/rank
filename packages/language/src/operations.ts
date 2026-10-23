@@ -518,6 +518,7 @@ export const operations: readonly Operation[] = [
     { name: 'binary', module: 'bits', arities: [1, 2], form: 'Value binary', result: 'text',
         signatures: [{ inputs: ['integer'], result: 'text', ranks: [0] },
             { inputs: ['integer', 'integer'], result: 'text' }],
+        compiledCall: { inputs: ['integer'], result: 'text', callbacks: 'none', cost: 'input-dependent' },
         shape: [{ args: [[]], result: [{ exists: 'k' }] }, { args: [null, null], result: [{ exists: 'k' }] }],
         monadicRank: 0, scalarNoCallback: 'integer',
         summary: 'Formats a nonnegative integer as binary text, a width padding with zeroes.' },
