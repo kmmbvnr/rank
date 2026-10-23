@@ -2,7 +2,7 @@
   "base": "dc0a009b",
   "decision": "Share persistent array/tuple contract snapshots; retain deep snapshots for live record maps. Reject the larger interning prototype: it slows common scalar checks and adds a global descriptor pool. This is not O(1) equality or copy for record-bearing contracts.",
   "experimentPatch": "benchmarks/fixtures/415-contract-interning.patch",
-  "experimentPatchSha256": "e0bb786094dce43bedafb281de56176db54c1bd7d7dcce450a12a96a6d7da926",
+  "experimentPatchSha256": "1b81890d2cd9534e5d522073fd6ddcb53e4d2b97f28fb1df3af316d141d4794c",
   "runs": {
     "before": {
       "node": "v24.15.0",
@@ -104,5 +104,6 @@
       ]
     }
   },
-  "validation": "113 focused binding/storage/value-semantics tests passed, including independent nested refinements and live record snapshot isolation."
+  "validation": "113 focused binding/storage/value-semantics tests passed, including independent nested refinements and live record snapshot isolation.",
+  "applyExperiment": "git apply --unidiff-zero benchmarks/fixtures/415-contract-interning.patch (on the recorded baseline)"
 }

@@ -5,10 +5,10 @@
   "reproduce": [
     "npx tsc -b packages/interpreter/tsconfig.json",
     "node benchmarks/array-metadata.mjs",
-    "git apply benchmarks/fixtures/415-inline-storage.patch",
+    "git apply --unidiff-zero benchmarks/fixtures/415-inline-storage.patch",
     "npx tsc -b packages/interpreter/tsconfig.json",
     "node benchmarks/array-metadata.mjs",
-    "git apply -R benchmarks/fixtures/415-inline-storage.patch",
+    "git apply --unidiff-zero -R benchmarks/fixtures/415-inline-storage.patch",
     "npx tsc -b packages/interpreter/tsconfig.json"
   ],
   "runs": {
