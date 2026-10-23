@@ -5,6 +5,7 @@ import { prepareFunctionBindings, functionBindingPlan } from './function-binding
 import { groupInfixRank, groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
+    isArrayAssignmentStatement, isAssignmentStatement, isOperationAssignmentStatement,
     isFunctionStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
     isAllAxisExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression, isFunctionOperator, type HigherOrderOperator,
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
@@ -124,6 +125,13 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     }
     prepareFunctionBindings(program, options.bindings, options.signatures);
     const errors: GroupingDiagnostic[] = [];
+    for (const node of AstUtils.streamAllContents(program)) {
+        if (!(isArrayAssignmentStatement(node) || isAssignmentStatement(node) || isOperationAssignmentStatement(node))
+            || !node.accumulate) continue;
+        if (!isArrayAssignmentStatement(node)) errors.push({ node, message: '.accumulate requires indexed array assignment' });
+        else if (!['+=', '-=', '*='].includes(node.operator)) errors.push({ node,
+            message: '.accumulate supports only +=, -= and *= on numeric arrays' });
+    }
     const result: GroupedProgram = { program, diagnostics: errors };
     (program as AnnotatedProgram)[grouping] = result;
     const externalFunctions = new Map<string, readonly number[]>();

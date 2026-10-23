@@ -170,6 +170,14 @@ integer arithmetic can stream into the destination. For unordered or repeated
 indices, replacements are gathered from the original destination before any
 scatter. Repeated indices keep the last replacement; they are not accumulating
 scatter operations. Array RHS/source overlap preserves the same snapshot rules.
+An explicit `.accumulate` on indexed `+=`, `-=` or `*=` includes every repeated
+update. Integer selections reuse the checked bulk writer; dense scalar updates
+first count destination multiplicities and then commit one exact update per
+visited cell. Dense stored integer weights reduce directly into per-destination
+partials, using safe integer Numbers and promoting to BigInt before rounding.
+Other numeric writes reduce into destination groups before validation and commit. Index/RHS snapshots, copy-on-write ownership and integer
+promotion remain in force. Reduction order is unspecified for real values.
+
 Unsupported operators, lazy destinations, noninteger data and inspected execution
 keep the general path. `compilation: false` keeps reference writes. Bulk commits
 publish mutation revisions and remain cancellable; no execution is replayed after

@@ -141,7 +141,7 @@ OperationAssignmentStatement:
     name=WORD (
         indices+=NamedAddressItem* indices+=NonNameAddressItem indices+=AddressItem* operator=AssignmentOperator |
         indices+=NamedAddressItem+ operator=AssignmentOperator
-    ) value=Expression;
+    ) value=Expression (accumulate?=ACCUMULATE)?;
 
 NamedAddressItem infers AddressItem:
     value=NameExpression;
@@ -209,10 +209,10 @@ UnpackStatement:
 
 ArrayAssignmentStatement:
     name=AssignableName indices+=AddressItem+
-    operator=AssignmentOperator value=Expression;
+    operator=AssignmentOperator value=Expression (accumulate?=ACCUMULATE)?;
 
 AssignmentStatement:
-    name=AssignableName (deferred?="'" operator='=' | operator=AssignmentOperator) value=Expression;
+    name=AssignableName (deferred?="'" operator='=' | operator=AssignmentOperator) value=Expression (accumulate?=ACCUMULATE)?;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' |
@@ -638,6 +638,7 @@ ReferenceName returns string:
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
+terminal ACCUMULATE: /\b\Baccumulate/;
 terminal CALL_OPERATOR: /\b\B/;
 terminal SIGNATURE_WORD: /\b\Bword/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;

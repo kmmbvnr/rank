@@ -1,5 +1,5 @@
 import { BooleanCells, booleanItems } from './boolean-cells.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
@@ -187,8 +187,9 @@ export function fillBooleanSelection(
 
 /** Commit a prevalidated integer selection without per-cell Proxy traffic.
  * Callers have protected ownership, established an integer binding, and removed
- * lazy reads/callbacks from operands and offsets. Compound writes require unique
- * offsets; duplicate gathers supply precomputed replacements with '=' instead. */
+ * lazy reads/callbacks from operands and offsets. Compound writes accumulate
+ * repeated offsets. Snapshot writes instead supply precomputed replacements
+ * with '=' when offsets are not proven unique. */
 export function writeIntegerSelection(
     value: RankArray, count: number, offsetAt: (index: number) => number,
     operand: bigint | readonly bigint[], operator: '=' | '+=' | '-=' | '*=',
@@ -210,6 +211,78 @@ export function writeIntegerSelection(
         const old = state.items[offset] as bigint;
         storeCell(state, offset, combine(old, typeof operand === 'bigint' ? operand : operand[i]));
     }
+}
+
+/** Reduce trusted integer updates without retaining a boxed RHS cell per input.
+ * Safe integer partials use Number exactly; a bucket promotes to BigInt before
+ * any addition/product can round. No destination is written while reading. */
+export function reduceIntegerUpdates(size: number, count: number, offsetAt: (index: number) => number,
+    read: (index: number) => bigint, product: boolean): { offsets: number[]; operands: bigint[] } {
+    const numbers = new Float64Array(size), states = new Uint8Array(size);
+    const wide = new Map<number, bigint>();
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('reducing integer updates', end - start);
+        for (let index = start; index < end; index++) {
+            const offset = offsetAt(index), value = read(index);
+            if (states[offset] === 2) {
+                const previous = wide.get(offset)!;
+                wide.set(offset, product ? previous * value : previous + value);
+                continue;
+            }
+            const number = Number(value), previous = numbers[offset];
+            const next = states[offset] === 0 ? number : product ? previous * number : previous + number;
+            if (Number.isSafeInteger(number) && Number.isSafeInteger(next)) {
+                numbers[offset] = next;
+                states[offset] = 1;
+            } else {
+                wide.set(offset, states[offset] === 0 ? value
+                    : product ? BigInt(previous) * value : BigInt(previous) + value);
+                states[offset] = 2;
+            }
+        }
+    }
+    const offsets: number[] = [], operands: bigint[] = [];
+    for (let offset = 0; offset < size; offset++) {
+        checkpoint('preparing integer updates');
+        if (!states[offset]) continue;
+        offsets.push(offset);
+        operands.push(states[offset] === 2 ? wide.get(offset)! : BigInt(numbers[offset]));
+    }
+    return { offsets, operands };
+}
+
+/** Dense repeated scalar updates can count addresses before touching storage.
+ * Counts fit exactly in Number (they are bounded by the selection size); all
+ * arithmetic involving Rank integers remains BigInt. Sparse selections and
+ * opaque polling retain the ordinary cancellable writer. */
+export function accumulateIntegerSelection(
+    value: RankArray, count: number, offsetAt: (index: number) => number,
+    operand: bigint | readonly bigint[], operator: '+=' | '-=' | '*=',
+): void {
+    const size = ownedStorage.get(value)!.items.length;
+    if (typeof operand !== 'bigint' || count < 4 * size || !privateLoopPolling()) {
+        writeIntegerSelection(value, count, offsetAt, operand, operator);
+        return;
+    }
+    const counts = new Float64Array(size);
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('counting array updates', end - start);
+        for (let index = start; index < end; index++) counts[offsetAt(index)]++;
+    }
+    const offsets: number[] = [], operands: bigint[] = [];
+    for (let offset = 0; offset < size; offset++) {
+        checkpoint('reducing array updates');
+        if (!counts[offset]) continue;
+        offsets.push(offset);
+        const multiplicity = BigInt(counts[offset]);
+        // Avoid building a huge product that a zero destination annihilates.
+        operands.push(operator === '*='
+            ? ownedStorage.get(value)!.items[offset] === 0n ? 0n : operand ** multiplicity
+            : operand * multiplicity);
+    }
+    writeIntegerSelection(value, offsets.length, index => offsets[index], operands, operator);
 }
 
 /** The real cells of an array as one Float64Array, or undefined if any cell is

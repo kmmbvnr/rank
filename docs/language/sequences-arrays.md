@@ -684,6 +684,36 @@ selectors, previous cell values and right side are evaluated before any write.
 This gives both ordinary and compound assignment snapshot semantics when
 selections overlap.
 
+Repeated indices in an ordinary compound assignment read the original cells;
+the last replacement for each cell wins. For example, `H (array 1 1) += 1`
+increments cell 1 once.
+
+Use a trailing `.accumulate` to include every update at repeated indices:
+
+```rank
+H = array shape 5 fill 0
+Ix = array 1 1 2 1
+H Ix += 1 .accumulate
+rem H is 0 3 1 0 0
+Weights = array 2 3 4 5
+H Ix -= Weights .accumulate
+H Ix *= 2 .accumulate
+```
+
+The modifier applies only to indexed numeric-array `+=`, `-=` and `*=` writes.
+For each destination cell, `+=` adds the sum of its updates, `-=` subtracts
+their sum, and `*=` multiplies by their product. A scalar RHS broadcasts;
+an array RHS must match the selected shape. Repeated indices work along any
+selected axis. Selectors and RHS values are captured before any write, including
+when they refer to the destination. Bounds, shape and type errors leave the
+array unchanged; cancellation during a commit can leave partial updates.
+
+Reduction order is unspecified, allowing parallel implementations. Integer
+arithmetic remains exact, including results outside fixed-width storage.
+Real-number results may differ in rounding between reduction orders or backends.
+Other assignment operators reject `.accumulate`; plain `=` keeps its
+last-replacement behavior.
+
 Deferred results of `outer` and `window` are read-only recipes. Bind a finite
 result with `Saved = Plan`, or use postfix `copy`, before changing its cells.
 

@@ -95,6 +95,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
         } };
     }
     if (isOperationAssignmentStatement(statement)) return { stream: function* (): Execution<RankValue | undefined> {
+        if (statement.accumulate) throw new RankError('.accumulate requires indexed array assignment', 'Syntax');
         const operation = host.resolve(statement.name);
         if (!isNativeFunction(operation) || !operation.write) {
             throw new RankError(`${statement.name} does not support addressed assignment`, 'TypeError');

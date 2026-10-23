@@ -48,6 +48,25 @@ export class SignatureLexer extends DefaultLexer {
         const comments = result.hidden.filter(token => token.tokenType.name === 'REM_COMMENT');
         const tokens = [...result.tokens, ...comments].sort((a, b) => a.startOffset - b.startOffset);
         result.tokens = tokens;
+        // Only a trailing label on an assignment is a mode. Keep .accumulate
+        // and labels with that prefix available as ordinary data elsewhere.
+        let depth = 0, assignment = -1;
+        const assignmentOperators = new Set(['=', '+=', '-=', '*=', '**=', '/=', '//=', 'mod=', 'and=', 'or=', 'xor=']);
+        for (let index = 0; index < tokens.length; index++) {
+            const token = tokens[index];
+            if (token.image === '(') depth++;
+            else if (token.image === ')') depth--;
+            if (depth !== 0) continue;
+            if (newline(token)) { assignment = -1; continue; }
+            if (assignmentOperators.has(token.image)) assignment = index;
+            if (assignment < 0 || index <= assignment + 1 || token.image !== '.'
+                || tokens[index + 1]?.image !== 'accumulate'
+                || tokens[index + 2] && !newline(tokens[index + 2])) continue;
+            const word = tokens[index + 1], tokenType = this.definition.ACCUMULATE;
+            tokens.splice(index, 2, { ...token, image: text.slice(token.startOffset, word.endOffset! + 1),
+                endOffset: word.endOffset, endLine: word.endLine, endColumn: word.endColumn,
+                tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! });
+        }
         const contextualWords = new Map(literalWords);
         interface Scope {
             parent?: Scope;

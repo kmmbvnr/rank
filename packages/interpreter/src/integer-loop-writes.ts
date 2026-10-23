@@ -9,6 +9,8 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
     const { host, numberMode, arrays, destinations, assigned, arrayInputs, reject } = state;
     const { slot, emit, arithmetic } = expressions;
     return (assignment: ArrayAssignmentStatement, body: string[], location: number): true | undefined => {
+        // Accumulation has its own numeric-only validation and reduction contract.
+        if (assignment.accumulate) return reject(assignment);
         if (numberMode) {
             // Number regions mutate invocation-private cells. No array
             // store escapes until the region succeeds or raises an error.

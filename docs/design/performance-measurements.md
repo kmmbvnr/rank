@@ -1013,3 +1013,36 @@ node benchmarks/sparse-profile.mjs --checkout=/path/to/baseline --size=10
 The harness asserts exact answers and fails on a worker error or timeout.
 [Raw samples and phase provenance](../../benchmarks/baselines/2026-10-23-sparse-profile.json)
 record timings, input sizes, runtime versions and peak process RSS.
+
+
+## Indexed accumulation (#416)
+
+Apple M5, Node v24.15.0; `node benchmarks/accumulate.mjs 10000000`.
+Five timed samples per case, median, alternating scalar/bulk order after warmup.
+Inputs are prepared before timing: ten million deterministic integer indices in
+512 bins. Every output bin is checked against an independent scalar oracle.
+Addition/subtraction weights are 1 through 7; multiplication uses +/-1 to bound
+result size. These are CPU measurements, not GPU/Core ML measurements.
+
+| Operator | Scalar RHS loop | `.accumulate` | Weighted loop | Weighted `.accumulate` |
+| --- | ---: | ---: | ---: | ---: |
+| `+=` | 333.7 ms | 256.9 ms (1.30x) | 621.8 ms | 412.8 ms (1.51x) |
+| `-=` | 326.3 ms | 253.1 ms (1.29x) | 609.0 ms | 411.2 ms (1.48x) |
+| `*=` | 336.9 ms | 256.0 ms (1.32x) | 608.5 ms | 412.2 ms (1.48x) |
+
+The initial streaming implementation was correct but only modestly faster for
+scalar increments (357 ms versus 419 ms for a scalar loop in that run).
+Counting repeated scalar addresses reduced the bulk time to about 249 ms in a
+separate run. An intermediate weighted implementation retained a boxed RHS
+snapshot and was slower than the scalar loop (about 1483 versus 689 ms for
+addition); reducing trusted stored weights before writing removes that snapshot.
+The table above compares the final implementation and scalar baselines in the
+same benchmark run. Intermediate runs establish direction, not precise ratios
+between revisions.
+
+A separate Euler 459 experiment built the histogram after the prefix array,
+using one shifted-slice `bxor` and accumulating write per move length. Three cold
+CLI samples per variant, alternating order, gave matching answers but a slowdown:
+N=3000: 1116 to 1240 ms; N=10000: 1057 to 2002 ms. The demo retains its scalar
+histogram loop. These measurements do not establish a speedup for the complete
+Euler 459 program or its default N=1000000 input.

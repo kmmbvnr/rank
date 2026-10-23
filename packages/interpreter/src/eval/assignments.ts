@@ -5,11 +5,11 @@ import {
     applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
-import { hasDeferredSelectionCopy } from '../integer-view.js';
+import { hasDeferredSelectionCopy, prepareStoredScalarView } from '../integer-view.js';
 import { materializeValue, materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
 import { materializeSequence } from '../sequence.js';
-import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection,
+import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, accumulateIntegerSelection, reduceIntegerUpdates,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
 import { expectPushCollection, pushCollection } from '../containers.js';
@@ -102,9 +102,15 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
 
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
+    if (statement.accumulate && !['+=', '-=', '*='].includes(statement.operator)) {
+        throw new RankError('.accumulate supports only +=, -= and *= on numeric arrays', 'Syntax');
+    }
     const general = function* (
         target: RankValue, selectors: RankValue[], evaluated?: RankValue,
     ): Execution<RankValue | undefined> {
+        if (statement.accumulate && (!isRankArray(target) || target.kind !== 'array' || isRankTable(target) || target instanceof FlatRecords)) {
+            throw new RankError('.accumulate expects a numeric array target', 'TypeError');
+        }
         if (isRankTable(target)) {
             // A table is a value: a write makes a new version and rebinds the name.
             host.requireModule('tables', 'table assignment');
@@ -113,6 +119,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 statement.operator === '=' ? undefined : assignmentOperator(statement.operator),
                 (operator, left, right) => host.operators.evaluateBinary(operator, left, right)));
             return value;
+        }
+        if (statement.accumulate && selectors.some(selector => isRankLabel(selector) && selector.name !== '#')) {
+            throw new RankError('.accumulate expects numeric array cells', 'TypeError');
         }
         const lastSelector = selectors.at(-1);
         if (target instanceof FlatRecords || lastSelector !== undefined && isRankLabel(lastSelector) && lastSelector.name !== '#') target = owned(target);
@@ -166,13 +175,41 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     'DimensionMismatch',
                 );
             }
-            operands = Array.from(
-                { length: arraySize(selection.shape) },
+            const view = statement.accumulate && privateLoopPolling()
+                ? prepareStoredScalarView(result, true) : undefined;
+            if (count > 0 && statement.accumulate && host.options().compilation !== false
+                && !inspectionEnabled() && privateLoopPolling()
+                && view?.linear && view.validateUniform && view.kinds?.join() === 'integer'
+                && count >= 4 * arraySize(target.shape) && writableIntegerCells(target)) {
+                const { offset, stride } = view.linear;
+                const first = view.items[offset] as bigint;
+                view.validateUniform(first);
+                host.checkArrayWrite(statement.name, target, [first]);
+                const updates = reduceIntegerUpdates(arraySize(target.shape), count, selection.offsetAt,
+                    index => view.items[offset + index * stride] as bigint, statement.operator === '*=');
+                writeIntegerSelection(owned(target) as typeof target, updates.offsets.length,
+                    index => updates.offsets[index], updates.operands, statement.operator as '+=' | '-=' | '*=');
+                return result;
+            }
+            if (count > 0 && view?.linear && view.validateUniform
+                && view.kinds?.length === 1 && ['integer', 'real'].includes(view.kinds[0])) {
+                // Uniform stored numeric cells establish a binding's scalar
+                // contract once. Still snapshot the RHS before any mutation.
+                const { offset, stride } = view.linear;
+                view.validateUniform(view.items[offset]);
+                operands = new Array<RankValue>(count);
+                for (let start = 0; start < count; start += 4096) {
+                    const end = Math.min(count, start + 4096);
+                    checkpoint('preparing accumulated array updates', end - start);
+                    for (let index = start; index < end; index++) operands[index] = view.items[offset + index * stride];
+                }
+            } else operands = Array.from(
+                { length: count },
                 (_, index) => readArrayItem(result, index),
             );
         }
         if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
-            && target.shape.length === 1
+            && (target.shape.length === 1 || statement.accumulate)
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
             && (typeof result === 'bigint' || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);
@@ -182,7 +219,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 host.checkArrayWrite(statement.name, target, [typeof result === 'bigint' ? result : operands![0]]);
                 let values: bigint | readonly bigint[] = typeof result === 'bigint' ? result : operands as bigint[];
                 let operation = statement.operator;
-                if (!selection.unique && operation !== '=') {
+                if (!statement.accumulate && !selection.unique && operation !== '=') {
                     // Gather before scatter: repeated addresses all read the
                     // original destination, and the last replacement wins.
                     const replacements: bigint[] = [];
@@ -196,7 +233,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     operation = '=';
                 }
                 const destination = owned(target) as typeof target;
-                writeIntegerSelection(destination, count, selection.offsetAt, values, operation);
+                if (statement.accumulate) {
+                    accumulateIntegerSelection(destination, count, selection.offsetAt, values, operation as '+=' | '-=' | '*=');
+                } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation);
                 return result;
             }
         }
@@ -206,6 +245,38 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             && typeof result === 'boolean' && hasWritableBooleanCells(target)) {
             host.checkArrayWrite(statement.name, target, [result]);
             fillBooleanSelection(owned(target) as typeof target, count, selection.offsetAt, result);
+            return result;
+        }
+        if (statement.accumulate) {
+            // Reduce updates before writing: -= subtracts their sum, while *=
+            // multiplies their product. RHS/selector aliases still see a snapshot.
+            const updates = new Map<number, RankValue>();
+            const reduction = statement.operator === '*=' ? '*' : '+';
+            for (let index = 0; index < count; index++) {
+                checkpoint('accumulating array updates');
+                const offset = selection.offsetAt(index);
+                const operand = operands ? operands[index] : result;
+                if (typeof operand !== 'bigint' && typeof operand !== 'number') {
+                    throw new RankError('.accumulate expects numeric updates', 'TypeError');
+                }
+                const previous = updates.get(offset);
+                updates.set(offset, previous === undefined ? operand
+                    : host.operators.evaluateBinary(reduction, previous, operand));
+            }
+            const offsets = [...updates.keys()];
+            const replacements = offsets.map(offset => {
+                const old = demandValue(readArrayItem(target, offset));
+                if (typeof old !== 'bigint' && typeof old !== 'number') {
+                    throw new RankError('.accumulate expects numeric array cells', 'TypeError');
+                }
+                return materializeValue(host.operators.evaluateBinary(operator!, old, updates.get(offset)!));
+            });
+            const checked = host.checkArrayWrite(statement.name, target, replacements, offsets);
+            const destination = owned(target) as typeof target;
+            for (let index = 0; index < offsets.length; index++) {
+                checkpoint('writing accumulated array updates');
+                writeArrayCell(destination, offsets[index], checked[index]);
+            }
             return result;
         }
         operands ??= Array(count).fill(result) as RankValue[];
@@ -237,7 +308,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
     const directIndex = address && !address.all && !address.sign && !address.spread && address.value
         ? host.compileDirect(address.value) : undefined;
     const directValue = host.compileDirect(statement.value);
-    if (directIndex && directValue) {
+    if (directIndex && directValue && !statement.accumulate) {
         // One integer index into a stored vector is the shape dynamic
         // programming writes in its inner loop. It needs no suspendable
         // task, no selector list and no tensor selection; anything that
@@ -279,6 +350,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
 
 /** `Name = Value` and `Name op= Value`. */
 export function prepareAssignment(statement: AssignmentStatement, host: AssignmentContext): PreparedStatement {
+    if (statement.accumulate) throw new RankError('.accumulate requires indexed array assignment', 'Syntax');
     const operator = statement.operator === '='
         ? undefined : assignmentOperator(statement.operator);
     const direct = statement.deferred ? undefined : host.compileDirect(statement.value);
