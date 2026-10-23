@@ -1,0 +1,19 @@
+rem Dissonant Numbers
+rem https://projecteuler.net/problem=515
+
+use numbers
+use sequences
+use io
+use cli
+
+option A integer = 1000000000
+option B integer = 100000
+option K integer = 100000
+
+rem For a prime p, d(p, p - 1, k) is
+rem the inverse of k - 1 mod p, so sum
+rem (k - 1)^(p - 2) mod p over the
+rem primes a <= p < a + b.
+P = primes from A till A + B array
+Answer = ((K - 1) (P - 2) P powmod) sum
+Answer print

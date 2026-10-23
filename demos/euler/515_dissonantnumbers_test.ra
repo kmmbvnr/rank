@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "515_dissonantnumbers"
+  A = 101
+  B = 1
+  K = 10
+  run
+  Answer equal 45
+  A = 1000
+  B = 100
+  K = 100
+  run
+  Answer equal 8334
+  A = 1000000
+  B = 1000
+  K = 1000
+  run
+  Answer equal 38162302
+end
