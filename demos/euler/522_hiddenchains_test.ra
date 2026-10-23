@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "522_hiddenchains"
+  N = 8
+  run
+  Answer equal 16276736
+end
