@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "514_geoboard"
+  N = 1
+  run
+  Answer equal 0.1875
+  N = 2
+  run
+  Answer equal 0.94335
+  N = 10
+  run
+  Answer equal 55.03013
+end
