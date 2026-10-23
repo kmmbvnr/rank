@@ -1,0 +1,70 @@
+rem Sums of power sums
+rem https://projecteuler.net/problem=487
+
+use numbers
+use sequences
+use io
+use cli
+
+option K integer = 10000
+option N integer = 1000000000000
+option Lo integer = 2000000000
+option Wd integer = 2000
+
+rem S_k(n) = (n + 1) F_k(n) - F_(k+1)(n)
+rem and F_e is a polynomial of degree
+rem e + 1: Lagrange interpolation mod
+rem p from its values at nodes 0 .. K
+rem + 2. Rows are nodes, columns the
+rem primes; products mod p down the
+rem rows by doubling: P = P (P shifted
+rem by d rows).
+P = primes from Lo to Lo + Wd array
+M = K + 2
+I = (0 to M) reshape (M + 1) 1
+X = N mod P
+Z = I * 0 + P * 0
+rem i^K mod p by squaring.
+Pw = Z + 1
+B = Z + I
+E = K
+for E greater 0
+  if E mod 2 equal 1
+    Pw = Pw * B mod P
+  end
+  B = B * B mod P
+  E //= 2
+end
+rem i!, prod (x - j) for j < i and for
+rem j > i, and (i+1) .. M by suffix.
+Fc = Z + (I 1 max)
+Pf = (X - I + 1) mod P
+Pf 0 = Z 0 + 1
+Sf = ((X - I - 1) mod P) reverse
+Sf 0 = Z 0 + 1
+Rv = (Z + I + 1) reverse
+Rv 0 = Z 0 + 1
+D = 1
+for D at most M
+  Fc = Fc * (Fc D shift with 1) mod P
+  Pf = Pf * (Pf D shift with 1) mod P
+  Sf = Sf * (Sf D shift with 1) mod P
+  Rv = Rv * (Rv D shift with 1) mod P
+  D *= 2
+end
+Sf = Sf reverse
+rem 1/i! = (1/M!) (i+1) .. M.
+Iv = (Fc M) (P - 2) P powmod
+Fi = (Rv reverse) * Iv mod P
+Wt = Pf * Sf mod P * Fi mod P
+Wt = Wt * (Fi reverse) mod P
+Od = (M - I) mod 2 equal 1
+Wt = Od choose ((P - Wt) mod P) Wt
+Y = (Pw scan + axis 0) mod P
+F0 = (Y * Wt mod P) sum axis 0 mod P
+Pw = Pw * I mod P
+Y = (Pw scan + axis 0) mod P
+F1 = (Y * Wt mod P) sum axis 0 mod P
+Sk = ((N + 1) mod P * F0 - F1) mod P
+Answer = Sk sum
+Answer print

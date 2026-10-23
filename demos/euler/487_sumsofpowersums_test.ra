@@ -1,0 +1,17 @@
+use testing
+
+test "small power sums"
+  use "487_sumsofpowersums"
+  K = 2
+  N = 10
+  Lo = 17
+  Wd = 0
+  run
+  Answer equal 3
+  K = 5
+  N = 1000
+  Lo = 101
+  Wd = 6
+  run
+  Answer equal 123
+end
