@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, type RankValue } from '../src/index.js';
 import { MemoryIo, run } from './support.js';
 
 describe('Rank expressions and sequences', () => {
@@ -61,6 +61,28 @@ describe('Rank expressions and sequences', () => {
             .toThrowError('zero cannot be raised to a negative power');
         expect(() => run('(-2.0) ** 0.5')).toThrowError('power result is not real');
     });
+
+    it.each(['A ** B', '-A ** B', '+A ** B', '(-A) ** B', 'A ** -B', 'A ** B ** 2'])(
+        'keeps direct power semantics equal to suspended operands: %s', expression => {
+            for (const [a, b] of [[2n, 3n], [-2n, 2n], [2n, -2n], [0n, -1n],
+                [2n ** 64n, 2n], [-2, 0.5], [-0, 3],
+                [{ kind: 'array', shape: [2], items: [2n, 3n] }, 2n]] as [RankValue, RankValue][]) {
+                const results = [false, true].map(suspended => {
+                    const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+                    try {
+                        runtime.variables.set('A', a);
+                        runtime.variables.set('B', b);
+                        runtime.execute('fun X pass\n  return X\nend');
+                        const source = suspended ? expression.replace(/\b[AB]\b/g, name => `(${name} pass)`) : expression;
+                        const value = runtime.execute(`Answer = ${source}`);
+                        return { value: formatValue(value!) };
+                    } catch (error) {
+                        return { error: (error as Error).message };
+                    } finally { runtime.dispose(); }
+                });
+                expect(results[0]).toEqual(results[1]);
+            }
+        });
 
     it('applies signs before postfix calls and negates completed predicates', () => {
         expect(run([

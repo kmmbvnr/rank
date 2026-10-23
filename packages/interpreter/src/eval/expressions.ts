@@ -243,13 +243,22 @@ export class ExpressionEvaluator {
             return operand ? () => this.context.operators.evaluateUnary(expression.operator, operand()) : undefined;
         }
         if (isBinaryExpression(expression) && expression.operator !== 'default'
-            && expression.operator !== '**'
             // `Values till not even` tests each item; its right side is no value.
             && !((expression.operator === 'to' || expression.operator === 'till') && isBoundCondition(expression.right))
             && !isNamed(expression.right, 'reduce')
             && !isNamed(expression.right, 'scan')
             && !isNamed(expression.right, 'segment')
             && !isNamed(expression.right, 'outer')) {
+            // The grammar retains a leading sign on the left operand; power
+            // binds before that sign, just as in the resumable evaluator.
+            if (expression.operator === '**' && isUnaryExpression(expression.left)
+                && (expression.left.operator === '+' || expression.left.operator === '-')) {
+                const operator = expression.left.operator;
+                const base = this.compileDirect(expression.left.operand);
+                const exponent = this.compileDirect(expression.right);
+                return base && exponent ? () => this.context.operators.evaluateUnary(operator,
+                    this.context.operators.evaluateBinary('**', base(), exponent())) : undefined;
+            }
             const left = this.compileDirect(expression.left);
             const right = isAllAxisExpression(expression.right) && ['to', 'till'].includes(expression.operator)
                 ? () => ALL_AXIS : this.compileDirect(expression.right);

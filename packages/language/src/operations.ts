@@ -38,7 +38,7 @@ export type CompiledLoopType = CompiledAtomType;
  * Runtime binding must still verify the actual builtin and any host override.
  */
 export interface CompiledCallSignature {
-    readonly inputs: readonly (CompiledLoopType | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'same')[];
+    readonly inputs: readonly (CompiledLoopType | 'number' | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'same')[];
     readonly result: CompiledLoopType;
     /** No callbacks except guarded operand-cell reads and the declared host override. */
     readonly callbacks: 'none' | 'read-cells';
@@ -53,7 +53,8 @@ export interface CompiledCallSignature {
 export function matchCompiledCallSignature(operation: Operation, inputs: readonly string[]): CompiledCallSignature | undefined {
     const signature = operation.compiledCall;
     return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
-        expected === 'same' ? inputs[index] === inputs[0]
+        expected === 'number' ? inputs[index] === 'integer' || inputs[index] === 'real'
+            : expected === 'same' ? inputs[index] === inputs[0]
             : expected === 'text-or-array' ? ['text', 'array', 'text-array'].includes(inputs[index])
             : expected === 'text-or-bytes' ? inputs[index] === 'text' || inputs[index] === 'bytes'
             : expected === inputs[index]) ? signature : undefined;
@@ -809,21 +810,27 @@ export const operations: readonly Operation[] = [
         monadicRank: 0, scalarNoCallback: 'number',
         summary: 'Absolute value, keeping the integer or real type.' },
     { name: 'acos', module: 'numbers', arities: [1], form: 'Value acos', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Inverse cosine in radians, for values from -1 through 1.' },
     { name: 'acosh', module: 'numbers', arities: [1], form: 'Value acosh', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Inverse hyperbolic cosine, for values at least 1.' },
     { name: 'asin', module: 'numbers', arities: [1], form: 'Value asin', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Inverse sine in radians, for values from -1 through 1.' },
     { name: 'asinh', module: 'numbers', arities: [1], form: 'Value asinh', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Inverse hyperbolic sine.' },
     { name: 'atan', module: 'numbers', arities: [1], form: 'Value atan', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Inverse tangent in radians.' },
     { name: 'atan2', module: 'numbers', arities: [2], form: 'Y X atan2', result: 'real',
+        compiledCall: { inputs: ['number', 'number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: [{ inputs: ['number', 'number'], result: 'real', ranks: [0, 0] },
             { inputs: ['missing', 'unknown'], result: 'missing', ranks: [0, 0] },
             { inputs: ['unknown', 'missing'], result: 'missing', ranks: [0, 0] }],
@@ -831,6 +838,7 @@ export const operations: readonly Operation[] = [
         dyadicRanks: [0, 0],
         summary: 'Angle in radians from the coordinates, keeping the quadrant.' },
     { name: 'atanh', module: 'numbers', arities: [1], form: 'Value atanh', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Inverse hyperbolic tangent, for values strictly between -1 and 1.' },
     { name: 'binomial', module: 'numbers', arities: [2], form: 'N K binomial', result: 'integer',
@@ -846,9 +854,11 @@ export const operations: readonly Operation[] = [
         result: 'integer', scalarNoCallback: 'integer',
         summary: 'Binomial coefficient calculated directly modulo a prime.' },
     { name: 'cos', module: 'numbers', arities: [1], form: 'Angle cos', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Cosine of an angle in radians.' },
     { name: 'cosh', module: 'numbers', arities: [1], form: 'Value cosh', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Hyperbolic cosine.' },
     { name: 'divisors', module: 'numbers', arities: [1], form: 'N divisors', result: 'sequence', monadicRank: 0,
@@ -950,9 +960,11 @@ export const operations: readonly Operation[] = [
         dyadicRanks: [0, 0],
         summary: 'Rounds to a signed number of decimal places, halfway values to even.' },
     { name: 'sin', module: 'numbers', arities: [1], form: 'Angle sin', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Sine of an angle in radians.' },
     { name: 'sinh', module: 'numbers', arities: [1], form: 'Value sinh', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Hyperbolic sine.' },
     { name: 'sqrt', module: 'numbers', arities: [1], form: 'Value sqrt', result: 'real',
@@ -967,9 +979,11 @@ export const operations: readonly Operation[] = [
         scalarCellArrayNoCallback: 'number',
         summary: 'Adds every numeric cell of an array, collection or finite sequence.' },
     { name: 'tan', module: 'numbers', arities: [1], form: 'Angle tan', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Tangent of an angle in radians.' },
     { name: 'tanh', module: 'numbers', arities: [1], form: 'Value tanh', result: 'real', mapsScalarCells: true,
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         summary: 'Hyperbolic tangent.' },
 

@@ -1882,3 +1882,66 @@ Euler 136 excludes 2 at the source, removing its odd-prime mask while retaining
 the array formulation. [Measurements](../../benchmarks/prime-sequences-results.md)
 separate generation, membership, demo execution and cold startup. Segment bounds
 are structural guarantees; peak heap and allocation savings have not been measured.
+
+
+## Trigonometric compilation and geometric triple scans (#362)
+
+All thirteen existing trigonometric and hyperbolic operations, including
+`atan2`, now declare numeric compiled-call inputs. Scalar functions and numeric
+loops can use the guarded native-call path with integer, real or mixed operands.
+The existing implementations still own domain errors, signed zero, nonfinite
+values, missing values and array mapping. The compiler admits only numeric
+scalars and rechecks the current builtin at region entry.
+
+The unchanged Euler 332 program improves, but still exceeds 30 seconds for all
+50 radii. Its array formulation now materializes integer points as a compact
+`N × 3` array, then builds pairwise cross products and dot products by broadcasting.
+The largest radius workload has 510 points; intermediate planes are at most
+`510 × 510`, rather than a three-axis cube. Float coordinates and the integer-valued
+intermediates, including squared scores, are exact in binary64 for radii 1–50.
+
+Signed coordinate permutations preserve the point set and triangle areas.
+Each triangle has an image whose first vertex satisfies `x ≥ y ≥ z ≥ 0`, so
+only these first vertices need scanning. For each, the remaining pair axes are
+computed and reduced as arrays. Degenerate triples are excluded. With the
+initial area bound `π R² / 2`, a nonpositive solid-angle denominator cannot
+improve the answer. For positive denominators the squared determinant/denominator
+ratio orders areas; the selected triangle still uses the original `atan2`
+solid-angle formula. There are no interpreter-level inner triple loops.
+
+Three fresh-process samples on Apple M5, Node v24.15.0, without diagnostic
+callbacks. Times below measure calls after loading function definitions:
+
+| Workload | Before | Trigonometric compilation | Array formulation |
+| --- | --- | --- | --- |
+| R=14, median | 1334.6 ms | 86.4 ms | 26.2 ms |
+| R=1–50 | >30 s (timeout) | >30 s (timeout) | 1.839 s median |
+
+The first step improves R=14 by 15.5×; the second adds 3.3×. Timeout runs do
+not establish an exact full-program speedup. Full array runs took 1.804–2.092 s,
+with process peak RSS 526–558 MiB; this is not a retained-storage measurement.
+A separate run with compilation disabled completed in 3.389 s. All 50 results
+match an independent unrestricted host enumeration within `2.85e-14`; the total
+is `2717.751524880065`. The demo is therefore eligible for the ordinary execution
+audits again. Small tests also retain an unrestricted Rank reference and verify
+compact point shapes, sphere equations and axis-only bounds.
+
+Evidence: `benchmarks/baselines/2026-10-23-geometric-triples-phase1.json` and
+`2026-10-23-geometric-triples-phase2.json`. The initial checkout is `6229a41c`;
+the first implementation step is `4d63d537`. Build each checkout before comparing:
+
+```sh
+node benchmarks/geometric-triples.mjs --checkout=/path/to/built-checkout --radii=14 --samples=3
+node benchmarks/geometric-triples.mjs --radii=1-50 --samples=3 --timeout=30000
+node benchmarks/geometric-triples.mjs --radii=1-50 --samples=1 --compilation=false
+```
+
+The benchmark checks every completed radius against its own exhaustive point
+and triangle enumeration; timed-out results are recorded explicitly.
+
+
+Validation: the workspace build passed, as did 259 focused interpreter tests,
+16 shared-expression inference tests, five Euler 332 test blocks and two
+execution-exclusion checks. Name-filtered type and differential audits passed
+for the demo and its test file (four checks); the remaining corpus was skipped.
+No full test suite was run.

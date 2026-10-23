@@ -1,0 +1,6 @@
+use testing
+
+test "full lowest-cost search"
+  use "328_lowestcost"
+  200000 costs equal 260511850222
+end

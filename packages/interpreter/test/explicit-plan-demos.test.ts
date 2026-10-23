@@ -411,7 +411,7 @@ end`);
         const helpers = program.statements.filter(statement => statement.$type === 'FunctionStatement'
             || statement.$type === 'UseStatement');
         const runtime = new Interpreter(() => {}, { compilation });
-        const n = 101;
+        const n = 256;
         // Independent interval DP tries every guess; it does not use the tree-shape shortcut.
         const cost = Array.from({ length: n + 2 }, () => Array<number>(n + 2).fill(0));
         for (let length = 2; length <= n; length++) {
@@ -424,11 +424,14 @@ end`);
                 cost[lo][hi] = best;
             }
         }
-        const total = cost[1].slice(2, n + 1).reduce((sum, value) => sum + value, 0);
-        expect(total).toBe(17981);
+        const totals = [0, 0];
+        for (let hi = 2; hi <= n; hi++) totals[hi] = totals[hi - 1] + cost[1][hi];
+        expect(totals[101]).toBe(17981);
         try {
             runtime.executeProgram({ ...program, statements: helpers }, []);
-            expect(runtime.execute('101 costs')).toBe(BigInt(total));
+            for (const limit of [0, 1, 2, 7, 8, 15, 16, 23, 31, 32, 63, 64, 99, 100, 101, 127, 128, 200, 255, 256]) {
+                expect(runtime.execute(`${limit} costs`), `N=${limit}`).toBe(BigInt(totals[limit]));
+            }
         } finally { runtime.dispose(); }
     });
 

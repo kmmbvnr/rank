@@ -285,6 +285,10 @@ describe('the operation catalogue', () => {
 
     it('verifies every compiled profile against real calls, including Unicode and bytes', () => {
         const examples: Record<string, string[]> = {
+            sin: ['0', '0.5'], cos: ['0', '0.5'], tan: ['0', '0.5'],
+            asin: ['0', '0.5'], acos: ['0', '0.5'], atan: ['0', '0.5'], atan2: ['1 2', '1.0 2', '1 2.0'],
+            sinh: ['0', '0.5'], cosh: ['0', '0.5'], tanh: ['0', '0.5'],
+            asinh: ['0', '0.5'], acosh: ['1', '1.5'], atanh: ['0', '0.5'],
             floor: ['0.5', '(-1.5)', '9007199254740992.0'],
             text: ['0', '(-123)', '9007199254740993'],
             integer: ['"0"', '"-123"', '"+42"', '"9007199254740993"'],
