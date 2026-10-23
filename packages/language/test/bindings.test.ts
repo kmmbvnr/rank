@@ -2,7 +2,7 @@ import { EmptyFileSystem } from 'langium';
 import { parseHelper } from 'langium/test';
 import { beforeAll, describe, expect, it } from 'vitest';
 import {
-    analyzeBindings, expressionFreeReads, isAssignmentStatement, createRankServices, type Binding, type ProgramFacts, type Program,
+    INPUT_TYPES, analyzeBindings, expressionFreeReads, isAssignmentStatement, createRankServices, type Binding, type ProgramFacts, type Program,
 } from '../src/index.js';
 
 let parse: ReturnType<typeof parseHelper<Program>>;
@@ -356,6 +356,13 @@ it('reports CLI declarations and args without their own import', async () => {
         ['option', 'cli'], ['argument', 'cli'], ['flag', 'cli'], ['args', 'cli'],
     ]);
     expect((await facts(['use cli', ...lines])).missing).toEqual([]);
+});
+
+it.each(INPUT_TYPES)('parses and infers the declared input type %s', async valueType => {
+    const result = await facts(['use cli', `option Value ${valueType}`, `argument Input ${valueType}`]);
+    const expected = valueType === 'path' ? 'text' : valueType;
+    expect(named(result, 'program', 'Value').types).toEqual([expected]);
+    expect(named(result, 'program', 'Input').types).toEqual([expected]);
 });
 
 it('infers explicit conversion results without imports', async () => {

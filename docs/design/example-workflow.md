@@ -183,9 +183,9 @@ Notation reminders for demo code:
 - The window size goes on the right: `Values window Width`.
 - An empty or too-short input gives an empty result; handle it with a guard
   around the vector steps, and document the contract in a `rem` header.
-- Declared option types are `integer`, `real`, `path` and `boolean`. `text` is
-  accepted by the runtime but does not parse yet (issue #239), so use `path`
-  for free text until it is fixed.
+- Declared option types are `integer`, `real`, `text`, `path` and `boolean`.
+  Use `text` for free text and `path` for filenames. Input binding preserves
+  both unchanged; relative paths are interpreted by file operations.
 
 ## Tests for examples
 

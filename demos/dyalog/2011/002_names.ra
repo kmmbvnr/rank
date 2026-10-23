@@ -16,9 +16,9 @@ option Rate real = 0.2
 rem Seed for repeatable noise.
 option Seed integer = 42
 rem Name to alter and find.
-option Name path = "Jack Johnson"
+option Name text = "Jack Johnson"
 rem Text to search.
-option Text path = "I think Jakc Jonnson is the greatest"
+option Text text = "I think Jakc Jonnson is the greatest"
 rem Maximum mismatched characters.
 option Tolerance integer = 3
 

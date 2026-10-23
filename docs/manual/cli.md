@@ -127,9 +127,9 @@ argument Name Type = Default
 ```
 
 Arguments are filled in the order they
-are declared. Type is integer, real or
-text. Without a default, the argument is
-required.
+are declared. Type is integer, real,
+text, path or boolean. Without a default,
+the argument is required.
 
 ### See also
 
@@ -185,9 +185,26 @@ Limit
 option Name Type = Default
 ```
 
-Type is integer, real or text. The
-default is used when the option is left
-out.
+Type is integer, real, text, path or
+boolean. The default is used when the
+option is left out.
+
+`text` accepts any text, including empty
+and multiline values. In zsh or bash,
+pass newlines inside one quoted argument:
+
+```sh
+rank program.ra --message=$'first\nsecond'
+```
+
+Use `--message=--hello` for a value that
+starts with `--`. For positional text,
+put `--` before such a value.
+
+`path` marks text intended as a filename.
+Input binding preserves it unchanged;
+it does not resolve it against the
+program's directory or read the file.
 
 ### See also
 

@@ -92,11 +92,11 @@ RunStatement:
     'run' path=STRING?;
 
 OptionStatement:
-    'option' name=VARIABLE valueType=WORD (many?='many')?
+    'option' name=VARIABLE valueType=(WORD | 'text') (many?='many')?
     ('=' defaultValue=Expression)?;
 
 ArgumentStatement:
-    'argument' name=VARIABLE valueType=WORD (many?='many')?
+    'argument' name=VARIABLE valueType=(WORD | 'text') (many?='many')?
     ('=' defaultValue=Expression)?;
 
 FlagStatement:

@@ -457,6 +457,45 @@ describe('Rank IO, modules and programs', () => {
         expect(run(source)).toBe('1000');
     });
 
+    it.each(['option', 'argument'])('binds %s text from defaults, args and the workspace', declaration => {
+        const source = `use cli\n${declaration} Value text = "abc"\nValue`;
+        expect(new Interpreter().execute(source)).toBe('abc');
+        for (const value of ['', '-hello', '--hello', 'first\nsecond\n']) {
+            const args = declaration === 'option' ? [`--value=${value}`] : ['--', value];
+            expect(new Interpreter(undefined, { args }).execute(source)).toBe(value);
+            const runtime = new Interpreter(undefined, { args: declaration === 'option' ? args : [] });
+            runtime.variables.set('Value', 'workspace\ntext');
+            expect(runtime.execute(source)).toBe('workspace\ntext');
+        }
+        if (declaration === 'option') {
+            expect(new Interpreter(undefined, { args: ['--value', ''] }).execute(source)).toBe('');
+            expect(new Interpreter(undefined, { args: ['--value', '-hello'] }).execute(source)).toBe('-hello');
+        }
+        const runtime = new Interpreter();
+        runtime.variables.set('Value', 1n);
+        expect(() => runtime.execute(source)).toThrow('Value expects text, got integer');
+        expect(() => new Interpreter().execute(`use cli\n${declaration} Value text = 1`))
+            .toThrow('Value expects text, got integer');
+    });
+
+    it('keeps path inputs unchanged', () => {
+        const source = 'use cli\noption File path = "../input.txt"\nFile';
+        expect(new Interpreter().execute(source)).toBe('../input.txt');
+        expect(new Interpreter(undefined, { args: ['--file', './other.txt'] }).execute(source)).toBe('./other.txt');
+    });
+
+    it('overrides a text option with a multiline text block before run', () => {
+        const runtime = new Interpreter(undefined, {
+            loadModule: specifier => ({
+                id: specifier,
+                source: 'use cli\noption Value text = "abc"\nAnswer = Value',
+            }),
+        });
+        expect(runtime.execute([
+            'use "worker"', 'Value = text lines', '  "first"', '  "second"', 'end', 'run', 'Answer',
+        ].join('\n'))).toBe('first\nsecond');
+    });
+
     it('loads an open program and runs it in the current workspace', () => {
         const interpreter = new Interpreter(undefined, {
             sourceId: '/tests/example_test.ra',

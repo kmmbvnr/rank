@@ -1,5 +1,5 @@
 import {
-    isArgumentStatement, isFlagStatement, isOptionStatement, isUseStatement,
+    INPUT_TYPES, isArgumentStatement, isFlagStatement, isOptionStatement, isUseStatement,
     type Expression, type Program, type Statement,
 } from '@arrrank/language';
 import { ownedArray } from './array-storage.js';
@@ -71,7 +71,7 @@ export function validateInputValue(name: string, valueType: string, value: RankV
     if (valueType === 'real' && typeof value === 'number') return;
     if ((valueType === 'text' || valueType === 'path') && typeof value === 'string') return;
     if (valueType === 'boolean' && typeof value === 'boolean') return;
-    if (!['integer', 'real', 'text', 'path', 'boolean'].includes(valueType)) {
+    if (!INPUT_TYPES.includes(valueType)) {
         throw new RankError(`unknown input type: ${valueType}`);
     }
     throw new RankError(`${name} expects ${valueType}, got ${typeName(value)}`);

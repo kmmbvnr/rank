@@ -104,7 +104,7 @@ export function declaredType(valueType: string, many: boolean): Types {
 
 /**
  * The types `option` and `argument` accept, in the order a reader wants them
- * offered. `path` is text the host may resolve against the program location.
+ * offered. `path` is a filename hint; input binding preserves the text unchanged.
  */
 export const INPUT_TYPES: readonly string[] = [
     'integer', 'real', 'text', 'path', 'boolean',
