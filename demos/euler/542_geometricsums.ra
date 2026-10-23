@@ -1,0 +1,93 @@
+rem Geometric Progression with Maximum
+rem Sum
+rem https://projecteuler.net/problem=542
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option N integer = 100000000000000000
+
+rem Terms q b^p, q a b^(p-1), .., q a^p
+rem sum best with b = a - 1: q D(a, p),
+rem D = a^(p+1) - (a-1)^(p+1), q = k //
+rem a^p. Keep records: the least a^p
+rem for each new largest D. A record is
+rem beaten for good past a bound by any
+rem steeper one, so M(k) only changes
+rem at multiples of live a^p; sum the
+rem signs over the constant blocks.
+fun U Pp dl
+  E = Pp + 1
+  return U ** E - (U - 1) ** E
+end
+Pm = 1
+for 2 ** (Pm + 1) at most N
+  Pm += 1
+end
+Pv = (2 to Pm) copy
+Ur = ((N * 1.0) ** (1.0 / Pv)) integer
+for It in 1 to 3
+  Ov = ((Ur ** Pv) greater N) integer
+  Ur = Ur - Ov
+  Un = ((Ur + 1) ** Pv) at most N
+  Ur = Ur + (Un integer)
+end
+Nn = array shape 0 fill 0
+Dd = Nn
+Cb = 0
+for Rc in 1 to 100000
+  Ok = ((Ur Pv dl) greater Cb) indices
+  if (Ok len) equal 0
+    break
+  end
+  Pq = Pv Ok
+  Hi = Ur Ok
+  Lo = Hi * 0 + 2
+  for Bi in 1 to 40
+    Md = (Lo + Hi) // 2
+    G = (Md Pq dl) greater Cb
+    Hi = G choose Md Hi
+    Lo = G choose Lo (Md + 1)
+  end
+  Nc = Lo ** Pq
+  Dc = Lo Pq dl
+  Nm = Nc min
+  Bd = (Dc ((Nc equal Nm) indices)) max
+  Nn = concat Nn (array Nm)
+  Dd = concat Dd (array Bd)
+  Cb = Bd
+end
+rem Bound past which record i loses to
+rem a steeper j: k > d_j n_j n_i / (d_j
+rem n_i - d_i n_j).
+K = Nn len
+A = (Nn reshape K 1) * Dd
+B = (Dd reshape K 1) * Nn
+Mk = A greater B
+Dn = Mk choose (A - B) 1
+Rb = Mk choose ((A * Nn) // Dn) N
+Rl = (Rb reduce min axis 1) N min
+rem Events: live multiples of each n.
+Ct = Rl // Nn
+Cs = Ct scan +
+Tt = Cs last
+Po = (0 till Tt) copy
+Ix = Cs Po upperindex
+Ev = (Nn Ix) * (Po - (Cs - Ct) Ix + 1)
+St = ((concat (array 4) Ev) unique) sort
+Ns = St len
+Sn = St (1 till Ns) - 1
+En = concat Sn (array N)
+rem M at each block start, live only.
+Sc = St reshape Ns 1
+Lv = (Sc at most Rl) integer
+Vm = (Sc // Nn) * Lv * Dd
+Mv = Vm reduce max axis 1
+Ln = En - St + 1
+Sg = (Ln mod 2 equal 1) integer
+Sg = Sg * (1 - 2 * (St mod 2))
+Answer = (Sg * Mv) sum
+Answer print

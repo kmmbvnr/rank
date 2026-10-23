@@ -1,0 +1,11 @@
+use testing
+
+test "small limits"
+  use "542_geometricsums"
+  N = 12
+  run
+  Answer equal 17
+  N = 1000000
+  run
+  Answer equal 3510439
+end
