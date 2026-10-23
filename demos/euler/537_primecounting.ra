@@ -1,0 +1,93 @@
+rem Counting tuples
+rem https://projecteuler.net/problem=537
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 20000
+option K integer = 20000
+
+rem pi(x) = r for p(r) <= x < p(r + 1),
+rem a(r) = p(r + 1) - p(r) values, and
+rem a(0) = 1 for x = 1. So T(n, k) is
+rem [x^n] A(x)^k: binary powering with
+rem truncated products by an NTT mod
+rem 479 2^21 + 1, primitive root 3.
+M = 1004535809
+Ps = primes till 300000 array
+Gp = Ps (1 to N) - Ps (0 till N)
+A = concat (array 1) Gp
+Lg = 1
+for 2 ** Lg less 2 * N + 1
+  Lg += 1
+end
+L = 2 ** Lg
+I = (0 till L) copy
+Br = I * 0
+for B in 0 till Lg
+  Bt = (I // 2 ** B) mod 2
+  Br += Bt * 2 ** (Lg - 1 - B)
+end
+rem Butterfly pairs and twiddles per
+rem stage, forward and inverse.
+J = (0 till L // 2) copy
+Ie = array shape Lg (L // 2) fill 0
+Io = Ie
+Tf = Ie
+Ti = Ie
+for S in 0 till Lg
+  H = 2 ** S
+  Eb = (J // H) * 2 * H + J mod H
+  Ie S = Eb
+  Io S = Eb + H
+  Ex = (M - 1) // (2 * H)
+  Wf = 3 Ex M powmod
+  Mm = M - 2
+  Wi = Wf Mm M powmod
+  Jh = J mod H
+  Tf S = Wf Jh M powmod
+  Ti S = Wi Jh M powmod
+end
+fun X Tw ntt
+  Y = X Br
+  for S in 0 till Lg
+    Ei = Ie S
+    Oi = Io S
+    E = Y Ei
+    O = (Y Oi) * (Tw S) mod M
+    Y Ei = (E + O) mod M
+    Y Oi = (E - O) mod M
+  end
+  return Y
+end
+Mm = M - 2
+Il = L Mm M powmod
+Z = array shape L fill 0
+rem Product of P and Q mod x^(N + 1).
+fun P Q pmul
+  Fp = Z copy
+  Fp (0 to N) = P
+  Fq = Z copy
+  Fq (0 to N) = Q
+  Fp = Fp Tf ntt
+  Fq = Fq Tf ntt
+  R = (Fp * Fq mod M) Ti ntt
+  return (R (0 to N)) * Il mod M
+end
+R = array shape (N + 1) fill 0
+R 0 = 1
+Bs = A
+E = K
+for E greater 0
+  if E mod 2 equal 1
+    R = R Bs pmul
+  end
+  E //= 2
+  if E greater 0
+    Bs = Bs Bs pmul
+  end
+end
+Answer = R N
+Answer print

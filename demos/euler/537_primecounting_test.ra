@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "537_primecounting"
+  N = 3
+  K = 3
+  run
+  Answer equal 19
+  N = 10
+  K = 10
+  run
+  Answer equal 869985
+  N = 1000
+  K = 1000
+  run
+  Answer equal 578270566
+end
