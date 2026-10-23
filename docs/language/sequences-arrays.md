@@ -735,8 +735,8 @@ read-only interface;
 use `copy` when their result needs material storage. Typed selections and large
 stored selections defer their private storage until a write needs it.
 
-Ranges and integer arrays preserve the selected axis. A scalar integer removes
-its axis. The complete selector rules are defined in
+A range preserves one axis; an integer array replaces the selected axis with
+its shape. A scalar integer removes its axis. The complete selector rules are defined in
 [Values and addressing](values-addressing.md).
 
 ## Selection with boolean masks

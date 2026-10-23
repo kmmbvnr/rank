@@ -57,6 +57,48 @@ describe('producer cell selection', () => {
         expect(calls).toEqual([6n, 3n, 6n]);
     });
 
+    it('preserves ranked gather frames and repeated empty producer observations', () => {
+        const { rows, calls } = emptyRows();
+        const indices = ownedArray([1n, 0n, 1n, 1n], [2, 2]);
+        const selected = sliceArray(rows, tensorSelection(rows, [indices, 2n, ALL_AXIS]));
+        expect(calls).toEqual([]);
+        expect(array(materializeValue(selected)).shape).toEqual([2, 2, 0]);
+        expect(calls).toEqual([6n, 3n, 6n, 6n]);
+        materializeValue(selected);
+        expect(calls).toEqual([6n, 3n, 6n, 6n, 6n, 3n, 6n, 6n]);
+    });
+
+    it('preserves expanded selector axes around permuted empty producer cells', () => {
+        const { rows, calls } = emptyRows();
+        const transposed = array(transposeValue(rows, [2, 1, 0]));
+        const indices = ownedArray([1n, 0n], [1, 2]);
+        const selected = sliceArray(transposed, tensorSelection(transposed, [ALL_AXIS, 2n, indices]));
+        expect(calls).toEqual([]);
+        expect(array(materializeValue(selected)).shape).toEqual([0, 1, 2]);
+        expect(calls).toEqual([6n, 3n]);
+    });
+
+    it('expands both cell and frame selectors after a producer transpose', () => {
+        const calls: bigint[] = [];
+        const fn = { ...native('row', 1, ([value]) => {
+            calls.push(value as bigint);
+            const n = value as bigint;
+            return ownedArray([n, n + 1n, n + 2n]);
+        }), monadicResultShape: () => [3] };
+        const app = new RankApplication((f, args) => completed(f.call(args)), () => {}, new Map(), () => undefined);
+        const rows = array(runExecution(app.applyUnaryAtRank(ownedArray([10n, 40n]), fn, 0)));
+        const transposed = array(transposeValue(rows));
+        const selected = sliceArray(transposed, tensorSelection(transposed, [
+            ownedArray([2n, 0n], [1, 2]), ownedArray([1n, 0n], [2, 1]),
+        ]));
+        expect(calls).toEqual([]);
+        const result = array(materializeValue(selected));
+        expect(result.shape).toEqual([1, 2, 2, 1]);
+        expect(result.items).toEqual([42n, 12n, 40n, 10n]);
+        // Transpose observes each selected column in output order.
+        expect(calls).toEqual([40n, 10n, 40n, 10n]);
+    });
+
     it('preserves empty cells through take/drop and does not demand take zero', () => {
         const { rows, calls } = emptyRows();
         materializeValue(sliceSource(rows)!.slice(0n, false));

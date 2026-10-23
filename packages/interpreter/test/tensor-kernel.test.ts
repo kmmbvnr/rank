@@ -281,7 +281,7 @@ S print`);
             expect(result).toEqual(reference);
         } finally { blocked.mockRestore(); }
     });
-    it('does not accept multidimensional gather selectors', () => {
+    it('gathers multidimensional indices before fusing the following arithmetic', () => {
         const source = `use numbers
 fun A I f
   V = A I
@@ -294,8 +294,8 @@ I = array shape 1 2
 end
 A I f`;
         const result = compare(source);
-        expect('error' in result).toBe(true);
-        expect(result.kernels).toBe(0);
+        expect(result).toHaveProperty('value', '6');
+        expect(result.kernels).toBe(1);
     });
     it('keeps rank and axis dispatch on the reference path', () => {
         const result = compare(`use numbers

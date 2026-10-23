@@ -520,8 +520,10 @@ Rows = M (1 till 4)
 Columns = M axis 1 array 0 2 5
 ```
 
-The selected axis is preserved and receives the length of the range or index
-array. All other axes keep their order and size.
+A range preserves one axis with the selected length. An integer index array
+replaces the selected axis with its full shape. For example, a `2 3` index
+array applied to axis 1 of a `4 5` matrix returns shape `4 2 3`. All other
+axes keep their order and size.
 
 ## Outer
 

@@ -1839,6 +1839,25 @@ it('distinguishes boolean masks, integer gathers and unresolved selectors', () =
         .toBeUndefined();
 });
 
+it('replaces each gathered source axis with the integer selector frame', () => {
+    const source: ValueFacts = { types: ['array'], rank: 2, shape: [3, 4],
+        elements: ['integer'], eagerScalarCells: true };
+    const selector: ValueFacts = { types: ['array'], rank: 2, shape: [2, 2],
+        elements: ['integer'], eagerScalarCells: true };
+    const env = new Map([['M', source], ['I', selector], ['J', { ...selector, shape: [1, 3] }]]);
+    expect(facts('M I', env)).toMatchObject({ types: ['array'], rank: 3, shape: [2, 2, 4] });
+    expect(facts('M I J', env)).toMatchObject({ types: ['array'], rank: 4, shape: [2, 2, 1, 3] });
+    expect(facts('M # I', env)).toMatchObject({ types: ['array'], rank: 3, shape: [3, 2, 2] });
+    expect(facts('M 1 I', env)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 2] });
+    env.set('I', { ...selector, rank: 3, shape: [2, 0, 3], elements: ['boolean'] });
+    expect(facts('M I', env)).toMatchObject({ types: ['array'], rank: 4, shape: [2, 0, 3, 4] });
+    env.set('I', { ...selector, shape: undefined });
+    expect(facts('M I', env)).toMatchObject({ types: ['array'], rank: 3, shape: [null, null, 4] });
+    env.set('I', { ...selector, rank: undefined, shape: undefined });
+    expect(facts('M I', env).rank).toBeUndefined();
+    expect(facts('M I', env).shape).toBeUndefined();
+});
+
 it('infers matmul result kind from rank even when dimensions or rank are unknown', () => {
     const array: ValueFacts = { types: ['array'], elements: ['integer'], eagerScalarCells: true };
     const multiply = (left: ValueFacts, right: ValueFacts) => facts('L R matmul', new Map([['L', left], ['R', right]]));

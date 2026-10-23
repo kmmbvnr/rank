@@ -1600,9 +1600,10 @@ Line = T i # k
 LastPlane = T # # k
 ```
 
-An integer selector removes its axis. `#`, a range, an integer array or a
-rank-1 boolean mask preserves its axis. For `T` with shape `2 3 4`, `T # 1`
-therefore has shape `2 4`, while `T # # 1` has shape `2 3`.
+A scalar integer selector removes its axis. `#`, a range or a rank-1 boolean
+mask preserves one axis. An integer array replaces the selected axis with its
+entire shape. For `T` with shape `2 3 4`, `T # 1` has shape `2 4`, while
+`T # # 1` has shape `2 3`.
 
 Several collection selectors form a Cartesian selection rather than paired
 coordinates:
@@ -1611,8 +1612,9 @@ coordinates:
 Block = A Rows Columns
 ```
 
-The result has one preserved axis for every collection selector and every `#`,
-followed by all omitted trailing axes. Tensor selections are lazy and cached.
+Each integer-array selector contributes its shape in source-axis order; `#`,
+ranges and rank-1 masks contribute one axis each. Omitted trailing axes keep
+their shape. Several index arrays still form a Cartesian selection.
 
 Integer addressing may continue into a nested selected value after consuming
 all axes of the current tensor:
@@ -1825,11 +1827,22 @@ Order = array 2 0 2
 Rows = M axis 0 Order
 ```
 
-Positions are returned in selector order and may repeat. An integer selector
-removes its axis; a range, integer-array or boolean-array selector preserves the
-axis. The selected axis gets the selector's length. Without an explicit `axis`,
-a collection selector applies to the leading axis; a full-shape boolean mask
-continues to select matching atoms as a rank-1 result.
+Positions are returned in selector order and may repeat. A scalar integer
+removes its axis. A range or rank-1 boolean mask retains one axis; an integer
+array replaces that axis with its full shape, including empty dimensions.
+Without an explicit `axis`, an integer-array selector applies to the leading
+axis: `A Ix` has shape `shape(Ix)` followed by the trailing axes of `A`.
+
+```rank
+use sequences
+Ps = (0 till 10) * 3
+Ix = (0 till 6) reshape 2 3
+B = Ps Ix
+rem shape 2 3, values 0 3 6 / 9 12 15
+```
+
+A full-shape boolean mask continues to select matching atoms as a rank-1
+result.
 
 Text uses the same rules over Unicode code points. Selection returns text rather
 than an array of one-character text values.
@@ -3534,8 +3547,8 @@ Picked = A array 4 1 1
 Columns = M # (1 to 3)
 ```
 
-Ranges and integer arrays preserve the selected axis. A scalar integer removes
-its axis. The complete selector rules are defined in
+A range preserves one axis; an integer array replaces the selected axis with
+its shape. A scalar integer removes its axis. The complete selector rules are defined in
 [Values and addressing](language/values-addressing.md).
 
 ## Selection with boolean masks
@@ -6567,8 +6580,10 @@ Rows = M (1 till 4)
 Columns = M axis 1 array 0 2 5
 ```
 
-The selected axis is preserved and receives the length of the range or index
-array. All other axes keep their order and size.
+A range preserves one axis with the selected length. An integer index array
+replaces the selected axis with its full shape. For example, a `2 3` index
+array applied to axis 1 of a `4 5` matrix returns shape `4 2 3`. All other
+axes keep their order and size.
 
 ## Outer
 

@@ -1191,13 +1191,13 @@ function transferApplicationFacts(
     if (source.types.join() === 'array' && source.shape && parts.length - 1 <= source.shape.length) {
         const selectors = parts.slice(1).map(part => isAllAxisExpression(part)
             ? undefined : infer(part, lookup));
-        const integerVector = (value: ValueFacts | undefined): boolean => !!value
-            && ['array', 'sequence'].includes(value.types.join()) && value.rank === 1
-            && value.elements?.join() === 'integer'
+        const integerPositions = (value: ValueFacts | undefined): boolean => !!value
+            && ['array', 'sequence'].includes(value.types.join()) && value.rank !== undefined
+            && (value.elements?.join() === 'integer' || value.shape?.includes(0) === true)
             && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
-        if (selectors.some(integerVector) && parts.slice(1).every((part, index) =>
+        if (selectors.some(integerPositions) && parts.slice(1).every((part, index) =>
             isAllAxisExpression(part) || selectors[index]?.rank === 0
-                && selectors[index]?.types.join() === 'integer' || integerVector(selectors[index]))) {
+                && selectors[index]?.types.join() === 'integer' || integerPositions(selectors[index]))) {
             const shape = source.shape.flatMap((dimension, axis) => {
                 const selector = selectors[axis];
                 if (selector?.rank === 0 && selector.types.join() === 'integer') return [];
@@ -1209,7 +1209,8 @@ function transferApplicationFacts(
                             ? (size - start + step - 1n) / step : start / -step + 1n)];
                     }
                 }
-                return [integerVector(selector) ? selector?.shape?.[0] ?? null : dimension];
+                return integerPositions(selector)
+                    ? selector!.shape ?? Array(selector!.rank).fill(null) : [dimension];
             });
             return { types: ['array'], rank: shape.length, shape, elements: source.elements,
                 ...((source.eagerScalarCells || source.callbackFreeScalarCells)
@@ -1236,9 +1237,10 @@ function transferApplicationFacts(
                 return { types: ['sequence'], rank: 1, shape: [null], ...cells };
             }
             if (integerSelector) {
-                const shape = source.shape?.slice() ?? (source.rank === undefined ? undefined : Array(source.rank).fill(null));
-                if (shape?.length) shape[0] = empty ? 0 : selector.shape?.[0] ?? null;
-                return { types: ['array'], rank: source.rank, shape, ...cells };
+                const sourceShape = source.shape ?? (source.rank === undefined ? undefined : Array(source.rank).fill(null));
+                const selectorShape = selector.shape ?? (selector.rank === undefined ? undefined : Array(selector.rank).fill(null));
+                const shape = sourceShape && selectorShape ? [...selectorShape, ...sourceShape.slice(1)] : undefined;
+                return { types: ['array'], rank: shape?.length, shape, ...cells };
             }
             return { types: ['array', 'sequence'], ...cells };
         }
