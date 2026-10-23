@@ -1,0 +1,118 @@
+rem Phigital number base
+rem https://projecteuler.net/problem=473
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 10000000000
+
+rem The palindrome d_(n-1)..d_0 .
+rem d_0..d_(n-1) is sum d_i w_i with
+rem w_i = phi^i + phi^(-i-1) = u_i +
+rem v_i phi; it is an integer when
+rem the phi parts cancel. d_0 = 0,
+rem d_(n-1) = 1, no two adjacent 1s.
+rem Meet in the middle at h = n // 2.
+Fb = array shape 64 fill 0
+Fb 0 = 1
+for I in 2 till 64
+  Fb I = Fb (I - 1) + Fb (I - 2)
+end
+rem Fb i = F(i - 1).
+Is = (0 till 58) copy
+Sg = 1 - 2 * ((Is + 1) mod 2)
+U = Fb Is + Sg * Fb (Is + 3)
+V = Fb (Is + 1) - Sg * Fb (Is + 2)
+rem w_(n-1) > phi^(n-1) bounds n.
+Ph = (5.0 sqrt + 1) / 2
+Lp = Ph log
+Nm = (L log / Lp) floor + 3
+Answer = 1
+for Nn in 2 till Nm
+  H = Nn // 2
+  rem Lower half: positions 0 .. H-1.
+  Lu = array 0
+  Lv = array 0
+  Ld = array 0
+  for I in 1 till H
+    Z = (Ld equal 0) indices
+    Lu = concat Lu (Lu Z + U I)
+    Lv = concat Lv (Lv Z + V I)
+    Ld = concat (Ld * 0) (Z * 0 + 1)
+  end
+  rem Upper half: H .. Nn-1, top is 1.
+  Hu = array 0 (U H)
+  Hv = array 0 (V H)
+  Hb = array 0 1
+  Hd = Hb
+  for I in H + 1 till Nn
+    Z = (Hd equal 0) indices
+    Ou = Hu Z + U I
+    Ov = Hv Z + V I
+    Ob = Hb Z
+    if I less Nn - 1
+      Hu = concat Hu Ou
+      Hv = concat Hv Ov
+      Hb = concat Hb Ob
+      Hd = concat (Hd * 0) (Z * 0 + 1)
+    else
+      Hu = Ou
+      Hv = Ov
+      Hb = Ob
+    end
+  end
+  if H equal Nn - 1
+    Kp = (Hb equal 1) indices
+    Hu = Hu Kp
+    Hv = Hv Kp
+    Hb = Hb Kp
+  end
+  rem Lower top 1 needs upper bottom 0.
+  for Pt in 0 to 1
+    Qi = (Ld equal Pt) indices
+    Pi = (Hb at most 1 - Pt) indices
+    Qu = Lu Qi
+    Qv = 0 - Lv Qi
+    Nq = Qu len
+    if Pi len equal 0 or Nq equal 0
+      continue
+    end
+    rem Points, then queries Uh <= L -
+    rem Ul (+) and Uh <= -Ul (-).
+    Ku = concat (Hu Pi) (L - Qu)
+    Ku = concat Ku (0 - Qu)
+    Kv = concat (Hv Pi) Qv Qv
+    Np = Pi len
+    Tp = concat (Pi * 0) (Qi * 0 + 1)
+    Tp = concat Tp (Qi * 0 + 1)
+    Od = (Ku * 2 + Tp) argsort
+    Od = Od ((Kv Od) argsort)
+    Vs = Kv Od
+    Tq = Tp Od
+    Pw = Tq equal 0
+    Wu = concat (Hu Pi) Qu Qu
+    Wu = Wu Od
+    Cn = (Pw choose 1 0) scan +
+    Cs = (Pw choose Wu 0) scan +
+    Ix = (0 till Vs len) copy
+    Pv = Vs 1 shift with 0
+    Nw = Vs not equal Pv
+    Nw 0 = true
+    St = (Nw choose Ix 0) scan max
+    Ps = Pw St
+    B0 = Cn St - (Ps choose 1 0)
+    B1 = Cs St - (Ps choose (Wu St) 0)
+    Cq = Cn - B0
+    Sq = Cs - B1
+    rem + for the first query copy.
+    Oq = Od - Np
+    Sn = (Oq at least Nq) choose 1 0
+    Sn = 1 - 2 * Sn
+    Val = Sn * (Cq * Wu + Sq)
+    Qm = Tq equal 1
+    Answer += (Qm choose Val 0) sum
+  end
+end
+Answer print
