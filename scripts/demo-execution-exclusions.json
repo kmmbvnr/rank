@@ -187,5 +187,6 @@
   "euler/499_stpetersburg.ra": "To fix later: the default input takes about 24 s (several hundred fixed-point steps of a 14 x 14 transfer matrix with 46 binary powers each, run to the floating-point floor); the small _test.ra fixture stays in the audits.",
   "euler/501_eightdivisors.ra": "To fix later: the default input takes about 2 min (Lucy prime counting to 10^12 with one array update per prime below 10^6); the small _test.ra fixture stays in the audits.",
   "euler/502_countingcastles.ra": "To fix later: the default input takes about 2.7 min (the F(10^4, 10^4) term: 10^4 polynomial steps and a 10^4 x 10^4 coefficient recurrence, per sign channel); the small _test.ra fixture stays in the audits.",
-  "euler/504_squareinside.ra": "To fix later: the default input takes about 18 s (5 x 10^7 pair sums looked up in a square table, mostly selector checks #421); the small _test.ra fixture stays in the audits."
+  "euler/504_squareinside.ra": "To fix later: the default input takes about 18 s (5 x 10^7 pair sums looked up in a square table, mostly selector checks #421); the small _test.ra fixture stays in the audits.",
+  "euler/505_bidirectional.ra": "Not reachable yet: the default needs about 1.9 x 10^9 alpha-beta nodes (counted in the eulersolve C++), and the explicit-stack loop runs uncompiled at about 90 us per node (body over 32 statements, #419), roughly two days; the _test.ra fixtures check n up to 10^6."
 }

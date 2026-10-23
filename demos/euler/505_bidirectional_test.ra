@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "505_bidirectional"
+  N = 4
+  run
+  Answer equal 8
+  N = 10
+  run
+  Answer equal 1152921504606846976 - 34
+  N = 1000
+  run
+  Answer equal 101881
+end
+
+test "n = 10^6, python port"
+  use "505_bidirectional"
+  N = 1000000
+  run
+  Answer equal 12541668533
+end
