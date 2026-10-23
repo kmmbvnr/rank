@@ -110,6 +110,20 @@ storage directly, checking safe conversion at each load; repeated/nested reads
 retain prepared numeric buffers. Every potentially unsafe integer intermediate
 is guarded. Calls, unsupported contracts and observable readers do not enter this
 specialization.
+
+After the safe-Number backend declines, a mixed variant can keep scalar integer
+results in BigInt registers while retaining checked Number control and array
+stores. Analysis propagates numeric requirements backwards through assignments,
+including loop-carried dependencies; conditions, range bounds and cell stores
+cannot depend on wide registers. Unsupported exact expressions retain the
+existing exact backend. Mixed regions use the same private writes, error and
+cancellation publication, ownership checks and entry guards. Diagnostics count
+these attempts as `mixedIntegerLoops` as well as `numberLoops`.
+
+Exact compiled scalar reads of borrowed Int32 storage bypass its items proxy and
+follow the storage object across widening or unpacking. Together these changes
+reduce the unchanged default Euler 375 program from 15.93 s to 3.95 s on Apple M5;
+see [measurements](../../benchmarks/euler375-results.md).
 Normal/error exits preserve exact integer bindings, real/boolean types and partial state. Atomics
 cancellation publishes completed assignments before unwinding through `finally`.
 Inspection and arbitrary host polling keep the existing publishing backend.

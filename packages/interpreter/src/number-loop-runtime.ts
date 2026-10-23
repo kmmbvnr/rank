@@ -103,8 +103,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 if (typeof value !== 'number') return undefined;
                 input[slot] = value;
             } else {
-                if (typeof value !== 'bigint' || !Number.isSafeInteger(Number(value))) return recordFallback('number-loop:unsafe-input');
-                input[slot] = Number(value);
+                if (typeof value !== 'bigint') return recordFallback('number-loop:unsafe-input');
+                if (plan.wideScalars.has(names[slot])) input[slot] = value;
+                else {
+                    if (!Number.isSafeInteger(Number(value))) return recordFallback('number-loop:unsafe-input');
+                    input[slot] = Number(value);
+                }
             }
         }
         for (const [name, info] of storage) {
@@ -144,6 +148,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         }
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.numberLoops++;
+        if (diagnostics && plan.wideScalars.size) diagnostics.mixedIntegerLoops++;
         const result = run(input, buffers, changes, (entered, values) => {
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split

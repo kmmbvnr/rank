@@ -81,6 +81,40 @@ end`));
         expect(readArrayItem(array, 1)).toBe(7n);
     });
 
+    it('keeps a prepared compact reader current through exposure and kind changes', () => {
+        const array = filledArray(-1n, [N]);
+        const borrowed = borrowArrayStorage(array);
+        const write = prepareScalarArrayWriter(borrowed);
+        const read = prepareScalarArrayReader(borrowed, () => { throw Error('unexpected fallback'); });
+        expect(read(0n)).toBe(-1n);
+        expect(() => read(-1n)).toThrow(/out of bounds/);
+        expect(() => read(BigInt(N))).toThrow(/out of bounds/);
+        expect(() => read(1n << 80n)).toThrow(/out of bounds/);
+        array.items[0] = 23n;
+        expect(read(0n)).toBe(23n);
+        write(0, 0.5);
+        expect(read(0n)).toBe(0.5);
+    });
+
+    it('preserves compact indexed reads and aliases in exact compiled loops', () => {
+        const runtime = new Interpreter(undefined, { numberLoopCompilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            const total = diagnostics.run(() => runtime.execute(`A = array shape ${N} fill -1
+B = A
+Total = 9007199254740992
+for I in 0 till ${N}
+  A I = I - 5000
+  Total += A I
+end
+Total`));
+            expect(total).toBe(9007199254740992n - 5000n);
+            expect(runtime.execute('B sum')).toBe(-BigInt(N));
+            expect(diagnostics.compiledLoops).toBe(1);
+            expect(diagnostics.typedUnpacks).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it('sums compact cells beyond the safe Number range exactly', () => {
         const runtime = new Interpreter();
         try {

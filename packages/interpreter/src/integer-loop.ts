@@ -5,6 +5,7 @@ import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
 import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
+import { wideLoopScalars } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -75,13 +76,26 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     }
     const numberPlan = numberVariant && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true);
     const fast = numberPlan && prepareNumberLoop(numberPlan, host);
-    return fast ? { run: (...context) => fast.run(...context) ?? exact.run(...context) } : exact;
+    if (!fast) return exact;
+    let mixed: CompiledLoop | undefined, preparedMixed = false;
+    return { run: (...context) => {
+        const result = fast.run(...context);
+        if (result) return result;
+        if (!preparedMixed) {
+            preparedMixed = true;
+            const wide = wideLoopScalars(plan);
+            const mixedPlan = wide.size && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide);
+            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host) : undefined;
+        }
+        return mixed?.run(...context) ?? exact.run(...context);
+    } };
 }
 
 /** Shared region checks and lowering; runtime preparation consumes only the plan. */
 function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined,
-    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false): IntegerLoopPlan | undefined {
-    const state = createLoopState(host, textSources, textArrays, failed, numberMode);
+    textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false,
+    wideScalars: ReadonlySet<string> = new Set()): IntegerLoopPlan | undefined {
+    const state = createLoopState(host, textSources, textArrays, failed, numberMode, wideScalars);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
         builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
@@ -120,7 +134,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
     return {
-        statement, names, arrays, destinations, root, body, locations, required, localTypes, containers,
+        statement, names, wideScalars, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration,

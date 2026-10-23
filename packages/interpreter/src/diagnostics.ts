@@ -23,6 +23,7 @@ export class RuntimeDiagnostics {
     numericSearches = 0;
     numericSearchIndexes = 0;
     numberLoops = 0;
+    mixedIntegerLoops = 0;
     numberLoopOverflows = 0;
     compiledTensors = 0;
     compiledArrayFunctions = 0;

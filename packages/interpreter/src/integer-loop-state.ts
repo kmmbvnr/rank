@@ -4,7 +4,7 @@ import { type Expression, type Statement } from '@arrrank/language';
 
 /** Mutable facts belong to one compilation attempt, never an invocation frame. */
 export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>,
-    failed: (reason: string) => void, numberMode: boolean) {
+    failed: (reason: string) => void, numberMode: boolean, wideScalars: ReadonlySet<string> = new Set()) {
     const zero = numberMode ? '0' : '0n', one = numberMode ? '1' : '1n';
     const safe = (code: string) => numberMode ? `safe(${code})` : code;
     const dirty = (slot: number) => numberMode ? `if (!d${slot}) d${slot} = ++order;` : '';
@@ -32,7 +32,7 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
     const destinations: IntegerLoopPlan['destinations'] = new Map();
     const locations: Statement[] = [];
     return {
-        host, numberMode, textSources, textArrays, zero, one, safe, dirty, reject,
+        host, numberMode, wideScalars, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
         vectorIterations, iterators, destinations, locations,

@@ -123,9 +123,49 @@ describe('private safe-integer loop registers', () => {
         expect(diagnostics.compiledLoops).toBe(1);
     });
 
-    it.each(['9007199254740992', '-9007199254740992'])('declines unsafe entry values: %s', value => {
+    it.each(['9007199254740992', '-9007199254740992'])('keeps wide scalar results exact with numeric control: %s', value => {
         const diagnostics = compare(`S = ${value}\nfor I in 0 to 2\n S += I\nend`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+    });
+
+    it.each(['9007199254740991', '-9007199254740991'])('keeps wide products, signed division and scalar dependencies exact: %s', value => {
+        const diagnostics = compare(`Base = ${value}
+Total = 0
+for I in 1 to 3
+ Product = Base * I
+ Quotient = Product // -3
+ Remainder = Product mod -3
+ Bound = Product 20 min
+ Total += Quotient + Remainder + Bound
+end`);
+        expect(diagnostics.numberLoops).toBe(2);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.compiledLoops).toBe(1);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+    });
+
+    it.each([
+        'for I in 0 to 2\n A I += 1\n Wide += A I * Base\n Bad = 10 // (1 - I)\n After = I\nend',
+        'for I in 0 to 2\n A I += 1\n Wide += Base\n Value = A (Base + I)\nend',
+        'for I in 0 to 2\n A I += 1\n Wide += Base\n Value = A (-Base - I)\nend',
+    ])('publishes exact scalar progress and COW stores at the original error: %s', loop => {
+        const source = `A = array shape 4096 fill 0\nSaved = A\nBase = 9007199254740991\nWide = 9007199254740993\n${loop}`;
+        expect(execute(source).observation.error).toBeDefined();
+        const diagnostics = compare(source);
+        expect(diagnostics.compiledLoops).toBe(1);
+        expect(diagnostics.mixedIntegerLoops).toBe(1);
+    });
+
+    it.each([
+        'Value = Base\nfor I in 0 to 2\n Value += 1\n if Value greater Base\n  Last = I\n end\nend',
+        'Value = Base\nfor I in 0 to 2\n Copy = Value\n Value += 1\n if Copy greater Base\n  Last = I\n end\nend',
+        'Value = Base\nfor I in 0 to 2\n Copy = Value\n Value += 1\n A I = Copy\nend',
+        'for I in 0 to 1\n for J in 1 to Base\n  Last = J\n  break\n end\nend',
+    ])('retains exact fallback for wide control, loop-carried and cell-store dependencies: %s', loop => {
+        const diagnostics = compare(`A = array 0 0 0\nBase = 9007199254740993\n${loop}`);
         expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.compiledLoops).toBe(1);
     });
 
     it.each(['-7', '7', '-9007199254740991', '9007199254740991'])('preserves floor quotient, signed remainder and parity: %s', value => {
@@ -170,13 +210,21 @@ describe('private safe-integer loop registers', () => {
     });
 
     it.each([
-        'A = array 0 0 0\nS = 9007199254740990\nfor I in 0 to 2\n A I += 1\n S += 1\nend',
         'A = array 9007199254740991 0 0\nB = A\nfor I in 0 to 2\n A I += 1\nend',
-        'A = array shape 4096 fill 0\nfor I in 0 to 2\n A I += 1\n for J in 1 to 3\n  S = 9007199254740991 * J\n end\nend',
     ])('discards every private array write before exact replay on overflow: %s', source => {
         const diagnostics = compare(source);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it.each([
+        'A = array 0 0 0\nS = 9007199254740990\nfor I in 0 to 2\n A I += 1\n S += 1\nend',
+        'A = array shape 4096 fill 0\nfor I in 0 to 2\n A I += 1\n for J in 1 to 3\n  S = 9007199254740991 * J\n end\nend',
+    ])('discards numeric stores before retrying with exact scalar results: %s', source => {
+        const diagnostics = compare(source);
+        expect(diagnostics.numberLoops).toBe(2);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+        expect(diagnostics.compiledLoops).toBe(1);
     });
 
     it('uses private writes after an ordinary selection has been completed', () => {
@@ -214,7 +262,7 @@ describe('private safe-integer loop registers', () => {
     it('replays a packed read-only scan from its original inputs on an unsafe cell', () => {
         const source = 'A = array shape 4096 fill 1\nA 1 = 9007199254740992\nS = 0\nfor I in 0 to 2\n S += A I\nend';
         const diagnostics = compare(source);
-        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoops).toBe(2);
         expect(diagnostics.numberLoopOverflows).toBe(1);
         expect(diagnostics.typedUnpacks).toBe(0);
     });
@@ -244,7 +292,7 @@ describe('private safe-integer loop registers', () => {
 
     it('replays overflowing vector regions from their original scalar inputs', () => {
         const diagnostics = compare('A = array 1 2 3\nS = 9007199254740990\nfor V Index in A\n S += V\nend');
-        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoops).toBe(2);
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
 
@@ -367,6 +415,35 @@ end`)))).toThrow('Interrupted');
             withInterrupt(signal, () => diagnostics.run(() => runtime.execute('S = 0\nfor I in 0 to 3\n S += I\nend')));
             expect(runtime.variables.get('S')).toBe(6n);
             expect(diagnostics.numberLoops).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('publishes mixed scalar and array progress on cancellation and runs finally', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        const initial = 9007199254740993n;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(`A = array shape 4096 fill 0
+Saved = A
+S = ${initial}
+Last = 0
+Done = 0
+try
+ for I in 1 to 1000000
+  A (I mod 4096) += 1
+  S += I
+  Last = I
+ end
+finally
+ Done = 1
+end`)))).toThrow('Interrupted');
+            const index = runtime.variables.get('Last') as bigint;
+            expect(index).toBeGreaterThan(0n);
+            expect(runtime.variables.get('S')).toBe(initial + index * (index + 1n) / 2n);
+            expect(runtime.execute('A sum')).toBe(index);
+            expect(runtime.execute('Saved sum')).toBe(0n);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            expect(diagnostics.mixedIntegerLoops).toBe(1);
         } finally { runtime.dispose(); }
     });
 

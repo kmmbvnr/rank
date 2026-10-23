@@ -297,6 +297,18 @@ export function prepareScalarArrayReader(
 ): (index: bigint) => RankValue {
     const array = value as RankArray;
     if (!value || !isRankArray(value) || array.shape.length !== 1) return index => fallback(array, [index]);
+    const borrowed = borrowedStorage.get(array);
+    if (borrowed?.typed instanceof Int32Array && !borrowed.validity) {
+        const length = array.shape[0];
+        // Avoid the Rank-facing items proxy on every compiled scalar load.
+        // Follow the storage object: a later write or public exposure may widen
+        // or unpack the buffer while this reader is still in use.
+        return index => {
+            const position = readPosition(index, length, 0);
+            const typed = borrowed.typed;
+            return typed instanceof Int32Array ? BigInt(typed[position]) : borrowed.items[position];
+        };
+    }
     const storage = preparedReaderStorage(value, stableReads);
     if (!storage) return index => fallback(array, [index]);
     const { cells, shape: [length] } = storage;

@@ -1,0 +1,353 @@
+{
+  "notes": [
+    "Same Euler 375 source and default parameters in all stages.",
+    "Baseline built from b697ae45; directReader adds only the compact scalar-reader optimization; mixedScalars includes both optimizations.",
+    "Three fresh processes per stage, run sequentially without concurrent builds or tests. A preliminary overlapping build/timing series was discarded.",
+    "Diagnostics measured separately. Phase timings include parsing; each phase is executed in a separate runtime.execute call on the same interpreter.",
+    "All samples assert the baseline full-size answer; unit tests also compare small cases against exhaustive enumeration and other interpreter backends."
+  ],
+  "stages": {
+    "baseline": {
+      "revision": "b697ae459d7fc9a7e0834b4b5ac0ca53b2156962",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timing": "fresh processes, default parameters, source executed in three phases; parsing included; diagnostics opt-in",
+      "results": [
+        {
+          "phases": {
+            "generate": {
+              "ms": 660.537666
+            },
+            "previous": {
+              "ms": 695.2101250000001
+            },
+            "answer": {
+              "ms": 14578.611875
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 554.75
+        },
+        {
+          "phases": {
+            "generate": {
+              "ms": 634.365084
+            },
+            "previous": {
+              "ms": 696.3641670000001
+            },
+            "answer": {
+              "ms": 14545.485832999999
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 555.234375
+        },
+        {
+          "phases": {
+            "generate": {
+              "ms": 622.437083
+            },
+            "previous": {
+              "ms": 690.560584
+            },
+            "answer": {
+              "ms": 14687.463334
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 559.375
+        }
+      ],
+      "medianMs": {
+        "generate": 634.365084,
+        "previous": 695.2101250000001,
+        "answer": 14578.611875
+      },
+      "medianTotalMs": 15934.359666
+    },
+    "directReader": {
+      "revision": "b697ae459d7fc9a7e0834b4b5ac0ca53b2156962",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timing": "fresh processes, default parameters, source executed in three phases; parsing included; diagnostics opt-in",
+      "results": [
+        {
+          "phases": {
+            "generate": {
+              "ms": 614.6292920000001
+            },
+            "previous": {
+              "ms": 686.5462910000001
+            },
+            "answer": {
+              "ms": 5517.068
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 408.4375
+        },
+        {
+          "phases": {
+            "generate": {
+              "ms": 649.003792
+            },
+            "previous": {
+              "ms": 692.98225
+            },
+            "answer": {
+              "ms": 5576.957582999999
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 409.828125
+        },
+        {
+          "phases": {
+            "generate": {
+              "ms": 651.1717090000001
+            },
+            "previous": {
+              "ms": 695.789083
+            },
+            "answer": {
+              "ms": 5533.495916
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 409.640625
+        }
+      ],
+      "medianMs": {
+        "generate": 649.003792,
+        "previous": 692.98225,
+        "answer": 5533.495916
+      },
+      "medianTotalMs": 6880.456708
+    },
+    "mixedScalars": {
+      "revision": "b697ae459d7fc9a7e0834b4b5ac0ca53b2156962",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timing": "fresh processes, default parameters, source executed in three phases; parsing included; diagnostics opt-in",
+      "results": [
+        {
+          "phases": {
+            "generate": {
+              "ms": 655.641292
+            },
+            "previous": {
+              "ms": 768.5687909999999
+            },
+            "answer": {
+              "ms": 2493.131416
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 463.046875
+        },
+        {
+          "phases": {
+            "generate": {
+              "ms": 649.397708
+            },
+            "previous": {
+              "ms": 688.9858750000001
+            },
+            "answer": {
+              "ms": 2609.3102500000005
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 408.109375
+        },
+        {
+          "phases": {
+            "generate": {
+              "ms": 753.8121659999999
+            },
+            "previous": {
+              "ms": 700.054542
+            },
+            "answer": {
+              "ms": 2504.306834
+            }
+          },
+          "answer": "7435327983715286168",
+          "maxRssMiB": 465.5
+        }
+      ],
+      "medianMs": {
+        "generate": 655.641292,
+        "previous": 700.054542,
+        "answer": 2504.306834
+      },
+      "medianTotalMs": 3947.6938330000003
+    }
+  },
+  "diagnosticRun": {
+    "revision": "b697ae459d7fc9a7e0834b4b5ac0ca53b2156962",
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "timing": "fresh processes, default parameters, source executed in three phases; parsing included; diagnostics opt-in",
+    "results": [
+      {
+        "phases": {
+          "generate": {
+            "ms": 670.725833,
+            "diagnostics": {
+              "memoHits": 0,
+              "memoMisses": 0,
+              "indexReads": 0,
+              "indexReadHits": 0,
+              "indexReadMisses": 0,
+              "indexWrites": 0,
+              "sequencePredicateCalls": 0,
+              "cellsComputed": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 1,
+              "compiledGeneratorLoops": 0,
+              "integerMembershipFilters": 0,
+              "compiledGraphAdds": 0,
+              "compiledEffectCalls": 0,
+              "numericSorts": 0,
+              "numericDistincts": 0,
+              "numericUniqueSorts": 0,
+              "numericSearches": 0,
+              "numericSearchIndexes": 0,
+              "numberLoops": 1,
+              "mixedIntegerLoops": 0,
+              "numberLoopOverflows": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "maskMaterializations": 0,
+              "maskMaterializedCells": 0,
+              "bulkArrayWrites": 0,
+              "bulkArrayWriteCells": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "typedUnpacks": 0,
+              "typedUnpackedCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 1
+              },
+              "compilerRejections": []
+            }
+          },
+          "previous": {
+            "ms": 731.106083,
+            "diagnostics": {
+              "memoHits": 0,
+              "memoMisses": 0,
+              "indexReads": 0,
+              "indexReadHits": 0,
+              "indexReadMisses": 0,
+              "indexWrites": 0,
+              "sequencePredicateCalls": 0,
+              "cellsComputed": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 1,
+              "compiledGeneratorLoops": 0,
+              "integerMembershipFilters": 0,
+              "compiledGraphAdds": 0,
+              "compiledEffectCalls": 0,
+              "numericSorts": 0,
+              "numericDistincts": 0,
+              "numericUniqueSorts": 0,
+              "numericSearches": 0,
+              "numericSearchIndexes": 0,
+              "numberLoops": 1,
+              "mixedIntegerLoops": 0,
+              "numberLoopOverflows": 0,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "maskMaterializations": 0,
+              "maskMaterializedCells": 0,
+              "bulkArrayWrites": 0,
+              "bulkArrayWriteCells": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "typedUnpacks": 0,
+              "typedUnpackedCells": 0,
+              "fallbacks": {
+                "tensor:unsupported-type:array": 2,
+                "scalar-expression:too-small": 1
+              },
+              "compilerRejections": []
+            }
+          },
+          "answer": {
+            "ms": 2569.680959,
+            "diagnostics": {
+              "memoHits": 0,
+              "memoMisses": 0,
+              "indexReads": 0,
+              "indexReadHits": 0,
+              "indexReadMisses": 0,
+              "indexWrites": 0,
+              "sequencePredicateCalls": 0,
+              "cellsComputed": 0,
+              "hoistedReaders": 0,
+              "loopElementScans": 0,
+              "compiledLoops": 1,
+              "compiledGeneratorLoops": 0,
+              "integerMembershipFilters": 0,
+              "compiledGraphAdds": 0,
+              "compiledEffectCalls": 0,
+              "numericSorts": 0,
+              "numericDistincts": 0,
+              "numericUniqueSorts": 0,
+              "numericSearches": 0,
+              "numericSearchIndexes": 0,
+              "numberLoops": 2,
+              "mixedIntegerLoops": 1,
+              "numberLoopOverflows": 1,
+              "compiledTensors": 0,
+              "compiledArrayFunctions": 0,
+              "rankedArrayBatches": 0,
+              "rankedBatches": 0,
+              "maskMaterializations": 0,
+              "maskMaterializedCells": 0,
+              "bulkArrayWrites": 0,
+              "bulkArrayWriteCells": 0,
+              "cowCopies": 0,
+              "cowCopiedCells": 0,
+              "elementTypeScans": 0,
+              "elementTypeScannedCells": 0,
+              "selectionSnapshots": 0,
+              "selectionSnapshotCells": 0,
+              "typedUnpacks": 0,
+              "typedUnpackedCells": 0,
+              "fallbacks": {
+                "scalar-expression:too-small": 2
+              },
+              "compilerRejections": []
+            }
+          }
+        },
+        "answer": "7435327983715286168",
+        "maxRssMiB": 462.921875
+      }
+    ],
+    "medianMs": {
+      "generate": 670.725833,
+      "previous": 731.106083,
+      "answer": 2569.680959
+    },
+    "medianTotalMs": 3971.512875
+  }
+}

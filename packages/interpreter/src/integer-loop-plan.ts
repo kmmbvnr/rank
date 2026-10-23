@@ -78,6 +78,7 @@ export type CompiledLoop = {
 export interface IntegerLoopPlan {
     statement: ForStatement;
     names: string[];
+    wideScalars: ReadonlySet<string>;
     arrays: Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>;
     destinations: Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type']; slice?: boolean }>;
     root: { setup: string; header: string; bindings: string };

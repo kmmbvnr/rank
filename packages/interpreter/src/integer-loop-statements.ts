@@ -10,14 +10,16 @@ import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 import type { createLoopHeader } from './integer-loop-header.js';
 import { createLoopIndexedWrites } from './integer-loop-writes.js';
+import { createLoopExpressions } from './integer-loop-expressions.js';
 
 export function createLoopStatements(state: LoopCompilationState, expressions: LoopExpressions, loopParts: ReturnType<typeof createLoopHeader>) {
     const {
         host, numberMode, dirty, localTypes, required, assigned, writers, writerNames, written, arrays,
         arrayInputs, arrayDefinitions, aliases, calls, destinations, locations, reject,
     } = state;
-    const {container, slot, knownType, realInput, emit, emitValue, arithmetic} = expressions;
+    const {container, slot, knownType, realInput, emit, emitValue} = expressions;
     const indexedWrite = createLoopIndexedWrites(state, expressions);
+    const exactExpressions = state.wideScalars.size ? createLoopExpressions(state, true) : undefined;
 
     function bindArray(assignment: AssignmentStatement, value: string, rank: number, type: LoopTerm['type'],
         lines: string[], body: string[], location: number): true | undefined {
@@ -221,7 +223,9 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             const booleanUpdate = loopOperatorSignature(assignment.operator.slice(0, -1), ['boolean', 'boolean'], host.nativeCalls)?.compound;
             const textUpdate = host.nativeCalls && assignment.operator === '+='
                 && (localTypes.get(assignment.name) === 'text' || typeof host.read(assignment.name) === 'string');
-            const value = emitValue(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
+            const wide = state.wideScalars.has(assignment.name);
+            const scalarExpressions = wide ? exactExpressions! : expressions;
+            const value = scalarExpressions.emitValue(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
             if (value && typeof value.type !== 'string') {
                 if (assignment.operator !== '=' || !bindArray(assignment, value.code, value.type.rank, value.type.element, lines, body, location)) return reject(assignment);
                 continue;
@@ -237,7 +241,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 const op = assignment.operator.slice(0, -1);
                 const signature = loopOperatorSignature(op, [type, value.type], host.nativeCalls);
                 const out = signature?.compound && signature.result === type
-                    ? arithmetic(op, { code: `r${destination}`, type }, { code: value.code, type: value.type }, type, lines) : undefined;
+                    ? scalarExpressions.arithmetic(op, { code: `r${destination}`, type }, { code: value.code, type: value.type }, type, lines) : undefined;
                 if (out === undefined) return reject(assignment);
                 result = out;
             } else if (type !== value.type) return reject(assignment);

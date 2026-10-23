@@ -53,11 +53,13 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
 ]);
 
 /** Expression lowering records its required bindings on the current plan. */
-export function createLoopExpressions(state: LoopCompilationState) {
+export function createLoopExpressions(state: LoopCompilationState, wide = false) {
     const {
-        host, numberMode, textSources, safe, localTypes, names, required, assigned, containers, builtins,
+        host, textSources, localTypes, names, required, assigned, containers, builtins,
         calls, arrays, calleeArrays, arrayInputs, destinations, reject,
     } = state;
+    const numberMode = state.numberMode && !wide;
+    const safe = wide ? (code: string) => code : state.safe;
 
     function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
@@ -320,7 +322,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
             localTypes.set(e.name, type);
             const index = slot(e.name);
             if (!assigned.has(e.name)) required.add(index);
-            return { code: `r${index}`, type };
+            return { code: wide && type === 'integer' && !state.wideScalars.has(e.name) ? `BigInt(r${index})` : `r${index}`, type };
         }
         if (isApplicationExpression(e) && e.arguments.length === 1 && isNameExpression(e.arguments[0])) {
             const op = e.arguments[0].name;
@@ -376,6 +378,9 @@ export function createLoopExpressions(state: LoopCompilationState) {
             }
             const builtin = inlineBuiltins.get(op);
             if (builtin && (builtin.enabled?.(host) ?? true) && flattenApplication(e).length === 2) {
+                // Numeric-runtime helpers expect Number operands. Keep these
+                // uncommon exact expressions on the existing exact backend.
+                if (wide) return undefined;
                 const value = emit(e.head, lines);
                 const type = value && builtin.types[value.type];
                 if (!value || !type) return undefined;
@@ -515,14 +520,18 @@ export function createLoopExpressions(state: LoopCompilationState) {
             arrays.set(head.name, info);
             if (!assigned.has(head.name)) arrayInputs.add(head.name);
             const name = `v${state.serial++}`;
-            if (numberMode) {
+            if (state.numberMode) {
                 if (info.rank !== 1) return undefined;
                 const argument = arguments_[0];
                 state.indexedReads.set(head.name, !state.indexedReads.has(head.name) && isNameExpression(argument) ? argument.name : undefined);
                 const coordinate = `index${state.serial++}`;
+                const offset = wide ? `Number(${coordinate})` : coordinate;
+                const cell = `cells${info.slot}[${offset}]`;
+                const load = type === 'integer' ? wide ? `BigInt(${cell})` : `safe(Number(${cell}))`
+                    : type === 'boolean' ? `Boolean(${cell})` : cell;
                 lines.push(`const ${coordinate} = ${indices[0]};
                     if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
-                    const ${name} = ${type === 'integer' ? `safe(Number(cells${info.slot}[${coordinate}]))` : type === 'boolean' ? `Boolean(cells${info.slot}[${coordinate}])` : `cells${info.slot}[${coordinate}]`};`);
+                    const ${name} = ${load};`);
             } else {
                 lines.push(`const ${name} = reader${info.slot}(${info.rank <= 2 ? indices.join(',') : `[${indices.join(',')}]`});`);
             }
