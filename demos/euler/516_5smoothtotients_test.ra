@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "516_5smoothtotients"
+  L = 100
+  run
+  Answer equal 3728
+end

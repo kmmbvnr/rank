@@ -1,0 +1,49 @@
+rem 5-smooth totients
+rem https://projecteuler.net/problem=516
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option L integer = 1000000000000
+
+rem phi(n) is 5-smooth iff n = h q, h
+rem 5-smooth, q a squarefree product
+rem of primes p > 5 with p - 1 smooth.
+rem S = sum q A(L // q), A(x) the sum
+rem of the smooth numbers up to x.
+H = array 1
+for P in array 2 3 5
+  Lp = L // P
+  N = H
+  for N len greater 0
+    N = N ((N at most Lp) indices) * P
+    H = (concat H N) copy
+  end
+end
+H = H sort
+Pr = H + 1
+Ok = (Pr in primes) and (Pr greater 6)
+Pr = (Pr (Ok indices)) reverse
+rem Double the products by each prime,
+rem largest first to keep Q small.
+Q = array 1
+for P in Pr
+  Lp = L // P
+  N = Q ((Q at most Lp) indices) * P
+  Q = (concat Q N) copy
+end
+Cs = concat (array 0) (H scan +)
+Cs = Cs copy
+X = L // Q
+A = (Cs (H X upperindex)) mod 2 ** 32
+rem Split q at 2^16 to keep the
+rem products below 2^63.
+Q1 = Q mod 65536
+Q2 = Q // 65536
+T = Q1 * A + (Q2 * A mod 65536) * 65536
+Answer = (T mod 2 ** 32) sum
+Answer = Answer mod 2 ** 32
+Answer print
