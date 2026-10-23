@@ -1,0 +1,10 @@
+use testing
+
+test "n = 6"
+  use "527_randomizedbinary"
+  N = 6
+  run
+  ((Bn - 7 / 3) abs) less 0.000000001
+  Er = (Rn - 163 / 60) abs
+  Er less 0.000000001
+end
