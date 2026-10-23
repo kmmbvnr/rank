@@ -13,26 +13,16 @@ Sums len print
 Sums print
 
 
-rem Mark sums backwards so every coin
-rem is used at most once.
+rem Each shift reads the previous state, so every coin is used at most once.
 fun Coins money_sums
   Maximum = Coins sum
   Reachable = array shape (Maximum + 1) fill false
   Reachable 0 = true
 
   for Coin in Coins
-    for Total in Maximum to Coin by -1
-      if Reachable (Total - Coin)
-        Reachable Total = true
-      end
-    end
+    Reachable = (Reachable or (Reachable Coin shift with false)) copy
   end
 
-  Result = new queue
-  for Total in 1 to Maximum
-    if Reachable Total
-      Result push Total
-    end
-  end
-  return Result
+  Reachable 0 = false
+  return Reachable indices
 end

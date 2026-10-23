@@ -1,3 +1,4 @@
+import { registerPackedBooleanMap, countPackedBooleans } from './packed-booleans.js';
 import { matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType } from '@arrrank/language';
 import { arrayCellValidator } from './derived-array.js';
 import { checkpoint } from './interrupt.js';
@@ -68,6 +69,7 @@ export function registerTensorResult(value: RankValue): RankValue {
 export function registerTensorMap<T extends RankValue>(value: T, operator: string, operands: readonly RankValue[],
     layout: 'broadcast' | 'outer' = 'broadcast'): T {
     if (!isRankArray(value) || !mapOperators.has(operator)) return value;
+    if (layout === 'broadcast') registerPackedBooleanMap(value, operator, operands);
     let scope = active;
     if (!scope) for (const operand of operands) {
         if (isRankArray(operand)) scope = mapScope(operand);
@@ -83,6 +85,10 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
 /** Lower actual, checked native arrays after normal plan demand. Never inspect
  * RankPlan.expression or evaluate a producer to make a speculative guard pass. */
 export function reduceTensorMap(value: RankArray, operation: string): RankValue | undefined {
+    if (operation === 'count') {
+        const packed = countPackedBooleans(value);
+        if (packed !== undefined) return packed;
+    }
     if (!consumerCompilation || !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;

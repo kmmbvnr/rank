@@ -1,3 +1,4 @@
+import { mapPackedBooleanArrays } from './packed-booleans.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
@@ -35,6 +36,8 @@ export function mapBroadcastArrays(
 export function mapBooleanArrays(left: RankArray, right: RankArray, operator: 'and' | 'or' | 'xor'): RankArray | undefined {
     if (left.shape.length !== right.shape.length
         || left.shape.some((size, axis) => size !== right.shape[axis])) return undefined;
+    const packed = mapPackedBooleanArrays(left, right, operator);
+    if (packed) return packed;
     const a = denseScalarItems(left), b = denseScalarItems(right);
     if (!a || !b) return undefined;
     const items: boolean[] = new Array(a.length);

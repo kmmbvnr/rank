@@ -1,12 +1,13 @@
+import { bitmapWords, bitmapTailMask } from './bitmap.js';
 import { MISSING, type RankValue } from './value.js';
 
 /** Number of 32-bit words holding a bitmap for this many cells. */
-export function validityWords(size: number): number { return (size + 31) >>> 5; }
+export const validityWords = bitmapWords;
 
 /** A bitmap with the first `size` cells present. */
 export function allPresent(size: number): Uint32Array {
     const bits = new Uint32Array(validityWords(size)).fill(0xFFFFFFFF);
-    if (size & 31) bits[bits.length - 1] = (1 << (size & 31)) - 1;
+    if (bits.length) bits[bits.length - 1] &= bitmapTailMask(size);
     return bits;
 }
 

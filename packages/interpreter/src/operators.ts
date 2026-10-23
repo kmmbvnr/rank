@@ -1,3 +1,4 @@
+import { mapPackedBooleanArrays } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { demandValue } from './plan.js';
 import { constructingTensorPlan, registerTensorMap } from './tensor-map.js';
@@ -169,6 +170,10 @@ export class Operators {
             });
         }
         if (isRankArray(value)) {
+            if (operator === 'not' && !constructingTensorPlan(value)) {
+                const packed = mapPackedBooleanArrays(value);
+                if (packed) return packed;
+            }
             // Stored cells are read in place: `items` would unpack a typed buffer for good.
             const items = constructingTensorPlan(value) ? undefined : denseScalarItems(value);
             return items ? ownedArray(Array.from(items, item => this.evaluateUnary(operator, item)), value.shape)

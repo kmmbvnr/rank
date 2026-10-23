@@ -1,0 +1,55 @@
+{
+  "name": "intersection",
+  "size": 1000000,
+  "variant": "packed",
+  "fixture": "dense",
+  "checkout": "/private/tmp/rank-394-baseline",
+  "revision": "7734516b5c03a4fa6b393f4f3b2a411636b2038d",
+  "dirty": false,
+  "implementationHash": "40fc491f52c9cb1c0666863f81131459dbf4b9e102011cb0d8723dbe46fec4d4",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "timing": "fresh processes; execution excludes import, parsing, fixture construction and result validation; process includes all of these",
+  "sampling": "alternating candidate/baseline order",
+  "median": {
+    "importMs": 241.052291,
+    "fixtureMs": 3.420166999999992,
+    "parseMs": 189.985208,
+    "executionMs": 87.25433300000003,
+    "validationMs": 0.04616699999996854,
+    "peakRssBytes": 199278592,
+    "processMs": 589.7866249999997
+  },
+  "results": [
+    {
+      "importMs": 240.60895800000003,
+      "fixtureMs": 3.2840830000000096,
+      "parseMs": 154.177959,
+      "executionMs": 96.66612499999997,
+      "validationMs": 0.04616699999996854,
+      "answer": "1000000",
+      "peakRssBytes": 197918720,
+      "processMs": 562.712959
+    },
+    {
+      "importMs": 241.052291,
+      "fixtureMs": 3.6989999999999554,
+      "parseMs": 189.985208,
+      "executionMs": 87.25433300000003,
+      "validationMs": 0.04891699999996035,
+      "answer": "1000000",
+      "peakRssBytes": 199278592,
+      "processMs": 591.4300000000001
+    },
+    {
+      "importMs": 243.70954200000003,
+      "fixtureMs": 3.420166999999992,
+      "parseMs": 192.19891700000005,
+      "executionMs": 87.18354200000005,
+      "validationMs": 0.036166999999977634,
+      "answer": "1000000",
+      "peakRssBytes": 199524352,
+      "processMs": 589.7866249999997
+    }
+  ]
+}

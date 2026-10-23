@@ -4,6 +4,7 @@ Algorithm exercises from the [CSES Problem Set](https://cses.fi/problemset/), gr
 
 ## Folders
 
+- [Advanced Techniques](advanced/) — Dense row intersections and other advanced problems.
 - [Dynamic Programming](dynamic/) — Dynamic-programming problems from the [CSES Problem Set](https://cses.fi/problemset/).
 - [Graph Algorithms](graph/) — Graph traversal, paths and connectivity problems from the [CSES Problem Set](https://cses.fi/problemset/).
 - [Introductory Problems](intro/) — Introductory algorithm problems from the [CSES Problem Set](https://cses.fi/problemset/).

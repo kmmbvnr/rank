@@ -1,0 +1,28 @@
+rem CSES 2137: Corner Subgrid Count
+rem https://cses.fi/problemset/task/2137
+
+use io
+use sequences
+use text
+
+N = stdin .integer
+Grid = array shape N N fill false
+for I in 0 till N
+  Line = stdin .word
+  Grid I # = (Line "" split) equal "1"
+end
+Grid corner_count print
+
+
+rem Batch row intersections; each pair of common columns gives one rectangle.
+fun Grid corner_count
+  N = Grid shape 0
+  Total = 0
+  for I in 0 till N
+    Row' = Grid I
+    Later' = Grid ((I + 1) till N) #
+    Common = (Later and Row) count axis 1
+    Total += (Common * (Common - 1) // 2) sum
+  end
+  return Total
+end

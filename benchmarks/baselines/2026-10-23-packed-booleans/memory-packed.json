@@ -1,0 +1,60 @@
+{
+  "name": "memory",
+  "size": 1000000,
+  "variant": "packed",
+  "fixture": "dense",
+  "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-394",
+  "revision": "7734516b5c03a4fa6b393f4f3b2a411636b2038d",
+  "dirty": true,
+  "implementationHash": "00f47a7b76f18ca43b90ac094574dac66ccb9d124d73077f9da0c624170ef45a",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "timing": "fresh processes; execution excludes import, parsing, fixture construction and result validation; process includes all of these",
+  "sampling": "alternating candidate/baseline order",
+  "median": {
+    "importMs": 264.816583,
+    "allocationMs": 0.34933300000000145,
+    "cowMs": 0.13691699999998264,
+    "heapBytes": 3904,
+    "bufferBytes": 125000,
+    "cowHeapBytes": 6656,
+    "cowBufferBytes": 125000,
+    "peakRssBytes": 108625920,
+    "processMs": 342.62412500000005
+  },
+  "results": [
+    {
+      "importMs": 296.052958,
+      "allocationMs": 0.34933300000000145,
+      "cowMs": 0.13691699999998264,
+      "heapBytes": 3856,
+      "bufferBytes": 125000,
+      "cowHeapBytes": 6656,
+      "cowBufferBytes": 125000,
+      "peakRssBytes": 108298240,
+      "processMs": 377.230333
+    },
+    {
+      "importMs": 264.816583,
+      "allocationMs": 0.3908339999999839,
+      "cowMs": 0.1565830000000119,
+      "heapBytes": 3904,
+      "bufferBytes": 125000,
+      "cowHeapBytes": 6400,
+      "cowBufferBytes": 125000,
+      "peakRssBytes": 109461504,
+      "processMs": 342.62412500000005
+    },
+    {
+      "importMs": 245.93162499999997,
+      "allocationMs": 0.2896250000000009,
+      "cowMs": 0.11066699999997809,
+      "heapBytes": 3920,
+      "bufferBytes": 125000,
+      "cowHeapBytes": 6656,
+      "cowBufferBytes": 125000,
+      "peakRssBytes": 108625920,
+      "processMs": 334.3935839999999
+    }
+  ]
+}

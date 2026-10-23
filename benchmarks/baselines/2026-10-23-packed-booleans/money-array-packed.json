@@ -1,0 +1,55 @@
+{
+  "name": "money",
+  "size": 100,
+  "variant": "packed",
+  "fixture": "dense",
+  "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-394",
+  "revision": "7734516b5c03a4fa6b393f4f3b2a411636b2038d",
+  "dirty": true,
+  "implementationHash": "00f47a7b76f18ca43b90ac094574dac66ccb9d124d73077f9da0c624170ef45a",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "timing": "fresh processes; execution excludes import, parsing, fixture construction and result validation; process includes all of these",
+  "sampling": "alternating candidate/baseline order",
+  "median": {
+    "importMs": 390.02937499999996,
+    "fixtureMs": 16.566332999999986,
+    "parseMs": 278.09320800000006,
+    "executionMs": 68.21970799999997,
+    "validationMs": 11.49820800000009,
+    "peakRssBytes": 174276608,
+    "processMs": 861.491333
+  },
+  "results": [
+    {
+      "importMs": 390.02937499999996,
+      "fixtureMs": 16.172041000000036,
+      "parseMs": 278.09320800000006,
+      "executionMs": 68.21970799999997,
+      "validationMs": 11.49820800000009,
+      "answer": "49068",
+      "peakRssBytes": 173457408,
+      "processMs": 861.491333
+    },
+    {
+      "importMs": 458.371125,
+      "fixtureMs": 16.79166699999996,
+      "parseMs": 282.266084,
+      "executionMs": 71.16108299999996,
+      "validationMs": 11.716791000000057,
+      "answer": "49068",
+      "peakRssBytes": 175390720,
+      "processMs": 948.3386250000021
+    },
+    {
+      "importMs": 387.805709,
+      "fixtureMs": 16.566332999999986,
+      "parseMs": 274.760917,
+      "executionMs": 64.86424999999997,
+      "validationMs": 11.449792000000002,
+      "answer": "49068",
+      "peakRssBytes": 174276608,
+      "processMs": 856.3581669999985
+    }
+  ]
+}

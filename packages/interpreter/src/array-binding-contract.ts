@@ -1,4 +1,5 @@
 import { inheritConcatCheck } from './concat-array.js';
+import { registerPackedBooleanCheck } from './packed-booleans.js';
 import { resume, type Execution } from './execution.js';
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
@@ -342,6 +343,7 @@ export class ArrayBindingContract {
             registerScalarView(checked, source, index => index, { accepts: () =>
                 this.at(path)?.elements?.some(cell => cell.type === 'integer') === true,
                 check: validate, scalarCheck: true, linear: () => ({ offset: 0, stride: 1 }) });
+            registerPackedBooleanCheck(checked, source, validate);
             (this.checkedReaders ??= new WeakMap()).set(checked, { path, read: checked.itemAt,
                 shape: checked.shape, items: Object.getOwnPropertyDescriptor(checked, 'items')?.get });
             return checked;

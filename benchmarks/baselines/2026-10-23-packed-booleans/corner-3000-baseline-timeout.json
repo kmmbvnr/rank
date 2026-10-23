@@ -1,0 +1,24 @@
+{
+  "name": "corner",
+  "size": 3000,
+  "variant": "packed",
+  "checkout": "/private/tmp/rank-394-baseline",
+  "revision": "7734516b5c03a4fa6b393f4f3b2a411636b2038d",
+  "dirty": false,
+  "implementationHash": "40fc491f52c9cb1c0666863f81131459dbf4b9e102011cb0d8723dbe46fec4d4",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "timing": "fresh processes; execution excludes import, parsing, fixture construction and result validation; process includes all of these",
+  "median": {
+    "timeoutMs": 10000,
+    "processMs": 10014.559500000001
+  },
+  "results": [
+    {
+      "timedOut": true,
+      "validated": false,
+      "timeoutMs": 10000,
+      "processMs": 10014.559500000001
+    }
+  ]
+}

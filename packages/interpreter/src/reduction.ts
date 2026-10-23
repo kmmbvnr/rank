@@ -1,3 +1,4 @@
+import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
 import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -242,7 +243,13 @@ export class ReductionEvaluator {
             reducedOffsets = new Int32Array(reducedSize);
             for (let index = 0; index < reducedSize; index += 1) reducedOffsets[index] = offsetAt(index, reducedAxes);
         }
+        const packedCount = builtin && operation === 'count' && reducedAxes.length > 0
+            && reducedAxes.every((axis, i) => axis === value.shape.length - reducedAxes.length + i);
         const reduceAt = (frameIndex: number): RankValue => {
+            if (!producer && packedCount) {
+                const packed = countPackedBooleanRange(value, offsetAt(frameIndex, frameAxes), reducedSize);
+                if (packed !== undefined) return packed;
+            }
             if (producer) return reducer.call([producer.cellAt(frameIndex)]);
             if (scalarCells && hasNativeImplementation(reducer)) {
                 const cell = scalarCells.cellAt(frameIndex);

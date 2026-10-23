@@ -1,0 +1,25 @@
+use testing
+
+test "official example"
+  use "004_cornercount"
+  Grid = array shape 5 5
+    false false false true false
+    true true true true true
+    false false true true false
+    true true false false true
+    false false false true false
+  end
+  Grid corner_count equal 4
+end
+
+test "all black"
+  use "004_cornercount"
+  Grid = array shape 33 33 fill true
+  Grid corner_count equal 278784
+end
+
+test "no rectangles"
+  use "004_cornercount"
+  Grid = array shape 1 1 fill true
+  Grid corner_count equal 0
+end

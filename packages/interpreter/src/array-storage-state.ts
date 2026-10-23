@@ -1,11 +1,13 @@
+import type { BooleanCells } from './boolean-cells.js';
 import type { RankArray, RankValue } from './value.js';
 import type { ResourceSummary } from './resource-summary.js';
 import type { StoredValueSummary } from './stored-value.js';
 
 export interface OwnedStorage {
-    /** The cells. Typed storage stands in here while `typed` is set: only index
-     * and length reads are valid on it, and `convert` swaps in a plain array. */
+    /** The scalar ArrayLike facade while typed or boolean storage is set: only
+     * index, length and iteration are supported. `convert` swaps in a plain array. */
     items: RankValue[];
+    booleans?: BooleanCells;
     typed?: Float64Array | BigInt64Array | Int32Array;
     /** Bit i set means cell i of `typed` has a value; absent when every cell has one.
      * The buffer holds 0 in a cell without a value. A masked array is not

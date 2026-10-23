@@ -1,4 +1,5 @@
 /// <reference lib="es2021.weakref" />
+import { BooleanCells } from './boolean-cells.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import type { RankArray, RankValue } from './value.js';
@@ -62,7 +63,13 @@ export function retainSelectionSnapshot(value: RankArray, source: RankArray,
         const stored = denseScalarItems(source);
         if (!stored || ownedStorage.get(source)?.readOnlyCells) return false;
         const size = shape.reduce((a, b) => a * b, 1);
-        const items = Array.from({ length: size }, (_, index) => {
+        const bits = ownedStorage.get(source)?.booleans;
+        const cells = bits ? new BooleanCells(size) : undefined;
+        if (cells && bits) for (let index = 0; index < size; index++) {
+            if ((index & 4095) === 0) checkpoint('snapshotting selection', Math.min(4096, size - index));
+            cells.write(index, bits.read(offsetAt(index)));
+        }
+        const items = cells ?? Array.from({ length: size }, (_, index) => {
             if ((index & 4095) === 0) checkpoint('snapshotting selection', Math.min(4096, size - index));
             return stored[offsetAt(index)];
         });
@@ -149,6 +156,11 @@ export function isSharedArray(value: RankValue): boolean {
 /** Storage this name owns alone. The result is unbound: the caller binds it. */
 export function privateArrayCopy(value: RankArray): RankArray {
     const stored = ownedStorage.get(value);
+    if (stored?.booleans) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) { diagnostics.cowCopies++; diagnostics.cowCopiedCells += stored.booleans.length; }
+        return createOwned(stored.booleans.slice(), value.shape, true, value.columnNames);
+    }
     if (stored?.typed) {
         const diagnostics = currentDiagnostics();
         if (diagnostics) {

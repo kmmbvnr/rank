@@ -36,7 +36,9 @@ describe('tensor catalogue overloads', () => {
                 const compiled = run(expression, left, right, signature.result === 'boolean', true);
                 expect(reference).not.toHaveProperty('error');
                 expect({ ...compiled, kernels: 0 }).toEqual(reference);
-                expect(compiled.kernels).toBe(1);
+                // Boolean inputs use native word reductions instead of emitted
+                // per-cell tensor code. Numeric signatures still compile.
+                expect(compiled.kernels).toBe(signature.inputs.includes('boolean') ? 0 : 1);
             });
         }
     }

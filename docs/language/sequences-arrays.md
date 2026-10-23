@@ -525,6 +525,25 @@ Right = M 1 shift with 9 axis 1
 Unlike `window`, `shift` never changes the length of an axis. It is available
 for arrays and is a lazy, read-only view of its source.
 
+Materialized boolean arrays use packed bits. Same-shape `and`, `or`, `xor`,
+`not`, `count`, `indices`, and rank-one `shift with false` can use word kernels.
+For example, subset-sum updates keep the previous state while shifting:
+
+```rank
+Reach = array shape 16 fill false
+Reach 0 = true
+for Weight in array 3 5 7
+  Reach = (Reach or (Reach Weight shift with false)) copy
+end
+Reach 0 = false
+Sums = Reach indices
+```
+
+`copy` completes each update before the next iteration. Ordinary indexing and
+copy-on-write apply to packed arrays too. A contiguous matrix row can participate
+in `(RowA and RowB) count` without a separate unpacked intersection. Matrix/row broadcasting with `count axis 1` batches these intersections. Other
+broadcast and axis forms retain their existing semantics and general paths.
+
 ## Addressing with a coordinate vector
 
 `unpack` spreads a rank-1 array into separate addresses, so one vector can name

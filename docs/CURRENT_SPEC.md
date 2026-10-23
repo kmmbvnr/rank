@@ -725,6 +725,15 @@ mask with a flag, put the mask first: `Mask and Flag`. With an array or mask
 on the left, both sides always run and combine elementwise. `xor` and the
 compound assignments `and=`, `or=` and `xor=` always evaluate both sides.
 
+Materialized boolean arrays use packed bit storage. This does not introduce a
+new value type or change indexing, shapes, broadcasting or assignment rules.
+Same-shape logical chains, matrix/row broadcasting, zero-filled rank-one
+shifts, `count` and `indices` can operate on words without unpacking cells. `copy` is the explicit snapshot
+boundary for a lazy mask; aliases remain protected by copy-on-write.
+Trailing-axis `count` can reduce contiguous cells in packed form. Higher-rank
+shifts and other broadcasting forms keep the ordinary paths when no packed
+kernel applies.
+
 Current comparison vocabulary includes:
 
 ```rank

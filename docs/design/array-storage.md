@@ -28,6 +28,26 @@ mutation guarantees does not make Rank callbacks pure.
 
 ## Numeric kernels
 
+Boolean arrays have a separate value bitmap (`BooleanCells`), with 32 logical
+cells per `Uint32Array` word. Its payload is `4 * ceil(size / 32)` bytes;
+missing-value validity remains an independent bitmap. Boolean fills allocate
+this buffer directly. Addressed boolean writes and COW copies retain it.
+Exposing public JS `items` converts to an ordinary tracked array, as numerical
+typed storage does. Internal scalar readers can borrow a boolean `ArrayLike`
+facade; word kernels bypass that facade.
+
+Native logical, rank-one zero-filled shift, and contiguous selection recipes
+have packed read plans. Plans retain no computed values, do not read unknown
+producers during admission, and are rechecked at demand. A row can start at an
+unaligned bit offset. `count` fuses logical words with popcount, including row
+intersections. Rank-two row broadcasting and trailing-axis `count` batch
+contiguous intersections. Binding wrappers validate the uniform boolean domain
+once per reduction cell without losing the packed read plan. `copy` writes logical words directly into a fresh packed buffer.
+Scalar tensor compilation delegates packed logical graphs to these kernels;
+other compiled boolean copies allocate packed output directly. Other broadcasting forms,
+strided views and higher-rank shifts retain general evaluation. Inspection uses
+the ordinary observable path, and bulk kernels poll cancellation.
+
 Stored numerical arrays can use eager elementwise kernels even below 1024 cells.
 Unread operands and per-cell numeric errors retain the lazy fallback. Small
 comparison masks remain lazy and read-only; explicit `copy` or `array` makes

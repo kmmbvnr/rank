@@ -1,3 +1,4 @@
+import { BooleanCells, booleanItems } from './boolean-cells.js';
 import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
@@ -54,6 +55,7 @@ export function storedScalarKinds(value: RankArray): readonly string[] | undefin
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly) return undefined;
     // An integer buffer can hold nothing else, and scanning it would box every cell.
+    if (state.booleans) return state.booleans.length ? ['boolean'] : [];
     if (state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) return state.typed.length ? ['integer'] : [];
     if (!state.elementKinds) {
         const kinds = new Map<string, number>();
@@ -128,6 +130,7 @@ const fitsInt64 = (value: bigint) => value >= INT64_MIN && value <= INT64_MAX;
  * bits; any other value turns the buffer into boxed cells first. Callers record
  * the revision and scalar kinds. */
 function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
+    if (state.booleans && typeof value === 'boolean') { state.booleans.write(index, value); return; }
     let typed = state.typed;
     if (typed instanceof Int32Array && !state.validity && typeof value === 'bigint') {
         if (fitsInt32(value)) {
@@ -146,11 +149,12 @@ function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
     state.items[index] = value;
 }
 
-/** One cell write through the array's own interface, except that an integer
- * buffer keeps an integer that fits rather than unpacking for it. */
+/** Same-domain scalar writes keep their compact buffer. Other writes pass
+ * through the tracked ordinary facade after conversion. */
 export function writeArrayCell(value: RankArray, index: number, item: RankValue): void {
     const state = ownedStorage.get(value);
-    if (state?.stable && (state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) && !state.validity && typeof item === 'bigint') {
+    if (state?.stable && (state.booleans && typeof item === 'boolean'
+        || (state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) && !state.validity && typeof item === 'bigint')) {
         state.revision = noteMutation(state.birth);
         storeCell(state, index, item);
     } else {
@@ -176,7 +180,8 @@ export function fillBooleanSelection(
     state.revision = noteMutation(state.birth);
     for (let i = 0; i < count; i++) {
         checkpoint('writing array');
-        state.items[offsetAt(i)] = operand;
+        if (state.booleans) state.booleans.write(offsetAt(i), operand);
+        else state.items[offsetAt(i)] = operand;
     }
 }
 
@@ -315,6 +320,7 @@ export function ownedArray(
             if (kind || items.length === 0) scalarKinds = new Map(kind ? [[kind, items.length]] : []);
         }
     }
+    if (scalarKinds?.size === 1 && scalarKinds.has('boolean')) return createOwned(BooleanCells.from(items as boolean[]), shape, true, columnNames, undefined, metadata);
     const packed = scalarKinds?.size === 1 && scalarKinds.has('integer') ? packedIntegers(items) : undefined;
     if (packed) return createOwned(packed, shape, true, columnNames, undefined, metadata);
     const value = createOwned(items, shape, scalarOnly, columnNames, undefined, metadata);
@@ -325,6 +331,7 @@ export function ownedArray(
 /** Takes fresh cells selected from storage with one proved primitive kind.
  * Internal kernels must preserve that kind; this is not a validation entry. */
 export function ownedScalarArray(items: RankValue[], kind: string, shape: readonly number[] = [items.length]): RankArray {
+    if (kind === 'boolean') return createOwned(BooleanCells.from(items as boolean[]), shape, true);
     const packed = kind === 'integer' ? packedIntegers(items) : undefined;
     if (packed) return typedArray(packed, shape);
     const value = createOwned(items, shape, true);
@@ -336,6 +343,11 @@ export function ownedScalarArray(items: RankValue[], kind: string, shape: readon
  * shape. Nested/missing fills keep the ordinary storage and validity rules. */
 export function filledArray(fill: RankValue, shape: readonly number[]): RankArray {
     const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
+    if (typeof fill === 'boolean') {
+        const cells = new BooleanCells(size);
+        if (fill) { cells.words.fill(0xffffffff); cells.trim(); }
+        return createOwned(cells, shape, true);
+    }
     if (typeof fill === 'bigint' && size >= PACKED_CELLS && fitsInt64(fill)) {
         return typedArray(fitsInt32(fill) ? new Int32Array(size).fill(Number(fill)) : new BigInt64Array(size).fill(fill), shape);
     }
@@ -416,7 +428,7 @@ export function sharedTypedArray(data: Float64Array | BigInt64Array | Int32Array
 export function reshapeStoredArray(value: RankArray, shape: readonly number[]): RankArray | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly || state.validity || state.readOnlyCells) return undefined;
-    const result = createOwned(state.typed ?? state.items, shape, true);
+    const result = createOwned(state.booleans ?? state.typed ?? state.items, shape, true);
     state.owners = SHARED;
     const reshaped = ownedStorage.get(result)!;
     reshaped.owners = SHARED;
@@ -609,11 +621,12 @@ export function writeInteger32Cells(value: RankArray, cells: ArrayLike<number | 
 }
 
 export function createOwned(
-    cells: RankValue[] | Float64Array | BigInt64Array | Int32Array, shape: readonly number[], scalarOnly: boolean,
+    cells: RankValue[] | Float64Array | BigInt64Array | Int32Array | BooleanCells, shape: readonly number[], scalarOnly: boolean,
     columnNames?: readonly string[], validity?: Uint32Array, metadata?: ArrayMetadata,
 ): RankArray {
-    const typed = Array.isArray(cells) ? undefined : cells;
-    const items = (cells instanceof Int32Array ? integer32Items(cells) : cells) as RankValue[];
+    const booleans = cells instanceof BooleanCells ? cells : undefined;
+    const typed = Array.isArray(cells) || cells instanceof BooleanCells ? undefined : cells;
+    const items = (booleans ? booleanItems(booleans) : cells instanceof Int32Array ? integer32Items(cells) : cells) as RankValue[];
     if (!typed && !scalarOnly) {
         // Cells with no value are kept beside a numeric buffer, not in it.
         const found = scanForMissing(items);
@@ -621,7 +634,7 @@ export function createOwned(
         else if (found) return createOwned(found.values, shape, false, columnNames, found.validity, metadata);
     }
     const state: OwnedStorage = {
-        items, typed, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
+        items, typed, booleans, validity, shape: [...shape], revision: writeRevision, birth: nextCreationSerial(),
         scalarOnly: !validity && (typed !== undefined || scalarOnly || items.every(item => typeof item !== 'object')),
         stable: true, resources: undefined!, stored: undefined!,
     };
@@ -632,7 +645,7 @@ export function createOwned(
     const raw = { kind: 'array' as const, items: undefined as unknown as RankValue[], shape: Object.freeze([...shape]),
         ...metadata,
         ...(columnNames === undefined ? {} : { columnNames: Object.freeze([...columnNames]) }) };
-    if (typed) {
+    if (typed || booleans) {
         Object.defineProperty(raw, 'items', { configurable: true, enumerable: true, get: () => { state.convert!(); return raw.items; } });
         state.convert = () => {
             const diagnostics = currentDiagnostics();
@@ -650,6 +663,7 @@ export function createOwned(
             }
             state.items = plain;
             state.typed = undefined;
+            state.booleans = undefined;
             state.convert = undefined;
             Object.defineProperty(raw, 'items', { value: new Proxy(plain, new OwnedItemsHandler(state)), writable: true, enumerable: true, configurable: true });
         };
@@ -668,7 +682,7 @@ export function createOwned(
 export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | number | boolean | string) => void {
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
-    if (!state) return (index, item) => { array.items[index] = item; };
+    if (!state) return (index, item) => { writeArrayCell(array, index, item); };
     let changed = false;
     return (index, item) => {
         // Batching is allowed only in a compiler-proved region with no lazy

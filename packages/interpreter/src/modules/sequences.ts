@@ -1,3 +1,4 @@
+import { materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
 import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
 import { materializeValue } from '../materialize.js';
@@ -239,6 +240,14 @@ function trueIndices(value: RankValue): RankArray {
     const positions: bigint[] = [];
     const rank = value.shape.length;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
+    const packed = packedTruePositions(value);
+    if (packed) {
+        for (const index of packed) {
+            if (rank === 1) positions.push(BigInt(index));
+            else for (const coordinate of coordinatesAt(value.shape, index)) positions.push(BigInt(coordinate));
+        }
+        return ownedArray(positions, rank === 1 ? [positions.length] : [positions.length / rank, rank]);
+    }
     for (let index = 0; index < size; index += 1) {
         if (index % 4096 === 0) checkpoint('finding indices');
         const item = readArrayItem(value, index);
@@ -262,6 +271,8 @@ export function copyArray(value: RankValue): RankArray {
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);
+    const packed = materializePackedBooleans(value);
+    if (packed) { inheritArrayDeclaration(value, packed); return setSemanticArrayType(packed, type); }
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const copied = inspectionEnabled() ? undefined : copyMaterializedArrayItems(value, size);
     const integers = copied || inspectionEnabled() ? undefined : prepareIntegerView(value, true);

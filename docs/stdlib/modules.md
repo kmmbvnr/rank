@@ -1228,6 +1228,15 @@ integer zero, or the single value after `with`. `axis` defaults to zero and
 follows `with`. Shift is array-only,
 lazy and read-only.
 
+Materialized boolean arrays use packed bits. Same-shape logical operations,
+`count`, `indices`, and rank-one `shift with false` can use word kernels; `copy`
+creates an independent packed snapshot. For example,
+`Reach = (Reach or (Reach Weight shift with false)) copy` updates a subset-sum
+mask using each weight once. `(RowA and RowB) count` can count common true cells
+without constructing an unpacked intersection. Matrix/row broadcasting with
+`count axis 1` batches row intersections. Other broadcasting forms, arbitrary axes,
+and lazy readers keep their existing semantics and may use the general path.
+
 ## JSON
 
 `use json` decodes a complete JSON document from text into Rank values:

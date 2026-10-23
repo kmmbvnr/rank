@@ -1,3 +1,6 @@
+import { BooleanCells } from './boolean-cells.js';
+import { ownedStorage } from './array-storage-state.js';
+import { createOwned } from './owned-array.js';
 import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
 import { applicationForm } from '@arrrank/language';
@@ -41,7 +44,7 @@ export interface TensorKernelHost {
     compiled?(source: string): void;
     valid?(): boolean;
 }
-type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | undefined;
+type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | BooleanCells | undefined;
 type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
     checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[]) => KernelResult;
 export type TensorCodeCache = Map<string, KernelRun>;
@@ -262,8 +265,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     // Typed results are already complete. Boxed fallback retains its scalar proof.
-    const copied = (items: RankValue[] | Float64Array | IntegerCells, shape: readonly number[]): RankValue =>
-        items instanceof IntegerCells ? items.array(shape) : items instanceof Float64Array ? typedArray(items, shape) : integerOutput
+    const copied = (items: RankValue[] | Float64Array | IntegerCells | BooleanCells, shape: readonly number[]): RankValue =>
+        items instanceof BooleanCells ? createOwned(items, shape, true) : items instanceof IntegerCells ? items.array(shape) : items instanceof Float64Array ? typedArray(items, shape) : integerOutput
         ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
     const nativeCalls = [...new Set([...domains.keys()].flatMap(node =>
         node.kind === 'binary' && node.native ? [node.native] : []))];
@@ -302,6 +305,19 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (structural.some(node => node.kind === 'reshape') && !host.builtin('reshape')) return recordFallback('tensor:builtin:reshape');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
+        // Native boolean recipes have word kernels. A scalar emitter would
+        // unpack their advantage into one load/operation/store per bit.
+        const booleanInput = (node: TensorNode): boolean => {
+            if (node.kind === 'input') {
+                const value = node.name === undefined ? node.value : host.lookup(node.name);
+                return typeof value === 'boolean' || value !== undefined && isRankArray(value) && ownedStorage.get(value)?.stable === true
+                    && ownedStorage.get(value)?.booleans !== undefined;
+            }
+            return node.kind === 'binary' && ['and', 'or', 'xor'].includes(node.op)
+                ? booleanInput(node.left) && booleanInput(node.right)
+                : node.kind === 'unary' && node.op === 'not' && booleanInput(node.operand);
+        };
+        if ((root.kind === 'binary' || root.kind === 'unary') && booleanInput(root)) return undefined;
         // Interrupt callbacks may enter this kernel again with another shape.
         const plan = layout;
         if (plan && plan.interruptible === interruptsEnabled() && (implicit || host.builtin(terminal))) {
@@ -336,7 +352,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     if (host.valid?.() === false) return recordFallback('tensor:stale-input');
                     const result = selected.execute(data, offsets, scalars, selected.size, checks, routes);
                     return terminal === 'copy' && result !== undefined
-                        ? copied(result as RankValue[] | Float64Array | IntegerCells, selected.shape) : result as RankValue | undefined;
+                        ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape) : result as RankValue | undefined;
                 }
             }
         }
@@ -723,7 +739,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             const value = emit(root);
             const isBoolean = terminal === 'copy' ? output.boolean : ['any', 'all', 'count'].includes(terminal);
             lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return decline('tensor:terminal-type:${terminal}');`);
-            if (terminal === 'copy') lines.push(outputKind === 'integer' ? `answer.set(i, ${value});`
+            if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.set(i, ${value});`
                 : compact ? `answer.push(${value});` : `answer[i] = ${value};`);
             if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
             if (terminal === 'mean') lines.push(`answer += Number(${value});`);
@@ -733,14 +749,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 : `answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
-            const initial = terminal === 'copy' ? outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
+            const initial = terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
             generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
-                try { execute = new Function('checkpoint', 'decline', 'IntegerCells', generated)(checkpoint, recordFallback, IntegerCells) as KernelRun; }
+                try { execute = new Function('checkpoint', 'decline', 'IntegerCells', 'BooleanCells', generated)(checkpoint, recordFallback, IntegerCells, BooleanCells) as KernelRun; }
                 catch { unavailable = true; return recordFallback('tensor:code-generation'); }
                 if (code) {
                     if (code.size >= 32) code.delete(code.keys().next().value!);
@@ -773,7 +789,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         const result = execute!(data, offsets, scalars, size, checks, routes);
         if (terminal === 'copy' && result !== undefined) {
-            return copied(result as RankValue[] | Float64Array | IntegerCells, compact ? [(result as RankValue[]).length] : output.shape);
+            return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, compact ? [(result as RankValue[]).length] : output.shape);
         }
         return result as RankValue | undefined;
     }

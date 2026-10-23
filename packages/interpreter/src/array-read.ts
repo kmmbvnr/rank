@@ -54,7 +54,7 @@ export function* storedArrayValues(value: RankArray): IterableIterator<RankValue
  * observable index getters, and must keep the ordinary cell-reading path. */
 export function copyMaterializedArrayItems(value: RankArray, size: number): RankValue[] | undefined {
     const owned = ownedStorage.get(value);
-    if (!owned?.stable || owned.typed || size >= STREAM_CELLS) return undefined;
+    if (!owned?.stable || owned.typed || owned.booleans || size >= STREAM_CELLS) return undefined;
     const items = materializedArrayItems(value);
     if (items?.length !== size) return undefined;
     checkpoint('copying array', size);
@@ -237,7 +237,7 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     if (!state?.stable) return value;
     // An integer buffer is borrowed packed. A write that does not fit replaces
     // it with boxed cells, so the view and its readers follow state.items.
-    if (!(state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) || state.validity) state.convert?.();
+    if (!state.booleans && (!(state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) || state.validity)) state.convert?.();
     const view: RankArray = { kind: 'array', shape: [...value.shape], get items() { return state.items; } };
     borrowedStorage.set(view, state);
     return view;
@@ -250,7 +250,8 @@ function preparedReaderStorage(
     stableReads: boolean,
 ): { cells: { readonly items: readonly RankValue[] }; shape: readonly number[] } | undefined {
     const array = value as RankArray;
-    const state = array && borrowedStorage.get(array);
+    const owned = array && ownedStorage.get(array);
+    const state = (array && borrowedStorage.get(array)) ?? (stableReads && owned?.stable && owned.booleans ? owned : undefined);
     // The caller proves no array writes, callbacks or iterators in the region.
     // Only completed, revision-tracked storage qualifies: never force cells.
     const cached = !state && stableReads && array && arrayRevision(array) !== undefined

@@ -1,3 +1,4 @@
+import { materializePackedBooleans } from './packed-booleans.js';
 import type { CallParameter } from '@arrrank/language';
 import { denseScalarItems, collectArrayCells, ownedArray, ownedObject } from './array-storage.js';
 import { demandValue } from './plan.js';
@@ -64,6 +65,10 @@ export function materializeValue(value: RankValue): RankValue {
                 : groupTable(rows, computed.fields, computed.rollup);
         }
         if (isStoredValue(computed)) return { value: computed };
+        if (isRankArray(computed)) {
+            const packed = materializePackedBooleans(computed);
+            if (packed) return { value: inheritSemanticArrayType(computed, packed) };
+        }
         const previous = known.get(computed);
         if (previous) return { value: computed, node: previous };
         const aggregate = aggregateValue(computed);

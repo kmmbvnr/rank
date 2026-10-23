@@ -1,3 +1,4 @@
+import { registerPackedBooleanShift } from './packed-booleans.js';
 import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
 import { arrayElementTypes } from './array-element-types.js';
@@ -625,13 +626,15 @@ export function shiftValue(
     const amount = Number(amountValue);
     if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
     const shape = source.shape;
-    return derivedArray(shape, [source, fillValue], linear => {
+    const result = derivedArray(shape, [source, fillValue], linear => {
         const coordinates = arrayCoordinates(shape, linear);
         coordinates[axis] -= amount;
         if (coordinates[axis] < 0 || coordinates[axis] >= shape[axis]) return fillValue;
         const offset = arrayOffset(shape, coordinates);
         return source.itemAt?.(offset) ?? source.items[offset];
     });
+    registerPackedBooleanShift(result, source, amount, fillValue, axis);
+    return result;
 }
 
 function windowWidths(value: RankValue): number[] {

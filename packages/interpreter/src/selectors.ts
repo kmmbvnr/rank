@@ -1,3 +1,4 @@
+import { registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
 import { permutedArray } from './array-permutation.js';
@@ -36,6 +37,7 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
         linear = { offset: 0, stride: 1 };
         dependencies[0] = snapshot;
     });
+    registerPackedBooleanSelection(result, () => current, () => linear?.stride === 1 ? linear.offset : undefined);
     return result;
 }
 

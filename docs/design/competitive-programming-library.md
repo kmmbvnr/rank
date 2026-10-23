@@ -39,11 +39,19 @@ persistent machinery.
 | Structure | Problems it makes direct | Question to settle first |
 | --- | --- | --- |
 | Sparse table | immutable idempotent range queries | Is O(1) query faster than `segment` after construction cost? |
-| Dynamic bitset | subset DP, reachability, dense graph sets | Can boolean arrays expose the same word-level speed without a new type? |
 | Rollback DSU | offline dynamic connectivity | How are snapshots represented without exposing an undo log? |
 | Binary or xor trie | prefix lookup and maximum-xor queries | Can text tries and integer-bit tries share a useful model? |
 | Li Chao tree | minimum or maximum line queries | What numeric domain and overflow rules does it promise? |
 | Disjoint sparse table | static associative range queries | Does it beat the simpler segment tree on Rank workloads? |
+
+Ordinary materialized boolean arrays now provide packed storage, addressed
+writes, COW, logical word kernels, rank-one zero-filled shifts, and fused
+intersection counts (issue #394). This needs no public bitset type. Money Sums
+and Corner Subgrid Count exercise the backend; see
+[`benchmarks/packed-booleans-results.md`](../../benchmarks/packed-booleans-results.md)
+for time, memory and limits. Dense DAG reachability at 50000 nodes remains a
+separate algorithm/memory feasibility question; packing alone does not establish
+that it fits the judge limits.
 
 An ordered-statistics tree is not listed separately yet. Rank multisets already
 support sorted indexing, lower bounds and duplicates. A new type needs a task
