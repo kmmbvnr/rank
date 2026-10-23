@@ -190,5 +190,6 @@
   "euler/504_squareinside.ra": "To fix later: the default input takes about 18 s (5 x 10^7 pair sums looked up in a square table, mostly selector checks #421); the small _test.ra fixture stays in the audits.",
   "euler/505_bidirectional.ra": "Not reachable yet: the default needs about 1.9 x 10^9 alpha-beta nodes (counted in the eulersolve C++), and the explicit-stack loop runs uncompiled at about 90 us per node (body over 32 statements, #419), roughly two days; the _test.ra fixtures check n up to 10^6.",
   "euler/507_shortestlattice.ra": "To fix later: the default input takes about 10.5 min (2 x 10^7 lattices, each reduced in about 6 array rounds of L1 Gauss steps); the small _test.ra fixture stays in the audits.",
-  "euler/511_nicesequences.ra": "To fix later: the default input takes about 3.5 min (about 60 cyclic convolutions of length 4321, each a 4321 x 4322 circulant built by a gather, #421); the small _test.ra fixture stays in the audits."
+  "euler/511_nicesequences.ra": "To fix later: the default input takes about 3.5 min (about 60 cyclic convolutions of length 4321, each a 4321 x 4322 circulant built by a gather, #421); the small _test.ra fixture stays in the audits.",
+  "euler/513_integralmedian.ra": "To fix later: the default input takes about 42 s (floor sums over about 10^6 trapezoid calls for each of about 450 quotient values); the small _test.ra fixture stays in the audits."
 }

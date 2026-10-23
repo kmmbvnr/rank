@@ -1,0 +1,14 @@
+use testing
+
+test "statement and reference values"
+  use "513_integralmedian"
+  N = 10
+  run
+  Answer equal 3
+  N = 100
+  run
+  Answer equal 835
+  N = 1000
+  run
+  Answer equal 149869
+end

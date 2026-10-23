@@ -1,0 +1,217 @@
+rem Integral median
+rem https://projecteuler.net/problem=513
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000
+
+rem Following the eulersolve method:
+rem the triangles map to lattice
+rem points of trapezoids in two
+rem parameter pairs, counted by
+rem Euclidean floor sums (all calls at
+rem once), with a hyperbola split at
+rem sqrt(3n/2); F(n) = f(n) - sum of
+rem F(n // k) over odd k >= 3.
+fun Sl It Dn Lo Hi Bd trap
+  rem Sum of floor((Sl x + It)/Dn) for
+  rem Lo < x <= Hi, minus 1 inside when
+  rem not Bd, for many calls at once.
+  Res = Sl * 0
+  Ss = Sl copy
+  Is = It copy
+  Ds = Dn copy
+  Ls = Lo copy
+  Hs = Hi copy
+  Bs = Bd copy
+  Ac = (0 till Sl len) copy
+  for Ac len greater 0
+    A = Ss Ac
+    B = Is Ac
+    D = Ds Ac
+    L = Ls Ac
+    U = Hs Ac
+    Q = Bs Ac
+    Sm = ((U - L) abs) at most 8
+    rem Short ranges: add directly.
+    Si = Sm indices
+    Mn = (L Si) (U Si) min
+    Wd = ((U Si) - (L Si)) abs
+    Aj = (Q Si) choose 0 1
+    Ui = U Si
+    Li = L Si
+    Sg = (Ui greater Li) choose 1 0
+    Sg = 2 * Sg - 1
+    Sv = Si * 0
+    for O in 1 to 8
+      X = Mn + O
+      Fv = (A Si) * X + (B Si) - Aj
+      Fv = Fv // (D Si)
+      Sv += (O at most Wd) choose Fv 0
+    end
+    Res (Ac Si) += Sg * Sv
+    rem Long ranges: one Euclid step.
+    Gi = (Sm equal false) indices
+    A = A Gi
+    B = B Gi
+    D = D Gi
+    L = L Gi
+    U = U Gi
+    Q = Q Gi
+    Rd = (U - L) * (B // D)
+    B = B mod D
+    Tg = (U - L) * (U + L + 1) // 2
+    Rd += Tg * (A // D)
+    A = A mod D
+    Nz = A not equal 0
+    Uv = (A * U + B) // D
+    Lv = (A * L + B) // D
+    Rd += Nz choose (U * Uv - L * Lv) 0
+    Zc = (B equal 0) and (Q equal false)
+    Zc = (Nz equal false) and Zc
+    Rd -= Zc choose (U - L) 0
+    Ix = Ac Gi
+    Res Ix += Rd
+    Kp = Nz indices
+    Ix = Ix Kp
+    Ss Ix = D Kp
+    Ds Ix = A Kp
+    Is Ix = 0 - B Kp
+    Ls Ix = Uv Kp
+    Hs Ix = Lv Kp
+    Bs Ix = (Q Kp) equal false
+    Ac = Ix
+  end
+  return Res
+end
+fun Sl It Dn Lo Hi Bd Xr Yr trap2
+  rem The same over p = x, q = y mod 2.
+  I2 = It + (Yr mod 2) * Dn
+  Xo = Xr mod 2
+  I2 = I2 - Xo * Sl
+  L2 = (Lo + Xo) // 2
+  H2 = (Hi + Xo) // 2
+  S2 = 2 * Sl
+  D2 = 2 * Dn
+  return S2 I2 D2 L2 H2 Bd trap
+end
+fun V fval
+  R = (V + V // 2) isqrt
+  Cs = array 0 1 1 0 1 1
+  Tot = 0
+  for Ci in 0 to 2
+    I = Cs (2 * Ci)
+    J = Cs (2 * Ci + 1)
+    rem Small generators (s, t).
+    Sv = (2 till R) copy
+    Tm = (Sv * Sv // 3) isqrt 1 max
+    Ok = Sv mod 2 equal 0
+    Ok = Ok or (I equal J)
+    T0 = (Sv - 1) mod 2 + 1
+    Ct = ((Tm - T0) // 2 + 1) 0 max
+    Ct = Ok choose Ct 0
+    Of = Ct scan + with 0
+    Tl = Of last
+    if Tl greater 0
+      Ow = array shape Tl fill 0
+      Ix = (Ct greater 0) indices
+      Ow (Of Ix) = Ix
+      Ow = Ow scan max
+      S = Sv Ow
+      Tq = (0 till Tl) - Of Ow
+      T = T0 Ow + 2 * Tq
+      Vm = T * V // ((S - T) * (S + T))
+      Dx = S * S + 2 * S * T - T * T
+      Vx = V * (S + T) // Dx
+      Z = S * 0
+      Ys = Z + I
+      Xs = Z + J
+      Tr = Z equal 0
+      Ra = S Z T Z Vm Tr Xs Ys trap2
+      Tot += Ra sum
+      Zv = Z + V
+      Rb = T Zv S Vm Vx Tr Xs Ys trap2
+      Tot += Rb sum
+      Fa = Tr equal false
+      S3 = S + 3 * T
+      St = S + T
+      Ad = S3 Z St Z Vx Fa Xs Ys trap2
+      Tot -= Ad sum
+    end
+    rem Large generators: fix (u, v).
+    Um = (V + V // 2) // R
+    U0 = 1 + (I + 1) mod 2
+    V0 = 1 + (J + 1) mod 2
+    Uv = (U0 to Um by 2) copy
+    Vt = (V // 2) (Uv - 1) min
+    Cv = ((Vt - V0) // 2 + 1) 0 max
+    Of = Cv scan + with 0
+    Tl = Of last
+    if Tl greater 0
+      Ow = array shape Tl fill 0
+      Ix = (Cv greater 0) indices
+      Ow (Of Ix) = Ix
+      Ow = Ow scan max
+      U = Uv Ow
+      W = V0 + 2 * ((0 till Tl) - Of Ow)
+      Sr = U * 0
+      if I equal J
+        U = concat U U
+        W = concat W W
+        Sr = concat Sr (Sr + 1)
+      end
+      Lt = U * U less 3 * W * W
+      Dw = 2 * U * W + W * W - U * U
+      Ma = V * (3 * W - U) // (Dw 1 max)
+      Mb = V * U // ((U - W) * (U + W))
+      Mx = Lt choose Ma Mb
+      Mc = ((U + W - 1) // W) R max
+      Mn = Lt choose (U * 0 + R) Mc
+      A0 = Lt choose (U - W) W
+      A1 = Lt choose (3 * W - U) U
+      Gd = (Mx at least Mn) indices
+      U = U Gd
+      W = W Gd
+      Sr = Sr Gd
+      Mx = Mx Gd
+      Mn = Mn Gd
+      Z = U * 0
+      Tr = Z equal 0
+      Ag = A0 Gd
+      Bg = A1 Gd
+      Ml = Mn - 1
+      Rc = Ag Z Bg Ml Mx Tr Sr Sr trap2
+      Tot += Rc sum
+      Md = (W + V) // U
+      Gm = (Md less Mx) indices
+      Lw = (Md Gm) ((Mn Gm) - 1) max
+      Fa = (Tr Gm) equal false
+      Ug = U Gm
+      Zm = Z Gm - V
+      Wm = W Gm
+      Xm = Mx Gm
+      Sm = Sr Gm
+      Ad = Ug Zm Wm Lw Xm Fa Sm Sm trap2
+      Tot -= Ad sum
+    end
+  end
+  return Tot
+end
+rem F over the values N // k, k odd,
+rem smallest first.
+Ko = (1 to N by 2) copy
+Vs = (N // Ko) unique sort
+Fd = array shape (N + 1) fill 0
+for X in Vs
+  Fv = X fval
+  if X at least 3
+    Kq = (3 to X by 2) copy
+    Fv -= (Fd (X // Kq)) sum
+  end
+  Fd X = Fv
+end
+Answer = Fd N
+Answer print
