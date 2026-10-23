@@ -1,0 +1,37 @@
+rem Odd elimination
+rem https://projecteuler.net/problem=539
+
+use numbers
+use bits
+use io
+use cli
+
+option N integer = 1000000000000000000
+
+rem One sweep leaves 2, 4, .., 2m, m =
+rem n // 2, and the next sweep runs the
+rem other way, a mirror: P(n) = 2 (m +
+rem 1 - P(m)). Pairing 2k and 2k + 1,
+rem S(2m + 1) = 1 + 2m(m + 3) - 4 S(m)
+rem and S(2m) = S(2m + 1) - P(2m + 1).
+rem Walk up the bits of N from P(1) =
+rem S(1) = 1.
+Md = 987654321
+Nb = (N binary) len
+P = 1
+S = 1
+C = 1
+for J in Nb - 2 to 0 by -1
+  M = C
+  Bt = (N J bit) integer
+  C = 2 * M + Bt
+  P = 2 * (M + 1 - P)
+  So = 1 + 2 * M * (M + 3) - 4 * S
+  So = So mod Md
+  S = So
+  if C mod 2 equal 0
+    S = (So - P) mod Md
+  end
+end
+Answer = S
+Answer print

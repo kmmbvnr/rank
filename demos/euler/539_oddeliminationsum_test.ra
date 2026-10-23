@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "539_oddeliminationsum"
+  N = 9
+  run
+  Answer equal 29
+  N = 1000
+  run
+  Answer equal 268271
+end
