@@ -7,8 +7,8 @@ use cli
 
 option Limit integer = 2000000
 
-Ks = (0 to Limit) copy
-Rest = (Ks * Ks - Ks + 1) copy
+Ks = 0 to Limit
+Rest = Ks * Ks - Ks + 1
 Largest = array shape (Limit + 1) fill 1
 rem Each prime has roots K and 1-K.
 rem Earlier roots remove every factor
