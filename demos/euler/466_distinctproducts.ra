@@ -1,0 +1,53 @@
+rem Distinct terms in a Multiplication
+rem Table
+rem https://projecteuler.net/problem=466
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 64
+option N integer = 10000000000000000
+
+rem Give each product to its largest
+rem row d <= M. Row e > d takes d c
+rem when e / gcd(e, d) divides c, so
+rem row d keeps the c <= N divisible
+rem by none of the minimal such q:
+rem inclusion-exclusion over their
+rem lcms, adding one q at a time and
+rem merging equal lcms.
+Answer = 0
+for D in 1 to M
+  Es = (D + 1 to M) copy
+  Qv = Es // (Es D gcd)
+  Qv = Qv unique sort
+  Qv = Qv ((Qv at most N) indices)
+  rem Drop q with a smaller divisor.
+  Ms = Qv (Qv * 0 + 1) outer *
+  Pm = (Qv Qv outer //) * Qv
+  Dv = (Pm equal Ms) count rank 1
+  Qs = Qv ((Dv equal 1) indices)
+  Ls = array 1
+  Cs = array 1
+  for Q in Qs
+    Lc = Ls * Q // (Ls Q gcd)
+    Ok = (Lc at most N) indices
+    Ky = concat Ls (Lc Ok)
+    Cf = concat Cs (0 - Cs Ok)
+    Od = Ky argsort
+    Ky = Ky Od
+    Cf = Cf Od
+    rem Sum the runs of equal lcm.
+    Nx = Ky -1 shift with -1
+    Ei = (Ky not equal Nx) indices
+    Gs = (Cf scan +) Ei
+    Gs = Gs - (Gs 1 shift)
+    Nz = (Gs not equal 0) indices
+    Ls = (Ky Ei) Nz
+    Cs = Gs Nz
+  end
+  Answer += (Cs * (N // Ls)) sum
+end
+Answer print

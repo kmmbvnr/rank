@@ -1,0 +1,25 @@
+use testing
+
+test "statement values"
+  use "466_distinctproducts"
+  M = 3
+  N = 4
+  run
+  Answer equal 8
+  M = 64
+  N = 64
+  run
+  Answer equal 1263
+  M = 12
+  N = 345
+  run
+  Answer equal 1998
+end
+
+test "m = 32, n = 10^15"
+  use "466_distinctproducts"
+  M = 32
+  N = 1000000000000000
+  run
+  Answer equal 13826382602124302
+end
