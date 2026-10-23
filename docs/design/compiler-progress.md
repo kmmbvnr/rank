@@ -1,5 +1,27 @@
 # Compiler progress
 
+## Exact numeric self recursion (#372)
+
+Scalar function kernels can call their own guarded definition when an earlier
+base return establishes a scalar result and every recursive argument preserves
+its proven domain. Array-writing recursion and mutually recursive call graphs
+retain ordinary execution. Non-tail calls retain the runtime depth limit; self
+tail transfers use a trampoline and poll the cooperative demand budget.
+
+Ordinary entry now admits tracked integer indices, preserving their shared
+mutation semantics and checking their maintained value-domain proof on every
+entry. Protected indices retain ordinary dispatch and its error ordering.
+Array selectors and keyed selectors use separate readers inside these kernels.
+
+Completed trusted arrays can supply a checked storage domain for entry code even
+when their public semantic type is unresolved. Code variants use that checked
+domain as their cache key. Semantic types and return-contract keys remain
+unchanged; lazy arrays and host cell readers do not supply this proof.
+
+The Euler 351 program and its quotient-grouped recurrence are unchanged.
+[Measurements and focused verification](../../benchmarks/euler351-results.md)
+cover the recursive-kernel stage separately from the stored-array entry proof.
+
 ## Declared receiver effects in compiled loops (#369)
 
 The operation catalogue now describes synchronous receiver calls with operand

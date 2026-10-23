@@ -13,7 +13,7 @@ import {
     writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan,
     groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects,
     isReturnStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
-    type KnownShape, type CompiledFunctionType, type Expression, type FunctionBindingStatement, type FunctionStatement,
+    type KnownShape, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
 } from '@arrrank/language';
 import { arrayRevision } from './array-storage.js';
@@ -27,7 +27,6 @@ import { effectiveEnvironment, withEnvironment } from './environment.js';
 import {
     ExecutionStack, completed, mapResult, resume, runExecution, type Evaluation, type Execution,
 } from './execution.js';
-import { CallSpecializations } from './call-specializations.js';
 import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
 import type { InterpreterOptions } from './interpreter-options.js';
@@ -36,7 +35,7 @@ import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract } from './return-contract.js';
-import { compiledArgumentType, compiledScalarType } from './compiled-argument-type.js';
+import { compiledEntryArgumentType, compiledScalarType } from './compiled-argument-type.js';
 import { scalarCaptureKey, type ScalarCaptureTypes } from './scalar-function-proof.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
@@ -74,7 +73,7 @@ export interface FunctionHost {
     execute(statements: Statement[], generator: boolean, control?: FunctionControl): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
     /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined;
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined;
     /** Offers a function to flat combinators; `available` is checked before each use. */
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
@@ -570,30 +569,33 @@ export class FunctionInvocation {
         arity: number, captures: ScalarCaptureTypes) {
         const proof = this.host.scalarEntry(statement, generator, undefined, captures);
         const scalar = proof ? this.prepareScalarCall(statement, context, undefined, proof.loops, captures) : undefined;
-        const typedEntries = new CallSpecializations<{
+        // Runtime storage proofs can differ while the public semantic type
+        // remains unresolved. Cache code by its proven domains, not that key.
+        const typedEntries = new Map<string, {
             readonly locals: readonly string[]; readonly call: PreparedScalarCall;
         } | null>();
         return (arguments_: RankValue[]): PreparedScalarCall | undefined => {
             if (inspectionEnabled() || arguments_.length !== arity) return undefined;
             let call = scalar, locals = proof?.locals;
             if (!arguments_.every(value => typeof value === 'bigint')) {
-                let types: CompiledFunctionType[] | undefined;
+                let types: CompiledCalleeType[] | undefined;
                 if (arguments_.some(value => typeof value === 'object')) {
                     // Keep ordinary container calls allocation-free when the
                     // first object is not eligible array storage.
-                    if (arguments_.some(value => typeof value === 'object' && !compiledArgumentType(value))) return undefined;
-                    const guarded = arguments_.map(compiledArgumentType);
-                    if (!guarded.every((type): type is CompiledFunctionType => type !== undefined)) return undefined;
+                    if (arguments_.some(value => typeof value === 'object' && !compiledEntryArgumentType(value))) return undefined;
+                    const guarded = arguments_.map(compiledEntryArgumentType);
+                    if (!guarded.every((type): type is CompiledCalleeType => type !== undefined)) return undefined;
                     types = guarded;
                 } else if (arguments_.some(value => typeof value !== 'bigint' && typeof value !== 'number'
                     && typeof value !== 'boolean' && typeof value !== 'string')) return undefined;
-                let entry = typedEntries.get(arguments_);
+                types ??= arguments_.map(value => compiledEntryArgumentType(value)!);
+                const key = types.map(compiledCalleeTypeKey).join(',');
+                let entry = typedEntries.get(key);
                 if (entry === undefined) {
-                    types ??= arguments_.map(value => compiledArgumentType(value)!);
                     const typedProof = this.host.scalarEntry(statement, generator, types, captures);
                     const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops, captures) : undefined;
                     entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
-                    typedEntries.set(arguments_, entry);
+                    typedEntries.set(key, entry);
                 }
                 call = entry?.call;
                 locals = entry?.locals;
@@ -679,6 +681,14 @@ export class FunctionInvocation {
             const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
             if (!definition || definition.statement !== call.statement
                 || call.locals.some(name => definition.context?.find(name))) return undefined;
+            if (call.recursive) {
+                if (definition.owner !== this || definition.context !== context) return undefined;
+                return (arguments_: RankValue[], tail = false) => {
+                    checkpoint();
+                    if (tail) throw new TailCallSignal(definition, arguments_, run);
+                    return run(arguments_);
+                };
+            }
             const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true);
             if (!compiled || compiled.available && !compiled.available()) return undefined;
             return (arguments_: RankValue[], tail = false) => {
@@ -704,14 +714,24 @@ export class FunctionInvocation {
             }
             if (!tail) this.depth += 1;
             try {
-                this.options().onScalarFunctionExecuted?.();
-                return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars);
-            } catch (error) {
-                // A scalar tail callee replaces this logical frame. Errors from
-                // it must not acquire the discarded caller's stack entry.
-                if (error instanceof TailCallSignal && error.compiled) return error.compiled(error.arguments_, true);
-                if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
-                throw error;
+                for (;;) {
+                    try {
+                        this.options().onScalarFunctionExecuted?.();
+                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars);
+                    } catch (error) {
+                        // A self tail transfer replaces this frame without growing
+                        // either the Rank call depth or the JavaScript stack.
+                        if (error instanceof TailCallSignal && error.compiled === run) {
+                            arguments_ = error.arguments_;
+                            continue;
+                        }
+                        // A scalar tail callee replaces this logical frame. Errors
+                        // must not acquire the discarded caller's stack entry.
+                        if (error instanceof TailCallSignal && error.compiled) return error.compiled(error.arguments_, true);
+                        if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
+                        throw error;
+                    }
+                }
             } finally { if (!tail) this.depth -= 1; }
         };
         if (kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {

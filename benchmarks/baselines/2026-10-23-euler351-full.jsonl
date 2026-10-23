@@ -1,0 +1,9 @@
+{"node":"v24.15.0","cpu":"Apple M5","trials":3,"timings":"fresh sequential processes; execute includes parsing; answers checked on every sample"}
+{"case":"full","executeMs":44671.063292,"result":"11762187201804552","variant":"baseline","trial":1,"processMs":44825.81325}
+{"case":"full","executeMs":418.525792,"result":"11762187201804552","variant":"candidate","trial":1,"processMs":571.546957999999}
+{"case":"full","executeMs":45350.664959,"result":"11762187201804552","variant":"baseline","trial":2,"processMs":45508.8395}
+{"case":"full","executeMs":422.08837500000004,"result":"11762187201804552","variant":"candidate","trial":2,"processMs":572.4807500000024}
+{"case":"full","executeMs":44576.616917,"result":"11762187201804552","variant":"baseline","trial":3,"processMs":44726.647958}
+{"case":"full","executeMs":420.47354200000007,"result":"11762187201804552","variant":"candidate","trial":3,"processMs":568.7430419999873}
+{"case":"full","variant":"baseline","medianExecuteMs":44671.063292}
+{"case":"full","variant":"candidate","medianExecuteMs":420.47354200000007}

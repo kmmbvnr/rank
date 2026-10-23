@@ -1,0 +1,5 @@
+{"node":"v24.15.0","cpu":"Apple M5","trials":1,"timings":"fresh sequential processes; execute includes parsing; answers checked on every sample"}
+{"case":"full","executeMs":44449.291167,"result":"11762187201804552","variant":"recursive-semantic-arrays","trial":1,"processMs":44610.069334}
+{"case":"full","executeMs":421.337667,"result":"11762187201804552","variant":"candidate","trial":1,"processMs":570.5447920000006}
+{"case":"full","variant":"recursive-semantic-arrays","medianExecuteMs":44449.291167}
+{"case":"full","variant":"candidate","medianExecuteMs":421.337667}

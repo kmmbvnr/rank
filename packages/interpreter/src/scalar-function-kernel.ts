@@ -23,7 +23,7 @@ import { hasDeferredSelectionCopy } from './integer-view.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
 
 interface Kernel {
-    readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean }[];
+    readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[];
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
@@ -56,7 +56,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     statement.parameters.forEach(slot);
     const locations: Statement[] = [];
     const calls: { operation: Operation; inputs: readonly string[] }[] = [];
-    const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean }[] = [];
+    const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
     const captures: { name: string; rank: number }[] = [];
@@ -105,11 +105,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`const ${result} = ownedArray([${values.join(',')}], [${values.length}], true);`);
                 return result;
             }
-            if (operation === 'user-call') {
-                const callee = expression.input.callee!;
+            if (operation === 'user-call' || operation === 'self-call') {
+                const callee = expression.input.callee;
                 const arguments_ = expression.input.indices!.map(argument => lower(argument, lines));
-                const index = userCalls.push({ name: expression.input.name, statement: callee.statement,
-                    types: callee.types, locals: callee.proof.locals, tail }) - 1;
+                const index = userCalls.push({ name: expression.input.name, statement: callee?.statement ?? statement,
+                    types: callee?.types ?? expression.input.indices!.map(argument => argument.type),
+                    locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call' }) - 1;
                 const result = `v${serial++}`;
                 lines.push(`const ${result} = userCalls[${index}]([${arguments_.join(',')}], ${tail});`);
                 return result;
@@ -175,7 +176,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             const indices = expression.input.indices.map(index => lower(index, lines));
             const result = `v${serial++}`;
             const array = slot(expression.input.name), reader = `reader${slots.get(expression.input.name)}`;
-            const read = proof!.containers ? `scalarSelection(${array}, [${indices.join(',')}])`
+            const read = expression.input.keyed ? `scalarSelection(${array}, [${indices.join(',')}])`
                 : `(${reader} ??= prepareReader(${array}, ${indices.length}))(${indices.length <= 2 ? indices.join(',') : `[${indices.join(',')}]`})`;
             lines.push(selection ? `let ${result}; try { ${result} = ${read}; }
                 catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`

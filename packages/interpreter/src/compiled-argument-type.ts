@@ -1,8 +1,17 @@
 import { compiledScalarTypes, type CompiledScalarType, type CompiledArrayType, type CompiledFunctionType } from '@arrrank/language';
-import { arrayRevision, denseScalarItems, typedElementKind } from './array-storage.js';
+import { arrayRevision, denseScalarItems, storedScalarKinds, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { semanticArrayType } from './semantic-array-type.js';
-import type { RankArray, RankValue } from './value.js';
+import { isRankIndex, type RankArray, type RankValue } from './value.js';
+import { IndexEntries } from './index-storage.js';
+import { valueProtection } from './value-protection.js';
+import type { CompiledCalleeType } from './compiled-callee-type.js';
+
+/** Tracked integer indices retain a constant-time domain proof on mutation. */
+export function compiledEntryArgumentType(value: RankValue): CompiledCalleeType | undefined {
+    if (isRankIndex(value) && value.entries instanceof IndexEntries && value.entries.integers && !valueProtection(value)) return { kind: 'index' };
+    return checkedArgumentType(value, true);
+}
 
 interface Entry {
     readonly revision: number;
@@ -24,6 +33,10 @@ export function compiledScalarType(value: RankValue | undefined): CompiledScalar
 /** Select a semantic domain only after proving that array reads cannot run code.
  * Never inspect lazy caches or host cells. Reuse cell checks at the same revision. */
 export function compiledArgumentType(value: RankValue): CompiledFunctionType | undefined {
+    return checkedArgumentType(value, false);
+}
+
+function checkedArgumentType(value: RankValue, stored: boolean): CompiledFunctionType | undefined {
     const scalarValue = compiledScalarType(value);
     if (scalarValue) return scalarValue;
     if (typeof value !== 'object' || value === null) return undefined;
@@ -32,7 +45,10 @@ export function compiledArgumentType(value: RankValue): CompiledFunctionType | u
     if (!cells) return undefined;
     const revision = arrayRevision(array);
     if (revision === undefined) return undefined;
-    const element = semanticArrayType(array).scalar;
+    // Entry code may prove a domain from completed trusted storage without
+    // changing the array's public semantic type or its return contract key.
+    const kinds = stored ? storedScalarKinds(array) : undefined;
+    const element = semanticArrayType(array).scalar ?? (kinds?.length === 1 ? kinds[0] : undefined);
     const scalar = compiledScalarTypes.find(type => type === element);
     if (!scalar) return undefined;
     const rank = array.shape.length;

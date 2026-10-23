@@ -17,7 +17,8 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy';
+    readonly keyed?: boolean;
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
@@ -75,7 +76,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const dependencies = new Set<string>();
     const lexical = functionScope(statement);
     const scope = lexical?.scope;
-    let callDepth = 1, callCount = 0;
+    let callDepth = 1, callCount = 0, recursive = false;
     const modules = new Set<string>();
     const arrayWrites = new Set<Statement>();
     let containers = types.some(isCompiledContainer);
@@ -94,6 +95,17 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         if (signature.words.length || signature.parameters.some(parameter => parameter.kind === 'function')) return undefined;
         const arguments_ = parts.slice(0, -1);
         const inputs = arguments_.map(argument => type(argument, env));
+        // A base return establishes the self-call's scalar result. Its inputs
+        // must preserve every domain, and the completed proof excludes array
+        // writes; integer index mutations retain their shared-reference meaning.
+        if (callee === statement && typeof resultType === 'string'
+            && inputs.every((input, index) => input !== undefined && sameCompiledCalleeType(input, types[index]))) {
+            recursive = true;
+            callCount++;
+            dependencies.add(last.name);
+            return { type: resultType, input: { name: last.name, operation: 'self-call' as const,
+                indices: arguments_.map(argument => expressions.get(argument)!) } };
+        }
         // Nested calls cannot borrow or mutate a caller's storage implicitly.
         if (!inputs.every((input): input is CompiledScalarType => typeof input === 'string')) return undefined;
         const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement]);
@@ -231,7 +243,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 }
                 if (!array || typeof array === 'string' || (isCompiledContainer(array) ? array.kind !== 'index' || indices.length !== 1 : indices.length !== array.rank)) return undefined;
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
-                return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, indices: indices.map(index => expressions.get(index)!) } };
+                return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, keyed: isCompiledContainer(array), indices: indices.map(index => expressions.get(index)!) } };
             },
             isBound: name => env.has(name) || captures.has(name),
             extreme: (name, inputs) => {
@@ -352,7 +364,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
-    const result = outcome === null && resultType ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
+    const result = outcome === null && resultType && !(recursive && arrayWrites.size) ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
     if (result || !path.length) proofs.set(key, result ?? failure);

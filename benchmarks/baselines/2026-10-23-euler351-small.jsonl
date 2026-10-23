@@ -1,0 +1,25 @@
+{"node":"v24.15.0","cpu":"Apple M5","trials":3,"timings":"fresh sequential processes; execute includes parsing; answers checked on every sample"}
+{"case":"small","executeMs":189.74191699999997,"result":"117645084","variant":"baseline","trial":1,"processMs":342.858584}
+{"case":"small","executeMs":123.921042,"result":"117645084","variant":"recursive-semantic-arrays","trial":1,"processMs":268.849042}
+{"case":"small","executeMs":127.05633300000002,"result":"117645084","variant":"candidate","trial":1,"processMs":273.25924999999995}
+{"case":"small","executeMs":192.812541,"result":"117645084","variant":"baseline","trial":2,"processMs":337.52099999999996}
+{"case":"small","executeMs":125.111167,"result":"117645084","variant":"recursive-semantic-arrays","trial":2,"processMs":271.833625}
+{"case":"small","executeMs":124.87570800000003,"result":"117645084","variant":"candidate","trial":2,"processMs":274.10237499999994}
+{"case":"small","executeMs":192.719916,"result":"117645084","variant":"baseline","trial":3,"processMs":339.8285830000002}
+{"case":"small","executeMs":125.83604200000002,"result":"117645084","variant":"recursive-semantic-arrays","trial":3,"processMs":272.46237500000007}
+{"case":"small","executeMs":124.94341599999998,"result":"117645084","variant":"candidate","trial":3,"processMs":272.1674579999999}
+{"case":"small","variant":"baseline","medianExecuteMs":192.719916}
+{"case":"small","variant":"recursive-semantic-arrays","medianExecuteMs":125.111167}
+{"case":"small","variant":"candidate","medianExecuteMs":124.94341599999998}
+{"case":"million","executeMs":1627.807959,"result":"1176221685648","variant":"baseline","trial":1,"processMs":1774.6986659999998}
+{"case":"million","executeMs":140.185166,"result":"1176221685648","variant":"recursive-semantic-arrays","trial":1,"processMs":287.80083399999967}
+{"case":"million","executeMs":140.135208,"result":"1176221685648","variant":"candidate","trial":1,"processMs":287.9570410000006}
+{"case":"million","executeMs":1622.838333,"result":"1176221685648","variant":"baseline","trial":2,"processMs":1769.8246660000004}
+{"case":"million","executeMs":140.296125,"result":"1176221685648","variant":"recursive-semantic-arrays","trial":2,"processMs":288.924583}
+{"case":"million","executeMs":141.34295799999998,"result":"1176221685648","variant":"candidate","trial":2,"processMs":290.1561249999995}
+{"case":"million","executeMs":1616.7520829999999,"result":"1176221685648","variant":"baseline","trial":3,"processMs":1763.5116659999994}
+{"case":"million","executeMs":140.04329199999998,"result":"1176221685648","variant":"recursive-semantic-arrays","trial":3,"processMs":288.33508299999994}
+{"case":"million","executeMs":140.09937499999998,"result":"1176221685648","variant":"candidate","trial":3,"processMs":287.7046250000003}
+{"case":"million","variant":"baseline","medianExecuteMs":1622.838333}
+{"case":"million","variant":"recursive-semantic-arrays","medianExecuteMs":140.185166}
+{"case":"million","variant":"candidate","medianExecuteMs":140.135208}

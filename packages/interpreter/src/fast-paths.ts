@@ -4,7 +4,7 @@ import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression,
-    type ApplicationForm, type Operation, type CompiledFunctionType, isAssignmentStatement,
+    type ApplicationForm, type Operation, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { compileBlock, type CompiledBlock } from './block-compiler.js';
@@ -365,10 +365,10 @@ export class FastPaths {
     }
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledFunctionType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined {
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined {
         if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
-        // Entry arguments admit only scalars and checked arrays. Local index/
+        // Entry arguments admit scalars, checked arrays and tracked integer indices. Local index/
         // deque storage is integer-only, cannot escape through a scalar return,
         // and needs no resource frame. Argument array writes still need one.
         return proof && !proof.arrayWrites.size
