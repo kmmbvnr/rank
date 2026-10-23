@@ -1,0 +1,97 @@
+rem The Last Question
+rem https://projecteuler.net/problem=480
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+option Depth integer = 15
+
+Ph = "thereisasyetinsufficientdata"
+Ph += "forameaningfulanswer"
+
+rem Words of length k from a stock of
+rem letter counts: add letters one at
+rem a time, W'(k) = sum C(k, j) W(k -
+rem j), j <= count (choose where the
+rem copies go). A subtree holds all
+rem words up to the remaining depth.
+D1 = Depth + 1
+Pc = array shape D1 D1 fill 0
+for I in 0 to Depth
+  Pc I 0 = 1
+  for J in 1 to I
+    Up = Pc (I - 1)
+    Pc I J = Up (J - 1) + Up J
+  end
+end
+fun Cs R subtree
+  W = array shape (R + 1) fill 0
+  W 0 = 1
+  for C in Cs
+    Wn = W
+    for J in 1 to (C R min)
+      Bj = Pc (0 to R) J
+      Wn += (W J shift) * Bj
+    end
+    W = Wn
+  end
+  return W sum
+end
+Cd = (Ph codepoint rank 0) - 97
+Ct = array shape 26 fill 0
+for L in 0 till 26
+  Ct L = (Cd equal L) count
+end
+rem 0-based rank of a word.
+Ws = array "legionary" "calorimeters"
+Ws = concat Ws (array "annihilate")
+Ws = concat Ws (array "orchestrated")
+Ws = concat Ws (array "fluttering")
+Rk = array shape 5 fill 0
+for Wi in 0 till 5
+  Wd = (Ws Wi codepoint rank 0) - 97
+  C = Ct
+  R = Depth
+  P = 0
+  for Ch in Wd
+    for L in 0 till Ch
+      if C L greater 0
+        C L -= 1
+        P += C (R - 1) subtree
+        C L += 1
+      end
+    end
+    P += 1
+    C Ch -= 1
+    R -= 1
+  end
+  Rk Wi = P
+end
+T = Rk 0 + Rk 1 - Rk 2 + Rk 3 - Rk 4
+rem Unrank: skip whole subtrees.
+C = Ct
+R = Depth
+Q = T
+Answer = ""
+for Q greater 0
+  Q -= 1
+  Go = true
+  for L in 0 till 26
+    if Go and C L greater 0
+      C L -= 1
+      Tl = C (R - 1) subtree
+      if Q less Tl
+        Answer += (L + 97) character
+        R -= 1
+        Go = false
+      else
+        Q -= Tl
+        C L += 1
+      end
+    end
+  end
+end
+Answer print

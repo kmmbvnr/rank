@@ -1,0 +1,12 @@
+use testing
+
+test "ranks of the five words"
+  use "480_lastquestion"
+  run
+  Rk 0 equal 242132052536675919
+  Rk 1 equal 41242803282213119
+  Rk 2 equal 23138326896450711
+  Rk 3 equal 329830042298774430
+  Rk 4 equal 139042949535915543
+  Answer equal "turnthestarson"
+end
