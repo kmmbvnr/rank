@@ -1,0 +1,82 @@
+rem Counting primitive Pythagorean
+rem triples
+rem https://projecteuler.net/problem=540
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option N integer = 3141592653589793
+
+rem Primitive triples are pairs m > n
+rem > 0, coprime, of opposite parity,
+rem with m^2 + n^2 <= N. R(X) counts
+rem those pairs without gcd 1; a common
+rem divisor is odd, so P(N) = sum over
+rem odd d of mu(d) R(N // d^2). Small
+rem X read a table of R; a large X sums
+rem its rows, the first 2K rows full
+rem (K^2 pairs), the rest by isqrt.
+T = (N 10000000 min) max 5
+Dm = (N // 5) isqrt
+rem mu by slices over small primes; one
+rem prime above sqrt Dm may remain.
+Mu = array shape (Dm + 1) fill 1
+Rs = (0 to Dm) copy
+Rd = Dm isqrt
+for P in primes to Rd
+  Mu (P to Dm by P) *= -1
+  Mu (P * P to Dm by P * P) *= 0
+  Rs (P to Dm by P) //= P
+end
+Mu = (Rs greater 1) choose (0 - Mu) Mu
+rem Table of R(x), x <= T: count each
+rem pair at m^2 + n^2.
+Mt = T isqrt
+Ms = (2 to Mt) copy
+Nx = ((T - Ms * Ms) max 0) isqrt
+Nx = (Ms - 1) Nx min
+Cm = (Nx + 1 - Ms mod 2) // 2
+Cs = Cm scan +
+Np = Cs last
+Po = (0 till Np) copy
+Ix = Cs Po upperindex
+Mi = Ms Ix
+Ki = Po - (Cs - Cm) Ix
+Ni = 2 * Ki + 1 + Mi mod 2
+Ct = array shape (T + 1) fill 0
+Vi = Mi * Mi + Ni * Ni
+Ct Vi += 1 .accumulate
+Rt = Ct scan +
+rem Odd d: table for X <= T, rows else.
+Dv = (1 to Dm by 2) copy
+Nz = (Mu Dv) equal 0
+Dv = Dv ((Nz equal false) indices)
+X = N // (Dv * Dv)
+Sm = (X at most T) indices
+Answer = ((Mu (Dv Sm)) * Rt (X Sm)) sum
+Bg = ((X greater T) indices)
+for D in Dv Bg
+  Xd = N // (D * D)
+  M0 = ((2 * Xd - 1) isqrt + 1) // 2
+  K = M0 // 2
+  Rx = K * K
+  Mx = (Xd - 1) isqrt
+  for M1 in 2 * K + 1 to Mx by 2000000
+    M2 = (M1 + 1999999) Mx min
+    M = (M1 to M2) copy
+    V = Xd - M * M
+    Sq = ((V * 1.0) ** 0.5) integer
+    Ov = (Sq * Sq greater V) integer
+    Sq = Sq - Ov
+    Sp = Sq + 1
+    Un = (Sp * Sp at most V) integer
+    Sq = Sq + Un
+    Nm = (M - 1) Sq min
+    Rx += ((Nm + 1 - M mod 2) // 2) sum
+  end
+  Answer += (Mu D) * Rx
+end
+Answer print

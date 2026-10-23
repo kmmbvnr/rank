@@ -1,0 +1,11 @@
+use testing
+
+test "brute force counts"
+  use "540_primitivetriples"
+  N = 20
+  run
+  Answer equal 3
+  N = 1000000
+  run
+  Answer equal 159139
+end
