@@ -19,6 +19,23 @@ function int32(value: number): number {
     if (value !== (value | 0)) throw overflow;
     return value;
 }
+/** Repeated squaring uses only checked integer products. JS ** can round a
+ * mathematical integer to a different safe integer, so checking its result alone
+ * would not establish exactness. Negative exponents replay with real semantics. */
+function power(base: number, exponent: number): number {
+    if (exponent < 0) throw overflow;
+    let result = 1;
+    while (exponent > 0) {
+        if (exponent % 2 !== 0) result = safe(result * base);
+        exponent = Math.floor(exponent / 2);
+        if (exponent > 0) base = safe(base * base);
+    }
+    return result;
+}
+function widePower(base: bigint, exponent: bigint): bigint {
+    if (exponent < 0n) throw overflow;
+    return base ** exponent;
+}
 /** Wide numerators retain exact remainder division. The generated bounded
  * case uses floor(a/b): for abs(a) < 2^52 its rounding error is less than
  * half of 1/abs(b), so it cannot cross an integer boundary. */
@@ -36,7 +53,7 @@ const rankValue = (value: unknown, type: string | undefined): RankValue | undefi
  * Inspection and custom host polling retain the existing publishing backend. */
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
-    if (host.observableEntry || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
+    if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length || plan.containers.size
         || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1)
@@ -56,7 +73,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     for (const info of storage.values()) registers.push(`cells${info.slot} = cells[${info.slot}]`);
     for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
-    const source = `"use strict"; return function(input, cells, changes, publish) {
+    const source = `"use strict"; return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0;
         const entered = [];
         try {
@@ -73,10 +90,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         ${publish}
         return { value: result, type: resultType };
     };`;
-    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string } | undefined;
+    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: ((arguments_: RankValue[]) => RankValue)[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', source)(
+        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', source)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -87,12 +104,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number) => index < 0 ? new RankError('array index must be nonnegative on axis 0')
-                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide);
+                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower);
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
+        const calls: ((arguments_: RankValue[]) => RankValue)[] = [];
+        for (const call of plan.calls) {
+            const bound = call.bind();
+            if (!bound) return undefined;
+            calls.push(bound);
+        }
         if (!host.canDeferWrites!([...bindings, ...[...plan.destinations.keys()].map(name => [name, 'array'] as [string, 'array'])])) return recordFallback('number-loop:binding-contract');
         const input: unknown[] = [];
         const buffers: NumberCells[] = [], changes: Uint8Array[] = [], sources: RankArray[] = [];
@@ -151,7 +174,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.numberLoops++;
         if (diagnostics && plan.wideScalars.size) diagnostics.mixedIntegerLoops++;
-        const result = run(input, buffers, changes, (entered, values) => {
+        const result = run(input, buffers, changes, calls, (entered, values) => {
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.

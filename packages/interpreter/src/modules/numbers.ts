@@ -1,5 +1,6 @@
 import { Factorizer } from '../factorization.js';
-import { greatestCommonDivisor } from '../integer-gcd.js';
+import { withNumberCalls } from '../typed-native.js';
+import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { integerSquareRoot } from '../integer-square-root.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
@@ -97,8 +98,10 @@ export const numbersModule: RuntimeModule = {
         roundValue(arguments_[0], arguments_[1])),
     infinity: () => Number.POSITIVE_INFINITY,
     nan: () => Number.NaN,
-    gcd: () => native('gcd', 2, arguments_ =>
-        greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))),
+    gcd: () => withNumberCalls(native('gcd', 2, arguments_ =>
+        greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))), {
+        'integer,integer': ([a, b]) => safeIntegerGcd(a, b),
+    }),
     powmod: () => native('powmod', 3, args => mapScalarArrays(args, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
@@ -115,7 +118,7 @@ export const numbersModule: RuntimeModule = {
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
     )),
-    lcm: () => native('lcm', [1, 2], arguments_ => {
+    lcm: () => withNumberCalls(native('lcm', [1, 2], arguments_ => {
         if (arguments_.length === 2) {
             return leastCommonMultiple(
                 expectInteger(arguments_[0]),
@@ -131,6 +134,13 @@ export const numbersModule: RuntimeModule = {
             result = leastCommonMultiple(result, expectInteger(item));
         }
         return result;
+    }), {
+        'integer,integer': ([a, b]) => {
+            if (a === 0 || b === 0) return 0;
+            const divisor = safeIntegerGcd(a, b);
+            const product = Math.abs(a / divisor * b);
+            return Number.isSafeInteger(product) ? product : leastCommonMultiple(BigInt(a), BigInt(b));
+        },
     }),
     factors: context => native('factors', 1, arguments_ => {
         const value = expectInteger(arguments_[0]);

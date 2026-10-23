@@ -70,24 +70,25 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
         failed(compilerRejection('loop', statement, 'code-generation'));
         return undefined;
     });
-    if (!exact) {
-        if (currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
-        return undefined;
-    }
+    // A replay-safe backend can support expressions the publishing backend
+    // cannot type statically (integer powers may become real for negative exponents).
     const numberPlan = numberVariant && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true);
     const fast = numberPlan && prepareNumberLoop(numberPlan, host);
-    if (!fast) return exact;
+    if (!fast) {
+        if (!exact && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
+        return exact;
+    }
     let mixed: CompiledLoop | undefined, preparedMixed = false;
     return { run: (...context) => {
         const result = fast.run(...context);
         if (result) return result;
         if (!preparedMixed) {
             preparedMixed = true;
-            const wide = wideLoopScalars(plan);
+            const wide = wideLoopScalars(plan ?? numberPlan!);
             const mixedPlan = wide.size && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide);
             mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host) : undefined;
         }
-        return mixed?.run(...context) ?? exact.run(...context);
+        return mixed?.run(...context) ?? exact?.run(...context);
     } };
 }
 

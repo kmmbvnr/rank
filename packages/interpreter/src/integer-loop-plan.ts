@@ -27,7 +27,7 @@ export interface LoopHost {
     readonly absolute: boolean;
     readonly reals: boolean;
     readonly scalarText: boolean;
-    prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
+    prepareBuiltinCall(module: string, name: string, types: readonly string[], numberMode?: boolean): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     prepareEffectCall(name: string, receiver: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     readonly sequenceMembership: boolean;
@@ -88,7 +88,7 @@ export interface IntegerLoopPlan {
     localTypes: Map<string, LoopTerm['type']>;
     containers: Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>;
     builtins: Map<string, string>;
-    calls: { name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
+    calls: { numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | string) => Iterable<RankValue>)[];
     writerNames: string[];

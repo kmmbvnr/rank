@@ -32,5 +32,6 @@ export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
         size = numeric.size;
         for (const assignment of assignments) if (numeric.has(assignment.name)) read(assignment.value);
     }
-    return new Set(plan.writerNames.filter(name => plan.localTypes.get(name) === 'integer' && !numeric.has(name)));
+    const candidates = new Set([...plan.writerNames, ...[...plan.required].map(slot => plan.names[slot])]);
+    return new Set([...candidates].filter(name => plan.localTypes.get(name) === 'integer' && !numeric.has(name)));
 }

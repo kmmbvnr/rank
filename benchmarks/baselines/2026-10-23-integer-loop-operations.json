@@ -1,0 +1,572 @@
+{
+  "baseline": "f6c1b489",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "microIterations": 100000,
+  "step1": {
+    "mediansMs": {
+      "candidate:gcd": 6.278875000000028,
+      "baseline:gcd": 13.005209000000036,
+      "candidate:lcm": 9.12254200000001,
+      "baseline:lcm": 15.121125000000006,
+      "candidate:isqrt": 7.918791999999996,
+      "baseline:isqrt": 7.61058399999996
+    },
+    "timedSamples": [
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "gcd",
+        "ms": 6.278875000000028,
+        "result": "449990"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "gcd",
+        "ms": 6.246082999999999,
+        "result": "449990"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "gcd",
+        "ms": 6.607916999999986,
+        "result": "449990"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "gcd",
+        "ms": 14.227374999999938,
+        "result": "449990"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "gcd",
+        "ms": 12.877541000000008,
+        "result": "449990"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "gcd",
+        "ms": 13.005209000000036,
+        "result": "449990"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "lcm",
+        "ms": 9.264458000000047,
+        "result": "73499250000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "lcm",
+        "ms": 9.111708000000021,
+        "result": "73499250000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "lcm",
+        "ms": 9.12254200000001,
+        "result": "73499250000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "lcm",
+        "ms": 13.802292000000023,
+        "result": "73499250000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "lcm",
+        "ms": 15.268249999999966,
+        "result": "73499250000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "lcm",
+        "ms": 15.121125000000006,
+        "result": "73499250000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "isqrt",
+        "ms": 7.9877500000000055,
+        "result": "5000050000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "isqrt",
+        "ms": 7.918791999999996,
+        "result": "5000050000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "isqrt",
+        "ms": 7.3104170000000295,
+        "result": "5000050000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "isqrt",
+        "ms": 8.707041000000004,
+        "result": "5000050000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "isqrt",
+        "ms": 7.61058399999996,
+        "result": "5000050000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "isqrt",
+        "ms": 7.604624999999999,
+        "result": "5000050000"
+      }
+    ]
+  },
+  "step2": {
+    "mediansMs": {
+      "candidate:power": 8.218042000000025,
+      "baseline:power": 75.61541700000004,
+      "candidate:cube": 6.402000000000044,
+      "baseline:cube": 13.046541999999988
+    },
+    "timedSamples": [
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "power",
+        "ms": 6.955832999999984,
+        "result": "409593750"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "power",
+        "ms": 8.218042000000025,
+        "result": "409593750"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "power",
+        "ms": 10.845083000000045,
+        "result": "409593750"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "power",
+        "ms": 88.12008400000002,
+        "result": "409593750"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "power",
+        "ms": 73.92520899999994,
+        "result": "409593750"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "power",
+        "ms": 75.61541700000004,
+        "result": "409593750"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "cube",
+        "ms": 6.3379170000000045,
+        "result": "24950025000000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "cube",
+        "ms": 6.402000000000044,
+        "result": "24950025000000"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "cube",
+        "ms": 6.773374999999987,
+        "result": "24950025000000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "cube",
+        "ms": 12.81045899999998,
+        "result": "24950025000000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "cube",
+        "ms": 13.276667000000032,
+        "result": "24950025000000"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "cube",
+        "ms": 13.046541999999988,
+        "result": "24950025000000"
+      }
+    ]
+  },
+  "final": {
+    "mediansMs": {
+      "candidate:gcd": 6.362083000000041,
+      "baseline:gcd": 12.940875000000005,
+      "candidate:lcm": 9.530750000000012,
+      "baseline:lcm": 13.875625000000014,
+      "candidate:isqrt": 7.315667000000019,
+      "baseline:isqrt": 8.386250000000018,
+      "candidate:power": 6.598584000000017,
+      "baseline:power": 72.87237500000003,
+      "candidate:cube": 6.438792000000035,
+      "baseline:cube": 13.103707999999983
+    },
+    "timedSamples": [
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "gcd",
+        "ms": 6.362083000000041,
+        "result": "449990",
+        "sourceSha256": "323bb804293b0a0f31ff1341fbd9146088714bc3be0227f3690c9cf5f7c4e21f"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "gcd",
+        "ms": 6.356999999999971,
+        "result": "449990",
+        "sourceSha256": "323bb804293b0a0f31ff1341fbd9146088714bc3be0227f3690c9cf5f7c4e21f"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "gcd",
+        "ms": 6.6530839999999785,
+        "result": "449990",
+        "sourceSha256": "323bb804293b0a0f31ff1341fbd9146088714bc3be0227f3690c9cf5f7c4e21f"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "gcd",
+        "ms": 12.940875000000005,
+        "result": "449990",
+        "sourceSha256": "323bb804293b0a0f31ff1341fbd9146088714bc3be0227f3690c9cf5f7c4e21f"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "gcd",
+        "ms": 12.972375,
+        "result": "449990",
+        "sourceSha256": "323bb804293b0a0f31ff1341fbd9146088714bc3be0227f3690c9cf5f7c4e21f"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "gcd",
+        "ms": 12.735833000000014,
+        "result": "449990",
+        "sourceSha256": "323bb804293b0a0f31ff1341fbd9146088714bc3be0227f3690c9cf5f7c4e21f"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "lcm",
+        "ms": 9.555874999999958,
+        "result": "73499250000",
+        "sourceSha256": "6d5da0ec2294308ce488a39409f425b303a8ef53bfac456de680532e1fbfdccd"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "lcm",
+        "ms": 9.476499999999987,
+        "result": "73499250000",
+        "sourceSha256": "6d5da0ec2294308ce488a39409f425b303a8ef53bfac456de680532e1fbfdccd"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "lcm",
+        "ms": 9.530750000000012,
+        "result": "73499250000",
+        "sourceSha256": "6d5da0ec2294308ce488a39409f425b303a8ef53bfac456de680532e1fbfdccd"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "lcm",
+        "ms": 13.763958000000002,
+        "result": "73499250000",
+        "sourceSha256": "6d5da0ec2294308ce488a39409f425b303a8ef53bfac456de680532e1fbfdccd"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "lcm",
+        "ms": 13.875625000000014,
+        "result": "73499250000",
+        "sourceSha256": "6d5da0ec2294308ce488a39409f425b303a8ef53bfac456de680532e1fbfdccd"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "lcm",
+        "ms": 14.069332999999972,
+        "result": "73499250000",
+        "sourceSha256": "6d5da0ec2294308ce488a39409f425b303a8ef53bfac456de680532e1fbfdccd"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "isqrt",
+        "ms": 7.235749999999996,
+        "result": "5000050000",
+        "sourceSha256": "86686883c48509ead924e4b27b0e0b0e0f7c945ba47923008296c52632688fa4"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "isqrt",
+        "ms": 7.315667000000019,
+        "result": "5000050000",
+        "sourceSha256": "86686883c48509ead924e4b27b0e0b0e0f7c945ba47923008296c52632688fa4"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "isqrt",
+        "ms": 7.332957999999962,
+        "result": "5000050000",
+        "sourceSha256": "86686883c48509ead924e4b27b0e0b0e0f7c945ba47923008296c52632688fa4"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "isqrt",
+        "ms": 8.386250000000018,
+        "result": "5000050000",
+        "sourceSha256": "86686883c48509ead924e4b27b0e0b0e0f7c945ba47923008296c52632688fa4"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "isqrt",
+        "ms": 8.844625000000008,
+        "result": "5000050000",
+        "sourceSha256": "86686883c48509ead924e4b27b0e0b0e0f7c945ba47923008296c52632688fa4"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "isqrt",
+        "ms": 8.256750000000011,
+        "result": "5000050000",
+        "sourceSha256": "86686883c48509ead924e4b27b0e0b0e0f7c945ba47923008296c52632688fa4"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "power",
+        "ms": 6.631334000000038,
+        "result": "409593750",
+        "sourceSha256": "8f7e659af4592e645844d6bc4adf7c379ed50dfedcdddc9399e898feec35d10f"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "power",
+        "ms": 6.598584000000017,
+        "result": "409593750",
+        "sourceSha256": "8f7e659af4592e645844d6bc4adf7c379ed50dfedcdddc9399e898feec35d10f"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "power",
+        "ms": 6.55620799999997,
+        "result": "409593750",
+        "sourceSha256": "8f7e659af4592e645844d6bc4adf7c379ed50dfedcdddc9399e898feec35d10f"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "power",
+        "ms": 72.87237500000003,
+        "result": "409593750",
+        "sourceSha256": "8f7e659af4592e645844d6bc4adf7c379ed50dfedcdddc9399e898feec35d10f"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "power",
+        "ms": 72.49808299999995,
+        "result": "409593750",
+        "sourceSha256": "8f7e659af4592e645844d6bc4adf7c379ed50dfedcdddc9399e898feec35d10f"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "power",
+        "ms": 73.87320799999998,
+        "result": "409593750",
+        "sourceSha256": "8f7e659af4592e645844d6bc4adf7c379ed50dfedcdddc9399e898feec35d10f"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "cube",
+        "ms": 6.248707999999965,
+        "result": "24950025000000",
+        "sourceSha256": "abf7208120e3688ddf03bb7a49bb8f557f491605dbc59b399f58fd2e42ca206c"
+      },
+      {
+        "variant": "candidate",
+        "trial": 1,
+        "name": "cube",
+        "ms": 6.4607919999999694,
+        "result": "24950025000000",
+        "sourceSha256": "abf7208120e3688ddf03bb7a49bb8f557f491605dbc59b399f58fd2e42ca206c"
+      },
+      {
+        "variant": "candidate",
+        "trial": 2,
+        "name": "cube",
+        "ms": 6.438792000000035,
+        "result": "24950025000000",
+        "sourceSha256": "abf7208120e3688ddf03bb7a49bb8f557f491605dbc59b399f58fd2e42ca206c"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "cube",
+        "ms": 13.110707999999988,
+        "result": "24950025000000",
+        "sourceSha256": "abf7208120e3688ddf03bb7a49bb8f557f491605dbc59b399f58fd2e42ca206c"
+      },
+      {
+        "variant": "baseline",
+        "trial": 1,
+        "name": "cube",
+        "ms": 12.902874999999995,
+        "result": "24950025000000",
+        "sourceSha256": "abf7208120e3688ddf03bb7a49bb8f557f491605dbc59b399f58fd2e42ca206c"
+      },
+      {
+        "variant": "baseline",
+        "trial": 2,
+        "name": "cube",
+        "ms": 13.103707999999983,
+        "result": "24950025000000",
+        "sourceSha256": "abf7208120e3688ddf03bb7a49bb8f557f491605dbc59b399f58fd2e42ca206c"
+      }
+    ]
+  },
+  "demos": {
+    "mediansMs": {
+      "candidate:272-power": 588.631834,
+      "baseline:272-power": 753.338041,
+      "candidate:272-current": 590.3861670000001,
+      "baseline:272-current": 619.602459,
+      "candidate:424-power": 1414.2365419999999,
+      "baseline:424-power": 1784.90825,
+      "candidate:424-current": 798.1219590000001,
+      "baseline:424-current": 808.064083
+    },
+    "timedSamples": [
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "272-power",
+        "ms": 588.631834,
+        "result": "316174709149021",
+        "sourceSha256": "814f5846cd0eefc0d84c1ccfb9452b37a8c5db053043be29da75185527cb2c48"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "272-power",
+        "ms": 753.338041,
+        "result": "316174709149021",
+        "sourceSha256": "814f5846cd0eefc0d84c1ccfb9452b37a8c5db053043be29da75185527cb2c48"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "272-current",
+        "ms": 590.3861670000001,
+        "result": "316174709149021",
+        "sourceSha256": "7c04a3455b21b0f4da382fa44c5fda925de152be8b86b9fcb4af90ca9c4b4ec6"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "272-current",
+        "ms": 619.602459,
+        "result": "316174709149021",
+        "sourceSha256": "7c04a3455b21b0f4da382fa44c5fda925de152be8b86b9fcb4af90ca9c4b4ec6"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "424-power",
+        "ms": 1414.2365419999999,
+        "result": "8426039571",
+        "sourceSha256": "6aeb574e3703856d97941ce64ab847f15af159cd98b042f1b58eff3947c8f1e4"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "424-power",
+        "ms": 1784.90825,
+        "result": "8426039571",
+        "sourceSha256": "6aeb574e3703856d97941ce64ab847f15af159cd98b042f1b58eff3947c8f1e4"
+      },
+      {
+        "variant": "candidate",
+        "trial": 0,
+        "name": "424-current",
+        "ms": 798.1219590000001,
+        "result": "8426039571",
+        "sourceSha256": "4ef8f9ba4a42e7621039e0fb35b74fd5896d02f479dbafd9a28861d62a891f53"
+      },
+      {
+        "variant": "baseline",
+        "trial": 0,
+        "name": "424-current",
+        "ms": 808.064083,
+        "result": "8426039571",
+        "sourceSha256": "4ef8f9ba4a42e7621039e0fb35b74fd5896d02f479dbafd9a28861d62a891f53"
+      }
+    ]
+  }
+}

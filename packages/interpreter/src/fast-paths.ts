@@ -245,7 +245,7 @@ export class FastPaths {
             booleanLocals: this.context.options().booleanLoopCompilation !== false,
             scalarText: this.context.options().scalarTextCompilation !== false,
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
-            prepareBuiltinCall: (module, name, types) => prepareCompiledBuiltin(this.context, module, name, types),
+            prepareBuiltinCall: (module, name, types, numberMode) => prepareCompiledBuiltin(this.context, module, name, types, numberMode),
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({
                 read: name => this.context.bindings.find(name), module: name => this.context.modules.has(name),
             }, name, receiver, types),

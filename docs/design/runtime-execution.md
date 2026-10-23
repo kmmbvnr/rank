@@ -708,12 +708,14 @@ proved private region, as described below. Errors carry the original
 body-command or loop-condition location.
 
 The scope includes conditional and `to`/`till` range loops with at most 32 outer commands and 128 commands across nested branches and loops,
-integer arithmetic `+ - * // %`, powers with a nonnegative integer literal exponent,
+integer arithmetic `+ - * // %`, powers with a nonnegative integer exponent,
 comparisons and boolean conditions. Power preserves sign precedence and exact
 bigint arithmetic. Real powers use Number coercion, permit infinity, and retain
 the interpreter's zero-to-negative-power and non-real-result errors. Guarded array
-reads/writes, containers and vector iteration are described below. Dynamic or
-negative integer-only exponents, unsupported calls/selectors,
+reads/writes, containers and vector iteration are described below. Computed
+integer exponents use a private Number or mixed BigInt specialization; negative
+exponents discard that attempt and retain reference real-power semantics.
+Unsupported calls/selectors,
 unsupported real operations and other iterable loops retain the reference path.
 Modifier spellings such as `scan` must not be mistaken for integer operands.
 CSP rejection retains reference execution. `integerLoopCompilation: false`
@@ -731,7 +733,14 @@ direct traversal of a named vector. It proves
 scalar and destination binding stores cannot fail their contracts before deferring
 them. `band` is inlined when both operands fit signed Int32; wider operands discard
 the private attempt and replay through the exact backend. The builtin's identity
-is checked on every entry. Other calls, collection mutation, array rebinding,
+is checked on every entry. Catalogue scalar calls with integer/real/boolean
+inputs and results, no callbacks, effects or host override can also run privately.
+The shared adapter uses the exact native implementation, or a registered Number
+kernel, and checks every integer result for safe range. Overflow discards the
+attempt before exact replay. Powers use checked repeated squaring, with BigInt
+scalar registers available after overflow; backend preparation can select this
+private specialization even when no publishing BigInt plan supports the syntax.
+Other calls, collection mutation, array rebinding,
 returns, arbitrary iterators, lazy arrays and unsupported contracts retain the
 BigInt backend. Most array reads
 use an invocation-owned Float64 buffer after checking every cell's type and

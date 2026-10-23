@@ -142,7 +142,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     ? 'text' : booleanPair ? 'boolean' : undefined;
             },
             // Literal powers are handled by the guarded input path. Accepting
-            // the generic overload here would admit computed/negative exponents.
+            // the generic overload here would bypass guarded runtime lowering.
             operator: (operation, inputs) => {
                 if (operation.name === '**') return undefined;
                 const signature = loopOperatorSignature(operation.name, inputs, host.nativeCalls);
@@ -244,8 +244,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
-        if (numberMode) {
-            if (operation.module !== 'bits' || !['band', 'bxor'].includes(operation.name)) return undefined;
+        if (numberMode && operation.module === 'bits' && ['band', 'bxor'].includes(operation.name)) {
             const arguments_: string[] = [];
             for (const operand of operands) {
                 const value = emit(operand, lines, 'integer');
@@ -262,6 +261,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             return { code: name, type: 'integer' };
         }
         const signature = operation.compiledCall!;
+        if (numberMode && (signature.callbacks !== 'none' || signature.hostFunction
+            || !['integer', 'real', 'boolean'].includes(signature.result)
+            || signature.inputs.some(type => !['integer', 'real', 'boolean', 'number'].includes(type)))) return undefined;
         const arguments_: string[] = [];
         const types: string[] = [];
         let firstType: LoopTerm['type'] | undefined;
@@ -295,9 +297,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         const name = `v${state.serial++}`, index = calls.length;
         // Catalogue compiled calls are synchronous operations with
         // no Rank callbacks; bind() checks the current builtin.
-        calls.push({ name: operation.name, locals: [], stableArrayReads: true,
-            bind: host.prepareBuiltinCall(operation.module, operation.name, types) });
-        lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]);`);
+        calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: numberMode,
+            bind: host.prepareBuiltinCall(operation.module, operation.name, types, numberMode) });
+        const code = `calls[${index}]([${arguments_.join(',')}])`;
+        lines.push(`const ${name} = ${numberMode && signature.result === 'integer' ? safe(code) : code};`);
         return { code: name, type: signature.result };
     }
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
@@ -377,7 +380,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 }
             }
             const builtin = inlineBuiltins.get(op);
-            if (builtin && (builtin.enabled?.(host) ?? true) && flattenApplication(e).length === 2) {
+            if (builtin && (host.module(builtin.module) || !host.scalarFunction(op, 1))
+                && (builtin.enabled?.(host) ?? true) && flattenApplication(e).length === 2) {
                 // Numeric-runtime helpers expect Number operands. Keep these
                 // uncommon exact expressions on the existing exact backend.
                 if (wide) return undefined;
@@ -566,21 +570,31 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const signed = isUnaryExpression(e.left) && ['+', '-'].includes(e.left.operator) ? e.left : undefined;
             const base = emit(signed ? signed.operand : e.left, lines);
             if (!base) return undefined;
-            // Keep exact integer powers restricted to nonnegative literals.
+            // Publishing exact loops require nonnegative literals. Private
+            // loops can guard computed exponents and replay negative ones.
             // Real powers have the evaluator's Number coercion and NaN check;
             // infinity is a valid result, and floor/ceil check it themselves.
             const exact = base.type === 'integer' && isNumberLiteral(exponent)
                 && typeof exponent.value === 'bigint' && exponent.value >= 0n;
             const right = exact ? undefined : emit(e.right, lines);
+            if (!exact && base.type === 'integer' && right?.type === 'integer' && (numberMode || wide)) {
+                const name = `v${state.serial++}`;
+                lines.push(`const ${name} = ${signed?.operator === '-' ? '-' : ''}${wide ? 'widePower' : 'power'}(${base.code}, ${right.code});`);
+                return { code: name, type: 'integer' };
+            }
             if (!exact && (!host.reals || !right || !loopOperatorSignature('**', [base.type, right.type], host.nativeCalls)
                 || base.type === 'integer' && right.type === 'integer')) return undefined;
             const name = `v${state.serial++}`;
             const negative = signed?.operator === '-' ? '-' : '';
             if (exact && isNumberLiteral(exponent)) {
                 const literal = exponent.value;
-                // JS power is approximate even for integer inputs. Only the
-                // trivial powers and one checked multiplication are exact here.
-                if (numberMode && literal > 2n) return undefined;
+                // Keep trivial powers and squares inline; larger powers use
+                // checked repeated squaring rather than approximate JS power.
+                if (numberMode && literal > 2n) {
+                    if (!Number.isSafeInteger(Number(literal))) return undefined;
+                    lines.push(`const ${name} = ${negative}power(${base.code}, ${literal});`);
+                    return { code: name, type: 'integer' };
+                }
                 const code = numberMode ? literal === 0n ? '1' : literal === 1n ? base.code : `(${base.code}) * (${base.code})`
                     : `(${base.code}) ** ${literal}n`;
                 lines.push(`const ${name} = ${negative}(${safe(code)});`);

@@ -494,8 +494,7 @@ end`)))).toThrow('Interrupted');
         'fun N twice\n return N * 2\nend\nS = 0\nfor I in 0 to 1\n S += I twice\nend',
         'X = true\nfor I in 0 to 1\n Before = I\n X = I\nend',
         'X = 1.0\nfor I in 0 to 1\n Before = I\n X = I\nend',
-        'S = 0\nfor I in 0 to 1\n S += 3 ** 33\nend',
-    ])('retains the existing backend for effects, contracts and unproved powers: %s', source => {
+    ])('retains the existing backend for effects and contracts: %s', source => {
         const diagnostics = compare(source);
         expect(diagnostics.numberLoops).toBe(0);
     });

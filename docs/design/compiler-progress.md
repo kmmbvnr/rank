@@ -83,9 +83,12 @@ guard checks every input and cell. The safe-Number backend publishes
 integer/boolean registers and also permits real intermediates rounded back to
 integers.
 Real `**` preserves power/sign precedence, rejects zero to a negative power and
-NaN results, and permits infinity. Exact integer powers still need nonnegative
-literal exponents; the Number backend lowers only exponents 0, 1 and 2 with exact
-integer operations. `realLoopCompilation: false` turns off real lowering.
+NaN results, and permits infinity. The private Number backend also accepts
+computed integer exponents, using checked repeated squaring for nonnegative
+values. Overflow can select private BigInt scalar registers; negative exponents
+discard the private attempt and retain the interpreter’s real-power semantics.
+The publishing BigInt backend still requires nonnegative literal exponents.
+`realLoopCompilation: false` turns off real lowering.
 
 Euler 247's depth-first walk over 782252 squares now compiles. On a loaded
 machine it ran in 0.7-1.1 s, against 19-24 s for the previous build measured at
@@ -197,7 +200,18 @@ interruption checkpoints. A catalogue name without its module open still uses
 the user-function path, so these profiles do not disable compilation of a user
 function named `gcd`. An unresolved native name can still bind after a later
 module import, including a cached loop whose first execution reported a missing
-import. No duplicate numeric algorithms or typed kernels were introduced. Integer `abs` retains its existing guarded lowering.
+import. Integer `abs` retains its existing guarded lowering.
+
+The private Number backend accepts catalogue calls whose inputs and result are
+integer, real or boolean scalars, with no callbacks, effects or host override.
+A shared adapter converts integer arguments to BigInt for the existing native
+implementation and checks integer results before they enter Number registers.
+Registered Number kernels for binary `gcd` and `lcm` avoid those conversions;
+module and builtin identity guards still run on every entry. The checked native
+implementation remains available when typed kernels are disabled or interruption
+requires its checkpoints. Wide results discard private scalar and array changes
+before exact replay. Array, text, callback and effectful call profiles remain on
+the publishing backend.
 
 Unary collection `lcm`, array/ranked operands and unsupported input types keep
 ordinary execution. This does not add real-valued loop registers or make numeric
