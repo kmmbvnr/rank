@@ -74,6 +74,15 @@ Notes from this range, for the next one:
   inside a loop that is not compiled costs the size of the array each
   time (#390). `**` and `isqrt` stop a loop from compiling (#391).
 
+## Lowest-cost search (328)
+
+Euler 328 visits the accepted subtree sizes directly and precomputes path-cost
+offsets instead of recursively evaluating each tree. Its full N=200000 run
+returns 260511850222 in about 3.8 seconds on the measured Apple M5. The search
+retains the original candidate window. Interpreter-only timings, profiles,
+correctness checks and reproduction commands are in the
+[benchmark report](../../benchmarks/euler328-results.md).
+
 ## Problems 401-450
 
 Written: all of 401-450, one program and one test file each. The tests

@@ -2,7 +2,11 @@ use testing
 
 test "lowest costs"
   use "328_lowestcost"
+  0 costs equal 0
+  1 costs equal 0
+  2 costs equal 1
   8 costs equal 43
   100 costs equal 17575
   101 costs equal 17981
+  1000 costs equal 3120345
 end

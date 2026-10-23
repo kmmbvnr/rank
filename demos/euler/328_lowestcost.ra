@@ -8,77 +8,73 @@ Answer print
 
 fun N costs
   Dp = array shape (N + 1) fill 0
-  Ok = array shape (N + 1) fill false
-  for I in 1 till (N + 1)
-    if I less 2
-      continue
+  rem Only these right subtree sizes can occur in the candidate window.
+  Limit = N - 1 - (((4 * N) // 5 - 20) 0 max)
+  Limit = Limit 100 max
+  Heights = array shape (Limit + 1) fill 0
+  LongOffsets = array shape (Limit + 1) fill 0
+  ShortOffsets = array shape (Limit + 1) fill -1000000000000
+  Height = 0
+  Power = 1
+  for Power * 2 at most Limit
+    Power *= 2
+    Height += 1
+  end
+  rem A path with D paid guesses costs D * Base + its stored offset.
+  rem Retain the greatest offset at each depth, including shorter paths.
+  Offsets = array shape (Limit + 1) (Height + 1) fill -1000000000000
+  Offsets 0 0 = 0
+  Offsets 1 0 = 0
+  H = 1
+  P = 2
+  for Size in 2 to Limit
+    if Size at least P * 2
+      P *= 2
+      H += 1
     end
-    H = I height
-    if I equal 2 ** (H + 1) - 1
-      Ok I = H at least 2
-      continue
-    end
+    Heights Size = H
     L = 0
     R = 0
-    if I at least (2 ** H + 2 ** (H - 1))
-      L = 2 ** H - 1
-      R = I - 1 - L
+    if Size at least (P + P // 2)
+      L = P - 1
+      R = Size - 1 - L
     else
-      R = 2 ** (H - 1) - 1
-      L = I - 1 - R
+      R = P // 2 - 1
+      L = Size - 1 - R
     end
-    Ok I = (Ok L) and (Ok R)
+    for D in 0 till H
+      Left = (Offsets L D) + L + 1
+      Right = (Offsets R D) + (D + 1) * (L + 1)
+      Offsets Size (D + 1) = Left Right max
+    end
+    LongOffsets Size = Offsets Size H
+    ShortOffsets Size = Offsets Size (H - 1)
   end
   Sum = 0
-  for I in 2 till (N + 1)
+  for I in 2 to N
     Best = 1000000000000
-    Start = (4 * I) // 5 - 20
-    Start = Start 0 max
-    for K in Start till I
-      Size = I - 1 - K
-      if I at most 100 or Ok Size
-        Left = Dp K
-        Right = (K + 1) Size tree
-        Cost = K + 1 + (Left Right max)
-        Best = Best Cost min
+    Start = ((4 * I) // 5 - 20) 0 max
+    Last = I - 1 - Start
+    First = 7
+    Step = 8
+    if I at most 100
+      First = 0
+      Step = 1
+    end
+    rem The original Ok recurrence accepts exactly sizes 7 modulo 8.
+    for Size in First to Last by Step
+      K = I - 1 - Size
+      H = Heights Size
+      Right = (LongOffsets Size) + H * (K + 1)
+      if H greater 0
+        Short = (ShortOffsets Size) + (H - 1) * (K + 1)
+        Right = Right Short max
       end
+      Cost = K + 1 + ((Dp K) Right max)
+      Best = Best Cost min
     end
     Dp I = Best
     Sum += Best
   end
   return Sum
-end
-
-fun Base Size tree
-  if Size less 2
-    return 0
-  end
-  H = Size height
-  if Size equal 2 ** (H + 1) - 1
-    Part = 2 * ((H - 1) * 2 ** H + 1)
-    return Part + H * Base
-  end
-  L = 0
-  R = 0
-  Split = 2 ** H + 2 ** (H - 1)
-  if Size at least Split
-    L = 2 ** H - 1
-    R = Size - 1 - L
-  else
-    R = 2 ** (H - 1) - 1
-    L = Size - 1 - R
-  end
-  Left = Base L tree
-  Right = (Base + L + 1) R tree
-  return (Left Right max) + Base + L + 1
-end
-
-fun N height
-  H = 0
-  P = 1
-  for P * 2 at most N
-    P *= 2
-    H += 1
-  end
-  return H
 end
