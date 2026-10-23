@@ -1,0 +1,38 @@
+rem Exploding sequence
+rem https://projecteuler.net/problem=492
+
+use numbers
+use sequences
+use io
+use cli
+
+option X integer = 1000000000
+option Y integer = 10000000
+option N integer = 1000000000000000
+
+rem b = 6a + 5 gives b' = b^2 - 2 and
+rem b_1 = 11, so b_n = V(2^(n-1)) for
+rem V_m = r^m + r^-m, r + 1/r = 11.
+rem Mod p, r^(p-1) = 1 when 117 is a
+rem square and r^(p+1) = 1 otherwise,
+rem which reduces the index. Then
+rem Lucas doubling for all primes at
+rem once.
+P = primes from X to X + Y array
+Lg = 117 ((P - 1) // 2) P powmod
+Od = (Lg equal 1) choose (P - 1) (P + 1)
+K = 2 (N - 1) Od powmod
+Va = P * 0 + 2
+Vb = P * 0 + 11
+for Bt in 30 to 0 by -1
+  Hb = (K // 2 ** Bt) mod 2 equal 1
+  Vm = (Va * Vb - 11) mod P
+  Aa = (Va * Va - 2) mod P
+  Bb = (Vb * Vb - 2) mod P
+  Va = Hb choose Vm Aa
+  Vb = Hb choose Bb Vm
+end
+I6 = 6 (P - 2) P powmod
+An = (Va - 5) mod P * I6 mod P
+Answer = An sum
+Answer print

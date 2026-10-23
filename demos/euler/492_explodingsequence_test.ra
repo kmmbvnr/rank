@@ -1,0 +1,19 @@
+use testing
+
+test "statement value"
+  use "492_explodingsequence"
+  X = 1000000000
+  Y = 1000
+  N = 1000
+  run
+  Answer equal 23674718882
+end
+
+test "direct recurrence, n = 10"
+  use "492_explodingsequence"
+  X = 100
+  Y = 200
+  N = 10
+  run
+  Answer equal 2579
+end
