@@ -1,0 +1,54 @@
+rem Prime triples, geometric sequences
+rem https://projecteuler.net/problem=518
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000
+
+rem (a+1)(c+1) = (b+1)^2 gives a + 1 =
+rem d u^2, b + 1 = d u v, c + 1 = d v^2
+rem with u < v coprime. For odd primes
+rem d is even; odd d only gives a = 2,
+rem d = 3, u = 1 and v even.
+Sv = (N - 1) primesieve
+Rs = (N // 3) isqrt
+Vs = (1 to Rs // 2) * 2
+B = 3 * Vs - 1
+C = 3 * Vs * Vs - 1
+Ok = (B in Sv) and (C in Sv)
+T = 2 + B + C
+Answer = (T (Ok indices)) sum
+Rv = (N // 2) isqrt
+for V in 2 to Rv
+  Vv = V * V
+  D = (1 to N // Vv // 2) copy
+  D = D * 2
+  Cs = D * Vv - 1
+  Dk = (Cs in Sv) indices
+  Nd = Dk len
+  if Nd greater 0
+    D = D Dk
+    Cs = Cs Dk
+    U = 1 till V
+    G = U V gcd
+    U = U ((G equal 1) indices)
+    I = (0 till (U len) * Nd) copy
+    Ui = U (I // Nd)
+    Di = I mod Nd
+    Dd = D Di
+    As = Dd * Ui * Ui - 1
+    Ia = (As in Sv) indices
+    Ui = Ui Ia
+    Di = Di Ia
+    As = As Ia
+    Bs = (Dd Ia) * Ui * V - 1
+    Ib = (Bs in Sv) indices
+    T = (As Ib) + (Bs Ib)
+    T += Cs (Di Ib)
+    Answer += T sum
+  end
+end
+Answer print

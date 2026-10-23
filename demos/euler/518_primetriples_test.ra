@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "518_primetriples"
+  N = 100
+  run
+  Answer equal 1035
+end
