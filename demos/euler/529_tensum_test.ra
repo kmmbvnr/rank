@@ -1,0 +1,12 @@
+use testing
+
+test "digit sum 4, brute force and dp"
+  use "529_tensum"
+  Sd = 4
+  N = 5
+  run
+  Answer equal 504
+  N = 2000
+  run
+  Answer equal 603612384
+end

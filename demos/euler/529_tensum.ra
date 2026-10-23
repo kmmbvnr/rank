@@ -1,0 +1,236 @@
+rem 10-substrings
+rem https://projecteuler.net/problem=529
+
+use numbers
+use sequences
+use bits
+use algo
+use linalg
+use io
+use cli
+
+option N integer = 1000000000000000000
+option Sd integer = 10
+
+rem Scan left to right keeping H, the
+rem offsets back to earlier cuts that
+rem can still start a sum-Sd block,
+rem and S, the cut offsets inside the
+rem uncovered tail (bit sets, sum Sd
+rem at most). A digit closes the tail
+rem when Sd - sum is in H. The counts
+rem form a linear recurrence: build
+rem the automaton, minimise it, find
+rem the recurrence by Berlekamp-Massey
+rem and raise x^N mod its polynomial.
+P = 1000000007
+Bw = Sd + 1
+Fm = (1 Bw shl) - 1
+rem Next keys H * 2^Bw + S for digit X,
+rem -1 where the tail sum passes Sd.
+fun Ks X nxt
+  H = Ks Bw shr
+  Sm = Ks Fm band
+  Dm = Sm * 0
+  for B in 1 to Sd
+    Dm = (Sm B bit) choose B Dm
+  end
+  Dp = Dm + X
+  Dc = Dp Sd min
+  Bd1 = 1 Dc shl
+  S2 = Sm Bd1 bor
+  Sc = Sd - Dc
+  Cl = H Sc bit
+  Hn = (H Dc shl) Fm band
+  for B in 0 to Sd
+    Sb = (Dc - B) max 0
+    Sh = 1 Sb shl
+    Up = (S2 B bit) and (B at most Dc)
+    Ad = Up choose Sh 0
+    Hn = Hn Ad bor
+  end
+  Kc = (Hn Bw shl) + 1
+  Ko = (H Bw shl) + S2
+  Kn = Cl choose Kc Ko
+  Ok = Dp at most Sd
+  return Ok choose Kn (0 - 1)
+end
+rem Reachable states, breadth first.
+K0 = (1 Bw shl) + 1
+Al = array K0
+Fr = array K0
+for Fr len greater 0
+  Nx = Fr 0 nxt
+  for X in 1 to 9
+    Nx = concat Nx (Fr X nxt)
+  end
+  Nx = Nx ((Nx at least 0) indices)
+  Nx = Nx unique
+  Nm = (Nx in Al) equal false
+  Nw = Nx (Nm indices)
+  Al = (concat Al Nw) copy
+  Fr = Nw
+end
+Ks = Al sort
+Ns = Ks len
+Ny = Ns + 1
+rem Transitions, state Ns the sink.
+Tf = array shape (Ny * 10) fill Ns
+for X in 0 to 9
+  Kx = Ks X nxt
+  Ix = Ks Kx lowerindex
+  Ix = (Kx at least 0) choose Ix Ns
+  Tf (X till Ns * 10 by 10) = Ix
+end
+Ac = (Ks Fm band) equal 1
+Ac = concat Ac (array false)
+rem Moore refinement: split classes by
+rem the classes of the ten successors.
+Cl = Ac integer
+Nc = 2
+for Rd in 1 to Ny
+  Kq = Cl
+  for X in 0 to 9
+    Sx = Cl (Tf (X till Ny * 10 by 10))
+    V = Kq * Ny + Sx
+    Uq = (V unique) sort
+    Kq = Uq V lowerindex
+  end
+  Nn = (Kq max) + 1
+  if Nn equal Nc
+    break
+  end
+  Cl = Kq
+  Nc = Nn
+end
+Rp = array shape Nc fill 0
+Rp Cl = (0 till Ny) copy
+Mt = array shape (Nc * 10) fill 0
+for X in 0 to 9
+  Ct = Cl (Tf (Rp * 10 + X))
+  Mt (X till Nc * 10 by 10) = Ct
+end
+Dk = Cl Ns
+Sr = (0 till Nc * 10) // 10
+Kp = (Mt equal Dk) or (Sr equal Dk)
+Kp = Kp equal false
+Src = Sr (Kp indices)
+Dst = Mt (Kp indices)
+Am = (Ac Rp) integer
+rem T(L) for L < Nt by stepping counts.
+C0 = Cl (Ks K0 lowerindex)
+Vv = array shape Nc fill 0
+Ds = Mt (C0 * 10 + (1 to 9))
+Vv Ds += 1 .accumulate
+Vv Dk = 0
+Nt = 2 * Nc + 10
+Ts = array shape Nt fill 0
+T = 0
+for L in 1 till Nt
+  Ta = (Vv * Am) sum
+  T = (T + Ta) mod P
+  Ts L = T
+  Nv = Vv * 0
+  Vs = Vv Src
+  Nv Dst += Vs .accumulate
+  Vv = Nv mod P
+end
+rem Berlekamp-Massey: the shortest C
+rem with sum C(j) T(i - j) = 0.
+C = array 1
+Bb = array 1
+Lr = 0
+Mm = 1
+Bd = 1
+for I in 0 till Nt
+  D = Ts I
+  if Lr greater 0
+    Cs = C (1 to Lr)
+    Sv = (Ts (I - Lr till I)) reverse
+    Dt = ((Cs * Sv) mod P) sum
+    D = (D + Dt) mod P
+  end
+  if D equal 0
+    Mm += 1
+    continue
+  end
+  Cf = D * (Bd (P - 2) P powmod) mod P
+  Tc = C
+  Nb = (Bb len) + Mm
+  Cn = C len
+  if Cn less Nb
+    Zp = array shape (Nb - Cn) fill 0
+    C = (concat C Zp) copy
+  end
+  Sg = C (Mm till Nb)
+  C (Mm till Nb) = (Sg - Cf * Bb) mod P
+  if 2 * Lr at most I
+    Lr = I + 1 - Lr
+    Bb = Tc
+    Bd = D
+    Mm = 1
+  else
+    Mm += 1
+  end
+end
+rem x^N mod x^R - sum Q(j) x^(R - j),
+rem Q = -C. Row k of Rm is x^(R + k)
+rem reduced; a square folds its top
+rem half through Rm.
+R = Lr
+V0 = (0 - C (R - (0 till R))) mod P
+Rm = array shape (R - 1) R fill 0
+Vk = V0
+for K in 0 till R - 1
+  Rm K = Vk
+  Tp = Vk (R - 1)
+  Vs = Vk (0 till R - 1)
+  Vs = concat (array 0) Vs
+  Vk = (Vs + Tp * V0) mod P
+end
+Rl = (Rm mod 32768) * 1.0
+Rh = (Rm // 32768) * 1.0
+W = 2 * R - 1
+rem A square sums a(i) a(j) at i + j:
+rem the pairs i < j twice, then the
+rem squares, by indexed accumulation.
+Iq = (0 till R * R) copy
+Ia = Iq // R
+Ja = Iq mod R
+Up = (Ia less Ja) indices
+Ia = Ia Up
+Ja = Ja Up
+Kd = Ia + Ja
+Dg = 2 * (0 till R)
+Cv = array shape W fill 0
+Xc = array shape R fill 0
+Xc 0 = 1
+Nb = (N binary) len
+for J in Nb - 1 to 0 by -1
+  Pr = (Xc Ia) * (Xc Ja) mod P
+  Cv = array shape W fill 0
+  Cv Kd += Pr .accumulate
+  Cv = 2 * Cv
+  Cv Dg += Xc * Xc mod P
+  Cv = Cv mod P
+  Hg = Cv (R till W)
+  Hl = Hg mod 32768
+  Hh = Hg // 32768
+  Hm = (stack Hl Hh) * 1.0
+  Ca = (Hm Rl matmul) integer
+  Cb = (Hm Rh matmul) integer
+  Md = (Ca 1 + Cb 0) mod P
+  Rd = Ca 0 + Md * 32768
+  Rd = Rd + ((Cb 1) mod P) * 1073741824
+  Xc = (Cv (0 till R) + Rd) mod P
+  if N J bit
+    Tp = Xc (R - 1)
+    Vs = Xc (0 till R - 1)
+    Vs = concat (array 0) Vs
+    Xc = (Vs + Tp * V0) mod P
+  end
+end
+Tr = Ts (0 till R)
+Answer = ((Xc * Tr) mod P) sum
+Answer = Answer mod P
+Answer print
