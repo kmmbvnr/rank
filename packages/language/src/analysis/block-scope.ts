@@ -4,7 +4,8 @@ import { functionBindingPlan } from '../function-binding.js';
  * `try`, `catch` or `finally` ends with that block. The pass walks statements
  * in source order and reports a read of a name where it does not exist: after
  * its block closed, or before its first assignment — which is how a loop body
- * would otherwise see the previous iteration's value. Names the body never
+ * would otherwise see the previous iteration's value. A `for` or `catch`
+ * header cannot reuse a visible outer name. Names the body never
  * binds — globals of a function, imported or catalogue words — stay silent.
  * With every such read rejected, a runtime can keep a block's values until its
  * outermost block ends without anyone observing the difference.
@@ -56,7 +57,7 @@ export function blockScopeDiagnostics(
     /** Visible names per open block, innermost last, and names whose block ended. */
     function body(statements: readonly Statement[], outer: ReadonlySet<string>[]): void {
         const scopes: Set<string>[] = [...outer as Set<string>[], new Set(statements.filter(isFunctionStatement).map(node => node.name))];
-        const ended = new Map<string, number>();
+        const ended = new Map<string, { line: number; header: boolean }>();
         const local = boundNames(statements);
         const visible = (name: string) => scopes.some(scope => scope.has(name));
         const bind = (name: string) => {
@@ -65,10 +66,12 @@ export function blockScopeDiagnostics(
         };
         const check = (name: string, node: AstNode) => {
             if (syntheticNames.has(name) || visible(name)) return;
-            const line = ended.get(name);
-            if (line !== undefined) {
+            const previous = ended.get(name);
+            if (previous !== undefined) {
                 diagnostics.push({ node, message: `${name} was assigned inside the block that ends at `
-                    + `line ${line} and does not exist after it. Assign it before the block to keep it.` });
+                    + `line ${previous.line} and does not exist after it. `
+                    + (previous.header ? 'To keep its value, assign it to a different name declared before the block.'
+                        : 'Assign it before the block to keep it.') });
             } else if (local.has(name)) {
                 diagnostics.push({ node, message: `${name} is read before it is assigned. To keep a value `
                     + `between loop iterations, assign it before the loop.` });
@@ -79,14 +82,18 @@ export function blockScopeDiagnostics(
             const nodes = isNameExpression(node) ? [node] : AstUtils.streamAllContents(node).filter(isNameExpression);
             for (const name of nodes) check(name.name, name);
         };
-        const block = (statements: readonly Statement[], names: readonly string[], end: AstNode) => {
-            const scope = new Set(names.filter(name => !visible(name)));
+        const block = (statements: readonly Statement[], names: readonly string[], end: AstNode, header = end) => {
+            for (const name of names) {
+                if (visible(name)) diagnostics.push({ node: header, message: `${name} is already bound outside this block; `
+                    + `use a different ${isForStatement(end) ? 'for' : 'catch'} binding name.` });
+            }
+            const scope = new Set(names);
             scopes.push(scope);
             for (const name of names) ended.delete(name);
             statements.forEach(statement);
             scopes.pop();
             const line = (end.$cstNode?.range.end.line ?? 0) + 1;
-            for (const name of scope) if (!visible(name)) ended.set(name, line);
+            for (const name of scope) if (!visible(name)) ended.set(name, { line, header: names.includes(name) });
         };
         // A nested function closes over the enclosing body, including names it assigns later.
         const direct = new Set(statements.flatMap(node => isAssignmentStatement(node) ? [node.name]
@@ -119,7 +126,7 @@ export function blockScopeDiagnostics(
                 block(node.elseStatements, [], node);
             } else if (isTryStatement(node)) {
                 block(node.statements, [], node);
-                for (const clause of node.catches) block(clause.statements, [clause.errorName], node);
+                for (const clause of node.catches) block(clause.statements, [clause.errorName], node, clause);
                 block(node.finallyStatements, [], node);
             } else {
                 // Nested statements only appear inside the blocks handled above.

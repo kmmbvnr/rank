@@ -209,14 +209,15 @@ Total
         const result = compare(`N = 3
 Step = 1
 Count = 0
-I = 0
+Last = 0
 for I in 0 till N by Step
   N = 0
   Step = 10
   I += 100
+  Last = I
   Count += 1
 end
-array I Count N Step
+array Last Count N Step
 `);
         expect(result.value).toBe('102 3 0 10');
         expect(result.loops).toBe(1);
@@ -1043,24 +1044,26 @@ Total`);
         expect(result.loops).toBe(2);
     });
 
-    it('checks index type even when the array is empty', () => {
+    it('rejects an outer index binding even when the array is empty', () => {
         const result = compare(`A = array shape 0 fill 0
 I = "text"
 for Value I in A
   Total = 1
 end`);
-        expect(result).toHaveProperty('error');
-        expect(result.loops).toBe(1);
+        expect(result.error).toContain('I is already bound outside this block');
+        expect(result.loops).toBe(0);
+        expect(result.variables).toEqual([]);
     });
 
-    it('keeps the type-declaration error before any body write', () => {
+    it('rejects an outer element binding before any program write', () => {
         const result = compare(`A = array 1 2
 Value = "text"
 for Value in A
   Total = 1
 end`);
-        expect(result).toHaveProperty('error');
-        expect(result.loops).toBe(1);
+        expect(result.error).toContain('Value is already bound outside this block');
+        expect(result.loops).toBe(0);
+        expect(result.variables).toEqual([]);
     });
 
     it('declines heterogeneous arrays and receiver rebinding', () => {
@@ -1777,7 +1780,7 @@ end
 
 
 describe('proven integer iteration types', () => {
-    it('does not declare an element type for an empty vector', () => {
+    it('rejects an outer element binding even for an empty vector', () => {
         const result = compare(`A = array shape 0 fill 0
 Value = "kept"
 Total = 0
@@ -1785,29 +1788,33 @@ for Value i in A
   Total += 1
 end
 Value`);
-        expect(result.value).toBe('kept');
-        expect(result.loops).toBe(1);
+        expect(result.error).toContain('Value is already bound outside this block');
+        expect(result.loops).toBe(0);
+        expect(result.variables).toEqual([]);
     });
 
-    it('still checks the ordinal type when the vector is empty', () => {
+    it('rejects an outer ordinal binding even when the vector is empty', () => {
         const result = compare(`A = array shape 0 fill 0
 Index = "held"
 Total = 0
 for Value Index in A
   Total += 1
 end`);
-        expect(result).toHaveProperty('error');
+        expect(result.error).toContain('Index is already bound outside this block');
+        expect(result.loops).toBe(0);
+        expect(result.variables).toEqual([]);
     });
 
-    it('checks the element binding before executing the body', () => {
+    it('checks the element binding before executing the program', () => {
         const result = compare(`A = array 1 2
 Value = "held"
 Total = 0
 for Value in A
   Total += 1
 end`);
-        expect(result).toHaveProperty('error');
-        expect(result.variables).toContainEqual(['Total', '0']);
+        expect(result.error).toContain('Value is already bound outside this block');
+        expect(result.loops).toBe(0);
+        expect(result.variables).toEqual([]);
     });
 });
 
@@ -1974,7 +1981,7 @@ Total`);
         expect(result.loops).toBe(1);
     });
 
-    it('retains empty-string element binding validation', () => {
+    it('rejects an outer character binding even for an empty string', () => {
         const result = compare(`Rows = array ""
 C = 1
 Total = 0
@@ -1983,8 +1990,9 @@ for Row in Rows
     Total += 1
   end
 end`);
-        expect(result).toHaveProperty('error');
-        expect(result.variables).toContainEqual(['Total', '0']);
+        expect(result.error).toContain('C is already bound outside this block');
+        expect(result.loops).toBe(0);
+        expect(result.variables).toEqual([]);
     });
 
     it('rejects a mixed vector before executing its loop', () => {
@@ -2344,11 +2352,12 @@ end
   return X
 end
 Total = 0
-I = 0
+Last = 0
 for I in 1 to 3
   Total += I increment
+  Last = I
 end
-array Total I`);
+array Total Last`);
         expect(result.value).toBe('9 3');
         expect(result.loops).toBe(1);
     });

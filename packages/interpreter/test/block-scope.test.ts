@@ -5,6 +5,64 @@ import { run } from './support.js';
 describe('block scope', () => {
     describe.each([true, false])('lexical block frames (compilation %s)', compilation => {
         it.each([
+            ['I = 99', 'for I in 1 to 3\nend'],
+            ['I = "keep"', 'for I in 1 to 3\nend'],
+            ['I = 99', 'for Value I in array 10 20\nend'],
+        ])('rejects header capture before executing a cell: %s / %s', (initial, loop) => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                runtime.execute(`${initial}\nMarker = 7`);
+                const previous = runtime.variables.get('I');
+                expect(() => runtime.execute(`Marker = 0\n${loop}`)).toThrow(
+                    expect.objectContaining({ rankKind: 'Scope', message:
+                        'I is already bound outside this block; use a different for binding name.' }),
+                );
+                expect(runtime.variables.get('I')).toBe(previous);
+                expect(runtime.variables.get('Marker')).toBe(7n);
+            } finally { runtime.dispose(); }
+        });
+
+        it('does not replace a saved error through a catch header in a later cell', () => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                runtime.execute('Saved = .NA\ntry\n .First raise\ncatch Error\n Saved = Error\nend');
+                const saved = runtime.variables.get('Saved');
+                expect(() => runtime.execute('try\n .Second raise\ncatch Saved\nend')).toThrow(
+                    expect.objectContaining({ rankKind: 'Scope', message:
+                        'Saved is already bound outside this block; use a different catch binding name.' }),
+                );
+                expect(runtime.variables.get('Saved')).toBe(saved);
+                expect(runtime.variables.has('Error')).toBe(false);
+            } finally { runtime.dispose(); }
+        });
+
+        it('keeps outer updates available through ordinary assignments', () => {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                expect(runtime.execute(`Total = 0
+Last = 99
+for I in 1 to 3
+ Total += I
+ Last = I
+end
+if true
+ Total = Total + 10
+end
+try
+ .Oops raise
+catch Error
+ Total += 100
+finally
+ Total += 1000
+end
+Total`)).toBe(1116n);
+                expect(runtime.variables.get('Last')).toBe(3n);
+                expect(runtime.variables.has('I')).toBe(false);
+                expect(runtime.variables.has('Error')).toBe(false);
+            } finally { runtime.dispose(); }
+        });
+
+        it.each([
             'for R in 1 till 3\n Dy = R\n 10 f\nend',
             'if true\n Dy = 1\n 10 f\nend',
             'try\n Dy = 1\n 10 f\nfinally\n 0\nend',
@@ -76,7 +134,7 @@ outer`)).toThrow('unknown name: Dy');
     it('ends loop bindings and body names with the loop', () => {
         expect(() => run('for I in 0 to 2\n Last = I\nend\nLast')).toThrow('Last was assigned inside');
         expect(() => run('for I in 0 to 2\nend\nI')).toThrow('I was assigned inside');
-        expect(run('I = 0\nfor I in 0 to 2\nend\nI')).toBe('2');
+        expect(() => run('I = 0\nfor I in 0 to 2\nend\nI')).toThrow('I is already bound outside this block');
         expect(run('Total = 0\nfor I in 0 to 2\n Step = I * 2\n Total += Step\nend\nTotal')).toBe('6');
     });
 

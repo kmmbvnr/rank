@@ -13,6 +13,17 @@ it('publishes a located type diagnostic through language validation', async () =
         range: expect.objectContaining({ start: expect.objectContaining({ line: 1 }) }),
     }));
 });
+it.each([
+    ['I = 99\nfor I in 1 to 3\nend\n', 'I', 'for', 1],
+    ['Error = 99\ntry\n .Oops raise\ncatch Error\nend\n', 'Error', 'catch', 3],
+])('locates a conflicting block header in the editor: %s', async (source, name, kind, line) => {
+    const document = await parse(source, { validation: true });
+    expect(document.diagnostics).toContainEqual(expect.objectContaining({
+        message: `${name} is already bound outside this block; use a different ${kind} binding name.`,
+        severity: 1,
+        range: expect.objectContaining({ start: expect.objectContaining({ line }) }),
+    }));
+});
 it('does not analyze a parser-recovered incomplete draft', async () => {
     const document = await parse('A = 1\nA = "x"\nB =\n', { validation: true });
     expect(document.parseResult.parserErrors.length).toBeGreaterThan(0);

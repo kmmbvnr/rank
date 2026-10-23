@@ -1892,9 +1892,9 @@ end
 ### Block scope
 
 `if`, `elif`, `else`, `for`, `try`, `catch` and `finally` bodies are blocks. A
-name first assigned inside a block exists only until its `end`; a name that
-already exists outside is updated in place. To use a value after the block,
-assign the name before it:
+name first assigned inside a block exists only until its `end`. An ordinary
+assignment to a name that already exists outside updates it in place. To use
+a value after the block, assign the name before it:
 
 ```rank
 Kind = "lower"
@@ -1905,6 +1905,12 @@ elif Score equal Best
 end
 Kind print
 ```
+
+Iteration and index names in a `for` header, and error names in `catch`, must
+not match a visible outer name. A conflict is reported before execution,
+including when the outer name comes from an earlier notebook or REPL cell.
+Sibling blocks may reuse a name once its earlier block has ended. Ordinary
+assignments in block bodies can still update outer names, including accumulators.
 
 Reading a block's name after its `end` is reported before the program runs,
 and so is reading a name before its first assignment. A loop iteration therefore
@@ -1926,15 +1932,16 @@ for i in 1 to 10
 end
 ```
 
-The loop variable belongs to the loop and does not exist after `end`. When a
-name of the same spelling already exists before the loop, the loop assigns to
-it instead, and after a nonempty loop it holds the last value:
+Iteration and index names belong to the loop and do not exist after `end`.
+A name that is already visible outside the loop cannot be used in its header.
+To keep the last item, assign it to a separate outer variable:
 
 ```rank
-I = 0
+Last = 0
 for I in 1 to 10
+  Last = I
 end
-I print
+Last print
 rem 10
 ```
 
@@ -2102,7 +2109,8 @@ Trace = Error .Trace
 value attached when the error was raised, and `.Cause` is an optional earlier
 error. Addressing `.Value` or `.Cause` when it is absent produces `.Missing`,
 so `default` can provide a default. The error name belongs to its `catch`
-block and follows the same inferred-type rules as other names.
+block, must not match a visible outer name, and follows the same inferred-type
+rules as other names. To retain the error, assign it to a separate outer variable.
 
 `raise` is a core data-first operation and does not require `use`. Error kinds
 are ordinary labels and need no declaration:
