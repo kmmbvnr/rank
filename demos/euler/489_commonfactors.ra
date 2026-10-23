@@ -1,0 +1,118 @@
+rem Common factors between two
+rem sequences
+rem https://projecteuler.net/problem=489
+
+use numbers
+use sequences
+use io
+use cli
+
+option Ma integer = 18
+option Nb integer = 1900
+
+rem gcd(n^3 + b, (n + a)^3 + b) divides
+rem the resultant a^3 (a^6 + 27 b^2),
+rem so the best gcd is the product of
+rem the largest p^k with a common root
+rem mod p^k; G is the least CRT of the
+rem roots. For p not dividing 6a both
+rem congruences force n = -(3b + a^3)
+rem / (2 a^2) mod p^k; other p lift
+rem roots digit by digit.
+Lm = (Ma ** 6 + 27 * Nb * Nb) isqrt
+Ps = primes to Lm + 1 array
+Answer = 0
+for A in 1 to Ma
+  Pa = Ps (((A mod Ps) equal 0) indices)
+  for B in 1 to Nb
+    Nv = A ** 6 + 27 * B * B
+    Dz = (Nv mod Ps) equal 0
+    Pd = Ps (Dz indices)
+    Co = Nv
+    for P in Pd
+      for Co mod P equal 0
+        Co //= P
+      end
+    end
+    Pt = concat Pa Pd
+    if Co greater 1
+      Pt = concat Pt (array Co)
+    end
+    Pt = Pt unique
+    Cur = array 0
+    Mc = 1
+    for P in Pt
+      E = 0
+      X = A
+      for X mod P equal 0
+        X //= P
+        E += 3
+      end
+      X = Nv
+      for X mod P equal 0
+        X //= P
+        E += 1
+      end
+      Rs = array 0
+      Md = 1
+      Gn = A mod P not equal 0
+      if P greater 3 and Gn
+        rem One candidate per level.
+        for T in 1 to E
+          Mn = Md * P
+          Ph = Mn // P * (P - 1)
+          Ta = 2 * A * A
+          Iv = Ta (Ph - 1) Mn powmod
+          Xc = 0 - 3 * B - A ** 3
+          Xc = Xc * Iv mod Mn
+          G1 = Xc 3 Mn powmod + B
+          Xa = Xc + A
+          G2 = Xa 3 Mn powmod + B
+          Gs = G1 mod Mn + G2 mod Mn
+          if Gs equal 0
+            Rs = array Xc
+            Md = Mn
+          else
+            break
+          end
+        end
+      else
+        rem Lift roots digit by digit.
+        for T in 1 to E
+          Mn = Md * P
+          Us = (0 till P) * Md
+          Rc = Rs reshape (Rs len) 1
+          C2 = Rc + Us
+          Nc = (Rs len) * P
+          Ch = C2 reshape Nc
+          F1 = Ch 3 Mn powmod + B
+          Ca = Ch + A
+          F2 = Ca 3 Mn powmod + B
+          Fz = F1 mod Mn + F2 mod Mn
+          Ok = (Fz equal 0) indices
+          if Ok len equal 0
+            break
+          end
+          Rs = Ch Ok
+          Md = Mn
+        end
+      end
+      if Md greater 1
+        rem CRT with Cur mod Mc.
+        Ph = Md // P * (P - 1)
+        Mr = Mc mod Md
+        Iv = Mr (Ph - 1) Md powmod
+        Nr = Cur len
+        Nt = Nr * (Rs len)
+        Ip = (0 till Nt) copy
+        Cq = Cur (Ip mod Nr)
+        Rq = Rs (Ip // Nr)
+        K = (Rq - Cq) mod Md * Iv mod Md
+        Cur = Cq + Mc * K
+        Mc *= Md
+      end
+    end
+    Answer += Cur min
+  end
+end
+Answer print

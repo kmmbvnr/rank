@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "489_commonfactors"
+  Ma = 1
+  Nb = 1
+  run
+  Answer equal 5
+  Ma = 5
+  Nb = 5
+  run
+  Answer equal 128878
+  Ma = 10
+  Nb = 10
+  run
+  Answer equal 32936544
+end
