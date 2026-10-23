@@ -1,0 +1,58 @@
+rem Music festival
+rem https://projecteuler.net/problem=475
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 600
+
+rem Inclusion-exclusion over pairs of
+rem one quartet in one trio: such a
+rem pair set glues a quartet into
+rem blocks, sizes 1+1+1+1, 2+1+1 (6
+rem ways, sign -1), 2+2 (3, +1) or 3+1
+rem (4, weight 2), i.e. A^4 - 6 A^2 B
+rem + 3 B^2 + 8 A C. With a singles,
+rem b pairs and c triples, the trios
+rem form in a! / (6^q q!), q = (a -
+rem b) / 3 trios of three singles.
+Md = 1000000007
+M = N // 4
+Fc = (1 to 4 * M) scan * with 1
+Fc = Fc mod Md
+Fi = Fc (Md - 2) Md powmod
+rem All i + j + k + l = M quartets of
+rem the four kinds.
+M1 = M + 1
+Ix = (0 till M1 ** 3) copy
+I = Ix // (M1 * M1)
+J = Ix // M1 mod M1
+K = Ix mod M1
+L = M - I - J - K
+Ok = L at least 0
+A = 4 * I + 2 * J + L
+B = J + 2 * K
+Ok = Ok and (A at least B)
+Ks = Ok indices
+I = I Ks
+J = J Ks
+K = K Ks
+L = L Ks
+A = A Ks
+Q = (A - B Ks) // 3
+rem Multinomial, signs and weights.
+Tm = (Fc M) * (Fi I) mod Md
+Tm = Tm * (Fi J) mod Md
+Tm = Tm * (Fi K) mod Md
+Tm = Tm * (Fi L) mod Md
+Tm = Tm * ((Md - 6) J Md powmod) mod Md
+Tm = Tm * (3 K Md powmod) mod Md
+Tm = Tm * (8 L Md powmod) mod Md
+Tm = Tm * (Fc A) mod Md
+I6 = 6 (Md - 2) Md powmod
+Tm = Tm * (I6 Q Md powmod) mod Md
+Tm = Tm * (Fi Q) mod Md
+Answer = Tm sum mod Md
+Answer print

@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "475_musicfestival"
+  N = 12
+  run
+  Answer equal 576
+  N = 24
+  run
+  Answer equal 509089824
+end
+
+test "48 musicians"
+  use "475_musicfestival"
+  N = 48
+  run
+  Answer equal 43930481
+end
