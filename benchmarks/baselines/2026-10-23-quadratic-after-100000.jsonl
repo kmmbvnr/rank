@@ -1,0 +1,13 @@
+{"node":"v24.15.0","cpu":"Apple M5","runtime":"current"}
+{"variant":"factors","limit":100000,"compilation":true,"executeMs":2622.291042,"cpuMs":3532.339,"maxRssKiB":448240,"answer":"42661285291615","trial":0}
+{"variant":"native","limit":100000,"compilation":true,"executeMs":437.46858299999997,"cpuMs":476.909,"maxRssKiB":124544,"answer":"42661285291615","trial":0}
+{"variant":"demo","limit":100000,"compilation":true,"executeMs":211.84187500000002,"cpuMs":387.253,"maxRssKiB":188432,"answer":"42661285291615","trial":0}
+{"variant":"demo","limit":100000,"compilation":true,"executeMs":211.51325,"cpuMs":383.61,"maxRssKiB":188224,"answer":"42661285291615","trial":1}
+{"variant":"native","limit":100000,"compilation":true,"executeMs":439.741166,"cpuMs":478.845,"maxRssKiB":124368,"answer":"42661285291615","trial":1}
+{"variant":"factors","limit":100000,"compilation":true,"executeMs":2605.778708,"cpuMs":3497.111,"maxRssKiB":439712,"answer":"42661285291615","trial":1}
+{"variant":"factors","limit":100000,"compilation":true,"executeMs":2594.276458,"cpuMs":3479.593,"maxRssKiB":440800,"answer":"42661285291615","trial":2}
+{"variant":"native","limit":100000,"compilation":true,"executeMs":437.58833300000003,"cpuMs":476.035,"maxRssKiB":124368,"answer":"42661285291615","trial":2}
+{"variant":"demo","limit":100000,"compilation":true,"executeMs":211.03912499999998,"cpuMs":383.548,"maxRssKiB":188560,"answer":"42661285291615","trial":2}
+{"variant":"factors","limit":100000,"trials":3,"medianExecuteMs":2605.778708,"medianCpuMs":3497.111}
+{"variant":"native","limit":100000,"trials":3,"medianExecuteMs":437.58833300000003,"medianCpuMs":476.909}
+{"variant":"demo","limit":100000,"trials":3,"medianExecuteMs":211.51325,"medianCpuMs":383.61}

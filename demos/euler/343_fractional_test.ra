@@ -7,6 +7,8 @@ test "fractional last value"
   9 lpf equal 3
   49 lpf equal 7
   21 lpf equal 7
+  1 lpf equal 1
+  1000036000099 lpf equal 1000033
   Limit = 1
   run
   Answer equal 1
@@ -20,4 +22,17 @@ test "fractional sequence sum"
   Limit = 100
   run
   Answer equal 118937
+end
+
+test "fractional sieve boundaries"
+  use "343_fractional"
+  Limit = 2
+  run
+  Answer equal 3
+  Limit = 3
+  run
+  Answer equal 9
+  Limit = 1000
+  run
+  Answer equal 72421603
 end

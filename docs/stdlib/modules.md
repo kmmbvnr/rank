@@ -222,8 +222,12 @@ sequence and the same array broadcasting rule. It can also be supplied to
 lazy sequence in ascending order, including repeated factors. Repeated calls
 reuse an automatically grown smallest-prime-factor table within the interpreter,
 shared with `divisors`. The table retains at most 4 MiB and covers integers below
-`2 ** 20`; larger integers retain trial division without growing the table
-beyond this cap. No explicit setup is required:
+`2 ** 20`. Larger residues below `2 ** 64` use deterministic Miller–Rabin
+primality testing and Pollard–Brent factorization. Larger integers retain trial
+division until their residue fits one of these paths. Results remain exact;
+no table grows toward the square root of a large input. Small factors are
+streamed first; a 64-bit tail is factored and sorted before it is yielded.
+No explicit setup is required:
 
 ```rank
 Factors = 12 factors

@@ -1,4 +1,6 @@
 import { checkpoint } from './interrupt.js';
+import { greatestCommonDivisor } from './integer-gcd.js';
+import { probablePrime } from './primality.js';
 
 // The retained table is at most 4 MiB, independent of arbitrary-precision inputs.
 const maxTableInteger = 2 ** 20 - 1;
@@ -15,6 +17,14 @@ export class Factorizer {
                 yield* this.bounded(Number(remaining));
                 return;
             }
+            // Stream small factors first, including for arbitrary-precision
+            // inputs. Only the remaining 64-bit tail needs sorting.
+            if (divisor >= 41n && remaining < (1n << 64n)) {
+                const tail = [...this.split64(remaining)];
+                tail.sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+                yield* tail;
+                return;
+            }
             if (divisor * divisor > remaining) break;
             checkpoint('searching factors', 1, () => ({ divisor: String(divisor), remaining: String(remaining) }));
             while (remaining % divisor === 0n) {
@@ -24,6 +34,15 @@ export class Factorizer {
             }
         }
         if (remaining > 1n) yield remaining;
+    }
+
+    private *split64(value: bigint): IterableIterator<bigint> {
+        if (value <= maxTableValue) { yield* this.bounded(Number(value)); return; }
+        // The existing Miller-Rabin witnesses are deterministic below 2^64.
+        if (probablePrime(value)) { yield value; return; }
+        const divisor = brentFactor(value);
+        yield* this.split64(divisor);
+        yield* this.split64(value / divisor);
     }
 
     private *bounded(remaining: number): IterableIterator<bigint> {
@@ -53,5 +72,38 @@ export class Factorizer {
         }
         // Cancellation must leave the previous, complete table available.
         this.smallest = smallest;
+    }
+}
+
+/** Deterministic retries of Pollard-Brent; every returned divisor is exact. */
+function brentFactor(value: bigint): bigint {
+    for (let constant = 1n; ; constant++) {
+        let y = 2n, x = 0n, saved = 0n, divisor = 1n;
+        let radius = 1;
+        const advance = (n: bigint): bigint => {
+            checkpoint('searching factors');
+            return (n * n + constant) % value;
+        };
+        while (divisor === 1n && radius <= 1048576) {
+            x = y;
+            for (let i = 0; i < radius; i++) y = advance(y);
+            for (let start = 0; start < radius && divisor === 1n; start += 64) {
+                saved = y;
+                let product = 1n;
+                for (let i = 0; i < Math.min(64, radius - start); i++) {
+                    y = advance(y);
+                    product = product * (x > y ? x - y : y - x) % value;
+                }
+                divisor = greatestCommonDivisor(product, value);
+            }
+            radius *= 2;
+        }
+        if (divisor === value) {
+            do {
+                saved = advance(saved);
+                divisor = greatestCommonDivisor(x > saved ? x - saved : saved - x, value);
+            } while (divisor === 1n);
+        }
+        if (divisor > 1n && divisor < value) return divisor;
     }
 }

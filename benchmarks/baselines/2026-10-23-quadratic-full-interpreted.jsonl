@@ -1,0 +1,3 @@
+{"node":"v24.15.0","cpu":"Apple M5","runtime":"current"}
+{"variant":"demo","limit":2000000,"compilation":false,"executeMs":39482.467249999994,"cpuMs":41850.692,"maxRssKiB":670240,"answer":"269533451410884183","trial":0}
+{"variant":"demo","limit":2000000,"trials":1,"medianExecuteMs":39482.467249999994,"medianCpuMs":41850.692}

@@ -53,6 +53,57 @@ describe('bounded factorization', () => {
         expect([...pending]).toEqual([2n, 2n, 3n, 3n, 5n]);
     });
 
+    it('splits 64-bit primes, semiprimes and powers exactly in ascending order', () => {
+        const factorizer = new Factorizer();
+        const cases: bigint[][] = [
+            [18446744073709551557n],
+            [4294967279n, 4294967291n],
+            Array<bigint>(11).fill(41n),
+            [3n, 5n, 17n, 257n, 641n, 65537n, 6700417n],
+            [7n, 7n, 73n, 127n, 337n, 92737n, 649657n],
+            [1000003n, 1000003n],
+            [10670053n, 32010157n], // Strong pseudoprime to the first small bases.
+        ];
+        for (const expected of cases) {
+            const value = expected.reduce((a, b) => a * b, 1n);
+            expect([...factorizer.factors(value)]).toEqual(expected);
+        }
+        // Arbitrary precision still streams small factors before the 64-bit tail.
+        const pending = factorizer.factors(2n ** 100000n * 1000003n);
+        expect(pending.next().value).toBe(2n);
+        expect(pending.next().value).toBe(2n);
+        expect([...factorizer.factors(2n ** 64n + 1n)]).toEqual([274177n, 67280421310721n]);
+    });
+
+    it('can cancel and retry a 64-bit factor search', () => {
+        const factorizer = new Factorizer();
+        let pause = true;
+        const signal: InterruptSignal = {
+            length: 2, load: index => index === 1 && pause ? 1 : 0,
+            store() {}, wait() {}, exchange: () => { pause = true; return 0; },
+        };
+        const value = 4294967279n * 4294967291n;
+        expect(() => withInterrupt(signal, () => [...factorizer.factors(value)], snapshot => {
+            pause = false;
+            // Let primality testing finish, then interrupt the Brent walk.
+            if (snapshot.activity === 'searching factors') throw new InterruptedError(snapshot.activity);
+        })).toThrow('Interrupted while searching factors');
+        expect([...factorizer.factors(value)]).toEqual([4294967279n, 4294967291n]);
+    });
+
+    it('matches independently factored composite products throughout the 64-bit path', () => {
+        const factorizer = new Factorizer();
+        const seeds = [41, 257, 1009, 65537, 999983, 1000003];
+        for (let i = 0; i < seeds.length; i++) {
+            for (let j = i; j < seeds.length; j++) {
+                const values = [seeds[i], seeds[j], seeds[(i + j) % seeds.length]];
+                const expected = values.flatMap(trial).sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+                const value = values.reduce((product, n) => product * BigInt(n), 1n);
+                expect([...factorizer.factors(value)]).toEqual(expected);
+            }
+        }
+    });
+
     it('can cancel table construction and safely retry with the same factorizer', () => {
         const factorizer = new Factorizer();
         expect([...factorizer.factors(12n)]).toEqual([2n, 2n, 3n]);

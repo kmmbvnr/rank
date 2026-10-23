@@ -8,31 +8,52 @@ use cli
 
 option Limit integer = 2000000
 
+rem Keep scalar factorization available for individual queries.
 fun N lpf
-  X = N
-  Last = 1
-  for P in primes to (X isqrt)
-    for X mod P equal 0
-      Last = P
-      X //= P
+  if N equal 1
+    return 1
+  end
+  return N factors max
+end
+
+fun Limit quadfactors
+  Ks = (0 to Limit) copy
+  Rest = (Ks * Ks - Ks + 1) copy
+  Largest = array shape (Limit + 1) fill 1
+  rem The two roots of k^2-k+1 mod P are K and 1-K.
+  rem At the first unprocessed index every remaining factor is
+  rem at least 2*K-1, so Rest K is either 1 or a single prime.
+  for K in 2 to Limit
+    P = Rest K
+    if P greater 1
+      for J in K to Limit by P
+        Largest J = (Largest J) P max
+        for (Rest J) mod P equal 0
+          Rest J = (Rest J) // P
+        end
+      end
+      Other = P + 1 - K
+      if Other greater K
+        for J in Other to Limit by P
+          Largest J = (Largest J) P max
+          for (Rest J) mod P equal 0
+            Rest J = (Rest J) // P
+          end
+        end
+      end
     end
   end
-  if X greater 1
-    Last = X
-  end
-  return Last
+  return Largest
 end
 
 fun Limit sumfrac
-  Sum = 0
-  for K in 1 to Limit
-    A = K + 1
-    B = K * K - K + 1
-    P = A lpf
-    Q = B lpf
-    Sum += (P Q max) - 1
+  Largest = Limit quadfactors
+  Linear = array shape (Limit + 2) fill 1
+  for P in primes to (Limit + 1)
+    Linear (P to (Limit + 1) by P) = P
   end
-  return Sum
+  Values = (Largest (1 to Limit)) (Linear (2 to (Limit + 1))) max
+  return Values sum - Limit
 end
 
 Answer = Limit sumfrac
