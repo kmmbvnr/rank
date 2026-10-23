@@ -4,6 +4,7 @@ import { indexedSource } from './indexed-source.js';
 import { textAt } from './text-storage.js';
 import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
+import { RankIntegerGroups } from './integer-groups.js';
 import { counterFrequency } from './collections.js';
 import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { indexGet, indexKey } from './index-storage.js';
@@ -106,6 +107,13 @@ export function selectValues(modules: ReadonlySet<string>, values: RankValue[], 
 }
 
 export function applySelectors(values: RankValue[], missing?: () => RankValue): RankValue {
+    if (values[0] instanceof RankIntegerGroups) {
+        if (values.length < 2 || typeof values[1] !== 'bigint') {
+            throw new RankError('groups addressing expects an integer key');
+        }
+        const group = values[0].at(values[1]);
+        return values.length === 2 ? group : applySelectors([group, ...values.slice(2)], missing);
+    }
     if (isRankTable(values[0]) && canApplyTable(values)) {
         return applyTable(values[0], values, missing, rest => applySelectors(rest, missing));
     }
@@ -435,6 +443,8 @@ function sqliteRangeSelection(values: RankValue[]): RankValue | undefined {
 }
 
 export function canApplySelectors(values: RankValue[]): boolean {
+    if (values[0] instanceof RankIntegerGroups && values.length >= 2
+        && values.slice(1).every(value => typeof value === 'bigint')) return true;
     if (values.length === 2 && (isRankSqliteExpression(values[0]) || isRankSqliteTable(values[0]))
         && isRankSequence(values[1]) && rangeBounds(values[1]) !== undefined) return true;
     if (isScopedSelectorChain(values)) return true;

@@ -1415,7 +1415,7 @@ through every other:
 - records, and the `object` values that JSON and table rows use;
 - graphs and their disjoint-set structures;
 - the `algo` structures `index`, `queue`, `deque`, `stack`, `heap`, `set`,
-  `counter`, `multiset`, `orderedset`, `fenwick` and segment trees;
+  `counter`, `multiset`, `orderedset`, `fenwick`, bounded integer `groups` and segment trees;
 - open files, SQLite databases and other handles;
 - generator sequences, which are single-pass.
 
@@ -4335,8 +4335,9 @@ row-selection rule.
 
 # Collections
 
-`use algo` provides standard algorithmic collections. Each one is created
-with `new` and held by a name; there are no implicit per-function instances.
+`use algo` provides standard algorithmic collections. Use `new` for empty
+named structures and `Size groups` for bounded integer groups. There are no
+implicit per-function instances.
 
 ## Named structures
 
@@ -4490,6 +4491,40 @@ can also be captured by a local function.
 
 Index values may have different types, and replacing an entry may change its
 type. The collection element contract below does not apply to an index.
+
+### Bounded integer groups
+
+`Size groups` creates an append-only collection of integer groups under keys
+`0` through `Size - 1`. It requires `use algo`. Empty keys allocate no individual
+containers. For example:
+
+```rank
+use algo
+Groups = 10000001 groups
+Groups 5 3 insert
+Groups 5 4 insert
+Saved = Groups 5
+Groups 5 3 insert
+
+for Value in Saved
+  rem Visits 3, 4; later insertions are outside this snapshot.
+end
+Values = Groups 5 array       rem 3 4 3
+Empty = Groups 6 array        rem Empty integer vector.
+```
+
+`Groups Key Value insert` appends one integer and returns `Groups`. Repeated
+values are retained in insertion order. Keys and values must be integers;
+real numbers are rejected. Values retain arbitrary integer precision. `Size`
+must be between zero and 4294967295. An out-of-bounds key raises `.Missing`,
+which `default` can handle.
+
+`Groups Key` returns a finite sequence snapshot. Reading a group does not copy
+its values: the snapshot shares storage and fixes its last inserted element.
+Later insertions do not change its contents, including during iteration.
+Use postfix `array` to make an independent array. Assignment and function
+arguments share the groups collection's reference; snapshots remain read-only.
+The runtime type of the collection is `.groups`.
 
 ### Mutable collection element types
 

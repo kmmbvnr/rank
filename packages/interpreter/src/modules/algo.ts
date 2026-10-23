@@ -16,6 +16,7 @@ import {
     RankMaxSumSegment, RankPersistentSumSegment, RankRangeSumSegment, RankSegment, expectSegment,
 } from '../segment.js';
 import { RankWavelet } from '../wavelet.js';
+import { RankIntegerGroups } from '../integer-groups.js';
 import { expectMultiset, multisetValue } from '../multiset.js';
 import { sequence } from '../sequence.js';
 import { setValueKey } from '../set.js';
@@ -37,6 +38,11 @@ import { expectInteger, native } from './shared.js';
 import type { RuntimeModule } from './types.js';
 
 export const algoModule: RuntimeModule = {
+    groups: () => native('groups', 1, a => new RankIntegerGroups(expectInteger(a[0]))),
+    insert: () => native('insert', 3, a => {
+        if (!(a[0] instanceof RankIntegerGroups)) throw new RankError('insert expects integer groups');
+        return a[0].insert(expectInteger(a[1]), expectInteger(a[2]));
+    }),
     fenwick: () => native('fenwick', 1, arguments_ =>
         new RankFenwick(expectInteger(arguments_[0]))),
     wavelet: () => native('wavelet', 1, arguments_ =>

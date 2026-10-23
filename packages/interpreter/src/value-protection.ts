@@ -9,7 +9,7 @@ function identity(value: RankValue): object | undefined {
     switch (value.kind) {
         case 'record': case 'object': case 'index': case 'set': case 'counter': return value.entries;
         case 'queue': return 'values' in value ? value : value.items;
-        case 'heap': case 'multiset': case 'fenwick': case 'segment': case 'dsu': case 'graph': return value;
+        case 'heap': case 'multiset': case 'fenwick': case 'segment': case 'dsu': case 'graph': case 'groups': return value;
         default: return undefined;
     }
 }

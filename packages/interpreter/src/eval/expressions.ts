@@ -642,7 +642,8 @@ export class ExpressionEvaluator {
         if (isMaterializeExpression(expression)) {
             return function* (): Execution<RankValue> {
                 const source = (yield* resume(expressions.evaluate(expression.source)));
-                const result = isRankArray(source) || isRankSequence(source)
+                const result = isRankSequence(source) ? materializeSequence(source)
+                    : isRankArray(source)
                     || isRankSqliteTable(source) || isRankSqliteExpression(source) || isRankSqliteScope(source) ? source
                     : isRankTableAlias(source) && isRankSqliteTable(source.source) ? source.source
                     : isRankTable(source) ? source.toRows()

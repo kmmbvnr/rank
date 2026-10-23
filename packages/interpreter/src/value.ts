@@ -14,6 +14,7 @@ import type { GraphValue, PredicateGraph, SuccessorGraph } from './graph.js';
 import type { RankDsu } from './dsu.js';
 import type { RankFunctionalGraph } from './functional-graph.js';
 import type { RankWavelet } from './wavelet.js';
+import type { RankIntegerGroups } from './integer-groups.js';
 import type { RankIo, SqliteScalar } from './io.js';
 import type { RankArrowTable } from './arrow-table.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -358,7 +359,7 @@ export type RankValue = bigint | number | boolean | string | RankMissing | RankA
     RankMultiset | RankFenwick | RankSegmentValue | RankHeap | RankObject | RankRecord |
     RankGroupedTable | RankArrowTable | NativeFunction |
     RankSequence | RankSequenceMask | RankGraph | RankDsu | RankFunctionalGraph |
-    RankWavelet | RankPlan;
+    RankWavelet | RankIntegerGroups | RankPlan;
 
 export type RankGraph = GraphValue | PredicateGraph | SuccessorGraph;
 
@@ -742,6 +743,7 @@ function formatNestedValue(value: RankValue, active: Set<object>): string {
     if (value.kind === 'index') {
         return '<index>';
     }
+    if (value.kind === 'groups') return `<groups ${value.size}>`;
     if (value.kind === 'grouped-table') return '<grouped table>';
     if (value.kind === 'table') return `<table ${value.length} rows: ${value.names.map(name => `.${name}`).join(' ')}>`;
     if (value.kind === 'sqlite-database') return `<sqlite ${value.path}>`;

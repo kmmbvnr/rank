@@ -687,6 +687,14 @@ function transferApplicationFacts(
                 ...(dimension === undefined || dimension === null ? {} : { integer: String(dimension) }) };
         }
     }
+    if (source.types.join() === 'groups' && parts.length >= 2
+        && infer(parts[1], lookup).types.join() === 'integer') {
+        if (parts.length === 2) return { types: ['sequence'], rank: 1, shape: [null], elements: ['integer'],
+            callbackFreeScalarCells: true, completion: 'ready' };
+        if (parts.length === 3 && infer(parts[2], lookup).types.join() === 'integer') {
+            return { types: ['integer'], rank: 0, shape: [] };
+        }
+    }
     if (source.types.join() === 'fenwick'
         && (parts.length === 2 || parts.length === 3 && isNameExpression(parts[1]) && parts[1].name === 'sum')
         && infer(parts.at(-1)!, lookup).types.join() === 'integer') {

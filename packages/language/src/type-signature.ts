@@ -24,7 +24,7 @@ export type SignatureAtom =
     | 'date' | 'datetime' | 'duration' | 'bytes' | 'array' | 'sequence' | 'tuple' | 'record'
     | 'table' | 'view' | 'column' | 'object' | 'function' | 'file' | 'database' | 'queue' | 'stack' | 'deque' | 'heap'
     | 'set' | 'counter' | 'multiset' | 'index' | 'graph' | 'dsu' | 'segment' | 'fenwick'
-    | 'wavelet' | 'functional'
+    | 'wavelet' | 'functional' | 'groups'
     /** A source of elements, matched by capability rather than nominal kind. */
     | 'iterable' | 'extrema-source' | 'boolean-source' | 'statistical-source' | 'reducible'
     | 'ordered-source' | 'sized' | 'shaped' | 'sortable' | 'distinct' | 'sliceable' | 'tensor';

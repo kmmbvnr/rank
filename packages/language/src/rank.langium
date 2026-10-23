@@ -633,7 +633,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
+    VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'ascending' | 'descending';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;

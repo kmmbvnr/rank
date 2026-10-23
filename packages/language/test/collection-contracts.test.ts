@@ -14,6 +14,13 @@ function analyze(source: string, initial = new Map<string, ValueFacts>()) {
 const messages = (source: string) => analyze(source).diagnostics.map(item => item.message);
 
 describe('collection contracts in value analysis', () => {
+    it('infers integer group snapshots and their selected cells', () => {
+        const result = analyze('G = 4 groups\nG 3 7 insert\nA = G 3\nV = G 3 0');
+        expect(result.diagnostics).toEqual([]);
+        expect(result.bindings.get('G')).toMatchObject({ types: ['groups'] });
+        expect(result.bindings.get('A')).toMatchObject({ types: ['sequence'], rank: 1, elements: ['integer'] });
+        expect(result.bindings.get('V')).toMatchObject({ types: ['integer'] });
+    });
     for (const kind of ['set', 'counter', 'queue', 'stack', 'deque', 'heap']) {
         const insert = (receiver: string, value: string) => kind === 'heap' ? `${receiver} 0 (${value}) enqueue`
             : `${receiver} ${['set', 'counter'].includes(kind) ? 'add' : 'push'} ${value}`;

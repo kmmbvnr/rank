@@ -3,5 +3,5 @@ export const RUNTIME_TYPE_NAMES: ReadonlySet<string> = new Set([
     'integer', 'real', 'boolean', 'text', 'date', 'datetime', 'duration',
     'array', 'bytes', 'symbol', 'missing', 'object', 'record', 'tuple', 'file', 'error', 'index',
     'queue', 'deque', 'stack', 'set', 'counter', 'multiset', 'fenwick',
-    'segment', 'wavelet', 'heap', 'dsu', 'functional', 'function', 'sequence',
+    'segment', 'wavelet', 'heap', 'dsu', 'functional', 'function', 'sequence', 'groups',
 ]);

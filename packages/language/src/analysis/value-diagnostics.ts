@@ -465,6 +465,15 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     }
                 }
             } else if (/^[a-z]/.test(node.name) && !env.has(node.name) && !syntax.has(node.name)) {
+                if (node.name === 'insert') {
+                    let site: AstNode = node;
+                    while (isApplicationExpression(site.$container)) site = site.$container;
+                    const parts = isApplicationExpression(site) ? flattenApplication(site) : [];
+                    if (parts.length === 4 && parts[3] === node && directValue(parts[0])
+                        && expressionFacts(parts[0], name => env.get(name)).types.join() === 'groups'
+                        && parts.slice(1, 3).every(part => directValue(part)
+                            && expressionFacts(part, name => env.get(name)).types.join() === 'integer')) continue;
+                }
                 if (node.name === 'raise') {
                     let site: AstNode = node;
                     while (isApplicationExpression(site.$container)) site = site.$container;
