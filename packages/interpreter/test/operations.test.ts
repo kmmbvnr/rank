@@ -278,7 +278,7 @@ describe('the operation catalogue', () => {
             expect(entry.effects ?? [], entry.name).toEqual([]);
             expect(entry.lazy, entry.name).toBeUndefined();
             expect(signature.inputs[0], entry.name).not.toBe('same');
-            expect(signature.callbacks, entry.name).toBe(signature.inputs.includes('text-array') ? 'read-cells' : 'none');
+            expect(signature.callbacks, entry.name).toBe(signature.inputs.some(input => input === 'text-array' || input === 'integer-array') ? 'read-cells' : 'none');
             expect(signature.cost, entry.name).toBe(signature.hostFunction ? 'host-dependent' : 'input-dependent');
         }
     });
@@ -297,6 +297,8 @@ describe('the operation catalogue', () => {
             md5: ['"abc"', '("abc" bytes)'],
             startswith: ['"ёж" "ё"', '("ёж" bytes) ("ё" bytes)'],
             lower: ['"ЁЖ"'], codepoint: ['"😀"'], character: ['128512'],
+            lowerindex: ['(array 1 3 3 7) 3', '(array shape 0 fill 0) 3'],
+            upperindex: ['(array 1 3 3 7) 3', '(array shape 0 fill 0) 3'],
             join: ['(array "ёж" "😀") ":"'],
             gcd: ['0 0', '(-12) 18', '1267650600228229401496703205376 2'],
             isqrt: ['0', '1', '1267650600228229401496703205376'],
@@ -313,7 +315,7 @@ describe('the operation catalogue', () => {
         for (const entry of profiles) for (const operands of examples[entry.name]) {
             const runtime = new Interpreter();
             try {
-                const value = runtime.execute(`use text\nuse crypto\nuse sequences\nuse bits\nuse numbers\n${operands} ${entry.name}`)!;
+                const value = runtime.execute(`use text\nuse crypto\nuse sequences\nuse bits\nuse numbers\nuse algo\n${operands} ${entry.name}`)!;
                 expect(typeName(value), `${entry.name}: ${operands}`).toBe(entry.compiledCall!.result);
             } finally { runtime.dispose(); }
         }

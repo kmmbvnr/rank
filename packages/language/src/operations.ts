@@ -38,7 +38,7 @@ export type CompiledLoopType = CompiledAtomType;
  * Runtime binding must still verify the actual builtin and any host override.
  */
 export interface CompiledCallSignature {
-    readonly inputs: readonly (CompiledLoopType | 'number' | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'same')[];
+    readonly inputs: readonly (CompiledLoopType | 'number' | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'integer-array' | 'same')[];
     readonly result: CompiledLoopType;
     /** No callbacks except guarded operand-cell reads and the declared host override. */
     readonly callbacks: 'none' | 'read-cells';
@@ -73,7 +73,7 @@ export function matchCompiledCallSignature(operation: Operation, inputs: readonl
     return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
         expected === 'number' ? inputs[index] === 'integer' || inputs[index] === 'real'
             : expected === 'same' ? inputs[index] === inputs[0]
-            : expected === 'text-or-array' ? ['text', 'array', 'text-array'].includes(inputs[index])
+            : expected === 'text-or-array' ? ['text', 'array', 'text-array', 'integer-array'].includes(inputs[index])
             : expected === 'text-or-bytes' ? inputs[index] === 'text' || inputs[index] === 'bytes'
             : expected === inputs[index]) ? signature : undefined;
 }
@@ -401,6 +401,20 @@ export const operations: readonly Operation[] = [
         result: 'integer',
         dyadicRanks: ['all', 0],
         summary: 'First position whose monotone prefix aggregate reaches the target.' },
+    { name: 'lowerindex', module: 'algo', arities: [2], form: 'Values Target lowerindex',
+        compiledCall: { inputs: ['integer-array', 'integer'], result: 'integer', callbacks: 'read-cells', cost: 'input-dependent' },
+        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, 'integer'],
+            result: 'integer', ranks: ['all', 0] }],
+        result: 'integer', shape: [{ args: [[null], []], result: [] }],
+        dyadicRanks: ['all', 0],
+        summary: 'Insertion index of the first integer at least the target in an ascending vector.' },
+    { name: 'upperindex', module: 'algo', arities: [2], form: 'Values Target upperindex',
+        compiledCall: { inputs: ['integer-array', 'integer'], result: 'integer', callbacks: 'read-cells', cost: 'input-dependent' },
+        signatures: [{ inputs: [{ collection: 'array', element: 'integer' }, 'integer'],
+            result: 'integer', ranks: ['all', 0] }],
+        result: 'integer', shape: [{ args: [[null], []], result: [] }],
+        dyadicRanks: ['all', 0],
+        summary: 'Insertion index of the first integer greater than the target in an ascending vector.' },
     { name: 'lowerbound', module: 'algo', arities: [2], form: 'Bag lowerbound Value',
         signatures: orderedQuerySignatures,
         result: 'element',

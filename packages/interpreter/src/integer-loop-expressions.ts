@@ -256,16 +256,17 @@ export function createLoopExpressions(state: LoopCompilationState) {
         for (const [index, input] of signature.inputs.entries()) {
             let part = operands[index];
             while (isParenthesizedExpression(part)) part = part.value;
-            if (input === 'text-array') {
-                if (!host.textArrayLoops || !isNameExpression(part) || part.name.includes('.')) return undefined;
+            if (input === 'text-array' || input === 'integer-array') {
+                const type = input === 'text-array' ? 'text' : 'integer';
+                if (type === 'text' && !host.textArrayLoops || !isNameExpression(part) || part.name.includes('.')) return undefined;
                 const previous = arrays.get(part.name);
-                if (previous && (previous.rank !== 1 || previous.type !== 'text')
+                if (previous && (previous.rank !== 1 || previous.type !== type)
                     || localTypes.has(part.name)) return undefined;
-                const info = previous ?? { slot: slot(part.name), rank: 1, type: 'text' as const };
+                const info = previous ?? { slot: slot(part.name), rank: 1, type };
                 arrays.set(part.name, info);
                 if (!assigned.has(part.name)) arrayInputs.add(part.name);
                 arguments_.push(`r${info.slot}`);
-                types.push('text-array');
+                types.push(input);
                 continue;
             }
             const expected = input === 'number' ? undefined : input === 'text-or-array' ? 'text' : input === 'same' ? firstType

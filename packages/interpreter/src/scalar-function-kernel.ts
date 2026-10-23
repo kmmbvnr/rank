@@ -198,7 +198,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         if (expression.kind === 'call') {
             const arguments_ = expression.arguments.map(argument => lower(argument, lines));
             const index = calls.push({ operation: expression.operation, inputs: expression.arguments.map(({ type }) => typeof type === 'string' ? type
-                : !isCompiledContainer(type) && type.element === 'text' && type.rank === 1 ? 'text-array' : 'array') }) - 1;
+                : !isCompiledContainer(type) && (type.element === 'text' || type.element === 'integer') && type.rank === 1 ? `${type.element}-array` : 'array') }) - 1;
             const result = `v${serial++}`;
             lines.push(`const ${result} = calls[${index}]([${arguments_.join(',')}]);`);
             return result;

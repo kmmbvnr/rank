@@ -1,3 +1,4 @@
+import { sortedIndex } from '../sorted-search.js';
 import { numbersModule } from './numbers.js';
 import { checkpoint } from '../interrupt.js';
 import { checkValueMutable } from '../value-protection.js';
@@ -97,6 +98,8 @@ export const algoModule: RuntimeModule = {
         const value = materializeValue(a[2]);
         return heap.push(value, priority);
     }),
+    lowerindex: () => native('lowerindex', 2, a => sortedIndex(a[0], a[1], false)),
+    upperindex: () => native('upperindex', 2, a => sortedIndex(a[0], a[1], true)),
     lowerbound: () => native('lowerbound', 2, a => expectMultiset(a[0]).ceiling(a[1])),
     upperbound: () => native('upperbound', 2, a => expectMultiset(a[0]).upperBound(a[1])),
     multiset: () => native('multiset', 1, arguments_ => multisetValue(arguments_[0])),

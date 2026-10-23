@@ -403,6 +403,45 @@ Bag Limit lowerbound
 
 ceiling, upperbound
 
+## lowerindex
+
+Find the insertion index in a sorted
+integer vector.
+
+```rank
+use algo
+A = array 1 3 3 7
+A 3 lowerindex
+```
+
+```result
+1
+```
+
+### Usage
+
+```text
+Values Target lowerindex
+```
+
+### Notes
+
+Returns the first index whose value is
+at least Target, or len if none. Indices
+start at zero. Empty vectors return
+zero. Queries take O(log n).
+
+Values must contain integers in
+ascending order. Sortedness is a caller
+precondition; it is not checked. Only
+cells on the search path are read and
+checked as integers. The target must be
+an integer.
+
+### See also
+
+upperindex, lowerbound, upperbound
+
 ## maxsum
 
 Set up a segment tree to find the best
@@ -937,6 +976,45 @@ Add default for a fallback.
 ### See also
 
 ceiling, lowerbound
+
+## upperindex
+
+Find the insertion index in a sorted
+integer vector.
+
+```rank
+use algo
+A = array 1 3 3 7
+A 3 upperindex
+```
+
+```result
+3
+```
+
+### Usage
+
+```text
+Values Target upperindex
+```
+
+### Notes
+
+Returns the first index whose value is
+greater than Target, or len if none.
+Indices start at zero. Empty vectors
+return zero. Queries take O(log n).
+
+Values must contain integers in
+ascending order. Sortedness is a caller
+precondition; it is not checked. Only
+cells on the search path are read and
+checked as integers. The target must be
+an integer.
+
+### See also
+
+lowerindex, lowerbound, upperbound
 
 ## wavelet
 

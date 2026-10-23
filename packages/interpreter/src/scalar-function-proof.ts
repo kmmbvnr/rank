@@ -258,7 +258,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             call: (operation, inputs) => {
                 if (inputs.some(isCompiledContainer)) return undefined;
                 const signature = matchCompiledCallSignature(operation, inputs.map(value => typeof value === 'string' ? value
-                    : !isCompiledContainer(value) && value.element === 'text' && value.rank === 1 ? 'text-array' : 'array'));
+                    : !isCompiledContainer(value) && (value.element === 'text' || value.element === 'integer') && value.rank === 1 ? `${value.element}-array` : 'array'));
                 if (signature) nativeReads.add(operation.name);
                 return signature;
             },

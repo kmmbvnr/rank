@@ -1,27 +1,13 @@
 rem Distances in a Bee's Honeycomb
 rem https://projecteuler.net/problem=354
 
+use algo
 use numbers
 use sequences
 use io
 use cli
 
 option Limit integer = 5 * 10 ** 11
-
-rem Upper bound in a sorted array.
-fun X A upper
-  Lo = 0
-  Hi = A len
-  for Lo less Hi
-    Mid = (Lo + Hi) // 2
-    if A Mid at most X
-      Lo = Mid + 1
-    else
-      Hi = Mid
-    end
-  end
-  return Lo
-end
 
 rem Count 3^a times a 2-mod-3 square.
 fun N Good g
@@ -101,8 +87,8 @@ for I in 0 to (P1 len - 1)
     for R * R at most C
       T = C // (R * R)
       Hi = (C // T) isqrt
-      Count = Hi P1 upper
-      Count -= (R - 1) P1 upper
+      Count = P1 Hi upperindex
+      Count -= P1 (R - 1) upperindex
       if P at least R and P at most Hi
         Count -= 1
       end
