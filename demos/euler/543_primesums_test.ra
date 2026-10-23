@@ -1,0 +1,8 @@
+use testing
+
+test "brute force over F3..F12"
+  use "543_primesums"
+  Hi = 12
+  run
+  Answer equal 8054
+end

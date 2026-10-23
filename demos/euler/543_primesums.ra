@@ -1,0 +1,38 @@
+rem Prime-Sum Numbers
+rem https://projecteuler.net/problem=543
+
+use numbers
+use sequences
+use io
+use cli
+
+option Lo integer = 3
+option Hi integer = 44
+
+rem S(n) counts pairs (i, k), i <= n, i
+rem a sum of k primes. k = 1: pi(n);
+rem k = 2: even i >= 4 and odd i = 2 +
+rem p; k >= 3 exactly when i >= 2k.
+rem The last part sums t - 2 over i =
+rem 2t and i = 2t + 1, t >= 3.
+F = array shape (Hi + 1) fill 1
+for R in 3 to Hi
+  F R = F (R - 1) + F (R - 2)
+end
+Ns = F (Lo to Hi)
+Sv = (Ns max) primesieve
+Answer = 0
+for X in Ns
+  Pa = (Sv to X) len
+  Pb = (Sv to X - 2) len
+  M = X // 2
+  Mo = (X - 1) // 2
+  T2 = (M - 1) max 0
+  T2 += (Pb - 1) max 0
+  T3 = ((M - 1) max 0) * ((M - 2) max 0)
+  Ma = (Mo - 1) max 0
+  T3 += Ma * ((Mo - 2) max 0)
+  T3 //= 2
+  Answer += Pa + T2 + T3
+end
+Answer print
