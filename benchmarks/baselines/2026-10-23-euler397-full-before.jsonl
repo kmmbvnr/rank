@@ -1,0 +1,2 @@
+{"node":"v24.15.0","cpu":"Apple M5","runtime":"file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js","workload":"demo","variant":"recursive","limit":1000000,"samples":1,"timeout":45000,"factorizerHash":"e1dee05561de0a9e71fc715e22340d201988c4740b4bd51f20555a3c8ad8e866","numbersHash":"1deef104d671f24507a117de602a18062ad2267366ffa49c1e43c386d64cc72d","policy":"fresh process per sample; execution includes parsing and sieve construction; reference checks excluded"}
+{"sample":0,"status":"timeout","timeout":45000}

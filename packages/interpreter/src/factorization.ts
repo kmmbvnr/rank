@@ -1,14 +1,22 @@
 import { checkpoint } from './interrupt.js';
 import { greatestCommonDivisor } from './integer-gcd.js';
 import { probablePrime } from './primality.js';
+import { integerSquareRoot } from './integer-square-root.js';
 
 // The retained table is at most 4 MiB, independent of arbitrary-precision inputs.
-const maxTableInteger = 2 ** 20 - 1;
-const maxTableValue = BigInt(maxTableInteger);
+export const maxFactorTableInteger = 2 ** 20 - 1;
+const maxTableValue = BigInt(maxFactorTableInteger);
 
 /** Reused by one interpreter's number operations; no global table or cursor. */
 export class Factorizer {
     private smallest = new Uint32Array(0);
+
+    /** An owned snapshot: caller writes cannot change the shared sieve. */
+    smallestFactors(limit: number): Int32Array {
+        this.prepare(limit);
+        checkpoint('preparing factor table', limit + 1);
+        return new Int32Array(this.smallest.subarray(0, limit + 1));
+    }
 
     *factors(value: bigint): IterableIterator<bigint> {
         let remaining = value;
@@ -38,6 +46,13 @@ export class Factorizer {
 
     private *split64(value: bigint): IterableIterator<bigint> {
         if (value <= maxTableValue) { yield* this.bounded(Number(value)); return; }
+        // Factoring a square's root reuses the bounded table across adjacent
+        // inputs instead of searching for the same prime twice with Brent.
+        const root = integerSquareRoot(value);
+        if (root * root === value) {
+            for (const prime of this.split64(root)) { yield prime; yield prime; }
+            return;
+        }
         // The existing Miller-Rabin witnesses are deterministic below 2^64.
         if (probablePrime(value)) { yield value; return; }
         const divisor = brentFactor(value);

@@ -1,4 +1,4 @@
-import { Factorizer } from '../factorization.js';
+import { Factorizer, maxFactorTableInteger } from '../factorization.js';
 import { withNumberCalls } from '../typed-native.js';
 import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { integerSquareRoot } from '../integer-square-root.js';
@@ -141,6 +141,13 @@ export const numbersModule: RuntimeModule = {
             const product = Math.abs(a / divisor * b);
             return Number.isSafeInteger(product) ? product : leastCommonMultiple(BigInt(a), BigInt(b));
         },
+    }),
+    factorsieve: context => native('factorsieve', 1, arguments_ => {
+        const limit = expectInteger(arguments_[0]);
+        if (limit < 0n || limit > BigInt(maxFactorTableInteger)) {
+            throw new RankError(`factorsieve bound must be between 0 and ${maxFactorTableInteger}`, 'DomainError');
+        }
+        return typedArray(factorizer(context).smallestFactors(Number(limit)));
     }),
     factors: context => native('factors', 1, arguments_ => {
         const value = expectInteger(arguments_[0]);

@@ -3,121 +3,108 @@ rem https://projecteuler.net/problem=397
 
 use sequences
 use numbers
-use algo
 use io
 use cli
 
 option K integer = 1000000
 option X integer = 1000000000
 
-Hits = new index
-Hits 0 = 0
-Hits 1 = 0
-Hits 2 = 0
-Hits 3 = 0
+Answer = 0
+Spf = K factorsieve
+rem For N = 2^A * product(P^E),
+rem tau(2*N*N) = (2*A+2)*product(2*E+1)
+rem is at most 2*N. Reuse one buffer.
+Ds = array shape (2 * K + 2) fill 1
 for N in 1 to K
-  Fs = (2 * N * N) factors array
-  Fs 0 1 (2 * N * N) N X Hits divs
-end
-Answer = 2 * (Hits 0) + Hits 1
-Answer -= 2 * (Hits 2) + Hits 3
-Answer print
-
-fun Fs I Cur D K X Hits divs
-  if I equal (Fs len)
-    Cur D K X Hits score
-    return 0
+  D0 = 2 * N * N
+  Count = 1
+  Rest = N
+  P = 2
+  Exponent = 1
+  for P greater 0
+    for Rest mod P equal 0
+      Rest //= P
+      Exponent += 2
+    end
+    Previous = Count
+    Power = 1
+    for E in 1 to Exponent
+      Power *= P
+      for J in 0 till Previous
+        Ds Count = (Ds J) * Power
+        Count += 1
+      end
+    end
+    if Rest greater 1
+      P = Spf Rest
+    else
+      P = 0
+    end
+    Exponent = 0
   end
-  P = Fs I
-  J = I
-  for J less (Fs len) and Fs J equal P
-    J += 1
-  end
-  Pow = 1
-  for E in 0 to J - I
-    Fs J (Cur * Pow) D K X Hits divs
-    Pow *= P
-  end
-  return 0
-end
-
-fun D D0 K X Hits score
-  U = D0 // D
-  S = K - U
-  T = D - K
+  Total = 0
   Range = 2 * X
-  Good = S at least (-Range)
-  Good = Good and S at most Range
-  if Good
-    Good = T at least (-Range)
+  for I in 0 till Count
+    D = Ds I
+    U = D0 // D
+    S = N - U
+    T = D - N
+    Good = S at least (-Range)
+    Good = Good and S at most Range
+    Good = Good and T at least (-Range)
     Good = Good and T at most Range
     if Good
-      Hits 0 += S T X left
-      Den = S + K
-      if Den not equal 0
-        Q = K * (S - K)
-        if Q mod Den equal 0
-          V = Q // Den
-          S T V X Hits 2 overlap
-        end
+      Lo = (T - X) (-X) max
+      Hi = (S + X) X min
+      Hi = Hi ((S - 1) // 2) min
+      if Hi at least Lo
+        Total += 2 * (Hi - Lo + 1)
       end
-      Den = K - T
-      if Den not equal 0
-        Q = K * (K + T)
-        if Q mod Den equal 0
-          V = Q // Den
-          S T V X Hits 3 overlap
+      for Side in 0 to 1
+        Den = 0
+        Q = 0
+        Weight = 0
+        if Side equal 0
+          Den = S + N
+          Q = N * (S - N)
+          Weight = 2
+        else
+          Den = N - T
+          Q = N * (N + T)
+          Weight = 1
+        end
+        if Den not equal 0
+          if Q mod Den equal 0
+            V = Q // Den
+            if (S + T - V) mod 2 equal 0
+              A = (S + T - V) // 2
+              B = (S + V - T) // 2
+              C = (T + V - S) // 2
+              if A at least (-X) and A less B
+                if B less C and C at most X
+                  Total -= Weight
+                end
+              end
+            end
+          end
         end
       end
     end
-  end
-  P = -(K + U)
-  Q = K + D
-  Good = P at least (-Range)
-  Good = Good and Q at most Range
-  if Good
-    Hits 1 += P Q X middle
-  end
-  return 0
-end
-
-fun S T X left
-  Lo = T - X
-  Lo = Lo (-X) max
-  Hi = S + X
-  Hi = Hi X min
-  Hi = Hi ((S - 1) // 2) min
-  if Hi less Lo
-    return 0
-  end
-  return Hi - Lo + 1
-end
-
-fun P Q X middle
-  Lo = P - X
-  Lo = Lo (-X) max
-  Lo = Lo (Q - X) max
-  Lo = Lo (P // 2 + 1) max
-  Hi = P + X
-  Hi = Hi X min
-  Hi = Hi ((Q - 1) // 2) min
-  if Hi less Lo
-    return 0
-  end
-  return Hi - Lo + 1
-end
-
-fun S T Q X Hits At overlap
-  if ((S + T - Q) mod 2) not equal 0
-    return 0
-  end
-  A = (S + T - Q) // 2
-  B = (S + Q - T) // 2
-  C = (T + Q - S) // 2
-  if A at least (-X) and A less B
-    if B less C and C at most X
-      Hits At += 1
+    P = -(N + U)
+    Q = N + D
+    if P at least (-Range) and Q at most Range
+      Lo = (P - X) (-X) max
+      Lo = Lo (Q - X) max
+      Lo = Lo (P // 2 + 1) max
+      Hi = (P + X) X min
+      Hi = Hi ((Q - 1) // 2) min
+      if Hi at least Lo
+        Total += Hi - Lo + 1
+      end
     end
   end
-  return 0
+  if Total not equal 0
+    Answer += Total
+  end
 end
+Answer print

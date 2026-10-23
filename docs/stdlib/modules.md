@@ -101,6 +101,7 @@ powmod
 binomial
 binomialmod
 factors
+factorsieve
 divisors
 infinity
 nan
@@ -236,6 +237,27 @@ rem 2 2 3
 
 Factoring zero or a negative integer is an error. Factoring one produces an
 empty sequence.
+
+`Limit factorsieve` prepares the same shared table once and returns an owned
+integer array indexed from zero through the inclusive bound. Each cell at
+index `N >= 2` contains the smallest prime factor of `N`; cells 0 and 1 are
+zero. The bound must be an integer from 0 through 1048575. Changing the returned
+array does not change the shared table or another returned snapshot. Each
+snapshot takes four bytes per cell, in addition to the retained shared table.
+
+```rank
+Spf = 1000000 factorsieve
+Rest = 360
+for Rest greater 1
+  P = Spf Rest
+  P print
+  Rest //= P
+end
+rem 2 2 2 3 3 5
+```
+
+Exact square residues below `2 ** 64` are factored through their roots, reusing
+the bounded table when the root fits it. Their prime multiplicities are doubled.
 
 `divisors` accepts a positive integer and returns its positive divisors as a
 finite lazy sequence in ascending order:

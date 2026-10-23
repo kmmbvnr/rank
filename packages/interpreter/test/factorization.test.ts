@@ -53,6 +53,26 @@ describe('bounded factorization', () => {
         expect([...pending]).toEqual([2n, 2n, 3n, 3n, 5n]);
     });
 
+    it('factors adjacent squares and square tails through the shared table', () => {
+        const factorizer = new Factorizer();
+        for (let root = 1020; root <= 1200; root++) {
+            const factors = trial(root).flatMap(prime => [prime, prime]);
+            const square = BigInt(root) ** 2n;
+            expect([...factorizer.factors(square)]).toEqual(factors);
+            expect([...factorizer.factors(2n * square)]).toEqual([2n, ...factors]);
+        }
+        for (const root of [999983, 1048575, 1048576, 1000003, 1009003027, 4294967291]) {
+            const expected = trial(root).flatMap(prime => [prime, prime]);
+            expect([...factorizer.factors(BigInt(root) ** 2n)]).toEqual(expected);
+        }
+        // A rounded floating root must never turn a neighbouring value into a square.
+        const square = 4294967291n ** 2n;
+        for (const value of [square - 1n, square + 1n]) {
+            const factors = [...factorizer.factors(value)];
+            expect(factors.reduce((product, prime) => product * prime, 1n)).toBe(value);
+        }
+    });
+
     it('splits 64-bit primes, semiprimes and powers exactly in ascending order', () => {
         const factorizer = new Factorizer();
         const cases: bigint[][] = [

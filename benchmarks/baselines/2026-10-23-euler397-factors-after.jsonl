@@ -1,0 +1,5 @@
+{"node":"v24.15.0","cpu":"Apple M5","runtime":"file:///Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-395/packages/interpreter/out/index.js","workload":"factors","variant":"batch","limit":100000,"samples":3,"timeout":45000,"factorizerHash":"79f29480a64b791011ae3dccafcab6e117376e8e7818215b1738e67c209d79e5","numbersHash":"937376afbdd5040f41e988b982585563da68039f844ed952138a5226e1fa6ae6","policy":"fresh process per sample; execution includes parsing and sieve construction; reference checks excluded"}
+{"sample":0,"workload":"factors","variant":"batch","limit":100000,"ms":218.7266659999999,"cpuMs":249.97,"answer":"1591343656","count":0,"maxRssKiB":147760}
+{"sample":1,"workload":"factors","variant":"batch","limit":100000,"ms":176.26324999999997,"cpuMs":210.174,"answer":"1591343656","count":0,"maxRssKiB":176608}
+{"sample":2,"workload":"factors","variant":"batch","limit":100000,"ms":181.10725000000002,"cpuMs":216.239,"answer":"1591343656","count":0,"maxRssKiB":143168}
+{"completed":3,"medianMs":181.10725000000002,"medianCpuMs":216.239}

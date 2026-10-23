@@ -129,7 +129,7 @@
   "euler/379_lcmcount.ra": "The default input takes about 15 s compiled after #386; the small _test.ra fixture stays in the audits.",
   "euler/386_antichain.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/388_lines.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/397_parabola.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/397_parabola.ra": "The full input completes in about 16 s compiled after #395, but the reference traversal of 101 million divisors remains too slow for the shared differential audit. Its compiled default is checked in test/euler397.test.ts and benchmarks/euler397.mjs; small interpreted cases remain in 397_parabola_test.ra.",
   "euler/365_hugebinomial.ra": "To fix later: the default input takes over 120 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/374_partproduct.ra": "To fix later: the default input takes over 120 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/375_subseqmin.ra": "To fix later: the default input takes over 120 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
