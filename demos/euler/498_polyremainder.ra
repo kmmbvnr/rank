@@ -1,0 +1,65 @@
+rem Remainder of polynomial division
+rem https://projecteuler.net/problem=498
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000000000
+option M integer = 1000000000000
+option D integer = 10000
+
+rem x^n mod (x - 1)^m is the Taylor
+rem part sum C(n, k) (x - 1)^k, k < m,
+rem and its x^d coefficient is, up to
+rem sign, C(n, d) C(n - d - 1, m - d
+rem - 1). Binomials mod the prime by
+rem Lucas: one small binomial per
+rem base-p digit, as array products.
+Pm = 999999937
+fun U V binp
+  rem C(U, V) mod Pm, U, V < Pm.
+  if V greater U
+    return 0
+  end
+  W = V (U - V) min
+  Is = (1 to W) copy
+  Pr = concat ((U - W + Is) mod Pm) Is
+  rem Halving products mod Pm.
+  Nm = Pr (0 till W)
+  Dn = Pr (W till 2 * W)
+  for Nm len greater 1
+    if Nm len mod 2 equal 1
+      Nm = concat Nm (array 1)
+      Dn = concat Dn (array 1)
+    end
+    Hh = Nm len // 2
+    Nh = Nm (0 till Hh)
+    Nm = Nh * Nm (Hh till 2 * Hh) mod Pm
+    Dh = Dn (0 till Hh)
+    Dn = Dh * Dn (Hh till 2 * Hh) mod Pm
+  end
+  if W equal 0
+    return 1
+  end
+  Iv = (Dn 0) (Pm - 2) Pm powmod
+  return Nm 0 * Iv mod Pm
+end
+Answer = 0
+if D less M and M at most N
+  Ns = array N (N - D - 1)
+  Ks = array D (M - D - 1)
+  Answer = 1
+  for I in 0 to 1
+    A = Ns I
+    B = Ks I
+    for A greater 0 or B greater 0
+      Bd = (A mod Pm) (B mod Pm) binp
+      Answer = Answer * Bd mod Pm
+      A //= Pm
+      B //= Pm
+    end
+  end
+end
+Answer print
