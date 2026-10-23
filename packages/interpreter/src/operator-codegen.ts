@@ -24,7 +24,9 @@ export function binaryOperatorSource(operation: CompiledOperator, left: string, 
     const remainder = options?.remainder ?? `(${a} % ${b})`;
     const zero = options?.number ? '0' : '0n', one = options?.number ? '1' : '1n';
     const safe = options?.safe ?? ((source: string) => source);
-    const adjust = `(${remainder} !== ${zero} && (${a} < ${zero}) !== (${b} < ${zero}))`;
+    // Same-sign integer division already rounds down; only opposite signs
+    // need a remainder to distinguish an exact quotient.
+    const adjust = `((${a} < ${zero}) !== (${b} < ${zero}) && ${remainder} !== ${zero})`;
     // Checked Number loops must validate the subtraction before division too.
     // Rounding the quotient directly can lose an integer near MAX_SAFE_INTEGER.
     const quotient = options?.number ? safe(`${safe(`${a} - ${remainder}`)} / ${b}`) : `${a} / ${b}`;

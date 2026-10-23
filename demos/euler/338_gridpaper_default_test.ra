@@ -1,0 +1,8 @@
+use testing
+
+test "full grid-paper target"
+  use "338_gridpaper"
+  Value = 1000000000000 grid
+  Value equal 999999999600010915614292
+  Value mod 100000000 equal 15614292
+end

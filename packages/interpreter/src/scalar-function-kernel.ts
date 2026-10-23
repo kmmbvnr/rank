@@ -75,9 +75,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         } else if (resultType === 'real' && (op === '+' || op === '-' || op === '*')) {
             lines.push(`const ${result} = ${binaryOperatorSource(operation, `Number(${left})`, `Number(${right})`)};`);
         } else if (op === '//' || op === 'mod') {
-            const remainder = `v${serial++}`;
+            const remainder = op === 'mod' ? `v${serial++}` : undefined;
             lines.push(`if (${zeroTestSource(right, 'integer')}) throw new RankError('division by zero');`);
-            lines.push(`const ${remainder} = ${left} % ${right};`);
+            if (remainder) lines.push(`const ${remainder} = ${left} % ${right};`);
             lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right, { remainder })};`);
         } else lines.push(`const ${result} = ${binaryOperatorSource(operation, left, right)};`);
         return result;

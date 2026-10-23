@@ -214,8 +214,9 @@ export function createLoopExpressions(state: LoopCompilationState) {
             lines.push(`const ${name} = ${type === 'integer' ? safe(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
             return name;
         }
-        const remainder = `m${state.serial++}`;
-        lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw zero();`, `const ${remainder} = (${a}) % (${b});`);
+        const remainder = numberMode || op === 'mod' ? `m${state.serial++}` : undefined;
+        lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw zero();`);
+        if (remainder) lines.push(`const ${remainder} = (${a}) % (${b});`);
         lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder, number: numberMode, safe })};`);
         return name;
     }

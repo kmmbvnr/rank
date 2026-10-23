@@ -1,6 +1,7 @@
 rem Cutting Rectangular Grid Paper
 rem https://projecteuler.net/problem=338
 
+use numbers
 use io
 use cli
 
@@ -9,6 +10,9 @@ option Limit integer = 1000000000000
 Limit grid print
 
 fun N grid
+  if N less 2
+    return 0
+  end
   Product = N products
   Divs = N divsums
   return Product - Divs
@@ -30,26 +34,32 @@ fun N products
   return Sum
 end
 
+rem Sum over I >= 2 of D(N // I) is T(N) - D(N), where
+rem D counts ordered pairs and T counts ordered triples with product <= N.
+rem Count each sorted triple A <= B <= C with its permutation weight.
+rem There are O(N^(2/3)) (A, B) pairs; all values remain exact integers.
 fun N divsums
-  I = 2
   Sum = 0
-  for I at most N
-    A = N // I
-    R = N // A
-    Sum += (R - I + 1) * (A divisors)
-    I = R + 1
+  A = 1
+  for A * A * A at most N
+    Q = N // A
+    Last = Q isqrt
+    rem B = A: (A,A,A) has weight 1, larger C have weight 3.
+    Sum += 3 * (Q // A - A) + 1
+    for B in A + 1 to Last
+      rem B > A: C = B has weight 3, larger C have weight 6.
+      Sum += 6 * (Q // B - B) + 3
+    end
+    A += 1
   end
-  return Sum
+  return Sum - (N pairs)
 end
 
-fun N divisors
-  I = 1
+fun N pairs
+  Root = N isqrt
   Sum = 0
-  for I at most N
-    Q = N // I
-    R = N // Q
-    Sum += Q * (R - I + 1)
-    I = R + 1
+  for I in 1 to Root
+    Sum += N // I
   end
-  return Sum
+  return 2 * Sum - Root * Root
 end
