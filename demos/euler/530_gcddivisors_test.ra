@@ -1,0 +1,14 @@
+use testing
+
+test "brute force"
+  use "530_gcddivisors"
+  N = 10
+  run
+  Answer equal 32
+  N = 1000
+  run
+  Answer equal 12776
+  N = 10000
+  run
+  Answer equal 201008
+end

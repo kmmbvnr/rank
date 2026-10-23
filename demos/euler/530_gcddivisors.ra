@@ -1,0 +1,56 @@
+rem GCD of Divisors
+rem https://projecteuler.net/problem=530
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000000
+
+rem The sum over d | n of gcd(d, n / d)
+rem for n <= N counts gcd(a, b) over
+rem a b <= N. With gcd = sum of phi(t)
+rem over t | gcd it is sum phi(t)
+rem D(N // t^2), D(m) the divisor count
+rem sum: 2 sum m // x for x <= sqrt m,
+rem minus (sqrt m)^2.
+L = N isqrt
+Ph = (0 to L) copy
+Rs = (0 to L) copy
+Ls = L isqrt
+for P in primes to Ls
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+  Pe = P
+  for Pe at most L
+    Rs (Pe to L by Pe) //= P
+    Pe *= P
+  end
+end
+rem One prime above sqrt L may remain.
+Rm = Rs max 1
+Pr = Ph // Rm * (Rm - 1)
+Ph = (Rs greater 1) choose Pr Ph
+rem Small D from a divisor count sieve.
+K = 1
+for (K + 1) ** 3 at most N
+  K += 1
+end
+Ms = N // (K * K)
+Tu = array shape (Ms + 1) fill 0
+for Dd in 1 to Ms
+  Tu (Dd to Ms by Dd) += 1
+end
+Dt = Tu scan +
+T = (K + 1 to L) copy
+Dv = Dt (N // (T * T))
+Answer = ((Ph T) * Dv) sum
+for Tt in 1 to K
+  M = N // (Tt * Tt)
+  Q = M isqrt
+  X = (1 to Q) copy
+  Dm = 2 * (M // X) sum - Q * Q
+  Answer += (Ph Tt) * Dm
+end
+Answer print
