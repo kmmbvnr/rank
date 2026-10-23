@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "503_compromisepersist"
+  N = 4
+  run
+  Answer equal "1.8750000000"
+end

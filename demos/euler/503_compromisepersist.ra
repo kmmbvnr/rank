@@ -1,0 +1,26 @@
+rem Compromise or persist
+rem https://projecteuler.net/problem=503
+
+use numbers
+use io
+use cli
+
+option N integer = 1000000
+
+rem Stopping at relative rank r of t
+rem expects absolute rank r (n + 1) /
+rem (t + 1), so stop for r <= k =
+rem V_(t+1) / s_t. Backward from V_n =
+rem (n + 1) / 2: V_t = (s k (k + 1) /
+rem 2 + (t - k) V_(t+1)) / t. The
+rem recurrence is sequential.
+V = (N + 1) / 2.0
+for T in N - 1 to 1 by -1
+  St = (N + 1.0) / (T + 1)
+  K = (V / St + 0.000000000001) floor
+  K = (K 0 max) T min
+  Sv = St * K * (K + 1) / 2
+  V = (Sv + (T - K) * V) / T
+end
+Answer = V text ".10f"
+Answer print
