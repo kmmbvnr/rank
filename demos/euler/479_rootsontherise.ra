@@ -1,0 +1,24 @@
+rem Roots on the Rise
+rem https://projecteuler.net/problem=479
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000
+
+rem The three roots give (a_k - b_k)
+rem (b_k - c_k) (c_k - a_k) = 1 - k^2
+rem = u, so S is the sum of the
+rem geometric series u + .. + u^N =
+rem u (u^N - 1) / (u - 1), u - 1 =
+rem -k^2.
+Md = 1000000007
+K = (1 to N) copy
+U = (1 - K * K) mod Md
+Un = U N Md powmod
+Iv = (K * K mod Md) (Md - 2) Md powmod
+T = U * (1 - Un) mod Md * Iv mod Md
+Answer = T sum mod Md
+Answer print

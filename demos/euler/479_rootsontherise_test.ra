@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "479_rootsontherise"
+  N = 4
+  run
+  Answer equal 51160
+end
+
+test "direct double sum, n = 20"
+  use "479_rootsontherise"
+  N = 20
+  run
+  Answer equal 638084199
+end
