@@ -691,9 +691,19 @@ export class FunctionInvocation {
             }
             const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true);
             if (!compiled || compiled.available && !compiled.available()) return undefined;
+            const checked: PreparedScalarCall = (arguments_, tail = false) => {
+                const contract = definition.specialization(arguments_);
+                const value = compiled(arguments_, tail);
+                try { return contract.check(value); }
+                catch (error) {
+                    if (error instanceof RankError) definition.owner.frames.addCall(error, call.statement, arguments_);
+                    throw definition.owner.host.locate(error, call.statement);
+                }
+            };
+            if (compiled.available) Object.defineProperty(checked, 'available', { value: compiled.available });
             return (arguments_: RankValue[], tail = false) => {
-                if (tail && definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
-                return compiled(arguments_);
+                if (tail && definition.owner === this) throw new TailCallSignal(definition, arguments_, checked);
+                return checked(arguments_);
             };
         });
         const users: ((arguments_: RankValue[], tail?: boolean) => RankValue)[] = [];

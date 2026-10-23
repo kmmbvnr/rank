@@ -368,8 +368,8 @@ export class FastPaths {
     scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined {
         if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
-        // Entry arguments admit scalars, checked arrays and tracked integer indices. Local index/
-        // deque storage is integer-only, cannot escape through a scalar return,
+        // Entry arguments admit scalars, checked arrays and tracked integer indices/deques.
+        // Container storage is integer-only, cannot escape through a scalar return,
         // and needs no resource frame. Argument array writes still need one.
         return proof && !proof.arrayWrites.size
             ? { locals: proof.locals, loops: true } : undefined;

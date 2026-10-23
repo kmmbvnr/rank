@@ -2,13 +2,21 @@ import { MissingValueError, RankError } from './errors.js';
 import { prepareIntegerView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
 import { indexGet, indexKey } from './index-storage.js';
+import { RankDeque } from './containers.js';
 import { atArray } from './selectors.js';
 import type { RankArray, RankIndex, RankValue } from './value.js';
 
-/** Entry proofs guarantee a dense array's full scalar address or an integer
- * index key. Bounds/missing checks remain observable; generic selector dispatch
- * and tensor-shape planning are unnecessary for these scalar reads. */
-export function scalarSelection(source: RankArray | RankIndex, indices: readonly bigint[]): RankValue {
+/** Entry proofs guarantee a dense array's full scalar address, an integer
+ * index key or a queue position. Bounds/missing checks remain observable;
+ * generic selector dispatch and tensor-shape planning are unnecessary here. */
+export function scalarSelection(source: RankArray | RankIndex | RankDeque, indices: readonly bigint[]): RankValue {
+    if (source instanceof RankDeque) {
+        const position = indices[0];
+        if (position < 0n) throw new MissingValueError('queue index out of bounds');
+        const value = source.at(Number(position));
+        if (value === undefined) throw new MissingValueError(`queue index out of bounds: ${position}`);
+        return value;
+    }
     if (source.kind !== 'index') {
         if (source.kind === 'array' && indices.length === 1 && indices[0] < 0n) {
             throw new MissingValueError('array index out of bounds on axis 0');

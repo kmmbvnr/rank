@@ -25,6 +25,8 @@ export class RankDeque {
     }
 
     get size(): number { return this.stack?.length ?? this.last - this.first; }
+    /** The insertion contract persists after pops, so entry needs no cell scan. */
+    get integers(): boolean { return this.acceptedElementType === undefined || this.acceptedElementType.type === 'integer'; }
     get items(): RankValue[] { return [...this.values()]; }
     at(index: number): RankValue | undefined { return this.stack ? this.stack[index] : this.entries.get(this.first + index); }
     *values(): IterableIterator<RankValue> {

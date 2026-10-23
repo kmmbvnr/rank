@@ -106,10 +106,11 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             return { type: resultType, input: { name: last.name, operation: 'self-call' as const,
                 indices: arguments_.map(argument => expressions.get(argument)!) } };
         }
-        // Nested calls cannot borrow or mutate a caller's storage implicitly.
-        if (!inputs.every((input): input is CompiledScalarType => typeof input === 'string')) return undefined;
+        // Read-only arrays and integer containers keep their proven domains across
+        // linked calls. Array writes still require an ordinary binding frame.
+        if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)) return undefined;
         const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement]);
-        if (!proof || typeof proof.type !== 'string' || proof.containers || proof.arrayWrites.size
+        if (!proof || typeof proof.type !== 'string' || proof.arrayWrites.size
             || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
         callDepth = Math.max(callDepth, proof.callDepth + 1);
         callCount += proof.callCount + 1;
@@ -241,7 +242,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     return { type: 'integer', input: { name: head.name, operation: 'captured-read',
                         indices: indices.map(index => expressions.get(index)!) } };
                 }
-                if (!array || typeof array === 'string' || (isCompiledContainer(array) ? array.kind !== 'index' || indices.length !== 1 : indices.length !== array.rank)) return undefined;
+                if (!array || typeof array === 'string' || (isCompiledContainer(array) ? indices.length !== 1 : indices.length !== array.rank)) return undefined;
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
                 return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, keyed: isCompiledContainer(array), indices: indices.map(index => expressions.get(index)!) } };
             },

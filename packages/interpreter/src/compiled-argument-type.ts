@@ -4,12 +4,27 @@ import { checkpoint } from './interrupt.js';
 import { semanticArrayType } from './semantic-array-type.js';
 import { isRankIndex, type RankArray, type RankValue } from './value.js';
 import { IndexEntries } from './index-storage.js';
+import { RankDeque } from './containers.js';
 import { valueProtection } from './value-protection.js';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
+
+const dequeMethods = Object.entries(Object.getOwnPropertyDescriptors(RankDeque.prototype));
+
+/** Entry proofs must not admit host overrides that can re-enter the interpreter. */
+function integerDeque(value: RankValue): value is RankDeque {
+    if (typeof value !== 'object' || Object.getPrototypeOf(value) !== RankDeque.prototype) return false;
+    for (const [name, descriptor] of dequeMethods) {
+        const current = Object.getOwnPropertyDescriptor(RankDeque.prototype, name);
+        if (Object.prototype.hasOwnProperty.call(value, name) || current?.value !== descriptor.value
+            || current?.get !== descriptor.get || current?.set !== descriptor.set) return false;
+    }
+    return (value as RankDeque).integers;
+}
 
 /** Tracked integer indices retain a constant-time domain proof on mutation. */
 export function compiledEntryArgumentType(value: RankValue): CompiledCalleeType | undefined {
     if (isRankIndex(value) && value.entries instanceof IndexEntries && value.entries.integers && !valueProtection(value)) return { kind: 'index' };
+    if (integerDeque(value) && !valueProtection(value)) return { kind: 'deque', mode: value.mode };
     return checkedArgumentType(value, true);
 }
 
