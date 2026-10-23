@@ -2,19 +2,88 @@ rem Totient of a Square Is a Cube
 rem https://projecteuler.net/problem=342
 
 use numbers
+use sequences
+use algo
 use io
 use cli
 
 option Limit integer = 10000000000
 
-Answer = 0
-for N in 2 till Limit
-  Phi = N squarephi
-  if Phi cube
-    Answer += N
-  end
-end
+Answer = Limit totientcubes
 Answer print
+
+rem If N = product P^E, phi(N^2) = product P^(2*E-1) * (P-1).
+rem Visit selected primes in descending order. A smaller prime cannot change
+rem the exponent of a larger one, so its residue must be settled immediately.
+fun Bound totientcubes
+  if Bound at most 4
+    return 0
+  end
+  rem The largest prime needs E = 2 mod 3, hence P^2 < Bound.
+  Ps = primes to ((Bound - 1) isqrt) array
+  Positions = new index
+  for P I in Ps
+    Positions P = I
+  end
+  Cache = new index
+  Empty = array shape 0 fill 0
+  return 1 Empty (Ps len - 1) Bound Ps Positions Cache candidates
+end
+
+rem Fs contains unfinished factors of phi, including repetitions. Only their
+rem multiplicities modulo 3 matter. Each branch removes its chosen prime,
+rem adds factors of P-1, and tries exponents in steps of three.
+fun N Fs Last Bound Ps Positions Cache candidates
+  Counts = new counter Fs
+  Keys = Fs unique
+  Pending = Keys filter ((Counts Keys) mod 3 not equal 0) array
+  Total = 0
+  First = 0
+  if Pending len equal 0
+    if N greater 1
+      Total = N
+    end
+  else
+    rem A smaller next prime could never settle this largest pending factor.
+    First = Positions (Pending max)
+  end
+  for I in First to Last
+    P = Ps I
+    Have = (Counts P) mod 3
+    rem 2*Exp - 1 + Have = 0 mod 3; choose the least positive Exp.
+    Exp = (Have + 1) mod 3 + 1
+    Power = P ** Exp
+    if N * Power at least Bound
+      rem Above the largest pending prime, Have is zero and Power is P^2.
+      if Have equal 0
+        break
+      end
+      continue
+    end
+    if P not in Cache
+      Cache P = (P - 1) factors array
+    end
+    Low = Fs filter (Fs less P) array
+    NextFactors = concat Low (Cache P)
+    Step = P * P * P
+    for N * Power less Bound
+      Total += (N * Power) NextFactors (I - 1) Bound Ps Positions Cache candidates
+      Power *= Step
+    end
+  end
+  return Total
+end
+
+rem Independent direct formulation for small bounds and search verification.
+fun Bound directcubes
+  Total = 0
+  for N in 2 till Bound
+    if N squarephi cube
+      Total += N
+    end
+  end
+  return Total
+end
 
 fun N squarephi
   Phi = N * N

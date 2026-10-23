@@ -21,3 +21,20 @@ test "medium totient cubes"
   run
   Answer equal 62061
 end
+
+test "exclusive bound and repeated searches"
+  use "342_totientcube"
+  4 totientcubes equal 0
+  5 totientcubes equal 4
+  50 totientcubes equal 36
+  51 totientcubes equal 86
+  1000 totientcubes equal 2515
+  5 totientcubes equal 4
+end
+
+test "direct formulation agrees with residue search"
+  use "342_totientcube"
+  for Bound in array 0 4 5 10 50 51 100 1000 10000
+    (Bound directcubes) equal (Bound totientcubes)
+  end
+end

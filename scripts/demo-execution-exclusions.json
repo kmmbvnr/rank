@@ -44,7 +44,6 @@
   "euler/338_gridpaper_default_test.ra": "Manual full-input assertion; independent small enumeration checks remain in the ordinary suites (#365).",
   "euler/341_golomb.ra": "Allocates 12000000 cells and constructs the default Golomb prefix.",
   "euler/341_golomb_default_test.ra": "Manual million-cell Golomb-term assertion; smaller term and cube-sum assertions remain in 341_golomb_test.ra.",
-  "euler/342_totientcube.ra": "Factors every integer below 10^10.",
   "euler/343_fractional.ra": "Factors cubic expressions for 2000000 inputs.",
   "euler/344_silverdollar.ra": "Runs the full million-position silver-dollar combinatorial calculation.",
   "euler/344_silverdollar_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 344_silverdollar_test.ra.",

@@ -1,0 +1,31 @@
+{"node":"v24.15.0","cpu":"Apple M5","timings":"fresh processes; parsing, prime table and search included; result checked on every completed sample"}
+{"case":"original-small","executeMs":393.34075000000007,"result":"923941","maxRssKiB":174848,"trial":0}
+{"case":"original-small","executeMs":408.12579100000005,"result":"923941","maxRssKiB":173728,"trial":1}
+{"case":"original-small","executeMs":406.63362500000005,"result":"923941","maxRssKiB":174576,"trial":2}
+{"case":"original-small","medianExecuteMs":406.63362500000005,"completedSamples":3}
+{"case":"factors-small","executeMs":1224.498333,"result":"923941","maxRssKiB":444720,"trial":0}
+{"case":"factors-small","executeMs":1201.829083,"result":"923941","maxRssKiB":446784,"trial":1}
+{"case":"factors-small","executeMs":1201.660334,"result":"923941","maxRssKiB":444880,"trial":2}
+{"case":"factors-small","medianExecuteMs":1201.829083,"completedSamples":3}
+{"case":"search-small","executeMs":188.1645,"result":"923941","maxRssKiB":184528,"trial":0}
+{"case":"search-small","executeMs":192.402042,"result":"923941","maxRssKiB":185600,"trial":1}
+{"case":"search-small","executeMs":189.22583299999997,"result":"923941","maxRssKiB":184848,"trial":2}
+{"case":"search-small","medianExecuteMs":189.22583299999997,"completedSamples":3}
+{"case":"original-million","executeMs":7374.984542,"result":"23294055","maxRssKiB":174704,"trial":0}
+{"case":"original-million","executeMs":7443.5525,"result":"23294055","maxRssKiB":174368,"trial":1}
+{"case":"original-million","executeMs":7429.000625,"result":"23294055","maxRssKiB":174576,"trial":2}
+{"case":"original-million","medianExecuteMs":7429.000625,"completedSamples":3}
+{"case":"search-million","executeMs":214.18916599999997,"result":"23294055","maxRssKiB":195696,"trial":0}
+{"case":"search-million","executeMs":217.284208,"result":"23294055","maxRssKiB":195552,"trial":1}
+{"case":"search-million","executeMs":215.400166,"result":"23294055","maxRssKiB":194768,"trial":2}
+{"case":"search-million","medianExecuteMs":215.400166,"completedSamples":3}
+{"case":"full","executeMs":2033.8307090000003,"result":"5943040885644","maxRssKiB":566784,"trial":0}
+{"case":"full","executeMs":2030.682916,"result":"5943040885644","maxRssKiB":580080,"trial":1}
+{"case":"full","executeMs":2098.458917,"result":"5943040885644","maxRssKiB":570160,"trial":2}
+{"case":"full","medianExecuteMs":2033.8307090000003,"completedSamples":3}
+{"case":"full-reference","executeMs":1965.7745409999998,"result":"5943040885644","maxRssKiB":555488,"trial":0}
+{"case":"full-reference","executeMs":2026.9585000000002,"result":"5943040885644","maxRssKiB":557408,"trial":1}
+{"case":"full-reference","executeMs":1991.6839999999997,"result":"5943040885644","maxRssKiB":572608,"trial":2}
+{"case":"full-reference","medianExecuteMs":1991.6839999999997,"completedSamples":3}
+{"node":"v24.15.0","cpu":"Apple M5","timings":"fresh processes; parsing, prime table and search included; result checked on every completed sample"}
+{"case":"original-full","trial":0,"status":"timeout","timeoutMs":30000}
