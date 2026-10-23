@@ -15,6 +15,7 @@ test('execution exclusions name existing workloads and explain the resource cost
     assert.ok(!files.has('euler/322_binomial.ra'), 'corrected carry constraints keep the default product small');
     assert.ok(!files.has('euler/339_peredur.ra'), 'the linear expected-value recurrence stays eligible');
     assert.ok(files.has('euler/331_crossflips.ra'));
+    assert.ok(!files.has('euler/332_sphericaltriangles.ra'), 'array geometry and sphere symmetries keep all 50 radii eligible');
 });
 
 test('new full-scale exclusions retain their small test fixtures', () => {

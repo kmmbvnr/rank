@@ -3,6 +3,7 @@ rem https://projecteuler.net/problem=332
 
 use numbers
 use io
+use sequences
 
 Answer = 0.0
 for R in 1 to 50
@@ -11,10 +12,63 @@ end
 Answer print
 
 fun R sphere
+  Points = R sphere_points
+  Cnt = Points len
+  RR = R * R
+  rem Coordinates, determinants and their squares are exact in binary64
+  rem for the radii 1 through 50 in this demo.
+  U = (Points # 0) / 1
+  V = (Points # 1) / 1
+  W = (Points # 2) / 1
+  Best = RR * (-1 acos) / 2
+  BestScore = RR / 1
+  Slots = (0 till Cnt) copy
+  JS = Slots reshape Cnt 1
+  KS = Slots reshape 1 Cnt
+  XJ = U reshape Cnt 1
+  YJ = V reshape Cnt 1
+  ZJ = W reshape Cnt 1
+  XK = U reshape 1 Cnt
+  YK = V reshape 1 Cnt
+  ZK = W reshape 1 Cnt
+  CrossX = YJ * ZK - ZJ * YK
+  CrossY = ZJ * XK - XJ * ZK
+  CrossZ = XJ * YK - YJ * XK
+  Dot = XJ * XK + YJ * YK + ZJ * ZK
+  rem Signed coordinate permutations preserve the sphere and triangle areas.
+  rem Every triangle has an image with its first vertex in this chamber.
+  Anchors = ((U at least V) and (V at least W) and (W at least 0.0)) copy
+  for I in Slots Anchors
+    X = U I
+    Y = V I
+    Z = W I
+    D = X * CrossX + Y * CrossY + Z * CrossZ
+    B = RR + X * XJ + Y * YJ + Z * ZJ + Dot + X * XK + Y * YK + Z * ZK
+    Mask = ((KS greater JS) and (D not equal 0.0) and (B greater 0.0)) copy
+    if Mask any
+      Ds = (D Mask) copy
+      Bs = (B Mask) copy
+      Score = ((Ds * Ds) / (Bs * Bs)) min
+      if Score less BestScore
+        rem atan2 is increasing in |D| / (R * B) when B is positive.
+        rem Nonpositive B cannot beat the initial quarter-sphere bound.
+        Pick = ((Ds * Ds) / (Bs * Bs)) min .index
+        A = Ds Pick abs
+        Sum = Bs Pick - RR
+        Top = A / (RR * (RR ** 0.5))
+        Bot = 1 + Sum / RR
+        Area = 2 * (Top Bot atan2) * RR
+        Best = Best Area min
+        BestScore = Score
+      end
+    end
+  end
+  return Best
+end
+
+fun R sphere_points
   Max = 2 * (2 * R + 1) ** 2
-  U = array shape Max fill 0
-  V = array shape Max fill 0
-  W = array shape Max fill 0
+  Points = array shape Max 3 fill 0
   Cnt = 0
   RR = R * R
   for X in -R to R
@@ -23,51 +77,19 @@ fun R sphere
       if Z2 at least 0
         Z = Z2 isqrt
         if Z * Z equal Z2
-          U Cnt = X
-          V Cnt = Y
-          W Cnt = Z
+          Points Cnt 0 = X
+          Points Cnt 1 = Y
+          Points Cnt 2 = Z
           Cnt += 1
           if Z not equal 0
-            U Cnt = X
-            V Cnt = Y
-            W Cnt = -Z
+            Points Cnt 0 = X
+            Points Cnt 1 = Y
+            Points Cnt 2 = -Z
             Cnt += 1
           end
         end
       end
     end
   end
-  Best = RR * (-1 acos) / 2
-  for I in 0 till Cnt - 2
-    for J in I + 1 till Cnt - 1
-      for K in J + 1 till Cnt
-        D = I J K U V W det3
-        if D not equal 0
-          A = D abs
-          Area = I J K U V W RR A area
-          Best = Best Area min
-        end
-      end
-    end
-  end
-  return Best
-end
-
-fun I J K U V W det3
-  A = V I * W J - W I * V J
-  B = W I * U J - U I * W J
-  C = U I * V J - V I * U J
-  return A * U K + B * V K + C * W K
-end
-
-fun I J K U V W RR D area
-  AB = U I * U J + V I * V J
-  AB += W I * W J
-  BC = U J * U K + V J * V K
-  BC += W J * W K
-  CA = U K * U I + V K * V I
-  CA += W K * W I
-  Top = D / (RR * (RR ** 0.5))
-  Bot = 1 + (AB + BC + CA) / RR
-  return 2 * (Top Bot atan2) * RR
+  return (Points take Cnt) copy
 end

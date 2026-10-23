@@ -6,3 +6,72 @@ test "given spherical area"
   use numbers
   14 sphere round 6 equal 3.294040
 end
+
+test "compact complete integer point sets"
+  use "332_sphericaltriangles"
+  use sequences
+  for Pair in (array (array 1 6) (array 3 30) (array 14 54) (array 50 150))
+    R = Pair 0
+    Expected = Pair 1
+    Points = R sphere_points
+    (Points shape) (array Expected 3) equal rank 1
+    X = Points # 0
+    Y = Points # 1
+    Z = Points # 2
+    ((X * X + Y * Y + Z * Z) equal R * R) all
+  end
+end
+
+test "axis points retain the initial area bound"
+  use "332_sphericaltriangles"
+  use numbers
+  for R in array 1 2 4 8
+    (R sphere) equal (R * R * (-1 acos) / 2)
+  end
+end
+
+test "array scan agrees with unrestricted triples on small spheres"
+  use "332_sphericaltriangles"
+  use numbers
+
+  rem Exhaustive reference: no signed-permutation chamber or score pruning.
+  fun R reference_sphere
+    Points = R sphere_points
+    Cnt = Points len
+    RR = R * R
+    Best = RR * (-1 acos) / 2
+    for I in 0 till Cnt - 2
+      for J in I + 1 till Cnt - 1
+        for K in J + 1 till Cnt
+          X = Points I 0
+          Y = Points I 1
+          Z = Points I 2
+          U = Points J 0
+          V = Points J 1
+          W = Points J 2
+          P = Points K 0
+          Q = Points K 1
+          S = Points K 2
+          D = (X * (V * S - W * Q) + Y * (W * P - U * S) + Z * (U * Q - V * P)) abs
+          if D not equal 0
+            Sum = X * U + Y * V + Z * W + U * P + V * Q + W * S + P * X + Q * Y + S * Z
+            Top = D / (RR * (RR ** 0.5))
+            Bot = 1 + Sum / RR
+            Best = Best (2 * (Top Bot atan2) * RR) min
+          end
+        end
+      end
+    end
+    return Best
+  end
+  for R in 1 to 8
+    (R sphere round 9) equal (R reference_sphere round 9)
+  end
+end
+
+test "default spherical triangle total"
+  use "332_sphericaltriangles"
+  use numbers
+  run
+  Answer round 6 equal 2717.751525
+end

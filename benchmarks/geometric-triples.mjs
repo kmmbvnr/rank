@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const options = Object.fromEntries(process.argv.slice(2).map(arg => {
-    const match = /^--(checkout|radii|samples|timeout|worker|source-checkout)=(.+)$/.exec(arg);
+    const match = /^--(checkout|radii|samples|timeout|worker|source-checkout|compilation)=(.+)$/.exec(arg);
     assert(match, `Unknown argument: ${arg}`);
     return [match[1], match[2]];
 }));
@@ -51,7 +51,7 @@ function reference(r) {
 }
 if (options.worker) {
     const { Interpreter } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
-    const runtime = new Interpreter(() => {});
+    const runtime = new Interpreter(() => {}, { compilation: options.compilation !== 'false' });
     runtime.execute(source.match(/^use .+$/gm).join('\n') + '\n' + source.slice(source.indexOf('fun R sphere')));
     let answer = 0;
     const start = performance.now();
@@ -73,7 +73,7 @@ if (options.worker) {
     const results = [];
     for (let sample = 0; sample < samples; sample++) {
         const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url), `--checkout=${checkout}`,
-            `--source-checkout=${sourceRoot}`, `--radii=${selection}`, '--worker=true'], { encoding: 'utf8', timeout });
+            `--source-checkout=${sourceRoot}`, `--radii=${selection}`, `--compilation=${options.compilation ?? 'true'}`, '--worker=true'], { encoding: 'utf8', timeout });
         const rows = child.stdout.trim().split('\n').filter(Boolean).map(line => JSON.parse(line));
         for (const row of rows.filter(row => row.r !== undefined)) {
             assert(Math.abs(row.actual - expected.get(row.r).expected) < 1e-9, `radius ${row.r}: ${row.actual}`);
@@ -84,7 +84,7 @@ if (options.worker) {
         results.push(result);
         console.error(JSON.stringify(result));
     }
-    console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model, checkout, sourceRoot,
+    console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model, checkout, sourceRoot, compilation: options.compilation !== 'false',
         revision: execFileSync('git', ['-C', checkout, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
         sourceSha256: createHash('sha256').update(source).digest('hex'),
         expected: Object.fromEntries(expected), results }, null, 2));
