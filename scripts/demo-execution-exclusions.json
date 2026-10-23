@@ -200,5 +200,6 @@
   "euler/524_firstsort2.ra": "To fix later: the default input takes about 2.5 min, 140k interpreted calls of the completion check at about 1 ms each (#415); the small _test.ra fixture stays in the audits.",
   "euler/526_largestprime.ra": "To fix later: the default input takes about 37 s, sieving 16 residue classes over 5 blocks of 10^6 indices; the small _test.ra fixture stays in the audits.",
   "euler/529_tensum.ra": "To fix later: the default input takes about 100 s (5600 automaton steps, Berlekamp-Massey and 60 squarings of a degree 2772 polynomial); the small _test.ra fixture stays in the audits.",
-  "euler/530_gcddivisors.ra": "To fix later: the default input takes about 55 s and 1.6 GB (a totient sieve to 3.2e7 and D(N / t^2) for t up to 10^5); the small _test.ra fixture stays in the audits."
+  "euler/530_gcddivisors.ra": "To fix later: the default input takes about 55 s and 1.6 GB (a totient sieve to 3.2e7 and D(N / t^2) for t up to 10^5); the small _test.ra fixture stays in the audits.",
+  "euler/531_chineseleftovers.ra": "To fix later: the default input takes about 46 s, 12.5 million CRT pairs with a vectorised Euclid; the small _test.ra fixture stays in the audits."
 }

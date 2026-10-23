@@ -1,0 +1,93 @@
+rem Chinese leftovers
+rem https://projecteuler.net/problem=531
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option Lo integer = 1000000
+option Hi integer = 1005000
+
+rem x = phi(n) mod n, phi(m) mod m has
+rem a solution iff g = gcd(n, m) divides
+rem b - a; then x = a + n u, u = (b -
+rem a) / g n1^-1 mod m1. With m = n + d,
+rem g = gcd(n, d) and n1 = -d1 mod m1,
+rem so only the small d1 = d / g needs
+rem an inverse, by Euclid mod d1.
+L = Hi - 1
+Ph = (0 to L) copy
+Rs = (0 to L) copy
+Ls = L isqrt
+for P in primes to Ls
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+  Pe = P
+  for Pe at most L
+    Rs (Pe to L by Pe) //= P
+    Pe *= P
+  end
+end
+Rm = Rs max 1
+Pr = Ph // Rm * (Rm - 1)
+Ph = (Rs greater 1) choose Pr Ph
+rem All pairs i < j of the range.
+Cn = Hi - Lo
+Ct = Cn - 1 - (0 till Cn)
+Cs = Ct scan +
+Tt = Cs last
+rem Pairs in chunks to bound memory.
+Answer = 0
+for K0 in 0 till Tt by 2000000
+  Ke = (K0 + 2000000) Tt min
+  K = (K0 till Ke) copy
+  I = Cs K upperindex
+  J = I + 1 + K - (Cs - Ct) I
+  Nn = Lo + I
+  Mm = Lo + J
+  A = Ph Nn
+  B = Ph Mm
+  D = J - I
+  G = Nn D gcd
+  Ok = ((B - A) mod G equal 0) indices
+  Nn = Nn Ok
+  A = A Ok
+  B = B Ok
+  D = D Ok
+  G = G Ok
+  D1 = D // G
+  M1 = (Mm Ok) // G
+  rem Inverse of m1 mod d1, coprime:
+  rem Euclid on the pairs still running.
+  R0 = D1
+  R1 = M1 mod D1
+  T0 = R0 * 0
+  T1 = T0 + 1
+  Sv = T0
+  Ix = (0 till D1 len) copy
+  for It in 1 to 20
+    Dz = (R1 equal 0) indices
+    Sv (Ix Dz) = T0 Dz
+    Nz = (R1 greater 0) indices
+    Ix = Ix Nz
+    R0 = R0 Nz
+    R1 = R1 Nz
+    T0 = T0 Nz
+    T1 = T1 Nz
+    Q = R0 // R1
+    Nr = R0 - Q * R1
+    Nt = T0 - Q * T1
+    R0 = R1
+    T0 = T1
+    R1 = Nr
+    T1 = Nt
+  end
+  Kk = (0 - Sv) mod D1
+  Id = (1 + M1 * Kk) // D1
+  In = (M1 - Id) mod M1
+  U0 = ((B - A) // G) mod M1 * In mod M1
+  Answer += (A + Nn * U0) sum
+end
+Answer print

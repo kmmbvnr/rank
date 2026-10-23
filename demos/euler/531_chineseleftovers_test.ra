@@ -1,0 +1,13 @@
+use testing
+
+test "brute force ranges"
+  use "531_chineseleftovers"
+  Lo = 2
+  Hi = 60
+  run
+  Answer equal 589886
+  Lo = 1000
+  Hi = 1060
+  run
+  Answer equal 676762403
+end
