@@ -1,0 +1,87 @@
+rem Mixtures
+rem https://projecteuler.net/problem=478
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+
+rem P counts primitive triples in
+rem 0..N^3, H(L) = 1 + coprime x, y > 0
+rem with x + L y <= N, and E = 2^P - 1
+rem - 2^h B + sum 6 phi(L) 2^(h -
+rem H(L)), h = (P - 1) / 2, B = 6 sum
+rem phi. Powers of 2 mod 11^8 reduce
+rem their exponent mod phi(11^8).
+Md = 214358881
+Fh = 194871710
+rem mu and phi by small primes; the
+rem cofactor in Rs is one big prime.
+Mu = array shape (N + 1) fill 1
+Mu 0 = 0
+Ph = (0 to N) copy
+Rs = (0 to N) copy
+Rt = N isqrt
+for P in primes to Rt
+  Sl = P to N by P
+  Mu Sl *= -1
+  Ph Sl -= Ph Sl // P
+  Mu (P * P to N by P * P) = 0
+  Pe = P
+  for Pe at most N
+    Rs (Pe to N by Pe) //= P
+    Pe *= P
+  end
+end
+Bp = Rs greater 1
+Mu = Bp choose (0 - Mu) Mu
+Rm = Rs 1 max
+Ph = Bp choose (Ph // Rm * (Rm - 1)) Ph
+Mt = Mu scan +
+rem Moebius sums group by m = N // d:
+rem Cm is the sum of mu over those d.
+Sn = N isqrt
+D1 = (1 to Sn) copy
+Ms = (N // (Sn + 1)) to 1 by -1
+Ms = concat (N // D1) Ms
+Ms = Ms unique
+Cm = Mt (N // Ms) - Mt (N // (Ms + 1))
+P3 = Cm * ((Ms + 1) ** 3 - 1)
+Pt = P3 sum
+rem H(L) - 1 = sum over m of Cm G(m,
+rem L), G the pairs a, b > 0 with a +
+rem L b <= m: q m - L q (q + 1) / 2.
+Hs = array shape (N + 1) fill 0
+Ls = (0 to N) copy
+for I in 0 till Ms len
+  C = Cm I
+  if C not equal 0
+    M = Ms I
+    Lr = Ls (1 to M)
+    Q = M // Lr
+    G = Q * M - Lr * Q * (Q + 1) // 2
+    Hs (1 to M) += C * G
+  end
+end
+Hs += 1
+rem 2^e mod Md from two tables.
+Hf = (Pt - 1) // 2
+Ex = (Hf - Hs (1 to N)) mod Fh
+E0 = (0 till 16384) copy
+T0 = 2 E0 Md powmod
+Tb = 2 16384 Md powmod
+E1 = (0 to Fh // 16384) copy
+T1 = Tb E1 Md powmod
+Pw = T0 (Ex mod 16384)
+Pw = Pw * (T1 (Ex // 16384)) mod Md
+P1 = Ph (1 to N)
+Tw = (6 * P1 mod Md) * Pw mod Md
+Tt = Tw sum mod Md
+Bn = 6 * (P1 sum) mod Md
+F = 2 (Hf mod Fh) Md powmod
+F = (1 + F * Bn - Tt) mod Md
+Answer = 2 (Pt mod Fh) Md powmod
+Answer = (Answer - F) mod Md
+Answer print

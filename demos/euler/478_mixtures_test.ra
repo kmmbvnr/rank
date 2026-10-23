@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "478_mixtures"
+  N = 1
+  run
+  Answer equal 103
+  N = 2
+  run
+  Answer equal 520447
+  N = 10
+  run
+  Answer equal 82608406
+end
+
+test "n = 500"
+  use "478_mixtures"
+  N = 500
+  run
+  Answer equal 13801403
+end
