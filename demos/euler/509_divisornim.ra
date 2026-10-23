@@ -1,0 +1,24 @@
+rem Divisor Nim
+rem https://projecteuler.net/problem=509
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 123456787654321
+
+rem A pile n moves to every 2-adic
+rem valuation below v2(n) but never to
+rem v2(n): its Grundy value is v2(n).
+rem Losing triples have v2 values
+rem with xor 0: sum C_i C_j C_(i xor
+rem j), C_k numbers with v2 = k.
+Ks = (0 till 64) copy
+Ck = N // 2 ** Ks - N // 2 ** (Ks + 1)
+Xr = (Ks Ks outer bxor) reshape 4096
+Cx = (Ck Xr) reshape 64 64
+Ls = ((Ck reshape 64 1) * Ck * Cx) sum
+Answer = (N ** 3 - Ls) mod 1234567890
+Answer print

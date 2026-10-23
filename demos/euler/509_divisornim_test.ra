@@ -1,0 +1,11 @@
+use testing
+
+test "statement value and brute force"
+  use "509_divisornim"
+  N = 10
+  run
+  Answer equal 692
+  N = 100
+  run
+  Answer equal 735494
+end
