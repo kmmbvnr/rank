@@ -30,7 +30,7 @@ fun Limit sumfrac
     B = K * K - K + 1
     P = A lpf
     Q = B lpf
-    Sum += (P Q max) - 1
+    Sum += (P max Q) - 1
   end
   return Sum
 end

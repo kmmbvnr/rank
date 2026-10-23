@@ -18,13 +18,13 @@ fun A' longest_distinct
 
   for Value i in A
     if Value in Index
-      Left = Left (Index Value + 1) max
+      Left = Left max (Index Value + 1)
     end
 
     Index Value = i
 
     Size = i - Left + 1
-    Best = Best Size max
+    Best = Best max Size
   end
 
   return Best

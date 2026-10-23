@@ -2,6 +2,17 @@ import { isAllAxisExpression, isApplicationExpression, isBinaryExpression, isNam
     isParenthesizedExpression, type Expression } from './generated/ast.js';
 import { findOperation } from './operations.js';
 
+/** Synthesized and normalized calls already place every operand before the operation. */
+const placedOperands = Symbol('placed operands');
+type PlacedOperation = Expression & { [placedOperands]?: boolean };
+export function markPlacedOperands(operation: Expression): Expression {
+    (operation as PlacedOperation)[placedOperands] = true;
+    return operation;
+}
+export function hasPlacedOperands(operation: Expression): boolean {
+    return (operation as PlacedOperation)[placedOperands] === true;
+}
+
 /** Flatten a call chain without crossing an explicit operand group. */
 export function flattenApplication(expression: Expression): Expression[] {
     const parts: Expression[] = [];

@@ -20,7 +20,7 @@ assert(Number.isSafeInteger(size) && size > 0);
 assert(Number.isSafeInteger(samples) && samples >= 3);
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const bodies = {
-  directmax: 'Best = Best I max', aliasmax: 'Best = Best I Op',
+  directmax: 'Best = Best max I', aliasmax: 'Best = Best I Op',
   directmin: 'Best = Best (-I) min', aliasmin: 'Best = Best (-I) Op',
   arithmetic: 'Best += I', conditional: 'if I greater Best\n Best = I\n end',
 };

@@ -21,7 +21,7 @@ describe('shared scalar extrema', () => {
             [1.5, 2.5], [-0, 0], [0, -0], [NaN, 1], [1, NaN], [Infinity, -Infinity],
         ];
         for (const args of pairs) {
-            const source = `return X Y ${name}`;
+            const source = name === 'max' ? 'return X max Y' : 'return X Y min';
             const reference = call(source, args, false), compiled = call(source, args, true);
             expect(Object.is(compiled.value, reference.value)).toBe(true);
             expect(compiled.calls).toBe(1);
@@ -34,20 +34,20 @@ describe('shared scalar extrema', () => {
 
     it('compiles ungrouped cell operands and preserves argument-selection errors', () => {
         const array: RankValue = { kind: 'array', shape: [2], items: [3n, 7n] };
-        expect(call('return X 0 Y max', [array, 5n], true)).toEqual({ value: 5n, calls: 1 });
+        expect(call('return X 0 max Y', [array, 5n], true)).toEqual({ value: 5n, calls: 1 });
         const errors = [false, true].map(compilation => {
-            try { call('return X 2 Y max', [array, 5n], compilation); return undefined; }
+            try { call('return X 2 max Y', [array, 5n], compilation); return undefined; }
             catch (error) { return (error as Error).message; }
         });
-        expect(errors[0]).toContain('While preparing arguments for max');
+        expect(errors[0]).toContain('array index out of bounds');
         expect(errors[1]).toBe(errors[0]);
     });
 
     it('preserves chains and keeps mixed or collection inputs on the reference path', () => {
-        const source = 'return X Y max 10 min';
+        const source = 'return (X max Y) 10 min';
         expect(call(source, [4n, 20n], true)).toEqual({ value: 10n, calls: 1 });
         for (const args of [[2n ** 60n + 1n, 2 ** 60], [2n, 0.5], ['a', 'b']] as RankValue[][]) {
-            expect(call('return X Y max', args, true)).toEqual(call('return X Y max', args, false));
+            expect(call('return X max Y', args, true)).toEqual(call('return X max Y', args, false));
         }
         const array: RankValue = { kind: 'array', shape: [2], items: [3n, 7n] };
         expect(call('return X min', [array, 0n], true)).toEqual(call('return X min', [array, 0n], false));
@@ -56,7 +56,7 @@ describe('shared scalar extrema', () => {
     it('evaluates both operands once, in source order, including errors', () => {
         const source = `use algo
 fun X Y probe
-  return ((X pop) * 10) (Y pop) max
+  return ((X pop) * 10) max (Y pop)
 end
 Items = new stack
 Items push 2
@@ -76,7 +76,7 @@ array Result (Items len)`;
             } finally { runtime.dispose(); }
         }
         for (const compilation of [false, true]) {
-            expect(() => call('return (X // 0) (Y // 0) max', [1n, 2n], compilation)).toThrow('division by zero');
+            expect(() => call('return (X // 0) max (Y // 0)', [1n, 2n], compilation)).toThrow('division by zero');
         }
     });
 
@@ -86,7 +86,7 @@ array Result (Items len)`;
             const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
             try {
                 runtime.execute(`fun X Y probe
-  return X Y max
+  return X max Y
 end`);
                 expect(runtime.execute('2 3 probe')).toBe(3n);
                 if (compilation) expect(calls).toBe(1);

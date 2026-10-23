@@ -46,7 +46,7 @@ fun N Coins Edges collect_coins
     for Next in DAG Current
       Candidate = Best Current + Sums Next
       CurrentBest = Best Next
-      Best Next = CurrentBest Candidate max
+      Best Next = CurrentBest max Candidate
     end
   end
   return Best max

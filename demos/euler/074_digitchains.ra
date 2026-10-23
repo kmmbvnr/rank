@@ -20,7 +20,7 @@ end
 rem Six-digit starts reach 6 * 9!;
 rem 1999999 reaches one more. This
 rem bound is closed under successors.
-Bound = (Limit - 1) 2177281 max
+Bound = (Limit - 1) max 2177281
 Next = array 0
 for Top in 10 ** (1 to 7) - 1
   V = (Next len) to (Top Bound min) array

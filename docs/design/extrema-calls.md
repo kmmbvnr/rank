@@ -3,7 +3,10 @@
 The measurements below describe the September 11 implementation. The
 [September 13 grouping change](expression-grouping-review.md) moves infix
 normalization into the language package and removes the remaining builtin-only
-postfix addressing rule. Write `(Matrix i) max` to reduce a selected row.
+postfix addressing rule. Issue #410 now gives `max` one left operand and an
+optional right operand: `Matrix i max` reduces a selected row, while
+`A max B` compares two values. The measurements below retain their original
+syntax and describe the historical implementation.
 
 ## Why the review was right
 

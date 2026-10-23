@@ -11,11 +11,11 @@ fun Text longest
 
   for C i in Text
     if C in Index
-      Start = Start (Index C + 1) max
+      Start = Start max (Index C + 1)
     end
 
     Index C = i
-    Best = Best (i - Start + 1) max
+    Best = Best max (i - Start + 1)
   end
 
   return Best

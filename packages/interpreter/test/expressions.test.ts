@@ -811,7 +811,7 @@ Result`)).toBe('itb');
     it('reads a record field before the function that follows it', () => {
         const setup = 'use numbers\nR = record\n  .slots = array 1 5 2\n  .inner = record\n    .order = array 7 8 9\n  end\nend\n';
         expect(run(setup + 'R .slots max')).toBe('5');
-        expect(run(setup + 'R .slots 2 max')).toBe('2 5 2');
+        expect(run(setup + 'R .slots max 2')).toBe('2 5 2');
         expect(run(setup + 'R .slots len')).toBe('3');
         expect(run(setup + 'R .inner .order 1')).toBe('8');
         expect(run(setup + 'Order = R .inner .order\nOrder max')).toBe('9');

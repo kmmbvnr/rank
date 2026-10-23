@@ -176,9 +176,9 @@ it('summarizes a counted numeric reader loop only with proven call inputs', () =
     expect(analyze(definition.replace('1 till N', 'Items'), 'max_subarray', [], [input]).unknown)
         .toBe(true);
     expect(analyze(definition, 'max_subarray', ['i'], [input]).unknown).toBe(false);
-    expect(analyze(definition.replace('Best = Best Current max', 'if Current\n      Best = Current\n    end'),
+    expect(analyze(definition.replace('Best = Best max Current', 'if Current\n      Best = Current\n    end'),
         'max_subarray', [], [input]).unknown).toBe(false);
-    expect(analyze(`fun X Y max\n Shared 0 = 1\n return X\nend\n${definition}`,
+    expect(analyze(`fun X max Y\n Shared 0 = 1\n return X\nend\n${definition}`,
         'max_subarray', [], [input]).captures).toEqual(new Set(['Shared']));
 });
 
@@ -481,7 +481,7 @@ it('summarizes the unchanged AtCoder vacation loop for eager integer inputs', ()
 });
 
 it('proves a chained max over the vacation arrays read-only', () => {
-    const source = 'fun A B C best\n  X = A 0\n  Y = B 0\n  Z = C 0\n  return X Y max Z max\nend';
+    const source = 'fun A B C best\n  X = A 0\n  Y = B 0\n  Z = C 0\n  return X max Y max Z\nend';
     expect(borrowProofs(source, 'best', ['len', 'max'])).toEqual(new Map([
         [0, new Map([[1, 'flat-array'], [2, 'flat-array']])],
         [1, new Map([[0, 'flat-array'], [2, 'flat-array']])],
@@ -646,7 +646,7 @@ it('proves numeric outer arithmetic without trusting lazy callback arrays', () =
 it('uses numeric array proofs for dyadic min and max', () => {
     const numeric = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true } as const;
     for (const operation of ['min', 'max']) {
-        const source = `fun X Y helper\n return X Y ${operation}\nend`;
+        const source = `fun X Y helper\n return ${operation === 'max' ? 'X max Y' : 'X Y min'}\nend`;
         expect(analyze(source, 'helper', [], [numeric, numeric]).unknown).toBe(false);
         expect(analyze(source, 'helper', [], [{ ...numeric, eagerScalarCells: undefined }, numeric]).unknown).toBe(true);
     }

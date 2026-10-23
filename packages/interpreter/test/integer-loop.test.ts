@@ -1142,8 +1142,8 @@ describe('compiled integer extrema', () => {
         const result = compare(`use numbers
 Total = 0
 for I in -2 to 2
-  X = I 0 max 1 min
-  Y = I (0 - I) max
+  X = (I max 0) 1 min
+  Y = I max (0 - I)
   Total += X + Y
 end
 Total`);
@@ -1156,7 +1156,7 @@ Total`);
 A = array 9007199254740993 9007199254740995
 Total = 0
 for I in 0 till 2
-  X = (A I) 9007199254740994 max
+  X = (A I) max 9007199254740994
   Total += X
 end
 Total`);
@@ -1177,7 +1177,7 @@ X`);
         expect(result.value).toBe('12');
         expect(result.loops).toBe(1);
         expect(compare(`for I in 0 till 1
-  X = 2 3 ${name}
+  X = ${name === 'max' ? '2 max 3' : '2 3 min'}
 end`).loops).toBe(1);
     });
 
@@ -1185,7 +1185,7 @@ end`).loops).toBe(1);
         const result = compare(`use numbers
 for I in 0 till 2
   Done = I
-  X = I (1 // (1 - I)) max
+  X = I max (1 // (1 - I))
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -1196,8 +1196,8 @@ end`);
 M = array shape 2 1 fill 9007199254740994
 Limit = 9007199254740994
 for I in 0 till 2
-  A I = A I Limit ${name}
-  M I 0 = M I 0 Limit ${name} 9007199254740996 min
+  A I = ${name === 'max' ? 'A I max Limit' : 'A I Limit min'}
+  M I 0 = (${name === 'max' ? 'M I 0 max Limit' : 'M I 0 Limit min'}) 9007199254740996 min
 end
 A`);
         expect(result.value).toBe(name === 'min' ? '9007199254740993 9007199254740994'
@@ -1209,27 +1209,27 @@ A`);
         const result = compare(`A = array 10 20
 for I in 0 till 3
   A 0 += 1
-  X = A ${index} 15 max
+  X = A ${index} max 15
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
     });
 
-    it('keeps addressed extrema errors after earlier updates', () => {
+    it('compiles addressed extrema and keeps errors after earlier updates', () => {
         const result = compare(`A = array 10 20
 for I in 0 till 3
   A 0 += 1
-  X = A I (1 // (2 - I)) max
+  X = A I max (1 // (2 - I))
 end`);
         expect(result).toHaveProperty('error');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 
     it('keeps partial array operands on the ordinary path', () => {
         const result = compare(`A = array shape 2 2 fill 5
 X = array 0 0
 for I in 0 till 2
-  X = A I 1 max
+  X = A I max 1
 end
 X`);
         expect(result).not.toHaveProperty('error');
@@ -1249,7 +1249,7 @@ end`);
     it('retains skipped malformed chains', () => {
         const result = compare(`use numbers
 for I in 0 till 0
-  X = 1 2 3 max
+  X = 1 2 max 3
 end`);
         expect(result).not.toHaveProperty('error');
     });

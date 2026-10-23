@@ -20,7 +20,7 @@ rem x(x+1)/2 - sum over k >= 2 of
 rem F(x // k).
 Mod = 1000000000
 Rn = N isqrt + 2
-Lm = (L Rn max) N min
+Lm = (L max Rn) N min
 Ph = (0 to Lm) copy
 Sm = array shape (Lm + 1) fill 1
 Rt = Lm isqrt
@@ -58,7 +58,7 @@ for I in Nq to 1 by -1
     Pa = Va sum
     Qs = (1 to X // (R + 1)) copy
     Hi = X // Qs
-    Lo = X // (Qs + 1) R max
+    Lo = X // (Qs + 1) max R
     Dk = (Hi - Lo) mod Mod
     Pb = (Dk * C0 Qs mod Mod) sum
     T2 = X * (X + 1) // 2

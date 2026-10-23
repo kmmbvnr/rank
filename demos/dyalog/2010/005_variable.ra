@@ -68,7 +68,7 @@ fun Changes Start Params difference
     Flow' = (Interest - Fixed .int Month) * Tax / 100 - (Payment - Fixed .pmt)
     Saving = Saving * Growth + Flow
     if Month mod 3 equal 2
-      Official = (Official + Changes (Month // 3)) 0.0 max
+      Official = (Official + Changes (Month // 3)) max 0.0
     end
   end
   return Saving - (Balance - Fixed .bal (Term - 1))

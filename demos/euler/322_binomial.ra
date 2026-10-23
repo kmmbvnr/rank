@@ -62,7 +62,7 @@ fun N Limit Base nocarry
     return 0
   end
   Max = Limit - 1
-  MaxN = N Max max
+  MaxN = N max Max
   Len = 1
   Scale = Base
   for Scale at most MaxN

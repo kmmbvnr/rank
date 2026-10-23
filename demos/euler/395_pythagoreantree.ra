@@ -23,10 +23,10 @@ fun DX DY support
   for Work len greater 0
     unpack Off X Y = Work pop
     Here = 0.0
-    Here = Here X max
-    Here = Here Y max
-    Here = Here (X + Y) max
-    Best = Best (Off + Here) max
+    Here = Here max X
+    Here = Here max Y
+    Here = Here max (X + Y)
+    Best = Best max (Off + Here)
     Norm = (X * X + Y * Y) ** 0.5
     U = Off + 5.0 * Norm
     if U at most Best + Tol

@@ -64,7 +64,7 @@ for D at most Dm
       for Lo * (2 * Lo - 1) at most Y
         Lo += 1
       end
-      Lo = Lo (A0 + 1) max
+      Lo = Lo max (A0 + 1)
       if Lo at most Hi
         As = (Lo to Hi) copy
         G += (X // (As * T) - As) sum

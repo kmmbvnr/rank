@@ -39,7 +39,7 @@ for P in Ps drop H
 end
 Ks = 0 to (Ps len) array
 Sign' = 1 - 2 * ((Ks - Least) mod 2)
-Top' = (Ks - 1) (Least - 1) max
+Top' = (Ks - 1) max (Least - 1)
 Pick' = Top (Least - 1) binomial
 Used' = Ks at least Least
 Weights = Used choose (Sign * Pick) 0

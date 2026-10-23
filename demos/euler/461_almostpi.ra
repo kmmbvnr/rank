@@ -41,10 +41,10 @@ for Sp greater 0
 end
 Lo = Cn
 Lb = Lo (0 till M1) - 1
-Ua = Lo (M1 till 2 * M1) Ks max
+Ua = Lo (M1 till 2 * M1) max Ks
 Ub = Lo (2 * M1 till 3 * M1) - 1
-Ll = (Lb - Ks + 1) 0 max
-Lu = (Ub - Ua + 1) 0 max
+Ll = (Lb - Ks + 1) max 0
+Lu = (Ub - Ua + 1) max 0
 Lv = array shape (Ll sum) fill 0.0
 Uv = array shape (Lu sum) fill 0.0
 Ol = 0
@@ -84,7 +84,7 @@ for St in 0 till Nq by C
   Q1 = Qc last
   I0 = (Ls less Q0) count - 1
   I1 = (Ls at most Q1) count + 1
-  I0 = I0 0 max
+  I0 = I0 max 0
   I1 = I1 Nl min
   Lc = Ls (I0 till I1)
   Nc = Lc len
@@ -135,9 +135,9 @@ for I in 0 till Cl len
     if Sd equal 1
       Tg = Pi - Cq I
     end
-    Ar = (1 + Tg - F) 1.0 max
+    Ar = (1 + Tg - F) max 1.0
     Bb = (N * (Ar log) + 0.5) floor
-    Bb = Bb 0 max Bm min
+    Bb = (Bb max 0) Bm min
     Dv = (F + F Bb - Tg) abs
     Ok = Dv less 0.0000000000001
     Ok = Ok and (Bb at least Ks)

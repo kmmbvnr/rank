@@ -27,7 +27,7 @@ fun Limit twoprimes
         for Value * Q at most Limit
           Value *= Q
         end
-        Best = Best Value max
+        Best = Best max Value
         Power *= P
       end
       Sum += Best

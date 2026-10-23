@@ -63,7 +63,7 @@ or compare two numeric operands. Numeric ranges also belong to the core:
 Values = 1 to 5
 Total = Values sum
 Size = Values len
-Bound = 0 Size max 10 min
+Bound = (0 max Size) 10 min
 ```
 
 `use cli` is required for `option`, `argument`, `flag`, `args` and `env`.
@@ -328,20 +328,23 @@ incrementally extends factorial and inverse-factorial tables for each modulus,
 so repeated calls cost `O(MaximumN)` preparation and `O(1)` each afterward.
 Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
-The core functions `min` and `max` require no `use numbers`. Their postfix
-forms with one argument reduce one collection. With two arguments they return
-the smaller or larger numeric operand:
+The core functions `min` and `max` require no `use numbers`. One operand
+reduces a collection. Binary `max` takes its second operand on the right;
+binary `min` keeps both operands on the left:
 
 ```rank
 Smallest = Values min
-Left = A B max
-Bound = Low Limit max High min
+Left = A max B
+Bound = (Low max Limit) High min
 ```
 
-Binary chains associate from the left and broadcast over arrays using the
-ordinary trailing-axis rules. Parenthesize a compound operand, as in
-`0 (Limit - Used) max`. A stored operation remains an ordinary function value,
-so `operation = max` may be called as `A B operation` or passed to `outer`.
+Both broadcast over arrays using the ordinary trailing-axis rules.
+Addressing binds within each `max` operand: `A 0 max` reduces the selected
+row and `A max B 0` compares A with the selected element of B. A following
+known operation continues the pipeline: `A max B sum` sums their elementwise
+maximum. Parenthesize arithmetic operands, as in `0 max (Limit - Used)`.
+A direct alias (`operation = max`) uses `A operation B`, and `max` can still
+be passed to `outer`, `scan`, or `reduce`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.

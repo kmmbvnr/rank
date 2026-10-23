@@ -41,7 +41,7 @@ describe.each([false, true])('empty ranked composition (compilation=%s)', compil
         ['Rows transpose sum rank 1', [0], ['1', '2']],
         ['Rows transpose vector rank 1', [0, 2], ['1', '2']],
         ['Rows (array 10) both', [2, 0, 2], ['1', '2']],
-        ['Rows (array 10) max', [2, 0], ['1', '2']],
+        ['Rows max (array 10)', [2, 0], ['1', '2']],
         ['(array 10 20) Rows find', [2, 0], ['1', '2']],
         ['Rows (Rows + 1) both', [2, 0, 2], ['1', '1', '2', '2']],
         ['Rows transpose (array 10) zero', [0], ['1', '2']],

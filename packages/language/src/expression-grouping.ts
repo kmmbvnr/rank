@@ -6,12 +6,12 @@ import { groupInfixRank, groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
     isFunctionStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
-    isLabelLiteral, isNameExpression, isFunctionOperator, type HigherOrderOperator,
+    isAllAxisExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression, isFunctionOperator, type HigherOrderOperator,
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
-import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped } from './expressions.js';
-import { findOperation, operationArities } from './operations.js';
+import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped, markPlacedOperands, hasPlacedOperands } from './expressions.js';
+import { findOperation, operationArities, type Operation } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
 
 // A comparison takes one operand on each side and binds below arithmetic, so
@@ -55,6 +55,7 @@ interface ExpressionAnnotations {
     readonly callSignature?: FunctionCallSignature;
     readonly directName?: boolean;
     readonly dataOperand?: boolean;
+    readonly operation?: Operation;
 }
 type AnnotatedExpression = Expression & { [annotations]?: ExpressionAnnotations };
 export interface GroupedProgram {
@@ -95,6 +96,7 @@ export interface GroupingOptions {
     readonly bindings?: ReadonlyMap<string, readonly number[] | false>;
     readonly modules?: ReadonlySet<string>;
     readonly writableOperations?: ReadonlyMap<string, string>;
+    readonly operations?: ReadonlyMap<string, Operation>;
 }
 
 const externalDeclarations = new WeakMap<Program, ReadonlyMap<string, FunctionStatement>>();
@@ -138,8 +140,9 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             arities: binding.arities,
             callSignature: binding.callSignature,
             directName: !binding.arities?.includes(0),
+            operation: binding.operation,
         });
-    }, options.signatures);
+    }, options.signatures, options.operations);
     // Source-module functions need not be loaded to group their calls.
     const words = new Set(facts.words.map(word => word.name));
     for (const node of unresolved) {
@@ -164,6 +167,9 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     };
     const standardOperation = (part: NameExpression | string) =>
         standard(part) ? findOperation(typeof part === 'string' ? part : part.name) : undefined;
+    const surfaceOperation = (part: Expression): Operation | undefined => isNameExpression(part)
+        ? metadata(part).bound ? metadata(part).operation
+            : options.operations?.get(part.name) ?? standardOperation(part) : undefined;
     const report = (node: AstNode, message: string, property?: string) => {
         errors.push({ node, message, cst: property ? GrammarUtils.findNodeForProperty(node.$cstNode, property) : node.$cstNode });
     };
@@ -177,7 +183,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     }
     type Token = { kind: 'value'; value: Expression }
         | { kind: 'operator'; value: BinaryExpression }
-        | { kind: 'call'; parts: Expression[]; original: Expression }
+        | { kind: 'call'; parts: Expression[]; original: Expression; leftOperand?: boolean; rightOperand?: Expression }
         | { kind: 'symbolic'; original: BinaryExpression }
         | { kind: 'materialize'; original: Expression };
 
@@ -240,6 +246,11 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 const left = tokens(expression.left);
                 const final = left.at(-1);
                 if (final?.kind === 'call') {
+                    if (final.leftOperand) return [...left.slice(0, -1),
+                        { ...final, rightOperand: application([
+                            ...(final.rightOperand ? flatten(final.rightOperand) : []), negated, ...parts.slice(1),
+                        ], expression) },
+                        ...signed.slice(1)];
                     // `A 1 shift with -100`: the sign belongs to the last argument of that call.
                     return [...left.slice(0, -1),
                         { ...final, parts: [...final.parts, negated, ...parts.slice(1)] },
@@ -350,14 +361,64 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     parts.push(part);
                 }
             }
+            // Explicit axis selection has a fixed receiver/axis/selector boundary.
+            if (parts.length > 4 && isNameExpression(parts[1]) && parts[1].name === 'axis'
+                && !(isNameExpression(parts[0]) && symbolic.has(parts[0].name))
+                && standard(parts[1]) && ![parts[3], parts[4]].some(part =>
+                    isNameExpression(part) && (modifiers.has(part.name) || higherOrderParameters.has(part.name)))) {
+                parts.splice(0, 4, grouped(application(parts.slice(0, 4), expression)));
+            }
             const first = parts.findIndex((part, index) => index > 0 && callable(part));
+            const operation = first > 0 && isNameExpression(parts[first]) ? parts[first] as NameExpression : undefined;
+            const arities = operation && (metadata(operation).arities ?? operationArities(operation.name));
+            const modifier = parts[first + 1];
+            const unary = arities?.join() === '1' && parts.slice(1, first).some(isAllAxisExpression)
+                || arities?.includes(1) && isNameExpression(modifier)
+                    && (modifier.name === 'axis' || modifier.name === 'rank'
+                        && !isNumberLiteral(parts[first + 3]) && !isUnaryExpression(parts[first + 3]));
             if (first > 0) return [
-                { kind: 'value', value: application(parts.slice(0, first), expression) },
-                { kind: 'call', parts: parts.slice(first), original: expression },
+                { kind: 'value', value: first > 1 && unary
+                    ? grouped(application(parts.slice(0, first), expression)) : application(parts.slice(0, first), expression) },
+                ...calls(parts.slice(first), expression),
             ];
             return [{ kind: 'value', value: application(parts, expression) }];
         }
         return [{ kind: 'value', value: visitChildren(expression) as Expression }];
+    }
+
+    /** Preserve the side of each operand before runtime arity selection. */
+    function calls(parts: Expression[], original: Expression): Token[] {
+        const index = parts.findIndex((part, index) => {
+            const next = parts[index + 1];
+            return isNameExpression(part) && surfaceOperation(part)?.grouping?.optionalRightOperand
+                && !hasPlacedOperands(part)
+                && !(isNameExpression(next) && (higherOrder.has(next.name) || next.name === 'repeat'));
+        });
+        if (index < 0) return [{ kind: 'call', parts, original }];
+        const operation = parts[index] as NameExpression;
+        let end = index + 1;
+        while (end < parts.length) {
+            const part = parts[end];
+            if (callable(part) || isNameExpression(part) && modifiers.has(part.name)
+                || isLabelLiteral(part) && surfaceOperation(operation)?.modifiers?.includes(part.name)) break;
+            end++;
+        }
+        const right = parts.slice(index + 1, end);
+        const result: Token[] = index ? [{ kind: 'call', parts: parts.slice(0, index), original }] : [];
+        result.push({ kind: 'call', parts: [operation], original, leftOperand: true,
+            rightOperand: right.length ? application(right, original) : undefined });
+        // Modifiers belong to this call, before another operation can continue it.
+        let suffix = end;
+        const label = parts[suffix];
+        if (isLabelLiteral(label) && surfaceOperation(operation)?.modifiers?.includes(label.name)) suffix++;
+        while (isNameExpression(parts[suffix]) && modifiers.has((parts[suffix] as NameExpression).name)) {
+            suffix++;
+            while (suffix < parts.length && !callable(parts[suffix])
+                && !(isNameExpression(parts[suffix]) && modifiers.has((parts[suffix] as NameExpression).name))) suffix++;
+        }
+        if (suffix > end) (result.at(-1) as Token & { kind: 'call' }).parts.push(...parts.slice(end, suffix));
+        if (suffix < parts.length) result.push(...calls(parts.slice(suffix), original));
+        return result;
     }
 
     function formula(expression: Expression): Expression {
@@ -399,7 +460,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 if (phase === 'adjustment') report(token.kind === 'call' ? token.parts[0] : token.original,
                     'A new function call after arithmetic requires an intermediate variable. Name the result on the left, then apply the function.');
                 const extra: Expression[] = [];
-                if (token.kind === 'call' && operators.length && isNameExpression(token.parts[0])) {
+                if (token.kind === 'call' && !token.leftOperand && operators.length && isNameExpression(token.parts[0])) {
                     const name = token.parts[0].name;
                     const pending = flatten(values.pop()!);
                     const local = metadata(token.parts[0]).arities;
@@ -419,8 +480,17 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 } else if (token.kind === 'symbolic') {
                     values.push({ ...token.original, left: source, right: visit(token.original.right, false) } as Expression);
                 } else {
-                    const data = isBinaryExpression(source) ? [grouped(source)] : flatten(source);
-                    values.push(application([...data, ...extra, ...token.parts], token.original));
+                    const operand = (value: Expression) => isApplicationExpression(value) || isBinaryExpression(value)
+                        ? grouped(value) : value;
+                    const data = token.leftOperand ? [operand(source)] : isBinaryExpression(source) ? [grouped(source)] : flatten(source);
+                    const right = token.rightOperand ? [operand(token.rightOperand)] : [];
+                    const label = token.parts[1];
+                    const parts = token.leftOperand && isLabelLiteral(label)
+                        && surfaceOperation(token.parts[0])?.modifiers?.includes(label.name)
+                        ? [label, token.parts[0], ...token.parts.slice(2)] : token.parts;
+                    const call = application([...data, ...extra, ...right, ...parts], token.original);
+                    if (token.leftOperand) markPlacedOperands(token.parts[0]);
+                    values.push(token.leftOperand ? groupModifiers(call, standard) : call);
                 }
                 phase = 'calls';
             }

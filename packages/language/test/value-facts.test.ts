@@ -1042,8 +1042,8 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
     expect(facts('A len', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
     expect(facts('A I', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
     expect(facts('(A I) + 1', bindings)).toMatchObject({ rank: 0 });
-    expect(facts('(A I) 1 max', bindings)).toMatchObject({ rank: 0 });
-    expect(facts('1 2 max', new Map([['max', { types: ['function'] }]]))).not.toMatchObject({ rank: 0 });
+    expect(facts('(A I) max 1', bindings)).toMatchObject({ rank: 0 });
+    expect(facts('1 max 2', new Map([['max', { types: ['function'] }]]))).not.toMatchObject({ rank: 0 });
 });
 
 it('keeps the rank of builtins that always return one scalar', () => {
@@ -1124,9 +1124,9 @@ it('keeps callback-free numeric cells through arithmetic and scalar folds', () =
         .toEqual({ types: ['real'], rank: 0, shape: [] });
     expect(facts('Input min', new Map([['Input', { ...input, eagerScalarCells: undefined }]])))
         .toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
-    expect(facts('Input 0 max', bindings).callbackFreeScalarCells).toBe(true);
+    expect(facts('Input max 0', bindings).callbackFreeScalarCells).toBe(true);
     expect(facts('Input 0 min', bindings).callbackFreeScalarCells).toBe(true);
-    expect(facts('Input 0 max', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
+    expect(facts('Input max 0', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
         .toBeUndefined();
     expect(facts('Input all', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('Input ** 2', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
@@ -1219,7 +1219,7 @@ it('keeps collection kinds through mapped numeric operations and ranked modifier
     const eager = new Map([...bindings].map(([name, value]) => [name, { ...value, eagerScalarCells: true as const }]));
     expect(facts('V W outer +', eager)).toMatchObject({ types: ['array'], rank: 2, shape: [3, 3],
         elements: ['integer'], callbackFreeScalarCells: true });
-    expect(facts('(M 0 max) sqrt', bindings).types).toEqual(['array']);
+    expect(facts('(M max 0) sqrt', bindings).types).toEqual(['array']);
     expect(facts('M round 2', bindings).types).toEqual(['array']);
     expect(facts('-M', bindings).types).toEqual(['array']);
     expect(facts('V W matmul', bindings)).toMatchObject({ types: ['integer'], rank: 0 });

@@ -23,7 +23,7 @@ rem R^2 (pi / 2 - 2 asin(1 / R)) / 2
 rem - sqrt(R^2 - 1) + 1.
 K = 1 to N array
 Rs = concat (K + 0.5) (K - 0.5)
-Rc = Rs 1.5 max
+Rc = Rs max 1.5
 Hit' = Rs * Rs at least 2
 Arc' = (1 / Rc) asin
 Sq' = Rc * Rc

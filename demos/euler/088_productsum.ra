@@ -31,7 +31,7 @@ for Prod len greater 0
   Ord = Val argsort .descending
   Best (Ks Ord) = Val Ord
   Num' = (Big // Prod) - Low + 1
-  Num0 = Num 0 max
+  Num0 = Num max 0
   Has = Num0 greater 0
   P1 = Prod Has array
   S1 = Sum Has array

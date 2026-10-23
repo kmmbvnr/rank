@@ -29,7 +29,7 @@ fun X A B maximum_bounded_sum
     end
 
     Value = Prefix r - (Starts min)
-    Best = Best Value max
+    Best = Best max Value
   end
 
   return Best

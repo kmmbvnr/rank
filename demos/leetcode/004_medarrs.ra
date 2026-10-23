@@ -43,7 +43,7 @@ fun A B median
       Left = A (I - 1)
     else
       Left = A (I - 1)
-      Left = Left (B (J - 1)) max
+      Left = Left max (B (J - 1))
     end
 
     if (M + N) mod 2 equal 1

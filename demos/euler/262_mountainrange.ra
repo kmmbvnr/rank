@@ -283,7 +283,7 @@ fun Bx By Cx Cy vis
   Yd = Cy - By
   Dd = (Xd * Xd + Yd * Yd) sqrt
   Fl = (Dd / 0.5) floor
-  Ms = Fl 2 max
+  Ms = Fl max 2
   Tq = (0 till Ms array) / (Ms - 1.0)
   Xq = Bx + (Cx - Bx) * Tq
   Yq = By + (Cy - By) * Tq

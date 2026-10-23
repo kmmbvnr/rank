@@ -20,7 +20,7 @@ rem from W(x) = 1 - sum over k >= 2
 rem of k W(x // k).
 Mod = 1000000000
 Rn = N isqrt + 2
-Lm = (L Rn max) N min
+Lm = (L max Rn) N min
 Rt = Lm isqrt
 Ix = (0 to Lm) copy
 Mu = array shape (Lm + 1) fill 1
@@ -119,7 +119,7 @@ Xq = N // Qq
 Sx = Wt (Xq Lm min)
 Qm = Qq Nq min
 Fx = (Xq at most Lm) choose Sx (Lw Qm)
-Lo2 = N // (Qq + 1) R2 max
+Lo2 = N // (Qq + 1) max R2
 Sw = Wt (Lo2 Lm min)
 Qn = (Qq + 1) Nq min
 Fl = (Lo2 at most Lm) choose Sw (Lw Qn)

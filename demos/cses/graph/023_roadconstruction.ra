@@ -32,7 +32,7 @@ fun N Roads road_progress
       Union RootA RootB merge
       Root = Union findroot RootA
       Sizes Root = Combined
-      Largest = Largest Combined max
+      Largest = Largest max Combined
     end
     Answers i 0 = Union components
     Answers i 1 = Largest

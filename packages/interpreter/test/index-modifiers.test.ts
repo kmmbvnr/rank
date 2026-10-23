@@ -21,8 +21,8 @@ describe('max and min .index', () => {
 
     it('keeps the plain forms unchanged', () => {
         expect(check(['A = array 3 9 2', 'A max'])).toBe('9');
-        expect(check(['3 7 max'])).toBe('7');
-        expect(check(['A = array 1 5 3', 'A 4 max equal (array 4 5 4) and reduce'])).toBe('true');
+        expect(check(['3 max 7'])).toBe('7');
+        expect(check(['A = array 1 5 3', 'A max 4 equal (array 4 5 4) and reduce'])).toBe('true');
     });
 
     it('rejects an empty array and higher ranks', () => {

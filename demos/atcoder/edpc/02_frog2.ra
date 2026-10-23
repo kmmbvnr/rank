@@ -18,7 +18,7 @@ fun H K min_cost
   Cost = array shape N fill 0
 
   for I in 1 to N - 1
-    Lo = 0 (I - K) max
+    Lo = 0 max (I - K)
     Diff = H I - H Lo
     Best = Cost Lo + (Diff abs)
 

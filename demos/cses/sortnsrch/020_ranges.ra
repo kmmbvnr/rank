@@ -32,7 +32,7 @@ fun Data nested_ranges
     if Y at most MaxFinish
       Inside I = 1
     end
-    MaxFinish = MaxFinish Y max
+    MaxFinish = MaxFinish max Y
   end
 
   MinFinish = Base

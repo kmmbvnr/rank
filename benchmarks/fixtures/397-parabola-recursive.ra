@@ -83,7 +83,7 @@ end
 
 fun S T X left
   Lo = T - X
-  Lo = Lo (-X) max
+  Lo = Lo max (-X)
   Hi = S + X
   Hi = Hi X min
   Hi = Hi ((S - 1) // 2) min
@@ -95,9 +95,9 @@ end
 
 fun P Q X middle
   Lo = P - X
-  Lo = Lo (-X) max
-  Lo = Lo (Q - X) max
-  Lo = Lo (P // 2 + 1) max
+  Lo = Lo max (-X)
+  Lo = Lo max (Q - X)
+  Lo = Lo max (P // 2 + 1)
   Hi = P + X
   Hi = Hi X min
   Hi = Hi ((Q - 1) // 2) min

@@ -40,7 +40,7 @@ for Inner in (1 to 9) 5 combinations
     Digits' = Flat text rank 0
     Joined = Digits "" join
     Value = Joined integer
-    Answer = Answer Value max
+    Answer = Answer max Value
   end
 end
 Answer print

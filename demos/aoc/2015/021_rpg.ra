@@ -72,7 +72,7 @@ fun Boss solve
         if Stats Boss wins
           Cheapest = Cheapest Cost min
         else
-          Expensive = Expensive Cost max
+          Expensive = Expensive max Cost
         end
       end
     end
@@ -87,8 +87,8 @@ fun Stats Boss wins
   unpack Cost Damage Defense = Stats
   unpack BossHP BossDamage BossArmor = Boss
 
-  PlayerHit = 1 (Damage - BossArmor) max
-  BossHit = 1 (BossDamage - Defense) max
+  PlayerHit = 1 max (Damage - BossArmor)
+  BossHit = 1 max (BossDamage - Defense)
   TurnsBoss = (BossHP + PlayerHit - 1) // PlayerHit
   TurnsPlayer = (100 + BossHit - 1) // BossHit
 

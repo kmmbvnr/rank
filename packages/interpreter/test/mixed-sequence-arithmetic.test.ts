@@ -34,8 +34,8 @@ for (const compiled of [false, true]) describe(`mixed sequence arithmetic (compi
     });
 
     it('shares pairing with numeric built-ins and comparisons', () => {
-        expect(run(setup + 'Q R max')).toBe('10 20 30');
-        expect(run(setup + 'R Q max')).toBe('10 20 30');
+        expect(run(setup + 'Q max R')).toBe('10 20 30');
+        expect(run(setup + 'R max Q')).toBe('10 20 30');
         expect(run('(array 4 6 8) (2 to 4) gcd')).toBe('2 3 4');
         expect(run('unpack Q R = (array 10 20 30) divmod (2 to 4)\nQ')).toBe('5 6 7');
         expect(run('Mask = (1 to 3) greater 1\nMask and (array true false true)')).toBe('false false true');

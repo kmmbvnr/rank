@@ -29,7 +29,7 @@ for N in array N1 N2
   Root = (First + Len) isqrt
   for P in primes to Root
     Start = (First + P - 1) // P * P
-    Start = Start (2 * P) max
+    Start = Start max (2 * P)
     Pr (Start - First till Len by P) = 0
   end
   if First equal 1

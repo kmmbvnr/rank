@@ -29,7 +29,7 @@ import {
     type Expression, type NameExpression, type Program, type Statement,
 } from '../generated/ast.js';
 import type { AstNode } from 'langium';
-import { findOperation, operationArities } from '../operations.js';
+import { findOperation, operationArities, type Operation } from '../operations.js';
 import {
     compoundType, declaredType, typeOf, unionTypes, UNKNOWN, type Types,
 } from './types.js';
@@ -69,6 +69,7 @@ export interface Binding {
     /** Known operand counts for a function declaration or a direct alias. */
     readonly arities?: readonly number[];
     readonly callSignature?: FunctionCallSignature;
+    readonly operation?: Operation;
 }
 
 export type ScopeKind = 'program' | 'function' | 'test' | 'select' | 'update';
@@ -148,7 +149,7 @@ const MODIFIERS = new Set([
  * unresolved, so a caller that can reach the file system should supply them.
  */
 /** Optional semantic consumer; source locations remain presentation-only facts. */
-export type BindingReadObserver = (node: AstNode, binding: Pick<Binding, 'kind' | 'types' | 'arities' | 'callSignature'> | undefined) => void;
+export type BindingReadObserver = (node: AstNode, binding: Pick<Binding, 'kind' | 'types' | 'arities' | 'callSignature' | 'operation'> | undefined) => void;
 
 export function analyzeBindings(
     program: Program,
@@ -156,8 +157,9 @@ export function analyzeBindings(
     externalFunctions: ReadonlyMap<string, readonly number[]> = new Map(),
     observeRead?: BindingReadObserver,
     signatures: ReadonlyMap<string, FunctionCallSignature> = new Map(),
+    operations: ReadonlyMap<string, Operation> = new Map(),
 ): ProgramFacts {
-    return new Analyzer(new Set(imported), externalFunctions, observeRead, signatures).run(program);
+    return new Analyzer(new Set(imported), externalFunctions, observeRead, signatures, operations).run(program);
 }
 
 const expressionReads = new WeakMap<Expression, readonly NameExpression[]>();
@@ -189,6 +191,7 @@ interface Slot {
     types: Types;
     arities?: readonly number[];
     callSignature?: FunctionCallSignature;
+    operation?: Operation;
 }
 
 interface ScopeState {
@@ -238,7 +241,8 @@ class Analyzer {
     constructor(private readonly imported: ReadonlySet<string>,
         private readonly externalFunctions: ReadonlyMap<string, readonly number[]>,
         private readonly observeRead?: BindingReadObserver,
-        private readonly signatures: ReadonlyMap<string, FunctionCallSignature> = new Map()) {}
+        private readonly signatures: ReadonlyMap<string, FunctionCallSignature> = new Map(),
+        private readonly operations: ReadonlyMap<string, Operation> = new Map()) {}
 
     private readonly modules: string[] = [];
     private readonly imports: Import[] = [];
@@ -632,6 +636,8 @@ class Analyzer {
         if (existing === undefined) {
             scope.slots.set(name, {
                 name, kind, bound: site(node), types, arities,
+                operation: isFunctionBindingStatement(node) && functionBindingPlan(node).alias
+                    ? this.aliasOperation(functionBindingPlan(node).alias!) : undefined,
                 callSignature: kind === 'function' && isFunctionStatement(node) ? functionCallSignature(node)
                     : isFunctionBindingStatement(node) && functionBindingPlan(node).alias
                         ? (this.lookup(functionBindingPlan(node).alias!)?.callSignature ?? this.signatures.get(functionBindingPlan(node).alias!)) : undefined,
@@ -647,6 +653,13 @@ class Analyzer {
         existing.types = unionTypes(existing.types, types);
         existing.arities = existing.arities && arities
             ? [...new Set([...existing.arities, ...arities])] : undefined;
+        existing.operation = undefined;
+    }
+
+    private aliasOperation(name: string): Operation | undefined {
+        const binding = this.lookup(name);
+        return binding ? binding.operation : this.operations.get(name)
+            ?? (this.externalFunctions.has(name) ? undefined : findOperation(name));
     }
 
     private functionArities(expression: Expression): readonly number[] | undefined {

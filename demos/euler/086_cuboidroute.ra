@@ -48,7 +48,7 @@ K = Each - (Starts Owner) + 1
 C' = Cs Owner
 Hi = K * (Ss Owner)
 Big = K * C
-Over' = (Hi - Big - 1) 0 max
+Over' = (Hi - Big - 1) max 0
 Val' = Hi // 2 - Over
 rem Total the values by side, by
 rem sorting. Repeated indices in a

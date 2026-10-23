@@ -80,7 +80,7 @@ end`;
     it('rechecks a builtin after host replacement', () => {
         const source = `fun A B combine
   return record
-    .n = (A .n) (B .n) max
+    .n = (A .n) max (B .n)
   end
 end`;
         const fast = fixture(source), slow = fixture(source, false);

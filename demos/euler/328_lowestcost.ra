@@ -9,8 +9,8 @@ Answer print
 fun N costs
   Dp = array shape (N + 1) fill 0
   rem Only these right subtree sizes can occur in the candidate window.
-  Limit = N - 1 - (((4 * N) // 5 - 20) 0 max)
-  Limit = Limit 100 max
+  Limit = N - 1 - (((4 * N) // 5 - 20) max 0)
+  Limit = Limit max 100
   Heights = array shape (Limit + 1) fill 0
   LongOffsets = array shape (Limit + 1) fill 0
   ShortOffsets = array shape (Limit + 1) fill -1000000000000
@@ -45,7 +45,7 @@ fun N costs
     for D in 0 till H
       Left = (Offsets L D) + L + 1
       Right = (Offsets R D) + (D + 1) * (L + 1)
-      Offsets Size (D + 1) = Left Right max
+      Offsets Size (D + 1) = Left max Right
     end
     LongOffsets Size = Offsets Size H
     ShortOffsets Size = Offsets Size (H - 1)
@@ -53,7 +53,7 @@ fun N costs
   Sum = 0
   for I in 2 to N
     Best = 1000000000000
-    Start = ((4 * I) // 5 - 20) 0 max
+    Start = ((4 * I) // 5 - 20) max 0
     Last = I - 1 - Start
     First = 7
     Step = 8
@@ -68,9 +68,9 @@ fun N costs
       Right = (LongOffsets Size) + H * (K + 1)
       if H greater 0
         Short = (ShortOffsets Size) + (H - 1) * (K + 1)
-        Right = Right Short max
+        Right = Right max Short
       end
-      Cost = K + 1 + ((Dp K) Right max)
+      Cost = K + 1 + ((Dp K) max Right)
       Best = Best Cost min
     end
     Dp I = Best

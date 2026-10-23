@@ -27,7 +27,7 @@ for K in 2 to Root - 1
   Top = (Limit - 1) // K
   Slot' = K * 2 to K * Top by K
   New = (Dr (2 to Top)) + Best K
-  Best Slot = (Best Slot) New max
+  Best Slot = (Best Slot) max New
 end
 B = Root
 for B at most Limit // 2
@@ -39,7 +39,7 @@ for B at most Limit // 2
     Cut = Hi - B + 1
     Slot' = B * D to Hi * D by D
     New = (Mine take Cut) + Dr D
-    Best Slot = (Best Slot) New max
+    Best Slot = (Best Slot) max New
   end
   B = B * 2
 end

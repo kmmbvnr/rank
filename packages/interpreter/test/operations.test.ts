@@ -126,8 +126,8 @@ describe('the operation catalogue', () => {
         for (const [source, expected] of [
             ['3 sum', 'integer'], ['(array 1 2) sum', 'integer'], ['(array 1.0 2.0) sum', 'real'],
             ['use algo\nS = new set\nS add 2\nS add 3\nS sum', 'integer'],
-            ['"a" "z" max', 'text'], ['false true min', 'boolean'], ['3 4.5 max', 'real'],
-            ['.NA 3 max', 'missing'], ['3 .NA min', 'missing'],
+            ['"a" max "z"', 'text'], ['false true min', 'boolean'], ['3 max 4.5', 'real'],
+            ['.NA max 3', 'missing'], ['3 .NA min', 'missing'],
         ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
     });
 

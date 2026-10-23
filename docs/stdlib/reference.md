@@ -185,7 +185,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
-| `Left Right max` | number | unary all; binary 0 / 0 | Larger of two numbers, or the largest of one collection. |
+| `Left max [Right]` | number | unary all; binary 0 / 0 | Larger of two numbers, or the largest of one collection. |
 | `Left Right min` | number | unary all; binary 0 / 0 | Smaller of two numbers, or the smallest of one collection. |
 | `Values sum` | number | unary all | Adds every numeric cell of an array, collection or finite sequence. |
 | `Mask choose TrueValues FalseValues` | value, lazy | binary all / all; 3 operands: whole | Selects each cell by a boolean mask; SQLite expressions become CASE. |
@@ -203,7 +203,7 @@ These constructs are always available.
 | `Init next repeat Count` | Applies a unary function to the whole state a nonnegative integer number of times; zero returns Init. |
 | `Init next repeat Count till done` | Applies at most Count steps, stopping after done Previous Current returns true; returns Current. |
 | `Values mod N` | Floored remainder; with equal 0 it tests divisibility, elementwise on arrays. Written mod= to update in place. |
-| `Left Right max` | The larger of two numbers; min gives the smaller. |
+| `Left max Right` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |
 | `Low till High` | Counting range with an exclusive upper bound; after values, keeps those below High. |
 | `Index choose Choices` | Selects each cell from the choice its integer index names; choices are leading cells. |

@@ -24,7 +24,7 @@ fun Graph N longest_path
   for Cur in Sorted .order
     Cand = Dist Cur + 1
     for Next in Graph Cur
-      Dist Next = (Dist Next) Cand max
+      Dist Next = (Dist Next) max Cand
     end
   end
 

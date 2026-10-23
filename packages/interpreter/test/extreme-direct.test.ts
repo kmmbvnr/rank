@@ -8,7 +8,7 @@ describe('direct binary extrema', () => {
     it('completes builtin chains synchronously through ordinary calls', () => {
         const runtime = new Interpreter();
         runtime.execute('use numbers\nA = 3\nB = 7');
-        const statement = parse('(A B max 5 min) + 1').statements[0];
+        const statement = parse('((A max B) 5 min) + 1').statements[0];
         if (!isExpressionStatement(statement)) throw new Error('expected expression');
         const evaluator = (runtime as unknown as { expressions: { evaluate(expression: Expression): Evaluation<RankValue> } }).expressions;
         expect(evaluator.evaluate(statement.value)).toEqual(completed(6n));
@@ -17,7 +17,7 @@ describe('direct binary extrema', () => {
 
     it('rechecks bindings and numeric types on every call', () => {
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun A B extreme\n return A B max 10 min\nend');
+        runtime.execute('use numbers\nfun A B extreme\n return (A max B) 10 min\nend');
         const fn = runtime.variables.get('extreme');
         if (fn === undefined || !isNativeFunction(fn)) throw new Error('missing function');
         for (const [a, b, expected] of [[1n, 3n, 3n], [4.5, 2n, 4.5], [2n ** 100n, 3n, 10n]] as RankValue[][]) {
@@ -27,9 +27,9 @@ describe('direct binary extrema', () => {
     });
 
     it('retains lazy broadcasting, selectors and reductions', () => {
-        expect(run('use numbers\nA = array 1 8\nB = A 3 max\nB')).toBe('3 8');
-        expect(run("use numbers\nA' = (array 1 0) // (array 1 0)\nB' = A 3 max\nB 0")).toBe('3');
-        expect(run('use numbers\nA = array 1 8\nA 0 3 max')).toBe('3');
+        expect(run('use numbers\nA = array 1 8\nB = A max 3\nB')).toBe('3 8');
+        expect(run("use numbers\nA' = (array 1 0) // (array 1 0)\nB' = A max 3\nB 0")).toBe('3');
+        expect(run('use numbers\nA = array 1 8\nA 0 max 3')).toBe('3');
         expect(run('use numbers\nA = array 1 8\nA max')).toBe('8');
     });
 
@@ -41,24 +41,23 @@ fun Log V visit
  return V
 end
 Log = new queue
-Answer = (Log 3 visit) (Log 2 visit) min (Log 4 visit) max
+Answer = (Log 3 visit) (Log 2 visit) min max (Log 4 visit)
 Log`)).toBe('3 2 4');
         expect(run(`use numbers
 fun N down
  if N equal 0
   return 0
  end
- return ((N - 1) down) N max
+ return ((N - 1) down) max N
 end
 10000 down`)).toBe('10000');
     });
 
     it('keeps error order and skipped branches', () => {
-        expect(() => run('use numbers\n"bad" 1 max 2 min')).toThrow('expected numeric input');
-        expect(() => run('1 max 2')).toThrow('Write `Left Right max`');
-        expect(run('1 2 max')).toBe('2');
-        expect(run('use numbers\n1 2 max')).toBe('2');
-        expect(run('if false\n X = Missing 1 max\nend\n7')).toBe('7');
+        expect(() => run('use numbers\n("bad" max 1) 2 min')).toThrow('expected numeric input');
+        expect(run('1 max 2')).toBe('2');
+        expect(run('use numbers\n1 max 2')).toBe('2');
+        expect(run('if false\n X = Missing max 1\nend\n7')).toBe('7');
     });
 
     for (const name of ['min', 'max']) {
@@ -109,7 +108,7 @@ end
         const runtime = new Interpreter();
         runtime.execute(`use numbers
 fun A B decide
- return A B max
+ return A max B
 end
 fun A B replacement
  return A + B
@@ -136,15 +135,15 @@ end`);
                 return args[0];
             },
         });
-        expect(runtime.execute('3 (4 change) max')).toBe(7n);
+        expect(runtime.execute('3 max (4 change)')).toBe(7n);
         expect(calls).toBe(1);
         runtime.dispose();
     });
 
     it('gives aliases the same lazy broadcasting and tie representation', () => {
-        expect(run("use numbers\nop = max\nA' = (array 1 0) // (array 1 0)\nB' = A 3 op\nB 0")).toBe('3');
+        expect(run("use numbers\nop = max\nA' = (array 1 0) // (array 1 0)\nB' = A op 3\nB 0")).toBe('3');
         expect(run('use numbers\nop = min\n(1 to 3) 2 op')).toBe('1 2 2');
-        expect(run('use numbers\nuse algo\nQ = new queue\nQ push 1\nQ push 8\nop = max\nQ 3 op')).toBe('3 8');
+        expect(run('use numbers\nuse algo\nQ = new queue\nQ push 1\nQ push 8\nop = max\nQ op 3')).toBe('3 8');
         const runtime = new Interpreter();
         runtime.execute('use numbers');
         runtime.variables.set('Left', -0);

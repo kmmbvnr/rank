@@ -15,7 +15,7 @@ end
 
 rem Return the number at row Y and column X.
 fun Y X spiral
-  M = X Y max
+  M = X max Y
   Answer = M * M - M + 1
 
   if M odd

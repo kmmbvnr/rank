@@ -11,5 +11,5 @@ Books minimum_reading_time print
 
 rem Keep both readers busy whenever possible.
 fun Books minimum_reading_time
-  return Books sum (Books max * 2) max
+  return Books sum max (Books max * 2)
 end

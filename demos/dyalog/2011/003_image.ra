@@ -46,7 +46,7 @@ fun Kernel Image convolve
   Pad = (Shape - 1) // 2
   Blocks' = Image window Shape padding Pad wrap
   Weighted' = Blocks * K
-  Result' = (Weighted sum rank 2) 0.0 max
+  Result' = (Weighted sum rank 2) max 0.0
   return Result 1.0 min
 end
 

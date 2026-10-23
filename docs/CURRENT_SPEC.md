@@ -1515,20 +1515,23 @@ chooses the form of their result instead of a field of it: `Text json .flat`
 and `Text xml .flat` return a table of nodes, as `Values sort .descending`
 reverses the order.
 
-For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. `min` and `max` are
-ordinary postfix calls: `A B max` calls the current `max` with arguments `A`
-and `B`, and `A B max 5 min` chains from the left. The infix form `A max B` is
-an error that suggests `A B max`. Core names cannot be redefined by a local
-function or parameter. A differently named function or alias uses the same
-postfix calling convention.
+For ordinary postfix calls supporting several arities, an exact argument
+count wins; otherwise Rank tries larger arities first. `min` keeps this rule:
+`A B min` compares two operands. Functions with two required left operands,
+such as `A B matmul`, keep both operands separate.
 
-Builtins and aliases use the same argument rules: `Matrix i max` and
-`op = max` followed by `Matrix i op` both pass two arguments. To reduce one
-addressed row, write `(Matrix i) max`. Two scalar arguments work the same
-way: `3 4 max` is `4`.
-A following function starts another step: `Values max sqrt` takes the square
-root of the maximum.
+`max` takes one operand on the left and an optional operand on the right.
+`A max` reduces A; `A max B` compares A and B elementwise. Addressing stays
+inside each operand: `Matrix i max` reduces the selected row, `Matrix # 0 max`
+reduces a column, and `A max B 0` compares A with the selected element of B.
+A known function or a `rank`/`axis` modifier ends the right operand.
+
+Direct aliases retain these operand sides: after `op = max`, `Matrix i op`
+reduces the selected row and `A op B` compares two values. A following function
+starts another step: `Values max sqrt` takes the square root of the maximum.
+To pass another independent left operand to a later postfix function, group
+the completed call: `(A max B) 5 min`. Core names cannot be redefined by a
+local function or parameter.
 
 The fundamental selection model is:
 
@@ -4253,25 +4256,27 @@ Array sources still compare whole elements. Arrays of targets keep their frame;
 `findall` requires the same number of matches for each target.
 
 `min` and `max` with one argument reduce one finite collection. With two
-arguments they choose between numeric values and broadcast over arrays. Like
-every other function, they follow their arguments:
+arguments they choose between numeric values and broadcast over arrays.
+`max` takes its second operand after its name; `min` takes both before it:
 
 ```rank
 Largest = A max
-Bound = Low High max
-Clamped = Values 0 max
+Bound = Low max High
+Clamped = Values max 0
 Best = Best Now .spent min
 ```
 
-Chains associate from the left: `Low High max Limit min`. `axis` and `rank`
-modify the one-argument reduction; the binary form already follows ordinary
-elementwise broadcasting. Parenthesize a compound operand, as in
-`0 (Limit - Used) max`. The infix form `Low max High` is rejected with a hint
-to write `Low High max`.
+`A 0 max` reduces the selected element or row, and `M # 0 max` reduces the
+selected column. The optional right operand may also be addressed:
+`A max B 0` means `A max (B 0)`. A following known function starts the next
+pipeline step, so `A max B sum` means `(A max B) sum`. Group a completed
+call before supplying another independent operand: `(Low max High) Limit min`.
+Use parentheses around arithmetic operands, as in `0 max (Limit - Used)`.
+`axis` and `rank` modify the reduction; the binary form broadcasts elementwise.
 
-A user-defined `min` or `max` takes precedence, even without `use numbers`.
-For example, after `fun A B max` returning `A + B`, `3 4 max` returns `7`.
-A named builtin (`op = max`) supports the same lazy binary broadcasting.
+A named builtin (`op = max`) uses the same operand sides and lazy binary
+broadcasting. Core names cannot be redefined. `max` can still be passed as a
+combining function in `Values scan max`, `Values reduce max`, or `A B outer max`.
 Equal numeric operands preserve the left operand, including its integer/real
 representation.
 
@@ -6950,19 +6955,23 @@ incrementally extends factorial and inverse-factorial tables for each modulus,
 so repeated calls cost `O(MaximumN)` preparation and `O(1)` each afterward.
 Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
-With one argument `min` and `max` reduce one collection. With two arguments
-they return the smaller or larger numeric operand:
+The core functions `min` and `max` require no `use numbers`. One operand
+reduces a collection. Binary `max` takes its second operand on the right;
+binary `min` keeps both operands on the left:
 
 ```rank
 Smallest = Values min
-Left = A B max
-Bound = Low Limit max High min
+Left = A max B
+Bound = (Low max Limit) High min
 ```
 
-Binary chains associate from the left and broadcast over arrays using the
-ordinary trailing-axis rules. Parenthesize a compound operand, as in
-`0 (Limit - Used) max`. A stored operation remains an ordinary function value,
-so `operation = max` may be called as `A B operation` or passed to `outer`.
+Both broadcast over arrays using the ordinary trailing-axis rules.
+Addressing binds within each `max` operand: `A 0 max` reduces the selected
+row and `A max B 0` compares A with the selected element of B. A following
+known operation continues the pipeline: `A max B sum` sums their elementwise
+maximum. Parenthesize arithmetic operands, as in `0 max (Limit - Used)`.
+A direct alias (`operation = max`) uses `A operation B`, and `max` can still
+be passed to `outer`, `scan`, or `reduce`.
 
 `infinity` is the positive infinite `real` value. Unary negation produces
 `-infinity`.
@@ -8565,7 +8574,7 @@ for Row in (Rows - 2) to 0 by -1
     Right = Left + 1
     LeftValue = Work Left
     RightValue = Work Right
-    BestChild = LeftValue RightValue max
+    BestChild = LeftValue max RightValue
     Work Parent += BestChild
   end
 end
@@ -9267,7 +9276,7 @@ The solution uses only current Rank constructs and runs in linear time.
 The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
 Python-style `//`, real `/`, and the binary forms `A B min` and
-`A B max`. Array boundaries are handled explicitly, so the algorithm does not
+`A max B`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 
 ## 5. Longest Palindromic Substring

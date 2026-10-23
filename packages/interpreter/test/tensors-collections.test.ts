@@ -828,7 +828,7 @@ describe('Rank tensors and collections', () => {
         expect(() => run('use numbers\n2.25 isqrt'))
             .toThrowError('expected integer input');
         expect(run('use numbers\n3 2 min')).toBe('2');
-        expect(run('use numbers\n3 2 max')).toBe('3');
+        expect(run('use numbers\n3 max 2')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');
         expect(run('use cli\noption Rate real = 1.5\nRate')).toBe('1.5');
     });

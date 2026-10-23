@@ -28,7 +28,7 @@ fun S T longest_common
       else
         Above = Lengths Up j
         Left = Lengths i Back
-        Lengths i j = Above Left max
+        Lengths i j = Above max Left
       end
     end
   end

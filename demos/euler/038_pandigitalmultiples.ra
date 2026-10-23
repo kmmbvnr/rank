@@ -35,7 +35,7 @@ fun MaximumBase pandigital_multiple
       end
       if IsPandigital
         Candidate = Text integer
-        Best = Best Candidate max
+        Best = Best max Candidate
       end
     end
   end

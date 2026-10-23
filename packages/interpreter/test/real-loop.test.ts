@@ -35,7 +35,7 @@ describe('real arithmetic in compiled loops', () => {
         ['large integers coerce like the interpreter', 'S = 0.0\nfor I in 1 to 2\n S = 9007199254740993 + 0.5 + I\nend\nS'],
         ['negative zero literals', 'S = 1.0\nfor I in 1 to 2\n S = -0.0\nend\nS'],
         ['negative zero products', 'S = 1.0\nfor I in 1 to 2\n S = 0.0 * -1\nend\nS'],
-        ['same-type extrema', 'S = 2.5\nfor I in 1 to 3\n S = S (I / 2) min 0.75 max\nend\nS'],
+        ['same-type extrema', 'S = 2.5\nfor I in 1 to 3\n S = S (I / 2) min max 0.75\nend\nS'],
         ['negative zero extrema', 'S = 1.0\nfor I in 1 to 2\n S = 0.0 -0.0 min\nend\nS'],
     ])('%s', (_, source) => {
         expect(compare(source).loops).toBe(1);

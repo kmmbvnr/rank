@@ -121,7 +121,7 @@ The solution uses only current Rank constructs and runs in linear time.
 The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
 Python-style `//`, real `/`, and the binary forms `A B min` and
-`A B max`. Array boundaries are handled explicitly, so the algorithm does not
+`A max B`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 
 ## 5. Longest Palindromic Substring

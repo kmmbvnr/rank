@@ -73,7 +73,7 @@ fun Changes Start Params fastdifference
   Left = Term - Elapsed
   Span = Left 12 min
   Alive' = (Year reshape unpack Column) 1 min
-  Reached = (Year * 4 - 1) 0 max
+  Reached = (Year * 4 - 1) max 0
 
   Walk = (Changes scan + axis 0) + Start
   Low = Walk scan min axis 0

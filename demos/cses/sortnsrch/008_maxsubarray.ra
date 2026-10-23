@@ -18,8 +18,8 @@ fun A max_subarray
     if i equal 0
       continue
     end
-    Current = Value (Current + Value) max
-    Best = Best Current max
+    Current = Value max (Current + Value)
+    Best = Best max Current
   end
 
   return Best

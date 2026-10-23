@@ -20,7 +20,7 @@ rem Greedily jump to earliest endings.
 fun Movies Queries movie_queries
   LastMovie = Movies max
   LastQuery = Queries max
-  LastTime = LastMovie LastQuery max
+  LastTime = LastMovie max LastQuery
   Sentinel = LastTime + 1
   Next = array shape Sentinel fill 0
   Next # = Sentinel

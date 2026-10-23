@@ -24,7 +24,7 @@ fun Prices Pages Budget book_shop
 
     for Cost in Budget to Price by -1
       Candidate = Best (Cost - Price) + Gain
-      Best Cost = Best Cost Candidate max
+      Best Cost = Best Cost max Candidate
     end
   end
 

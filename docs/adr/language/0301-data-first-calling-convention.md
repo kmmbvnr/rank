@@ -48,18 +48,21 @@ A field label is the exception that needs no variable: a label naming a field of
 A comparison continues the left-to-right flow like arithmetic does: after a plain left operand it takes the next value, and a following function receives the comparison's result, so `A greater 2 count` needs no parentheses. When the left operand is already a pipeline (`A len equal B len`, `X date less Y date`), the two sides stay independent, which keeps symmetric comparisons free of parentheses too. `and`, `or` and `xor` always separate independent clauses.
 
 ### No Infix Exceptions for Ordinary Named Functions
-Ordinary named functions follow their arguments, including `min` and `max`. They once also had an infix form (`Low max High`), and it was removed (Issue #21):
-- The same word changed meaning with what followed it: `A max` reduced, `A max B` compared.
-- The infix rewrite guessed where its left operand ended, so `Best min Now .spent` took `Now` as the right operand and read `.spent` afterwards.
-- Every new call-grouping rule had to be checked against the rewrite.
+Ordinary named functions take their declared operands on the left or right.
+`min` retains its postfix binary form. Issue #410 changes `max` to one left
+operand and an optional right operand, replacing the binary postfix form
+introduced in Issue #21:
 
 ```rank
-Bound = Low High max
-Best = Best Now .spent min
-Clamped = Low High max Limit min
+Bound = Low max High
+Clamped = (Low max High) Limit min
+RowMaximum = Matrix i max
 ```
 
-`Low max High`, where the last part after `max` is data, is rejected with a hint to write `Low High max`. A chain that continues with a call (`A max 5 min`) is an ordinary postfix chain.
+Addressing binds within each `max` operand. A known following operation ends
+its optional right operand: `A max B sum` means `(A max B) sum`. Direct aliases
+of `max` retain these operand sides. Two-argument postfix functions such as
+`A B matmul` keep their declared left arity.
 
 Conditional selection has a dedicated data-first form: `Condition choose IfTrue IfFalse`, or `Index choose Choices`. The condition or index is the input on the left; the alternatives follow `choose`. Group compound alternatives with parentheses. The older postfix calls remain valid for existing programs.
 

@@ -2025,7 +2025,7 @@ The larger of two numbers, or the
 largest item of a collection.
 
 ```rank
-3 5 max
+3 max 5
 ```
 
 ```result
@@ -2035,10 +2035,12 @@ largest item of a collection.
 ### Usage
 
 ```text
-A B max
+A max B
 Values max
 ```
 
+Addressing binds within each operand: `A 0 max` reduces the selected row;
+`A max B 0` compares A with the selected element of B.
 An empty collection has no largest item.
 
 ### See also

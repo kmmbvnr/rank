@@ -3,12 +3,22 @@ import { parseHelper } from 'langium/test';
 import { describe, expect, it } from 'vitest';
 import {
     applicationForm, createRankServices, isApplicationExpression, isBinaryExpression,
-    isExpressionStatement, isParenthesizedExpression, type Program,
+    isExpressionStatement, isParenthesizedExpression, groupExpressions, type Program,
 } from '../src/index.js';
 
 const parse = parseHelper<Program>(createRankServices(EmptyFileSystem).Rank);
 
 describe('shared expression grouping', () => {
+    it.each(['A max B', 'M # 0 max', 'A max B sum', '2 + 3 max 4'])('retains operand sides when regrouping %s', async source => {
+        const document = await parse(source);
+        const program = document.parseResult.value;
+        const tree = () => JSON.stringify(program, (key, value) => key.startsWith('$') ? undefined
+            : typeof value === 'bigint' ? String(value) : value);
+        const expected = tree();
+        expect(groupExpressions(program).diagnostics).toEqual([]);
+        expect(tree()).toBe(expected);
+    });
+
     it('groups repeat till as a call with a binary predicate', async () => {
         const document = await parse('fun X step = X + 1\nfun Prev Next done = Next equal 3\n'
             + '0 step repeat 10 till done', { validation: true });

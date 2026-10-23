@@ -55,7 +55,7 @@ for K in First to Count
   O2 = 2 N2 order
   O3 = 3 N3 order
   T = O2 O3 lcm
-  Len = (2 * N + 1) (Al Be max + T) min
+  Len = (2 * N + 1) (Al max Be + T) min
   rem Keys x * n + y of the first Len
   rem stations, sorted by x then y.
   Ks = array shape Len fill 0

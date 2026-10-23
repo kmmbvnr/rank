@@ -369,7 +369,7 @@ for Row in (Rows - 2) to 0 by -1
     Cell = Row * (Row + 1) // 2 + Col
     Left = Triangle (Cell + Row + 1)
     Right = Triangle (Cell + Row + 2)
-    Best = Left Right max
+    Best = Left max Right
     Triangle Cell += Best
   end
 end

@@ -12,7 +12,7 @@ fun Grid local_extrema
   Below' = Grid window Size padding 1 with infinity
   Peaks' = Above peak rank 2
   Valleys' = Below valley rank 2
-  Marks' = Peaks Valleys max
+  Marks' = Peaks max Valleys
   return Grid * Marks
 end
 

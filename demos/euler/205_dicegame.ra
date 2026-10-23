@@ -16,7 +16,7 @@ option Cn integer = 6
 rem Every die adds each face to every
 rem total so far. Counting the totals
 rem gives the ways to roll each one.
-Mx = (Pn * 4) (Cn * 6) max
+Mx = (Pn * 4) max (Cn * 6)
 V = 0 to Mx array
 Hp = V
 Hc = V

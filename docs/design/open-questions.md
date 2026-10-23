@@ -86,21 +86,6 @@ Vararg declarations currently use `*`, but the data-first call-site spelling
 for expanding a sequence into arguments is not yet fixed. The former prefix
 sketch `lcm * Range` is not current syntax.
 
-## Addressing followed by operations
-
-An addressed tensor result does not yet continue into a postfix operation in
-the same flat chain. For example, `Queries # 0 max` reports that `#` is outside
-addressing, while these two statements work:
-
-```rank
-Arguments = Queries # 0
-Limit = Arguments max
-```
-
-If more examples need the compact form, application continuation should make
-the address boundary explicit without changing the meaning of `#` or claiming
-operation names during parsing.
-
 ## Multi-argument method blocks
 
 The earlier `with ... end` form for supplying two or more method arguments is
@@ -120,9 +105,8 @@ operations remain future work.
 
 A `filter` condition extends to the end of its line, so a following operation
 must be parenthesized: `(N filter even) sum`, `(Vals filter not equal 5) copy`.
-The block form has the same limit after `end`. This is the same boundary
-problem as [Addressing followed by operations](#addressing-followed-by-operations)
-above: `array`, `copy` and any other trailing word is currently read as part of
+The block form has the same limit after `end`. The condition still absorbs a
+trailing operation: `array`, `copy` and any other trailing word is read as part of
 the condition's right operand, because a comparison operand is an ordinary
 application chain.
 

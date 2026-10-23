@@ -17,7 +17,7 @@ describe('Rank mathematical functions', () => {
     });
 
     it('lets an infinite accumulator seed settle on its first integer', () => {
-        const fold = (seed: string, pick: string) => `use numbers\n${seed}\nfor Item in array 5 3 8\n  Best = Best Item ${pick}\nend\nBest`;
+        const fold = (seed: string, pick: string) => `use numbers\n${seed}\nfor Item in array 5 3 8\n  Best = ${pick === 'max' ? 'Best max Item' : 'Best Item min'}\nend\nBest`;
         expect(run(fold('Best = infinity', 'min'))).toBe('3');
         expect(run(fold('Best = -infinity', 'max'))).toBe('8');
         expect(run(`${fold('Best = infinity', 'min')} type`)).toBe('.integer');
@@ -83,9 +83,9 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\n(array 3 1 2) max')).toBe('3');
         expect(run('use numbers\n(array 3 1 2) min')).toBe('1');
         expect(run('use numbers\n3 1 min 2 min')).toBe('1');
-        expect(run('use numbers\n9 4 min 7 max')).toBe('7');
-        expect(run('use numbers\n3 (1 + 4) max')).toBe('5');
-        expect(run('use numbers\n(array 1 4) 3 max')).toBe('3 4');
+        expect(run('use numbers\n9 4 min max 7')).toBe('7');
+        expect(run('use numbers\n3 max (1 + 4)')).toBe('5');
+        expect(run('use numbers\n(array 1 4) max 3')).toBe('3 4');
         expect(run([
             'use numbers',
             'M = array shape 2 2',
@@ -94,9 +94,8 @@ describe('Rank mathematical functions', () => {
             'end',
             '(M 0) max',
         ].join('\n'))).toBe('7');
-        expect(run('use numbers\n3 2 max')).toBe('3');
-        expect(run('3 2 max')).toBe('3');
-        expect(() => run('3 max 2')).toThrowError('Write `Left Right max` instead of `Left max Right`');
+        expect(run('use numbers\n3 max 2')).toBe('3');
+        expect(run('3 max 2')).toBe('3');
     });
 
     it('reduces numeric sets', () => {

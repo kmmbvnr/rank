@@ -48,7 +48,7 @@ for Item in Dirs
   D = Item 2
   S = Item 4
   T = Item 5
-  for (S T max) at most 6 * Limit + 10
+  for (S max T) at most 6 * Limit + 10
     if T not equal 0
       for U in -1 to 1 by 2
         for V in -1 to 1 by 2
@@ -74,11 +74,11 @@ for Item in Dirs
           X3 = -C
           Y3 = -E
           Top = X1 abs
-          Top = Top (Y1 abs) max
-          Top = Top (X2 abs) max
-          Top = Top (Y2 abs) max
-          Top = Top (X3 abs) max
-          Top = Top (Y3 abs) max
+          Top = Top max (Y1 abs)
+          Top = Top max (X2 abs)
+          Top = Top max (Y2 abs)
+          Top = Top max (X3 abs)
+          Top = Top max (Y3 abs)
           if Top greater Limit
             continue
           end

@@ -24,9 +24,9 @@ for (const compiled of [true, false]) {
             expect(r.execute('1 to 5 sum')).toBe(15n);
             expect(r.execute('1 till 5 len')).toBe(4n);
             expect(r.execute('9 to 1 by -2 min')).toBe(1n);
-            expect(r.execute('3 5 max 4 min')).toBe(4n);
+            expect(r.execute('(3 max 5) 4 min')).toBe(4n);
             expect(r.execute('A = array 1 4 2\nA sum + (A len)')).toBe(10n);
-            expect(r.execute('Best = 0\nfor I in 1 to 5\n Best = Best I max\nend\nBest')).toBe(5n);
+            expect(r.execute('Best = 0\nfor I in 1 to 5\n Best = Best max I\nend\nBest')).toBe(5n);
         });
 
         it('supports tensor axes and ranked reductions without sequence imports', () => {
@@ -46,7 +46,7 @@ for (const compiled of [true, false]) {
             expect(r.execute('1 to 3 sum')).toBe(6n);
             expect(r.execute('1 to 3 total')).toBe(6n);
             expect(() => r.execute('fun A B max\n return A + B\nend')).toThrow('cannot redefine available builtin: max');
-            expect(r.execute('3 4 max')).toBe(4n);
+            expect(r.execute('3 max 4')).toBe(4n);
         });
 
         it('keeps specialized number and sequence operations behind imports', () => {

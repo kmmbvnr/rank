@@ -38,8 +38,8 @@ So = Sv Ow
 rem x = 2 .. sqrt v one at a time,
 rem then the quotients q below it.
 Ix = J less (So - 1)
-Qq = (J - So + 2) 1 max
-Lo = (Vo // (Qq + 1)) So max
+Qq = (J - So + 2) max 1
+Lo = (Vo // (Qq + 1)) max So
 Wq = Vo // Qq - Lo
 Q = (Ix choose (Vo // (J + 2)) Qq) copy
 W = (Ix choose 1 Wq) copy

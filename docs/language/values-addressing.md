@@ -193,20 +193,23 @@ chooses the form of their result instead of a field of it: `Text json .flat`
 and `Text xml .flat` return a table of nodes, as `Values sort .descending`
 reverses the order.
 
-For an operation supporting several arities, an exact argument count wins.
-Otherwise Rank tries larger supported arities first. `min` and `max` are
-ordinary postfix calls: `A B max` calls the current `max` with arguments `A`
-and `B`, and `A B max 5 min` chains from the left. The infix form `A max B` is
-an error that suggests `A B max`. Core names cannot be redefined by a local
-function or parameter. A differently named function or alias uses the same
-postfix calling convention.
+For ordinary postfix calls supporting several arities, an exact argument
+count wins; otherwise Rank tries larger arities first. `min` keeps this rule:
+`A B min` compares two operands. Functions with two required left operands,
+such as `A B matmul`, keep both operands separate.
 
-Builtins and aliases use the same argument rules: `Matrix i max` and
-`op = max` followed by `Matrix i op` both pass two arguments. To reduce one
-addressed row, write `(Matrix i) max`. Two scalar arguments work the same
-way: `3 4 max` is `4`.
-A following function starts another step: `Values max sqrt` takes the square
-root of the maximum.
+`max` takes one operand on the left and an optional operand on the right.
+`A max` reduces A; `A max B` compares A and B elementwise. Addressing stays
+inside each operand: `Matrix i max` reduces the selected row, `Matrix # 0 max`
+reduces a column, and `A max B 0` compares A with the selected element of B.
+A known function or a `rank`/`axis` modifier ends the right operand.
+
+Direct aliases retain these operand sides: after `op = max`, `Matrix i op`
+reduces the selected row and `A op B` compares two values. A following function
+starts another step: `Values max sqrt` takes the square root of the maximum.
+To pass another independent left operand to a later postfix function, group
+the completed call: `(A max B) 5 min`. Core names cannot be redefined by a
+local function or parameter.
 
 The fundamental selection model is:
 

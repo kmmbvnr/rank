@@ -44,7 +44,7 @@ fun Jobs maximum_reward
 
     Skip = Best i
     Take = Best Low + Project .reward
-    Best (i + 1) = Skip Take max
+    Best (i + 1) = Skip max Take
   end
 
   return Best Count

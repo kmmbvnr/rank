@@ -794,7 +794,7 @@ it('forgets local index facts when a computed key is not plain scalar arithmetic
 it('reads a scalar array cell as the first operand of a trailing dyadic operation', () => {
     expect(messages('Steps = array 9 8 7\nA = Steps 1 5 min\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
-    expect(messages('Steps = array 9 8 7\nA = Steps 1 5 max\nA + "bad"'))
+    expect(messages('Steps = array 9 8 7\nA = Steps 1 max 5\nA + "bad"'))
         .toEqual(['operator + does not accept integer and text']);
     // A partial read of a matrix selects a row, and an unproved selector leaves the result unknown.
     expect(messages('M = array shape 2 2\n 1 2\n 3 4\nend\nA = M 1 5 min\nA + "bad"')).toEqual([]);
@@ -2904,7 +2904,7 @@ it('reports provable scalar juxtaposition without rejecting dynamic calls or ind
     expect(messages('N = 3\nA = 2\nfun X g\n return X\nend\nN - 1 A + 1 g')).toContain('a number cannot be indexed');
     expect(messages('true 0')).toContain('a scalar cannot be indexed');
     for (const source of [
-        '1 2 max', '1 abs', '(array 10 20) 0',
+        '1 max 2', '1 abs', '(array 10 20) 0',
         'fun X F apply\n return X F\nend',
         'fun X pick\n return X 0\nend',
         'fun X Y g\n return X + Y\nend\n1 2 g',

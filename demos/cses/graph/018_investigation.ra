@@ -52,7 +52,7 @@ fun Graph N investigate
         Ways Next += Ways Current
         Ways Next mod= Modulus
         MinFlights Next = MinF (MinFlights Next) min
-        MaxFlights Next = MaxF (MaxFlights Next) max
+        MaxFlights Next = MaxF max (MaxFlights Next)
       end
     end
   end

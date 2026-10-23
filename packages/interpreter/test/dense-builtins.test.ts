@@ -10,16 +10,16 @@ describe('pure builtins over large arrays', () => {
     const setup = 'use numbers\nuse random\nA = array shape 2000 fill 3.0\n';
 
     it('computes max over cells like the small lazy path', () => {
-        expect(run(`${setup}B = A 5.0 max\nB sum`)).toBe(10000);
-        expect(run('use numbers\nA = array shape 4 fill 3.0\nB = A 5.0 max\nB sum')).toBe(20);
+        expect(run(`${setup}B = A max 5.0\nB sum`)).toBe(10000);
+        expect(run('use numbers\nA = array shape 4 fill 3.0\nB = A max 5.0\nB sum')).toBe(20);
     });
 
     it('is a value: a later write to the source does not reach the result', () => {
-        expect(run(`${setup}B = A 5.0 max\nA 0 = 100.0\nB 0`)).toBe(5);
+        expect(run(`${setup}B = A max 5.0\nA 0 = 100.0\nB 0`)).toBe(5);
     });
 
     it('chains without keeping every layer lazy', () => {
-        expect(run(`${setup}for I in 0 till 50\n  A = (A + 1.0) 0.0 max\nend\nA sum`)).toBe(2000 * 53);
+        expect(run(`${setup}for I in 0 till 50\n  A = (A + 1.0) max 0.0\nend\nA sum`)).toBe(2000 * 53);
     });
 
     it('reads drawn values as stored numbers', () => {

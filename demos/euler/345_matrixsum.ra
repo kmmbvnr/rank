@@ -62,7 +62,7 @@ for Mask in 0 till (2 ** 15)
       if (Mask Bit band) equal 0
         Next = Mask Bit bor
         Value = Dp Mask + A Row Col
-        Dp Next = Dp Next Value max
+        Dp Next = Dp Next max Value
       end
     end
   end

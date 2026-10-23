@@ -37,8 +37,8 @@ for S in 1 to Rt
     Ls = Ls (U (Ls mod S) indices)
     M = Ls * S
     X = (Ls * T (Ls mod S) - 1) mod M
-    C = X (M - X) max
-    B M = (B M) C max
+    C = X max (M - X)
+    B M = (B M) max C
   end
   Lo = S + 1
   if S equal 1
@@ -53,9 +53,9 @@ for S in 1 to Rt
   V1 = A1 odd and (X less M - 1)
   V2 = A2 odd and (X greater 1)
   C1 = V1 choose A1 1
-  C = C1 (V2 choose A2 1) max
+  C = C1 max (V2 choose A2 1)
   N2 = 2 * M
-  B N2 = (B N2) C max
+  B N2 = (B N2) max C
 end
 B 0 = 0
 B 1 = 0

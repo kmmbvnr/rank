@@ -55,7 +55,7 @@ fun Heights' mountain_route
     Top = Mountains peek
     if Height equal Top .height
       CurrentPath = Current .path
-      Top .path = Top .path CurrentPath max
+      Top .path = Top .path max CurrentPath
       return 0
     end
 

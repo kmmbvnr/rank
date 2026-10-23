@@ -18,7 +18,7 @@ for K in 2 to Limit
   P = Rest K
   if P greater 1
     for J in K to Limit by P
-      Largest J = (Largest J) P max
+      Largest J = (Largest J) max P
       for (Rest J) mod P equal 0
         Rest J = (Rest J) // P
       end
@@ -26,7 +26,7 @@ for K in 2 to Limit
     Other = P + 1 - K
     if Other greater K
       for J in Other to Limit by P
-        Largest J = (Largest J) P max
+        Largest J = (Largest J) max P
         for (Rest J) mod P equal 0
           Rest J = (Rest J) // P
         end
@@ -40,5 +40,5 @@ for P in primes to (Limit + 1)
 end
 A = Largest (1 to Limit)
 B = Linear (2 to (Limit + 1))
-Answer = (A B max) sum - Limit
+Answer = (A max B) sum - Limit
 Answer print

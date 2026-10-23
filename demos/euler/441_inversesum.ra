@@ -79,9 +79,9 @@ for D in 1 to Dc
 end
 rem Large d: vector over d, loop on k.
 K1 = N // (Dc + 1)
-for K in 1 to (K1 1 max)
+for K in 1 to (K1 max 1)
   Hf = N // 2 // K
-  Da = (Dc Hf max) + 1
+  Da = (Dc max Hf) + 1
   if K1 equal 0
     Da = N + 1
   end

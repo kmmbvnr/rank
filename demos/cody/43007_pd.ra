@@ -12,5 +12,5 @@ fun Points pair_distances
   PointsT' = Points transpose
   Dot' = Points PointsT matmul
   Squared' = (Norm2 Norm2 outer +) - Dot * 2
-  return Squared 0 max sqrt
+  return Squared max 0 sqrt
 end

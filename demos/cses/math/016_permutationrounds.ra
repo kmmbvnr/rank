@@ -33,7 +33,7 @@ fun P rounds
     for Prime in Factors unique
       Mask' = Factors equal Prime
       Power = Mask count
-      Powers Prime = Powers Prime Power max
+      Powers Prime = Powers Prime max Power
     end
   end
 

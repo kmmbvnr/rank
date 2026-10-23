@@ -49,7 +49,7 @@ for K in 0 to Last + 1
     Kk = Rem C min
     Df (V + 1) += 1
     Df (V + Kk + 1) -= 1
-    Mx = Mx (V + Kk) max
+    Mx = Mx max (V + Kk)
     Rem -= Kk
     if Kk less C
       Sc (Sp - 1) = C - Kk - 1

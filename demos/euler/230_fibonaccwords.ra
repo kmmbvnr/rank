@@ -40,7 +40,7 @@ Col' = Pos reshape 18 1
 Lv = (Lens less Col) count axis 1
 for Step in 1 to Top
   Live = Lv at least 3
-  Bk' = (Lv - 2) 0 max
+  Bk' = (Lv - 2) max 0
   Prev = Lens Bk
   Back = Live and (Pos greater Prev)
   Pos = Back choose (Pos - Prev) Pos

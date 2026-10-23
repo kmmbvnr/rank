@@ -4,7 +4,7 @@ import { run } from './support.js';
 describe('min and max over text', () => {
     it('compares text like less and greater', () => {
         expect(run('"B" "A" min')).toBe('A');
-        expect(run('"A" "Z" max')).toBe('Z');
+        expect(run('"A" max "Z"')).toBe('Z');
         expect(run('Best = "Z"\nBest = Best "C" min\nBest')).toBe('C');
     });
 

@@ -119,6 +119,8 @@ export interface Operation {
         readonly signedOperand?: true;
         readonly rejectInfix?: true;
         readonly rangeBound?: true;
+        /** One left operand and an optional addressed operand after the name. */
+        readonly optionalRightOperand?: true;
     };
     /** Direct-call eligibility for existing compiler backends. Never use this
      * restricted subset as a complete operand-domain rule or displayed signature. */
@@ -955,7 +957,7 @@ export const operations: readonly Operation[] = [
     { name: 'log', module: 'numbers', arities: [1], form: 'Value log', result: 'real', mapsScalarCells: true,
         signatures: realMathSignatures,
         summary: 'Natural logarithm of a positive finite number.' },
-    { name: 'max', grouping: { rejectInfix: true }, module: 'core', arities: [1, 2], form: 'Left Right max', result: 'number', axisReduction: true,
+    { name: 'max', grouping: { optionalRightOperand: true }, module: 'core', arities: [1, 2], form: 'Left max [Right]', result: 'number', axisReduction: true,
         modifiers: ['index', 'indexed'],
         signatures: [...extremaSignatures, { inputs: ['column'], result: 'number' }, ...positionSignatures],
         shape: [{ args: [null], result: [] }, { args: [[], []], result: [] }],
@@ -1421,7 +1423,7 @@ export const moduleForms: readonly ModuleForm[] = [
         summary: 'Reads one token of standard input; a count makes it a lazy sequence.' },
     { module: 'core', form: 'Values mod N', example: 'R = 12 mod 5',
         summary: 'Floored remainder; with equal 0 it tests divisibility, elementwise on arrays. Written mod= to update in place.' },
-    { module: 'core', form: 'Left Right max', example: 'M = 3 5 max',
+    { module: 'core', form: 'Left max Right', example: 'M = 3 max 5',
         summary: 'The larger of two numbers; min gives the smaller.' },
     { module: 'core', form: 'Low to High', example: 'R = 1 to 5',
         summary: 'Counting range with an inclusive upper bound; after values, keeps those at most High.' },

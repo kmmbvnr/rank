@@ -1681,25 +1681,27 @@ uses this hook for `N divisors count`; other numeric sequences still fail the
 boolean-cell requirement.
 
 `min` and `max` with one argument reduce one finite collection. With two
-arguments they choose between numeric values and broadcast over arrays. Like
-every other function, they follow their arguments:
+arguments they choose between numeric values and broadcast over arrays.
+`max` takes its second operand after its name; `min` takes both before it:
 
 ```rank
 Largest = A max
-Bound = Low High max
-Clamped = Values 0 max
+Bound = Low max High
+Clamped = Values max 0
 Best = Best Now .spent min
 ```
 
-Chains associate from the left: `Low High max Limit min`. `axis` and `rank`
-modify the one-argument reduction; the binary form already follows ordinary
-elementwise broadcasting. Parenthesize a compound operand, as in
-`0 (Limit - Used) max`. The infix form `Low max High` is rejected with a hint
-to write `Low High max`.
+`A 0 max` reduces the selected element or row, and `M # 0 max` reduces the
+selected column. The optional right operand may also be addressed:
+`A max B 0` means `A max (B 0)`. A following known function starts the next
+pipeline step, so `A max B sum` means `(A max B) sum`. Group a completed
+call before supplying another independent operand: `(Low max High) Limit min`.
+Use parentheses around arithmetic operands, as in `0 max (Limit - Used)`.
+`axis` and `rank` modify the reduction; the binary form broadcasts elementwise.
 
-A user-defined `min` or `max` takes precedence, even without `use numbers`.
-For example, after `fun A B max` returning `A + B`, `3 4 max` returns `7`.
-A named builtin (`op = max`) supports the same lazy binary broadcasting.
+A named builtin (`op = max`) uses the same operand sides and lazy binary
+broadcasting. Core names cannot be redefined. `max` can still be passed as a
+combining function in `Values scan max`, `Values reduce max`, or `A B outer max`.
 Equal numeric operands preserve the left operand, including its integer/real
 representation.
 

@@ -6,7 +6,7 @@ import {
     type FunctionStatement, type Program,
 } from './generated/ast.js';
 import { AstUtils, type AstNode } from 'langium';
-import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
+import { applicationExpression, flattenApplication, groupedExpression, markPlacedOperands } from './expressions.js';
 import { operationArities } from './operations.js';
 import { functionPipelinePlan } from './function-pipeline.js';
 
@@ -96,7 +96,7 @@ export function prepareFunctionBindings(program: Program, signatures: ReadonlyMa
                         expression => expression === head ? declared : undefined,
                         expression => isNameExpression(expression) && !!arities(expression.name)?.length,
                         (_expression, message) => { error ??= message; }), node.value);
-                } else body = applicationExpression([...operands, ...stage], node.value);
+                } else body = applicationExpression([...operands, markPlacedOperands({ ...head }), ...stage.slice(1)], node.value);
                 operands = [groupedExpression(body)];
             }
             define(parameters, body);

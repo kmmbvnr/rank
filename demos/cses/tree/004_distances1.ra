@@ -28,7 +28,7 @@ fun Tree tree_distances
   for Node i in 1 to N
     Left = FromA .distance Node
     Right = FromB .distance Node
-    Result i = Left Right max
+    Result i = Left max Right
   end
   return Result
 end

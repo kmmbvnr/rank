@@ -448,6 +448,10 @@ export class Interpreter {
             [...child.variables].map(([name, value]) => [`${alias}.${name}`, value] as const))];
         const program = parse(source, this.options.sourceId, {
             bindings: new Map(callableBindings.map(([name, value]) => [name, isNativeFunction(value) ? value.arities : false])),
+            operations: new Map(callableBindings.flatMap(([name, value]) => {
+                const operation = isNativeFunction(value) && BuiltinRegistry.operationOf(value);
+                return operation ? [[name, operation] as const] : [];
+            })),
             modules: this.modules,
             loadModule: this.options.loadModule ? path => this.load(path).program : undefined,
             signatures: new Map(callableBindings.flatMap(([name, value]) =>

@@ -56,11 +56,11 @@ it('recomputes external binding annotations when the same node is regrouped', ()
 });
 
 it('returns diagnostics owned by the grouped program without sharing them across parses', () => {
-    const program = parse('5 max 0\n');
+    const program = parse('5 min 0\n');
     const result = groupExpressions(program);
     expect(result.program).toBe(program);
     expect(result.diagnostics[0]?.message).toContain('postfix call');
     expect(expressionDiagnostics(program)).toBe(result.diagnostics);
-    expect(expressionDiagnostics(parse('5 0 max\n'))).toEqual([]);
+    expect(expressionDiagnostics(parse('5 max 0\n'))).toEqual([]);
     expect(result.diagnostics).toHaveLength(1);
 });

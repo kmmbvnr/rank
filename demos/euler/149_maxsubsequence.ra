@@ -38,7 +38,7 @@ rem negatives and re-cutting the rows
 rem makes each column a run of
 rem diagonals split by the padding.
 Cells = N * N
-Len = Cells 55 max
+Len = Cells max 55
 S = array shape Len fill 0
 Ks = 1 to 55 array
 Seed = 100003 - 200003 * Ks
@@ -67,7 +67,7 @@ Rows = G best
 Cols = G transpose best
 Down = Skew transpose best
 Up = Skew2 transpose best
-Answer = Rows Cols max
-Answer = Answer Down max
-Answer = Answer Up max
+Answer = Rows max Cols
+Answer = Answer max Down
+Answer = Answer max Up
 Answer print

@@ -33,13 +33,13 @@ fun N costs
   for I in 2 till (N + 1)
     Best = 1000000000000
     Start = (4 * I) // 5 - 20
-    Start = Start 0 max
+    Start = Start max 0
     for K in Start till I
       Size = I - 1 - K
       if I at most 100 or Ok Size
         Left = Dp K
         Right = (K + 1) Size tree
-        Cost = K + 1 + (Left Right max)
+        Cost = K + 1 + (Left max Right)
         Best = Best Cost min
       end
     end
@@ -70,7 +70,7 @@ fun Base Size tree
   end
   Left = Base L tree
   Right = (Base + L + 1) R tree
-  return (Left Right max) + Base + L + 1
+  return (Left max Right) + Base + L + 1
 end
 
 fun N height

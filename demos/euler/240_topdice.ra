@@ -30,7 +30,7 @@ for V in S to 1 by -1
   for U in 0 to N
     for C in 0 to (N - U)
       Ways = (N - U) C binomial
-      Gain = V * (C (Top - U 0 max) min)
+      Gain = V * (C (Top - U max 0) min)
       for T in 0 to (Sum - Gain)
         Old = W U T
         Nu = U + C

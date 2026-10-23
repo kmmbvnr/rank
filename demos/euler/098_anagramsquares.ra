@@ -72,7 +72,7 @@ for Key in Groups
       Zero = array 0
       Hits' = concat Zero Ours Theirs
       Found = Hits max
-      Answer = Answer Found max
+      Answer = Answer max Found
     end
   end
 end

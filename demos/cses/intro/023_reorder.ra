@@ -19,7 +19,7 @@ fun Text solve
     Count = Index C default 0
     Count += 1
     Index C = Count
-    Max = Max Count max
+    Max = Max max Count
   end
 
   if 2 * Max greater N + 1

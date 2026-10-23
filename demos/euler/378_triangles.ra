@@ -22,7 +22,7 @@ for N in 1 to Limit
   else
     V = Div N * Div ((N + 1) // 2)
   end
-  Top = Top V max
+  Top = Top max V
 end
 Cnt = (Top + 1) fenwick
 Pair = (Top + 1) fenwick

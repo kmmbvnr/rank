@@ -110,12 +110,12 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
 
     it('uses the same extrema arguments for builtins and their aliases', () => {
         const source = 'A = array 1 8\nop = max\n';
-        expect(run(source + 'A 0 max')).toBe('1 8');
-        expect(run(source + 'A 0 op')).toBe('1 8');
+        expect(run(source + 'A 0 max')).toBe('1');
+        expect(run(source + 'A 0 op')).toBe('1');
         expect(run(source + '(A 0) max')).toBe('1');
         expect(run(source + 'A max sqrt')).toBe(String(Math.sqrt(8)));
         expect(run('2 + 3 4 min')).toBe('4');
-        expect(run('A = array 1 8\nA max 5 min')).toBe('5');
+        expect(run('A = array 1 8\n(A max) 5 min')).toBe('5');
     });
 
     it('reads a minus glued to its operand after a space as a sign', () => {

@@ -29,7 +29,7 @@ fun W Weights Values max_value
     Val = Values i
     for Cap in W to Wt by -1
       Gain = Best (Cap - Wt) + Val
-      Best Cap = (Best Cap) Gain max
+      Best Cap = (Best Cap) max Gain
     end
   end
 

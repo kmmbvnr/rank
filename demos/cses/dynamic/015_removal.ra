@@ -19,7 +19,7 @@ fun Values removal_game
       Right = Left + Length - 1
       TakeLeft = Values Left - Difference (Left + 1)
       TakeRight = Values Right - Difference Left
-      Difference Left = TakeLeft TakeRight max
+      Difference Left = TakeLeft max TakeRight
     end
   end
 

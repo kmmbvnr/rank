@@ -16,7 +16,7 @@ rem a new prime moves t up by one.
 rem Inverses mod Q come from the
 rem linear recurrence.
 Q = 1000000007
-Top = L 6 max + 1
+Top = L max 6 + 1
 Iv = array shape (Top + 1) fill 1
 for I in 2 to Top
   Lo = Q - Q // I

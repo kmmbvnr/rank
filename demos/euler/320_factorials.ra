@@ -36,7 +36,7 @@ for I in 2 to Upper
     end
     Want P += K * E
     Need P = P (Want P) (Need P) minimum
-    Best = Best (Need P) max
+    Best = Best max (Need P)
   end
   if I at least 10
     Answer = (Answer + Best) mod Mod
@@ -45,7 +45,7 @@ end
 Answer print
 
 fun P Target Prev minimum
-  Low = Prev (Target * (P - 1)) max
+  Low = Prev max (Target * (P - 1))
   High = Low
   for (High P valuation) less Target
     Have = High P valuation

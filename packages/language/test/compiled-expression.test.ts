@@ -35,17 +35,17 @@ describe('shared compiled expression inference', () => {
                 const type = inputs[0];
                 return (type === 'integer' || type === 'real') && inputs.every(input => input === type) ? type : undefined;
             } };
-        expect(inferCompiledExpression(expression('A B max 10 min'), scope).expression).toMatchObject({
+        expect(inferCompiledExpression(expression('(A max B) 10 min'), scope).expression).toMatchObject({
             kind: 'extreme', name: 'min', type: 'integer',
-            left: { kind: 'extreme', name: 'max', left: { input: 'A' }, right: { input: 'B' } },
+            left: { kind: 'group', operand: { kind: 'extreme', name: 'max', left: { input: 'A' }, right: { input: 'B' } } },
             right: { kind: 'literal', value: 10n },
         });
         expect(inferCompiledExpression(expression('A min'), scope).expression).toMatchObject({
             kind: 'extreme', name: 'min', type: 'integer', left: { input: 'A' },
         });
-        expect(inferCompiledExpression(expression('A 1.5 max'), scope).failure).toBeDefined();
+        expect(inferCompiledExpression(expression('A max 1.5'), scope).failure).toBeDefined();
         expect(inferCompiledExpression(expression('A min'), { ...scope, isBound: name => name === 'min' }).failure).toBeDefined();
-        expect(inferCompiledExpression(expression('A B max'), context({ A: 'integer', B: 'integer' })).failure).toBeDefined();
+        expect(inferCompiledExpression(expression('A max B'), context({ A: 'integer', B: 'integer' })).failure).toBeDefined();
     });
 
     it('infers an addressed left operand before scalar extrema', () => {
@@ -58,14 +58,15 @@ describe('shared compiled expression inference', () => {
                     ? { type: 'integer', input: 'limit' } : undefined,
             extreme: (_name, inputs) => inputs.every(type => type === 'integer') ? 'integer' : undefined,
         };
-        expect(inferCompiledExpression(expression('Values 0 Limit max 10 min'), scope).expression).toMatchObject({
+        expect(inferCompiledExpression(expression('(Values 0 max Limit) 10 min'), scope).expression).toMatchObject({
             kind: 'extreme', name: 'min',
-            left: { kind: 'extreme', name: 'max', left: { kind: 'input', input: 'cell' },
-                right: { kind: 'input', input: 'limit' } },
+            left: { kind: 'group', operand: { kind: 'extreme', name: 'max',
+                left: { kind: 'group', operand: { kind: 'input', input: 'cell' } },
+                right: { kind: 'input', input: 'limit' } } },
         });
-        expect(inferCompiledExpression(expression('Values 0 Limit max'), { ...scope, read: () => undefined }).failure)
+        expect(inferCompiledExpression(expression('Values 0 max Limit'), { ...scope, read: () => undefined }).failure)
             .toBeDefined();
-        expect(inferCompiledExpression(expression('Values 0 Limit max'), { ...scope, isBound: () => false }).failure)
+        expect(inferCompiledExpression(expression('Values 0 max Limit'), { ...scope, isBound: () => false }).expression)
             .toBeDefined();
     });
 

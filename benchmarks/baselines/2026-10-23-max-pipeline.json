@@ -1,0 +1,190 @@
+{
+  "samples": 5,
+  "size": 10000000,
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "revisions": {
+    "baseline": "c7f9c86d7291354fa01fd01808570c6f01e75b75",
+    "candidate": "ceee610d3a7c08519256b1df19956bd80fe127d6"
+  },
+  "dirty": {
+    "baseline": false,
+    "candidate": true
+  },
+  "results": {
+    "baseline": [
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best I max\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) Best max\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 184.45241700000003,
+          "addressed": 358.19495799999993
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best I max\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) Best max\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 182.607459,
+          "addressed": 362.24695799999995
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best I max\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) Best max\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 183.56408300000004,
+          "addressed": 369.93170799999996
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best I max\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) Best max\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 187.86541600000004,
+          "addressed": 359.84237499999995
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best I max\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) Best max\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 182.56158300000004,
+          "addressed": 355.81425
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      }
+    ],
+    "candidate": [
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best max I\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) max Best\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 186.51479199999994,
+          "addressed": 354.13316699999996
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best max I\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) max Best\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 213.94733300000001,
+          "addressed": 365.704708
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best max I\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) max Best\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 203.02974999999998,
+          "addressed": 390.2125420000001
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best max I\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) max Best\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 192.580958,
+          "addressed": 395.9730420000001
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      },
+      {
+        "sources": {
+          "scalar": "fun N scalar\n Best = 0\n for I in 0 till N\n  Best = Best max I\n end\n return Best\nend",
+          "addressed": "fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = A (I mod 4) max Best\n end\n return Best\nend"
+        },
+        "node": "v24.15.0",
+        "size": 10000000,
+        "times": {
+          "scalar": 192.63104099999998,
+          "addressed": 372.1187910000001
+        },
+        "compiledLoops": {
+          "scalar": 0,
+          "addressed": 0
+        }
+      }
+    ]
+  },
+  "medians": {
+    "baseline": {
+      "scalar": 183.56408300000004,
+      "addressed": 359.84237499999995
+    },
+    "candidate": {
+      "scalar": 192.63104099999998,
+      "addressed": 372.1187910000001
+    }
+  }
+}
