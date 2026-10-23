@@ -36,6 +36,21 @@ it('infers all powmod operand frames without claiming an unknown call is scalar'
     }]]))).toEqual({ types: ['array'], elements: ['integer'] });
 });
 
+it('infers binomialmod broadcasting without claiming unknown N and K are scalar', () => {
+    const bindings = new Map<string, ValueFacts>([
+        ['X', { types: ['array'], elements: ['integer'], rank: 2, shape: [2, 1] }],
+        ['Y', { types: ['array'], elements: ['integer'], rank: 1, shape: [3] }],
+    ]);
+    expect(facts('X Y 7 binomialmod', bindings)).toMatchObject({
+        types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3],
+    });
+    expect(facts('6 2 7 binomialmod')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('X Y 7 binomialmod')).not.toMatchObject({ rank: 0 });
+    expect(facts('X 2 7 binomialmod', new Map([['X', {
+        types: ['array'], rank: 0, shape: [], elements: ['integer'],
+    }]]))).toMatchObject({ types: ['array'], rank: 0, shape: [], elements: ['integer'] });
+});
+
 it('separates scalar type, array elements, rank and dimensions', () => {
     expect(facts('42')).toEqual({ types: ['integer'], rank: 0, shape: [], integer: '42' });
     expect(facts('array 1 2 3')).toEqual({ types: ['array'], elements: ['integer'], rank: 1, shape: [3],
@@ -1048,7 +1063,7 @@ it('keeps proven numeric builtins and arithmetic scalar', () => {
 
 it('keeps the rank of builtins that always return one scalar', () => {
     for (const source of ['X lcm',
-        'X Y Z binomialmod', 'X len', 'X count',
+        'X len', 'X count',
         'X position', 'X size', 'X seed', 'X codepoint']) {
         expect(facts(source)).toEqual({ types: ['integer'], rank: 0, shape: [] });
     }

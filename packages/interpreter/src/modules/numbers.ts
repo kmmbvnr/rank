@@ -5,9 +5,11 @@ import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root
 import { mapStoredUnary } from '../unary-array-kernel.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
+import { prepareIntegerView } from '../integer-view.js';
+import { arrayStrides, broadcastOffset, broadcastShape } from '../tensor-layout.js';
 import { elementSource, type ElementSource } from '../element-source.js';
-import { denseScalarItems, derivedArray, ownedArray, typedArray } from '../array-storage.js';
+import { denseScalarItems, derivedArray, IntegerCells, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { modularPower, probablePrime } from '../primality.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
@@ -29,6 +31,7 @@ import {
     isRankSequence,
     MISSING,
     tuple,
+    type RankArray,
     type RankValue,
     type SequencePlan,
     type SequencePredicate,
@@ -119,11 +122,18 @@ export const numbersModule: RuntimeModule = {
         'binomial',
         (left, right) => exactBinomial(expectInteger(left), expectInteger(right)),
     )),
-    binomialmod: () => native('binomialmod', 3, arguments_ => modularBinomial(
-        expectInteger(arguments_[0]),
-        expectInteger(arguments_[1]),
-        expectInteger(arguments_[2]),
-    )),
+    binomialmod: () => native('binomialmod', 3, args => {
+        const modulus = expectInteger(args[2]);
+        const stored = storedBinomial(args[0], args[1], modulus);
+        if (stored) return stored;
+        let cache: BinomialCache | undefined;
+        return mapScalarArrays(args.slice(0, 2), cells => {
+            const n = expectInteger(cells[0]), k = expectInteger(cells[1]);
+            validateBinomial(n, k, 'binomialmod');
+            cache ??= binomialCache(modulus);
+            return modularBinomial(n, k, modulus, cache);
+        });
+    }),
     lcm: () => withNumberCalls(native('lcm', [1, 2], arguments_ => {
         if (arguments_.length === 2) {
             return leastCommonMultiple(
@@ -478,14 +488,19 @@ interface BinomialCache {
 
 const binomialCaches = new Map<bigint, BinomialCache>();
 
-function modularBinomial(n: bigint, k: bigint, modulus: bigint): bigint {
-    validateBinomial(n, k, 'binomialmod');
+function binomialCache(modulus: bigint): BinomialCache {
     if (modulus > 18446744073709551615n) {
         throw new RankError('binomialmod modulus exceeds the 64-bit limit', 'DomainError');
     }
     if (modulus < 2n || !probablePrime(modulus)) {
         throw new RankError('binomialmod modulus must be prime', 'DomainError');
     }
+    const cache = binomialCaches.get(modulus) ?? createBinomialCache();
+    binomialCaches.set(modulus, cache);
+    return cache;
+}
+
+function binomialLimit(n: bigint, modulus: bigint): number {
     if (n >= modulus) {
         throw new RankError('binomialmod requires N less than its modulus', 'DomainError');
     }
@@ -493,13 +508,67 @@ function modularBinomial(n: bigint, k: bigint, modulus: bigint): bigint {
     if (!Number.isSafeInteger(limit)) {
         throw new RankError('binomialmod N is too large to cache', 'DomainError');
     }
-    const cache = binomialCaches.get(modulus) ?? createBinomialCache(modulus);
-    binomialCaches.set(modulus, cache);
+    return limit;
+}
+
+function modularBinomial(n: bigint, k: bigint, modulus: bigint, cache: BinomialCache): bigint {
+    const limit = binomialLimit(n, modulus);
     extendBinomialCache(cache, limit, modulus);
-    const chosen = Number(k);
+    return cachedBinomial(limit, Number(k), modulus, cache);
+}
+
+function cachedBinomial(limit: number, chosen: number, modulus: bigint, cache: BinomialCache): bigint {
     return cache.factorial[limit]
         * cache.inverseFactorial[chosen] % modulus
         * cache.inverseFactorial[limit - chosen] % modulus;
+}
+
+/** Completed integer storage can prepare the cache once for the whole broadcast.
+ * Invalid domains fall back to the cell mapper so unread errors remain deferred. */
+function storedBinomial(left: RankValue, right: RankValue, modulus: bigint): RankArray | undefined {
+    if (inspectionEnabled() || !privateLoopPolling()) return undefined;
+    const a = isRankArray(left) ? prepareIntegerView(left, true) : undefined;
+    const b = isRankArray(right) ? prepareIntegerView(right, true) : undefined;
+    if (isRankArray(left) ? !a?.regular : typeof left !== 'bigint') return undefined;
+    if (isRankArray(right) ? !b?.regular : typeof right !== 'bigint') return undefined;
+    if (!a && !b) return undefined;
+    const shape = broadcastShape(a?.shape ?? [], b?.shape ?? []);
+    const reader = (view: typeof a, scalar: RankValue) => {
+        if (!view) return (_: number) => scalar as bigint;
+        const same = view.shape.length === shape.length && view.shape.every((n, i) => n === shape[i]);
+        const strides = arrayStrides(view.shape);
+        return (index: number) => view.read(same ? index : broadcastOffset(index, shape, view.shape, strides));
+    };
+    const nAt = reader(a, left), kAt = reader(b, right);
+    const size = shape.reduce((n, dimension) => n * dimension, 1);
+    const cells = new IntegerCells(size);
+    if (size === 0) return cells.array(shape);
+    try {
+        let maximum = 0;
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('checking binomial array', end - start);
+            for (let index = start; index < end; index++) {
+                const n = nAt(index), k = kAt(index);
+                validateBinomial(n, k, 'binomialmod');
+                maximum = Math.max(maximum, binomialLimit(n, modulus));
+            }
+        }
+        const cache = binomialCache(modulus);
+        extendBinomialCache(cache, maximum, modulus);
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('computing binomial array', end - start);
+            for (let index = start; index < end; index++) {
+                cells.set(index, cachedBinomial(Number(nAt(index)), Number(kAt(index)), modulus, cache));
+            }
+        }
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
+    return cells.array(shape);
 }
 
 function validateBinomial(n: bigint, k: bigint, name: string): void {
@@ -508,7 +577,7 @@ function validateBinomial(n: bigint, k: bigint, name: string): void {
     }
 }
 
-function createBinomialCache(modulus: bigint): BinomialCache {
+function createBinomialCache(): BinomialCache {
     return { factorial: [1n], inverse: [0n, 1n], inverseFactorial: [1n] };
 }
 

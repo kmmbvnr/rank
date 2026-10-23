@@ -192,6 +192,11 @@ it('describes numeric maps, missing propagation and integer-only reductions', ()
     expect(operationSignature(powmod, [integer, integer, integer])).toBe('integer integer integer → integer');
     expect(operationSignature(powmod, [array, integer, integer])).toBe('c<integer> integer integer → c<integer>');
     expect(operationSignature(powmod, [integer, integer, array])).toBe('integer integer c<integer> → c<integer>');
+    const binomialmod = findOperation('binomialmod')!;
+    expect(operationSignature(binomialmod, [integer, integer, integer])).toBe('integer integer integer → integer');
+    expect(operationSignature(binomialmod, [array, integer, integer])).toBe('c<integer> integer integer → c<integer>');
+    expect(operationSignature(binomialmod, [integer, array, integer])).toBe('integer c<integer> integer → c<integer>');
+    expect(operationSignature(binomialmod, [array, array, integer])).toBe('c<integer> c<integer> integer → c<integer>');
 });
 
 

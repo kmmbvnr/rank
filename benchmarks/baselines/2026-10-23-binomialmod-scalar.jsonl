@@ -1,0 +1,5 @@
+{"node":"v24.15.0","cpu":"Apple M5","mode":"scalar","size":2000000,"limit":10000000,"samples":3}
+{"sample":1,"mode":"scalar","size":2000000,"limit":10000000,"coldMs":3345.01325,"warmMs":7862.804666999999,"heapUsed":1012364880,"checksum":"999868997833556"}
+{"sample":2,"mode":"scalar","size":2000000,"limit":10000000,"coldMs":3427.315542,"warmMs":7901.534042,"heapUsed":1011525512,"checksum":"999868997833556"}
+{"sample":3,"mode":"scalar","size":2000000,"limit":10000000,"coldMs":3558.0859579999997,"warmMs":7872.308583,"heapUsed":1007819352,"checksum":"999868997833556"}
+{"medianColdMs":3427.315542,"medianWarmMs":7872.308583}

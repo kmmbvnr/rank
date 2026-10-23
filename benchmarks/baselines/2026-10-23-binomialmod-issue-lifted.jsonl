@@ -1,0 +1,3 @@
+{"node":"v24.15.0","cpu":"Apple M5","mode":"lifted","size":1999001,"limit":2000000,"samples":1}
+{"sample":1,"mode":"lifted","size":1999001,"limit":2000000,"coldMs":534.187042,"warmMs":165.22583399999985,"heapUsed":314140648,"checksum":"998880163050603"}
+{"medianColdMs":534.187042,"medianWarmMs":165.22583399999985}

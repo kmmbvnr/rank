@@ -898,10 +898,14 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [[], []], result: [] }],
         dyadicRanks: [0, 0], summary: 'Exact binomial coefficient.' },
     { name: 'binomialmod', module: 'numbers', arities: [3], form: 'N K Modulus binomialmod',
-        signatures: [{ inputs: ['integer', 'integer', 'integer'], result: 'integer' }],
-        shape: [{ args: [null, null, null], result: [] }],
-        result: 'integer', scalarNoCallback: 'integer',
-        summary: 'Binomial coefficient calculated directly modulo a prime.' },
+        signatures: Array.from({ length: 4 }, (_, mask): TypeSignature => ({
+            inputs: [0, 1, 2].map(index => mask & (1 << index)
+                ? { collection: 'array', element: 'integer' } : 'integer'),
+            result: mask ? { collection: 'array', element: 'integer' } : 'integer',
+        })),
+        shape: [{ args: [[], [], []], result: [] }],
+        result: 'integer', scalarNoCallback: 'integer', mapsScalarCells: true,
+        summary: 'Binomial coefficient calculated directly modulo a scalar prime.' },
     { name: 'cos', module: 'numbers', arities: [1], form: 'Angle cos', result: 'real', mapsScalarCells: true,
         compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,

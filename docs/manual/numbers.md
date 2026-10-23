@@ -283,10 +283,21 @@ use numbers
 N K Modulus binomialmod
 ```
 
-All three are integers, and Modulus must
-be a prime. Works directly with
-remainders, so it stays fast when the
-full count would be huge.
+N and K are integers or integer arrays.
+Array shapes broadcast as in arithmetic;
+Modulus must be one scalar prime.
+N must be smaller than Modulus, with
+0 at most K at most N.
+
+For stored arrays, the modulus is checked
+once and the factorial cache is extended
+once to the largest N. Later calls reuse
+that cache. Deferred cells are computed
+when read.
+
+Works directly with remainders, so it
+stays fast when the full count would be
+huge.
 
 ### See also
 
