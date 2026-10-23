@@ -1,0 +1,28 @@
+use testing
+
+test "statement values"
+  use "502_countingcastles"
+  W1 = 13
+  H1 = 10
+  W2 = 10
+  H2 = 13
+  W3 = 100
+  H3 = 100
+  run
+  rem 50584533 + 959702255 + 841913936
+  Answer equal 852200717
+end
+
+test "huge width and huge height"
+  use "502_countingcastles"
+  W2 = 4
+  H2 = 1
+  W3 = 4
+  H3 = 1
+  run
+  Answer equal 364553235
+  W1 = 100
+  H1 = 1000000000000
+  run
+  Answer equal 635147632
+end

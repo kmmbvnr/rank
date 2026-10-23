@@ -1,0 +1,167 @@
+rem Counting Castles
+rem https://projecteuler.net/problem=502
+
+use numbers
+use sequences
+use io
+use cli
+
+option W1 integer = 1000000000000
+option H1 integer = 100
+option W2 integer = 10000
+option H2 integer = 10000
+option W3 integer = 100
+option H3 integer = 1000000000000
+
+rem Castles of height <= h have the
+rem generating function P/Q, (P, Q) =
+rem M^h (0, 1) with M = s(1 + x, x;
+rem ..) as in the transfer: P' = s(P
+rem + x S), Q' = Q - x S, S = P + Q;
+rem s = 1 counts all, s = -1 signs by
+rem parity, and their mean keeps the
+rem even ones. Exact height h is the
+rem difference of h and h - 1.
+Md = 1000000007
+I2 = (Md + 1) // 2
+fun A B pmul
+  rem Product mod Md by a skew
+  rem reshape of the outer product.
+  La = A len
+  Lb = B len
+  Pr = (A reshape La 1) * B mod Md
+  Z = array shape La La fill 0
+  Pz = concat Pr Z axis 1
+  Fl = Pz reshape (La * (Lb + La))
+  Fl = Fl (0 till La * (Lb + La - 1))
+  Sk = Fl reshape La (Lb + La - 1)
+  return (Sk sum axis 0) mod Md
+end
+fun P Q N bm
+  rem [x^N] P / Q by Bostan-Mori.
+  Pp = P
+  Qq = Q
+  Nn = N
+  for Nn greater 0
+    Sg = 1 - 2 * ((0 till Qq len) mod 2)
+    Qm = Qq * Sg mod Md
+    U = Pp Qm pmul
+    V = Qq Qm pmul
+    Pp = U ((Nn mod 2) till U len by 2)
+    Qq = V (0 till V len by 2)
+    Nn //= 2
+  end
+  Iv = (Qq 0) (Md - 2) Md powmod
+  return Pp 0 * Iv mod Md
+end
+fun P Q N lin
+  rem [x^N] P / Q from the recurrence
+  rem of the coefficients.
+  Cr = array shape (N + 1) fill 0
+  Iq = (Q 0) (Md - 2) Md powmod
+  Lq = Q len
+  Lp = P len
+  for Nk in 0 to N
+    Pk = 0
+    if Nk less Lp
+      Pk = P Nk
+    end
+    J = Nk (Lq - 1) min
+    Ac = 0
+    if J greater 0
+      Qs = Q (1 to J)
+      Cs = Cr (Nk - J to Nk - 1) reverse
+      Ac = (Qs * Cs mod Md) sum
+    end
+    Cr Nk = (Pk - Ac) mod Md * Iq mod Md
+  end
+  return Cr N
+end
+fun A B mmul
+  rem 2 x 2 polynomial matrices as rows
+  rem 00 01 10 11, mod x^L.
+  L = A shape 1
+  C = A * 0
+  for I in 0 to 1
+    for J in 0 to 1
+      U = (A (2 * I)) (B J) pmul
+      Ar = A (2 * I + 1)
+      V = Ar (B (2 + J)) pmul
+      Uv = U (0 till L) + V (0 till L)
+      C (2 * I + J) = Uv mod Md
+    end
+  end
+  return C
+end
+Ws = array W1 W2 W3
+Hs = array H1 H2 H3
+Answer = 0
+for Ti in 0 to 2
+  W = Ws Ti
+  H = Hs Ti
+  Ev = array 0 0
+  for Si in 0 to 1
+    S = 1 - 2 * Si
+    rem Degree cap: x^W at most.
+    L = (W + 1) (H + 2) min
+    P = array shape L fill 0
+    Q = P
+    Q 0 = 1
+    Pa = P
+    Qa = Q
+    if H at most 20000
+      for K in 1 to H
+        if K equal H
+          Pa = P
+          Qa = Q
+        end
+        Sp = P + Q
+        Sl = Sp (0 till L - 1)
+        Sx = concat (array 0) Sl
+        P = S * (P + Sx) mod Md
+        Q = (Q - Sx) mod Md
+      end
+    else
+      rem M^(H-1) by squaring, mod x^L.
+      Bm = array shape 4 L fill 0
+      Bm 0 0 = S
+      Bm 0 1 = S
+      Bm 1 1 = S
+      Bm 2 1 = -1
+      Bm 3 0 = 1
+      Bm 3 1 = -1
+      Bm = Bm mod Md
+      Rm = array shape 4 L fill 0
+      Rm 0 0 = 1
+      Rm 3 0 = 1
+      E = H - 1
+      for E greater 0
+        if E mod 2 equal 1
+          Rm = Rm Bm mmul
+        end
+        Bm = Bm Bm mmul
+        E //= 2
+      end
+      Pa = Rm 1
+      Qa = Rm 3
+      Sp = Pa + Qa
+      Sl = Sp (0 till L - 1)
+      Sx = concat (array 0) Sl
+      P = S * (Pa + Sx) mod Md
+      Q = (Qa - Sx) mod Md
+    end
+    Ch = 0
+    Cl = 0
+    if W at most 20000
+      Ch = P Q W lin
+      Cl = Pa Qa W lin
+    else
+      Ch = P Q W bm
+      Cl = Pa Qa W bm
+    end
+    Ev Si = (Ch - Cl) mod Md
+  end
+  Answer += (Ev sum) * I2 mod Md
+end
+Answer = Answer mod Md
+Answer print
