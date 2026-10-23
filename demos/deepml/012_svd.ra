@@ -39,7 +39,7 @@ fun A svd_2x2
   S1 = D1 sqrt
   Sigma = array S0 S1
 
-  U = A V matmul copy
+  U = A V matmul
 
   for j in 0 till 2
     if Sigma j greater 0

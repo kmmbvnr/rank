@@ -709,7 +709,9 @@ independent persistent version that shares unchanged nodes. On a finite
 sequence, it materializes values and stacks equally shaped array items along
 a new leading axis, like postfix `array`. An array whose cells are arrays or
 finite sequences of one shape stacks them after its own axes. `transpose` requires an array, so
-copy a sequence explicitly before transposing it.
+first complete a finite sequence with an ordinary binding, postfix `array`,
+or `copy` before transposing it. Ordinary array bindings already provide
+independent writable values; `copy` remains available to express snapshot intent.
 
 Both are infinite lazy sources until bounded. `primes` yields ascending prime
 integers beginning with `2`, and may seek to a zero-based position through
@@ -1234,8 +1236,9 @@ lazy and read-only.
 Materialized boolean arrays use packed bits. Same-shape logical operations,
 `count`, `indices`, and rank-one `shift with false` can use word kernels; `copy`
 creates an independent packed snapshot. For example,
-`Reach = (Reach or (Reach Weight shift with false)) copy` updates a subset-sum
-mask using each weight once. `(RowA and RowB) count` can count common true cells
+`Reach = (Reach or (Reach Weight shift with false))` updates a subset-sum
+mask using each weight once: ordinary `=` completes the update before the next
+iteration, so an explicit `copy` is optional. `(RowA and RowB) count` can count common true cells
 without constructing an unpacked intersection. Matrix/row broadcasting with
 `count axis 1` batches row intersections. Other broadcasting forms, arbitrary axes,
 and lazy readers keep their existing semantics and may use the general path.

@@ -5,7 +5,7 @@ use sequences
 
 fun A rref
   unpack Rows Cols = A shape
-  Work = A * 1.0 copy
+  Work = A * 1.0
   Row = 0
 
   for Col in 0 till Cols

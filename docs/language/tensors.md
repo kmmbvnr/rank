@@ -84,15 +84,17 @@ M Row Column = Value
 M # Column = Values
 ```
 
-Only material arrays are writable. Postfix `copy` eagerly copies either a
-material or lazy tensor into independent writable storage with the same shape:
+An ordinary binding completes a finite array expression and makes its result
+writable. Arrays have value semantics: changing `Writable` does not change
+`Source`, including when `Source` is already stored.
 
 ```rank
-use sequences
-Writable = Source copy
+Writable = Source
 ```
 
-Changing `Writable` does not change `Source`.
+`Writable = Source copy` is also valid with `use sequences`. Keep `copy` when
+it helps express the intent to take a snapshot; it is not required for array
+independence or writability.
 
 `transpose` returns a lazy read-only view. Without an axis modifier it reverses
 the order of every axis:

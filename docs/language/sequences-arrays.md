@@ -257,6 +257,20 @@ Postfix `array` materializes items eagerly as described below.
 
 ## Explicit materialization
 
+Ordinary bindings complete finite results, but explicit `array` can still make
+an example clearer. Both forms are supported without redundancy warnings:
+
+```rank
+use io
+Value = stdin .integer
+Values = stdin .integer N array
+```
+
+`Values` reads an array of `N` integers. The trailing `array` makes that
+intent visible even though ordinary `=` would also complete the finite input
+sequence. Prefix `array` constructs an array from elements; postfix `array`
+converts or materializes a supported source.
+
 Postfix `array` consumes a sequence and stores its yielded items in a dense
 array:
 
@@ -320,25 +334,32 @@ use sequences
 Writable = Source copy
 ```
 
-Changing the copy does not change the source. `copy` also consumes a finite
-sequence, using the same stacking rule as postfix `array`:
+Changing the copy does not change the source. Ordinary array binding already
+provides this independence: `Saved = Source` is enough. Use `Saved = Source copy`
+when explicitly naming the snapshot operation makes the code clearer.
+
+`copy` also consumes a finite sequence, using the same stacking rule as
+postfix `array`:
 
 ```rank
 fun rows
   yield array 1 2 3
   yield array 4 5 6
 end
-Rows = rows
+Rows' = rows
 Matrix = Rows copy
 Matrix shape          rem 2 3
 Matrix transpose      rem requires an array
 ```
 
-`Rows` stays a stream of row values until explicitly copied. Iteration can
-consume one row at a time, including rows with different shapes. `shape` on
-the stream describes its one-dimensional sequence length; `Matrix shape`
+`Rows` retains a stream plan because of its apostrophe binding. `Matrix = Rows`
+would also complete it; the explicit `copy` is optional. Before completion, it
+is a stream of row values. Iteration can consume one row at a time, including
+rows with different shapes. `shape` on the stream describes its one-dimensional
+sequence length; `Matrix shape`
 describes the materialized tensor. `transpose` does not implicitly consume a
-sequence: use `copy` first. User generators remain single-pass.
+sequence: first bind its finite result with `=`, or use postfix `array` or
+`copy` within the expression. User generators remain single-pass.
 
 An array whose cells are arrays or finite sequences stacks them the same way,
 with the new axes after its own. Every cell must then be an array or sequence
@@ -347,7 +368,7 @@ of one shape; a different shape, or a mixture with scalar cells, raises
 a matrix:
 
 ```rank
-Series = (array Month Interest Balance) copy transpose
+Series = (array Month Interest Balance) transpose
 Series shape          rem 360 3 for 360 months
 ```
 
@@ -533,13 +554,13 @@ For example, subset-sum updates keep the previous state while shifting:
 Reach = array shape 16 fill false
 Reach 0 = true
 for Weight in array 3 5 7
-  Reach = (Reach or (Reach Weight shift with false)) copy
+  Reach = (Reach or (Reach Weight shift with false))
 end
 Reach 0 = false
 Sums = Reach indices
 ```
 
-`copy` completes each update before the next iteration. Ordinary indexing and
+Ordinary `=` completes each update before the next iteration. Ordinary indexing and
 copy-on-write apply to packed arrays too. A contiguous matrix row can participate
 in `(RowA and RowB) count` without a separate unpacked intersection. Matrix/row broadcasting with `count axis 1` batches these intersections. Other
 broadcast and axis forms retain their existing semantics and general paths.
@@ -714,8 +735,9 @@ Real-number results may differ in rounding between reduction orders or backends.
 Other assignment operators reject `.accumulate`; plain `=` keeps its
 last-replacement behavior.
 
-Deferred results of `outer` and `window` are read-only recipes. Bind a finite
-result with `Saved = Plan`, or use postfix `copy`, before changing its cells.
+Deferred results of `outer` and `window` are read-only recipes. An ordinary
+binding such as `Saved = Plan` completes a finite result and makes it writable;
+no trailing `copy` or `array` is required.
 
 A range selects a contiguous run. Arbitrary positions use an integer array as
 the selector:
@@ -731,8 +753,8 @@ snapshot only their selected cells. This also protects computations over those
 selections without copying the whole source. Arithmetic on regular slices of
 stored numeric arrays can read their cells directly, including shifted and
 strided differences. Small selections over plain arrays keep their lazy,
-read-only interface;
-use `copy` when their result needs material storage. Typed selections and large
+read-only interface until completed. Ordinary bindings such as `Part = A (2 till 6)`
+complete the selection and make it writable. Typed selections and large
 stored selections defer their private storage until a write needs it.
 
 A range preserves one axis; an integer array replaces the selected axis with
@@ -772,7 +794,8 @@ Applying an array mask fixes the selected positions. Later writes to a
 materialized mask do not change an existing selection; a retained mask uses
 copy-on-write. Combining masks with `and=`, `or=` or `xor=` binds a new value
 and also leaves existing selections unchanged. Lazy array masks cannot be
-written by index; use `copy` to obtain a writable array.
+written by index; bind a finite mask with `Saved = Mask` to obtain a writable
+array. An explicit `copy` is optional.
 
 An array selected by a full-shape array mask remains lazy in its selected
 values, but knows its exact length. `len` therefore does not read those
@@ -952,9 +975,10 @@ Kept = N filter big
 column, because only that form returns rows that are still a table. A table is
 a SQLite view or a rank-1 value of rows, and filtering one needs `use tables`.
 
-Filtering a lazy sequence stays lazy, and filtering an array yields a lazy
-selection. Materialize it with `copy` or postfix `array` when the result must
-be an array.
+Filtering a sequence or array builds a lazy result. An ordinary binding such
+as `Kept = Values filter even` completes it into an array. An apostrophe binding
+keeps the plan. Postfix `array` or `copy` can explicitly materialize a finite
+result within a larger expression.
 
 A condition is one predicate, so the pipeline goes on after it. A comparison
 takes one operand, a predicate takes its `rank` and `axis` modifiers, and a

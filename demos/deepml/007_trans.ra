@@ -33,7 +33,7 @@ fun A determinant
     .DimensionMismatch raise
   end
 
-  Work = A * 1.0 copy
+  Work = A * 1.0
 
   Result = 1.0
   for i in 0 till Rows
