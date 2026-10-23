@@ -1,0 +1,104 @@
+rem Smallest prime factor
+rem https://projecteuler.net/problem=521
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option N integer = 1000000000000
+
+rem Lucy's sieve keeps the count C and
+rem sum S of 2..x minus the composites
+rem whose least factor is below p, at
+rem x <= R (Lo) and x = N // i (Hi).
+rem Prime p removes p m, m >= p with no
+rem smaller factor: C(N // p) - C(p - 1)
+rem composites of least factor p. The
+rem primes up to N add S(N) at the end.
+rem S drifts below zero between the
+rem reads, which reduce it mod M.
+M = 1000000000
+R = N isqrt
+X = (0 to R) copy
+Ii = (1 to R) copy
+Xh = concat (array 0) (N // Ii)
+rem x (x + 1) / 2 - 1 mod M; halve the
+rem even factor first.
+fun X tri
+  E = X mod 2 equal 0
+  A = E choose (X // 2) X
+  B = E choose (X + 1) ((X + 1) // 2)
+  T = (A mod M) * (B mod M) - 1
+  return T mod M
+end
+Lo = (X - 1) max 0
+Hi = (Xh - 1) max 0
+Sl = X tri
+Sh = Xh tri
+Sl 0 = 0
+Sh 0 = 0
+rem C is the cube root of N.
+C = ((N * 1.0) ** (1.0 / 3.0)) floor
+C += 2
+for C * C * C greater N
+  C -= 1
+end
+Answer = 0
+for P in primes to C
+  P2 = P * P
+  Pc = Lo (P - 1)
+  Ps = Sl (P - 1)
+  Answer += P * (Hi P - Pc) mod M
+  Lm = R (N // P2) min
+  M1 = (R // P) Lm min
+  if M1 greater 0
+    Ix = P to M1 * P by P
+    Hs = Hi Ix
+    Hi (1 to M1) -= Hs - Pc
+    Ss = (Sh Ix - Ps) mod M * P
+    Sh (1 to M1) -= Ss mod M
+  end
+  if Lm greater M1
+    Ib = (M1 + 1 to Lm) copy
+    Iv = N // (Ib * P)
+    Hi (M1 + 1 to Lm) -= Lo Iv - Pc
+    Ss = (Sl Iv - Ps) mod M * P
+    Sh (M1 + 1 to Lm) -= Ss mod M
+  end
+  if P2 at most R
+    Iv = (P2 to R) // P
+    Lo (P2 to R) -= Lo Iv - Pc
+    Ss = (Sl Iv - Ps) mod M * P
+    Sl (P2 to R) -= Ss mod M
+  end
+end
+rem For p > C every value a step
+rem reads is final: p^3 > N // i
+rem leaves Hi at i p untouched by
+rem primes from p on. So all larger
+rem primes update Hi together, one
+rem pair (i, p) per i <= N // p^2.
+Pb = primes from C + 1 to R array
+Ac = Pb * ((Hi Pb - Lo (Pb - 1)) mod M)
+Answer += (Ac mod M) sum
+Ct = N // (Pb * Pb)
+Cs = Ct scan +
+Nt = Cs last
+Po = (0 till Nt) copy
+J = Cs Po upperindex
+I = Po - (Cs - Ct) J + 1
+Pp = Pb J
+Q = I * Pp
+Bg = Q at most R
+Qh = Q R min
+Ql = N // Q R min
+Vc = Bg choose (Hi Qh) (Lo Ql)
+Vs = Bg choose (Sh Qh) (Sl Ql)
+Dc = Vc - Lo (Pp - 1)
+Ds = (Vs - Sl (Pp - 1)) mod M * Pp
+Hi I -= Dc .accumulate
+Sh I -= Ds mod M .accumulate
+Answer = (Answer + Sh 1) mod M
+Answer print

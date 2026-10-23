@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "521_smallestprime"
+  N = 100
+  run
+  Answer equal 1257
+end
