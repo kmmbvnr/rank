@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "535_fractalsequence"
+  N = 20
+  run
+  Answer equal 86
+  N = 1000
+  run
+  Answer equal 364089
+  N = 1000000000
+  run
+  Answer equal 978348241
+end

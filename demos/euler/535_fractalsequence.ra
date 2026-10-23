@@ -1,0 +1,66 @@
+rem Fractal Sequence
+rem https://projecteuler.net/problem=535
+
+use numbers
+use algo
+use io
+use cli
+
+option N integer = 1000000000000000000
+
+rem After the fresh values 1..k come
+rem R(k) copied terms, so the first n
+rem terms are the first B(n) terms and
+rem 1..c, c = n - B(n), with B(n) the
+rem largest k with k + R(k) <= n. Then
+rem R(n) = R(B(n)) + sum isqrt(i) for i
+rem <= c and T(n) = T(B(n)) + c(c+1)/2.
+fun Cr Cb X rr
+  if X equal 0
+    return 0
+  end
+  if X in Cr
+    return Cr X
+  end
+  rem k + R(k) <= X fails for k >= X.
+  Lo = 0
+  Hi = 1
+  for Hi less X
+    if Hi + (Cr Cb Hi rr) greater X
+      break
+    end
+    Lo = Hi
+    Hi *= 2
+  end
+  Hi = Hi X min
+  for Hi - Lo greater 1
+    Mi = (Lo + Hi) // 2
+    if Mi + (Cr Cb Mi rr) at most X
+      Lo = Mi
+    else
+      Hi = Mi
+    end
+  end
+  C = X - Lo
+  S = C isqrt
+  Sq = S * (S + 1) * (2 * S + 1) // 6
+  Q = S * (C + 1) - Sq
+  V = (Cr Cb Lo rr) + Q
+  Cr X = V
+  Cb X = Lo
+  return V
+end
+Cr = new index
+Cb = new index
+X = N
+Answer = 0
+Md = 1000000000
+for X greater 0
+  Rx = Cr Cb X rr
+  B = Cb X
+  C = X - B
+  Tc = C * (C + 1) // 2
+  Answer = (Answer + Tc) mod Md
+  X = B
+end
+Answer print
