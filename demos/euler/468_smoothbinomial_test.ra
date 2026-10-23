@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "468_smoothbinomial"
+  N = 11
+  run
+  Answer equal 3132
+  N = 1111
+  run
+  Answer equal 706036312
+end
+
+test "n = 111111"
+  use "468_smoothbinomial"
+  N = 111111
+  run
+  Answer equal 22156169
+end

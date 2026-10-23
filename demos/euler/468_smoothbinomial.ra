@@ -1,0 +1,180 @@
+rem Smooth divisors of binomial
+rem coefficients
+rem https://projecteuler.net/problem=468
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 11111111
+
+rem With primes p_1 < p_2 < ... and
+rem gaps w_i = p_(i+1) - p_i (the last
+rem up to N + 1), the sum over b of
+rem S_b(C(N, r)) is T_r = 1 + sum w_i
+rem G_i, G_i the p_i-smooth part. Each
+rem prime is the affine map (A, w A),
+rem A = p^a(r), and T_r - 1 is their
+rem composition. Sum T_r for r <= N/2
+rem and use C(N, r) = C(N, N - r).
+Md = 1000000993
+H = N // 2
+H1 = H + 1
+Pr = primes to N array
+Tp = Pr len
+Nx = Pr -1 shift with (N + 1)
+W = Nx - Pr
+Ws = (Pr at most 30) count
+Pi = array shape (N + 1) fill 0
+Pi (Pr) = (0 till Tp) copy - Ws
+rem Prime powers of 2 .. N from the
+rem smallest prime factor; p > 30.
+Sp = (0 to N) copy
+Rt = N isqrt
+for P in primes to Rt
+  Sl = P * P to N by P
+  Sp Sl = (Sp Sl) P min
+end
+Mm = (2 to N) copy
+Cu = Mm
+Fm = array shape 0 fill 0
+Fp = Fm
+Fe = Fm
+for Cu len greater 0
+  Ps = Sp Cu
+  Ex = Cu * 0 + 1
+  Cu = Cu // Ps
+  Ac = (Cu mod Ps equal 0) indices
+  for Ac len greater 0
+    Cu Ac = (Cu Ac) // (Ps Ac)
+    Ex Ac = (Ex Ac) + 1
+    Rd = (Cu Ac) mod (Ps Ac)
+    Ac = Ac ((Rd equal 0) indices)
+  end
+  Bg = (Ps greater 30) indices
+  Fm = concat Fm (Mm Bg)
+  Fp = concat Fp (Ps Bg)
+  Fe = concat Fe (Ex Bg)
+  Kp = (Cu greater 1) indices
+  Mm = Mm Kp
+  Cu = Cu Kp
+end
+rem Step r multiplies by (N - r + 1)
+rem / r: events (leaf, r, exponent
+rem change), plus a start at r = 0
+rem for each of Lf leaves.
+Tl = Tp - Ws
+Lf = 1
+Lv = 0
+for Lf less Tl
+  Lf *= 2
+  Lv += 1
+end
+Dn = (Fm at most H) indices
+Up = (Fm at least N - H + 1) indices
+Ls = (0 till Lf) copy
+Li = concat Ls (Pi (Fp Dn))
+Li = concat Li (Pi (Fp Up))
+Tm = concat (Ls * 0) (Fm Dn)
+Tm = concat Tm (N + 1 - Fm Up)
+De = concat (Ls * 0) (0 - Fe Dn)
+De = concat De (Fe Up)
+Ky = Li * H1 + Tm
+Od = Ky argsort
+Ky = Ky Od
+De = De Od
+rem Exponent: running sum per leaf.
+Ix = (0 till Ky len) copy
+Cs = De scan +
+St = (Ky mod H1 equal 0) choose Ix 0
+St = St scan max
+Al = Cs - (Cs - De) St
+Nk = Ky -1 shift with -1
+Kp = (Ky not equal Nk) indices
+Ky = Ky Kp
+Al = Al Kp
+Li = Ky // H1
+Pd = array shape (Lf - Tl) fill 1
+Pv = concat (Pr (Ws till Tp)) Pd
+Wv = concat (W (Ws till Tp)) (Pd * 0)
+Bs = Pv Li
+Pl = Bs * 0 + 1
+for Al max greater 0
+  Od = (Al mod 2 equal 1) indices
+  Pl Od = (Pl Od) * (Bs Od) mod Md
+  Bs = Bs * Bs mod Md
+  Al = Al // 2
+end
+Q = (Wv Li) * Pl mod Md
+rem Merge sibling timelines level by
+rem level: sort by (parent, r, side),
+rem read the latest left and right
+rem maps, keep one entry per r and
+rem compose (P, Q) = (Pa Pb, Qa + Pa
+rem Qb), packed as P * 2^30 + Q.
+Sh = 1073741824
+Pq = Pl * Sh + Q
+for Lv greater 0
+  Nd = Ky // H1
+  Kz = (Nd // 2 * H1 + Ky mod H1) * 2
+  Kz += Nd mod 2
+  Od = Kz argsort
+  Kz = Kz Od
+  Pq = Pq Od
+  Rb = Kz mod 2 equal 1
+  Ix = (0 till Kz len) copy
+  Ll = Rb choose 0 Ix
+  Ll = Ll scan max
+  Lr = Rb choose Ix 0
+  Lr = Lr scan max
+  Ky = Kz // 2
+  Nk = Ky -1 shift with -1
+  Kp = (Ky not equal Nk) indices
+  A = Pq (Ll Kp)
+  B = Pq (Lr Kp)
+  Pa = A // Sh
+  Pb = B // Sh
+  Qa = A mod Sh
+  Qb = B mod Sh
+  Q = (Qa + Pa * Qb) mod Md
+  Pq = (Pa * Pb mod Md) * Sh + Q
+  Ky = Ky Kp
+  Lv -= 1
+end
+Ip = array shape H1 fill 0
+Ip (Ky) = (0 till Ky len) copy
+Ip = Ip scan max
+Qt = (Pq mod Sh) Ip
+rem Primes up to 30 for every r at
+rem once: Kummer counts a carry for
+rem each p^k with r mod p^k greater
+rem than N mod p^k.
+Rr = (0 to H) copy
+G = Rr * 0 + 1
+Qs = Rr * 0
+for I in 0 till Ws
+  Pp = Pr I
+  Al = Rr * 0
+  Pk = Pp
+  for Pk at most N
+    Cr = Rr mod Pk greater N mod Pk
+    Al += Cr choose 1 0
+    Pk *= Pp
+  end
+  Bs = Rr * 0 + Pp
+  for Al max greater 0
+    Od = (Al mod 2 equal 1) indices
+    G Od = (G Od) * (Bs Od) mod Md
+    Bs = Bs * Bs mod Md
+    Al = Al // 2
+  end
+  Qs = (Qs + (W I) * G) mod Md
+end
+T = (1 + Qs + G * Qt) mod Md
+Answer = 2 * (T sum)
+if N mod 2 equal 0
+  Answer -= T H
+end
+Answer = Answer mod Md
+Answer print
