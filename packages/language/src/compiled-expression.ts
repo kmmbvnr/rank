@@ -23,7 +23,9 @@ export type CompiledExpression<T = CompiledAtomType, Input = string> = TypedNode
     | { readonly kind: 'call'; readonly operation: Operation; readonly signature: CompiledCallSignature;
         readonly arguments: readonly CompiledExpression<T, Input>[] }
     | { readonly kind: 'extreme'; readonly name: 'min' | 'max';
-        readonly left: CompiledExpression<T, Input>; readonly right?: CompiledExpression<T, Input> }
+        readonly left: CompiledExpression<T, Input>; readonly right?: CompiledExpression<T, Input>;
+        /** Number of raw values grouped by argument selection, for error context. */
+        readonly selected?: number }
     | { readonly kind: 'binary'; readonly operation: CompiledOperator;
         readonly signature: CompiledExpressionSignature<T>;
         readonly left: CompiledExpression<T, Input>; readonly right: CompiledExpression<T, Input> }
@@ -42,6 +44,8 @@ export interface CompiledExpressionContext<T, Input = string> {
     readonly read: (source: Expression, hint?: T) => { readonly type: T; readonly input: Input } | undefined;
     /** Whether a spelling is bound locally, independent of its scalar type. */
     readonly isBound: (name: string) => boolean;
+    /** Additional entry-guarded scalar slots; excludes implicit nullary calls. */
+    readonly scalarSlot?: (name: string) => boolean;
     /** Optional input-domain hints. The consumer must guard each selected input. */
     readonly operandHint?: (source: Expression, index: 0 | 1, left?: T) => T | undefined;
     /** Select the consumer's declared overload, including its capability gates. */
@@ -61,7 +65,7 @@ export type CompiledExpressionResult<T, Input = string> =
 /** Scalar extrema and left-associated chains such as `A B max C min`.
  * Collection reductions use the ordinary call path when scalar proof fails. */
 function scalarExtremeParts(source: Expression, unbound: (name: string) => boolean): {
-    name: 'min' | 'max'; left: Expression; right?: Expression;
+    name: 'min' | 'max'; left: Expression; right?: Expression; selected?: number;
 } | undefined {
     if (!isApplicationExpression(source)) return undefined;
     const parts = flattenApplication(source);
@@ -76,7 +80,14 @@ function scalarExtremeParts(source: Expression, unbound: (name: string) => boole
     }
     if (parts.length > 3 && !isExtreme(parts.at(-2))) {
         const left = applicationExpression(parts.slice(0, -2), source);
-        if (scalarExtremeParts(left, unbound)) return { name, left, right: parts.at(-2) };
+        const right = parts.at(-2)!;
+        // Argument preparation selects the addressed left operand only after
+        // evaluating the remaining data. A proved scalar slot or literal has
+        // no effects or errors to reorder across that selection. Other right
+        // operands retain ordinary evaluation unless the left is a completed
+        // extrema chain, whose result is already evaluated before the right.
+        if (scalarExtremeParts(left, unbound)) return { name, left, right };
+        if (isNameExpression(right) || isNumberLiteral(right)) return { name, left, right, selected: parts.length - 2 };
     }
     return undefined;
 }
@@ -108,9 +119,11 @@ export function inferCompiledExpression<T, Input>(
         if (left.failure) return left;
         const right = extreme.right ? inferCompiledExpression(extreme.right, context) : undefined;
         if (right?.failure) return right;
+        if (extreme.selected && extreme.right && isNameExpression(extreme.right)
+            && !context.isBound(extreme.right.name) && !context.scalarSlot?.(extreme.right.name)) return reject();
         const type = context.extreme!(extreme.name, right ? [left.expression.type, right.expression.type] : [left.expression.type]);
         if (type !== undefined) return { expression: { kind: 'extreme', source, type, name: extreme.name,
-            left: left.expression, right: right?.expression } };
+            left: left.expression, right: right?.expression, selected: extreme.selected } };
         return reject();
     }
     const input = context.read(source, hint);

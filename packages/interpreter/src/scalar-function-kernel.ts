@@ -10,7 +10,7 @@ import {
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
-import { RankError } from './errors.js';
+import { argumentSelectionError, RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
 import type { RankArray, RankValue } from './value.js';
 import { scalarArrayWriteOffset } from './selectors.js';
@@ -85,7 +85,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     function emit(expression: Expression, lines: string[], tail = false): string {
         return lower(expressions.get(expression)!, lines, tail);
     }
-    function lower(expression: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>, lines: string[], tail = false): string {
+    function lower(expression: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>, lines: string[], tail = false, selection?: { name: string; count: number }): string {
         if (expression.kind === 'group') return lower(expression.operand, lines, tail);
         if (expression.kind === 'literal') return typeof expression.value === 'bigint'
             ? `${expression.value}n` : typeof expression.value === 'number'
@@ -130,7 +130,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (operation === 'captured-read') {
                 const indices = expression.input.indices!.map(index => lower(index, lines));
                 const index = captures.push({ name: expression.input.name, rank: indices.length }) - 1, result = `v${serial++}`;
-                lines.push(`const ${result} = captures[${index}]([${indices.join(',')}]);`);
+                lines.push(selection ? `let ${result}; try { ${result} = captures[${index}]([${indices.join(',')}]); }
+                    catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`
+                    : `const ${result} = captures[${index}]([${indices.join(',')}]);`);
                 return result;
             }
             const receiver = slot(expression.input.name);
@@ -173,12 +175,15 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             const indices = expression.input.indices.map(index => lower(index, lines));
             const result = `v${serial++}`;
             const array = slot(expression.input.name), reader = `reader${slots.get(expression.input.name)}`;
-            lines.push(`const ${result} = ${proof!.containers ? `scalarSelection(${array}, [${indices.join(',')}])`
-                : `(${reader} ??= prepareReader(${array}, ${indices.length}))(${indices.length <= 2 ? indices.join(',') : `[${indices.join(',')}]`})`};`);
+            const read = proof!.containers ? `scalarSelection(${array}, [${indices.join(',')}])`
+                : `(${reader} ??= prepareReader(${array}, ${indices.length}))(${indices.length <= 2 ? indices.join(',') : `[${indices.join(',')}]`})`;
+            lines.push(selection ? `let ${result}; try { ${result} = ${read}; }
+                catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`
+                : `const ${result} = ${read};`);
             return result;
         }
         if (expression.kind === 'extreme') {
-            const left = lower(expression.left, lines);
+            const left = lower(expression.left, lines, false, expression.selected ? { name: expression.name, count: expression.selected } : undefined);
             if (!expression.right) return left;
             const right = lower(expression.right, lines), result = `v${serial++}`;
             lines.push(`const ${result} = ${scalarExtremeSource(expression.name, left, right)};`);
@@ -352,7 +357,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

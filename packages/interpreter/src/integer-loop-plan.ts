@@ -52,7 +52,7 @@ export interface LoopHost {
     compiled?(source: string): void;
     executed?(): void;
 }
-export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean }
+export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean; selection?: boolean }
 
 /** The loop register type of a runtime value: one mapping for entry
  * guards, cell scans and type selection. */

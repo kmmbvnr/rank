@@ -1188,6 +1188,52 @@ end`);
         expect(result.loops).toBe(1);
     });
 
+    it.each(['min', 'max'])('compiles ungrouped addressed operands of %s with exact updates', name => {
+        const result = compare(`A = array 9007199254740993 9007199254740995
+M = array shape 2 1 fill 9007199254740994
+Limit = 9007199254740994
+for I in 0 till 2
+  A I = A I Limit ${name}
+  M I 0 = M I 0 Limit ${name} 9007199254740996 min
+end
+A`);
+        expect(result.value).toBe(name === 'min' ? '9007199254740993 9007199254740994'
+            : '9007199254740994 9007199254740995');
+        expect(result.loops).toBe(1);
+    });
+
+    it.each(['I', '-1', '(I // 0)'])('preserves address errors for %s and earlier updates with a scalar right operand', index => {
+        const result = compare(`A = array 10 20
+for I in 0 till 3
+  A 0 += 1
+  X = A ${index} 15 max
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(1);
+    });
+
+    it('keeps addressed extrema errors after earlier updates', () => {
+        const result = compare(`A = array 10 20
+for I in 0 till 3
+  A 0 += 1
+  X = A I (1 // (2 - I)) max
+end`);
+        expect(result).toHaveProperty('error');
+        expect(result.loops).toBe(0);
+    });
+
+    it('keeps partial array operands on the ordinary path', () => {
+        const result = compare(`A = array shape 2 2 fill 5
+X = array 0 0
+for I in 0 till 2
+  X = A I 1 max
+end
+X`);
+        expect(result).not.toHaveProperty('error');
+        expect(result.value).toBe('5 5');
+        expect(result.loops).toBe(0);
+    });
+
     it('preserves scalar unary extrema', () => {
         const result = compare(`use numbers
 for I in 0 till 1

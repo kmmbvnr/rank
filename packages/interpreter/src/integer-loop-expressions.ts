@@ -111,6 +111,8 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 return term && isScalar(term) ? { type: term.type, input: { term, lines: inputLines } } : undefined;
             },
             isBound: name => localTypes.has(name) || arrays.has(name) || containers.has(name),
+            // Name inputs are registers or entry-guarded values, never calls.
+            scalarSlot: () => true,
             extreme: host.extrema ? (name, inputs) => {
                 const type = inputs[0];
                 if (type !== 'integer' && type !== 'real' || inputs.some(input => input !== type)) return undefined;
@@ -143,7 +145,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
         if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
         return lower(inferred.expression, lines) ?? reject(e);
     }
-    function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[]): LoopTerm | undefined {
+    function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[], selection?: { name: string; count: number }): LoopTerm | undefined {
         // Real intermediates are allowed in Number regions; published
         // registers still have to satisfy the integer/boolean binding contract.
         if (state.serial > 256) return undefined;
@@ -155,12 +157,19 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 : typeof value === 'number' ? Object.is(value, -0) ? '-0' : String(value) : JSON.stringify(value) };
         }
         if (node.kind === 'input') {
-            lines.push(...node.input.lines);
+            const input = node.input;
+            if (selection && input.term.selection) {
+                // Only the final read belongs to argument preparation; index
+                // expressions keep their own errors and evaluation order.
+                lines.push(...input.lines.slice(0, -1), `let ${input.term.code}; try {
+                    ${input.lines.at(-1)!.replace(`const ${input.term.code} =`, `${input.term.code} =`)}
+                } catch (error) { throw argumentSelectionError(error, ${JSON.stringify(selection.name)}, ${selection.count}); }`);
+            } else lines.push(...input.lines);
             return node.input.term;
         }
         if (node.kind === 'call') return undefined; // Calls are guarded loop inputs above.
         if (node.kind === 'extreme') {
-            const left = lower(node.left, lines);
+            const left = lower(node.left, lines, node.selected ? { name: node.name, count: node.selected } : undefined);
             if (!left || !node.right) return left;
             // Cell reads may be accessor expressions. Freeze the left value
             // before lowering the right and use each operand only once.
@@ -445,7 +454,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 }
                 const name = `v${state.serial++}`;
                 lines.push(`const ${name} = indexRead(${receiver}, key([${keys.join(',')}]));`);
-                return { code: name, type: 'integer' };
+                return { code: name, type: 'integer', selection: true };
             }
             if (!numberMode && host.nativeCalls && host.textLoops && knownType(head) === 'text') {
                 if (arguments_.length !== 1) return undefined;
@@ -461,7 +470,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 if (!receiver || index?.type !== 'integer') return undefined;
                 const name = `v${state.serial++}`;
                 lines.push(`const ${name} = arrayRead(${receiver.code}, [${index.code}]);`);
-                return { code: name, type: 'integer' };
+                return { code: name, type: 'integer', selection: true };
             }
             const previous = arrays.get(head.name);
             const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? realInput(head.name) ?? 'integer';
@@ -489,7 +498,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
             } else {
                 lines.push(`const ${name} = reader${info.slot}(${info.rank <= 2 ? indices.join(',') : `[${indices.join(',')}]`});`);
             }
-            return { code: name, type };
+            return { code: name, type, selection: true };
         }
         if (!isBinaryExpression(e) || e.step) return undefined;
         if (!numberMode && ['in', 'notin'].includes(e.operator) && isNameExpression(e.right)) {

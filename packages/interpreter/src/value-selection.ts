@@ -5,7 +5,7 @@ import { textAt } from './text-storage.js';
 import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
 import { RankDeque } from './containers.js';
 import { counterFrequency } from './collections.js';
-import { MissingValueError, RankError } from './errors.js';
+import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { indexGet, indexKey } from './index-storage.js';
 import { checkpoint } from './interrupt.js';
 import { demandValue } from './plan.js';
@@ -397,11 +397,7 @@ export function callArguments(
         try {
             first = select(firstParts);
         } catch (error) {
-            if (error instanceof RankError) {
-                error.message += `\nWhile preparing arguments for ${fn.name}: the first ${firstLength} values were interpreted as a receiver and its selectors.`
-                    + '\nTo pass independently computed arguments, group each argument with parentheses.';
-            }
-            throw error;
+            throw argumentSelectionError(error, fn.name, firstLength);
         }
         return [first, ...values.slice(firstLength)];
     }

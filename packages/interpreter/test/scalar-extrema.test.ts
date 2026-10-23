@@ -32,6 +32,17 @@ describe('shared scalar extrema', () => {
         }
     });
 
+    it('compiles ungrouped cell operands and preserves argument-selection errors', () => {
+        const array: RankValue = { kind: 'array', shape: [2], items: [3n, 7n] };
+        expect(call('return X 0 Y max', [array, 5n], true)).toEqual({ value: 5n, calls: 1 });
+        const errors = [false, true].map(compilation => {
+            try { call('return X 2 Y max', [array, 5n], compilation); return undefined; }
+            catch (error) { return (error as Error).message; }
+        });
+        expect(errors[0]).toContain('While preparing arguments for max');
+        expect(errors[1]).toBe(errors[0]);
+    });
+
     it('preserves chains and keeps mixed or collection inputs on the reference path', () => {
         const source = 'return X Y max 10 min';
         expect(call(source, [4n, 20n], true)).toEqual({ value: 10n, calls: 1 });

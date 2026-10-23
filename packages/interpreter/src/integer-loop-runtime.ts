@@ -10,7 +10,7 @@ import { primeRange } from './prime-sequence.js';
 import { checkpoint, inspectionEnabled } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { completed, type Execution } from './execution.js';
-import { MissingValueError, RankError } from './errors.js';
+import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { isRankArray, isRankIndex, isNativeFunction, type RankArray, type RankValue } from './value.js';
 import { RankDeque } from './containers.js';
 import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
@@ -38,7 +38,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, graphAdds: ((values: RankValue[]) => void)[]) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -56,7 +56,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 writeIntegerSelection(array, count, index => first + index * stride, operand, operator);
                 return true;
             }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
-            () => new RankError('power result is not real'), textLength, primeRange, materializeValue); }
+            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0

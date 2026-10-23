@@ -1,5 +1,5 @@
 import { isForStatement } from '@arrrank/language';
-import { MissingValueError, RankError } from './errors.js';
+import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
@@ -65,7 +65,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', source)(
+        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', source)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -76,7 +76,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number) => index < 0 ? new RankError('array index must be nonnegative on axis 0')
-                : new MissingValueError(`array index out of bounds on axis 0: ${index}`));
+                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError);
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {

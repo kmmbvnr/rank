@@ -1,6 +1,15 @@
 import type { RankErrorValue, RankValue } from './value.js';
 import { summarizeValue } from './value-summary.js';
 
+/** Keep ordinary and compiled argument-selection diagnostics identical. */
+export function argumentSelectionError(error: unknown, name: string, count: number): unknown {
+    if (error instanceof RankError) {
+        error.message += `\nWhile preparing arguments for ${name}: the first ${count} values were interpreted as a receiver and its selectors.`
+            + '\nTo pass independently computed arguments, group each argument with parentheses.';
+    }
+    return error;
+}
+
 export interface RankErrorLocation {
     readonly sourceId: string;
     readonly line: number;

@@ -48,6 +48,27 @@ describe('shared compiled expression inference', () => {
         expect(inferCompiledExpression(expression('A B max'), context({ A: 'integer', B: 'integer' })).failure).toBeDefined();
     });
 
+    it('infers an addressed left operand before scalar extrema', () => {
+        const scope: CompiledExpressionContext<CompiledAtomType> = {
+            ...context({ Limit: 'integer' }),
+            read: source => isApplicationExpression(source)
+                && isNameExpression(source.head) && source.head.name === 'Values'
+                ? { type: 'integer', input: 'cell' }
+                : isNameExpression(source) && source.name === 'Limit'
+                    ? { type: 'integer', input: 'limit' } : undefined,
+            extreme: (_name, inputs) => inputs.every(type => type === 'integer') ? 'integer' : undefined,
+        };
+        expect(inferCompiledExpression(expression('Values 0 Limit max 10 min'), scope).expression).toMatchObject({
+            kind: 'extreme', name: 'min',
+            left: { kind: 'extreme', name: 'max', left: { kind: 'input', input: 'cell' },
+                right: { kind: 'input', input: 'limit' } },
+        });
+        expect(inferCompiledExpression(expression('Values 0 Limit max'), { ...scope, read: () => undefined }).failure)
+            .toBeDefined();
+        expect(inferCompiledExpression(expression('Values 0 Limit max'), { ...scope, isBound: () => false }).failure)
+            .toBeDefined();
+    });
+
     it('retains the syntax, child order and selected catalogue overload for lowering', () => {
         const source = expression('(A + 1) less B');
         const result = inferCompiledExpression(source, context({ A: 'integer', B: 'integer' }));
