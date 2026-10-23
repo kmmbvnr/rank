@@ -3,7 +3,7 @@ import {
     type Expression, type NameExpression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
-import { OUTER_OPERATORS, REDUCE_OPERATORS, applicationForm } from './application-forms.js';
+import { OUTER_OPERATORS, REDUCE_OPERATORS, applicationForm, foldModifierEnd } from './application-forms.js';
 import { findOperation } from './operations.js';
 
 export const COMPARISON_OPERATORS = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
@@ -72,7 +72,7 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
         return end < parts.length ? end : undefined;
     }
     if (named(parts[2], 'segment') || named(parts[2], 'scan') || named(parts[2], 'reduce')) {
-        const end = named(parts[3], 'with') || named(parts[3], 'axis') ? 5 : 3;
+        const end = named(parts[2], 'segment') ? (named(parts[3], 'with') ? 5 : 3) : foldModifierEnd(parts, 3);
         return parts.length > end ? end : undefined;
     }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
@@ -108,12 +108,9 @@ export function groupModifiers(expression: Expression, standard: StandardName = 
             && named(parts[0], 'segment'))
             || (OUTER_OPERATORS.has(expression.operator) && named(parts[0], 'outer'));
         if (!supported) return expression;
-        const ranked = reduce && named(parts[1], 'rank');
-        const seeded = (reduce || scan) && named(parts[ranked ? 3 : 1], 'with');
         const rankPosition = comparison ? parts.findIndex(part => named(part, 'rank')) : -1;
         if (comparison && rankPosition < 0) return expression;
-        const axised = scan && named(parts[1], 'axis');
-        const end = comparison ? rankPosition + 2 : (ranked ? 3 : 1) + (seeded || axised ? 2 : 0);
+        const end = comparison ? rankPosition + 2 : reduce || scan ? foldModifierEnd(parts, 1) : 1;
         if (parts.length <= end) return expression;
         prefix = { ...expression, right: applicationExpression(parts.slice(0, end)) } as Expression;
         rest = parts.slice(end);

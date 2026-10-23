@@ -115,7 +115,7 @@ once; missing, repeated and out-of-range axes are errors. A matrix transpose is
 
 ## Scanning along an axis
 
-`scan axis` accumulates along one axis and keeps the shape:
+`scan axis` accumulates along one axis. Without a seed it keeps the shape:
 
 ```rank
 Balance = Factor scan * axis 0
@@ -125,9 +125,33 @@ Highest = Path scan max axis 0
 `Factor` is a table with one row per year and one column per lane; `Balance`
 has the running product of every column. The operator may be a symbolic one or
 a named binary operation. The axis is a literal number, and the first item along
-it is kept as it is. Every cell along the other axes is scanned independently.
+it is kept as it is. Every line along the other axes is scanned independently.
+
+```rank
+Balances = Factor scan * axis 0 with 1
+RowTotals = Factor scan + rank 1 with 0
+```
+
+`with Seed` prepends the same rank-0 seed to every line and grows the selected
+axis by one; accumulated results must also have rank 0. An empty selected axis
+then has length 1, while any empty frame axis stays empty. The seed expression
+is evaluated once. `rank R` selects the leading axis of each trailing rank-`R`
+cell: axis `source rank - R`. Thus `rank 1` scans each row of a matrix and
+`rank 2` scans each column. `R` is a positive integer literal no larger than the
+source rank. Use one `axis` or one `rank`, followed by optional `with Seed`.
+Symbols, named builtins and binary user functions accept the same modifiers;
+callbacks receive individual elements rather than entire slices.
 
 ## Axis reductions
+
+`reduce <op|fn>` also accepts `axis` with one or more distinct axes and an
+optional seed, for example `M reduce add axis 0 with 0`. It folds the selected
+elements in row-major order, preserving the other axes. The order of the axis
+list does not change the fold order. `rank R` instead reduces each trailing
+rank-`R` cell, for example `M reduce add rank 1 with 0`. `rank` and `axis` are
+alternatives and precede `with`. Empty cells return the seed when supplied;
+without one, symbolic identities still apply, while named folds require a seed.
+An empty frame returns an empty result without invoking the callback.
 
 `sum`, `mean`, `std`, `min`, `max`, `all` and `any` without modifiers reduce
 every element. `axis` reduces only the named axes and preserves the remaining

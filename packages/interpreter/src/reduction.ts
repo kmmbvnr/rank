@@ -40,7 +40,14 @@ export class ReductionEvaluator {
         value: RankValue,
         cellRank?: number,
         seed?: RankValue,
+        axes?: readonly number[],
     ): RankValue {
+        if (axes) {
+            if (isRankArray(value) && new Set(axes).size === axes.length
+                && axes.every(axis => axis >= value.shape.length - axes.length && axis < value.shape.length)) {
+                cellRank = axes.length;
+            } else return this.reduceAxes(value, axes, cell => this.reduceCell(operator, cell, seed), seed === undefined ? [] : [seed]);
+        }
         if (cellRank === undefined) return this.reduceCell(operator, value, seed);
         if (isRankArray(value)) {
             if (cellRank > value.shape.length) {
@@ -65,28 +72,32 @@ export class ReductionEvaluator {
         return this.reduceCell(operator, value, seed);
     }
 
-    evaluateScan(operator: string, value: RankValue, seed?: RankValue): RankValue {
+    evaluateScan(operator: string, value: RankValue, seed?: RankValue, axis?: number, rank?: number): RankValue {
+        axis = this.scanAxisNumber(value, axis, rank);
+        if (axis !== undefined) return this.evaluateScanAxis(operator, value, axis, seed);
         return this.scanValues(value, operator, seed,
             numericKernel(operator, (a, b) => this.binary(operator, a, b)));
     }
 
-    /** Prefix accumulation along one axis of an array; the shape is kept. */
-    evaluateScanAxis(operator: string, value: RankValue, axis: number): RankValue {
-        return this.scanAxis(operator, value, axis, numericKernel(operator, (a, b) => this.binary(operator, a, b)));
+    /** Prefix accumulation along one axis; a seed grows that axis by one. */
+    evaluateScanAxis(operator: string, value: RankValue, axis: number, seed?: RankValue): RankValue {
+        return this.scanAxis(operator, value, axis, numericKernel(operator, (a, b) => this.binary(operator, a, b)), seed, operator);
     }
 
     /** `scanAxis` with a named binary operation; `max` and `min` run as real loops. */
-    evaluateNamedScanAxis(operation: NativeFunction, value: RankValue, axis: number): RankValue {
+    evaluateNamedScanAxis(operation: NativeFunction, value: RankValue, axis: number, seed?: RankValue): RankValue {
         const extreme = operation === this.standardFunctions.get(standardModules.core.max) ? 'max'
-            : operation === this.standardFunctions.get(standardModules.core.min) ? 'min' : operation.name;
+            : operation === this.standardFunctions.get(standardModules.core.min) ? 'min' : undefined;
         const scalar = this.scalarCallback(operation);
-        return this.scanAxis(extreme, value, axis, (left, right) => {
+        return this.scanAxis(operation.name, value, axis, (left, right) => {
             const arguments_ = [left, right];
             return scalar ? scalar(arguments_) : operation.call(arguments_);
-        });
+        }, seed, hasNativeImplementation(operation) ? extreme : undefined);
     }
 
-    evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
+    evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue, axis?: number, rank?: number): RankValue {
+        axis = this.scanAxisNumber(value, axis, rank);
+        if (axis !== undefined) return this.evaluateNamedScanAxis(operation, value, axis, seed);
         if (isRankSequence(value)) operation = snapshotLazyFunction(operation);
         const scalar = this.scalarCallback(operation);
         return this.scanValues(value, operation.name, seed, (left, right) => {
@@ -95,7 +106,14 @@ export class ReductionEvaluator {
         }, isPureLazyFunction(operation), [new Map([['callback', operation]])]);
     }
 
-    evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue): RankValue {
+    evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
+        rank?: number, axes?: readonly number[]): RankValue {
+        if (rank !== undefined) {
+            if (rank > valueRank(value)) throw new RankError(`rank ${rank} exceeds value rank ${valueRank(value)}`);
+            if (isRankArray(value)) axes = Array.from({ length: rank }, (_, i) => value.shape.length - rank + i);
+        }
+        if (axes) return this.reduceAxes(value, axes, cell => this.evaluateNamedReduction(operation, cell, seed),
+            seed === undefined ? [operation] : [operation, seed]);
         const scalar = this.scalarCallback(operation);
         const values = reductionValues(value, operation.name);
         let result = seed;
@@ -109,8 +127,27 @@ export class ReductionEvaluator {
         return result;
     }
 
+    /** Select scalar lines; rank R scans the leading axis of each trailing rank-R cell. */
+    private scanAxisNumber(value: RankValue, axis?: number, rank?: number): number | undefined {
+        if (rank === undefined) return axis;
+        if (rank === 0 || rank > valueRank(value)) throw new RankError('scan rank must be between 1 and the source rank');
+        return isRankArray(value) ? value.shape.length - rank : undefined;
+    }
+
+    private reduceAxes(value: RankValue, axes: readonly number[], reduce: (cell: RankValue) => RankValue,
+        captures: readonly RankValue[] = []): RankValue {
+        if (!isRankArray(value)) throw new RankError('reduce axis expects an array');
+        if (new Set(axes).size !== axes.length) throw new RankError('reduce axes must be unique');
+        for (const axis of axes) if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
+        const frameAxes = value.shape.map((_, i) => i).filter(i => !axes.includes(i));
+        const contiguous = frameAxes.every((axis, index) => axis === index);
+        const cells = contiguous ? dyadicCells(value, value.shape.length - frameAxes.length) : tensorCells(value, frameAxes);
+        if (!cells.frameShape.length) return reduce(cells.cellAt(0));
+        return derivedArray(cells.frameShape, [value, ...captures], index => reduce(cells.cellAt(index)));
+    }
+
     private scanAxis(operator: string, value: RankValue, axis: number,
-        operation: (left: RankValue, right: RankValue) => RankValue): RankValue {
+        operation: (left: RankValue, right: RankValue) => RankValue, seed?: RankValue, nativeOperator?: string): RankValue {
         if (!isRankArray(value)) throw new RankError(`scan ${operator} axis expects an array`);
         if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
         const shape = value.shape;
@@ -118,19 +155,39 @@ export class ReductionEvaluator {
         const length = shape[axis];
         const inner = arraySize(shape.slice(axis + 1));
         const outer = arraySize(shape.slice(0, axis));
+        if (seed !== undefined) {
+            if (valueRank(seed) !== 0) throw new RankError('scan axis seed must be a scalar');
+            const outShape = [...shape];
+            outShape[axis]++;
+            const out: RankValue[] = new Array(arraySize(outShape));
+            for (let block = 0; block < outer; block++) {
+                const start = block * (length + 1) * inner;
+                for (let lane = 0; lane < inner; lane++) out[start + lane] = seed;
+                for (let step = 0; step < length; step++) {
+                    const at = start + (step + 1) * inner;
+                    const source = (block * length + step) * inner;
+                    for (let lane = 0; lane < inner; lane++) {
+                        const accumulated = operation(out[at - inner + lane], arrayItem(value, source + lane));
+                        if (valueRank(accumulated) !== 0) throw new RankError('scan axis operation must return a scalar');
+                        out[at + lane] = accumulated;
+                    }
+                }
+            }
+            return ownedArray(out, outShape);
+        }
         const cells = eagerOperandItems(value)
             ?? Array.from({ length: size }, (_, index) => arrayItem(value, index));
         const reals = realView(cells);
-        if (reals && (operator === '+' || operator === '-' || operator === '*' || operator === 'max' || operator === 'min')) {
+        if (reals && nativeOperator && ['+', '-', '*', 'max', 'min'].includes(nativeOperator)) {
             const out = new Float64Array(size);
             for (let start = 0; start < size; start += length * inner) {
                 for (let index = 0; index < inner && length > 0; index += 1) out[start + index] = reals[start + index];
                 for (let step = 1; step < length; step += 1) {
                     const at = start + step * inner;
-                    if (operator === '+') for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] + reals[index];
-                    else if (operator === 'max') for (let index = at; index < at + inner; index += 1) out[index] = Math.max(out[index - inner], reals[index]);
-                    else if (operator === 'min') for (let index = at; index < at + inner; index += 1) out[index] = Math.min(out[index - inner], reals[index]);
-                    else if (operator === '-') for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] - reals[index];
+                    if (nativeOperator === '+') for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] + reals[index];
+                    else if (nativeOperator === 'max') for (let index = at; index < at + inner; index += 1) out[index] = Math.max(out[index - inner], reals[index]);
+                    else if (nativeOperator === 'min') for (let index = at; index < at + inner; index += 1) out[index] = Math.min(out[index - inner], reals[index]);
+                    else if (nativeOperator === '-') for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] - reals[index];
                     else for (let index = at; index < at + inner; index += 1) out[index] = out[index - inner] * reals[index];
                 }
             }

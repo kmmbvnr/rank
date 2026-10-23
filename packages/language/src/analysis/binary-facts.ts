@@ -1,3 +1,4 @@
+import { foldShapeFacts } from './fold-facts.js';
 import {
     isAllAxisExpression, isBinaryExpression, isSubjectComparisonExpression, isUnaryExpression,
     type BinaryExpression, type Expression,
@@ -237,20 +238,17 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
             return { types: ['segment'], elements: values.elements, segmentOperation: '+' };
         }
     }
-    if (symbolic?.kind === 'scan' && !symbolic.axis && ['+', '-', '*'].includes(symbolic.operator)) {
+    if (symbolic.kind === 'scan' || symbolic.kind === 'reduce') {
         const source = infer(symbolic.source, lookup);
         const seed = symbolic.seed && infer(symbolic.seed, lookup);
-        const cells = foldedCells(source, seed, type => type === 'integer' || type === 'real');
-        if (cells && source.rank === 1) return scannedFacts(source, seed, cells);
-    }
-    if (symbolic?.kind === 'reduce' && ['+', '-', '*'].includes(symbolic.operator)
-        && symbolic.rank === undefined) {
-        const source = infer(symbolic.source, lookup);
-        const seed = symbolic.seed && infer(symbolic.seed, lookup);
-        const cells = foldedCells(source, seed, type => type === 'integer' || type === 'real');
-        // A real cell may meet only integers in a short source, so either can result.
-        if (cells && source.rank !== undefined && source.rank > 0) return {
-            types: cells.join() === 'integer' ? ['integer'] : ['integer', 'real'], rank: 0, shape: [] };
+        const numeric = ['+', '-', '*', '/', '//', 'mod', '**'].includes(symbolic.operator);
+        const boolean = ['and', 'or', 'xor'].includes(symbolic.operator);
+        let cells = foldedCells(source, seed, type => numeric ? type === 'integer' || type === 'real'
+            : boolean && type === 'boolean');
+        if (cells) cells = [...new Set([...cells, ...binaryType(symbolic.operator, cells, cells)])];
+        const result = foldShapeFacts(symbolic.kind === 'scan', symbolic, source,
+            expression => infer(expression, lookup), cells);
+        if (result) return { ...result, ...(symbolic.kind === 'scan' && cells ? { callbackFreeScalarCells: true as const } : {}) };
     }
     return undefined;
 }
@@ -263,13 +261,6 @@ export function foldedCells(source: ValueFacts, seed: ValueFacts | undefined,
         || !(source.eagerScalarCells || source.callbackFreeScalarCells)
         || seed && seed.rank !== 0 || !cells.every(accepts)) return undefined;
     return [...new Set(cells)];
-}
-
-/** A scan keeps one result per cell, plus one for its seed. */
-export function scannedFacts(source: ValueFacts, seed: ValueFacts | undefined, cells: Types): ValueFacts {
-    const length = source.shape?.[0];
-    return { types: source.types, rank: 1, shape: [length == null ? null : length + (seed ? 1 : 0)],
-        elements: cells, callbackFreeScalarCells: true };
 }
 
 /** `Values (Start until End)`: a contiguous run along one axis keeps the source's kind and cells. */

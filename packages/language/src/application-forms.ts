@@ -100,13 +100,56 @@ function isNamed(expression: Expression | undefined, name: string, nameOf: NameO
     return isNameExpression(expression) && nameOf(expression) === name;
 }
 
+/** Shared modifier syntax for symbolic and named folds. */
+export interface FoldModifiers {
+    readonly rank?: Expression;
+    readonly axis?: Expression;
+    readonly axes?: readonly Expression[];
+    readonly seed?: Expression;
+}
+
+function foldNumber(value: Expression | undefined): boolean {
+    return isNumberLiteral(value) || isUnaryExpression(value) && value.operator === '-' && isNumberLiteral(value.operand);
+}
+
+/** Include all fold modifiers before a following pipeline operation. */
+export function foldModifierEnd(parts: Expression[], start: number, nameOf: NameOf = rawName): number {
+    let end = start;
+    while (['rank', 'axis', 'with'].some(word => isNamed(parts[end], word, nameOf))) {
+        const axis = isNamed(parts[end], 'axis', nameOf);
+        end += 2;
+        if (axis) while (foldNumber(parts[end])) end++;
+    }
+    return end;
+}
+
+function foldModifiers(parts: Expression[], start: number, scan: boolean, nameOf: NameOf = rawName): FoldModifiers {
+    let rank: Expression | undefined, seed: Expression | undefined, axes: Expression[] | undefined;
+    for (let index = start; index < parts.length;) {
+        const word = parts[index++];
+        if (isNamed(word, 'with', nameOf) && seed === undefined && index === parts.length - 1) {
+            seed = parts[index++];
+        } else if (isNamed(word, 'rank', nameOf) && rank === undefined && axes === undefined && seed === undefined && parts[index]) {
+            rank = parts[index++];
+        } else if (isNamed(word, 'axis', nameOf) && rank === undefined && axes === undefined && seed === undefined) {
+            axes = [];
+            while (foldNumber(parts[index])) {
+                axes.push(parts[index++]);
+            }
+            if (!axes.length || scan && axes.length !== 1) throw new ApplicationSyntaxError(scan
+                ? 'scan axis expects one integer axis' : 'reduce axis expects one or more integer axes');
+        } else throw new ApplicationSyntaxError('fold expects rank R or axis axes, followed by optional with Seed');
+    }
+    return { rank, seed, ...(scan ? { axis: axes?.[0] } : { axes }) };
+}
+
 export type SymbolicApplicationForm =
     | { readonly kind: 'outer'; readonly operator: string; readonly operands: readonly Expression[] }
     | { readonly kind: 'segment'; readonly operator: string; readonly source: Expression }
     | { readonly kind: 'scan'; readonly operator: string; readonly source: Expression; readonly seed?: Expression;
-        readonly axis?: Expression }
+        readonly axis?: Expression; readonly rank?: Expression }
     | { readonly kind: 'reduce'; readonly operator: string; readonly source: Expression;
-        readonly rank?: Expression; readonly seed?: Expression };
+        readonly rank?: Expression; readonly axes?: readonly Expression[]; readonly seed?: Expression };
 
 /** Recognize the current symbolic modifier syntax once for runtime and analysis. */
 export function symbolicApplicationForm(
@@ -124,26 +167,10 @@ export function symbolicApplicationForm(
     if (parts.length === 1 && isNamed(parts[0], 'segment') && standard('segment')) {
         return { kind: 'segment', operator: expression.operator, source: expression.left };
     }
-    if (isNamed(parts[0], 'scan') && standard('scan')) {
-        if (parts.length === 1) return { kind: 'scan', operator: expression.operator,
-            source: expression.left };
-        if (parts.length === 3 && isNamed(parts[1], 'with')) return {
-            kind: 'scan', operator: expression.operator, source: expression.left, seed: parts[2],
-        };
-        if (parts.length === 3 && isNamed(parts[1], 'axis') && isNumberLiteral(parts[2])) return {
-            kind: 'scan', operator: expression.operator, source: expression.left, axis: parts[2],
-        };
-    }
-    if (isNamed(parts[0], 'reduce') && standard('reduce')) {
-        if (parts.length === 1) return { kind: 'reduce', operator: expression.operator,
-            source: expression.left };
-        if (parts.length === 3 && isNamed(parts[1], 'with')) return {
-            kind: 'reduce', operator: expression.operator, source: expression.left, seed: parts[2],
-        };
-        if ((parts.length === 3 || parts.length === 5) && isNamed(parts[1], 'rank')
-            && (parts.length === 3 || isNamed(parts[3], 'with'))) return {
-            kind: 'reduce', operator: expression.operator, source: expression.left,
-            rank: parts[2], seed: parts[4],
+    for (const kind of ['scan', 'reduce'] as const) {
+        if (isNamed(parts[0], kind) && standard(kind)) return {
+            kind, operator: expression.operator, source: expression.left,
+            ...foldModifiers(parts, 1, kind === 'scan'),
         };
     }
     return undefined;
@@ -170,35 +197,19 @@ export interface NamedSegmentApplication {
     readonly operation: Expression;
 }
 
-export interface NamedScanApplication {
-    readonly seed?: Expression;
-    readonly axis?: Expression;
+export interface NamedScanApplication extends FoldModifiers {
     readonly source: Expression;
     readonly operation: Expression;
 }
 
 export function explicitNamedScanApplication(parts: Expression[], nameOf: NameOf = rawName): NamedScanApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'scan', nameOf) && isNamed(parts[3], 'with', nameOf)) {
-        return { source: parts[0], seed: parts[4], operation: parts[1] };
-    }
-    if (parts.length === 5 && isNamed(parts[2], 'scan', nameOf) && isNamed(parts[3], 'axis', nameOf)
-        && isNumberLiteral(parts[4])) {
-        return { source: parts[0], axis: parts[4], operation: parts[1] };
-    }
-    if (parts.length === 3 && isNamed(parts[2], 'scan', nameOf)) {
-        return { source: parts[0], operation: parts[1] };
-    }
-    return undefined;
+    if (!isNamed(parts[2], 'scan', nameOf)) return undefined;
+    return { source: parts[0], operation: parts[1], ...foldModifiers(parts, 3, true, nameOf) };
 }
 
 export function explicitNamedReduceApplication(parts: Expression[], nameOf: NameOf = rawName): NamedScanApplication | undefined {
-    if (parts.length === 5 && isNamed(parts[2], 'reduce', nameOf) && isNamed(parts[3], 'with', nameOf)) {
-        return { source: parts[0], seed: parts[4], operation: parts[1] };
-    }
-    if (parts.length === 3 && isNamed(parts[2], 'reduce', nameOf)) {
-        return { source: parts[0], operation: parts[1] };
-    }
-    return undefined;
+    if (!isNamed(parts[2], 'reduce', nameOf)) return undefined;
+    return { source: parts[0], operation: parts[1], ...foldModifiers(parts, 3, false, nameOf) };
 }
 
 export function explicitNamedSegmentApplication(parts: Expression[], nameOf: NameOf = rawName): NamedSegmentApplication | undefined {
@@ -518,6 +529,10 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
             : { kind: 'invalid', message: `new ${parts[0].structure} takes one collection to fill it from` };
     const form0 = explicitNamedOuterApplication(parts, nameOf);
     if (form0) return { ...form0, kind: 'named-outer' };
+    const form15 = explicitNamedScanApplication(parts, nameOf);
+    if (form15) return { ...form15, kind: 'named-scan' };
+    const namedReduce = explicitNamedReduceApplication(parts, nameOf);
+    if (namedReduce) return { ...namedReduce, kind: 'named-reduce' };
     const form1 = explicitRankApplication(parts, nameOf);
     if (form1) return { ...form1, kind: 'rank' };
     const form2 = explicitAxisMatmul(parts, nameOf);
@@ -552,10 +567,6 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form13) return { ...form13, kind: 'axis-transpose' };
     const form14 = explicitNamedSegmentApplication(parts, nameOf);
     if (form14) return { ...form14, kind: 'named-segment' };
-    const form15 = explicitNamedScanApplication(parts, nameOf);
-    if (form15) return { ...form15, kind: 'named-scan' };
-    const namedReduce = explicitNamedReduceApplication(parts, nameOf);
-    if (namedReduce) return { ...namedReduce, kind: 'named-reduce' };
     const form16 = explicitAxisSelection(parts, nameOf);
     if (form16) return { ...form16, kind: 'axis-selection' };
     const form17 = explicitGraphEdges(parts, nameOf);

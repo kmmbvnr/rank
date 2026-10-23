@@ -3910,7 +3910,7 @@ function, builtin or user-defined. An operator symbol directly after one of
 these four words is its argument, never an infix operator. `scan`, `segment`
 and `outer` need the function; the old orders `A + scan with 0` and
 `Steps next scan` are rejected with a message that shows the new spelling.
-`reduce` takes only a symbol. If a program binds `scan`, `reduce`, `segment` or
+`reduce` also accepts a binary function. If a program binds `scan`, `reduce`, `segment` or
 `outer` itself, the symbol form (`A scan +`) is rejected; the name form
 follows the binding.
 
@@ -4134,6 +4134,38 @@ Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
 `false` and `false` respectively. Other operations reject an empty cell. A
 reduction of an unbounded sequence is an error.
 
+A binary user function or named operation can also combine the values:
+
+```rank
+Total = A reduce add with 0
+Smallest = A reduce min
+
+fun Acc Value add
+  return Acc + Value
+end
+```
+
+The function receives the accumulator followed by the next source element.
+Without `with`, the first element initializes the accumulator; an empty source
+requires an explicit seed. The accumulator may have a different type from the
+source elements. Named reductions accept the same `rank`, `axis` and `with` modifiers as symbolic
+reductions:
+
+```rank
+RowTotals = M reduce add rank 1 with 0
+ColumnMinima = M reduce min axis 0
+Total = Blocks reduce + axis 0 2 with 0
+```
+
+`axis` selects one or more distinct axes to reduce, preserving the remaining
+axes in their original order. Selected elements are folded in row-major order,
+independently of the order of the axis list. `rank R` selects every trailing
+rank-`R` cell; `rank 0` combines each item with the seed, or keeps it without a
+seed. Ranks and axes are nonnegative integer literals. Use either `rank` or
+`axis`, followed by optional `with Seed`; combining both is an error. A seed
+expression is evaluated once and reused for each cell. Empty frames produce
+empty results without invoking the combining operation.
+
 Named reductions use the same data-first style:
 
 ```rank
@@ -4253,17 +4285,25 @@ array for compatibility.
 `scan` accepts a rank-1 array, queue, text or sequence. An array, queue or text
 produces a material rank-1 array. A sequence produces another lazy sequence, so
 an unbounded source is valid when a later operation requests only a finite
-prefix or a particular position. `scan` without `axis` rejects higher-rank
-arrays and has no `rank` form.
+prefix or a particular position. Without modifiers, higher-rank arrays are
+rejected. Tensor scans use one literal `axis N`, or `rank R`:
 
-`axis` followed by one literal axis number scans an array of any rank along that
-axis and keeps its shape, so `T scan + axis 0` accumulates down every column of
-a matrix and each cell along the other axes is an independent scan. It works
-with the symbolic operators and with named binary operations, as in
-`T scan max axis 0` or `T scan next axis 1`. The first item along the axis is
-kept, as in a scan without a seed; `with` is not accepted together with `axis`.
-Real cells scanned with `+`, `-`, `*`, `max` or `min` run as one loop over a
-typed buffer.
+```rank
+Columns = M scan + axis 0 with 0
+Rows = M scan add rank 1 with 0
+```
+
+`scan rank R` scans the leading axis of each trailing rank-`R` cell. On a
+matrix, `rank 1` scans rows and `rank 2` scans columns. Its axis is therefore
+`source rank - R`; `R` must be between 1 and the source rank. Each line has an
+independent accumulator, and a user function receives individual elements,
+not complete slices. Without a seed, the shape stays unchanged. With a seed,
+the selected axis grows from `D` to `D + 1`, with the seed prepended to every
+line. A seeded tensor scan requires a rank-0 seed and rank-0 accumulated
+results; the seed expression is evaluated once. An empty scanned axis becomes
+length 1 with a seed and remains empty without one. Empty frames stay empty.
+Only one axis may be scanned; `axis` and `rank` cannot be combined. The modifier
+comes before `with Seed`.
 
 A binary user function can also accumulate states:
 

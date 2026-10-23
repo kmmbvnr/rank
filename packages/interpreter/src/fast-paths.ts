@@ -340,7 +340,7 @@ export class FastPaths {
         switch (form.kind) {
             case 'reduce': {
                 // A literal rank or a seed takes the reference reduction.
-                if (form.rank !== undefined || form.seed !== undefined) return undefined;
+                if (form.rank !== undefined || form.axes !== undefined || form.seed !== undefined) return undefined;
                 const fused = compileFusedReduction(form.source, form.operator, {
                     ...arithmetic, reduce: value => reference.reduce(form.operator, value),
                 });

@@ -1,3 +1,4 @@
+import { foldShapeFacts } from './fold-facts.js';
 import { inferSignatureResultTypes } from '../signature-matching.js';
 import type { SignatureAtom } from '../type-signature.js';
 import { rankedFunctionFacts } from './ranked-function-facts.js';
@@ -6,7 +7,7 @@ import { completedValueFacts, completionMayCall } from './completion-facts.js';
 import { diagonalResultShape } from '../shape-signature.js';
 import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
-import { binaryOperandFacts, foldedCells, scannedFacts, symbolicFormFacts } from './binary-facts.js';
+import { binaryOperandFacts, foldedCells, symbolicFormFacts } from './binary-facts.js';
 import {
     isParenthesizedExpression, isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
     isNumberLiteral, isStringLiteral, isUnpackExpression, isFunctionOperator, type ApplicationExpression, type Expression,
@@ -297,10 +298,9 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;
         case 'named-scan': case 'named-reduce': {
             const folded = namedFold(form, lookup, infer);
-            if (!folded) return UNKNOWN_VALUE;
-            return form.kind === 'named-scan'
-                ? { ...scannedFacts(folded.source, folded.seed, folded.cells), types: ['array'] }
-                : { types: folded.cells, rank: 0, shape: [] };
+            const source = infer(form.source, lookup);
+            return foldShapeFacts(form.kind === 'named-scan', form, source,
+                expression => infer(expression, lookup), folded?.cells) ?? UNKNOWN_VALUE;
         }
         case 'repeat': {
             const count = infer(form.count, lookup);
@@ -317,17 +317,29 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
 /** `Values scan bxor with 0`: a builtin scalar operation folded over proven numeric cells. */
 function namedFold(form: Extract<ApplicationForm, { kind: 'named-scan' | 'named-reduce' }>, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts) {
-    if (form.axis || !isNameExpression(form.operation)) return undefined;
+    if (!isNameExpression(form.operation)) return undefined;
+    const source = infer(form.source, lookup);
+    const seed = form.seed && infer(form.seed, lookup);
     const operation = operationBinding(form.operation.name, lookup);
+    if (!operation && lookup.invoke && source.elements?.length
+        && source.elements.every(type => ['integer', 'real', 'boolean', 'record', 'tuple', 'symbol'].includes(type))) {
+        const item: ValueFacts = { types: source.elements, rank: 0, shape: [] };
+        const initial = seed ?? item;
+        const step = lookup.invoke(form.operation.name, [initial, item], true);
+        if (initial.rank !== 0 || step.rank !== 0 || !step.types.length) return undefined;
+        const accumulated = joinValueFacts([initial, step]);
+        const next = lookup.invoke(form.operation.name, [accumulated, item], true);
+        // Claim a cell domain only when another step stays inside it.
+        if (next.rank !== 0 || !next.types.length || next.types.some(type => !accumulated.types.includes(type))) return undefined;
+        return { source, seed, cells: accumulated.types };
+    }
     // Integer-only scalar operations, or ones that return one of their numeric operands.
     const realCells = !!operation && operation.selectsNumericCell === true;
     if (!operation || !(operation.scalarNoCallback === 'integer' || realCells) || operation.effects?.length
         || !operation.arities.includes(2) || operation.dyadicRanks?.[0] !== 0
         || operation.dyadicRanks[1] !== 0) return undefined;
-    const source = infer(form.source, lookup);
-    const seed = form.seed && infer(form.seed, lookup);
     const cells = foldedCells(source, seed, type => type === 'integer' || realCells && type === 'real');
-    return cells && source.rank === 1 ? { source, seed, cells } : undefined;
+    return cells ? { source, seed, cells } : undefined;
 }
 
 function operationBinding(name: string, lookup: FactLookup) {

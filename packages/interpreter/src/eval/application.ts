@@ -195,13 +195,8 @@ export class ApplicationEvaluator {
                 return compileStructureApplication(context, this.moduleApplication, expression, form, missing, tail);
             case 'scan': {
                 const scan = form;
-                if (scan.axis !== undefined) {
-                    const axis = safeDimension(integerLiteral(scan.axis, 'scan axis'), 'scan axis');
-                    return function* (): Execution<RankValue> {
-                        const source = yield* resume(context.evaluate(scan.source));
-                        return context.reductions.evaluateScanAxis(scan.operator, source, axis);
-                    };
-                }
+                const axis = scan.axis === undefined ? undefined : safeDimension(integerLiteral(scan.axis, 'scan axis'), 'scan axis');
+                const rank = scan.rank === undefined ? undefined : safeDimension(integerLiteral(scan.rank, 'scan rank'), 'scan rank');
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(context.evaluate(scan.source));
                     const seed = scan.seed === undefined
@@ -210,7 +205,7 @@ export class ApplicationEvaluator {
                     return context.reductions.evaluateScan(
                         scan.operator,
                         source,
-                        seed,
+                        seed, axis, rank,
                     );
                 };
             }
@@ -232,6 +227,7 @@ export class ApplicationEvaluator {
                         source,
                         reduction.rank,
                         seed,
+                        reduction.axes?.map(axis => safeDimension(integerLiteral(axis, 'reduce axis'), 'reduce axis')),
                     );
                 };
             }
@@ -378,6 +374,8 @@ export class ApplicationEvaluator {
                 const namedScan = form;
                 const namedAxis = namedScan.axis === undefined ? undefined
                     : safeDimension(integerLiteral(namedScan.axis, 'scan axis'), 'scan axis');
+                const rank = namedScan.rank === undefined ? undefined : safeDimension(integerLiteral(namedScan.rank, 'rank'), 'rank');
+                const axes = namedScan.axes?.map(axis => safeDimension(integerLiteral(axis, 'reduce axis'), 'reduce axis'));
                 return function* (): Execution<RankValue> {
                     const source = yield* resume(context.evaluate(namedScan.source));
                     const seed = namedScan.seed === undefined
@@ -387,12 +385,9 @@ export class ApplicationEvaluator {
                         throw new RankError(`${form.kind === 'named-reduce' ? 'reduce' : 'scan'} requires a binary operation`);
                     }
                     if (form.kind === 'named-reduce') {
-                        return context.reductions.evaluateNamedReduction(operation, source, seed);
+                        return context.reductions.evaluateNamedReduction(operation, source, seed, rank, axes);
                     }
-                    if (namedAxis !== undefined) {
-                        return context.reductions.evaluateNamedScanAxis(operation, source, namedAxis);
-                    }
-                    return context.reductions.evaluateNamedScan(operation, source, seed);
+                    return context.reductions.evaluateNamedScan(operation, source, seed, namedAxis, rank);
                 };
             }
             case 'axis-selection': {
