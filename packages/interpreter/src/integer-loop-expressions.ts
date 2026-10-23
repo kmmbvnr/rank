@@ -13,7 +13,7 @@ import {
 } from '@arrrank/language';
 import { isRankArray, isRankIndex } from './value.js';
 import { RankDeque } from './containers.js';
-import { denseScalarItems, materializedArrayItems, arrayRevision } from './array-storage.js';
+import { denseScalarItems, materializedArrayItems, arrayRevision, storedScalarKinds } from './array-storage.js';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
 
@@ -321,18 +321,34 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 // Decimal integer rendering has one UTF-16 unit per code point.
                 return { code: name, type: 'text', ascii: true };
             }
+            if (op === 'len') {
+                let array = isNameExpression(e.head) ? arrays.get(e.head.name) : undefined;
+                // A range header is lowered before its body. Discover an input
+                // array here even when its first indexed read comes later.
+                if (!array && host.arrayReads && isNameExpression(e.head) && !e.head.name.includes('.')
+                    && !localTypes.has(e.head.name) && !containers.has(e.head.name)) {
+                    const value = host.read(e.head.name);
+                    const kinds = value && isRankArray(value) ? storedScalarKinds(value) : undefined;
+                    const type = kinds?.length === 0 ? 'integer' : kinds?.length === 1 ? kinds[0] : undefined;
+                    if (value && isRankArray(value) && (type === 'integer' || type === 'real' && host.reals
+                        || type === 'text' && host.textArrayLoops || type === 'boolean' && host.booleanArrays)) {
+                        array = { slot: slot(e.head.name), rank: value.shape.length, type };
+                        arrays.set(e.head.name, array);
+                    }
+                }
+                if (array && isNameExpression(e.head)) {
+                    if (!assigned.has(e.head.name)) arrayInputs.add(e.head.name);
+                    builtins.set(op, 'core');
+                    const length = `r${array.slot}.shape[0] ?? 0`;
+                    return { code: numberMode ? safe(length) : `BigInt(${length})`, type: 'integer' };
+                }
+            }
             if (!numberMode && op === 'len' && host.scalarText) {
                 if (host.nativeCalls && knownType(e.head) === 'bytes') {
                     const value = emit(e.head, lines, 'bytes');
                     if (!value) return undefined;
                     builtins.set(op, 'core');
                     return { code: `BigInt(${value.code}.shape[0])`, type: 'integer' };
-                }
-                const array = isNameExpression(e.head) ? arrays.get(e.head.name) : undefined;
-                if (array && isNameExpression(e.head)) {
-                    if (!assigned.has(e.head.name)) arrayInputs.add(e.head.name);
-                    builtins.set(op, 'core');
-                    return { code: `BigInt(r${array.slot}.shape[0] ?? 0)`, type: 'integer' };
                 }
                 const knownText = isStringLiteral(e.head) || isApplicationExpression(e.head)
                     || isParenthesizedExpression(e.head)

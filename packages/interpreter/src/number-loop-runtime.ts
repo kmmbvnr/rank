@@ -118,6 +118,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 buffers[info.slot] = cells;
             }
             sources[info.slot] = value;
+            input[info.slot] = value;
             if (plan.destinations.has(name)) changes[info.slot] = new Uint8Array(items.length);
         }
         const diagnostics = currentDiagnostics();
