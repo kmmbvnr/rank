@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "506_clocksequence"
+  N = 11
+  run
+  Answer equal 36120
+  N = 1000
+  run
+  Answer equal 18232686
+end
