@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "494_collatzprefix"
+  T = 5
+  run
+  Answer equal 5
+  T = 10
+  run
+  Answer equal 55
+  T = 20
+  run
+  Answer equal 6771
+end
+
+test "explicit backward tree"
+  use "494_collatzprefix"
+  T = 40
+  run
+  Answer equal 102334782
+end
