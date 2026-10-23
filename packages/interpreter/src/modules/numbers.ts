@@ -1,7 +1,8 @@
 import { Factorizer, maxFactorTableInteger } from '../factorization.js';
 import { withNumberCalls } from '../typed-native.js';
 import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
-import { integerSquareRoot } from '../integer-square-root.js';
+import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
+import { mapStoredUnary } from '../unary-array-kernel.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint } from '../interrupt.js';
@@ -43,12 +44,12 @@ function factorizer(context: RuntimeContext): Factorizer {
 }
 
 export const numbersModule: RuntimeModule = {
-    abs: () => native('abs', 1, arguments_ => {
-        if (arguments_[0] === MISSING) return MISSING;
-        const value = expectNumeric(arguments_[0]);
+    abs: () => scalarNative('abs', argument => {
+        if (argument === MISSING) return MISSING;
+        const value = expectNumeric(argument);
         if (typeof value === 'bigint') return absolute(value);
         return value < 0 ? -value : value === 0 ? 0 : value;
-    }),
+    }, source => mapStoredUnary(source, 'real', Math.abs)),
     sin: () => unaryMath('sin', Math.sin, finiteDomain),
     cos: () => unaryMath('cos', Math.cos, finiteDomain),
     tan: () => unaryMath('tan', Math.tan, finiteDomain),
@@ -67,21 +68,27 @@ export const numbersModule: RuntimeModule = {
     asinh: () => unaryMath('asinh', Math.asinh),
     acosh: () => unaryMath('acosh', Math.acosh, value => value >= 1),
     atanh: () => unaryMath('atanh', Math.atanh, value => value > -1 && value < 1),
-    sqrt: () => native('sqrt', 1, arguments_ => {
-        if (arguments_[0] === MISSING) return MISSING;
-        const value = expectNumeric(arguments_[0]);
+    sqrt: () => scalarNative('sqrt', argument => {
+        if (argument === MISSING) return MISSING;
+        const value = expectNumeric(argument);
         if (value < 0) {
             throw new RankError('sqrt expects a nonnegative value', 'DomainError');
         }
         return Math.sqrt(Number(value));
-    }),
+    }, source => mapStoredUnary(source, 'number', value => {
+        if (value < 0) throw new RankError('sqrt expects a nonnegative value', 'DomainError');
+        return Math.sqrt(value);
+    })),
     isqrt: () => scalarNative('isqrt', argument => {
         const value = expectInteger(argument);
         if (value < 0n) {
             throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
         }
         return integerSquareRoot(value);
-    }),
+    }, source => mapStoredUnary(source, 'integer', value => {
+        if (value < 0) throw new RankError('isqrt expects a nonnegative integer', 'DomainError');
+        return safeIntegerSquareRoot(value);
+    }, 'integer')),
     log: () => unaryMath(
         'log',
         Math.log,
@@ -648,13 +655,20 @@ export function sumElements(source: ElementSource): bigint | number {
 }
 
 function integerBound(value: RankValue, name: string, operation: (value: number) => number): RankValue {
+    const checked = (number: number): number => {
+        if (!Number.isFinite(number)) throw new RankError(`${name} expects a finite number`, 'DomainError');
+        return operation(number);
+    };
     const apply = (value: RankValue): RankValue => {
         if (value === MISSING || typeof value === 'bigint') return value;
         const number = numericReal(value, name);
-        if (!Number.isFinite(number)) throw new RankError(`${name} expects a finite number`, 'DomainError');
-        return BigInt(operation(number));
+        return BigInt(checked(number));
     };
     if (isRankSequence(value)) return mapSequence(value, name, apply, true);
+    if (isRankArray(value)) {
+        const stored = mapStoredUnary(value, 'number', checked, 'integer');
+        if (stored) return stored;
+    }
     return isRankArray(value) ? derivedArray(value.shape, [value], i => apply(value.itemAt?.(i) ?? value.items[i]), true)
         : apply(value);
 }

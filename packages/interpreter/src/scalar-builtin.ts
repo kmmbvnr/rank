@@ -5,10 +5,14 @@ import type { NativeFunction, RankArray, RankValue } from './value.js';
 
 // Only internal, pure scalar-to-scalar builtins opt in. Names and user-declared
 // signatures are not evidence that ranked result assembly may be bypassed.
-const operations = new WeakMap<NativeFunction, { call: NativeFunction['call']; scalar(value: RankValue): RankValue }>();
+const operations = new WeakMap<NativeFunction, {
+    call: NativeFunction['call']; scalar(value: RankValue): RankValue;
+    batch?: (source: RankArray) => RankArray | undefined;
+}>();
 
-export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue): NativeFunction {
-    operations.set(fn, { call: fn.call, scalar: operation });
+export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue,
+    batch?: (source: RankArray) => RankArray | undefined): NativeFunction {
+    operations.set(fn, { call: fn.call, scalar: operation, batch });
     return fn;
 }
 
@@ -21,6 +25,8 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
         || frameAxes.length !== source.shape.length
         || !frameAxes.every((axis, index) => axis === index)
         || !prepareStoredScalarView(source, true)) return undefined;
+    const batch = registered.batch?.(source);
+    if (batch) return batch;
     const operation = registered.scalar;
     const shape = [...source.shape];
     const size = shape.reduce((n, dimension) => n * dimension, 1);

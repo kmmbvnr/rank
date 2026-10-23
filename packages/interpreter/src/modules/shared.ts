@@ -10,6 +10,7 @@ import {
     isRankArray,
     isRankSequence,
     MISSING,
+    type RankArray,
     type NativeFunction,
     type RankValue,
 } from '../value.js';
@@ -72,8 +73,9 @@ export function native(
 }
 
 /** Register the checked scalar body without exposing a new NativeFunction ABI. */
-export function scalarNative(name: string, call: (value: RankValue) => RankValue): NativeFunction {
-    return registerScalarBuiltin(native(name, 1, args => call(args[0])), call);
+export function scalarNative(name: string, call: (value: RankValue) => RankValue,
+    batch?: (source: RankArray) => RankArray | undefined): NativeFunction {
+    return registerScalarBuiltin(native(name, 1, args => call(args[0])), call, batch);
 }
 
 export function mapValue(

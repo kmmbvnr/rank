@@ -1,0 +1,17 @@
+{"node":"v24.15.0","cpu":"Apple M5","trials":3,"size":10000000,"baselineCommit":"01cc1287","phase":"Real kernels before integer result support"}
+{"label":"baseline","trial":0,"operation":"sqrt","size":10000000,"constructionMs":632.390209,"mapMs":2526.5575830000002,"sumMs":88.053042,"operationMs":2614.6106250000003,"checksum":"25014914623203.246","validationMs":14.392957999999908}
+{"label":"baseline","trial":1,"operation":"sqrt","size":10000000,"constructionMs":561.257958,"mapMs":2720.087333,"sumMs":96.21358400000008,"operationMs":2816.300917,"checksum":"25014914623203.246","validationMs":14.529499999999643}
+{"label":"baseline","trial":2,"operation":"sqrt","size":10000000,"constructionMs":557.188375,"mapMs":2555.315709,"sumMs":92.45533299999988,"operationMs":2647.771042,"checksum":"25014914623203.246","validationMs":14.461957999999868}
+{"label":"baseline","operation":"sqrt","medianMs":2647.771042}
+{"label":"baseline","trial":0,"operation":"abs","size":10000000,"constructionMs":566.7204999999999,"mapMs":2410.0743330000005,"sumMs":81.4556249999996,"operationMs":2491.529958,"checksum":"50000015000000","validationMs":14.590208999999959}
+{"label":"baseline","trial":1,"operation":"abs","size":10000000,"constructionMs":551.949333,"mapMs":2437.613792,"sumMs":81.00345800000014,"operationMs":2518.6172500000002,"checksum":"50000015000000","validationMs":14.710083999999824}
+{"label":"baseline","trial":2,"operation":"abs","size":10000000,"constructionMs":560.978792,"mapMs":2383.26025,"sumMs":81.17283300000008,"operationMs":2464.433083,"checksum":"50000015000000","validationMs":14.710125000000062}
+{"label":"baseline","operation":"abs","medianMs":2491.529958}
+{"label":"candidate","trial":0,"operation":"sqrt","size":10000000,"constructionMs":554.3608750000001,"mapMs":156.42158299999994,"sumMs":45.45824999999991,"operationMs":201.87983299999985,"checksum":"25014914623203.246","validationMs":14.338417000000163}
+{"label":"candidate","trial":1,"operation":"sqrt","size":10000000,"constructionMs":550.479208,"mapMs":150.994417,"sumMs":44.71520799999996,"operationMs":195.70962499999996,"checksum":"25014914623203.246","validationMs":14.46625000000006}
+{"label":"candidate","trial":2,"operation":"sqrt","size":10000000,"constructionMs":554.3512910000001,"mapMs":150.39654199999995,"sumMs":45.275082999999995,"operationMs":195.67162499999995,"checksum":"25014914623203.246","validationMs":14.48966699999994}
+{"label":"candidate","operation":"sqrt","medianMs":195.70962499999996}
+{"label":"candidate","trial":0,"operation":"abs","size":10000000,"constructionMs":555.415209,"mapMs":151.91274999999996,"sumMs":45.05387499999995,"operationMs":196.9666249999999,"checksum":"50000015000000","validationMs":14.786166000000094}
+{"label":"candidate","trial":1,"operation":"abs","size":10000000,"constructionMs":552.851916,"mapMs":158.19154200000003,"sumMs":44.60887500000001,"operationMs":202.80041700000004,"checksum":"50000015000000","validationMs":14.602375000000052}
+{"label":"candidate","trial":2,"operation":"abs","size":10000000,"constructionMs":558.510667,"mapMs":150.8499579999999,"sumMs":45.558625000000006,"operationMs":196.4085829999999,"checksum":"50000015000000","validationMs":14.594000000000051}
+{"label":"candidate","operation":"abs","medianMs":196.9666249999999}
