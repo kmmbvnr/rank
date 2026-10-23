@@ -3,6 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/343_fractional.ra', import.meta.url), 'utf8');
+function createRuntime(compilation: boolean, testing = false): Interpreter {
+    return new Interpreter(() => {}, {
+        compilation, testing,
+        loadModule: specifier => {
+            if (specifier !== '343_fractional') throw Error(`Unexpected module: ${specifier}`);
+            return { id: '343_fractional.ra', source };
+        },
+    });
+}
+
 function largestFactor(value: number): bigint {
     let largest = 1;
     for (let divisor = 2; divisor * divisor <= value; divisor++) {
@@ -13,13 +23,7 @@ function largestFactor(value: number): bigint {
 
 describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', compilation => {
     it('passes the companion Rank tests', () => {
-        const runtime = new Interpreter(() => {}, {
-            compilation, testing: true,
-            loadModule: specifier => {
-                if (specifier !== '343_fractional') throw Error(`Unexpected module: ${specifier}`);
-                return { id: '343_fractional.ra', source };
-            },
-        });
+        const runtime = createRuntime(compilation, true);
         try {
             runtime.execute(readFileSync(new URL('../../../demos/euler/343_fractional_test.ra', import.meta.url), 'utf8'));
             expect(runtime.testResults).toHaveLength(3);
@@ -28,10 +32,10 @@ describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', co
     });
 
     it('matches every quadratic largest factor against independent trial division', () => {
-        const runtime = new Interpreter(() => {}, { compilation });
+        const runtime = createRuntime(compilation);
         try {
-            runtime.execute(source.replace('option Limit integer = 2000000', 'option Limit integer = 1'));
-            const result = runtime.execute('1000 quadfactors');
+            runtime.execute('use "343_fractional"\nLimit = 1000\nrun');
+            const result = runtime.variables.get('Largest');
             if (!result || !isRankArray(result)) throw Error('expected factor array');
             expect(result.shape).toEqual([1001]);
             for (let k = 0; k <= 1000; k++) {
@@ -43,18 +47,17 @@ describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', co
             for (let limit = 1; limit <= 100; limit++) {
                 const a = largestFactor(limit + 1), b = largestFactor(limit * limit - limit + 1);
                 expected += (a > b ? a : b) - 1n;
-                expect(runtime.execute(`${limit} sumfrac`), `limit=${limit}`).toBe(expected);
+                runtime.execute(`Limit = ${limit}\nrun`);
+                expect(runtime.variables.get('Answer'), `limit=${limit}`).toBe(expected);
             }
         } finally { runtime.dispose(); }
     });
 
-    it('preserves reduced checksums and scalar factor queries', () => {
-        const runtime = new Interpreter(() => {}, { compilation });
+    it('preserves reduced checksums', () => {
+        const runtime = createRuntime(compilation);
         try {
             runtime.execute(source.replace('option Limit integer = 2000000', 'option Limit integer = 1000'));
             expect(runtime.variables.get('Answer')).toBe(72421603n);
-            expect(runtime.execute('1 lpf')).toBe(1n);
-            expect(runtime.execute('1000036000099 lpf')).toBe(1000033n);
         } finally { runtime.dispose(); }
     });
 });

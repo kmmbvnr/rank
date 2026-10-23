@@ -2,59 +2,43 @@ rem Fractional Sequences
 rem https://projecteuler.net/problem=343
 
 use sequences
-use numbers
 use io
 use cli
 
 option Limit integer = 2000000
 
-rem Keep scalar factorization available for individual queries.
-fun N lpf
-  if N equal 1
-    return 1
-  end
-  return N factors max
-end
-
-fun Limit quadfactors
-  Ks = (0 to Limit) copy
-  Rest = (Ks * Ks - Ks + 1) copy
-  Largest = array shape (Limit + 1) fill 1
-  rem The two roots of k^2-k+1 mod P are K and 1-K.
-  rem At the first unprocessed index every remaining factor is
-  rem at least 2*K-1, so Rest K is either 1 or a single prime.
-  for K in 2 to Limit
-    P = Rest K
-    if P greater 1
-      for J in K to Limit by P
+Ks = (0 to Limit) copy
+Rest = (Ks * Ks - Ks + 1) copy
+Largest = array shape (Limit + 1) fill 1
+rem Each prime has roots K and 1-K.
+rem Earlier roots remove every factor
+rem below 2*K-1. The residue is then
+rem either 1 or a single prime.
+for K in 2 to Limit
+  P = Rest K
+  if P greater 1
+    for J in K to Limit by P
+      Largest J = (Largest J) P max
+      for (Rest J) mod P equal 0
+        Rest J = (Rest J) // P
+      end
+    end
+    Other = P + 1 - K
+    if Other greater K
+      for J in Other to Limit by P
         Largest J = (Largest J) P max
         for (Rest J) mod P equal 0
           Rest J = (Rest J) // P
         end
       end
-      Other = P + 1 - K
-      if Other greater K
-        for J in Other to Limit by P
-          Largest J = (Largest J) P max
-          for (Rest J) mod P equal 0
-            Rest J = (Rest J) // P
-          end
-        end
-      end
     end
   end
-  return Largest
 end
-
-fun Limit sumfrac
-  Largest = Limit quadfactors
-  Linear = array shape (Limit + 2) fill 1
-  for P in primes to (Limit + 1)
-    Linear (P to (Limit + 1) by P) = P
-  end
-  Values = (Largest (1 to Limit)) (Linear (2 to (Limit + 1))) max
-  return Values sum - Limit
+Linear = array shape (Limit + 2) fill 1
+for P in primes to (Limit + 1)
+  Linear (P to (Limit + 1) by P) = P
 end
-
-Answer = Limit sumfrac
+A = Largest (1 to Limit)
+B = Linear (2 to (Limit + 1))
+Answer = (A B max) sum - Limit
 Answer print
