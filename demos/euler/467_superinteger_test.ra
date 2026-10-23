@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "467_superinteger"
+  N = 10
+  run
+  Answer equal 2357246891352679 mod Md
+end
+
+test "n = 100"
+  use "467_superinteger"
+  N = 100
+  run
+  Answer equal 771661825
+end

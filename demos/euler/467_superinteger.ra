@@ -1,0 +1,83 @@
+rem Superinteger
+rem https://projecteuler.net/problem=467
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 10000
+
+Md = 1000000007
+Top = 20 * N + 100
+Pr = primes to Top array
+Ps = (Pr (0 till N) - 1) mod 9 + 1
+Ip = array shape (Top + 1) fill 0
+Ip (Pr) = 1
+Ip (0 to 1) = 1
+Cs = (Ip equal 0) indices
+Cs = (Cs (0 till N) - 1) mod 9 + 1
+rem Shortest common supersequence =
+rem 2N - LCS. Bit-parallel LCS of the
+rem reversed strings: row V_i has a 0
+rem bit where the LCS of i chars of
+rem Ar with a prefix of Br grows.
+Ar = Ps reverse
+Br = Cs reverse
+Full = (1 N shl) - 1
+Two = Br * 0 + 2
+Mk = array shape 10 fill 0
+for C in 1 to 9
+  Dg = (Br equal C) choose 1 0
+  Mk C = (Dg reverse) Two fromDigits
+end
+Vs = array shape (N + 1) fill 0
+V = Full
+Vs 0 = V
+for I in 1 to N
+  U = V (Mk (Ar (I - 1))) band
+  V = ((V + U) (V - U) bor) Full band
+  Vs I = V
+end
+rem Greedy from the front: take a
+rem match, else the side that keeps
+rem the length optimal, the smaller
+rem digit on a tie. Df compares the
+rem two remaining lengths.
+I = 0
+J = 0
+Answer = 0
+for I less N and J less N
+  A = Ps I
+  B = Cs J
+  D = A
+  if A equal B
+    I += 1
+    J += 1
+  else
+    M1 = (1 (N - J) shl) - 1
+    M2 = (1 (N - J - 1) shl) - 1
+    Ri = N - I
+    P1 = (Vs (Ri - 1)) M1 band popcount
+    P2 = (Vs Ri) M2 band popcount
+    Df = P1 - P2 - 1
+    Lw = Df equal 0 and A less B
+    if Df less 0 or Lw
+      I += 1
+    else
+      D = B
+      J += 1
+    end
+  end
+  Answer = (Answer * 10 + D) mod Md
+end
+for I less N
+  Answer = (Answer * 10 + Ps I) mod Md
+  I += 1
+end
+for J less N
+  Answer = (Answer * 10 + Cs J) mod Md
+  J += 1
+end
+Answer print
