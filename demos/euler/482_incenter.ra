@@ -1,0 +1,141 @@
+rem The incenter of a triangle
+rem https://projecteuler.net/problem=482
+
+use numbers
+use sequences
+use io
+use cli
+
+option P integer = 10000000
+
+rem With x, y, z = s - a, s - b, s - c
+rem the inradius has r^2 = xyz / (x +
+rem y + z), and IA^2 = r^2 + x^2: x,
+rem y and z are legs of right
+rem triangles with leg r. Two of them
+rem fix z = r^2 (x + y) / (xy - r^2).
+rem With x <= y <= z, r^2 < xy <= 3r^2.
+rem r is at most P sqrt 3 / 18.
+H = P // 2
+R = (P * (3.0 sqrt) / 18) floor
+rem Legs from primitive triples (m^2 -
+rem n^2, 2mn, m^2 + n^2) times k.
+Mx = (R + H) isqrt + 2
+Ig = (0 till Mx * Mx) copy
+Mg = Ig // Mx
+Ng = Ig mod Mx
+Ok = (Ng at least 1) and (Mg greater Ng)
+Ok = Ok and ((Mg - Ng) mod 2 equal 1)
+Ix = Ok indices
+Mg = Mg Ix
+Ng = Ng Ix
+Ix = ((Mg Ng gcd) equal 1) indices
+Mg = Mg Ix
+Ng = Ng Ix
+A0 = Mg * Mg - Ng * Ng
+B0 = 2 * Mg * Ng
+C0 = Mg * Mg + Ng * Ng
+R0 = concat A0 B0
+X0 = concat B0 A0
+H0 = concat C0 C0
+Kc = (R // R0) (H // X0) min
+Ix = (Kc greater 0) indices
+R0 = R0 Ix
+X0 = X0 Ix
+H0 = H0 Ix
+Kc = Kc Ix
+rem Replicate each primitive Kc times.
+Tl = Kc sum
+Of = Kc scan + with 0
+Ow = array shape Tl fill 0
+Nk = Kc len
+Ow (Of (0 till Nk)) = (0 till Nk) copy
+Ow = Ow scan max
+Kk = (0 till Tl) - Of Ow + 1
+Rr = Kk * R0 Ow
+Xx = Kk * X0 Ow
+Tt = Kk * H0 Ow
+H1 = H + 1
+Ky = Rr * H1 + Xx
+Od = Ky argsort
+Rr = Rr Od
+Xx = Xx Od
+Tt = Tt Od
+Ne = Rr len
+rem Windows r^2/x < y <= 3 r^2/x as
+rem positions in the sorted legs: one
+rem sort of legs and bounds.
+R2 = Rr * Rr
+Qi = (Xx * Xx at most 3 * R2) indices
+V1 = (R2 Qi // Xx Qi) H min
+V2 = (3 * R2 Qi // Xx Qi) H min
+Nq = Qi len
+Rq = Rr Qi * H1
+Kq = concat (Rr * H1 + Xx) (Rq + V1)
+Kq = concat Kq (Rq + V2)
+Q1 = Qi * 0 + 1
+Tq = concat (Rr * 0) Q1 Q1
+Oq = (Kq * 2 + Tq) argsort
+Ce = (Tq Oq equal 0) choose 1 0
+Ce = Ce scan +
+Qp = ((Tq Oq) equal 1) indices
+Src = Oq Qp - Ne
+Cv = Ce Qp
+Lo = array shape Nq fill 0
+Hi = Lo
+Ls = (Src less Nq) indices
+Lo (Src Ls) = Cv Ls
+Hs = (Src at least Nq) indices
+Hi (Src Hs - Nq) = Cv Hs
+Lo = Lo Qi max
+Cn = (Hi - Lo) 0 max
+rem Pairs (i, j) chunk by chunk; keep
+rem integer z >= y with z^2 + r^2 a
+rem square.
+Cs = Cn scan + with 0
+Answer = 0
+Ch = 4000000
+St = 0
+for St less Nq
+  Cb = Cs St
+  rem Next chunk: up to Ch pairs.
+  Cm = Cb + Ch
+  En = (Cs at most Cm) count - 1
+  En = (En (St + 1) max) Nq min
+  Np = Cs En - Cb
+  if Np greater 0
+    Of = Cs (St till En) - Cb
+    Cc = Cn (St till En)
+    Ix = (Cc greater 0) indices
+    Ow = array shape Np fill 0
+    Ow (Of Ix) = Ix + St
+    Ow = Ow scan max
+    Jj = (0 till Np) + Cb - Cs Ow
+    Jj += Lo Ow
+    Ii = Qi Ow
+    X = Xx Ii
+    Y = Xx Jj
+    Q2 = (Rr Ii) * (Rr Ii)
+    Dn = X * Y - Q2
+    Nm = Q2 * (X + Y)
+    G1 = (Nm mod Dn equal 0) indices
+    Z = Nm G1 // Dn G1
+    X = X G1
+    Y = Y G1
+    Q2 = Q2 G1
+    Ii = Ii G1
+    Jj = Jj G1
+    Gb = X + Y + Z at most H
+    Gb = Gb and (Z at least Y)
+    G2 = Gb indices
+    Z = Z G2
+    W2 = Z * Z + Q2 G2
+    Sq = W2 isqrt
+    G3 = (Sq * Sq equal W2) indices
+    Lt = 2 * (X G2 + Y G2 + Z) + Sq
+    Lt += Tt (Ii G2) + Tt (Jj G2)
+    Answer += (Lt G3) sum
+  end
+  St = En
+end
+Answer print

@@ -176,5 +176,6 @@
   "euler/466_distinctproducts.ra": "To fix later: the default input takes about 25 s (10^7 merged inclusion-exclusion states over 64 rows); the small _test.ra fixture stays in the audits.",
   "euler/470_superramvok.ra": "To fix later: the default input takes about 30 s (20 value steps over all 2^20 face sets); the small _test.ra fixture stays in the audits.",
   "euler/476_circlepacking.ra": "To fix later: the default input takes about 50 s (2.4 x 10^8 triangles, two square roots each, #423); the small _test.ra fixture stays in the audits.",
-  "euler/478_mixtures.ra": "To fix later: the default input takes about 23 s and 2.9 GB (mu and phi sieve to 10^7 and 8.6 x 10^7 grouped Moebius terms); the small _test.ra fixture stays in the audits."
+  "euler/478_mixtures.ra": "To fix later: the default input takes about 23 s and 2.9 GB (mu and phi sieve to 10^7 and 8.6 x 10^7 grouped Moebius terms); the small _test.ra fixture stays in the audits.",
+  "euler/482_incenter.ra": "To fix later: the default input takes about 55 s and 3.6 GB (2.3 x 10^7 legs and 5.2 x 10^7 windowed pairs); the small _test.ra fixture stays in the audits."
 }
