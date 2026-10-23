@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "472_comfortabledistance"
+  N = 20
+  run
+  Answer equal 83
+  N = 500
+  run
+  Answer equal 13343
+end
+
+test "descent into smaller blocks"
+  use "472_comfortabledistance"
+  N = 5000
+  run
+  Answer equal 933221
+  N = 77777
+  run
+  Answer equal 21682747
+end

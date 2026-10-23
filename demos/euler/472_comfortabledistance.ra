@@ -1,0 +1,68 @@
+rem Comfortable Distance II
+rem https://projecteuler.net/problem=472
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000
+
+rem B_k = f(2^k + 1) .. f(2^(k+1)).
+rem For k >= 5 and r = 2^(k-3) it is
+rem the first 3r of B_(k-1), then
+rem 4r+2, 2r, 2r-2, .., 4, then 2, 4,
+rem .., 4r, then 6r+3, 2r+2, 2r+1, ..,
+rem 4. Q_k sums the first 3r + r + 2r.
+Bs = array 2 2 4 3 6 2 6 3 8 2 6 2 4 9 4
+Bs = concat Bs (array 3 8 2 6 2 4 10 4)
+Bs = concat Bs (array 2 4 6 8 15 6 5 4)
+Cs = Bs scan + with 0
+Ks = (5 to 45) copy
+Rs = 2 ** (Ks - 3)
+Dq = 5 * Rs * Rs + 7 * Rs
+Qs = Dq scan + with 59
+Sg = (Qs (1 till Qs len)) + 2 * Rs * Rs
+Sg += 11 * Rs
+Sg = concat (array 2 6 17 38 89) Sg
+rem P_k = f(1) + .. + f(2^k).
+Pk = Sg scan + with 1
+rem S(n) = P_k + G_k(t), n = 2^k + t.
+K = 0
+for 2 ** (K + 1) at most N
+  K += 1
+end
+T = N - 2 ** K
+Answer = Pk K
+G = 0
+for K at least 5 and T greater 0
+  R = 2 ** (K - 3)
+  Qp = Qs (K - 5)
+  if T at most 3 * R
+    K -= 1
+  else
+    M = T - 3 * R
+    if M at most R
+      G = Qp + 4 * R + 2
+      G += (M - 1) * (2 * R - M + 2)
+    else
+      G = Qp + R * (R + 5)
+      M -= R
+      if M at most 2 * R
+        G += M * (M + 1)
+      else
+        M -= 2 * R
+        G += 4 * R * R + 8 * R + 3
+        Lu = 4 * R - M + 6
+        G += (M - 1) * Lu // 2
+      end
+    end
+    T = 0
+  end
+end
+if K less 5 and T greater 0
+  Of = 2 ** K - 1
+  G = Cs (Of + T) - Cs Of
+end
+Answer = (Answer + G) mod 100000000
+Answer print
