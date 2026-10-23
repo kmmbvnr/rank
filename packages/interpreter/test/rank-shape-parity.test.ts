@@ -189,6 +189,107 @@ it('preserves documented matrix batches in both execution modes', () => {
     }
 });
 
+it('aligns operator cells with batch frames and infers empty result cells', () => {
+    for (const [left, right, ranks, expected] of [
+        [[2], [2, 3, 4], '0 2', [2, 3, 4]],
+        [[2, 3, 4], [2], '2 0', [2, 3, 4]],
+        [[2, 1], [1, 3, 2, 4], '0 2', [2, 3, 2, 4]],
+        [[0], [0, 3, 4], '0 2', [0, 3, 4]],
+        [[1], [0, 3, 4], '0 2', [0, 3, 4]],
+        [[2], [2, 0, 4], '0 2', [2, 0, 4]],
+        [[2], [2, 3, 4], '-1 -1', [2, 3, 4]],
+        [[2], [2, 3, 4], '0e0 2e0', [2, 3, 4]],
+        [[2], [2], '5 5', [2]],
+        [[], [2, 3, 4], '0 2', [2, 3, 4]],
+    ] as [Shape, Shape, string, Shape][]) {
+        for (const operator of ['+', '-', '*', '/', '//', 'mod', '**']) {
+            const source = `A = ${array(left)}\nB = ${array(right)}\nR = A B ${operator} rank ${ranks}`;
+            expect(check(source, expected)).toEqual({ knownAxes: expected.length, unknownAxes: 0, knownRank: true });
+        }
+    }
+});
+
+it('evaluates each ranked arithmetic and logical operator in both execution modes', () => {
+    const arithmetic: [string, (a: number, b: number) => number][] = [
+        ['+', (a, b) => a + b], ['-', (a, b) => a - b], ['*', (a, b) => a * b],
+        ['/', (a, b) => a / b], ['//', (a, b) => Math.floor(a / b)],
+        ['mod', (a, b) => a - Math.floor(a / b) * b], ['**', (a, b) => a ** b],
+    ];
+    const evaluate = (body: string, enabled: boolean) => {
+        const runtime = new Interpreter(() => {}, {
+            blockCompilation: enabled, functionBodyCompilation: enabled,
+            scalarFunctionCompilation: enabled, tensorFusion: enabled,
+        });
+        try {
+            const result = runtime.execute(`fun result\n${body}\nend\nresult`);
+            if (!result || !isRankArray(result)) throw new Error('expected array');
+            return result;
+        } finally { runtime.dispose(); }
+    };
+    for (const enabled of [false, true]) {
+        for (const [operator, oracle] of arithmetic) {
+            const body = `A = array 2 3\nB = array 1 2 3 4 5 6 7 8 shape 2 2 2\n`
+                + `return A B ${operator} rank 0 2`;
+            const result = evaluate(body, enabled);
+            expect(result.shape).toEqual([2, 2, 2]);
+            expect(result.items.map(Number), operator).toEqual(
+                Array.from({ length: 8 }, (_, i) => oracle(i < 4 ? 2 : 3, i + 1)));
+        }
+        for (const operator of ['and', 'or', 'xor']) {
+            const source = `A = array true false\nB = array true false false true shape 2 2\n`
+                + `R = A B ${operator} rank 0 1`;
+            expect(check(source, [2, 2]).knownAxes).toBe(2);
+            const result = evaluate(source + '\nreturn R', enabled);
+            expect(result.items).toEqual(operator === 'and' ? [true, false, false, false]
+                : operator === 'or' ? [true, true, false, true] : [false, true, false, true]);
+        }
+    }
+});
+
+it('rejects incompatible operator frames and cells without changing infix broadcasting', () => {
+    for (const [a, b, ranks] of [
+        [[2], [3, 2, 4], '0 2'], // frame mismatch
+        [[2, 3], [2, 4], '1 1'], // cell mismatch
+        [[0, 3], [1, 4], '1 1'], // known cell mismatch even in an empty frame
+    ] as [Shape, Shape, string][]) {
+        const runtime = new Interpreter();
+        try {
+            expect(() => runtime.execute(`A = ${array(a)}\nB = ${array(b)}\nA B * rank ${ranks}`))
+                .toThrow(/shape mismatch/);
+        } finally { runtime.dispose(); }
+    }
+    const runtime = new Interpreter();
+    try {
+        const result = runtime.execute('A = array 10 100\nB = array 1 2 3 4 shape 2 2\nA * B');
+        if (!result || !isRankArray(result)) throw new Error('expected array');
+        expect(result.items).toEqual([10n, 200n, 30n, 400n]);
+    } finally { runtime.dispose(); }
+});
+
+it('does not evaluate arithmetic in empty frames and keeps text results boxed', () => {
+    expect(check('A = array shape 0 fill 0\nB = array shape 1 2 3 fill 0\nR = A B // rank 0 2', [0, 2, 3]))
+        .toEqual({ knownAxes: 3, unknownAxes: 0, knownRank: true });
+    for (const size of [0, 2]) {
+        const runtime = new Interpreter();
+        try {
+            const result = runtime.execute(`A = array shape ${size} fill "a"\nA "bc" + rank 0 1`);
+            if (!result || !isRankArray(result)) throw new Error('expected array');
+            expect(result.shape).toEqual([size]);
+            expect(result.items).toEqual(Array(size).fill('abc'));
+        } finally { runtime.dispose(); }
+    }
+});
+
+it('evaluates ranked logical operands while preserving scalar infix guards', () => {
+    const runtime = new Interpreter();
+    try {
+        expect(runtime.execute('false and (1 // 0)')).toBe(false);
+        expect(runtime.execute('true or (1 // 0)')).toBe(true);
+        expect(() => runtime.execute('false (1 // 0) and rank 0 0')).toThrow('division by zero');
+        expect(() => runtime.execute('true (1 // 0) or rank 0 0')).toThrow('division by zero');
+    } finally { runtime.dispose(); }
+});
+
 it('routes broadcast matrix cells in frame order without mixing contraction axes', () => {
     const left = Array.from({ length: 12 }, (_, index) => BigInt(index + 1));
     const right = Array.from({ length: 18 }, (_, index) => BigInt(index + 1));

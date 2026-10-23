@@ -81,7 +81,7 @@ export function binaryExpressionFacts(
 }
 
 /** Shared forward transfer for already inferred operands; never reads cells. */
-export function binaryOperandFacts(operator: string, left: ValueFacts, right: ValueFacts): ValueFacts | undefined {
+export function binaryOperandFacts(operator: string, left: ValueFacts, right: ValueFacts, scalarGuards = true): ValueFacts | undefined {
     // A known numeric domain is scalar even when a builtin supplied no explicit rank.
     const numericScalar = (value: ValueFacts): ValueFacts => value.rank === undefined && value.types.length
         && value.types.every(type => type === 'integer' || type === 'real')
@@ -177,7 +177,7 @@ export function binaryOperandFacts(operator: string, left: ValueFacts, right: Va
             || (['array', 'sequence'].includes(value.types.join()) && !!value.shape
                 && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true)
                 && !!value.elements?.length && value.elements.every(type => allowed.includes(type)));
-        const types = binaryType(operator, left.types, right.types);
+        const types = binaryType(operator, left.types, right.types, scalarGuards);
         if ([left, right].every(safe) && ['array', 'sequence'].includes(types.join())) {
             const leftShape = left.rank === 0 ? [] : left.shape!;
             const rightShape = right.rank === 0 ? [] : right.shape!;

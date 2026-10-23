@@ -1331,6 +1331,21 @@ examples. For ordinary named binary functions, a single `rank L` changes the
 left cell rank and retains the right operand's declared rank. Binary comparisons
 have their own single-rank shorthand, described below.
 
+Arithmetic operators `+`, `-`, `*`, `/`, `//`, `mod`, `**` and logical operators
+`and`, `or`, `xor` accept the same two-rank call form:
+
+```rank
+Scaled = Weights Batch * rank 0 2
+```
+
+For shapes `B` and `B N M`, the scalar weights and matrix cells have matching
+frames `B`; the result has shape `B N M`, including when `B` is zero. The
+operator broadcasts within each cell, and array-valued cell results stack under
+the broadcast frame. Both ranks are required for this operator form. Ordinary
+infix expressions such as `Weights * Batch` keep trailing-axis broadcasting.
+Ranked logical calls evaluate both operands; scalar infix `and`/`or` guards
+retain their short-circuit behavior.
+
 Only positional data operands participate in ranked application; function
 operands and optional configuration stay fixed. General lifting supports one or
 two data operands. Calls with more data operands receive whole values; they do

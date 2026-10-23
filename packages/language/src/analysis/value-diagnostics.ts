@@ -12,7 +12,7 @@ import { AstUtils, type AstNode } from 'langium';
 import { inferRequirements, type RequirementAnalysis, type ValueRequirement } from './requirements.js';
 import { requirementDiagnostics } from './requirement-diagnostics.js';
 import {
-    isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression,
+    isApplicationExpression, isAllAxisExpression, isNameExpression, isNumberLiteral, isStringLiteral, isParenthesizedExpression, isFunctionOperator,
     isTupleExpression, isArrayExpression, isMaterializeExpression, isUnaryExpression, isBooleanLiteral, isLabelLiteral,
     isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
     isOperationAssignmentStatement,
@@ -823,7 +823,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 ? findOperation(rankedName.name) : undefined;
             const ranks = form.kind === 'rank' && form.rightRank !== undefined
                 ? [Number(form.rank), Number(form.rightRank)] : rankedOperation?.dyadicRanks;
-            if (rankedParts?.length === 3 && rankedOperation?.arities.includes(2) && ranks) {
+            if (rankedParts?.length === 3 && (rankedOperation?.arities.includes(2) || isFunctionOperator(rankedName)) && ranks) {
                 const operands = rankedParts.slice(0, 2).map(part => expressions.get(part)
                     ?? expressionFacts(part, name => env.get(name)));
                 const conflict = rankedFrameConflict(operands, ranks);

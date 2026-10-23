@@ -16,7 +16,7 @@ function analyze(source: string, initial: ReadonlyMap<string, ValueFacts> = new 
 
 it('diagnoses proven incompatible explicit and intrinsic binary frames', () => {
     const prefix = 'use numbers\nA = array shape 2 fill 2\nB = array shape 3 fill 2\n';
-    for (const call of ['A B gcd rank 0 0', 'A B gcd']) {
+    for (const call of ['A B gcd rank 0 0', 'A B gcd', 'A B * rank 0 0', 'A B + rank -1 -1']) {
         const { diagnostics } = analyze(prefix + 'R = ' + call);
         expect(diagnostics.map(item => [item.kind, item.message]))
             .toEqual([['DimensionMismatch', 'shape mismatch: [2] and [3]']]);

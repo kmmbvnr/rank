@@ -196,7 +196,7 @@ export function compoundType(operator: string, left: Types, right: Types): Types
     return binaryType(operator.slice(0, -1), left, right);
 }
 
-export function binaryType(operator: string, left: Types, right: Types): Types {
+export function binaryType(operator: string, left: Types, right: Types, scalarGuards = true): Types {
     if (operator === 'divmod') return ['tuple'];
     if (operator === 'default') return unionTypes(left, right);
     if (operator === 'to' || operator === 'till') {
@@ -213,7 +213,7 @@ export function binaryType(operator: string, left: Types, right: Types): Types {
     if (BOOLEANS.has(operator)) {
         if (same(left, 'boolean') && same(right, 'boolean')) return ['boolean'];
         // After a single boolean, `and` and `or` are guards that accept only a single boolean.
-        if (same(left, 'boolean') && operator !== 'xor') return ['boolean'];
+        if (scalarGuards && same(left, 'boolean') && operator !== 'xor') return ['boolean'];
         return elementwise(left, right) ?? UNKNOWN;
     }
     if (operator === '+' && same(left, 'text') && same(right, 'text')) return ['text'];

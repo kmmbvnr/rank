@@ -6,10 +6,10 @@ import { completedValueFacts, completionMayCall } from './completion-facts.js';
 import { diagonalResultShape } from '../shape-signature.js';
 import { operationShapeFacts, rankedOperandShapes } from './operation-shape.js';
 import { freshDim } from './shape-index.js';
-import { foldedCells, scannedFacts, symbolicFormFacts } from './binary-facts.js';
+import { binaryOperandFacts, foldedCells, scannedFacts, symbolicFormFacts } from './binary-facts.js';
 import {
     isParenthesizedExpression, isAllAxisExpression, isApplicationExpression, isLabelLiteral, isNameExpression, isNewStructureExpression,
-    isNumberLiteral, isStringLiteral, isUnpackExpression, type ApplicationExpression, type Expression,
+    isNumberLiteral, isStringLiteral, isUnpackExpression, isFunctionOperator, type ApplicationExpression, type Expression,
 } from '../generated/ast.js';
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { findOperation } from '../operations.js';
@@ -454,6 +454,11 @@ function transferApplicationFacts(
         const name = form.parts.at(-1);
         const operation = isNameExpression(name) ? operationBinding(name.name, lookup) : undefined;
         const operands = form.parts.slice(0, -1).map(part => infer(part, lookup));
+        if (isFunctionOperator(name) && operands.length === 2 && form.rightRank !== undefined) {
+            return rankedFunctionFacts(operands, [Number(form.rank), Number(form.rightRank)],
+                // A function receives both values; scalar `and`/`or` guards belong to infix syntax.
+                cells => binaryOperandFacts(name.operator, cells[0], cells[1], false) ?? UNKNOWN_VALUE);
+        }
         // Text is boxed in a tensor cell: `Words len rank 0` maps word lengths,
         // preserving the frame rather than treating each word as another axis.
         if (operation && operation.name === 'len' && form.rank === 0n && form.rightRank === undefined && !form.axes

@@ -8,6 +8,7 @@ interface Header {
 }
 const symbolic = new Set(['+', '-', '*', '**', '/', '//', 'mod', 'and', 'or', 'xor',
     'equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
+const rankedOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**', 'and', 'or', 'xor']);
 const lowercase = (token: IToken | undefined) => !!token && /^[a-z][A-Za-z0-9_]*$/.test(token.image);
 const uppercase = (token: IToken | undefined) => !!token && /^[A-Z][A-Za-z0-9_]*$/.test(token.image);
 const newline = (token: IToken | undefined) => token?.tokenType.name === 'NL' || token?.tokenType.name === 'REM_COMMENT';
@@ -160,6 +161,18 @@ export class SignatureLexer extends DefaultLexer {
             const tokenType = this.definition[type];
             tokens[index] = { ...tokens[index], tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! };
         };
+        // In `A B * rank L R`, the symbol is a function operand rather than
+        // an infix operator. Keep ordinary formulas and comparison rank intact.
+        for (let index = 0; index < tokens.length; index++) {
+            if (declarations.has(index) || !rankedOperators.has(tokens[index].image)
+                || tokens[index + 1]?.image !== 'rank') continue;
+            let cursor = index + 2;
+            const rank = () => {
+                if (tokens[cursor]?.image === '-') cursor++;
+                return tokens[cursor++]?.tokenType.name === 'INTEGER';
+            };
+            if (rank() && rank()) replace(index, 'CALL_OPERATOR');
+        }
         for (let index = 0; index < tokens.length; index++) {
             if (declarations.has(index) || removed.has(index)) continue;
             const header = lookup(tokens[index].image, scopes[index]);

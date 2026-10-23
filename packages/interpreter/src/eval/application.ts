@@ -9,7 +9,7 @@ import { demand, isRankPlan } from '../plan.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication, groupedExpression,
     isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
-    isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, renamedBuiltinCall,
+    isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, isFunctionOperator, renamedBuiltinCall,
     type KnownShape, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
     type Expression, type Operation,
 } from '@arrrank/language';
@@ -31,6 +31,7 @@ import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ALL_AXIS, selectAxis } from '../selectors.js';
 import { safeDimension } from '../tensor-index.js';
+import { broadcastShape } from '../tensor-layout.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
     MISSING, isNativeFunction, isRankArray, isRankFenwick, isRankLabel, typeName, type NativeFunction, type RankValue,
@@ -288,8 +289,15 @@ export class ApplicationEvaluator {
                     if (explicitRank.parts.length === 3) {
                         const left = yield* resume(context.evaluate(explicitRank.parts[0]));
                         const right = yield* resume(context.evaluate(explicitRank.parts[1]));
-                        const operation = yield* resume(context.evaluate(explicitRank.parts[2]));
+                        let operation = yield* resume(context.evaluate(explicitRank.parts[2]));
                         if (isNativeFunction(operation) && (operation.dyadicRanks || operation.arities.includes(2))) {
+                            if (isFunctionOperator(explicitRank.parts[2])) {
+                                operation = { ...operation, arrayCells: true,
+                                    // Only array results add axes. Text and sequences stay boxed.
+                                    dyadicResultShape: (a, b) => broadcastShape(
+                                        isRankArray(left) ? a : [], isRankArray(right) ? b : []),
+                                };
+                            }
                             return yield* resume(context.rankApplication.applyDyadicAtRank(
                                 left, right, operation, Number(explicitRank.rank),
                                 explicitRank.rightRank === undefined ? undefined : Number(explicitRank.rightRank),

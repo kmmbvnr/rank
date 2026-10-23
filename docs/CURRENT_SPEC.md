@@ -6380,7 +6380,18 @@ dataframe-specific row API.
 
 A binary operation takes one cell rank per operand with `rank L R`. The left
 operand is split into cells of rank `L`, the right into cells of rank `R`, and
-their frames broadcast by trailing axes. Keeping one side whole and taking the
+their frames broadcast by trailing axes. Arithmetic operators `+`, `-`, `*`, `/`,
+`//`, `mod`, `**` and logical operators `and`, `or`, `xor` accept the explicit
+form `A B * rank L R`, with both ranks required. For example,
+`Weights Batch * rank 0 2` scales each matrix in a batch by its scalar weight:
+shapes `B` and `B N M` produce `B N M`, including an empty batch. The operator
+broadcasts within each cell; array result axes follow the broadcast frame.
+Ordinary infix arithmetic keeps trailing-axis broadcasting, and general binary
+calls do not accept explicit `axis` lists.
+Ranked logical calls evaluate both operands; scalar infix `and`/`or` guards
+retain their short-circuit behavior.
+
+Keeping one side whole and taking the
 other item by item finds several values in one vector at once:
 
 ```rank
