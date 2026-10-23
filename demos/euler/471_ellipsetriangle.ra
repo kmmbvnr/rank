@@ -1,0 +1,54 @@
+rem Triangle inscribed in ellipse
+rem https://projecteuler.net/problem=471
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000
+
+rem The radius for (a, b) is b(a -
+rem 2b)/(a - b). With c = a - b it is
+rem b - b^2/c over 1 <= b <= min(c -
+rem 1, N - c): polynomials for c <=
+rem N/2 and for the upper part, and
+rem one harmonic sum over [L, R].
+Q = N // 2
+M = (N - 1) // 2
+L = N - M
+R = N - 1
+A = Q * (2 * Q * Q + 3 * Q - 5)
+B = M * (M + 1) * (M + 2)
+S2 = R * (R + 1) * (2 * R + 1)
+S2 -= (L - 1) * L * (2 * L - 1)
+rem 36 G = A + 6 B + P - 6 W H.
+P = 6 * (6 * N * N + 6 * N + 1) * M
+P -= 3 * (6 * N + 3) * (L + R) * M
+P += 2 * S2
+W = N * (N + 1) * (2 * N + 1)
+H = 0.0
+if R - L less 1000000
+  H = (1.0 / (L to R)) sum
+else
+  rem Euler-Maclaurin for H_R - H_{L-1}.
+  Ts = array R (L - 1)
+  X = Ts * 1.0
+  Hs = X log + 0.5 / X
+  Hs -= 1.0 / (12 * X ** 2)
+  Hs += 1.0 / (120 * X ** 4)
+  Hs -= 1.0 / (252 * X ** 6)
+  H = Hs 0 - Hs 1
+end
+Nm = A + 6 * B + P
+G = Nm / 36.0 - W * H / 6.0
+Lt = 10.0 log
+E = (G log / Lt) floor
+Mn = G / 10.0 ** E
+if Mn at least 9.9999999995
+  Mn /= 10
+  E += 1
+end
+Answer = (Mn text ".9f") + "e"
+Answer += E text
+Answer print
