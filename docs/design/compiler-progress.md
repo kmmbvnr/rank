@@ -246,10 +246,10 @@ Integer loops use the shared native-call contracts for `band`, `bor`, `bxor`,
 identity, module and input-domain checks. They use the existing BigInt operations,
 including nonnegative shift positions and the nonnegative popcount domain.
 
-A complete region may contain up to 128 statements across nested branches and
-loops; the outer body still has a 32-statement limit and expression generation
-remains bounded. Exceeding the region limit reports `statement-budget` rather
-than an unsupported assignment.
+A complete region may contain up to 128 statements across its outer body,
+nested branches and loops. Expression generation remains bounded. Exceeding
+the region limit reports `statement-budget` rather than an unsupported assignment;
+`rank --diagnostics program.ra` prints loop fallback reasons to stderr.
 
 Euler 103 uses scalar leaf checks and copies a successful set into its output
 array element by element, allowing the full depth-array search to compile. The

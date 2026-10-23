@@ -17,6 +17,14 @@ rank test path/to/directory
 
 `rank test` runs test files ending in `_test.ra`.
 
+`rank --diagnostics program.ra [arguments...]` runs the program and writes loop
+compiler counters and fallback reasons to stderr, including on runtime errors.
+Program output stays on stdout. For example, `loop:statement-budget:AssignmentStatement`
+means the loop exceeds the compiler's budget of 128 statements across its body,
+including nested branches and loops. Counters report compilation/execution events,
+not the number of loop iterations. `rank explain` reports static name bindings;
+it does not run the program or report compiler decisions.
+
 In the REPL, Enter submits the bottom prompt. Up returns to earlier code for
 editing; Down or Esc returns to the prompt. Enter inside earlier code inserts a
 line. Ctrl-R submits the prompt from anywhere in the document.

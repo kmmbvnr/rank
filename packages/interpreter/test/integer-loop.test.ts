@@ -32,6 +32,49 @@ function compare(source: string) {
 }
 
 describe('whole integer loops', () => {
+    it.each([32, 33, 40, 100, 128])('compiles a flat body of %i statements', count => {
+        const source = `S = 0
+T = 0
+for R in 1 to 50
+${Array.from({ length: count - 1 }, (_, i) => `  A${i} = S + R + ${i}`).join('\n')}
+  T += R
+end
+T`;
+        const result = compare(source);
+        expect(result.value).toBe('1275');
+        expect(result.loops).toBe(1);
+        const runtime = new Interpreter(), diagnostics = new RuntimeDiagnostics();
+        try {
+            expect(diagnostics.run(() => runtime.execute(source))).toBe(1275n);
+            expect(diagnostics.compiledLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('keeps the 128-statement region budget (nested: %s)', nested => {
+        const body = Array.from({ length: nested ? 128 : 129 }, () => '  T += R').join('\n');
+        const source = `T = 0\nfor R in 1 to 3\n${nested ? `if true\n${body}\nend` : body}\nend\nT`;
+        const result = compare(source);
+        expect(result.value).toBe(String((nested ? 128 : 129) * 6));
+        expect(result.loops).toBe(0);
+        const runtime = new Interpreter(), diagnostics = new RuntimeDiagnostics();
+        try {
+            diagnostics.run(() => runtime.execute(source));
+            expect(diagnostics.compiledLoops).toBe(0);
+            expect(Object.keys(diagnostics.fallbacks)).toContain('loop:statement-budget:AssignmentStatement');
+        } finally { runtime.dispose(); }
+    });
+
+    it('preserves partial writes and error locations in a long body', () => {
+        const result = compare(`A = 0
+for R in 1 to 3
+${Array.from({ length: 40 }, () => '  A += 1').join('\n')}
+  A = 10 // (2 - R)
+end
+A`);
+        expect(result).toHaveProperty('error');
+        expect(result.variables).toContainEqual(['A', '50']);
+    });
+
     it('prepares numeric loop buffers without unpacking integer storage', () => {
         const runtime = new Interpreter();
         const source = typedArray(new BigInt64Array([1n, 2n, 3n]));

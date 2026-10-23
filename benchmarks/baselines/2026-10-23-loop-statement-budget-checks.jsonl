@@ -1,0 +1,12 @@
+{"check":"32-statement-repeat","variant":"baseline","trial":0,"count":32,"ms":73.89641699999993,"preparationMs":12.262207999999987,"generatedBytes":40660,"result":"2000001000000","compiledLoops":1,"numberLoops":1,"fallbacks":{}}
+{"check":"32-statement-repeat","variant":"candidate","trial":0,"count":32,"ms":72.15975000000003,"preparationMs":18.038250000000005,"generatedBytes":40660,"result":"2000001000000","compiledLoops":1,"numberLoops":1,"fallbacks":{}}
+{"check":"32-statement-repeat","variant":"candidate","trial":1,"count":32,"ms":49.10370799999998,"preparationMs":12.286583000000064,"generatedBytes":40660,"result":"2000001000000","compiledLoops":1,"numberLoops":1,"fallbacks":{}}
+{"check":"32-statement-repeat","variant":"baseline","trial":1,"count":32,"ms":68.88099999999997,"preparationMs":12.727750000000015,"generatedBytes":40660,"result":"2000001000000","compiledLoops":1,"numberLoops":1,"fallbacks":{}}
+{"check":"32-statement-repeat","variant":"baseline","trial":2,"count":32,"ms":55.53262499999994,"preparationMs":13.160000000000025,"generatedBytes":40660,"result":"2000001000000","compiledLoops":1,"numberLoops":1,"fallbacks":{}}
+{"check":"32-statement-repeat","variant":"candidate","trial":2,"count":32,"ms":56.51720799999998,"preparationMs":13.726499999999987,"generatedBytes":40660,"result":"2000001000000","compiledLoops":1,"numberLoops":1,"fallbacks":{}}
+{"check":"cli-100-statements","trial":0,"diagnostic":false,"ms":773.462916,"stdout":"2000001000000\n","stderr":""}
+{"check":"cli-100-statements","trial":0,"diagnostic":true,"ms":1016.1292910000002,"stdout":"2000001000000\n","stderr":"Loop diagnostics:\n  compiledLoops: 1\n  numberLoops: 1\n"}
+{"check":"cli-100-statements","trial":1,"diagnostic":true,"ms":1000.775208,"stdout":"2000001000000\n","stderr":"Loop diagnostics:\n  compiledLoops: 1\n  numberLoops: 1\n"}
+{"check":"cli-100-statements","trial":1,"diagnostic":false,"ms":611.3487910000003,"stdout":"2000001000000\n","stderr":""}
+{"check":"cli-100-statements","trial":2,"diagnostic":false,"ms":608.4253330000001,"stdout":"2000001000000\n","stderr":""}
+{"check":"cli-100-statements","trial":2,"diagnostic":true,"ms":611.3614160000006,"stdout":"2000001000000\n","stderr":"Loop diagnostics:\n  compiledLoops: 1\n  numberLoops: 1\n"}

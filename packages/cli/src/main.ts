@@ -1,5 +1,5 @@
 import { runProgram } from '@arrrank/common';
-import { Interpreter, RankError, parse, type RankTestResult } from '@arrrank/interpreter';
+import { Interpreter, RankError, RuntimeDiagnostics, parse, type RankTestResult } from '@arrrank/interpreter';
 import {
     analyzeValues, analyzeWithImports, describeTypes, moduleForms, moduleOperations, modules,
     type Binding, type Operation, type Program, type ScopeFacts, type WordUse,
@@ -54,6 +54,11 @@ async function dispatch(): Promise<void> {
         await explainFile(arguments_[1]);
         return;
     }
+    if (arguments_[0] === '--diagnostics') {
+        if (arguments_[1] === undefined) throw new RankError('--diagnostics needs a file');
+        await runFile(arguments_[1], arguments_.slice(2), true);
+        return;
+    }
     if (arguments_.length === 0) {
         await startRepl();
         return;
@@ -61,10 +66,10 @@ async function dispatch(): Promise<void> {
     await runFile(arguments_[0], arguments_.slice(1));
 }
 
-async function runFile(file: string, args: readonly string[]): Promise<void> {
+async function runFile(file: string, args: readonly string[], diagnostic = false): Promise<void> {
     const sourceId = path.resolve(file);
     const source = await fs.readFile(sourceId, 'utf8');
-    runProgram(source, console.log, {
+    const run = () => runProgram(source, console.log, {
         environment: nodeEnvironment(),
         args,
         input: new NodeInput(),
@@ -73,6 +78,17 @@ async function runFile(file: string, args: readonly string[]): Promise<void> {
         sourceId,
         loadModule,
     });
+    if (!diagnostic) { run(); return; }
+    const diagnostics = new RuntimeDiagnostics();
+    try { diagnostics.run(run); }
+    finally {
+        console.error('Loop diagnostics:');
+        console.error(`  compiledLoops: ${diagnostics.compiledLoops}`);
+        console.error(`  numberLoops: ${diagnostics.numberLoops}`);
+        for (const [reason, count] of Object.entries(diagnostics.fallbacks).sort(([a], [b]) => a.localeCompare(b))) {
+            if (reason.startsWith('loop:')) console.error(`  ${reason}: ${count}`);
+        }
+    }
 }
 
 /** Checks syntax, scope and removed builtin uses without executing programs. */
@@ -424,6 +440,7 @@ function printHelp(): void {
         'Usage:',
         '  rank                         Start the REPL ("help" for input hints)',
         '  rank <file> [arguments...]   Run a Rank program',
+        '  rank --diagnostics <file> [arguments...]   Run with loop compiler diagnostics',
         '  rank check [path]            Check every *.ra file',
         '  rank explain <file>          Where every name is bound and read',
         '  rank ops [--markdown]        The standard-library catalogue',

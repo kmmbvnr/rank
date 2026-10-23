@@ -102,7 +102,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
         vectorIterations, iterators, destinations, locations, reject,
     } = state;
-    if (!statement.statements.length || statement.statements.length > 32) return reject(statement, 'statement-budget');
+    if (!statement.statements.length) return reject(statement, 'statement-budget');
     const expressions = createLoopExpressions(state);
     const loopParts = createLoopHeader(state, expressions);
     const root = loopParts(statement, iteration, -1);
