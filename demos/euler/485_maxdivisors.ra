@@ -67,10 +67,10 @@ for Lo in 1 to U by Bs
     Sf = Sf reverse
     W = Ne - K + 1
     Ws = Sf (0 till W)
-    Mx = Ws (Pf (K - 1 till Ne)) max
+    Mx = Ws max (Pf (K - 1 till Ne))
     Answer += Mx sum
   end
-  T0 = (Ne - K + 1) 0 max
+  T0 = (Ne - K + 1) max 0
   Tl = Ex (T0 till Ne) copy
 end
 Answer print

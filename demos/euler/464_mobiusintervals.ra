@@ -62,7 +62,7 @@ for Ps in 0 to 1
     Sl = (Is * Lo) sum - 2 * Sh
     rem Items with bit t set.
     Ct = M1 // (2 * Pw) * Pw
-    Ct += (M1 mod (2 * Pw) - Pw) 0 max
+    Ct += (M1 mod (2 * Pw) - Pw) max 0
     Bad += Sl - Pv + Pw * Ct
     Pv = Sh
     Pw *= 2

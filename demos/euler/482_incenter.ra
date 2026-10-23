@@ -87,8 +87,8 @@ Ls = (Src less Nq) indices
 Lo (Src Ls) = Cv Ls
 Hs = (Src at least Nq) indices
 Hi (Src Hs - Nq) = Cv Hs
-Lo = Lo Qi max
-Cn = (Hi - Lo) 0 max
+Lo = Lo max Qi
+Cn = (Hi - Lo) max 0
 rem Pairs (i, j) chunk by chunk; keep
 rem integer z >= y with z^2 + r^2 a
 rem square.
@@ -101,7 +101,7 @@ for St less Nq
   rem Next chunk: up to Ch pairs.
   Cm = Cb + Ch
   En = (Cs at most Cm) count - 1
-  En = (En (St + 1) max) Nq min
+  En = (En max (St + 1)) Nq min
   Np = Cs En - Cb
   if Np greater 0
     Of = Cs (St till En) - Cb

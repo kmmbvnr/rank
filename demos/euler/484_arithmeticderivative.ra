@@ -36,7 +36,7 @@ for Si len greater 0
   Hi = array shape Nq fill 0
   Qp = (Od at least Np) indices
   Hi (Od Qp - Np) = Ip Qp
-  Cn = (Hi - Si) 0 max
+  Cn = (Hi - Si) max 0
   Cs = Cn scan + with 0
   Ni = array shape 0 fill 0
   Nl = Ni
@@ -46,7 +46,7 @@ for Si len greater 0
     Cb = Cs St
     Cm = Cb + Ch
     En = (Cs at most Cm) count - 1
-    En = (En (St + 1) max) Nq min
+    En = (En max (St + 1)) Nq min
     Tl = Cs En - Cb
     if Tl greater 0
       Of = Cs (St till En) - Cb

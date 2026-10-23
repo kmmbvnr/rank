@@ -70,7 +70,7 @@ fun K D tree
       Mx = Sd T mod 2 equal 1
       if Sg T equal 1
         if Mx
-          Sa T = Sa T Rv max
+          Sa T = Sa T max Rv
         else
           Sb T = Sb T Rv min
         end
@@ -91,7 +91,7 @@ fun K D tree
         end
       else
         if Mx
-          Rv = Sa T Rv max
+          Rv = Sa T max Rv
         else
           Rv = Sb T Rv min
         end
@@ -104,7 +104,7 @@ fun K D tree
       R = (2 * X + 3 * Pr) mod Q
       Mx = Sd T mod 2 equal 1
       Lo = L R min
-      Hi = L R max
+      Hi = L max R
       Fi = Mx choose Hi Lo
       Se = Mx choose Lo Hi
       if Sd T equal 1
@@ -134,7 +134,7 @@ fun S D Bs Ll node
     Kl = J0 // 2 ** D
     return Kl D tree
   end
-  Dk = D 1 max
+  Dk = D max 1
   Ky = J0 // 2 ** Dk
   Dm = Dk - 1
   Tv = Ky Dm tree
@@ -172,7 +172,7 @@ if N greater 1
   Z = S D Bs Ll node
   for E in D + 1 to H
     if E mod 2 equal 1
-      Z = Z (Sv E) max
+      Z = Z max (Sv E)
     else
       Z = Z (Sv E) min
     end

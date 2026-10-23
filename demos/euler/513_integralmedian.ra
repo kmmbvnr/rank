@@ -107,11 +107,11 @@ fun V fval
     J = Cs (2 * Ci + 1)
     rem Small generators (s, t).
     Sv = (2 till R) copy
-    Tm = (Sv * Sv // 3) isqrt 1 max
+    Tm = ((Sv * Sv // 3) isqrt) max 1
     Ok = Sv mod 2 equal 0
     Ok = Ok or (I equal J)
     T0 = (Sv - 1) mod 2 + 1
-    Ct = ((Tm - T0) // 2 + 1) 0 max
+    Ct = ((Tm - T0) // 2 + 1) max 0
     Ct = Ok choose Ct 0
     Of = Ct scan + with 0
     Tl = Of last
@@ -147,7 +147,7 @@ fun V fval
     V0 = 1 + (J + 1) mod 2
     Uv = (U0 to Um by 2) copy
     Vt = (V // 2) (Uv - 1) min
-    Cv = ((Vt - V0) // 2 + 1) 0 max
+    Cv = ((Vt - V0) // 2 + 1) max 0
     Of = Cv scan + with 0
     Tl = Of last
     if Tl greater 0
@@ -165,10 +165,10 @@ fun V fval
       end
       Lt = U * U less 3 * W * W
       Dw = 2 * U * W + W * W - U * U
-      Ma = V * (3 * W - U) // (Dw 1 max)
+      Ma = V * (3 * W - U) // (Dw max 1)
       Mb = V * U // ((U - W) * (U + W))
       Mx = Lt choose Ma Mb
-      Mc = ((U + W - 1) // W) R max
+      Mc = ((U + W - 1) // W) max R
       Mn = Lt choose (U * 0 + R) Mc
       A0 = Lt choose (U - W) W
       A1 = Lt choose (3 * W - U) U
@@ -187,7 +187,7 @@ fun V fval
       Tot += Rc sum
       Md = (W + V) // U
       Gm = (Md less Mx) indices
-      Lw = (Md Gm) ((Mn Gm) - 1) max
+      Lw = (Md Gm) max ((Mn Gm) - 1)
       Fa = (Tr Gm) equal false
       Ug = U Gm
       Zm = Z Gm - V

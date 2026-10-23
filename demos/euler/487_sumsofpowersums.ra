@@ -37,7 +37,7 @@ for E greater 0
 end
 rem i!, prod (x - j) for j < i and for
 rem j > i, and (i+1) .. M by suffix.
-Fc = Z + (I 1 max)
+Fc = Z + (I max 1)
 Pf = (X - I + 1) mod P
 Pf 0 = Z 0 + 1
 Sf = ((X - I - 1) mod P) reverse

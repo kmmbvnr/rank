@@ -35,7 +35,7 @@ for P in primes to Lr
     Pe *= P
   end
 end
-Rm = Rs 1 max
+Rm = Rs max 1
 Pr = Ph // Rm * (Rm - 1)
 Ph = (Rs greater 1) choose Pr Ph
 Fs = Ph scan +

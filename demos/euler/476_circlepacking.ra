@@ -33,7 +33,7 @@ for A in 1 to N // 2
   Sb = Tb ** 0.5
   Qa = (1.0 - Sa) / (1.0 + Sa)
   Qb = (1.0 - Sb) / (1.0 + Sb)
-  Q3 = Qb (Qa * Qa) max
+  Q3 = Qb max (Qa * Qa)
   F = R2 * (1.0 + Qa * Qa + Q3 * Q3)
   Tot += F sum
   Cnt += Nb * A

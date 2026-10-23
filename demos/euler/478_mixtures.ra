@@ -37,7 +37,7 @@ for P in primes to Rt
 end
 Bp = Rs greater 1
 Mu = Bp choose (0 - Mu) Mu
-Rm = Rs 1 max
+Rm = Rs max 1
 Ph = Bp choose (Ph // Rm * (Rm - 1)) Ph
 Mt = Mu scan +
 rem Moebius sums group by m = N // d:

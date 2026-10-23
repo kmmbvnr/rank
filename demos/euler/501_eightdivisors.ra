@@ -50,7 +50,7 @@ end
 rem pi(x) for x of the form N // m.
 fun X pin
   Xs = X R min
-  Xb = N // (X 1 max) R min
+  Xb = N // (X max 1) R min
   Sm = X at most R
   return Sm choose (Lo Xs) (Hi Xb)
 end
@@ -64,7 +64,7 @@ Q7 = (P3 ** 7 at most N) count
 Answer += Q7
 rem p < q < r: q runs to sqrt(N / p).
 Qh = (N // P3) isqrt pin
-Cn = (Qh - 1 - C3) 0 max
+Cn = (Qh - 1 - C3) max 0
 Of = Cn scan + with 0
 Tl = Of last
 Ow = array shape Tl fill 0
