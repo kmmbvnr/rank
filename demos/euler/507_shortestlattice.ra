@@ -1,0 +1,163 @@
+rem Shortest Lattice Vector
+rem https://projecteuler.net/problem=507
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 20000000
+option Lc integer = 20
+
+rem Lattice n uses Tribonacci terms
+rem 12n-11 .. 12n: v = (r1 - r2, r3 +
+rem r4, r5 r6), w the same from r7.
+rem Reduce like Gauss in the L1 norm:
+rem w - t v is convex in t, least at
+rem the median of w_i / v_i weighted
+rem by |v_i|; try its floor and the
+rem next integer. All lattices of a
+rem chunk at once.
+Md = 10000000
+fun A B mm3
+  rem Product of two 3 x 3 matrices,
+  rem each a row of 9.
+  Ar = A reshape 3 3 1
+  Br = B reshape 1 3 3
+  C = (Ar * Br) sum axis 1
+  return (C reshape 9) mod Md
+end
+rem Step matrix A; M = A^12 jumps one
+rem lattice ahead.
+A = array 0 1 0 0 0 1 1 1 1
+M = array 1 0 0 0 1 0 0 0 1
+for I in 1 to 12
+  M = M A mm3
+end
+Ch = 2 ** Lc
+S0 = array 0 1 1
+Answer = 0
+for C0 in 0 till N by Ch
+  Nc = Ch (N - C0) min
+  rem States of the chunk by doubling:
+  rem append M^(2^k) times the block.
+  Sx = array (S0 0)
+  Sy = array (S0 1)
+  Sz = array (S0 2)
+  Mp = M
+  for K in 1 to Lc
+    Nx = Mp 0 * Sx + Mp 1 * Sy
+    Nx = (Nx + Mp 2 * Sz) mod Md
+    Ny = Mp 3 * Sx + Mp 4 * Sy
+    Ny = (Ny + Mp 5 * Sz) mod Md
+    Nz = Mp 6 * Sx + Mp 7 * Sy
+    Nz = (Nz + Mp 8 * Sz) mod Md
+    Sx = concat Sx Nx
+    Sy = concat Sy Ny
+    Sz = concat Sz Nz
+    Mp = Mp Mp mm3
+  end
+  rem Mp = M^(2^Lc) starts the next.
+  M3 = Mp reshape 3 3
+  S0 = (M3 * S0) sum axis 1 mod Md
+  R1 = Sx (0 till Nc)
+  R2 = Sy (0 till Nc)
+  R3 = Sz (0 till Nc)
+  R4 = (R1 + R2 + R3) mod Md
+  R5 = (R2 + R3 + R4) mod Md
+  R6 = (R3 + R4 + R5) mod Md
+  R7 = (R4 + R5 + R6) mod Md
+  R8 = (R5 + R6 + R7) mod Md
+  R9 = (R6 + R7 + R8) mod Md
+  Ra = (R7 + R8 + R9) mod Md
+  Rb = (R8 + R9 + Ra) mod Md
+  Rc = (R9 + Ra + Rb) mod Md
+  Ax = R1 - R2
+  Ay = R3 + R4
+  Az = R5 * R6
+  Bx = R7 - R8
+  By = R9 + Ra
+  Bz = Rb * Rc
+  rem Finished lattices add their
+  rem shortest vector; the rest shrink.
+  X1 = Ax
+  Y1 = Ay
+  Z1 = Az
+  X2 = Bx
+  Y2 = By
+  Z2 = Bz
+  for X1 len greater 0
+    La = X1 abs
+    La += Y1 abs
+    La += Z1 abs
+    Lb = X2 abs
+    Lb += Y2 abs
+    Lb += Z2 abs
+    rem Shorter vector first.
+    Sw = Lb less La
+    Tx = X1
+    X1 = Sw choose X2 X1
+    X2 = Sw choose Tx X2
+    Tx = Y1
+    Y1 = Sw choose Y2 Y1
+    Y2 = Sw choose Tx Y2
+    Tx = Z1
+    Z1 = Sw choose Z2 Z1
+    Z2 = Sw choose Tx Z2
+    Lq = La
+    La = Sw choose Lb La
+    Lb = Sw choose Lq Lb
+    rem Weighted median of b_i / a_i.
+    W1 = X1 abs
+    W2 = Y1 abs
+    W3 = Z1 abs
+    D1 = (X1 equal 0) choose 1 X1
+    D2 = (Y1 equal 0) choose 1 Y1
+    D3 = (Z1 equal 0) choose 1 Z1
+    Q1 = X2 * 1.0 / D1
+    Q2 = Y2 * 1.0 / D2
+    Q3 = Z2 * 1.0 / D3
+    Bl1 = (Q2 less Q1) choose W2 0
+    Bl1 += (Q3 less Q1) choose W3 0
+    Bl2 = (Q1 at most Q2) choose W1 0
+    Bl2 += (Q3 less Q2) choose W3 0
+    Bl3 = (Q1 at most Q3) choose W1 0
+    Bl3 += (Q2 at most Q3) choose W2 0
+    Tt = W1 + W2 + W3
+    M1 = 2 * Bl1 less Tt
+    H1 = 2 * (Bl1 + W1) at least Tt
+    M1 = M1 and H1
+    M2 = 2 * Bl2 less Tt
+    H2 = 2 * (Bl2 + W2) at least Tt
+    M2 = M2 and H2
+    T3 = M2 choose (Y2 // D2) (Z2 // D3)
+    Tm = M1 choose (X2 // D1) T3
+    Tm = (Tt equal 0) choose 0 Tm
+    rem Floor of the median or one more.
+    Le = (X2 - Tm * X1) abs
+    Le += (Y2 - Tm * Y1) abs
+    Le += (Z2 - Tm * Z1) abs
+    T2 = Tm + 1
+    Ld = (X2 - T2 * X1) abs
+    Ld += (Y2 - T2 * Y1) abs
+    Ld += (Z2 - T2 * Z1) abs
+    Up = Ld less Le
+    Tb = Up choose T2 Tm
+    Lm = Up choose Ld Le
+    Im = Lm less Lb
+    Fn = (Im equal false) indices
+    Lf = La Fn
+    Lg = Lb Fn
+    Sv = (Lf equal 0) choose Lg Lf
+    Answer += Sv sum
+    Kp = Im indices
+    Tk = Tb Kp
+    X1 = X1 Kp
+    Y1 = Y1 Kp
+    Z1 = Z1 Kp
+    X2 = X2 Kp - Tk * X1
+    Y2 = Y2 Kp - Tk * Y1
+    Z2 = Z2 Kp - Tk * Z1
+  end
+end
+Answer print
