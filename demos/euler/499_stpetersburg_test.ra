@@ -1,0 +1,16 @@
+use testing
+
+test "statement values"
+  use "499_stpetersburg"
+  T = 2
+  B = 2
+  run
+  (Answer - 0.2522) abs less 0.00005
+  B = 5
+  run
+  (Answer - 0.6873) abs less 0.00005
+  T = 6
+  B = 10000
+  run
+  (Answer - 0.9952) abs less 0.00005
+end

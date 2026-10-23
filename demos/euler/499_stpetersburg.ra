@@ -1,0 +1,89 @@
+rem St. Petersburg Lottery
+rem https://projecteuler.net/problem=499
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option T integer = 15
+option B integer = 1000000000
+
+rem A round costs T and pays 2^n with
+rem chance 2^-(n+1) (n < 50 is enough
+rem for 7 digits). With d = T - 1 and
+rem capital c = k d + r + 1 above the
+rem threshold, the ruin chances obey
+rem u_(k+1) = X u_k: X is a fixed
+rem point, row r mixing rows of X^j
+rem for the layer j each payout
+rem reaches. The lowest layer solves
+rem (I - C) u_0 = q.
+H = 50
+D = T - 1
+Ey = (0 till D) copy
+fun Ro J X rowpow
+  rem Rows Ro of X^J, all at once.
+  Nr = Ro len
+  Oh = (Ro reshape Nr 1) equal Ey
+  V = Oh choose 1.0 0.0
+  Xp = X
+  Jr = J
+  for (Jr max) greater 0
+    Bm = (Jr mod 2) * 1.0
+    Vx = V Xp matmul
+    V = V + (Bm reshape Nr 1) * (Vx - V)
+    Xp = Xp Xp matmul
+    Jr = Jr // 2
+  end
+  return V
+end
+Nq = D * H
+Rq = (0 till Nq) // H
+Nn = (0 till Nq) mod H
+Pq = 0.5 ** (Nn + 1)
+Pc = Pq reshape Nq 1
+Gq = Rq + 2 ** Nn - 1
+Gr = Gq mod D
+Gj = Gq // D
+rem Iterate until the change stops
+rem shrinking: X^k for k ~ 10^8 needs
+rem X to the last bits.
+X = array shape D D fill 0.0
+Bd = 1.0
+St = 0
+for St less 30
+  Wv = Gr Gj X rowpow * Pc
+  Xn = (Wv reshape D H D) sum axis 1
+  Df = ((Xn - X) abs) max
+  X = Xn
+  St += 1
+  if Df less Bd
+    Bd = Df
+    St = 0
+  end
+end
+rem Lowest layer: c = r + 1.
+Cq = Rq + 2 ** Nn - D
+Lv = Cq greater 0
+Qr = Lv choose 0.0 Pq
+Q = (Qr reshape D H) sum axis 1
+Cp = Cq 1 max - 1
+Wb = (Cp mod D) (Cp // D) X rowpow
+Pl = Lv choose Pq 0.0
+Wb = Wb * (Pl reshape Nq 1)
+Cm = (Wb reshape D H D) sum axis 1
+I1 = (Ey * 0 + 1.0) diag
+U0 = (I1 - Cm) Q solve
+Answer = 0.0
+C0 = B - D
+if C0 greater 0
+  Ra = array ((C0 - 1) mod D)
+  Ka = array ((C0 - 1) // D)
+  Rw = Ra Ka X rowpow
+  Ru = (Rw 0 * U0) sum
+  Answer = 1.0 - Ru
+end
+Answer = Answer 7 round
+Answer print
