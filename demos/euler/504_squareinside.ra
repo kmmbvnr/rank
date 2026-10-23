@@ -1,0 +1,45 @@
+rem Square on the Inside
+rem https://projecteuler.net/problem=504
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 100
+
+rem Vertices (a,0), (0,b), (-c,0),
+rem (0,-d): 2A = (a + c)(b + d) and
+rem the boundary has gcd(a,b) +
+rem gcd(b,c) + gcd(c,d) + gcd(d,a)
+rem points, so by Pick I = (2A - B) /
+rem 2 + 1. For each a, all (b, c, d)
+rem at once.
+Vs = (1 to M) copy
+G = Vs Vs outer gcd
+Ns = 4 * M * M + 1
+Sq = array shape Ns fill false
+Rt = (0 to 2 * M) copy
+Sq (Rt * Rt) = true
+rem I = (X_a + X_c) / 2 + 1 with X_a
+rem (b, d) = a (b + d) - gcd(a, b) -
+rem gcd(a, d): one table for a and c,
+rem and pairs a <= c.
+Av = Vs reshape M 1 1
+Bv = Vs reshape 1 M 1
+Ab = G reshape M M 1
+Ad = G reshape M 1 M
+X3 = Av * (Bv + Vs) - Ab - Ad
+M2 = M * M
+X = X3 reshape M M2
+Answer = 0
+for A in 0 till M
+  Nc = M - A
+  Tw = X (A till M) + X A
+  In = Tw // 2 + 1
+  rem Row c = a counts once.
+  Ok = Sq (In reshape (Nc * M2))
+  Answer += 2 * (Ok count)
+  Answer -= (Ok (0 till M2)) count
+end
+Answer print
