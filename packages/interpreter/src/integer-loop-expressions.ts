@@ -245,7 +245,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
         if (numberMode) {
-            if (operation.module !== 'bits' || operation.name !== 'band') return undefined;
+            if (operation.module !== 'bits' || !['band', 'bxor'].includes(operation.name)) return undefined;
             const arguments_: string[] = [];
             for (const operand of operands) {
                 const value = emit(operand, lines, 'integer');
@@ -258,7 +258,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             }
             builtins.set(operation.name, operation.module);
             const name = `v${state.serial++}`;
-            lines.push(`const ${name} = ${arguments_[0]} & ${arguments_[1]};`);
+            lines.push(`const ${name} = ${arguments_[0]} ${operation.name === 'band' ? '&' : '^'} ${arguments_[1]};`);
             return { code: name, type: 'integer' };
         }
         const signature = operation.compiledCall!;

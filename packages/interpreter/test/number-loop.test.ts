@@ -47,6 +47,47 @@ describe('private safe-integer loop registers', () => {
     });
 
     it.each([
+        [0, -1], [-1, -1], [2147483647, -1], [-2147483648, -1],
+        [-2147483648, 2147483647], [123456789, -123456789],
+    ])('inlines signed Int32 bxor for %s and %s', (left, right) => {
+        const diagnostics = compare(`use bits\nA = ${left}\nB = ${right}\nfor I in 0 to 2\n R = A B bxor\nend`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it.each(['2147483648', '-2147483649', '4294967296', '9007199254740991'])('replays wide bxor operands exactly: %s', wide => {
+        const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nWide = ${wide}\nfor I in 0 to 2\n A I += 1\n R = Wide -1 bxor\nend`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it('discards private cells if a bxor operand becomes too wide after earlier iterations', () => {
+        const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = -1 X bxor\nend');
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it('preserves bxor operand errors after preceding array mutations', () => {
+        const source = 'use bits\nA = array 1 2 3\nB = array 0 0 0\nfor I in 0 to 2\n B I += 1\n R = (A I) (A (I + 1)) bxor\nend';
+        expect(execute(source).observation.error).toContain('out of bounds');
+        expect(compare(source).numberLoops).toBe(1);
+    });
+
+    it('rechecks the bxor builtin before entering a cached numeric loop', () => {
+        const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use bits\nfun work\n S = 0\n for I in 1 to 3\n  S += I 1 bxor\n end\n return S\nend');
+            expect(diagnostics.run(() => runtime.execute('work'))).toBe(5n);
+            expect(diagnostics.numberLoops).toBe(1);
+            runtime.execute('fun A B replacement\n return 10\nend');
+            runtime.variables.set('bxor', runtime.variables.get('replacement')!);
+            expect(diagnostics.run(() => runtime.execute('work'))).toBe(30n);
+            expect(diagnostics.numberLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([
         'for I in 0 to 2\n Before = I\n R = (A I) (A (I + 1)) band\n After = I\nend',
         'for I in 0 to 2\n Before = I\n R = 2147483648 (A (I + 1)) band\n After = I\nend',
         'for I in 0 to 2\n Before = I\n R = (7 // I) -1 band\n After = I\nend',
@@ -284,6 +325,58 @@ end`);
         expect(compare(source).numberLoops).toBeGreaterThan(0);
     });
 
+    it.each([
+        'A = array 1 2 3\nB = array 0 0 0\nfor V Index in A\n B Index += V\nend',
+        'A = array 1 2 3\nB = A\nS = 0\nfor V in A\n B 2 = 10\n S += V\nend',
+        'A = array 1 2 3\nB = array 0 0 0\nfor V Index in A\n B Index += V\n for W in A\n  B Index += W\n end\nend',
+        'A = array 1 2 3\nB = array 0 0 0\nfor V Index in A\n B Index += V\n if V equal 2\n  break\n end\nend',
+        'A = array 1 2 3\nB = array 0 0 0\nfor V Index in A\n B Index += V\n Bad = 7 // (2 - V)\nend',
+    ])('keeps array writes private during a separate vector traversal: %s', source => {
+        expect(compare(source).numberLoops).toBe(1);
+    });
+
+    it.each(['A', 'A reverse'])('replays private vector writes after scalar overflow: %s', traversal => {
+        const source = `use sequences\nA = array 1 2 3\nB = array 0 0 0\nS = 9007199254740990\nfor V Index in ${traversal}\n B Index += V\n S += V\nend`;
+        const diagnostics = compare(source);
+        expect(diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
+    it('retains iterator snapshot semantics when writing its own binding', () => {
+        const source = 'A = array 1 2 3\nS = 0\nfor V in A\n A 2 = 10\n S += V\nend';
+        expect(compare(source).numberLoops).toBe(0);
+    });
+
+    it.each([
+        'A = array 1 2 3\nB = array 0 0 0\nS = 0\nfor V Index in A reverse\n B Index = V\n S = S * 10 + V\nend',
+        'A = array 1 2 3\nB = A\nfor V Index in (A) reverse\n B Index = V\nend',
+        'A = array 1 2 3\nB = array 0 0 0\nfor V Index in A reverse\n for W in A reverse\n  B Index += V * W\n end\nend',
+        'A = array 1 2 3\nB = array 0 0 0\nfor V Index in A reverse\n B Index = V\n Bad = 7 // (V - 2)\nend',
+        'A = array shape 0 fill 0\nB = array 0\nfor V Index in A reverse\n B 0 = V\nend',
+    ])('compiles reversed vector traversal with ordinary COW and error behavior: %s', source => {
+        expect(compare(`use sequences\n${source}`).numberLoops).toBe(1);
+    });
+
+    it('keeps reversed traversal on a snapshot when writing its own binding', () => {
+        const source = 'use sequences\nA = array 1 2 3\nS = 0\nfor V in A reverse\n A 0 = 10\n S += V\nend';
+        expect(compare(source).numberLoops).toBe(0);
+        expect(execute(source).observation.variables).toContainEqual(['S', '6']);
+    });
+
+    it('rechecks the reverse builtin before entering a cached vector loop', () => {
+        const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+        const diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use sequences\nA = array 1 2 3\nfun work\n S = 0\n for V in A reverse\n  S = S * 10 + V\n end\n return S\nend');
+            expect(diagnostics.run(() => runtime.execute('work'))).toBe(321n);
+            expect(diagnostics.numberLoops).toBe(1);
+            runtime.execute('fun X replacement\n return X\nend');
+            runtime.variables.set('reverse', runtime.variables.get('replacement')!);
+            expect(diagnostics.run(() => runtime.execute('work'))).toBe(123n);
+            expect(diagnostics.numberLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
     it('publishes preceding vector assignments at the original error location', () => {
         const source = 'A = array 1 2 3\nS = 0\nfor V Index in A\n S += V\n Bad = 7 // (2 - V)\nend';
         expect(execute(source).observation.error).toContain('division by zero');
@@ -301,7 +394,6 @@ end`);
         'A = array shape 0 fill 0\nIndex = "held"\nfor V Index in A\n Unused = 1\nend',
         'A = array 1 2\nV = "held"\nfor V in A\n Before = 1\nend',
         'A = array 1 9007199254740992\nS = 0\nfor V in A\n S += V\nend',
-        'A = array 1 2 3\nB = A\nS = 0\nfor V in A\n B 2 = 10\n S += V\nend',
     ])('retains exact fallback for incompatible bindings, unsafe cells and mutation: %s', source => {
         expect(compare(source).numberLoops).toBe(0);
     });
@@ -359,6 +451,36 @@ end`)))).toThrow('Interrupted');
             expect(runtime.variables.get('Done')).toBe(1n);
             expect(runtime.variables.get('S')).toBeGreaterThan(0n);
             expect(runtime.variables.get('S')).toBeLessThan(1000000n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('publishes reversed vector array writes on cancellation and retains shared snapshots', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(`use sequences
+A = array 1 2 3
+B = array 0 0 0
+Kept = B
+Total = 0
+Done = 0
+try
+ for V in A reverse
+  for I in 1 to 1000000
+   B 0 += V
+   Total += V
+  end
+ end
+finally
+ Done = 1
+end`)))).toThrow('Interrupted');
+            expect(diagnostics.numberLoops).toBe(1);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            const total = runtime.variables.get('Total') as bigint;
+            expect(total).toBeGreaterThan(0n);
+            expect(total).toBeLessThan(3000000n);
+            expect(runtime.execute('B 0')).toBe(total);
+            expect(runtime.execute('Kept 0')).toBe(0n);
         } finally { runtime.dispose(); }
     });
 

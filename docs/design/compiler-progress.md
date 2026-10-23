@@ -103,8 +103,14 @@ real and boolean values preserve their types at publication. `isqrt` and `acos`
 can lower directly after the usual domain and builtin-identity guards. Array writes use a private `Float64Array` and a changed-cell mask;
 overflow discards both before exact BigInt replay. Normal/error exits publish
 changed cells through revision-tracked storage, copying shared sources first.
-Writes with retained selections, and vector iteration combined with array writes,
-still use the exact backend.
+Writes with retained selections, and writes to a binding traversed by the same
+region, still use the exact backend. Traversal of other trusted integer vectors
+can share a numeric region with indexed writes, including `Values reverse`.
+Each binding has separate private cells, so writes through another array name
+preserve copy-on-write and the traversal's original values. Reverse traversal
+checks the current `sequences.reverse` builtin and preserves ordinal indices.
+`band` and `bxor` use native signed Int32 operations after checking both operands;
+wider values discard private state and replay through the exact backend.
 A range scan with one read per source at its cursor can read packed integer
 storage directly, checking safe conversion at each load; repeated/nested reads
 retain prepared numeric buffers. Every potentially unsafe integer intermediate

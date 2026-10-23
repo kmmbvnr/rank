@@ -41,7 +41,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1)
         || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1 || info.slice)
-        || plan.destinations.size > 0 && plan.vectorIterations.length > 0) return undefined;
+        // A traversal must keep its original cells even when the same binding is
+        // written. Other names have separate private buffers, preserving COW.
+        || plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]))) return undefined;
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
     const storage = new Map<string, { slot: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);

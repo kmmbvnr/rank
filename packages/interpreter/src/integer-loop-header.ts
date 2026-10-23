@@ -2,6 +2,8 @@ import { loopTraversal } from './loop-traversal.js';
 import { type IterationBinding } from './integer-loop-plan.js';
 import { isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
 import { RankDeque } from './containers.js';
+import { orderedSource } from './ordered-source.js';
+import type { RankArray } from './value.js';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -22,7 +24,12 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         if (iteration) {
             const traversal = loopTraversal(iteration);
             if (!traversal) return undefined;
-            const { source: range, indexed, slice } = traversal;
+            let { source: range, indexed, slice, reverse } = traversal;
+            // Text expressions already have their guarded iterator lowering.
+            if (reverse && (knownType(range) === 'text' || isNameExpression(range) && textSources.has(range.name))) {
+                range = iteration.iterable;
+                reverse = false;
+            }
             // Named inputs retain their guarded text/array variants. Pure text
             // expressions are evaluated once in the loop's setup instead.
             const textIteration = host.textLoops && (!isNameExpression(range) && knownType(range) === 'text'
@@ -31,7 +38,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
             let elementType: 'integer' | 'text' = textIteration ? 'text' : 'integer';
             const bounds = primeBounds(range);
             if (textIteration) {
-                if (slice) return undefined;
+                if (slice || reverse) return undefined;
                 const source = emit(range, tests, 'text');
                 if (source?.type !== 'text') return undefined;
                 setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
@@ -40,7 +47,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
             } else if (isNameExpression(range) && host.read(range.name) instanceof RankDeque) {
                 // Keep the ordinary live iterator: appended work and front/back
                 // operations must have exactly the same order as interpreted BFS.
-                if (numberMode || slice || !host.arrayIteration) return undefined;
+                if (numberMode || slice || reverse || !host.arrayIteration) return undefined;
                 const receiver = container(range.name, 'deque', true);
                 if (!receiver) return undefined;
                 setup = `const iterable = iterators[${iterators.length}](${receiver}); ${indexed ? 'let ordinal = 0n;' : ''}`;
@@ -50,7 +57,8 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 if (!host.arrayIteration || range.name.includes('.')) return undefined;
                 const old = arrays.get(range.name);
                 elementType = textArrays.has(range.name) ? 'text' : 'integer';
-                if (old && (old.rank !== 1 || old.type !== elementType)) return undefined;
+                if (old && (old.rank !== 1 || old.type !== elementType) || reverse && elementType !== 'integer') return undefined;
+                if (reverse) builtins.set('reverse', 'sequences');
                 const info = old ?? { slot: slot(range.name), rank: 1, type: elementType };
                 arrays.set(range.name, info);
                 if (!assigned.has(range.name)) arrayInputs.add(range.name);
@@ -67,11 +75,12 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                         const limit = ${slice && !slice.drop ? 'Math.min(count, iterable.length)' : 'iterable.length'};
                         entered[${vector}] = true; ${indexed ? 'let ordinal = 0;' : ''}`;
                     header = `for (let position = offset; position < limit; position++) {
-                        location = ${location}; checkpoint(); const cursor = iterable[position];`;
+                        location = ${location}; checkpoint(); const cursor = iterable[${reverse ? 'limit - 1 - position' : 'position'}];`;
                 } else {
                     const source = slice ? `slice(r${info.slot}, ${count!.code}, ${slice.drop})` : `r${info.slot}`;
                     setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source}); ${indexed ? 'let ordinal = 0n;' : ''}`;
-                    iterators.push(source => host.iterationValues(binding, source, elementType));
+                    iterators.push(source => host.iterationValues(binding, reverse
+                        ? orderedSource(source, 'ordered', 'reverse')!.reverse!() as RankArray : source, elementType));
                     header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
                 }
             } else if (bounds) {

@@ -126,7 +126,7 @@
   "euler/372_pencils.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/373_circles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/378_triangles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/379_lcmcount.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/379_lcmcount.ra": "The default input takes about 15 s compiled after #386; the small _test.ra fixture stays in the audits.",
   "euler/386_antichain.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/388_lines.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/393_ants.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
@@ -139,7 +139,7 @@
   "euler/407_idempotents.ra": "To fix later: the default input takes about 38 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/408_admissiblepaths.ra": "To fix later: the default input takes about 21 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/410_circleandtangent.ra": "To fix later: the default input takes about 50 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/411_uphillpaths.ra": "To fix later: the default input takes about 10 s compiled; the small _test.ra fixture stays in the audits.",
+  "euler/411_uphillpaths.ra": "The default input takes about 26 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/413_onechild.ra": "To fix later: the default input takes about 95 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/414_kaprekar.ra": "To fix later: the default input takes about 1.9 min compiled; the small _test.ra fixture stays in the audits.",
   "euler/415_titanicsets.ra": "To fix later: the default input takes about 74 s compiled; the small _test.ra fixture stays in the audits.",
@@ -168,6 +168,6 @@
   "euler/451_modularinverses.ra": "To fix later: the default input takes about 110 s (1.7 x 10^8 split candidates); the small _test.ra fixture stays in the audits.",
   "euler/452_longproducts.ra": "To fix later: the default input takes about 3 min and 4.7 GB (3 x 10^7 transitions over 29 layers); the small _test.ra fixture stays in the audits.",
   "euler/454_diophantinereciprocals.ra": "To fix later: the default input takes about 40 s (about 3 x 10^8 floor quotients); the small _test.ra fixture stays in the audits.",
-  "euler/459_flippinggame.ra": "To fix later: the default input takes about 4.7 min (a scalar mex loop over 1.6 x 10^9 position-length pairs, #416); the small _test.ra fixture stays in the audits.",
+  "euler/459_flippinggame.ra": "The default input takes about 24 s compiled after #386 (a sequential mex loop over about 1.6 x 10^9 position-length pairs); the small _test.ra fixture stays in the audits.",
   "euler/461_almostpi.ra": "To fix later: the default input takes about 2.8 min and 5 GB (sorts and merges 7 x 10^7 pair sums); the small _test.ra fixture stays in the audits."
 }
