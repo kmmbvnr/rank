@@ -16,6 +16,7 @@ export class RuntimeDiagnostics {
     compiledGeneratorLoops = 0;
     integerMembershipFilters = 0;
     compiledGraphAdds = 0;
+    compiledEffectCalls = 0;
     numericSorts = 0;
     numericDistincts = 0;
     numericUniqueSorts = 0;

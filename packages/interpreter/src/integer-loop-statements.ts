@@ -1,6 +1,6 @@
 import { type LoopTerm } from './integer-loop-plan.js';
 import {
-    applicationForm, isExpressionStatement, findOperation, loopOperatorSignature,
+    applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
     isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
     isParenthesizedExpression, isNameExpression, type Statement, type AssignmentStatement,
@@ -14,9 +14,9 @@ import { createLoopIndexedWrites } from './integer-loop-writes.js';
 export function createLoopStatements(state: LoopCompilationState, expressions: LoopExpressions, loopParts: ReturnType<typeof createLoopHeader>) {
     const {
         host, numberMode, dirty, localTypes, required, assigned, writers, writerNames, written, arrays,
-        arrayInputs, arrayDefinitions, aliases, graphMutations, destinations, locations, reject,
+        arrayInputs, arrayDefinitions, aliases, calls, destinations, locations, reject,
     } = state;
-    const {container, slot, realInput, emit, emitValue, arithmetic} = expressions;
+    const {container, slot, knownType, realInput, emit, emitValue, arithmetic} = expressions;
     const indexedWrite = createLoopIndexedWrites(state, expressions);
 
     function bindArray(assignment: AssignmentStatement, value: string, rank: number, type: LoopTerm['type'],
@@ -99,19 +99,30 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             }
             if (isExpressionStatement(assignment)) {
                 const mutation = applicationForm(assignment.value, findOperation, true);
-                if (mutation.kind !== 'collection-mutation' || mutation.operation !== 'add'
+                if (mutation.kind !== 'collection-mutation'
                     || !isNameExpression(mutation.receiver) || mutation.receiver.name.includes('.') || numberMode) return reject(assignment);
-                const operands = mutation.arguments;
-                if (!operands || operands.length < 2 || operands.length > 3) return reject(assignment);
-                const lines: string[] = [], arguments_: string[] = [];
-                for (const operand of operands) {
-                    const value = emit(operand, lines, 'integer');
-                    if (value?.type !== 'integer') return reject(assignment);
+                const operands = mutation.arguments ?? [mutation.value];
+                const profiles = findOperation(mutation.operation)?.compiledEffects?.filter(signature => signature.inputs.length === operands.length);
+                if (!profiles?.length) return reject(assignment);
+                const lines: string[] = [], arguments_: string[] = [], types: LoopTerm['type'][] = [];
+                for (const [index, operand] of operands.entries()) {
+                    const expected = new Set(profiles.flatMap(profile => {
+                        const input = profile.inputs[index];
+                        return typeof input === 'string' ? [input] : [...input];
+                    }));
+                    const value = emit(operand, lines, knownType(operand) ?? (expected.size === 1 ? [...expected][0] : undefined));
+                    if (!value) return reject(assignment);
                     arguments_.push(value.code);
+                    types.push(value.type);
                 }
-                const index = graphMutations.push(mutation.receiver.name) - 1;
+                const signature = profiles.find(profile => matchCompiledEffectSignature(profile, types));
+                if (!signature) return reject(assignment);
+                const index = calls.length;
+                calls.push({ name: mutation.operation, receiver: mutation.receiver.name, locals: [],
+                    stableArrayReads: !signature.writes.length,
+                    bind: host.prepareEffectCall(mutation.operation, mutation.receiver.name, types) });
                 body.push(`location = ${location};`, ...lines,
-                    `graphAdds[${index}]([${arguments_.join(',')}]); iterationResult = undefined;`);
+                    `calls[${index}]([${arguments_.join(',')}]); iterationResult = undefined;`);
                 continue;
             }
             if (isPushStatement(assignment)) {

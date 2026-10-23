@@ -1,5 +1,52 @@
 # Compiler progress
 
+## Declared receiver effects in compiled loops (#369)
+
+The operation catalogue now describes synchronous receiver calls with operand
+types, a mutated argument and a callback restriction. Statement lowering puts
+these calls in the existing loop call table. A runtime adapter checks the module,
+receiver and implementation on each region entry. For normalized receiver
+mutations, another operation needs a catalogue profile and a trusted adapter,
+without a new case in the loop emitter.
+
+The first adapters cover scalar set insertion (integer, real, boolean and text)
+and the existing integer graph-edge insertion, including weighted edges. Sets
+retain their existing key codec, deduplication and homogeneous element contract.
+Euler 346's program is unchanged. Structural set elements, counters, arbitrary
+callbacks and unsupported receivers retain ordinary execution. This does not
+add partial compilation around unsupported statements.
+
+Effect regions use the exact backend, publish scalar writes as they occur and
+disable stable array-read proofs and batched array writes. They never replay
+after a write. Tests compare reference execution for aliases, values beyond
+MAX_SAFE_INTEGER, operand/type failures and source locations, and exercise
+cancellation through finally. Overridden storage/resource methods and host
+property getters retain ordinary dispatch; protected sets preserve the receiver
+check before operand evaluation.
+
+Five fresh-process samples on Apple M5 / Node v24.15.0, with diagnostics disabled:
+
+| Change | Workload | Before median ms | After median ms |
+| --- | --- | ---: | ---: |
+| Move graph effects into the common call table | 100000 graph additions | 112.835 | 113.043 |
+| Add the set adapter, final interleaved comparison | Default Euler 346 | 1870.037 | 492.848 |
+| Final graph control | 100000 graph additions | 112.785 | 112.542 |
+
+Euler 346 is 3.79 times faster in the final comparison, with exact answer
+336108797689259276. Timing includes parsing, compilation and execution, excluding
+imports and answer validation. Final sample order alternates baseline/candidate.
+A separate diagnostic run records one exact compiled loop, no Number loops and
+1011530 compiled set calls; the initial insertion of 1 remains outside the loop.
+Graph timing stays close to its original path.
+
+Reproduce with `node benchmarks/effect-calls.mjs --samples=5`, optionally adding
+`--baseline=/path/to/baseline/packages/interpreter/out/index.js`. Build both
+checkouts first. Use `--samples=1 --diagnostics` for coverage counters.
+[Raw measurements](../../benchmarks/baselines/2026-10-23-effect-calls.json) include
+the intermediate graph migration and final comparison. Validation passed the
+full workspace build, 513 focused interpreter tests and 129 focused language
+tests. The full test suite and corpus scans were not run.
+
 ## Real registers in exact loops
 
 The exact loop backend now holds reals as well as integers (#338). Its

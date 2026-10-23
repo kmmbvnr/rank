@@ -28,6 +28,7 @@ export interface LoopHost {
     readonly reals: boolean;
     readonly scalarText: boolean;
     prepareBuiltinCall(module: string, name: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
+    prepareEffectCall(name: string, receiver: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     readonly sequenceMembership: boolean;
     scalarFunction(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined;
@@ -86,8 +87,7 @@ export interface IntegerLoopPlan {
     localTypes: Map<string, LoopTerm['type']>;
     containers: Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>;
     builtins: Map<string, string>;
-    calls: { name: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
-    graphMutations: string[];
+    calls: { name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | string) => Iterable<RankValue>)[];
     writerNames: string[];

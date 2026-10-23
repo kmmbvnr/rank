@@ -27,7 +27,6 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
     const indexedReads = new Map<string, string | undefined>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
     const aliases: [string, string][] = [];
-    const graphMutations: string[] = [];
     const vectorIterations: IntegerLoopPlan['vectorIterations'] = [];
     const iterators: IntegerLoopPlan['iterators'] = [];
     const destinations: IntegerLoopPlan['destinations'] = new Map();
@@ -36,7 +35,7 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
         host, numberMode, textSources, textArrays, zero, one, safe, dirty, reject,
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
-        graphMutations, vectorIterations, iterators, destinations, locations,
+        vectorIterations, iterators, destinations, locations,
         serial: 0, hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
     };
 }

@@ -1,0 +1,376 @@
+{
+  "date": "2026-10-23",
+  "initialBase": "c2cf386f",
+  "integratedBase": "7bb21fad",
+  "notes": [
+    "Each timing is from a fresh process. Final baseline/candidate order alternates between samples.",
+    "Final baseline imports the main checkout without the effect-call change. Candidate imports the isolated worktree build.",
+    "Diagnostics are separate from the timed five-sample comparisons. Both workloads validate exact answers."
+  ],
+  "stages": {
+    "before": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "diagnostics": false,
+        "timing": "Fresh process per sample; parse/compile/execute included; imports and answer validation excluded"
+      },
+      {
+        "workload": "euler346",
+        "ms": 1860.185958,
+        "answer": "336108797689259276",
+        "peakRssKiB": 389984
+      },
+      {
+        "workload": "euler346",
+        "ms": 1796.218084,
+        "answer": "336108797689259276",
+        "peakRssKiB": 390832
+      },
+      {
+        "workload": "euler346",
+        "ms": 1785.262,
+        "answer": "336108797689259276",
+        "peakRssKiB": 390144
+      },
+      {
+        "workload": "euler346",
+        "ms": 1829.478709,
+        "answer": "336108797689259276",
+        "peakRssKiB": 390768
+      },
+      {
+        "workload": "euler346",
+        "ms": 1826.033333,
+        "answer": "336108797689259276",
+        "peakRssKiB": 388704
+      },
+      {
+        "workload": "euler346",
+        "medianMs": 1826.033333
+      },
+      {
+        "workload": "graph",
+        "ms": 111.88891700000002,
+        "answer": "100000",
+        "peakRssKiB": 177232
+      },
+      {
+        "workload": "graph",
+        "ms": 112.99991700000001,
+        "answer": "100000",
+        "peakRssKiB": 177840
+      },
+      {
+        "workload": "graph",
+        "ms": 112.54275000000001,
+        "answer": "100000",
+        "peakRssKiB": 177600
+      },
+      {
+        "workload": "graph",
+        "ms": 112.834708,
+        "answer": "100000",
+        "peakRssKiB": 178080
+      },
+      {
+        "workload": "graph",
+        "ms": 113.460084,
+        "answer": "100000",
+        "peakRssKiB": 177344
+      },
+      {
+        "workload": "graph",
+        "medianMs": 112.834708
+      }
+    ],
+    "graphGeneralization": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "diagnostics": false,
+        "timing": "Fresh process per sample; parse/compile/execute included; imports and answer validation excluded"
+      },
+      {
+        "workload": "euler346",
+        "ms": 1767.8919580000002,
+        "answer": "336108797689259276",
+        "peakRssKiB": 391712
+      },
+      {
+        "workload": "euler346",
+        "ms": 1776.873334,
+        "answer": "336108797689259276",
+        "peakRssKiB": 390960
+      },
+      {
+        "workload": "euler346",
+        "ms": 1808.572584,
+        "answer": "336108797689259276",
+        "peakRssKiB": 391680
+      },
+      {
+        "workload": "euler346",
+        "ms": 1775.814791,
+        "answer": "336108797689259276",
+        "peakRssKiB": 391888
+      },
+      {
+        "workload": "euler346",
+        "ms": 1790.84525,
+        "answer": "336108797689259276",
+        "peakRssKiB": 390944
+      },
+      {
+        "workload": "euler346",
+        "medianMs": 1776.873334
+      },
+      {
+        "workload": "graph",
+        "ms": 113.547417,
+        "answer": "100000",
+        "peakRssKiB": 177520
+      },
+      {
+        "workload": "graph",
+        "ms": 113.40174999999999,
+        "answer": "100000",
+        "peakRssKiB": 177280
+      },
+      {
+        "workload": "graph",
+        "ms": 112.90679200000002,
+        "answer": "100000",
+        "peakRssKiB": 177616
+      },
+      {
+        "workload": "graph",
+        "ms": 113.04279200000002,
+        "answer": "100000",
+        "peakRssKiB": 177808
+      },
+      {
+        "workload": "graph",
+        "ms": 112.93450000000001,
+        "answer": "100000",
+        "peakRssKiB": 177328
+      },
+      {
+        "workload": "graph",
+        "medianMs": 113.04279200000002
+      }
+    ],
+    "setAdapterInterleaved": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 5,
+        "diagnostics": false,
+        "timing": "Fresh process per sample; parse/compile/execute included; imports and answer validation excluded"
+      },
+      {
+        "workload": "euler346",
+        "variant": "baseline",
+        "ms": 1870.037333,
+        "answer": "336108797689259276",
+        "peakRssKiB": 388624
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "ms": 501.1155,
+        "answer": "336108797689259276",
+        "peakRssKiB": 382160
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "ms": 495.42712500000005,
+        "answer": "336108797689259276",
+        "peakRssKiB": 382704
+      },
+      {
+        "workload": "euler346",
+        "variant": "baseline",
+        "ms": 1965.8470000000002,
+        "answer": "336108797689259276",
+        "peakRssKiB": 394592
+      },
+      {
+        "workload": "euler346",
+        "variant": "baseline",
+        "ms": 1930.776417,
+        "answer": "336108797689259276",
+        "peakRssKiB": 394336
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "ms": 492.84770799999995,
+        "answer": "336108797689259276",
+        "peakRssKiB": 380752
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "ms": 464.79787500000003,
+        "answer": "336108797689259276",
+        "peakRssKiB": 376960
+      },
+      {
+        "workload": "euler346",
+        "variant": "baseline",
+        "ms": 1767.623375,
+        "answer": "336108797689259276",
+        "peakRssKiB": 391248
+      },
+      {
+        "workload": "euler346",
+        "variant": "baseline",
+        "ms": 1781.9485,
+        "answer": "336108797689259276",
+        "peakRssKiB": 389840
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "ms": 466.081458,
+        "answer": "336108797689259276",
+        "peakRssKiB": 376112
+      },
+      {
+        "workload": "euler346",
+        "variant": "baseline",
+        "medianMs": 1870.037333
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "medianMs": 492.84770799999995
+      },
+      {
+        "workload": "graph",
+        "variant": "baseline",
+        "ms": 112.69691700000001,
+        "answer": "100000",
+        "peakRssKiB": 177776
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "ms": 112.87141699999998,
+        "answer": "100000",
+        "peakRssKiB": 177376
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "ms": 115.528625,
+        "answer": "100000",
+        "peakRssKiB": 176944
+      },
+      {
+        "workload": "graph",
+        "variant": "baseline",
+        "ms": 112.78520799999998,
+        "answer": "100000",
+        "peakRssKiB": 177120
+      },
+      {
+        "workload": "graph",
+        "variant": "baseline",
+        "ms": 114.51808299999999,
+        "answer": "100000",
+        "peakRssKiB": 177392
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "ms": 112.399,
+        "answer": "100000",
+        "peakRssKiB": 177376
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "ms": 112.542,
+        "answer": "100000",
+        "peakRssKiB": 177424
+      },
+      {
+        "workload": "graph",
+        "variant": "baseline",
+        "ms": 112.91220799999999,
+        "answer": "100000",
+        "peakRssKiB": 177008
+      },
+      {
+        "workload": "graph",
+        "variant": "baseline",
+        "ms": 112.360333,
+        "answer": "100000",
+        "peakRssKiB": 177824
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "ms": 112.19620800000001,
+        "answer": "100000",
+        "peakRssKiB": 177216
+      },
+      {
+        "workload": "graph",
+        "variant": "baseline",
+        "medianMs": 112.78520799999998
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "medianMs": 112.542
+      }
+    ],
+    "diagnostics": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 1,
+        "diagnostics": true,
+        "timing": "Fresh process per sample; parse/compile/execute included; imports and answer validation excluded"
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "ms": 474.95637500000004,
+        "answer": "336108797689259276",
+        "peakRssKiB": 376032,
+        "compiledLoops": 1,
+        "numberLoops": 0,
+        "effectCalls": 1011530,
+        "graphAdds": 0
+      },
+      {
+        "workload": "euler346",
+        "variant": "candidate",
+        "medianMs": 474.95637500000004
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "ms": 113.26066699999998,
+        "answer": "100000",
+        "peakRssKiB": 177648,
+        "compiledLoops": 1,
+        "numberLoops": 0,
+        "effectCalls": 100000,
+        "graphAdds": 100000
+      },
+      {
+        "workload": "graph",
+        "variant": "candidate",
+        "medianMs": 113.26066699999998
+      }
+    ]
+  }
+}

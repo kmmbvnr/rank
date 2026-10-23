@@ -1,3 +1,4 @@
+import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
@@ -245,6 +246,9 @@ export class FastPaths {
             scalarText: this.context.options().scalarTextCompilation !== false,
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
             prepareBuiltinCall: (module, name, types) => prepareCompiledBuiltin(this.context, module, name, types),
+            prepareEffectCall: (name, receiver, types) => prepareEffectCall({
+                read: name => this.context.bindings.find(name), module: name => this.context.modules.has(name),
+            }, name, receiver, types),
             scalarFunction: (name, arity) => this.scalarCall(name, arity),
             sequenceMembership: this.context.options().sequenceMembershipCompilation !== false,
             absolute: this.context.options().absoluteLoopCompilation !== false,

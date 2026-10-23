@@ -49,6 +49,24 @@ export interface CompiledCallSignature {
     readonly hostFunction?: 'md5';
 }
 
+/** Synchronous receiver calls with observable writes. Inputs exclude the receiver,
+ * which is argument zero in `writes`. These regions must never replay on overflow
+ * or retain storage-read proofs across the call. Runtime adapters certify that
+ * the concrete receiver cannot invoke Rank callbacks or host replacements. */
+export interface CompiledEffectSignature {
+    readonly receiver: 'set' | 'graph';
+    readonly module: string;
+    readonly inputs: readonly (CompiledLoopType | readonly CompiledLoopType[])[];
+    readonly result: 'receiver';
+    readonly writes: readonly [0];
+    readonly callbacks: 'none';
+}
+
+export function matchCompiledEffectSignature(signature: CompiledEffectSignature, inputs: readonly string[]): boolean {
+    return signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
+        typeof expected === 'string' ? expected === inputs[index] : expected.some(type => type === inputs[index]));
+}
+
 /** Match a complete proven native input domain; no coercion or cell inspection. */
 export function matchCompiledCallSignature(operation: Operation, inputs: readonly string[]): CompiledCallSignature | undefined {
     const signature = operation.compiledCall;
@@ -104,6 +122,8 @@ export interface Operation {
     /** Direct-call eligibility for existing compiler backends. Never use this
      * restricted subset as a complete operand-domain rule or displayed signature. */
     readonly compiledCall?: CompiledCallSignature;
+    /** Audited receiver effects, bound through the same loop call table as pure calls. */
+    readonly compiledEffects?: readonly CompiledEffectSignature[];
     /** Field result kinds for a built-in record with a stable schema. */
     readonly recordFields?: Readonly<Record<string, ResultKind>>;
     /** Fresh rank-1 record fields containing vertices from a closed graph operand. */
@@ -352,6 +372,11 @@ export const operations: readonly Operation[] = [
         summary: 'Reads a session environment variable, or missing when absent.' },
     { name: 'add', module: 'algo', arities: [2], form: 'Seen add Value', result: 'collection',
         signatures: collectionWriteSignatures,
+        compiledEffects: [
+            { receiver: 'set', module: 'algo', inputs: [['integer', 'real', 'boolean', 'text']], result: 'receiver', writes: [0], callbacks: 'none' },
+            { receiver: 'graph', module: 'graph', inputs: ['integer', 'integer'], result: 'receiver', writes: [0], callbacks: 'none' },
+            { receiver: 'graph', module: 'graph', inputs: ['integer', 'integer', 'integer'], result: 'receiver', writes: [0], callbacks: 'none' },
+        ],
         effects: ['mutates'], summary: 'Adds a value to a set, counter or multiset.' },
     { name: 'ceiling', module: 'algo', arities: [2], form: 'Bag ceiling Limit', result: 'element',
         signatures: orderedQuerySignatures,

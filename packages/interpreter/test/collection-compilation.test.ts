@@ -1,6 +1,9 @@
 import { GraphValue } from '../src/graph.js';
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RuntimeDiagnostics, formatValue, RankError, withInterrupt, InterruptedError } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, formatValue, RankError, withInterrupt, InterruptedError, isRankSet } from '../src/index.js';
+import { prepareEffectCall } from '../src/effect-call.js';
+import { protectValue } from '../src/value-protection.js';
+import { ResourceMap } from '../src/resource-summary.js';
 import type { InterpreterOptions } from '../src/interpreter-options.js';
 
 function execute(source: string, options: InterpreterOptions = {}) {
@@ -25,6 +28,177 @@ function compare(source: string) {
 }
 
 describe('compiled collection operations', () => {
+    it('compiles nested set effects through aliases without replaying exact integers', () => {
+        const result = compare(`use algo
+Seen = new set
+Alias = Seen
+Sum = 9007199254740991
+for I in 1 to 4
+ for J in 1 to 3
+  Sum += 1
+  Seen add Sum
+  Alias add Sum
+ end
+end
+Answer = Seen sum
+Values = Seen array`);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+        expect(result.diagnostics.numberLoops).toBe(0);
+        expect(result.diagnostics.compiledEffectCalls).toBe(24);
+        expect(result.observation.variables).toContainEqual(['Sum', '9007199254741003']);
+    });
+
+    it.each(['I mod 2', '1.5', 'I greater 1', 'I text'])('uses the same effect call for scalar input %s', value => {
+        const result = compare(`use algo\nSeen = new set\nfor I in 1 to 3\n Seen add (${value})\nend\nAnswer = Seen array`);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+        expect(result.diagnostics.compiledEffectCalls).toBe(3);
+    });
+
+    it('binds set and graph adapters in the same compiled region', () => {
+        const result = compare(`use algo
+use graph
+Seen = new set
+Graph = new graph .directed
+for I in 1 to 4
+ Seen add I
+ Graph add 0 I
+end
+Answer = Seen sum`);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+        expect(result.diagnostics.compiledEffectCalls).toBe(8);
+        expect(result.diagnostics.compiledGraphAdds).toBe(4);
+    });
+
+    it('preserves preceding writes, set effects and error locations on operand failure', () => {
+        const source = `use algo
+Seen = new set
+Before = 0
+After = -1
+for I in 1 to 4
+ Before += 1
+ Seen add (10 // (3 - I))
+ After = I
+end`;
+        const result = execute(source);
+        expect(result.observation).toEqual(execute(source, { compilation: false }).observation);
+        expect(result.observation.error).toContain('division by zero');
+        expect(result.observation.variables).toContainEqual(['Before', '3']);
+        expect(result.observation.variables).toContainEqual(['After', '2']);
+        expect(result.diagnostics.compiledLoops).toBe(1);
+    });
+
+    it('retains the existing homogeneous set contract on a failing insertion', () => {
+        const source = 'use algo\nSeen = new set\nSeen add "text"\nBefore = 0\nfor I in 1 to 3\n Before += 1\n Seen add I\nend';
+        const result = execute(source);
+        expect(result.observation).toEqual(execute(source, { compilation: false }).observation);
+        expect(result.observation.error).toContain('cannot receive integer');
+        expect(result.diagnostics.compiledLoops).toBe(1);
+    });
+
+    it('declines unstable receivers and retains structural insertion and counter dispatch', () => {
+        compare('use algo\nSeen = new set\nfor I in 1 to 3\n Seen add I\n Seen = new set\nend\nAnswer = Seen array');
+        compare('use algo\nSeen = new set\nfor I in 1 to 3\n Seen add (array I I)\nend\nAnswer = Seen len');
+        const counter = compare('use algo\nSeen = new counter\nfor I in 1 to 3\n Seen add 1\nend\nAnswer = Seen 1');
+        expect(counter.diagnostics.compiledEffectCalls).toBe(0);
+    });
+
+    it('rebinds the concrete receiver and checks its module on every entry', () => {
+        const runtime = new Interpreter(() => {});
+        try {
+            runtime.execute('use algo\nSeen = new set\nOther = new set');
+            let value = runtime.variables.get('Seen'), available = true;
+            const bind = prepareEffectCall({ read: () => value, module: () => available }, 'add', 'Seen', ['integer']);
+            const first = bind();
+            expect(first).toBeTypeOf('function');
+            first!([1n]);
+            value = runtime.variables.get('Other');
+            bind()!([2n]);
+            expect(runtime.execute('Seen array')).toMatchObject({ items: [1n] });
+            expect(runtime.execute('Other array')).toMatchObject({ items: [2n] });
+            available = false;
+            expect(bind()).toBeUndefined();
+        } finally { runtime.dispose(); }
+    });
+
+    it('declines overridden set storage before executing any compiled effects', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use algo\nSeen = new set');
+            const set = runtime.variables.get('Seen')!;
+            if (!isRankSet(set)) throw new Error('expected set');
+            const original = set.entries.set;
+            let calls = 0;
+            set.entries.set = function (key, value) { calls++; return original.call(this, key, value); };
+            diagnostics.run(() => runtime.execute('for I in 1 to 3\n Seen add I\nend'));
+            expect(calls).toBe(3);
+            expect(diagnostics.compiledEffectCalls).toBe(0);
+            expect([...set.entries.values()]).toEqual([1n, 2n, 3n]);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains protection errors before operand evaluation', () => {
+        for (const compilation of [false, true]) {
+            const runtime = new Interpreter(() => {}, { compilation });
+            try {
+                runtime.execute('use algo\nSeen = new set');
+                protectValue(runtime.variables.get('Seen')!, 'protected set');
+                expect(() => runtime.execute('for I in 1 to 3\n Seen add (1 // 0)\nend')).toThrow('protected set');
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it('declines resource callbacks that can re-enter Rank and change loop bindings', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use algo\nSeen = new set\nValue = 0\nTotal = 0');
+            const set = runtime.variables.get('Seen')!;
+            if (!isRankSet(set) || !(set.entries instanceof ResourceMap)) throw new Error('expected runtime set');
+            const resources = set.entries.resources, include = resources.include;
+            resources.include = function (value) { runtime.execute('Value = 99'); include.call(this, value); };
+            diagnostics.run(() => runtime.execute('for I in 1 to 3\n Value = I\n Seen add I\n Total += Value\nend'));
+            expect(runtime.variables.get('Total')).toBe(297n);
+            expect(diagnostics.compiledEffectCalls).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('does not invoke host property getters when guarding an empty loop', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use algo\nSeen = new set');
+            const set = runtime.variables.get('Seen')!;
+            let reads = 0;
+            Object.defineProperty(set, 'elementType', { configurable: true, get: () => { reads++; return undefined; } });
+            diagnostics.run(() => runtime.execute('for I in 1 to 0\n Seen add I\nend'));
+            expect(reads).toBe(0);
+            expect(diagnostics.compiledEffectCalls).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it('cancels set effect regions and runs finally with no duplicated insertions', () => {
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        try {
+            runtime.execute('use algo\nSeen = new set\nCount = 0\nFinished = false');
+            const set = runtime.variables.get('Seen')!;
+            if (!isRankSet(set)) throw new Error('expected set');
+            const signal = { length: 1, load: () => 0, store: () => {}, wait: () => {},
+                exchange: () => set.entries.size >= 10 ? 1 : 0 };
+            expect(() => withInterrupt(signal, () => diagnostics.run(() => runtime.execute(`try
+ for I in 1 to 10000
+  Seen add I
+  Count += 1
+ end
+finally
+ Finished = true
+end`)))).toThrow(InterruptedError);
+            expect(set.entries.size).toBeGreaterThanOrEqual(10);
+            expect(set.entries.size).toBeLessThan(10000);
+            expect([...set.entries.values()]).toEqual(Array.from({ length: set.entries.size }, (_, i) => BigInt(i + 1)));
+            expect(runtime.variables.get('Count')).toBe(BigInt(set.entries.size));
+            expect(runtime.variables.get('Finished')).toBe(true);
+            expect(diagnostics.compiledLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['in', 'not in'])('prepares %s once per array filter and preserves order and duplicates', operator => {
         const source = `Vals = array 4 2 4 3 1\nDomain = array 4 1 4\nNeighbors = Domain take 2\nLater = Vals drop 1\nNext = Later filter ${operator} Neighbors\nAnswer = Next array`;
         const result = compare(source);

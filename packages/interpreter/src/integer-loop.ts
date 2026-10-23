@@ -84,7 +84,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     const state = createLoopState(host, textSources, textArrays, failed, numberMode);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
-        builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases, graphMutations,
+        builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
         vectorIterations, iterators, destinations, locations, reject,
     } = state;
     if (!statement.statements.length || statement.statements.length > 32) return reject(statement, 'statement-budget');
@@ -104,7 +104,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');
     if ([...destinations].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...builtins.keys()].some(name => written.has(name)) || calls.some(call => written.has(call.name) || call.locals.some(name => written.has(name)))) return reject(statement, 'unstable-bindings');
-    if (graphMutations.some(name => written.has(name) || names.includes(name))) return reject(statement, 'unstable-graph');
+    if (calls.some(call => call.receiver && (written.has(call.receiver) || names.includes(call.receiver)))) return reject(statement, 'unstable-effect-receiver');
     // An array-returning callee can share a caller operand after entry COW.
     // Per-store ownership preparation is required before these regions may write.
     if (state.hasArrayCall && destinations.size) return reject(statement, 'array-call-write-region');
@@ -121,7 +121,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
     return {
         statement, names, arrays, destinations, root, body, locations, required, localTypes, containers,
-        builtins, calls, iterators, graphMutations, vectorIterations, writerNames, binderNames, writers,
+        builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration,
     };
