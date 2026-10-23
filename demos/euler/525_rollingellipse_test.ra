@@ -1,0 +1,8 @@
+use testing
+
+test "coarse grid agrees"
+  use "525_rollingellipse"
+  M = 4000
+  run
+  Answer equal 44.69921807
+end

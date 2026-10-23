@@ -1,0 +1,33 @@
+rem Rolling Ellipse
+rem https://projecteuler.net/problem=525
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 20000
+
+rem The contact point (a cos t, b sin t)
+rem is the centre of rotation, so the
+rem centre moves at |r| theta' with
+rem theta' = ab / (a^2 sin^2 t +
+rem b^2 cos^2 t).
+rem The integrand is smooth and
+rem periodic: the trapezoid rule over
+rem one turn converges exponentially.
+Tp = 2 * 3.141592653589793
+T = (0 till M) * Tp / M
+C2 = T cos ** 2
+S2 = T sin ** 2
+Ab = array 1 3
+Answer = 0.0
+for A in Ab
+  B = 4
+  Nr = (A * A * C2 + B * B * S2) ** 0.5
+  Dn = A * A * S2 + B * B * C2
+  V = A * B * Nr / Dn
+  Answer += (V sum) * Tp / M
+end
+Answer = Answer 8 round
+Answer print
