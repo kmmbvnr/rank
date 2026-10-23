@@ -393,3 +393,25 @@ end`)))).toThrow('Interrupted');
         } finally { runtime.dispose(); }
     });
 });
+
+it('preserves floor division across the bounded fast path and safe-integer limits', () => {
+    const numerators: bigint[] = [], denominators: bigint[] = [];
+    for (const boundary of [0n, 2n ** 31n, 2n ** 52n, 2n ** 53n - 3n]) {
+        for (let delta = -2n; delta <= 2n; delta++) {
+            for (const sign of [-1n, 1n]) {
+                const a = sign * (boundary + delta);
+                for (const b of [1n, -1n, 2n, -2n, 3n, -3n, 127n, -127n, 2n ** 52n - 1n, -(2n ** 53n - 1n)]) {
+                    numerators.push(a); denominators.push(b);
+                }
+            }
+        }
+    }
+    const diagnostics = compare(`A = array ${numerators.join(' ')}
+B = array ${denominators.join(' ')}
+Q = array shape ${numerators.length} fill 0
+for I in 0 till ${numerators.length}
+ Q I = A I // B I
+end`);
+    expect(diagnostics.numberLoops).toBe(1);
+    expect(diagnostics.numberLoopOverflows).toBe(0);
+});

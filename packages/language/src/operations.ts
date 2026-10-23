@@ -38,7 +38,7 @@ export type CompiledLoopType = CompiledAtomType;
  * Runtime binding must still verify the actual builtin and any host override.
  */
 export interface CompiledCallSignature {
-    readonly inputs: readonly (CompiledLoopType | 'number' | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'integer-array' | 'same')[];
+    readonly inputs: readonly (CompiledLoopType | 'number' | 'scalar' | 'text-or-bytes' | 'text-or-array' | 'text-array' | 'integer-array' | 'same')[];
     readonly result: CompiledLoopType;
     /** No callbacks except guarded operand-cell reads and the declared host override. */
     readonly callbacks: 'none' | 'read-cells';
@@ -72,6 +72,7 @@ export function matchCompiledCallSignature(operation: Operation, inputs: readonl
     const signature = operation.compiledCall;
     return signature && signature.inputs.length === inputs.length && signature.inputs.every((expected, index) =>
         expected === 'number' ? inputs[index] === 'integer' || inputs[index] === 'real'
+            : expected === 'scalar' ? ['integer', 'real', 'boolean', 'text'].includes(inputs[index])
             : expected === 'same' ? inputs[index] === inputs[0]
             : expected === 'text-or-array' ? ['text', 'array', 'text-array', 'integer-array'].includes(inputs[index])
             : expected === 'text-or-bytes' ? inputs[index] === 'text' || inputs[index] === 'bytes'
@@ -1284,7 +1285,7 @@ export const operations: readonly Operation[] = [
     { name: 'integer', module: 'core', arities: [1], form: 'Value integer', result: 'integer',
         scalarNoCallback: 'primitive',
         signatures: mappingSignatures({ union: ['integer', 'real', 'boolean', 'text'] }, 'integer'),
-        compiledCall: { inputs: ['text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
+        compiledCall: { inputs: ['scalar'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         shape: [{ args: [null], result: null }],
         mapsScalarCells: true, monadicRank: 'all', summary: 'Converts booleans to 0 or 1, truncates finite reals, preserves integers, or parses signed decimal text; maps collections preserving shape.' },
     { name: 'real', module: 'core', arities: [1], form: 'Value real', result: 'real',

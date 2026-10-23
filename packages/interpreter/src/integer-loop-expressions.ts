@@ -227,8 +227,14 @@ export function createLoopExpressions(state: LoopCompilationState) {
             lines.push(`const ${name} = ${type === 'integer' ? safe(binaryOperatorSource(operation, a, b)) : binaryOperatorSource(operation, a, b)};`);
             return name;
         }
-        const remainder = numberMode || op === 'mod' ? `m${state.serial++}` : undefined;
         lines.push(`if (${zeroTestSource(b, numberMode ? 'real' : 'integer')}) throw zero();`);
+        if (numberMode && op === '//') {
+            // Inline the bounded case so loop-invariant numerators can hoist
+            // its guard and V8 need not inline a helper at every quotient.
+            lines.push(`const ${name} = Math.abs(${a}) < 4503599627370496 ? Math.floor((${a}) / (${b})) || 0 : divide(${a}, ${b});`);
+            return name;
+        }
+        const remainder = numberMode || op === 'mod' ? `m${state.serial++}` : undefined;
         if (remainder) lines.push(`const ${remainder} = (${a}) % (${b});`);
         lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b, { remainder, number: numberMode, safe })};`);
         return name;
@@ -273,11 +279,12 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 types.push(input);
                 continue;
             }
-            const expected = input === 'number' ? undefined : input === 'text-or-array' ? 'text' : input === 'same' ? firstType
+            const expected = input === 'number' || input === 'scalar' ? undefined : input === 'text-or-array' ? 'text' : input === 'same' ? firstType
                 : input === 'text-or-bytes' ? knownType(part) ?? (isNameExpression(part) ? 'text' : undefined) : input;
             const value = emit(operands[index], lines, expected);
             if (!value || expected && value.type !== expected
                 || input === 'number' && value.type !== 'integer' && value.type !== 'real'
+                || input === 'scalar' && !['integer', 'real', 'boolean', 'text'].includes(value.type)
                 || input === 'text-or-bytes' && !['text', 'bytes'].includes(value.type)) return undefined;
             firstType ??= value.type;
             arguments_.push(value.code);

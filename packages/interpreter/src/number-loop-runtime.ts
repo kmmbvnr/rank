@@ -19,6 +19,14 @@ function int32(value: number): number {
     if (value !== (value | 0)) throw overflow;
     return value;
 }
+/** Wide numerators retain exact remainder division. The generated bounded
+ * case uses floor(a/b): for abs(a) < 2^52 its rounding error is less than
+ * half of 1/abs(b), so it cannot cross an integer boundary. */
+function divide(a: number, b: number): number {
+    const remainder = a % b;
+    const quotient = safe(safe(a - remainder) / b);
+    return safe(quotient - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
+}
 const rankValue = (value: unknown, type: string | undefined): RankValue | undefined =>
     typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 
@@ -66,7 +74,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', source)(
+        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', source)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -77,7 +85,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number) => index < 0 ? new RankError('array index must be nonnegative on axis 0')
-                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError, safeIntegerSquareRoot);
+                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide);
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {

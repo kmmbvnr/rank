@@ -21,6 +21,19 @@ const numericPairs: [bigint | number, bigint | number][] = [
 ];
 
 describe('real scalar function kernels', () => {
+    it('compiles integer conversion without changing truncation or domain errors', () => {
+        for (const value of [2.75, -2.75, -0, 2 ** 60, Infinity, -Infinity, NaN, 10n ** 50n, true, false, '-123', 'oops']) {
+            const args = [value, 0n];
+            let reference;
+            try { reference = run(false, 'return X integer', args); }
+            catch (error) {
+                expect(() => run(true, 'return X integer', args)).toThrow((error as Error).message);
+                continue;
+            }
+            expect(run(true, 'return X integer', args)).toEqual({ ...reference, kernels: 1 });
+        }
+    });
+
     for (const operator of ['+', '-', '*', 'less', 'greater', 'at most', 'at least']) {
         it(`matches ordinary ${operator} for matching and mixed numeric operands`, () => {
             for (const pair of numericPairs) {

@@ -3,7 +3,7 @@ import {
     functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
-    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement,
+    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
     isCountClauseExpression, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
@@ -17,7 +17,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy';
     readonly keyed?: boolean;
     readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
@@ -110,7 +110,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         // linked calls. Array writes still require an ordinary binding frame.
         if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)) return undefined;
         const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement]);
-        if (!proof || typeof proof.type !== 'string' || proof.arrayWrites.size
+        if (!proof || proof.arrayWrites.size
             || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
         callDepth = Math.max(callDepth, proof.callDepth + 1);
         callCount += proof.callCount + 1;
@@ -123,6 +123,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
+                if (loops && isMaterializeExpression(source)) {
+                    const domain = type(source.source, env);
+                    if (!domain || !isCompiledContainer(domain) || domain.kind !== 'deque') return undefined;
+                    return { type: { kind: 'array', element: 'integer', rank: 1 },
+                        input: { name: '', operation: 'materialize-deque', indices: [expressions.get(source.source)!] } };
+                }
                 if (loops && isCountClauseExpression(source)) {
                     const array = type(source.source, env);
                     if (!array || typeof array === 'string' || isCompiledContainer(array)

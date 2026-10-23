@@ -139,3 +139,83 @@ it('preserves aliases returned through local array bindings', () => {
     expect(results[0].calls).toBe(0);
     expect(results[1].calls).toBe(1);
 });
+
+it.each(['queue', 'stack', 'deque'])('links private %s materialization and read-only array calls', kind => {
+    const source = `use algo
+fun N build
+ Q = new ${kind}
+ for I in 1 to N
+  Q push I
+ end
+ return Q array
+end
+fun A read
+ return (A 0) + (A len)
+end
+fun N total
+ A = N build
+ return A read
+end`;
+    const runs = [false, true].map(compilation => {
+        let calls = 0;
+        const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
+        try {
+            runtime.execute(source);
+            return { values: ['3 total', '1 total', '0 build', '5 build'].map(s => formatValue(runtime.execute(s)!)), calls };
+        } finally { runtime.dispose(); }
+    });
+    expect(runs[1].values).toEqual(runs[0].values);
+    expect(runs[1].calls).toBeGreaterThanOrEqual(8);
+});
+
+it('preserves COW when a linked array result aliases a caller operand', () => {
+    const source = `fun A identity
+ return A
+end
+fun A changed
+ B = A identity
+ A 0 = 9
+ return (B 0) + (A 0)
+end
+A = array 1 2
+R = 0
+for I in 0 to 1
+ R = A changed
+end`;
+    const runs = [false, true].map(compilation => {
+        let calls = 0;
+        const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
+        try {
+            runtime.execute(source);
+            return { values: ['A', 'R'].map(s => formatValue(runtime.execute(s)!)), calls };
+        } finally { runtime.dispose(); }
+    });
+    expect(runs[1].values).toEqual(runs[0].values);
+    expect(runs[1].values).toEqual(['1 2', '10']);
+    expect(runs[1].calls).toBeGreaterThan(0);
+});
+
+it('snapshots a linked integer-container result before later shared mutations', () => {
+    const source = `use algo
+fun Q snapshot
+ return Q array
+end
+fun N total
+ Q = new queue
+ Q push N
+ A = Q snapshot
+ Q push (N + 1)
+ return (A 0) + (A len) + (Q len)
+end`;
+    const runs = [false, true].map(compilation => {
+        let calls = 0;
+        const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
+        try {
+            runtime.execute(source);
+            return { values: [runtime.execute('3 total'), runtime.execute('10 total')], calls };
+        } finally { runtime.dispose(); }
+    });
+    expect(runs[1].values).toEqual(runs[0].values);
+    expect(runs[1].values).toEqual([6n, 13n]);
+    expect(runs[1].calls).toBeGreaterThanOrEqual(4);
+});
