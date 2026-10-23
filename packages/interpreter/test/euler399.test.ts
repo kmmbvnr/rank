@@ -55,8 +55,28 @@ describe('Euler 399 compiled modular doubling', () => {
         try {
             runtime.execute(source.replace('option Count integer = 100000000', `option Count integer = ${count}`)
                 .replace('option Limit integer = 200000000', `option Limit integer = ${limit}`)
-                .replace('option PrimeLimit integer = 5714285', 'option PrimeLimit integer = 1000'));
+                .replace('option PrimeLimit integer = 5714285', 'option PrimeLimit integer = 1000')
+                .replace('Segment = 1000000', 'Segment = 37'));
             expect(runtime.variables.get('Index')).toBe(BigInt(allowed[count - 1]));
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([1, 7, 16, 1000000])('selects across segment boundaries with segment size %s', segment => {
+        const program = source.slice(source.indexOf('rem Find the Count-th'), source.indexOf('Mod = 10000000000000000'))
+            .replace('Segment = 1000000', `Segment = ${segment}`);
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('use sequences\nLimit = 41');
+            for (const mods of [[], [15, 6, 30, 10], [7, 2, 5, 3], [41]]) {
+                runtime.variables.set('Mods', { kind: 'array', shape: [mods.length], items: mods.map(BigInt) });
+                const allowed = Array.from({ length: 41 }, (_, i) => i + 1).filter(n => mods.every(m => n % m !== 0));
+                for (const count of new Set([1, 2, Math.floor(allowed.length / 2), allowed.length])) {
+                    runtime.variables.set('Count', BigInt(count));
+                    runtime.execute(program);
+                    expect(runtime.variables.get('Index')).toBe(BigInt(allowed[count - 1]));
+                    expect(runtime.variables.get('Have')).toBe(BigInt(count));
+                }
+            }
         } finally { runtime.dispose(); }
     });
 });

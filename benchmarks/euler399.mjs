@@ -12,7 +12,7 @@ const primeLimit = Number(option('prime-limit') ?? 5714285);
 const limit = Number(option('limit') ?? 200000000);
 const count = Number(option('count') ?? 100000000);
 const stage = option('stage') ?? 'moduli';
-assert.ok(['moduli', 'full', 'fibmod'].includes(stage));
+assert.ok(['moduli', 'full', 'fibmod', 'selection'].includes(stage));
 const variant = option('variant') ?? 'current';
 assert.ok(['current', 'powers'].includes(variant));
 for (const value of [primeLimit, limit, count]) assert.ok(Number.isSafeInteger(value) && value > 0);
@@ -43,9 +43,16 @@ if (process.argv.includes('--worker')) {
             run('fibmod-10000', program);
             assert.equal(runtime.variables.get('Answer'), 24604978n);
         } else {
-            const inclusion = source.indexOf('rem Group inclusion-exclusion');
             const selection = source.indexOf('rem Find the Count-th');
-            run('moduli', helper + '\n' + source.slice(0, inclusion));
+            const inclusion = source.indexOf('rem Group inclusion-exclusion');
+            const preparationEnd = inclusion < 0 ? selection : inclusion;
+            if (stage === 'selection') {
+                const start = performance.now();
+                const reference = referenceModuli(primeLimit, limit);
+                console.error(JSON.stringify({ name: 'reference-setup', executeMs: performance.now() - start }));
+                runtime.execute(source.slice(0, source.indexOf('rem Wall gives')) + '\n' + helper);
+                runtime.variables.set('Mods', { kind: 'array', shape: [reference.moduli.length], items: reference.moduli.map(BigInt) });
+            } else run('moduli', helper + '\n' + source.slice(0, preparationEnd));
             runtime.execute('ModCount = Mods len');
             if (process.argv.includes('--verify')) {
                 const start = performance.now();
@@ -53,12 +60,16 @@ if (process.argv.includes('--worker')) {
                 assert.deepEqual(runtime.variables.get('Mods').items.map(Number), reference.moduli);
                 verification = { ...reference, moduli: reference.moduli.length, executeMs: performance.now() - start };
             }
-            if (stage === 'full') {
-                run('inclusion-exclusion', source.slice(inclusion, selection));
+            if (stage === 'full' || stage === 'selection') {
+                if (inclusion >= 0) run('inclusion-exclusion', source.slice(inclusion, selection));
                 run('selection-and-format', source.slice(selection, source.indexOf('rem Fast doubling')));
                 if (count === 200 && limit === 300 && primeLimit === 53) {
                     assert.equal(runtime.variables.get('Index'), 260n);
                     assert.equal(runtime.variables.get('Answer'), '1608739584170445,9.7e53');
+                }
+                if (count === 100000000 && limit === 200000000 && primeLimit === 5714285) {
+                    assert.equal(runtime.variables.get('Index'), 130775524n);
+                    assert.equal(runtime.variables.get('Answer'), '1508395636674243,6.5e27330467');
                 }
             }
         }

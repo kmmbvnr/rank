@@ -3,7 +3,6 @@ rem https://projecteuler.net/problem=399
 
 use numbers
 use bits
-use algo
 use sequences
 use text
 use io
@@ -60,45 +59,42 @@ for P in Pr
   end
 end
 
-rem Group inclusion-exclusion
-rem by LCM.
-Coef = new index
-Coef 1 = 1
-Keys = new set
-Keys add 1
-for M in Mods
-  Old = Keys array
-  for L in Old
-    C = Coef L default 0
-    if C equal 0
-      continue
+rem Find the Count-th allowed index in bounded segments.
+rem Copy the sorted moduli once so marking loops read stored integers.
+SortedMods = (Mods sort) copy
+Segment = 1000000
+Have = 0
+Index = Limit
+for Lo in 1 to Limit by Segment
+  Len = Segment
+  if Lo + Len greater Limit + 1
+    Len = Limit + 1 - Lo
+  end
+  Marks = array shape Len fill 0
+  for M in SortedMods
+    if M at least Lo + Len
+      break
     end
-    Nl = L M lcm
-    if Nl at most Limit
-      Coef Nl = (Coef Nl default 0) - C
-      Keys add Nl
+    First = ((Lo + M - 1) // M) * M - Lo
+    for J in First till Len by M
+      Marks J = 1
     end
   end
-end
-
-rem Find the Count-th allowed index.
-Lo = 1
-Hi = Limit
-for Lo less Hi
-  Mid = (Lo + Hi) // 2
-  Have = 0
-  for L in Keys
-    C = Coef L default 0
-    Term = C * (Mid // L)
-    Have += Term
+  Allowed = Len - (Marks sum)
+  if Have + Allowed at least Count
+    for J in 0 till Len
+      if Marks J equal 0
+        Have += 1
+        if Have equal Count
+          Index = Lo + J
+          break
+        end
+      end
+    end
+    break
   end
-  if Have at least Count
-    Hi = Mid
-  else
-    Lo = Mid + 1
-  end
+  Have += Allowed
 end
-Index = Lo
 
 Mod = 10000000000000000
 Last = Index Mod fibmod
