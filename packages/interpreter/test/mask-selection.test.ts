@@ -52,6 +52,33 @@ describe('array mask selection plans', () => {
             .toThrow('array selector must be a boolean mask');
     });
 
+    it('validates lazy selector cells before reporting a mask shape mismatch', () => {
+        const source = ownedArray([1n, 2n, 3n]);
+        const reads: number[] = [];
+        const selector: RankArray = { kind: 'array', shape: [2], items: [],
+            itemAt: index => { reads.push(index); return 1.0; } };
+        expect(() => maskSelection(source, selector))
+            .toThrow('index array has real elements');
+        expect(reads).toEqual([0]);
+    });
+
+    it('reads lazy boolean masks with missing cells without demanding the source', () => {
+        const source: RankArray = { kind: 'array', shape: [3], items: [],
+            itemAt: () => { throw new Error('source cell'); } };
+        const reads: number[] = [];
+        const selector: RankArray = { kind: 'array', shape: [3], items: [],
+            itemAt: index => { reads.push(index); return [true, MISSING, false][index]; } };
+        const selected = maskSelection(source, selector);
+        expect(reads).toEqual([0, 1, 2]);
+        expect(collectionSize(selected)!.length()).toBe(1n);
+        expect(() => [...selected.plan.iterate()]).toThrow('source cell');
+    });
+
+    it('rejects mixed boolean and real selectors before checking shape', () => {
+        expect(() => maskSelection(ownedArray([1n, 2n, 3n]), { kind: 'array', shape: [2], items: [true, 1.0] }))
+            .toThrow('index array has real elements');
+    });
+
     it('does not demand a throwing selected cell for len', () => {
         const source: RankArray = { kind: 'array', shape: [1], items: [],
             itemAt: () => { throw new Error('selected cell'); } };
@@ -146,5 +173,42 @@ S`)).toBe('2 4');
             expect(formatValue(runtime.execute('S')!)).toBe('2 3');
             expect(diagnostics.cowCopies).toBe(1);
         } finally { runtime.dispose(); }
+    });
+});
+
+for (const compilation of [false, true]) describe(`real index diagnostics (compiled=${compilation})`, () => {
+    const run = (source: string) => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try { return formatValue(runtime.execute(source)!); }
+        finally { runtime.dispose(); }
+    };
+
+    it.each([
+        'array 1.0 2.0',
+        'array 1.5 2.5',
+        'array 1.0 2.0 0.0 1.0',
+        '(array 1.5 2.5) * 0 + 1',
+    ])('names the real element type for %s', selector => {
+        expect(() => run(`F = array 10 20 30 40\nI = ${selector}\nF I`))
+            .toThrow(expect.objectContaining({
+                rankKind: 'TypeError',
+                message: 'index array has real elements; convert with integer or floor',
+            }));
+    });
+
+    it('keeps integer gathers and explicit conversions', () => {
+        expect(run('F = array 10 20 30 40\nF (array 1 2)')).toBe('20 30');
+        expect(run('use numbers\nF = array 10 20 30 40\nI = (array 1.5 2.5) * 0 + 1\nF (I integer)'))
+            .toBe('20 20');
+        expect(run('use numbers\nF = array 10 20 30 40\nF ((array 1.5 2.5) floor)'))
+            .toBe('20 30');
+        expect(run('F = array 10 20 30 40\nI = array shape 0 fill 0\nF I')).toBe('');
+    });
+
+    it('keeps boolean selection and mask shape errors', () => {
+        expect(run('F = array 1 2 3 4\nF (array false true true false)'))
+            .toBe('2 3');
+        expect(() => run('F = array 1 2 3 4\nF (array false true)'))
+            .toThrow('mask length 2 does not match axis 0 size 4');
     });
 });

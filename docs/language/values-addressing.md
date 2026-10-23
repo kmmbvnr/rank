@@ -472,8 +472,10 @@ text expression it becomes `substr`, so neither reads rows early.
 
 ## Arrays of indices
 
-An integer array is a selector for arbitrary positions. Inline `array` remains
-unambiguous because it consumes the rest of the expression:
+An integer array is a selector for arbitrary positions. Real arrays, including
+those whose values are whole numbers, require explicit conversion with `integer`
+or `floor` before use as indices. Inline `array` remains unambiguous because it
+consumes the rest of the expression:
 
 ```rank
 Letters = Text array 0 2 6

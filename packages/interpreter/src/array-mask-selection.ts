@@ -11,10 +11,7 @@ const selections = new WeakMap<RankSequence['plan'], Selection>();
 
 /** Snapshot mask positions without demanding source cells. */
 export function maskSelection(source: RankArray, selector: RankArray): RankSequence {
-    if (!sameShape(source.shape, selector.shape)) {
-        throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
-    }
-    const size = source.shape.reduce((n, axis) => n * axis, 1);
+    const size = selector.shape.reduce((n, axis) => n * axis, 1);
     const positions: number[] = [];
     const view = prepareStoredScalarView(selector, true);
     const linear = view?.linear;
@@ -28,13 +25,21 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
             if ((index & 4095) === 0) checkpoint('selecting array positions', Math.min(4096, size - index));
             const item = direct ? view.items[linear.offset + linear.stride * index] : view.read(index);
             if (item === true) positions.push(index);
-            else if (item !== false && item !== MISSING) throw new RankError('array selector must be a boolean mask');
+            else if (item !== false && item !== MISSING) invalidMaskElement(item);
         }
-    } else if (!selector.items.every((item, index) => {
-        checkpoint('selecting array positions');
-        if (item === true && index < size) positions.push(index);
-        return typeof item === 'boolean' || item === MISSING;
-    })) throw new RankError('array selector must be a boolean mask');
+    } else {
+        for (let index = 0; index < size; index++) {
+            checkpoint('selecting array positions');
+            const item = readArrayItem(selector, index);
+            if (item === true) positions.push(index);
+            else if (item !== false && item !== MISSING) invalidMaskElement(item);
+        }
+    }
+    // A non-integer array selector is not necessarily a mask. Validate its
+    // elements before using its shape to diagnose boolean selection.
+    if (!sameShape(source.shape, selector.shape)) {
+        throw new RankError(`mask shape mismatch: ${source.shape} and ${selector.shape}`);
+    }
 
     // A retained lazy selection still owns the old source after a Rank write.
     noteArrayBinding(source);
@@ -50,6 +55,13 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
     } };
     selections.set(selected.plan, { source, positions, iterate: selected.plan.iterate });
     return selected;
+}
+
+function invalidMaskElement(item: RankValue): never {
+    if (typeof item === 'number') {
+        throw new RankError('index array has real elements; convert with integer or floor', 'TypeError');
+    }
+    throw new RankError('array selector must be a boolean mask', 'TypeError');
 }
 
 /** Explicit materialization can compact stored scalar cells directly. Lazy,
