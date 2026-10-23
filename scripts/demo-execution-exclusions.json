@@ -168,5 +168,6 @@
   "euler/452_longproducts.ra": "To fix later: the default input takes about 3 min and 4.7 GB (3 x 10^7 transitions over 29 layers); the small _test.ra fixture stays in the audits.",
   "euler/454_diophantinereciprocals.ra": "To fix later: the default input takes about 40 s (about 3 x 10^8 floor quotients); the small _test.ra fixture stays in the audits.",
   "euler/459_flippinggame.ra": "The default input takes about 24 s compiled after #386 (a sequential mex loop over about 1.6 x 10^9 position-length pairs); the small _test.ra fixture stays in the audits.",
-  "euler/461_almostpi.ra": "To fix later: the default input takes about 2.8 min and 5 GB (sorts and merges 7 x 10^7 pair sums); the small _test.ra fixture stays in the audits."
+  "euler/461_almostpi.ra": "To fix later: the default input takes about 2.8 min and 5 GB (sorts and merges 7 x 10^7 pair sums); the small _test.ra fixture stays in the audits.",
+  "euler/464_mobiusintervals.ra": "To fix later: the default input takes about 3 min and 4.3 GB (25 merge levels x 2 passes over 2 x 10^7 integer cells, #415); the small _test.ra fixture stays in the audits."
 }

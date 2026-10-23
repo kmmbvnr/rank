@@ -1,0 +1,72 @@
+rem Möbius function and intervals
+rem https://projecteuler.net/problem=464
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 20000000
+
+rem Strided sieve: flip mu for each
+rem small p, zero it at p^2, divide
+rem out p; a cofactor above 1 is one
+rem more prime.
+Mu = array shape (N + 1) fill 1
+Mu 0 = 0
+Rs = (0 to N) copy
+Rt = N isqrt
+for P in primes to Rt
+  Mu (P to N by P) *= -1
+  Mu (P * P to N by P * P) = 0
+  Rs (P to N by P) //= P
+end
+Mu = (Rs greater 1) choose (0 - Mu) Mu
+rem Bad intervals: A_j > A_i for the
+rem prefix sums A of 99 at mu = 1 and
+rem -100 at mu = -1, or the reverse.
+rem Count such pairs i < j by merge
+rem levels: block 2^(t+1) holds a
+rem left and right half; sorting
+rem (block, rank) moves each right
+rem item left past the left items it
+rem beats, read off two index bits.
+Is = (0 to N) copy
+M1 = N + 1
+M4 = 4 * M1
+Lv = 0
+for 2 ** Lv less M1
+  Lv += 1
+end
+Bad = 0
+for Ps in 0 to 1
+  Wp = 99 - 199 * Ps
+  Wn = -1 - Wp
+  Wt = (Mu equal 1) choose Wp 0
+  Wt = (Mu equal -1) choose Wn Wt
+  Av = Wt scan +
+  rem Rank by value; ties put the
+  rem later index first.
+  Od = N - (Av reverse argsort)
+  R4 = Is * 0
+  R4 (Od) = Is * 4
+  Pw = 1
+  Pv = (Is * (Is mod 2)) sum
+  for T in 0 till Lv
+    Q = Is // (2 * Pw)
+    Ky = Q * M4 + R4
+    Ky += (Is // Pw) mod 4
+    Lo = Ky sort mod 4
+    Hb = Lo // 2
+    Sh = (Is * Hb) sum
+    Sl = (Is * Lo) sum - 2 * Sh
+    rem Items with bit t set.
+    Ct = M1 // (2 * Pw) * Pw
+    Ct += (M1 mod (2 * Pw) - Pw) 0 max
+    Bad += Sl - Pv + Pw * Ct
+    Pv = Sh
+    Pw *= 2
+  end
+end
+Answer = N * (N + 1) // 2 - Bad
+Answer print

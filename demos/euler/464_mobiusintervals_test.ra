@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "464_mobiusintervals"
+  N = 10
+  run
+  Answer equal 13
+  N = 500
+  run
+  Answer equal 16676
+end
+
+test "n = 10000"
+  use "464_mobiusintervals"
+  N = 10000
+  run
+  Answer equal 20155319
+end
