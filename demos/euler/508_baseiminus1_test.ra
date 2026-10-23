@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "508_baseiminus1"
+  L = 1
+  run
+  Answer equal 20
+  L = 2
+  run
+  Answer equal 75
+end
+
+test "recursion against brute force"
+  use "508_baseiminus1"
+  L = 20
+  Bl = 1
+  run
+  Answer equal 10235
+  L = 1000
+  Bl = 1024
+  run
+  Answer equal 47138470
+end

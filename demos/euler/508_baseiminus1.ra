@@ -1,0 +1,160 @@
+rem Integers in base i-1
+rem https://projecteuler.net/problem=508
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 1000000000000000
+option Bl integer = 1024
+
+rem One digit: a + bi = r + (i - 1)(a'
+rem + b'i), r = (a - b) mod 2. Sums
+rem over rectangles: S splits by r
+rem into two rectangles T in (u, v) =
+rem (r - a, b); T splits by the next
+rem digit v mod 2 back into S. Equal
+rem rectangles merge with their
+rem counts; small S go to brute
+rem force over their points.
+Md = 1000000007
+fun Mt fold
+  rem Lexicographic sort, then add up
+  rem the counts of equal columns.
+  X = Mt 0
+  Y = Mt 1
+  Z = Mt 2
+  W = Mt 3
+  C = Mt 4
+  Od = W argsort
+  Od = Od ((Z Od) argsort)
+  Od = Od ((Y Od) argsort)
+  Od = Od ((X Od) argsort)
+  Xs = X Od
+  Ys = Y Od
+  Zs = Z Od
+  Ws = W Od
+  Ne = Xs not equal (Xs -1 shift)
+  Ny = Ys not equal (Ys -1 shift)
+  Nz = Zs not equal (Zs -1 shift)
+  Nw = Ws not equal (Ws -1 shift)
+  Ne = Ne or Ny or Nz or Nw
+  Nl = Ne len
+  Ne (Nl - 1) = true
+  Ei = Ne indices
+  Cs = (C Od) scan +
+  Gs = Cs Ei
+  Gc = (Gs - (Gs 1 shift)) mod Md
+  Rx = Xs Ei
+  Ry = Ys Ei
+  Rz = Zs Ei
+  return stack Rx Ry Rz (Ws Ei) Gc
+end
+fun Lo Hi evens
+  return Hi // 2 - (Lo - 1) // 2
+end
+Answer = 0
+Nl = 0 - L
+S0 = array Nl L Nl L 1
+Sm = S0 reshape 5 1
+Tm = array shape 5 0 fill 0
+Bk = array shape 5 0 fill 0
+Nn = 1
+for Nn greater 0
+  rem S rectangles.
+  A0 = Sm 0
+  A1 = Sm 1
+  B0 = Sm 2
+  B1 = Sm 3
+  C = Sm 4
+  Ar = (A1 - A0 + 1) * (B1 - B0 + 1)
+  Sl = (Ar at most Bl) indices
+  Sk = Sm (0 till 5) Sl
+  Bk = concat Bk Sk axis 1
+  Bg = (Ar greater Bl) indices
+  A0 = A0 Bg
+  A1 = A1 Bg
+  B0 = B0 Bg
+  B1 = B1 Bg
+  C = C Bg
+  Ea = (A0 A1 evens) mod Md
+  Oa = ((A1 - A0 + 1) mod Md) - Ea
+  Eb = (B0 B1 evens) mod Md
+  Ob = ((B1 - B0 + 1) mod Md) - Eb
+  Od = (Ea * Ob + Oa * Eb) mod Md
+  Answer += (C * Od mod Md) sum
+  Nt = stack (0 - A1) (0 - A0) B0 B1 C
+  N2 = stack (1 - A1) (1 - A0) B0 B1 C
+  Nt = concat Nt N2 axis 1
+  rem T rectangles.
+  U0 = Tm 0
+  U1 = Tm 1
+  V0 = Tm 2
+  V1 = Tm 3
+  Ct = Tm 4
+  Eu = U0 U1 evens
+  Ou = U1 - U0 + 1 - Eu
+  Ev = V0 V1 evens
+  Ov = V1 - V0 + 1 - Ev
+  Oo = (Ou mod Md) * (Ov mod Md) mod Md
+  Answer += (Ct * Oo mod Md) sum
+  Ns = array shape 5 0 fill 0
+  for Sh in 0 to 1
+    X0 = 0 - ((Sh - U0) // 2)
+    X1 = (U1 - Sh) // 2
+    Y0 = 0 - ((Sh - V0) // 2)
+    Y1 = (V1 - Sh) // 2
+    Gd = X0 at most X1
+    Gd = Gd and (Y0 at most Y1)
+    Ok = Gd indices
+    Y1 = 0 - Y1
+    Y0 = 0 - Y0
+    X1 = 0 - X1
+    X0 = 0 - X0
+    Nk = stack Y1 Y0 X1 X0 Ct
+    Nk = Nk (0 till 5) Ok
+    Ns = concat Ns Nk axis 1
+  end
+  Sm = Ns
+  if Sm shape 1 greater 0
+    Sm = Ns fold
+  end
+  Tm = Nt
+  if Tm shape 1 greater 0
+    Tm = Nt fold
+  end
+  Nn = (Sm shape 1) + (Tm shape 1)
+end
+rem Brute force over the small ones.
+Wd = Bk 1 - Bk 0 + 1
+Hd = Bk 3 - Bk 2 + 1
+Ne = (Wd greater 0) and (Hd greater 0)
+Ar = Ne choose (Wd * Hd) 0
+Of = Ar scan + with 0
+Tp = Of last
+Ow = array shape Tp fill 0
+Ix = (Ar greater 0) indices
+Ow (Of Ix) = Ix
+Ow = Ow scan max
+Qp = (0 till Tp) - Of Ow
+Ho = Hd Ow
+Ra = Bk 0
+Rb = Bk 2
+Pa = Ra Ow + Qp // Ho
+Pb = Rb Ow + Qp mod Ho
+Rc = Bk 4
+Pc = Rc Ow
+Cn = Pa * 0
+Zr = (Pa equal 0) and (Pb equal 0)
+for Zr all equal false
+  R = (Pa - Pb) mod 2
+  Cn += R
+  Na = (Pb - Pa + R) // 2
+  Pb = (R - Pa - Pb) // 2
+  Pa = Na
+  Zr = (Pa equal 0) and (Pb equal 0)
+end
+Answer += (Cn * Pc mod Md) sum
+Answer = Answer mod Md
+Answer print
