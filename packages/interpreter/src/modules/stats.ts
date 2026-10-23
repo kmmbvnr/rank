@@ -167,7 +167,7 @@ export function statisticsCell(
     if (count === 0) throw new RankError(`${operation} requires at least one value`, 'EmptyReduction');
     if (invalid) {
         if (invalid.nonfinite) throw new RankError('std expects finite values', 'DomainError');
-        expectNumeric(invalid.value);
+        expectNumeric(invalid.value, operation);
     }
     const mean = total / count;
     if (!values) return mean;
@@ -186,7 +186,7 @@ export function standardDeviation(value: RankValue): number {
         throw new RankError('std requires at least one value', 'EmptyReduction');
     }
     const values = items.map(item => {
-        const numeric = Number(expectNumeric(item));
+        const numeric = Number(expectNumeric(item, 'std'));
         if (!Number.isFinite(numeric)) {
             throw new RankError('std expects finite values', 'DomainError');
         }
@@ -206,7 +206,7 @@ export function varianceValue(value: RankValue): number {
         throw new RankError('variance requires at least one value', 'EmptyReduction');
     }
     const values = items.map(item => {
-        const numeric = Number(expectNumeric(item));
+        const numeric = Number(expectNumeric(item, 'variance'));
         if (!Number.isFinite(numeric)) {
             throw new RankError('variance expects finite values', 'DomainError');
         }
@@ -226,7 +226,7 @@ export function skewnessValue(value: RankValue): number {
         throw new RankError('skewness requires at least one value', 'EmptyReduction');
     }
     const values = items.map(item => {
-        const numeric = Number(expectNumeric(item));
+        const numeric = Number(expectNumeric(item, 'skewness'));
         if (!Number.isFinite(numeric)) {
             throw new RankError('skewness expects finite values', 'DomainError');
         }
@@ -307,7 +307,7 @@ function singleQuantile(value: RankValue, qSingle: RankValue, isPercentile: bool
         throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} expects q between 0 and 1`, 'DomainError');
     }
     const items = presentValues(value, isPercentile ? 'percentile' : 'quantile').map(item => {
-        const numeric = Number(expectNumeric(item));
+        const numeric = Number(expectNumeric(item, isPercentile ? 'percentile' : 'quantile'));
         if (!Number.isFinite(numeric)) {
             throw new RankError(`${isPercentile ? 'percentile' : 'quantile'} expects finite values`, 'DomainError');
         }
@@ -497,7 +497,7 @@ export function correlationValue(
 export function meanValue(value: RankValue): number {
     const source = elementSource(value, 'mean', 'series');
     const planned = source?.reduce?.('mean');
-    if (planned !== undefined) return Number(expectNumeric(planned));
+    if (planned !== undefined) return Number(expectNumeric(planned, 'mean'));
     const stored = source?.scalarItems?.();
     if (stored) {
         if (stored.length === 0) throw new RankError('mean requires at least one value', 'EmptyReduction');
@@ -505,7 +505,7 @@ export function meanValue(value: RankValue): number {
         for (let index = 0; index < stored.length; index += 1) {
             if ((index & 0xfff) === 0) checkpoint('computing statistics');
             const item = stored[index];
-            sum += typeof item === 'number' ? item : Number(expectNumeric(item));
+            sum += typeof item === 'number' ? item : Number(expectNumeric(item, 'mean'));
         }
         return sum / stored.length;
     }
@@ -516,7 +516,7 @@ export function meanValue(value: RankValue): number {
         for (const item of streaming) {
             checkpoint('computing statistics');
             if (item === MISSING) continue;
-            total += Number(expectNumeric(item));
+            total += Number(expectNumeric(item, 'mean'));
             count += 1;
         }
         if (count === 0) throw new RankError('mean requires at least one value', 'EmptyReduction');
@@ -529,14 +529,14 @@ export function meanValue(value: RankValue): number {
     let total = 0;
     for (const item of items) {
         checkpoint('computing statistics');
-        total += Number(expectNumeric(item));
+        total += Number(expectNumeric(item, 'mean'));
     }
     return total / items.length;
 }
 
 export function medianValue(value: RankValue): number {
     const values = presentValues(value, 'median').map(item => {
-        const numeric = Number(expectNumeric(item));
+        const numeric = Number(expectNumeric(item, 'median'));
         if (!Number.isFinite(numeric)) {
             throw new RankError('median expects finite values', 'DomainError');
         }

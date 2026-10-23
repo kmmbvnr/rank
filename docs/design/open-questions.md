@@ -587,19 +587,10 @@ short one-line formulas, but introduce two substitution pitfalls for learners:
      boundary predictable without depending on whether the left operand contains
      a postfix call?
 
-2. **Named mask vs inline predicate (`Fib even sum` vs `Mask = Fib even`):**
-   In the pipeline that creates it, a predicate mask stands for the values it
-   selects, so `Fib even sum` sums the even numbers of `Fib`
-   (see [Selection with boolean masks](../language/sequences-arrays.md#selection-with-boolean-masks)).
-   Once bound to a variable (`Mask = Fib even`), the name refers only to the
-   boolean flags, and `Mask sum` is an error requiring `Fib Mask sum` or
-   `Mask count`. Because extracting intentional intermediate variables is a core
-   Rank style rule (to stay within the 40-column and one-parenthesis budget),
-   having variable extraction change the meaning of a pipeline violates
-   substitution intuition.
-   - *Open question:* Should inline predicate reductions and named masks share a
-     single explicit rule, or should editor hints and diagnostics bridge the
-     transition when a subexpression is extracted into a variable?
+2. **Mask extraction consistency — resolved ([#407](https://github.com/kmmbvnr/rank/issues/407)):**
+   Inline and named masks always hold booleans. Numeric reductions require
+   explicit filtering or selection; ordered boolean extrema remain supported.
+   See [Selection with boolean masks](../language/sequences-arrays.md#selection-with-boolean-masks).
 
 ## Disambiguating `axis` and `rank` roles
 
@@ -636,13 +627,9 @@ To keep the entry threshold true to the *"modern BASIC"* promise while retaining
 Rank's APL/J and lazy-pipeline power, three concrete directions are recorded for
 future design evaluation:
 
-1. **Referential consistency between inline predicates and named variables
-   (`Fib even sum` vs `Mask = Fib even`):**
-   Make the behavior of a named variable (`Mask = Fib even`) and an inline
-   subexpression (`Fib even sum`) consistent so that extracting an intermediate
-   variable — Rank's primary stylistic tool for staying within the 40-column and
-   one-parenthesis budget — never silently alters pipeline semantics or turns a
-   working expression into a type error.
+1. **Referential consistency between inline predicates and named variables — resolved:**
+   Masks have the same meaning inline and after extraction. Filtering selected
+   source numbers is explicit through `filter` or mask addressing (see #407).
 2. **Unifying everyday materialization (`=`, `array`, and `copy`):**
    Spare basic users from having to track four different materialization and
    writability modes (`=` completing sequences vs keeping lazy array views,

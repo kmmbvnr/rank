@@ -780,43 +780,42 @@ A mask is a predicate, not a bound. `Fib (Fib less 1000)` never ends when `Fib`
 is endless: after 987 every flag is `false`, and nothing proves that no later
 one is `true`. Bound the sequence with `till` instead.
 
-In the pipeline that makes it, a mask stands for the values it selects, so
-numeric operations after the predicate read those values: `sum`, `min`, `max`,
-`lcm`, `mean`, `median`, `std`, `variance`, `skewness`, `quantile` and
-`percentile`. A pipeline therefore reads like a calculator, and both lines
-below give 44 for `Fib = fibonacci till 100`:
+Predicates and comparisons always produce boolean masks, whether inline,
+parenthesized, or stored in an ordinary or deferred binding. Extracting a mask
+into a variable does not change what a reduction reads.
+
+Select the source values explicitly before a numeric reduction:
 
 ```rank
-Answer = Fib even sum
+Answer = Fib filter even sum
 Answer = Fib (Fib even) sum
+Mask = Fib even
+Answer = Fib Mask sum
 ```
 
-The same holds for a boolean array made by a predicate (`A even`), by
-comparing an array with a scalar (`A greater 2`), or by `not`, `and`, `or` and
-`xor` over such masks: `A even sum` adds the even cells of `A`, read in
-row-major order.
+All three forms give 44 for `Fib = fibonacci till 100`. For an array,
+`A filter greater 2 sum` adds the cells greater than 2.
 
-Use `count` from `sequences` to count true flags. For example:
+`sum`, `lcm`, `mean`, `median`, `std`, `variance`, `skewness`, `quantile` and
+`percentile` reject boolean cells. Their diagnostics suggest `filter`, explicit
+mask selection, or `count`. Thus both `Fib even sum` and `Mask sum` are errors;
+parentheses do not turn flags into source numbers. Empty reductions retain their
+ordinary identities or empty-input errors.
+
+`min` and `max` accept booleans and compare the flags themselves (`false` before
+`true`), consistently with ordinary boolean arrays. They do not read selected
+source numbers. Use `Fib filter even max` for the largest even number.
+
+Use `count` from `sequences` to count true flags. `any`, `all`, `array`, and
+iteration also read the boolean flags:
 
 ```rank
 use sequences
 Sv = array shape 5 fill 0
 Sv 2 = 1
-(Sv equal 0) count rem 4: number of zero cells
-(Sv equal 0) sum   rem 0: sum of the selected zero cells
-```
-
-Parentheses keep the inline mask's selection behavior. A stored mask or an
-ordinary boolean array passed to `sum` raises a numeric type error.
-
-A mask read by its name has left its pipeline and is only booleans. A numeric
-operation on it is an error that names the explicit forms:
-
-```rank
-Mask = Fib even
-Total = Fib Mask sum
-Count = Mask count
-rem Mask sum is an error
+(Sv equal 0) count       rem 4 true flags
+Sv filter equal 0 sum   rem 0 selected sum
+(Sv equal 0) max         rem true
 ```
 
 The runtime may remember a mask's source so that selecting from that same

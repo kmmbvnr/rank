@@ -6,7 +6,7 @@ import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
 import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
 import { arithmeticRange } from './range-plan.js';
-import { arrayMaskSelection, checkUnnamedMask } from './array-mask.js';
+import { booleanReductionHint } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { isKnownFileFree } from './resource-summary.js';
 import {
@@ -405,15 +405,14 @@ export function zipSequences(
     });
 }
 
-/**
- * A mask's own items are booleans, which no numeric operation accepts, so
- * numeric operations read the source items it selects: `Fib even sum`,
- * `A even sum`.
- */
+/** Reject known sequence masks before an endless source is traversed.
+ * Other inputs validate their cells at numeric demand, without an extra scan. */
 export function numericSource(value: RankValue, operation?: string): RankValue {
-    checkUnnamedMask(value, operation);
-    if (isRankSequenceMask(value)) return filterSequence(value.source, value.predicate);
-    return arrayMaskSelection(value) ?? value;
+    if ((isRankSequenceMask(value) || isPositionalMask(value)) && value.plan.size.kind === 'infinite') {
+        const hint = operation && booleanReductionHint(operation);
+        if (hint) throw new RankError(hint, 'TypeError');
+    }
+    return value;
 }
 
 export function sequenceValues(value: RankValue, operation: string): Iterable<RankValue> {

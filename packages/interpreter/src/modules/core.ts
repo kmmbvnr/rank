@@ -1,5 +1,4 @@
 import { MissingValueError, RankError } from '../errors.js';
-import { markArrayMask } from '../array-mask.js';
 import { isPresentAt, maskedNumericCells, ownedArray } from '../array-storage.js';
 import { sequenceMask } from '../sequence.js';
 import { ByteArray } from '../bytes.js';
@@ -67,7 +66,7 @@ export const coreModule: RuntimeModule = {
             const size = masked.values.length;
             const bits: boolean[] = new Array(size);
             for (let index = 0; index < size; index += 1) bits[index] = isPresentAt(masked.validity, index);
-            return markArrayMask(ownedArray(bits, value.shape, true), value);
+            return ownedArray(bits, value.shape, true);
         }
         // A cell whose read raises `.Missing` has no value either.
         const size = value.shape.reduce((product, length) => product * length, 1);
@@ -80,7 +79,7 @@ export const coreModule: RuntimeModule = {
                 flags[index] = false;
             }
         }
-        return markArrayMask(ownedArray(flags, value.shape, true), value);
+        return ownedArray(flags, value.shape, true);
     }),
     len: () => native('len', 1, args => lengthOf(args[0])),
     sum: () => native('sum', 1, args => sumValue(args[0])),

@@ -67,8 +67,8 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         // After a bare left operand, a call applies to the comparison's result.
         expect(run(arrays + 'A equal B count')).toBe('1');
         expect(run(arrays + '(A equal B) count')).toBe('1');
-        expect(run('use numbers\nC = array 1 2 3 4\nC greater 2 sum')).toBe('7');
-        expect(run('use numbers\nC = array 1 2 3 4\nC + 1 greater 3 sum')).toBe('9');
+        expect(() => run('use numbers\nC = array 1 2 3 4\nC greater 2 sum')).toThrow('boolean mask');
+        expect(() => run('use numbers\nC = array 1 2 3 4\nC + 1 greater 3 sum')).toThrow('boolean mask');
         // A pipeline on the left keeps both sides independent.
         expect(run(arrays + 'A len equal B len')).toBe('true');
         expect(run(arrays + 'B len equal 2')).toBe('true');

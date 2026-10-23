@@ -4,7 +4,6 @@ import { resume, type Execution } from './execution.js';
 import { arrayDeclaration, declareArray } from './array-declaration.js';
 import { inheritSemanticArrayType, semanticArrayContract, setSemanticArrayType } from './semantic-array-type.js';
 import { FlatRecords } from './flat.js';
-import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, arrayCells, arrayValues, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -371,8 +370,6 @@ export class ArrayBindingContract {
 
     private metadata(source: RankArray, target: RankArray): void {
         inheritSemanticArrayType(source, target);
-        const maskSource = arrayMaskSource(source);
-        if (maskSource) markArrayMask(target, maskSource);
         for (const key of ['columnNames', 'tableScopes', 'sortKeys'] as const) {
             if (source[key] !== undefined) Object.defineProperty(target, key, { value: source[key] });
         }

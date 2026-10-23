@@ -1,7 +1,7 @@
 import { registerNativeImplementation } from '../native-implementation.js';
 import { checkValueMutable } from '../value-protection.js';
 import { registerScalarBuiltin } from '../scalar-builtin.js';
-import { findOperation, instantiateShapeSignature, type KnownShape } from '@arrrank/language';
+import { booleanReductionHint, findOperation, instantiateShapeSignature, type KnownShape } from '@arrrank/language';
 import { checkInterrupt, interruptsEnabled } from '../interrupt.js';
 import { ownedArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
@@ -84,17 +84,19 @@ export function mapValue(
     return isRankArray(value) ? ownedArray(value.items.map(operation), value.shape) : operation(value);
 }
 
-export function expectInteger(value: RankValue): bigint {
+export function expectInteger(value: RankValue, reduction?: string): bigint {
     if (typeof value !== 'bigint') {
         if (value === MISSING) throw new MissingValueError('missing value where an integer is needed');
+        if (typeof value === 'boolean' && reduction) throw new RankError(booleanReductionHint(reduction)!, 'TypeError');
         throw new RankError(`expected integer input`);
     }
     return value;
 }
 
-export function expectNumeric(value: RankValue): bigint | number {
+export function expectNumeric(value: RankValue, reduction?: string): bigint | number {
     if (typeof value !== 'bigint' && typeof value !== 'number') {
         if (value === MISSING) throw new MissingValueError('missing value where a number is needed');
+        if (typeof value === 'boolean' && reduction) throw new RankError(booleanReductionHint(reduction)!, 'TypeError');
         throw new RankError('expected numeric input');
     }
     return value;

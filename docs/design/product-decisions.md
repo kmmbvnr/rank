@@ -99,7 +99,7 @@ or keep lines within the 40-column and <= 1 parenthesis budget. In contrast,
    meaningful variables keep the mental model accessible, straightforward, and
    concrete.
 
-Short, unambiguous postfix pipelines (`Fib even sum`, `Text reverse print`) are
+Short, unambiguous postfix pipelines (`Fib filter even sum`, `Text reverse print`) are
 supported where they remain intuitive, but intermediate variables remain the
 canonical idiomatic style.
 
@@ -179,28 +179,24 @@ comfortably on a phone screen.
 
 ## 6. Boolean sequence masks and explicit selection
 
-A mask is positional booleans, and every operation that consumes the mask as
-data sees boolean values. Prefix `array Mask` and postfix `Mask array`
-therefore agree. In the pipeline that makes it, a numeric operation such as
-`sum`, `max` or `mean` reads the items the mask selects, so `Fib even sum` and
-`A even sum` need no parentheses. A mask read by its name is only booleans:
-`Mask sum` is an error that names `Values Mask sum` and `Mask count`.
+A mask always holds positional booleans. Inline predicates, parenthesized
+expressions, and named masks have the same meaning. Materialization, iteration,
+`count`, `any`, `all`, `min`, and `max` read those flags. Numeric reductions
+reject boolean cells with a hint to select values explicitly or count flags.
 
 ```rank
 Fib = fibonacci to Limit
-Answer = Fib even sum
+Answer = Fib filter even sum
 Mask = Fib even
 Answer = Fib Mask sum
 ```
 
 ### Rationale: One meaning for a mask
 
-Materialization and iteration must not silently turn a boolean mask into source
-values, so explicit selection (`Fib Mask`) stays the general form; the planner
-can push that selection into the source without materializing intermediate
-booleans. A numeric reduction of booleans would only fail, so it takes the
-selected values instead: the REPL works like a calculator, where `Fib even sum`
-gives the sum of the even Fibonacci numbers.
+Extracting an intermediate variable must preserve the meaning of an expression.
+Filtering is explicit through `filter` or mask addressing. The planner can push
+selection into the source without materializing intermediate booleans. Ordered
+extrema over booleans remain valid: `false` precedes `true`.
 
 ---
 

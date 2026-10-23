@@ -15,7 +15,6 @@ import {
     isUnpackExpression, nameNeedsExecution, requiresDataOperand, applicationForm, findOperation,
     type AddressItem, type ArrayItem, type Expression, type SortField,
 } from '@arrrank/language';
-import { nameMask } from '../array-mask.js';
 import { allValid, createArraySnapshot, filledArray, derivedArray, isPresentAt, maskedNumericCells, ownedArray, readArrayItem, typedArray } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { compileClauseExpression, isBoundCondition, type ClauseExpressionContext } from '../clause-expression.js';
@@ -515,7 +514,7 @@ export class ExpressionEvaluator {
         if (isNameExpression(expression)) {
             return () => {
                 const value = demandValue(expressions.context.resolve(expression.name));
-                if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(nameMask(value));
+                if (!isNativeFunction(value) || !value.arities.includes(0)) return completed(value);
                 if (tail && expressions.context.resources.currentScopeEmpty()
                     && expressions.context.functions.transferTailCall(value, [])) return completed(MISSING);
                 return mapResult(expressions.context.invoke(value, []), result => {
@@ -746,7 +745,7 @@ export class ExpressionEvaluator {
 
     private directNameValue(value: RankValue): RankValue {
         value = demandValue(value);
-        if (!isNativeFunction(value) || !value.arities.includes(0)) return nameMask(value);
+        if (!isNativeFunction(value) || !value.arities.includes(0)) return value;
         const result = value.call([]);
         this.context.resources.ownFiles(result);
         return result;

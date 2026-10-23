@@ -378,8 +378,9 @@ function transferApplicationFacts(
         }
     }
 
-    if (ranked.length === 2 && isNameExpression(ranked[1])
-        && operationBinding(ranked[1].name, lookup) === findOperation('present')) {
+    const booleanPredicate = isNameExpression(ranked[1]) && operationBinding(ranked[1].name, lookup);
+    if (ranked.length === 2 && booleanPredicate
+        && ['present', 'even', 'odd', 'isnan'].includes(booleanPredicate.name)) {
         const source = infer(ranked[0], lookup);
         if (['array', 'sequence'].includes(source.types.join())) return {
             types: source.types, elements: ['boolean'], rank: source.rank, shape: source.shape,

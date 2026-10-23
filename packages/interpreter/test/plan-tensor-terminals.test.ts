@@ -133,15 +133,17 @@ Inverted' = not Low`);
         } finally { host.dispose(); }
     });
 
-    it('keeps numeric reductions of named masks forbidden', () => {
-        const { host, entries } = runtime();
+    it('treats inline and named masks as booleans in reductions', () => {
+        const { host } = runtime();
         try {
             host.execute("use sequences\nuse stats\nShifted' = Input + 1\nMask' = Shifted greater 3");
-            for (const operation of ['sum', 'mean', 'min', 'max']) {
-                expect(() => host.execute(`Mask ${operation}`)).toThrowError(/named mask/);
+            for (const operation of ['sum', 'mean']) {
+                expect(() => host.execute(`Mask ${operation}`)).toThrowError(/boolean mask/);
             }
-            expect(entries()).toBe(0);
-            expect(host.execute('(Shifted greater 3) mean')).toBe(4);
+            expect(() => host.execute('(Shifted greater 3) mean')).toThrowError(/boolean mask/);
+            expect(host.execute('Mask min')).toBe(false);
+            expect(host.execute('Mask max')).toBe(true);
+            expect(host.execute('Shifted filter greater 3 mean')).toBe(4);
         } finally { host.dispose(); }
     });
 

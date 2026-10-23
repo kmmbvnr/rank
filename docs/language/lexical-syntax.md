@@ -505,7 +505,7 @@ To process just one operand, group it explicitly: `A - (A mean)` or
 
 A comparison works like the arithmetic above it, as on a calculator: after a
 plain left operand, the comparison takes the next value and a following
-function processes its result. `A greater 2 sum` means `(A greater 2) sum`,
+function processes its result. `A greater 2 count` means `(A greater 2) count`,
 and `A + 1 greater 3 count` counts the cells of `A + 1` above 3. When the left
 operand is itself a pipeline, both sides stay independent, so
 `A len equal B len` still means `(A len) equal (B len)` and

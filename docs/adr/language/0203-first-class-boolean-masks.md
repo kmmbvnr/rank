@@ -60,14 +60,19 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
    Selected = N (M3 or M5)
    ```
 
-5. **One meaning for a named mask.**
-   A mask holds booleans. Materializing or iterating over it yields `true` and `false`, never source values, and `count`, `any` and `all` read those booleans. As a calculator convenience, a numeric operation in the same pipeline as the predicate reads the values it selects: `Fib even sum` adds the even Fibonacci numbers. A mask read by its name has left that pipeline, so a numeric operation on it is an error that names both explicit spellings:
+5. **One meaning for every mask.**
+   A mask holds booleans whether inline, parenthesized, named, or deferred.
+   Materialization, iteration, `count`, `any`, `all`, `min`, and `max` read those
+   flags. Numeric reductions reject boolean cells and suggest explicit filtering,
+   mask selection, or counting:
    ```rank
+   Fib filter even sum
    Mask = Fib even
    Fib Mask sum
-   rem Mask sum is an error: write `Values Mask sum` or `Mask count`
+   rem Both Fib even sum and Mask sum are errors
    ```
-   The runtime may still remember where a mask came from, but only to push its test into the source when the mask selects from that same source. That memory never changes a result.
+   The runtime may remember a sequence mask's source to push explicit selection
+   into that source. This never changes the meaning of the mask itself.
 
 6. **Masked assignment (conditional mutation):**
    A boolean mask can appear on the left-hand side of an assignment to conditionally update elements in-place:
@@ -101,7 +106,7 @@ Rank establishes **first-class boolean masks** as the fundamental selection and 
 
 ### Negative & Trade-offs
 * **Explicit mask storage:** `Mask = A greater 0` completes and retains the boolean array. `Mask' = A greater 0` preserves a recipe that can feed selection or reduction without a retained mask. Repeated demands repeat work. Capturing `A` makes that name read-only, so a mask intended for later writes to `A` must be completed with an ordinary binding.
-* **Two readings of `sum` after a predicate:** `Fib even sum` adds values while `Mask sum` is an error. The rule is syntactic, one pipeline, and the error message names the explicit form.
+* **Explicit filtering:** Summing selected values requires `Fib filter even sum` or `Fib Mask sum`. The former implicit selection in `Fib even sum` is retired; the diagnostic names explicit alternatives.
 
 ## References
 * Core Principles 10, 11 in [docs/CURRENT_SPEC.md](../../CURRENT_SPEC.md)

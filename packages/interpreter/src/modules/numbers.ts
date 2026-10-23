@@ -6,7 +6,6 @@ import { mapScalarArrays } from '../scalar-array-map.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint } from '../interrupt.js';
 import { elementSource, type ElementSource } from '../element-source.js';
-import { markArrayMask } from '../array-mask.js';
 import { denseScalarItems, derivedArray, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { modularPower, probablePrime } from '../primality.js';
@@ -131,7 +130,7 @@ export const numbersModule: RuntimeModule = {
         let result = 1n;
         for (const item of items) {
             checkpoint('computing numbers');
-            result = leastCommonMultiple(result, expectInteger(item));
+            result = leastCommonMultiple(result, expectInteger(item, 'lcm'));
         }
         return result;
     }), {
@@ -378,7 +377,7 @@ function sumStream(items: Iterable<RankValue>): bigint | number {
     let total: bigint | number = 0n;
     for (const item of items) {
         checkpoint('computing numbers');
-        if (item !== MISSING) total = add(total, expectNumeric(item));
+        if (item !== MISSING) total = add(total, expectNumeric(item, 'sum'));
     }
     return total;
 }
@@ -414,11 +413,11 @@ function sumArray(items: ArrayLike<RankValue>): bigint | number {
         const item = items[index];
         if (typeof item === 'bigint') { integer += item; continue; }
         if (item === MISSING) continue;
-        let real = Number(integer) + Number(expectNumeric(item));
+        let real = Number(integer) + Number(expectNumeric(item, 'sum'));
         for (index++; index < items.length; index++) {
             checkpoint('computing numbers');
             const next = items[index];
-            if (next !== MISSING) real += Number(expectNumeric(next));
+            if (next !== MISSING) real += Number(expectNumeric(next, 'sum'));
         }
         return real;
     }
@@ -431,7 +430,7 @@ export function sumIndexed(size: number, itemAt: (index: number) => RankValue): 
     for (let index = 0; index < size; index += 1) {
         checkpoint('computing numbers');
         const item = itemAt(index);
-        if (item !== MISSING) total = add(total, expectNumeric(item));
+        if (item !== MISSING) total = add(total, expectNumeric(item, 'sum'));
     }
     return total;
 }
@@ -618,7 +617,7 @@ function predicateFunction(name: string, test: (value: RankValue) => boolean) {
         const value = arguments_[0];
         return isRankSequence(value)
             ? sequenceMask(value, predicate)
-            : markArrayMask(mapValue(value, test), value);
+            : mapValue(value, test);
     });
 }
 
@@ -633,7 +632,7 @@ export function sumValue(value: RankValue): RankValue {
 /** The reduction depends on element access, not a collection's concrete kind. */
 export function sumElements(source: ElementSource): bigint | number {
     const reduced = source.reduce?.('sum');
-    if (reduced !== undefined) return expectNumeric(reduced);
+    if (reduced !== undefined) return expectNumeric(reduced, 'sum');
     // Real cells held in a typed buffer are added in place, not boxed one by one first.
     const reals = source.realCells?.();
     if (reals?.length) {

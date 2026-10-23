@@ -771,35 +771,35 @@ Result`)).toBe('itb');
             .toThrowError('mask is longer than the values it selects from');
     });
 
-    it('reduces the values a sequence mask selects with numeric operations', () => {
+    it('reduces explicitly filtered sequence values', () => {
         const setup = 'use sequences\nuse numbers\nuse stats\nFib = fibonacci till 100\n';
-        expect(run(setup + 'Fib even sum')).toBe('44');
-        expect(run(setup + 'Fib even max')).toBe('34');
-        expect(run(setup + 'Fib even min')).toBe('2');
-        expect(run(setup + 'Fib even median')).toBe('8');
+        expect(run(setup + 'Fib filter even sum')).toBe('44');
+        expect(run(setup + 'Fib filter even max')).toBe('34');
+        expect(run(setup + 'Fib filter even min')).toBe('2');
+        expect(run(setup + 'Fib filter even median')).toBe('8');
         expect(run(setup + 'Fib even count')).toBe('3');
-        // Only a mask made in the same pipeline stands for its values; a named one is booleans.
+        // Inline and named masks both hold booleans.
         expect(() => run(setup + 'Mask = Fib even\nMask sum'))
-            .toThrowError('sum of a named mask: write `Values Mask sum`');
+            .toThrowError('sum expects numbers, not a boolean mask');
         expect(run(setup + 'Mask = Fib even\nFib Mask sum')).toBe('44');
         // The mask itself still holds booleans.
         expect(run(setup + 'Fib even array')).toBe('false true false false true false false true false false');
         expect(() => run('use sequences\nuse numbers\nfibonacci even sum'))
-            .toThrowError('sum requires a bounded sequence');
+            .toThrowError('sum expects numbers, not a boolean mask');
     });
 
-    it('reduces the cells an array mask selects with numeric operations', () => {
+    it('reduces explicitly filtered array values', () => {
         const setup = 'use numbers\nuse stats\nA = array 1 2 3 4 5\n';
-        expect(run(setup + 'A even sum')).toBe('6');
-        expect(run(setup + 'A odd max')).toBe('5');
-        expect(run(setup + 'A even mean')).toBe('3');
+        expect(run(setup + 'A filter even sum')).toBe('6');
+        expect(run(setup + 'A filter odd max')).toBe('5');
+        expect(run(setup + 'A filter even mean')).toBe('3');
         expect(run(setup + 'Mask = A greater 2\nA Mask sum')).toBe('12');
         expect(run(setup + 'Mask = A greater 1 and (A less 5)\nA Mask sum')).toBe('9');
         expect(run(setup + 'Mask = not (A even)\nA Mask sum')).toBe('9');
-        expect(() => run(setup + 'Mask = A greater 2\nMask sum')).toThrowError('expected numeric input');
-        expect(() => run(setup + 'Mask = A greater 2\nMask mean')).toThrowError('expected numeric input');
+        expect(() => run(setup + 'Mask = A greater 2\nMask sum')).toThrowError('boolean mask');
+        expect(() => run(setup + 'Mask = A greater 2\nMask mean')).toThrowError('boolean mask');
         expect(run(setup + 'A even')).toBe('false true false true false');
-        expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM even sum')).toBe('12');
+        expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM filter even rank 0 sum')).toBe('12');
         expect(run('use numbers\nM = array 1 2 3 4 5 6 shape 2 3\nM (M even)')).toBe('2 4 6');
         // A mask selects by position from whatever it is applied to.
         expect(run(setup + 'Mask = A even\nA 1 = 10\nA Mask sum')).toBe('14');

@@ -15,7 +15,7 @@ import { findOperation, operationArities } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
 
 // A comparison takes one operand on each side and binds below arithmetic, so
-// calls after it apply to its result, as on a calculator: `A greater 2 sum`.
+// calls after it apply to its result, as on a calculator: `A greater 2 count`.
 // Logical operators still separate independent clauses.
 const precedence: Readonly<Record<string, number>> = {
     equal: 0.5, notequal: 0.5, less: 0.5, greater: 0.5, atleast: 0.5, atmost: 0.5,
@@ -200,7 +200,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         }
         // A pipeline on the left of a comparison makes it symmetric: each side
         // keeps its own calls (`A len equal B len`). Only a bare left operand
-        // lets later calls apply to the comparison's result (`A greater 2 sum`).
+        // lets later calls apply to the comparison's result (`A greater 2 count`).
         if (isBinaryExpression(expression) && comparisons.has(expression.operator) && hasCall(expression.left)) {
             return [{ kind: 'value', value: visitChildren(expression) as Expression }];
         }

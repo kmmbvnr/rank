@@ -1503,3 +1503,11 @@ export function operationArities(name: string): readonly number[] | undefined {
 export function moduleOperations(module: string): readonly Operation[] {
     return operations.filter(operation => operation.module === module || operation.alsoModules?.includes(module));
 }
+
+/** Migration hint for numeric reductions; ordered boolean extrema remain valid. */
+export function booleanReductionHint(operation: string): string | undefined {
+    if (!['sum', 'lcm', 'mean', 'median', 'std', 'variance', 'var', 'skewness', 'skew',
+        'quantile', 'percentile'].includes(operation)) return undefined;
+    return `${operation} expects numbers, not a boolean mask; use 'Values filter Predicate ${operation}' `
+        + `or 'Values Mask ${operation}' for selected values, or 'Mask count' to count true values`;
+}

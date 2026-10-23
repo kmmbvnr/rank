@@ -10,7 +10,6 @@ import { divideWithRemainder, floorDivide, floorDivideReal, floorRemainder } fro
 import { mapResult, runExecution } from './execution.js';
 import { binaryArrayType, setSemanticArrayType } from './semantic-array-type.js';
 import { RUNTIME_TYPE_NAMES, type ApplicationForm } from '@arrrank/language';
-import { arrayMaskSource, markArrayMask } from './array-mask.js';
 import { arrayValues, collectArrayCells, denseScalarItems, evaluateArrayItem, derivedArray, ownedArray, readArrayItem, registerArrayReadPlan, shouldStream, streamCells } from './array-storage.js';
 import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -149,12 +148,6 @@ export class Operators {
     }
 
     evaluateUnary(operator: string, value: RankValue): RankValue {
-        const source = operator === 'not' ? arrayMaskSource(value) : undefined;
-        if (source) return markArrayMask(this.evaluateUnaryValue(operator, value), source);
-        return this.evaluateUnaryValue(operator, value);
-    }
-
-    private evaluateUnaryValue(operator: string, value: RankValue): RankValue {
         if (operator === 'not' && isPositionalMask(value)) {
             return positionalMask(mapSequence(value, 'not', item => item !== true, true).plan);
         }
@@ -200,7 +193,7 @@ export class Operators {
         if (!isRankArray(result)) return result;
         const type = binaryArrayType(operator, left, right);
         if (type) setSemanticArrayType(result, type);
-        return markBinaryMask(operator, left, right, result);
+        return result;
     }
 
     /** `and` and `or` after a single boolean are guards: the right side runs only
@@ -777,21 +770,6 @@ function asRankArray(value: RankValue): RankArray | undefined {
     if (isRankArray(value)) return value;
     if (isRankQueue(value)) return { kind: 'array', items: value.items, shape: [value.items.length] };
     return undefined;
-}
-
-/** A comparison of an array with a scalar, or a logical join of two masks of the
- * same array, yields a mask that numeric operations can select through. */
-function markBinaryMask(operator: string, left: RankValue, right: RankValue, result: RankArray): RankValue {
-    if (isPredicateOperator(operator)) {
-        if (isRankArray(left) && typeof right !== 'object') return markArrayMask(result, left);
-        if (isRankArray(right) && typeof left !== 'object') return markArrayMask(result, right);
-        return result;
-    }
-    if (operator === 'and' || operator === 'or' || operator === 'xor') {
-        const source = arrayMaskSource(left);
-        if (source && source === arrayMaskSource(right)) return markArrayMask(result, source);
-    }
-    return result;
 }
 
 function isPredicateOperator(operator: string): boolean {

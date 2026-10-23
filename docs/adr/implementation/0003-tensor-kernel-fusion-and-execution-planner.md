@@ -74,8 +74,8 @@ still completes the final value. Reshape retains its source completion boundary.
 The native graph supports `sum`, `mean`, `min`, `max`, `count`, `any` and `all`.
 Boolean terminals stop as soon as their answer is known; unvisited contracts do
 not run. Selection validates indices before producing its result, so an early
-answer cannot hide an invalid index. Named masks reject numeric reductions;
-`count` reads their boolean cells. Empty means and extrema preserve their errors.
+answer cannot hide an invalid index. Inline and named masks both reject numeric reductions;
+`count`, `min`, and `max` read their boolean cells. Empty means and extrema preserve their errors.
 
 ### Guards, ownership and fallback
 

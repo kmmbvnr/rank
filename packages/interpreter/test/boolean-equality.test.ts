@@ -64,12 +64,13 @@ true checkflag`);
         expect(run('use numbers\n(true integer) equal 1')).toBe('true');
     });
 
-    it('distinguishes inline mask selection from boolean counting and summing', () => {
+    it('requires explicit selection to sum values and count to count flags', () => {
         const setup = 'use sequences\nSv = array shape 5 fill 0\nSv 2 = 1\n';
-        expect(run(setup + '(Sv equal 0) sum')).toBe('0');
+        expect(run(setup + 'Sv filter equal 0 sum')).toBe('0');
+        expect(() => run(setup + '(Sv equal 0) sum')).toThrow('boolean mask');
         expect(run(setup + '(Sv equal 0) count')).toBe('4');
-        expect(() => run(setup + 'Mask = Sv equal 0\nMask sum')).toThrow('expected numeric input');
-        expect(() => run('(array true false) sum')).toThrow('expected numeric input');
+        expect(() => run(setup + 'Mask = Sv equal 0\nMask sum')).toThrow('boolean mask');
+        expect(() => run('(array true false) sum')).toThrow('boolean mask');
     });
 });
 

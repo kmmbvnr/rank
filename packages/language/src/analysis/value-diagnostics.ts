@@ -27,8 +27,8 @@ import {
     type TryStatement,
 } from '../generated/ast.js';
 import { compoundType, declaredType } from './types.js';
-import { flattenApplication } from '../expressions.js';
-import { findOperation, type Operation } from '../operations.js';
+import { flattenApplication, unaryApplicationHead } from '../expressions.js';
+import { booleanReductionHint, findOperation, type Operation } from '../operations.js';
 import { builtinBindingDiagnostics } from '../builtin-bindings.js';
 import { renamedBuiltinCall } from '../builtin-renames.js';
 import { arrayRank, conditionalPaths, contractRank, invalidate, mergeEnvironments } from './control-flow.js';
@@ -718,6 +718,23 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             }
             for (const part of parts.slice(1)) inspect(part, env);
             const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            const reductionName = parts.at(-1);
+            const reduction = isNameExpression(reductionName) && (!env.has(reductionName.name) || env.get(reductionName.name)?.builtinOperation)
+                ? findOperation(env.get(reductionName.name)?.builtinOperation ?? reductionName.name) : undefined;
+            const hint = reduction && booleanReductionHint(reduction.name);
+            if (hint) {
+                const head = unaryApplicationHead(expression, name => !env.has(name)
+                    ? findOperation(name)?.arities : undefined);
+                const arity = head ? 1 : parts.length - 1;
+                if (reduction.arities.includes(arity)) {
+                    const input = head ? expressionFacts(head, lookup) : source;
+                    if (!input.shape?.includes(0) && (input.types.join() === 'boolean'
+                        || input.types.length && input.types.every(type => ['array', 'sequence'].includes(type))
+                            && input.elements?.join() === 'boolean')) {
+                        diagnostics.push({ node: expression, kind: 'TypeError', message: hint });
+                    }
+                }
+            }
             if (form.kind === 'diagonal') {
                 if (form.mode && (!isLabelLiteral(form.mode) || form.mode.name !== 'anti')) {
                     diagnostics.push({ node: form.mode, kind: 'TypeError', message: 'diag mode must be .anti' });
