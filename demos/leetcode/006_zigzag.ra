@@ -7,7 +7,7 @@ use algo
 rem Return Text in zigzag row order.
 rem Visit vertical and diagonal positions
 rem within each repeating zigzag cycle.
-fun Text N zigzag
+fun Text zigzag N
   Queue = new queue
   if N equal 1
     return Text

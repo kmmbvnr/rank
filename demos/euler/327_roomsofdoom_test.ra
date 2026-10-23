@@ -2,12 +2,12 @@ use testing
 
 test "room cards"
   use "327_roomsofdoom"
-  (array 3) 6 cards equal 123
-  (array 4) 6 cards equal 23
-  (array 3 4) 6 cards equal 146
+  (array 3) cards 6 equal 123
+  (array 4) cards 6 equal 23
+  (array 3 4) cards 6 equal 146
 end
 
 test "capacity range"
   use "327_roomsofdoom"
-  (3 to 40) 30 cards equal 34315549139516
+  (3 to 40) cards 30 equal 34315549139516
 end

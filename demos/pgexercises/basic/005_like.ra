@@ -11,4 +11,4 @@ Db = DbPath sqlite
 Text = "SELECT * FROM facilities WHERE name LIKE ?"
 Params = array "%Tennis%"
 Result' = Db Text Params sqlquery
-Result OutputPath csv
+Result csv OutputPath

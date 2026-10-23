@@ -12,12 +12,12 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 3) array
 Queries = Raw reshape Q 3
 
-Values Queries dynamic_mins print
+Values dynamic_mins Queries print
 
 
 rem Apply point assignments.
 rem Answer inclusive one-based ranges.
-fun Values Queries dynamic_mins
+fun Values dynamic_mins Queries
   Tree = Values segment min
 
   for Query in Queries

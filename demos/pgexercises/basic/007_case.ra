@@ -15,4 +15,4 @@ Result' = R select
   .name = .name
   .cost = High "expensive" "cheap" choose
 end
-Result OutputPath csv
+Result csv OutputPath

@@ -38,7 +38,7 @@ it('promotes mixed numeric operands without requiring collection cells', () => {
 it('keeps nonnumeric overloads and gives SQL priority over missing propagation', () => {
     const multiply = contract('fun X f\n return X * 2\nend');
     expect(has(multiply, ['duration'], 'duration')).toBe(true);
-    const add = contract('fun X Y f\n return X + Y\nend');
+    const add = contract('fun X f Y\n return X + Y\nend');
     expect(has(add, ['text', 'text'], 'text')).toBe(true);
     expect(has(add, ['text', 'integer'], 'text')).toBe(false);
     expect(has(add, ['column', 'missing'], 'column')).toBe(true);
@@ -65,7 +65,7 @@ it('keeps a conservative remainder when a fresh inference budget runs out', () =
 
 
 it('does not claim inherited bounds when a scalar constructs another collection', () => {
-    const result = contract('fun X Y f\n return X + (Y to 2)\nend');
+    const result = contract('fun X f Y\n return X + (Y to 2)\nend');
     const row = result.alternatives.find(row => JSON.stringify(row.inputs)
         === JSON.stringify([{ collection: 'sequence', element: 'integer' }, 'integer']));
     expect(row).toBeDefined();
@@ -88,7 +88,7 @@ it('composes a four-parameter numeric branch without enumerating 21 to the fourt
 });
 
 it('keeps independent numeric groups independent across tuple returns and helper calls', () => {
-    const source = 'fun X Y add\n return X + Y\nend\nfun A B C D f\n return tuple (A B add) (C D add)\nend';
+    const source = 'fun X add Y\n return X + Y\nend\nfun A B C D f\n return tuple (A add B) (C add D)\nend';
     const result = contract(source);
     expect(result.symbolic).toBe(true);
     expect(result.exhausted).toBe(false);
@@ -107,7 +107,7 @@ it('freshens shared operator variables and state for every function summary', ()
 });
 
 it('keeps enumeration as the explicit fallback for unsupported field and range expressions', () => {
-    const result = contract('fun X Y f\n return X + (Y to 2)\nend');
+    const result = contract('fun X f Y\n return X + (Y to 2)\nend');
     expect(result.symbolic).toBeUndefined();
     expect(result.exhausted).toBe(false);
 });

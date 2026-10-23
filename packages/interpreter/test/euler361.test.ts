@@ -31,7 +31,7 @@ describe.each([true, false])('Euler 361 scalar memoization (compilation=%s)', co
         try {
             runtime.executeProgram(helpers, []);
             runtime.execute(`
-fun Len R value
+fun Len value R
   Ns = new queue
   F = new index
   J = new index
@@ -52,7 +52,7 @@ end
                 expect(runtime.execute(`${before + words.length} length`)).toBe(BigInt(length));
                 if (length <= 16) {
                     for (const rank of new Set([0, Math.floor(words.length / 2), words.length - 1])) {
-                        expect(runtime.execute(`${length} ${rank} value`)).toBe(BigInt('0b' + words[rank]));
+                        expect(runtime.execute(`${length} value ${rank}`)).toBe(BigInt('0b' + words[rank]));
                     }
                 }
                 before += words.length;

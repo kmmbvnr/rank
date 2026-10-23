@@ -28,9 +28,9 @@ A = Fits choose Grey 0
 Pieces = A + B + C + D
 Rest' = B + C + D
 Mix' = C + D
-First' = Pieces A binomial
-Second' = Rest B binomial
-Third' = Mix C binomial
+First' = Pieces binomial A
+Second' = Rest binomial B
+Third' = Mix binomial C
 Ways' = First * Second * Third
 Answer = (Fits choose Ways 0) sum
 Answer print

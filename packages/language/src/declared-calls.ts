@@ -42,8 +42,18 @@ export function groupDeclaredCalls(
                 report(callee, `${name} is missing right parameter ${parameter.name}`);
                 arguments_.push({ $type: 'LabelLiteral', name: 'NA' } as Expression);
             } else {
-                arguments_.push(next);
+                const addressed = [next];
                 cursor++;
+                if (signature.leftCount === 1 && signature.rightParameters.length === 1 && parameter.kind === 'data') {
+                    while (parts[cursor + 1]) {
+                        const selector = parts[cursor + 1];
+                        if (callable(selector) || isNameExpression(selector)
+                            && (signature.words.some(group => group.word === selector.name)
+                                || ['rank', 'axis'].includes(selector.name))) break;
+                        addressed.push(parts[++cursor]);
+                    }
+                }
+                arguments_.push(applicationExpression(addressed));
             }
         }
         for (const group of signature.words) {

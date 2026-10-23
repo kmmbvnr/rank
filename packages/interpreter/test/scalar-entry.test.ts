@@ -73,7 +73,7 @@ A 0 = 99`);
     });
 
     it('guards each invocation and recovers after invalid arguments', () => {
-        const values = compare(`fun A B helper
+        const values = compare(`fun A helper B
   Value = A + B
   return Value + Value
 end`, [[2n, 3n], [1.5, 2.5], ['x', 'y'], [true, false],
@@ -102,7 +102,7 @@ end`, [[3n], [3n], [4n], [4n]], 2);
         for (const scalarEntryCompilation of [false, true]) {
             const runtime = new Interpreter(undefined, { scalarEntryCompilation });
             try {
-                expect(() => runtime.execute('fun X X helper\n  return X\nend'))
+                expect(() => runtime.execute('fun X helper X\n  return X\nend'))
                     .toThrow('Duplicate function parameter X');
             } finally { runtime.dispose(); }
         }
@@ -172,7 +172,7 @@ end
 
 
 describe('ordinary entry for local loops', () => {
-    const concat = `fun A B helper
+    const concat = `fun A helper B
   Scale = 10
   for Scale at most B
     Scale *= 10
@@ -303,7 +303,7 @@ end`, [[1n, 3n, 1n], [9n, 0n, 1n], [1n, 3n, 0n]], 3);
 fun helper
   Total = 0
   for I in 1 to 3
-    if "abc" "a" startswith
+    if "abc" startswith "a"
       Total += 1
     end
   end
@@ -312,7 +312,7 @@ end`);
             expect(runtime.execute('helper')).toBe(3n);
             expect(calls).toBe(1);
             const original = runtime.variables.get('startswith');
-            runtime.execute('fun A B replacement\n return false\nend');
+            runtime.execute('fun A replacement B\n return false\nend');
             runtime.variables.set('startswith', runtime.variables.get('replacement')!);
             expect(runtime.execute('helper')).toBe(0n);
             // The replacement may compile, but the guarded helper must fall back.

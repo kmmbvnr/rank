@@ -10,11 +10,11 @@ end
 test "Euler formula"
   use "027_quadraticprimes"
 
-  1 41 quadratic_run equal 40
+  1 quadratic_run 41 equal 40
 end
 
 test "longer quadratic example"
   use "027_quadraticprimes"
 
-  -79 1601 quadratic_run equal 80
+  -79 quadratic_run 1601 equal 80
 end

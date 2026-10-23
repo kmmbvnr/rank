@@ -47,8 +47,8 @@ C .date
 ### Usage
 
 ```text
-Start End calendar
-Db Start End calendar
+Start calendar End
+Db Start calendar End
 ```
 
 Both ends are included; a start after

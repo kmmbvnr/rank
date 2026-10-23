@@ -64,7 +64,7 @@ test('long text is cut and counted', () => {
     const shown = preview(value([
         'use sequences', 'use text',
         'A = (1 till 200) array',
-        'A "," join',
+        'A join ","',
     ].join('\n')));
     assert.match(shown.text, / \.\.\.$/);
     assert.match(shown.note, /^\d+ characters$/);

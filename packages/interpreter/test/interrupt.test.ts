@@ -75,10 +75,10 @@ describe('interactive host cancellation', () => {
         const runtime = new Interpreter();
         runtime.execute('use numbers');
         try {
-            expect(() => cancel(() => runtime.execute('1000000 500000 binomial'))).toThrow(/binomial/);
+            expect(() => cancel(() => runtime.execute('1000000 binomial 500000'))).toThrow(/binomial/);
             expect(() => cancel(() => runtime.execute('1000000 2 1000000007 binomialmod'))).toThrow(InterruptedError);
             expect(runtime.execute('2000 2 1000000007 binomialmod')).toBe(1999000n);
-            expect(runtime.execute('30 2 binomial')).toBe(435n);
+            expect(runtime.execute('30 binomial 2')).toBe(435n);
         } finally { runtime.dispose(); }
     });
 

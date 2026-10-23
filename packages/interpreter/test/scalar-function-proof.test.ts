@@ -5,7 +5,7 @@ import { scalarFunctionResult } from '../src/scalar-function-proof.js';
 import { compileScalarFunction } from '../src/scalar-function-kernel.js';
 
 function statement(body: string) {
-    const result = parse(`fun X Y helper\n${body}\nend`).statements[0];
+    const result = parse(`fun X helper Y\n${body}\nend`).statements[0];
     if (!isFunctionStatement(result)) throw new Error('expected function');
     return result;
 }

@@ -7,11 +7,11 @@ N = stdin .integer
 Maximum = stdin .integer
 Description = stdin .integer N array
 
-Description Maximum descriptions print
+Description descriptions Maximum print
 
 
 rem Keep counts for the prior position.
-fun Description Maximum descriptions
+fun Description descriptions Maximum
   Modulus = 1000000007
   Size = Maximum + 2
   Previous = array shape Size fill 0

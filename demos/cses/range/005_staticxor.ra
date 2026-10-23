@@ -11,15 +11,15 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Values Queries range_xors print
+Values range_xors Queries print
 
 
 rem Answer inclusive xor ranges.
-fun Values Queries range_xors
+fun Values range_xors Queries
   Prefix = Values scan bxor with 0
   Left' = Queries # 0
   Right' = Queries # 1
   Before' = Prefix (Left - 1)
   After' = Prefix Right
-  return After Before bxor
+  return After bxor Before
 end

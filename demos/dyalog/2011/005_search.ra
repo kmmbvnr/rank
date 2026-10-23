@@ -20,31 +20,31 @@ fun Titles makeDict
   return Titles allWords unique array
 end
 
-fun Dict Text dictCount rank 1 0
+fun Dict dictCount Text rank 1 0
   Words = Text tokenize
   Matches' = Dict Words outer equal
   return Matches count axis 1
 end
 
-fun A B cosine rank 1 1
-  Dot = A B matmul
-  MagA = (A A matmul) sqrt
-  MagB = (B B matmul) sqrt
+fun A cosine B rank 1 1
+  Dot = A matmul B
+  MagA = (A matmul A) sqrt
+  MagB = (B matmul B) sqrt
   return Dot / (MagA * MagB)
 end
 
-fun Titles Query seek
+fun Titles seek Query
   Dict = Titles makeDict
-  QueryVec = Dict Query dictCount
+  QueryVec = Dict dictCount Query
   if QueryVec sum equal 0
     return Titles take 0
   end
-  TitleVecs = Dict Titles dictCount rank 1 0
+  TitleVecs = Dict dictCount Titles rank 1 0
   rem Positive overlap also excludes tokenless titles before cosine.
-  Hits = (TitleVecs QueryVec matmul) greater 0
+  Hits = (TitleVecs matmul QueryVec) greater 0
   HitTitles = Titles Hits array
   HitVecs' = TitleVecs axis 0 Hits
-  HitScores' = HitVecs QueryVec cosine rank 1 1
+  HitScores' = HitVecs cosine QueryVec rank 1 1
   Order' = HitScores argsort .descending
   Best = Order take 10
   return HitTitles Best
@@ -61,6 +61,6 @@ Titles = array shape 8
   "Tutorial on Error Trapping in APL2/PC"
   "Letter: Chaos - Computer Error not to Blame"
 end
-Misspelled = Titles "suduko" seek
-Sudoku = Titles "sudoku" seek
-ErrorTrapping = Titles "Error Trapping" seek
+Misspelled = Titles seek "suduko"
+Sudoku = Titles seek "sudoku"
+ErrorTrapping = Titles seek "Error Trapping"

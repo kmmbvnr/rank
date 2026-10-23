@@ -35,7 +35,7 @@ for B at most Limit // 2
   Mine = Best Ks copy
   for D in 2 to (Limit - 1) // B
     Reach = (Limit - 1) // D
-    Hi = (2 * B - 1) Reach min
+    Hi = (2 * B - 1) min Reach
     Cut = Hi - B + 1
     Slot' = B * D to Hi * D by D
     New = (Mine take Cut) + Dr D

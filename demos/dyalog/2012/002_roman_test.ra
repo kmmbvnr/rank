@@ -56,7 +56,7 @@ end
 
 test "Roman applies an ordinary numeric addition function"
   use "002_roman"
-  fun A B plus
+  fun A plus B
     return A + B
   end
   ((tuple "III" "II") roman plus) equal "V"
@@ -79,7 +79,7 @@ end
 test "Roman applies reshape to Roman-valued dimensions and data"
   use "002_roman"
   use sequences
-  fun Dims Values reshapeTo
+  fun Dims reshapeTo Values
     return Values reshape unpack Dims
   end
   Values = array "I" "II" "III" "IV" "V" "VI"

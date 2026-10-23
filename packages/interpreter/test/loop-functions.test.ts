@@ -172,8 +172,8 @@ end`)).toThrow('unknown name: Offset');
 
     it('preserves all queens placements and their order', () => {
         const source = readFileSync(new URL('../../../demos/classic/queens.ra', import.meta.url), 'utf8');
-        const before = source.replace(/  fun Q avail\n([\s\S]*?)  end/, '  fun Q avail = Q Dy available')
-            .replace('for Row in 1 till Size', `fun Q Dy available
+        const before = source.replace(/  fun Q avail\n([\s\S]*?)  end/, '  fun Q avail = Q available Dy')
+            .replace('for Row in 1 till Size', `fun Q available Dy
  Mask = Cols not in Q
  Mask and= Cols not in (Q + Dy)
  Mask and= Cols not in (Q - Dy)

@@ -3,19 +3,19 @@ import { Interpreter, isRankSequence } from '../src/index.js';
 import { MemoryIo } from './support.js';
 
 const count = `
-fun N Total count
+fun N count Total
   if N equal 0
     return Total
   end
-  return (N - 1) (Total + 1) count
+  return (N - 1) count (Total + 1)
 end
 `;
 
 describe('tail calls', () => {
     it('runs a million tail calls with a one-frame call budget', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });
-        expect(interpreter.execute(`${count}\n1000000 0 count`)).toBe(1000000n);
-        expect(interpreter.execute('1 10 count')).toBe(11n);
+        expect(interpreter.execute(`${count}\n1000000 count 0`)).toBe(1000000n);
+        expect(interpreter.execute('1 count 10')).toBe(11n);
     }, 30_000);
 
     it('replaces frames for mutual recursion and parenthesized returns', () => {
@@ -70,7 +70,7 @@ end
         interpreter.execute('f = count');
         expect(() => interpreter.execute('7 forward')).toThrowError('count expects 2 arguments, got 1');
         expect(lines).toEqual(['7', '7']);
-        expect(interpreter.execute('1 0 count')).toBe(1n);
+        expect(interpreter.execute('1 count 0')).toBe(1n);
     });
 
     it('does not eliminate a call with arithmetic remaining after it', () => {
@@ -188,7 +188,7 @@ end
         expect(interpreter.execute(`
 use "count.ra" as D
 fun N forward
-  return N 10 D.count
+  return N D.count 10
 end
 10000 forward
 `)).toBe(10010n);
@@ -208,7 +208,7 @@ Values' = 7 forward
         const value = interpreter.variables.get('Values');
         if (!value || !isRankSequence(value)) throw new Error('expected sequence');
         expect([...value.plan.iterate()]).toEqual([7n]);
-        expect(interpreter.execute(`${count}\n10 0 count`)).toBe(10n);
+        expect(interpreter.execute(`${count}\n10 count 0`)).toBe(10n);
         interpreter.dispose();
     });
 });

@@ -90,7 +90,7 @@ tuple (Seen len) (Counts (tuple 1 2))
         for (const kind of ['set', 'counter']) {
             expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC add "text"`))
                 .toThrow(`${kind} holds integer and cannot receive text`);
-            expect(() => run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add (array 1 2 3 4) reshape 2 2`))
+            expect(() => run(`use algo\nuse sequences\nC = new ${kind}\nC add array 1 2\nC add ((array 1 2 3 4) reshape 2 2)`))
                 .toThrow(/rank 1.*rank 2/);
             expect(() => run(`use algo\nC = new ${kind}\nC add 1\nC remove 1\nC add "text"`))
                 .toThrow(`${kind} holds integer and cannot receive text`);
@@ -102,15 +102,15 @@ tuple (Seen len) (Counts (tuple 1 2))
     it('shares named structures explicitly between ordinary calls', () => {
         expect(run(`
 use algo
-fun X Counts count
+fun X count Counts
   Counts add X
   return Counts X
 end
 A = new counter
 B = new counter
-First = 7 A count
-Second = 7 A count
-Other = 7 B count
+First = 7 count A
+Second = 7 count A
+Other = 7 count B
 tuple First Second Other
 `)).toBe('1 2 1');
     });
@@ -162,15 +162,15 @@ tuple (A len) (B len) (Seen len)
 use algo
 use sequences
 Seen = new set
-X = Seen 7 add
+X = Seen add 7
 Counts = new counter
-Y = Counts 7 add
+Y = Counts add 7
 Tickets = (array 3 3) multiset
 Tickets add 4
 Tickets remove 3
 tuple (Seen len) (Counts 7) (Tickets len) (Tickets floor 4)
 `)).toBe('1 1 2 4');
-        expect(run('fun A B add\n return A + B\nend\n3 4 add')).toBe('7');
+        expect(run('fun A add B\n return A + B\nend\n3 add 4')).toBe('7');
     });
 
     it('removes set values through either application order', () => {
@@ -181,7 +181,7 @@ Seen = new set
 Seen add 2
 Seen add 7
 Seen remove 2
-Seen 7 remove
+Seen remove 7
 Seen len
 `)).toBe('0');
         expect(() => run('use algo\nSeen = new set\nSeen remove 1'))

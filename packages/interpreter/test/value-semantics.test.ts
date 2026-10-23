@@ -84,8 +84,8 @@ describe('value semantics for arrays', () => {
     });
 
     it('separates each argument from the others', () => {
-        expect(run(`${SEQ}fun X Y both\n  X 0 = 7\n  return Y 0\nend\n`
-            + 'A = array 1 2\nR = A A both\nA')).toBe('1 2');
+        expect(run(`${SEQ}fun X both Y\n  X 0 = 7\n  return Y 0\nend\n`
+            + 'A = array 1 2\nR = A both A\nA')).toBe('1 2');
     });
 
     it('gives a stored value to a record, a queue and an index', () => {

@@ -8,15 +8,15 @@ import { Interpreter } from '../packages/interpreter/out/index.js';
 const count = Number(process.argv[4] ?? 100_000);
 const cases = {
     text: {
-        body: 'S = "item" + (I text)\nif S "item1" startswith\n continue\nend\nTotal += S len',
+        body: 'S = "item" + (I text)\nif S startswith "item1"\n continue\nend\nTotal += S len',
         oracle: i => String(i).startsWith('1') ? 0 : `item${i}`.length,
     },
     bytes: {
-        body: 'B = ("item" + (I text)) bytes\nif B Prefix startswith\n continue\nend\nTotal += B 4',
+        body: 'B = ("item" + (I text)) bytes\nif B startswith Prefix\n continue\nend\nTotal += B 4',
         oracle: i => String(i).startsWith('1') ? 0 : String(i).charCodeAt(0),
     },
     bytePrefix: {
-        body: 'if Header Prefix startswith\n Total += I\nend',
+        body: 'if Header startswith Prefix\n Total += I\nend',
         oracle: i => i,
     },
     unicode: {
@@ -24,7 +24,7 @@ const cases = {
         oracle: i => String.fromCodePoint(1040 + i % 32).toLowerCase().codePointAt(0),
     },
     portableMd5: {
-        body: 'H = ("abc" + (I text)) md5\nif not (H Empty startswith)\n continue\nend\nif H 2 less 16\n Total += H 0\nend',
+        body: 'H = ("abc" + (I text)) md5\nif not (H startswith Empty)\n continue\nend\nif H 2 less 16\n Total += H 0\nend',
         oracle: i => {
             const hash = createHash('md5').update(`abc${i}`).digest();
             return hash[2] < 16 ? hash[0] : 0;

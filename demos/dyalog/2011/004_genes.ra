@@ -17,29 +17,29 @@ fun F makePWM
   return (Counts / Totals) log
 end
 
-fun Values Index pick
+fun Values pick Index
   return Values Index
 end
 
-fun PWM Sequence score
+fun PWM score Sequence
   Width = PWM len axis 1
-  Bases = "ACGT" "" split
-  Chars' = Sequence "" split
+  Bases = "ACGT" split ""
+  Chars' = Sequence split ""
   Windows' = Chars window Width
-  Codes' = Bases Windows find rank 1 0
+  Codes' = Bases find Windows rank 1 0
   Columns' = PWM transpose
-  Values' = Columns Codes pick rank 1 0
+  Values' = Columns pick Codes rank 1 0
   return Values sum axis 1
 end
 
 rem Five positions, including equal strings; earlier ties come first.
 rem Sequence has at least Width + 4 characters.
-fun PWM Sequence top5
+fun PWM top5 Sequence
   Width = PWM len axis 1
-  Scores' = PWM Sequence score
+  Scores' = PWM score Sequence
   Order' = Scores argsort .descending
   Best = Order take 5
-  Chars' = Sequence "" split
+  Chars' = Sequence split ""
   Windows' = Chars window Width
   return Windows Best
 end
@@ -51,12 +51,12 @@ Rows = array shape 10
   "GTGTGAGAAACTTACT" "CTGTGGGAACTGGTAG" "GTGTGGGAAACTACAA"
   "CTGTGGGAACATTGCT" "CTGTGGGAACGGAAAG" "TCGTGGGAAACACTTT"
 end
-Train = Rows "" split rank 0
+Train = Rows split "" rank 0
 Sequence = "CCATCGTGGGAAACACTTTCGAA"
 F = Train freqMat
 PWM = F makePWM
-Scores = PWM Sequence score
-Best = PWM Sequence top5
+Scores = PWM score Sequence
+Best = PWM top5 Sequence
 F print
 PWM print
 Scores print

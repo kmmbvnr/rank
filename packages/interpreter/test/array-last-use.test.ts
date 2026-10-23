@@ -52,7 +52,7 @@ describe.each([false, true])('last array use with integer compilation %s', compi
 
     it.each(['I', '(I + 1)', '((I + 2) // 2)', '((I + 2) mod 3)', '(I ** 2)'])
         ('transfers after reading with an unchanged integer parameter: %s', selector => {
-            expect(execute(`${change}\nfun A I forward\n First = A ${selector}\n return A change\nend\n(array 1 2 3) 0 forward`, compiled))
+            expect(execute(`${change}\nfun A forward I\n First = A ${selector}\n return A change\nend\n(array 1 2 3) forward 0`, compiled))
                 .toEqual({ value: [9n, 2n, 3n], copies: 0 });
         });
 
@@ -62,7 +62,7 @@ describe.each([false, true])('last array use with integer compilation %s', compi
     });
 
     it('keeps collection selectors on the ordinary copy path', () => {
-        expect(execute(`${change}\nfun A I forward\n First = A I\n B = A change\n return First 0 + B 0\nend\n(array 1 2 3) (array 0) forward`, compiled))
+        expect(execute(`${change}\nfun A forward I\n First = A I\n B = A change\n return First 0 + B 0\nend\n(array 1 2 3) forward (array 0)`, compiled))
             .toEqual({ value: 10n, copies: 1 });
     });
 
@@ -153,7 +153,7 @@ describe.each([false, true])('last array use with integer compilation %s', compi
     });
 
     it('does not move an argument supplied twice', () => {
-        expect(execute(`fun A B change\n A 0 = 9\n return A 0 + B 0\nend\nfun solve\n A = array 1 2 3\n return A A change\nend\nsolve`, compiled))
+        expect(execute(`fun A change B\n A 0 = 9\n return A 0 + B 0\nend\nfun solve\n A = array 1 2 3\n return A change A\nend\nsolve`, compiled))
             .toEqual({ value: 10n, copies: 1 });
     });
 

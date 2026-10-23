@@ -2,12 +2,12 @@ rem Median of Two Sorted Arrays
 rem Median of two sorted arrays in
 rem O(log(m+n)) time
 
-fun A B median
+fun A median B
   M = A len
   N = B len
 
   if M greater N
-    return B A median
+    return B median A
   end
 
   Half = (M + N + 1) // 2
@@ -57,7 +57,7 @@ fun A B median
       Right = A I
     else
       Right = A I
-      Right = Right (B J) min
+      Right = Right min (B J)
     end
 
     return (Left + Right) / 2

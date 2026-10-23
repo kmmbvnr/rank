@@ -34,8 +34,8 @@ rem dropped. An unknown code raises Missing.
 fun Data Period Ops aggregate
   Values' = Data / 1.0
   Groups = Values window Period stride Period axis 0
-  Kinds = "SAMFL" "" split
-  Index = Kinds (Ops "" split) find
+  Kinds = "SAMFL" split ""
+  Index = Kinds find (Ops split "")
   Sums = Groups sum rank 1
   Means = Groups mean rank 1
   Maxima = Groups max rank 1

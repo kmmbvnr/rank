@@ -17,12 +17,12 @@ argument OutputPath path = "demos/kaggle/submissions/titanic.csv"
 Train = TrainPath csv
 Test = TestPath csv
 Submission = Train Test 0.1 1000 predictall
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 rem Prepare the four numeric baseline features.
 rem Training medians also fill the test columns.
-fun Train Test prepare_features
+fun Train prepare_features Test
   Age = Train .Age median
   Train .Age = Train .Age real rank 0 default Age
   Test .Age = Test .Age real rank 0 default Age
@@ -63,10 +63,10 @@ fun X Y Rate Steps logistic
   Zt = Z transpose
   for # in 0 till Steps
     rem Store scores before updating weights and bias.
-    Scores = Z Weights matmul + Bias
+    Scores = Z matmul Weights + Bias
     Probability' = Scores sigmoid
     Error = Probability - Targets
-    Gradient' = Zt Error matmul / (Rows real)
+    Gradient' = Zt matmul Error / (Rows real)
     Weights -= Rate * Gradient
     Bias -= Rate * (Error mean)
   end
@@ -81,10 +81,10 @@ end
 
 
 rem Predict integer classes with a 0.5 threshold.
-fun X' Model logistic_predict
+fun X' logistic_predict Model
   Features' = X real rank 0
   Z' = (Features - Model .center) / Model .scale
-  Score' = Z Model .weights matmul + Model .bias
+  Score' = Z matmul Model .weights + Model .bias
   return (Score sigmoid greater 0.5) binary
 end
 
@@ -104,9 +104,9 @@ end
 
 rem Return only the two columns required by Kaggle.
 fun Train Test Rate Steps predictall
-  unpack X Xtest = Train Test prepare_features
+  unpack X Xtest = Train prepare_features Test
   Y = Train .Survived
   Model = X Y Rate Steps logistic
-  Test .Survived = Xtest Model logistic_predict
+  Test .Survived = Xtest logistic_predict Model
   return Test (array .PassengerId .Survived)
 end

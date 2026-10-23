@@ -7,11 +7,11 @@ use numbers
 Children = stdin .integer
 Apples = stdin .integer
 
-Children Apples distributions print
+Children distributions Apples print
 
 
 rem Place separators among apples.
-fun Children Apples distributions
+fun Children distributions Apples
   Mod = 1000000007
   Slots = Children + Apples - 1
   return Slots Apples Mod binomialmod

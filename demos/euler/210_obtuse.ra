@@ -35,7 +35,7 @@ A = Q isqrt
 A0 = (1 + (2 * Q - 1) isqrt) // 2
 Gen = A0 * (A0 - 1) // 2
 for L in A0 + 1 to A by Chunk
-  Xs = L to (L + Chunk - 1 A min) array
+  Xs = L to (L + Chunk - 1 min A) array
   Gen += (Q - Xs * Xs) isqrt sum
 end
 Diag = Q // 2 isqrt

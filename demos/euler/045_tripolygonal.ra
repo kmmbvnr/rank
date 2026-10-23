@@ -5,13 +5,13 @@ rem polygonal sequences after 40755
 
 use io
 
-Answer = 144 166 common_polygonal
+Answer = 144 common_polygonal 166
 Answer print
 
 
 rem Every hexagonal number is triangular, so
 rem merge only hexagonal and pentagonal values.
-fun HexIndex PentIndex common_polygonal
+fun HexIndex common_polygonal PentIndex
   Hex = HexIndex hexagonal
   Pent = PentIndex pentagonal
 

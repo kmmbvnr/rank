@@ -19,65 +19,70 @@ On narrow 40-column screens and touchscreen mobile keyboards:
 
 ## Decision
 
-Rank adopts a **data-first calling convention with arity-based argument resolution**. Ordinary named functions use postfix calls; conditional selection places its alternatives after `choose`:
+Rank uses data-first calls. Unary functions follow their input. Binary functions
+have one operand on each side; `choose` places its alternatives after its name.
 
-### 1. Data Precedes the Function
-For ordinary functions, arguments appear first, separated by whitespace, followed by the function identifier:
+### 1. Unary and binary calls
+
 ```rank
-A B gcd              rem Calls gcd with arguments A and B
+A gcd B              rem Calls gcd with arguments A and B
 Values max sqrt      rem Computes sqrt of the maximum of Values
 ```
-No parentheses are used for call invocation. Parentheses are reserved solely for sub-expression grouping where precedence must be overridden.
 
-### 2. Arity-Based Left Argument Resolution
-When resolving a call to a function with arity $N$:
-- The final $N - 1$ items directly preceding the function name are bound as arguments $2 \dots N$.
-- The entire remaining left expression forms argument $1$.
+Parentheses group an operand or a completed call.
+
+### 2. Addressed operands
+
+Each side of a binary call keeps its selectors:
 
 ```rank
-Result = T i j Limit above
-rem 'above' has arity 2:
-rem Argument 1 is the addressed value: T i j
-rem Argument 2 is: Limit
+Result = T i j above Limits k
+rem above receives T i j and Limits k
 ```
-Only the first argument may absorb a multi-part addressing chain. If multiple arguments require addressing, they must be broken into named intermediate variables.
 
-A field label is the exception that needs no variable: a label naming a field of the record or object directly before it is read first, so the pair counts as one argument. `Z Model .weights matmul` passes `Z` and the `.weights` field, and `R .slots max` reduces that field. Labels that are not fields of the preceding value (options such as `.descending`, or a column label after a table) remain separate arguments.
+A following known function or a `rank`/`axis` modifier ends the right operand.
+Functions with three or more required operands retain their declared sides.
+For a function declaring N left operands, the last N - 1 values are separate
+arguments and the remaining left chain forms the first argument.
+
+A field read belongs to its operand: `Z matmul Model .weights` passes the
+`.weights` field as the right operand; `R .slots max` reduces that field.
 
 ### Comparisons in a Pipeline
 A comparison continues the left-to-right flow like arithmetic does: after a plain left operand it takes the next value, and a following function receives the comparison's result, so `A greater 2 count` needs no parentheses. When the left operand is already a pipeline (`A len equal B len`, `X date less Y date`), the two sides stay independent, which keeps symmetric comparisons free of parentheses too. `and`, `or` and `xor` always separate independent clauses.
 
-### No Infix Exceptions for Ordinary Named Functions
-Ordinary named functions take their declared operands on the left or right.
-`min` retains its postfix binary form. Issue #410 changes `max` to one left
-operand and an optional right operand, replacing the binary postfix form
-introduced in Issue #21:
+### Binary functions
+
+All binary functions take one operand on the left and one on the right:
+`A gcd B`, `A matmul B`, and `A min B`. Unary functions keep `Values sum`.
+Functions with more parameters retain the operand sides in their declarations.
 
 ```rank
-Bound = Low max High
-Clamped = (Low max High) Limit min
-RowMaximum = Matrix i max
+fun Acc step X = Acc + X
+Result = 2 step 3
+Prefix = Values scan step
+Clamped = Low max High min Limit
 ```
 
-Addressing binds within each `max` operand. A known following operation ends
-its optional right operand: `A max B sum` means `(A max B) sum`. Direct aliases
-of `max` retain these operand sides. Two-argument postfix functions such as
-`A B matmul` keep their declared left arity.
+Addressing binds within each operand. A known following operation ends the
+right operand: `A min B sum` means `(A min B) sum`. Direct aliases retain
+these operand sides. Combining modifiers pass two argument values directly;
+they do not require both parameters to be declared before the function name.
 
 Conditional selection has a dedicated data-first form: `Condition choose IfTrue IfFalse`, or `Index choose Choices`. The condition or index is the input on the left; the alternatives follow `choose`. Group compound alternatives with parentheses. The older postfix calls remain valid for existing programs.
 
 ### 3. Disambiguating Addressing from Calls
-- If the trailing identifier is a function in scope, preceding values are treated as arguments:
+- A unary function follows its input; a binary function separates its operands:
   ```rank
   A B        rem Addressing (select B from A)
-  A B gcd    rem Function call (gcd(A, B))
+  A gcd B    rem Function call (gcd(A, B))
   ```
 - The compiler/parser inspects known vocabulary and binding signatures during analysis to segment addressing chains from function applications.
 
 ### 4. Function Definition Syntax
 Functions declare parameters without parentheses and terminate cleanly with `end`:
 ```rank
-fun A B gcd
+fun A gcd B
   for B greater 0
     T = B
     B = A mod B
@@ -96,7 +101,7 @@ end
 
 ### Negative & Trade-offs
 * **Parser arity dependency:** The parser must know or infer the arity of functions during expression grouping to correctly partition arguments and addressing chains.
-* **First-argument asymmetry:** Only the first argument absorbs leftward addressing (`T i j Limit above`); subsequent arguments cannot be complex multi-part addressing expressions without parentheses or intermediate variables.
+* **Higher-arity boundaries:** Functions with three or more required operands may need parentheses or intermediate values to separate addressed arguments.
 
 ## References
 * Section "General form" in [docs/language/values-addressing.md](../../language/values-addressing.md)

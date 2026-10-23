@@ -36,8 +36,8 @@ for Db in 0 to Nb
       if By greater Nw
         break
       end
-      Down = Cnt Bx shift axis 0
-      Moved = Down By shift axis 1
+      Down = Cnt shift Bx axis 0
+      Moved = Down shift By axis 1
       Cnt = (Cnt + Moved) copy
       Bx *= 2
       By *= 2

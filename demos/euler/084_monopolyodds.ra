@@ -84,8 +84,8 @@ TwinGrid = TwinAt reshape 41 40
 NonRoll' = NonGrid / Rolls
 TwinRoll' = TwinGrid / Rolls
 Reach' = Land take 40
-NonD = NonRoll Reach matmul
-Dbl = TwinRoll Reach matmul
+NonD = NonRoll matmul Reach
+Dbl = TwinRoll matmul Reach
 
 rem State: square 0 to 39, or 40 if sent
 rem to jail, and 0 to 2 doubles so far.
@@ -126,7 +126,7 @@ Pick = Top0 reshape Cells 1
 Norm = Ones reshape 1 Cells
 Mat' = Pick choose Norm Flow
 Rhs = Top0 choose 1.0 0.0
-Seen = Mat Rhs solve
+Seen = Mat solve Rhs
 Mid' = Seen drop 41 take 41
 Last' = Seen drop 82
 Sum' = Seen take 41 + Mid + Last
@@ -135,5 +135,5 @@ Sq 10 += Sq 40
 Rank = Sq take 40 argsort .descending
 Top = Rank take 3
 Weight = array 10000 100 1
-Answer = Top Weight matmul
+Answer = Top matmul Weight
 Answer print

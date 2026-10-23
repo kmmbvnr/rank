@@ -12,7 +12,7 @@ for Test in 1 to Tests
 
   if Type equal 1
     K = stdin .integer
-    N K kth_permutation print
+    N kth_permutation K print
   else
     P = stdin .integer N array
     P permutation_order print
@@ -21,7 +21,7 @@ end
 
 
 rem Restore a one-based permutation.
-fun N K kth_permutation
+fun N kth_permutation K
   Queue = new queue
   Available = 1 to N multiset
   Block = N - 1 factorial

@@ -53,7 +53,7 @@ Tables adhere strictly to Rank's core addressing model:
 ### 3. Transparent CSV Serialization
 Tabular I/O uses symmetrical postfix operations:
 - **Reading CSV:** `"dataset.csv" csv` reads UTF-8 comma-separated files with headers, inferring uniform types (`integer`, `real`, `boolean`, `text`) for each column based on non-empty cells.
-- **Writing CSV:** `Table "output.csv" csv` serializes row objects, quoting text fields where necessary and emitting empty cells for absent values.
+- **Writing CSV:** `Table csv "output.csv"` serializes row objects, quoting text fields where necessary and emitting empty cells for absent values.
 
 ### 4. Binding, completion and table versions
 - Ordinary bindings complete tables and columns, including plans in nested cells. Completion preserves column order and absent cells, keeps columnar storage, and shares unchanged ready columns.

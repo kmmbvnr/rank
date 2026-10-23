@@ -23,8 +23,8 @@ Vals (0 to 7) = Base
 for N in 8 to 15
   X = Base (N - 8)
   Times = X + 1
-  R5 = X Times f5
-  R2 = X Times f2
+  R5 = X f5 Times
+  R2 = X f2 Times
   T = ((R5 - R2) * Inv) mod M5
   Vals N = (R2 + M2 * T) mod Mod
 end
@@ -32,7 +32,7 @@ Sum' = (Vals (1 to 15) - 2) sum
 Answer = Sum mod Mod
 Answer print
 
-fun X Times f5
+fun X f5 Times
   Res = X mod Mods
   Exact = X
   for Try in 1 to Times
@@ -51,14 +51,14 @@ fun X Times f5
   return Res 0
 end
 
-fun X Times f2
+fun X f2 Times
   R = X mod M2
   Exact = X
   for Try in 1 to Times
     P = 0
     if Exact at least 0
       if Exact + 1 less 9
-        P = 1 (Exact + 1) shl
+        P = 1 shl (Exact + 1)
       end
     end
     R = ((R + 1) * P - 1) mod M2
@@ -86,11 +86,11 @@ fun M Next Exact p2
   if A equal 0
     return R
   end
-  Two = 1 A shl
+  Two = 1 shl A
   R2 = 0
   if Exact at least 0
     if Exact + 1 less A
-      R2 = 1 (Exact + 1) shl
+      R2 = 1 shl (Exact + 1)
     end
   end
   Inv2 = 1
@@ -105,5 +105,5 @@ fun M Next Exact p2
 end
 
 fun X fexact
-  return (X + 1) * (1 (X + 1) shl) - 1
+  return (X + 1) * (1 shl (X + 1)) - 1
 end

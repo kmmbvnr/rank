@@ -31,8 +31,8 @@ L = 1
 for L at most N
   Q = N // L
   R = N // Q
-  M = R Cache mertens
-  Before = (L - 1) Cache mertens
+  M = R mertens Cache
+  Before = (L - 1) mertens Cache
   F = (Q + 1) ** 3 - 1
   Answer += (M - Before) * F
   L = R + 1
@@ -47,7 +47,7 @@ if Len greater 18
 end
 Token print
 
-fun X Cache mertens
+fun X mertens Cache
   if X at most Cut
     return Mu X
   end
@@ -61,7 +61,7 @@ fun X Cache mertens
     Q = X // L
     R = X // Q
     Count = R - L + 1
-    Part = Q Cache mertens
+    Part = Q mertens Cache
     Total -= Count * Part
     L = R + 1
   end

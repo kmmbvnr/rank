@@ -27,13 +27,13 @@ for X in 1 to Top
   Ex = N - 1
   for Ex greater 0
     if Ex mod 2 equal 1
-      Rm = Rm Tm matmul mod Mod
+      Rm = Rm matmul Tm mod Mod
     end
-    Tm = Tm Tm matmul mod Mod
+    Tm = Tm matmul Tm mod Mod
     Ex //= 2
   end
   V0 = array X 0 X
-  Tot += (Rm V0 matmul) 2
+  Tot += (Rm matmul V0) 2
 end
 Answer = Tot mod Mod
 Answer print

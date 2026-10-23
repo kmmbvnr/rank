@@ -28,4 +28,4 @@ R' = R select
 end
 R' = R filter .cost greater 30
 Result' = R sort by .cost .descending
-Result OutputPath csv
+Result csv OutputPath

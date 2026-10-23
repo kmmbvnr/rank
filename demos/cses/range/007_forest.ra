@@ -11,12 +11,12 @@ Grid = stdin .word N array
 Raw = stdin .integer (Q * 4) array
 Queries = Raw reshape Q 4
 
-Grid Queries forest_queries print
+Grid forest_queries Queries print
 
 
 rem Build a two-dimensional prefix sum.
 rem Answer inclusive rectangles.
-fun Grid Queries forest_queries
+fun Grid forest_queries Queries
   Size = Grid len
   Side = Size + 1
   Prefix = array shape Side Side fill 0

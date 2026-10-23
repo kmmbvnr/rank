@@ -11,7 +11,7 @@ test "statement matrix"
   use "083_pathfourways"
   use io
   Mat = "131,673,234,103,18\n201,96,342,965,150\n630,803,746,422,111\n537,699,497,121,956\n805,732,524,37,331\n"
-  Mat "/tmp/euler083.txt" write
+  Mat write "/tmp/euler083.txt"
   Input = "/tmp/euler083.txt"
   run
 
@@ -22,11 +22,11 @@ test "tiny matrices"
   use "083_pathfourways"
   use io
   Input = "/tmp/euler083.txt"
-  "5\n" "/tmp/euler083.txt" write
+  "5\n" write "/tmp/euler083.txt"
   run
 
   Answer equal 5
-  "1,9\n1,1\n" "/tmp/euler083.txt" write
+  "1,9\n1,1\n" write "/tmp/euler083.txt"
   run
 
   Answer equal 3

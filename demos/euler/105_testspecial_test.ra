@@ -11,11 +11,11 @@ test "special sets from the statement"
   use "105_testspecial"
   use io
   Input = "/tmp/euler105.txt"
-  "11,18,19,20,22,25\n" "/tmp/euler105.txt" write
+  "11,18,19,20,22,25\n" write "/tmp/euler105.txt"
   run
 
   Answer equal 115
-  "20,31,38,39,40,42,45\n3,5,6,7\n" "/tmp/euler105.txt" write
+  "20,31,38,39,40,42,45\n3,5,6,7\n" write "/tmp/euler105.txt"
   run
 
   Answer equal 276
@@ -25,7 +25,7 @@ test "sets that are not special"
   use "105_testspecial"
   use io
   Input = "/tmp/euler105.txt"
-  "81,88,75,42,87,84,86,65\n1,2,3,4\n1,2,4,8,16,32,64\n" "/tmp/euler105.txt" write
+  "81,88,75,42,87,84,86,65\n1,2,3,4\n1,2,4,8,16,32,64\n" write "/tmp/euler105.txt"
   run
 
   Answer equal 0

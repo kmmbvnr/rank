@@ -17,7 +17,7 @@ const definitions = 'use graph\nuse sequences\nuse io\n' + demo.slice(demo.index
 // recursive search, sum bounds and candidate order are identical in both modes.
 const implicit = definitions.replace(/  Graph = new graph Vals \.undirected[\s\S]*?(?=  return record)/,
     '  Graph = new graph Vals with edge .undirected\n\n') + `
-fun P Q edge
+fun P edge Q
   if P equal Q
     return false
   end
@@ -29,7 +29,7 @@ fun P Q edge
       return false
     end
   end
-  return P Q compatible
+  return P compatible Q
 end
 `;
 
@@ -48,7 +48,7 @@ if (process.argv[2] === '--worker') {
     };
     let source = mode === 'explicit' ? definitions : implicit;
     if (materializedCandidates) source = source.replace('Next = Later filter in Neighbors', 'Next = Later filter in Neighbors array');
-    if (counting) source = source.replace('fun P Q compatible\n', 'fun P Q compatible\n  "pair" print\n');
+    if (counting) source = source.replace('fun P compatible Q\n', 'fun P compatible Q\n  "pair" print\n');
     const runtime = new Interpreter(() => { compatibilityCalls++; });
     const caches = [];
     const installCache = name => {
@@ -69,10 +69,10 @@ if (process.argv[2] === '--worker') {
         };
         time('seedBuild', 'Seed = 10000 build');
         if (mode === 'cached' || mode === 'packed') time('seedCache', () => installCache('Seed'));
-        assert.equal(time('seedSearch', 'Upper = Seed 50000 min_five\nUpper'), 26033n);
+        assert.equal(time('seedSearch', 'Upper = Seed min_five 50000\nUpper'), 26033n);
         time('fullBuild', 'Full = Upper build');
         if (mode === 'cached' || mode === 'packed') time('fullCache', () => installCache('Full'));
-        assert.equal(time('fullSearch', 'Answer = Full Upper min_five\nAnswer'), 26033n);
+        assert.equal(time('fullSearch', 'Answer = Full min_five Upper\nAnswer'), 26033n);
         const graphs = ['Seed', 'Full'].map(name => runtime.variables.get(name).entries.get('graph'));
         const domainVertices = graphs.map(graph => graph.size);
         const storedAdjacencyEntries = graphs.map(graph => graph instanceof PredicateGraph ? 0

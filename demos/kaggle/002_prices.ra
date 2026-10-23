@@ -16,7 +16,7 @@ argument OutputPath path = "demos/kaggle/submissions/house-prices.csv"
 Train = TrainPath csv
 Test = TestPath csv
 Submission = Train Test 0.05 1500 predictall
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 rem Train standardized linear regression with an intercept.
@@ -38,8 +38,8 @@ fun X Y Rate Steps linear
   Bias = Y mean
   Zt = Z transpose
   for # in 0 till Steps
-    Error = Z Weights matmul + Bias - Y
-    Weights -= Rate * (Zt Error matmul / Rows)
+    Error = Z matmul Weights + Bias - Y
+    Weights -= Rate * (Zt matmul Error / Rows)
     Bias -= Rate * (Error mean)
   end
 
@@ -52,9 +52,9 @@ fun X Y Rate Steps linear
 end
 
 
-fun X' Model linear_predict
+fun X' linear_predict Model
   Z' = (X - Model .center) / Model .scale
-  return Z Model .weights matmul + Model .bias
+  return Z matmul Model .weights + Model .bias
 end
 
 
@@ -72,7 +72,7 @@ fun Train Test Rate Steps predictall
   Y = Train .SalePrice + 1 log
 
   Model = X Y Rate Steps linear
-  Raw' = Xtest Model linear_predict
+  Raw' = Xtest linear_predict Model
   Pred' = (Raw exp - 1) max 0.0
   Test .SalePrice = Pred
   return Test (array .Id .SalePrice)

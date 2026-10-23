@@ -20,7 +20,7 @@ fun N removing_digits
         continue
       end
       Candidate = Steps (Value - Digit) + 1
-      Steps Value = Steps Value Candidate min
+      Steps Value = Steps Value min Candidate
     end
   end
 

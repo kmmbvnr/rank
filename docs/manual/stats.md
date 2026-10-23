@@ -120,7 +120,7 @@ The gaps are 1 and 2, so the average is
 use stats
 A = array 1 2
 B = array 2 4
-A B mae
+A mae B
 ```
 
 ```result
@@ -130,7 +130,7 @@ A B mae
 ### Usage
 
 ```text
-Predicted Actual mae
+Predicted mae Actual
 ```
 
 ### See also
@@ -235,7 +235,7 @@ average to 2.5.
 use stats
 A = array 1 2
 B = array 2 4
-A B mse
+A mse B
 ```
 
 ```result
@@ -245,7 +245,7 @@ A B mse
 ### Usage
 
 ```text
-Predicted Actual mse
+Predicted mse Actual
 ```
 
 Squaring makes large errors count much
@@ -262,7 +262,7 @@ the data falls.
 
 ```rank
 use stats
-(array 1 2 2 4) 25 percentile
+(array 1 2 2 4) percentile 25
 ```
 
 ```result
@@ -272,7 +272,7 @@ use stats
 ### Usage
 
 ```text
-Values Percent percentile
+Values percentile Percent
 ```
 
 Percent runs from 0 to 100; 50 is the
@@ -290,7 +290,7 @@ of the data falls.
 
 ```rank
 use stats
-(array 1 2 2 4) 0.25 quantile
+(array 1 2 2 4) quantile 0.25
 ```
 
 ```result
@@ -300,7 +300,7 @@ use stats
 ### Usage
 
 ```text
-Values Fraction quantile
+Values quantile Fraction
 ```
 
 Fraction runs from 0 to 1; 0.5 is the

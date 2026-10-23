@@ -3,8 +3,8 @@ import { Interpreter, formatValue, isRankArray, isNativeFunction } from '../src/
 import { run } from './support.js';
 
 const matrix = 'use sequences\nM = (1 to 6) reshape 2 3\n';
-const plus = 'fun A B plus\n return A + B\nend\n';
-const digits = 'fun A B digits\n return A * 10 + B\nend\n';
+const plus = 'fun A plus B\n return A + B\nend\n';
+const digits = 'fun A digits B\n return A * 10 + B\nend\n';
 const result = (source: string) => {
     const value = new Interpreter().execute(source)!;
     return { text: formatValue(value), shape: isRankArray(value) ? value.shape : [] };
@@ -72,7 +72,7 @@ describe('orthogonal fold modifiers', () => {
     });
 
     it('keeps a rank-zero record accumulator independently on each line', () => {
-        const source = matrix + 'fun State Value next\n return record\n  .total = State .total + Value\n end\nend\n'
+        const source = matrix + 'fun State next Value\n return record\n  .total = State .total + Value\n end\nend\n'
             + 'Start = record\n .total = 0\nend\n';
         expect(run(source + 'States = M scan next axis 0 with Start\n(States 2 2) .total')).toBe('9');
         expect(run(source + 'Totals = M reduce next rank 1 with Start\n(Totals 1) .total')).toBe('15');

@@ -23,17 +23,17 @@ describe('negative ranks count down from the operand rank', () => {
 
     it('applies to each operand of rank L R on its own', () => {
         const source = `${matrix}B = array 10 20 30\n`;
-        expect(run(`${source}A B gcd rank 0 -1`)).toBe(run(`${source}A B gcd rank 0 0`));
-        expect(run(`${source}(A B gcd rank -2 -1) shape`)).toBe('2 3');
+        expect(run(`${source}A gcd B rank 0 -1`)).toBe(run(`${source}A gcd B rank 0 0`));
+        expect(run(`${source}(A gcd B rank -2 -1) shape`)).toBe('2 3');
     });
 });
 
 describe('ranked cells that return arrays stack under the frame', () => {
     it('stacks the positions findall returns for each target', () => {
         const source = 'V = array 1 2 1 3 1 1\n';
-        expect(run(`${source}V 1 findall`)).toBe('0 2 4 5');
-        expect(run(`${source}(V (array 2 3) findall) shape`)).toBe('2 1');
-        expect(() => run(`${source}V (array 1 2) findall`)).toThrow(/same shape/);
+        expect(run(`${source}V findall 1`)).toBe('0 2 4 5');
+        expect(run(`${source}(V findall (array 2 3)) shape`)).toBe('2 1');
+        expect(() => run(`${source}V findall (array 1 2)`)).toThrow(/same shape/);
     });
 
     it('reshapes once per row of shapes', () => {
@@ -45,25 +45,25 @@ describe('ranked cells that return arrays stack under the frame', () => {
 
     it('lets an explicit rank batch solve, which has no ranks of its own', () => {
         const batch = 'M = array 2 0 0 2 1 0 0 1 shape 2 2 2\nB = array 4 6 5 7 shape 2 2\n';
-        expect(run(`${batch}M B solve rank 2 1`)).toBe('2 3 5 7');
-        expect(run(`${batch}(M B solve rank 2 1) shape`)).toBe('2 2');
+        expect(run(`${batch}M solve B rank 2 1`)).toBe('2 3 5 7');
+        expect(run(`${batch}(M solve B rank 2 1) shape`)).toBe('2 2');
     });
 });
 
 describe('find and join take arrays', () => {
     it('finds every target in one call', () => {
         const kinds = 'K = array "S" "A" "M"\n';
-        expect(run(`${kinds}K (array "M" "S") find`)).toBe('2 0');
-        expect(run(`${kinds}K "A" find`)).toBe('1');
-        expect(run(`${kinds}K (array "M" "S") find`)).toBe(run(`${kinds}K (array "M" "S") find rank 1 0`));
-        expect(() => run(`${kinds}K (array "M" "Z") find`)).toThrow(/no matching/);
-        expect(run(`${kinds}K (array "M" "Z") find default -1`)).toBe('2 -1');
+        expect(run(`${kinds}K find (array "M" "S")`)).toBe('2 0');
+        expect(run(`${kinds}K find "A"`)).toBe('1');
+        expect(run(`${kinds}K find (array "M" "S")`)).toBe(run(`${kinds}K find (array "M" "S") rank 1 0`));
+        expect(() => run(`${kinds}K find (array "M" "Z")`)).toThrow(/no matching/);
+        expect(run(`${kinds}K find (array "M" "Z") default -1`)).toBe('2 -1');
     });
 
     it('joins each row of a matrix', () => {
         const rows = 'R = array "a" "b" "c" "d" shape 2 2\n';
-        expect(run(`${rows}R "," join`)).toBe('a,b c,d');
-        expect(run(`${rows}R (array "," "-") join`)).toBe('a,b c-d');
-        expect(run('V = array 1 2 3\nV "," join')).toBe('1,2,3');
+        expect(run(`${rows}R join ","`)).toBe('a,b c,d');
+        expect(run(`${rows}R join (array "," "-")`)).toBe('a,b c-d');
+        expect(run('V = array 1 2 3\nV join ","')).toBe('1,2,3');
     });
 });

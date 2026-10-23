@@ -5,16 +5,16 @@ use io
 
 Height = stdin .integer
 Width = stdin .integer
-Height Width rectangle_cuts print
+Height rectangle_cuts Width print
 
 
 rem Try each distinct first cut.
-fun Height Width rectangle_cuts
+fun Height rectangle_cuts Width
   Rows = Height + 1
   Columns = Width + 1
   Cuts = array shape Rows Columns fill 0
 
-  fun H W best_cut
+  fun H best_cut W
     if H equal W
       return 0
     end
@@ -24,14 +24,14 @@ fun Height Width rectangle_cuts
       Other = H - Split
       Candidate = Cuts Split W
       Candidate += Cuts Other W + 1
-      Best = Best Candidate min
+      Best = Best min Candidate
     end
 
     for Split in 1 to W // 2
       Other = W - Split
       Candidate = Cuts H Split
       Candidate += Cuts H Other + 1
-      Best = Best Candidate min
+      Best = Best min Candidate
     end
 
     return Best
@@ -39,7 +39,7 @@ fun Height Width rectangle_cuts
 
   for H in 1 to Height
     for W in 1 to Width
-      Cuts H W = H W best_cut
+      Cuts H W = H best_cut W
     end
   end
 

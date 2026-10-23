@@ -27,7 +27,7 @@ rem them is last, and n counts every
 rem square as large, found by a
 rem depth-first walk.
 Steps = Right + Up
-Paths = 0 till (1 Steps shl) array
+Paths = 0 till (1 shl Steps) array
 Ones' = Paths popcount
 Fit' = Ones equal Right
 Paths = Paths filter Fit array
@@ -38,7 +38,7 @@ for T in 0 till Steps
   Disc = Tot * Tot - 4 * (A * B - 1)
   Rt' = Disc sqrt
   S = (Rt - Tot) / 2
-  Go = (Paths T bit) choose 1.0 0.0
+  Go = (Paths bit T) choose 1.0 0.0
   A += S * Go
   B += S * (1.0 - Go)
 end

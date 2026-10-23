@@ -5,7 +5,7 @@ test "first example"
   run
 
   A = array 2 7 11 15
-  Answer = A 9 two_sum
+  Answer = A two_sum 9
 
   Answer equal array 0 1
 end
@@ -15,7 +15,7 @@ test "later indices"
   run
 
   A = array 3 2 4
-  Answer = A 6 two_sum
+  Answer = A two_sum 6
 
   Answer equal array 1 2
 end
@@ -25,7 +25,7 @@ test "duplicate values"
   run
 
   A = array 3 3
-  Answer = A 6 two_sum
+  Answer = A two_sum 6
 
   Answer equal array 0 1
 end
@@ -35,7 +35,7 @@ test "negative values"
   run
 
   A = array -3 4 3 90
-  Answer = A 0 two_sum
+  Answer = A two_sum 0
 
   Answer equal array 0 2
 end
@@ -49,5 +49,5 @@ test "stops before evaluating the remaining input"
     return X
   end
   Source' = (1 to 10) checked rank 0
-  Source 3 two_sum equal array 0 1
+  Source two_sum 3 equal array 0 1
 end

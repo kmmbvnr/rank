@@ -3,23 +3,23 @@ use testing
 test "official example"
   use "020_elevator"
   Weights = array 4 8 6 1
-  Weights 10 elevator_rides equal 2
+  Weights elevator_rides 10 equal 2
 end
 
 test "one person"
   use "020_elevator"
   Weights = array 7
-  Weights 7 elevator_rides equal 1
+  Weights elevator_rides 7 equal 1
 end
 
 test "everyone fits together"
   use "020_elevator"
   Weights = array 2 3 4
-  Weights 10 elevator_rides equal 1
+  Weights elevator_rides 10 equal 1
 end
 
 test "everyone rides alone"
   use "020_elevator"
   Weights = array 6 6 6 6
-  Weights 10 elevator_rides equal 4
+  Weights elevator_rides 10 equal 4
 end

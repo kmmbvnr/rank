@@ -12,7 +12,7 @@ rem Ten stays outside, so the inner ring
 rem takes five of 1 to 9; it fixes the
 rem line sum.
 Answer = 0
-for Inner in (1 to 9) 5 combinations
+for Inner in (1 to 9) combinations 5
   Total = Inner sum
   if Total mod 5 not equal 0
     continue
@@ -38,7 +38,7 @@ for Inner in (1 to 9) 5 combinations
     Picked' = Rows Order
     Flat = Picked reshape 15
     Digits' = Flat text rank 0
-    Joined = Digits "" join
+    Joined = Digits join ""
     Value = Joined integer
     Answer = Answer max Value
   end

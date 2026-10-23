@@ -6,11 +6,11 @@ use io
 N = stdin .integer
 Values' = stdin .integer (N - 1)
 
-N Values missing print
+N missing Values print
 
 
 rem Find the missing value from the numbers 1 through N.
-fun N Values' missing
+fun N missing Values'
   Total = N * (N + 1) // 2
   Sum = Values sum
   return Total - Sum

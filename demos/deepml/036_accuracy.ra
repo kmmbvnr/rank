@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/36
 
 use sequences
 
-fun Truth Predicted accuracy_score
+fun Truth accuracy_score Predicted
   Count = Truth len
   if Predicted len not equal Count
     .DimensionMismatch raise

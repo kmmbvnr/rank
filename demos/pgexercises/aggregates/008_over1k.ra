@@ -16,4 +16,4 @@ R' = G select
 end
 R' = R filter .slots greater 1000
 Result' = R sort by .facid
-Result OutputPath csv
+Result csv OutputPath

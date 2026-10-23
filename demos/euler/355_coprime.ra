@@ -8,7 +8,7 @@ use cli
 
 option Limit integer = 200000
 
-fun N P power
+fun N power P
   V = P
   for V at most N // P
     V *= P
@@ -76,7 +76,7 @@ end
 Pr = primes to Limit array
 Base = 1
 for P in Pr
-  Base += Limit P power
+  Base += Limit power P
 end
 Root = Limit isqrt
 Lo = Pr at most Root
@@ -87,13 +87,13 @@ R = Large len + S
 W = array shape (S * R) fill 0
 for I in 0 till S
   P = Small I
-  PP = Limit P power
+  PP = Limit power P
   for J in 0 till (Large len)
     Q = Large J
     if P * Q greater Limit
       break
     end
-    Pair = (Limit // Q) P power * Q
+    Pair = (Limit // Q) power P * Q
     Gain = Pair - PP - Q
     if Gain greater 0
       W (I * R + J) = Gain

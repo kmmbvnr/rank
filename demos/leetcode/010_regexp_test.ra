@@ -4,7 +4,7 @@ test "single character is not a full match"
   use "010_regexp"
   run
 
-  Answer = "aa" "a" match
+  Answer = "aa" match "a"
   Answer equal false
 end
 
@@ -12,7 +12,7 @@ test "star repeats a character"
   use "010_regexp"
   run
 
-  Answer = "aa" "a*" match
+  Answer = "aa" match "a*"
   Answer equal true
 end
 
@@ -20,7 +20,7 @@ test "dot star matches any text"
   use "010_regexp"
   run
 
-  Answer = "ab" ".*" match
+  Answer = "ab" match ".*"
   Answer equal true
 end
 
@@ -28,7 +28,7 @@ test "starred elements may be skipped"
   use "010_regexp"
   run
 
-  Answer = "aab" "c*a*b" match
+  Answer = "aab" match "c*a*b"
   Answer equal true
 end
 
@@ -36,7 +36,7 @@ test "later mismatch rejects the match"
   use "010_regexp"
   run
 
-  Answer = "mississippi" "mis*is*p*." match
+  Answer = "mississippi" match "mis*is*p*."
   Answer equal false
 end
 
@@ -44,7 +44,7 @@ test "suffix must also match"
   use "010_regexp"
   run
 
-  Answer = "ab" ".*c" match
+  Answer = "ab" match ".*c"
   Answer equal false
 end
 
@@ -52,7 +52,7 @@ test "star may match zero characters"
   use "010_regexp"
   run
 
-  Answer = "a" "ab*" match
+  Answer = "a" match "ab*"
   Answer equal true
 end
 
@@ -60,7 +60,7 @@ test "several stars share the text"
   use "010_regexp"
   run
 
-  Answer = "aaa" "ab*a*c*a" match
+  Answer = "aaa" match "ab*a*c*a"
   Answer equal true
 end
 
@@ -68,7 +68,7 @@ test "star and following literal both consume text"
   use "010_regexp"
   run
 
-  Answer = "aaa" "a*a" match
+  Answer = "aaa" match "a*a"
   Answer equal true
 end
 
@@ -76,7 +76,7 @@ test "single dot matches one character"
   use "010_regexp"
   run
 
-  Answer = "z" "." match
+  Answer = "z" match "."
   Answer equal true
 end
 
@@ -84,7 +84,7 @@ test "wildcards still require enough characters"
   use "010_regexp"
   run
 
-  Answer = "a" ".*.." match
+  Answer = "a" match ".*.."
   Answer equal false
 end
 
@@ -92,7 +92,7 @@ test "empty text and empty pattern"
   use "010_regexp"
   run
 
-  Answer = "" "" match
+  Answer = "" match ""
   Answer equal true
 end
 
@@ -100,7 +100,7 @@ test "starred pattern matches empty text"
   use "010_regexp"
   run
 
-  Answer = "" "a*b*" match
+  Answer = "" match "a*b*"
   Answer equal true
 end
 
@@ -108,6 +108,6 @@ test "empty pattern rejects nonempty text"
   use "010_regexp"
   run
 
-  Answer = "a" "" match
+  Answer = "a" match ""
   Answer equal false
 end

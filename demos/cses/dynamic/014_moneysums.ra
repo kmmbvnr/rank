@@ -20,7 +20,7 @@ fun Coins money_sums
   Reachable 0 = true
 
   for Coin in Coins
-    Reachable = (Reachable or (Reachable Coin shift with false))
+    Reachable = (Reachable or (Reachable shift Coin with false))
   end
 
   Reachable 0 = false

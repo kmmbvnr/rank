@@ -23,7 +23,7 @@ for N in 1 to Digits
   C = E reshape 1 (N + 1) 1 1
   B = E reshape 1 1 (N + 1) 1
   D = E reshape 1 1 1 (N + 1)
-  Ok' = (A C min) equal 0 and (B D min) equal 0
+  Ok' = (A min C) equal 0 and (B min D) equal 0
   Ok' = Ok and A + C at most N and B + D at most N
   Pos = Ok indices
   Ea = Pos # 0

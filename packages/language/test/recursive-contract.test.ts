@@ -101,14 +101,14 @@ it('keeps polymorphic recursive specializations separate', () => {
 });
 
 it('keeps recursive effects conservative even when a return contract is known', () => {
-    const source = 'fun N A f\n if N equal 0\n return 1\n end\n A 0 = N\n return (N - 1) A f\nend';
+    const source = 'fun N f A\n if N equal 0\n return 1\n end\n A 0 = N\n return (N - 1) f A\nend';
     const program = parse(source);
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true };
     const result = analyze(source, [integer, array]);
     expect(result.functionResults[0].types).toEqual(['integer']);
     const definition = program.statements.find(isFunctionStatement)!;
     expect(functionEffects(name => name === 'f' ? definition : undefined, name => name === 'f')('f', [integer, array]).unknown).toBe(true);
-    const caller = analyzeValues(parse(source + '\nA = array 1 2\nR = 2 A f\nA 0 + "bad"'));
+    const caller = analyzeValues(parse(source + '\nA = array 1 2\nR = 2 f A\nA 0 + "bad"'));
     expect(caller.diagnostics).toEqual([]);
     expect(caller.bindings.get('A')?.eagerScalarCells).toBeUndefined();
     expect(caller.bindings.get('A')?.shape).toBeUndefined();

@@ -8,11 +8,11 @@ N = stdin .integer
 X = stdin .integer
 A' = stdin .integer N
 
-A X count_subarray_sums print
+A count_subarray_sums X print
 
 
 rem Count equal prefix-sum differences.
-fun A' Target count_subarray_sums
+fun A' count_subarray_sums Target
   Index = new index
   Prefix = 0
   Answer = 0

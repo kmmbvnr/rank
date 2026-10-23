@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
 const program = readFileSync(new URL('../../../demos/euler/311_biclinic.ra', import.meta.url), 'utf8');
-const block = program.slice(program.indexOf('fun Low High biclinic_block'));
+const block = program.slice(program.indexOf('fun Low biclinic_block High'));
 function oracle(low: number, high: number) {
     const counts = new Uint32Array(high - low + 1);
     for (let y = 1; y * y * 2 <= high; y++) {
@@ -26,7 +26,7 @@ describe('dense sum-of-squares blocks', () => {
     it.each([[1, 4096], [1001, 1096], [99991, 100000]])('matches an independent count over %s..%s', (low, high) => {
         const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
         try {
-            diagnostics.run(() => runtime.execute(`use numbers\n${block}\nAnswer = ${low} ${high} biclinic_block`));
+            diagnostics.run(() => runtime.execute(`use numbers\n${block}\nAnswer = ${low} biclinic_block ${high}`));
             expect(runtime.variables.get('Answer')).toBe(oracle(low, high));
             expect(diagnostics.numberLoops).toBe(2);
             expect(diagnostics.numberLoopOverflows).toBe(0);

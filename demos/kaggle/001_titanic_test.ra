@@ -6,7 +6,7 @@ test "prepares numeric features with training medians"
   Train = "[{\"Sex\":\"female\",\"Pclass\":1,\"Age\":20,\"Fare\":10},{\"Sex\":\"male\",\"Pclass\":0}]" json
   Test = "[{\"Sex\":\"male\",\"Pclass\":3}]" json
 
-  unpack X Xtest = Train Test prepare_features
+  unpack X Xtest = Train prepare_features Test
   Expected = array shape 2 4
     1 1 20 10
     0 0 20 10

@@ -49,8 +49,8 @@ describe.each([false, true])('explicit operation cell axes (compilation=%s)', co
         expect(run(matrix + 'M reverse rank 1')).toBe(run(matrix + 'M reverse axis 1'));
     });
     it('keeps operation-specific contractions and window axes', () => {
-        expect(run('use linalg\n' + matrix + 'M M matmul axis 0 0')).toBe(run('use linalg\n' + matrix + 'M transpose M matmul'));
-        expect(run('use linalg\n' + matrix + 'M M matmul axis 1 1')).toBe(run('use linalg\n' + matrix + 'M (M transpose) matmul'));
+        expect(run('use linalg\n' + matrix + 'M matmul M axis 0 0')).toBe(run('use linalg\n' + matrix + 'M transpose matmul M'));
+        expect(run('use linalg\n' + matrix + 'M matmul M axis 1 1')).toBe(run('use linalg\n' + matrix + 'M matmul (M transpose)'));
         expect(run(matrix + 'M window 2 axis 0 shape')).toBe('1 3 2');
     });
 

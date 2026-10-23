@@ -44,7 +44,7 @@ for T in 0 to 1
     M = Ms I
     Next = Ms (I + 1)
     Pw = 2 (V + Next) M powmod
-    Ix = (Hi max 0) 4 min
+    Ix = (Hi max 0) min 4
     Ex = Small Ix mod M
     if Hi at most 4
       V = Ex

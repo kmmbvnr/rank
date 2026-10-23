@@ -12,7 +12,7 @@ const cases = {
         expected: n => BigInt(n / 2) ** 2n,
     },
     text: {
-        body: 'S = I text\nif S "1" startswith\n continue\nend\nTotal += S len',
+        body: 'S = I text\nif S startswith "1"\n continue\nend\nTotal += S len',
         expected: n => {
             let sum = 0;
             for (let i = 0; i < n; i++) if (!String(i).startsWith('1')) sum += String(i).length;
@@ -20,15 +20,15 @@ const cases = {
         },
     },
     hashContinue: {
-        body: 'H = ("abc" + ((I + 3200000) text)) md5\nif not (H Prefix startswith)\n continue\nend\nif H 2 at least 16\n continue\nend\nTotal += 1',
+        body: 'H = ("abc" + ((I + 3200000) text)) md5\nif not (H startswith Prefix)\n continue\nend\nif H 2 at least 16\n continue\nend\nTotal += 1',
         expected: n => n === count ? 1n : 0n,
     },
     hashIf: {
-        body: 'H = ("abc" + ((I + 3200000) text)) md5\nif H Prefix startswith\n if H 2 less 16\n  Total += 1\n end\nend',
+        body: 'H = ("abc" + ((I + 3200000) text)) md5\nif H startswith Prefix\n if H 2 less 16\n  Total += 1\n end\nend',
         expected: n => n === count ? 1n : 0n,
     },
     nestedBreak: {
-        body: 'for J in 0 to 10\n S = I text\n if S "" startswith\n  break\n end\n Total += 1000\nend\nTotal += 1',
+        body: 'for J in 0 to 10\n S = I text\n if S startswith ""\n  break\n end\n Total += 1000\nend\nTotal += 1',
         expected: n => BigInt(n),
     },
 };

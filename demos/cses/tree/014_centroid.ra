@@ -11,12 +11,12 @@ for i in 1 till N
   B = stdin .integer
   Tree add A B
 end
-Rooted = Tree 1 root
-Tree Rooted centroid print
+Rooted = Tree root 1
+Tree centroid Rooted print
 
 
 rem Follow any subtree larger than half.
-fun Tree Rooted centroid
+fun Tree centroid Rooted
   Sizes = Rooted .size
   Limit = Rooted .order len // 2
   Current = Rooted .root

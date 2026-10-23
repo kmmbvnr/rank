@@ -463,7 +463,7 @@ describe('value view model', () => {
 
 it('inspects a predicate graph without evaluating its relation', async () => {
     const { session, ref } = await run([`use graph
-fun A B edge
+fun A edge B
   .Unexpected "predicate must not run during inspection" raise
 end
 G = new graph (array 1 2 3) with edge .directed

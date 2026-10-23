@@ -326,7 +326,7 @@ item or matching text substring.
 
 ```rank
 use sequences
-"banana" "a" find
+"banana" find "a"
 ```
 
 ```result
@@ -336,7 +336,7 @@ use sequences
 ### Usage
 
 ```text
-Values Target find
+Values find Target
 ```
 
 Works on arrays and text. Text targets
@@ -364,7 +364,7 @@ or matching text substring.
 
 ```rank
 use sequences
-"banana" "a" findall
+"banana" findall "a"
 ```
 
 ```result
@@ -374,7 +374,7 @@ use sequences
 ### Usage
 
 ```text
-Values Target findall
+Values findall Target
 ```
 
 Works on arrays and text. Text matches
@@ -382,7 +382,7 @@ include overlaps:
 
 ```rank
 use sequences
-"aaaa" "aa" findall
+"aaaa" findall "aa"
 ```
 
 ```result
@@ -671,7 +671,7 @@ Read sorted streams as one sequence.
 
 ```rank
 use sequences
-(array 1 3 5) (array 2 4 6) merge array
+(array 1 3 5) merge (array 2 4 6) array
 ```
 
 ```result
@@ -681,7 +681,7 @@ use sequences
 ### Usage
 
 ```text
-A B merge
+A merge B
 Streams merge
 Matrix merge .descending
 Streams merge by .field
@@ -812,7 +812,7 @@ gap.
 
 ```rank
 use sequences
-(array 1 2 3) 1 shift
+(array 1 2 3) shift 1
 ```
 
 ```result
@@ -822,8 +822,8 @@ use sequences
 ### Usage
 
 ```text
-Values Count shift
-Values Count shift with Fill
+Values shift Count
+Values shift Count with Fill
 ```
 
 A positive Count moves items right, a

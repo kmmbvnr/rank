@@ -20,4 +20,4 @@ Result = Months select
   .month = .first month
   .length = Length
 end
-Result OutputPath csv
+Result csv OutputPath

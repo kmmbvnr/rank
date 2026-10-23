@@ -14,7 +14,7 @@ fun N queens
   Row = 0
   for Row at least 0
     Board Row += 1
-    for Board Row less N and not (Board Row safe)
+    for Board Row less N and not (Board safe Row)
       Board Row += 1
     end
 
@@ -31,7 +31,7 @@ fun N queens
   end
 end
 
-fun Board Row safe
+fun Board safe Row
   Col = Board Row
   for Prev in 0 till Row
     Dx = (Board Prev) - Col

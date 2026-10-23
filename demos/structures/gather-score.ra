@@ -4,7 +4,7 @@ use bits
 
 fun Cipher Weights Key Slots score_key
   KeyStream' = Key Slots
-  Plain' = Cipher KeyStream bxor
+  Plain' = Cipher bxor KeyStream
   return Weights Plain sum
 end
 

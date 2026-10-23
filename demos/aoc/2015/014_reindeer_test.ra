@@ -8,7 +8,7 @@ test "official example"
     "Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds."
   end
 
-  Lines 1000 solve equal array 1120 689
+  Lines solve 1000 equal array 1120 689
 end
 
 test "distance follows complete and partial cycles"

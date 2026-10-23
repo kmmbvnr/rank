@@ -10,21 +10,21 @@ use cli
 option Limit integer = 1000
 option Digits integer = 10
 
-Answer = Limit Digits self_power_tail
+Answer = Limit self_power_tail Digits
 Answer print
 
 
 rem Reduce every power modulo the requested
 rem decimal place value before adding it.
-fun Limit Digits self_power_tail
+fun Limit self_power_tail Digits
   Modulus = 10 ** Digits
   Numbers' = 1 to Limit
-  Powers' = Numbers Modulus modular_self_power rank 0 0
+  Powers' = Numbers modular_self_power Modulus rank 0 0
   Total = Powers sum
   return Total mod Modulus
 
 end
 
-fun N Modulus modular_self_power
+fun N modular_self_power Modulus
   return N N Modulus powmod
 end

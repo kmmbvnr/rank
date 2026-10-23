@@ -10,7 +10,7 @@ import { MemoryIo } from './support.js';
 
 const prelude = `use graph
 use sequences
-fun A B near
+fun A near B
   return A + 1 equal B
 end
 `;
@@ -28,7 +28,7 @@ for (const compilation of [false, true]) describe(`predicate graphs (compiled=${
             runtime.execute(`use graph
 use sequences
 use io
-fun A B link
+fun A link B
   "pair" print
   return A less B
 end
@@ -60,7 +60,7 @@ new graph (array 1 2) with (invalid) .directed`)).toThrow('graph predicate expec
     it('supports named predicates, self edges, and repeatable order', () => {
         expect(run(prelude + `G = new graph (array 3 1 2 2) with near .directed
 N = G 1
-fun A B same = A equal B
+fun A same B = A equal B
 H = new graph (1 to 3) with same .undirected
 tuple (G len) (N array) (N array) ((H 2) array) (G 1 2 adjacent) (G 2 1 adjacent)
 `)).toBe('3 2 2 2 true false');
@@ -69,7 +69,7 @@ tuple (G len) (N array) (N array) ((H 2) array) (G 1 2 adjacent) (G 2 1 adjacent
     it('snapshots the domain but keeps captured predicate bindings live', () => {
         expect(run(prelude + `Values = array 1 2 3
 Offset = 1
-fun A B shifted
+fun A shifted B
   return A + Offset equal B
 end
 G = new graph Values with shifted .directed
@@ -85,8 +85,8 @@ tuple First Second (9 in N) (G len)
     it('runs BFS, DFS and unit-weight Dijkstra and yields weighted edges', () => {
         expect(run(prelude + `G = new graph (1 to 5) with near .directed
 B = G 1 bfs
-D = G 1 dfs
-W = G 1 dijkstra
+D = G dfs 1
+W = G dijkstra 1
 Distance = W .distance
 Parent = B .parent
 tuple (B .order) (D .order) (Distance 5) (Parent 5) ((G edges 2) array)
@@ -96,8 +96,8 @@ tuple (B .order) (D .order) (Distance 5) (Parent 5) ((G edges 2) array)
     it('handles empty and text domains and numeric equality', () => {
         expect(run(`use graph
 use sequences
-fun A B yes = true
-fun A B different = A not equal B
+fun A yes B = true
+fun A different B = A not equal B
 E = new graph (1 till 1) with yes .directed
 G = new graph (array "b" "a" "a") with different .undirected
 N = new graph (array 1 1 2) with yes .directed
@@ -112,7 +112,7 @@ tuple (E len) (G len) ((G "a") array) (N len) ((N 1.0) array)
         }
         expect(() => run(prelude + 'G = new graph (1 to 3) with near .directed\nG 9 bfs'))
             .toThrow('graph does not contain the start vertex');
-        expect(() => run('use graph\nfun A B bad = 1\nG = new graph (array 1 2) with bad .directed\nG 1 2 adjacent'))
+        expect(() => run('use graph\nfun A bad B = 1\nG = new graph (array 1 2) with bad .directed\nG 1 2 adjacent'))
             .toThrow('graph predicate must return a boolean');
     });
 
@@ -123,7 +123,7 @@ tuple (E len) (G len) ((G "a") array) (N len) ((N 1.0) array)
         expect(() => run(prelude + 'new graph with near .directed')).toThrow('graph successor expects one argument');
         expect(() => run(prelude + 'new graph primes with near .directed')).toThrow('graph vertices require a finite sequence');
         expect(() => run(prelude + 'G = new graph (1 to 3) with near .directed\nG add 1 2')).toThrow('predicate graph is read-only');
-        for (const query of ['G components', 'G floyd', 'G 1 euler', 'G 1 2 3 trips', 'G 1 2 edgeweight']) {
+        for (const query of ['G components', 'G floyd', 'G euler 1', 'G 1 2 3 trips', 'G 1 2 edgeweight']) {
             expect(() => run(prelude + `G = new graph (1 to 3) with near .directed\n${query}`))
                 .toThrow('graph algorithm requires an explicit graph');
         }
@@ -132,13 +132,13 @@ tuple (E len) (G len) ((G "a") array) (N len) ((N 1.0) array)
 
     it('matches explicit graph searches on the same finite relation', () => {
         for (const direction of ['directed', 'undirected']) {
-            const program = prelude + `fun A B linked = (A + B) mod 3 equal 0
+            const program = prelude + `fun A linked B = (A + B) mod 3 equal 0
 G = new graph (1 to 9) with linked .${direction}
 E = new graph (1 to 9) .${direction}
 for A in 1 to 9
   for B in 1 to 9
     if ${direction === 'directed' ? 'true' : 'A at most B'}
-      if A B linked
+      if A linked B
         E add A B
       end
     end
@@ -146,7 +146,7 @@ for A in 1 to 9
 end
 `;
             for (const algorithm of ['bfs', 'dfs', 'dijkstra']) {
-                const result = (graph: string) => `R = ${graph} 1 ${algorithm}
+                const result = (graph: string) => `R = ${graph} ${algorithm} 1
 D = R .distance
 P = R .parent
 tuple (R .order) (D 5) (P 5) (D 3 default -1)`;
@@ -158,7 +158,7 @@ tuple (R .order) (D 5) (P 5) (D 3 default -1)`;
     it('preserves predicate error frames and call-depth limits', () => {
         let failure: unknown;
         try {
-            run(prelude + `fun A B broken
+            run(prelude + `fun A broken B
   .BadEdge "bad edge" raise
 end
 G = new graph (1 to 3) with broken .directed
@@ -170,7 +170,7 @@ G 1 2 adjacent`);
         });
         const runtime = new Interpreter(undefined, { compilation, maxCallDepth: 4 });
         try {
-            expect(() => runtime.execute(prelude + `fun A B recursive
+            expect(() => runtime.execute(prelude + `fun A recursive B
   return G A B adjacent
 end
 G = new graph (1 to 3) with recursive .directed
@@ -193,7 +193,7 @@ tuple (G 1 2 adjacent) (G 1 3 adjacent) (D 1 3 connected)
     it('retains defining-module ownership after returning a graph', () => {
         const runtime = new Interpreter(undefined, { compilation, loadModule: () => ({ id: 'relation.ra', source: `use graph
 use sequences
-fun A B match = A + B in primes
+fun A match B = A + B in primes
 fun build
   return new graph (1 to 5) with match .directed
 end` }) });
@@ -204,12 +204,12 @@ end` }) });
 
     it('supports local nested predicates but rejects their escape', () => {
         const prefix = prelude + `fun Offset build
-  fun A B match = A + Offset equal B
+  fun A match B = A + Offset equal B
   G = new graph (1 to 5) with match .directed
 `;
         expect(run(prefix + '  return (G 1) array\nend\n2 build')).toBe('3');
         for (const operation of ['bfs', 'dfs', 'dijkstra']) {
-            expect(run(prefix + `  return G 1 ${operation}\nend\nResult = 2 build\nResult .order`)).toBe('1 3 5');
+            expect(run(prefix + `  return G ${operation} 1\nend\nResult = 2 build\nResult .order`)).toBe('1 3 5');
         }
         for (const result of ['G', 'G 1']) {
             expect(() => run(prefix + `  return ${result}\nend\n2 build`))
@@ -225,7 +225,7 @@ use graph
 use sequences
 fun build
   File = "/input" open
-  fun A B link = File size equal B
+  fun A link B = File size equal B
   G = new graph (1 to 4) with link .directed
   return G 1 4 adjacent
 end

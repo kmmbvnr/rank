@@ -176,7 +176,7 @@ describe.each([false, true])('stored selection writes (compilation=%s)', compila
         const host = runtime();
         host.variables.set('Input', record(plan(() => { calls++; return 7n; })));
         try {
-            host.execute('use sequences\nZero = record\n .value = 0\nend\nF = 2 Zero flat\nF 0 = Input');
+            host.execute('use sequences\nZero = record\n .value = 0\nend\nF = 2 flat Zero\nF 0 = Input');
             expect(host.variables.get('F')).toBeInstanceOf(FlatRecords);
             host.execute('Read = F 0\nRead .value = 99\nCopy = F copy\nCopy 0 .value += 1');
             expect(host.execute('F 0 .value')).toBe(7n);

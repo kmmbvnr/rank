@@ -44,7 +44,7 @@ end` },
     lights: { size: 16, goal: 15, distance: 2, source: `
 fun N next
   for Mask in array 3 7 14 12
-    yield N Mask bxor
+    yield N bxor Mask
   end
 end` },
 };

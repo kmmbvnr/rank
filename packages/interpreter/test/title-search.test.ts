@@ -35,7 +35,7 @@ for (const compiled of [false, true]) describe(`title search (compiled=${compile
     it('builds a T by D count matrix and T cosine scores', () => {
         const r = runtime();
         try {
-            r.execute('Dict = Titles makeDict\nCounts = Dict Titles dictCount rank 1 0\nQueryVec = Dict "Error Trapping" dictCount\nScores = Counts QueryVec cosine rank 1 1');
+            r.execute('Dict = Titles makeDict\nCounts = Dict dictCount Titles rank 1 0\nQueryVec = Dict dictCount "Error Trapping"\nScores = Counts cosine QueryVec rank 1 1');
             const titles = items(r.variables.get('Titles')!) as string[];
             const dict = items(r.variables.get('Dict')!) as string[];
             expect(r.variables.get('Counts')).toMatchObject({ shape: [titles.length, dict.length] });
@@ -52,7 +52,7 @@ for (const compiled of [false, true]) describe(`title search (compiled=${compile
                 ...Array.from({ length: 14 }, (_, i) => `shared item${i}`), 'Only unrelated'];
             r.execute(`Titles = array ${titles.map(title => JSON.stringify(title)).join(' ')}`);
             for (const query of ['APL', 'apl J J', 'Пожар 42', 'ÉTÉ ٣', 'shared', 'unrelated', 'absent', '', '!?']) {
-                const actual = r.execute(`Titles ${JSON.stringify(query)} seek`)!;
+                const actual = r.execute(`Titles seek ${JSON.stringify(query)}`)!;
                 expect(items(actual)).toEqual(reference(titles, query));
                 expect(actual).toMatchObject({ shape: [reference(titles, query).length] });
             }
@@ -61,20 +61,20 @@ for (const compiled of [false, true]) describe(`title search (compiled=${compile
     it('preserves division by zero for standalone zero-vector cosine', () => {
         const r = runtime();
         try {
-            expect(() => r.execute('(array 0 0) (array 1 0) cosine')).toThrow(/division by zero/i);
-            expect(() => r.execute('(array 1 0) (array 0 0) cosine')).toThrow(/division by zero/i);
+            expect(() => r.execute('(array 0 0) cosine (array 1 0)')).toThrow(/division by zero/i);
+            expect(() => r.execute('(array 1 0) cosine (array 0 0)')).toThrow(/division by zero/i);
         } finally { r.dispose(); }
     });
     it('handles empty title collections and empty dictionaries', () => {
         const r = runtime();
         try {
             for (const titles of ['(array shape 0 fill "")', '(array "" "!?")']) {
-                const actual = r.execute(`${titles} "anything" seek`)!;
+                const actual = r.execute(`${titles} seek "anything"`)!;
                 expect(actual).toMatchObject({ shape: [0] });
                 expect(items(actual)).toEqual([]);
             }
-            expect(items(r.execute('(array "x" "x" "missing") "x" dictCount')!)).toEqual([1n, 1n, 0n]);
-            expect(items(r.execute('(array "x" "y") "" dictCount')!)).toEqual([0n, 0n]);
+            expect(items(r.execute('(array "x" "x" "missing") dictCount "x"')!)).toEqual([1n, 1n, 0n]);
+            expect(items(r.execute('(array "x" "y") dictCount ""')!)).toEqual([0n, 0n]);
         } finally { r.dispose(); }
     });
 });

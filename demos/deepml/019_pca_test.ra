@@ -12,7 +12,7 @@ test "official diagonal-line example"
     0.7071
   end
 
-  Data 1 pca equal Expected
+  Data pca 1 equal Expected
 end
 
 test "negative correlation sign"
@@ -28,7 +28,7 @@ test "negative correlation sign"
     -0.7071
   end
 
-  Data 1 pca equal Expected
+  Data pca 1 equal Expected
 end
 
 test "orthonormal component columns"
@@ -43,9 +43,9 @@ test "orthonormal component columns"
     6 2 3
     7 4 5
   end
-  Components = Data 2 pca
+  Components = Data pca 2
   Gram = Components transpose
-  Gram = Gram Components matmul
+  Gram = Gram matmul Components
   Gram = Gram round 3
   Expected = array shape 2 2
     1.0 0.0
@@ -68,7 +68,7 @@ test "rejects invalid component counts"
   Raised = false
 
   try
-    Result = Data 3 pca
+    Result = Data pca 3
   catch .DomainError Error
     Raised = true
   end
@@ -86,7 +86,7 @@ test "rejects constant features"
   Raised = false
 
   try
-    Result = Data 1 pca
+    Result = Data pca 1
   catch .DomainError Error
     Raised = true
   end

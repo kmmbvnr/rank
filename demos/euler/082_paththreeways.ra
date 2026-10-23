@@ -21,7 +21,7 @@ rem costs its value. A gate vertex joins
 rem the left column.
 Text = Input read
 Commas = Text "\n" "," translate
-Parts = Commas "," split
+Parts = Commas split ","
 Count = Parts len - 1
 Side = Count isqrt
 Cells = Parts take Count integer
@@ -43,6 +43,6 @@ Edges' = stack From To Cost transpose
 Net = new graph .directed
 Net add Id
 Net add Edges
-Dist = Net Count dijkstra .distance
+Dist = Net dijkstra Count .distance
 Answer = (Dist Far) min
 Answer print

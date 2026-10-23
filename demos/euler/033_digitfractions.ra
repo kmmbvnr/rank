@@ -6,33 +6,33 @@ rem fractions reduce and their denominator
 use numbers
 use io
 
-Answer = 10 99 digit_fraction_denominator
+Answer = 10 digit_fraction_denominator 99
 Answer print
 
 
 rem Test every proper fraction once and keep
 rem identities preserved by one cancellation.
-fun Lower Upper digit_fraction_denominator
+fun Lower digit_fraction_denominator Upper
   NumeratorProduct = 1
   DenominatorProduct = 1
 
   for Numerator in Lower till Upper
     for Denominator in (Numerator + 1) to Upper
-      if Numerator Denominator curious
+      if Numerator curious Denominator
         NumeratorProduct *= Numerator
         DenominatorProduct *= Denominator
       end
     end
   end
 
-  Divisor = NumeratorProduct DenominatorProduct gcd
+  Divisor = NumeratorProduct gcd DenominatorProduct
   return DenominatorProduct // Divisor
 end
 
 
 rem Check the four positions where one common
 rem nonzero digit can be removed.
-fun Numerator Denominator curious
+fun Numerator curious Denominator
   NLeft = Numerator // 10
   NRight = Numerator mod 10
   DLeft = Denominator // 10

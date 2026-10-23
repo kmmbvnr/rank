@@ -5,6 +5,12 @@ import { isFunctionStatement, type FunctionStatement, type Program, type ReturnS
 export function prepareFunctionDeclarations(program: Program): void {
     for (const node of AstUtils.streamAllContents(program)) {
         if (!isFunctionStatement(node)) continue;
+        if (node.leftBindings.length + node.rightBindings.length === 2) {
+            const bindings = [...node.leftBindings, ...node.rightBindings];
+            node.leftBindings = bindings.slice(0, 1);
+            node.rightBindings = bindings.slice(1);
+            AstUtils.linkContentToContainer(node);
+        }
         node.leftParameters = node.leftBindings.map(parameter => parameter.name);
         node.rightParameters = node.rightBindings.map(parameter => parameter.name);
         node.parameters = [...node.leftParameters, ...node.rightParameters, ...node.groups.map(group => group.parameter)];

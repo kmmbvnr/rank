@@ -13,11 +13,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Values Queries increase_costs print
+Values increase_costs Queries print
 
 
 rem Sum blocks of running maxima.
-fun Values Queries increase_costs
+fun Values increase_costs Queries
   N = Values len
   Size = N + 1
   Next = array shape Size fill Size
@@ -42,7 +42,7 @@ fun Values Queries increase_costs
     Span = Next I - I - 1
     Cost I = Span * Values I
   end
-  Path = Next Cost weighted
+  Path = Next weighted Cost
 
   Prefix = Values scan + with 0
   Answers = array shape (Queries len) fill 0

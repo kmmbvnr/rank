@@ -8,7 +8,7 @@ assert(['scalar', 'builtin'].includes(mode));
 const source = `fun X bump
  return X + 1
 end
-fun B N total
+fun B total N
  Total = 0
  for I in 0 till N
   Total += B (I % 10000) + (I bump)

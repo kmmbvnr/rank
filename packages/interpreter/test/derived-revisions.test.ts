@@ -110,7 +110,7 @@ end`)).toThrow('division by zero');
         { expression: 'A transpose', before: [1n, 3n, 2n, 4n], after: [5n, 3n, 2n, 4n] },
         { expression: 'A # 0', before: [1n, 3n], after: [5n, 3n] },
         { expression: 'A 0', before: [1n, 2n], after: [5n, 2n] },
-        { expression: 'A A matmul', before: [7n, 10n, 15n, 22n], after: [31n, 18n, 27n, 22n] },
+        { expression: 'A matmul A', before: [7n, 10n, 15n, 22n], after: [31n, 18n, 27n, 22n] },
         { expression: 'A round 0', before: [1n, 2n, 3n, 4n], after: [5n, 2n, 3n, 4n] },
     ])('refreshes $expression after a host write to its storage', ({ expression, before, after }) => {
         const runtime = new Interpreter();

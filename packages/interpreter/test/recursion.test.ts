@@ -28,7 +28,7 @@ Seen = new set
 for I in 0 till 99999
   Edges I = I + 1
 end
-fun V Seen dfs
+fun V dfs Seen
   if V in Seen
     return 0
   end
@@ -36,11 +36,11 @@ fun V Seen dfs
   Size = 1
   Next = Edges V
   if Next at least 0
-    Size += Next Seen dfs
+    Size += Next dfs Seen
   end
   return Size
 end
-0 Seen dfs
+0 dfs Seen
 `)).toBe('100000');
     }, 30_000);
 
@@ -68,14 +68,14 @@ fun N exercise
   Count = record
     .value = 0
   end
-  fun V Count tree
+  fun V tree Count
     Count .value += 1
     if V equal 0
       return Count .value
     end
-    return ((V - 1) Count tree) - ((V - 1) Count tree)
+    return ((V - 1) tree Count) - ((V - 1) tree Count)
   end
-  Answer = N Count tree
+  Answer = N tree Count
   return array Answer (Count .value)
 end
 10 exercise
@@ -88,19 +88,19 @@ fun N exercise
   Cleaned = record
     .value = 0
   end
-  fun V Cleaned visit
+  fun V visit Cleaned
     try
       if V equal 0
         .Leaf 7 raise
       end
-      return (V - 1) Cleaned visit + 1
+      return (V - 1) visit Cleaned + 1
     catch .Leaf Error
       return Error .Value
     finally
       Cleaned .value += 1
     end
   end
-  Answer = N Cleaned visit
+  Answer = N visit Cleaned
   return array Answer (Cleaned .value)
 end
 5000 exercise
@@ -303,14 +303,14 @@ fun N exercise
   Count = record
     .value = 0
   end
-  fun X Count tick
+  fun X tick Count
     Count .value += 1
     return X
   end
   fun X increment
     return X + 1
   end
-  Answer = N Count tick down increment Count tick
+  Answer = N tick Count down increment tick Count
   return array Answer (Count .value)
 end
 1000 exercise

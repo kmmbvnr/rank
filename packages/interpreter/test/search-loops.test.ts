@@ -40,14 +40,14 @@ A = array shape 3 fill 0
 B = 1
 Flag = false
 for I in 0 till 3
- B = B 100 shl
- A I = B 1 bor
- B = B 1 shr
- C = B -1 band
- D = C 7 bxor
+ B = B shl 100
+ A I = B bor 1
+ B = B shr 1
+ C = B band -1
+ D = C bxor 7
  E = D bnot
  Count = B popcount
- Flag = B (99 * (I + 1)) bit
+ Flag = B bit (99 * (I + 1))
 end`);
     expect(result.error).toBeUndefined();
     expect(result.values.Flag).toBe('true');
@@ -61,7 +61,7 @@ Seen = 0
 for I in 0 till 2
  Seen += 1
  A I = Seen
- Value = 1 (0 - I) ${operation}
+ Value = 1 ${operation} (0 - I)
 end`);
     expect(result.error).toMatch(/nonnegative/);
     expect(result.values.Seen).toBe('2');
@@ -77,7 +77,7 @@ it('retains the nonnegative popcount domain after partial writes', () => {
 });
 
 it('uses a shadowed bit function instead of the catalogue builtin', () => {
-    const result = compare('fun A B band\n return A + B\nend\nTotal = 0\nfor I in 1 to 3\n Total += I 8 band\nend');
+    const result = compare('fun A band B\n return A + B\nend\nTotal = 0\nfor I in 1 to 3\n Total += I band 8\nend');
     expect(result.error).toBeUndefined();
     expect(result.values.Total).toBe('30');
 });

@@ -16,7 +16,7 @@ fun X Y InitialWeights Bias Rate Epochs train_neuron
   B = Bias / 1.0
 
   for Epoch in 0 till Epochs
-    Pred = X W matmul + B
+    Pred = X matmul W + B
     Pred = Pred sigmoid
 
     Error = Pred - Y
@@ -28,7 +28,7 @@ fun X Y InitialWeights Bias Rate Epochs train_neuron
     Delta *= 1 - Pred
 
     Xt' = X transpose
-    GradW = Xt Delta matmul
+    GradW = Xt matmul Delta
     GradW *= 2 / N
 
     GradB = (Delta sum) * 2 / N

@@ -2,20 +2,20 @@ use testing
 
 test "official example"
   use "012_rectcut"
-  3 5 rectangle_cuts equal 3
+  3 rectangle_cuts 5 equal 3
 end
 
 test "square needs no cut"
   use "012_rectcut"
-  5 5 rectangle_cuts equal 0
+  5 rectangle_cuts 5 equal 0
 end
 
 test "one narrow strip"
   use "012_rectcut"
-  1 4 rectangle_cuts equal 3
+  1 rectangle_cuts 4 equal 3
 end
 
 test "two by three rectangle"
   use "012_rectcut"
-  2 3 rectangle_cuts equal 2
+  2 rectangle_cuts 3 equal 2
 end

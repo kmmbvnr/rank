@@ -65,15 +65,15 @@ describe('linked recursive searches with arrays and indices', () => {
     });
 
     it('keeps helpers that write arrays on the ordinary path', () => {
-        const result = compare(`fun A N writecell
+        const result = compare(`fun A writecell N
  A 0 = N
  return A 0
 end
-fun A N outer
- return A N writecell
+fun A outer N
+ return A writecell N
 end
 A = array 1 2
-Alias = A`, ['A 8 outer', 'A 0', 'Alias 0']);
+Alias = A`, ['A outer 8', 'A 0', 'Alias 0']);
         expect(result.values.map(result => result.value)).toEqual(['8', '1', '1']);
         expect(result.bodies).toBeGreaterThan(0);
     });
@@ -102,15 +102,15 @@ Alias = A`, ['A 8 outer', 'A 0', 'Alias 0']);
         const queue = new RankDeque(mode).push(9n).push(2n).push(3n);
         runtime.variables.set('Q', queue);
         try {
-            runtime.execute('fun Q I readcell\nreturn Q I\nend');
-            expect(runtime.execute('Q 0 readcell')).toBe(9n);
+            runtime.execute('fun Q readcell I\nreturn Q I\nend');
+            expect(runtime.execute('Q readcell 0')).toBe(9n);
             queue.pop(false);
             queue.pushFront(1n);
-            expect(runtime.execute('Q 0 readcell')).toBe(1n);
+            expect(runtime.execute('Q readcell 0')).toBe(1n);
             queue.pop(true);
-            expect(() => runtime.execute('Q 2 readcell')).toThrow('queue index out of bounds: 2');
+            expect(() => runtime.execute('Q readcell 2')).toThrow('queue index out of bounds: 2');
             expect(() => queue.push('wrong')).toThrow('holds integer');
-            expect(runtime.execute('Q 1 readcell')).toBe(2n);
+            expect(runtime.execute('Q readcell 1')).toBe(2n);
         } finally { runtime.dispose(); }
     });
 
@@ -118,10 +118,10 @@ Alias = A`, ['A 8 outer', 'A 0', 'Alias 0']);
         let kernels = 0;
         const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => kernels++ });
         try {
-            runtime.execute('fun Q I readcell\nreturn Q I\nend');
+            runtime.execute('fun Q readcell I\nreturn Q I\nend');
             for (const queue of [new RankDeque().push(1.5), { kind: 'queue' as const, items: [2.5] }]) {
                 runtime.variables.set('Q', queue);
-                expect(runtime.execute('Q 0 readcell')).toBe(queue.items[0]);
+                expect(runtime.execute('Q readcell 0')).toBe(queue.items[0]);
             }
             expect(kernels).toBe(0);
         } finally { runtime.dispose(); }
@@ -136,10 +136,10 @@ Alias = A`, ['A 8 outer', 'A 0', 'Alias 0']);
         const overridden = new RankDeque().push(1n);
         overridden.at = () => 43n;
         try {
-            runtime.execute('fun Q I readcell\nreturn Q I\nend');
+            runtime.execute('fun Q readcell I\nreturn Q I\nend');
             for (const [queue, expected] of [[new HostQueue().push(1n), 42n], [overridden, 43n]] as const) {
                 runtime.variables.set('Q', queue);
-                expect(runtime.execute('Q 0 readcell')).toBe(expected);
+                expect(runtime.execute('Q readcell 0')).toBe(expected);
             }
             expect(kernels).toBe(0);
         } finally { runtime.dispose(); }
@@ -165,11 +165,11 @@ Alias = A`, ['A 8 outer', 'A 0', 'Alias 0']);
         for (const compilation of [false, true]) {
             const runtime = new Interpreter(() => {}, { compilation });
             try {
-                runtime.execute('use algo\nfun Q N insertvalue\nQ push (1 // N)\nreturn 0\nend');
+                runtime.execute('use algo\nfun Q insertvalue N\nQ push (1 // N)\nreturn 0\nend');
                 const queue = new RankDeque().push(1n);
                 protectValue(queue, 'protected queue');
                 runtime.variables.set('Q', queue);
-                expect(() => runtime.execute('Q 0 insertvalue')).toThrow('protected queue');
+                expect(() => runtime.execute('Q insertvalue 0')).toThrow('protected queue');
                 expect(queue.items).toEqual([1n]);
             } finally { runtime.dispose(); }
         }

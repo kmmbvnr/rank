@@ -25,7 +25,7 @@ for Prod len greater 0
   Ks = K Ok array
   Ps = Prod Ok array
   Cur = Best Ks
-  Val = Ps Cur min
+  Val = Ps min Cur
   rem Last write wins for a repeated K:
   rem put its smallest value last.
   Ord = Val argsort .descending

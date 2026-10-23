@@ -10,11 +10,11 @@ M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
 Roads = Values reshape M 2
-N Roads road_progress print
+N road_progress Roads print
 
 
 rem Track components after each road.
-fun N Roads road_progress
+fun N road_progress Roads
   Nodes' = 1 to N
   Union = new dsu Nodes
   Sizes = array shape (N + 1) fill 1
@@ -29,7 +29,7 @@ fun N Roads road_progress
     if RootA not equal RootB
       Combined = Sizes RootA
       Combined += Sizes RootB
-      Union RootA RootB merge
+      Union RootA merge RootB
       Root = Union findroot RootA
       Sizes Root = Combined
       Largest = Largest max Combined

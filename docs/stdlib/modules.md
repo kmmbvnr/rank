@@ -63,7 +63,7 @@ or compare two numeric operands. Numeric ranges also belong to the core:
 Values = 1 to 5
 Total = Values sum
 Size = Values len
-Bound = (0 max Size) 10 min
+Bound = (0 max Size) min 10
 ```
 
 `use cli` is required for `option`, `argument`, `flag`, `args` and `env`.
@@ -198,7 +198,7 @@ Y = Angle sin
 X = Angle cos
 Slope = Angle tan
 Angle = Ratio atan
-Angle = Y X atan2
+Angle = Y atan2 X
 ```
 
 The circular functions are `sin`, `cos` and `tan`; their inverse functions are
@@ -279,8 +279,8 @@ Zero and negative integers are errors. The divisors of one contain only one.
 `gcd` and `lcm` use data-first application:
 
 ```rank
-G = 54 24 gcd
-L = 8 12 lcm
+G = 54 gcd 24
+L = 8 lcm 12
 ```
 
 `lcm` also acts as a named reduction over a finite sequence:
@@ -289,7 +289,7 @@ L = 8 12 lcm
 Answer = (1 to 20) lcm
 ```
 
-Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
+Both operations return nonnegative integers. `0 gcd 0` is zero, an `lcm`
 containing zero is zero, and the `lcm` of an empty sequence is one.
 
 `powmod` raises an integer base to a nonnegative integer exponent while reducing
@@ -311,7 +311,7 @@ uses repeated squaring, so it does not construct the potentially huge value
 with `0 at most K at most N`:
 
 ```rank
-Exact = N K binomial
+Exact = N binomial K
 ```
 
 It has intrinsic ranks `0 0`, so it broadcasts over numeric arrays.
@@ -330,12 +330,12 @@ Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
 The core functions `min` and `max` require no `use numbers`. One operand
 reduces a collection. Binary `max` takes its second operand on the right;
-binary `min` keeps both operands on the left:
+binary `min` uses the same operand sides:
 
 ```rank
 Smallest = Values min
 Left = A max B
-Bound = (Low max Limit) High min
+Bound = (Low max Limit) min High
 ```
 
 Both broadcast over arrays using the ordinary trailing-axis rules.
@@ -399,8 +399,8 @@ is required here. Scalar `12 divisors count` remains unchanged.
 ```rank
 State = 42 seed
 Shuffled = Values shuffle
-Repeatable = Values 42 shuffle
-Sample = Values 10 choices
+Repeatable = Values shuffle 42
+Sample = Values choices 10
 Noise = Shape Low High uniform
 Rows = Data shuffle axis 0
 Columns = Data 42 shuffle axis 1
@@ -422,7 +422,7 @@ of nonnegative integer dimensions. Equal bounds produce a constant tensor;
 zero dimensions produce an empty tensor. Bounds must be finite numbers and the
 lower bound must not exceed the upper bound.
 
-`Values Count choices` independently draws `Count` values with replacement
+`Values choices Count` independently draws `Count` values with replacement
 and returns an eager dense array. For a tensor it draws complete cells along
 the leading axis, preserving their shape. Count must be nonnegative. Count
 zero is valid for an empty input; a positive draw from an empty input is an
@@ -512,7 +512,7 @@ rem  0  1 -2  1
 rem  0  0  1 -2
 
 X = array 1 4 9 16
-Y = L X matmul
+Y = L matmul X
 rem 2 2 2 -23
 Boundary = array 0 0 0 25
 D2 = Y + Boundary
@@ -542,9 +542,9 @@ trailing-cell and explicit cell-axis rules.
 `solve` directly solves `A * X = B`:
 
 ```rank
-X = A B solve
-BatchedVectors = As Bs solve rank 2 1
-BatchedMatrices = As Bs solve rank 2 2
+X = A solve B
+BatchedVectors = As solve Bs rank 2 1
+BatchedMatrices = As solve Bs rank 2 2
 ```
 
 Both default operands are whole values. Explicit ranks distinguish vector
@@ -564,8 +564,8 @@ Gaussian elimination with partial pivoting.
 right array:
 
 ```rank
-C = A B matmul
-C = A B matmul axis 2 0
+C = A matmul B
+C = A matmul B axis 2 0
 ```
 
 The explicit form names the left and right contracted axes. Their dimensions
@@ -631,23 +631,23 @@ convergence errors use `.DimensionMismatch`, `.TypeError`, `.DomainError` and
 `use bits` provides bitwise operations over arbitrary-precision integers:
 
 ```rank
-A B band
-A B bor
-A B bxor
+A band B
+A bor B
+A bxor B
 A bnot
-A N shl
-A N shr
-A N bit
+A shl N
+A shr N
+A bit N
 A popcount
 X binary
-X Width binary
+X binary Width
 ```
 
 `bnot` follows infinite two's-complement semantics, so `A bnot` equals
 `-A - 1`. Fixed-width code makes its width explicit with a mask:
 
 ```rank
-Word = Value bnot 65535 band
+Word = Value bnot band 65535
 ```
 
 Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
@@ -671,7 +671,7 @@ pads with leading zeroes and raises an error when the value does not fit:
 
 ```rank
 Bits = 10 binary
-Padded = 3 5 binary
+Padded = 3 binary 5
 rem "1010", "00011"
 ```
 
@@ -836,7 +836,7 @@ integers for tensors. Coordinate matrices are not directly usable as array
 selectors: extract their columns as above; integer-array selectors require
 rank 1.
 
-`Values Target find` returns the first zero-based position of an equal array
+`Values find Target` returns the first zero-based position of an equal array
 element or matching text substring.
 `findall` returns every matching position; an empty result is an empty vector.
 Both accept rank-1 arrays and text, indexed by Unicode code point. A text
@@ -941,8 +941,8 @@ Rows = Matrix mean axis 1
 Middle = Values median
 Spread = Values std
 Columns = Matrix std axis 0
-Loss = Pred Target mse
-Rows = Pred Target mae axis 1
+Loss = Pred mse Target
+Rows = Pred mae Target axis 1
 Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
@@ -960,8 +960,8 @@ tensor behavior is described in [Tensors](../language/tensors.md). `median` and
 two numeric values, finite sequences or arrays:
 
 ```rank
-Loss = Pred Target mse
-FeatureLoss = Pred Target mae axis 0
+Loss = Pred mse Target
+FeatureLoss = Pred mae Target axis 0
 ```
 
 The inputs follow Rank's trailing-axis broadcasting rules. Without `axis`, the
@@ -970,7 +970,7 @@ axes and preserves the others in their original order. Both metrics always
 return real values, keep framed tensor results lazy, and raise
 `.EmptyReduction` for an empty reduced cell. Incompatible shapes raise
 `.DimensionMismatch`. To apply a metric to corresponding cells, use
-`Pred Target mse rank 1 1`; the cell frames follow the common
+`Pred mse Target rank 1 1`; the cell frames follow the common
 [rank rules](../language/sequences-arrays.md#rank).
 
 By default, `covariance` treats the last two axes as features and observations;
@@ -1012,13 +1012,13 @@ any of them. Adjacent separators preserve empty parts. An empty separator
 splits by Unicode code point and must be used alone:
 
 ```rank
-Parts = "2x3x4" "x" split
-Fields = Text (array "," ";") split
-Characters = "A😀Б" "" split
+Parts = "2x3x4" split "x"
+Fields = Text split (array "," ";")
+Characters = "A😀Б" split ""
 ```
 
 `Text words` returns lowercase Unicode letter-and-number runs as a rank-1 text
-array; punctuation and whitespace separate words. `Texts Limit vocab` accepts
+array; punctuation and whitespace separate words. `Texts vocab Limit` accepts
 a rank-1 text array and a nonnegative integer limit. It counts all words,
 orders them by descending frequency and then ascending Unicode code point
 order, and returns at most `Limit` terms. An empty input or zero limit returns
@@ -1030,7 +1030,7 @@ captured values as a rank-1 array. It is normally combined with `unpack`:
 
 ```rank
 Pattern = "/word to /word = /integer"
-unpack From To Distance = Line Pattern parse
+unpack From To Distance = Line parse Pattern
 ```
 
 Patterns use `/integer`, `/real`, `/word` and `/text`. Integers and reals are
@@ -1041,10 +1041,10 @@ slash. All other characters, including spaces, match exactly:
 
 ```rank
 Pattern = "/integerx/integerx/integer"
-unpack Length Width Height = "2x3x4" Pattern parse
+unpack Length Width Height = "2x3x4" parse Pattern
 
 Spaced = "/integer x /integer"
-unpack A B = "2 x 3" Spaced parse
+unpack A B = "2 x 3" parse Spaced
 ```
 
 An unknown directive raises `.InvalidFormat`. Input that does not match the
@@ -1054,7 +1054,7 @@ available as the error value respectively.
 `startswith` tests an exact, case-sensitive prefix:
 
 ```rank
-Ready = Text "Rank" startswith
+Ready = Text startswith "Rank"
 ```
 
 Two bytes values use a direct byte comparison with no text conversion or
@@ -1063,7 +1063,7 @@ matches. Text and bytes cannot be mixed implicitly.
 
 ```rank
 Signature = (array 137 80 78 71) bytes
-IsPngPrefix = Header Signature startswith
+IsPngPrefix = Header startswith Signature
 ```
 
 `lower` converts Unicode text to lowercase. `startswith` broadcasts over text
@@ -1135,9 +1135,9 @@ returns one string. An empty collection produces empty text. An empty separator
 concatenates the elements directly:
 
 ```rank
-(array 1 2 3) ", " join print
+(array 1 2 3) join ", " print
 rem 1, 2, 3
-(array "ab" "cd") "" join print
+(array "ab" "cd") join "" print
 rem abcd
 ```
 
@@ -1146,7 +1146,7 @@ A nontext separator, nonscalar element or higher-rank array raises
 
 ```rank
 for Row in Matrix
-  Row text ".6f" " " join print
+  Row text join ".6f" " " print
 end
 ```
 
@@ -1157,11 +1157,11 @@ whose size is unknown, the caller must ensure that it terminates.
 `letter`, `digit` and `alnum` classify one Unicode character each: a letter
 (`\p{L}`), a decimal digit (`\p{Nd}`), or a letter or number (`\p{L}`, `\p{N}`,
 the same class `words` tokenizes). Given a text array, usually from
-`Text "" split`, they return a boolean array of the same shape. Anything that
+`Text split ""`, they return a boolean array of the same shape. Anything that
 is not exactly one character raises `.TypeError`:
 
 ```rank
-Chars = "Jack, 42" "" split
+Chars = "Jack, 42" split ""
 Mask = Chars letter
 ```
 
@@ -1222,10 +1222,10 @@ only complete windows of the conceptually padded source.
 beside its neighbor without index arithmetic:
 
 ```rank
-Previous = Values 1 shift
-Next = Values -1 shift
-Ends = Starts -1 shift with Total
-Down = M 1 shift axis 0
+Previous = Values shift 1
+Next = Values shift -1
+Ends = Starts shift -1 with Total
+Down = M shift 1 axis 0
 ```
 
 A positive count moves items toward higher positions. Positions left empty read
@@ -1236,7 +1236,7 @@ lazy and read-only.
 Materialized boolean arrays use packed bits. Same-shape logical operations,
 `count`, `indices`, and rank-one `shift with false` can use word kernels; `copy`
 creates an independent packed snapshot. For example,
-`Reach = (Reach or (Reach Weight shift with false))` updates a subset-sum
+`Reach = (Reach or (Reach shift Weight with false))` updates a subset-sum
 mask using each weight once: ordinary `=` completes the update before the next
 iteration, so an explicit `copy` is optional. `(RowA and RowB) count` can count common true cells
 without constructing an unpacked intersection. Matrix/row broadcasting with
@@ -1402,8 +1402,8 @@ Line-oriented input is not part of the current language yet.
 Text = Path read
 Lines = Path readlines
 
-Text Path write
-Text Path append
+Text write Path
+Text append Path
 ```
 
 `read` preserves the complete decoded text, including a final line ending.
@@ -1418,7 +1418,7 @@ Random access uses byte offsets. A one-shot block read does not create a visible
 file handle:
 
 ```rank
-Bytes = Path Offset Count readbytes
+Bytes = Path Offset readbytes Count
 ```
 
 `bytes` is a specialized rank-1 tensor whose atoms are integers from 0 through
@@ -1432,7 +1432,7 @@ Repeated and stateful I/O uses a `file` value:
 File = Path open
 
 Header = File 64 readbytes
-File 1024 seek
+File seek 1024
 Chunk = File 128 readbytes
 
 Offset = File position
@@ -1458,7 +1458,7 @@ Handles opened by all three modes can be read. Binary output takes a `bytes`
 value previously obtained from `readbytes`:
 
 ```rank
-Output Bytes writebytes
+Output writebytes Bytes
 Output flush
 ```
 
@@ -1557,8 +1557,8 @@ Third = Bag 2
 Lower = Bag floor Limit
 Upper = Bag ceiling Limit
 Routes = Cities permutations
-Pairs = Values 2 combinations
-Repeated = Values 2 multicomb
+Pairs = Values combinations 2
+Repeated = Values multicomb 2
 ```
 
 `new set` and `new counter` create unique sets and stateful frequency maps
@@ -1601,7 +1601,7 @@ operation. `Tree Left Right query` reduces an inclusive range, and addressed
 assignment performs a point update. Construction, bounds and error behavior
 are specified in [Collections](../language/collections.md).
 
-`Tree Target firstatleast` finds the first monotone numeric prefix that reaches
+`Tree firstatleast Target` finds the first monotone numeric prefix that reaches
 the target. `Values segment maxsum` selects the native prefix/subarray summary
 profile and returns `.sum`, `.prefix`, `.suffix` and `.best` from `query`.
 
@@ -1611,7 +1611,7 @@ assignment and addition. Both updates and `query` take `O(log N)` time.
 `Values wavelet` prepares an immutable wavelet matrix. The form
 `Data Left Right Low High within` counts values inside inclusive position and
 value ranges. `sumwithin` sums a numeric rectangle, and
-`Data Bounds missing` finds the first missing subset sum for positive integer
+`Data missing Bounds` finds the first missing subset sum for positive integer
 values. `Bounds` may be one range pair or a matrix of range pairs because the
 operation has intrinsic ranks `all 1`. See [Collections](../language/collections.md).
 
@@ -1622,9 +1622,9 @@ operation has intrinsic ranks `all 1`. See [Collections](../language/collections
 `bellmanford`, `floyd`, `cycle`, `euler`, `topological`, `scc`, `mst`, and `maxflow`
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, `lengths`, and the increasing-path `upto` query.
-`Next Cost weighted` adds numeric edge sums to that path. Their inputs and
+`Next weighted Cost` adds numeric edge sums to that path. Their inputs and
 results are specified in [Graphs](../language/graphs.md).
-An undirected tree can be prepared with `Tree Root root`; its postfix
+An undirected tree can be prepared with `Tree root Root`; its postfix
 `ancestor`, `lca`, and `distance` queries and traversal fields are specified
 in the same document. `Tree pathlengths` provides a lazy unordered-pair
 distance sequence with planned exact and bounded-range counts.

@@ -8,11 +8,11 @@ use sequences
 
 X = stdin .integer
 Y = stdin .integer
-X Y knight_tour print
+X knight_tour Y print
 
 
 rem Search low-degree moves first.
-fun StartX StartY knight_tour
+fun StartX knight_tour StartY
   Board = array shape 8 8 fill 0
   DX = array 2 1 -1 -2 -2 -1 1 2
   DY = array 1 2 2 1 -1 -2 -2 -1
@@ -27,7 +27,7 @@ fun StartX StartY knight_tour
     return Board Y X equal 0
   end
 
-  fun Position Board degree
+  fun Position degree Board
     X = Position mod 8
     Y = Position // 8
     Count = 0
@@ -92,8 +92,8 @@ fun Board valid_tour
     end
   end
 
-  DX' = (Xs -1 shift - Xs) abs
-  DY' = (Ys -1 shift - Ys) abs
+  DX' = (Xs shift -1 - Xs) abs
+  DY' = (Ys shift -1 - Ys) abs
   Moves' = DX * DY
   Inner' = Moves drop 1 take 63
   Knight' = Inner equal 2

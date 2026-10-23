@@ -17,13 +17,13 @@ Answer print
 rem Parse the requested grid position from the manual sentence.
 fun Text solve
   Pattern = "/text row /integer, column /integer."
-  unpack Description Row Column = Text Pattern parse
-  return Row Column code
+  unpack Description Row Column = Text parse Pattern
+  return Row code Column
 end
 
 
 rem Convert a row and column to its diagonal sequence position.
-fun Row Column code
+fun Row code Column
   Diagonal = Row + Column - 1
   Before = Diagonal - 1
   Position = Before * Diagonal // 2 + Column

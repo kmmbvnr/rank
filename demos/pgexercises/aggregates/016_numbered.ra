@@ -16,4 +16,4 @@ Result' = R select
   .firstname = .firstname
   .surname = .surname
 end
-Result OutputPath csv
+Result csv OutputPath

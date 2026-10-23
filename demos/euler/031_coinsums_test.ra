@@ -11,5 +11,5 @@ test "five pence"
   use "031_coinsums"
 
   Values = array 1 2 5 10 20 50 100 200
-  Values 5 coin_sums equal 4
+  Values coin_sums 5 equal 4
 end

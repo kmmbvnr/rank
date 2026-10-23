@@ -43,7 +43,7 @@ end`);
         [0, -1], [-1, -1], [2147483647, -1], [-2147483648, -1],
         [-2147483648, 2147483647], [123456789, -123456789],
     ])('inlines signed Int32 band for %s and %s', (left, right) => {
-        const diagnostics = compare(`use bits\nA = ${left}\nB = ${right}\nfor I in 0 to 2\n R = A B band\nend`);
+        const diagnostics = compare(`use bits\nA = ${left}\nB = ${right}\nfor I in 0 to 2\n R = A band B\nend`);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
@@ -52,13 +52,13 @@ end`);
         ['2147483648', '-1'], ['-2147483649', '-1'],
         ['-1', '4294967296'], ['-1', '9007199254740991'],
     ])('replays band without truncating %s and %s or leaking private writes', (left, right) => {
-        const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n A I += 1\n R = Left Right band\nend`);
+        const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n A I += 1\n R = Left band Right\nend`);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
 
     it('discards earlier iterations when a band operand grows past Int32', () => {
-        const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = X -1 band\nend');
+        const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = X band -1\nend');
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
@@ -67,25 +67,25 @@ end`);
         [0, -1], [-1, -1], [2147483647, -1], [-2147483648, -1],
         [-2147483648, 2147483647], [123456789, -123456789],
     ])('inlines signed Int32 bxor for %s and %s', (left, right) => {
-        const diagnostics = compare(`use bits\nA = ${left}\nB = ${right}\nfor I in 0 to 2\n R = A B bxor\nend`);
+        const diagnostics = compare(`use bits\nA = ${left}\nB = ${right}\nfor I in 0 to 2\n R = A bxor B\nend`);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
     it.each(['2147483648', '-2147483649', '4294967296', '9007199254740991'])('replays wide bxor operands exactly: %s', wide => {
-        const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nWide = ${wide}\nfor I in 0 to 2\n A I += 1\n R = Wide -1 bxor\nend`);
+        const diagnostics = compare(`use bits\nA = array shape 4096 fill 0\nB = A\nWide = ${wide}\nfor I in 0 to 2\n A I += 1\n R = Wide bxor -1\nend`);
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
 
     it('discards private cells if a bxor operand becomes too wide after earlier iterations', () => {
-        const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = -1 X bxor\nend');
+        const diagnostics = compare('use bits\nA = array 0 0 0\nB = A\nX = 2147483646\nfor I in 0 to 2\n A I += 1\n X += 1\n R = -1 bxor X\nend');
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
 
     it('preserves bxor operand errors after preceding array mutations', () => {
-        const source = 'use bits\nA = array 1 2 3\nB = array 0 0 0\nfor I in 0 to 2\n B I += 1\n R = (A I) (A (I + 1)) bxor\nend';
+        const source = 'use bits\nA = array 1 2 3\nB = array 0 0 0\nfor I in 0 to 2\n B I += 1\n R = (A I) bxor (A (I + 1))\nend';
         expect(execute(source).observation.error).toContain('out of bounds');
         expect(compare(source).numberLoops).toBe(1);
     });
@@ -94,10 +94,10 @@ end`);
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
         const diagnostics = new RuntimeDiagnostics();
         try {
-            runtime.execute('use bits\nfun work\n S = 0\n for I in 1 to 3\n  S += I 1 bxor\n end\n return S\nend');
+            runtime.execute('use bits\nfun work\n S = 0\n for I in 1 to 3\n  S += I bxor 1\n end\n return S\nend');
             expect(diagnostics.run(() => runtime.execute('work'))).toBe(5n);
             expect(diagnostics.numberLoops).toBe(1);
-            runtime.execute('fun A B replacement\n return 10\nend');
+            runtime.execute('fun A replacement B\n return 10\nend');
             runtime.variables.set('bxor', runtime.variables.get('replacement')!);
             expect(diagnostics.run(() => runtime.execute('work'))).toBe(30n);
             expect(diagnostics.numberLoops).toBe(1);
@@ -105,9 +105,9 @@ end`);
     });
 
     it.each([
-        'for I in 0 to 2\n Before = I\n R = (A I) (A (I + 1)) band\n After = I\nend',
-        'for I in 0 to 2\n Before = I\n R = 2147483648 (A (I + 1)) band\n After = I\nend',
-        'for I in 0 to 2\n Before = I\n R = (7 // I) -1 band\n After = I\nend',
+        'for I in 0 to 2\n Before = I\n R = (A I) band (A (I + 1))\n After = I\nend',
+        'for I in 0 to 2\n Before = I\n R = 2147483648 band (A (I + 1))\n After = I\nend',
+        'for I in 0 to 2\n Before = I\n R = (7 // I) band -1\n After = I\nend',
     ])('preserves band operand errors and partial state: %s', loop => {
         const source = `use bits\nA = array 1 2 3\n${loop}`;
         expect(execute(source).observation.error).toBeDefined();
@@ -115,15 +115,15 @@ end`);
     });
 
     it('does not evaluate band in an unreached boolean branch', () => {
-        const diagnostics = compare('use bits\nWide = 4294967296\nfor I in 0 to 2\n R = I equal I or (Wide -1 band) equal 0\nend');
+        const diagnostics = compare('use bits\nWide = 4294967296\nfor I in 0 to 2\n R = I equal I or (Wide band -1) equal 0\nend');
         expect(diagnostics.numberLoops).toBe(1);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
     it.each([
-        'use bits\nfor I in 0 to 2\n R = I 1.0 band\nend',
-        'use bits\nfor I in 0 to 2\n fun A B band\n  return 10\n end\n R = I -1 band\nend',
-        'for I in 0 to 2\n R = I -1 band\nend',
+        'use bits\nfor I in 0 to 2\n R = I band 1.0\nend',
+        'use bits\nfor I in 0 to 2\n fun A band B\n  return 10\n end\n R = I band -1\nend',
+        'for I in 0 to 2\n R = I band -1\nend',
     ])('retains reference behavior for incompatible band bindings or operands: %s', source => {
         expect(compare(source).numberLoops).toBe(0);
     });
@@ -132,10 +132,10 @@ end`);
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
         const diagnostics = new RuntimeDiagnostics();
         try {
-            runtime.execute('use bits\nfun work\n S = 0\n for I in 1 to 3\n  S += I -1 band\n end\n return S\nend');
+            runtime.execute('use bits\nfun work\n S = 0\n for I in 1 to 3\n  S += I band -1\n end\n return S\nend');
             expect(diagnostics.run(() => runtime.execute('work'))).toBe(6n);
             expect(diagnostics.numberLoops).toBe(1);
-            runtime.execute('fun A B replacement\n return 10\nend');
+            runtime.execute('fun A replacement B\n return 10\nend');
             runtime.variables.set('band', runtime.variables.get('replacement')!);
             expect(diagnostics.run(() => runtime.execute('work'))).toBe(30n);
             expect(diagnostics.numberLoops).toBe(1);
@@ -146,7 +146,7 @@ end`);
         const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
         const flag = new Int32Array(1); flag[0] = 1;
         try {
-            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute('use bits\nA = array 0 0\nB = A\nLast = -1\nDone = 0\ntry\n for I in 0 to 1000000\n  A (I 1 band) += 1\n  Last = I\n end\nfinally\n Done = 1\nend')))).toThrow('Interrupted');
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute('use bits\nA = array 0 0\nB = A\nLast = -1\nDone = 0\ntry\n for I in 0 to 1000000\n  A (I band 1) += 1\n  Last = I\n end\nfinally\n Done = 1\nend')))).toThrow('Interrupted');
             runtime.execute('Total = A sum\nOriginal = B sum');
             expect(runtime.variables.get('Total')).toBe((runtime.variables.get('Last') as bigint) + 1n);
             expect(runtime.variables.get('Original')).toBe(0n);
@@ -194,7 +194,7 @@ for I in 1 to 3
  Product = Base * I
  Quotient = Product // -3
  Remainder = Product mod -3
- Bound = Product 20 min
+ Bound = Product min 20
  Total += Quotient + Remainder + Bound
 end`);
         expect(diagnostics.numberLoops).toBe(2);

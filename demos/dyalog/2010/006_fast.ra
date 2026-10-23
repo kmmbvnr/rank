@@ -20,15 +20,15 @@ argument Input path = "demos/dyalog/2010/data/buyrent.xml"
 State = 2010 seed
 Params = Input read getparams
 Options = array 8.5 10000.0
-Options Params variablefast print
+Options variablefast Params print
 
 
 rem The task 5 shares, with the same die rolls.
-fun Options Params variablefast
+fun Options variablefast Params
   unpack Start Count = Options
   Sims = Count integer
   Quarters = Params 2 integer // 3
-  Rolls = (1 to 6) (Quarters * Sims) choices
+  Rolls = (1 to 6) choices (Quarters * Sims)
   Steps' = (Rolls - 3.5) / 10
   Changes = Steps reshape Quarters Sims
   return Changes Start Params fastdifference bins
@@ -71,19 +71,19 @@ fun Changes Start Params fastdifference
   Column = array Years 1
   Elapsed' = (Year * 12) reshape unpack Column
   Left = Term - Elapsed
-  Span = Left 12 min
-  Alive' = (Year reshape unpack Column) 1 min
+  Span = Left min 12
+  Alive' = (Year reshape unpack Column) min 1
   Reached = (Year * 4 - 1) max 0
 
   Walk = (Changes scan + axis 0) + Start
   Low = Walk scan min axis 0
-  Path = Walk - (Low 0.0 min)
+  Path = Walk - (Low min 0.0)
   Official' = Path Reached # * Alive + Start * (1 - Alive)
   Rate = Official / 1200
   Payment = 1.0 Rate Left payment
   Factor' = 1.0 Rate Payment Span repay
   Kept = Factor scan * axis 0
-  Before' = Kept 1 shift with 1.0
+  Before' = Kept shift 1 with 1.0
 
   Ahead = (0 till 12) reshape 1 12
   Powers' = (Ahead less Span) (Growth ** Ahead) 0.0 choose

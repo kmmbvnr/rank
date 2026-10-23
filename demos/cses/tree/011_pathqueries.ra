@@ -26,7 +26,7 @@ for i in 0 till Q
   end
 end
 
-Rooted = Graph 1 root
+Rooted = Graph root 1
 Answers = Values Rooted Queries paths
 Answers print
 

@@ -11,7 +11,7 @@ M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
 Edges = Values reshape M 2
-Closed = N Edges police_chase
+Closed = N police_chase Edges
 Closed len print
 for Street in Closed
   Street print
@@ -19,7 +19,7 @@ end
 
 
 rem Find the streets of a minimum cut.
-fun N Edges police_chase
+fun N police_chase Edges
   Nodes' = 1 to N
   Graph = new graph Nodes .directed
   for Edge in Edges

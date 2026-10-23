@@ -10,7 +10,7 @@ A finite domain and a binary function can define edges without storing them:
 ```rank
 use graph
 use sequences
-fun A B next = A + 1 equal B
+fun A next B = A + 1 equal B
 Graph = new graph (1 to 5) with next .directed
 Graph 2 3 adjacent
 Neighbors' = Graph 2
@@ -59,7 +59,7 @@ use graph
 use sequences
 fun N next = (N + 1) to (N + 2)
 Graph = new graph with next .directed
-Result = Graph 0 5 100 bfs
+Result = Graph 0 5 bfs 100
 Result .path
 ```
 
@@ -71,7 +71,7 @@ encode puzzle states as integers or text. The graph is read-only and directed.
 unit weights. Captures remain live and follow the same lifetime rules as predicate
 graphs. Use stable transitions during a search.
 
-`Graph Start Goal Limit bfs` requires a nonnegative integer budget. `Goal` is a
+`Graph Start Goal bfs Limit` requires a nonnegative integer budget. `Goal` is a
 scalar target state. The budget counts **yielded successor entries**, including
 repeats and already visited states, rather than only newly discovered vertices.
 The search retains at most `Limit + 1` states. It stops as soon as it discovers the
@@ -321,7 +321,7 @@ End = Planets jump Start Steps
 Steps = Planets distance From To
 Lengths = Planets lengths
 Count = Planets Start Limit upto
-Weighted = Next Cost weighted
+Weighted = Next weighted Cost
 State = Weighted Start Limit upto
 ```
 
@@ -346,7 +346,7 @@ to be either its own vertex or a larger vertex. This makes the path monotone,
 so the cached jump table answers each query in `O(log N)` time. It returns zero
 when `Start` exceeds `Limit`. Next-greater links are a typical use.
 
-`Next Cost weighted` prepares the same increasing successor path with one
+`Next weighted Cost` prepares the same increasing successor path with one
 numeric outgoing-edge cost per vertex. Its `upto` result is a record:
 
 - `.count` is the number of visited vertices;
@@ -366,13 +366,13 @@ operations or remove it before treating the API as stable.
 
 ## Rooted trees
 
-`Tree Root root` prepares an immutable rooted view of a connected undirected
+`Tree root Root` prepares an immutable rooted view of a connected undirected
 tree. The source graph may use any supported scalar vertices. Preparation
 validates that the graph is a tree, takes `O(N log N)` time and snapshots its
 current edges:
 
 ```rank
-Rooted = Tree 1 root
+Rooted = Tree root 1
 Boss = Rooted Employee K ancestor
 Common = Rooted A B lca
 Length = Rooted A B distance
@@ -437,9 +437,9 @@ Graph algorithms are ordinary data-first functions exported by `use graph`.
 They operate on the abstract graph value and may choose a different internal
 representation in future implementations.
 
-`Graph Start bfs` traverses outgoing unweighted edges in breadth-first order;
-`Graph Start dfs` uses depth-first order without consuming the host call stack.
-`Graph Start dijkstra` computes shortest distances for nonnegative numeric
+`Graph bfs Start` traverses outgoing unweighted edges in breadth-first order;
+`Graph dfs Start` uses depth-first order without consuming the host call stack.
+`Graph dijkstra Start` computes shortest distances for nonnegative numeric
 weights and rejects a negative edge. All three return a record with three fields:
 
 - `.distance`: an index from every reached vertex to its distance;
@@ -449,7 +449,7 @@ weights and rejects a negative edge. All three return a record with three fields
 Dijkstra.
 
 ```rank
-Result = Graph Start dijkstra
+Result = Graph dijkstra Start
 Distance = Result .distance
 Answer = Distance Target default infinity
 ```
@@ -474,7 +474,7 @@ an edge in traversal order. An acyclic graph returns an empty array. Search is
 iterative; self-loops and cycles formed by parallel undirected edges are
 preserved.
 
-`Graph Start euler` returns an Euler trail that begins at `Start` and uses every
+`Graph euler Start` returns an Euler trail that begins at `Start` and uses every
 edge exactly once. It works for directed and undirected graphs, infers the end
 vertex from the degree balances, and returns an empty rank-1 array when no such
 trail exists. A graph without edges returns `array Start`. Parallel edges and
@@ -482,7 +482,7 @@ self-loops remain distinct, edge weights do not affect the trail, and equal
 inputs produce insertion-order-stable results. The iterative search takes
 `O(V + E)` time and does not mutate the graph.
 
-`Graph Start bellmanford` accepts negative weights. Its `.distance` and
+`Graph bellmanford Start` accepts negative weights. Its `.distance` and
 `.parent` indices cover vertices reachable from `Start`; `.negative` is a set
 of every reachable vertex whose shortest distance is unbounded below because
 of a reachable negative cycle. Distances stored for those vertices are

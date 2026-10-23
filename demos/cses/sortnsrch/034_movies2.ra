@@ -10,11 +10,11 @@ K = stdin .integer
 V = stdin .integer (N * 2) array
 
 Data = V reshape N 2
-Data K maximum_movies print
+Data maximum_movies K print
 
 
 rem Assign each movie to the latest free viewer.
-fun Data K maximum_movies
+fun Data maximum_movies K
   Begin = Data # 0
   Finish = Data # 1
   Order = Finish argsort

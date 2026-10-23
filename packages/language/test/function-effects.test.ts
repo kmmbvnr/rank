@@ -34,7 +34,7 @@ it('uses a proved captured array for a nested numeric reader without assuming co
 });
 
 it('certifies only scalar writes that preserve a captured numeric array cell type', () => {
-    const source = 'fun outer\n A = array shape 2 fill 0\n fun I V write\n'
+    const source = 'fun outer\n A = array shape 2 fill 0\n fun I write V\n'
         + '  A I = V\n  return 0\n end\n return 0\nend';
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'],
@@ -66,7 +66,7 @@ it('retains array read effects from the shared scalar-expression proof', () => {
 it('keeps captured scalar dependencies when a shared proof reads an array', () => {
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
-    const source = 'fun outer\n Offset = 1\n fun A I helper\n  return (A I) + Offset\n end\n return 0\nend';
+    const source = 'fun outer\n Offset = 1\n fun A helper I\n  return (A I) + Offset\n end\n return 0\nend';
     const effects = analyze(source, 'helper', ['Offset'], [array, integer], new Map([['Offset', integer]]));
     expect(effects.unknown).toBe(false);
     expect([...effects.readParameters]).toEqual([0]);
@@ -92,7 +92,7 @@ it('proves the unchanged queens safety check with a guarded scalar abs', () => {
     const source = readFileSync(new URL('../../../demos/classic/queens_iterative.ra', import.meta.url), 'utf8');
     expect(borrowProofs(source, 'safe', ['abs']).get(0)).toEqual(new Map([[1, 'bigint']]));
     expect(borrowProofs(source, 'safe').has(0)).toBe(false);
-    expect(borrowProofs(source.replace('fun Board Row safe\n', 'fun Board Row safe\n  fun X abs\n    return X\n  end\n'), 'safe', ['abs']).has(0))
+    expect(borrowProofs(source.replace('fun Board safe Row\n', 'fun Board safe Row\n  fun X abs\n    return X\n  end\n'), 'safe', ['abs']).has(0))
         .toBe(false);
 });
 
@@ -110,7 +110,7 @@ end`;
 });
 
 it('guards counted-loop lengths from another flat-array parameter', () => {
-    const source = `fun A B helper
+    const source = `fun A helper B
   Total = 0
   for I in 0 till ((A len) - 1)
     Total += B I
@@ -123,13 +123,13 @@ end`;
 });
 
 it('distinguishes reads, parameter writes and captured object writes', () => {
-    expect(analyze('fun X Y helper\n return X + Y\nend'))
+    expect(analyze('fun X helper Y\n return X + Y\nend'))
         .toEqual({ unknown: false, parameters: new Set(), reboundParameters: new Set(),
             captures: new Set(), bindingCaptures: new Set(), globalWriteCaptures: new Set(),
             readParameters: new Set(), readCaptures: new Set(), globalReadCaptures: new Set(),
             valueCaptures: new Set(), globalValueCaptures: new Set(), io: false,
             returns: [{ kind: 'unknown' }] });
-    expect(analyze('fun X Y helper\n X 0 = Y\n Shared 0 = 1\n return 0\nend'))
+    expect(analyze('fun X helper Y\n X 0 = Y\n Shared 0 = 1\n return 0\nend'))
         .toEqual({ unknown: false, parameters: new Set([0]), reboundParameters: new Set(),
             captures: new Set(['Shared']), bindingCaptures: new Set(),
             globalWriteCaptures: new Set(['Shared']),
@@ -139,14 +139,14 @@ it('distinguishes reads, parameter writes and captured object writes', () => {
 });
 
 it('treats scalar min as callback-free only for proven numeric operands', () => {
-    const source = 'fun X Y helper\n return X Y min\nend';
+    const source = 'fun X helper Y\n return X min Y\nend';
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     expect(analyze(source, 'helper', [], [integer, integer]).unknown).toBe(false);
     expect(analyze(source, 'helper', [], [{ types: [] }, integer]).unknown).toBe(true);
 });
 
 it('summarizes a caught scalar conversion and a read-only index helper', () => {
-    const source = 'fun Key Wires helper\n try\n  return Key integer\n catch .InvalidNumber Error\n'
+    const source = 'fun Key helper Wires\n try\n  return Key integer\n catch .InvalidNumber Error\n'
         + '  return Wires Key\n end\nend';
     const key: ValueFacts = { types: ['text'], rank: 1, shape: [null] };
     const wires: ValueFacts = { types: ['index'], elements: ['integer'] };
@@ -196,14 +196,14 @@ it('summarizes the unchanged bracket-count demo with proven scalar input', () =>
 it('summarizes scalar integer number operations only with proven inputs', () => {
     const integer: ValueFacts = { types: ['integer'], rank: 0, shape: [] };
     const unknown: ValueFacts = { types: [] };
-    for (const [expression, count] of [['A abs', 1], ['A B gcd', 2], ['A isqrt', 1],
-        ['A B C powmod', 3], ['A B lcm', 2], ['A B binomial', 2], ['A binary', 1], ['A B binary', 2], ['A B bit', 2],
-        ['A bnot', 1], ['A popcount', 1], ['A B shl', 2], ['A B shr', 2]] as const) {
+    for (const [expression, count] of [['A abs', 1], ['A gcd B', 2], ['A isqrt', 1],
+        ['A B C powmod', 3], ['A lcm B', 2], ['A binomial B', 2], ['A binary', 1], ['A binary B', 2], ['A bit B', 2],
+        ['A bnot', 1], ['A popcount', 1], ['A shl B', 2], ['A shr B', 2]] as const) {
         const parameters = ['A', 'B', 'C'].slice(0, count);
         const source = `fun helper ${parameters.join(' ')}\n return ${expression}\nend`;
         expect(analyze(source, 'helper', [], parameters.map(() => integer)).unknown, expression).toBe(false);
         expect(analyze(source, 'helper', [], parameters.map(() => unknown)).unknown, expression).toBe(true);
-        expect(analyze(source, 'helper', [expression.split(' ').at(-1)!], parameters.map(() => integer)).unknown,
+        expect(analyze(source, 'helper', [expression.split(' ').find(word => /^[a-z]/.test(word))!], parameters.map(() => integer)).unknown,
             expression).toBe(true);
     }
     expect(analyze('fun A helper\n return A abs\nend', 'helper', [], [{
@@ -339,7 +339,7 @@ it('does not treat an empty iterator fact as proof that iteration has no callbac
 
 it('skips zero-repeat callback bodies but not callback factories or unknown counts', () => {
     const prefix = 'fun X step\n Unknown callback\n return X\nend\n'
-        + 'fun Prev Next done\n Unknown predicate\n return true\nend\n';
+        + 'fun Prev done Next\n Unknown predicate\n return true\nend\n';
     const source = prefix + 'fun N helper\n return 1 step repeat N till done\nend';
     const count = (integer?: string): ValueFacts => ({ types: ['integer'], rank: 0, shape: [], integer });
     expect(analyze(source, 'helper', [], [count('0')]).unknown).toBe(false);
@@ -364,7 +364,7 @@ it('keeps the K-means zero-step call separate from its unsupported repeat callba
 });
 
 it('accepts only a local numeric array compound update with compatible callback-free cells', () => {
-    const source = 'fun X Y helper\n Temp = X\n Temp -= Y\n return Temp\nend';
+    const source = 'fun X helper Y\n Temp = X\n Temp -= Y\n return Temp\nend';
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['integer'],
         eagerScalarCells: true };
     expect(analyze(source, 'helper', [], [array, array]).unknown).toBe(false);
@@ -464,7 +464,7 @@ it('summarizes captured stack writes by facts that hold across any number of cal
 });
 
 it('joins scalar facts from conditional assignments before proving builtin calls', () => {
-    const source = 'fun N Flag helper\n X = N\n if Flag\n  X = array 1 2\n end\n return X odd\nend';
+    const source = 'fun N helper Flag\n X = N\n if Flag\n  X = array 1 2\n end\n return X odd\nend';
     expect(analyze(source, 'helper', [], [{ types: ['integer'], rank: 0, shape: [] },
         { types: ['boolean'], rank: 0, shape: [] }]).unknown).toBe(true);
     expect(analyze('fun N helper\n if N odd\n  Unknown external\n end\n return 0\nend',
@@ -503,21 +503,21 @@ it('proves non-escape in unchanged numeric reader demos only with exact builtin 
 });
 
 it('does not keep a fresh return origin after a loop can replace the local', () => {
-    const source = 'fun X N helper\n Y = array 1\n for I in 0 till N\n  Y = X\n end\n return Y\nend';
+    const source = 'fun X helper N\n Y = array 1\n for I in 0 till N\n  Y = X\n end\n return Y\nend';
     const array: ValueFacts = { types: ['array'], rank: 1, shape: [1], elements: ['integer'], eagerScalarCells: true };
     const result = analyze(source, 'helper', [], [array, { types: ['integer'], rank: 0, shape: [] }]);
     expect(result).toMatchObject({ unknown: false, returns: [{ kind: 'unknown' }] });
 });
 
 it('does not treat a throwing fallthrough as a returned value', () => {
-    expect(analyze('fun X Flag helper\n if Flag\n  return X\n end\nend')).toMatchObject({
+    expect(analyze('fun X helper Flag\n if Flag\n  return X\n end\nend')).toMatchObject({
         unknown: false, returns: [{ kind: 'parameter', index: 0 }],
     });
     expect(analyze('fun X helper\n X 0 = 1\nend').unknown).toBe(true);
 });
 
 it('maps helper writes to the enclosing parameters', () => {
-    expect(analyze('fun X write\n X 0 = 1\n return 0\nend\nfun A B helper\n B write\n return A\nend'))
+    expect(analyze('fun X write\n X 0 = 1\n return 0\nend\nfun A helper B\n B write\n return A\nend'))
         .toEqual({ unknown: false, parameters: new Set([1]), reboundParameters: new Set(),
             captures: new Set(), bindingCaptures: new Set(), globalWriteCaptures: new Set(),
             readParameters: new Set(), readCaptures: new Set(), globalReadCaptures: new Set(),
@@ -580,9 +580,9 @@ it('propagates a grandchild replacement of an unshadowed outer local', () => {
 });
 
 it('does not map effects or borrow guards through repeated parameter names', () => {
-    expect(analyze('fun X X helper\n return X 0\nend').unknown).toBe(true);
-    expect(borrowProofs('fun X X helper\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X X read\n return X 0\nend\nfun A helper\n return A 0 read\nend', 'helper'))
+    expect(analyze('fun X helper X\n return X 0\nend').unknown).toBe(true);
+    expect(borrowProofs('fun X helper X\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X read X\n return X 0\nend\nfun A helper\n return A read 0\nend', 'helper'))
         .toEqual(new Map());
 });
 
@@ -637,7 +637,7 @@ it('classifies whole-axis array selection as a guarded read', () => {
 });
 
 it('proves numeric outer arithmetic without trusting lazy callback arrays', () => {
-    const source = 'fun X Y helper\n return X Y outer +\nend';
+    const source = 'fun X helper Y\n return X Y outer +\nend';
     const numeric = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true } as const;
     expect(analyze(source, 'helper', [], [numeric, numeric]).unknown).toBe(false);
     expect(analyze(source, 'helper', [], [{ ...numeric, eagerScalarCells: undefined }, numeric]).unknown).toBe(true);
@@ -646,7 +646,7 @@ it('proves numeric outer arithmetic without trusting lazy callback arrays', () =
 it('uses numeric array proofs for dyadic min and max', () => {
     const numeric = { types: ['array'], rank: 1, shape: [2], elements: ['integer'], eagerScalarCells: true } as const;
     for (const operation of ['min', 'max']) {
-        const source = `fun X Y helper\n return ${operation === 'max' ? 'X max Y' : 'X Y min'}\nend`;
+        const source = `fun X helper Y\n return ${operation === 'max' ? 'X max Y' : 'X min Y'}\nend`;
         expect(analyze(source, 'helper', [], [numeric, numeric]).unknown).toBe(false);
         expect(analyze(source, 'helper', [], [{ ...numeric, eagerScalarCells: undefined }, numeric]).unknown).toBe(true);
     }
@@ -707,22 +707,22 @@ it('proves a flat-array reader does not escape through a resolved helper', () =>
         .toEqual(new Set([0]));
     expect(borrowCandidates('fun X helper\n if true\n  return X 0\n else\n  return X 1\n end\nend'))
         .toEqual(new Set([0]));
-    expect(borrowProofs('fun X Flag helper\n if Flag\n  return X 0\n else\n  return X 1\n end\nend'))
+    expect(borrowProofs('fun X helper Flag\n if Flag\n  return X 0\n else\n  return X 1\n end\nend'))
         .toEqual(new Map([[0, new Map([[1, 'boolean']])]]));
-    expect(borrowProofs('fun X Flag branch\n if Flag\n  return X 0\n else\n  return X 1\n end\nend\n'
-        + 'fun A Choice helper\n return A Choice branch\nend'))
+    expect(borrowProofs('fun X branch Flag\n if Flag\n  return X 0\n else\n  return X 1\n end\nend\n'
+        + 'fun A helper Choice\n return A branch Choice\nend'))
         .toEqual(new Map([[0, new Map([[1, 'boolean']])]]));
-    expect(borrowProofs('fun X Flag helper\n if Flag\n  return X\n end\n return X 0\nend'))
+    expect(borrowProofs('fun X helper Flag\n if Flag\n  return X\n end\n return X 0\nend'))
         .toEqual(new Map());
-    expect(borrowProofs('fun X Flag helper\n if Flag\n  X 0 = 9\n end\n return X 0\nend'))
+    expect(borrowProofs('fun X helper Flag\n if Flag\n  X 0 = 9\n end\n return X 0\nend'))
         .toEqual(new Map());
-    expect(borrowProofs('fun X Selector helper\n if Selector\n  return X Selector\n end\n return X 0\nend'))
+    expect(borrowProofs('fun X helper Selector\n if Selector\n  return X Selector\n end\n return X 0\nend'))
         .toEqual(new Map());
-    expect(borrowProofs('fun X Flag helper\n if Flag\n  Cell = X 0\n else\n  Cell = X 1\n end\n return Cell\nend'))
+    expect(borrowProofs('fun X helper Flag\n if Flag\n  Cell = X 0\n else\n  Cell = X 1\n end\n return Cell\nend'))
         .toEqual(new Map([[0, new Map([[1, 'boolean']])]]));
-    expect(borrowProofs('fun X Flag helper\n if Flag\n  Cell = X 0\n end\n return Cell\nend'))
+    expect(borrowProofs('fun X helper Flag\n if Flag\n  Cell = X 0\n end\n return Cell\nend'))
         .toEqual(new Map());
-    expect(borrowProofs('fun X Flag helper\n if Flag\n  Cell = X 0\n else\n  Cell = X\n end\n return Cell\nend'))
+    expect(borrowProofs('fun X helper Flag\n if Flag\n  Cell = X 0\n else\n  Cell = X\n end\n return Cell\nend'))
         .toEqual(new Map());
     expect(borrowProofs('fun X Flag I J helper\n if Flag\n  Pos = I\n else\n  Pos = J\n end\n return X Pos\nend'))
         .toEqual(new Map([[0, new Map([[1, 'boolean'], [2, 'bigint'], [3, 'bigint']])]]));
@@ -730,9 +730,9 @@ it('proves a flat-array reader does not escape through a resolved helper', () =>
 
 it('tracks integer selector guards through reader helpers', () => {
     const integer = (...indices: number[]) => new Map(indices.map(index => [index, 'bigint']));
-    expect(borrowProofs('fun X I helper\n return X I\nend'))
+    expect(borrowProofs('fun X helper I\n return X I\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I helper\n return X (I + 1)\nend'))
+    expect(borrowProofs('fun X helper I\n return X (I + 1)\nend'))
         .toEqual(new Map([[0, integer(1)]]));
     expect(borrowProofs('fun X I J helper\n return X (I * 2 - J)\nend'))
         .toEqual(new Map([[0, integer(1, 2)]]));
@@ -740,56 +740,56 @@ it('tracks integer selector guards through reader helpers', () => {
         .toEqual(new Map([[0, integer(1, 2)]]));
     expect(borrowProofs('fun X I J helper\n return X (I mod J)\nend'))
         .toEqual(new Map([[0, integer(1, 2)]]));
-    expect(borrowCandidates('fun X I helper\n return X I\nend')).toEqual(new Set());
-    expect(borrowProofs('fun X I readat\n return X I\nend\nfun A J helper\n return A J readat\nend'))
+    expect(borrowCandidates('fun X helper I\n return X I\nend')).toEqual(new Set());
+    expect(borrowProofs('fun X readat I\n return X I\nend\nfun A helper J\n return A readat J\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I readat\n return X I\nend\nfun A J helper\n return A (J + 1) readat\nend'))
+    expect(borrowProofs('fun X readat I\n return X I\nend\nfun A helper J\n return A readat (J + 1)\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I readat\n return X I\nend\nfun A helper\n return A 0 readat\nend'))
+    expect(borrowProofs('fun X readat I\n return X I\nend\nfun A helper\n return A readat 0\nend'))
         .toEqual(new Map([[0, integer()]]));
-    expect(borrowProofs('fun X I helper\n J = I + 1\n return X J\nend'))
+    expect(borrowProofs('fun X helper I\n J = I + 1\n return X J\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I helper\n J = (I + 1) // 1\n return X J\nend'))
+    expect(borrowProofs('fun X helper I\n J = (I + 1) // 1\n return X J\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I helper\n Cell = X I\n return Cell\nend'))
+    expect(borrowProofs('fun X helper I\n Cell = X I\n return Cell\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I helper\n Cell = X I\n return Cell + 1\nend'))
+    expect(borrowProofs('fun X helper I\n Cell = X I\n return Cell + 1\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I readat\n return X I\nend\nfun A J helper\n Cell = A J readat\n return Cell\nend'))
+    expect(borrowProofs('fun X readat I\n return X I\nend\nfun A helper J\n Cell = A readat J\n return Cell\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I readat\n return X I\nend\nfun A J helper\n Cell = (A J readat) + 1\n return Cell\nend'))
+    expect(borrowProofs('fun X readat I\n return X I\nend\nfun A helper J\n Cell = (A readat J) + 1\n return Cell\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I readat\n return X I\nend\nfun A J helper\n K = J + 1\n return A K readat\nend'))
+    expect(borrowProofs('fun X readat I\n return X I\nend\nfun A helper J\n K = J + 1\n return A readat K\nend'))
         .toEqual(new Map([[0, integer(1)]]));
-    expect(borrowProofs('fun X I helper\n X 0 = 1\n return X I\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X I helper\n return X\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper I\n X 0 = 1\n return X I\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper I\n return X\nend')).toEqual(new Map());
     for (const selector of ['I / 2', 'I + External', 'X + 1', 'I + 1.5']) {
-        expect(borrowProofs(`fun X I helper\n return X (${selector})\nend`).has(0), selector).toBe(false);
+        expect(borrowProofs(`fun X helper I\n return X (${selector})\nend`).has(0), selector).toBe(false);
     }
     for (const body of ['J = X\n return X J', 'J = I / 1\n return X J',
         'if I\n  J = I + 1\n end\n return X J', 'J = I + 1\n J = Source\n return X J']) {
-        expect(borrowProofs(`fun X I helper\n ${body}\nend`).has(0), body).toBe(false);
+        expect(borrowProofs(`fun X helper I\n ${body}\nend`).has(0), body).toBe(false);
     }
     for (const body of ['Cell = X I\n return X', 'Cell = X I\n Cell = X\n return Cell',
         'if I\n  Cell = X I\n end\n return Cell']) {
-        expect(borrowProofs(`fun X I helper\n ${body}\nend`).has(0), body).toBe(false);
+        expect(borrowProofs(`fun X helper I\n ${body}\nend`).has(0), body).toBe(false);
     }
-    expect(borrowProofs('fun X I readat\n return X\nend\nfun A J helper\n Cell = A J readat\n return Cell\nend'))
+    expect(borrowProofs('fun X readat I\n return X\nend\nfun A helper J\n Cell = A readat J\n return Cell\nend'))
         .toEqual(new Map());
 });
 
 it('borrows through a counted read-only loop, but not dynamic iteration or escape', () => {
-    expect(borrowProofs('fun X N helper\n for I in 0 till N\n  X I\n end\n return X 0\nend'))
+    expect(borrowProofs('fun X helper N\n for I in 0 till N\n  X I\n end\n return X 0\nend'))
         .toEqual(new Map([[0, new Map([[1, 'bigint']])]]));
-    expect(borrowProofs('fun X N helper\n Total = 0\n for I in 0 till N\n  Total += X I\n end\n return Total\nend'))
+    expect(borrowProofs('fun X helper N\n Total = 0\n for I in 0 till N\n  Total += X I\n end\n return Total\nend'))
         .toEqual(new Map([[0, new Map([[1, 'bigint']])]]));
     expect(borrowProofs('fun X helper\n for I in X\n  I\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X N helper\n for X in 0 till N\n  X 0\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X N helper\n for I in 0 till N\n  Saved = X\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X N helper\n for I in 0 till N\n  X I = 9\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X N helper\n for I in 0 till N\n  return X\n end\n return X 0\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X N helper\n Total = 0\n for I in 0 till N\n  Total += X\n end\n return Total\nend')).toEqual(new Map());
-    expect(borrowProofs('fun X N helper\n Total = 0\n for I in 0 till N\n  Total += X I\n end\n return X Total\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper N\n for X in 0 till N\n  X 0\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper N\n for I in 0 till N\n  Saved = X\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper N\n for I in 0 till N\n  X I = 9\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper N\n for I in 0 till N\n  return X\n end\n return X 0\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper N\n Total = 0\n for I in 0 till N\n  Total += X\n end\n return Total\nend')).toEqual(new Map());
+    expect(borrowProofs('fun X helper N\n Total = 0\n for I in 0 till N\n  Total += X I\n end\n return X Total\nend')).toEqual(new Map());
 });
 
 it('keeps aliases, returns, writes and unknown calls outside the borrow proof', () => {
@@ -839,7 +839,7 @@ it('records direct result origins and follows straight-line local names', () => 
 });
 
 it('joins returned origins through branches and resolved helpers', () => {
-    expect(analyze('fun X Y helper\n if Flag\n  Result = X\n else\n  Result = Y\n end\n return Result\nend').returns)
+    expect(analyze('fun X helper Y\n if Flag\n  Result = X\n else\n  Result = Y\n end\n return Result\nend').returns)
         .toEqual([{ kind: 'unknown' }]);
     expect(analyze('fun X helper\n if Flag\n  Result = X\n else\n  Result = X\n end\n return Result\nend').returns)
         .toEqual([{ kind: 'parameter', index: 0 }]);
@@ -852,7 +852,7 @@ it('joins returned origins through branches and resolved helpers', () => {
 });
 
 it('unions possible branch effects', () => {
-    expect(analyze('fun A B helper\n if Flag\n A 0 = 1\n else\n B 0 = 2\n end\n return 0\nend').parameters)
+    expect(analyze('fun A helper B\n if Flag\n A 0 = 1\n else\n B 0 = 2\n end\n return 0\nend').parameters)
         .toEqual(new Set([0, 1]));
 });
 
@@ -916,7 +916,7 @@ it('uses compiled native contracts for text while preserving unknown host effect
     }
     expect(analyze('fun X helper\n return X text\nend', 'helper', [], [integer]).unknown).toBe(false);
     expect(analyze('fun X helper\n return X md5\nend', 'helper', [], [text]).unknown).toBe(true);
-    const source = 'fun X helper\n return X ":" join\nend';
+    const source = 'fun X helper\n return X join ":"\nend';
     const array: ValueFacts = { types: ['array'], rank: 1, elements: ['text'] };
     expect(analyze(source, 'helper', [], [array]).unknown).toBe(true);
     expect(analyze(source, 'helper', [], [{ ...array, eagerScalarCells: true }]).unknown).toBe(false);
@@ -932,7 +932,7 @@ it('does not infer native safety from an unknown domain, a bytes tag or a mixed 
     ] satisfies ValueFacts[]) {
         expect(analyze('fun X helper\n return X bytes\nend', 'helper', [], [input]).unknown).toBe(true);
     }
-    const source = 'fun X Y helper\n return X Y startswith\nend';
+    const source = 'fun X helper Y\n return X startswith Y\nend';
     const text: ValueFacts = { types: ['text'], rank: 1 };
     expect(analyze(source, 'helper', [], [text, text]).unknown).toBe(false);
     expect(analyze(source, 'helper', [], [text, { types: ['bytes'], rank: 1 }]).unknown).toBe(true);

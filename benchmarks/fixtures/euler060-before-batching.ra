@@ -8,7 +8,7 @@ use sequences
 use io
 
 Seed = 10000 build
-Upper = Seed 50000 min_five
+Upper = Seed min_five 50000
 if Upper equal 50000
   raise "no five-prime set in seed"
 end
@@ -16,7 +16,7 @@ end
 rem A better set has every prime
 rem below Upper.
 Full = Upper build
-Answer = Full Upper min_five
+Answer = Full min_five Upper
 Answer print
 
 
@@ -29,7 +29,7 @@ fun Limit build
   if 3 in Vals
     Three = 3
     for Q in Vals drop 1
-      if Three Q compatible
+      if Three compatible Q
         Graph add Three Q
       end
     end
@@ -45,7 +45,7 @@ fun Limit build
       end
       Later = Group drop (i + 1)
       for Q in Later
-        if P Q compatible
+        if P compatible Q
           Graph add P Q
         end
       end
@@ -59,17 +59,17 @@ fun Limit build
 end
 
 
-fun P Q compatible
-  PQ = P Q concat
+fun P compatible Q
+  PQ = P concat Q
   if PQ not in primes
     return false
   end
-  QP = Q P concat
+  QP = Q concat P
   return QP in primes
 end
 
 
-fun A B concat
+fun A concat B
   Scale = 10
   for Scale at most B
     Scale *= 10
@@ -81,7 +81,7 @@ end
 rem Keep Best if no cheaper set exists.
 rem Data holds ascending positive values
 rem and their graph.
-fun Data Best min_five
+fun Data min_five Best
   Graph = Data .graph
   Vals = Data .primes
   Best = Vals 5 0 Best search

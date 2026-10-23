@@ -14,7 +14,7 @@ Boards' = Mask choose "Q" "."
 for Board i in Boards
   i + 1 print
   for Line in Board
-    Line " " join print
+    Line join " " print
   end
   "" print
 end

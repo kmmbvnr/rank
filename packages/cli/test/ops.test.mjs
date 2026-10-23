@@ -33,7 +33,7 @@ test('ops lists a module as forms, bare syntax included', () => {
     assert.match(session.stdout, /Low till High/);
 
     const bits = repl(['ops bits']);
-    assert.match(bits.stdout, /Value Count shl/);
+    assert.match(bits.stdout, /Value shl Count/);
 });
 
 test('ops refuses a name that is neither module nor operation', () => {

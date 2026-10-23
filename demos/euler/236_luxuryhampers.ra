@@ -78,8 +78,8 @@ for A in 1 to Top
     end
     U = U // G1
     V = V // G1
-    G5 = 5 V gcd
-    G41 = 41 U gcd
+    G5 = 5 gcd V
+    G41 = 41 gcd U
     Km = (5 // G5) * (41 // G41)
     if V * Km // 5 not equal A
       continue
@@ -228,5 +228,5 @@ for A in 1 to Top
   end
 end
 Pair = array Bu Bv
-Answer = Pair "/" join
+Answer = Pair join "/"
 Answer print

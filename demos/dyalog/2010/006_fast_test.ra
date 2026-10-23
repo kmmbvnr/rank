@@ -11,7 +11,7 @@ test "random rate paths match the monthly model"
 
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   State = 11 seed
-  Rolls = (1 to 6) (120 * 50) choices
+  Rolls = (1 to 6) choices (120 * 50)
   Steps = (Rolls - 3.5) / 10
   Changes = Steps reshape 120 50
   Slow = Changes 8.5 Params difference
@@ -61,7 +61,7 @@ test "a term that is not whole years matches the monthly model"
 
   Params = array 150000.0 5000.0 100.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   State = 5 seed
-  Rolls = (1 to 6) (33 * 20) choices
+  Rolls = (1 to 6) choices (33 * 20)
   Steps = (Rolls - 3.5) / 10
   Changes = Steps reshape 33 20
   Slow = Changes 8.5 Params difference
@@ -78,9 +78,9 @@ test "shares match task 5 with the same seed"
 
   Params = array 150000.0 5000.0 360.0 75000.0 10.0 30000.0 5.0 1.5 25.0 1.75 3.0 600.0
   State = 3 seed
-  Slow = (array 8.5 300.0) Params variablerisk
+  Slow = (array 8.5 300.0) variablerisk Params
   State = 3 seed
-  Fast = (array 8.5 300.0) Params variablefast
+  Fast = (array 8.5 300.0) variablefast Params
   (Slow equal Fast) all
 end
 

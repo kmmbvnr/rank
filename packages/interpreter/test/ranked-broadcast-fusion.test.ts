@@ -5,7 +5,7 @@ function run(body: string, args: RankValue[], tensorFusion: boolean, deferred = 
     let kernels = 0;
     const runtime = new Interpreter(undefined, { tensorFusion, onTensorKernelExecuted: () => kernels++ });
     try {
-        runtime.execute(`fun A${deferred ? "'" : ''} B probe\n  return ${body}\nend`);
+        runtime.execute(`fun A${deferred ? "'" : ''} probe B\n  return ${body}\nend`);
         const fn = runtime.variables.get('probe')!;
         if (typeof fn !== 'object' || fn.kind !== 'function') throw Error('missing function');
         const value = demandValue(fn.call(args));
@@ -79,7 +79,7 @@ describe('ranked binary tensor fusion', () => {
     it('rebinds warmed kernels after shape changes and retains earlier results', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun A B probe\n  return (A - B rank 1 0) * 2\nend');
+            runtime.execute('fun A probe B\n  return (A - B rank 1 0) * 2\nend');
             const fn = runtime.variables.get('probe')!;
             if (typeof fn !== 'object' || fn.kind !== 'function') throw Error('missing function');
             const outputs = [[2, 3], [1, 4], [3, 2]].map(shape => {

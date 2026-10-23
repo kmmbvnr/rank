@@ -12,7 +12,7 @@ test "official example has a cut of two"
     3 4
     1 4
   end
-  Closed = 4 Edges police_chase
+  Closed = 4 police_chase Edges
   Closed len equal 2
   Closed 0 equal array 3 4
   Closed 1 equal array 1 4
@@ -26,7 +26,7 @@ test "closes the only street"
   Edges = array shape 1 2
     1 2
   end
-  Closed = 2 Edges police_chase
+  Closed = 2 police_chase Edges
   Closed len equal 1
   Closed 0 equal array 1 2
 end
@@ -39,7 +39,7 @@ test "returns no streets when separated"
   Edges = array shape 1 2
     1 2
   end
-  Closed = 3 Edges police_chase
+  Closed = 3 police_chase Edges
   Closed len equal 0
 end
 
@@ -52,7 +52,7 @@ test "orients streets out of the cut"
     2 1
     2 3
   end
-  Closed = 3 Edges police_chase
+  Closed = 3 police_chase Edges
   Closed len equal 1
   Closed 0 equal array 1 2
 end

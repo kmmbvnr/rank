@@ -4,8 +4,8 @@ import { MemoryIo, TokenInput, run } from './support.js';
 
 describe('Rank IO, modules and programs', () => {
     it('calls operations after their data', () => {
-        expect(run('use numbers\n54 24 gcd')).toBe('6');
-        expect(run('use numbers\n8 12 lcm')).toBe('24');
+        expect(run('use numbers\n54 gcd 24')).toBe('6');
+        expect(run('use numbers\n8 lcm 12')).toBe('24');
         expect(run('use numbers\n(1 to 10) lcm')).toBe('2520');
         expect(run('use numbers\n7 0 13 powmod')).toBe('1');
         expect(run('use numbers\n7 4 13 powmod')).toBe('9');
@@ -25,17 +25,17 @@ describe('Rank IO, modules and programs', () => {
             '  1 2',
             '  3 4',
             'end',
-            'fun Value Limit above',
+            'fun Value above Limit',
             '  return Value greater Limit',
             'end',
-            'M 1 0 2 above',
+            'M 1 0 above 2',
         ].join('\n'))).toBe('true');
         expect(() => run([
-            'fun A B add',
+            'fun A add B',
             '  return A + B',
             'end',
-            '1 2 3 add',
-        ].join('\n'))).toThrowError('add expects 2 arguments, got 3');
+            '1 2 add 3',
+        ].join('\n'))).toThrowError('value application requires a sequence and one selector');
     });
 
     it('rejects names from modules that were not imported', () => {
@@ -300,8 +300,8 @@ describe('Rank IO, modules and programs', () => {
             'use io',
             'Text = "/input" read',
             'Lines = "/input" readlines',
-            '"start" "/output" write',
-            '" end" "/output" append',
+            '"start" write "/output"',
+            '" end" append "/output"',
         ].join('\n'));
 
         expect(interpreter.variables.get('Text')).toBe('one\r\ntwo\n');
@@ -367,7 +367,7 @@ describe('Rank IO, modules and programs', () => {
             'Direct = "/input" 1 3 readbytes',
             'File = "/input" open',
             'First = File 2 readbytes',
-            'File 3 seek',
+            'File seek 3',
             'Second = File 3 readbytes',
             'Offset = File position',
             'Length = File size',
@@ -389,16 +389,16 @@ describe('Rank IO, modules and programs', () => {
         interpreter.execute([
             'use io',
             'Bytes = "/source" 0 3 readbytes',
-            'Output = "/output" .write open',
-            'Output Bytes writebytes',
+            'Output = "/output" open .write',
+            'Output writebytes Bytes',
             'Output flush',
             'Patch = "/source" 1 1 readbytes',
-            'Update = "/output" .update open',
-            'Update 1 seek',
-            'Update Patch writebytes',
+            'Update = "/output" open .update',
+            'Update seek 1',
+            'Update writebytes Patch',
             'Tail = "/source" 2 1 readbytes',
-            'Log = "/output" .append open',
-            'Log Tail writebytes',
+            'Log = "/output" open .append',
+            'Log writebytes Tail',
         ].join('\n'));
 
         expect(new TextDecoder().decode(io.files.get('/output'))).toBe('abcc');
@@ -423,7 +423,7 @@ describe('Rank IO, modules and programs', () => {
         interpreter.execute([
             'use io',
             'File = "/input" source',
-            'File 2 seek',
+            'File seek 2',
             'Data = File 2 readbytes',
             '',
             'fun Path source',

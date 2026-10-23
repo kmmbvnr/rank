@@ -35,7 +35,7 @@ for B in 0 till Bits
     if Stage equal 1
       Lft = Pw
     end
-    Do = (Stage equal 1) or (N B bit)
+    Do = (Stage equal 1) or (N bit B)
     if Do
       Res = array shape Size fill 0
       for I in 0 till Size

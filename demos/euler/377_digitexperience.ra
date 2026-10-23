@@ -46,7 +46,7 @@ for I in 1 to Terms
 end
 Answer print
 
-fun A B mul
+fun A mul B
   C = array shape 18 18 fill 0
   for I in 0 to 17
     for K in 0 to 17
@@ -63,7 +63,7 @@ fun A B mul
   return C
 end
 
-fun A V apply
+fun A apply V
   W = array shape 18 fill 0
   for I in 0 to 17
     for J in 0 to 17
@@ -81,10 +81,10 @@ fun A E V jump
   end
   for E greater 0
     if E mod 2 equal 1
-      R = R A mul
+      R = R mul A
     end
-    A = A A mul
+    A = A mul A
     E //= 2
   end
-  return R V apply
+  return R apply V
 end

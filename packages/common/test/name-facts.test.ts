@@ -196,8 +196,8 @@ describe('function signatures in the type footer', () => {
         expect(layoutNameFacts(found, 40).every(row => row.length <= 40)).toBe(true);
         const call = 'use sequences\n"abcd" window 2';
         expect(factsAt(call, call.lastIndexOf('window'))?.signature).toBe("text i → c<text>");
-        const shadowed = 'fun X Y window\n return X + Y\nend\n1 window 2';
-        expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).toContain('a a → a');
+        const shadowed = 'fun X window Y\n return X + Y\nend\n1 window 2';
+        expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).toContain('i i → i');
         expect(factsAt(shadowed, shadowed.lastIndexOf('window'))?.signature).not.toContain('widths:');
         for (const dimensions of ['2 2', 'unpack (array 2 2)']) {
             const matrix = `use sequences\nM = array shape 3 3 fill 1\nM window ${dimensions}`;
@@ -235,7 +235,7 @@ describe('function signatures in the type footer', () => {
             expect(rows.every(row => row.length <= 40)).toBe(true);
             expect(rows.filter(row => row.includes('→'))).toHaveLength(name === 'startswith' ? 2 : 1);
         }
-        const source = 'use text\n"abc" "a" startswith';
+        const source = 'use text\n"abc" startswith "a"';
         expect(factsAt(source, source.lastIndexOf('startswith'))?.signature).toBe('text text → boolean');
     });
     it('groups the general sum contract and narrows known collection calls', () => {
@@ -250,7 +250,7 @@ describe('function signatures in the type footer', () => {
         expect(factsAt(source, source.lastIndexOf('sum'))?.signature).toBe("c[999]<number> → number");
     });
     it('uses explicit builtin signatures with their actual overloads', () => {
-        const split = 'use text\n"a,b" "," split';
+        const split = 'use text\n"a,b" split ","';
         expect(formatNameFacts(factsAt(split, split.indexOf('split'))!))
             .toBe("split · text text → c[#]<text>");
     });
@@ -339,7 +339,7 @@ it('shows segment form contracts without advertising callable marker signatures'
         expect(factsAt(source, source.indexOf('segment'))?.signature).toBe("c[3]<i> → c");
         if (combine === 'maxsum') expect(factsAt(source, source.indexOf('maxsum'))?.signature).toBe("c[3]<i> → c");
     }
-    const named = 'use algo\nfun A B combine\n return A + B\nend\n(array 1 2) segment combine';
+    const named = 'use algo\nfun A combine B\n return A + B\nend\n(array 1 2) segment combine';
     expect(factsAt(named, named.indexOf('segment'))?.signature).toBe("c[2]<i> (? ? → ?) → c");
     const shadowed = 'fun X segment\n return X\nend\n3 segment';
     expect(factsAt(shadowed, shadowed.lastIndexOf('segment'))?.signature).toBe('i → i');
@@ -545,7 +545,7 @@ Solutions len
 });
 
 it('does not label a bulk find fallback as a scalar', () => {
-    const source = 'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1';
+    const source = 'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys find Queries default -1';
     const result = factsAt(source, at(source, 'Positions'))!.facts;
     expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
 });

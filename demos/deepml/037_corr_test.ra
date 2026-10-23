@@ -47,7 +47,7 @@ test "official cross correlation"
     1.0 1.0
   end
 
-  Actual = X Y calculate_correlation
+  Actual = X calculate_correlation Y
   Actual Expected equal rank 2
 end
 
@@ -58,7 +58,7 @@ test "sample counts must match"
   Raised = false
 
   try
-    Result = X Y calculate_correlation
+    Result = X calculate_correlation Y
   catch .DimensionMismatch Error
     Raised = true
   end

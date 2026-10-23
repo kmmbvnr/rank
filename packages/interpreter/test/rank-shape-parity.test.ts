@@ -114,7 +114,7 @@ it('agrees on trailing-frame broadcasting and rejects concrete mismatches', () =
         const conflict = incompatibleShapes({ types: ['array'], shape: left }, { types: ['array'], shape: right });
         expect(conflict).toBe(expected === undefined);
         for (const modifier of ['', ' rank 0 0']) {
-            const source = `use numbers\nA = ${array(left)}\nB = ${array(right)}\nR = A B gcd${modifier}`;
+            const source = `use numbers\nA = ${array(left)}\nB = ${array(right)}\nR = A gcd B${modifier}`;
             if (expected) { if (check(source, expected).knownRank) knownRanks++; valid++; }
             else {
                 const runtime = new Interpreter();
@@ -126,7 +126,7 @@ it('agrees on trailing-frame broadcasting and rejects concrete mismatches', () =
     }
     expect([valid, invalid]).toEqual([16, 4]);
     expect(knownRanks).toBeGreaterThan(0);
-    check(`use numbers\nA = ${array([2])}\nB = ${array([1])}\nR = A B gcd rank -1 -1`, [2]);
+    check(`use numbers\nA = ${array([2])}\nB = ${array([1])}\nR = A gcd B rank -1 -1`, [2]);
 });
 
 it('keeps data-dependent result lengths unknown while preserving the frame rank', () => {
@@ -161,11 +161,11 @@ it('preserves documented matrix batches in both execution modes', () => {
         [[2, 2, 0], [1, 0, 4], [2, 2, 4], 0n],
     ];
     for (const [left, right, expected, element] of cases) {
-        for (const call of ['A B matmul rank 2 2', 'A B multiply rank 2 2']) {
+        for (const call of ['A matmul B rank 2 2', 'A multiply B rank 2 2']) {
             const source = [
                 'use linalg',
-                'fun X Y multiply',
-                '  return X Y matmul',
+                'fun X multiply Y',
+                '  return X matmul Y',
                 'end',
                 `A = array shape ${left.join(' ')} fill 1`,
                 `B = array shape ${right.join(' ')} fill 2`,
@@ -309,7 +309,7 @@ it('routes broadcast matrix cells in frame order without mixing contraction axes
         });
         try {
             const source = `use linalg\nA = array ${left.join(' ')} shape 2 1 2 3\n`
-                + `B = array ${right.join(' ')} shape 1 3 3 2\nR = A B matmul rank 2 2`;
+                + `B = array ${right.join(' ')} shape 1 3 3 2\nR = A matmul B rank 2 2`;
             check(source, [2, 3, 2, 2]);
             const result = runtime.execute(`${source}\nR`);
             if (!result || !isRankArray(result)) throw new Error('expected batched array');

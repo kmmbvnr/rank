@@ -12,13 +12,13 @@ Values = stdin .integer Count array
 Edges = Values reshape M 2
 Graph = new graph (1 to N) .directed
 Graph add Edges
-Result = Graph N kingdoms
+Result = Graph kingdoms N
 Result .count print
 Result .labels print
 
 
 rem Label strongly connected kingdoms.
-fun Graph N kingdoms
+fun Graph kingdoms N
   Found = Graph scc
   Part = Found .component
   Labels = array shape N fill 0

@@ -9,7 +9,7 @@ test "official example"
     3 4
     4 1
   end
-  Result = Next Queries planet_queries
+  Result = Next planet_queries Queries
   Result equal array 1 2 4
 end
 
@@ -22,7 +22,7 @@ test "zero steps stays in place"
     2 0
     3 0
   end
-  Result = Next Queries planet_queries
+  Result = Next planet_queries Queries
   Result equal array 1 2 3
 end
 
@@ -34,7 +34,7 @@ test "handles a large cycle jump"
     1 1000000000
     2 999999999
   end
-  Result = Next Queries planet_queries
+  Result = Next planet_queries Queries
   Result equal array 2 2
 end
 
@@ -47,6 +47,6 @@ test "enters a self loop"
     1 9
     4 100
   end
-  Result = Next Queries planet_queries
+  Result = Next planet_queries Queries
   Result equal array 3 4 4
 end

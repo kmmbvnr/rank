@@ -7,13 +7,13 @@ function run(source: string): string {
 
 describe('calendar and trailing table groups', () => {
     it('generates inclusive Gregorian days and truncates datetimes', () => {
-        expect(run('use dates\nuse tables\n"2024-02-28" "2024-03-01" calendar .date'))
+        expect(run('use dates\nuse tables\n("2024-02-28" calendar "2024-03-01") .date'))
             .toBe('2024-02-28 2024-02-29 2024-03-01');
-        expect(run('use dates\nuse sequences\n"2024-03-01" "2024-02-28" calendar len'))
+        expect(run('use dates\nuse sequences\n"2024-03-01" calendar "2024-02-28" len'))
             .toBe('0');
         expect(run('use dates\n"2024-02-29 23:59:59" datetime date'))
             .toBe('2024-02-29');
-        expect(() => run('use dates\n"2024-02-30" "2024-03-01" calendar'))
+        expect(() => run('use dates\n"2024-02-30" calendar "2024-03-01"'))
             .toThrow(/invalid date/);
     });
 

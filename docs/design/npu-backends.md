@@ -33,7 +33,7 @@ Readable temporary variables can remain in source while the compiler combines
 their operations into one graph:
 
 ```text
-Product = X W matmul
+Product = X matmul W
 Scores = Product + Bias
 Result = Scores sigmoid
 ```
@@ -104,7 +104,7 @@ not possible with today's ordinary Rank arrays, whose numeric cells live in
 JS arrays. [ONNX Runtime tensor factory](https://onnxruntime.ai/docs/api/js/interfaces/TensorFactory.html).
 
 The adapter must keep the buffer alive and prevent writes while inference uses
-it. A Rank write during that period would need to wait or take a copy. Lazy
+it. A write Rank during that period would need to wait or take a copy. Lazy
 results, non-contiguous views and inputs requiring a different element type or
 layout still need materialization or conversion. Exact Rank integers cannot be
 silently narrowed to a fixed-width model input.

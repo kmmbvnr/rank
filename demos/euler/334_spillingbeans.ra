@@ -13,7 +13,7 @@ fun N beans
     if T mod 2 equal 0
       T //= 2
     else
-      T = (T // 2) 926252 bxor
+      T = (T // 2) bxor 926252
     end
     Bs I = T mod 2048 + 1
   end

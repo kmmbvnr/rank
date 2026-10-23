@@ -17,7 +17,7 @@ for i in 1 to EdgeCount
   Graph add A B
 end
 
-Cycle = Graph NodeCount find_cycle
+Cycle = Graph find_cycle NodeCount
 if Cycle len equal 0
   "IMPOSSIBLE" print
 else
@@ -27,7 +27,7 @@ end
 
 
 rem Return one simple undirected cycle.
-fun Graph NodeCount find_cycle
+fun Graph find_cycle NodeCount
   Size = NodeCount + 1
   State = array shape Size fill 0
   Parent = array shape Size fill 0

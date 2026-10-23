@@ -163,7 +163,7 @@ Joined' = Bookings Members innerjoin by .memid
 David' = (Joined .firstname equal "David") and (Joined .surname equal "Farrell")
 Result' = (Joined David) (array .starttime)
 Statement = Result sql
-Result "bookings.csv" csv
+Result csv "bookings.csv"
 ```
 
 For a self join, give each use of a table a short role name:
@@ -426,7 +426,7 @@ Age = Data .Age default Median
 Writing mirrors assignment:
 
 ```rank
-Out "submission.csv" csv
+Out csv "submission.csv"
 ```
 
 Output may be a table, a projection of one, or a rank-1 array of object rows.
@@ -490,7 +490,7 @@ table a direct column selection:
 
 ```rank
 Out = Test (array .PassengerId .Survived)
-Out "submission.csv" csv
+Out csv "submission.csv"
 ```
 
 CSV output requires selected column names to be unique. Ordinary array
@@ -798,7 +798,7 @@ Text operations may lift over a whole column:
 
 ```rank
 Cabin = Train .Cabin default "U/0/U"
-Parts = Cabin "/" split
+Parts = Cabin split "/"
 
 Train .Deck = Parts 0
 Train .Number = Parts 1
@@ -814,7 +814,7 @@ slices also stay in a lazy SQLite query. For example:
 ```rank
 F' = Db .facilities
 Names' = F .name lower
-Mask' = Names "tennis" startswith
+Mask' = Names startswith "tennis"
 Result' = F filter Mask
 ```
 
@@ -840,8 +840,8 @@ Data .year = Times year
 `date` also takes a datetime and discards its time. On a SQLite datetime
 column, `datetime date` compiles to `date(...)`, allowing grouping by calendar
 day. `datetime date datetime` compiles to `datetime(date(...))`, producing
-midnight without loading the rows. `Start End calendar` creates a rank-1 array
-table with one `.date` per inclusive day; `Db Start End calendar` creates the
+midnight without loading the rows. `Start calendar End` creates a rank-1 array
+table with one `.date` per inclusive day; `Db Start calendar End` creates the
 corresponding lazy SQLite view. Its endpoints are valid ISO dates or Rank date
 values. The first day
 after the end is excluded, and reversed bounds produce an empty table.

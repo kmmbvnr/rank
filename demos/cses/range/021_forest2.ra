@@ -29,11 +29,11 @@ for I in 1 to Q
   end
 end
 
-Grid Queries forest_updates print
+Grid forest_updates Queries print
 
 
 rem Keep static and changed tree counts.
-fun Grid Queries forest_updates
+fun Grid forest_updates Queries
   Size = Grid len
   Side = Size + 1
   Trees = array shape Size Size fill 0
@@ -70,7 +70,7 @@ fun Grid Queries forest_updates
       for RowIndex at most Size
         F = Changes RowIndex
         F X += Delta
-        Step = RowIndex (-RowIndex) band
+        Step = RowIndex band (-RowIndex)
         RowIndex += Step
       end
       continue
@@ -101,7 +101,7 @@ fun Rows Y X bit2sum
   for Y greater 0
     F = Rows Y
     Total += F sum X
-    Y -= Y (-Y) band
+    Y -= Y band (-Y)
   end
   return Total
 end

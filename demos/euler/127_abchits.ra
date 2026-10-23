@@ -29,7 +29,7 @@ Last Rs = 0 till (Limit - 1) array
 Cum = (Last scan max) + 1
 C = 3 to Limit - 1 array
 Q = (C - 1) // (Rad C)
-Half' = (Q // 2) Limit min
+Half' = (Q // 2) min Limit
 Many = Cum Half
 Keep' = Many greater 0
 Cs = C filter Keep array
@@ -46,6 +46,6 @@ B' = (Cc - A) max 1
 Hit = A * 2 less Cc
 Prod = (Rad A) * (Rad B) * (Rad Cc)
 Hit and= Prod less Cc
-Hit and= (A Cc gcd) equal 1
+Hit and= (A gcd Cc) equal 1
 Answer = (Cc filter Hit array) sum
 Answer print

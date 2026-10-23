@@ -39,5 +39,5 @@ Hh = Pi / 2 / Steps / 3
 Ig = (Wt * Rr * Rr * (0 - Dz)) sum
 Vo = 2 * Pi * Hh * Ig
 Vc = Vo - 4 * Pi * A * A * B / 3
-Answer = Vc Digits round
+Answer = Vc round Digits
 Answer print

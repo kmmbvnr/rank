@@ -34,7 +34,7 @@ for Sp less M1
 end
 for Sp greater 0
   Ix = Cn + Sp
-  Fv = F ((Ix - 1) Bm min)
+  Fv = F ((Ix - 1) min Bm)
   Up = (Fv at most T) choose Ix Cn
   Cn = (Ix at most M1) choose Up Cn
   Sp //= 2
@@ -78,14 +78,14 @@ Cl = array shape 0 fill 0.0
 Cq = array shape 0 fill 0.0
 Ce = array shape 0 fill 0.0
 for St in 0 till Nq by C
-  Se = (St + C) Nq min
+  Se = (St + C) min Nq
   Qc = Qs (St till Se)
   Q0 = Qc 0
   Q1 = Qc last
   I0 = (Ls less Q0) count - 1
   I1 = (Ls at most Q1) count + 1
   I0 = I0 max 0
-  I1 = I1 Nl min
+  I1 = I1 min Nl
   Lc = Ls (I0 till I1)
   Nc = Lc len
   Mg = concat Lc Qc
@@ -137,7 +137,7 @@ for I in 0 till Cl len
     end
     Ar = (1 + Tg - F) max 1.0
     Bb = (N * (Ar log) + 0.5) floor
-    Bb = (Bb max 0) Bm min
+    Bb = (Bb max 0) min Bm
     Dv = (F + F Bb - Tg) abs
     Ok = Dv less 0.0000000000001
     Ok = Ok and (Bb at least Ks)

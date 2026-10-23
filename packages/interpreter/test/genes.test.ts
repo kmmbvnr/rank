@@ -55,7 +55,7 @@ for (const compiled of [false, true]) describe(`Genes composition (compiled=${co
                 for (let col = 0; col < width; col++) sum += weights[alphabet.indexOf(sequence[start + col]) * width + col];
                 return sum;
             });
-            const actual = values(r.execute(`Weights "${sequence}" score`)!);
+            const actual = values(r.execute(`Weights score "${sequence}"`)!);
             expect(actual).toHaveLength(expected.length);
             actual.forEach((v, i) => expect(Number(v)).toBeCloseTo(expected[i], 12));
         }
@@ -64,8 +64,8 @@ for (const compiled of [false, true]) describe(`Genes composition (compiled=${co
     it('retains the first five positions for tied scores, including duplicate strings', () => {
         const r = runtime();
         r.execute('Weights = array shape 4 2 fill 0.0');
-        expect(values(r.execute('Weights "ACGTACGT" top5')!)).toEqual([...'ACCGGTTAAC']);
-        expect(values(r.execute('Weights "AAAAAA" top5')!)).toEqual(Array(10).fill('A'));
+        expect(values(r.execute('Weights top5 "ACGTACGT"')!)).toEqual([...'ACCGGTTAAC']);
+        expect(values(r.execute('Weights top5 "AAAAAA"')!)).toEqual(Array(10).fill('A'));
         r.dispose();
     });
 });

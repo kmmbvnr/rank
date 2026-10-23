@@ -27,4 +27,4 @@ Result' = R select
   .surname = .surname
 end
 Result' = Result sort by .recommender .descending
-Result OutputPath csv
+Result csv OutputPath

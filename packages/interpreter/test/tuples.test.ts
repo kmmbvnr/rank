@@ -71,8 +71,8 @@ describe('tuple boundaries', () => {
     it('keeps homogeneous JSON and captures as arrays', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use json\n"[1,2]" json')).toMatchObject({ kind: 'array' });
-        expect(runtime.execute('use text\n"1 2" "/integer /integer" parse')).toMatchObject({ kind: 'array' });
-        expect(runtime.execute('"1 x" "/integer /word" parse')).toMatchObject({ kind: 'tuple' });
+        expect(runtime.execute('use text\n"1 2" parse "/integer /integer"')).toMatchObject({ kind: 'array' });
+        expect(runtime.execute('"1 x" parse "/integer /word"')).toMatchObject({ kind: 'tuple' });
     });
     it('keeps one type per named matrix column across writes', () => {
         const r = new Interpreter();

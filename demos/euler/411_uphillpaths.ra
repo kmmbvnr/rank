@@ -16,7 +16,7 @@ rem of 2 and 3 in n, T = lcm of the
 rem orders of 2 and 3 modulo the rest.
 rem S(n) is the longest nondecreasing
 rem run of y over stations by x.
-fun A M order
+fun A order M
   if M equal 1
     return 1
   end
@@ -52,10 +52,10 @@ for K in First to Count
     N3 //= 3
     Be += 1
   end
-  O2 = 2 N2 order
-  O3 = 3 N3 order
-  T = O2 O3 lcm
-  Len = (2 * N + 1) (Al max Be + T) min
+  O2 = 2 order N2
+  O3 = 3 order N3
+  T = O2 lcm O3
+  Len = (2 * N + 1) min (Al max Be + T)
   rem Keys x * n + y of the first Len
   rem stations, sorted by x then y.
   Ks = array shape Len fill 0

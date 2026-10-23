@@ -8,7 +8,7 @@ for (const compilation of [false, true]) describe(`Euler 305 local automaton (co
     it('keeps filtered callback captures independent after the enclosing calls return', () => {
         const runtime = new Interpreter(undefined, { compilation });
         try {
-            runtime.execute(source.replace('  return State Need nth',
+            runtime.execute(source.replace('  return State nth Need',
                 '  fun X below = X less Need\n  return 1 to 10 filter below'));
             runtime.execute("First' = 3 solve\nSecond' = 5 solve");
             expect(formatValue(runtime.execute('First')!)).toBe('1 2');

@@ -7,11 +7,11 @@ use sequences
 S = stdin .word
 T = stdin .word
 
-S T longest_common print
+S longest_common T print
 
 
 rem Build lengths, then trace one longest common subsequence.
-fun S T longest_common
+fun S longest_common T
   N = S len
   M = T len
   Rows = N + 1

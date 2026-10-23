@@ -16,8 +16,8 @@ fun H min_cost
   N = H len
   Cost = array shape N fill 0
 
-  Prev' = H 1 shift
-  Prev2' = H 2 shift
+  Prev' = H shift 1
+  Prev2' = H shift 2
   One = (H - Prev) abs
   Two = (H - Prev2) abs
 
@@ -28,7 +28,7 @@ fun H min_cost
     if I greater 1
       Jump = Two I
       Step = Cost (I - 2) + Jump
-      Best = Best Step min
+      Best = Best min Step
     end
 
     Cost I = Best

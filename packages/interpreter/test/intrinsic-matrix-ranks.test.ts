@@ -112,10 +112,10 @@ describe('intrinsic matrix cells', () => {
     it('retains array cell axes in empty binary batches and user functions', () => {
         for (const size of [0, 2]) {
             const source = `${prefix}A = array shape ${size} 2 2 fill 0\nB = array 1 2\nC = array shape 2 3 fill 1\n`;
-            const solve = `${source}R = A B solve rank 2 1`;
-            const multiply = `${source}R = A C matmul rank 2 2`;
-            const user = `${source}fun X Y right rank 2 1\n return Y\nend\nR = A B right`;
-            const tuple = `${source}fun X Y pair rank 2 1\n return tuple X Y\nend\nR = A B pair`;
+            const solve = `${source}R = A solve B rank 2 1`;
+            const multiply = `${source}R = A matmul C rank 2 2`;
+            const user = `${source}fun X right Y rank 2 1\n return Y\nend\nR = A right B`;
+            const tuple = `${source}fun X pair Y rank 2 1\n return tuple X Y\nend\nR = A pair B`;
             // Shape queries on empty batches must not execute a singular solve.
             if (size === 0) expect(run(`${solve}\nR shape`)).toBe('0 2');
             expect(run(`${multiply}\nR shape`)).toBe(`${size} 2 3`);
@@ -128,9 +128,9 @@ describe('intrinsic matrix cells', () => {
         const pipeline = `${prefix}use numbers\npositive = inverse abs\nA = array shape 0 2 2 fill 0\nR = A positive rank 2`;
         expect(run(`${pipeline}\nR shape`)).toBe('0 2 2');
         expect(analyzeValues(parse(pipeline)).bindings.get('R')?.shape).toEqual([0, 2, 2]);
-        expect(() => run(`${prefix}A = array shape 0 2 2 fill 0\nA (array shape 2 2 2 fill 0) solve rank 2 3 shape`)).toThrow(/vector or matrix right side/);
-        expect(() => run(`${prefix}A = array shape 0 3 4 fill 0\nA (array 1 2 3) solve rank 2 1 shape`)).toThrow(/compatible cell shapes/);
-        expect(() => run(`${prefix}A = array shape 0 2 3 fill 0\nA (array shape 4 2 fill 0) matmul rank 2 2 shape`)).toThrow(/compatible cell shapes/);
+        expect(() => run(`${prefix}A = array shape 0 2 2 fill 0\nA solve (array shape 2 2 2 fill 0) rank 2 3 shape`)).toThrow(/vector or matrix right side/);
+        expect(() => run(`${prefix}A = array shape 0 3 4 fill 0\nA solve (array 1 2 3) rank 2 1 shape`)).toThrow(/compatible cell shapes/);
+        expect(() => run(`${prefix}A = array shape 0 2 3 fill 0\nA matmul (array shape 4 2 fill 0) rank 2 2 shape`)).toThrow(/compatible cell shapes/);
     });
 
     it('lets explicit ranks override declared user ranks in runtime and analysis', () => {
@@ -149,7 +149,7 @@ describe('intrinsic matrix cells', () => {
         expect(run(`${source}A max - (A min)`)).toBe('5');
         expect(run(`${source}A len`)).toBe('2');
         expect(run(`${source}A reverse`)).toBe('4 5 6 1 2 3');
-        expect(run(`${source}A (array 2 3 4) gcd`)).toBe(run(`${source}A (array 2 3 4) gcd rank 0 0`));
+        expect(run(`${source}A gcd (array 2 3 4)`)).toBe(run(`${source}A gcd (array 2 3 4) rank 0 0`));
         expect(run(`${source}A sort .descending`)).toBe('3 2 1 6 5 4');
     });
 

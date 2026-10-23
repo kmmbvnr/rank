@@ -45,7 +45,7 @@ describe.each([false, true])('callback reference positions (compilation=%s)', co
         const host = new Interpreter(text => output.push(text), { compilation });
         try {
             host.execute([
-                'use graph', 'use io', 'fun A B same = A equal B', 'fun N make', ' "made" print', ' return same', 'end',
+                'use graph', 'use io', 'fun A same B = A equal B', 'fun N make', ' "made" print', ' return same', 'end',
                 'G = new graph (array 1 2) with (1 make) .directed',
             ].join('\n'));
             expect(output).toEqual(['made']);

@@ -11,7 +11,7 @@ test "official example"
     3 5
   end
   Tree add Edges
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Rooted 4 5 lca equal 3
   Rooted 2 5 lca equal 1
   Rooted 1 4 lca equal 1
@@ -23,7 +23,7 @@ test "node is its own common ancestor"
   Tree = new graph (1 to 3) .undirected
   Tree add 1 2
   Tree add 2 3
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Rooted 3 3 lca equal 3
 end
 
@@ -34,7 +34,7 @@ test "ancestor wins over descendant"
   for Node in 1 till 5
     Tree add Node (Node + 1)
   end
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Rooted 2 5 lca equal 2
 end
 
@@ -44,6 +44,6 @@ test "root may have another value"
   Tree = new graph .undirected
   Tree add "boss" "left"
   Tree add "boss" "right"
-  Rooted = Tree "boss" root
+  Rooted = Tree root "boss"
   Rooted "left" "right" lca equal "boss"
 end

@@ -8,7 +8,7 @@ may come up again.
 ```rank
 use random
 123 seed
-(array 10 20 30) 3 choices
+(array 10 20 30) choices 3
 ```
 
 ```result
@@ -18,7 +18,7 @@ use random
 ### Usage
 
 ```text
-Values Count choices
+Values choices Count
 ```
 
 Each pick is independent, like rolling a

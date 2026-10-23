@@ -2,13 +2,13 @@ use testing
 
 test "prime frog"
   use "329_primefrog"
-  Got = 500 "PPPPNNPPPNPPNPN" frog
+  Got = 500 frog "PPPPNNPPPNPPNPN"
   Got equal "199740353/29386561536000"
 end
 
 test "prime at the last square"
   use "329_primefrog"
-  3 "P" frog equal "5/9"
-  3 "N" frog equal "4/9"
-  2 "P" frog equal "1/2"
+  3 frog "P" equal "5/9"
+  3 frog "N" equal "4/9"
+  2 frog "P" equal "1/2"
 end

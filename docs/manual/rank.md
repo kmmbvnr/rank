@@ -20,7 +20,7 @@ A sum
 
 `9 sqrt` means "take 9 and apply sqrt".
 Several inputs come before the function
-too: `12 18 gcd`.
+too: `12 gcd 18`.
 
 Names with a capital letter, such as A
 or Total, hold your data; store them

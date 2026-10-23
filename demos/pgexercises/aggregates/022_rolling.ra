@@ -39,4 +39,4 @@ R' = R select
   .revenue = .revenue / 15
 end
 Result' = R sort by .date
-Result OutputPath csv
+Result csv OutputPath

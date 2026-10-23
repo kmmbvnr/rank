@@ -30,7 +30,7 @@ Lt 0 = 1
 Total = 0
 Step = Block - 1
 for Lo in 1 to (Limit - 1) by Step
-  Hi = (Lo + Block) (Limit) min
+  Hi = (Lo + Block) min (Limit)
   Phi = array shape (Hi - Lo + 1) fill 0
   Rem = array shape (Hi - Lo + 1) fill 0
   for K in 0 to (Hi - Lo)

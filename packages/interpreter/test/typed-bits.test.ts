@@ -7,17 +7,17 @@ describe('typed integer bit calls', () => {
         const outcomes = [false, true].map(compilation => {
             const runtime = new Interpreter(undefined, { compilation });
             try {
-                runtime.execute('fun A B helper\n return A B bxor\nend');
+                runtime.execute('fun A helper B\n return A bxor B\nend');
                 let error: string | undefined;
-                try { runtime.execute('1 2 helper'); }
+                try { runtime.execute('1 helper 2'); }
                 catch (failure) {
                     if (!(failure instanceof RankError)) throw failure;
                     error = failure.format();
                 }
                 expect(error).toContain('use bits');
-                expect(runtime.execute('fun X lazy\n return true or ((X 1 bxor) equal 0)\nend\n1 lazy')).toBe(true);
+                expect(runtime.execute('fun X lazy\n return true or ((X bxor 1) equal 0)\nend\n1 lazy')).toBe(true);
                 runtime.execute('use bits');
-                expect(runtime.execute('1 2 helper')).toBe(3n);
+                expect(runtime.execute('1 helper 2')).toBe(3n);
                 return error;
             } finally { runtime.dispose(); }
         });
@@ -30,11 +30,11 @@ describe('typed integer bit calls', () => {
             let calls = 0;
             const runtime = new Interpreter(undefined, { compilation, onScalarFunctionExecuted: () => calls++ });
             try {
-                runtime.execute(`use bits\nfun A B helper\n return A B ${operation}\nend`);
-                const answers = values.flatMap(a => values.map(b => runtime.execute(`${a} ${b} helper`)));
+                runtime.execute(`use bits\nfun A helper B\n return A ${operation} B\nend`);
+                const answers = values.flatMap(a => values.map(b => runtime.execute(`${a} helper ${b}`)));
                 expect(calls).toBe(compilation ? 25 : 0);
                 runtime.variables.set(operation, native('replacement', 2, () => 42n));
-                expect(runtime.execute('1 2 helper')).toBe(42n);
+                expect(runtime.execute('1 helper 2')).toBe(42n);
                 expect(calls).toBe(compilation ? 25 : 0);
                 return answers;
             } finally { runtime.dispose(); }
@@ -49,17 +49,17 @@ describe('typed integer bit calls', () => {
                 onScalarFunctionExecuted: () => calls++ });
             try {
                 runtime.execute(`use bits
-fun A B helper
-  X = A B band
-  Y = A B bor
-  Z = A B bxor
-  L = A B shl
-  R = A B shr
+fun A helper B
+  X = A band B
+  Y = A bor B
+  Z = A bxor B
+  L = A shl B
+  R = A shr B
   return array X Y Z L R
 end`);
-                const value = runtime.execute('9007199254740993 3 helper');
+                const value = runtime.execute('9007199254740993 helper 3');
                 expect(calls).toBe(1);
-                const errors = ['1 -1 helper', '1.0 2 helper'].map(source => {
+                const errors = ['1 helper -1', '1.0 helper 2'].map(source => {
                     try { runtime.execute(source); throw new Error('expected failure'); }
                     catch (error) {
                         if (!(error instanceof RankError)) throw error;

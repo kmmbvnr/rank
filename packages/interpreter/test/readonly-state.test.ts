@@ -8,7 +8,7 @@ const mutations = [
     ['A = record\n .value = 1\nend', "Plan' = A .value * 2", 'A .value = 9', 'Plan', '2'],
     ['A = new queue', "Plan' = A len", 'A push 9', 'Plan', '0'],
     ['A = new queue\nA push 1', "Plan' = A len", 'A pop', 'Plan', '1'],
-    ['A = new deque', "Plan' = A len", 'A 9 pushfront', 'Plan', '0'],
+    ['A = new deque', "Plan' = A len", 'A pushfront 9', 'Plan', '0'],
     ['A = new heap', "Plan' = A len", 'A 1 9 enqueue', 'Plan', '0'],
     ['A = new set', "Plan' = A len", 'A add 9', 'Plan', '0'],
     ['A = new index\nA 0 = 1', "Plan' = A 0 * 2", 'A 0 = 9', 'Plan', '2'],

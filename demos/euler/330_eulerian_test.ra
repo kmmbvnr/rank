@@ -2,9 +2,9 @@ use testing
 
 test "small Eulerian sums"
   use "330_eulerian"
-  0 7 residue equal 0
-  1 7 residue equal 6
-  2 7 residue equal 2
+  0 residue 7 equal 0
+  1 residue 7 equal 6
+  2 residue 7 equal 2
   10 solve equal 64356042
 end
 

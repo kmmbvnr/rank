@@ -11,11 +11,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Values Queries range_max_sums print
+Values range_max_sums Queries print
 
 
 rem Read each range's best subarray.
-fun Values Queries range_max_sums
+fun Values range_max_sums Queries
   Tree = Values segment maxsum
   Answers = array shape (Queries len) fill 0
   for Query I in Queries

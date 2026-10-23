@@ -43,7 +43,7 @@ Current`);
     });
 
     it.each(['+=', '-=', '*=', '//=', 'mod='])('preserves COW and signed arithmetic for %s', operator => {
-        const result = compare(`fun A N changed
+        const result = compare(`fun A changed N
  Saved = A
  A 0 ${operator} N
  A 1 ${operator} -N
@@ -52,7 +52,7 @@ end
 Source = array -11 13
 Current = Source
 for I in 2 to 3
- Current = Source I changed
+ Current = Source changed I
 end
 tuple Source Current`);
         expect(result.observation.error).toBeUndefined();
@@ -105,13 +105,13 @@ end`);
 
     it.each(['take', 'drop'])('returns %s views and copies with clipped and empty counts', clause => {
         const result = compare(`use sequences
-fun A N sliced
+fun A sliced N
  return (A ${clause} N) copy
 end
 Source = array 3 5 7
 Current = Source
 for I in 0 to 4
- Current = Source I sliced
+ Current = Source sliced I
 end
 tuple Source Current`);
         expect(result.observation.error).toBeUndefined();

@@ -37,7 +37,7 @@ fun N segments
   return Count
 end
 
-fun A B changes
+fun A changes B
   Count = 0
   for A greater 0 or B greater 0
     MA = 0
@@ -50,7 +50,7 @@ fun A B changes
       MB = Masks (B mod 10)
       B //= 10
     end
-    X = MA MB bxor
+    X = MA bxor MB
     Count += X popcount
   end
   return Count
@@ -63,13 +63,13 @@ fun N clock_diff
   Cur = N
   for true
     Sam += 2 * (Cur segments)
-    Max += Prev Cur changes
+    Max += Prev changes Cur
     if Cur less 10
       break
     end
     Prev = Cur
     Cur = Cur digit_sum
   end
-  Max += Cur 0 changes
+  Max += Cur changes 0
   return Sam - Max
 end

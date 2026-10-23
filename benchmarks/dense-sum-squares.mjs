@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 const option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const root = resolve(import.meta.dirname, '..');
 const source = readFileSync(resolve(root, 'demos/euler/311_biclinic.ra'), 'utf8');
-const fun = source.slice(source.indexOf('fun Low High biclinic_block'));
+const fun = source.slice(source.indexOf('fun Low biclinic_block High'));
 const body = fun.slice(fun.indexOf('\n') + 1, fun.lastIndexOf('  return Answer'));
 const split = body.indexOf('  Answer = 0\n');
 const accumulate = body.slice(0, split), scan = body.slice(split);

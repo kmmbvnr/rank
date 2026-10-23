@@ -31,7 +31,7 @@ it('retains identity without choosing a type for an unknown parameter', () => {
 });
 
 it('keeps tuple positions and distinct parameter relationships', () => {
-    const summary = functionRelationship(definition('fun Left Right pair\n return tuple Left (tuple Right "label")\nend'))!;
+    const summary = functionRelationship(definition('fun Left pair Right\n return tuple Left (tuple Right "label")\nend'))!;
     expect(summary.result).toMatchObject({ kind: 'tuple', items: [
         { kind: 'parameter', index: 0 },
         { kind: 'tuple', items: [{ kind: 'parameter', index: 1 }, { kind: 'constant' }] },
@@ -207,7 +207,7 @@ it('derives numeric result relationships from shared operator signatures', () =>
 it('keeps operation errors on the ordinary diagnostic path', () => {
     for (const [source, message] of [
         ['fun Value twice\n return Value * 2\nend\nResult = "wrong" twice', 'operator * does not accept text and integer'],
-        ['fun A B plus\n return A + B\nend\nResult = (array 1 2) (array 1 2 3) plus', 'shape mismatch'],
+        ['fun A plus B\n return A + B\nend\nResult = (array 1 2) plus (array 1 2 3)', 'shape mismatch'],
     ]) {
         const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
         expect(parsed.parserErrors).toEqual([]);
@@ -233,7 +233,7 @@ it('reuses arithmetic relationships without turning lazy arrays eager', () => {
 
 
 it('does not treat a scalar boolean guard as an array mask operation', () => {
-    const summary = functionRelationship(definition('fun Flag Mask guard\n return Flag and Mask\nend'))!;
+    const summary = functionRelationship(definition('fun Flag guard Mask\n return Flag and Mask\nend'))!;
     expect(instantiateRelationship(summary, [
         { types: ['boolean'], rank: 0, shape: [] },
         { types: ['array'], rank: 1, shape: [3], elements: ['boolean'], eagerScalarCells: true },

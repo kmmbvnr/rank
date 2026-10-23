@@ -13,11 +13,11 @@ Movies = Raw reshape N 2
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Movies Queries movie_queries print
+Movies movie_queries Queries print
 
 
 rem Greedily jump to earliest endings.
-fun Movies Queries movie_queries
+fun Movies movie_queries Queries
   LastMovie = Movies max
   LastQuery = Queries max
   LastTime = LastMovie max LastQuery
@@ -28,12 +28,12 @@ fun Movies Queries movie_queries
   for Movie in Movies
     unpack Start Finish = Movie
     Place = Start - 1
-    Next Place = (Next Place) Finish min
+    Next Place = (Next Place) min Finish
   end
   for Time in LastTime to 1 by -1
     Place = Time - 1
     Later = Next Time
-    Next Place = (Next Place) Later min
+    Next Place = (Next Place) min Later
   end
   Path = Next functional
 

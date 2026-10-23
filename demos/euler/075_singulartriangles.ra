@@ -18,10 +18,10 @@ Cnt = array shape (Limit + 1) fill 0
 Root = Limit // 2 isqrt
 for M in 2 to Root
   Reach = Limit // (2 * M) - M
-  Top = Reach (M - 1) min
+  Top = Reach min (M - 1)
   First = 1 + M mod 2
   Ns = First to Top by 2 array
-  Coprime' = Ns M gcd equal 1
+  Coprime' = Ns gcd M equal 1
   Pick = Ns Coprime copy
   Per' = 2 * M * (M + Pick)
   for P in Per

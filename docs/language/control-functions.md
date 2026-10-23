@@ -306,7 +306,7 @@ non-obvious idea or constraint:
 ```rank
 rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
-fun A B gcd
+fun A gcd B
   for B not equal 0
     R = A mod B
     A = B
@@ -336,10 +336,10 @@ end
 Loading a source file with `use` registers its top-level functions without
 executing its ordinary top-level statements.
 
-For a function with only left operands, data comes before the function name:
+Unary calls follow their input; binary calls put one operand on each side:
 
 ```rank
-G = A B gcd
+G = A gcd B
 Result print
 ```
 
@@ -359,9 +359,9 @@ A completed postfix operation can itself be an argument:
 
 ```rank
 use sequences
-fun Values' Factor weighted = Values * Factor
+fun Values' weighted Factor = Values * Factor
 Source' = 1 to 4
-Result' = Source sum 2 weighted
+Result' = Source sum weighted 2
 Saved = Result
 ```
 
@@ -373,7 +373,7 @@ query, while `Values sum` is a reduction. When such a call precedes another
 function, a known receiver kind settles the grouping without reading cells.
 An unknown kind is demanded for dispatch; that demand does not retain its
 result. Parenthesizing the complete argument fixes its boundary:
-`(Tree sum Index) Factor weighted` can pass the whole query without inspecting
+`(Tree sum Index) weighted Factor` can pass the whole query without inspecting
 the receiver first. Each later demand still runs the query again.
 
 ### Call-shaped signatures
@@ -386,16 +386,17 @@ parameters and lowercase names are function parameters:
 ```rank
 use numbers
 fun Value rounded Places = Value round Places
-fun X Y apply op = X Y op
+fun X Y apply op = X op Y
 
 1.234 rounded 2
 2 3 apply +
 ```
 
 Function parameters accept named functions and binary arithmetic, comparison,
-and boolean operators. Inside the body, `X Y op` calls the supplied operation.
-Group a compound right operand with parentheses. An undeclared trailing value
-indexes the result, just as it does after an ordinary postfix call.
+and boolean operators. Inside the body, `X op Y` calls the supplied operation.
+In a binary call, selectors stay inside their operand. Group the complete call
+before indexing its result: `(A op B) i`. Functions with more required operands
+follow the positions in their header.
 
 A dotted lowercase word declares an optional group. Its argument is data; the
 call writes the word without the dot:
@@ -614,7 +615,7 @@ multiply_abs = matmul abs
 
 The entry stage supplies the complete set of supported argument counts. Thus
 `positive_max = max abs` accepts either one value or two values. Calls use the
-usual postfix argument grouping. Only the entry stage receives the original
+unary or binary operand positions of the entry stage. Only the entry stage receives the original
 arguments; each later stage receives one result, including an array or tuple as
 one value. A later stage that cannot accept one value is rejected when the
 definition is analyzed: `f = abs matmul` needs an explicit second operand.
@@ -624,8 +625,8 @@ implicitly returns one expression:
 
 ```rank
 fun V products = V reduce * rank 1 max
-fun A B multiply_abs = A B matmul abs
-fun A B f = (A abs) B matmul
+fun A multiply_abs B = A matmul B abs
+fun A f B = (A abs) matmul B
 ```
 
 Single-line and multiline declarations have the same scope, signature and

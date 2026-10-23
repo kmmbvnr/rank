@@ -15,13 +15,13 @@ end
 test "concatenation and compatibility in both directions"
   use "060_primepairs"
 
-  (13 7 concat) equal 137
-  (7 13 concat) equal 713
-  (3 10 concat) equal 310
-  3 7 compatible
-  7 3 compatible
-  not 13 7 compatible
-  not 7 13 compatible
+  (13 concat 7) equal 137
+  (7 concat 13) equal 713
+  (3 concat 10) equal 310
+  3 compatible 7
+  7 compatible 3
+  not 13 compatible 7
+  not 7 compatible 13
 end
 
 test "small graph excludes two and five and keeps prime pairs"
@@ -47,7 +47,7 @@ test "known five-prime set forms a complete graph"
   Vals = array 13 5197 5701 6733 8389
   for P i in Vals
     for Q in Vals drop (i + 1)
-      if not P Q compatible
+      if not P compatible Q
         return false
       end
     end
@@ -75,9 +75,9 @@ test "search improves an earlier clique and keeps calls independent"
     .primes = Vals
     .graph = Graph
   end
-  A = Data 200 min_five
-  B = Data 19 min_five
-  C = Data 200 min_five
+  A = Data min_five 200
+  B = Data min_five 19
+  C = Data min_five 200
   ((array A B C) equal (array 20 19 20)) all
 end
 
@@ -91,18 +91,18 @@ test "no five-clique leaves the supplied bound unchanged"
     .primes = Vals
     .graph = Graph
   end
-  Data 100 min_five equal 100
+  Data min_five 100 equal 100
 end
 
 
 test "concatenation at decimal boundaries"
   use "060_primepairs"
 
-  (12 0 concat) equal 120
-  (12 9 concat) equal 129
-  (12 10 concat) equal 1210
-  (12 99 concat) equal 1299
-  (12 100 concat) equal 12100
+  (12 concat 0) equal 120
+  (12 concat 9) equal 129
+  (12 concat 10) equal 1210
+  (12 concat 99) equal 1299
+  (12 concat 100) equal 12100
 end
 
 
@@ -117,10 +117,10 @@ test "batched construction matches scalar compatibility across decimal boundarie
     Graph = Data .graph
     for P i in Vals
       for Q in Vals drop (i + 1)
-        if (Graph P Q adjacent) not equal (P Q compatible)
+        if (Graph P Q adjacent) not equal (P compatible Q)
           return false
         end
-        if (Graph Q P adjacent) not equal (P Q compatible)
+        if (Graph Q P adjacent) not equal (P compatible Q)
           return false
         end
       end

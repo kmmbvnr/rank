@@ -528,7 +528,7 @@ lazy, read-only views of their source and the conceptual padding border.
 item can be compared with its neighbor without index arithmetic:
 
 ```rank
-Previous = Values 1 shift
+Previous = Values shift 1
 Rises = Values greater Previous
 ```
 
@@ -538,9 +538,9 @@ integer zero. `with` supplies another single value and `axis` selects the axis,
 zero by default. `axis` follows `with`:
 
 ```rank
-Ends = Starts -1 shift with Total
-Down = M 1 shift axis 0
-Right = M 1 shift with 9 axis 1
+Ends = Starts shift -1 with Total
+Down = M shift 1 axis 0
+Right = M shift 1 with 9 axis 1
 ```
 
 Unlike `window`, `shift` never changes the length of an axis. It is available
@@ -554,7 +554,7 @@ For example, subset-sum updates keep the previous state while shifting:
 Reach = array shape 16 fill false
 Reach 0 = true
 for Weight in array 3 5 7
-  Reach = (Reach or (Reach Weight shift with false))
+  Reach = (Reach or (Reach shift Weight with false))
 end
 Reach 0 = false
 Sums = Reach indices
@@ -1072,7 +1072,7 @@ A function key can take bound operands before its name. The item is its first
 argument; the bound operands are evaluated once when the sort is created:
 
 ```rank
-fun X Limit distance = (X - Limit) abs
+fun X distance Limit = (X - Limit) abs
 Sorted = Values sort by Limit distance
 Order = Values argsort by (Limit * 2) distance
 ```
@@ -1114,7 +1114,7 @@ advances the stream that supplied the next result. Equal keys keep their
 order within a stream; ties between streams use input order.
 
 ```rank
-Merged = (array 1 3 5) (array 2 4 6) merge
+Merged = (array 1 3 5) merge (array 2 4 6)
 Rows = stack (array 9 5 1) (array 8 4 0)
 Descending = Rows merge .descending
 ```
@@ -1128,8 +1128,8 @@ columns, transpose the matrix first. `merge` consumes whole streams, so it
 has no special `axis` or `rank` form.
 
 ```rank
-Events = Arrivals Departures merge by .time
-ByMagnitude = Negative Positive merge by magnitude
+Events = Arrivals merge Departures by .time
+ByMagnitude = Negative merge Positive by magnitude
 ```
 
 `Mask choose TrueValues FalseValues` selects a value at each position. A
@@ -1381,7 +1381,7 @@ An operand with no frame is reused whole for every cell of the other operand.
 A named binary call accepts separate cell ranks:
 
 ```rank
-C = A B matmul rank 2 2
+C = A matmul B rank 2 2
 ```
 
 The frames broadcast independently of the matrix multiplication inside each
@@ -1595,7 +1595,7 @@ words use the function's defaults; wrap a configured call in a unary function
 when it needs fixed arguments or captures:
 
 ```rank
-fun Start N advance
+fun Start advance N
   Offset = 2
   fun X step = X + Offset
   return Start step repeat N
@@ -1614,14 +1614,14 @@ See [Queens](../../demos/classic/queens.ra),
 ### Early stopping
 
 `Init next repeat Count till done` performs at most `Count` steps. After each
-step, `done Previous Current` receives both whole states, ignoring declared
+step, `Previous done Current` receives both whole states, ignoring declared
 cell ranks, and must return one `boolean`. `true` stops iteration and returns
 `Current`, including the step that satisfied the condition. `false` continues;
 reaching the limit also returns the latest state.
 
 ```rank
 fun X step = X + 1
-fun Prev Next done = Next equal 3
+fun Prev done Next = Next equal 3
 Result = 0 step repeat 10 till done
 rem Result is 3
 ```
@@ -1680,7 +1680,7 @@ A binary user function or named operation can also combine the values:
 Total = A reduce add with 0
 Smallest = A reduce min
 
-fun Acc Value add
+fun Acc add Value
   return Acc + Value
 end
 ```
@@ -1744,20 +1744,20 @@ boolean-cell requirement.
 
 `min` and `max` with one argument reduce one finite collection. With two
 arguments they choose between numeric values and broadcast over arrays.
-`max` takes its second operand after its name; `min` takes both before it:
+Both take their second operand after the function name:
 
 ```rank
 Largest = A max
 Bound = Low max High
 Clamped = Values max 0
-Best = Best Now .spent min
+Best = Best min Now .spent
 ```
 
 `A 0 max` reduces the selected element or row, and `M # 0 max` reduces the
 selected column. The optional right operand may also be addressed:
 `A max B 0` means `A max (B 0)`. A following known function starts the next
 pipeline step, so `A max B sum` means `(A max B) sum`. Group a completed
-call before supplying another independent operand: `(Low max High) Limit min`.
+call before supplying another independent operand: `(Low max High) min Limit`.
 Use parentheses around arithmetic operands, as in `0 max (Limit - Used)`.
 `axis` and `rank` modify the reduction; the binary form broadcasts elementwise.
 
@@ -1853,7 +1853,7 @@ Cell ranks belong to the operation; `outer` combines the remaining frames.
 Symbolic binary operations have intrinsic ranks `0 0`. The named functions
 `band`, `bor`, `bxor`, `shl`, `shr`, `min` and `max` also declare ranks `0 0`.
 User-defined binary functions default to `all all` and may declare intrinsic
-ranks, for example `fun X Y add rank 0 0`.
+ranks, for example `fun X add Y rank 0 0`.
 
 The result shape is the concatenation of the left and right frame shapes.
 Therefore, if `A` has shape `2 3` and `B` has shape `4 5`, the result of atom
@@ -1903,16 +1903,16 @@ State = record
   .sum = 0
   .count = 0
 end
-Values = 1000 State flat
+Values = 1000 flat State
 Values 0 .sum = 42
 Values 0 .count = 1
 Packed = (array State State) flat
 Independent = Values copy
 ```
 
-`Count State flat` allocates directly and copies the state into each slot.
+`Count flat State` allocates directly and copies the state into each slot.
 `Values flat` copies a nonempty rank-1 array of records, using the first record
-as its schema. Use `0 State flat` for an empty array. Field order in later
+as its schema. Use `0 flat State` for an empty array. Field order in later
 records may differ, but field names and types must match exactly.
 
 Each field occupies eight bytes in an interleaved `ArrayBuffer`, accessed

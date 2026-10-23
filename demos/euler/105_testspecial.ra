@@ -19,7 +19,7 @@ rem sums differ and the k + 1 smallest
 rem outweigh the k largest.
 Answer = 0
 for Line in Input readlines
-  Parts = Line "," split
+  Parts = Line split ","
   Items = Parts integer sort
   Size = Items len
   Count = 2 ** Size
@@ -27,8 +27,8 @@ for Line in Input readlines
   Places = 0 till Size array
   Rows = Subsets reshape Count 1
   Cols = Places reshape 1 Size
-  Bits' = Rows Cols bit integer
-  Sums' = Bits Items matmul
+  Bits' = Rows bit Cols integer
+  Sums' = Bits matmul Items
   Half = (Size - 1) // 2
   Ks = 1 to Half array
   Small = (Items scan +) Ks

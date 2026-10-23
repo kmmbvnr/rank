@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/9
 use sequences
 
 rem Multiply two compatible rank-2 matrices.
-fun A B matrixmul
+fun A matrixmul B
   unpack Rows Inner = A shape
   unpack BRows Cols = B shape
 

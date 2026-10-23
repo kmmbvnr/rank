@@ -19,7 +19,7 @@ fun Lines' solve
   Ribbon = 0
 
   for Line in Lines
-    Parts = Line "x" split
+    Parts = Line split "x"
     L = Parts 0 integer
     W = Parts 1 integer
     H = Parts 2 integer

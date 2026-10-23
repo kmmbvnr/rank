@@ -25,8 +25,8 @@ function compare(source: string) {
 
 describe('integer numeric calls in compiled loops', () => {
     it.each([
-        ['I 6 gcd', '22'], ['I isqrt', '18'], ['I 6 lcm', '174'],
-        ['I 3 7 powmod', '28'], ['I 2 binomial', '165'], ['I abs', '54'],
+        ['I gcd 6', '22'], ['I isqrt', '18'], ['I lcm 6', '174'],
+        ['I 3 7 powmod', '28'], ['I binomial 2', '165'], ['I abs', '54'],
     ])('compiles %s with the ordinary native implementation', (expression, expected) => {
         const result = compare(`use numbers\nS = 0\nfor I in 2 to 10\n S += ${expression}\nend\nS`);
         expect(result.result).toBe(expected);
@@ -38,7 +38,7 @@ describe('integer numeric calls in compiled loops', () => {
 S = 0
 for A in 1 to 50
  for B in 1 to 50
-  if A B gcd equal 1
+  if A gcd B equal 1
    S += 1
   end
  end
@@ -49,10 +49,10 @@ S`);
     });
 
     it.each([
-        ['I -6 gcd', '-3', '3', '18'], ['I 0 gcd', '0', '1', '1'],
-        ['I -6 lcm', '-3', '3', '36'], ['I 0 lcm', '0', '1', '0'],
+        ['I gcd -6', '-3', '3', '18'], ['I gcd 0', '0', '1', '1'],
+        ['I lcm -6', '-3', '3', '36'], ['I lcm 0', '0', '1', '0'],
         ['I isqrt', '0', '30', '100'], ['I 0 1 powmod', '-3', '3', '0'],
-        ['I 3 7 powmod', '-3', '3', '21'], ['I 0 binomial', '0', '5', '6'],
+        ['I 3 7 powmod', '-3', '3', '21'], ['I binomial 0', '0', '5', '6'],
     ])('preserves signed and boundary arithmetic: %s', (expression, start, end, expected) => {
         const result = compare(`use numbers\nS = 0\nfor I in ${start} to ${end}\n S += ${expression}\nend\nS`);
         expect(result.result).toBe(expected);
@@ -64,11 +64,11 @@ S`);
 Huge = 1267650600228229401496703205376
 S = 0
 for I in 1 to 3
- S += (I * Huge) (2 * Huge) gcd
+ S += (I * Huge) gcd (2 * Huge)
  S += (Huge * Huge + I) isqrt
- S += (I * Huge) (3 * Huge) lcm
+ S += (I * Huge) lcm (3 * Huge)
  S += Huge 5 (Huge + 7) powmod
- S += (Huge + I) 2 binomial
+ S += (Huge + I) binomial 2
 end
 S`);
         expect(result.error).toBeUndefined();
@@ -77,7 +77,7 @@ S`);
     });
 
     it.each([
-        '(1 - I) isqrt', '2 (1 - I) 7 powmod', '2 3 (2 - I) powmod', '(1 - I) 0 binomial',
+        '(1 - I) isqrt', '2 (1 - I) 7 powmod', '2 3 (2 - I) powmod', '(1 - I) binomial 0',
     ])('retains error location and assignments before %s fails', expression => {
         const result = compare(`use numbers\nS = 0\nX = 99\nfor I in 1 to 3\n S += 1\n X = ${expression}\nend\nS`);
         expect(result.error).toBeDefined();
@@ -126,20 +126,21 @@ S`);
         expect(result.result).toBe('0');
     });
 
-    it.each(['I 1.5 gcd', 'I .NA gcd', 'I .NA binomial', '(array I 6) lcm', '(array I 6) 2 gcd'])
+    it.each(['I gcd 1.5', 'I gcd .NA', 'I binomial .NA', '(array I 6) lcm', '(array I 6) gcd 2'])
     ('retains fallback and mapping for %s', expression => {
         compare(`use numbers\nS = 0\nfor I in 1 to 3\n X = ${expression}\n S += 1\nend\nX`);
     });
 
     it('retains the missing-import diagnostic', () => {
-        expect(compare('S = 0\nfor I in 1 to 3\n S += I 2 gcd\nend').error).toContain('use numbers');
+        expect(compare('S = 0\nfor I in 1 to 3\n S += I gcd 2\nend').error).toContain('use numbers');
     });
 
     it.each([
         ['gcd', 'A B', 'I 2'], ['isqrt', 'A', 'I'], ['lcm', 'A B', 'I 2'],
         ['powmod', 'A B C', 'I 2 7'], ['binomial', 'A B', 'I 2'],
     ])('keeps compiling a user function named %s without numbers imported', (name, parameters, arguments_) => {
-        const result = compare(`fun ${parameters} ${name}\n return A * 2\nend\nS = 0\nfor I in 1 to 3\n S += ${arguments_} ${name}\nend\nS`);
+        const call = parameters === 'A B' ? `I ${name} 2` : `${arguments_} ${name}`;
+        const result = compare(`fun ${parameters} ${name}\n return A * 2\nend\nS = 0\nfor I in 1 to 3\n S += ${call}\nend\nS`);
         expect(result.result).toBe('12');
         expect(result.loops).toBe(1);
     });
@@ -151,7 +152,7 @@ S`);
             runtime.execute(`fun helper
  S = 0
  for I in 1 to 3
-  S += I 2 gcd
+  S += I gcd 2
  end
  return S
 end`);
@@ -168,24 +169,24 @@ end`);
         const runtime = new Interpreter();
         try {
             runtime.execute(`use numbers
-fun A B helper
+fun A helper B
  S = 0
  for I in 1 to 3
-  S += A B gcd
+  S += A gcd B
  end
  return S
 end`);
-            expect(runtime.execute('12 18 helper')).toBe(18n);
-            expect(() => runtime.execute('1.5 18 helper')).toThrow('expected integer input');
-            expect(runtime.execute('0 -18 helper')).toBe(54n);
-            expect(runtime.execute('12 18 helper')).toBe(18n);
+            expect(runtime.execute('12 helper 18')).toBe(18n);
+            expect(() => runtime.execute('1.5 helper 18')).toThrow('expected integer input');
+            expect(runtime.execute('0 helper -18')).toBe(54n);
+            expect(runtime.execute('12 helper 18')).toBe(18n);
         } finally { runtime.dispose(); }
     });
 
     it.each([
-        ['1000000 500000 binomial', 'computing binomial'],
+        ['1000000 binomial 500000', 'computing binomial'],
         ['2 Exponent 7 powmod', 'computing numbers'],
-        ['A B gcd', 'computing numbers'],
+        ['A gcd B', 'computing numbers'],
     ])('can interrupt inside a single long numeric call: %s', (expression, activity) => {
         let checks = 0;
         const signal: InterruptSignal = { length: 1, load: () => 0, store() {}, wait() {},
@@ -204,7 +205,7 @@ end`);
             expect(diagnostics.compiledLoops).toBe(1);
             expect(runtime.variables.get('S')).toBe(1n);
             expect(runtime.variables.get('X')).toBe(99n);
-            expect(runtime.execute('6 9 gcd')).toBe(3n);
+            expect(runtime.execute('6 gcd 9')).toBe(3n);
         } finally { runtime.dispose(); }
     });
 });

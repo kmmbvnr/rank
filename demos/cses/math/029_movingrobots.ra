@@ -20,7 +20,7 @@ end
 rem Combine all absence chances.
 fun Steps empty_cells
   Move = 8 transition_matrix
-  Power = Move Steps matrix_power
+  Power = Move matrix_power Steps
   Absence' = 1.0 - (Power transpose)
   Empty' = Absence reduce * rank 1
   return Empty sum
@@ -70,15 +70,15 @@ end
 
 
 rem Raise a real square matrix.
-fun Base Exponent matrix_power
+fun Base matrix_power Exponent
   Size = Base len
   Result = Size identity_real
 
   for Exponent greater 0
     if Exponent odd
-      Result = Result Base matmul
+      Result = Result matmul Base
     end
-    Base = Base Base matmul
+    Base = Base matmul Base
     Exponent //= 2
   end
 

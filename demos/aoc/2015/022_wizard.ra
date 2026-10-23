@@ -17,8 +17,8 @@ Part2 print
 rem Parse the boss and solve the normal and hard fights.
 fun Lines solve
   Pattern = "/text: /integer"
-  unpack Name BossHP = Lines 0 Pattern parse
-  unpack Name BossDamage = Lines 1 Pattern parse
+  unpack Name BossHP = Lines 0 parse Pattern
+  unpack Name BossDamage = Lines 1 parse Pattern
   Part1 = BossHP BossDamage 50 500 false leastmana
   Part2 = BossHP BossDamage 50 500 true leastmana
   return array Part1 Part2
@@ -57,7 +57,7 @@ fun State BossDamage Hard Best fight
 
   Now = State effects
   if Now .boss at most 0
-    return Best Now .spent min
+    return Best min Now .spent
   end
   Mana = Now .mana
 
@@ -115,7 +115,7 @@ rem Apply effects, let the boss attack, then continue with the player turn.
 fun State BossDamage Hard Best bossturn
   Now = State effects
   if Now .boss at most 0
-    return Best Now .spent min
+    return Best min Now .spent
   end
 
   Armor = 0

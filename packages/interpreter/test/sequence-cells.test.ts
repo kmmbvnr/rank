@@ -161,7 +161,7 @@ Key = array 101 120 112
 Slots = array 0 1 2 0
 Cipher = array 36 22 80 0
 KeyStream' = Key Slots
-Plain' = Cipher KeyStream bxor`);
+Plain' = Cipher bxor KeyStream`);
         for (const name of ['KeyStream', 'Plain']) {
             const plan = runtime.variables.get(name)!;
             expect(isRankPlan(plan)).toBe(true);

@@ -12,11 +12,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Values Queries range_minimums print
+Values range_minimums Queries print
 
 
 rem Answer inclusive one-based ranges.
-fun Values Queries range_minimums
+fun Values range_minimums Queries
   Tree = Values segment min
   Answers = array shape (Queries len) fill 0
   for Query i in Queries

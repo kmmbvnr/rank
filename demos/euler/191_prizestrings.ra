@@ -25,7 +25,7 @@ Tm (Fresh * 6 + 3) += 1
 Mat = Tm reshape 6 6
 V = array 1 0 0 0 0 0
 for Day in 1 to Days
-  V = V Mat matmul
+  V = V matmul Mat
 end
 Answer = V sum
 Answer print

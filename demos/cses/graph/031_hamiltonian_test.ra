@@ -12,7 +12,7 @@ test "official example"
     2 4
     3 4
   end
-  4 Edges hamiltonian_flights equal 2
+  4 hamiltonian_flights Edges equal 2
 end
 
 test "counts parallel flights"
@@ -24,7 +24,7 @@ test "counts parallel flights"
     1 2
     2 3
   end
-  3 Edges hamiltonian_flights equal 2
+  3 hamiltonian_flights Edges equal 2
 end
 
 test "rejects routes missing a city"
@@ -36,7 +36,7 @@ test "rejects routes missing a city"
     1 2
     2 4
   end
-  4 Edges hamiltonian_flights equal 0
+  4 hamiltonian_flights Edges equal 0
 end
 
 test "handles the smallest route"
@@ -46,5 +46,5 @@ test "handles the smallest route"
   Edges = array shape 1 2
     1 2
   end
-  2 Edges hamiltonian_flights equal 1
+  2 hamiltonian_flights Edges equal 1
 end

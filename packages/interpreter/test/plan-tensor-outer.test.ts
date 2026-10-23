@@ -123,16 +123,16 @@ describe.each([false, true])('checked outer plans (compilation=%s)', compilation
     it('reuses code with fresh arguments and recomputes changed right-hand layouts', () => {
         const { host, execute, entries, sources } = runtime();
         try {
-            execute(`fun X' Y' total
+            execute(`fun X' total Y'
  Product' = X Y outer *
  return Product sum
 end
 C = array 50
 D = array 10 20`);
-            expect(execute('A B total')).toBe(180n);
-            expect(execute('D B total')).toBe(900n);
-            expect(execute('A C total')).toBe(300n);
-            expect(execute('A B total')).toBe(180n);
+            expect(execute('A total B')).toBe(180n);
+            expect(execute('D total B')).toBe(900n);
+            expect(execute('A total C')).toBe(300n);
+            expect(execute('A total B')).toBe(180n);
             expect(entries()).toBe(compilation ? 4 : 0);
             expect(sources).toHaveLength(compilation ? 2 : 0);
         } finally { host.dispose(); }
@@ -236,7 +236,7 @@ Other' = Rows B outer +`);
         const { host, execute, entries, output } = runtime();
         try {
             execute(`use io
-fun X Y added rank 0 0
+fun X added Y rank 0 0
  X print
  return X + Y
 end

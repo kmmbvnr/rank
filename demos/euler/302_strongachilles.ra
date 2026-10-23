@@ -40,7 +40,7 @@ fun N Fs Gn Gp Max C g
         Done = false
       else
         for E in Es
-          G = G E gcd
+          G = G gcd E
         end
       end
     end
@@ -78,7 +78,7 @@ fun N Fs Gn Gp Max C g
         Ok = false
       else
         for E in He
-          G2 = G2 E gcd
+          G2 = G2 gcd E
         end
       end
     end
@@ -92,9 +92,9 @@ fun N Fs Gn Gp Max C g
     for N * Pow less Limit
       Next = N * Pow
       F2 = concat Low (C Base)
-      Gn2 = Gn Exp gcd
+      Gn2 = Gn gcd Exp
       Ep = Have + Exp - 1
-      Gp2 = G2 Ep gcd
+      Gp2 = G2 gcd Ep
       Prev = I - 1
       More = Next F2 Gn2 Gp2 Prev C g
       Total += More

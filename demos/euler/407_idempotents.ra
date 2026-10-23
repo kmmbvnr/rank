@@ -44,13 +44,13 @@ for U in 2 to Root
     Iv = (Inv (Vs mod U)) copy
     Ev = (Vs * Iv) copy
     Ns = U * Vs
-    Cand = (Ev (Ns + 1 - Ev) min) copy
+    Cand = (Ev min (Ns + 1 - Ev)) copy
     Ok = Iv greater 0
     Cand = (Ok choose Cand Big) copy
     From = U * (U + 1)
     Sl = From to N by U
     Cur = (Least Sl) copy
-    Least Sl = Cur Cand min
+    Least Sl = Cur min Cand
   end
 end
 Ns = (2 to N) copy

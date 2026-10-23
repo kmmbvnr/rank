@@ -23,7 +23,7 @@ rem came from (x - y, y), a 1 bit from
 rem (x, y - x). Subtract in runs, as in
 rem the continued fraction, and keep the
 rem lengths of the runs of equal bits.
-G = Num Den gcd
+G = Num gcd Den
 X = Num // G
 Y = Den // G
 Runs = array shape 0 fill 0
@@ -38,5 +38,5 @@ for X + Y greater 1
   end
   Runs = concat Runs (array Q)
 end
-Answer = Runs reverse "," join
+Answer = Runs reverse join ","
 Answer print

@@ -2,26 +2,26 @@ use testing
 
 test "official example"
   use "001_josephus"
-  7 1 removed equal 2
-  7 3 removed equal 6
-  2 2 removed equal 1
-  1337 1313 removed equal 1107
+  7 removed 1 equal 2
+  7 removed 3 equal 6
+  2 removed 2 equal 1
+  1337 removed 1313 equal 1107
 end
 
 test "one child"
   use "001_josephus"
-  1 1 removed equal 1
+  1 removed 1 equal 1
 end
 
 test "odd circle wraps to first child"
   use "001_josephus"
-  7 4 removed equal 1
-  7 5 removed equal 5
+  7 removed 4 equal 1
+  7 removed 5 equal 5
 end
 
 test "large circle avoids simulation"
   use "001_josephus"
-  1000000000 1 removed equal 2
+  1000000000 removed 1 equal 2
   N = 1000000000
-  N N removed equal 926258177
+  N removed N equal 926258177
 end

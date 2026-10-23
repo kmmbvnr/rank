@@ -22,7 +22,7 @@ Rank establishes **parenthesis-free function declarations, file-level declaratio
 ### 1. Punctuation-Free Function Declarations
 Functions declare parameters separated by whitespace and terminate with `end`:
 ```rank
-fun A B gcd
+fun A gcd B
   for B not equal 0
     R = A mod B
     A = B
@@ -75,11 +75,11 @@ end
 ### 4. Guaranteed Proper Tail Calls (TCO)
 Rank **guarantees frame replacement for calls in tail position**:
 ```rank
-fun N Total count
+fun N count Total
   if N equal 0
     return Total
   end
-  return (N - 1) (Total + 1) count
+  return (N - 1) count (Total + 1)
 end
 ```
 - Tail calls execute in $O(1)$ stack space.

@@ -9,7 +9,7 @@
 
 Designing the compiler frontend and parser for Rank presents distinct architectural constraints:
 1. **Mobile-first editing and live LSP feedback:** Rank is designed to run on resource-constrained devices (phones, tablets, web REPLs) with instantaneous Language Server Protocol (LSP) feedback, requiring fast incremental parsing, error-tolerant CST construction, and immediate diagnostic recovery.
-2. **Ambiguity in whitespace juxtaposition:** Rank uses whitespace for both function application (`30 sin`, `A B gcd`) and array/matrix indexing (`M i j`). The parser must resolve these ambiguous token streams deterministically without catastrophic backtracking.
+2. **Ambiguity in whitespace juxtaposition:** Rank uses whitespace for both function application (`30 sin`, `A gcd B`) and array/matrix indexing (`M i j`). The parser must resolve these ambiguous token streams deterministically without catastrophic backtracking.
 3. **Decoupling parsing from module loading:** Extensible languages often allow modules to mutate the parser grammar at runtime (e.g. macro systems or custom operator definitions). However, runtime grammar mutation destroys tooling stability, breaks syntax highlighters, and prevents static analysis.
 
 Rank requires a stable, high-performance compiler frontend that decouples parsing from module evaluation, recovers gracefully from incomplete mobile typing, and produces a clean AST from a single unified grammar.

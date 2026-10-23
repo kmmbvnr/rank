@@ -46,7 +46,7 @@ describe('wavelet matrix', () => {
             '  3 3',
             '  0 4',
             'end',
-            'Data Bounds missing',
+            'Data missing Bounds',
         ].join('\n'))).toBe('4 1 6');
     });
 
@@ -81,7 +81,7 @@ describe('wavelet matrix', () => {
         expect(() => run([
             'use algo',
             'Data = (array 0 1 2) wavelet',
-            'Data (array 0 2) missing',
+            'Data missing (array 0 2)',
         ].join('\n'))).toThrow(
             'missing expects positive integer wavelet values',
         );

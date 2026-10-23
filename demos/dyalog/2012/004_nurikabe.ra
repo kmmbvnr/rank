@@ -119,7 +119,7 @@ fun Flat Root Height Width islandOptions
   if not Allowed Root
     return
   end
-  Initial = 1 Root shl
+  Initial = 1 shl Root
   Seen = new set
   Seen add Initial
   Pending = new queue
@@ -128,9 +128,9 @@ fun Flat Root Height Width islandOptions
     if (Mask popcount) equal Target
       Halo = Mask
       for Position in 0 till (Flat len)
-        if Mask Position bit
+        if Mask bit Position
           for Next in Position Height Width adjacent
-            Halo = Halo (1 Next shl) bor
+            Halo = Halo bor (1 shl Next)
           end
         end
       end
@@ -141,14 +141,14 @@ fun Flat Root Height Width islandOptions
       continue
     end
     for Position in 0 till (Flat len)
-      if not Mask Position bit
+      if not Mask bit Position
         continue
       end
       for Next in Position Height Width adjacent
-        if not (Allowed Next) or (Mask Next bit)
+        if not (Allowed Next) or (Mask bit Next)
           continue
         end
-        Candidate = Mask (1 Next shl) bor
+        Candidate = Mask bor (1 shl Next)
         if Candidate not in Seen
           Seen add Candidate
           Pending push Candidate
@@ -179,8 +179,8 @@ fun Groups Index White Blocked Flat Height Width canFinish
   for Group in Groups drop Index
     Count = 0
     for Choice in Group .choices
-      if ((Choice .mask) Blocked band) equal 0
-        Possible = Possible (Choice .mask) bor
+      if ((Choice .mask) band Blocked) equal 0
+        Possible = Possible bor (Choice .mask)
         Count += 1
       end
     end
@@ -191,7 +191,7 @@ fun Groups Index White Blocked Flat Height Width canFinish
   Forced = array shape (Flat len) fill 0
   Start = -1
   for Position in 0 till (Flat len)
-    if not Possible Position bit
+    if not Possible bit Position
       Forced Position = -1
       Start = Position
     end
@@ -209,7 +209,7 @@ fun Groups Index White Blocked Flat Height Width canFinish
   Seen Start = true
   for Position in Pending
     for Next in Position Height Width adjacent
-      if not (Seen Next) and not (White Next bit)
+      if not (Seen Next) and not (White bit Next)
         Seen Next = true
         Pending push Next
       end
@@ -226,7 +226,7 @@ end
 fun Flat White Height Width solvedBoard
   Result = Flat copy
   for Cell Position in Result
-    if not White Position bit
+    if not White bit Position
       Result Position = -1
     end
   end
@@ -246,11 +246,11 @@ fun Groups Index White Blocked Flat Height Width solveIslands
   end
   Group = Groups Index
   for Choice in Group .choices
-    if ((Choice .mask) Blocked band) not equal 0
+    if ((Choice .mask) band Blocked) not equal 0
       continue
     end
-    NextWhite = White (Choice .mask) bor
-    NextBlocked = Blocked (Choice .halo) bor
+    NextWhite = White bor (Choice .mask)
+    NextBlocked = Blocked bor (Choice .halo)
     Result = Groups (Index + 1) NextWhite NextBlocked Flat Height Width solveIslands
     if Result at least 0
       return Result

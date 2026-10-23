@@ -130,11 +130,11 @@ First = A inspect`);
     it('borrows across a boolean branch only when its argument is boolean', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V Flag inspect\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\nA = array 10 20');
+            runtime.execute('fun V inspect Flag\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
-            expect(runtime.execute('A true inspect')).toBe(10n);
+            expect(runtime.execute('A inspect true')).toBe(10n);
             expect(isSharedArray(array)).toBe(false);
-            expect(runtime.execute('A false inspect')).toBe(20n);
+            expect(runtime.execute('A inspect false')).toBe(20n);
             expect(isSharedArray(array)).toBe(false);
             const items = array.items;
             runtime.execute('A 0 = 99');
@@ -145,10 +145,10 @@ First = A inspect`);
     it('borrows a scalar local assigned on every branch', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V Flag inspect\n Cell = V 1\n if Flag\n  Cell = V 0\n end\n return Cell\nend\nA = array 10 20');
+            runtime.execute('fun V inspect Flag\n Cell = V 1\n if Flag\n  Cell = V 0\n end\n return Cell\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
-            expect(runtime.execute('A true inspect')).toBe(10n);
-            expect(runtime.execute('A false inspect')).toBe(20n);
+            expect(runtime.execute('A inspect true')).toBe(10n);
+            expect(runtime.execute('A inspect false')).toBe(20n);
             expect(isSharedArray(array)).toBe(false);
             const items = array.items;
             runtime.execute('A 0 = 99');
@@ -159,14 +159,14 @@ First = A inspect`);
     it.each([true, false])('borrows through a counted read-only loop with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun V N inspect\n for I in 0 till N\n  V I\n end\n return V 0\nend\nA = array 10 20 30');
+            runtime.execute('fun V inspect N\n for I in 0 till N\n  V I\n end\n return V 0\nend\nA = array 10 20 30');
             const array = runtime.variables.get('A') as RankArray;
-            expect(runtime.execute('A 3 inspect')).toBe(10n);
+            expect(runtime.execute('A inspect 3')).toBe(10n);
             expect(isSharedArray(array)).toBe(false);
             const items = array.items;
             runtime.execute('A 0 = 99');
             expect(array.items).toBe(items);
-            expect(() => runtime.execute('A "bad" inspect')).toThrow();
+            expect(() => runtime.execute('A inspect "bad"')).toThrow();
             expect(isSharedArray(array)).toBe(true);
         } finally { runtime.dispose(); }
     });
@@ -174,9 +174,9 @@ First = A inspect`);
     it.each([true, false])('borrows through a scalar reduction loop with compilation %s', integerLoopCompilation => {
         const runtime = new Interpreter(undefined, { integerLoopCompilation });
         try {
-            runtime.execute('fun V N sum_cells\n Total = 0\n for I in 0 till N\n  Total += V I\n end\n return Total\nend\nA = array 10 20 30');
+            runtime.execute('fun V sum_cells N\n Total = 0\n for I in 0 till N\n  Total += V I\n end\n return Total\nend\nA = array 10 20 30');
             const array = runtime.variables.get('A') as RankArray;
-            expect(runtime.execute('A 3 sum_cells')).toBe(60n);
+            expect(runtime.execute('A sum_cells 3')).toBe(60n);
             expect(isSharedArray(array)).toBe(false);
             const items = array.items;
             runtime.execute('A 0 = 99');
@@ -200,7 +200,7 @@ First = A inspect`);
     it('keeps the ordinary binding when the branch argument is the same array', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V Flag inspect\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\nA = array 10 20');
+            runtime.execute('fun V inspect Flag\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
@@ -226,15 +226,15 @@ First = A inspect`);
     it('rechecks a forwarded boolean branch after the helper changes', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V Flag branch\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\n'
-                + 'fun V Flag inspect\n return V Flag branch\nend\nA = array 10 20');
+            runtime.execute('fun V branch Flag\n if Flag\n  return V 0\n else\n  return V 1\n end\nend\n'
+                + 'fun V inspect Flag\n return V branch Flag\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
-            expect(runtime.execute('A true inspect')).toBe(10n);
+            expect(runtime.execute('A inspect true')).toBe(10n);
             expect(isSharedArray(array)).toBe(false);
             runtime.forgetBindings(['branch']);
-            runtime.execute('fun V Flag branch\n return V\nend');
-            expect(() => runtime.execute('A true inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
-            runtime.execute('B = A true branch');
+            runtime.execute('fun V branch Flag\n return V\nend');
+            expect(() => runtime.execute('A inspect true')).toThrow('inspect returns rank 0 and cannot return rank 1');
+            runtime.execute('B = A branch true');
             expect(isSharedArray(array)).toBe(true);
             runtime.execute('A 0 = 99');
             expect((runtime.variables.get('B') as RankArray).items[0]).toBe(10n);
@@ -244,7 +244,7 @@ First = A inspect`);
     it('borrows a flat array when a local holds only a read scalar', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V I inspect\n Cell = V I\n return Cell + 1\nend\nA = array 10 20\nResult = A 0 inspect');
+            runtime.execute('fun V inspect I\n Cell = V I\n return Cell + 1\nend\nA = array 10 20\nResult = A inspect 0');
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.variables.get('Result')).toBe(11n);
             expect(isSharedArray(array)).toBe(false);
@@ -257,7 +257,7 @@ First = A inspect`);
     it('borrows through a guarded parameter selector and a helper chain', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V I readat\n return V I\nend\nfun V I inspect\n return V I readat\nend\nA = array 10 20 30\nSecond = A 1 inspect');
+            runtime.execute('fun V readat I\n return V I\nend\nfun V inspect I\n return V readat I\nend\nA = array 10 20 30\nSecond = A inspect 1');
             const array = runtime.variables.get('A') as RankArray;
             expect(runtime.variables.get('Second')).toBe(20n);
             expect(isSharedArray(array)).toBe(false);
@@ -269,17 +269,17 @@ First = A inspect`);
 
     it('borrows through a computed integer selector without copying the caller array', () => {
         for (const definitions of [
-            'fun V I inspect\n return V (I + 1)\nend',
-            'fun V I readat\n return V I\nend\nfun V I inspect\n return V (I + 1) readat\nend',
-            'fun V I inspect\n J = I + 1\n return V J\nend',
-            'fun V I inspect\n J = (I + 1) // 1\n return V J\nend',
-            'fun V I inspect\n J = (I + 1) mod 3\n return V J\nend',
-            'fun V I readat\n return V I\nend\nfun V I inspect\n J = I + 1\n return V J readat\nend',
-            'fun V I readat\n return V I\nend\nfun V I inspect\n Cell = V (I + 1) readat\n return Cell\nend',
+            'fun V inspect I\n return V (I + 1)\nend',
+            'fun V readat I\n return V I\nend\nfun V inspect I\n return V readat (I + 1)\nend',
+            'fun V inspect I\n J = I + 1\n return V J\nend',
+            'fun V inspect I\n J = (I + 1) // 1\n return V J\nend',
+            'fun V inspect I\n J = (I + 1) mod 3\n return V J\nend',
+            'fun V readat I\n return V I\nend\nfun V inspect I\n J = I + 1\n return V readat J\nend',
+            'fun V readat I\n return V I\nend\nfun V inspect I\n Cell = V readat (I + 1)\n return Cell\nend',
         ]) {
             const runtime = new Interpreter();
             try {
-                runtime.execute(`${definitions}\nA = array 10 20 30\nSecond = A 0 inspect`);
+                runtime.execute(`${definitions}\nA = array 10 20 30\nSecond = A inspect 0`);
                 const array = runtime.variables.get('A') as RankArray;
                 expect(runtime.variables.get('Second')).toBe(20n);
                 expect(isSharedArray(array)).toBe(false);
@@ -295,7 +295,7 @@ First = A inspect`);
             'Cell = V (I + 1)\n return Cell']) {
             const runtime = new Interpreter();
             try {
-                runtime.execute(`fun V I inspect\n ${body}\nend\nA = array 10 20`);
+                runtime.execute(`fun V inspect I\n ${body}\nend\nA = array 10 20`);
                 const array = runtime.variables.get('A') as RankArray;
                 const inspect = runtime.variables.get('inspect');
                 if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
@@ -308,9 +308,9 @@ First = A inspect`);
     it('keeps an owned array unshared when integer division in a reader throws', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V I inspect\n return V (I // 0)\nend\nA = array 10 20');
+            runtime.execute('fun V inspect I\n return V (I // 0)\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
-            expect(() => runtime.execute('A 1 inspect')).toThrow('division by zero');
+            expect(() => runtime.execute('A inspect 1')).toThrow('division by zero');
             expect(isSharedArray(array)).toBe(false);
             const items = array.items;
             runtime.execute('A 0 = 99');
@@ -321,7 +321,7 @@ First = A inspect`);
     it('uses ordinary CoW binding when a reader selector is not an integer', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V I readat\n return V I\nend\nA = array 10 20');
+            runtime.execute('fun V readat I\n return V I\nend\nA = array 10 20');
             const array = runtime.variables.get('A') as RankArray;
             const readat = runtime.variables.get('readat');
             if (!readat || !isNativeFunction(readat)) throw new Error('readat');
@@ -333,12 +333,12 @@ First = A inspect`);
     it('invalidates a guarded reader proof after helper replacement', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V I readat\n return V I\nend\nfun V I inspect\n return V I readat\nend\nA = array 10 20\nFirst = A 0 inspect');
+            runtime.execute('fun V readat I\n return V I\nend\nfun V inspect I\n return V readat I\nend\nA = array 10 20\nFirst = A inspect 0');
             expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(false);
             runtime.forgetBindings(['readat']);
-            runtime.execute('fun V I readat\n return V\nend');
-            expect(() => runtime.execute('A 0 inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
-            runtime.execute('Saved = A 0 readat');
+            runtime.execute('fun V readat I\n return V\nend');
+            expect(() => runtime.execute('A inspect 0')).toThrow('inspect returns rank 0 and cannot return rank 1');
+            runtime.execute('Saved = A readat 0');
             const array = runtime.variables.get('A') as RankArray;
             expect(isSharedArray(array)).toBe(true);
             runtime.execute('A 0 = 99');
@@ -349,12 +349,12 @@ First = A inspect`);
     it('invalidates a local reader-result proof after helper replacement', () => {
         const runtime = new Interpreter();
         try {
-            runtime.execute('fun V I readat\n return V I\nend\nfun V I inspect\n Cell = V I readat\n return Cell\nend\nA = array 10 20\nFirst = A 0 inspect');
+            runtime.execute('fun V readat I\n return V I\nend\nfun V inspect I\n Cell = V readat I\n return Cell\nend\nA = array 10 20\nFirst = A inspect 0');
             expect(isSharedArray(runtime.variables.get('A') as RankArray)).toBe(false);
             runtime.forgetBindings(['readat']);
-            runtime.execute('fun V I readat\n return V\nend');
-            expect(() => runtime.execute('A 0 inspect')).toThrow('inspect returns rank 0 and cannot return rank 1');
-            runtime.execute('Saved = A 0 readat');
+            runtime.execute('fun V readat I\n return V\nend');
+            expect(() => runtime.execute('A inspect 0')).toThrow('inspect returns rank 0 and cannot return rank 1');
+            runtime.execute('Saved = A readat 0');
             const array = runtime.variables.get('A') as RankArray;
             expect(isSharedArray(array)).toBe(true);
             runtime.execute('A 0 = 99');
@@ -418,7 +418,7 @@ Row = A inspect`);
             runtime.execute(`fun V read
   return V 0
 end
-fun A B inspect
+fun A inspect B
   return A read
 end
 Value = array 10 20`);
@@ -472,10 +472,10 @@ fun A mutate
   A 0 = 99
   return 0
 end
-fun V A inspect
+fun V inspect A
   ${body}
 end
-A A inspect`)).toBe(10n);
+A inspect A`)).toBe(10n);
             expect(runtime.execute('A 0')).toBe(10n);
         } finally {
             runtime.dispose();

@@ -46,7 +46,7 @@ fun Points K InitialCentroids Max k_means
     return Next
   end
 
-  fun Prev Next done
+  fun Prev done Next
     return Prev Next equal rank 2
   end
 

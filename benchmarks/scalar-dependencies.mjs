@@ -33,7 +33,12 @@ if (process.argv[2] === '--worker') {
                     if (prime(Number(q + '3'))) expected++;
                 }
             }
-            const source = `Total = 0\nfor I in 0 till ${count}\n if 3 (I * 2 + 3) compatible\n  Total += 1\n end\nend\nTotal`;
+            const source = `Total = 0\nfor I in 0 till ${count}
+ if 3 compatible (I * 2 + 3)
+  Total += 1
+ end
+end
+Total`;
             const run = () => assert.equal(runtime.execute(source), expected);
             run(); run();
             const samples = [];
@@ -55,9 +60,9 @@ if (process.argv[2] === '--worker') {
             time('seedBuild', 'Seed = 10000 build');
             assert.equal(runtime.execute('Seed .primes len'), 1227n);
             if (!process.argv.includes('--seed')) {
-                assert.equal(time('seedSearch', 'Upper = Seed 50000 min_five\nUpper'), 26033n);
+                assert.equal(time('seedSearch', 'Upper = Seed min_five 50000\nUpper'), 26033n);
                 time('fullBuild', 'Full = Upper build');
-                assert.equal(time('fullSearch', 'Answer = Full Upper min_five\nAnswer'), 26033n);
+                assert.equal(time('fullSearch', 'Answer = Full min_five Upper\nAnswer'), 26033n);
             }
             console.log(JSON.stringify({ fixture, mode, phases, calls, loops }));
         }

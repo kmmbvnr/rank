@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/3
 
 use sequences
 
-fun A NewShape reshape_matrix
+fun A reshape_matrix NewShape
   unpack OldRows OldCols = A shape
   unpack Rows Cols = NewShape
 

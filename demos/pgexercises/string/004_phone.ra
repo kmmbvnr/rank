@@ -15,7 +15,7 @@ Mask' = Phones hasparens rank 0
 R' = M filter Mask
 Result' = R select .memid .telephone
 Result' = Result sort by .memid
-Result OutputPath csv
+Result csv OutputPath
 
 fun Phone' hasparens
   return "(" in Phone or ")" in Phone

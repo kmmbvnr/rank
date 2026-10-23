@@ -33,7 +33,7 @@ fun Lines' solve
   Part2 = 0
 
   for Line in Lines
-    unpack Id P1 V1 P2 V2 P3 V3 = Line Pattern parse
+    unpack Id P1 V1 P2 V2 P3 V3 = Line parse Pattern
 
     A = P1 V1 Index exact
     B = P2 V2 Index exact

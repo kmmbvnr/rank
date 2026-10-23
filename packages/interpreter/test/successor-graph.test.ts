@@ -87,7 +87,7 @@ tuple First (N array) ((G edges 4) array)`)).toBe('5 6 6 1');
     it('matches finite explicit BFS distances and reconstructed paths', () => {
         expect(run(`use graph
 use sequences
-fun N next = (N + 1) to ((N + 2) 5 min)
+fun N next = (N + 1) to ((N + 2) min 5)
 G = new graph with next .directed
 E = new graph (0 to 5) .directed
 for N in 0 to 5
@@ -110,7 +110,7 @@ R .path`)).toBe('start end');
     });
 
     it('rejects unbounded algorithms, mutation, size and direct adjacency', () => {
-        for (const query of ['G 0 bfs', 'G 0 dfs', 'G 0 dijkstra']) {
+        for (const query of ['G 0 bfs', 'G dfs 0', 'G dijkstra 0']) {
             expect(() => run(prelude + query)).toThrow('successor graph requires bounded BFS');
         }
         for (const query of ['G components', 'G floyd', 'G 0 1 edgeweight', 'G 0 1 2 trips']) {
@@ -123,7 +123,7 @@ R .path`)).toBe('start end');
 
     it('validates callback arity, direction, states, budget and successor shape', () => {
         expect(() => run(prelude + 'new graph with next .undirected')).toThrow('successor graph requires .directed');
-        expect(() => run('use graph\nfun A B two = true\nnew graph with two .directed')).toThrow('expects one argument');
+        expect(() => run('use graph\nfun A two B = true\nnew graph with two .directed')).toThrow('expects one argument');
         expect(() => run('use graph\nnew graph with 3 .directed')).toThrow('expects a function');
         for (const limit of ['-1', '1.0', 'true']) {
             expect(() => run(prelude + `G 0 5 ${limit} bfs`)).toThrow('limit must be a nonnegative integer');

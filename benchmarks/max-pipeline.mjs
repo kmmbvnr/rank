@@ -11,7 +11,10 @@ if(process.argv[2]==='worker'){
  const runtime=new Interpreter();
  const sources={
   scalar:`fun N scalar\n Best = 0\n for I in 0 till N\n  Best = ${syntax==='new'?'Best max I':'Best I max'}\n end\n return Best\nend`,
-  addressed:`fun A N addressed\n Best = 0\n for I in 0 till N\n  Best = ${syntax==='new'?'A (I mod 4) max Best':'A (I mod 4) Best max'}\n end\n return Best\nend`,
+  addressed:`fun A addressed N
+ Best = 0
+ for I in 0 till N
+  Best = ${syntax==='new'?'A (I mod 4) max Best':'A (I mod 4) Best max'}\n end\n return Best\nend`,
  };
  runtime.execute('A = array 3 9 2 7\n'+Object.values(sources).join('\n'));
  const result={sources,node:process.version,size,times:{},compiledLoops:{}};

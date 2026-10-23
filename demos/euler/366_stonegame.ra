@@ -14,7 +14,7 @@ fun N tri
   return N * (N + 1) // 2
 end
 
-fun A B rangesum
+fun A rangesum B
   if B less A
     return 0
   end
@@ -35,9 +35,9 @@ fun Pre K J tailpref
   B = Pre (K - 2) - 1
   Len = B - A + 1
   if J less Len
-    return A (A + J) rangesum
+    return A rangesum (A + J)
   end
-  Left = A B rangesum
+  Left = A rangesum B
   Right = Pre (K - 2) (J - Len) tailpref
   return Left + Right
 end
@@ -84,7 +84,7 @@ fun N stones
   for I in 7 to Last
     A = Pre (I - 3)
     B = Pre (I - 2) - 1
-    Block = A B rangesum
+    Block = A rangesum B
     Tail I = Tail (I - 2) + Block
   end
   for I in 3 to Last

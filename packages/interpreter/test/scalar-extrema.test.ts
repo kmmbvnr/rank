@@ -7,7 +7,7 @@ function call(body: string, args: RankValue[], compilation: boolean) {
     let calls = 0;
     const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
     try {
-        runtime.execute(`fun X Y probe\n${body}\nend`);
+        runtime.execute(`fun X probe Y\n${body}\nend`);
         const fn = runtime.variables.get('probe');
         if (!fn || !isNativeFunction(fn)) throw new Error('expected probe');
         return { value: fn.call(args), calls };
@@ -21,7 +21,7 @@ describe('shared scalar extrema', () => {
             [1.5, 2.5], [-0, 0], [0, -0], [NaN, 1], [1, NaN], [Infinity, -Infinity],
         ];
         for (const args of pairs) {
-            const source = name === 'max' ? 'return X max Y' : 'return X Y min';
+            const source = name === 'max' ? 'return X max Y' : 'return X min Y';
             const reference = call(source, args, false), compiled = call(source, args, true);
             expect(Object.is(compiled.value, reference.value)).toBe(true);
             expect(compiled.calls).toBe(1);
@@ -44,7 +44,7 @@ describe('shared scalar extrema', () => {
     });
 
     it('preserves chains and keeps mixed or collection inputs on the reference path', () => {
-        const source = 'return (X max Y) 10 min';
+        const source = 'return (X max Y) min 10';
         expect(call(source, [4n, 20n], true)).toEqual({ value: 10n, calls: 1 });
         for (const args of [[2n ** 60n + 1n, 2 ** 60], [2n, 0.5], ['a', 'b']] as RankValue[][]) {
             expect(call('return X max Y', args, true)).toEqual(call('return X max Y', args, false));
@@ -55,7 +55,7 @@ describe('shared scalar extrema', () => {
 
     it('evaluates both operands once, in source order, including errors', () => {
         const source = `use algo
-fun X Y probe
+fun X probe Y
   return ((X pop) * 10) max (Y pop)
 end
 Items = new stack
@@ -63,7 +63,7 @@ Items push 2
 Items push 7
 Result = 0
 for I in 1 to 1
-  Result = Items Items probe
+  Result = Items probe Items
 end
 array Result (Items len)`;
         for (const compilation of [false, true]) {
@@ -85,13 +85,13 @@ array Result (Items len)`;
             let calls = 0;
             const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
             try {
-                runtime.execute(`fun X Y probe
+                runtime.execute(`fun X probe Y
   return X max Y
 end`);
-                expect(runtime.execute('2 3 probe')).toBe(3n);
+                expect(runtime.execute('2 probe 3')).toBe(3n);
                 if (compilation) expect(calls).toBe(1);
                 runtime.variables.set('max', native('replacement', 2, ([a, b]) => (a as bigint) + (b as bigint)));
-                expect(runtime.execute('2 3 probe')).toBe(5n);
+                expect(runtime.execute('2 probe 3')).toBe(5n);
             } finally { runtime.dispose(); }
         }
     });

@@ -10,7 +10,7 @@ test "official example"
     3 4 5
     4 1 3
   end
-  4 Edges download_speed equal 6
+  4 download_speed Edges equal 6
 end
 
 test "adds parallel capacities"
@@ -21,7 +21,7 @@ test "adds parallel capacities"
     1 2 7
     2 3 20
   end
-  3 Edges download_speed equal 11
+  3 download_speed Edges equal 11
 end
 
 test "is limited by a bottleneck"
@@ -32,7 +32,7 @@ test "is limited by a bottleneck"
     2 3 2
     1 3 1
   end
-  3 Edges download_speed equal 3
+  3 download_speed Edges equal 3
 end
 
 test "returns zero without a route"
@@ -41,5 +41,5 @@ test "returns zero without a route"
   Edges = array shape 1 3
     1 2 9
   end
-  3 Edges download_speed equal 0
+  3 download_speed Edges equal 0
 end

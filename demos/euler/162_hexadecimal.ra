@@ -26,8 +26,8 @@ No01A' = 13 ** N
 Count' = All - No0 - 2 * No1 + 2 * No01 + No1A - No01A
 Answer = Count sum
 Bases = array shape Digits fill 16
-Ds = Answer Bases digits
+Ds = Answer digits Bases
 Code' = Ds + (Ds greater 9 choose 55 48)
 Chars' = Code character rank 0
-Text = Chars "" join
+Text = Chars join ""
 Text print

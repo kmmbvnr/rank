@@ -12,4 +12,4 @@ M' = Db .members
 Result' = M select
   .name = .surname + ", " + .firstname
 end
-Result OutputPath csv
+Result csv OutputPath

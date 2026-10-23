@@ -113,7 +113,7 @@ it('formats nullary and wide tuple signatures without ambiguous variable names',
 it('uses audited overloads rather than a compiled subset or operand names', () => {
     const split = findOperation('split')!;
     expect(operationSignature(split)).toBe("text (text | c<text>) → c<text>");
-    expect(operationSignature({ ...split, form: 'Integer Number split' })).toBe(operationSignature(split));
+    expect(operationSignature({ ...split, form: 'Integer split Number' })).toBe(operationSignature(split));
     expect(operationSignature({ ...split, signatures: undefined })).toBeUndefined();
     expect(operationSignature(split, 1)).toBeUndefined();
     expect(operationSignature(findOperation('reverse')!)).toBe(

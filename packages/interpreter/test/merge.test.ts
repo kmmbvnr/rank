@@ -7,12 +7,12 @@ import { run } from './support.js';
 
 describe('sorted sequence merge', () => {
     it('merges two streams lazily, including empty and unequal inputs', () => {
-        expect(run('use sequences\n(array 1 3 5) (array 2 4) merge array')).toBe('1 2 3 4 5');
-        expect(run('use sequences\n(array shape 0 fill 0) (array 2 4) merge array')).toBe('2 4');
-        expect(run('use sequences\n(array shape 0 fill 0) (array shape 0 fill 0) merge array')).toBe('');
+        expect(run('use sequences\n(array 1 3 5) merge (array 2 4) array')).toBe('1 2 3 4 5');
+        expect(run('use sequences\n(array shape 0 fill 0) merge (array 2 4) array')).toBe('2 4');
+        expect(run('use sequences\n(array shape 0 fill 0) merge (array shape 0 fill 0) array')).toBe('');
         expect(run('use sequences\n(array shape 0 fill 0) merge array')).toBe('');
-        expect(run('use sequences\n(1 to 9 by 2) (2 to 8 by 2) merge take 4 array')).toBe('1 2 3 4');
-        expect(run('use sequences\n(1 to 100 by 2) primes merge take 5 array')).toBe('1 2 3 3 5');
+        expect(run('use sequences\n(1 to 9 by 2) merge (2 to 8 by 2) take 4 array')).toBe('1 2 3 4');
+        expect(run('use sequences\n(1 to 100 by 2) merge primes take 5 array')).toBe('1 2 3 3 5');
         expect(run('use sequences\nA = 1 to 5 by 2\nB = 2 to 6 by 2\nStreams = array A B\nStreams merge array'))
             .toBe('1 2 3 4 5 6');
     });
@@ -25,8 +25,8 @@ describe('sorted sequence merge', () => {
     });
 
     it('preserves duplicate order by input and checks the promised ordering', () => {
-        expect(run('use sequences\n(array 1 2 2) (array 2 2 3) merge array')).toBe('1 2 2 2 2 3');
-        expect(() => run('use sequences\n(array 1 3 2) (array 4 5) merge array'))
+        expect(run('use sequences\n(array 1 2 2) merge (array 2 2 3) array')).toBe('1 2 2 2 2 3');
+        expect(() => run('use sequences\n(array 1 3 2) merge (array 4 5) array'))
             .toThrow(/merge expects ascending inputs/);
     });
 
@@ -45,7 +45,7 @@ fun Start stream
 end
 A' = 1 stream
 B' = 2 stream
-M' = A B merge
+M' = A merge B
 First = M first`);
             expect(reads).toEqual(['1', '2']);
         } finally { runtime.dispose(); }
@@ -57,13 +57,13 @@ First = M first`);
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun X Calls hit',
+            'fun X hit Calls',
             '  Calls .count += 1',
             '  return X equal 11',
             'end',
             'A = array 11 33',
             'B = array 22 44',
-            "Candidates' = A B merge",
+            "Candidates' = A merge B",
             'Answer = Candidates filter Calls hit first',
             'array Answer (Calls .count)',
         ].join('\n'))).toBe('11 1');
@@ -83,7 +83,7 @@ end
 fun X hit = X equal 1
 A' = 1 stream
 B' = 2 stream
-First = A B merge ${predicate}`);
+First = A merge B ${predicate}`);
                 expect(reads).toEqual(['1', '2']);
             } finally { runtime.dispose(); }
         }
@@ -123,15 +123,15 @@ First = A B merge ${predicate}`);
     it('orders records by a field and keeps earlier streams first on equal keys', () => {
         expect(run([
             'use sequences',
-            'fun Time Name event',
+            'fun Time event Name',
             '  E = record',
             '    .time = Time',
             '    .name = Name',
             '  end',
             '  return E',
             'end',
-            'A = array (1 "a" event) (2 "c" event)',
-            'B = array (1 "b" event) (3 "d" event)',
+            'A = array (1 event "a") (2 event "c")',
+            'B = array (1 event "b") (3 event "d")',
             'M = A B merge by .time',
             'M array',
         ].join('\n'))).toBe('{.time = 1, .name = a} {.time = 1, .name = b} '

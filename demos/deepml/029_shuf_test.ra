@@ -13,7 +13,7 @@ test "official data keeps pairs"
   Y = array 1 2 3 4
 
   State = 42 seed
-  Result = X Y shuffle_data
+  Result = X shuffle_data Y
   ShuffledX = Result 0
   ShuffledY = Result 1
 
@@ -38,7 +38,7 @@ test "second official data keeps pairs"
   Y = array 10 20 30 40
 
   State = 24 seed
-  Result = X Y shuffle_data
+  Result = X shuffle_data Y
   ShuffledX = Result 0
   ShuffledY = Result 1
 
@@ -62,9 +62,9 @@ test "resetting seed repeats a shuffle"
   Y = array 10 20 30 40
 
   State = 42 seed
-  First = X Y shuffle_data
+  First = X shuffle_data Y
   State = 42 seed
-  Second = X Y shuffle_data
+  Second = X shuffle_data Y
 
   (First 0) (Second 0) equal rank 2
   (First 1) (Second 1) equal rank 1
@@ -77,7 +77,7 @@ test "sample counts must match"
   Raised = false
 
   try
-    Result = X Y shuffle_data
+    Result = X shuffle_data Y
   catch .DimensionMismatch Error
     Raised = true
   end

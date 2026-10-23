@@ -12,12 +12,12 @@ option Block integer = 4000000
 Top = Limit // 4
 Answer = 0
 for Low in 1 to Top by Block
-  High = (Low + Block - 1) Top min
-  Answer += Low High biclinic_block
+  High = (Low + Block - 1) min Top
+  Answer += Low biclinic_block High
 end
 Answer print
 
-fun Low High biclinic_block
+fun Low biclinic_block High
   Size = High - Low + 1
   Cnt = array shape Size fill 0
   Root = (High / 2) ** 0.5 floor

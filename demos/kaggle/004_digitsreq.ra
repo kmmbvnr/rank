@@ -14,12 +14,12 @@ argument OutputPath path = "demos/kaggle/submissions/digits.csv"
 
 Train = TrainPath csv
 Test = TestPath csv
-Submission = Train Test solve_table
-Submission OutputPath csv
+Submission = Train solve_table Test
+Submission csv OutputPath
 
 
 rem Use CSV headers to retain pixel order in both files.
-fun Train Test solve_table
+fun Train solve_table Test
   Labels = Train labels
   Mask' = Labels not equal .label
   Features = (Labels Mask) array

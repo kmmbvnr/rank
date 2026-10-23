@@ -40,7 +40,7 @@ test "all categories in ascending order"
   end
   Expected = array 0 1 2 3 4 5 6 7 8 8
   for Line I in Examples
-    Cards = Line " " split
+    Cards = Line split " "
     Score = Cards hand_score
     Score 0 equal Expected I
   end
@@ -67,16 +67,16 @@ end
 test "ace-low straights and suit-independent ties"
   use "054_poker"
   run
-  Wheel = ("AH 2C 3S 4D 5H" " " split) hand_score
-  Six = ("2H 3C 4S 5D 6H" " " split) hand_score
+  Wheel = ("AH 2C 3S 4D 5H" split " ") hand_score
+  Six = ("2H 3C 4S 5D 6H" split " ") hand_score
   Wheel (array 4 3 0 0 0 0) equal rank 1
   Six Wheel greater rank 1
 
-  LowFlush = ("AH 2H 3H 4H 5H" " " split) hand_score
-  HighFlush = ("2S 3S 4S 5S 6S" " " split) hand_score
+  LowFlush = ("AH 2H 3H 4H 5H" split " ") hand_score
+  HighFlush = ("2S 3S 4S 5S 6S" split " ") hand_score
   HighFlush LowFlush greater rank 1
 
-  Left = ("5H 5C 6S 7S KD" " " split) hand_score
-  Right = ("KS 7D 5D 6H 5S" " " split) hand_score
+  Left = ("5H 5C 6S 7S KD" split " ") hand_score
+  Right = ("KS 7D 5D 6H 5S" split " ") hand_score
   Left Right equal rank 1
 end

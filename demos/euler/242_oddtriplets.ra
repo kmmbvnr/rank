@@ -24,7 +24,7 @@ rem bit i of M adds 3^i times 2^c for c
 rem the set bits above it.
 M = (Limit - 1) // 4 + 1
 I = 0 to ((M binary len) - 1) array
-Bit = (M I bit) choose 1 0
+Bit = (M bit I) choose 1 0
 Above' = (Bit sum) - (Bit scan +)
 Share' = Bit * 2 ** Above * 3 ** I
 Answer = Share sum

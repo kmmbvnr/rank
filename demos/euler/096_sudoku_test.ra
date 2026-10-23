@@ -25,7 +25,7 @@ test "first puzzle is solved to 483"
   use io
   use sequences
   Puzzle = "Grid 01\n003020600\n900305001\n001806400\n008102900\n700000008\n006708200\n002609500\n800203009\n005010300\n"
-  Puzzle "/tmp/euler096.txt" write
+  Puzzle write "/tmp/euler096.txt"
   Input = "/tmp/euler096.txt"
   run
 

@@ -31,7 +31,7 @@ rem instructions with ready inputs.
 fun Lines Target Override circuit
   Index = new index
   if Override at least 0
-    Index "b" = Override 65535 band
+    Index "b" = Override band 65535
   end
 
   Pattern = "/text -> /word"
@@ -40,12 +40,12 @@ fun Lines Target Override circuit
     Progress = false
 
     for Line in Lines
-      unpack Expression Dest = Line Pattern parse
+      unpack Expression Dest = Line parse Pattern
 
       if not Dest in Index
         try
-          Value = Expression Index eval_expr
-          Index Dest = Value 65535 band
+          Value = Expression eval_expr Index
+          Index Dest = Value band 65535
           Progress = true
         catch .NotReady Error
         end
@@ -62,26 +62,26 @@ end
 
 
 rem Evaluate an expression or raise .NotReady if any wire is pending.
-fun Expression Wires eval_expr
-  Terms = Expression " " split
+fun Expression eval_expr Wires
+  Terms = Expression split " "
 
   if Terms len equal 1
-    return Terms 0 Wires signal
+    return Terms 0 signal Wires
   end
 
   if Terms 0 equal "NOT"
-    return (Terms 1 Wires signal) bnot
+    return (Terms 1 signal Wires) bnot
   end
 
-  Left = Terms 0 Wires signal
+  Left = Terms 0 signal Wires
   Op = Terms 1
-  Right = Terms 2 Wires signal
+  Right = Terms 2 signal Wires
   return Op Left Right operate
 end
 
 
 rem Read a decimal literal or wire signal, or fail if not yet resolved.
-fun Token Wires signal
+fun Token signal Wires
   try
     return Token integer
   catch .InvalidNumber Error
@@ -96,16 +96,16 @@ end
 rem Apply one binary circuit operation.
 fun Op Left Right operate
   if Op equal "AND"
-    return Left Right band
+    return Left band Right
   end
   if Op equal "OR"
-    return Left Right bor
+    return Left bor Right
   end
   if Op equal "LSHIFT"
-    return Left Right shl
+    return Left shl Right
   end
   if Op equal "RSHIFT"
-    return Left Right shr
+    return Left shr Right
   end
 
   .InvalidCircuit Op raise

@@ -17,7 +17,7 @@ describe('single-expression function bindings', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use numbers\nf = abs sqrt\n9 f')).toBe(3);
         runtime.forgetBindings(['f']);
-        expect(runtime.execute('fun A B f = (A abs) + B\n-3 2 f')).toBe(5n);
+        expect(runtime.execute('fun A f B = (A abs) + B\n-3 f 2')).toBe(5n);
     });
     it('preserves unary and binary entry arities', () => {
         const runtime = new Interpreter();
@@ -25,11 +25,11 @@ describe('single-expression function bindings', () => {
         const fn = runtime.variables.get('positive_max')!;
         expect(isNativeFunction(fn) && fn.arities).toEqual([1, 2]);
         expect(runtime.execute('(array -3 -4) positive_max')).toBe(3n);
-        expect(runtime.execute('-3 -4 positive_max')).toBe(3n);
+        expect(runtime.execute('-3 positive_max -4')).toBe(3n);
         runtime.execute('binary_max = max rank 0 0 abs');
         const binary = runtime.variables.get('binary_max')!;
         expect(isNativeFunction(binary) && binary.arities).toEqual([2]);
-        expect(runtime.execute('-3 -4 binary_max')).toBe(3n);
+        expect(runtime.execute('-3 binary_max -4')).toBe(3n);
     });
     it('rejects incompatible later stages and ambiguous factory syntax at definition analysis', () => {
         expect(() => new Interpreter().execute('use numbers\nuse linalg\nf = abs matmul')).toThrow(/must accept one value/);
@@ -47,12 +47,12 @@ describe('single-expression function bindings', () => {
     it('keeps internal rank separate from whole-function external rank', () => {
         const runtime = new Interpreter();
         runtime.execute('use linalg\nuse sequences\ntotal = matmul sum\nA = (array 1 0 0 1 2 0 0 2) reshape 2 2 2');
-        expect(runtime.execute('A A total')).toBe(18n);
-        expect(runtime.execute('A A total rank 2 2')).toMatchObject({ items: [2n, 8n] });
+        expect(runtime.execute('A total A')).toBe(18n);
+        expect(runtime.execute('A total A rank 2 2')).toMatchObject({ items: [2n, 8n] });
     });
     it('passes tuples as one result and resolves callback pipelines at definition time', () => {
         const runtime = new Interpreter();
-        expect(runtime.execute('fun A B pair\n return tuple A B\nend\nf = pair len\n3 4 f')).toBe(2n);
+        expect(runtime.execute('fun A pair B\n return tuple A B\nend\nf = pair len\n3 f 4')).toBe(2n);
         runtime.execute('use numbers\nfun X apply op\n composed = op abs\n return X composed\nend');
         const apply = runtime.variables.get('apply')!;
         expect(isNativeFunction(apply) && apply.call([-3n, runtime.execute('abs')!])).toBe(3n);
@@ -70,7 +70,7 @@ describe('single-expression function bindings', () => {
     it('requires lowercase function bindings and callback parameters', () => {
         expect(() => new Interpreter().execute('use numbers\nF = abs')).toThrow(/lowercase/);
         const runtime = new Interpreter();
-        runtime.execute('use numbers\nfun F X apply\n return X F\nend');
+        runtime.execute('use numbers\nfun F apply X\n return X F\nend');
         const apply = runtime.variables.get('apply')!;
         expect(() => isNativeFunction(apply) && apply.call([runtime.execute('abs')!, -3n])).toThrow(/lowercase/);
     });
@@ -107,7 +107,7 @@ describe('single-expression function bindings', () => {
     it.each(['fun', 'memo', 'generator'])('runs imported %s declarations with permitted module dependencies', kind => {
         const body = kind === 'generator' ? 'yield Seed + N' : 'return Seed + N';
         const parameters = kind === 'memo' ? 'N Seed' : 'N';
-        const call = kind === 'memo' ? '2 Seed value' : '2 value';
+        const call = kind === 'memo' ? '2 value Seed' : '2 value';
         const source = `use sequences\nSeed = 7\n${kind === 'memo' ? 'memo' : 'fun'} ${parameters} value\n  ${body}\nend\n`
             + (kind === 'generator' ? `(${call}) first` : call);
         const runtime = new Interpreter(undefined, { loadModule: () => ({ id: 'module.ra', source }) });

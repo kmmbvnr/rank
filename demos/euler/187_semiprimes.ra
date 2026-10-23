@@ -27,12 +27,12 @@ Top = concat (array 0) (M // K - 1)
 Hi = Top copy
 for P in primes to R
   Sp = Lo (P - 1)
-  Kmax = R (M // (P * P)) min
+  Kmax = R min (M // (P * P))
   if Kmax greater 0
     Ks = 1 to Kmax array
     Kp = Ks * P
-    Pos' = Kp R min
-    Low' = (M // Kp) R min
+    Pos' = Kp min R
+    Low' = (M // Kp) min R
     Near = Hi Pos
     Far = Lo Low
     Big' = Kp at most R

@@ -101,13 +101,13 @@ test('all three Recursive programs match independent SQL on SQLite and arrays', 
                     const runtime = new Interpreter(undefined, { io, compilation });
                     try {
                         const text = fs.readFileSync(source, 'utf8');
-                        const boundary = '\nResult OutputPath csv';
+                        const boundary = '\nResult csv OutputPath';
                         assert.ok(text.trimEnd().endsWith(boundary));
                         runtime.executeProgram(parse(text.slice(0, text.lastIndexOf(boundary))), [database, output]);
                         assert.equal(queries.length, 0);
                         assert.ok(isRankPlan(runtime.variables.get('Result')));
                         for (const count of [1, 2]) {
-                            runtime.execute('Result OutputPath csv');
+                            runtime.execute('Result csv OutputPath');
                             assert.equal(queries.length, count);
                             assert.match(queries.at(-1), /WITH RECURSIVE/);
                             assert.equal(fs.readFileSync(output, 'utf8').trimEnd(), expected);
@@ -125,7 +125,7 @@ test('all three Recursive programs match independent SQL on SQLite and arrays', 
 
                 const inspect = path.join(dir, 'inspect.ra');
                 fs.writeFileSync(inspect, fs.readFileSync(source, 'utf8')
-                    .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
+                    .replace('Result csv OutputPath', 'use io\nQ = Result sql\nQ .text print'));
                 const sql = run(inspect, database, output);
                 assert.match(sql, /WITH RECURSIVE/);
                 assert.match(sql, /UNION/);
@@ -137,7 +137,7 @@ test('all three Recursive programs match independent SQL on SQLite and arrays', 
         }
         const explain = path.join(dir, 'explain.ra');
         fs.writeFileSync(explain, fs.readFileSync(path.join(examples, files[0]), 'utf8')
-            .replace('Result OutputPath csv', 'Result explain OutputPath csv'));
+            .replace('Result csv OutputPath', 'Result explain csv OutputPath'));
         run(explain, database, output);
         assert.match(fs.readFileSync(output, 'utf8'), /detail/);
     } finally {
@@ -163,7 +163,7 @@ test('reach skips missing edges, duplicate seeds and cycle returns', () => {
             'Starts = array 1 1 4',
             'Result\' = E Starts reach by .src .dst',
             'Result\' = Result sort by .src .dst',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
         ].join('\n');
         fs.writeFileSync(source, program);
         const reference = db.prepare(`WITH RECURSIVE paths(src,dst) AS (
@@ -176,7 +176,8 @@ test('reach skips missing edges, duplicate seeds and cycle returns', () => {
         run(source, database, output);
         assert.equal(fs.readFileSync(output, 'utf8').trimEnd(), expected);
         fs.writeFileSync(source, program.replace('Db = DbPath sqlite',
-            `use json\nDb = ${JSON.stringify(JSON.stringify({ edges: db.prepare('SELECT * FROM edges').all().map(
+            `use json
+Db = ${JSON.stringify(JSON.stringify({ edges: db.prepare('SELECT * FROM edges').all().map(
                 row => Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null)),
             ) }))} json`));
         run(source, database, output);
@@ -204,7 +205,7 @@ test('computed SQLite start columns retain their bound expression parameters', (
             "Starts' = S .id + 1",
             'Result\' = E Starts reach by .src .dst',
             'Result\' = Result sort by .src .dst',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
         ].join('\n');
         fs.writeFileSync(source, program);
         run(source, database, output);

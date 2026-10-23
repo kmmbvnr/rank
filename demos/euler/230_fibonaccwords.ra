@@ -21,8 +21,8 @@ B1 = "8214808651328230664709384"
 B2 = "4609550582231725359408128"
 B3 = "4811174502841027019385211"
 B4 = "0555964462294895493038196"
-A = (array A1 A2 A3 A4) "" join
-B = (array B1 B2 B3 B4) "" join
+A = (array A1 A2 A3 A4) join ""
+B = (array B1 B2 B3 B4) join ""
 
 rem The terms are F1 = A, F2 = B and
 rem Fk = F(k-2) F(k-1), and D(n) is a

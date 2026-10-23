@@ -27,10 +27,10 @@ Msk = array 0
 Rows = array shape 0 fill 0
 for Step in 1 to (Width // 2)
   Q = concat (Pos + 2) (Pos + 3)
-  Bit' = (1 Q shl) 1 shr
+  Bit' = (1 shl Q) shr 1
   Cb' = (Q less Width) choose Bit 0
   Mm' = concat Msk Msk
-  Nm = Mm Cb bor
+  Nm = Mm bor Cb
   Done' = Q equal Width
   New' = Nm filter Done
   Rows = concat Rows New
@@ -39,8 +39,8 @@ for Step in 1 to (Width // 2)
   Msk = Nm filter Keep array
 end
 N = Rows len
-Hi = Rows 15 shr
-Lo = Rows 32767 band
+Hi = Rows shr 15
+Lo = Rows band 32767
 Uh = Hi unique sort
 Ul = Lo unique sort
 Nh = Uh len
@@ -49,8 +49,8 @@ Hc' = Hi reshape N 1
 Lc' = Lo reshape N 1
 Hx' = (Hc greater Uh) count axis 1
 Lx' = (Lc greater Ul) count axis 1
-Dh' = ((Uh reshape Nh 1) Uh band) equal 0
-Dl' = ((Ul reshape Nl 1) Ul band) equal 0
+Dh' = ((Uh reshape Nh 1) band Uh) equal 0
+Dl' = ((Ul reshape Nl 1) band Ul) equal 0
 Ah = Dh choose 1 0
 Al = Dl choose 1 0
 Key = Hx * Nl + Lx
@@ -58,8 +58,8 @@ Ways = Rows - Rows + 1
 for H in 2 to Height
   Grid = array shape (Nh * Nl) fill 0
   Grid Key = Ways
-  Mid = (Grid reshape Nh Nl) Al matmul
-  Mix = Ah Mid matmul
+  Mid = (Grid reshape Nh Nl) matmul Al
+  Mix = Ah matmul Mid
   Flat' = Mix reshape (Nh * Nl)
   Ways = Flat Key
 end

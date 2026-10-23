@@ -65,7 +65,7 @@ for Ai in 0 till N
   O1 = Ds argsort
   Vx = Ux O1
   Vy = Uy O1
-  Dz' = 1 - (Vy 1 min)
+  Dz' = 1 - (Vy min 1)
   Dm' = Vy max 1
   Kk' = (0 - Vx) / Dm - 1000000 * Dz
   O2 = Kk argsort

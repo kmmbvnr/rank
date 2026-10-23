@@ -37,27 +37,27 @@ describe('compact bytes', () => {
         ['"A" bytes', '"" bytes', 'true'],
         ['"" bytes', '"A" bytes', 'false'],
     ])('checks the prefix of %s', (value, prefix, expected) => {
-        expect(run(`use text\nB = ${value}\nP = ${prefix}\nB P startswith`)).toBe(expected);
+        expect(run(`use text\nB = ${value}\nP = ${prefix}\nB startswith P`)).toBe(expected);
     });
 
     it('rejects implicit mixing of bytes and text', () => {
-        expect(() => run('use text\n"abc" ("a" bytes) startswith')).toThrow('startswith expects');
-        expect(() => run('use text\n("abc" bytes) "a" startswith')).toThrow('startswith expects');
+        expect(() => run('use text\n"abc" startswith ("a" bytes)')).toThrow('startswith expects');
+        expect(() => run('use text\n("abc" bytes) startswith "a"')).toThrow('startswith expects');
     });
 
     it('preserves text array broadcasting', () => {
-        expect(run('use text\n"ab" (array "a" "b") startswith')).toBe('true false');
-        expect(run('use text\n(array "ab" "bc") (array "a") startswith')).toBe('true false');
-        expect(run('use text\nA = array shape 2 1\n "ab"\n "bc"\nend\nA (array "a" "b") startswith'))
+        expect(run('use text\n"ab" startswith (array "a" "b")')).toBe('true false');
+        expect(run('use text\n(array "ab" "bc") startswith (array "a")')).toBe('true false');
+        expect(run('use text\nA = array shape 2 1\n "ab"\n "bc"\nend\nA startswith (array "a" "b")'))
             .toBe('true false false true');
         const runtime = new Interpreter();
         try {
-            const result = runtime.execute('use text\nA = array shape 2 1\n "ab"\n "bc"\nend\nA (array "a" "b") startswith');
+            const result = runtime.execute('use text\nA = array shape 2 1\n "ab"\n "bc"\nend\nA startswith (array "a" "b")');
             expect(result).toMatchObject({ shape: [2, 2] });
         } finally {
             runtime.dispose();
         }
-        expect(() => run('use text\n(array "a" "b") (array "a" "b" "c") startswith'))
+        expect(() => run('use text\n(array "a" "b") startswith (array "a" "b" "c")'))
             .toThrow('shape mismatch');
     });
 
@@ -70,7 +70,7 @@ describe('compact bytes', () => {
                 expect(isRankBytes(value)).toBe(true);
                 Object.defineProperty(value, 'items', { get() { throw new Error('materialized bytes'); } });
             }
-            expect(runtime.execute('B P startswith')).toBe(true);
+            expect(runtime.execute('B startswith P')).toBe(true);
         } finally {
             runtime.dispose();
         }
@@ -82,7 +82,7 @@ describe('compact bytes', () => {
             runtime.execute('use text');
             runtime.variables.set('B', new ByteArray(new Uint8Array([99, 0, 255, 1]).subarray(1)));
             runtime.variables.set('P', new ByteArray(new Uint8Array([88, 0, 255]).subarray(1)));
-            expect(runtime.execute('B P startswith')).toBe(true);
+            expect(runtime.execute('B startswith P')).toBe(true);
         } finally {
             runtime.dispose();
         }
@@ -94,9 +94,9 @@ describe('compact bytes', () => {
         try {
             runtime.execute('use io\nuse text\nuse crypto\nB = (array 0 128 255) bytes');
             expect(runtime.execute('B md5 hex')).toBe(createHash('md5').update(new Uint8Array([0, 128, 255])).digest('hex'));
-            runtime.execute('File = "/binary" .write open\nFile B writebytes\nFile close');
+            runtime.execute('File = "/binary" open .write\nFile writebytes B\nFile close');
             expect(io.files.get('/binary')).toEqual(new Uint8Array([0, 128, 255]));
-            expect(runtime.execute('Header = "/binary" 0 3 readbytes\nHeader ((array 0 128) bytes) startswith')).toBe(true);
+            expect(runtime.execute('Header = "/binary" 0 3 readbytes\nHeader startswith ((array 0 128) bytes)')).toBe(true);
             expect(runtime.variables.get('Header')).toBeInstanceOf(ByteArray);
         } finally {
             runtime.dispose();

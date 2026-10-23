@@ -16,7 +16,7 @@ const cases = {
     collatzDemo: { ...demo('014_collatz'), expected: 837799n },
     palindromeDemo: { ...demo('004_palproduct'), expected: 906609n },
     containers: { setup: `use algo
-fun Cache N chainlength
+fun Cache chainlength N
  Path = new stack
  for N not in Cache
   Path push N
@@ -58,12 +58,12 @@ for I in 0 till 2000
  Sum += 20 scratch
 end
 Sum`, expected: 380000n },
-    array: { setup: `fun A I cellread
+    array: { setup: `fun A cellread I
  return A I
 end
 A = array 3 5 7`, body: `Total = 0
 for I in 0 till 12000
- Total += A (I mod 3) cellread
+ Total += A cellread (I mod 3)
 end
 Total`, expected: 60000n },
     text: { setup: `fun S width

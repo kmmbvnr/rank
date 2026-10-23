@@ -14,7 +14,7 @@ fun Board Player Rows Cols Need move
 
   rem Win immediately.
   for C in 0 till Cols
-    if Board C legal
+    if Board legal C
       Next = Board C Player place
       if Next Player Need won
         return C
@@ -24,7 +24,7 @@ fun Board Player Rows Cols Need move
 
   rem Block an immediate opponent win.
   for C in 0 till Cols
-    if Board C legal
+    if Board legal C
       Next = Board C Other place
       if Next Other Need won
         return C
@@ -38,7 +38,7 @@ fun Board Player Rows Cols Need move
   Best = -1
   BestDist = Cols + 1
   for C in 0 till Cols
-    if Board C legal
+    if Board legal C
       Dist = C - Center abs
       if Dist less BestDist
         Best = C
@@ -50,7 +50,7 @@ fun Board Player Rows Cols Need move
 end
 
 
-fun Board C legal
+fun Board legal C
   return Board 0 C equal 0
 end
 

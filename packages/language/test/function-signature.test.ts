@@ -17,7 +17,7 @@ function signature(source: string, name: string, arguments_?: NonNullable<Parame
 it('displays identity and tuple relationships with unknown inputs', () => {
     expect(signature('fun Value identity\n return Value\nend', 'identity')).toBe('a → a');
     expect(signature('fun Value pair\n return tuple Value "label"\nend', 'pair')).toBe('a → tuple(a, text)');
-    expect(signature('fun Left Right pair\n return tuple Left Right\nend', 'pair')).toBe('a b → tuple(a, b)');
+    expect(signature('fun Left pair Right\n return tuple Left Right\nend', 'pair')).toBe('a b → tuple(a, b)');
 });
 
 it('retains relationships through composed helpers', () => {
@@ -102,7 +102,7 @@ it('keeps concrete four-argument inference independent of the symbolic body prev
 it('keeps the result unknown when unsupported fields exhaust inference', () => {
     const source = 'fun A B C D f\n return A .value + ((B + C) + D)\nend';
     expect(signature(source, 'f')).toBe('a b d e → ?');
-    expect(signature('fun A B f\n return A .value + B\nend', 'f')).toBe('a b → ?');
+    expect(signature('fun A f B\n return A .value + B\nend', 'f')).toBe('a b → ?');
     expect(signature(source, 'f', [
         { types: ['record'], fields: { value: { types: ['integer'], rank: 0, shape: [] } } },
         ...Array.from({ length: 3 }, () => ({ types: ['integer'], rank: 0, shape: [] })),
@@ -117,7 +117,7 @@ it('shows the collection result element separately from its preserved container 
 
 
 it('renders backward parameter contracts without inventing a collection-only sum input', () => {
-    const source = 'fun Numbers Digits leading_sum\n Total = Numbers sum\n Text = Total text\n Prefix = Text take Digits\n return Prefix integer\nend';
+    const source = 'fun Numbers leading_sum Digits\n Total = Numbers sum\n Text = Total text\n Prefix = Text take Digits\n return Prefix integer\nend';
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(source);
     const definition = parsed.value.statements.find(isFunctionStatement)!;
     const analysis = analyzeValues(parsed.value, new Map(), new Map(), [{ name: 'leading_sum', arguments: [{ types: [] }, { types: [] }] }]);

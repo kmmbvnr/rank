@@ -83,7 +83,7 @@ The foundational architecture of the pure Rank language core is documented acros
 
 ### Act IV: Computation, Control Flow & Dataflow
 *Data-first execution order, intentional naming, and unified iteration.*
-- [Control flow and functions](language/control-functions.md) — Data-first postfix calls, intermediate variables, `if` conditionals, `for ... end`, `fun` closures with TCO, `memo`, `yield` streams, structured `try/catch/raise`, and scope-bound resources.
+- [Control flow and functions](language/control-functions.md) — Unary and binary calls, intermediate variables, `if` conditionals, `for ... end`, `fun` closures with TCO, `memo`, `yield` streams, structured `try/catch/raise`, and scope-bound resources.
 - [ADR Index: Act IV](adr/language/README.md#act-iv-computation-control-flow--dataflow) — ADR-0300 through ADR-0308 (Intermediate Variables, Data-First Calls, Functions & TCO, Memoization, Unified `for`, Generators, Error Handling, Conditionals, Scoped Resources).
 
 ---

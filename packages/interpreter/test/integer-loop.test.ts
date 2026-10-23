@@ -1185,7 +1185,7 @@ describe('compiled integer extrema', () => {
         const result = compare(`use numbers
 Total = 0
 for I in -2 to 2
-  X = (I max 0) 1 min
+  X = (I max 0) min 1
   Y = I max (0 - I)
   Total += X + Y
 end
@@ -1209,18 +1209,18 @@ Total`);
 
     it.each(['min', 'max'])('respects a custom %s and compiles the builtin without imports', name => {
         const result = compare(`use numbers
-fun A B ${name}custom
+fun A ${name}custom B
   return A + B
 end
 X = 0
 for I in 1 to 2
-  X = I 10 ${name}custom
+  X = I ${name}custom 10
 end
 X`);
         expect(result.value).toBe('12');
         expect(result.loops).toBe(1);
         expect(compare(`for I in 0 till 1
-  X = ${name === 'max' ? '2 max 3' : '2 3 min'}
+  X = ${name === 'max' ? '2 max 3' : '2 min 3'}
 end`).loops).toBe(1);
     });
 
@@ -1239,8 +1239,8 @@ end`);
 M = array shape 2 1 fill 9007199254740994
 Limit = 9007199254740994
 for I in 0 till 2
-  A I = ${name === 'max' ? 'A I max Limit' : 'A I Limit min'}
-  M I 0 = (${name === 'max' ? 'M I 0 max Limit' : 'M I 0 Limit min'}) 9007199254740996 min
+  A I = ${name === 'max' ? 'A I max Limit' : 'A I min Limit'}
+  M I 0 = (${name === 'max' ? 'M I 0 max Limit' : 'M I 0 min Limit'}) min 9007199254740996
 end
 A`);
         expect(result.value).toBe(name === 'min' ? '9007199254740993 9007199254740994'
@@ -1351,14 +1351,14 @@ array A B`);
     it('threads explicit totals across nested calls', () => {
         const result = compare(`fun Seed outer
   Total = Seed
-  fun N Total add
+  fun N add Total
     for I in 1 to N
       Total += I
     end
     return Total
   end
-  Total = 3 Total add
-  Total = 2 Total add
+  Total = 3 add Total
+  Total = 2 add Total
   return Total
 end
 10 outer`);
@@ -2173,12 +2173,12 @@ Total`);
 
 describe('proven scalar calls from loop regions', () => {
     it('calls a two-argument scalar function in a compiled loop', () => {
-        const result = compare(`fun A B combine
+        const result = compare(`fun A combine B
   return A * 10 + B
 end
 Total = 0
 for I in 1 to 3
-  Total += I 2 combine
+  Total += I combine 2
 end
 Total`);
         expect(result.value).toBe('66');
@@ -2230,13 +2230,13 @@ Total`);
 
     it('links helpers that return their updated array value', () => {
         const result = compare(`A = array 0
-fun X A update
+fun X update A
   A 0 += X
   return A
 end
 Total = 0
 for I in 1 to 3
-  A = I A update
+  A = I update A
   Total += I
 end
 Total`);
@@ -2487,14 +2487,14 @@ describe('tail calls from compiled loop returns', () => {
             const source = `fun X helper
   return X + 1
 end
-fun N A perform
+fun N perform A
 ${String(loop).split('\n').map(line => '  ' + line).join('\n')}
   return 0
 end
 A = record
  .count = 0
 end
-3 A perform`;
+3 perform A`;
             try {
                 const value = runtime.execute(source);
                 return { value, entries, array: formatValue(runtime.execute('A .count')!) };
@@ -2535,13 +2535,13 @@ function compareLinked(source: string) {
 
 describe('typed callees in outer loop regions', () => {
     it('links eager array reads and guards the outer region', () => {
-        const result = compareLinked(`fun A I cellread
+        const result = compareLinked(`fun A cellread I
  return A I
 end
 A = array 3 5 7
 Total = 0
 for I in 0 till 3
- Total += A I cellread
+ Total += A cellread I
 end
 Total`);
         expect(result.value).toBe('15');
@@ -2561,7 +2561,7 @@ Total`);
         expect(result.loops).toBe(1);
     });
     it('keeps array aliases and observes preceding caller writes', () => {
-        const result = compareLinked(`fun A I cellread
+        const result = compareLinked(`fun A cellread I
  return A I
 end
 A = array 3 5 7
@@ -2569,21 +2569,21 @@ B = A
 Total = 0
 for I in 0 till 3
  A I = I
- Total += A I cellread
+ Total += A cellread I
 end
 array Total (B sum)`);
         expect(result.value).toBe('3 15');
         expect(result.loops).toBe(1);
     });
     it('preserves bounds errors after caller mutations without replay', () => {
-        const result = compareLinked(`fun A I cellread
+        const result = compareLinked(`fun A cellread I
  return A I
 end
 A = array 3 5
 Done = 0
 for I in 0 till 3
  Done += 1
- X = A I cellread
+ X = A cellread I
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -2702,7 +2702,7 @@ Sum`);
     });
     it('preserves reference aliases across calls and caller writes', () => {
         const result = compareLinked(`use algo
-fun Cache N updatecache
+fun Cache updatecache N
  Cache N = N * 2
  return Cache N
 end
@@ -2711,7 +2711,7 @@ Alias = Cache
 Sum = 0
 for I in 1 to 3
  Alias I = I
- Sum += Cache I updatecache
+ Sum += Cache updatecache I
 end
 array Sum (Alias 3)`);
         expect(result.value).toBe('12 6');
@@ -2752,7 +2752,7 @@ end`);
     });
     it('rejects an index cell type changed through a caller alias', () => {
         const result = compareLinked(`use algo
-fun Cache N readcache
+fun Cache readcache N
  return Cache N + 1
 end
 Cache = new index
@@ -2760,7 +2760,7 @@ Alias = Cache
 Cache 1 = 2
 for I in 1 to 2
  Alias I = "bad"
- X = Cache I readcache
+ X = Cache readcache I
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(0);
@@ -2780,14 +2780,14 @@ end`);
     });
     it('rejects mixed-value index input before the first mutation', () => {
         const result = compareLinked(`use algo
-fun Cache N readcache
+fun Cache readcache N
  Cache 0 = N
  return Cache 1 + 1
 end
 Cache = new index
 Cache 1 = "bad"
 for I in 1 to 2
- X = Cache I readcache
+ X = Cache readcache I
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(0);
@@ -2843,7 +2843,7 @@ end`);
     });
     it('checks bounds before evaluating a write value', () => {
         const result = compareLinked(`use algo
-fun Path N scratch
+fun Path scratch N
  A = array shape 1 fill 0
  A 2 = Path pop
  return 0
@@ -2851,7 +2851,7 @@ end
 Path = new stack
 Path push 5
 for I in 1 to 2
- X = Path I scratch
+ X = Path scratch I
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
@@ -2860,14 +2860,14 @@ end`);
 
 
 it.each(['array shape 1 2 fill 3', 'array "a" "b"'])('preserves duplicate parameter contracts for %s', first => {
-    const result = compareLinked(`fun A A duplicate
+    const result = compareLinked(`fun A duplicate A
  return A 0
 end
 A = array 1 2
 B = ${first}
 X = 0
 for I in 1 to 1
- X = B A duplicate
+ X = B duplicate A
 end
 X`);
     expect(result).toHaveProperty('error');

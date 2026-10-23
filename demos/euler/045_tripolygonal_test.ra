@@ -10,5 +10,5 @@ end
 test "known shared value"
   use "045_tripolygonal"
 
-  143 165 common_polygonal equal 40755
+  143 common_polygonal 165 equal 40755
 end

@@ -3,9 +3,9 @@ import { formatLine } from '../src/repl-input.js';
 
 describe('the minus key while formatting a line', () => {
     it.each([
-        ['A -1 shift', 'A -1 shift'],
-        ['A -1 shift with 9', 'A -1 shift with 9'],
-        ['Values -Delta shift', 'Values -Delta shift'],
+        ['A shift -1', 'A shift -1'],
+        ['A shift -1 with 9', 'A shift -1 with 9'],
+        ['Values shift -Delta', 'Values shift -Delta'],
         ['X-1', 'X - 1'],
         ['X - 1', 'X - 1'],
         ['X- 1', 'X - 1'],

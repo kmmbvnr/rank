@@ -36,7 +36,7 @@ Inv = Place (Mod // 2 - 1) Mod powmod
 Need = Pick mod Mod
 Mods = new queue
 for R in 0 till Mod
-  if R Need band equal 0
+  if R band Need equal 0
     Mods push R
   end
 end
@@ -48,7 +48,7 @@ for Low in Lows
     H = (R - LowMod) * Inv mod Mod
     if H at most MaxH
       Value = Low + Place * H
-      if Value Pick band equal 0
+      if Value band Pick equal 0
         Both += 1
       end
     end
@@ -70,15 +70,15 @@ fun N Limit Base nocarry
     Scale *= Base
   end
   Bases = array shape Len fill Base
-  Nds = N Bases digits
-  Bds = Max Bases digits
+  Nds = N digits Bases
+  Bds = Max digits Bases
   Tight = 1
   Loose = 0
   for I in 0 till Len
     ND = Nds I
     BD = Bds I
     Cap = Base - 1 - ND
-    Small = Cap BD min
+    Small = Cap min BD
     NextLoose = Loose * (Cap + 1)
     NextTight = 0
     for D in 0 to Small

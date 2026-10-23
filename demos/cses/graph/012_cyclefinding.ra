@@ -10,7 +10,7 @@ M = stdin .integer
 ValueCount = M * 3
 Values = stdin .integer ValueCount array
 Edges = Values reshape M 3
-Result = Edges N negative_cycle
+Result = Edges negative_cycle N
 
 if Result .found
   "YES" print
@@ -21,7 +21,7 @@ end
 
 
 rem Find one negative directed cycle.
-fun Edges N negative_cycle
+fun Edges negative_cycle N
   Size = N + 1
   Dist = array shape Size fill 0
   Parent = array shape Size fill 0

@@ -18,16 +18,16 @@ argument OutputPath path = "demos/kaggle/submissions/dogs-vs-cats.csv"
 Train = TrainPath images
 Test = TestPath images
 Submission = Train Test 0.1 300 solve_images
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 rem File names cat.N and dog.N provide training labels.
 fun Train image_labels
   Y = array shape (Train len) fill 0
   for Name Row in Train .name
-    if Name "dog." startswith
+    if Name startswith "dog."
       Y Row = 1
-    elif not Name "cat." startswith
+    elif not Name startswith "cat."
       .InvalidText raise
     end
   end
@@ -52,7 +52,7 @@ fun Train Test Rate Steps solve_images
   Pred = X Y Xtest Rate Steps predictall
   Ids = array shape M fill 0
   for Name Row in Test .name
-    Prefix = (Name "." split) 0
+    Prefix = (Name split ".") 0
     Ids Row = Prefix integer
   end
   Test .id = Ids
@@ -61,9 +61,9 @@ fun Train Test Rate Steps solve_images
 end
 
 
-fun X' Model probability
+fun X' probability Model
   Z' = (X - Model .center) / Model .scale
-  Score' = Z Model .weights matmul + Model .bias
+  Score' = Z matmul Model .weights + Model .bias
   return Score Classifier.sigmoid
 end
 
@@ -72,5 +72,5 @@ fun X Y Xtest Rate Steps predictall
   Pixels = (X real rank 0) / 255.0
   TestPixels = (Xtest real rank 0) / 255.0
   Model = Pixels Y Rate Steps Classifier.logistic
-  return TestPixels Model probability
+  return TestPixels probability Model
 end

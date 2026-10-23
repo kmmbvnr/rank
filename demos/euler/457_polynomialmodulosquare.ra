@@ -65,5 +65,5 @@ T1 = (0 - F1) mod P * V1 mod P
 T2 = (0 - F2) mod P * V2 mod P
 N1 = R1 + T1 * P
 N2 = R2 + T2 * P
-Answer = (N1 N2 min) sum
+Answer = (N1 min N2) sum
 Answer print

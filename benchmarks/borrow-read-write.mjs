@@ -12,36 +12,36 @@ const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.len
 
 const runtime = new Interpreter();
 try {
-  runtime.execute(`fun V I borrowed
+  runtime.execute(`fun V borrowed I
  return V (I + 1)
 end
-fun V I local
+fun V local I
  J = I + 1
  return V J
 end
-fun V I cell
+fun V cell I
  Cell = V (I + 1)
  return Cell
 end
-fun V I readat
+fun V readat I
  return V I
 end
-fun V I helper_cell
- Cell = V (I + 1) readat
+fun V helper_cell I
+ Cell = V readat (I + 1)
  return Cell
 end
-fun V I quotient
+fun V quotient I
  J = I + 1
  return V (J // 1)
 end
-fun V Flag branch
+fun V branch Flag
  if Flag
   return V 1
  else
   return V 0
  end
 end
-fun V Flag branch_local
+fun V branch_local Flag
  if Flag
   Cell = V 0
  else
@@ -49,21 +49,21 @@ fun V Flag branch_local
  end
  return Cell
 end
-fun V N scan
+fun V scan N
  Total = 0
  for I in 0 till N
   Total += V I
  end
  return Total
 end
-fun V N fallback_scan
+fun V fallback_scan N
  Total = 0
  for I in 0 till N
   Total += V (I ** 1)
  end
  return Total
 end
-fun V I fallback
+fun V fallback I
  J = I + 1
  return V (J ** 1)
 end`);

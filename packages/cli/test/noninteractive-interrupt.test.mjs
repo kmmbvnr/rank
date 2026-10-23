@@ -19,7 +19,7 @@ workers.Worker = class { constructor() { throw new Error('unexpected interactive
 syncBuiltinESMExports();
 Atomics.exchange = () => { throw new Error('unexpected cancellation polling'); };
 `);
-    const source = 'use numbers\nuse io\n3000 2 binomial print\n';
+    const source = 'use numbers\nuse io\n3000 binomial 2 print\n';
     const file = path.join(directory, 'program.ra');
     fs.writeFileSync(file, source);
     for (const [args, input] of [[[file], undefined], [[], source]]) {

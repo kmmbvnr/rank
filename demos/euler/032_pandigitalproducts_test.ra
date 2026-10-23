@@ -10,11 +10,11 @@ end
 test "known identity"
   use "032_pandigitalproducts"
 
-  "391867254" "123456789" pandigital
+  "391867254" pandigital "123456789"
 end
 
 test "repeated digit"
   use "032_pandigitalproducts"
 
-  not "391867255" "123456789" pandigital
+  not "391867255" pandigital "123456789"
 end

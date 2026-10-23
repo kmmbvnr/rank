@@ -10,7 +10,7 @@ test "official example"
     1 3
     4 5
   end
-  Actual = 5 Roads road_progress
+  Actual = 5 road_progress Roads
   Expected = array shape 3 2
     4 2
     3 3
@@ -29,7 +29,7 @@ test "ignores duplicate roads"
     2 1
     1 2
   end
-  Actual = 3 Roads road_progress
+  Actual = 3 road_progress Roads
   Expected = array shape 3 2
     2 2
     2 2
@@ -48,7 +48,7 @@ test "merges two larger components"
     3 4
     2 3
   end
-  Actual = 4 Roads road_progress
+  Actual = 4 road_progress Roads
   Expected = array shape 3 2
     3 2
     2 2
@@ -63,6 +63,6 @@ test "supports no roads"
   use numbers
   use sequences
   Roads = array shape 0 2 fill 0
-  Actual = 3 Roads road_progress
+  Actual = 3 road_progress Roads
   Actual shape equal array 0 2
 end

@@ -920,7 +920,7 @@ smallest. The result below one million is `997651`.
 Places' = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
-for Pick in Same 3 combinations
+for Pick in Same combinations 3
   Family = Prime Pick replacement_family
   if (Family in primes) count at least 8
     return true
@@ -949,13 +949,13 @@ the row function with `rank 0` and reducing its counts with seed `0` gives
 ## 59. XOR decryption
 
 ```rank
-fun Cipher Key decrypt
+fun Cipher decrypt Key
   Size = Cipher len
   Positions' = 0 till Size
   KeyLen = Key len
   Slots' = Positions mod KeyLen
   KeyStream' = Key Slots
-  return Cipher KeyStream bxor
+  return Cipher bxor KeyStream
 end
 ```
 

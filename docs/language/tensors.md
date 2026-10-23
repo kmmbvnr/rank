@@ -169,8 +169,8 @@ Lows = A min axis 0
 Highs = A max axis 1
 Complete = Flags all axis 1
 Present = Flags any axis 0
-Loss = Pred Target mse
-RowLoss = Pred Target mae axis 1
+Loss = Pred mse Target
+RowLoss = Pred mae Target axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
@@ -192,8 +192,8 @@ one shape. Without `axis` they average every squared or absolute difference.
 With `axis` they average only the named axes and preserve the remaining frame:
 
 ```rank
-Loss = Pred Target mse
-PerSample = Pred Target mse axis 1
+Loss = Pred mse Target
+PerSample = Pred mse Target axis 1
 ```
 
 Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
@@ -260,7 +260,7 @@ recipe that recomputes on demand.
 `solve` from `use linalg` solves the equation `A * X = B` directly:
 
 ```rank
-X = A B solve
+X = A solve B
 ```
 
 `A` is a square rank-2 numeric matrix. `B` is either a numeric vector of
@@ -404,9 +404,9 @@ convolution formula `max(0, floor((N + 2*P - W) / S) + 1)`.
 `shift` moves the items of a tensor along one axis and keeps the shape:
 
 ```rank
-Down = M 1 shift
-Right = M 1 shift with 9 axis 1
-Up = M -1 shift axis 0
+Down = M shift 1
+Right = M shift 1 with 9 axis 1
+Up = M shift -1 axis 0
 ```
 
 A positive count moves items toward higher positions and vacated positions read
@@ -461,12 +461,12 @@ and empty frames. A binary operation accepts `rank L R`, one rank per operand.
 Keeping one side whole and taking the other item by item finds several values in one vector at once:
 
 ```rank
-Kinds = "SAMFL" "" split
-Index = Kinds (Ops "" split) find rank 1 0
+Kinds = "SAMFL" split ""
+Index = Kinds find (Ops split "") rank 1 0
 rem one position for every code
 ```
 
-`M Targets find rank 1 0` pairs each row of `M` with its own target. Each cell
+`M find Targets rank 1 0` pairs each row of `M` with its own target. Each cell
 result here is a scalar position; other functions may return array cells.
 
 ## Iteration by axis and cell rank
@@ -572,7 +572,7 @@ selection. `outer` itself does not permute axes.
 `matmul` from `use linalg` contracts one axis from each numeric array:
 
 ```rank
-C = A B matmul
+C = A matmul B
 ```
 
 By default it contracts the last axis of `A` with the first axis of `B`.
@@ -595,7 +595,7 @@ or pair leading axes. Use explicit matrix-cell ranks for batched multiplication:
 use linalg
 A = array shape 8 1 2 3 fill 1
 B = array shape 1 6 3 4 fill 2
-C = A B matmul rank 2 2
+C = A matmul B rank 2 2
 rem C shape is 8 6 2 4; each value is 6
 ```
 
@@ -613,15 +613,15 @@ An explicit pair selects a different contracted axis from each operand. The
 first number belongs to the left operand and the second to the right:
 
 ```rank
-C = A B matmul axis 2 0
+C = A matmul B axis 2 0
 ```
 
 Both axes are zero-based. Exactly two axes are required, and out-of-range axes
 are errors. Scalar or nonnumeric operands are errors; unequal contracted
 dimensions raise `.DimensionMismatch`.
 
-A deferred binding such as `C' = A B matmul` computes output elements on
-demand. Repeated demands recompute them; `C = A B matmul` stores the completed
+A deferred binding such as `C' = A matmul B` computes output elements on
+demand. Repeated demands recompute them; `C = A matmul B` stores the completed
 array explicitly.
 The calculation uses ordinary Rank numeric promotion: integer-only terms stay
 integer, while a real term promotes that output element to real. A contraction

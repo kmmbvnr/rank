@@ -70,7 +70,7 @@ X = A B leastsquares
 
 The names and return layouts remain open. Before adding them, decide:
 
-- whether `A B solve` dispatches internally or users can retain and reuse a
+- whether `A solve B` dispatches internally or users can retain and reuse a
   factorization;
 - how batch and explicit-axis application work for two-input operations;
 - whether a general `eig` returns complex arrays while `eigh` keeps its stronger
@@ -115,7 +115,7 @@ The immediate gaps are variance, quantiles and correlation. Probability
 distributions are a later layer. Candidate examples are:
 
 ```rank
-Q = A 0.95 quantile
+Q = A quantile 0.95
 R = A B correlation
 Noise = Shape 0 1 normal
 ```

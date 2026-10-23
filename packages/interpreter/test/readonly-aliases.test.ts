@@ -5,7 +5,7 @@ const cases = [
     ['A = record\n .value = 1\nend', 'Alias .value = 9', 'A .value', '1'],
     ['A = new queue', 'Alias push 9', 'A len', '0'],
     ['A = new stack\nA push 1', 'Alias pop', 'A len', '1'],
-    ['A = new deque', 'Alias 9 pushfront', 'A len', '0'],
+    ['A = new deque', 'Alias pushfront 9', 'A len', '0'],
     ['A = new heap\nA 1 7 enqueue', 'Alias pop', 'A len', '1'],
     ['A = new set', 'Alias add 9', 'A len', '0'],
     ['A = new counter\nA add 1\nA add 1', 'Alias remove 1', 'A 1', '2'],

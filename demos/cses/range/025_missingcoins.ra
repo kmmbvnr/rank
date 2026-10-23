@@ -11,11 +11,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Values Queries missing_queries print
+Values missing_queries Queries print
 
 
 rem Grow the constructible prefix.
-fun Values Queries missing_queries
+fun Values missing_queries Queries
   Data = Values wavelet
-  return Data (Queries - 1) missing
+  return Data missing (Queries - 1)
 end

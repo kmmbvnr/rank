@@ -92,11 +92,18 @@ if (!options.worker) {
                 const demo = readFileSync(resolve(checkout, 'demos/cses/dynamic/014_moneysums.ra'), 'utf8');
                 source = 'use algo\nuse sequences\n' + demo.slice(demo.indexOf('fun Coins money_sums')) + '\nCoins money_sums';
             } else if (variant === 'bigint') {
-                source = `use bits\nReach = 1\nfor W in Coins\n Reach = Reach (Reach W shl) bor\nend\nReach 1 bxor`;
-            } else {
-                source = `use sequences\nReach = array shape 100001 fill false\nReach 0 = true
+                source = `use bits
+Reach = 1
 for W in Coins
- Reach = (Reach or (Reach W shift with false)) copy
+ Reach = Reach bor (Reach shl W)
+end
+Reach bxor 1`;
+            } else {
+                source = `use sequences
+Reach = array shape 100001 fill false
+Reach 0 = true
+for W in Coins
+ Reach = (Reach or (Reach shift W with false)) copy
 end
 Reach 0 = false
 Reach indices`;
@@ -134,10 +141,13 @@ Reach indices`;
                     rows.push(BigInt('0b' + digits));
                 }
                 runtime.variables.set('Rows', ownedArray(rows));
-                source = `use sequences\nuse bits\nN = Rows len\nTotal = 0
+                source = `use sequences
+use bits
+N = Rows len
+Total = 0
 for I in 0 till N
  for J in (I + 1) till N
-  K = ((Rows I) (Rows J) band) popcount
+  K = ((Rows I) band (Rows J)) popcount
   Total += K * (K - 1) // 2
  end
 end

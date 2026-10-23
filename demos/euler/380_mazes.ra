@@ -10,7 +10,7 @@ option Rows integer = 100
 option Cols integer = 500
 
 rem Matrix-tree eigenvalue product.
-Pi = 0.0 (0.0 - 1.0) atan2
+Pi = 0.0 atan2 (0.0 - 1.0)
 R' = 0 till Rows array
 C' = 0 till Cols array
 Rx' = (Pi * R / Rows) cos

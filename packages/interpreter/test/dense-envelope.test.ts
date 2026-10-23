@@ -46,12 +46,12 @@ end`);
         const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => calls++ });
         try {
             const diagnostics = new RuntimeDiagnostics();
-            diagnostics.run(() => runtime.execute(`fun X Scale divide
+            diagnostics.run(() => runtime.execute(`fun X divide Scale
   return X / Scale
 end
 Total = 0.0
 for I in 1 to 10
-  Total += I 2.0 divide
+  Total += I divide 2.0
 end`));
             expect(runtime.variables.get('Total')).toBe(27.5);
             expect(calls).toBe(10);

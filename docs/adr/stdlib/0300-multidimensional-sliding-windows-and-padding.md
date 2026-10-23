@@ -92,8 +92,8 @@ count moves toward higher positions. Vacated positions use integer zero or the
 single `with` value; `axis` defaults to zero and follows `with`.
 
 ```rank
-Previous' = Values 1 shift
-Down = Matrix 1 shift with 9 axis 0
+Previous' = Values shift 1
+Down = Matrix shift 1 with 9 axis 0
 ```
 
 `Previous` remains a recipe. `Down` is completed storage.

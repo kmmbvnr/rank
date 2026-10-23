@@ -19,7 +19,7 @@ fun Bosses subordinates
     Tree add Boss Employee
   end
 
-  Walk = Tree 1 dfs
+  Walk = Tree dfs 1
   Counts = array shape N fill 0
   Order = Walk .order
   for Employee in Order drop 1 reverse

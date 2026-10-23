@@ -27,7 +27,7 @@ for N in 2 to Limit
     Q = T
     for Q greater 0
       V += Bit Q
-      Q -= Q (0 - Q) band
+      Q -= Q band (0 - Q)
     end
     V -= Pre T
     V = V mod Mod
@@ -36,7 +36,7 @@ for N in 2 to Limit
   for I at most Limit + 1
     Bit I += V
     Bit I = Bit I mod Mod
-    I += I (0 - I) band
+    I += I band (0 - I)
   end
   Pre N = (Pre (N - 1) + V) mod Mod
 end

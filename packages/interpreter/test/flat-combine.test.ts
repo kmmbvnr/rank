@@ -6,7 +6,7 @@ import { RankSegment } from '../src/segment.js';
 import type { NativeFunction, RankRecord, RankValue } from '../src/value.js';
 
 const state = (n: bigint): RankRecord => ({ kind: 'record', entries: new Map([['n', n]]), types: new Map([['n', 'integer']]) });
-const sum = `fun A B combine
+const sum = `fun A combine B
   return record
     .n = A .n + B .n
   end
@@ -47,7 +47,7 @@ describe('compiled flat combine', () => {
     });
 
     it('matches the ordinary path for noncommutative functions and reordered output fields', () => {
-        const source = `fun A B combine
+        const source = `fun A combine B
   return record
     .b = B .a * A .b + B .b
     .a = B .a * A .a
@@ -78,7 +78,7 @@ end`;
     });
 
     it('rechecks a builtin after host replacement', () => {
-        const source = `fun A B combine
+        const source = `fun A combine B
   return record
     .n = (A .n) max (B .n)
   end
@@ -86,7 +86,7 @@ end`;
         const fast = fixture(source), slow = fixture(source, false);
         expect(flatCombine(fast.operation, fast.values)).toBeDefined();
         for (const { runtime, tree } of [fast, slow]) {
-            runtime.execute('fun A B replacement\n  return A + B\nend');
+            runtime.execute('fun A replacement B\n  return A + B\nend');
             runtime.variables.set('max', runtime.variables.get('replacement')!);
             tree.set(0n, state(9n));
         }
@@ -96,9 +96,9 @@ end`;
 
     it('retains ordinary execution for captures, side effects and mixed fields', () => {
         for (const source of [
-            'Extra = 2\nfun A B combine\n return record\n .n = A .n + B .n + Extra\n end\nend',
-            'use io\nfun A B combine\n A .n print\n return record\n .n = A .n + B .n\n end\nend',
-            'fun A B combine\n return record\n .n = (A .n + B .n) mod 17\n end\nend',
+            'Extra = 2\nfun A combine B\n return record\n .n = A .n + B .n + Extra\n end\nend',
+            'use io\nfun A combine B\n A .n print\n return record\n .n = A .n + B .n\n end\nend',
+            'fun A combine B\n return record\n .n = (A .n + B .n) mod 17\n end\nend',
         ]) {
             const { operation, values } = fixture(source);
             expect(flatCombine(operation, values)).toBeUndefined();
@@ -114,15 +114,15 @@ end`;
             runtime.execute(`use numbers
 use sequences
 fun Values combine_with op
-  fun A B combine
+  fun A combine B
     return record
-      .n = (A .n) (B .n) op
+      .n = (A .n) op (B .n)
     end
   end
   Result = Values reduce combine
   return Result .n
 end
-fun A B custom = A + B`);
+fun A custom B = A + B`);
             runtime.variables.set('Values', new FlatRecords(3, state(1n)));
             expect(runtime.execute('Values combine_with max')).toBe(1n);
             expect(runtime.execute('Values combine_with custom')).toBe(3n);
@@ -143,7 +143,7 @@ fun A B custom = A + B`);
 State = record
  .n = 1
 end
-Tree = (7 State flat) segment combine
+Tree = (7 flat State) segment combine
 fun X readtree
  return Tree 1 5 query
 end`);

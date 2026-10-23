@@ -16,7 +16,7 @@ Mask and= Grid at most 9999
 Mask and= Grid mod 100 at least 10
 Vals = Grid Mask array
 Kind = Mask indices # 0
-Bit = 1 Kind shl
+Bit = 1 shl Kind
 Head = Vals // 100
 Tail = Vals mod 100
 
@@ -34,7 +34,7 @@ for # in 1 to 5
   Last = Ends reshape Rows 1
   Link' = Head equal Last
   Taken = Used reshape Rows 1
-  Free' = (Taken Bit band) equal 0
+  Free' = (Taken band Bit) equal 0
   Pairs = (Link and Free) indices
   Old = Pairs # 0
   New = Pairs # 1

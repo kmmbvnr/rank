@@ -15,12 +15,12 @@ for L in 1 to Last
   for A in 0 to ((L - 2) // 2)
     Left = G A
     Right = G (L - A - 2)
-    V = Left Right bxor
+    V = Left bxor Right
     Seen V = true
   end
   G L = Seen first index where not Seen
 end
-Small = Limit 100 min
+Small = Limit min 100
 Answer = ((G (1 to Small)) not equal 0) count
 if Limit greater 100
   Rest' = 101 to Limit array

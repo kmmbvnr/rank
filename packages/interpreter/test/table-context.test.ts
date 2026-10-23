@@ -29,10 +29,10 @@ describe('contextual table operations', () => {
 
     it('keeps select locals lexical inside functions and reads fields from the original input', () => {
         const { runtime } = setup();
-        runtime.execute('fun R Cost prices\n'
+        runtime.execute('fun R prices Cost\n'
             + '  Out = R select\n    Cost = .cost + Cost\n'
             + '    .cost = Cost\n    .original = .cost\n  end\n'
-            + '  return Out\nend\nA = Rows 7 prices\nB = Rows 3 prices');
+            + '  return Out\nend\nA = Rows prices 7\nB = Rows prices 3');
         expect(formatValue(runtime.execute('A .cost')!)).toBe('17 27 27');
         expect(formatValue(runtime.execute('B .cost')!)).toBe('13 23 23');
         expect(formatValue(runtime.execute('A .original')!)).toBe('10 20 20');
@@ -45,7 +45,7 @@ describe('contextual table operations', () => {
             + 'Out = Rows select\n  Guest = .id equal 1\n'
             + '  .chosen = Guest .cost .id choose\n'
             + '  .explicit = Other .cost\n  .kind = Label\n'
-            + '  .minimum = Other .cost .id min\n'
+            + '  .minimum = Other .cost min .id\n'
             + '  .lowest = (Other .cost) min\nend');
         expect(formatValue(runtime.execute('Out .chosen')!)).toBe('10 2 3');
         expect(formatValue(runtime.execute('Out .explicit')!)).toBe('10 20 20');
@@ -66,7 +66,7 @@ describe('contextual table operations', () => {
     it('retains ordinary projection values, column order and empty headers', () => {
         const { runtime, io } = setup();
         runtime.execute('One = Rows select .name\nTwo = Rows select .name .id\n'
-            + 'Empty = One filter .name equal "absent"\nEmpty "empty.csv" csv\n'
+            + 'Empty = One filter .name equal "absent"\nEmpty csv "empty.csv"\n'
             + 'Rows .name = "Changed"');
         expect(isRankArray(runtime.variables.get('One')!)).toBe(true);
         expect(formatValue(runtime.execute('One .name')!)).toBe('B A B');
@@ -78,7 +78,7 @@ describe('contextual table operations', () => {
         const { runtime, io } = setup();
         runtime.execute('use io\nwriter = write\nCost = 9');
         expect(() => runtime.execute('Out = Rows select\n  Cost = 10\n'
-            + '  .x = "oops" "oops.txt" writer\nend')).toThrow(/pure standard-library/);
+            + '  .x = "oops" writer "oops.txt"\nend')).toThrow(/pure standard-library/);
         expect(io.files.has('oops.txt')).toBe(false);
         expect(formatValue(runtime.execute('Cost')!)).toBe('9');
         expect(() => runtime.execute('Out = Rows select .id .id')).toThrow(/duplicate select field/);

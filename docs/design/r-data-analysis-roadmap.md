@@ -36,7 +36,7 @@ boolean masks, reductions, serialization and conversion at table boundaries.
 Possible source is illustrative only:
 
 ```rank
-Values = array 1 2 missing 4
+Values = array 1 missing 2 4
 Average = Values mean skip missing
 Mask = Values missing
 ```
@@ -74,7 +74,7 @@ need density, CDF, quantile and sampling operations with named parameters and
 reproducible random state.
 
 ```rank
-Q = Values 0.95 quantile
+Q = Values quantile 0.95
 R = Left Right correlation
 Noise = Shape 0 1 normal
 ```

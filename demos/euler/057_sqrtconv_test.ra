@@ -13,7 +13,7 @@ test "first convergents"
     .num = 3
     .den = 2
   end
-  Second = Start 0 next
+  Second = Start next 0
   Second .num equal 7
   Second .den equal 5
 end

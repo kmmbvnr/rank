@@ -11,11 +11,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 3) array
 Queries = Raw reshape Q 3
 
-Values Queries polynomial print
+Values polynomial Queries print
 
 
 rem Store doubled prefix coefficients.
-fun Values Queries polynomial
+fun Values polynomial Queries
   Queue = new queue
   N = Values len
   Prefix = Values scan + with 0

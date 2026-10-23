@@ -21,7 +21,7 @@ rem best fund reaches it. Then any
 rem h or more heads win.
 H = 0 to N array
 Raw' = (3 * H - N) / (2.0 * N)
-F = (Raw max 0.0) 0.999999 min
+F = (Raw max 0.0) min 0.999999
 Win' = (1 + 2 * F) log
 Lose' = (1 - F) log
 Growth' = H * Win + (N - H) * Lose
@@ -30,8 +30,8 @@ Need' = Growth at least Target
 Fits' = H filter Need
 Least = Fits min
 Tail' = H filter (H at least Least)
-Ways' = N Tail binomial
+Ways' = N binomial Tail
 Wins = Ways sum
 All = 2 ** N
-Answer = Wins / All 12 round
+Answer = Wins / All round 12
 Answer print

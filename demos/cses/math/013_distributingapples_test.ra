@@ -2,22 +2,22 @@ use testing
 
 test "official example"
   use "013_distributingapples"
-  3 2 distributions equal 6
+  3 distributions 2 equal 6
 end
 
 test "one child receives everything"
   use "013_distributingapples"
-  1 100 distributions equal 1
+  1 distributions 100 equal 1
 end
 
 test "one apple chooses a child"
   use "013_distributingapples"
-  100 1 distributions equal 100
+  100 distributions 1 equal 100
 end
 
 test "balanced counts reach the limit"
   use "013_distributingapples"
-  3 3 distributions equal 10
-  Actual = 1000000 1000000 distributions
+  3 distributions 3 equal 10
+  Actual = 1000000 distributions 1000000
   Actual equal 96075800
 end

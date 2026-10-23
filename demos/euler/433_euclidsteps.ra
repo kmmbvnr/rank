@@ -50,7 +50,7 @@ end
 Lb = 1
 for Lb at most Lm
   Q = N // Lb
-  Rb = Lm (N // Q) min
+  Rb = Lm min (N // Q)
   Ms = Pm (Rb + 1) - Pm Lb
   if Ms not equal 0 and Q greater 1
     Mx = Q isqrt

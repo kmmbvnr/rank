@@ -8,7 +8,7 @@ use cli
 
 option Max integer = 999
 
-Answer = Max plates 8 round
+Answer = Max plates round 8
 Answer print
 
 fun Max plates

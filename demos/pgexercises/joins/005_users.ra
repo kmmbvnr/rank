@@ -24,4 +24,4 @@ R' = R select
 end
 R' = R unique
 Result' = R sort by .member .facility
-Result OutputPath csv
+Result csv OutputPath

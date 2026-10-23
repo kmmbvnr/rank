@@ -8,7 +8,7 @@ test "official degree two"
     3 4
     5 6
   end
-  A = X 2 polynomial_features
+  A = X polynomial_features 2
   E = array shape 3 6
     1 2 3 4 6 9
     1 3 4 9 12 16
@@ -25,7 +25,7 @@ test "official degree three"
     3 4
     5 6
   end
-  A = X 3 polynomial_features
+  A = X polynomial_features 3
   E = array shape 3 10
     1 1 1 1 2 2 2 4 4 8
     1 3 4 9 12 16 27 36 48 64
@@ -42,7 +42,7 @@ test "official three features"
     3 4 5
     5 6 9
   end
-  A = X 3 polynomial_features
+  A = X polynomial_features 3
   E = array shape 3 20
     1 1 1 1 2 2 2 3 3 3
     4 4 6 6 8 9 9 12 18 27
@@ -62,7 +62,7 @@ test "degree zero is the constant term"
     4 5
     6 7
   end
-  A = X 0 polynomial_features
+  A = X polynomial_features 0
   E = array shape 2 1
     1.0
     1.0
@@ -75,7 +75,7 @@ test "degree must be nonnegative"
 
   X = array shape 1 1 fill 2
   try
-    X (-1) polynomial_features
+    X polynomial_features (-1)
     false
   catch .DomainError Error
     true

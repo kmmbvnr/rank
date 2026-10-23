@@ -14,14 +14,14 @@ argument OutputPath path = "demos/kaggle/submissions/store-sales.csv"
 
 Train = TrainPath csv
 Test = TestPath csv
-Pred = Train Test forecast
+Pred = Train forecast Test
 Test .sales = Pred
 Submission = Test (array .id .sales)
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 rem Use the global training mean for a key absent from Train.
-fun Train Test forecast
+fun Train forecast Test
   Global = Train .sales mean
   Train .weekday = Train .date date weekday
   Test .weekday = Test .date date weekday

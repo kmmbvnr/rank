@@ -23,4 +23,4 @@ R' = R select
   .name = .name
 end
 Result' = R sort by .start
-Result OutputPath csv
+Result csv OutputPath

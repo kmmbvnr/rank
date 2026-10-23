@@ -81,12 +81,12 @@ array ("0" double) ("99" double) ("128" double)`);
         `S = "😀"\nOut = ""\nfor I in 0 to 1\n Out += S I\nend`,
         `S = "😀"\nfor I in -1 to 0\n Out = S I\nend`,
         `S = "😀"\nfor I in 9007199254740993 to 9007199254740994\n Out = S I\nend`,
-        `use text\nA = array "a" "b"\nB = A\nfor I in 0 till 2\n A I = "😀"\nend\narray (A "" join) (B "" join)`,
-        `use text\nS = ""\nfor I in 0 till 2\n A = array shape 2 fill "ё"\n A I = "😀"\n S = A ":" join\nend\nS`,
-        `use text\nS = ""\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n S = B "" join\nend\nS`,
+        `use text\nA = array "a" "b"\nB = A\nfor I in 0 till 2\n A I = "😀"\nend\narray (A join "") (B join "")`,
+        `use text\nS = ""\nfor I in 0 till 2\n A = array shape 2 fill "ё"\n A I = "😀"\n S = A join ":"\nend\nS`,
+        `use text\nS = ""\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n S = B join ""\nend\nS`,
         `use text\nA = array "a" "b"\nOut = ""\nfor I in 0 to 2\n Out += A I\nend`,
         `use text\nA = array "a" "b"\nfor I in 0 to 2\n A I = "😀"\nend`,
-        `use text\nA = array "a" "b"\nS = ""\nfor I in 0 till 2\n S += A "" join\n A I = "x"\n S += A "" join\nend\nS`,
+        `use text\nA = array "a" "b"\nS = ""\nfor I in 0 till 2\n S += A join ""\n A I = "x"\n S += A join ""\nend\nS`,
     ])('compiles text storage with matching state and errors: %s', source => {
         expect(compare(source).loops).toBeGreaterThan(0);
     });
@@ -134,7 +134,7 @@ array ("0" double) ("99" double) ("128" double)`);
 Total = 0
 for I in 0 till 100
   S = "item" + (I text)
-  if S "item1" startswith
+  if S startswith "item1"
     continue
   end
   Total += S len
@@ -152,7 +152,7 @@ Total = 0
 for I in 1 to 5
   B = "ёж" bytes
   C = B
-  if C ("ё" bytes) startswith
+  if C startswith ("ё" bytes)
     Total += C 0
   end
   Total += B len
@@ -163,7 +163,7 @@ B = "ёж" bytes
 P = "ё" bytes
 Total = 0
 for I in 1 to 5
-  if B P startswith
+  if B startswith P
     Total += B 1
   end
 end
@@ -174,7 +174,7 @@ Prefix = "" bytes
 Total = 0
 for I in 0 till 100
   H = ("abc" + (I text)) md5
-  if not (H Prefix startswith)
+  if not (H startswith Prefix)
     continue
   end
   if H 2 less 16
@@ -217,7 +217,7 @@ end`],
 fun work
   Total = 0
   for I in 1 to 3
-    if "abc" "a" startswith
+    if "abc" startswith "a"
       Total += 1
     end
   end
@@ -225,7 +225,7 @@ fun work
 end`);
             expect(runtime.execute('work')).toBe(3n);
             expect(loops).toBe(1);
-            runtime.execute('fun A B hostreplacement\n return false\nend');
+            runtime.execute('fun A hostreplacement B\n return false\nend');
             runtime.variables.set('startswith', runtime.variables.get('hostreplacement')!);
             expect(runtime.execute('work')).toBe(0n);
             expect(loops).toBe(1);
@@ -237,34 +237,34 @@ end`);
         const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onIntegerLoopExecuted: () => loops++ });
         try {
             runtime.execute(`use text
-fun S P work
+fun S work P
   Total = 0
   for I in 1 to 3
-    if S P startswith
+    if S startswith P
       Total += 1
     end
   end
   return Total
 end`);
-            expect(runtime.execute('"abc" "a" work')).toBe(3n);
+            expect(runtime.execute('"abc" work "a"')).toBe(3n);
             expect(loops).toBe(1);
-            expect(runtime.execute('("abc" bytes) ("a" bytes) work')).toBe(3n);
+            expect(runtime.execute('("abc" bytes) work ("a" bytes)')).toBe(3n);
             expect(loops).toBe(1);
-            expect(runtime.execute('"abc" "z" work')).toBe(0n);
+            expect(runtime.execute('"abc" work "z"')).toBe(0n);
             expect(loops).toBe(2);
         } finally { runtime.dispose(); }
     });
 
     it.each([
-        `use text\nA = array "a" 1\nfor I in 0 till 2\n S = A "" join\nend\nS`,
-        `use text\nA = array shape 2 2 fill "a"\nfor I in 0 till 2\n S = A "" join\nend\nS`,
-        `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n A 0 = "😀"\n S = B "" join\nend\nS`,
-        `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n B 0 = "😀"\n S = A "" join\nend\nS`,
-        `use text\nfor I in 1 to 2\n fun A B startswith\n  return false\n end\n B = "x" "x" startswith\nend\nB`,
-        `use text\nfor I in 1 to 2\n B = (array "a" "b") "a" startswith\nend\nB`,
+        `use text\nA = array "a" 1\nfor I in 0 till 2\n S = A join ""\nend\nS`,
+        `use text\nA = array shape 2 2 fill "a"\nfor I in 0 till 2\n S = A join ""\nend\nS`,
+        `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n A 0 = "😀"\n S = B join ""\nend\nS`,
+        `use text\nfor I in 0 till 2\n A = array shape 2 fill "a"\n B = A\n B 0 = "😀"\n S = A join ""\nend\nS`,
+        `use text\nfor I in 1 to 2\n fun A startswith B\n  return false\n end\n B = "x" startswith "x"\nend\nB`,
+        `use text\nfor I in 1 to 2\n B = (array "a" "b") startswith "a"\nend\nB`,
         `for I in 1 to 2\n B = "x" bytes\n B 0 = 120\nend\nB`,
         `for I in 1 to 2\n B = "x" bytes\n A = array shape 2 fill B\nend\nA`,
-        `for I in 1 to 2\n B = "abc" "a" startswith\nend`,
+        `for I in 1 to 2\n B = "abc" startswith "a"\nend`,
     ])('retains the fallback for unsupported input or effects: %s', source => {
         expect(compare(source).loops).toBe(0);
     });

@@ -29,6 +29,6 @@ test "rows and columns give different counts"
     "5 10 25"
   end
 
-  Answer = Lines "\n" join solve
+  Answer = Lines join "\n" solve
   Answer equal array 3 9
 end

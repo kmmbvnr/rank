@@ -50,7 +50,7 @@ postcondition overhead.
 
 Standard-library operation names are unique, enforced by the catalogue test.
 The DSU operation is now `findroot`; `find` belongs to collection search in
-`sequences`. Both `Dsu findroot Value` and `Dsu Value findroot` work. There is
+`sequences`. Both `Dsu findroot Value` and `Dsu findroot Value` work. There is
 no compatibility alias: keeping `graph.find` would preserve the collision.
 Native metadata can therefore still resolve by the unique catalogue name.
 Examples, receiver dispatch and analyzer facts use the new DSU name. A shared

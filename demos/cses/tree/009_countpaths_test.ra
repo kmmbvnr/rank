@@ -17,8 +17,8 @@ test "official example"
     2 5
     1 4
   end
-  Rooted = Tree 1 root
-  Actual = Rooted Paths path_counts
+  Rooted = Tree root 1
+  Actual = Rooted path_counts Paths
   Actual equal array 3 1 3 1 1
 end
 
@@ -27,9 +27,9 @@ test "one node may form a path"
   use graph
   use sequences
   Tree = new graph (array 1) .undirected
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Paths = array shape 1 2 fill 1
-  Actual = Rooted Paths path_counts
+  Actual = Rooted path_counts Paths
   Actual equal array 1
 end
 
@@ -45,8 +45,8 @@ test "repeated paths accumulate"
     1 4
     1 4
   end
-  Rooted = Tree 1 root
-  Actual = Rooted Paths path_counts
+  Rooted = Tree root 1
+  Actual = Rooted path_counts Paths
   Actual equal array 2 2 2 2
 end
 
@@ -62,7 +62,7 @@ test "separate branches meet at root"
     2 3
     4 5
   end
-  Rooted = Tree 1 root
-  Actual = Rooted Paths path_counts
+  Rooted = Tree root 1
+  Actual = Rooted path_counts Paths
   Actual equal array 2 1 1 1 1
 end

@@ -27,5 +27,5 @@ Graph = new graph .directed
 Graph add Edges
 Seq = Graph topological
 Digits' = Seq .order text rank 0
-Answer = Digits "" join integer
+Answer = Digits join "" integer
 Answer print

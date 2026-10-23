@@ -20,11 +20,11 @@ fun X aempty
  X print
  return array shape 0 fill 0
 end
-fun A B blocked rank 0 0
+fun A blocked B rank 0 0
  "new" print
  return 0
 end
-fun A B blockedRows rank 1 0
+fun A blockedRows B rank 1 0
  "new" print
  return 0
 end

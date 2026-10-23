@@ -28,14 +28,14 @@ Cand = Ns filter Div array
 Sq' = Cand * Cand
 L = Sq lcm
 for Pr in array 13 7 5
-  Pk = L (Pr ** 20) gcd
+  Pk = L gcd (Pr ** 20)
   Mul' = Cand mod Pr equal 0
   Ms = Cand filter Mul array
   K = Ms len
-  Size = 1 K shl
+  Size = 1 shl K
   Seq' = 0 till Size array
   Mk' = Seq reshape Size 1
-  Bt = Mk (0 till K array) bit
+  Bt = Mk bit (0 till K array)
   Vals' = L // (Ms * Ms)
   Sums' = (Bt choose Vals 0) sum axis 1
   Good' = Sums mod Pk equal 0

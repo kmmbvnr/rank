@@ -32,7 +32,7 @@ end`;
         ['fun X pair\n return tuple X "label"\nend', 'a → tuple(a, text)'],
         ['fun X answer rank 0\n return 42\nend', 'a → i'],
         ['fun X answer rank 1\n return 42\nend', 'a → i'],
-        ['fun X Y add\n return X + Y\nend', 'a a → a ; i r → r ; c<a> a → c<a> ; a c<a> → c<a> ; a: number'],
+        ['fun X add Y\n return X + Y\nend', 'a a → a ; i r → r ; c<a> a → c<a> ; a c<a> → c<a> ; a: number'],
         ['fun N countdown\n for N greater 0\n  yield N\n  N -= 1\n end\nend', 'i → c<i> ; r → c<r>'],
     ])('shows the inferred signature for %s', async (source, signature) => {
         const session = createReplSession();

@@ -28,7 +28,7 @@ for Ch len greater 0
   Rows' = Ch (Pos # 0)
   Val = New filter Ok array
   Cur = Best Val
-  Best Val = Cur Lv min
+  Best Val = Cur min Lv
   Keep = (Best Val) equal Lv
   Ext' = Val reshape (Val len) 1
   Nxt' = concat Rows Ext axis 1

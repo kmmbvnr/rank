@@ -179,7 +179,7 @@ it('keeps the active layout when an interrupt callback reenters the kernel', () 
 
 
 it('pairs a layout with its own code when the compilation hook reenters', () => {
-    const statement = parse('fun A B shifted\n return (A - B) copy\nend').statements[0];
+    const statement = parse('fun A shifted B\n return (A - B) copy\nend').statements[0];
     if (!isFunctionStatement(statement)) throw new Error('missing function');
     const outerA = createArraySnapshot([1n, 2n, 3n, 4n], [2, 2]);
     const outerB = createArraySnapshot([10n, 20n]);

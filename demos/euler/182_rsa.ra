@@ -18,10 +18,10 @@ rem mod q. Their product counts the
 rem unconcealed messages.
 Phi = (P - 1) * (Q - 1)
 E = 2 to Phi - 1 array
-Coprime = (E Phi gcd) equal 1
+Coprime = (E gcd Phi) equal 1
 Prev = E - 1
-Gp' = Prev (P - 1) gcd
-Gq' = Prev (Q - 1) gcd
+Gp' = Prev gcd (P - 1)
+Gq' = Prev gcd (Q - 1)
 Fixed = (1 + Gp) * (1 + Gq)
 Cand' = Fixed filter Coprime
 Least = Cand min

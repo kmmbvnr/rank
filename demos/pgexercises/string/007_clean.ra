@@ -18,4 +18,4 @@ Result' = M select
   .telephone = Clean
 end
 Result' = Result sort by .memid
-Result OutputPath csv
+Result csv OutputPath

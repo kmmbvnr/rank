@@ -34,13 +34,13 @@ describe('Euler 305 local automaton', () => {
     });
 
     it('rejects returning a helper from the group', () => {
-        const program = parse(source.replace('  return State Need nth', '  return id'));
+        const program = parse(source.replace('  return State nth Need', '  return id'));
         expect(functionScopeDiagnostics(program).map(item => item.message)).toContain(
             'nested function id cannot be returned, assigned, or stored; call it or pass it directly to a helper.');
     });
 
     it('permits a filtered result whose callback captures are snapshotted', () => {
-        const program = parse(source.replace('  return State Need nth', '  fun X below = X less Need\n  return 1 to 10 filter below'));
+        const program = parse(source.replace('  return State nth Need', '  fun X below = X less Need\n  return 1 to 10 filter below'));
         expect(functionScopeDiagnostics(program)).toEqual([]);
     });
 });

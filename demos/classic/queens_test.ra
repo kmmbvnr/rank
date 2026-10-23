@@ -22,7 +22,7 @@ test "placements are safe and distinct"
   for Q in States
     Ok and= Q unique len equal Size
     Ok and= (Q in Cols) all
-    Seen add (Q " " join)
+    Seen add (Q join " ")
     for I in 0 till Size
       for J in I + 1 till Size
         Ok and= (Q I - Q J) abs not equal J - I

@@ -17,8 +17,8 @@ argument Input path = (
 rem Compare exponent * log(base) instead
 rem of the huge powers themselves.
 Lines = Input readlines
-Flat = Lines "," join
-Parts = Flat "," split
+Flat = Lines join ","
+Parts = Flat split ","
 Nums = Parts integer
 Rows = Lines len
 Pairs = Nums reshape Rows 2

@@ -16,11 +16,11 @@ fun A svd_2x2
   end
 
   AT = A transpose
-  B = AT A matmul
+  B = AT matmul A
 
   Y = 2 * B 0 1
   X = B 0 0 - B 1 1
-  Theta = Y X atan2 / 2
+  Theta = Y atan2 X / 2
 
   C = Theta cos
   S = Theta sin
@@ -30,8 +30,8 @@ fun A svd_2x2
     S  C
   end
 
-  D = V transpose B matmul
-  D = D V matmul
+  D = V transpose matmul B
+  D = D matmul V
 
   D0 = (D 0 0) max 0
   D1 = (D 1 1) max 0
@@ -39,7 +39,7 @@ fun A svd_2x2
   S1 = D1 sqrt
   Sigma = array S0 S1
 
-  U = A V matmul
+  U = A matmul V
 
   for j in 0 till 2
     if Sigma j greater 0

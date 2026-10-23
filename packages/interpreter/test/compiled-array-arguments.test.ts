@@ -9,7 +9,7 @@ import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 import type { RankArray } from '../src/value.js';
 
 it('reuses array type/rank proofs independently of identity and length', () => {
-    const statement = parse('fun A I cell\nreturn (A I) + 1\nend').statements[0];
+    const statement = parse('fun A cell I\nreturn (A I) + 1\nend').statements[0];
     if (!isFunctionStatement(statement)) throw new Error('expected function');
     const first = compiledArgumentType(ownedArray([2n]));
     const second = compiledArgumentType(ownedArray([4n, 5n]));
@@ -19,9 +19,9 @@ it('reuses array type/rank proofs independently of identity and length', () => {
     let calls = 0;
     const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
     try {
-        runtime.execute('fun A I cell\nreturn (A I) + 1\nend');
-        expect(runtime.execute('(array 2) 0 cell')).toBe(3n);
-        expect(runtime.execute('(array 4 5) 1 cell')).toBe(6n);
+        runtime.execute('fun A cell I\nreturn (A I) + 1\nend');
+        expect(runtime.execute('(array 2) cell 0')).toBe(3n);
+        expect(runtime.execute('(array 4 5) cell 1')).toBe(6n);
         expect(calls).toBe(2);
     } finally { runtime.dispose(); }
 });
@@ -43,12 +43,12 @@ it('keeps rank, empty declarations, mutations and array results distinct', () =>
     let calls = 0;
     const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
     try {
-        runtime.execute('fun A count\nreturn A len\nend\nfun A identity\nreturn A\nend\nfun A I cell\nreturn A I\nend');
+        runtime.execute('fun A count\nreturn A len\nend\nfun A identity\nreturn A\nend\nfun A cell I\nreturn A I\nend');
         expect(runtime.execute('(array shape 0 fill 0) count')).toBe(0n);
         runtime.execute('A = array 1 2');
-        expect(runtime.execute('A 0 cell')).toBe(1n);
+        expect(runtime.execute('A cell 0')).toBe(1n);
         runtime.execute('A 0 = 9');
-        expect(runtime.execute('A 0 cell')).toBe(9n);
+        expect(runtime.execute('A cell 0')).toBe(9n);
         expect(runtime.execute('A identity')).toBe(runtime.variables.get('A'));
         expect(calls).toBe(4);
         runtime.execute('fun A matrix\nreturn A 1 0\nend');
@@ -87,7 +87,7 @@ it('binds text-array native calls and rejects captured assignments', () => {
     let calls = 0;
     const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => calls++ });
     try {
-        runtime.execute('use text\nfun A joined\nreturn A ":" join\nend');
+        runtime.execute('use text\nfun A joined\nreturn A join ":"\nend');
         expect(runtime.execute('(array "λ" "😀") joined')).toBe('λ:😀');
         expect(calls).toBe(1);
         expect(() => runtime.execute('fun A outer\nB = A\nfun C replace\nB = C\nreturn B\nend\n(array 9 8) replace\nreturn B\nend\n(array 1 2) outer')).toThrow('B is bound in an enclosing function');

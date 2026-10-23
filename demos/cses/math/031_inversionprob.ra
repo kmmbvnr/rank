@@ -24,7 +24,7 @@ fun Ranges expected_inversions
     for J in I + 1 till N
       A = Ranges I
       B = Ranges J
-      M = A - 1 B min
+      M = A - 1 min B
       Winning = M * A - M * (M + 1) // 2
       Expected += Winning / (A * B)
     end

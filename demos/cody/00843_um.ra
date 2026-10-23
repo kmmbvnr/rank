@@ -7,12 +7,12 @@ use sequences
 
 
 rem Fit fractions to one spectrum.
-fun Basis Spectrum unmix
+fun Basis unmix Spectrum
   BasisT = Basis transpose
-  Gram = BasisT Basis matmul
-  Projection = BasisT Spectrum matmul
-  Fractions = Gram Projection solve
-  Fitted = Basis Fractions matmul
+  Gram = BasisT matmul Basis
+  Projection = BasisT matmul Spectrum
+  Fractions = Gram solve Projection
+  Fitted = Basis matmul Fractions
   Residual' = Spectrum - Fitted
   Error = Residual * Residual sum sqrt
 

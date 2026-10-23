@@ -82,7 +82,7 @@ A + B`)).toBe(60n);
         it(`matches scalar ${operator} for numeric domains and floating-point edge cases`, () => {
             const runtime = new Interpreter();
             runtime.execute(`
-fun A B binary
+fun A binary B
   return A ${operator} B
 end
 fun A total

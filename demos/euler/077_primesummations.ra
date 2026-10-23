@@ -27,7 +27,7 @@ Ways = array shape (2 * Limit + 1) fill 0
 Ways Limit = 1
 for N in 1 to Limit
   Base = Limit - N
-  Sum = (Ways (Ids + Base)) Sums matmul
+  Sum = (Ways (Ids + Base)) matmul Sums
   Ways Base = Sum // N
 end
 Ways = Ways (Limit to 0 by -1) copy

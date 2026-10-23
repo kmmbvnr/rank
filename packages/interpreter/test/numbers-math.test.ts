@@ -8,7 +8,7 @@ describe('Rank mathematical functions', () => {
         expect(run('use numbers\nnan')).toBe('nan');
         expect(run('use numbers\ninfinity - infinity isnan')).toBe('true');
         expect(run('use numbers\n(array 1.0 nan 3.0) isnan')).toBe('false true false');
-        expect(run('use numbers\nuse sequences\n(array 1.0 nan 3.0) isnan true find')).toBe('1');
+        expect(run('use numbers\nuse sequences\n(array 1.0 nan 3.0) isnan find true')).toBe('1');
         expect(run('use numbers\nuse sequences\n(1 to 3) isnan copy')).toBe('false false false');
         expect(run('use numbers\narray (nan less 1.0) (nan at most 1.0) (1.0 at least nan) (nan equal nan)'))
             .toBe('false false false false');
@@ -17,26 +17,26 @@ describe('Rank mathematical functions', () => {
     });
 
     it('lets an infinite accumulator seed settle on its first integer', () => {
-        const fold = (seed: string, pick: string) => `use numbers\n${seed}\nfor Item in array 5 3 8\n  Best = ${pick === 'max' ? 'Best max Item' : 'Best Item min'}\nend\nBest`;
+        const fold = (seed: string, pick: string) => `use numbers\n${seed}\nfor Item in array 5 3 8\n  Best = ${pick === 'max' ? 'Best max Item' : 'Best min Item'}\nend\nBest`;
         expect(run(fold('Best = infinity', 'min'))).toBe('3');
         expect(run(fold('Best = -infinity', 'max'))).toBe('8');
         expect(run(`${fold('Best = infinity', 'min')} type`)).toBe('.integer');
-        expect(run('use numbers\nBest = infinity\nBest = Best 2.5 min\nBest type')).toBe('.real');
+        expect(run('use numbers\nBest = infinity\nBest = Best min 2.5\nBest type')).toBe('.real');
         expect(() => run('use numbers\nBest = infinity\nBest = 3\nBest = 2.5'))
             .toThrowError('Best has type integer and cannot receive real');
         expect(() => run('use numbers\nBest = 2.5\nBest = 3')).toThrowError('Best has type real and cannot receive integer');
     });
 
     it('calculates exact and modular binomials', () => {
-        expect(run('use numbers\n5 2 binomial')).toBe('10');
-        expect(run('use numbers\n100 50 binomial')).toBe(
+        expect(run('use numbers\n5 binomial 2')).toBe('10');
+        expect(run('use numbers\n100 binomial 50')).toBe(
             '100891344545564193334812497256',
         );
         expect(run('use numbers\n5 2 7 binomialmod')).toBe('3');
-        expect(run('use numbers\n(array 5 6) 2 binomial')).toBe('10 15');
+        expect(run('use numbers\n(array 5 6) binomial 2')).toBe('10 15');
         expect(run('use numbers\n1000000 500000 1000000007 binomialmod'))
             .toBe('996692777');
-        expect(() => run('use numbers\n4 5 binomial'))
+        expect(() => run('use numbers\n4 binomial 5'))
             .toThrowError('0 at most K at most N');
         expect(() => run('use numbers\n5 2 8 binomialmod'))
             .toThrowError('modulus must be prime');
@@ -82,8 +82,8 @@ describe('Rank mathematical functions', () => {
     it('uses postfix reductions and binary min/max chains', () => {
         expect(run('use numbers\n(array 3 1 2) max')).toBe('3');
         expect(run('use numbers\n(array 3 1 2) min')).toBe('1');
-        expect(run('use numbers\n3 1 min 2 min')).toBe('1');
-        expect(run('use numbers\n9 4 min max 7')).toBe('7');
+        expect(run('use numbers\n3 min 1 min 2')).toBe('1');
+        expect(run('use numbers\n9 min 4 max 7')).toBe('7');
         expect(run('use numbers\n3 max (1 + 4)')).toBe('5');
         expect(run('use numbers\n(array 1 4) max 3')).toBe('3 4');
         expect(run([
@@ -122,9 +122,9 @@ describe('Rank mathematical functions', () => {
     });
 
     it('uses both coordinates and their quadrant for atan2', () => {
-        expect(run('use numbers\n1 1 atan2')).toBe('0.7853981633974483');
-        expect(run('use numbers\n(-1) (-1) atan2')).toBe('-2.356194490192345');
-        expect(run('use numbers\n1 0 atan2')).toBe('1.5707963267948966');
+        expect(run('use numbers\n1 atan2 1')).toBe('0.7853981633974483');
+        expect(run('use numbers\n(-1) atan2 (-1)')).toBe('-2.356194490192345');
+        expect(run('use numbers\n1 atan2 0')).toBe('1.5707963267948966');
     });
 
     it('evaluates hyperbolic functions and their inverses', () => {
@@ -190,14 +190,14 @@ describe('Rank mathematical functions', () => {
             'use numbers',
             'Y = array 0 1',
             'X = array 1 0',
-            'Y X atan2',
+            'Y atan2 X',
         ].join('\n'))).toBe('0 1.5707963267948966');
-        expect(run('use numbers\n(array 0 1) 1 atan2')).toBe('0 0.7853981633974483');
+        expect(run('use numbers\n(array 0 1) atan2 1')).toBe('0 0.7853981633974483');
         expect(run([
             'use numbers',
             'Y = array shape 2 1 fill 1',
             'X = array 1 -1',
-            'Y X atan2',
+            'Y atan2 X',
         ].join('\n'))).toBe([
             '0.7853981633974483',
             '2.356194490192345',
@@ -208,7 +208,7 @@ describe('Rank mathematical functions', () => {
             'use numbers',
             'Y = array shape 2 1 fill 1',
             'X = array 1 -1',
-            'Y X atan2',
+            'Y atan2 X',
         ].join('\n'))).toBe(
             '0.7853981633974483 2.356194490192345 0.7853981633974483 2.356194490192345',
         );
@@ -217,7 +217,7 @@ describe('Rank mathematical functions', () => {
         expect(run([
             'use numbers',
 
-            '(0 to 1) (1 to 2) atan2',
+            '(0 to 1) atan2 (1 to 2)',
         ].join('\n'))).toBe('0 0.4636476090008061');
     });
 
@@ -244,7 +244,7 @@ describe('Rank mathematical functions', () => {
             .toThrowError('unknown name: log');
         expect(() => run('1 exp'))
             .toThrowError('unknown name: exp');
-        expect(() => run('use numbers\n(array 0 1) (array 1 2 3) atan2'))
+        expect(() => run('use numbers\n(array 0 1) atan2 (array 1 2 3)'))
             .toThrowError('shape mismatch');
     });
 });

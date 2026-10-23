@@ -43,7 +43,7 @@ fun Data nested_ranges
     if Y at least MinFinish
       Contains I = 1
     end
-    MinFinish = MinFinish Y min
+    MinFinish = MinFinish min Y
   end
 
   return record

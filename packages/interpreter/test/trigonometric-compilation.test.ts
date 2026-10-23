@@ -6,7 +6,7 @@ const inputs: (bigint | number)[] = [0n, 1n, -1n, 0, -0, 0.5, -0.5, 1, 2, Infini
 
 describe('compiled trigonometric calls', () => {
     it.each(names)('matches ordinary %s in scalar functions and loops, including domain errors', name => {
-        const expression = name === 'atan2' ? 'X Y atan2' : `X ${name}`;
+        const expression = name === 'atan2' ? 'X atan2 Y' : `X ${name}`;
         for (const loop of [false, true]) {
             const runtimes = [false, true].map(compilation => {
                 let entries = 0;
@@ -14,9 +14,12 @@ describe('compiled trigonometric calls', () => {
                     onScalarFunctionExecuted: () => { if (!loop) entries++; },
                     onIntegerLoopExecuted: () => { if (loop) entries++; },
                 });
-                runtime.execute(`use numbers\nfun X Y probe\n${loop
+                runtime.execute(`use numbers
+fun X probe Y
+${loop
                     ? ` R = 0.0\n for I in 1 to 2\n  R = ${expression}\n end\n return R`
-                    : ` return ${expression}`}\nend`);
+                    : ` return ${expression}`}
+end`);
                 const fn = runtime.variables.get('probe')!;
                 if (!isNativeFunction(fn)) throw new Error('missing function');
                 return { runtime, fn, entries: () => entries };
@@ -43,7 +46,7 @@ describe('compiled trigonometric calls', () => {
             onIntegerLoopExecuted: () => loops++ });
         try {
             const operand = name === 'acosh' ? '1.5' : '0.5';
-            const expression = name === 'atan2' ? `${operand} 1 atan2` : `${operand} ${name}`;
+            const expression = name === 'atan2' ? `${operand} atan2 1` : `${operand} ${name}`;
             const expected = runtime.execute(`use numbers\n${expression}`);
             expect(runtime.execute(`R = 0.0\nfor I in 1 to 2\n R = ${expression}\nend\nR`)).toBe(expected);
             expect(loops).toBe(1);
@@ -54,9 +57,15 @@ describe('compiled trigonometric calls', () => {
         for (const loop of [false, true]) {
             const runtime = new Interpreter();
             try {
-                runtime.execute(`use numbers\nfun X probe\n${loop
+                runtime.execute(`use numbers
+fun X probe
+${loop
                     ? ' R = 0.0\n for I in 1 to 2\n  R = X sin\n end\n return R'
-                    : ' return X sin'}\nend\nfun X replacement\n return 42.0\nend`);
+                    : ' return X sin'}
+end
+fun X replacement
+ return 42.0
+end`);
                 expect(runtime.execute('0.0 probe')).toBe(0);
                 runtime.variables.set('sin', runtime.variables.get('replacement')!);
                 expect(runtime.execute('0.0 probe')).toBe(42);

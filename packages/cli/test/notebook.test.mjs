@@ -246,7 +246,7 @@ test('an open function evaluates each body line on example arguments', async t =
 test('a live function named like an operator alias keeps its name in the preview call', async t => {
     const { repl, book, enter } = setup(t, true);
     await enter('A = array 1 2 3');
-    await enter('fun X Y plus');
+    await enter('fun X plus Y');
     repl.exampleEditor.replace('A');
     await repl.submit();
     repl.exampleEditor.replace('A + 1');
@@ -259,14 +259,14 @@ test('a live function named like an operator alias keeps its name in the preview
 
 test('all function argument fields stay visible below the unchanged header', async t => {
     const { repl, book, enter } = setup(t, true);
-    await enter('fun X Y add');
-    assert.equal(book.current.source, 'fun X Y add');
+    await enter('fun X add Y');
+    assert.equal(book.current.source, 'fun X add Y');
     assert.deepEqual(repl.exampleFields.map(field => [field.name, field.source, field.active]), [
         ['X', '', true], ['Y', '', false],
     ]);
     repl.exampleEditor.replace('2');
     await repl.submit();
-    assert.equal(book.current.source, 'fun X Y add');
+    assert.equal(book.current.source, 'fun X add Y');
     assert.deepEqual(repl.exampleFields.map(field => [field.name, field.source, field.active]), [
         ['X', '2', false], ['Y', '', true],
     ]);
@@ -293,11 +293,11 @@ test('example summaries distinguish split characters from cards and hide stale e
     const { repl, enter } = setup(t, true);
     await enter('use text');
     await enter('fun Cards hand_score');
-    repl.exampleEditor.replace('"5H 5C" "" split');
+    repl.exampleEditor.replace('"5H 5C" split ""');
     await repl.submit();
     assert.equal(repl.exampleFields[0].summary, 'array[5]: "5" "H" " " "5" "C"');
     repl.reopenExample();
-    repl.exampleEditor.replace('"5H 5C" " " split');
+    repl.exampleEditor.replace('"5H 5C" split " "');
     assert.equal(repl.exampleFields[0].summary, undefined);
     await repl.submit();
     assert.equal(repl.exampleFields[0].summary, 'array[2]: "5H" "5C"');
@@ -315,19 +315,19 @@ test('example summaries distinguish split characters from cards and hide stale e
 
 test('example arguments are evaluated before entering the function body', async t => {
     const { repl, book, enter } = setup(t, true);
-    await enter('fun Prime Pick family');
+    await enter('fun Prime family Pick');
     repl.exampleEditor.replace('123123');
     await repl.submit();
     repl.exampleEditor.replace('0 1 2');
     await repl.submit();
     assert.deepEqual(repl.examplePrompt, { name: 'family', parameter: 'Pick', index: 1, count: 2 });
     assert.match(repl.exampleFields[1].error, /Runtime: value application requires a sequence and one selector/);
-    assert.equal(book.current.source, 'fun Prime Pick family');
+    assert.equal(book.current.source, 'fun Prime family Pick');
 
     repl.exampleEditor.replace('array 0 1 2');
     await repl.submit();
     assert.equal(repl.examplePrompt, undefined);
-    assert.equal(book.current.source, 'fun Prime Pick family\n  ');
+    assert.equal(book.current.source, 'fun Prime family Pick\n  ');
 });
 
 test('correcting a failed func cell to fun enters live authoring in that cell', async t => {
@@ -960,7 +960,7 @@ test('Ctrl-R replaces a declaration type while retaining other cells and their v
     await enter('use text');
     await enter('Ranks = "234567890"');
     await enter('Count = 7');
-    edit(1, 'Ranks = "234567890" "" split');
+    edit(1, 'Ranks = "234567890" split ""');
     await repl.rerun();
     assert.equal(book.cells[1].status, 'ok', output(book.cells[1]));
     assert.match(output(await session.execute('vars', 100, [])), /Ranks c 9/);

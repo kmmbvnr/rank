@@ -82,12 +82,12 @@ describe('implicit arithmetic tensor fusion', () => {
 
     it('refreshes bindings and shapes on repeated execution', () => {
         const source = `use sequences
-fun A B calculate
+fun A calculate B
   R = (A + B) * 3 - B
   return R
 end
-X = (array 1 2) (array 3 4) calculate
-Y = (array 5 6 7) (array 1 2 3) calculate
+X = (array 1 2) calculate (array 3 4)
+Y = (array 5 6 7) calculate (array 1 2 3)
 X = X + 0
 concat X Y`;
         expect(evaluate(source, true).value).toBe(evaluate(source, false).value);

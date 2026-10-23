@@ -9,19 +9,19 @@ N = stdin .integer
 K = stdin .integer
 Primes = stdin .integer K array
 
-N Primes divisible_count print
+N divisible_count Primes print
 
 
 rem Apply inclusion-exclusion to primes.
-fun N Primes divisible_count
-  Subsets = 1 (Primes len) shl
+fun N divisible_count Primes
+  Subsets = 1 shl (Primes len)
   Answer = 0
 
   for Mask in 1 till Subsets
     Product = 1
 
     for Prime I in Primes
-      if Mask I bit equal false
+      if Mask bit I equal false
         continue
       end
       if Product greater N // Prime

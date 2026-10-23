@@ -24,7 +24,7 @@ end
 
 rem Parse an instruction into its operation and inclusive rectangle.
 fun Line parseinstruction
-  Words = Line " " split
+  Words = Line split " "
 
   Op = Words 1
   First = 2
@@ -32,8 +32,8 @@ fun Line parseinstruction
     Op = "toggle"
     First = 1
   end
-  unpack X1 Y1 = Words First "," split integer rank 0
-  unpack X2 Y2 = Words (First + 2) "," split integer rank 0
+  unpack X1 Y1 = Words First split "," integer rank 0
+  unpack X2 Y2 = Words (First + 2) split "," integer rank 0
 
   return tuple Op X1 Y1 X2 Y2
 end

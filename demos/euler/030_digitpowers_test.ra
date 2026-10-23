@@ -16,5 +16,5 @@ end
 test "one matching value"
   use "030_digitpowers"
 
-  1634 4 digit_power_sum equal 1634
+  1634 digit_power_sum 4 equal 1634
 end

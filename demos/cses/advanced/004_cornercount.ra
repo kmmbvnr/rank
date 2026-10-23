@@ -9,7 +9,7 @@ N = stdin .integer
 Grid = array shape N N fill false
 for I in 0 till N
   Line = stdin .word
-  Grid I # = (Line "" split) equal "1"
+  Grid I # = (Line split "") equal "1"
 end
 Grid corner_count print
 

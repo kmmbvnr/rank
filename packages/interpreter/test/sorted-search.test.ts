@@ -20,12 +20,12 @@ describe('sorted integer insertion indices', () => {
         const runtime = new Interpreter(undefined, { compilation });
         try {
             runtime.execute('use algo\nuse sequences\nA = array 1 3 3 7\nQ = (array 0 3 7 8) reshape 2 2');
-            expect(formatValue(runtime.execute('A Q lowerindex')!)).toBe('0 1 3 4');
-            expect(formatValue(runtime.execute('A Q upperindex')!)).toBe('0 3 4 4');
-            expect(runtime.execute('(A 3 upperindex) - (A 3 lowerindex)')).toBe(2n);
+            expect(formatValue(runtime.execute('A lowerindex Q')!)).toBe('0 1 3 4');
+            expect(formatValue(runtime.execute('A upperindex Q')!)).toBe('0 3 4 4');
+            expect(runtime.execute('(A upperindex 3) - (A lowerindex 3)')).toBe(2n);
             runtime.execute('A 3 = 9');
-            expect(runtime.execute('A 8 upperindex')).toBe(3n);
-            expect(runtime.execute('A 3 upperindex rank 1 0')).toBe(3n);
+            expect(runtime.execute('A upperindex 8')).toBe(3n);
+            expect(runtime.execute('A upperindex 3 rank 1 0')).toBe(3n);
         } finally { runtime.dispose(); }
     });
 
@@ -35,15 +35,15 @@ describe('sorted integer insertion indices', () => {
             onScalarFunctionExecuted: () => functions++, onIntegerLoopExecuted: () => loops++,
         });
         try {
-            runtime.execute('use algo\nA = array 1 3 3 7\nfun A X bounds\nreturn (A X upperindex) - (A X lowerindex)\nend');
-            expect(runtime.execute('A 3 bounds')).toBe(2n);
+            runtime.execute('use algo\nA = array 1 3 3 7\nfun A bounds X\nreturn (A upperindex X) - (A lowerindex X)\nend');
+            expect(runtime.execute('A bounds 3')).toBe(2n);
             expect(functions).toBeGreaterThan(0);
-            expect(runtime.execute('Total = 0\nfor X in 0 to 9\nTotal += A X upperindex\nend\nTotal')).toBe(26n);
+            expect(runtime.execute('Total = 0\nfor X in 0 to 9\nTotal += A upperindex X\nend\nTotal')).toBe(26n);
             expect(loops).toBeGreaterThan(0);
-            runtime.execute('fun A X replacement = 42\nf = replacement');
+            runtime.execute('fun A replacement X = 42\nf = replacement');
             runtime.variables.set('upperindex', runtime.variables.get('f')!);
-            expect(runtime.execute('A 3 bounds')).toBe(41n);
-            expect(runtime.execute('Total = 0\nfor X in 0 to 9\nTotal += A X upperindex\nend\nTotal')).toBe(420n);
+            expect(runtime.execute('A bounds 3')).toBe(41n);
+            expect(runtime.execute('Total = 0\nfor X in 0 to 9\nTotal += A upperindex X\nend\nTotal')).toBe(420n);
         } finally { runtime.dispose(); }
     });
 
@@ -62,9 +62,9 @@ describe('sorted integer insertion indices', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute('use algo\nuse sequences\nA = array 1 2 3 4 5 6');
-            expect(runtime.execute('(A (1 to 4)) 3 upperindex')).toBe(2n);
-            expect(runtime.execute('Bag = (array 1 3 3 7) multiset\nBag 3 lowerbound')).toBe(3n);
-            expect(runtime.execute('Bag 3 upperbound')).toBe(7n);
+            expect(runtime.execute('(A (1 to 4)) upperindex 3')).toBe(2n);
+            expect(runtime.execute('Bag = (array 1 3 3 7) multiset\nBag lowerbound 3')).toBe(3n);
+            expect(runtime.execute('Bag upperbound 3')).toBe(7n);
         } finally { runtime.dispose(); }
     });
 

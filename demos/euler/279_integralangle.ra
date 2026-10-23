@@ -33,10 +33,10 @@ Twice = 0
 Top = (3 * Limit) isqrt + 2
 for M in 2 to Top
   Room = Limit // (2 * M) - M
-  Hi = Room (M - 1) min
+  Hi = Room min (M - 1)
   if Hi at least 1
     Ns = 1 to Hi array
-    Co = Ns M gcd equal 1
+    Co = Ns gcd M equal 1
     Odd = (M - Ns) mod 2 equal 1
     P' = 2 * M * (M + Ns)
     Ok = Co and Odd
@@ -45,10 +45,10 @@ for M in 2 to Top
   end
   Disc = (M * M + 12 * Limit) isqrt
   Cap = (Disc - 3 * M) // 2
-  Hi = Cap (M - 1) min
+  Hi = Cap min (M - 1)
   if Hi at least 1
     Ns = 1 to Hi array
-    Co = Ns M gcd equal 1
+    Co = Ns gcd M equal 1
     By3 = (M - Ns) mod 3 equal 0
     Div = 1 + 2 * (By3 choose 1 0)
     Q = (2 * M + Ns) * (M + Ns) // Div
@@ -60,10 +60,10 @@ end
 for N in 1 to Top
   Disc = (9 * N * N + 24 * Limit) isqrt
   Hi = (Disc - N) // 4
-  Hi = Hi (2 * N - 1) min
+  Hi = Hi min (2 * N - 1)
   if Hi at least N + 1
     Ms = (N + 1) to Hi array
-    Co = Ms N gcd equal 1
+    Co = Ms gcd N equal 1
     By3 = (Ms + N) mod 3 equal 0
     Div = 1 + 2 * (By3 choose 1 0)
     P = (2 * Ms - N) * (Ms + N) // Div

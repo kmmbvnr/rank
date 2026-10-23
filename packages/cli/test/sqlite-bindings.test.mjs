@@ -46,7 +46,9 @@ for (const compilation of [false, true]) {
         const data = fixture(t);
         const runtime = new Interpreter(undefined, { io: data.io, compilation });
         t.after(() => runtime.dispose());
-        runtime.execute(`use tables\nuse sequences\nDb = ${JSON.stringify(data.path)} sqlite
+        runtime.execute(`use tables
+use sequences
+Db = ${JSON.stringify(data.path)} sqlite
 Rows' = (Db .items) sort by .id
 Selected' = Rows (Rows .id greater 1)
 Statement = Selected sql`);

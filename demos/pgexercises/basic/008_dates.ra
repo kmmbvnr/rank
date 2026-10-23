@@ -16,4 +16,4 @@ Result' = R select
   .firstname = .firstname
   .joindate = .joindate
 end
-Result OutputPath csv
+Result csv OutputPath

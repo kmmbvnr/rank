@@ -12,7 +12,7 @@ argument OutputPath path = "demos/tidytuesday/africa_family_summary.csv"
 
 Data = DataPath csv
 Summary' = Data solve
-Summary OutputPath csv
+Summary csv OutputPath
 
 
 rem Summarize families by native speakers.

@@ -37,13 +37,13 @@ Total`);
     });
 
     it('replaces an array input while a BigInt binary loop runs', () => {
-        const result = compare(`fun A N nextrow
+        const result = compare(`fun A nextrow N
  return array shape 2 fill (A 0) + N
 end
 A = array 0 0
 N = 2 ** 80
 for N greater 0
- A = A N nextrow
+ A = A nextrow N
  N //= 2
 end
 A 0`);
@@ -52,7 +52,7 @@ A 0`);
     });
 
     it('preserves a callee parameter and its returned copy after local writes', () => {
-        const result = compare(`fun A N changed
+        const result = compare(`fun A changed N
  A 0 = N
  return A
 end
@@ -60,7 +60,7 @@ Source = array 10 20
 Current = Source
 Total = 0
 for I in 1 to 3
- Current = Source I changed
+ Current = Source changed I
  Total += (Current 0) + (Source 0)
 end
 tuple Total Source Current`);
@@ -160,13 +160,13 @@ array Before After`);
     });
 
     it('preserves error locations and partial state when the callee fails', () => {
-        const result = compare(`fun A N getrow
+        const result = compare(`fun A getrow N
  return array shape 1 fill A N
 end
 A = array 1 2
 for I in 0 to 2
  Before = I
- Current = A I getrow
+ Current = A getrow I
  After = I
 end`);
         expect(result.observation.error).toBeDefined();

@@ -131,8 +131,8 @@ Saved' = 6 outer`)).toThrow('lazy result retains nested function below');
     it('allows a known helper to complete relation neighbors before return', () => {
         const host = new Interpreter(undefined, { compilation });
         try {
-            const source = 'fun Relation Start neighbors = (Relation Start) array\n'
-                + graphPrefix + 'return G 1 neighbors\nend\n2 build';
+            const source = 'fun Relation neighbors Start = (Relation Start) array\n'
+                + graphPrefix + 'return G neighbors 1\nend\n2 build';
             expect(formatValue(host.execute(source)!)).toBe('3');
         } finally { host.dispose(); }
     });

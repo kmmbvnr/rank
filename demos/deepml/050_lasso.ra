@@ -16,8 +16,8 @@ fun X Y L1 Lr N Eps lasso
   Bias = 0.0
 
   for # in 0 till N
-    Error = X W matmul + Bias - Y
-    Grad = X Error matmul axis 0 0
+    Error = X matmul W + Bias - Y
+    Grad = X matmul Error axis 0 0
     Grad /= Rows
 
     Pos = (W greater 0) 1.0 0.0 choose

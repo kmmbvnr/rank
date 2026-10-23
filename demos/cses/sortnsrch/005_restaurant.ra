@@ -18,7 +18,7 @@ Events busiest print
 
 
 rem Make one customer-count event.
-fun Time Delta event
+fun Time event Delta
   Event = record
     .time = Time
     .delta = Delta
@@ -29,8 +29,8 @@ end
 
 rem Add one customer's arrival and exit.
 fun Events Arrive Leave visit
-  Events push Arrive 1 event
-  Events push Leave (-1) event
+  Events push Arrive event 1
+  Events push Leave event (-1)
   return Events
 end
 

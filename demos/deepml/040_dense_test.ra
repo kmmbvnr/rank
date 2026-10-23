@@ -6,7 +6,7 @@ test "official backward pass"
   use random
 
   State = 42 seed
-  Layer = 2 3 dense
+  Layer = 2 dense 3
   Official = array shape 2 3
     -0.1774270654597766
     0.6374062848804862
@@ -20,7 +20,7 @@ test "official backward pass"
   X = array shape 1 2
     1.0 2.0
   end
-  Forward = Layer X forward_pass
+  Forward = Layer forward_pass X
   Grad = array shape 1 3
     0.1 0.2 0.3
   end
@@ -41,7 +41,7 @@ end
 test "forward pass broadcasts bias"
   use "040_dense"
 
-  Layer = 2 2 dense
+  Layer = 2 dense 2
   Layer .weights = array shape 2 2
     1.0 2.0
     3.0 4.0
@@ -51,7 +51,7 @@ test "forward pass broadcasts bias"
     1.0 2.0
     3.0 4.0
   end
-  Actual = Layer X forward_pass
+  Actual = Layer forward_pass X
   Expected = array shape 2 2
     7.5 9.5
     15.5 21.5
@@ -62,7 +62,7 @@ end
 test "parameters and output shape"
   use "040_dense"
 
-  Layer = 2 3 dense
+  Layer = 2 dense 3
   CountOk = Layer parameters equal 9
   Shape = Layer output_shape
   ShapeOk = Shape equal array 3
@@ -73,7 +73,7 @@ test "frozen layer keeps its parameters"
   use "040_dense"
   use sequences
 
-  Layer = 2 1 dense
+  Layer = 2 dense 1
   Layer .weights = array shape 2 1
     2.0
     3.0
@@ -83,7 +83,7 @@ test "frozen layer keeps its parameters"
   X = array shape 1 2
     4.0 5.0
   end
-  Forward = Layer X forward_pass
+  Forward = Layer forward_pass X
   Before = Layer .weights copy
   Grad = array shape 1 1 fill 2.0
   Back = Layer Grad 0.1 backward_pass

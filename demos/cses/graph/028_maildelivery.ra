@@ -12,7 +12,7 @@ Values = stdin .integer Count array
 Edges = Values reshape M 2
 Graph = new graph (1 to N) .undirected
 Graph add Edges
-Path = Graph M mail_delivery
+Path = Graph mail_delivery M
 
 if Path len equal 0
   "IMPOSSIBLE" print
@@ -22,8 +22,8 @@ end
 
 
 rem Walk every street and return.
-fun Graph EdgeCount mail_delivery
-  Path = Graph 1 euler
+fun Graph mail_delivery EdgeCount
+  Path = Graph euler 1
   Valid = Path len equal EdgeCount + 1
   if Valid and Path last equal 1
     return Path

@@ -9,7 +9,7 @@ const program = `use sequences
 use bits
 fun Cipher Weights Key Slots score
   KeyStream = Key Slots
-  Plain = Cipher KeyStream bxor
+  Plain = Cipher bxor KeyStream
   Score = Weights Plain sum
   return Score
 end
@@ -145,7 +145,7 @@ Cipher Weights Key Slots score print`);
             const runtime = new Interpreter(undefined, { tensorFusion });
             try {
                 const first = runtime.execute(program);
-                runtime.execute('fun A B replacement\n  return A + B\nend');
+                runtime.execute('fun A replacement B\n  return A + B\nend');
                 runtime.variables.set('bxor', runtime.variables.get('replacement')!);
                 const second = runtime.execute('Cipher Weights Key Slots score');
                 return [first, second];
@@ -209,13 +209,13 @@ it.each([
     { marker: '', value: '3', kernels: 0 },
 ])('preserves zip or broadcast for binding marker "$marker"', ({ marker, value, kernels }) => {
     const source = `use sequences
-fun A${marker} B${marker} score
+fun A${marker} score B${marker}
   Values${marker} = A + B
   return Values sum
 end
 A${marker} = 0 till 1
 B${marker} = 0 till 3
-A B score`;
+A score B`;
     expect(compare(source)).toMatchObject({ value, kernels });
 });
 
@@ -254,7 +254,7 @@ it('keeps gather bindings local when the compilation callback reenters', () => {
     const runtime = new Interpreter();
     try {
         runtime.execute(program);
-        const statement = parse('fun Cipher Weights Key Slots score\n return (Weights (Cipher (Key Slots) bxor)) sum\nend').statements[0];
+        const statement = parse('fun Cipher Weights Key Slots score\n return (Weights (Cipher bxor (Key Slots))) sum\nend').statements[0];
         if (!isFunctionStatement(statement)) throw Error('expected function');
         const outer = new Map(['Cipher', 'Weights', 'Key', 'Slots'].map(name => [name, runtime.variables.get(name)!]));
         let values = outer, entered = false;
@@ -285,7 +285,7 @@ it.each([
     const source = `use sequences
 use bits
 fun Cipher Key Slots score
-  return (Cipher (Key Slots) bxor) sum
+  return (Cipher bxor (Key Slots)) sum
 end
 Cipher = ${cipher}
 Key = array 1 2 3

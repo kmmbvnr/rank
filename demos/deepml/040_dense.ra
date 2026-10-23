@@ -6,7 +6,7 @@ use numbers
 use random
 use sequences
 
-fun Inputs Units dense
+fun Inputs dense Units
   if Inputs at most 0 or Units at most 0
     .DomainError raise
   end
@@ -33,11 +33,11 @@ fun Layer parameters
   return WSize + (Bias len)
 end
 
-fun Layer X forward_pass
+fun Layer forward_pass X
   Layer .input = X
   W = Layer .weights
   Bias = Layer .bias
-  return X W matmul + Bias
+  return X matmul W + Bias
 end
 
 fun Layer Grad Rate backward_pass
@@ -48,14 +48,14 @@ fun Layer Grad Rate backward_pass
   Trainable = Layer .trainable
   if Trainable
     Xt' = X transpose
-    GradW' = Xt Grad matmul
+    GradW' = Xt matmul Grad
     GradB' = Grad sum axis 0
     Layer .weights = W - Rate * GradW
     Layer .bias = Bias - Rate * GradB
   end
 
   Wt' = W transpose
-  return Grad Wt matmul
+  return Grad matmul Wt
 end
 
 fun Layer output_shape

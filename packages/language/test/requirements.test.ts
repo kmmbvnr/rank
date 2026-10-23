@@ -25,7 +25,7 @@ it('infers selectors on an unknown producer without manufacturing a forward fact
     expect(analyzeValues(program).bindings.get('Rows')?.rank).toBeUndefined();
 });
 it('summarizes uncalled parameters and checks independent polymorphic calls', () => {
-    const source = 'fun M spread\n return M # 1 max - M # 1 min\nend\n';
+    const source = 'fun M spread\n return M # 1 max - M # min 1\nend\n';
     const program = parse(source);
     const definition = program.statements.find(isFunctionStatement)!;
     expect(inferRequirements(program).functions.get(definition)?.params[0].rank.min).toBe(2);
@@ -62,7 +62,7 @@ it('keeps guarded uses and zero-trip loops from constraining all calls', () => {
     expect(infer('fun X pick\n for I in 0 till 0\n  X # 1\n end\n return X\nend\n1 pick').conflicts).toEqual([]);
 });
 it('does not assign requirements to an unknown callback parameter', () => {
-    const program = parse('fun X Callback apply\n return X Callback\nend');
+    const program = parse('fun X apply Callback\n return X Callback\nend');
     const definition = program.statements.find(isFunctionStatement)!;
     expect(inferRequirements(program).functions.get(definition)?.params.map(param => [param.rank.min, param.rank.max]))
         .toEqual([[0, Infinity], [0, Infinity]]);
@@ -130,14 +130,14 @@ it('keeps requirement templates bounded when definitions duplicate calls', () =>
 });
 
 it('does not guess that an unresolved source import refers to a builtin', () => {
-    expect(infer('use "unknown"\nA = array 1 2\nA 25 solve').conflicts).toEqual([]);
+    expect(infer('use "unknown"\nA = array 1 2\nA solve 25').conflicts).toEqual([]);
 });
 it('keeps completed unary pipelines separate from binary builtin operands', () => {
     expect(infer('use text\nuse sequences\n2969 text sort equal 6299 text sort').conflicts).toEqual([]);
 });
 
 it('preserves unresolved import boundaries inside function templates', () => {
-    expect(infer('use "unknown"\nfun X f\n return X 25 solve\nend\n(array 1 2) f').conflicts).toEqual([]);
+    expect(infer('use "unknown"\nfun X f\n return X solve 25\nend\n(array 1 2) f').conflicts).toEqual([]);
 });
 
 it('attaches a selected CSV column requirement to the original value through an alias', () => {
@@ -196,7 +196,7 @@ it('carries caller requirements to a checked read through a nested wrapper', () 
 });
 
 it('links checked CSV row lengths when a later dot product needs equal columns', () => {
-    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nX = A .value\nY = B .value\nX Y matmul';
+    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nX = A .value\nY = B .value\nX matmul Y';
     const answer = infer(source);
     const a = answer.bindings.find(item => item.name === 'A')!;
     const b = answer.bindings.find(item => item.name === 'B')!;
@@ -208,7 +208,7 @@ it('links checked CSV row lengths when a later dot product needs equal columns',
 
 
 it('infers scalar integer count parameters after an unknown lazy reduction without assuming input values', () => {
-    const program = parse('fun Numbers Digits prefix\n Total = Numbers sum\n Text = Total text\n return Text take Digits\nend');
+    const program = parse('fun Numbers prefix Digits\n Total = Numbers sum\n Text = Total text\n return Text take Digits\nend');
     const definition = program.statements.find(isFunctionStatement)!;
     const params = inferRequirements(program).functions.get(definition)!.params;
     expect(params[0].domains).toEqual(['integer', 'real', 'missing']);

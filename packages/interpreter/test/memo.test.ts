@@ -9,7 +9,7 @@ describe('memo functions and explicit index caches', () => {
 use algo
 use io
 Index = new index
-fun N Cache fib
+fun N fib Cache
   if N in Cache
     return Cache N
   end
@@ -18,16 +18,16 @@ fun N Cache fib
   if N less 2
     Value = N
   else
-    Value = ((N - 1) Cache fib) + ((N - 2) Cache fib)
+    Value = ((N - 1) fib Cache) + ((N - 2) fib Cache)
   end
   Cache N = Value
   return Value
 end
-30 Index fib
+30 fib Index
 `)).toBe(832040n);
         expect(calls).toHaveLength(31);
         expect(interpreter.execute('Index 30')).toBe(832040n);
-        expect(interpreter.execute('30 Index fib')).toBe(832040n);
+        expect(interpreter.execute('30 fib Index')).toBe(832040n);
         expect(calls).toHaveLength(31);
     });
 
@@ -119,15 +119,15 @@ end
         const execute = (source: string) => diagnostics.run(() => interpreter.execute(source));
         execute(`
 use io
-memo A B first
+memo A first B
   return A
 end
 memo X identity
   return X
 end
 `);
-        expect(execute('"a|string:b" "c" first')).toBe('a|string:b');
-        expect(execute('"a" "b|string:c" first')).toBe('a');
+        expect(execute('"a|string:b" first "c"')).toBe('a|string:b');
+        expect(execute('"a" first "b|string:c"')).toBe('a');
         for (const source of ['0', 'false', '"0"', '.Zero', '0.5']) {
             execute(`${source} identity`);
             execute(`${source} identity`);

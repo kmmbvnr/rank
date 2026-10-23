@@ -10,16 +10,16 @@ M = stdin .integer
 Hotels = stdin .integer N array
 Groups = stdin .integer M array
 
-Hotels Groups assign_hotels print
+Hotels assign_hotels Groups print
 
 
 rem Choose the first hotel with room.
-fun Hotels Groups assign_hotels
+fun Hotels assign_hotels Groups
   Tree = Hotels segment max
   Answers = array shape (Groups len) fill 0
 
   for Need I in Groups
-    Position = Tree Need firstatleast
+    Position = Tree firstatleast Need
     if Position less 0
       continue
     end

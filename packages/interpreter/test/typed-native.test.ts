@@ -119,9 +119,9 @@ describe('typed native kernels', () => {
             try {
                 runtime.execute('use text');
                 for (const convert of ['', ' bytes']) {
-                    expect(runtime.execute(`R = false\nfor I in 1 to 2\n R = (${value}${convert}) (${prefix}${convert}) startswith\nend\nR`)).toBe(expected);
+                    expect(runtime.execute(`R = false\nfor I in 1 to 2\n R = (${value}${convert}) startswith (${prefix}${convert})\nend\nR`)).toBe(expected);
                 }
-                expect(() => runtime.execute('1 2 startswith')).toThrow(/expects/);
+                expect(() => runtime.execute('1 startswith 2')).toThrow(/expects/);
             } finally { runtime.dispose(); }
         }
     });

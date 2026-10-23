@@ -236,7 +236,7 @@ export function compileStructureApplication(context: ApplicationContext, applica
                         // Many queries against one structure: the operation's intrinsic ranks
                         // split the queries into scalar cells.
                         const operation = yield* resume(context.evaluate(
-                            parts[multisetMethod.receiver.length],
+                            multisetMethod.operationExpression,
                         ));
                         if (isNativeFunction(operation)) {
                             return yield* resume(context.rankApplication.applyDyadicAtRank(
@@ -247,7 +247,7 @@ export function compileStructureApplication(context: ApplicationContext, applica
                     return multisetQuery(receiverValue, multisetMethod.operation, argumentValue);
                 }
                 const operation = yield* resume(context.evaluate(
-                    parts[multisetMethod.receiver.length],
+                    multisetMethod.operationExpression,
                 ));
                 return yield* resume(application.apply(
                     [receiverValue, argumentValue, operation],

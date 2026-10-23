@@ -33,7 +33,7 @@ Mat = Tm reshape 100 100
 Start' = S greater 9
 V = Start choose 1 0
 for Step in 3 to Digits
-  V = V Mat matmul
+  V = V matmul Mat
 end
 Answer = V sum
 Answer print

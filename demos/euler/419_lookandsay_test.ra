@@ -28,5 +28,5 @@ test "default input"
   A2 = "1046245404"
   A3 = "43363922"
   Want = array A1 A2 A3
-  Answer equal (Want "," join)
+  Answer equal (Want join ",")
 end

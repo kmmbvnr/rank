@@ -42,8 +42,8 @@ for (const compiled of [false, true]) describe(`text rank (compiled=${compiled})
             expect(() => r.execute('"ab" "abc" equal rank 0')).toThrow('shape mismatch');
             expect(r.execute('"ab" "ab" equal rank 1')).toBe(true);
             expect(r.execute('"ab" equal "ab"')).toBe(true);
-            expect(r.execute('"abc" "bcd" min')).toBe('abc');
-            expect(formatValue(r.execute('(array "abc" "xyz") "def" min')!)).toBe('abc def');
+            expect(r.execute('"abc" min "bcd"')).toBe('abc');
+            expect(formatValue(r.execute('(array "abc" "xyz") min "def"')!)).toBe('abc def');
             expect(formatValue(r.execute('(array "ab" "cd") len rank 0')!)).toBe('2 2');
         } finally { r.dispose(); }
     });
@@ -77,14 +77,14 @@ fun Text point
   Text print
   return Text
 end
-fun Left Right same rank 0 0
+fun Left same Right rank 0 0
   return Left equal Right
 end`);
             const result = r.execute('"😀é" point rank 0')!;
             expect(isRankArray(result)).toBe(true);
             if (isRankArray(result)) expect(result.items).toEqual(['😀', 'e', '́']);
             expect(calls).toEqual(['😀', 'e', '́']);
-            expect(formatValue(r.execute('"aba" "a" same rank 0 0')!)).toBe('true false true');
+            expect(formatValue(r.execute('"aba" same "a" rank 0 0')!)).toBe('true false true');
         } finally { r.dispose(); }
     });
 });

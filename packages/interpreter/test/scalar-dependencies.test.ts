@@ -5,15 +5,15 @@ import { parse } from '../src/index.js';
 import { withInterrupt } from '../src/interrupt.js';
 
 const helpers = `use sequences
-fun P Q compatible
-  PQ = P Q concat
+fun P compatible Q
+  PQ = P concat Q
   if PQ not in primes
     return false
   end
-  QP = Q P concat
+  QP = Q concat P
   return QP in primes
 end
-fun A B concat
+fun A concat B
   Scale = 10
   for Scale at most B
     Scale *= 10
@@ -40,20 +40,20 @@ function compare(source: string, options: InterpreterOptions = {}) {
 
 describe('guarded nested scalar calls', () => {
     it('compiles the unchanged prime-pair helper with later callee declarations', () => {
-        const result = compare(helpers + '\n3 7 compatible');
+        const result = compare(helpers + '\n3 compatible 7');
         expect(result.value).toBe('true');
         expect(result.calls).toBe(3);
         expect(result.loops).toBe(0);
-        expect(compare(helpers + '\n13 7 compatible').value).toBe('false');
-        expect(outcome(helpers + '\n3 7 compatible', { scalarCallCompilation: false }).calls).toBe(2);
-        expect(outcome(helpers + '\n3 7 compatible', { sequenceMembershipCompilation: false }).calls).toBe(2);
+        expect(compare(helpers + '\n13 compatible 7').value).toBe('false');
+        expect(outcome(helpers + '\n3 compatible 7', { scalarCallCompilation: false }).calls).toBe(2);
+        expect(outcome(helpers + '\n3 compatible 7', { sequenceMembershipCompilation: false }).calls).toBe(2);
     });
 
     it('links the same helper inside an integer loop', () => {
         const result = compare(helpers + `
 Total = 0
 for Q in 3 to 20
-  if 3 Q compatible
+  if 3 compatible Q
     Total += 1
   end
 end
@@ -85,11 +85,11 @@ ${x} outer`, { maxCallDepth });
 
     it('handles primitive specialization with distinct parameters', () => {
         for (const [argument, expected] of [['3', '6'], ['1.5', '3'], ['"x"', 'xx']]) {
-            const result = compare(`fun A B leaf
+            const result = compare(`fun A leaf B
  return A + B
 end
 fun A wrapper
- Value = A A leaf
+ Value = A leaf A
  return Value
 end
 ${argument} wrapper`);
@@ -121,7 +121,7 @@ memo X wrapper
 end
 array (3 wrapper) (3 wrapper)`);
         expect(result).toMatchObject({ value: '8 8', calls: 2 });
-        expect(compare('fun A A leaf\n return A\nend\nfun X wrapper\n return 1 X leaf\nend\n1.5 wrapper'))
+        expect(compare('fun A leaf A\n return A\nend\nfun X wrapper\n return 1 leaf X\nend\n1.5 wrapper'))
             .toMatchObject({ error: expect.stringContaining('Duplicate function parameter A'), calls: 0 });
     });
 
@@ -149,7 +149,7 @@ ${x} wrapper`, { loadModule, maxCallDepth: 1 });
     });
 
     it('retains callback and optional-word argument checks', () => {
-        compare('fun X leaf op\n return X\nend\nfun X Y wrapper\n return X leaf Y\nend\n3 4 wrapper');
+        compare('fun X leaf op\n return X\nend\nfun X wrapper Y\n return X leaf Y\nend\n3 wrapper 4');
         expect(compare('fun X scale .by Factor=2\n return X * Factor\nend\nfun X wrapper\n return X scale\nend\n3 wrapper').value).toBe('6');
     });
 

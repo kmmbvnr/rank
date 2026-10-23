@@ -544,14 +544,14 @@ describe('Rank tensors and collections', () => {
         expect(run([
             'use algo',
             'use sequences',
-            'fun X Y collect',
+            'fun X collect Y',
             '  Seen = new set',
             '  Seen add array 0 0',
             '  Seen add array X Y',
             '  Seen add array X Y',
             '  return Seen len',
             'end',
-            '2 3 collect',
+            '2 collect 3',
         ].join('\n'))).toBe('2');
         expect(run([
             'use algo',
@@ -592,13 +592,13 @@ describe('Rank tensors and collections', () => {
         ].join('\n'))).toBe('2 0 2');
         expect(run([
             'use algo',
-            'fun X Y composite',
+            'fun X composite Y',
             '  Counts = new counter',
             '  Counts add tuple X Y',
             '  Counts add tuple X Y',
             '  return Counts (tuple X Y)',
             'end',
-            '2 3 composite',
+            '2 composite 3',
         ].join('\n'))).toBe('2');
         expect(run('use algo\nCounts = new counter\nCounts type')).toBe('.counter');
         expect(() => run('Counts = new counter')).toThrowError('new requires: use algo');
@@ -708,13 +708,13 @@ describe('Rank tensors and collections', () => {
             'use algo',
             'use sequences',
             'Values = array 1 2 3 4',
-            'Pairs = Values 2 combinations',
+            'Pairs = Values combinations 2',
             'Pairs len',
         ].join('\n'))).toBe('6');
         expect(new Interpreter().execute([
             'use algo',
             'Values = array 1 2 3 4',
-            'Values 2 combinations 5',
+            '(Values combinations 2) 5',
         ].join('\n'))).toEqual({ kind: 'array', items: [3n, 4n], shape: [2] });
         expect(new Interpreter().execute([
             'use algo',
@@ -723,7 +723,7 @@ describe('Rank tensors and collections', () => {
             '  3 4',
             '  5 6',
             'end',
-            'Matrix 2 combinations 1',
+            '(Matrix combinations 2) 1',
         ].join('\n'))).toEqual({
             kind: 'array',
             items: [1n, 2n, 5n, 6n],
@@ -733,17 +733,17 @@ describe('Rank tensors and collections', () => {
             'use algo',
             'use sequences',
             'Values = array 7 7',
-            'Zero = Values 0 combinations len equal 1',
-            'TooMany = Values 3 combinations len equal 0',
-            'Positions = Values 1 combinations len equal 2',
+            'Zero = Values combinations 0 len equal 1',
+            'TooMany = Values combinations 3 len equal 0',
+            'Positions = Values combinations 1 len equal 2',
             'Zero and TooMany and Positions',
         ].join('\n'))).toBe('true');
-        expect(() => run('use algo\nValues = array 1 2\nValues (-1) combinations'))
+        expect(() => run('use algo\nValues = array 1 2\nValues combinations (-1)'))
             .toThrowError('combination count must be nonnegative');
         expect(() => run([
             'use algo',
             'use sequences',
-            'fibonacci 2 combinations',
+            'fibonacci combinations 2',
         ].join('\n'))).toThrowError('combinations requires a bounded sequence');
     });
 
@@ -752,12 +752,12 @@ describe('Rank tensors and collections', () => {
             'use algo',
             'use sequences',
             'Values = array 1 2 3',
-            'Values 2 multicomb len',
+            'Values multicomb 2 len',
         ].join('\n'))).toBe('6');
         expect(new Interpreter().execute([
             'use algo',
             'Values = array 1 2 3',
-            'Values 2 multicomb 3',
+            '(Values multicomb 2) 3',
         ].join('\n'))).toEqual({ kind: 'array', items: [2n, 2n], shape: [2] });
         expect(new Interpreter().execute([
             'use algo',
@@ -765,7 +765,7 @@ describe('Rank tensors and collections', () => {
             '  1 2',
             '  3 4',
             'end',
-            'Matrix 2 multicomb 1',
+            '(Matrix multicomb 2) 1',
         ].join('\n'))).toEqual({
             kind: 'array',
             items: [1n, 2n, 3n, 4n],
@@ -775,22 +775,22 @@ describe('Rank tensors and collections', () => {
             'use algo',
             'use sequences',
             'Values = array 7 8',
-            'Zero = Values 0 multicomb len equal 1',
-            'Large = Values 100 multicomb len equal 101',
+            'Zero = Values multicomb 0 len equal 1',
+            'Large = Values multicomb 100 len equal 101',
             'Zero and Large',
         ].join('\n'))).toBe('true');
         expect(run([
             'use algo',
             'use sequences',
             'Empty = array shape 0 fill 0',
-            'Empty 2 multicomb len',
+            'Empty multicomb 2 len',
         ].join('\n'))).toBe('0');
-        expect(() => run('use algo\nValues = array 1 2\nValues (-1) multicomb'))
+        expect(() => run('use algo\nValues = array 1 2\nValues multicomb (-1)'))
             .toThrowError('multicomb count must be nonnegative');
         expect(() => run([
             'use algo',
             'use sequences',
-            'fibonacci 2 multicomb',
+            'fibonacci multicomb 2',
         ].join('\n'))).toThrowError('multicomb requires a bounded sequence');
     });
 
@@ -827,7 +827,7 @@ describe('Rank tensors and collections', () => {
             .toThrowError('isqrt expects a nonnegative integer');
         expect(() => run('use numbers\n2.25 isqrt'))
             .toThrowError('expected integer input');
-        expect(run('use numbers\n3 2 min')).toBe('2');
+        expect(run('use numbers\n3 min 2')).toBe('2');
         expect(run('use numbers\n3 max 2')).toBe('3');
         expect(run('use numbers\n-infinity')).toBe('-infinity');
         expect(run('use cli\noption Rate real = 1.5\nRate')).toBe('1.5');
@@ -851,7 +851,7 @@ describe('Rank tensors and collections', () => {
             '  1 0',
             '  0 1',
             'end',
-            'A I matmul round 3',
+            'A matmul I round 3',
         ].join('\n'))).toBe('1.235 0 0 2.346');
         const source = [
             'use numbers',
@@ -880,29 +880,29 @@ describe('Rank tensors and collections', () => {
     });
 
     it('operates on arbitrary-precision integer bits', () => {
-        expect(run('use bits\n123 456 band')).toBe('72');
-        expect(run('use bits\n123 456 bor')).toBe('507');
-        expect(run('use bits\n123 456 bxor')).toBe('435');
+        expect(run('use bits\n123 band 456')).toBe('72');
+        expect(run('use bits\n123 bor 456')).toBe('507');
+        expect(run('use bits\n123 bxor 456')).toBe('435');
         expect(run('use bits\n123 bnot')).toBe('-124');
-        expect(run('use bits\n1 12 shl')).toBe('4096');
-        expect(run('use bits\n4096 4 shr')).toBe('256');
-        expect(run('use bits\n13 2 bit')).toBe('true');
+        expect(run('use bits\n1 shl 12')).toBe('4096');
+        expect(run('use bits\n4096 shr 4')).toBe('256');
+        expect(run('use bits\n13 bit 2')).toBe('true');
         expect(run('use bits\n13 popcount')).toBe('3');
         expect(run('use bits\n0 binary')).toBe('0');
         expect(run('use bits\n10 binary')).toBe('1010');
-        expect(run('use bits\n3 5 binary')).toBe('00011');
+        expect(run('use bits\n3 binary 5')).toBe('00011');
         expect(run('use bits\n(array 0 1) bnot')).toBe('-1 -2');
-        expect(() => run('use bits\n1 (-1) shl'))
+        expect(() => run('use bits\n1 shl (-1)'))
             .toThrowError('shift count must be nonnegative');
         expect(() => run('use bits\n-1 popcount'))
             .toThrowError('popcount expects a nonnegative integer');
         expect(() => run('use bits\n-1 binary'))
             .toThrowError('binary expects a nonnegative integer');
-        expect(() => run('use bits\n1 0 binary'))
+        expect(() => run('use bits\n1 binary 0'))
             .toThrowError('binary width must be a positive safe integer');
-        expect(() => run('use bits\n8 3 binary'))
+        expect(() => run('use bits\n8 binary 3'))
             .toThrowError('binary value does not fit width 3');
-        expect(() => run('1 2 band')).toThrowError('unknown name: band');
+        expect(() => run('1 band 2')).toThrowError('unknown name: band');
     });
 
 });

@@ -8,7 +8,7 @@ table as CSV.
 ```rank
 use tables
 use io
-"id\n1\n2\n" "rows.csv" write
+"id\n1\n2\n" write "rows.csv"
 T = "rows.csv" csv
 T .id
 ```
@@ -21,7 +21,7 @@ T .id
 
 ```text
 Path csv
-Table Path csv
+Table csv Path
 ```
 
 The first line names the columns. Column

@@ -6,10 +6,10 @@ use sequences
 use io
 
 Croaks = "PPPPNNPPPNPPNPN"
-Answer = 500 Croaks frog
+Answer = 500 frog Croaks
 Answer print
 
-fun N Text frog
+fun N frog Text
   Len = Text len
   Pos = 1 to N array
   Prime = Pos in (primes to N)
@@ -38,13 +38,13 @@ fun N Text frog
   Top = Ways sum
   Bottom = N * 3 ** Len
   Bottom *= 2 ** (Len - 1)
-  Div = Top Bottom gcd
+  Div = Top gcd Bottom
   A = Top // Div
   B = Bottom // Div
-  return A B pair
+  return A pair B
 end
 
-fun A B pair
+fun A pair B
   Left = A text
   Right = B text
   return Left + "/" + Right

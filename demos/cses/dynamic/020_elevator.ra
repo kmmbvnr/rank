@@ -8,13 +8,13 @@ use sequences
 N = stdin .integer
 Limit = stdin .integer
 Weights = stdin .integer N array
-Weights Limit elevator_rides print
+Weights elevator_rides Limit print
 
 
 rem Minimize rides, then final weight.
-fun Weights Limit elevator_rides
+fun Weights elevator_rides Limit
   Count = Weights len
-  States = 1 Count shl
+  States = 1 shl Count
   Missing = Count + 1
   Rides = array shape States fill Missing
   Last = array shape States fill 0
@@ -22,12 +22,12 @@ fun Weights Limit elevator_rides
 
   for Mask in 1 till States
     for Person in 0 till Count
-      if not Mask Person bit
+      if not Mask bit Person
         continue
       end
 
-      Bit = 1 Person shl
-      Previous = Mask Bit bxor
+      Bit = 1 shl Person
+      Previous = Mask bxor Bit
       NewRides = Rides Previous
       Weight = Weights Person
       NewWeight = Last Previous + Weight

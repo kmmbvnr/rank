@@ -109,5 +109,5 @@ for
   C = C2 + 1
 end
 Count = Last - First + 1
-Answer = Total / Count 10 round
+Answer = Total / Count round 10
 Answer print

@@ -15,12 +15,12 @@ fun N solve
   Ps 4 = 137
   Rs = array shape 5 fill 0
   for I in 0 till 5
-    Rs I = N (Ps I) residue
+    Rs I = N residue (Ps I)
   end
-  return Rs Ps crt
+  return Rs crt Ps
 end
 
-fun N P residue
+fun N residue P
   Inv = 2 (P - 2) P powmod
   R = array shape P fill 0
   V = 1
@@ -54,7 +54,7 @@ fun N P residue
   return Sum mod P
 end
 
-fun Rs Ps crt
+fun Rs crt Ps
   X = 0
   M = 1
   for I in 0 till (Ps len)

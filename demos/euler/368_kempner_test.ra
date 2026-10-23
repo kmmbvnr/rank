@@ -9,6 +9,6 @@ end
 
 test "two-prefix estimate"
   use "368_kempner"
-  16 2 kempner greater 253
-  16 2 kempner less 254
+  16 kempner 2 greater 253
+  16 kempner 2 less 254
 end

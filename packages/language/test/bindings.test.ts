@@ -282,7 +282,7 @@ describe('type facts', () => {
         const result = await facts([
             'use numbers', 'use text', 'use sequences',
             'Root = 9 sqrt',
-            'Parts = "a b" " " split',
+            'Parts = "a b" split " "',
             'Divisors = 12 divisors',
             'Size = Parts len',
         ]);
@@ -385,8 +385,8 @@ it('uses extrema result modifiers instead of broadcasting their symbol argument'
 
 it('leaves an elementwise result unsettled when an operand type is unknown', async () => {
     const result = await facts(['use bits', 'use numbers', 'use sequences',
-        'Shifted = 1 Mystery shl', 'Both = Mystery Mystery gcd',
-        'Plain = 1 2 shl', 'Pair = 6 9 gcd']);
+        'Shifted = 1 shl Mystery', 'Both = Mystery gcd Mystery',
+        'Plain = 1 shl 2', 'Pair = 6 gcd 9']);
     expect(named(result, 'program', 'Shifted').types).toEqual([]);
     expect(named(result, 'program', 'Both').types).toEqual([]);
     expect(named(result, 'program', 'Plain').types).toEqual(['integer']);

@@ -21,11 +21,11 @@ for I in 1 to Q
   end
 end
 
-Values Queries copies print
+Values copies Queries print
 
 
 rem Copy roots and path-copy on updates.
-fun Values Queries copies
+fun Values copies Queries
   Versions = new queue
   Versions push Values segment +
 

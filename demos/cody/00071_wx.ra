@@ -8,7 +8,7 @@ use text
 rem Parse readings and interpolate gaps.
 fun Source interpolate_weather
   if Source type equal .text
-    return Source "\n" split interpolate_readings
+    return Source split "\n" interpolate_readings
   end
   return Source interpolate_readings
 end

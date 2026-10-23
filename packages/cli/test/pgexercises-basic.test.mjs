@@ -122,7 +122,7 @@ for (const compilation of [false, true]) {
                 } };
                 const output = path.join(directory, 'out.csv');
                 const source = fs.readFileSync(path.join(basic, program), 'utf8');
-                const boundary = '\nResult OutputPath csv';
+                const boundary = '\nResult csv OutputPath';
                 assert.ok(source.trimEnd().endsWith(boundary));
                 const runtime = new Interpreter(undefined, { io, compilation });
                 try {
@@ -132,7 +132,7 @@ for (const compilation of [false, true]) {
                     const before = index < 8 ? 0 : index === 9 ? 2 : 1;
                     assert.equal(queries.length, before);
                     assert.equal(isRankPlan(runtime.variables.get('Result')), index < 8);
-                    runtime.execute('Result OutputPath csv');
+                    runtime.execute('Result csv OutputPath');
                     assert.equal(queries.length, index === 9 ? 2 : 1);
                     assertAnswer(db, index, output);
                     if ([2, 3, 5, 7].includes(index)) assert.match(queries[0], /\bWHERE\b/);

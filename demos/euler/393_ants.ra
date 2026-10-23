@@ -9,7 +9,7 @@ use cli
 
 option N integer = 10
 
-Mask = 1 N shl - 1
+Mask = 1 shl N - 1
 Dp = new index
 Dp 0 = 1
 Now = new set
@@ -22,9 +22,9 @@ for Row in 0 to N - 1
   Then = new set
   for Key in Now
     Ways = Dp Key
-    In1 = Key Mask band
-    In2 = Key N shr
-    Code = In1 + (In2 N shl)
+    In1 = Key band Mask
+    In2 = Key shr N
+    Code = In1 + (In2 shl N)
     Code = Code * 2
     if Last
       Code += 1
@@ -55,7 +55,7 @@ Answer print
 rem Fill one row in two matching layers.
 fun C D E F G H I J rows
   if C equal N
-    Key = F + (G N shl)
+    Key = F + (G shl N)
     if Key not in I
       I Key = 0
     end
@@ -63,9 +63,9 @@ fun C D E F G H I J rows
     J add Key
     return 0
   end
-  Bit = 1 C shl
-  Have1 = D Bit band not equal 0
-  Have2 = E Bit band not equal 0
+  Bit = 1 shl C
+  Have1 = D band Bit not equal 0
+  Have2 = E band Bit not equal 0
   for D1 in 0 to 2
     if Have1 and D1 not equal 0
       continue
@@ -77,8 +77,8 @@ fun C D E F G H I J rows
       if C equal (N - 1)
         continue
       end
-      Right = 1 (C + 1) shl
-      if D Right band not equal 0
+      Right = 1 shl (C + 1)
+      if D band Right not equal 0
         continue
       end
     end
@@ -96,8 +96,8 @@ fun C D E F G H I J rows
         if C equal (N - 1)
           continue
         end
-        Right = 1 (C + 1) shl
-        if E Right band not equal 0
+        Right = 1 shl (C + 1)
+        if E band Right not equal 0
           continue
         end
       end
@@ -114,18 +114,18 @@ fun C D E F G H I J rows
       V1 = F
       V2 = G
       if D1 equal 1
-        P1 = P1 Bit bor
-        P1 = P1 (1 (C + 1) shl) bor
+        P1 = P1 bor Bit
+        P1 = P1 bor (1 shl (C + 1))
       end
       if D1 equal 2
-        V1 = V1 Bit bor
+        V1 = V1 bor Bit
       end
       if D2 equal 1
-        P2 = P2 Bit bor
-        P2 = P2 (1 (C + 1) shl) bor
+        P2 = P2 bor Bit
+        P2 = P2 bor (1 shl (C + 1))
       end
       if D2 equal 2
-        V2 = V2 Bit bor
+        V2 = V2 bor Bit
       end
       (C + 1) P1 P2 V1 V2 H I J rows
     end

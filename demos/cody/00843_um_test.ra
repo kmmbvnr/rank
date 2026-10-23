@@ -11,7 +11,7 @@ test "recovers a two-material mixture"
   end
   Spectrum = array 0.25 0.75 1.0
 
-  Actual = Basis Spectrum unmix
+  Actual = Basis unmix Spectrum
   Fractions = Actual .fractions
   Fractions equal array 0.25 0.75
   Actual .fitted equal Spectrum
@@ -31,7 +31,7 @@ test "fits a noisy spectrum"
   Spectrum = array 0.5 0.4 0.95
   Expected = array 0.516667 0.416667
 
-  Actual = Basis Spectrum unmix
+  Actual = Basis unmix Spectrum
   Rounded = Actual .fractions round 6
   Rounded equal Expected
   Actual .error greater 0

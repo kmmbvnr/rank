@@ -47,7 +47,7 @@ G = array shape 2 2
   1 2
   3 4
 end
-S = G 2 segments
+S = G segments 2
 S 0
 ```
 
@@ -58,7 +58,7 @@ S 0
 ### Usage
 
 ```text
-Grid Width segments
+Grid segments Width
 ```
 
 Each segment is one row of the result,

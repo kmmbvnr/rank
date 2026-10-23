@@ -19,4 +19,4 @@ R' = M select
 end
 R' = R sort by .joindate
 Result' = R select .count .firstname .surname
-Result OutputPath csv
+Result csv OutputPath

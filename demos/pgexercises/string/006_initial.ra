@@ -20,7 +20,7 @@ Result' = G select
   .count = count
 end
 Result' = Result sort by .letter
-Result OutputPath csv
+Result csv OutputPath
 
 fun Name' initial
   return Name (0 till 1)

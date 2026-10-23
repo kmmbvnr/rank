@@ -9,11 +9,11 @@ N = stdin .integer
 K = stdin .integer
 H = stdin .integer N array
 
-H K min_cost print
+H min_cost K print
 
 
 rem Cheapest way to hop from stone 1 to stone N, up to K stones at a time.
-fun H K min_cost
+fun H min_cost K
   N = H len
   Cost = array shape N fill 0
 
@@ -25,7 +25,7 @@ fun H K min_cost
     for J in (Lo + 1) till I
       Diff = H I - H J
       Step = Cost J + (Diff abs)
-      Best = Best Step min
+      Best = Best min Step
     end
 
     Cost I = Best

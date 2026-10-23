@@ -107,7 +107,7 @@ for I in 0 till At
   end
   Done = B equal 0 and C equal 0
   if not Done
-    Out = Mat Rh solve
+    Out = Mat solve Rh
     Row = (B * 32 + T) * 2 + C
     for S in 0 to 24
       Ev Row S = Out S
@@ -115,5 +115,5 @@ for I in 0 till At
   end
 end
 Row = 31 * 32 * 2
-Answer = Ev Row 12 Digits round
+Answer = Ev Row 12 round Digits
 Answer print

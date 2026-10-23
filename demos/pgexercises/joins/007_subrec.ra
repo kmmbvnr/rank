@@ -19,4 +19,4 @@ R' = M select
 end
 R' = R unique
 Result' = R sort by .member
-Result OutputPath csv
+Result csv OutputPath

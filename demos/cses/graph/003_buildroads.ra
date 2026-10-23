@@ -10,7 +10,7 @@ Cities = stdin .integer
 RoadCount = stdin .integer
 Count = RoadCount * 2
 Roads = stdin .integer Count array
-Components = Cities Roads road_components
+Components = Cities road_components Roads
 
 RoadsNeeded = Components len - 1
 RoadsNeeded print
@@ -20,14 +20,14 @@ end
 
 
 rem Return one city from each component.
-fun Cities Roads road_components
+fun Cities road_components Roads
   Union = new dsu (1 to Cities)
 
   Total = Roads len
   for i in 0 till Total by 2
     A = Roads i
     B = Roads (i + 1)
-    Union A B merge
+    Union A merge B
   end
 
   Roots = new queue

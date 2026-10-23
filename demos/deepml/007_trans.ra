@@ -22,8 +22,8 @@ fun A T S transform_matrix
   end
 
   Inverse = T inverse
-  Left = Inverse A matmul
-  return Left S matmul
+  Left = Inverse matmul A
+  return Left matmul S
 end
 
 rem Compute a determinant on a private copy by elimination.

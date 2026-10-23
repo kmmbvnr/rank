@@ -222,6 +222,7 @@ export function explicitNamedSegmentApplication(parts: Expression[], nameOf: Nam
 
 export interface MultisetMethodApplication {
     readonly receiver: Expression[];
+    readonly operationExpression: Expression;
     readonly operation: 'floor' | 'ceiling' | 'lowerbound' | 'upperbound';
     readonly argument: Expression[];
 }
@@ -250,13 +251,15 @@ export function explicitCollectionMutation(
     if (explicitNamedScanApplication(parts) || explicitNamedReduceApplication(parts)
         || explicitNamedSegmentApplication(parts)) return undefined;
     const receiver = parts[0];
-    const operation = parts[1];
+    const normalized = parts.length === 3 && isNameExpression(parts[2])
+        && (parts[2].name === 'add' || parts[2].name === 'remove');
+    const operation = parts[normalized ? 2 : 1];
     if (!isNameExpression(receiver)
         || !/^[A-Z]/.test(receiver.name)
         || parts.length < 3) return undefined;
     if (!isNameExpression(operation)
         || (operation.name !== 'add' && operation.name !== 'remove')) return undefined;
-    const values = parts.slice(2);
+    const values = normalized ? [parts[1]] : parts.slice(2);
     const value = values.length === 1 ? values[0] : {
         $type: 'ApplicationExpression',
         head: values[0],
@@ -272,6 +275,9 @@ export function explicitCollectionMutation(
 
 export function explicitMultisetMethod(parts: Expression[], nameOf: NameOf = rawName): MultisetMethodApplication | undefined {
     const operations = ['floor', 'ceiling', 'lowerbound', 'upperbound'] as const;
+    const normalized = parts.length === 3 && operations.find(operation => isNamed(parts[2], operation, nameOf));
+    if (normalized) return { receiver: [parts[0]], operation: normalized,
+        operationExpression: parts[2], argument: [parts[1]] };
     const position = parts.findIndex((part, index) =>
         index > 0 && index < parts.length - 1
         && operations.some(operation => isNamed(part, operation, nameOf)));
@@ -280,6 +286,7 @@ export function explicitMultisetMethod(parts: Expression[], nameOf: NameOf = raw
     return {
         receiver: parts.slice(0, position),
         operation,
+        operationExpression: parts[position],
         argument: parts.slice(position + 1),
     };
 }
@@ -318,6 +325,9 @@ export function explicitFunctionalMethod(
 
 export function explicitDsuMethod(parts: Expression[], nameOf: NameOf = rawName): DsuMethodApplication | undefined {
     if (parts.length !== 3 && parts.length !== 4) return undefined;
+    if (parts.length === 3 && isNamed(parts[2], 'findroot', nameOf)) {
+        return { receiver: parts[0], operation: 'findroot', operationExpression: parts[2], arguments: [parts[1]] };
+    }
     if (parts.length === 4 && isNamed(parts[3], 'merge', nameOf)) {
         return { receiver: parts[0], operation: 'merge', operationExpression: parts[3],
             arguments: parts.slice(1, 3) };

@@ -31,7 +31,7 @@ it('resolves an aliased import and ignores another module', () => {
 
 it('passes a completed builtin pipeline as one test argument', () => {
     const source = 'test "pipeline"\n use "helpers"\n use text\n'
-        + ' Lines = array "a" "b"\n Answer = Lines "," join solve\n Answer equal 2\nend';
+        + ' Lines = array "a" "b"\n Answer = Lines join "," solve\n Answer equal 2\nend';
     expect(examples(source, 'helpers', new Set(['solve']))).toMatchObject([{
         name: 'solve', arguments: [{ types: ['text'] }], expected: { types: ['integer'] },
     }]);
@@ -54,14 +54,14 @@ it('attributes a shape-preserving assertion to the imported function, not round'
 
 describe('records built by the tested module', () => {
     const module = 'fun N make\n return record\n .weights = array shape N N fill 0.0\n .count = 1\n end\nend\n'
-        + 'fun Model X predict\n W = Model .weights\n Model .count = 2\n return X W matmul\nend\n';
+        + 'fun Model predict X\n W = Model .weights\n Model .count = 2\n return X matmul W\nend\n';
     const tests = (body: string) => 'test "t"\n use "m"\n use linalg\n Model = 2 make\n' + body + '\nend';
     const run = (body: string) => {
         const imported = services.Rank.parser.LangiumParser.parse<Program>(module);
         expect(imported.parserErrors).toEqual([]);
         return examples(tests(body), 'm', new Set(['make', 'predict']), moduleSummary(imported.value));
     };
-    const source = ' X = array shape 2 2 fill 1.0\n (Model X predict) equal X';
+    const source = ' X = array shape 2 2 fill 1.0\n (Model predict X) equal X';
 
     it('binds the returned record only when a summary is supplied', () => {
         expect(examples(tests(source), 'm', new Set(['make', 'predict']))[0].arguments[0].types).toEqual([]);
@@ -103,14 +103,14 @@ describe('matrix predictions from record fields', () => {
     const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [4, 3], elements: ['real'], eagerScalarCells: true };
 
     it('reads a field in the middle of an application', () => {
-        expect(analyze('use linalg\nfun X Model f\n return X Model .weights matmul + Model .bias\nend', matrix, model))
+        expect(analyze('use linalg\nfun X f Model\n return X matmul Model .weights + Model .bias\nend', matrix, model))
             .toMatchObject({ types: ['array'], rank: 1, shape: [4] });
     });
 
     it('keeps the array result after writing a different field first', () => {
         const layer: ValueFacts = { ...model, fields: { ...model.fields,
             input: { types: ['array'], rank: 2, shape: [null, null] } } };
-        expect(analyze('use linalg\nfun Layer X f\n Layer .input = X\n W = Layer .weights\n return X W matmul\nend',
+        expect(analyze('use linalg\nfun Layer f X\n Layer .input = X\n W = Layer .weights\n return X matmul W\nend',
             layer, matrix)).toMatchObject({ types: ['array'], rank: 1 });
     });
 
@@ -124,14 +124,14 @@ describe('matrix predictions from record fields', () => {
     });
 
     it('keeps the selected scalar branch facts but leaves unsupported array masks unknown', () => {
-        const scalarMask = 'use sequences\nfun A B f\n return true A B choose\nend';
+        const scalarMask = 'use sequences\nfun A f B\n return true A B choose\nend';
         expect(analyze(scalarMask, matrix, matrix)).toMatchObject({ types: ['array'], rank: 2, shape: [4, 3] });
         const textBranch = 'use sequences\nuse numbers\nfun A f\n return (A equal 0) "x" A choose\nend';
         expect(analyze(textBranch, { types: ['array'], rank: 1, shape: [3], elements: ['integer'] }).types).toEqual([]);
     });
 
     it('does not group a label after a name with no proven record field', () => {
-        const source = 'use linalg\nfun X Model f\n return X Model .weights matmul\nend';
+        const source = 'use linalg\nfun X f Model\n return X matmul Model .weights\nend';
         expect(analyze(source, matrix, { ...model, fields: { bias: model.fields!.bias } }).rank).toBeUndefined();
         expect(analyze(source, matrix, { types: [] }).rank).toBeUndefined();
     });

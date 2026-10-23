@@ -65,7 +65,7 @@ compiled loops.
 
 Notes from this range, for the next one:
 
-- `A B gcd` and `A isqrt` use postfix arguments. `A max B` takes one operand
+- `A gcd B` and `A isqrt` use postfix arguments. `A max B` takes one operand
   on each side; group addressed or arithmetic operands when needed.
 - A Boolean array does not sum: use `count` (#392).
 - Ordinary assignment completes a gathered or sorted array (`A Order`),

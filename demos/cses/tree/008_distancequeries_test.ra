@@ -11,7 +11,7 @@ test "official example"
     3 5
   end
   Tree add Edges
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Rooted 1 3 distance equal 1
   Rooted 2 5 distance equal 3
   Rooted 1 4 distance equal 2
@@ -21,7 +21,7 @@ test "same node is zero edges away"
   use "008_distancequeries"
   use graph
   Tree = new graph (array 1) .undirected
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Rooted 1 1 distance equal 0
 end
 
@@ -32,7 +32,7 @@ test "path distance is its difference"
   for Node in 1 till 6
     Tree add Node (Node + 1)
   end
-  Rooted = Tree 3 root
+  Rooted = Tree root 3
   Rooted 2 6 distance equal 4
 end
 
@@ -43,6 +43,6 @@ test "distance ignores selected root"
   Tree add 1 2
   Tree add 1 3
   Tree add 1 4
-  Rooted = Tree 4 root
+  Rooted = Tree root 4
   Rooted 2 3 distance equal 2
 end

@@ -14,11 +14,11 @@ Values = stdin .integer ValueCount array
 Edges = Values reshape M 3
 Graph = new graph (1 to N) .directed
 Graph add Edges
-Graph N investigate print
+Graph investigate N print
 
 
 rem Describe all cheapest routes to N.
-fun Graph N investigate
+fun Graph investigate N
   Modulus = 1000000007
   Size = N + 1
   Dist = array shape Size fill infinity
@@ -51,7 +51,7 @@ fun Graph N investigate
       elif Candidate equal Dist Next
         Ways Next += Ways Current
         Ways Next mod= Modulus
-        MinFlights Next = MinF (MinFlights Next) min
+        MinFlights Next = MinF min (MinFlights Next)
         MaxFlights Next = MaxF max (MaxFlights Next)
       end
     end

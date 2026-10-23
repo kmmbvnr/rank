@@ -51,5 +51,5 @@ for K in Lo to Hi
   end
   Tot += (A + B) / 2
 end
-Answer = Tot Digits round
+Answer = Tot round Digits
 Answer print

@@ -38,8 +38,8 @@ fun Prime has_eight_prime_family
   for Digit in 0 to 2
     Same = (Digits Places equal Digit) indices
 
-    for Pick in Same 3 combinations
-      Family = Prime Pick replacement_family
+    for Pick in Same combinations 3
+      Family = Prime replacement_family Pick
       if (Family in primes) count at least 8
         return true
       end
@@ -52,7 +52,7 @@ end
 
 rem Replace every selected decimal position with
 rem each legal digit by adding its combined weight.
-fun Prime Pick replacement_family
+fun Prime replacement_family Pick
   Digits = Prime text integer rank 0
   Width = Digits len
   Digit = Digits (Pick 0)

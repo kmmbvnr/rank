@@ -39,7 +39,7 @@ for M in 2 to Count
         D = Store Q mod K
         Num = A * D + B * C
         Den = B * D
-        G = Num Den gcd
+        G = Num gcd Den
         Key = Num // G * K + Den // G
         Out Used = Key
         Used += 1

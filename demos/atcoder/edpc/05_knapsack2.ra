@@ -30,7 +30,7 @@ fun W Weights Values max_value
     Val = Values i
     for V in TotalValue to Val by -1
       Next = MinW (V - Val) + Weight
-      MinW V = (MinW V) Next min
+      MinW V = (MinW V) min Next
     end
   end
 

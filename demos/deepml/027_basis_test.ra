@@ -18,7 +18,7 @@ test "official three dimensional bases"
     0.5732 -0.0345 -0.0569
   end
 
-  B C transform_basis equal Expected
+  B transform_basis C equal Expected
 end
 
 test "official two dimensional bases"
@@ -36,7 +36,7 @@ test "official two dimensional bases"
     0.5625 -0.0625
   end
 
-  B C transform_basis equal Expected
+  B transform_basis C equal Expected
 end
 
 test "dependent basis vectors fail"
@@ -52,7 +52,7 @@ test "dependent basis vectors fail"
   Failed = false
 
   try
-    P = B C transform_basis
+    P = B transform_basis C
   catch .SingularMatrix Error
     Failed = true
   end

@@ -1431,7 +1431,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
             } else if (isExpressionStatement(statement)) {
                 const parts = isApplicationExpression(statement.value)
                     ? flattenApplication(statement.value) : [];
-                const key = parts[2] && expressionFacts(parts[2], name => env.get(name));
+                const form = applicationForm(statement.value, undefined, true);
+                const mutation = form.kind === 'collection-mutation' ? form : undefined;
+                const payload = mutation?.value;
+                const key = payload && expressionFacts(payload, name => env.get(name));
                 const receiver = parts[0] && isNameExpression(parts[0]) ? env.get(parts[0].name) : undefined;
                 const method = parts.at(-1);
                 const safePayload = (node: Expression): boolean => {
@@ -1447,12 +1450,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && directValue(parts[1]) && ['integer', 'real', 'text'].includes(expressionFacts(parts[1], name => env.get(name)).types.join())
                     && safePayload(parts[2]);
                 const collectionRemove = parts.length === 3 && ['set', 'counter'].includes(receiver?.types.join() ?? '')
-                    && isNameExpression(parts[1]) && parts[1].name === 'remove' && !env.has('remove')
-                    && safePayload(parts[2]);
+                    && mutation?.operation === 'remove' && !env.has('remove')
+                    && payload && safePayload(payload);
                 const collectionAdd = parts.length === 3 && isNameExpression(parts[0])
                     && ['set', 'counter'].includes(env.get(parts[0].name)?.types.join() ?? '')
-                    && isNameExpression(parts[1]) && parts[1].name === 'add' && !env.has('add')
-                    && safeCollectionValue(parts[2], env) && key && (isAtom(key) && key.types.length > 0
+                    && mutation?.operation === 'add' && !env.has('add')
+                    && payload && safeCollectionValue(payload, env) && key && (isAtom(key) && key.types.length > 0
                         && key.types.every(type => ['integer', 'real', 'boolean', 'text', 'symbol',
                             'date', 'datetime'].includes(type)) || key.types.join() === 'array'
                             && key.eagerScalarCells === true);
@@ -1463,7 +1466,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 inspect(statement.value, env);
                 if (argument && argumentFacts?.types.length) expressions.set(argument, argumentFacts);
                 if (collectionAdd && isNameExpression(parts[0])) insertCollectionElement(parts[0].name,
-                    key!, parts[2], env);
+                    key!, payload!, env);
                 if ((dequeInsert || heapInsert) && isNameExpression(parts[0])) {
                     const payload = parts[dequeInsert ? 1 : 2];
                     insertCollectionElement(parts[0].name, expressionFacts(payload, name => env.get(name)), payload, env);

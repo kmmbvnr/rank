@@ -26,12 +26,12 @@ rem Only letters change.
 rem Each draw is independent.
 rem The changed count is random.
 Seed seed
-Chars = Name "" split
+Chars = Name split ""
 Shape = array (Chars len)
 Draws = Shape 0 1 uniform
 Mask' = Draws less Rate and Chars letter
 Letters' = Mask choose "X" Chars
-Noisy = Letters "" join
+Noisy = Letters join ""
 Noisy print
 
 rem Compare equal-width windows.
@@ -41,9 +41,9 @@ Width = Name len
 Positions = array shape 0 fill 0
 Matches = array shape 0 fill ""
 if Width at least 1
-  Lower' = (Text lower) "" split
+  Lower' = (Text lower) split ""
   Windows' = Lower window Width
-  Pattern = (Name lower) "" split
+  Pattern = (Name lower) split ""
   Different' = Windows not equal Pattern
   Errors' = Different count axis 1
   Close' = Errors at most Tolerance

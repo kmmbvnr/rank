@@ -21,7 +21,7 @@ rem the quoted comma-separated input.
 fun Text names_from_text
   Last = Text len - 1
   Body = Text (1 till Last)
-  return Body "\",\"" split
+  return Body split "\",\""
 end
 
 

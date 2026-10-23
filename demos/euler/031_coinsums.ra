@@ -10,13 +10,13 @@ use cli
 option Target integer = 200
 
 Coins = array 1 2 5 10 20 50 100 200
-Answer = Coins Target coin_sums
+Answer = Coins coin_sums Target
 Answer print
 
 
 rem Build each amount from coins already seen,
 rem so permutations are never counted twice.
-fun Coins Target coin_sums
+fun Coins coin_sums Target
   Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 

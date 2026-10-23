@@ -20,8 +20,8 @@ fun X Y W Rate Iter Size Mode descent
 
   for # in 0 till Iter
     if Mode equal .batch
-      Error = X W matmul - Y
-      Gradient' = X Error matmul axis 0 0
+      Error = X matmul W - Y
+      Gradient' = X matmul Error axis 0 0
       Gradient' = Gradient * 2 / N
       W -= Rate * Gradient
       continue
@@ -29,7 +29,7 @@ fun X Y W Rate Iter Size Mode descent
 
     if Mode equal .stochastic
       for Row i in X
-        Error = Row W matmul - Y i
+        Error = Row matmul W - Y i
         Gradient' = Row * Error * 2
         W -= Rate * Gradient
       end
@@ -38,11 +38,11 @@ fun X Y W Rate Iter Size Mode descent
 
     if Mode equal .mini_batch
       for I in 0 till N by Size
-        J = I + Size N min
+        J = I + Size min N
         Xb = X (I till J)
         Yb' = Y (I till J)
-        Error = Xb W matmul - Yb
-        Gradient' = Xb Error matmul axis 0 0
+        Error = Xb matmul W - Yb
+        Gradient' = Xb matmul Error axis 0 0
         Gradient' = Gradient * 2 / Size
         W -= Rate * Gradient
       end

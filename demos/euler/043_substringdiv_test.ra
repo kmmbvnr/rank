@@ -11,7 +11,7 @@ test "official example prefixes"
   use "043_substringdiv"
   Divisors = array 2 3 5 7 11 13 17
 
-  "1406" Divisors valid_suffix
-  "14063" Divisors valid_suffix
-  "1406357289" Divisors valid_suffix
+  "1406" valid_suffix Divisors
+  "14063" valid_suffix Divisors
+  "1406357289" valid_suffix Divisors
 end

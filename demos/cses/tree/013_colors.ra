@@ -14,12 +14,12 @@ for i in 1 till N
   B = stdin .integer
   Tree add A B
 end
-Rooted = Tree 1 root
-Colors Rooted distinct_colors print
+Rooted = Tree root 1
+Colors distinct_colors Rooted print
 
 
 rem Merge smaller color sets upward.
-fun Colors Rooted distinct_colors
+fun Colors distinct_colors Rooted
   Order = Rooted .order
   Parents = Rooted .parent
   Root = Rooted .root

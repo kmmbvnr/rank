@@ -13,7 +13,7 @@ ValueCount = EdgeCount * 3
 Values = stdin .integer ValueCount array
 Shape = array EdgeCount 3
 Edges = Values reshape unpack Shape
-Result = Edges NodeCount high_score
+Result = Edges high_score NodeCount
 if Result .infinite
   -1 print
 else
@@ -22,7 +22,7 @@ end
 
 
 rem Maximize a route with Bellman-Ford.
-fun Edges N high_score
+fun Edges high_score N
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   Back = new graph Nodes .directed

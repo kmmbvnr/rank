@@ -20,11 +20,11 @@ rem (T + e Z)^(N - 2) with e^2 = 0
 rem counts routes with at most one
 rem unvisited square. Products split
 rem a factor at 2^15 to stay in 64 bits.
-fun X Y mm
+fun X mm Y
   Hi = X // 32768
   Lo = X mod 32768
-  R = (Hi Y matmul) mod 1000000000
-  R = R * 32768 + (Lo Y matmul)
+  R = (Hi matmul Y) mod 1000000000
+  R = R * 32768 + (Lo matmul Y)
   return R mod 1000000000
 end
 
@@ -50,7 +50,7 @@ for S in 0 to D - 1
   for I in 0 to A
     for J in 0 to B
       To = Id (A - I + B - J + C) I
-      W = A I binomial * (B J binomial)
+      W = A binomial I * (B binomial J)
       Stay = C + A - I + B - J
       if Stay equal 0
         Z To S += W
@@ -68,16 +68,16 @@ Bb = Z
 Ex = N - 2
 for Ex greater 0
   if Ex mod 2 equal 1
-    W1 = Aa V1 mm
-    W2 = Bb V0 mm
+    W1 = Aa mm V1
+    W2 = Bb mm V0
     W1 = (W1 + W2) mod Mod
-    V0 = Aa V0 mm
+    V0 = Aa mm V0
     V1 = W1
   end
-  X1 = Aa Bb mm
-  X2 = Bb Aa mm
+  X1 = Aa mm Bb
+  X2 = Bb mm Aa
   Bb = (X1 + X2) mod Mod
-  Aa = Aa Aa mm
+  Aa = Aa mm Aa
   Ex //= 2
 end
 S0 = V0 sum

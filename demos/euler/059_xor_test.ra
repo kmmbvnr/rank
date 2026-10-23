@@ -15,12 +15,12 @@ test "XOR example and repeating key round trip"
   use "059_xor"
   use bits
 
-  Example = (array 65) (array 42) decrypt
+  Example = (array 65) decrypt (array 42)
   Example (array 107) equal rank 1
   Message = array 65 110 32 101 120 116 114
   Password = array 101 120 112
-  Encrypted = Message Password decrypt
-  Restored = Encrypted Password decrypt
+  Encrypted = Message decrypt Password
+  Restored = Encrypted decrypt Password
   Restored Message equal rank 1
 end
 

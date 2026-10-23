@@ -71,7 +71,7 @@ fun N costs
         Right = Right max Short
       end
       Cost = K + 1 + ((Dp K) max Right)
-      Best = Best Cost min
+      Best = Best min Cost
     end
     Dp I = Best
     Sum += Best

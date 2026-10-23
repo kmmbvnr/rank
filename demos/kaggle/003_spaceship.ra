@@ -14,11 +14,11 @@ argument OutputPath path = "demos/kaggle/submissions/spaceship-titanic.csv"
 Train = TrainPath csv
 Test = TestPath csv
 Submission = Train Test 0.1 1000 solve
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 rem Fill spending columns from Train and add their total.
-fun Train Test spending_features
+fun Train spending_features Test
   Money = array .RoomService .FoodCourt .ShoppingMall .Spa .VRDeck
   for Feature in Money
     Middle = Train Feature median
@@ -48,10 +48,10 @@ end
 
 
 fun Train Test Rate Steps solve
-  unpack X Xtest = Train Test spending_features
+  unpack X Xtest = Train spending_features Test
   Y = Train .Transported Titanic.binary
   Model = X Y Rate Steps Titanic.logistic
-  Pred = Xtest Model Titanic.logistic_predict
+  Pred = Xtest Titanic.logistic_predict Model
   Test .Transported = Pred equal 1
   return Test (array .PassengerId .Transported)
 end

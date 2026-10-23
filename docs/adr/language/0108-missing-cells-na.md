@@ -17,7 +17,7 @@ A numeric array sometimes has cells with no value: a CSV column, sensor data, a 
 
 ```rank
 Params = array 150000.0 5000.0 .NA 3.0
-Unknown = Params present false find     rem position of .NA
+Unknown = Params present find false     rem position of .NA
 ```
 
 `.NA` is reserved as a value literal. `nan` stays an IEEE number, separate from `.NA`; `isnan` is false for `.NA`.

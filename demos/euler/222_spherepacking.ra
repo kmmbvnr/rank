@@ -31,5 +31,5 @@ B' = Order drop 1
 Gap' = 2 * ((R * (A + B - R)) sqrt)
 Ends = Order 0 + Order (N - 1)
 Length = Ends + (Gap sum)
-Answer = Length * 1000 0 round
+Answer = Length * 1000 round 0
 Answer print

@@ -816,12 +816,12 @@ test('arrows leave example fields in both directions without losing edits or eva
 
 test('function examples show split values and ranked failures show the failing card', async t => {
     const frames = await drive(t, [
-        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun Card card_value\n  Rank = Card 0\n  return Ranks Rank find\nend\x1b[201~' + ENTER, until: 'a → \\?' },
+        { keys: '\x1b[200~use sequences\nuse text\nRanks = "23456789TJQKA"\nfun Card card_value\n  Rank = Card 0\n  return Ranks find Rank\nend\x1b[201~' + ENTER, until: 'a → \\?' },
         'fun Cards hand_score' + ENTER,
-        '"5H 5C" "" split' + ENTER,
+        '"5H 5C" split ""' + ENTER,
         'Values = Cards card_value rank 0' + ENTER,
         UP,
-        CLEAR + '"5H 5C" " " split' + ENTER,
+        CLEAR + '"5H 5C" split " "' + ENTER,
         ENTER,
     ], 60, 24);
     assert.match(frames[2].text, /→ array\[5\]: "5" "H" " " "5" "C"/);
@@ -834,7 +834,7 @@ test('function examples show split values and ranked failures show the failing c
 
 test('arrow keys edit visible function arguments and return to them from the body', async t => {
     const frames = await drive(t, [
-        { keys: 'fun X Y add' + ENTER, until: 'X =' },
+        { keys: 'fun X add Y' + ENTER, until: 'X =' },
         { keys: '1' + DOWN, until: 'Y =' },
         { keys: '2' + UP, until: 'X = 1' },
         { keys: CLEAR + '3' + DOWN, until: 'X = 3' },
@@ -858,7 +858,7 @@ test('arrow keys edit visible function arguments and return to them from the bod
 test('a live function named plus is not rewritten to an operator in its preview call', async t => {
     const frames = await drive(t, [
         { keys: 'A = array 1 2 3' + ENTER, until: '1›' },
-        { keys: 'fun X Y plus' + ENTER, until: 'X =' },
+        { keys: 'fun X plus Y' + ENTER, until: 'X =' },
         { keys: 'A' + ENTER, until: 'Y =' },
         { keys: 'A+1' + ENTER, until: 'A\\+1' },
         { keys: 'return X + Y - 1' + ENTER, until: '2 4 6' },
@@ -899,7 +899,7 @@ test('an invalid function example reports syntax at its field and stays editable
 
 test('a runtime error in a function example stays on its argument field', async t => {
     const frames = await drive(t, [
-        'fun Prime Pick family' + ENTER,
+        'fun Prime family Pick' + ENTER,
         '123123' + ENTER,
         '0 1 2' + ENTER,
         { keys: CLEAR + 'array 0 1 2' + ENTER, until: 'Pick = array 0 1 2' },

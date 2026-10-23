@@ -2053,7 +2053,7 @@ The smaller of two numbers, or the
 smallest item of a collection.
 
 ```rank
-3 5 min
+3 min 5
 ```
 
 ```result
@@ -2063,7 +2063,7 @@ smallest item of a collection.
 ### Usage
 
 ```text
-A B min
+A min B
 Values min
 ```
 

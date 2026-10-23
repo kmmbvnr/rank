@@ -29,7 +29,7 @@ for M in 2 to MaxM
     for I in 0 till (Ts len)
       T = Ts I
       Ks' = 1 to T array
-      Coprime' = Ks T gcd equal 1
+      Coprime' = Ks gcd T equal 1
       Ph = Coprime count
       Top = Fact (M * N // T)
       Bot = Fact (N // T) ** M

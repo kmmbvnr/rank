@@ -11,23 +11,23 @@ test "statement and mixed lines"
   use "089_roman"
   use io
   Input = "/tmp/euler089.txt"
-  "XIIIIII\n" "/tmp/euler089.txt" write
+  "XIIIIII\n" write "/tmp/euler089.txt"
   run
 
   Answer equal 4
-  "XVI\n" "/tmp/euler089.txt" write
+  "XVI\n" write "/tmp/euler089.txt"
   run
 
   Answer equal 0
-  "IIII\nXXXXVIIII\nMMMMDCLXXII\n" "/tmp/euler089.txt" write
+  "IIII\nXXXXVIIII\nMMMMDCLXXII\n" write "/tmp/euler089.txt"
   run
 
   Answer equal 7
-  "DCCCC\nLXXXX\nCCCC" "/tmp/euler089.txt" write
+  "DCCCC\nLXXXX\nCCCC" write "/tmp/euler089.txt"
   run
 
   Answer equal 8
-  "IX\nXLIV\nCM\n" "/tmp/euler089.txt" write
+  "IX\nXLIV\nCM\n" write "/tmp/euler089.txt"
   run
 
   Answer equal 0

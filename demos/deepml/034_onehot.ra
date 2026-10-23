@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/34
 use sequences
 
 rem Encode labels with a chosen width.
-fun X Columns to_categorical
+fun X to_categorical Columns
   if Columns less 0
     .DomainError raise
   end
@@ -32,5 +32,5 @@ fun X categorical
   end
 
   Columns = X max + 1
-  return X Columns to_categorical
+  return X to_categorical Columns
 end

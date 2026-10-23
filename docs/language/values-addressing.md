@@ -152,36 +152,33 @@ A i j
 Data .Age
 Cache Key
 A sum
-A B gcd
+A gcd B
 ```
 
 Conceptually, the value comes first and selectors follow.
 
-When the final word names a function, preceding values are its data. Thus
-`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`.
-The parser groups calls using vocabulary and binding signatures before
-analysis and execution. A suffix function takes the accumulated arithmetic
-formula or range; addressing within its operands remains tight.
+A unary function follows its input: `A sum`. A binary function takes one
+operand on each side: `A gcd B`. Addressing stays inside each operand:
+`Matrix i matmul Other j` multiplies the selected rows. A following known
+function or a `rank`/`axis` modifier ends the right operand.
 
-Function arity also separates an addressed first argument from the remaining
-arguments. The final `arity - 1` values are separate arguments; the entire
-remaining left chain forms the first argument:
+Declare a binary function in the same order:
 
 ```rank
-Result = T i j Limit above
-rem above receives T i j, then Limit
+fun Acc step X = Acc + X
+Result = 2 step 3
+Prefix = (array 1 2 3) scan step
 ```
 
-Only the first argument may absorb a multi-part addressing chain. Use named
-intermediate values when several arguments require addressing. If the left
-chain cannot form one value, the call has too many arguments and is an error.
+`scan`, `reduce`, `outer` and `segment` receive the function value and pass
+its two arguments directly. They do not require two parameters on the left
+of the function name. Direct aliases retain the same operand placement.
+Existing declarations with both parameters on one side also use the binary call convention.
 
-A field label reads its field before arguments are counted: when a label
-names a field of the record or object just before it, the pair is one value.
-`Model .weights matmul` therefore multiplies by the `.weights` field, and
-`R .slots max` reduces the `.slots` field, without parentheses. A label that
-is not a field of the value before it, such as an option like `.descending`,
-and a column label after a table, stay separate arguments.
+Functions with three or more required operands retain their declared operand sides.
+Group operands when a selector or another call would otherwise cross their
+boundary. A field read belongs to its operand: `Z matmul Model .weights`
+passes the `.weights` field as the right operand.
 
 Inside an address, a field label addresses what it reads, so selectors can
 follow it: `Rows 0 .attributes "Rate"` reads the `.attributes` object of the
@@ -193,23 +190,15 @@ chooses the form of their result instead of a field of it: `Text json .flat`
 and `Text xml .flat` return a table of nodes, as `Values sort .descending`
 reverses the order.
 
-For ordinary postfix calls supporting several arities, an exact argument
-count wins; otherwise Rank tries larger arities first. `min` keeps this rule:
-`A B min` compares two operands. Functions with two required left operands,
-such as `A B matmul`, keep both operands separate.
+For functions with unary and binary forms, a call without a right operand is
+unary: `A min` reduces A, while `A min B` compares A and B elementwise.
+`Matrix i min` reduces the selected row; `A min B 0` compares A with the
+selected element of B. A following function starts another pipeline step:
+`A min B sum` means `(A min B) sum`. Arithmetic on the left completes before
+the call: `2 + 3 min 4` means `(2 + 3) min 4`. Group arithmetic on the right,
+as in `0 max (Limit - Used)`.
 
-`max` takes one operand on the left and an optional operand on the right.
-`A max` reduces A; `A max B` compares A and B elementwise. Addressing stays
-inside each operand: `Matrix i max` reduces the selected row, `Matrix # 0 max`
-reduces a column, and `A max B 0` compares A with the selected element of B.
-A known function or a `rank`/`axis` modifier ends the right operand.
-
-Direct aliases retain these operand sides: after `op = max`, `Matrix i op`
-reduces the selected row and `A op B` compares two values. A following function
-starts another step: `Values max sqrt` takes the square root of the maximum.
-To pass another independent left operand to a later postfix function, group
-the completed call: `(A max B) 5 min`. Core names cannot be redefined by a
-local function or parameter.
+Core names cannot be redefined by a local function or parameter.
 
 The fundamental selection model is:
 

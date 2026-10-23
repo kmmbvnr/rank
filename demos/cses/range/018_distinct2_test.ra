@@ -9,7 +9,7 @@ test "official example"
     1 2 9
     2 2 5
   end
-  Actual = Values Queries distinct2
+  Actual = Values distinct2 Queries
   Actual equal array "YES" "NO" "YES"
 end
 
@@ -23,6 +23,6 @@ test "updates relink neighbors"
     1 2 4
     2 2 3
   end
-  Actual = Values Queries distinct2
+  Actual = Values distinct2 Queries
   Actual equal array "NO" "YES" "NO"
 end

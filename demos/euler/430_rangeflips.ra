@@ -30,5 +30,5 @@ Qs = Xs * Xs - 2.0 * Nf + 1.0
 Rs = Qs / Nf / Nf
 Ps = (Rs ** M) copy
 E = N / 2.0 + Fac * (Ps sum) / 2.0
-Answer = E Digits round
+Answer = E round Digits
 Answer print

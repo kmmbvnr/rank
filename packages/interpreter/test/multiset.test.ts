@@ -47,7 +47,7 @@ describe('ordered multiset', () => {
     it('allows method names from unopened modules', () => {
         for (const name of ['floor', 'ceiling', 'lowerbound', 'upperbound']) {
             expect(run([
-                `fun A B ${name}`,
+                `fun A ${name} B`,
                 '  return A + B',
                 'end',
                 `3 ${name} 4`,

@@ -60,7 +60,7 @@ describe('filter over plain collections', () => {
         expect(() => run('use sequences\n(1 to 10) filter even first'))
             .toThrow(/numbers/);
         expect(run('use sequences\nuse text\nfun X palindrome\n  T = X text\n  Back = T reverse\n  return T equal Back\nend\n'
-            + '(array 121 122) (array 123 131) merge filter palindrome first')).toBe('121');
+            + '(array 121 122) merge (array 123 131) filter palindrome first')).toBe('121');
     });
 
     it('requires rank 0 to select atoms of a tensor', () => {

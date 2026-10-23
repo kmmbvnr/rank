@@ -38,7 +38,7 @@ f = first
 fun Base check
   fun X first = Base + X
   fun X second = Base + X
-  return array (compare first first) (compare first second)
+  return array (first compare first) (first compare second)
 end
 1 check`)).toMatchObject({ items: [true, false] });
         } finally { runtime.dispose(); }

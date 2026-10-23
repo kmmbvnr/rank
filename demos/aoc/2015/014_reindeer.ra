@@ -11,18 +11,18 @@ use text
 argument Input path
 
 Lines = Input readlines
-unpack Part1 Part2 = Lines 2503 solve
+unpack Part1 Part2 = Lines solve 2503
 Part1 print
 Part2 print
 
 
 rem Find greatest distance and greatest per-second score.
-fun Lines Race solve
+fun Lines solve Race
   Queue = new queue
   Pattern = "/word can fly /integer km//s for /integer seconds, but then must rest for /integer seconds."
 
   for Line in Lines
-    unpack Name Speed Fly Rest = Line Pattern parse
+    unpack Name Speed Fly Rest = Line parse Pattern
     Queue push Speed
     Queue push Fly
     Queue push Rest
@@ -54,7 +54,7 @@ fun Speed Fly Rest Time distance
   Cycle = Fly + Rest
   Full' = Time // Cycle
   Left' = Time mod Cycle
-  Active' = Left Fly min
+  Active' = Left min Fly
   FlyTime' = Full * Fly + Active
   return FlyTime * Speed
 end

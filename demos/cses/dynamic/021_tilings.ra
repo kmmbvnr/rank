@@ -6,13 +6,13 @@ use io
 
 Height = stdin .integer
 Width = stdin .integer
-Height Width counting_tilings print
+Height counting_tilings Width print
 
 
 rem Carry occupied cells across columns.
-fun Height Width counting_tilings
+fun Height counting_tilings Width
   Modulus = 1000000007
-  States = 1 Height shl
+  States = 1 shl Height
   Current = array shape States fill 0
   Current 0 = 1
 
@@ -41,18 +41,18 @@ fun Height Width counting_tilings
     end
 
     NextRow = Row + 1
-    if Mask Row bit
+    if Mask bit Row
       return Next NextRow NextMask Mask Ways place
     end
 
-    Bit = 1 Row shl
-    NewMask = NextMask Bit bor
+    Bit = 1 shl Row
+    NewMask = NextMask bor Bit
     Next = Next NextRow NewMask Mask Ways place
 
     if NextRow equal Height
       return Next
     end
-    if Mask NextRow bit equal false
+    if Mask bit NextRow equal false
       Next = Next (Row + 2) NextMask Mask Ways place
     end
     return Next

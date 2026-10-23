@@ -45,7 +45,7 @@ describe('collection contracts in value analysis', () => {
     }
 
     it('checks both deque ends and propagates array facts through reads', () => {
-        expect(messages('D = new deque\nD (array 1 2) pushfront\nD (array "bad") pushback'))
+        expect(messages('D = new deque\nD pushfront (array 1 2)\nD pushback (array "bad")'))
             .toEqual(['D holds array of integer and cannot receive array of text']);
         for (const read of ['Q peek', 'Q pop', 'Q 0']) {
             expect(analyze(`Q = new queue\nQ push array 1 2\nA = ${read}`).bindings.get('A'))
@@ -111,15 +111,15 @@ describe('structure queries keep the shape of their queries', () => {
     });
 
     it('answers a disjoint-set query per element', () => {
-        const { bindings } = analyze('D = new dsu (array 1 2 3)\nQ = array 1 2\nR = D Q findroot\nT = D 1 findroot');
+        const { bindings } = analyze('D = new dsu (array 1 2 3)\nQ = array 1 2\nR = D findroot Q\nT = D findroot 1');
         expect(bindings.get('R')).toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'] });
         expect(bindings.get('T')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
     });
 
     it('does not claim element types after a merge adds values', () => {
-        const { bindings } = analyze('D = new dsu (array 1 2 3)\nD 1 2 merge\nQ = array 1 2\nR = D Q findroot');
+        const { bindings } = analyze('D = new dsu (array 1 2 3)\nD 1 2 merge\nQ = array 1 2\nR = D findroot Q');
         expect(bindings.get('R')?.elements ?? []).toEqual([]);
-        const aliased = analyze('D = new dsu (array 1 2 3)\nAlias = D\nAlias merge 1 2\nQ = array 1 2\nR = D Q findroot');
+        const aliased = analyze('D = new dsu (array 1 2 3)\nAlias = D\nAlias merge 1 2\nQ = array 1 2\nR = D findroot Q');
         expect(aliased.bindings.get('R')?.elements ?? []).toEqual([]);
     });
 });

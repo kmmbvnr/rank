@@ -27,10 +27,10 @@ fun X Y Rate Steps linear_regression
   Theta = array shape N fill 0.0
 
   for Step in 0 till Steps
-    Pred = Features Theta matmul
+    Pred = Features matmul Theta
     Error = Pred - Targets
 
-    Grad' = Features Error matmul axis 0 0
+    Grad' = Features matmul Error axis 0 0
     Grad' = Grad / (M real)
 
     Theta -= Rate * Grad

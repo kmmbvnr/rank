@@ -733,7 +733,7 @@ does not remove that retained reader. No runtime optimization was made.
 The `shape` and `len` catalogue entries now have a guarded array-header
 contract. A shape result is an eager integer array, so its indexed reads do
 not call Rank code. The analysis also retains the left operand of a dyadic
-operation in a chain such as `X transpose Error matmul`, and joins eager and
+operation in a chain such as `X transpose matmul Error`, and joins eager and
 callback-free arrays across loop iterations. A local numeric array compound
 update can keep that proof when both arrays have compatible shapes and safe
 cells. These rules cover all three normal examples of unchanged Deep-ML

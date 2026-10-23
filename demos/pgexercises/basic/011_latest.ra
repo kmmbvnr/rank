@@ -16,4 +16,4 @@ First = Rows (0 till 1)
 Result = First select
   .latest = Latest
 end
-Result OutputPath csv
+Result csv OutputPath

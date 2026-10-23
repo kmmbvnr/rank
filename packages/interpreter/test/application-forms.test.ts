@@ -4,7 +4,7 @@ import { Interpreter, formatValue, isNativeFunction } from '../src/index.js';
 it.each([
     ['sum', 'A op axis 1', '6 15'],
     ['len', 'A op axis 1', '3'],
-    ['matmul', 'A A op axis 1 1', '14 32 32 77'],
+    ['matmul', 'A op A axis 1 1', '14 32 32 77'],
     ['transpose', 'A op axis 1 0', '1 4 2 5 3 6'],
     ['argsort', 'A op axis 1', '0 1 2 0 1 2'],
     ['sort', '(array 3 1 2) op .descending', '3 2 1'],
@@ -93,7 +93,7 @@ it.each([false, true])('evaluates a window source once (compilation=%s)', compil
     const runtime = new Interpreter(undefined, { compilation });
     try {
         runtime.execute(`use sequences
-fun N State source
+fun N source State
  State .calls += 1
  return 1 to N array
 end
@@ -101,7 +101,7 @@ end
 State = record
  .calls = 0
 end
-Result = 6 State source window 3`);
+Result = 6 source State window 3`);
         expect(formatValue(runtime.variables.get('Result')!)).toBe('1 2 3 2 3 4 3 4 5 4 5 6');
         expect(runtime.execute('State .calls')).toBe(1n);
     } finally { runtime.dispose(); }

@@ -19,8 +19,8 @@ rem Total link weight less the weight of
 rem a minimum spanning tree. A dash
 rem means no link.
 Lines = Input readlines
-Flat = Lines "," join
-Parts = Flat "," split
+Flat = Lines join ","
+Parts = Flat split ","
 Linked = Parts not equal "-"
 Safe' = Linked choose Parts "0"
 Weights = Safe integer

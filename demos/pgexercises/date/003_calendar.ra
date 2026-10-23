@@ -13,4 +13,4 @@ R' = Db "2012-10-01" "2012-10-31" calendar
 Result' = R select
   .ts = .date
 end
-Result OutputPath csv
+Result csv OutputPath

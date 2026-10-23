@@ -6,13 +6,13 @@ rem permutation arithmetic sequence
 use sequences
 use io
 
-Answer = 1000 10000 prime_permutation_sequence
+Answer = 1000 prime_permutation_sequence 10000
 Answer print
 
 
 rem Search increasing prime pairs and derive
 rem the only possible third arithmetic term.
-fun Lower Upper prime_permutation_sequence
+fun Lower prime_permutation_sequence Upper
   Values = primes from Lower till Upper array
   for A in Values
     if A not equal 1487

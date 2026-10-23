@@ -4,7 +4,7 @@ import { createRankServices, type FunctionStatement, type Program } from '../src
 import { empty, escapeCalls } from '../src/analysis/function-escape-calls.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
-const [helper, callback] = parser.parse<Program>('fun A B helper = 0\nfun X callback = X').value.statements as FunctionStatement[];
+const [helper, callback] = parser.parse<Program>('fun A helper B = 0\nfun X callback = X').value.statements as FunctionStatement[];
 
 describe('callback call summaries', () => {
     it('replays container writes when an equivalent call is reused', () => {

@@ -73,7 +73,7 @@ fun N tail
   return (N - 1) tail
 end
 
-fun A B add
+fun A add B
   return A + B
 end
 
@@ -85,7 +85,7 @@ fun N dyadiccalls
   return Sum
 end
 
-fun N Total tailacc
+fun N tailacc Total
   if N equal 0
     return Total
   end

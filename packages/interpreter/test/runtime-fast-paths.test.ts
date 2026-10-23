@@ -58,11 +58,11 @@ end
         expect(runtime.execute(`
 use io
 use numbers
-fun A B add
+fun A add B
   return A + B
 end
 Values = array 10 20
-(1 print) (2 print) add
+(1 print) add (2 print)
 Values 1 abs
 `)).toBe(20n);
         expect(output).toEqual(['1', '2']);
@@ -90,16 +90,16 @@ end
         const runtime = new Interpreter(undefined, { maxCallDepth: 1 });
         expect(runtime.execute(`
 Value = 50
-fun N X pick
+fun N pick X
   if N equal 0
     return Value
   end
   Value = 7
-  return 0 "text" pick
+  return 0 pick "text"
 end
-1 99 pick
+1 pick 99
 `)).toBe(50n);
-        expect(runtime.execute('0 true pick')).toBe(50n);
+        expect(runtime.execute('0 pick true')).toBe(50n);
     });
 
     it('retains inferred types within a slotted invocation', () => {

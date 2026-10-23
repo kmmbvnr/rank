@@ -12,7 +12,7 @@ test "statement triangle"
   use "067_maxpath2"
   use io
   Text = "3\n7 4\n2 4 6\n8 5 9 3\n"
-  Text "/tmp/euler067.txt" write
+  Text write "/tmp/euler067.txt"
   Input = "/tmp/euler067.txt"
   run
 
@@ -22,7 +22,7 @@ end
 test "single row"
   use "067_maxpath2"
   use io
-  "42\n" "/tmp/euler067.txt" write
+  "42\n" write "/tmp/euler067.txt"
   Input = "/tmp/euler067.txt"
   run
 

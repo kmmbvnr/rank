@@ -13,7 +13,7 @@ M = 1000036000099
 P0 = 1000003
 P1 = 1000033
 
-fun Max P comb
+fun Max comb P
   Side = Max + 1
   A = array shape Side Side fill 0
   for I in 0 to Max
@@ -55,7 +55,7 @@ fun S W P count
   D 0 = 1
   for B in 0 to 40
     E = array shape (Z + 1) fill 0
-    Bit = (S B shr) 1 band
+    Bit = (S shr B) band 1
     for Carry in 0 to Z
       for Ones in 0 to Z
         Total = Carry + Ones
@@ -77,7 +77,7 @@ fun N C P solvep
   end
   Coins = C + 1
   Empty = N - Coins
-  A = Coins P comb
+  A = Coins comb P
   K = (Coins + 1) // 2
   R = Coins - K + 1
   W0 = A K R P ways
@@ -95,7 +95,7 @@ fun N C P solvep
   return (Total - Lose) mod P
 end
 
-fun A B crt
+fun A crt B
   T = (B - A) mod P1
   I = (P0 mod P1) (P1 - 2) P1 powmod
   return (A + P0 * (T * I mod P1)) mod M
@@ -103,5 +103,5 @@ end
 
 A = N C P0 solvep
 B = N C P1 solvep
-Answer = A B crt
+Answer = A crt B
 Answer print

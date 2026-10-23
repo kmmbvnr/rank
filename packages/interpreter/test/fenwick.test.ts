@@ -43,12 +43,12 @@ end
         expect(runtime.execute(`
 use algo
 use io
-fun A B customsum
+fun A customsum B
   return A + B
 end
 F = 2 fenwick
 F 0 = 7
-(F sum 1) 3 customsum print
+(F sum 1) customsum 3 print
 `)).toBe(10n);
         expect(output).toEqual(['10']);
         runtime.dispose();

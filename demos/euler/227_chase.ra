@@ -28,7 +28,7 @@ Pr = array 1 8 18 8 1
 Col' = D reshape (H + 1) 1
 Off = (Col + Step) mod N
 Fold' = N - Off
-Dn' = Off Fold min
+Dn' = Off min Fold
 Dc' = Dn reshape (H + 1) 5 1
 Hit' = Dc equal (D reshape 1 1 (H + 1))
 Wt' = Pr reshape 1 5 1
@@ -40,6 +40,6 @@ Q' = Cols / 36.0
 Ks = 1 to H array
 Eye' = (Ks reshape H 1) equal Ks
 I' = Eye choose 1.0 0.0
-E = (I - Q) (Ks - Ks + 1.0) solve
-Answer = E (H - 1) 6 round
+E = (I - Q) solve (Ks - Ks + 1.0)
+Answer = E (H - 1) round 6
 Answer print

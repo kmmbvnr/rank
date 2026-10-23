@@ -9,8 +9,8 @@ test "official replacement examples"
     "O" "HH"
   end
 
-  Rules "HOH" variants equal 4
-  Rules "HOHOHO" variants equal 7
+  Rules variants "HOH" equal 4
+  Rules variants "HOHOHO" equal 7
 end
 
 test "replacement preserves both sides"

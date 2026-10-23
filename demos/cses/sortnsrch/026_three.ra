@@ -8,7 +8,7 @@ N = stdin .integer
 X = stdin .integer
 A = stdin .integer N array
 
-Answer = A X find_three
+Answer = A find_three X
 
 if Answer len equal 0
   "IMPOSSIBLE" print
@@ -18,7 +18,7 @@ end
 
 
 rem Search sorted values from both ends.
-fun A Target find_three
+fun A find_three Target
   N = A len
   Order = A argsort
   B = A Order

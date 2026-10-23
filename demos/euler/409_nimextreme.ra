@@ -15,7 +15,7 @@ rem (All + (2^N - 1) C) / 2^N, with
 rem C = (-1)^ceil(N/2) N! binom(
 rem 2^(N-1) - 1, N div 2). Products
 rem are halved pairwise mod P.
-fun V P modprod
+fun V modprod P
   for V len greater 1
     if V len mod 2 equal 1
       V = concat V (array 1)
@@ -31,16 +31,16 @@ end
 P = 1000000007
 T = 2 N P powmod
 Av = ((T - (1 to N)) mod P) copy
-All = Av P modprod
-Fact = (1 to N) copy P modprod
+All = Av modprod P
+Fact = (1 to N) copy modprod P
 H = N // 2
 Half = 2 (N - 1) P powmod
 Top = 1
 Fh = 1
 if H greater 0
   Tv = (Half - 1 - (0 to H - 1)) mod P
-  Top = Tv copy P modprod
-  Fh = (1 to H) copy P modprod
+  Top = Tv copy modprod P
+  Fh = (1 to H) copy modprod P
 end
 Bin = Top * (Fh (P - 2) P powmod) mod P
 Sign = 1

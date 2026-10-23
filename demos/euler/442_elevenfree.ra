@@ -29,7 +29,7 @@ for K in 1 to 200
   if Ln greater Width
     break
   end
-  Ds = (Pw Base digits) copy
+  Ds = (Pw digits Base) copy
   St = 0
   for J in (Width - Ln) to (Width - 1)
     D = Ds J
@@ -81,7 +81,7 @@ for R in 1 to 79
     Sm = Sm + Prv (Gc D)
   end
   Sm = Sm * Os
-  Rows R = Sm (N + 1) min
+  Rows R = Sm min (N + 1)
 end
 rem Find the length, then unrank.
 Rank = N

@@ -3,7 +3,7 @@ import { performance } from 'node:perf_hooks';
 import { cpus } from 'node:os';
 import { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/index.js';
 
-const source = `fun B N total
+const source = `fun B total N
   Total = 0
   for I in 0 till N
     Total += B (I % 10000)

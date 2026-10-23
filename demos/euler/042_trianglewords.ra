@@ -22,7 +22,7 @@ rem quoted comma-separated word list.
 fun Text words_from_text
   Last = Text len - 1
   Body = Text (1 till Last)
-  return Body "\",\"" split
+  return Body split "\",\""
 end
 
 

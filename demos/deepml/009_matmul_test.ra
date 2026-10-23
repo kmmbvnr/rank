@@ -15,7 +15,7 @@ test "official example"
     16.0 18.0
   end
 
-  A B matrixmul equal Expected
+  A matrixmul B equal Expected
 end
 
 test "rectangular matrices"
@@ -34,7 +34,7 @@ test "rectangular matrices"
     139.0 154.0
   end
 
-  A B matrixmul equal Expected
+  A matrixmul B equal Expected
 end
 
 test "incompatible dimensions"
@@ -44,7 +44,7 @@ test "incompatible dimensions"
   Raised = false
 
   try
-    Result = A B matrixmul
+    Result = A matrixmul B
   catch .DimensionMismatch Error
     Raised = true
   end

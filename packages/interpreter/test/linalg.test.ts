@@ -114,7 +114,7 @@ describe('Rank linear algebra', () => {
             'use linalg', 'Center = (array (-2) (-2) (-2) (-2)) diag',
             'Upper = (array 1 1 1) diag 1', 'Lower = (array 1 1 1) diag -1',
             'L = Center + Upper + Lower', 'X = array 1 4 9 16',
-            'Y = L X matmul', 'Boundary = array 0 0 0 25', 'Y + Boundary',
+            'Y = L matmul X', 'Boundary = array 0 0 0 25', 'Y + Boundary',
         ].join('\n'))).toBe('2 2 2 2');
     });
 
@@ -165,7 +165,7 @@ describe('Rank linear algebra', () => {
             '  1 0 2',
             'end',
             'unpack Values Vectors = A eigh',
-            'Gram = Vectors transpose Vectors matmul',
+            'Gram = Vectors transpose matmul Vectors',
             'Gram round 10',
         ].join('\n'))).toBe('1 0 0 0 1 0 0 0 1');
     });
@@ -261,7 +261,7 @@ describe('Rank linear algebra', () => {
             '  3 1',
             '  1 2',
             'end',
-            'A (array 9 8) solve',
+            'A solve (array 9 8)',
         ].join('\n')), [2, 3]);
         expectNumbers(run([
             'use linalg',
@@ -273,7 +273,7 @@ describe('Rank linear algebra', () => {
             '  9 1',
             '  8 0',
             'end',
-            'A B solve',
+            'A solve B',
         ].join('\n')), [2, 0.4, 3, -0.2]);
         expect(run([
             'use linalg',
@@ -282,19 +282,19 @@ describe('Rank linear algebra', () => {
             '  0 1',
             'end',
             'B = array 1 2',
-            'X = A B solve',
+            'X = A solve B',
             'X 0 is .real and X 1 is .real',
         ].join('\n'))).toBe('true');
     });
 
     it('validates linear solve shapes, singularity and elements', () => {
-        expect(() => run('use linalg\n(array 1 2) (array 1 2) solve'))
+        expect(() => run('use linalg\n(array 1 2) solve (array 1 2)'))
             .toThrowError('solve expects a square rank-2 coefficient matrix');
         expect(() => run([
             'use linalg',
             'A = array shape 2 2 fill 1',
             'B = array 1 2 3',
-            'A B solve',
+            'A solve B',
         ].join('\n'))).toThrowError('solve dimensions differ: 2 and 3');
         expect(() => run([
             'use linalg',
@@ -302,12 +302,12 @@ describe('Rank linear algebra', () => {
             '  1 2',
             '  2 4',
             'end',
-            'A (array 1 2) solve',
+            'A solve (array 1 2)',
         ].join('\n'))).toThrowError('solve expects a nonsingular matrix');
         expect(() => run([
             'use linalg',
             'A = array shape 2 2 fill "bad"',
-            'A (array 1 2) solve',
+            'A solve (array 1 2)',
         ].join('\n'))).toThrowError('solve expects numeric coefficient elements');
         expect(() => run([
             'use linalg',
@@ -315,18 +315,18 @@ describe('Rank linear algebra', () => {
             '  1 0',
             '  0 1',
             'end',
-            'A (array "bad" "bad") solve',
+            'A solve (array "bad" "bad")',
         ].join('\n'))).toThrowError('solve expects numeric right-side elements');
-        expect(() => run('(array shape 1 1 fill 1) (array 1) solve'))
+        expect(() => run('(array shape 1 1 fill 1) solve (array 1)'))
             .toThrowError('unknown name: solve');
     });
 
     it('contracts vectors and matrices with matmul', () => {
-        expect(run('use linalg\n(array 1 2 3) (array 4 5 6) matmul')).toBe('32');
+        expect(run('use linalg\n(array 1 2 3) matmul (array 4 5 6)')).toBe('32');
         expect(run([
             'use linalg',
-            'IntegerDot = (array 1 2) (array 3 4) matmul',
-            'RealDot = (array 1.0 2.5) (array 2 4) matmul',
+            'IntegerDot = (array 1 2) matmul (array 3 4)',
+            'RealDot = (array 1.0 2.5) matmul (array 2 4)',
             'IntegerDot is .integer and RealDot is .real',
         ].join('\n'))).toBe('true');
         expect(run([
@@ -335,7 +335,7 @@ describe('Rank linear algebra', () => {
             '  1 2 3',
             '  4 5 6',
             'end',
-            'A (array 1 2 3) matmul',
+            'A matmul (array 1 2 3)',
         ].join('\n'))).toBe('14 32');
         expect(run([
             'use linalg',
@@ -343,7 +343,7 @@ describe('Rank linear algebra', () => {
             '  1 2 3',
             '  4 5 6',
             'end',
-            '(array 2 3) B matmul',
+            '(array 2 3) matmul B',
         ].join('\n'))).toBe('14 19 24');
         expect(run([
             'use linalg',
@@ -355,7 +355,7 @@ describe('Rank linear algebra', () => {
             '  2 1',
             '  3 4',
             'end',
-            'A B matmul',
+            'A matmul B',
         ].join('\n'))).toBe('8 9 16 18');
     });
 
@@ -371,7 +371,7 @@ describe('Rank linear algebra', () => {
             '  0 1',
             '  1 1',
             'end',
-            'A B matmul',
+            'A matmul B',
         ].join('\n'))).toBe('4 5 10 11 16 17 22 23');
     });
 
@@ -387,7 +387,7 @@ describe('Rank linear algebra', () => {
             '  1 0 2 0',
             '  0 1 0 2',
             'end',
-            'Result = A B matmul axis 0 0',
+            'Result = A matmul B axis 0 0',
         ];
         expect(run([...source, 'Result'].join('\n')))
             .toBe('1 4 2 8 2 5 4 10 3 6 6 12');
@@ -400,7 +400,7 @@ describe('Rank linear algebra', () => {
             'use sequences',
             'A = array shape 2 0 fill 0',
             'B = array shape 0 3 fill 0',
-            'Result = A B matmul',
+            'Result = A matmul B',
         ];
         expect(run([...source, 'Result'].join('\n'))).toBe('0 0 0 0 0 0');
         expect(run([...source, 'Result shape'].join('\n'))).toBe('2 3');
@@ -412,14 +412,14 @@ describe('Rank linear algebra', () => {
             '  1 0',
             '  0 1',
             'end',
-            "Result' = A B matmul",
+            "Result' = A matmul B",
             'Result 0 0',
         ].join('\n'))).toBe('1');
         expect(() => run([
             'use linalg',
             "A' = (array shape 2 2 fill 1) // (array shape 2 2\n 1 1\n 0 1\nend)",
             'B = array shape 2 2 fill 1',
-            "Result' = A B matmul",
+            "Result' = A matmul B",
             'Result 1 0',
         ].join('\n'))).toThrowError('division by zero');
     });
@@ -429,19 +429,19 @@ describe('Rank linear algebra', () => {
             'use linalg',
             'A = array shape 2 3 fill 1',
             'B = array shape 2 2 fill 1',
-            'A B matmul',
+            'A matmul B',
         ].join('\n'))).toThrowError('matmul contracted dimensions differ: 3 and 2');
         expect(() => run([
             'use linalg',
             'A = array shape 2 3 fill 1',
             'B = array shape 2 2 fill 1',
-            'A B matmul axis 0',
+            'A matmul B axis 0',
         ].join('\n'))).toThrowError('matmul axis expects one axis for each operand');
         expect(() => run([
             'use linalg',
             'A = array shape 2 3 fill 1',
             'B = array shape 2 2 fill 1',
-            'A B matmul axis 2 0',
+            'A matmul B axis 2 0',
         ].join('\n'))).toThrowError('matmul left axis out of bounds: 2');
     });
 

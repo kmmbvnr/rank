@@ -13,11 +13,11 @@ Nodes' = 1 to N
 Graph = new graph Nodes .directed
 Graph add Edges
 
-Graph N longest_path print
+Graph longest_path N print
 
 
 rem Longest path length, counted in edges, through a DAG.
-fun Graph N longest_path
+fun Graph longest_path N
   Dist = array shape (N + 1) fill 1
   Sorted = Graph topological
 

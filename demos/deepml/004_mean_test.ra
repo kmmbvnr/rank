@@ -8,7 +8,7 @@ test "official column example"
     7 8 9
   end
 
-  A "column" matrix_mean equal array 4.0 5.0 6.0
+  A matrix_mean "column" equal array 4.0 5.0 6.0
 end
 
 test "rectangular row means"
@@ -18,7 +18,7 @@ test "rectangular row means"
     -3 0 3
   end
 
-  A "row" matrix_mean equal array 3.0 0.0
+  A matrix_mean "row" equal array 3.0 0.0
 end
 
 test "single row column means"
@@ -27,5 +27,5 @@ test "single row column means"
     -1 0 2
   end
 
-  A "column" matrix_mean equal array -1.0 0.0 2.0
+  A matrix_mean "column" equal array -1.0 0.0 2.0
 end

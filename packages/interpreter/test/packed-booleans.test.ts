@@ -219,7 +219,7 @@ Values = (0 till 8193) copy
 Reach = array shape 16 fill false
 Reach 0 = true
 for W in array 3 5 7
-  Reach = (Reach or (Reach W shift with false)) copy
+  Reach = (Reach or (Reach shift W with false)) copy
 end
 Reach 0 = false
 Reach indices`)!)).toBe('3 5 7 8 10 12 15');
@@ -231,19 +231,19 @@ Cols = array true false true
 (Rows and Cols) count`)!)).toBe('4');
             expect(formatValue(runtime.execute(`A = array shape 33 fill false
 A 0 = true
-Saved = (A 1 shift with false) copy
+Saved = (A shift 1 with false) copy
 A 0 = false
 Saved indices`)!)).toBe('1');
             expect(formatValue(runtime.execute(`A = array shape 33 fill false
 A 0 = true
-M' = A or (A 1 shift with false)
+M' = A or (A shift 1 with false)
 M count`)!)).toBe('2');
             expect(() => runtime.execute('M 0 = false')).toThrow();
             expect(() => runtime.execute(`Guard = array shape 33 fill false
-ReadOnly' = Guard or (Guard 1 shift with false)
+ReadOnly' = Guard or (Guard shift 1 with false)
 Guard 0 = true`)).toThrow(/read-only/);
             expect(formatValue(runtime.execute(`Grid = array shape 2 3 fill true
-(Grid 1 shift with false axis 1) count`)!)).toBe('4');
+(Grid shift 1 with false axis 1) count`)!)).toBe('4');
         } finally { runtime.dispose(); }
     });
 });

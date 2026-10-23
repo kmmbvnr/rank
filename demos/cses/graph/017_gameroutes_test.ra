@@ -12,7 +12,7 @@ test "official example"
     1 4
   end
   Graph add Edges
-  Graph 4 game_routes equal 3
+  Graph game_routes 4 equal 3
 end
 
 test "counts parallel teleporters"
@@ -21,7 +21,7 @@ test "counts parallel teleporters"
   Graph = new graph (1 to 2) .directed
   Graph add 1 2
   Graph add 1 2
-  Graph 2 game_routes equal 2
+  Graph game_routes 2 equal 2
 end
 
 test "unreachable end has no route"
@@ -30,7 +30,7 @@ test "unreachable end has no route"
   Graph = new graph (1 to 4) .directed
   Graph add 1 2
   Graph add 3 4
-  Graph 4 game_routes equal 0
+  Graph game_routes 4 equal 0
 end
 
 test "combines paths at later levels"
@@ -46,5 +46,5 @@ test "combines paths at later levels"
     4 5
   end
   Graph add Edges
-  Graph 5 game_routes equal 3
+  Graph game_routes 5 equal 3
 end

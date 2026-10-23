@@ -16,7 +16,7 @@ More = 0 26 1 Es Ps pats
 Answer = 1 + More
 Answer print
 
-fun N E root
+fun N root E
   Lo = 1
   Hi = N
   for Lo less Hi
@@ -30,7 +30,7 @@ fun N E root
   return Lo
 end
 
-fun Ps X pi
+fun Ps pi X
   Lo = 0
   Hi = Ps len
   for Lo less Hi
@@ -62,9 +62,9 @@ end
 fun Es Pos Lim Low Used Ps cnt
   E = Es Pos
   if Pos equal (Es len - 1)
-    Top = Lim E root
-    High = Ps Top pi
-    Before = Ps (Low - 1) pi
+    Top = Lim root E
+    High = Ps pi Top
+    Before = Ps pi (Low - 1)
     Total = High - Before
     for U in Used
       if U at least Low
@@ -85,7 +85,7 @@ fun Es Pos Lim Low Used Ps cnt
     Same += 1
     At += 1
   end
-  Top = Lim (E * Same) root
+  Top = Lim root (E * Same)
   Total = 0
   for P in Ps
     if P less Low

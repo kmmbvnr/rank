@@ -123,12 +123,12 @@ describe('Rank expressions and sequences', () => {
     });
 
     it('finds one or every matching position', () => {
-        expect(run('use sequences\n(array 2 3 4 3) 3 find')).toBe('1');
-        expect(run('use sequences\n(array 2 3 4 3) 3 findall')).toBe('1 3');
-        expect(run('use sequences\n"23456789TJQKA" "2" find')).toBe('0');
-        expect(run('use sequences\n"234232" "2" findall')).toBe('0 3 5');
-        expect(run('use sequences\n(array 2 3) 9 find default -1')).toBe('-1');
-        expect(run('use sequences\n(array 2 3) 9 findall')).toBe('');
+        expect(run('use sequences\n(array 2 3 4 3) find 3')).toBe('1');
+        expect(run('use sequences\n(array 2 3 4 3) findall 3')).toBe('1 3');
+        expect(run('use sequences\n"23456789TJQKA" find "2"')).toBe('0');
+        expect(run('use sequences\n"234232" findall "2"')).toBe('0 3 5');
+        expect(run('use sequences\n(array 2 3) find 9 default -1')).toBe('-1');
+        expect(run('use sequences\n(array 2 3) findall 9')).toBe('');
     });
 
     it('defaults sparse reads lazily without swallowing key or fallback errors', () => {
@@ -293,7 +293,7 @@ Result`)).toBe('itb');
             'B = array 3 4',
             'Result = A B outer whole',
             '',
-            'fun A B whole',
+            'fun A whole B',
             '  Left = A sum',
             '  Right = B sum',
             '  return Left + Right',
@@ -316,7 +316,7 @@ Result`)).toBe('itb');
             'B = array 2',
             'Result = A B outer pair',
             '',
-            'fun A B pair',
+            'fun A pair B',
             '  return array 1 2',
             'end',
             '',
@@ -527,16 +527,16 @@ Result`)).toBe('itb');
             'end',
         ];
         const shifted = (line: string) => run([...source, line].join('\n'));
-        expect(shifted('A 1 shift')).toBe('0 1 2 3');
-        expect(shifted('A (-1) shift')).toBe('2 3 4 0');
-        expect(shifted('A 2 shift with 9')).toBe('9 9 1 2');
-        expect(shifted('A 9 shift')).toBe('0 0 0 0');
-        expect(shifted('M 1 shift axis 1')).toBe('0 1 2 0 4 5');
-        expect(shifted('M 1 shift')).toBe('0 0 0 1 2 3');
-        expect(shifted('M (-1) shift with 7 axis 0')).toBe('4 5 6 7 7 7');
-        expect(() => shifted('M 1 shift axis 2')).toThrowError('shift axis out of bounds: 2');
-        expect(() => shifted('A 1 shift with (array 1)')).toThrowError('shift fill must be a single value');
-        expect(() => shifted('"ab" 1 shift')).toThrowError('shift expects an array');
+        expect(shifted('A shift 1')).toBe('0 1 2 3');
+        expect(shifted('A shift (-1)')).toBe('2 3 4 0');
+        expect(shifted('A shift 2 with 9')).toBe('9 9 1 2');
+        expect(shifted('A shift 9')).toBe('0 0 0 0');
+        expect(shifted('M shift 1 axis 1')).toBe('0 1 2 0 4 5');
+        expect(shifted('M shift 1')).toBe('0 0 0 1 2 3');
+        expect(shifted('M shift (-1) with 7 axis 0')).toBe('4 5 6 7 7 7');
+        expect(() => shifted('M shift 1 axis 2')).toThrowError('shift axis out of bounds: 2');
+        expect(() => shifted('A shift 1 with (array 1)')).toThrowError('shift fill must be a single value');
+        expect(() => shifted('"ab" shift 1')).toThrowError('shift expects an array');
     });
 
     it('reshapes finite values in row-major order', () => {
@@ -950,9 +950,9 @@ Result`)).toBe('itb');
     });
 
     it('checks text prefixes and formats bytes as hexadecimal text', () => {
-        expect(run('use text\n"Rank language" "Rank" startswith')).toBe('true');
-        expect(run('use text\n"Rank language" "rank" startswith')).toBe('false');
-        expect(() => run('use text\n12 "1" startswith'))
+        expect(run('use text\n"Rank language" startswith "Rank"')).toBe('true');
+        expect(run('use text\n"Rank language" startswith "rank"')).toBe('false');
+        expect(() => run('use text\n12 startswith "1"'))
             .toThrowError('startswith expects text and a text prefix');
         expect(() => run('use text\n12 hex')).toThrowError('hex expects bytes');
     });
@@ -995,26 +995,26 @@ Result`)).toBe('itb');
     });
 
     it('splits text by one or several text separators', () => {
-        expect(new Interpreter().execute('use text\n"a,b,,c" "," split')).toEqual({
+        expect(new Interpreter().execute('use text\n"a,b,,c" split ","')).toEqual({
             kind: 'array',
             items: ['a', 'b', '', 'c'],
             shape: [4],
         });
-        expect(new Interpreter().execute('use text\n"A😀Б" "" split')).toEqual({
+        expect(new Interpreter().execute('use text\n"A😀Б" split ""')).toEqual({
             kind: 'array',
             items: ['A', '😀', 'Б'],
             shape: [3],
         });
         expect(new Interpreter().execute(
-            'use text\n"one,two;three" (array "," ";") split',
+            'use text\n"one,two;three" split (array "," ";")',
         )).toEqual({
             kind: 'array',
             items: ['one', 'two', 'three'],
             shape: [3],
         });
-        expect(() => run('use text\n12 "," split'))
+        expect(() => run('use text\n12 split ","'))
             .toThrowError('split expects text and a text separator or separator array');
-        expect(() => run('use text\n"a,b" (array "" ",") split'))
+        expect(() => run('use text\n"a,b" split (array "" ",")'))
             .toThrowError('an empty split separator must be used alone');
     });
 
@@ -1022,24 +1022,24 @@ Result`)).toBe('itb');
         expect(run([
             'use text',
             'Pattern = "/integerx/integerx/integer"',
-            'unpack Length Width Height = "2x3x4" Pattern parse',
+            'unpack Length Width Height = "2x3x4" parse Pattern',
             'Length * Width * Height',
         ].join('\n'))).toBe('24');
         expect(new Interpreter().execute([
             'use text',
             'Pattern = "/word//path// /text /real"',
-            '"open/path/ remaining text -1.5" Pattern parse',
+            '"open/path/ remaining text -1.5" parse Pattern',
         ].join('\n'))).toEqual({
             kind: 'tuple',
             items: ['open', 'remaining text', -1.5],
         });
-        expect(() => run('use text\n"abc" "/integer" parse'))
+        expect(() => run('use text\n"abc" parse "/integer"'))
             .toThrowError('text does not match format: /integer');
         expect(run([
             'use text',
             'Caught = false',
             'try',
-            '  "abc" "/integer" parse',
+            '  "abc" parse "/integer"',
             'catch .InvalidText Error',
             '  Caught = Error .Value equal "abc"',
             'end',
@@ -1048,10 +1048,10 @@ Result`)).toBe('itb');
         expect(run([
             'use text',
             'Pattern = "/integer x /integer"',
-            'unpack A B = "2 x 3" Pattern parse',
+            'unpack A B = "2 x 3" parse Pattern',
             'A + B',
         ].join('\n'))).toBe('5');
-        expect(() => run('use text\n"abc" "/unknown" parse'))
+        expect(() => run('use text\n"abc" parse "/unknown"'))
             .toThrowError('unknown parse directive at position 0');
         expect(() => run('unpack A B = array 1 2 3'))
             .toThrowError('unpack expects 2 values, got 3');
@@ -1068,14 +1068,14 @@ Result`)).toBe('itb');
 
     it('unpacks rank-1 arrays into application arguments', () => {
         expect(run([
-            'fun Width Height area',
+            'fun Width area Height',
             '  return Width * Height',
             'end',
             'Point = array 3 4',
             'unpack Point area',
         ].join('\n'))).toBe('12');
         expect(run([
-            'fun Values Tail add_nested',
+            'fun Values add_nested Tail',
             '  return Values 0 + Tail',
             'end',
             'Packed = tuple (array 4) 3',

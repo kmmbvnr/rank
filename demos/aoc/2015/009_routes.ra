@@ -22,7 +22,7 @@ fun Lines' solve
   Pattern = "/word to /word = /integer"
 
   for Line in Lines
-    unpack A B Distance = Line Pattern parse
+    unpack A B Distance = Line parse Pattern
     Seen add A
     Seen add B
     Index A B = Distance
@@ -30,7 +30,7 @@ fun Lines' solve
   end
 
   for Route in Seen permutations
-    Queue push Route Index distance
+    Queue push Route distance Index
   end
 
   Distances = Queue
@@ -41,7 +41,7 @@ end
 
 
 rem Add the distances between adjacent cities in one route.
-fun Route Distances distance
+fun Route distance Distances
   Total = 0
 
   for Pair in Route window 2

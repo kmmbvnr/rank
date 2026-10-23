@@ -21,8 +21,8 @@ Up = (1 + Root) ** Odd
 Down = (1 - Root) ** Odd
 X' = (Up + Down) / 2
 Y' = (Up - Down) / (Root * 2)
-All' = ((X + 1) / 2) 0 round
-Blue' = ((Y + 1) / 2) 0 round
+All' = ((X + 1) / 2) round 0
+Blue' = ((Y + 1) / 2) round 0
 Past' = All greater Limit
 Answer = (Blue Past) first integer
 Answer print

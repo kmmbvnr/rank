@@ -22,7 +22,7 @@ describe('binding-aware builtin grouping', () => {
         const runtime = new Interpreter();
         expect(runtime.execute('use numbers\n2.5 round 0')).toBe(2);
         expect(runtime.execute('1250 round -2')).toBe(1200n);
-        expect(() => runtime.execute('5 min 0')).toThrow('is a postfix call');
+        expect(runtime.execute('5 min 0')).toBe(0n);
         expect(runtime.execute('5 max 0')).toBe(5n);
     });
 });

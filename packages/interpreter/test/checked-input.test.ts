@@ -101,7 +101,7 @@ it('checks a CSV read before later statements run and locates the error at the r
 });
 
 it('checks equal CSV column lengths at the second read when a dot product needs them', () => {
-    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nAfter = 1\nX = A .value\nY = B .value\nX Y matmul';
+    const source = 'use tables\nuse linalg\nA = "a.csv" csv check\nB = "b.csv" csv check\nAfter = 1\nX = A .value\nY = B .value\nX matmul Y';
     const runtime = new Interpreter(() => {}, { io: new MemoryIo({
         'a.csv': 'value\n1\n2\n', 'b.csv': 'value\n3\n4\n5\n',
     }) });
@@ -145,11 +145,9 @@ it('preserves an ordinary user function named check', () => {
 it('preserves document modifiers and parenthesized reads', () => {
     for (const reader of ['json', 'xml']) {
         const input = reader === 'json' ? '{"a":1}' : '<a/>';
-        for (const suffix of [`${reader} .flat check`, `.flat ${reader} check`]) {
-            const runtime = new Interpreter(() => {});
-            const value = runtime.execute(`use ${reader}\nuse tables\n${JSON.stringify(input)} ${suffix}`)!;
-            expect(value).toMatchObject({ kind: 'array' });
-        }
+        const runtime = new Interpreter(() => {});
+        const value = runtime.execute(`use ${reader}\nuse tables\n${JSON.stringify(input)} ${reader} .flat check`)!;
+        expect(value).toMatchObject({ kind: 'array' });
     }
     const runtime = new Interpreter(() => {}, { io: new MemoryIo({ 'data.csv': 'price\n3\n' }) });
     expect(runtime.execute('use tables\nRows = ("data.csv" csv) check\nRows .price sum')).toBe(3n);

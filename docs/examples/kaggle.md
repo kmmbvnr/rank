@@ -91,7 +91,7 @@ Text splitting over a whole column:
 
 ```rank
 Cabin = Train .Cabin default "U/0/U"
-Parts = Cabin "/" split
+Parts = Cabin split "/"
 
 Train .Deck = Parts 0
 Train .Number = Parts 1
@@ -134,7 +134,7 @@ The workflow suggested reusable first-class preprocessing values:
 
 ```rank
 Texts = Train .text default ""
-Vocab = Texts 128 vocab
+Vocab = Texts vocab 128
 
 Model = Texts Vocab tfidf_fit
 X = Texts Model tfidf_transform

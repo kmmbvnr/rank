@@ -40,7 +40,7 @@ test "published top five subsequences"
   use sequences
   use text
   run
-  Expected = (array "TCGTGGGAAACACTTT" "GTGGGAAACACTTTCG" "ATCGTGGGAAACACTT" "CGTGGGAAACACTTTC" "TGGGAAACACTTTCGA") "" split rank 0
+  Expected = (array "TCGTGGGAAACACTTT" "GTGGGAAACACTTTCG" "ATCGTGGGAAACACTT" "CGTGGGAAACACTTTC" "TGGGAAACACTTTCGA") split "" rank 0
   (Best equal Expected) all
 end
 
@@ -49,8 +49,8 @@ test "tied scores preserve earlier windows and repeated strings"
   use sequences
   use text
   Weights = array shape 4 2 fill 0.0
-  Actual = Weights "ACGTACGT" top5
-  Expected = (array "AC" "CG" "GT" "TA" "AC") "" split rank 0
+  Actual = Weights top5 "ACGTACGT"
+  Expected = (array "AC" "CG" "GT" "TA" "AC") split "" rank 0
   (Actual equal Expected) all
 end
 
@@ -58,7 +58,7 @@ test "five identical subsequences are retained"
   use "004_genes"
   use sequences
   Weights = array shape 4 2 fill 0.0
-  Actual = Weights "AAAAAA" top5
+  Actual = Weights top5 "AAAAAA"
   CorrectShape = (Actual shape equal array 5 2) all
   CorrectShape and ((Actual equal "A") all)
 end

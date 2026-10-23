@@ -9,7 +9,7 @@ rem LeetCode 1: Two Sum
 rem Return indices of two values
 rem whose sum equals Target.
 
-fun A Target two_sum
+fun A two_sum Target
   Index = new index
   for Value i in A
     Need = Target - Value
@@ -37,7 +37,7 @@ This demonstrates:
 rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
-fun A B add_two
+fun A add_two B
   Queue = new queue
   N = A len
   M = B len
@@ -120,7 +120,7 @@ The solution uses only current Rank constructs and runs in linear time.
 
 The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
-Python-style `//`, real `/`, and the binary forms `A B min` and
+Python-style `//`, real `/`, and the binary forms `A min B` and
 `A max B`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 

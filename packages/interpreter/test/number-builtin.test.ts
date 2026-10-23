@@ -32,7 +32,7 @@ describe('catalogue scalar builtins in private Number loops', () => {
         }
     });
 
-    it.each(['I -30 gcd', 'I 30 lcm', 'I 3 17 powmod', '(I + 2) 2 binomial', 'I sin', 'I 2 atan2'])
+    it.each(['I gcd -30', 'I lcm 30', 'I 3 17 powmod', '(I + 2) binomial 2', 'I sin', 'I atan2 2'])
     ('uses the shared scalar call adapter for %s', expression => {
         const source = `use numbers\nA = array shape 6 fill ${expression.includes('sin') || expression.includes('atan2') ? '0.0' : '0'}\nfor I in 0 to 5\n A I = ${expression}\nend\nA`;
         const result = compare(source);
@@ -42,15 +42,15 @@ describe('catalogue scalar builtins in private Number loops', () => {
     });
 
     it.each([
-        'use numbers\nA = array 0 0 0\nB = A\nfor I in 0 to 2\n A I = (9007199254740991 - I) 2 lcm\nend\nA',
-        'use numbers\nA = array 0 0 0\nfor I in 0 to 2\n A I = (100 + I) 30 binomial\nend\nA',
+        'use numbers\nA = array 0 0 0\nB = A\nfor I in 0 to 2\n A I = (9007199254740991 - I) lcm 2\nend\nA',
+        'use numbers\nA = array 0 0 0\nfor I in 0 to 2\n A I = (100 + I) binomial 30\nend\nA',
     ])('replays exactly when a builtin result exceeds safe integers: %s', source => {
         const result = compare(source);
         expect(result.state.error).toBeUndefined();
         expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
     });
 
-    it.each(['2 (1 - I) 7 powmod', '(1 - I) 2 binomial', '(I - 1) atanh'])
+    it.each(['2 (1 - I) 7 powmod', '(1 - I) binomial 2', '(I - 1) atanh'])
     ('preserves native errors and preceding private writes for %s', expression => {
         const source = `use numbers\nA = array 0 0 0\nB = A\nfor I in 0 to 2\n A I = I + 1\n R = ${expression}\nend`;
         const result = compare(source);
@@ -61,8 +61,8 @@ describe('catalogue scalar builtins in private Number loops', () => {
     it('rechecks a cached builtin identity before selecting a Number kernel', () => {
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
         try {
-            runtime.execute('use numbers\nfun work\n S = 0\n for I in 1 to 5\n  S += I 30 gcd\n end\n return S\nend\nBefore = work');
-            runtime.execute('fun A B replacement\n return 42\nend');
+            runtime.execute('use numbers\nfun work\n S = 0\n for I in 1 to 5\n  S += I gcd 30\n end\n return S\nend\nBefore = work');
+            runtime.execute('fun A replacement B\n return 42\nend');
             runtime.variables.set('gcd', runtime.variables.get('replacement')!);
             runtime.execute('After = work');
             expect(runtime.variables.get('After')).toBe(210n);

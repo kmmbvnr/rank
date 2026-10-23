@@ -46,7 +46,7 @@ use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
 G add 2 3
-R = G 1 root
+R = G root 1
 R 3 1 ancestor
 ```
 
@@ -78,7 +78,7 @@ use graph
 G = new graph (1 to 3) .directed
 G add 1 2 4
 G add 2 3 -1
-R = G 1 bellmanford
+R = G bellmanford 1
 R .distance 3
 ```
 
@@ -89,7 +89,7 @@ R .distance 3
 ### Usage
 
 ```text
-Graph Start bellmanford
+Graph bellmanford Start
 ```
 
 Gives a record: .distance and .parent
@@ -128,8 +128,8 @@ R .distance 3
 ### Usage
 
 ```text
-Graph Start bfs
-Graph Start Goal Limit bfs
+Graph bfs Start
+Graph Start Goal bfs Limit
 ```
 
 Gives a record: .distance counts edges
@@ -157,7 +157,7 @@ use graph
 use sequences
 fun N next = (N + 1) to (N + 2)
 G = new graph with next .directed
-R = G 0 5 100 bfs
+R = G 0 5 bfs 100
 R .path
 ```
 
@@ -246,7 +246,7 @@ group of a dsu.
 ```rank
 use graph
 D = new dsu
-D 1 2 merge
+D merge 1 2
 D 1 2 connected
 ```
 
@@ -306,7 +306,7 @@ use graph
 G = new graph (1 to 3) .directed
 G add 1 2
 G add 2 3
-R = G 1 dfs
+R = G dfs 1
 R .order
 ```
 
@@ -317,7 +317,7 @@ R .order
 ### Usage
 
 ```text
-Graph Start dfs
+Graph dfs Start
 ```
 
 Gives a record with .distance, .parent
@@ -342,7 +342,7 @@ G = new graph (1 to 3) .directed
 G add 1 2 5
 G add 2 3 4
 G add 1 3 20
-R = G 1 dijkstra
+R = G dijkstra 1
 R .distance 3
 ```
 
@@ -353,7 +353,7 @@ R .distance 3
 ### Usage
 
 ```text
-Graph Start dijkstra
+Graph dijkstra Start
 ```
 
 Gives a record: .distance to each
@@ -375,7 +375,7 @@ use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
 G add 2 3
-R = G 1 root
+R = G root 1
 R 1 3 distance
 ```
 
@@ -406,7 +406,7 @@ use graph
 G = new graph (1 to 3) .directed
 G add 1 2
 G add 2 3
-G 1 euler
+G euler 1
 ```
 
 ```result
@@ -416,7 +416,7 @@ G 1 euler
 ### Usage
 
 ```text
-Graph Start euler
+Graph euler Start
 ```
 
 Gives the vertices in order, or an empty
@@ -435,8 +435,8 @@ group in a dsu.
 ```rank
 use graph
 D = new dsu
-D 1 2 merge
-D 2 findroot
+D merge 1 2
+D findroot 2
 ```
 
 ```result
@@ -446,7 +446,7 @@ D 2 findroot
 ### Usage
 
 ```text
-Dsu Value findroot
+Dsu findroot Value
 ```
 
 Two values are in the same group when
@@ -561,7 +561,7 @@ use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
 G add 2 3
-R = G 1 root
+R = G root 1
 R 2 3 lca
 ```
 
@@ -656,8 +656,8 @@ Join the groups of two values in a dsu.
 ```rank
 use graph
 D = new dsu
-D 1 2 merge
-D 2 3 merge
+D merge 1 2
+D merge 2 3
 D 1 3 connected
 ```
 
@@ -668,7 +668,7 @@ true
 ### Usage
 
 ```text
-Dsu A B merge
+Dsu merge A B
 ```
 
 Gives true if they were in different
@@ -760,7 +760,7 @@ use graph
 G = new graph (1 to 3) .undirected
 G add 1 2
 G add 2 3
-R = G 1 root
+R = G root 1
 R .order
 ```
 
@@ -771,7 +771,7 @@ R .order
 ### Usage
 
 ```text
-Tree Root root
+Tree root Root
 ```
 
 The graph must be an undirected,
@@ -893,7 +893,7 @@ cost.
 use graph
 Next = array 2 3 3
 Cost = array 10 20 0
-W = Next Cost weighted
+W = Next weighted Cost
 R = W 1 3 upto
 R .sum
 ```
@@ -905,7 +905,7 @@ R .sum
 ### Usage
 
 ```text
-Next Cost weighted
+Next weighted Cost
 ```
 
 Cost has one number per vertex: the cost

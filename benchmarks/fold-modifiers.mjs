@@ -7,7 +7,7 @@ const root = process.argv.find(arg => arg.startsWith('--runtime='))?.slice(10) ?
 const { Interpreter, isRankArray } = await import(pathToFileURL(resolve(root, 'packages/interpreter/out/index.js')));
 const legacy = process.argv.includes('--legacy');
 const runtime = new Interpreter();
-runtime.execute('use sequences\nT = ((1 to 20000) reshape 1000 20) * 1.5\nfun A B plus\n return A + B\nend');
+runtime.execute('use sequences\nT = ((1 to 20000) reshape 1000 20) * 1.5\nfun A plus B\n return A + B\nend');
 
 const cases = [
     ['reduce-symbol', 'T reduce +'],

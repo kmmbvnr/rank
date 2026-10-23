@@ -29,7 +29,7 @@ ${expression}`)!);
         ['2 + 3 max 4', '5'], ['A max + 1', '9'], ['2 max -3', '2'],
         ['A max .index', '1'], ['A max .indexed', '8 1'],
         ['(A max) equal 8', 'true'],
-        ['(A reshape 1 2) (B reshape 2 1) matmul', '43'],
+        ['(A reshape 1 2) matmul (B reshape 2 1)', '43'],
     ])('evaluates %s', (source, expected) => {
         expect(run(source)).toBe(expected);
     });
@@ -39,15 +39,15 @@ ${expression}`)!);
         expect(run('A op B', 'op = max')).toBe('3 8');
         expect(run('A op .index', 'op = max')).toBe('1');
         expect(run('M # 0 op axis 0', 'op = max')).toBe('4');
-        expect(run('-2 3 positive', 'op = max\npositive = op abs')).toBe('3');
+        expect(run('-2 positive 3', 'op = max\npositive = op abs')).toBe('3');
         const runtime = new Interpreter();
         try {
             runtime.execute('op = max\nA = array 1 8');
             expect(formatValue(runtime.execute('A 0 op')!)).toBe('1');
             expect(formatValue(runtime.execute('A op 3')!)).toBe('3 8');
             expect(runtime.execute(`fun X probe
- fun A B op = A + B
- return X 3 op
+ fun A op B = A + B
+ return X op 3
 end
 2 probe`)).toBe(5n);
         } finally { runtime.dispose(); }
@@ -62,8 +62,8 @@ end
     });
 
     it('evaluates the left selector and right operand once, in source order', () => {
-        expect(run('Result = A (Log 0 visit) max (Log 3 visit)\nLog', `use algo
-fun Log N visit
+        expect(run('Result = A (Log visit 0) max (Log visit 3)\nLog', `use algo
+fun Log visit N
  Log push N
  return N
 end

@@ -19,14 +19,14 @@ it.each([
     ['A diag .anti K rank 2', 'diagonal'], ['A diag .anti 1 axis 1 2', 'diagonal'],
     ['A len axis 1', 'axis-length'], ['A sum axis 1', 'axis-reduction'],
     ['A argsort axis 1', 'axis-argsort'], ['A shuffle axis 1', 'axis-shuffle'],
-    ['A 0.5 quantile axis 1', 'axis-quantile'], ['A B mse axis 1', 'axis-metric'],
-    ['A transpose axis 1 0', 'axis-transpose'], ['A B matmul axis 1 0', 'axis-matmul'],
+    ['A quantile 0.5 axis 1', 'axis-quantile'], ['A mse B axis 1', 'axis-metric'],
+    ['A transpose axis 1 0', 'axis-transpose'], ['A matmul B axis 1 0', 'axis-matmul'],
     ['A covariance axis 0 1', 'axis-covariance'], ['A corr axis 0 1', 'axis-correlation'],
     ['A sum rank 1', 'rank'], ['A axis 1 0', 'axis-selection'],
     ['A window 2 3', 'window'], ['A window unpack Sizes', 'window'],
     ['A window 2 3 shape', 'plain'], ['A window 2 3 axis 0 1 shape', 'plain'],
-    ['A window 2 axis 0', 'window'], ['A 1 shift with 9', 'axis-shift'],
-    ['A 1 shift with 9 axis 1', 'axis-shift'], ['A 1 shift axis 1', 'axis-shift'], ['A 1 shift', 'plain'], ['A window 2 padding 1 with 9', 'window'],
+    ['A window 2 axis 0', 'window'], ['A shift 1 with 9', 'axis-shift'],
+    ['A shift 1 with 9 axis 1', 'axis-shift'], ['A shift 1 axis 1', 'axis-shift'], ['A shift 1', 'plain'], ['A window 2 padding 1 with 9', 'window'],
     ['A window 2 stride 2 padding 1 with 9 axis 1', 'window'], ['A B equal rank 1', 'comparison-rank'],
     ['A next repeat 3', 'repeat'],
     ['A scan min with 0', 'named-scan'], ['A segment min', 'named-segment'],
@@ -113,8 +113,8 @@ it('recognizes symbolic modifiers once and respects a shadowed modifier', () => 
 
 it.each([
     ['Path csv check', 'csv'], ['(Path csv) check', 'csv'],
-    ['Text json check', 'json'], ['Text json .flat check', 'json'], ['Text .flat json check', 'json'],
-    ['Text xml check', 'xml'], ['Text xml .flat check', 'xml'], ['Text .flat xml check', 'xml'],
+    ['Text json check', 'json'], ['Text json .flat check', 'json'], ['Text json .flat check', 'json'],
+    ['Text xml check', 'xml'], ['Text xml .flat check', 'xml'], ['Text xml .flat check', 'xml'],
 ])('recognizes %s as a checked reader', (source, reader) => {
     const parsed = parser.parse<Program>(`Result = ${source}`);
     expect(parsed.parserErrors).toEqual([]);
@@ -127,7 +127,7 @@ it.each([
 });
 
 it('does not interpret a CSV write as a checked read', () => {
-    const parsed = parser.parse<Program>('Result = Rows Path csv check');
+    const parsed = parser.parse<Program>('Result = Rows csv Path check');
     expect(parsed.parserErrors).toEqual([]);
     const assignment = parsed.value.statements[0];
     if (!isAssignmentStatement(assignment)) throw new Error('expected assignment');
@@ -250,7 +250,7 @@ end
 
 it('keeps callback-bearing neighbor facts conservative after replacing an explicit graph', () => {
     const parsed = parser.parse<Program>(`use graph
-fun A B linked = A less B
+fun A linked B = A less B
 G = new graph (array 1 2 3) .directed
 G = new graph (array 1 2 3) with linked .directed
 N = G 1

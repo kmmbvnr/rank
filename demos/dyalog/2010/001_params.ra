@@ -22,7 +22,7 @@ fun Text getparams
     + "BankAmount BankRate DadAmount "
     + "DadRate Inflation MarginalTax "
     + "PropertyTax SavingsRate InitialRent"
-  ) " " split
+  ) split " "
   Nodes' = Text xml .flat
   Found' = Nodes filter .name equal "BuyRentParams"
   return Found 0 .attributes Fields real rank 0

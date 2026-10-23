@@ -3,10 +3,10 @@ rem https://projecteuler.net/problem=327
 
 use io
 
-Answer = (3 to 40) 30 cards
+Answer = (3 to 40) cards 30
 Answer print
 
-fun Cs' Rooms cards
+fun Cs' cards Rooms
   Answer = 0
   for C in Cs
     Need = 1

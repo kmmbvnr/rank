@@ -33,7 +33,7 @@ Ways = array shape (2 * Total + 1) fill 0
 Ways Total = 1
 for N in 1 to Total
   Base = Total - N
-  Ways Base = (Ways (Use + Base)) Sgn matmul
+  Ways Base = (Ways (Use + Base)) matmul Sgn
 end
 Ways = Ways (Total to 0 by -1) copy
 Answer = Ways Total - 1

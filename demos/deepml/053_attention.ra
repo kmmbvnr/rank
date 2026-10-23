@@ -7,15 +7,15 @@ use sequences
 
 fun X Wq Wk Wv compute_qkv
   return record
-    .q = X Wq matmul
-    .k = X Wk matmul
-    .v = X Wv matmul
+    .q = X matmul Wq
+    .k = X matmul Wk
+    .v = X matmul Wv
   end
 end
 
 fun Q K V self_attention
   Width = Q len axis 1
-  Scores = (Q K matmul axis 1 1) / (Width sqrt)
+  Scores = (Q matmul K axis 1 1) / (Width sqrt)
 
   Tops = Scores max axis 1
   Shift' = Scores - Tops rank 1 0
@@ -23,5 +23,5 @@ fun Q K V self_attention
   Totals = Exps sum axis 1
   Weights' = Exps / Totals rank 1 0
 
-  return Weights V matmul
+  return Weights matmul V
 end

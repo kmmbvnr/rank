@@ -26,14 +26,14 @@ describe('and and or after a single boolean', () => {
 
     it('skip effects on the right side, including suspended calls', () => {
         expect(run(`use algo
-fun Log V visit
+fun Log visit V
  Log push V
  return V
 end
 Log = new queue
-A = (Log false visit) and (Log true visit)
-B = (Log true visit) or (Log false visit)
-C = (Log true visit) and (Log false visit)
+A = (Log visit false) and (Log visit true)
+B = (Log visit true) or (Log visit false)
+C = (Log visit true) and (Log visit false)
 Log`)).toBe('false true true false');
     });
 

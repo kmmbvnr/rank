@@ -17,7 +17,7 @@ Tree distance_sums print
 
 rem Reroot one known distance sum.
 fun Tree distance_sums
-  Walk = Tree 1 dfs
+  Walk = Tree dfs 1
   Order = Walk .order
   Parents = Walk .parent
   Distances = Walk .distance

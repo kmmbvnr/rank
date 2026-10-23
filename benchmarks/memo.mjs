@@ -9,7 +9,7 @@ fun N manual
   Cache = index
   return N Cache fib
 
-  fun N Cache fib
+  fun N fib Cache
     if N in Cache
       return Cache N
     end

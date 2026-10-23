@@ -13,7 +13,7 @@ describe('first and last', () => {
         expect(show(runtime, '"abc" last')).toBe('c');
         expect(show(runtime, 'primes till 20 last')).toBe('19');
         expect(show(runtime, 'primes first')).toBe('2');
-        runtime.execute('D = new deque\nD 4 pushback\nD 9 pushback');
+        runtime.execute('D = new deque\nD pushback 4\nD pushback 9');
         expect(show(runtime, 'D first')).toBe('4');
         expect(show(runtime, 'D last')).toBe('9');
     });
@@ -95,7 +95,7 @@ describe('postfix array on containers', () => {
         expect(show(runtime, 'B')).toBe('1 2 3');
         runtime.execute('S = new stack\nS push 4\nS push 5');
         expect(show(runtime, 'S array')).toBe('4 5');
-        runtime.execute('D = new deque\nD 4 pushback\nD 3 pushfront');
+        runtime.execute('D = new deque\nD pushback 4\nD pushfront 3');
         expect(show(runtime, 'D array')).toBe('3 4');
     });
 

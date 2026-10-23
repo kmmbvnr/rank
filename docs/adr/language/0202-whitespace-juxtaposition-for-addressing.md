@@ -51,7 +51,7 @@ Indices must be non-negative integers ($\ge 0$). Rank explicitly **rejects negat
 * **Arithmetic safety:** Eliminates lexical ambiguity between indexing and subtraction (`A - 1`).
 
 ### Negative & Trade-offs
-* **Parser arity sensitivity:** The parser must strictly resolve function arity and precedence to differentiate addressing (`A B`) from binary function calls (`A B gcd`).
+* **Parser arity sensitivity:** The parser must strictly resolve function arity and precedence to differentiate addressing (`A B`) from binary function calls (`A gcd B`).
 * **Explicit tail calculations:** Without negative indexing or implicit tail wrapping, accessing end elements requires computing the target index explicitly.
 
 ## References

@@ -5,7 +5,7 @@ test "official six predictions"
   Truth = array 1 0 1 1 0 1
   Predicted = array 1 0 0 1 0 1
 
-  Score = Truth Predicted accuracy_score
+  Score = Truth accuracy_score Predicted
   Score equal 5 / 6
 end
 
@@ -14,7 +14,7 @@ test "official half correct"
   Truth = array 1 1 1 1
   Predicted = array 1 0 1 0
 
-  Score = Truth Predicted accuracy_score
+  Score = Truth accuracy_score Predicted
   Score equal 0.5
 end
 
@@ -22,7 +22,7 @@ test "all predictions may be correct"
   use "036_accuracy"
   Truth = array 2 0 2
 
-  Truth Truth accuracy_score equal 1
+  Truth accuracy_score Truth equal 1
 end
 
 test "lengths must match"
@@ -46,7 +46,7 @@ test "empty accuracy is undefined"
   Raised = false
 
   try
-    Result = Empty Empty accuracy_score
+    Result = Empty accuracy_score Empty
   catch .EmptyInput Error
     Raised = true
   end

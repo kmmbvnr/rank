@@ -5,7 +5,7 @@ describe('Unicode string operations', () => {
     it('keeps scalar text whole and maps columns lazily', () => {
         expect(run('use text\n"ÄBC" lower')).toBe('äbc');
         expect(run('use text\n(array "ÄBC" "B") lower')).toBe('äbc b');
-        expect(run('use text\n(array "Tennis" "Other") "T" startswith'))
+        expect(run('use text\n(array "Tennis" "Other") startswith "T"'))
             .toBe('true false');
         expect(run('use text\n"Ä😀" 5 "é🙂" lpad')).toBe('é🙂éÄ😀');
         expect(run('use text\n(array "A" "AB") 3 "0" lpad'))
@@ -23,9 +23,9 @@ describe('Unicode string operations', () => {
         expect(run('use text\n"²" digit')).toBe('false');
         expect(run('use text\n"²" alnum')).toBe('true');
         expect(run('use text\n" " alnum')).toBe('false');
-        expect(run('use text\n"Ab 1,é" "" split letter'))
+        expect(run('use text\n"Ab 1,é" split "" letter'))
             .toBe('true true false false false true');
-        expect(run('use text\n"Ab 1" "" split digit'))
+        expect(run('use text\n"Ab 1" split "" digit'))
             .toBe('false false false true');
     });
 

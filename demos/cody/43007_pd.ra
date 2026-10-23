@@ -10,7 +10,7 @@ rem Avoid an N N P temporary tensor.
 fun Points pair_distances
   Norm2 = Points * Points sum axis 1
   PointsT' = Points transpose
-  Dot' = Points PointsT matmul
+  Dot' = Points matmul PointsT
   Squared' = (Norm2 Norm2 outer +) - Dot * 2
   return Squared max 0 sqrt
 end

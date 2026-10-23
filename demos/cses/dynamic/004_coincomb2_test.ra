@@ -3,23 +3,23 @@ use testing
 test "official example"
   use "004_coincomb2"
   Coins = array 2 3 5
-  Coins 9 unordered_coin_ways equal 3
+  Coins unordered_coin_ways 9 equal 3
 end
 
 test "order does not add solutions"
   use "004_coincomb2"
   Coins = array 1 2 5
-  Coins 5 unordered_coin_ways equal 4
+  Coins unordered_coin_ways 5 equal 4
 end
 
 test "empty sum has one combination"
   use "004_coincomb2"
   Coins = array 4 9
-  Coins 0 unordered_coin_ways equal 1
+  Coins unordered_coin_ways 0 equal 1
 end
 
 test "unreachable sum"
   use "004_coincomb2"
   Coins = array 4 6
-  Coins 7 unordered_coin_ways equal 0
+  Coins unordered_coin_ways 7 equal 0
 end

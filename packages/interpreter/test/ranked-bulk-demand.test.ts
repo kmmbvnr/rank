@@ -131,7 +131,7 @@ describe.each([false, true])('large ranked plan (compilation=%s)', compilation =
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.variables.set('Input', source(index => { reads++; return BigInt(index); }));
-            runtime.execute("Plan' = Input 10 min");
+            runtime.execute("Plan' = Input min 10");
             expect(reads).toBe(0);
             runtime.execute('Saved = Plan');
             expect(reads).toBe(size);

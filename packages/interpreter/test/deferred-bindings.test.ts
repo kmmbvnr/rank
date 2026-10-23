@@ -44,7 +44,7 @@ describe.each([false, true])('deferred binding validation (compilation=%s)', com
     it.each([
         ['Q = new queue', 'Q push 9'],
         ['Q = new set', 'Q add 9'],
-        ['Q = new deque', 'Q 9 pushfront'],
+        ['Q = new deque', 'Q pushfront 9'],
         ['Q = new heap', 'Q 1 9 enqueue'],
     ])('rejects receiver mutation before effects: %s / %s', (setup, write) => {
         const output: string[] = [];

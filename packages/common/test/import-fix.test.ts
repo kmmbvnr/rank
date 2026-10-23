@@ -95,12 +95,12 @@ describe('import suggestions', () => {
     });
 
     it('suggests only sequences for collection find', async () => {
-        const { repl } = await failAtPrompt([], 'X = (array 3 1 2) 1 find');
+        const { repl } = await failAtPrompt([], 'X = (array 3 1 2) find 1');
         expect(repl.importFixes).toEqual(['sequences']);
     });
 
     it('switches between candidate modules in a diagnostic', async () => {
-        const { repl, keys } = await failAtPrompt([], 'X = (array 3 1 2) 1 find');
+        const { repl, keys } = await failAtPrompt([], 'X = (array 3 1 2) find 1');
         // Exercise alternative navigation independently of the catalogue, whose names are unique.
         repl.notebook.current.output = [{
             text: 'unknown name: example; did you forget `use graph` or `use sequences`?', error: true,

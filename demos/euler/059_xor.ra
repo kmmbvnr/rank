@@ -9,10 +9,10 @@ use cli
 
 argument Input path = "demos/euler/fixtures/0059_cipher.txt"
 
-Cipher = Input read "," split integer rank 0
+Cipher = Input read split "," integer rank 0
 Weights = english_weights
-Key = Cipher Weights best_key
-Plain = Cipher Key decrypt
+Key = Cipher best_key Weights
+Plain = Cipher decrypt Key
 Answer = Plain sum
 Answer print
 
@@ -30,13 +30,13 @@ end
 
 
 rem Gather repeats the key; bxor applies to corresponding bytes.
-fun Cipher Key decrypt
+fun Cipher decrypt Key
   Size = Cipher len
   Positions' = 0 till Size
   KeyLen = Key len
   Slots' = Positions mod KeyLen
   KeyStream' = Key Slots
-  return Cipher KeyStream bxor
+  return Cipher bxor KeyStream
 end
 
 
@@ -62,11 +62,11 @@ end
 
 
 rem Find the best single byte for a strided slice.
-fun Bytes Weights best_byte
+fun Bytes best_byte Weights
   BestScore = -101 * (Bytes len) - 1
   BestByte = 97
   for Byte in 97 to 122
-    Plain' = Bytes Byte bxor
+    Plain' = Bytes bxor Byte
     Score = Weights Plain sum
     if Score greater BestScore
       BestScore = Score
@@ -78,10 +78,10 @@ end
 
 
 rem Solve each byte independently; materialize each reused slice once.
-fun Cipher Weights best_key
+fun Cipher best_key Weights
   Size = Cipher len
-  B0 = ((Cipher (0 till Size by 3)) copy) Weights best_byte
-  B1 = ((Cipher (1 till Size by 3)) copy) Weights best_byte
-  B2 = ((Cipher (2 till Size by 3)) copy) Weights best_byte
+  B0 = ((Cipher (0 till Size by 3)) copy) best_byte Weights
+  B1 = ((Cipher (1 till Size by 3)) copy) best_byte Weights
+  B2 = ((Cipher (2 till Size by 3)) copy) best_byte Weights
   return array B0 B1 B2
 end

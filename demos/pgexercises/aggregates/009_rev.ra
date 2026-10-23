@@ -24,4 +24,4 @@ Result' = G select
   .revenue = .revenue sum
 end
 Result' = Result sort by .revenue
-Result OutputPath csv
+Result csv OutputPath

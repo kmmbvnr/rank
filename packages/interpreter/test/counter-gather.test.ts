@@ -67,19 +67,19 @@ describe.each([false, true])('counter gather (compilation=%s)', compilation => {
     });
 
     it('shares an explicit accumulator across recursive branches and isolates fresh counters', () => {
-        expect(formatValue(run(`fun Depth Counts visit
+        expect(formatValue(run(`fun Depth visit Counts
  if Depth equal 0
   Counts add 7
   return Counts
  end
- Left = (Depth - 1) Counts visit
- Right = (Depth - 1) Counts visit
+ Left = (Depth - 1) visit Counts
+ Right = (Depth - 1) visit Counts
  return Counts
 end
 A = new counter
-Alias = 4 A visit
+Alias = 4 visit A
 B = new counter
-Other = 2 B visit
+Other = 2 visit B
 array (A 7) (Alias 7) (B 7) (Other 7)`)!)).toBe('16 16 4 4');
     });
 

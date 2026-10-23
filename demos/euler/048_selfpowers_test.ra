@@ -10,5 +10,5 @@ end
 test "first ten self powers"
   use "048_selfpowers"
 
-  10 10 self_power_tail equal 405071317
+  10 self_power_tail 10 equal 405071317
 end

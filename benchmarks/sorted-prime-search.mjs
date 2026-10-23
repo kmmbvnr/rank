@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { cpus } from 'node:os';
 import { fileURLToPath } from 'node:url';
 const option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
-const upper = `fun X A upper
+const upper = `fun X upper A
   Lo = 0
   Hi = A len
   for Lo less Hi
@@ -31,7 +31,7 @@ if (option('worker')) {
             const setupMs = performance.now() - start;
             assert.equal(runtime.variables.get('Pr').shape[0], 2146775);
             assert.equal(runtime.variables.get('P1').shape[0], 1073096);
-            const query = variant === 'native' ? 'P1 X upperindex' : 'X P1 upper';
+            const query = variant === 'native' ? 'P1 upperindex X' : 'X P1 upper';
             const source = `Total = 0\nfor X in Q\n  Total += ${query}\nend\nTotal`;
             // Separate first invocation (including compilation) from warmed calls.
             const cold = performance.now();
@@ -50,10 +50,10 @@ if (option('worker')) {
             source = source.replace(/rem Upper bound in a sorted array\.[\s\S]*?rem Count 3\^a/, 'rem Count 3^a');
             source = source.replace('use numbers', 'use algo\nuse numbers');
             // Both variants use the same algorithm; only the search calls differ.
-            source = source.replace('Count = Hi P1 upper', 'Count = P1 Hi upperindex')
-                .replace('Count -= (R - 1) P1 upper', 'Count -= P1 (R - 1) upperindex');
-            if (variant === 'rank') source = upper + '\n' + source.replace('Count = P1 Hi upperindex', 'Count = Hi P1 upper')
-                .replace('Count -= P1 (R - 1) upperindex', 'Count -= (R - 1) P1 upper');
+            source = source.replace('Count = Hi P1 upper', 'Count = P1 upperindex Hi')
+                .replace('Count -= (R - 1) P1 upper', 'Count -= P1 upperindex (R - 1)');
+            if (variant === 'rank') source = upper + '\n' + source.replace('Count = P1 upperindex Hi', 'Count = Hi P1 upper')
+                .replace('Count -= P1 upperindex (R - 1)', 'Count -= (R - 1) P1 upper');
             const limit = option('limit') ?? '1000000000';
             runtime.execute(`Limit = ${limit}`);
             const start = performance.now();

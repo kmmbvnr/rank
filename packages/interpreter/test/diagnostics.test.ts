@@ -78,9 +78,9 @@ use text
 Ranks = "23456789TJQKA"
 fun Card card_value
   Rank = Card 0
-  return Ranks Rank find
+  return Ranks find Rank
 end
-Values = ("5H 5C" "" split) card_value rank 0
+Values = ("5H 5C" split "") card_value rank 0
 Values 1`);
         expect(error.rankKind).toBe('Missing');
         expect(error.formatCalls()).toContain('card_value\n  Card = "H"');

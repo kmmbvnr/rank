@@ -11,13 +11,13 @@ for (const compilation of [false, true]) describe(`stored integer extrema (compi
             const b = [7n, 0n, -9n];
             runtime.variables.set('A', ownedArray([...a], [2, 1], true));
             runtime.variables.set('B', ownedArray(b, [1, 3], true));
-            runtime.execute(`Q = ${operation === 'min' ? 'A B min' : 'A max B'}\nAlias = Q\nA 0 0 = 99`);
+            runtime.execute(`Q = ${operation === 'min' ? 'A min B' : 'A max B'}\nAlias = Q\nA 0 0 = 99`);
             const result = runtime.variables.get('Alias')!;
             expect(isRankArray(result)).toBe(true);
             if (!isRankArray(result)) throw Error('expected array');
             expect(result.shape).toEqual([2, 3]);
             expect(result.items).toEqual(a.flatMap(x => b.map(y => operation === 'min' ? (y < x ? y : x) : (y > x ? y : x))));
-            expect(runtime.execute(`(${operation === 'min' ? '7 (array 2 9) min' : '7 max (array 2 9)'}) sum`)).toBe(operation === 'min' ? 9n : 16n);
+            expect(runtime.execute(`(${operation === 'min' ? '7 min (array 2 9)' : '7 max (array 2 9)'}) sum`)).toBe(operation === 'min' ? 9n : 16n);
         } finally { runtime.dispose(); }
     });
 
@@ -28,7 +28,7 @@ for (const compilation of [false, true]) describe(`stored integer extrema (compi
             const operation = runtime.variables.get('op')!;
             if (!isNativeFunction(operation)) throw Error('expected native');
             Object.defineProperty(operation, 'call', { value: () => 7n });
-            expect(runtime.execute('(A A op) sum')).toBe(14n);
+            expect(runtime.execute('(A op A) sum')).toBe(14n);
         } finally { runtime.dispose(); }
     });
 
@@ -37,13 +37,13 @@ for (const compilation of [false, true]) describe(`stored integer extrema (compi
         try {
             runtime.variables.set('A', ownedArray([1n, 5n], [2], true));
             runtime.variables.set('B', ownedArray([0.5, 3.5], [2], true));
-            expect(runtime.execute('(A B min) sum')).toBe(4);
+            expect(runtime.execute('(A min B) sum')).toBe(4);
             expect(runtime.execute('(A max B) sum')).toBe(6n);
             const reads: number[] = [];
             runtime.variables.set('Host', { kind: 'array', shape: [2],
                 itemAt(index: number): RankValue { reads.push(index); if (index === 1) throw Error('bad cell'); return 3n; },
                 get items(): RankValue[] { throw Error('materialized host'); } });
-            runtime.execute("Q' = Host A min");
+            runtime.execute("Q' = Host min A");
             expect(reads).toEqual([]);
             expect(runtime.execute('Q 0')).toBe(1n);
             expect(() => runtime.execute('Q 1')).toThrow('bad cell');

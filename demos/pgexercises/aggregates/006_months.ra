@@ -25,4 +25,4 @@ Result' = G select
   .slots = .slots sum
 end
 Result' = Result sort by .facid .month
-Result OutputPath csv
+Result csv OutputPath

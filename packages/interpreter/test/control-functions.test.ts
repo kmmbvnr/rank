@@ -289,7 +289,7 @@ describe('Rank control flow and functions', () => {
     it('calls user functions with local indexes and returns arrays', () => {
         expect(run([
             'use algo',
-            'fun A Target two_sum',
+            'fun A two_sum Target',
             '  Index = new index',
             '  for Value i in A',
             '    Need = Target - Value',
@@ -301,7 +301,7 @@ describe('Rank control flow and functions', () => {
             '  end',
             'end',
             'A = array 2 7 11 15',
-            'Answer = A 9 two_sum',
+            'Answer = A two_sum 9',
             'Answer 1',
         ].join('\n'))).toBe('1');
     });
@@ -521,7 +521,7 @@ array (2 caller) (5 caller)`)).toBe('12 15');
                 source: [
                     'use text',
                     'fun Text pieces',
-                    '  return Text "," split',
+                    '  return Text split ","',
                     'end',
                 ].join('\n'),
             }),

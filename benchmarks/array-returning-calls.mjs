@@ -12,7 +12,7 @@ assert.ok(Number.isSafeInteger(n) && n > 0);
 assert.ok(Number.isInteger(trials) && trials > 0);
 const runtimePath = resolve(option('runtime') ?? fileURLToPath(new URL('../packages/interpreter/out/index.js', import.meta.url)));
 const source = `use sequences
-fun A N advance
+fun A advance N
  B = array shape 23 fill 0
  for J in 0 till 23
   B J = ((A J) * 100000007 + N + J) mod 1000000007

@@ -7,12 +7,12 @@ N = stdin .integer
 Target = stdin .integer
 Coins' = stdin .integer N
 
-Coins Target unordered_coin_ways print
+Coins unordered_coin_ways Target print
 
 
 rem Add each denomination once
 rem to the dynamic program.
-fun Coins' Target unordered_coin_ways
+fun Coins' unordered_coin_ways Target
   Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 

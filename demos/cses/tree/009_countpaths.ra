@@ -15,12 +15,12 @@ for i in 1 till N
 end
 Values' = stdin .integer (M * 2) array
 Paths = Values reshape M 2
-Rooted = Tree 1 root
-Rooted Paths path_counts print
+Rooted = Tree root 1
+Rooted path_counts Paths print
 
 
 rem Add path differences, then merge up.
-fun Rooted Paths path_counts
+fun Rooted path_counts Paths
   Order = Rooted .order
   Parents = Rooted .parent
   Root = Rooted .root

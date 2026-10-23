@@ -10,7 +10,7 @@ use cli
 
 option N integer = 11
 
-Answer = N bozo 0 round
+Answer = N bozo round 0
 Answer print
 
 fun R Top Code Out parts
@@ -18,7 +18,7 @@ fun R Top Code Out parts
     Out push Code
     return Out
   end
-  End = R Top min
+  End = R min Top
   for X in 1 to End reverse
     Next = Code * 12 + X
     Out = (R - X) X Next Out parts
@@ -26,7 +26,7 @@ fun R Top Code Out parts
   return Out
 end
 
-fun N Code rep
+fun N rep Code
   P = array shape N fill 0
   At = 0
   for Code greater 0
@@ -64,7 +64,7 @@ fun P kind
   return Key
 end
 
-fun Cs Key lookup
+fun Cs lookup Key
   for I in 0 till (Cs len)
     if Cs I equal Key
       return I
@@ -81,7 +81,7 @@ fun N fact
   return R
 end
 
-fun N Code classsize
+fun N classsize Code
   Freq = array shape (N + 1) fill 0
   for Code greater 0
     Len = Code mod 12
@@ -112,7 +112,7 @@ fun N bozo
   Pairs = N * (N - 1) // 2
   Cycles = N * (N - 1) * (N - 2) // 3
   for I in 0 till M
-    P = N (Cs I) rep
+    P = N rep (Cs I)
     C2 = array shape Cnt fill 0
     C3 = array shape Cnt fill 0
     for X in 0 till N
@@ -122,7 +122,7 @@ fun N bozo
         T X = T Y
         T Y = V
         Key = T kind
-        To = Cs Key lookup
+        To = Cs lookup Key
         C2 To += 1
         for Z in (Y + 1) till N
           T = P copy
@@ -133,7 +133,7 @@ fun N bozo
           T Y = W
           T Z = U
           Key = T kind
-          To = Cs Key lookup
+          To = Cs lookup Key
           C3 To += 1
           T = P copy
           U = T X
@@ -143,7 +143,7 @@ fun N bozo
           T Y = U
           T Z = V
           Key = T kind
-          To = Cs Key lookup
+          To = Cs lookup Key
           C3 To += 1
         end
       end
@@ -157,11 +157,11 @@ fun N bozo
       A I J = Coef
     end
   end
-  H = A B solve
+  H = A solve B
   Num = 0.0
   Den = N fact
   for I in 0 till M
-    Num += N (Cs I) classsize * H I
+    Num += N classsize (Cs I) * H I
   end
   return Num / Den
 end

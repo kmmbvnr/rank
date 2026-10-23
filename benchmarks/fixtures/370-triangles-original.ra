@@ -25,7 +25,7 @@ fun P triq
   return Q
 end
 
-fun P Limit normq
+fun P normq Limit
   if 3 * P * P greater Limit
     return 0
   end
@@ -60,7 +60,7 @@ fun Fs I D Sign Lo Hi inc
   return A + B
 end
 
-fun Spf P primesof
+fun Spf primesof P
   Fs = new queue
   for P greater 1
     D = Spf P
@@ -74,21 +74,21 @@ end
 
 fun Spf Limit P countp
   End = P triq
-  Nq = P Limit normq
+  Nq = P normq Limit
   if Nq less End
     End = Nq
   end
   if End less P
     return 0
   end
-  Fs = Spf P primesof
+  Fs = Spf primesof P
   Sum = 0
   Lo = P
   for Lo at most End
     Norm = Lo * Lo + P * Lo + P * P
     Q = Limit // Norm
     Top = Limit // Q
-    Hi = P Top normq
+    Hi = P normq Top
     if Hi greater End
       Hi = End
     end

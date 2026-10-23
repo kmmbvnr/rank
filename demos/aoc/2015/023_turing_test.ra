@@ -19,7 +19,7 @@ test "all six instructions update the machine"
     "tpl b"
     "inc b"
   end
-  Program 0 execute equal 2
+  Program execute 0 equal 2
 end
 
 test "the initial value of register a changes control flow"
@@ -30,7 +30,7 @@ test "the initial value of register a changes control flow"
     "inc b"
     "tpl b"
   end
-  Part1 = Program 0 execute equal 3
-  Part2 = Program 1 execute equal 0
+  Part1 = Program execute 0 equal 3
+  Part2 = Program execute 1 equal 0
   Part1 and Part2
 end

@@ -7,8 +7,8 @@ import { Interpreter } from '../packages/interpreter/out/index.js';
 // to measure calls from ordinary Rank code, with the linked loop as a control.
 const count = 100000;
 const helpers = {
-    leaf: 'fun A B helper\n return A * 10 + B\nend',
-    loop: 'fun A B helper\n Scale = 10\n for Scale at most B\n  Scale *= 10\n end\n return A * Scale + B\nend',
+    leaf: 'fun A helper B\n return A * 10 + B\nend',
+    loop: 'fun A helper B\n Scale = 10\n for Scale at most B\n  Scale *= 10\n end\n return A * Scale + B\nend',
 };
 if (process.argv[2] === '--worker') {
     const name = process.argv[3], mode = process.argv[4];

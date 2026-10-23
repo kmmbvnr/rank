@@ -21,14 +21,14 @@ Part2 print
 
 rem TLS needs an ABBA outside brackets and none inside them.
 fun Address tls
-  Parts = Address (array "[" "]") split
+  Parts = Address split (array "[" "]")
 
   I = 0 till (Parts len)
   SuperMask = I even
   HyperMask = not SuperMask
 
-  Super = Parts SuperMask "[[[[" join
-  Hyper = Parts HyperMask "]]]]" join
+  Super = Parts SuperMask join "[[[["
+  Hyper = Parts HyperMask join "]]]]"
 
   Good = Super has_abba
   Bad = Hyper has_abba
@@ -60,14 +60,14 @@ end
 
 rem SSL needs an outside ABA whose matching BAB occurs inside brackets.
 fun Address ssl
-  Parts = Address (array "[" "]") split
+  Parts = Address split (array "[" "]")
 
   I = 0 till (Parts len)
   SuperMask = I even
   HyperMask = not SuperMask
 
-  Super = Parts SuperMask "[[[[" join
-  Hyper = Parts HyperMask "]]]]" join
+  Super = Parts SuperMask join "[[[["
+  Hyper = Parts HyperMask join "]]]]"
 
   Windows = Super window 3
   Mask = Windows is_aba rank 0

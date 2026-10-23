@@ -13,7 +13,7 @@ describe('bulk queries under default', () => {
     });
 
     it.each([
-        ['use sequences\nK = array 5 2 5\nQ = array 2 9 5\nK Q find default -1', '1 -1 0', 'find'],
+        ['use sequences\nK = array 5 2 5\nQ = array 2 9 5\nK find Q default -1', '1 -1 0', 'find'],
         ['I = array 0 -1 2\nC = array 10 20 30\nI C choose default -1', '10 -1 30', 'choose'],
         ['use algo\nS = (array 1 5 9) multiset\nQ = array 0 6 10\nS floor Q default -1', '-1 5 9', 'floor'],
     ])('uses the fused path: %s', (source, expected, operation) => {
@@ -26,8 +26,8 @@ describe('bulk queries under default', () => {
     });
 
     it('leaves fallback lazy and whole-array misses raising', () => {
-        expect(run('use sequences\nK = array 1 2\nQ = array 2 1\nK Q find default (1 // 0)')).toBe('1 0');
-        expect(() => run('use sequences\nK = array 1 2\nQ = array 9 1\nK Q find')).toThrow('find found no matching value');
+        expect(run('use sequences\nK = array 1 2\nQ = array 2 1\nK find Q default (1 // 0)')).toBe('1 0');
+        expect(() => run('use sequences\nK = array 1 2\nQ = array 9 1\nK find Q')).toThrow('find found no matching value');
         expect(() => run('I = array 0 9\nC = array 10 20\nI C choose')).toThrow('choose index out of bounds');
     });
 });

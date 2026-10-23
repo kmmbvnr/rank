@@ -8,11 +8,11 @@ N = stdin .integer
 X = stdin .integer
 A = stdin .integer N array
 
-A X gondolas print
+A gondolas X print
 
 
 rem Find the minimum gondola count.
-fun Weights Limit gondolas
+fun Weights gondolas Limit
   A = Weights sort
   I = 0
   J = A len - 1

@@ -8,7 +8,7 @@ test "official example"
     2 2
     1 4
   end
-  Actual = Values Queries increase_costs
+  Actual = Values increase_costs Queries
   Actual equal array 2 0 14
 end
 
@@ -20,6 +20,6 @@ test "sorted and falling ranges"
     4 6
     5 6
   end
-  Actual = Values Queries increase_costs
+  Actual = Values increase_costs Queries
   Actual equal array 3 3 1
 end

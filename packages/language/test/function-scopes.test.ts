@@ -111,7 +111,7 @@ end`);
 
     it('allows explicit mutable parameters and local accumulators', () => {
         expect(analyze(`use algo
-fun Items N append
+fun Items append N
  Total = 0
  for I in 1 to N
   Total += I
@@ -230,7 +230,7 @@ end`)).toEqual([]);
         expect(diagnostics(`fun compare f g = f ${operator} g
 fun Limit outer
  fun X below = X less Limit
- return compare below below
+ return below compare below
 end`)).toEqual([]);
     });
 
@@ -271,7 +271,7 @@ end`)).toEqual([]);
         expect(diagnostics(`use sequences
 fun Limit outer
  fun X step = X + 1
- fun Previous Current done = Current at least Limit
+ fun Previous done Current = Current at least Limit
  return 0 step repeat 10 till done
 end`)).toEqual([]);
     });

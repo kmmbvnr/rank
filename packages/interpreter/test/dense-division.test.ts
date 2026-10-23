@@ -35,7 +35,7 @@ for (const operator of ['//', 'mod']) describe(`dense ${operator}`, () => {
     }));
 
     it('broadcasts arrays and either scalar orientation like scalar evaluation', () => withRuntime(runtime => {
-        runtime.execute('fun A B scalar\n  return A ' + operator + ' B\nend');
+        runtime.execute('fun A scalar B\n  return A ' + operator + ' B\nend');
         const scalar = runtime.variables.get('scalar')!;
         if (!isNativeFunction(scalar)) throw new Error('expected function');
         const left = Array.from({ length: 2048 }, (_, i) => BigInt(i - 1024));

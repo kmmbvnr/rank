@@ -47,7 +47,7 @@ describe('missing cells (.NA)', () => {
         expect(run('(array 1.0 .NA 3.0) present')).toBe('true false true');
         expect(run('.NA present')).toBe('false');
         expect(run('5 present')).toBe('true');
-        expect(run('use sequences\n(array 1.0 .NA 3.0) present false find')).toBe('1');
+        expect(run('use sequences\n(array 1.0 .NA 3.0) present find false')).toBe('1');
     });
 
     it('is skipped by reductions', () => {
@@ -57,7 +57,7 @@ describe('missing cells (.NA)', () => {
         expect(run('(array 4 .NA 3) max')).toBe('4');
         expect(run('use stats\n(array 1.0 .NA 5.0) mean')).toBe('3');
         expect(run('use stats\n(array 1.0 .NA 5.0 9.0) median')).toBe('5');
-        expect(run('.NA 1 min')).toBe('.NA');
+        expect(run('.NA min 1')).toBe('.NA');
     });
 
     it('keeps nan a number apart from missing', () => {
@@ -205,7 +205,7 @@ describe('a whole array holds data without a value as .NA', () => {
     });
 
     it('names the missing value when a number is required', () => {
-        expect(() => run('use numbers\n.NA 4 gcd')).toThrowError('missing value');
+        expect(() => run('use numbers\n.NA gcd 4')).toThrowError('missing value');
         expect(run('use numbers\n(array 4.0 .NA 9.0) sqrt')).toBe('2 .NA 3');
     });
 });
@@ -226,7 +226,7 @@ describe('a name that holds .NA keeps one type', () => {
 
 describe('missing-cell catalogue policies', () => {
     it('propagates through conversions and rounding', () => {
-        expect(run('use numbers\n(array 1.25 .NA 3.75) 1 round')).toBe('1.2 .NA 3.8');
+        expect(run('use numbers\n(array 1.25 .NA 3.75) round 1')).toBe('1.2 .NA 3.8');
         expect(run('use numbers\n(array 1.25 .NA) floor')).toBe('1 .NA');
         expect(run('.NA text')).toBe('.NA');
         expect(run('(array 1 .NA) text rank 0')).toBe('1 .NA');

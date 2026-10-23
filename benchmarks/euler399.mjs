@@ -39,7 +39,7 @@ if (process.argv.includes('--worker')) {
     try {
         if (stage === 'fibmod') {
             runtime.execute(`use numbers\nuse bits\n${helper}`);
-            const program = 'Answer = 0\nfor P in 2 till 10002\n Answer += 12345 P fibmod\nend';
+            const program = 'Answer = 0\nfor P in 2 till 10002\n Answer += 12345 fibmod P\nend';
             run('fibmod-10000', program);
             assert.equal(runtime.variables.get('Answer'), 24604978n);
         } else {

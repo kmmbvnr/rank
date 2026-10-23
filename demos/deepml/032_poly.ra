@@ -4,7 +4,7 @@ rem https://www.deep-ml.com/problems/32
 use algo
 use sequences
 
-fun X Degree polynomial_features
+fun X polynomial_features Degree
   Shape = X shape
   if Shape len not equal 2
     .DimensionMismatch raise
@@ -19,7 +19,7 @@ fun X Degree polynomial_features
 
   Width = 0
   for D in 0 to Degree
-    Choices' = Indices D multicomb
+    Choices' = Indices multicomb D
     Width += Choices len
   end
 
@@ -28,7 +28,7 @@ fun X Degree polynomial_features
     Terms = array shape Width fill 0
     Position = 0
     for D in 0 to Degree
-      for Choice in Indices D multicomb
+      for Choice in Indices multicomb D
         Term = 1
         if D greater 0
           Term = Row Choice reduce *

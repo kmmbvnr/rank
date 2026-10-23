@@ -11,13 +11,13 @@ M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
 Edges = Values reshape M 2
-N Edges hamiltonian_flights print
+N hamiltonian_flights Edges print
 
 
 rem Count routes by visited-city masks.
-fun N Edges hamiltonian_flights
+fun N hamiltonian_flights Edges
   Modulus = 1000000007
-  States = 1 N shl
+  States = 1 shl N
   Full = States - 1
   Last = N - 1
   Nodes' = 0 till N
@@ -32,16 +32,16 @@ fun N Edges hamiltonian_flights
   Ways = array shape States N fill 0
   Ways 1 0 = 1
   for Mask in 3 till States by 2
-    HasLast = Mask Last bit
+    HasLast = Mask bit Last
     if HasLast and Mask not equal Full
       continue
     end
     for City in 1 till N
-      if not Mask City bit
+      if not Mask bit City
         continue
       end
-      Bit = 1 City shl
-      Before = Mask Bit bxor
+      Bit = 1 shl City
+      Before = Mask bxor Bit
       Prevs = Back City
       Ways Mask City = (Ways Before Prevs) sum mod Modulus
     end

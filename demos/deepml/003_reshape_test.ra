@@ -13,7 +13,7 @@ test "official example"
     7 8
   end
 
-  A (array 4 2) reshape_matrix equal Expected
+  A reshape_matrix (array 4 2) equal Expected
 end
 
 test "single row to single column"
@@ -27,7 +27,7 @@ test "single row to single column"
     2
   end
 
-  A (array 3 1) reshape_matrix equal Expected
+  A reshape_matrix (array 3 1) equal Expected
 end
 
 test "incompatible element count"
@@ -39,7 +39,7 @@ test "incompatible element count"
   Raised = false
 
   try
-    Result = A (array 3 2) reshape_matrix
+    Result = A reshape_matrix (array 3 2)
   catch .DimensionMismatch Error
     Raised = true
   end

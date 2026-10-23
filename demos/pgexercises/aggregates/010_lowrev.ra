@@ -25,4 +25,4 @@ R' = G select
 end
 R' = R filter .revenue less 1000
 Result' = R sort by .revenue
-Result OutputPath csv
+Result csv OutputPath

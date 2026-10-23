@@ -12,7 +12,7 @@ argument OutputPath path = "demos/tidytuesday/brazil_legal_nature_summary.csv"
 
 Data = DataPath csv
 Summary' = Data solve
-Summary OutputPath csv
+Summary csv OutputPath
 
 
 rem Summarize capital stock statistics by legal nature.
@@ -23,7 +23,7 @@ fun Data legal_nature_stats
     .total_capital = .capital_stock sum
     .avg_capital = .capital_stock mean
     .median_capital = .capital_stock median
-    .p95_capital = .capital_stock 0.95 quantile
+    .p95_capital = .capital_stock quantile 0.95
   end
   return Summary sort by .total_capital .descending
 end
@@ -46,7 +46,7 @@ end
 
 rem Filter top capital stock companies and group by owner qualification.
 fun Data top_capital_owners
-  Threshold = Data .capital_stock 0.95 quantile
+  Threshold = Data .capital_stock quantile 0.95
   TopCompanies' = Data filter .capital_stock greater Threshold
   Groups' = TopCompanies group by .owner_qualification
   Summary' = Groups select
@@ -63,7 +63,7 @@ fun Data multicategory_summary
   Summary' = Groups select
     .companies_count = count
     .median_capital = .capital_stock median
-    .p95_capital = .capital_stock 0.95 quantile
+    .p95_capital = .capital_stock quantile 0.95
   end
   return Summary sort by .companies_count .descending
 end

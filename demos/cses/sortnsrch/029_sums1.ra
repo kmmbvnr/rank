@@ -7,11 +7,11 @@ N = stdin .integer
 X = stdin .integer
 A = stdin .integer N array
 
-A X count_positive_sums print
+A count_positive_sums X print
 
 
 rem Count target sums with a positive window.
-fun A Target count_positive_sums
+fun A count_positive_sums Target
   Left = 0
   Sum = 0
   Answer = 0

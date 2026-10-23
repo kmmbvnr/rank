@@ -39,4 +39,4 @@ R' = R select
   .months = .outlay / .net
 end
 Result' = R sort by .name
-Result OutputPath csv
+Result csv OutputPath

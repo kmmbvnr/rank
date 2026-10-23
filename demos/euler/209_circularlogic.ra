@@ -19,18 +19,18 @@ rem neighbours set in Lucas(k) ways, and
 rem the cycles are independent. Each
 rem input takes the least label on its
 rem cycle by repeated neighbour mins.
-S = 1 N shl
+S = 1 shl N
 X = 0 till S array
-A' = X (N - 1) bit
-B' = X (N - 2) bit
-C' = X (N - 3) bit
+A' = X bit (N - 1)
+B' = X bit (N - 2)
+C' = X bit (N - 3)
 Bc' = B and C
 Nw' = A not equal Bc
 Low' = X mod (S // 2)
 G = Low * 2 + (Nw choose 1 0)
 Lab = X
 for I in 1 to S
-  Lab = Lab (Lab G) min
+  Lab = Lab min (Lab G)
 end
 Own' = Lab equal X
 Col' = X reshape S 1

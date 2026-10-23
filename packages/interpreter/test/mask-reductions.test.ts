@@ -63,8 +63,8 @@ for (const compilation of [false, true]) describe(`pure mask reductions (compile
             expect(() => run(setup + `A ${predicate} sum`)).toThrow(/boolean mask/);
             expect(() => run(setup + `Mask = A ${predicate}\nMask sum`)).toThrow(/boolean mask/);
         }
-        expect(() => run(setup + '(A even) 0.5 quantile')).toThrow(/boolean mask/);
-        expect(() => run(setup + 'Mask = A even\nMask 50 percentile')).toThrow(/boolean mask/);
+        expect(() => run(setup + '(A even) quantile 0.5')).toThrow(/boolean mask/);
+        expect(() => run(setup + 'Mask = A even\nMask percentile 50')).toThrow(/boolean mask/);
     });
 
     it('keeps empty reductions and unbounded mask diagnostics consistent', () => {

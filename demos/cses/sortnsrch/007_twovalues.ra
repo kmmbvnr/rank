@@ -9,7 +9,7 @@ N = stdin .integer
 X = stdin .integer
 Values' = stdin .integer N
 
-Answer = Values X find_pair
+Answer = Values find_pair X
 
 if Answer len equal 0
   "IMPOSSIBLE" print
@@ -19,7 +19,7 @@ end
 
 
 rem Find one pair with the target sum.
-fun A' Target find_pair
+fun A' find_pair Target
   Index = new index
   for Value i in A
     Need = Target - Value

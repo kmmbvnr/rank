@@ -8,7 +8,7 @@ test "counts vocabulary terms per document"
     2.0 1.0 0.0
     0.0 1.0 1.0
   end
-  Texts Vocab term_counts equal Expected
+  Texts term_counts Vocab equal Expected
 end
 
 test "keeps duplicate vocabulary columns and ignores unknown words"
@@ -19,7 +19,7 @@ test "keeps duplicate vocabulary columns and ignores unknown words"
     2.0 0.0 2.0
     0.0 0.0 0.0
   end
-  Texts Vocab term_counts equal Expected
+  Texts term_counts Vocab equal Expected
 end
 
 test "accepts an empty vocabulary"
@@ -27,7 +27,7 @@ test "accepts an empty vocabulary"
   use "005_distweets"
   Texts = array "fire" "safe"
   Vocab = array shape 0 fill ""
-  Counts = Texts Vocab term_counts
+  Counts = Texts term_counts Vocab
   Counts shape equal array 2 0
 end
 
@@ -46,7 +46,7 @@ test "fits training-only inverse document frequencies"
   use numbers
   use "005_distweets"
   Texts = array "fire safe" "safe road"
-  Model = Texts (array "fire" "safe" "road") tfidf_fit
+  Model = Texts tfidf_fit (array "fire" "safe" "road")
   Model .idf round 4 equal array 1.4055 1.0 1.4055
 end
 

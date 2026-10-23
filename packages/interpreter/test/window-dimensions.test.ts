@@ -43,11 +43,11 @@ for (const compiled of [true, false]) describe(`window dimensions (compiled ${co
     it('evaluates computed and unpacked sizes exactly once', () => {
         expect(run('State = record\n .count = 0\nend\nfun State sizes\n State .count += 1\n return array 2 2\nend\n'
             + `${grid}W = M window unpack (State sizes)\nState .count`)).toBe('1');
-        expect(run('State = record\n .count = 0\nend\nfun X State size\n State .count += 1\n return X\nend\n'
-            + `${grid}W = M window (2 State size) (2 State size)\nState .count`)).toBe('2');
+        expect(run('State = record\n .count = 0\nend\nfun X size State\n State .count += 1\n return X\nend\n'
+            + `${grid}W = M window (2 size State) (2 size State)\nState .count`)).toBe('2');
     });
     it('respects a user-defined window and explicit rank on old calls', () => {
-        expect(new Interpreter().execute('fun X Y window\n return X + Y\nend\n1 2 window')).toBe(3n);
+        expect(new Interpreter().execute('fun X window Y\n return X + Y\nend\n1 window 2')).toBe(3n);
         expect(run(`${grid}fun X sliding rank 1\n return X window 2\nend\nM sliding shape`)).toBe('3 2 2');
     });
     it('keeps runtime and analysis shapes consistent', () => {

@@ -12,11 +12,11 @@ Heights = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Heights Queries visible print
+Heights visible Queries print
 
 
 rem Jump through next-greater links.
-fun Heights Queries visible
+fun Heights visible Queries
   N = Heights len
   Sentinel = N + 1
   Next = array shape Sentinel fill 0

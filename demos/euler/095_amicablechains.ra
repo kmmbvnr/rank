@@ -34,7 +34,7 @@ rem successor; a tail vertex has one
 rem more.
 Cap = Limit + 1
 Raw' = Sigma drop 1
-Succ = Raw Cap min copy
+Succ = Raw min Cap copy
 Lens = Succ functional lengths
 Ids = Succ - 1 copy
 Back' = Lens Ids copy

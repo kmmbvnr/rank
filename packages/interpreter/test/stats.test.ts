@@ -96,8 +96,8 @@ describe('Rank statistics', () => {
     });
 
     it('calculates mean squared and absolute errors', () => {
-        expect(run('use stats\n3 1 mse')).toBe('4');
-        expect(run('use stats\n3 1 mae')).toBe('2');
+        expect(run('use stats\n3 mse 1')).toBe('4');
+        expect(run('use stats\n3 mae 1')).toBe('2');
         expect(run([
             'use stats',
             'Actual = array shape 2 2',
@@ -105,7 +105,7 @@ describe('Rank statistics', () => {
             '  3 8',
             'end',
             'Target = array 1 2',
-            'Actual Target mse',
+            'Actual mse Target',
         ].join('\n'))).toBe('11');
         expect(run([
             'use stats',
@@ -114,14 +114,14 @@ describe('Rank statistics', () => {
             '  3 8',
             'end',
             'Target = array 1 2',
-            'Actual Target mae',
+            'Actual mae Target',
         ].join('\n'))).toBe('2.5');
         expect(run([
 
             'use stats',
             'Actual = 1 to 3',
             'Target = array 1 1 1',
-            'Actual Target mae',
+            'Actual mae Target',
         ].join('\n'))).toBe('1');
     });
 
@@ -134,11 +134,11 @@ describe('Rank statistics', () => {
             'end',
             'Target = array 1 2',
         ];
-        expect(run([...source, 'Actual Target mse axis 1'].join('\n')))
+        expect(run([...source, 'Actual mse Target axis 1'].join('\n')))
             .toBe('2 20');
-        expect(run([...source, 'Actual Target mae axis 1'].join('\n')))
+        expect(run([...source, 'Actual mae Target axis 1'].join('\n')))
             .toBe('1 4');
-        expect(run([...source, 'Actual Target mse axis 0 1'].join('\n')))
+        expect(run([...source, 'Actual mse Target axis 0 1'].join('\n')))
             .toBe('11');
     });
 
@@ -147,29 +147,29 @@ describe('Rank statistics', () => {
             'use stats',
             "Actual' = (array shape 2 2\n 1 2\n 3 4\nend) // (array shape 2 2\n 1 1\n 0 1\nend)",
             'Target = array 1 1',
-            "Result' = Actual Target mse axis 1",
+            "Result' = Actual mse Target axis 1",
             'Result 0',
         ].join('\n'))).toBe('0.5');
     });
 
     it('validates error metric inputs and axes', () => {
-        expect(() => run('3 1 mse')).toThrowError('unknown name: mse');
-        expect(() => run('use stats\n"bad" 1 mae'))
+        expect(() => run('3 mse 1')).toThrowError('unknown name: mse');
+        expect(() => run('use stats\n"bad" mae 1'))
             .toThrowError('expected numeric input');
         expect(() => run([
             'use stats',
-            '(array 1 2) (array 1 2 3) mse',
+            '(array 1 2) mse (array 1 2 3)',
         ].join('\n'))).toThrowError('shape mismatch');
         expect(() => run([
             'use stats',
             'A = array shape 0 fill 0',
-            'A A mse',
+            'A mse A',
         ].join('\n'))).toThrowError('mse requires at least one value');
-        expect(() => run('use stats\n(array 1) (array 1) mae axis 1'))
+        expect(() => run('use stats\n(array 1) mae (array 1) axis 1'))
             .toThrowError('array has no axis 1');
-        expect(() => run('use stats\n(array 1) (array 1) mse axis 0 0'))
+        expect(() => run('use stats\n(array 1) mse (array 1) axis 0 0'))
             .toThrowError('mse axes must be unique');
-        expect(() => run('use stats\n(array 1) (array 1) mse axis'))
+        expect(() => run('use stats\n(array 1) mse (array 1) axis'))
             .toThrowError('mse axis expects one or more axes');
     });
 
@@ -262,11 +262,11 @@ describe('Rank statistics', () => {
     });
 
     it('calculates quantile and percentile with rank and axis', () => {
-        expect(run('use stats\n(array 10 20 30 40 50) 0.5 quantile')).toBe('30');
-        expect(run('use stats\n(array 10 20 30 40 50) 50 percentile')).toBe('30');
-        expect(run('use stats\n(array 10 20 30 40 50) 0.25 quantile')).toBe('20');
-        expect(run('use stats\n(array 10 20 30 40 50) 0.75 quantile')).toBe('40');
-        expect(run('use stats\n(array 10 20 30 40 50) (array 0.25 0.75) quantile')).toBe('20 40');
+        expect(run('use stats\n(array 10 20 30 40 50) quantile 0.5')).toBe('30');
+        expect(run('use stats\n(array 10 20 30 40 50) percentile 50')).toBe('30');
+        expect(run('use stats\n(array 10 20 30 40 50) quantile 0.25')).toBe('20');
+        expect(run('use stats\n(array 10 20 30 40 50) quantile 0.75')).toBe('40');
+        expect(run('use stats\n(array 10 20 30 40 50) quantile (array 0.25 0.75)')).toBe('20 40');
 
         const source = [
             'use stats',
@@ -275,14 +275,14 @@ describe('Rank statistics', () => {
             '  40 50 60',
             'end',
         ];
-        expect(run([...source, 'M 0.5 quantile rank 1'].join('\n'))).toBe('20 50');
-        expect(run([...source, 'M 0.5 quantile axis 0'].join('\n'))).toBe('25 35 45');
+        expect(run([...source, 'M quantile 0.5 rank 1'].join('\n'))).toBe('20 50');
+        expect(run([...source, 'M quantile 0.5 axis 0'].join('\n'))).toBe('25 35 45');
     });
 
     it('validates quantile input and out of bound q', () => {
-        expect(() => run('use stats\n(array 1 2 3) 1.5 quantile'))
+        expect(() => run('use stats\n(array 1 2 3) quantile 1.5'))
             .toThrowError('quantile expects q between 0 and 1');
-        expect(() => run('use stats\n(array 1 2 3) 150 percentile'))
+        expect(() => run('use stats\n(array 1 2 3) percentile 150'))
             .toThrowError('percentile expects q between 0 and 1');
     });
 

@@ -82,7 +82,7 @@ Answer = X`);
 
     it('links integer set arguments from a compiled loop', () => {
         const result = compare(`use algo
-fun N Store populate
+fun N populate Store
   for I in 1 to N
     Store add I
   end
@@ -91,7 +91,7 @@ end
 Seen = new set
 Answer = 0
 for N in 1 to 3
-  Answer += N Seen populate
+  Answer += N populate Seen
 end
 Answer += Seen sum`);
         expect(result.answer).toBe(9n);
@@ -204,17 +204,17 @@ Answer = Cache 1`);
 
     it('compiles integer index compound writes in recursive calls', () => {
         const result = compare(`use algo
-fun N Store countup
+fun N countup Store
   if N equal 0
     return 0
   end
   Store 1 += N
-  (N - 1) Store countup
+  (N - 1) countup Store
   return Store 1
 end
 Cache = new index
 Cache 1 = 9007199254740993
-Answer = 4 Cache countup`);
+Answer = 4 countup Cache`);
         expect(result.answer).toBe(9007199254741003n);
         expect(result.calls).toBeGreaterThan(0);
     });

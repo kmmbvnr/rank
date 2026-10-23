@@ -16,7 +16,7 @@ for M in -12 to 12
     if M equal 0 and N equal 0
       continue
     end
-    if (M abs) (N abs) gcd not equal 1
+    if (M abs) gcd (N abs) not equal 1
       continue
     end
     D = N * N + 3 * M * M
@@ -82,11 +82,11 @@ for Item in Dirs
           if Top greater Limit
             continue
           end
-          P1 = (array X1 Y1) "," join
-          P2 = (array X2 Y2) "," join
-          P3 = (array X3 Y3) "," join
+          P1 = (array X1 Y1) join ","
+          P2 = (array X2 Y2) join ","
+          P3 = (array X3 Y3) join ","
           Pts = array P1 P2 P3
-          Key = (Pts sort) "|" join
+          Key = (Pts sort) join "|"
           if Key not in Seen
             Seen add Key
             Num += D * (S * T abs)

@@ -90,7 +90,7 @@ for
       Jc += Ny + Dy J + N + 1
       Oc = Occ Jc
       if Oc greater 0
-        Bits += 1 ((Oc - 1) * N + D) shl
+        Bits += 1 shl ((Oc - 1) * N + D)
       end
     end
     Kb D = Bits
@@ -108,17 +108,17 @@ Sz = 2 ** N
 Ms = 0 to (Sz - 1) array
 Bm = array shape (N * Sz) fill 0
 for I in 0 till N
-  Ai' = Ms I shr
+  Ai' = Ms shr I
   Lo = I * Sz
-  Bm (Lo till (Lo + Sz)) = Ai 1 band
+  Bm (Lo till (Lo + Sz)) = Ai band 1
 end
 Best = array shape Sz fill 0
 for Ky in Keys array
   Cn = array shape Sz fill 0
   for I in 0 to (N - 3)
     for J in (I + 2) to (N - 1)
-      Kp = Ky (I * N + J) shr
-      if (Kp 1 band) equal 1
+      Kp = Ky shr (I * N + J)
+      if (Kp band 1) equal 1
         Li = I * Sz
         Lj = J * Sz
         Cn = Cn + (Bm (Li till (Li + Sz))) * (Bm (Lj till (Lj + Sz)))

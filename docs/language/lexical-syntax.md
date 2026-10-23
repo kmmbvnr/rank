@@ -424,7 +424,7 @@ especially useful with structured text parsing:
 
 ```rank
 Pattern = "/integerx/integerx/integer"
-unpack Length Width Height = Line Pattern parse
+unpack Length Width Height = Line parse Pattern
 ```
 
 The same word before an expression expands a rank-1 array into adjacent
@@ -453,7 +453,7 @@ consumes:
 
 ```rank
 30 sin
-A B gcd
+A gcd B
 Range lcm
 Answer print
 Model X predict
@@ -472,7 +472,7 @@ its result becomes the first value available to the next function:
 Mask = Fib even
 Answer = Fib Mask sum
 Text reverse print
-A B matmul round 6
+A matmul B round 6
 ```
 
 A function still cannot precede its data. Insufficient or excess arguments are
@@ -519,11 +519,11 @@ function calls, and an optional arithmetic continuation. A new function after
 that continuation is a syntax error. Name the intermediate result:
 
 ```rank
-Scores = X W matmul + Bias
+Scores = X matmul W + Bias
 Scores sigmoid
 ```
 
-`X W matmul + Bias sigmoid` is rejected with a message asking for an
+`X matmul W + Bias sigmoid` is rejected with a message asking for an
 intermediate variable. Explicit parentheses start a separate expression;
 short names are preferred when they describe a useful intermediate result.
 There is no numeric limit on the number of operations, and no `|` operator.
@@ -557,8 +557,8 @@ rem -4, 0.25
 `**` is right-associative, so `2 ** 3 ** 2` is `2 ** (3 ** 2)`.
 
 A `-` written after a space and glued to its operand is a sign, so it starts a
-new argument of the call on its left: `Values -1 shift` means
-`Values (-1) shift`. Spaces on both sides, as in `X - 1`, or none, as in `X-1`,
+new argument of the call on its left: `Values shift -1` means
+`Values shift (-1)`. Spaces on both sides, as in `X - 1`, or none, as in `X-1`,
 subtract. The REPL formatter keeps `A -1` as typed and spaces `A-1` as `A - 1`.
 
 Use parentheses or a named intermediate value when an arithmetic sign must be
@@ -732,7 +732,7 @@ real values, so its first integer replaces it and the binding settles on
 ```rank
 Best = infinity
 for Candidate in Candidates
-  Best = Best Candidate min
+  Best = Best min Candidate
 end
 rem Best is an integer when Candidates are integers
 ```
@@ -744,7 +744,7 @@ with no numeric value, such as an unknown parameter, and arises from undefined
 real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,
 `greater`, `at most`, `at least` and `equal` with it are false, so it does not
 equal itself and `find` cannot locate it. `Value isnan` tests for it, mapping
-over arrays and sequences like `even`, and `Params isnan true find` gives its
+over arrays and sequences like `even`, and `Params isnan find true` gives its
 position. `nan` is a number; a cell with no value at all is `.NA`.
 
 ## Missing cells
@@ -755,7 +755,7 @@ the array's numeric element type:
 
 ```rank
 Params = array 150000.0 5000.0 .NA 3.0
-Unknown = Params present false find
+Unknown = Params present find false
 ```
 
 Arithmetic and comparison with `.NA` give `.NA`, including `equal`, so a missing

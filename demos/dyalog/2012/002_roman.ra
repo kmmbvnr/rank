@@ -44,15 +44,15 @@ fun Text romanNumber
       Digits = Digits drop 1
     end
   end
-  Letters = Digits "" split
-  Symbols = "IVXLCDM" "" split
+  Letters = Digits split ""
+  Symbols = "IVXLCDM" split ""
   Amounts = array 1 5 10 50 100 500 1000
   Total = 0
   for Letter I in Letters
-    Value = Amounts (Symbols Letter find)
+    Value = Amounts (Symbols find Letter)
     Next = 0
     if (I + 1) less (Letters len)
-      Next = Amounts (Symbols (Letters (I + 1)) find)
+      Next = Amounts (Symbols find (Letters (I + 1)))
     end
     if Value less Next
       Total -= Value
@@ -80,7 +80,7 @@ fun Arguments roman op
     unpack Left Right = Arguments
     A = Left rtoA
     B = Right rtoA
-    Value = A B op
+    Value = A op B
     return Value atoR
   end
   A = Arguments rtoA

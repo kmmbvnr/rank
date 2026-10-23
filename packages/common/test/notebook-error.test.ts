@@ -59,7 +59,7 @@ describe('running a line after a failed one', () => {
 });
 
 describe('function error origin markers', () => {
-    const definition = 'fun Numbers Digits leading_sum\n  Total = Numbers sum\n  Text = Total text\n  Prefix = Text take Digits\n  return Prefix integer\nend';
+    const definition = 'fun Numbers leading_sum Digits\n  Total = Numbers sum\n  Text = Total text\n  Prefix = Text take Digits\n  return Prefix integer\nend';
 
     it('marks the failing function line once, retaining the call error and ordinary code colors', async () => {
         const session = createReplSession();
@@ -67,8 +67,8 @@ describe('function error origin markers', () => {
         try {
             book.enqueue(definition);
             book.finish(0, await session.execute(definition, book.cells[0].id, [], 80, true));
-            book.enqueue('0 0 leading_sum');
-            const result = await session.execute('0 0 leading_sum', book.cells[1].id, [], 80, true);
+            book.enqueue('0 leading_sum 0');
+            const result = await session.execute('0 leading_sum 0', book.cells[1].id, [], 80, true);
             expect(result.errorSource).toEqual({ source: definition, offset: definition.indexOf('return') });
             expect(result.errorOffset).toBeUndefined();
             book.finish(1, result);
@@ -95,7 +95,7 @@ describe('function error origin markers', () => {
             expect(notebookFrame(book, 80, 200, 0, '', false, false).lines
                 .some(line => line.startsWith('\x1b[31m●     \x1b[0m'))).toBe(false);
             book.cells[0].source = definition;
-            book.finish(1, await session.execute('0 1 leading_sum', book.cells[1].id, [], 80, true));
+            book.finish(1, await session.execute('0 leading_sum 1', book.cells[1].id, [], 80, true));
             expect(book.cells[1].errorSource).toBeUndefined();
             expect(notebookFrame(book, 80, 200, 0, '', false, false).lines
                 .some(line => line.startsWith('\x1b[31m●     \x1b[0m'))).toBe(false);
@@ -118,10 +118,10 @@ describe('function error origin markers', () => {
         const session = createReplSession();
         const book = new Notebook();
         try {
-            book.enqueue('0 0 leading_sum');
+            book.enqueue('0 leading_sum 0');
             book.enqueue(definition);
             await session.prepareFunctions([{ id: book.cells[1].id, source: definition }]);
-            book.finish(0, await session.execute('0 0 leading_sum', book.cells[0].id, [], 80, true));
+            book.finish(0, await session.execute('0 leading_sum 0', book.cells[0].id, [], 80, true));
             const frame = notebookFrame(book, 80, 100, 0, '', false, false);
             expect(frame.lines.find(line => line.includes('return Prefix integer')))
                 .toMatch(/^\x1b\[31m● {5}\x1b\[0m/);

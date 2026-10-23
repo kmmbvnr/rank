@@ -63,7 +63,7 @@ fun Ns K C L V node
   return Ns len - 1
 end
 
-fun Ns Id first
+fun Ns first Id
   N = Ns Id
   K = N 0
   C = N 1
@@ -72,14 +72,14 @@ fun Ns Id first
   if K equal 0
     return V // (2 ** (L - 1))
   end
-  A = Ns C first
+  A = Ns first C
   if K equal 1 or K equal 3
     return 1 - A
   end
   return A
 end
 
-fun Ns Id last
+fun Ns last Id
   N = Ns Id
   K = N 0
   C = N 1
@@ -88,7 +88,7 @@ fun Ns Id last
   if K equal 0
     return V mod 2
   end
-  A = Ns C last
+  A = Ns last C
   if K equal 1
     return 1 - A
   end
@@ -285,13 +285,13 @@ fun Ns F J W Y Z P Id K Mod eval
     end
     D = Ns J C droplast
     M = Ns F J W Y Z P D K Mod mu
-    B = Ns C last
+    B = Ns last C
     R = (M * X + B) mod Mod
     W Key = R
     return R
   end
-  A = Ns C first
-  B = Ns C last
+  A = Ns first C
+  B = Ns last C
   H = L // 2
   if Odd
     D = Ns F C dropfirst

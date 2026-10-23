@@ -5,17 +5,17 @@ use sequences
 use stats
 
 fun Pixels' toGray
-  RGB' = Pixels (array 256 256 256) digits
+  RGB' = Pixels digits (array 256 256 256)
   return RGB mean axis 0 / 255.0
 end
 
 rem Nearest-even byte quantization before integer conversion.
 fun Gray' toRGB
-  Levels' = (Gray * 255.0) 0 round
+  Levels' = (Gray * 255.0) round 0
   return (Levels integer rank 0) * 65793
 end
 
-fun Factors Image scale
+fun Factors scale Image
   unpack V H = Factors
   if V less 0 or H less 0
     .DomainError raise
@@ -32,7 +32,7 @@ end
 
 rem Odd positive kernel dimensions; center at (shape - 1) // 2.
 rem Weights keep their orientation, as in the contest formula.
-fun Kernel Image convolve
+fun Kernel convolve Image
   Shape = Kernel shape
   if Shape len not equal 2 or (Shape mod 2 equal 0 any)
     .DimensionMismatch raise
@@ -47,17 +47,17 @@ fun Kernel Image convolve
   Blocks' = Image window Shape padding Pad wrap
   Weighted' = Blocks * K
   Result' = (Weighted sum rank 2) max 0.0
-  return Result 1.0 min
+  return Result min 1.0
 end
 
-fun Kernel Image convolveRGB
+fun Kernel convolveRGB Image
   Base = array 256 256 256
-  RGB' = Image Base digits
+  RGB' = Image digits Base
   Normalized' = RGB / 255.0
-  Filtered' = Kernel Normalized convolve rank 2 2
-  Rounded' = (Filtered * 255.0) 0 round
+  Filtered' = Kernel convolve Normalized rank 2 2
+  Rounded' = (Filtered * 255.0) round 0
   Bytes' = Rounded integer rank 0
-  return Bytes Base fromDigits
+  return Bytes fromDigits Base
 end
 
 rem Normalize the sampled kernel to sum to one.

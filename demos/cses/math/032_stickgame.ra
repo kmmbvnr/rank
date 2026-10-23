@@ -9,11 +9,11 @@ use text
 N = stdin .integer
 K = stdin .integer
 Moves = stdin .integer K array
-N Moves stick_game print
+N stick_game Moves print
 
 
 rem Gather all possible predecessors.
-fun N Moves stick_game
+fun N stick_game Moves
   Queue = new queue
   Winning = array shape (N + 1) fill false
 
@@ -28,5 +28,5 @@ fun N Moves stick_game
     Queue push Outcome
   end
 
-  return Queue "" join
+  return Queue join ""
 end

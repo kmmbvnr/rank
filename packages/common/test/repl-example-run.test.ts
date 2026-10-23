@@ -7,7 +7,7 @@ describe('Ctrl-R while typing an example argument', () => {
     it('accepts the value and moves to the next parameter, like Enter', async () => {
         const repl = new NotebookRepl(createReplSession(), () => {}, () => 80, true);
         const keys = new KeyRouter(repl);
-        repl.notebook.replace('fun A B add');
+        repl.notebook.replace('fun A add B');
 
         await keys.press('', { name: 'return' });
         expect(repl.examplePrompt).toMatchObject({ parameter: 'A', index: 0 });
@@ -22,7 +22,7 @@ describe('Ctrl-R while typing an example argument', () => {
     it('runs the body once the last example is accepted', async () => {
         const repl = new NotebookRepl(createReplSession(), () => {}, () => 80, true);
         const keys = new KeyRouter(repl);
-        repl.notebook.replace('fun A B add');
+        repl.notebook.replace('fun A add B');
 
         await keys.press('', { name: 'return' });
         await keys.press('1');

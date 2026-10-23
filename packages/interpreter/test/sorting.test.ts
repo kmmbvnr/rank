@@ -109,7 +109,7 @@ describe('sort by', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun Value Calls magnitude',
+            'fun Value magnitude Calls',
             '  Calls .count += 1',
             '  return Value abs',
             'end',
@@ -154,7 +154,7 @@ describe('sort by', () => {
         ].join('\n'))).toThrowError('sort by fields expects records');
         expect(() => run([
             'use sequences',
-            'fun A B pair',
+            'fun A pair B',
             '  return A + B',
             'end',
             'Values = array 1 2',
@@ -206,7 +206,7 @@ describe('argsort by', () => {
             'Calls = record',
             '  .count = 0',
             'end',
-            'fun Value Calls magnitude',
+            'fun Value magnitude Calls',
             '  Calls .count += 1',
             '  return Value abs',
             'end',
@@ -227,7 +227,7 @@ describe('bound sort operands', () => {
             try {
                 const result = interpreter.execute(`use sequences
 fun outer
-  fun Position Board degree = Position + Board 0 0
+  fun Position degree Board = Position + Board 0 0
   fun Board board = Board
   Board = array shape 2 2 fill 0
   Moves = array 3 1 2
@@ -243,7 +243,7 @@ Result = outer
     it('passes bound operands after each item and preserves ties', () => {
         expect(run(`use numbers
 use sequences
-fun X Limit distance = (X - Limit) abs
+fun X distance Limit = (X - Limit) abs
 Values = array 1 5 3 7
 Sorted = Values sort by 4 distance
 (Sorted equal array 5 3 1 7) and reduce`)).toBe('true');
@@ -260,7 +260,7 @@ Order = Values argsort by (0 - 2) 10 key
     it('keeps the direction and following pipeline outside the key', () => {
         expect(run(`use numbers
 use sequences
-fun X Limit distance = (X - Limit) abs
+fun X distance Limit = (X - Limit) abs
 Values = array 1 5 3 7
 Values sort by 4 distance .descending first`)).toBe('1');
     });

@@ -24,7 +24,7 @@ Found = Seed copy
 Set = array shape Size fill 0
 Ignore = 0 0 0 1 search
 Digits = Found text rank 0
-Answer = Digits "" join
+Answer = Digits join ""
 Answer print
 
 rem At full depth the set is special
@@ -55,11 +55,11 @@ fun Depth Last Sum Reach search
     if Least at least Best
       break
     end
-    Down = Reach X shr
-    Both = Down Reach band
+    Down = Reach shr X
+    Both = Down band Reach
     if Both equal 0
       Set Depth = X
-      More = Reach (Reach X shl) bor
+      More = Reach bor (Reach shl X)
       Next = Depth + 1
       Total = Sum + X
       Out = Next X Total More search

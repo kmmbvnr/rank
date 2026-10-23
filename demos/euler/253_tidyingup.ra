@@ -132,5 +132,5 @@ for K in 0 till Ns
   end
 end
 G0 = G (0 till Jm)
-Answer = (1 - G0) sum 6 round
+Answer = (1 - G0) sum round 6
 Answer print

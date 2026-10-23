@@ -5,7 +5,7 @@ use random
 
 rem Shuffle matching samples
 rem with one shared order.
-fun X Y shuffle_data
+fun X shuffle_data Y
   Count = X len
   if Y len not equal Count
     .DimensionMismatch raise

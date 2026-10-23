@@ -5,7 +5,7 @@ import {
     isTestStatement, isUseStatement, isFunctionStatement,
     type Expression, type Program,
 } from '../generated/ast.js';
-import { flattenApplication } from '../expressions.js';
+import { applicationExpression, flattenApplication, groupedExpression } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { mapsScalarCells } from './types.js';
 import { expressionFacts } from './value-facts.js';
@@ -45,6 +45,9 @@ export function functionTestExamples(program: Program, moduleName?: string,
     moduleFunctions?: ReadonlySet<string>, summarize?: ModuleSummary): FunctionTestExample[] {
     const examples: FunctionTestExample[] = [];
     const localFunctions = new Set(program.statements.filter(isFunctionStatement).map(statement => statement.name));
+    const binaryFunctions = new Set(program.statements.filter(isFunctionStatement)
+        .filter(statement => statement.leftBindings.length + statement.rightBindings.length === 2 && !statement.groups.length)
+        .map(statement => statement.name));
     const knownFunctions = moduleFunctions ?? (moduleName === undefined ? localFunctions : undefined);
     for (const test of program.statements) {
         if (!isTestStatement(test)) continue;
@@ -62,7 +65,20 @@ export function functionTestExamples(program: Program, moduleName?: string,
             expression = unwrap(expression);
             if (isNameExpression(expression)) return calls.get(expression.name);
             if (!isApplicationExpression(expression)) return undefined;
-            const parts = flattenApplication(expression);
+            let parts = flattenApplication(expression);
+            const middle = parts.findIndex((part, index) => index > 0 && index < parts.length - 1
+                && isNameExpression(part) && (binaryFunctions.has(part.name)
+                    || !localFunctions.has(part.name) && imports.some(entry => {
+                        const name = entry.alias && part.name.startsWith(entry.alias + '.')
+                            ? part.name.slice(entry.alias.length + 1) : !entry.alias && !part.name.includes('.') ? part.name : undefined;
+                        return name !== undefined && (knownFunctions ? knownFunctions.has(name) : !findOperation(part.name));
+                    })));
+            if (middle > 0) {
+                const operand = (values: Expression[]) => values.length === 1 ? values[0]
+                    : groupedExpression(applicationExpression(values, expression));
+                parts = [operand(parts.slice(0, middle)), operand(parts.slice(middle + 1)), parts[middle]];
+                expression = applicationExpression(parts, expression);
+            }
             const last = parts.at(-1);
             if (!isNameExpression(last)) return undefined;
             const operation = knownFunctions && !knownFunctions.has(last.name) && !localFunctions.has(last.name)
@@ -81,6 +97,7 @@ export function functionTestExamples(program: Program, moduleName?: string,
             if (moduleName !== undefined ? !imported : !localFunctions.has(last.name)) return undefined;
             const name = imported?.alias ? last.name.slice(imported.alias.length + 1) : last.name;
             if (knownFunctions && !knownFunctions.has(name)) return undefined;
+            if (!isApplicationExpression(expression)) return undefined;
             const prefix = expression.head;
             const prefixParts = isApplicationExpression(prefix) ? flattenApplication(prefix) : [];
             const prefixLast = prefixParts.at(-1);

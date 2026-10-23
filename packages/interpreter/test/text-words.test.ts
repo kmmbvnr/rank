@@ -8,18 +8,18 @@ describe('text words and vocabulary', () => {
     });
 
     it('orders vocabulary by frequency then codepoint and applies the limit', () => {
-        expect(run('use text\n(array "Fire, rain" "rain fire snow") 2 vocab'))
+        expect(run('use text\n(array "Fire, rain" "rain fire snow") vocab 2'))
             .toBe('fire rain');
-        expect(run('use text\n(array "b a") 2 vocab')).toBe('a b');
-        expect(run('use text\n(array "𐐀 豈") 2 vocab')).toBe('豈 𐐨');
-        expect(run('use text\n(array "a") 0 vocab')).toBe('');
+        expect(run('use text\n(array "b a") vocab 2')).toBe('a b');
+        expect(run('use text\n(array "𐐀 豈") vocab 2')).toBe('豈 𐐨');
+        expect(run('use text\n(array "a") vocab 0')).toBe('');
     });
 
     it('validates text and limit types', () => {
         expect(() => run('use text\n1 words')).toThrowError('words expects text');
-        expect(() => run('use text\n(array 1 2) 2 vocab'))
+        expect(() => run('use text\n(array 1 2) vocab 2'))
             .toThrowError('vocab expects text elements');
-        expect(() => run('use text\n(array "a") (-1) vocab'))
+        expect(() => run('use text\n(array "a") vocab (-1)'))
             .toThrowError('vocab limit must be a nonnegative integer');
     });
 });

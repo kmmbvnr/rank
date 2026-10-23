@@ -6,7 +6,7 @@ let an array name a narrower representation — `int32`, `f32`, `fp8`, `fp4` —
 keep its cells in a typed buffer instead.
 
 Compact record arrays are now available through `Values flat` and
-`Count State flat`; see [flat record arrays](../language/sequences-arrays.md#flat-record-arrays).
+`Count flat State`; see [flat record arrays](../language/sequences-arrays.md#flat-record-arrays).
 The scalar element-type annotations below are not current syntax. The page records the measurements, the semantic
 fork and the syntax candidates so the decision does not have to be rediscovered.
 

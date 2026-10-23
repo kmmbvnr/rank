@@ -48,7 +48,22 @@ export function nameFactsIn(source: string, sessionFacts: readonly (readonly [st
     loadModule?: (specifier: string) => Program | undefined): ((offset: number) => NameFacts | undefined) | undefined {
     let program: Program;
     const known = new Set([...sessionFacts.map(([name]) => name), ...(scope?.bindings.keys() ?? [])]);
-    try { program = parse(source, '<preview>', {}, known); } catch { return undefined; }
+    const declarations = new Map(scope?.functions);
+    for (const [name, imported] of scope?.imports ?? []) {
+        const definition = imported.functions.get(imported.name);
+        if (definition) declarations.set(name, definition);
+    }
+    const arities = new Map<string, readonly number[] | false>();
+    for (const [name, value] of scope?.bindings ?? []) if (!value.types.includes('function')) arities.set(name, false);
+    for (const [name, definition] of declarations) {
+        const value = scope?.bindings.get(name);
+        if (!value || value.types.includes('function')) arities.set(name, [functionCallSignature(definition).arity]);
+    }
+    try { program = parse(source, '<preview>', {
+        bindings: arities,
+        signatures: new Map([...declarations].map(([name, definition]) => [name, functionCallSignature(definition)])),
+        declarations,
+    }, known); } catch { return undefined; }
     const root = program.$cstNode;
     if (!root) return undefined;
     const runtime = new Map(sessionFacts);

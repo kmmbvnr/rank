@@ -30,7 +30,7 @@ for J in 0 to 6
     if D equal 0
       Ok *= Lead choose 0 1
     end
-    Qc = (Q max 0) N min
+    Qc = (Q max 0) min N
     Ok = Ok * (Ip Qc)
     Ix = Ok greater 0 indices
     Hi = concat Hi (Pr Ix)
@@ -45,7 +45,7 @@ for J in 1 to 6
   Ok = Top greater 0 choose 1 0
   Ok *= Top less 10 choose 1 0
   Ok *= Q at least (Pw // 10) choose 1 0
-  Qc = (Q max 0) N min
+  Qc = (Q max 0) min N
   Ok = Ok * (Ip Qc)
   Ix = Ok greater 0 indices
   Hi = concat Hi (Pr Ix)

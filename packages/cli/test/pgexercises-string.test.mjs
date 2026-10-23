@@ -44,7 +44,7 @@ test('member names concatenate lazily on SQLite and arrays', () => {
         const inspectFile = path.join(dir, 'inspect.ra');
         fs.writeFileSync(inspectFile,
             fs.readFileSync(path.join(examples, '001_names.ra'), 'utf8')
-                .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
+                .replace('Result csv OutputPath', 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspectFile, database],
             { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
@@ -134,13 +134,13 @@ test('all string exercises agree with SQLite oracles on SQLite and arrays', asyn
                     const runtime = new Interpreter(undefined, { io, compilation });
                     try {
                         const text = fs.readFileSync(path.join(examples, file), 'utf8');
-                        const boundary = '\nResult OutputPath csv';
+                        const boundary = '\nResult csv OutputPath';
                         assert.ok(text.includes(boundary));
                         runtime.executeProgram(parse(text.replace(boundary, '')), [database, output]);
                         assert.equal(reads, 0);
                         assert.ok(isRankPlan(runtime.variables.get('Result')));
                         for (const count of [1, 2]) {
-                            runtime.execute('Result OutputPath csv');
+                            runtime.execute('Result csv OutputPath');
                             assert.equal(reads, count);
                             assert.equal(fs.readFileSync(output, 'utf8').trimEnd(), expected);
                         }
@@ -156,7 +156,7 @@ test('all string exercises agree with SQLite oracles on SQLite and arrays', asyn
                 const inspectFile = path.join(dir, 'inspect.ra');
                 fs.writeFileSync(inspectFile,
                     fs.readFileSync(path.join(examples, file), 'utf8')
-                        .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
+                        .replace('Result csv OutputPath', 'use io\nQ = Result sql\nQ .text print'));
                 const plan = spawnSync(process.execPath,
                     [cli, inspectFile, database], { cwd: root, encoding: 'utf8', timeout: 15_000 });
                 assert.equal(plan.status, 0, plan.stderr);
@@ -194,7 +194,7 @@ test('Unicode text functions and slices agree on SQLite and arrays', () => {
             '  .lower = Lower', '  .padded = Padded',
             '  .clean = Clean', '  .first = First',
             '  .label = Label', 'end',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
             "fun Text' initial", '  return Text (0 till 1)', 'end',
         ].join('\n');
         fs.writeFileSync(sourceFile, program);

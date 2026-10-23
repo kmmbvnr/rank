@@ -46,7 +46,7 @@ for K in 0 to Last + 1
     end
     V = Sv (Sp - 1)
     C = Sc (Sp - 1)
-    Kk = Rem C min
+    Kk = Rem min C
     Df (V + 1) += 1
     Df (V + Kk + 1) -= 1
     Mx = Mx max (V + Kk)

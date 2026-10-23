@@ -332,7 +332,7 @@ end`);
             expect(runtime.variables.get('Answer')).toBe(56335n);
             expect(runtime.executeProgram(parse('Cache 1'), [])).toBe(0n);
             expect(runtime.executeProgram(parse('Cache 2'), [])).toBe(-3n);
-            expect(runtime.executeProgram(parse('40 Cache mertens'), [])).toBe(0n);
+            expect(runtime.executeProgram(parse('40 mertens Cache', '<input>', { bindings: new Map([['mertens', [2]]]) }), [])).toBe(0n);
         } finally { runtime.dispose(); }
     });
 
@@ -543,9 +543,9 @@ end`);
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.executeProgram({ ...program, statements: helpers }, []);
-            const atOrigin = runtime.execute('0.0 0.0 hgt');
+            const atOrigin = runtime.execute('0.0 hgt 0.0');
             expect(atOrigin).toBeCloseTo(5000 * Math.exp(-0.7), 9);
-            const grid = runtime.execute('Grid = ((array 0.0 1600.0) reshape 2 1) (array 0.0 1600.0) hgt')!;
+            const grid = runtime.execute('Grid = ((array 0.0 1600.0) reshape 2 1) hgt (array 0.0 1600.0)')!;
             expect(grid).toMatchObject({ kind: 'array', shape: [2, 2] });
             const expected = [5000 * Math.exp(-0.7), 12200 * Math.exp(-0.86),
                 12200 * Math.exp(-0.86), 6600 * Math.exp(-1.02)];
@@ -911,7 +911,7 @@ end`);
         ['051_primedigits', '121313 has_eight_prime_family', true],
         ['052_permutedmultiples', '142857 permuted', true],
         ['056_digitsum', '(2 ** 1000) digit_sum', 1366n],
-        ['059_xor', '((array 65) (array 42) decrypt equal (array 107)) all', true],
+        ['059_xor', '((array 65) decrypt (array 42) equal (array 107)) all', true],
         ['060_primepairs', 'Data = 20 build\nGraph = Data .graph\nGraph 3 7 adjacent', true],
     ] as const)('runs the actual Euler %s helper on a small input', (name, expression, expected) => {
         const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
@@ -928,7 +928,7 @@ end`);
         ['021_amicable', '220 proper_divisor_sum', 284n],
         ['021_amicable', '284 proper_divisor_sum', 220n],
         ['021_amicable', '16 proper_divisor_sum', 15n],
-        ['030_digitpowers', '1634 4 digit_power_sum', 1634n],
+        ['030_digitpowers', '1634 digit_power_sum 4', 1634n],
         ['030_digitpowers', '1 digit_power_numbers', 44n],
         ['035_circularprimes', '100 circular_prime_count', 13n],
     ] as const)('runs the actual Euler %s helper on a bounded input: %s', (name, expression, expected) => {
@@ -970,7 +970,7 @@ end`);
 
     it.each([
         ['041_conv2d', [3, 3], 'Input Kernel 0 1 simple_conv2d', [2, 2], '12 16 24 28'],
-        ['045_kernel', [2, 2], 'Input Identity kernel_function', [2, 2], '1 2 3 4'],
+        ['045_kernel', [2, 2], 'Input kernel_function Identity', [2, 2], '1 2 3 4'],
         ['055_translate', [2, 2], 'Input 10 (-1) translate_object', [2, 2], '11 1 13 3'],
     ] as const)('keeps planned matrix data deferred through %s', (name, inputShape, expression, outputShape, expected) => {
         const source = readFileSync(new URL(`../../../demos/deepml/${name}.ra`, import.meta.url), 'utf8');
@@ -1022,7 +1022,7 @@ end`);
             runtime.execute('use sequences');
             runtime.execute([
                 'State = 42 seed', 'X = array shape 4 1', '10 20 30 40', 'end',
-                'Y = array 1 2 3 4', "Result' = X Y shuffle_data",
+                'Y = array 1 2 3 4', "Result' = X shuffle_data Y",
                 'State = 999 seed', 'First = Result', 'Second = Result',
             ].join('\n'));
             expect(formatValue(runtime.variables.get('First')!)).toBe(formatValue(runtime.variables.get('Second')!));
@@ -1048,7 +1048,7 @@ end`);
             const result = diagnostics.run(() => runtime.execute([
                 'A = array shape 2 3', '1 2 3', '4 5 6', 'end',
                 'B = array shape 3 2', '7 8', '9 10', '11 12', 'end',
-                'Result = A B matrixmul',
+                'Result = A matrixmul B',
             ].join('\n')))!;
             expect(result).toMatchObject({ kind: 'array', shape: [2, 2] });
             expect(formatValue(result)).toBe('58 64 139 154');
@@ -1064,7 +1064,7 @@ end`);
         runtime.variables.set('Input', derivedArray([2, 2], [], index => { reads++; return BigInt(index + 1); }));
         try {
             runtime.execute(source);
-            runtime.execute("Result' = Input 3 scalar_multiply");
+            runtime.execute("Result' = Input scalar_multiply 3");
             expect(reads).toBe(0);
             expect(isRankPlan(runtime.variables.get('Result')!)).toBe(true);
             const saved = runtime.execute('Saved = Result')!;

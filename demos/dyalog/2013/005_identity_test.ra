@@ -24,7 +24,7 @@ test "identity matrices leave vectors unchanged"
   use linalg
   for N in 1 to 8
     Values = 1 to N array
-    Result = (N identity) Values matmul
+    Result = (N identity) matmul Values
     Result equal Values
   end
 end

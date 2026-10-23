@@ -336,7 +336,7 @@ describe('Rank tables', () => {
             'use tables',
             'Rows = "[{\\"id\\":1,\\"name\\":\\"Ada, A.\\"},',
             '  {\\"id\\":2,\\"name\\":\\"Lin\\"}]" json',
-            'Rows "/submission.csv" csv',
+            'Rows csv "/submission.csv"',
         ].join('\n'));
         expect(new TextDecoder().decode(io.file('/submission.csv')))
             .toBe('id,name\n1,"Ada, A."\n2,Lin\n');
@@ -353,7 +353,7 @@ describe('Rank tables', () => {
             'Rows = "[{\\"id\\":1,\\"name\\":\\"Ada\\",\\"extra\\":9},',
             '  {\\"id\\":2,\\"name\\":\\"Lin\\",\\"extra\\":8}]" json',
             'Out = Rows (array .name .id)',
-            'Out "/submission.csv" csv',
+            'Out csv "/submission.csv"',
         ].join('\n'));
         expect(new TextDecoder().decode(io.file('/submission.csv')))
             .toBe('name,id\nAda,1\nLin,2\n');
@@ -366,7 +366,7 @@ describe('Rank tables', () => {
             'use tables',
             'Rows = "[{\\"x\\":1}]" json',
             'Out = Rows (array .x .x)',
-            'Out "/bad.csv" csv',
+            'Out csv "/bad.csv"',
         ].join('\n'))).toThrowError('csv output columns must have unique names');
     });
 

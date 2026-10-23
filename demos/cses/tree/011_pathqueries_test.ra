@@ -19,7 +19,7 @@ test "official example"
     1 3 2
     2 4 0
   end
-  Rooted = Graph 1 root
+  Rooted = Graph root 1
   Actual = Values Rooted Queries paths
   Actual equal array 11 8
 end
@@ -32,7 +32,7 @@ test "keeps caller values unchanged across updates and repeated runs"
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
   Graph add 2 3
-  Rooted = Graph 1 root
+  Rooted = Graph root 1
   Values = array 1 2 3
   Queries = array shape 3 3
     2 3 0
@@ -53,7 +53,7 @@ test "root path contains only root"
   use sequences
   Nodes = array 1
   Graph = new graph Nodes .undirected
-  Rooted = Graph 1 root
+  Rooted = Graph root 1
   Query = array shape 1 3
     2 1 0
   end
@@ -69,7 +69,7 @@ test "update changes every lower path"
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
   Graph add 2 3
-  Rooted = Graph 1 root
+  Rooted = Graph root 1
   Queries = array shape 3 3
     2 3 0
     1 2 10
@@ -88,7 +88,7 @@ test "sibling update stays off path"
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
   Graph add 1 3
-  Rooted = Graph 1 root
+  Rooted = Graph root 1
   Queries = array shape 2 3
     1 2 20
     2 3 0

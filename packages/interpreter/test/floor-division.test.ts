@@ -14,7 +14,7 @@ for (const tier of ['expression', 'function', 'loop'] as const) describe(`floor 
             : { scalarEntryCompilation: false, numberLoopCompilation: false, onIntegerLoopExecuted: () => executed++ };
         const runtime = new Interpreter(() => {}, options);
         const source = tier === 'expression' ? `A = ${a}\nB = ${b}\nResult = (A + 0) // B`
-            : tier === 'function' ? `fun A B quotient\n return A // B\nend\nResult = ${a} ${b} quotient`
+            : tier === 'function' ? `fun A quotient B\n return A // B\nend\nResult = ${a} quotient ${b}`
             : `A = ${a}\nB = ${b}\nResult = 0\nfor I in 1 to 2\n Result = A // B\nend`;
         try {
             runtime.execute(source);

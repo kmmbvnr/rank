@@ -329,7 +329,7 @@ class Analyzer {
             this.scopes.push(scope);
             if (isFunctionStatement(statement)) {
                 for (const parameter of functionCallSignature(statement).parameters) {
-                    this.bind(parameter.name, 'parameter', statement);
+                    this.bind(parameter.name, 'parameter', statement, parameter.acceptsFunction ? ['function'] : UNKNOWN);
                 }
             }
             this.block(statement.statements, nested);
@@ -505,7 +505,8 @@ class Analyzer {
             for (const [index, part] of parts.entries()) {
                 const method = index > 0 && index < parts.length - 1
                     && isNameExpression(part) && METHODS.has(part.name);
-                if (!method) this.expression(part);
+                if (!method || isNameExpression(part)
+                    && (this.lookup(part.name) || this.externalFunctions.has(part.name))) this.expression(part);
             }
             return;
         }

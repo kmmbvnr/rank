@@ -43,7 +43,7 @@ fun Cipher Weights Key Slots Iterations score_many
   Score = 0
   for Iter in 0 till Iterations
     KeyStream = Key Slots
-    Plain = Cipher KeyStream bxor
+    Plain = Cipher bxor KeyStream
     Score = Weights Plain sum
   end
   return Score

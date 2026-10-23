@@ -38,7 +38,7 @@ for K in 0 to 3
   Has = Cm K
   Ok = Has greater 0 and Fit
   From' = Id filter Ok array
-  To' = (Wgt Next matmul) filter Ok array
+  To' = (Wgt matmul Next) filter Ok array
   Pr' = (Has / Tot) filter Ok array
   Tm (From * 270 + To) = Pr
 end
@@ -50,7 +50,7 @@ One = Single choose 1.0 0.0
 Answer = 0.0
 for Step in 1 to 20
   Answer += (P * One) sum
-  P = P Mat matmul
+  P = P matmul Mat
 end
-Answer = Answer 6 round
+Answer = Answer round 6
 Answer print

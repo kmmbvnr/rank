@@ -35,7 +35,7 @@ L4 = (Ma * C2 mod Md) sum
 Sg = (Ma * Ga mod Md) sum
 rem Inner segments: sums of
 rem (M+1-i)(N+1-j) h(gcd(i, j)).
-Dm = M N min
+Dm = M min N
 Ph = (0 to Dm) copy
 Jt = Ph * Ph
 for P in primes to Dm
@@ -71,12 +71,12 @@ Sa = Qa * Pb + Pa * Qb
 Sa = Sa + 11 * (Qa * Qb mod Md) - Tq
 Sa = Sa mod Md * I3 mod Md
 Tc = T mod Md
-B2 = T 2 binomial mod Md
+B2 = T binomial 2 mod Md
 Sb = Tc * Sg - 2 * B2 - 6 * L3 - 4 * L4
 Sb = Sb mod Md
 Bd = (Tc - 3) * L3 - 3 * L4 mod Md
-B3 = T 3 binomial mod Md
-B4 = T 4 binomial mod Md
+B3 = T binomial 3 mod Md
+B4 = T binomial 4 mod Md
 Q = B4 - Bd + 2 * B3 - 2 * L3 + Sa - Sb
 Answer = Q mod Md
 Answer print

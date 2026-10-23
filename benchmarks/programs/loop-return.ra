@@ -1,5 +1,5 @@
 rem Compiler fixture: first matching index.
-fun Values Wanted first_match
+fun Values first_match Wanted
   for Value i in Values
     if Value equal Wanted
       return i

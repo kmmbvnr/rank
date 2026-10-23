@@ -11,9 +11,16 @@ function fixture(t, count, fail = false) {
     const directory = mkdtempSync(join(tmpdir(), 'rank-loop-diagnostics-'));
     t.after(() => rmSync(directory, { recursive: true, force: true }));
     const file = join(directory, 'program.ra');
-    writeFileSync(file, `use io\nuse cli\noption Count integer = 3\nT = 0\nfor R in 1 to Count\n${
-        Array.from({ length: count - 1 }, () => '  A = 0').join('\n')
-    }\n  T += ${fail ? '1 // 0' : 'R'}\nend\nT print\n`);
+    writeFileSync(file, `use io
+use cli
+option Count integer = 3
+T = 0
+for R in 1 to Count
+${Array.from({ length: count - 1 }, () => '  A = 0').join('\n')}
+  T += ${fail ? '1 // 0' : 'R'}
+end
+T print
+`);
     return file;
 }
 const run = args => spawnSync(process.execPath, [cli, ...args], { encoding: 'utf8' });

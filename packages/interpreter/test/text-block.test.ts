@@ -23,7 +23,7 @@ describe('multiline text blocks', () => {
         const r = runtime();
         r.execute('Message = text lines\n  "First"\n  "Second"\nend');
         expect(r.variables.get('Message')).toBe('First\nSecond');
-        expect(r.execute('use text\nMessage "\\n" split len')).toBe(2n);
+        expect(r.execute('use text\nMessage split "\\n" len')).toBe(2n);
     });
 
     it('keeps spaces, escapes and ignores rem lines and blank lines', () => {

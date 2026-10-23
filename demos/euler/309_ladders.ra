@@ -16,7 +16,7 @@ Root = (Top ** 0.5) floor + 2
 for M in 2 to Root
   for N in 1 till M
     rem Coprime parameters of opposite parity generate each triangle once.
-    if (M + N) even or M N gcd not equal 1
+    if (M + N) even or M gcd N not equal 1
       continue
     end
     A = M * M - N * N

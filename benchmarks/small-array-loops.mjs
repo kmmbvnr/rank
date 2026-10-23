@@ -36,7 +36,7 @@ Ways Limit = 1
 Answer = -1
 for N in 1 to Limit
   Base = Limit - N
-  Total = (Ways (Gen + Base)) Sign matmul
+  Total = (Ways (Gen + Base)) matmul Sign
   Ways Base = Total mod Modulus
   if Ways Base equal 0
     Answer = N

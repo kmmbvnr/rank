@@ -9,11 +9,11 @@ const source = `fun X increment
   Value = X + 1
   return Value
 end
-fun N Total count
+fun N count Total
   if N equal 0
     return Total
   end
-  return (N - 1) (Total + 1) count
+  return (N - 1) count (Total + 1)
 end`;
 const runtimes = [false, true].map(directFunctionControl => {
     const runtime = new Interpreter(undefined, { compilation: false, directFunctionControl, maxCallDepth: 1 });

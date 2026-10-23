@@ -3,23 +3,23 @@ use testing
 test "official example"
   use "002_mincoins"
   Coins = array 1 5 7
-  Coins 11 minimum_coins equal 3
+  Coins minimum_coins 11 equal 3
 end
 
 test "sum is impossible"
   use "002_mincoins"
   Coins = array 2 4
-  Coins 7 minimum_coins equal -1
+  Coins minimum_coins 7 equal -1
 end
 
 test "one denomination may repeat"
   use "002_mincoins"
   Coins = array 4 7
-  Coins 12 minimum_coins equal 3
+  Coins minimum_coins 12 equal 3
 end
 
 test "empty sum needs no coins"
   use "002_mincoins"
   Coins = array 3 8
-  Coins 0 minimum_coins equal 0
+  Coins minimum_coins 0 equal 0
 end

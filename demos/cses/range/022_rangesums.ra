@@ -21,11 +21,11 @@ for I in 1 to Q
   end
 end
 
-Values Queries range_updates print
+Values range_updates Queries print
 
 
 rem Apply inclusive range operations.
-fun Values Queries range_updates
+fun Values range_updates Queries
   Tree = Values segment +
   for Query in Queries
     Type = Query 0

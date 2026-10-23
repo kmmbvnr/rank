@@ -20,7 +20,7 @@ describe('shared expression grouping', () => {
     });
 
     it('groups repeat till as a call with a binary predicate', async () => {
-        const document = await parse('fun X step = X + 1\nfun Prev Next done = Next equal 3\n'
+        const document = await parse('fun X step = X + 1\nfun Prev done Next = Next equal 3\n'
             + '0 step repeat 10 till done', { validation: true });
         expect(document.diagnostics).toEqual([]);
         const statement = document.parseResult.value.statements.at(-1)!;

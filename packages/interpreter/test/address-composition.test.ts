@@ -29,14 +29,14 @@ fun N down
  end
  return (N - 1) down
 end
-fun Log N visit
+fun Log visit N
  Log push N
  return N
 end
 Log = new queue
 M = array shape 2 2 fill 0
-M ((10000 down) + (Log 1 visit)) (Log 0 visit) = Log 7 visit
-M 1 0 += Log 3 visit
+M ((10000 down) + (Log visit 1)) (Log visit 0) = Log visit 7
+M 1 0 += Log visit 3
 Log`)).toBe('1 0 7 3');
     });
 

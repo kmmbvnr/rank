@@ -29,4 +29,4 @@ R' = H select
   .rank = ranknumber
 end
 Result' = R sort by .rank .surname .firstname
-Result OutputPath csv
+Result csv OutputPath

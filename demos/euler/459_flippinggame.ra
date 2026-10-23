@@ -42,16 +42,16 @@ for Ax in 0 to 1
     end
     Xp = X (I - 1)
     for J in 0 to Cn - 1
-      Sn (Xp (X (I - Ls J)) bxor) = I
+      Sn (Xp bxor (X (I - Ls J))) = I
     end
     M = 0
     for Sn M equal I
       M += 1
     end
-    Xi = Xp M bxor
+    Xi = Xp bxor M
     X I = Xi
     for K in 0 to Cn - 1
-      H (Xi (X (I - Ls K)) bxor) += 1
+      H (Xi bxor (X (I - Ls K))) += 1
     end
   end
   Hc Ax = H
@@ -62,7 +62,7 @@ rem K to K^2 with H = K, H^2 = 3H/2.
 T = array 0 0 0 1
 K = 2
 for K less Kv
-  Kn = (K * K) Kv min
+  Kn = (K * K) min Kv
   Fi = (0 till Kn * Kn) copy
   Ra = Fi // Kn
   Cb = Fi mod Kn
@@ -75,8 +75,8 @@ for K less Kv
   P01 = T (A0 * K + B1)
   P00 = T (A0 * K + B0)
   Ph = T (P11 * K + K // 2)
-  Up = (P11 P10 bxor) P01 bxor
-  T = (Up * K + (P00 Ph bxor)) copy
+  Up = (P11 bxor P10) bxor P01
+  T = (Up * K + (P00 bxor Ph)) copy
   K = Kn
 end
 Nm = T reshape Kv Kv

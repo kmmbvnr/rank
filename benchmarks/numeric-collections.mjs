@@ -13,8 +13,8 @@ const operations = {
     unique: ['B = A unique', 5000000],
     'unique-count': ['Count = A unique len', 5000000],
     argsort: ['B = A argsort', 5000000],
-    find: ['Count = A 0 find', 5000000],
-    'find-many': ['Q = (99900 to 99963 array) * 7919 mod 1000003\nB = A Q find copy', 100000],
+    find: ['Count = A find 0', 5000000],
+    'find-many': ['Q = (99900 to 99963 array) * 7919 mod 1000003\nB = A find Q copy', 100000],
 };
 if (option('worker', '')) {
     const operation = option('worker', ''), modulePath = option('module', candidate);

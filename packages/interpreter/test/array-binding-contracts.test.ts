@@ -61,7 +61,7 @@ for (const compiled of [true, false]) describe(`array binding contracts (compile
         r.execute('fun A replace\n A = array "x"\n return A\nend');
         expect(() => r.execute('(array 1) replace')).toThrow(/array elements/);
         expect(formatValue(r.execute('(array "a") replace')!)).toBe('x');
-        r.execute('fun X outer\n A = array 1\n fun Y A mutate\n A 0 = "x"\n end\n X A mutate\nend');
+        r.execute('fun X outer\n A = array 1\n fun Y mutate A\n A 0 = "x"\n end\n X mutate A\nend');
         expect(() => r.execute('0 outer')).toThrow(/array elements/);
     });
     it('keeps compiled selection writes within the established domain', () => {
@@ -207,8 +207,8 @@ it('wraps a checked reader again when the host replaces its recipe', () => {
 
 it('keeps RHS effects but rejects an eager write before publishing any cell', () => {
     const r = new Interpreter();
-    r.execute('State = record\n .count = 0\nend\nfun X State wrong\n State .count += 1\n return "bad"\nend\nA = array 1 2');
-    expect(() => r.execute('A # = 0 State wrong')).toThrow(/array elements/);
+    r.execute('State = record\n .count = 0\nend\nfun X wrong State\n State .count += 1\n return "bad"\nend\nA = array 1 2');
+    expect(() => r.execute('A # = 0 wrong State')).toThrow(/array elements/);
     expect(formatValue(r.variables.get('A')!)).toBe('1 2');
     expect(r.execute('State .count')).toBe(1n);
 });

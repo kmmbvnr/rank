@@ -9,8 +9,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const n = 100000;
 const cases = [
-    ['gcd', 'I 30 gcd', 449990n],
-    ['lcm', 'I 30 lcm', 73499250000n],
+    ['gcd', 'I gcd 30', 449990n],
+    ['lcm', 'I lcm 30', 73499250000n],
     ['isqrt', '(I * I + I) isqrt', 5000050000n],
     ['power', '2 ** (I mod 16)', 409593750n],
     ['cube', '(I mod 1000) ** 3', 24950025000000n],

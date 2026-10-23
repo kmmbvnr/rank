@@ -16,4 +16,4 @@ R' = G select
 end
 R' = R sort by .slots .descending
 Result' = R (0 till 1)
-Result OutputPath csv
+Result csv OutputPath

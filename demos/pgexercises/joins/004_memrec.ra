@@ -20,4 +20,4 @@ Out' = J select
   .recsname = .r .surname
 end
 Result' = Out sort by .memsname .memfname
-Result OutputPath csv
+Result csv OutputPath

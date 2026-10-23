@@ -8,7 +8,7 @@ N = stdin .integer
 M = stdin .integer
 A = stdin .integer N array
 B = stdin .integer M array
-Result = A B longest_common
+Result = A longest_common B
 Length = Result len
 
 Length print
@@ -16,7 +16,7 @@ Result print
 
 
 rem Build lengths, then trace one LCS.
-fun A B longest_common
+fun A longest_common B
   N = A len
   M = B len
   R = N + 1

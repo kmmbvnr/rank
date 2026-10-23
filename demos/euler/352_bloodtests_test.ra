@@ -2,10 +2,10 @@ use testing
 
 test "blood test examples"
   use "352_bloodtests"
-  A = 0.02 25 blood
+  A = 0.02 blood 25
   A greater 4.155451
   A less 4.155453
-  B = 0.10 25 blood
+  B = 0.10 blood 25
   B greater 12.702123
   B less 12.702125
 end

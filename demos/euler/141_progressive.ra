@@ -33,7 +33,7 @@ for A * A * A less Limit
     if Cube * B + B * B at least Limit
       break
     end
-    if A B gcd equal 1
+    if A gcd B equal 1
       C = 1
       N = B * (Cube + B)
       for N less Limit

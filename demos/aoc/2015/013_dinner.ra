@@ -27,7 +27,7 @@ fun Lines' solve
   Pattern = "/word would /word /integer happiness units by sitting next to /word."
 
   for Line in Lines
-    unpack A Sign Value B = Line Pattern parse
+    unpack A Sign Value B = Line parse Pattern
 
     if Sign equal "lose"
       Value = -Value
@@ -38,7 +38,7 @@ fun Lines' solve
     Index A B = Value
   end
 
-  Part1 = Seen Index best
+  Part1 = Seen best Index
 
   for Person in Seen
     Index "Me" Person = 0
@@ -46,16 +46,16 @@ fun Lines' solve
   end
   Seen add "Me"
 
-  Part2 = Seen Index best
+  Part2 = Seen best Index
   return array Part1 Part2
 end
 
 
 rem Return the greatest happiness among all permutations of the guests.
-fun Guests Scores best
+fun Guests best Scores
   Queue = new queue
   for Route in Guests permutations
-    Queue push Route Scores happiness
+    Queue push Route happiness Scores
   end
 
   Happiness = Queue
@@ -64,7 +64,7 @@ end
 
 
 rem Sum both directed scores around one circular seating arrangement.
-fun Route Scores happiness
+fun Route happiness Scores
   Total = 0
   N = Route len
 

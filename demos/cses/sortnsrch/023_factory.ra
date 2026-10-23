@@ -7,11 +7,11 @@ N = stdin .integer
 Target = stdin .integer
 Machines = stdin .integer N array
 
-Machines Target minimum_time print
+Machines minimum_time Target print
 
 
 rem Find the first sufficient time.
-fun Machines Target minimum_time
+fun Machines minimum_time Target
   Low = 0
   High = Machines min * Target
 

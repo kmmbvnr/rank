@@ -57,7 +57,7 @@ test "array scan agrees with unrestricted triples on small spheres"
             Sum = X * U + Y * V + Z * W + U * P + V * Q + W * S + P * X + Q * Y + S * Z
             Top = D / (RR * (RR ** 0.5))
             Bot = 1 + Sum / RR
-            Best = Best (2 * (Top Bot atan2) * RR) min
+            Best = Best min (2 * (Top atan2 Bot) * RR)
           end
         end
       end

@@ -20,7 +20,7 @@ rem from W(x) = 1 - sum over k >= 2
 rem of k W(x // k).
 Mod = 1000000000
 Rn = N isqrt + 2
-Lm = (L max Rn) N min
+Lm = (L max Rn) min N
 Rt = Lm isqrt
 Ix = (0 to Lm) copy
 Mu = array shape (Lm + 1) fill 1
@@ -61,7 +61,7 @@ for I in Nq to 1 by -1
   X = N // I
   if X greater Lm
     R = X isqrt
-    K0 = (X // (Lm + 1)) R min
+    K0 = (X // (Lm + 1)) min R
     rem k <= K0: X // k is above L, so
     rem W comes from the recursion Lw.
     Pa = 0
@@ -108,20 +108,20 @@ end
 R2 = N isqrt
 Dd = (1 to R2) copy
 Nd = N // Dd
-Sa = At (Nd Lm min)
-Lq = La (Dd Nq min)
+Sa = At (Nd min Lm)
+Lq = La (Dd min Nq)
 Ad = (Nd at most Lm) choose Sa Lq
 Pd = (Mu Dd) * (Dd mod Mod) mod Mod
 Ad2 = Ad * Ad mod Mod
 P1 = (Pd * Ad2 mod Mod) sum
 Qq = (1 to N // (R2 + 1)) copy
 Xq = N // Qq
-Sx = Wt (Xq Lm min)
-Qm = Qq Nq min
+Sx = Wt (Xq min Lm)
+Qm = Qq min Nq
 Fx = (Xq at most Lm) choose Sx (Lw Qm)
 Lo2 = N // (Qq + 1) max R2
-Sw = Wt (Lo2 Lm min)
-Qn = (Qq + 1) Nq min
+Sw = Wt (Lo2 min Lm)
+Qn = (Qq + 1) min Nq
 Fl = (Lo2 at most Lm) choose Sw (Lw Qn)
 Dq = (Fx - Fl) mod Mod
 Aq = At Qq

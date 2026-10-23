@@ -33,7 +33,7 @@ measurements, not Android, browser or energy measurements.
   results are combined. Real-valued sums are rejected: regrouping their additions
   would change Rank's result. Integers are not narrowed to fixed-width storage.
 - `transform`: Rank `(A * A + A * 2.0 + 1.0) copy`, returning all elements.
-- `multiply`: Rank `(A B matmul) copy`, partitioned by output rows. Every worker
+- `multiply`: Rank `(A matmul B) copy`, partitioned by output rows. Every worker
   receives the entire right matrix. Dot-product accumulation order is unchanged.
 - `windows`: Euler 8's width-13 window/product/max pipeline. Each partition owns
   a disjoint range of output windows and reads twelve extra input elements.

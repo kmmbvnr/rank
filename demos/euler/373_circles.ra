@@ -16,7 +16,7 @@ for M in 2 to Root
     if (M + N) mod 2 equal 0
       continue
     end
-    if M N gcd not equal 1
+    if M gcd N not equal 1
       continue
     end
     D = M * M + N * N
@@ -45,7 +45,7 @@ end
 Answer print
 
 fun R Spf Data circles
-  Ds = R Spf divs
+  Ds = R divs Spf
   Sides = new queue
   Sides push 2 * R
   for D in Ds
@@ -75,7 +75,7 @@ fun R Spf Data circles
   return Total
 end
 
-fun N Spf divs
+fun N divs Spf
   Ds = new queue
   Ds push 1
   for N greater 1

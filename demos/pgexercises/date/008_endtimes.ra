@@ -21,4 +21,4 @@ R' = B select
 end
 R' = R sort by .endtime .descending .starttime .descending
 Result' = R (0 till 10)
-Result OutputPath csv
+Result csv OutputPath

@@ -22,15 +22,15 @@ Rows = Len + 1
 Cols = Most + 1
 Ns = (0 to Len array) reshape Rows 1
 Ks = (0 to Most array) reshape 1 Cols
-Used' = Ks Ns min
+Used' = Ks min Ns
 Fits' = Ks at most Ns
-Ways = Fits choose (Ns Used binomial) 0
+Ways = Fits choose (Ns binomial Used) 0
 F = array shape Rows fill 0
 F 0 = 1
 for Digit in 1 to 10
   G = array shape Rows fill 0
   for K in 0 to Most
-    G += (Ways # K) * (F K shift)
+    G += (Ways # K) * (F shift K)
   end
   F = G
 end

@@ -25,9 +25,9 @@ V = array 7 0 0 0 0 0
 E = N - 1
 for E greater 0
   if E mod 2 equal 1
-    V = A V matmul mod Md
+    V = A matmul V mod Md
   end
-  A = A A matmul mod Md
+  A = A matmul A mod Md
   E //= 2
 end
 Answer = V sum mod Md

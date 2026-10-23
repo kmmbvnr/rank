@@ -83,7 +83,7 @@ it('shows the unchanged maximum-subarray reader result in a draft and retracts a
         expect(text().match(/operator \+ does not accept integer and text/g)).toHaveLength(2);
         repl.notebook.replace(draft('array shape 3 fill Unknown'));
         expect(text()).not.toContain('operator + does not accept integer and text');
-        repl.notebook.replace(`${definition}\nfun X Y max\n X external\n return X\nend\n`
+        repl.notebook.replace(`${definition}\nfun X max Y\n X external\n return X\nend\n`
             + 'A = array 1 2 3\nCount = 3\nResult = A max_subarray\nCount + "bad"');
         expect(text()).not.toContain('operator + does not accept integer and text');
     } finally { session.dispose(); }
@@ -324,12 +324,12 @@ it('checks function argument shapes without changing runtime arrays', async () =
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        for (const source of ['fun A B combine\n Result = A + B\n return Result\nend',
+        for (const source of ['fun A combine B\n Result = A + B\n return Result\nend',
             'Left = array shape 2 3 fill 0', 'Right = array shape 2 4 fill 0']) {
             repl.notebook.replace(source);
             await repl.submit();
         }
-        repl.notebook.replace('Left Right combine');
+        repl.notebook.replace('Left combine Right');
         expect(repl.diagnosticOutputs?.get(1)?.[0].text)
             .toBe('DimensionMismatch: combine: shape mismatch: [2, 3] and [2, 4]');
         expect(session.diagnosticFacts.find(([name]) => name === 'Left')?.[1].shape).toEqual([2, 3]);
@@ -399,6 +399,20 @@ it('drops runtime shape facts after an earlier source edit', async () => {
         expect(repl.diagnosticOutputs?.get(1)?.[0].text).toContain('rank 2');
         repl.notebook.cells[0].source = 'A = array shape 2 3 4 fill 0';
         expect(notebookValueDiagnostics(repl.notebook, session.diagnosticFacts).size).toBe(0);
+    } finally { session.dispose(); }
+});
+
+it('checks imported binary calls across notebook cells', async () => {
+    const source = 'fun A pick B = B';
+    const session = createReplSession({ options: { loadModule: () => ({ id: 'pick.ra', source }) } });
+    try {
+        const repl = new NotebookRepl(session, () => {}, () => 80, false, () => source);
+        for (const cell of ['use "pick.ra" as Helpers', 'Left = 2', 'Right = "text"']) {
+            repl.notebook.replace(cell);
+            await repl.submit();
+        }
+        repl.notebook.replace('Result = 1\nResult = Left Helpers.pick Right');
+        expect(repl.diagnosticOutputs?.get(2)?.[0].text).toContain('Result has type integer and cannot receive text');
     } finally { session.dispose(); }
 });
 

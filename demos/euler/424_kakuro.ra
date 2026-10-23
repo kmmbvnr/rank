@@ -48,7 +48,7 @@ end
 Lines = Input readlines
 Tot = 0
 for Ln in 0 to Count - 1
-  Chs = (Lines Ln) "" split
+  Chs = (Lines Ln) split ""
   Nch = Chs len
   Cp = array shape (Nch + 2) fill 0
   for Ci in 0 to Nch - 1
@@ -368,7 +368,7 @@ for Ln in 0 to Count - 1
             if R2 Rr at least 0
               Vb = Mp (R2 Rr)
             end
-            Mn = Va Vb min
+            Mn = Va min Vb
             Bt = Dm Rr // P2 Lc mod 2
             if Bt equal 0
               Mn = 0 - 1

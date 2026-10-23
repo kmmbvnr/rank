@@ -19,7 +19,7 @@ Ex = Pr * 0
 Pk = Pr
 for Pk min at most N
   Ex = Ex + N // Pk
-  Pk = (Pk * Pr) (N + 1) min
+  Pk = (Pk * Pr) min (N + 1)
 end
 Bs = Pr
 Ep = 2 * Ex

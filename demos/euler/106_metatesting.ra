@@ -19,8 +19,8 @@ rem element, counted by the Catalan
 rem number, are decided by size alone.
 Half = Size // 2
 K = 2 to Half array
-Pairs = (K * 2) K binomial
-Pool' = Size (K * 2) binomial
+Pairs = (K * 2) binomial K
+Pool' = Size binomial (K * 2)
 Catalan' = Pairs // (K + 1)
 Open' = Pairs // 2 - Catalan
 Answer = (Pool * Open) sum

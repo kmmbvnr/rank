@@ -16,8 +16,8 @@ rem from 0 to 9, each less the empty
 rem one. Runs of one digit (9 per
 rem length) and the number 0 count in
 rem both, so subtract them.
-Rising = (Digits + 9) 9 binomial - 1
-Falling = (Digits + 10) 10 binomial - 1
+Rising = (Digits + 9) binomial 9 - 1
+Falling = (Digits + 10) binomial 10 - 1
 Runs = Digits * 9
 Both = Runs + Digits
 Answer = Rising + Falling - Both

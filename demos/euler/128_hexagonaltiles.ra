@@ -23,7 +23,7 @@ First' = 3 * K * (K - 1) + 2
 Last' = 3 * K * (K + 1) + 1
 Lo' = First filter P1 array
 Hi' = Last filter P2 array
-Hits' = concat Lo Hi sort
+Hits' = concat Lo sort Hi
 Tiles' = concat (array 1 2) Hits
 Answer = Tiles (Nth - 1)
 Answer print

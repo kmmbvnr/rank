@@ -22,20 +22,20 @@ fun Lines' solve
 
   for Line in Lines
     if " => " in Line
-      Queue push Line " => " split
+      Queue push Line split " => "
     elif Line len greater 0
       Target = Line
     end
   end
 
-  Part1 = Queue Target variants
+  Part1 = Queue variants Target
   Part2 = Target medicine_steps
   return array Part1 Part2
 end
 
 
 rem Count distinct molecules made by applying exactly one rule once.
-fun Rules Target variants
+fun Rules variants Target
   Seen = new set
   for Rule in Rules
     From = Rule 0

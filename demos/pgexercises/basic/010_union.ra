@@ -24,4 +24,4 @@ end
 Rows = All reshape (All len)
 Rows = Rows select .surname
 Result = Rows unique
-Result OutputPath csv
+Result csv OutputPath

@@ -26,10 +26,10 @@ M = N - P + Keep
 Fact = (1 to N array) scan * with 1
 J = 0 to Keep array
 Sign' = 1 - 2 * (J mod 2)
-Binom' = Keep J binomial
+Binom' = Keep binomial J
 Free' = Fact (M - J)
 Moves = (Sign * Binom * Free) sum
-Pick = P Keep binomial
+Pick = P binomial Keep
 Total = Fact N
-Answer = Pick * Moves / Total 12 round
+Answer = Pick * Moves / Total round 12
 Answer print

@@ -63,9 +63,9 @@ Q len
     it('supports both deque ends and postfix mutations', () => {
         expect(run(prelude + `
 D = new deque
-D 2 pushback
-D 1 pushfront
-D 3 pushback
+D pushback 2
+D pushfront 1
+D pushback 3
 array (D peekfront) (D peekback) (D popfront) (D popback) (D pop) (D len)
 `)).toBe('1 3 1 3 2 0');
     });
@@ -136,7 +136,7 @@ M = new ${kind}
 M add 2
 M add 2
 M add 5
-array (M len) (M lowerbound 2) (M upperbound 2) (M 3 lowerbound) (M upperbound 5 default -1)
+array (M len) (M lowerbound 2) (M upperbound 2) (M lowerbound 3) (M upperbound 5 default -1)
 `)).toBe(`${size} 2 5 5 -1`);
         }
     });

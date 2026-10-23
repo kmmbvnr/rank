@@ -6,11 +6,11 @@ use numbers
 
 N = stdin .integer
 Prefix = stdin .word
-N Prefix completions print
+N completions Prefix print
 
 
 rem Count valid suffixes after a prefix.
-fun N Prefix completions
+fun N completions Prefix
   if N odd
     return 0
   end

@@ -55,7 +55,7 @@ test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => 
             '  .remaining = Remaining seconds',
             '  .since = Since seconds',
             'end',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
         ].join('\n');
         fs.writeFileSync(script, program);
         const result = spawnSync(process.execPath,
@@ -69,7 +69,7 @@ test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => 
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'),
             ['today,remaining,since',
                 ...expected.map(row => `${row.today},${row.remaining},${row.since}`)]);
-        fs.writeFileSync(script, program.replace('Result OutputPath csv',
+        fs.writeFileSync(script, program.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
             [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -100,7 +100,7 @@ test('October calendar matches a recursive SQLite oracle', () => {
         assert.equal(expected.length, 31);
         const source = fs.readFileSync(path.join(directory, '003_calendar.ra'), 'utf8');
         const inspect = path.join(temporary, 'inspect.ra');
-        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+        fs.writeFileSync(inspect, source.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspect, dbPath],
             { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -138,7 +138,7 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
             '  .elapsed = Elapsed seconds',
             '  .since = Since seconds',
             'end',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
         ].join('\n');
         fs.writeFileSync(script, program);
         const result = spawnSync(process.execPath,
@@ -151,7 +151,7 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
             FROM events`).all('2024-02-28 00:00:00');
         assert.deepEqual(actual, ['elapsed,since',
             ...expected.map(row => `${row.elapsed},${row.since}`)]);
-        fs.writeFileSync(script, program.replace('Result OutputPath csv',
+        fs.writeFileSync(script, program.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, script, dbPath, output],
             { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -210,7 +210,7 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
             '  .first = First',
             '  .next = Next',
             'end',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
         ].join('\n');
         fs.writeFileSync(script, program);
         const result = spawnSync(process.execPath,
@@ -221,7 +221,7 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
             '2012-02-01 00:00:00,2012-03-01 00:00:00',
             '2012-12-01 00:00:00,2013-01-01 00:00:00',
         ]);
-        fs.writeFileSync(script, program.replace('Result OutputPath csv',
+        fs.writeFileSync(script, program.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, script, dbPath, output],
             { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -276,7 +276,7 @@ test('booking end times match SQL on SQLite and arrays', () => {
             [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(direct.status, 0, direct.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), lines);
-        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+        fs.writeFileSync(inspect, source.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
             [cli, inspect, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -317,7 +317,7 @@ test('SQLite datetime addition leaves nonintegral duration seconds missing', () 
             '  .endtime = End',
             '  .baseend = BaseEnd',
             'end',
-            'Result OutputPath csv',
+            'Result csv OutputPath',
         ].join('\n'));
         const result = spawnSync(process.execPath,
             [cli, script, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -369,7 +369,7 @@ test('monthly booking counts match SQL on SQLite and arrays', () => {
             [cli, arrayScript, csvPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(array.status, 0, array.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'), expected);
-        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+        fs.writeFileSync(inspect, source.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspect, dbPath, output],
             { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -437,7 +437,7 @@ test('monthly facility utilisation matches SQL and arrays while staying lazy', (
         assert.equal(array.status, 0, array.stderr);
         assert.deepEqual(fs.readFileSync(output, 'utf8').trim().split('\n'),
             ['name,month,utilisation', ...rows]);
-        fs.writeFileSync(inspect, source.replace('Result OutputPath csv',
+        fs.writeFileSync(inspect, source.replace('Result csv OutputPath',
             'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath, [cli, inspect, dbPath],
             { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -486,16 +486,16 @@ for (const compilation of [false, true]) {
                     const runtime = new Interpreter(undefined, { io, compilation });
                     try {
                         const source = fs.readFileSync(path.join(directory, file), 'utf8');
-                        const boundary = '\nResult OutputPath csv';
+                        const boundary = '\nResult csv OutputPath';
                         assert.ok(source.trimEnd().endsWith(boundary));
                         runtime.executeProgram(parse(source.slice(0, source.lastIndexOf(boundary))), [dbPath, output]);
                         assert.equal(reads, 0);
                         assert.ok(isRankPlan(runtime.variables.get('Result')));
-                        runtime.execute('Result OutputPath csv');
+                        runtime.execute('Result csv OutputPath');
                         const expectedReads = file === '008_endtimes.ra' ? 2 : 1;
                         assert.equal(reads, expectedReads);
                         const first = fs.readFileSync(output, 'utf8');
-                        runtime.execute('Result OutputPath csv');
+                        runtime.execute('Result csv OutputPath');
                         assert.equal(reads, expectedReads * 2);
                         assert.equal(fs.readFileSync(output, 'utf8'), first);
                     } finally { runtime.dispose(); }

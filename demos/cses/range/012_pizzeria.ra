@@ -19,11 +19,11 @@ for I in 0 till Q
   end
 end
 
-Prices Queries deliveries print
+Prices deliveries Queries print
 
 
 rem Split distance at the query point.
-fun Prices Queries deliveries
+fun Prices deliveries Queries
   N = Prices len
   Indices = 0 till N array
   LeftPrices' = Prices - Indices
@@ -45,6 +45,6 @@ fun Prices Queries deliveries
     Left += Position
     Right = FromRight Position (N - 1) query
     Right -= Position
-    yield Left Right min
+    yield Left min Right
   end
 end

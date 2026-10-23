@@ -4,7 +4,7 @@ rem https://projecteuler.net/problem=359
 use numbers
 use io
 
-fun F R person
+fun F person R
   A = F * F // 2
   S = F
   if F equal 1
@@ -32,7 +32,7 @@ for A in 0 to 27
   for B in 0 to 12
     F = 2 ** A * 3 ** B
     R = N // F
-    Answer += F R person
+    Answer += F person R
   end
 end
 Answer mod= 10 ** 8

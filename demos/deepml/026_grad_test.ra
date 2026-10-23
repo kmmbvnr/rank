@@ -4,16 +4,16 @@ test "official arithmetic graph"
   use "026_grad"
   use algo
   Tape = new queue
-  A = Tape 2 value
-  B = Tape 3 value
-  C = Tape 10 value
+  A = Tape value 2
+  B = Tape value 3
+  C = Tape value 10
   BC = Tape B C mul
   D = Tape A BC addnode
   E = Tape 7 2 mul
   F = Tape E D addnode
-  G = Tape F relu
+  G = Tape relu F
 
-  Tape G backward
+  Tape backward G
 
   Actual = array shape 7
     (A .grad) (B .grad) (C .grad)
@@ -30,14 +30,14 @@ test "official shared subgraph"
   use "026_grad"
   use algo
   Tape = new queue
-  A = Tape 2 value
-  B = Tape 3 value
+  A = Tape value 2
+  B = Tape value 3
   M = Tape A B mul
   Y = Tape M A addnode
   Z = Tape M B addnode
   W = Tape Y Z addnode
 
-  Tape W backward
+  Tape backward W
 
   Actual = array shape 6
     (A .grad) (B .grad) (M .grad)
@@ -53,10 +53,10 @@ test "negative relu blocks its gradient"
   use "026_grad"
   use algo
   Tape = new queue
-  A = Tape (-2.5) value
-  Out = Tape A relu
+  A = Tape value (-2.5)
+  Out = Tape relu A
 
-  Tape Out backward
+  Tape backward Out
 
   Out .data equal 0.0
   A .grad equal 0.0

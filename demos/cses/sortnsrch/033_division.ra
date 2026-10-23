@@ -7,11 +7,11 @@ N = stdin .integer
 K = stdin .integer
 A = stdin .integer N array
 
-A K minimum_largest_sum print
+A minimum_largest_sum K print
 
 
 rem Find the smallest feasible part limit.
-fun A K minimum_largest_sum
+fun A minimum_largest_sum K
   Low = A max
   High = A sum
 

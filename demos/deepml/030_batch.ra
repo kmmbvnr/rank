@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/30
 
 
 rem Lazily split X along its first axis.
-fun X Size batch_iterator
+fun X batch_iterator Size
   if Size at most 0
     .InvalidBatchSize raise
   end
@@ -12,7 +12,7 @@ fun X Size batch_iterator
 
   for First in 0 till N by Size
     Last = First + Size
-    Last = Last N min
+    Last = Last min N
 
     yield X (First till Last)
   end
@@ -31,7 +31,7 @@ fun X Y Size batch_pairs
 
   for First in 0 till N by Size
     Last = First + Size
-    Last = Last N min
+    Last = Last min N
 
     Batch = record
       .x = X (First till Last)

@@ -28,7 +28,7 @@ describe('grid operations', () => {
             '  4 5 6',
             '  7 8 9',
             'end',
-            'Grid 3 segments',
+            'Grid segments 3',
         ].join('\n'))).toBe(
             '1 2 3 4 5 6 7 8 9 1 4 7 2 5 8 3 6 9 1 5 9 3 5 7',
         );
@@ -38,7 +38,7 @@ describe('grid operations', () => {
         expect(() => run([
             'use grids',
             'Grid = array shape 1 1 fill 0',
-            'Grid 0 segments',
+            'Grid segments 0',
         ].join('\n'))).toThrow(RankError);
     });
 });

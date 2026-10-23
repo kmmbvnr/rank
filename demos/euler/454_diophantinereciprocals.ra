@@ -32,7 +32,7 @@ Tot = 0
 D = 1
 for D at most Dm
   X = L // (D * D)
-  D2 = ((L // X) isqrt) Dm min
+  D2 = ((L // X) isqrt) min Dm
   Cf = Mc D2 - Mc (D - 1)
   if Cf not equal 0 and X at least 6
     rem a up to the cube root: every

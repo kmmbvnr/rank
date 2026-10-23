@@ -7,11 +7,11 @@ use sequences
 
 N = stdin .integer
 Colors = stdin .integer
-N Colors necklaces print
+N necklaces Colors print
 
 
 rem Count rotation classes by Burnside.
-fun N Colors necklaces
+fun N necklaces Colors
   Mod = 1000000007
   Total = 0
 

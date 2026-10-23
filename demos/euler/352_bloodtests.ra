@@ -7,7 +7,7 @@ use cli
 
 option Size integer = 10000
 
-fun P Size blood
+fun P blood Size
   Q = 1.0 - P
   Cap = ((2.0 / P) floor) + 50
   T = array shape (Size + 1) fill 0.0
@@ -21,21 +21,21 @@ fun P Size blood
   for N in 2 to Size
     Den = 1.0 - Pow N
     Best = Size * 1.0
-    Top = (N - 1) Cap min
+    Top = (N - 1) min Cap
     for M in 1 to Top
       Neg = (Pow M - Pow N) / Den
       Pos = (1.0 - Pow M) / Den
       V = 1.0 + Neg * C (N - M)
       V += Pos * (C M + T (N - M))
-      Best = Best V min
+      Best = Best min V
     end
     C N = Best
     Best = Size * 1.0
-    Top = N Cap min
+    Top = N min Cap
     for M in 1 to Top
       V = 1.0 + T (N - M)
       V += (1.0 - Pow M) * C M
-      Best = Best V min
+      Best = Best min V
     end
     T N = Best
   end
@@ -44,7 +44,7 @@ end
 
 Sum = 0.0
 for I in 1 to 50
-  Sum += (I / 100.0) Size blood
+  Sum += (I / 100.0) blood Size
 end
-Answer = Sum 6 round
+Answer = Sum round 6
 Answer print

@@ -35,7 +35,7 @@ rem along the contour the short way, and
 rem to B from a point it sees. The sight
 rem is tested every half unit along the
 rem line.
-fun X Y hgt
+fun X hgt Y
   Sq = X * X + Y * Y
   Q = 0.000001 * Sq
   Q = Q - 0.0015 * (X + Y) + 0.7
@@ -47,7 +47,7 @@ fun X Y hgt
 end
 Gn = 1600 // Step + 1
 Xs = (0 till Gn array) * (Step * 1.0)
-Hh' = (Xs reshape Gn 1) Xs hgt
+Hh' = (Xs reshape Gn 1) hgt Xs
 Hf = Hh reshape (Gn * Gn) copy
 Ord = Hf argsort
 Par = (0 till (Gn * Gn) array) copy
@@ -287,7 +287,7 @@ fun Bx By Cx Cy vis
   Tq = (0 till Ms array) / (Ms - 1.0)
   Xq = Bx + (Cx - Bx) * Tq
   Yq = By + (Cy - By) * Tq
-  Hq' = Xq Yq hgt
+  Hq' = Xq hgt Yq
   return Hq max
 end
 Lim = F + 0.000000001
@@ -326,10 +326,10 @@ Dbb = Db Jb copy
 for I in Ja
   Dd = (Sb - Sc I) abs
   Rv' = Lt - Dd
-  Arc' = Dd Rv min
+  Arc' = Dd min Rv
   Tt2 = Da I + Arc + Dbb
   Tm = Tt2 min
-  Best = Best Tm min
+  Best = Best min Tm
 end
-Answer = Best 3 round
+Answer = Best round 3
 Answer print

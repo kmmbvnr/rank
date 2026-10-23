@@ -104,10 +104,10 @@ for T at least 1
       Cm = 0 - R
       rem Odd positive, even negative.
       P1 = (1 - Mno) max Lw
-      Q1 = (0 - Mxe - 1) Hg min
+      Q1 = (0 - Mxe - 1) min Hg
       rem Odd negative, even positive.
       P2 = (1 - Mne) max Lw
-      Q2 = (0 - Mxo - 1) Hg min
+      Q2 = (0 - Mxo - 1) min Hg
       for Pt in 0 to 1
         P = P1
         Q = Q1

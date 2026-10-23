@@ -17,7 +17,7 @@ Answer = Longer count
 Answer print
 
 
-fun State Ignored next
+fun State next Ignored
   return record
     .num = State .num + 2 * State .den
     .den = State .num + State .den

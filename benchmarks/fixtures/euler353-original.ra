@@ -64,7 +64,7 @@ fun R moon
       Dot += Zs At * Zs I
       Angle = (Dot / (R * R)) acos / Pi
       Value = Best + Angle * Angle
-      Dist I = Dist I Value min
+      Dist I = Dist I min Value
     end
   end
   return Dist Goal
@@ -74,5 +74,5 @@ Sum = 0.0
 for N in 1 to Last
   Sum += (2 ** N - 1) moon
 end
-Answer = Sum 10 round
+Answer = Sum round 10
 Answer print

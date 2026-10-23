@@ -14,10 +14,10 @@ fun Weights solve
   Total = Weights sum
   N = Weights len
 
-  return 1 (Weights 0) divide
+  return 1 divide (Weights 0)
 
   rem Try both groups for every apple after the first one.
-  fun Pos Left divide
+  fun Pos divide Left
     if Pos equal N
       Difference = Total - 2 * Left
       return Difference abs
@@ -26,8 +26,8 @@ fun Weights solve
     Weight = Weights Pos
     Next = Pos + 1
 
-    Include = Next (Left + Weight) divide
-    Exclude = Next Left divide
-    return Include Exclude min
+    Include = Next divide (Left + Weight)
+    Exclude = Next divide Left
+    return Include min Exclude
   end
 end

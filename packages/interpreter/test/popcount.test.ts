@@ -42,7 +42,7 @@ describe('arbitrary-precision popcount', () => {
             let loops = 0;
             const runtime = new Interpreter(() => {}, { compilation, onIntegerLoopExecuted: () => loops++ });
             try {
-                const result = runtime.execute('use bits\nX = 1\nTotal = 0\nfor I in 1 to 8\n X = X 1000 shl\n Total += (X - 1) popcount\nend\nTotal');
+                const result = runtime.execute('use bits\nX = 1\nTotal = 0\nfor I in 1 to 8\n X = X shl 1000\n Total += (X - 1) popcount\nend\nTotal');
                 expect(formatValue(result!)).toBe('36000');
                 expect(loops).toBe(compilation ? 1 : 0);
             } finally { runtime.dispose(); }

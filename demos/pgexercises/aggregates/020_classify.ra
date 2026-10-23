@@ -43,4 +43,4 @@ Result' = R select
   .name = .name
   .revenue = .revenue
 end
-Result OutputPath csv
+Result csv OutputPath

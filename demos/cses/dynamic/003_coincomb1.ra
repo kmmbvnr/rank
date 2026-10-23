@@ -7,11 +7,11 @@ N = stdin .integer
 Target = stdin .integer
 Coins = stdin .integer N array
 
-Coins Target ordered_coin_ways print
+Coins ordered_coin_ways Target print
 
 
 rem Count coin sequences for every sum.
-fun Coins Target ordered_coin_ways
+fun Coins ordered_coin_ways Target
   Ways = array shape (Target + 1) fill 0
   Ways 0 = 1
 

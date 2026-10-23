@@ -20,11 +20,11 @@ A = R reshape 24 1 1
 B = R reshape 1 24 1
 C = R reshape 1 1 24
 T = 36 + 6 * A
-G = 24 T gcd
+G = 24 gcd T
 T = 14 + 6 * A + 2 * B
-G = G T gcd
+G = G gcd T
 T = 1 + A + B + C
-G = G T gcd
+G = G gcd T
 Rr = R reshape 24 1
 Rp = R reshape 1 24
 Lo = Rp at least 1 choose 1 0
@@ -54,7 +54,7 @@ for D in 0 to 3
     Pb = concat Pb (array (D - I))
     Y = D - I
     for J in 0 to Y
-      U (X + J) (X + I) = Y J binomial
+      U (X + J) (X + I) = Y binomial J
     end
   end
 end
@@ -62,7 +62,7 @@ Id = (array shape 10 fill 1) diag
 Z = array shape 10 10 fill 0
 Bt = Id
 for I in 1 to 24
-  Bt = Bt U matmul mod Big
+  Bt = Bt matmul U mod Big
 end
 rem Aug^n = [Bt^n, sum Bt^m; 0, I].
 Top = concat Bt Id axis 1
@@ -73,9 +73,9 @@ Nb = (K - 25) // 24 + 1
 N = Nb
 for N greater 0
   if N mod 2 equal 1
-    Ap = Ap Ag matmul mod Big
+    Ap = Ap matmul Ag mod Big
   end
-  Ag = Ag Ag matmul mod Big
+  Ag = Ag matmul Ag mod Big
   N //= 2
 end
 Bn = Ap (0 to 9) (0 to 9)
@@ -91,8 +91,8 @@ Sm = Fc ** (Pa reshape 1 10)
 Sm = Sm * (Fd ** (Pb reshape 1 10))
 K0 = (2 to 25) copy
 Ex = (K - K0) // 24 + 1 - Nb
-V = Sm Gn matmul
-V += (Ex reshape 24 1) * (Sm Bn matmul)
+V = Sm matmul Gn
+V += (Ex reshape 24 1) * (Sm matmul Bn)
 Vt = (V mod Big) transpose
 Ro = Fv mod 24
 P0 = Vt 0

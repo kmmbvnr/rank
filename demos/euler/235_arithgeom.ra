@@ -27,5 +27,5 @@ for I in 1 to 80
     Hi = R
   end
 end
-Answer = (Lo + Hi) / 2 12 round
+Answer = (Lo + Hi) / 2 round 12
 Answer print

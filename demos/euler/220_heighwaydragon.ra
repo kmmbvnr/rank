@@ -89,5 +89,5 @@ for N in Order to 1 by -1
   end
 end
 Pair = array X Y
-Answer = Pair "," join
+Answer = Pair join ","
 Answer print

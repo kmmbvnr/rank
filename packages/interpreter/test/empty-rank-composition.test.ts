@@ -20,11 +20,11 @@ fun X vector
  "new" print
  return array 0 0
 end
-fun A B both rank 0 0
+fun A both B rank 0 0
  "new" print
  return array A B
 end
-fun A B zero rank 1 1
+fun A zero B rank 1 1
  "new" print
  return 0
 end
@@ -40,11 +40,11 @@ describe.each([false, true])('empty ranked composition (compilation=%s)', compil
         ['(Rows transpose vector rank 0) # 1 #', [0, 2], ['2']],
         ['Rows transpose sum rank 1', [0], ['1', '2']],
         ['Rows transpose vector rank 1', [0, 2], ['1', '2']],
-        ['Rows (array 10) both', [2, 0, 2], ['1', '2']],
+        ['Rows both (array 10)', [2, 0, 2], ['1', '2']],
         ['Rows max (array 10)', [2, 0], ['1', '2']],
-        ['(array 10 20) Rows find', [2, 0], ['1', '2']],
-        ['Rows (Rows + 1) both', [2, 0, 2], ['1', '1', '2', '2']],
-        ['Rows transpose (array 10) zero', [0], ['1', '2']],
+        ['(array 10 20) find Rows', [2, 0], ['1', '2']],
+        ['Rows both (Rows + 1)', [2, 0, 2], ['1', '1', '2', '2']],
+        ['Rows transpose zero (array 10)', [0], ['1', '2']],
     ] as const)('observes upstream producers without calling the empty new frame: %s', (expression, shape, pass) => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line), { compilation });
@@ -79,7 +79,7 @@ describe.each([false, true])('empty ranked composition (compilation=%s)', compil
         try {
             runtime.execute(`${setup}
 Solo' = (array 1) empty rank 0
-Saved = Solo (array shape 0 1 fill 0) both`);
+Saved = Solo both (array shape 0 1 fill 0)`);
             expect(runtime.variables.get('Saved')).toMatchObject({ shape: [0, 0, 2] });
             expect(output).toEqual([]);
         } finally { runtime.dispose(); }
@@ -97,7 +97,7 @@ fun X constant
  return 0
 end
 Values' = (array 1 2) constant rank 0
-Saved = ${expression} (array shape 0 fill 0) find`);
+Saved = ${expression} find (array shape 0 fill 0)`);
             expect(runtime.variables.get('Saved')).toMatchObject({ shape: [0] });
             expect(output).toEqual([]);
         } finally { runtime.dispose(); }

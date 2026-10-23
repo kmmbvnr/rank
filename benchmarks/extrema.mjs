@@ -21,7 +21,7 @@ assert(Number.isSafeInteger(samples) && samples >= 3);
 const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 const bodies = {
   directmax: 'Best = Best max I', aliasmax: 'Best = Best I Op',
-  directmin: 'Best = Best (-I) min', aliasmin: 'Best = Best (-I) Op',
+  directmin: 'Best = Best min (-I)', aliasmin: 'Best = Best (-I) Op',
   arithmetic: 'Best += I', conditional: 'if I greater Best\n Best = I\n end',
 };
 const source = `use numbers\n${Object.entries(bodies).map(([name, body]) => `

@@ -28,7 +28,7 @@ if Num equal 0
   Pk = Pr
   for Pk min at most Fact
     Ex = Ex + Fact // Pk
-    Pk = (Pk * Pr) (Fact + 1) min
+    Pk = (Pk * Pr) min (Fact + 1)
   end
 else
   Rest = Num
@@ -120,18 +120,18 @@ for Step in 1 to 60
   Hb = array shape N1 fill N2
   for Bs in 1 to 24
     Md = (Lb + Ha) // 2
-    Mc = Md (N2 - 1) min
+    Mc = Md min (N2 - 1)
     Lt = (Lg2 Mc) less (Lw - Lg1)
     Lb = Lt choose (Md + 1) Lb
     Ha = Lt choose Ha Md
     Me = (Ub + Hb) // 2
-    Mf = Me (N2 - 1) min
+    Mf = Me min (N2 - 1)
     Le = (Lg2 Mf) at most (Hg - Lg1)
     Ub = Le choose (Me + 1) Ub
     Hb = Le choose Hb Me
   end
-  Lb = Lb N2 min
-  Ub = Ub N2 min
+  Lb = Lb min N2
+  Ub = Ub min N2
   Cn = Ub - Lb
   Nz = Cn greater 0 indices
   Wc = array shape 0 fill 0
@@ -161,12 +161,12 @@ for Step in 1 to 60
   Hw2 = Fi * 0 + Nw
   for Bs in 1 to 24
     Md = (Lw2 + Hw2) // 2
-    Mc = Md (Nw - 1) min
+    Mc = Md min (Nw - 1)
     Lt = (Wl Mc) less (Tf - 0.0000001)
     Lw2 = Lt choose (Md + 1) Lw2
     Hw2 = Lt choose Hw2 Md
   end
-  Kk = Lw2 (Nw - 1) min
+  Kk = Lw2 min (Nw - 1)
   Df = ((Wl Kk) - Tf) abs
   Mt = (Df less 0.0000001) choose 1 0
   Mt = Mt * (Fi at most Fj choose 1 0)

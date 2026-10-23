@@ -116,7 +116,7 @@ for Digit in 0 to 2
   Mask = Digits Places equal Digit
   Same = Mask indices
 
-  for Pick in Same 3 combinations
+  for Pick in Same combinations 3
     Family = Prime Pick replacement_family
     if (Family in primes) count at least 8
       return true

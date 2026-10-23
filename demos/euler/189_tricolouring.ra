@@ -39,7 +39,7 @@ for Row in 2 to Rows
     Last' = (0 till Heads array) mod 3
     Mat' = Fac Last
     Old' = W reshape Heads 3 Tail
-    New' = Mat Old matmul rank 2 2
+    New' = Mat matmul Old rank 2 2
     Count = Heads * 3 * Tail
     W = New reshape Count
   end

@@ -15,7 +15,7 @@ In conventional languages, extracting elements from sequences and expanding arra
 In Rank:
 - Comma-separated variable lists (`A, B = ...`) are rejected to avoid punctuation on touchscreen keyboards.
 - Whitespace assignment `A B = Values` would collide with addressed mutation (`A i j = Value`).
-- Suffix functions (`A B gcd`) need a way to consume coordinates stored inside a vector without manual indexing (`P 0`, `P 1`).
+- Suffix functions (`A gcd B`) need a way to consume coordinates stored inside a vector without manual indexing (`P 0`, `P 1`).
 - Passing a vector directly to a tensor (`A Coors`) acts as a gather along the leading axis (ADR-0202), meaning packed coordinate arrays cannot address multidimensional cells without explicit expansion.
 
 Rank needs an explicit, unambiguous keyword to handle destructuring, argument expansion, and coordinate splatting without punctuation.

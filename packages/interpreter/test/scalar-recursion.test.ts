@@ -27,14 +27,14 @@ function compare(source: string, expressions: string[], options: InterpreterOpti
 }
 
 const fibonacci = `use algo
-fun N Cache helper
+fun N helper Cache
   if N at most 1
     return N
   end
   if N in Cache
     return Cache N
   end
-  Value = ((N - 1) Cache helper) + ((N - 2) Cache helper)
+  Value = ((N - 1) helper Cache) + ((N - 2) helper Cache)
   Cache N = Value
   return Value
 end
@@ -42,7 +42,7 @@ Cache = new index`;
 
 describe('compiled numeric self recursion', () => {
     it('publishes exact results through the shared index and reuses entries', () => {
-        const run = compare(fibonacci, ['100 Cache helper', 'Cache 100', '100 Cache helper', '0 Cache helper']);
+        const run = compare(fibonacci, ['100 helper Cache', 'Cache 100', '100 helper Cache', '0 helper Cache']);
         expect(run.values[0]).toEqual({ value: '354224848179261915075' });
         expect(run.values[1]).toEqual(run.values[0]);
         expect(run.values[2]).toEqual(run.values[0]);
@@ -61,16 +61,16 @@ end`, ['30 helper', '2 helper']);
     });
 
     it.each([1, 3, 20])('preserves non-tail recursion limits and recovery at depth %s', maxCallDepth => {
-        compare(fibonacci, ['0 Cache helper', '15 Cache helper', '0 Cache helper'], { maxCallDepth });
+        compare(fibonacci, ['0 helper Cache', '15 helper Cache', '0 helper Cache'], { maxCallDepth });
     });
 
     it('rechecks index domains after public mutation and recovery', () => {
         const run = compare(`use algo
-fun K Cache helper
+fun K helper Cache
   return Cache K + 1
 end
-Cache = new index`, ['Cache 0 = 2', '0 Cache helper', 'Cache 0 = 1.5', '0 Cache helper',
-            'Cache 0 = 4', '0 Cache helper']);
+Cache = new index`, ['Cache 0 = 2', '0 helper Cache', 'Cache 0 = 1.5', '0 helper Cache',
+            'Cache 0 = 4', '0 helper Cache']);
         expect(run.values[1]).toEqual({ value: '3' });
         expect(run.values[3]).toHaveProperty('error');
         expect(run.values[5]).toEqual({ value: '5' });
@@ -83,14 +83,14 @@ Cache = new index`, ['Cache 0 = 2', '0 Cache helper', 'Cache 0 = 1.5', '0 Cache 
             const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
             try {
                 runtime.execute(`use algo
-fun N Cache helper
+fun N helper Cache
  Cache (10 // N) = 1 // N
  return N
 end
 Cache = new index`);
                 protectValue(runtime.variables.get('Cache')!, 'protected memo');
                 let result: string | undefined;
-                try { runtime.execute('0 Cache helper'); }
+                try { runtime.execute('0 helper Cache'); }
                 catch (error) { result = error instanceof RankError ? error.format() : String(error); }
                 expect(result).toContain('protected memo');
                 expect(calls).toBe(0);
@@ -101,13 +101,13 @@ Cache = new index`);
     });
 
     it('retains recursive array selection errors and complete call arguments', () => {
-        const run = compare(`fun N A helper
+        const run = compare(`fun N helper A
   if N equal 0
     return A 2
   end
-  return ((N - 1) A helper) + 1
+  return ((N - 1) helper A) + 1
 end
-A = array 10 20`, ['3 A helper', '0 A helper']);
+A = array 10 20`, ['3 helper A', '0 helper A']);
         expect(run.values[0]).toHaveProperty('error', expect.stringContaining('out of bounds'));
         expect(run.calls).toBe(5);
     });
@@ -118,12 +118,12 @@ A = array 10 20`, ['3 A helper', '0 A helper']);
   return N
  end
  return (N / 2) helper
-end`, `fun N A helper
+end`, `fun N helper A
  if N equal 0
   return A 0
  end
  A 0 = N
- return ((N - 1) A helper) + 1
+ return ((N - 1) helper A) + 1
 end`]) {
             const fn = parse(source).statements.find(isFunctionStatement)!;
             const types = fn.parameters.length === 1 ? ['integer' as const]
@@ -159,11 +159,11 @@ end`);
         let calls = 0;
         const runtime = new Interpreter(() => {}, { maxCallDepth: 1, onScalarFunctionExecuted: () => calls++ });
         try {
-            runtime.execute(`fun N Total helper
+            runtime.execute(`fun N helper Total
  if N equal 0
   return Total
  end
- return (N - 1) (Total + 1) helper
+ return (N - 1) helper (Total + 1)
 end`);
             const helper = runtime.variables.get('helper')!;
             if (!isNativeFunction(helper)) throw new Error('missing helper');

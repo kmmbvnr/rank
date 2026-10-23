@@ -5,7 +5,7 @@ test "official first vectors"
   X = array 1 2 3
   Y = array 4 5 6
 
-  X Y kernel_function equal 32
+  X kernel_function Y equal 32
 end
 
 test "official second vectors"
@@ -13,7 +13,7 @@ test "official second vectors"
   X = array 0 1 2
   Y = array 3 4 5
 
-  X Y kernel_function equal 14
+  X kernel_function Y equal 14
 end
 
 test "real vectors preserve precision"
@@ -21,7 +21,7 @@ test "real vectors preserve precision"
   X = array 0.5 2.0
   Y = array 4.0 -1.0
 
-  X Y kernel_function equal 0.0
+  X kernel_function Y equal 0.0
 end
 
 test "lengths must match"

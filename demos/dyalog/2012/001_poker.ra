@@ -8,12 +8,12 @@ rem Normalize optional spaces and mixed case into scalar card texts.
 fun Text cards
   Compact = Text " " "" translate
   Compact = Compact "akqjtshdc" "AKQJTSHDC" translate
-  Chars = Compact "" split
+  Chars = Compact split ""
   if (Chars len mod 2) not equal 0
     .InvalidCards "cards require rank/suit pairs" raise
   end
   Pairs = Chars reshape (Chars len // 2) 2
-  return Pairs "" join rank 1
+  return Pairs join "" rank 1
 end
 
 rem Base 13 packs the category and five tie-break ranks into one integer.
@@ -33,7 +33,7 @@ fun Cards cardsValue
   Flush = true
   First = Cards 0 1
   for Card I in Cards
-    V = "23456789TJQKA" (Card 0) find
+    V = "23456789TJQKA" find (Card 0)
     Values I = V
     Counts V += 1
     if (Card 1) not equal First
@@ -129,8 +129,8 @@ fun Cards quickValue
   Ranks = array shape (Cards len) fill 0
   Suits = array shape (Cards len) fill 0
   for Card I in Cards
-    V = "23456789TJQKA" (Card 0) find
-    S = "SHDC" (Card 1) find
+    V = "23456789TJQKA" find (Card 0)
+    S = "SHDC" find (Card 1)
     Ranks I = V
     Suits I = S
     Counts V += 1
@@ -219,7 +219,7 @@ end
 rem Convert a card rank to 0..12.
 fun Card card_value
   Rank = Card 0
-  return "23456789TJQKA" Rank find
+  return "23456789TJQKA" find Rank
 end
 
 
@@ -232,7 +232,7 @@ rem The first highest-valued five-card subset and its value; equal values keep t
 fun Cards bestChoice
   Best = Cards take 5
   Highest = -1
-  for Hand in Cards 5 combinations
+  for Hand in Cards combinations 5
     Value = Hand cardsValue
     if Value greater Highest
       Highest = Value
@@ -259,23 +259,23 @@ fun Cards bestCards
   return Best arrange
 end
 
-fun Community Hole bestHand
+fun Community bestHand Hole
   Cards = (Hole + " " + Community) cards
   if Cards len not equal 7
     .InvalidCards "bestHand requires five community and two hole cards" raise
   end
-  return (Cards bestCards) " " join
+  return (Cards bestCards) join " "
 end
 
-fun Community Players playerHands
+fun Community playerHands Players
   for Hole in Players
-    yield Community Hole bestHand
+    yield Community bestHand Hole
   end
 end
 
 rem Dense relative ranks: tied hands share a rank, next distinct value is next.
-fun Community Players showdownRows
-  Best = Community Players playerHands array
+fun Community showdownRows Players
+  Best = Community playerHands Players array
   Values = Best handValue rank 0
   Distinct = Values unique
   for Hand I in Best
@@ -289,8 +289,8 @@ fun Community Players showdownRows
   end
 end
 
-fun Community Players showdown
-  return (Community Players showdownRows array) table
+fun Community showdown Players
+  return (Community showdownRows Players array) table
 end
 
 fun deck
@@ -308,7 +308,7 @@ fun Community nuts
   Unseen = Unseen (Unseen not in Board) array
   Highest = -1
   Required = array shape 0 fill ""
-  for Hole in Unseen 2 combinations
+  for Hole in Unseen combinations 2
     Cards = concat Board Hole
     Value = Cards quickValue
     if Value less Highest or (Value equal Highest and Required len equal 0)
@@ -352,17 +352,17 @@ fun Community nuts
 end
 
 rem Enumerate every legal completion; never simulate or round probabilities.
-fun Community Players odds
+fun Community odds Players
   Board = Community cards
   Holes = Players cards rank 0
-  HoleCards = (Players " " join) cards
+  HoleCards = (Players join " ") cards
   Seen = concat Board HoleCards
   Unseen = deck array
   Unseen = Unseen (Unseen not in Seen) array
   Count = Players len
   Totals = array shape (Count + 1) fill 0.0
   Trials = 0
-  for Extra in Unseen (5 - (Board len)) combinations
+  for Extra in Unseen combinations (5 - (Board len))
     Complete = concat Board Extra
     Values = array shape Count fill 0
     for Hole I in Holes

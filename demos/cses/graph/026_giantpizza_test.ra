@@ -8,7 +8,7 @@ test "satisfies the official example"
     -1 3
     4 -2
   end
-  Result = 5 Clauses giant_pizza
+  Result = 5 giant_pizza Clauses
   Result .possible equal true
   Choices = Result .included
   Choices 0 or Choices 1
@@ -22,7 +22,7 @@ test "includes a required topping"
   Clauses = array shape 1 2
     1 1
   end
-  Result = 1 Clauses giant_pizza
+  Result = 1 giant_pizza Clauses
   Result .possible equal true
   Result .included equal array true
 end
@@ -33,7 +33,7 @@ test "excludes a rejected topping"
   Clauses = array shape 1 2
     -1 -1
   end
-  Result = 1 Clauses giant_pizza
+  Result = 1 giant_pizza Clauses
   Result .possible equal true
   Result .included equal array false
 end
@@ -45,6 +45,6 @@ test "detects contradictory wishes"
     1 1
     -1 -1
   end
-  Result = 1 Clauses giant_pizza
+  Result = 1 giant_pizza Clauses
   Result .possible equal false
 end

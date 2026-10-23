@@ -26,7 +26,7 @@ fun Door part1
     N += 1
 
     rem Five hex zeros are two zero bytes and one zero high nibble.
-    if Hash Prefix startswith
+    if Hash startswith Prefix
       B2 = Hash 2
       if B2 less 16
         Password += Digits B2
@@ -51,7 +51,7 @@ fun Door part2
     Hash = Key md5
     N += 1
 
-    if Hash Prefix startswith
+    if Hash startswith Prefix
       rem A valid position also guarantees the fifth hex digit is zero.
       Position = Hash 2
       if Position less 8
@@ -60,7 +60,7 @@ fun Door part2
           Password Position = Digits Nibble
           Filled += 1
           if Filled equal 8
-            return Password "" join
+            return Password join ""
           end
         end
       end

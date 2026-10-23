@@ -6,15 +6,15 @@ use algo
 use io
 
 Tol = 0.000000000001
-MinX = -1.0 0.0 support
-MaxX = 1.0 0.0 support
-MinY = 0.0 -1.0 support
-MaxY = 0.0 1.0 support
+MinX = -1.0 support 0.0
+MaxX = 1.0 support 0.0
+MinY = 0.0 support -1.0
+MaxY = 0.0 support 1.0
 Answer = (MaxX + MinX) * (MaxY + MinY)
 Answer = Answer round 10
 Answer print
 
-fun DX DY support
+fun DX support DY
   Work = new heap .descending
   Item = array 0.0 DX DY
   Norm = (DX * DX + DY * DY) ** 0.5

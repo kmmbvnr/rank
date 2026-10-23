@@ -5,7 +5,7 @@ test "official starting square"
   use algo
   use numbers
   use sequences
-  Board = 2 1 knight_tour
+  Board = 2 knight_tour 1
   Board valid_tour
   Board 0 1 equal 1
 end
@@ -15,7 +15,7 @@ test "starts in the upper left corner"
   use algo
   use numbers
   use sequences
-  Board = 1 1 knight_tour
+  Board = 1 knight_tour 1
   Board valid_tour
   Board 0 0 equal 1
 end
@@ -25,7 +25,7 @@ test "starts in the board center"
   use algo
   use numbers
   use sequences
-  Board = 4 4 knight_tour
+  Board = 4 knight_tour 4
   Board valid_tour
   Board 3 3 equal 1
 end
@@ -37,7 +37,7 @@ test "solves every starting square"
   use sequences
   for Y in 1 to 8
     for X in 1 to 8
-      Board = X Y knight_tour
+      Board = X knight_tour Y
       Board valid_tour
     end
   end

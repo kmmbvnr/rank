@@ -11,6 +11,6 @@ argument OutputPath path = "demos/pgexercises/data/string_003.csv"
 Db = DbPath sqlite
 F' = Db .facilities
 Names' = F .name lower
-Mask' = Names "tennis" startswith
+Mask' = Names startswith "tennis"
 Result' = F filter Mask
-Result OutputPath csv
+Result csv OutputPath

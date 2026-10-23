@@ -43,12 +43,12 @@ rem Walk every line on a keypad and collect the key where each line ends.
 rem The keypad is one text with a border of dots, so a move is a fixed offset
 rem and a dot means there is no key to step onto.
 fun Lines Pad Width code
-  Pos = Pad "5" find
+  Pos = Pad find "5"
   Code = ""
 
   for Line in Lines
     for C in Line
-      Move = C Width offset
+      Move = C offset Width
       Next = Pos + Move
       if Pad Next not equal "."
         Pos = Next
@@ -62,7 +62,7 @@ end
 
 
 rem Return how far one direction moves on a keypad of the given width.
-fun C Width offset
+fun C offset Width
   if C equal "U"
     return -Width
   elif C equal "D"

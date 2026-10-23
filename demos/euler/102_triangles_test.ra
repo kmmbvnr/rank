@@ -11,19 +11,19 @@ test "statement triangles"
   use "102_triangles"
   use io
   Input = "/tmp/euler102.txt"
-  "-340,495,-153,-910,835,-947\n" "/tmp/euler102.txt" write
+  "-340,495,-153,-910,835,-947\n" write "/tmp/euler102.txt"
   run
 
   Answer equal 1
-  "-175,41,-421,-714,574,-645\n" "/tmp/euler102.txt" write
+  "-175,41,-421,-714,574,-645\n" write "/tmp/euler102.txt"
   run
 
   Answer equal 0
-  "-340,495,-153,-910,835,-947\n-175,41,-421,-714,574,-645\n" "/tmp/euler102.txt" write
+  "-340,495,-153,-910,835,-947\n-175,41,-421,-714,574,-645\n" write "/tmp/euler102.txt"
   run
 
   Answer equal 1
-  "-1,-1,2,-1,-1,2\n" "/tmp/euler102.txt" write
+  "-1,-1,2,-1,-1,2\n" write "/tmp/euler102.txt"
   run
 
   Answer equal 1

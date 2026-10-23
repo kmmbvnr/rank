@@ -48,8 +48,8 @@ Rows 27 = "966 232 308 833 251 631 107"
 Rows 28 = "813 883 451 509 615"
 Rows 28 += " 77 281 613"
 Rows 29 = "459 205 380 274 302 35 805"
-Text = Rows " " join
-Nums' = Text " " split integer rank 0
+Text = Rows join " "
+Nums' = Text split " " integer rank 0
 A = Nums reshape 15 15
 
 Dp = array shape (2 ** 15) fill -1
@@ -58,9 +58,9 @@ for Mask in 0 till (2 ** 15)
   Row = Mask popcount
   if Dp Mask at least 0
     for Col in 0 till 15
-      Bit = 1 Col shl
-      if (Mask Bit band) equal 0
-        Next = Mask Bit bor
+      Bit = 1 shl Col
+      if (Mask band Bit) equal 0
+        Next = Mask bor Bit
         Value = Dp Mask + A Row Col
         Dp Next = Dp Next max Value
       end

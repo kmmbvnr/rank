@@ -7,7 +7,7 @@ const probes: { tier: keyof InterpreterOptions; source: string; options?: Interp
     { tier: 'onIntegerLoopExecuted', source: 'fun values\n for N in 1 to 3\n  yield N\n end\nend\nvalues array' },
     { tier: 'onIntegerLoopExecuted', source: 'Sum = 0\nfor I in 1 to 20\n Sum += I\nend\nSum' },
     { tier: 'onScalarExecuted', options: { scalarEntryCompilation: false, scalarFunctionCompilation: false },
-        source: 'fun A B calc\n return A * 3 + B\nend\n2 4 calc' },
+        source: 'fun A calc B\n return A * 3 + B\nend\n2 calc 4' },
     { tier: 'onScalarFunctionExecuted', source: 'use sequences\nfun X palindrome\n Text = X text\n Back = Text reverse\n return Text equal Back\nend\n121 palindrome' },
     { tier: 'onBlockExecuted', source: 'Sum = 0\nfor I in 1 to 10\n X = I * 2\n if I equal 3\n continue\n end\n if I equal 7\n break\n end\n Sum += X\nend\nSum' },
     { tier: 'onTensorKernelExecuted', source: `use sequences

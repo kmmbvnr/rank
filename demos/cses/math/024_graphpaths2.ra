@@ -21,10 +21,10 @@ fun Nodes Edges Length min_path
     unpack From To Cost = Edge
     I = From - 1
     J = To - 1
-    Paths I J = (Paths I J) Cost min
+    Paths I J = (Paths I J) min Cost
   end
 
-  Power = Paths Length minplus_power
+  Power = Paths minplus_power Length
   Answer = Power 0 (Nodes - 1)
   if Answer equal infinity
     return -1
@@ -34,15 +34,15 @@ end
 
 
 rem Raise a min-plus matrix.
-fun Base Exponent minplus_power
+fun Base minplus_power Exponent
   Size = Base len
   Result = Size minplus_identity
 
   for Exponent greater 0
     if Exponent odd
-      Result = Result Base minplus
+      Result = Result minplus Base
     end
-    Base = Base Base minplus
+    Base = Base minplus Base
     Exponent //= 2
   end
 
@@ -51,7 +51,7 @@ end
 
 
 rem Multiply min-plus matrices.
-fun Left Right minplus
+fun Left minplus Right
   Size = Left len
   Result = array shape Size Size fill infinity
 
@@ -59,7 +59,7 @@ fun Left Right minplus
     Column' = Left # K
     Row' = Right K
     Candidate' = Column Row outer +
-    Result = Result Candidate min
+    Result = Result min Candidate
   end
 
   return Result

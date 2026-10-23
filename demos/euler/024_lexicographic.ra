@@ -10,13 +10,13 @@ use cli
 option Position integer = 1000000
 
 Digits = 0 to 9 array
-Answer = Digits Position lexicographic
+Answer = Digits lexicographic Position
 Answer print
 
 
 rem Select each digit directly from its
 rem factorial-sized permutation block.
-fun Digits Position lexicographic
+fun Digits lexicographic Position
   Available = Digits multiset
   Remaining = Position - 1
   Size = Available len

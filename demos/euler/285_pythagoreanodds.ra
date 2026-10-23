@@ -34,5 +34,5 @@ Cut = Hit choose Area 0.0
 Outer' = Cut take N
 Inner' = Cut drop N
 Gain' = (Outer - Inner) / K
-Answer = Gain sum 5 round
+Answer = Gain sum round 5
 Answer print

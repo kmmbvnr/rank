@@ -29,11 +29,11 @@ Unit' = (Ids reshape 4 1) equal Ids
 Acc = Unit choose 1 0
 Start = array 8 4 1 1
 for B in 0 to 40
-  if (N - 4) B bit
-    Acc = (Acc Step matmul) mod Mod
+  if (N - 4) bit B
+    Acc = (Acc matmul Step) mod Mod
   end
-  Step = (Step Step matmul) mod Mod
+  Step = (Step matmul Step) mod Mod
 end
-Last' = Acc Start matmul
+Last' = Acc matmul Start
 Answer = (Last 0) mod Mod
 Answer print

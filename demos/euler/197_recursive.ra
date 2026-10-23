@@ -18,5 +18,5 @@ end
 
 First = -1.0 step repeat N
 Second = First step
-Answer = (First + Second) 9 round
+Answer = (First + Second) round 9
 Answer print

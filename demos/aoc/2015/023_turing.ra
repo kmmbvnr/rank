@@ -9,20 +9,20 @@ use text
 argument Input path
 
 Program = Input readlines
-Part1 = Program 0 execute
-Part2 = Program 1 execute
+Part1 = Program execute 0
+Part2 = Program execute 1
 Part1 print
 Part2 print
 
 
 rem Execute the two-register program and return register b.
-fun Program Start execute
+fun Program execute Start
   A = Start
   B = 0
   PC = 0
 
   for PC at least 0 and Program len greater PC
-    Words = Program PC " " split
+    Words = Program PC split " "
     Op = Words 0
 
     if Op equal "hlf"

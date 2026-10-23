@@ -8,7 +8,7 @@ test "official example"
     1 1 5
     2 1 5
   end
-  Actual = Values Queries polynomial
+  Actual = Values polynomial Queries
   Actual equal array 17 32
 end
 
@@ -22,6 +22,6 @@ test "overlapping progressions"
     1 1 2
     2 1 4
   end
-  Actual = Values Queries polynomial
+  Actual = Values polynomial Queries
   Actual equal array 10 5 13
 end

@@ -89,12 +89,12 @@ describe('container resource summaries', () => {
     it.each(['queue', 'deque', 'stack', 'heap'])('does not scan scalar records appended to %s', kind => {
         const runtime = new Interpreter();
         runtime.execute(`use algo\nValues = new ${kind}\nItem = record\n  .priority = 1\n  .payload = 2\nend`);
-        runtime.execute('fun Q V note\n  Q push V\n  return Q\nend');
+        runtime.execute('fun Q note V\n  Q push V\n  return Q\nend');
         const value = runtime.variables.get('Values')!;
         if (!(value instanceof RankDeque || value instanceof RankHeap)) throw new Error('expected container');
         const reads = vi.spyOn(value, 'values');
         for (let index = 0; index < 100; index++) {
-            runtime.execute(kind === 'heap' ? 'Values 1 Item enqueue' : 'Values Item note');
+            runtime.execute(kind === 'heap' ? 'Values 1 Item enqueue' : 'Values note Item');
         }
         expect(value.size).toBe(100);
         expect(reads).not.toHaveBeenCalled();
@@ -177,7 +177,7 @@ Q = "/input" build
             loadModule: () => ({ id: 'helper.ra', source: `
 use io
 use algo
-fun Queue Path append_file
+fun Queue append_file Path
   Queue push Path open
   return Queue
 end
@@ -188,7 +188,7 @@ use io
 use algo
 use "helper" as Helper
 Q = new queue
-Q "/input" Helper.append_file
+Q Helper.append_file "/input"
 (Q peek) size
 `)).toBe(4n);
         expect(io.handles[0].closed).toBe(true);

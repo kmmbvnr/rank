@@ -7,14 +7,14 @@ Identity = record
   .count = 0
 end
 
-fun Left Right combine
+fun Left combine Right
   return record
     .sum = Left .sum + Right .sum
     .count = Left .count + Right .count
   end
 end
 
-Values = 3 Identity flat
+Values = 3 flat Identity
 Values 0 .sum = 10
 Values 0 .count = 1
 Values 1 .sum = 20

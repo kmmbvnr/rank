@@ -23,7 +23,7 @@ describe('xml', () => {
     });
 
     it('reads attributes in a listed order', () => {
-        expect(run(`${XML}${CASE}Keys = "Rate Price" " " split\nNodes = Input xml .flat\nNodes 1 .attributes Keys real rank 0`))
+        expect(run(`${XML}${CASE}Keys = "Rate Price" split " "\nNodes = Input xml .flat\nNodes 1 .attributes Keys real rank 0`))
             .toBe('1.5 150000');
         expect(() => run(`${XML}${CASE}Nodes = Input xml .flat\nNodes 1 .attributes (array "Rate" "Term")`))
             .toThrow('missing object key: Term');
@@ -39,7 +39,7 @@ describe('xml', () => {
         for (const source of ['<a>', '<a></b>', '<a x="1" x="2"/>', '<a>&nope;</a>', '<a/><b/>', 'text']) {
             expect(() => run(`use xml\n${JSON.stringify(source)} xml`)).toThrow(/invalid XML/);
         }
-        expect(() => run('use xml\n"<a/>" .deep xml')).toThrow('xml accepts only the .flat modifier');
+        expect(() => run('use xml\n"<a/>" xml .deep')).toThrow('xml accepts only the .flat modifier');
     });
 });
 

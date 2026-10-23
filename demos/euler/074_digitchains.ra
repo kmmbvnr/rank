@@ -23,7 +23,7 @@ rem bound is closed under successors.
 Bound = (Limit - 1) max 2177281
 Next = array 0
 for Top in 10 ** (1 to 7) - 1
-  V = (Next len) to (Top Bound min) array
+  V = (Next len) to (Top min Bound) array
   More = Next (V // 10) + Fact (V mod 10)
   Next = concat Next More copy
 end

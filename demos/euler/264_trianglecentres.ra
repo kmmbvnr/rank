@@ -64,7 +64,7 @@ for X in (0 - Lm) to Lm
     E = Q
     if Aa not equal 0
       Ab = Aa abs
-      E = Q Ab gcd
+      E = Q gcd Ab
     end
     if 100 mod E not equal 0
       continue
@@ -173,5 +173,5 @@ Dbc' = ((Dx * Dx + Dy * Dy) * 1.0) sqrt
 Per = Dab + Dac + Dbc
 Fit' = Per at most Limit
 Tt' = Per filter Fit
-Answer = Tt sum 4 round
+Answer = Tt sum round 4
 Answer print

@@ -82,7 +82,7 @@ separator between them.
 
 ```rank
 use text
-(array 1 2 3) ", " join
+(array 1 2 3) join ", "
 ```
 
 ```result
@@ -92,7 +92,7 @@ use text
 ### Usage
 
 ```text
-Values Separator join
+Values join Separator
 ```
 
 Numbers and other single values are
@@ -111,7 +111,7 @@ pattern.
 ```rank
 use text
 P = "/integer /integer"
-unpack A B = "12 7" P parse
+unpack A B = "12 7" parse P
 A + B
 ```
 
@@ -122,7 +122,7 @@ A + B
 ### Usage
 
 ```text
-Text Pattern parse
+Text parse Pattern
 ```
 
 In the pattern, /integer, /real, /word
@@ -142,7 +142,7 @@ Cut text into pieces at a separator.
 
 ```rank
 use text
-"a,b,c" "," split
+"a,b,c" split ","
 ```
 
 ```result
@@ -152,7 +152,7 @@ a b c
 ### Usage
 
 ```text
-Text Separator split
+Text split Separator
 ```
 
 Two separators in a row give an empty
@@ -170,7 +170,7 @@ prefix.
 
 ```rank
 use text
-"Rank" "Ra" startswith
+"Rank" startswith "Ra"
 ```
 
 ```result
@@ -180,7 +180,7 @@ true
 ### Usage
 
 ```text
-Text Prefix startswith
+Text startswith Prefix
 ```
 
 Upper and lower case must match. Also
@@ -223,7 +223,7 @@ Test whether characters are letters.
 
 ```rank
 use text
-"Hi 5" "" split letter
+"Hi 5" split "" letter
 ```
 
 ```result
@@ -251,7 +251,7 @@ digits.
 
 ```rank
 use text
-"Hi 5" "" split digit
+"Hi 5" split "" digit
 ```
 
 ```result
@@ -279,7 +279,7 @@ or numbers.
 
 ```rank
 use text
-"Hi 5!" "" split alnum
+"Hi 5!" split "" alnum
 ```
 
 ```result
@@ -364,7 +364,7 @@ first.
 
 ```rank
 use text
-(array "a a" "b") 2 vocab
+(array "a a" "b") vocab 2
 ```
 
 ```result
@@ -374,7 +374,7 @@ a b
 ### Usage
 
 ```text
-Texts Limit vocab
+Texts vocab Limit
 ```
 
 Gives at most Limit words. Words are

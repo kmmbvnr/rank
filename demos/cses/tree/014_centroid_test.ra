@@ -9,8 +9,8 @@ test "official example"
   Tree add 2 3
   Tree add 3 4
   Tree add 3 5
-  Rooted = Tree 1 root
-  Tree Rooted centroid equal 3
+  Rooted = Tree root 1
+  Tree centroid Rooted equal 3
 end
 
 test "single node is its centroid"
@@ -19,8 +19,8 @@ test "single node is its centroid"
   use sequences
   Nodes = array 1
   Tree = new graph Nodes .undirected
-  Rooted = Tree 1 root
-  Tree Rooted centroid equal 1
+  Rooted = Tree root 1
+  Tree centroid Rooted equal 1
 end
 
 test "star center is its centroid"
@@ -31,8 +31,8 @@ test "star center is its centroid"
   for Node in 2 to 6
     Tree add 1 Node
   end
-  Rooted = Tree 1 root
-  Tree Rooted centroid equal 1
+  Rooted = Tree root 1
+  Tree centroid Rooted equal 1
 end
 
 test "even path chooses one centroid"
@@ -43,6 +43,6 @@ test "even path chooses one centroid"
   Tree add 1 2
   Tree add 2 3
   Tree add 3 4
-  Rooted = Tree 1 root
-  Tree Rooted centroid equal 2
+  Rooted = Tree root 1
+  Tree centroid Rooted equal 2
 end

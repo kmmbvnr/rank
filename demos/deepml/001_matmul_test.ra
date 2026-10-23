@@ -8,7 +8,7 @@ test "official example"
   end
   B = array 1 2
 
-  A B matrix_dot_vector equal array 5 10
+  A matrix_dot_vector B equal array 5 10
 end
 
 test "rectangular matrix"
@@ -19,7 +19,7 @@ test "rectangular matrix"
   end
   B = array 2 0 -1
 
-  A B matrix_dot_vector equal array -1 2
+  A matrix_dot_vector B equal array -1 2
 end
 
 test "incompatible dimensions"
@@ -32,7 +32,7 @@ test "incompatible dimensions"
   Raised = false
 
   try
-    Result = A B matrix_dot_vector
+    Result = A matrix_dot_vector B
   catch .DimensionMismatch Error
     Raised = true
   end

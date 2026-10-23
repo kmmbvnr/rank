@@ -9,7 +9,7 @@ use bits
 fun Lows Highs Place Mask carry_sum
   Grid = Lows (Highs * Place) outer +
   Flat = Grid reshape #
-  Selected = Flat (Flat Mask band equal 0)
+  Selected = Flat (Flat band Mask equal 0)
   return Selected sum
 end
 Lows = array 0 1 2
@@ -47,7 +47,7 @@ describe('retained digit product stages', () => {
 
     it.each(['+', '-', '*'])('fuses inline outer %s and reshape without intermediate storage', operator => {
         const source = setup.replace(
-            '  Grid = Lows (Highs * Place) outer +\n  Flat = Grid reshape #\n  Selected = Flat (Flat Mask band equal 0)\n  return Selected sum',
+            '  Grid = Lows (Highs * Place) outer +\n  Flat = Grid reshape #\n  Selected = Flat (Flat band Mask equal 0)\n  return Selected sum',
             `  return ((Lows (Highs * Place) outer ${operator}) reshape #) sum`);
         const actual = compare(source);
         expect(actual).toMatchObject({ value: operator === '+' ? '21' : operator === '-' ? '-9' : '15', kernels: 1, cells: 0 });
@@ -57,8 +57,8 @@ describe('retained digit product stages', () => {
     });
 
     it('fuses an inline mask count after the product has completed', () => {
-        const source = setup.replace('  Selected = Flat (Flat Mask band equal 0)\n  return Selected sum',
-            '  return (Flat Mask band equal 0) count');
+        const source = setup.replace('  Selected = Flat (Flat band Mask equal 0)\n  return Selected sum',
+            '  return (Flat band Mask equal 0) count');
         expect(compare(source)).toMatchObject({ value: '3', kernels: 1 });
     });
 
@@ -96,7 +96,7 @@ describe('retained digit product stages', () => {
     });
 
     it('broadcasts after a shape change', () => {
-        const source = setup.replace('  Flat = Grid reshape #\n  Selected = Flat (Flat Mask band equal 0)\n  return Selected sum',
+        const source = setup.replace('  Flat = Grid reshape #\n  Selected = Flat (Flat band Mask equal 0)\n  return Selected sum',
                 '  Shaped = Grid reshape 3 2\n  Mapped = Shaped + Highs\n  return Mapped copy');
         expect(compare(source)).toMatchObject({ value: '0 6 1 7 2 8', shape: [3, 2], kernels: 0 });
     });

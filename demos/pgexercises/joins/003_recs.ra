@@ -17,4 +17,4 @@ J' = M R innerjoin on
 R' = J select .firstname .surname
 R' = R unique
 Result' = R sort by .surname .firstname
-Result OutputPath csv
+Result csv OutputPath

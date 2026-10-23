@@ -5,14 +5,14 @@ const runtime = new Interpreter();
 runtime.execute(`
 use algo
 use sequences
-fun Seen V note
+fun Seen note V
   Seen add V
   return Seen
 end
 fun N setwork
   Seen = new set
   for V in 0 till N
-    Seen V note
+    Seen note V
   end
   return Seen len
 end

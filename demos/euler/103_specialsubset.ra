@@ -45,7 +45,7 @@ for Depth greater -1
   end
   Set Depth = X
   Mine = Reach Depth
-  Both = (Mine X shr) Mine band
+  Both = (Mine shr X) band Mine
   if Both not equal 0
     continue
   end
@@ -74,11 +74,11 @@ for Depth greater -1
     continue
   end
   Next = Depth + 1
-  Reach Next = Mine (Mine X shl) bor
+  Reach Next = Mine bor (Mine shl X)
   Total Next = Sum
   Set Next = X
   Depth = Next
 end
 Digits = Found text rank 0
-Answer = Digits "" join
+Answer = Digits join ""
 Answer print

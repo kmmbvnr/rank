@@ -30,7 +30,7 @@ for M in 1 to M
   end
   Start = M * (M + 3) // 2
   End = (M + 1) * (M + 4) // 2 - 1
-  Len = (Limit End min) - Start + 1
+  Len = (Limit min End) - Start + 1
   Base = (M mod Mod) * Fact mod Mod
   Add = 0
   if Len at most M

@@ -6,7 +6,7 @@ use sequences
 use stats
 
 rem Correlate each X and Y feature pair.
-fun X Y calculate_correlation
+fun X calculate_correlation Y
   N = X len
   if Y len not equal N
     .DimensionMismatch raise
@@ -17,7 +17,7 @@ fun X Y calculate_correlation
 
   Xc' = X - (X mean axis 0)
   Yc' = Y - (Y mean axis 0)
-  Cov' = (Xc transpose) Yc matmul / N
+  Cov' = (Xc transpose) matmul Yc / N
 
   Xstd = X std axis 0
   Ystd = Y std axis 0
@@ -27,5 +27,5 @@ end
 
 rem Correlate one matrix with itself.
 fun X correlation_matrix
-  return X X calculate_correlation
+  return X calculate_correlation X
 end

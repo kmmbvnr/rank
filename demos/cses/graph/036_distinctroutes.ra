@@ -11,7 +11,7 @@ M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
 Edges = Values reshape M 2
-Routes = N Edges distinct_routes
+Routes = N distinct_routes Edges
 Routes len print
 for Route in Routes
   Route len print
@@ -20,7 +20,7 @@ end
 
 
 rem Decompose a unit flow into routes.
-fun N Edges distinct_routes
+fun N distinct_routes Edges
   Graph = new graph (1 to N) .directed
   for Edge in Edges
     unpack From To = Edge
@@ -34,12 +34,12 @@ fun N Edges distinct_routes
     Parent = N Graph Flow flow_path
     Current = N
     Path = new deque
-    Path Current pushfront
+    Path pushfront Current
     for Current not equal 1
       Previous = Parent Current
       Flow Previous Current -= 1
       Current = Previous
-      Path Current pushfront
+      Path pushfront Current
     end
     Routes push Path
   end

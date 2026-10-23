@@ -15,5 +15,5 @@ rem integral over the region gives
 rem (1 + 14 e - 5 e^2) / 4.
 E = 1.0 exp
 P = (1 + 14 * E - 5 * E * E) / 4
-Answer = P Digits round
+Answer = P round Digits
 Answer print

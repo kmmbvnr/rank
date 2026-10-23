@@ -16,7 +16,7 @@ rem Choose the n letters, then arrange
 rem them with exactly one descent: the
 rem Eulerian number 2^n - n - 1.
 N = 2 to Letters array
-Sets' = Letters N binomial
+Sets' = Letters binomial N
 Ways' = 2 ** N - N - 1
 Counts' = Sets * Ways
 Answer = Counts max

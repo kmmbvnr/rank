@@ -16,9 +16,9 @@ if (process.argv.includes('--worker')) {
         const phases = {};
         for (const [name, source] of [
             ['seedBuild', 'Seed = 10000 build'],
-            ['seedSearch', 'Upper = Seed 50000 min_five\nUpper'],
+            ['seedSearch', 'Upper = Seed min_five 50000\nUpper'],
             ['fullBuild', 'Full = Upper build'],
-            ['fullSearch', 'Answer = Full Upper min_five\nAnswer'],
+            ['fullSearch', 'Answer = Full min_five Upper\nAnswer'],
         ]) {
             const before = diagnostics.compiledLoops, start = performance.now();
             const value = measure ? diagnostics.run(() => runtime.execute(source)) : runtime.execute(source);

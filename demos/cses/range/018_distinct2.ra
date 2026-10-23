@@ -12,11 +12,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 3) array
 Queries = Raw reshape Q 3
 
-Values Queries distinct2 print
+Values distinct2 Queries print
 
 
 rem Track the next equal position.
-fun Values Queries distinct2
+fun Values distinct2 Queries
   N = Values len
   Positions = new index
   for Value I in Values

@@ -11,11 +11,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 3) array
 Queries = Raw reshape Q 3
 
-Values Queries prefix_queries print
+Values prefix_queries Queries print
 
 
 rem Query the built-in max-sum summary.
-fun Values Queries prefix_queries
+fun Values prefix_queries Queries
   Queue = new queue
   Tree = Values segment maxsum
 

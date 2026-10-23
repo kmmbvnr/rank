@@ -14,7 +14,9 @@ describe('mutable collection element contracts', () => {
         const remove = kind === 'set' || kind === 'counter' ? 'C remove array 1 2' : 'Old = C pop';
 
         it(`${kind}: aliases and calls share the contract after removal to empty`, () => {
-            expect(() => run(prelude + `C = new ${kind}\n${insert('C', 'array 1 2')}\n${remove}
+            expect(() => run(prelude + `C = new ${kind}
+${insert('C', 'array 1 2')}
+${remove}
 Alias = C
 fun Target put
   ${insert('Target', 'array "bad"')}

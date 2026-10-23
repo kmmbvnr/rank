@@ -9,11 +9,11 @@ M = stdin .integer
 Prices' = stdin .integer N
 Customers' = stdin .integer M
 
-Prices Customers sell print
+Prices sell Customers print
 
 
 rem Sell the best affordable ticket.
-fun Prices' Customers' sell
+fun Prices' sell Customers'
   Queue = new queue
   Tickets = Prices multiset
 

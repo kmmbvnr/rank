@@ -218,7 +218,7 @@ describe('dates', () => {
             'Rows = "/in.csv" csv',
             'Rows .weekday = Rows .when date weekday',
             'Rows .parsed = Rows .when date',
-            'Rows (array .when .weekday .parsed) "/out.csv" csv',
+            'Rows (array .when .weekday .parsed) csv "/out.csv"',
         ].join('\n'));
         expect(new TextDecoder().decode(io.file('/out.csv')))
             .toBe('when,weekday,parsed\n2024-01-07,6,2024-01-07\n');

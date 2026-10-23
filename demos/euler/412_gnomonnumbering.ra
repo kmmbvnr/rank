@@ -18,7 +18,7 @@ rem t! with a corner block and two
 rem arms of width K. Prime modulus,
 rem so division is a power.
 P = 76543217
-fun V P modprod
+fun V modprod P
   for V len greater 1
     if V len mod 2 equal 1
       V = concat V (array 1)
@@ -34,9 +34,9 @@ end
 Cells = M * M - K * K
 Fact = 1
 for Lo in 1 to Cells by Chunk
-  Hi = Cells (Lo + Chunk - 1) min
+  Hi = Cells min (Lo + Chunk - 1)
   Part = (Lo to Hi) mod P copy
-  Fact = Fact * (Part P modprod) mod P
+  Fact = Fact * (Part modprod P) mod P
 end
 
 Fc = array shape (2 * M) fill 1
@@ -45,13 +45,13 @@ for T in 1 to 2 * M - 1
 end
 W = M - K
 Sl = Fc ((M + K) to (2 * M - 1))
-An = Sl copy P modprod
+An = Sl copy modprod P
 Sl = Fc ((2 * K) to (M + K - 1))
-Ad = Sl copy P modprod
+Ad = Sl copy modprod P
 Sl = Fc (K to (M - 1))
-Bn = Sl copy P modprod
+Bn = Sl copy modprod P
 Sl = Fc (0 to (W - 1))
-Bd = Sl copy P modprod
+Bd = Sl copy modprod P
 Den = An * Bn mod P * Bn mod P
 Num = Ad * Bd mod P * Bd mod P
 Inv = Den (P - 2) P powmod

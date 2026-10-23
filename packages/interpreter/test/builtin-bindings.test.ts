@@ -28,7 +28,7 @@ it('checks module activation across separate executions without corrupting the s
 
 it('retains builtin aliases and receiver methods', () => {
     expect(run('op = sum\n(array 1 2 3) op')).toBe('6');
-    expect(run('use graph\nfun A B find\n return 99\nend\nD = new dsu (array 1 2)\nD findroot 1')).toBe('1');
+    expect(run('use graph\nfun A find B\n return 99\nend\nD = new dsu (array 1 2)\nD findroot 1')).toBe('1');
 });
 
 it('checks retained function parameters and nested declarations before opening a module', () => {
@@ -99,14 +99,14 @@ it('checks loop bindings and parameters after a module is already loaded', () =>
 
 it('keeps DSU findroot and collection find distinct when both modules are open', () => {
     expect(run('use graph\nuse sequences\nuse text\nD = new dsu (array "a" "b")\nRoot = D findroot "a"\nRoot lower + "!"')).toBe('a!');
-    expect(run('use graph\nuse sequences\n(array "a" "b") "b" find')).toBe('1');
-    expect(run('use graph\nop = findroot\nD = new dsu (array "a" "b")\nD "a" op')).toBe('a');
-    expect(() => run('use graph\nD = new dsu (array "a")\nD "a" find')).toThrow('DSU find is now findroot');
+    expect(run('use graph\nuse sequences\n(array "a" "b") find "b"')).toBe('1');
+    expect(run('use graph\nop = findroot\nD = new dsu (array "a" "b")\nD op "a"')).toBe('a');
+    expect(() => run('use graph\nD = new dsu (array "a")\nD find "a"')).toThrow('DSU find is now findroot');
 });
 
 it('explains the removed DSU find spelling before suggesting another module', () => {
     for (const modules of ['use graph', 'use graph\nuse sequences']) {
-        for (const call of ['D find "a"', 'D "a" find', '(new dsu (array "a")) "a" find']) {
+        for (const call of ['D find "a"', 'D find "a"', '(new dsu (array "a")) find "a"']) {
             for (const compiled of [true, false]) {
                 const runtime = new Interpreter(undefined, { scalarCompilation: compiled,
                     scalarFunctionCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
@@ -118,5 +118,5 @@ it('explains the removed DSU find spelling before suggesting another module', ()
 });
 
 it('does not treat a user function named find as a removed builtin', () => {
-    expect(run('use graph\nfun D X find\n return 99\nend\nD = new dsu (array "a")\nD "a" find')).toBe('99');
+    expect(run('use graph\nfun D find X\n return 99\nend\nD = new dsu (array "a")\nD find "a"')).toBe('99');
 });

@@ -8,7 +8,7 @@ use stats
 
 rem Predict probabilities and their MSE.
 fun X Y W Bias single_neuron
-  Pred' = X W matmul + Bias
+  Pred' = X matmul W + Bias
   Pred = Pred sigmoid
 
   Error = Pred - Y

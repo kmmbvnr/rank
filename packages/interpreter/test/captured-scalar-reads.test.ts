@@ -71,11 +71,11 @@ end
     it('reads a captured matrix by its full address', () => {
         const result = compare(`Grid = array shape 2 3 fill 0
 Grid 1 2 = 7
-fun R C cell
+fun R cell C
   return Grid R C
 end
-X = 1 2 cell
-Y = 0 1 cell
+X = 1 cell 2
+Y = 0 cell 1
 X + Y`);
         expect(result.value).toBe('7');
         expect(result.calls).toBe(2);

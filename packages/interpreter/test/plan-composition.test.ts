@@ -13,24 +13,26 @@ function counted() {
 describe.each([false, true])('compositional plan construction (compilation=%s)', compilation => {
     it.each([
         ['Matrix transpose pass', '1 3 2 4'],
-        ['Matrix transpose 2 scale', '2 6 4 8'],
+        ['Matrix transpose scale 2', '2 6 4 8'],
         ['Matrix transpose reverse pass', '2 4 1 3'],
         ['Input sum pass', '10'],
-        ['Input sum 2 scale', '20'],
-        ['Matrix sum 2 scale', '20'],
-        ['Input sum abs 2 scale', '20'],
+        ['Input sum scale 2', '20'],
+        ['Matrix sum scale 2', '20'],
+        ['Input sum abs scale 2', '20'],
     ])('passes a complete postfix argument recipe to a deferred parameter: %s', (expression, expected) => {
         const source = counted();
         const output: string[] = [];
         const runtime = new Interpreter(text => output.push(text), { compilation });
         runtime.variables.set('Input', source.value);
         try {
-            runtime.execute(`use sequences\nuse numbers\nuse io
+            runtime.execute(`use sequences
+use numbers
+use io
 fun X' pass
  "entered" print
  return X
 end
-fun X' Factor scale
+fun X' scale Factor
  "entered" print
  return X * Factor
 end
@@ -71,12 +73,12 @@ Result' = Matrix transpose stats`);
         try {
             runtime.execute(`use algo
 fun X' pass = X
-fun X' Y plusvalue = X + Y
+fun X' plusvalue Y = X + Y
 Tree = 3 fenwick
 Tree 0 = 2
 Tree 1 = 5`);
             expect(runtime.execute('Tree sum 1 pass')).toBe(7n);
-            expect(runtime.execute('Tree sum 1 10 plusvalue')).toBe(17n);
+            expect(runtime.execute('Tree sum 1 plusvalue 10')).toBe(17n);
             expect(() => runtime.execute('Tree sum plusvalue')).toThrowError('fenwick sum expects one integer index');
         } finally { runtime.dispose(); }
     });
@@ -85,13 +87,14 @@ Tree 1 = 5`);
         const output: string[] = [];
         const runtime = new Interpreter(text => output.push(text), { compilation });
         try {
-            runtime.execute(`use algo\nuse io
-fun X' Y plusvalue
+            runtime.execute(`use algo
+use io
+fun X' plusvalue Y
  "entered" print
  return X + Y
 end
 Tree' = 3 fenwick
-Result' = Tree sum (1 print) 10 plusvalue`);
+Result' = Tree sum (1 print) plusvalue 10`);
             expect(output).toEqual(['entered']);
             expect(runtime.execute('Result')).toBe(10n);
             expect(runtime.execute('Result')).toBe(10n);
@@ -103,17 +106,18 @@ Result' = Tree sum (1 print) 10 plusvalue`);
         const output: string[] = [];
         const runtime = new Interpreter(text => output.push(text), { compilation });
         try {
-            runtime.execute(`use algo\nuse io
+            runtime.execute(`use algo
+use io
 fun query_index
  "index" print
  return 1
 end
-fun X' Y plusvalue
+fun X' plusvalue Y
  "entered" print
  return X + Y
 end
 Tree' = 3 fenwick
-Result' = Tree sum query_index 10 plusvalue`);
+Result' = Tree sum query_index plusvalue 10`);
             expect(output).toEqual(['index', 'entered']);
             expect(runtime.execute('Result')).toBe(10n);
             expect(runtime.execute('Result')).toBe(10n);
@@ -127,16 +131,17 @@ Result' = Tree sum query_index 10 plusvalue`);
         const runtime = new Interpreter(text => output.push(text), { compilation });
         runtime.variables.set('Input', source.value);
         try {
-            runtime.execute(`use sequences\nuse io
+            runtime.execute(`use sequences
+use io
 fun N produce
  "producer" print
  return Input
 end
-fun X' Factor scale
+fun X' scale Factor
  "entered" print
  return X * Factor
 end
-Result' = (0 produce) sum 2 scale`);
+Result' = (0 produce) sum scale 2`);
             expect(output).toEqual(['producer', 'entered']);
             expect(source.reads()).toBe(0);
             expect(runtime.execute('Result')).toBe(20n);
@@ -150,7 +155,7 @@ Result' = (0 produce) sum 2 scale`);
         const runtime = new Interpreter(undefined, { compilation });
         try {
             runtime.execute(`use algo
-fun X' Y plusvalue = X + Y
+fun X' plusvalue Y = X + Y
 Tree = 3 fenwick
 Tree 0 = 2
 Tree 1 = 5
@@ -158,16 +163,16 @@ Holder = record
  .tree = Tree
 end
 Later' = Holder .tree
-Result' = ${receiver} sum 1 10 plusvalue`);
+Result' = ${receiver} sum 1 plusvalue 10`);
             expect(runtime.execute('Result')).toBe(17n);
             expect(runtime.execute('Result')).toBe(17n);
         } finally { runtime.dispose(); }
     });
 
     it.each([
-        ['Unknown sum 2 scale', [], 1],
-        ['(Unknown sum) 2 scale', [], 0],
-        ['Unknown sum 2 scale', ['sequence', 'array'], 0],
+        ['Unknown sum scale 2', [], 0],
+        ['(Unknown sum) scale 2', [], 0],
+        ['Unknown sum scale 2', ['sequence', 'array'], 0],
     ] as const)('demands an unknown receiver kind only when grouping needs it: %s %s', (expression, types, entryDemands) => {
         const source = counted();
         const runtime = new Interpreter(undefined, { compilation });
@@ -177,7 +182,7 @@ Result' = ${receiver} sum 1 10 plusvalue`);
         });
         try {
             runtime.execute(`use sequences
-fun X' Factor scale = X * Factor
+fun X' scale Factor = X * Factor
 Result' = ${expression}`);
             expect(demands).toBe(entryDemands);
             expect(source.reads()).toBe(0);
@@ -200,20 +205,21 @@ Result' = ${expression}`);
             },
         });
         try {
-            runtime.execute(`use sequences\nuse io
-fun X' Factor scale
+            runtime.execute(`use sequences
+use io
+fun X' scale Factor
  "entered" print
  return X * Factor
 end`);
-            const program = parse("Result' = Unknown sum 2 scale");
-            expect(() => runtime.executeProgram(program)).toThrowError('receiver dispatch failed');
-            expect(output).toEqual([]);
+            const program = parse("Result' = Unknown sum scale 2", '<input>', { bindings: new Map([['scale', [2]]]) });
             runtime.executeProgram(program);
+            expect(demands).toBe(0);
             expect(output).toEqual(['entered']);
             expect(source.reads()).toBe(0);
+            expect(() => runtime.execute('Result')).toThrowError('receiver dispatch failed');
             expect(runtime.execute('Result')).toBe(20n);
             expect(runtime.execute('Result')).toBe(20n);
-            expect(demands).toBe(4);
+            expect(demands).toBe(3);
             expect(source.reads()).toBe(8);
             expect(output).toEqual(['entered']);
         } finally { runtime.dispose(); }
@@ -224,13 +230,13 @@ end`);
         const runtime = new Interpreter(undefined, { compilation });
         runtime.variables.set('Input', source.value);
         try {
-            runtime.execute("use sequences\nfun Value Limit above = Value greater Limit\nM' = (array 1 2 3 4) reshape 2 2");
-            expect(runtime.execute('M 1 0 2 above')).toBe(true);
-            expect(runtime.execute('Result = M 1 0 3 above')).toBe(false);
-            runtime.execute("Result' = M 1 0 2 above");
+            runtime.execute("use sequences\nfun Value above Limit = Value greater Limit\nM' = (array 1 2 3 4) reshape 2 2");
+            expect(runtime.execute('M 1 0 above 2')).toBe(true);
+            expect(runtime.execute('Result = M 1 0 above 3')).toBe(false);
+            runtime.execute("Result' = M 1 0 above 2");
             expect(runtime.execute('Result')).toBe(true);
-            runtime.execute("fun Value X' keep = Value\nLater' = Input sum");
-            expect(runtime.execute('M 1 0 Later keep')).toBe(3n);
+            runtime.execute("fun Value keep X' = Value\nLater' = Input sum");
+            expect(runtime.execute('M 1 0 keep Later')).toBe(3n);
             expect(source.reads()).toBe(0);
         } finally { runtime.dispose(); }
     });
@@ -239,8 +245,8 @@ end`);
         const output: string[] = [];
         const runtime = new Interpreter(text => output.push(text), { compilation });
         try {
-            runtime.execute('use io\nfun A B add\n "entered" print\n return A + B\nend');
-            expect(() => runtime.execute(`${prefix}1 2 3 add`)).toThrowError('add expects 2 arguments, got 3');
+            runtime.execute('use io\nfun A add B\n "entered" print\n return A + B\nend');
+            expect(() => runtime.execute(`${prefix}1 2 add 3`)).toThrowError('value application requires a sequence and one selector');
             expect(() => runtime.execute(`${prefix}1 add`)).toThrowError('add expects 2 arguments, got 1');
             runtime.execute('fun X only\n "entered" print\n return X\nend');
             expect(() => runtime.execute(`${prefix}1 2 only`)).toThrowError('only expects 1 arguments, got 2');

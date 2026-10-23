@@ -13,7 +13,7 @@ rem Collapse valleys into a stack.
 fun Heights' mountain_route
   Mountains = new stack
 
-  fun Height Mountains add_height
+  fun Height add_height Mountains
     Current = record
       .height = Height
       .path = 1
@@ -64,7 +64,7 @@ fun Heights' mountain_route
   end
 
   for Height in Heights
-    Height Mountains add_height
+    Height add_height Mountains
   end
 
   for Mountains len greater 1

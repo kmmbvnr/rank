@@ -124,14 +124,14 @@ describe('Rank records', () => {
 
     it('passes records by reference', () => {
         expect(run([
-            'fun Node Amount accumulate',
+            'fun Node accumulate Amount',
             '  Node .grad += Amount',
             '  return Node',
             'end',
             'Node = record',
             '  .grad = 0.0',
             'end',
-            'Updated = Node 2.5 accumulate',
+            'Updated = Node accumulate 2.5',
             'Node .grad equal Updated .grad',
         ].join('\n'))).toBe('true');
     });

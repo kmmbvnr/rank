@@ -79,7 +79,7 @@ fun Out N Num Den walk
     end
     X1 = Num * Pk
     Y1 = Den * Sg
-    G = X1 Y1 gcd
+    G = X1 gcd Y1
     Num2 = X1 // G
     Den2 = Y1 // G
     if Num2 less Den2

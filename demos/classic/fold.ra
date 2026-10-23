@@ -7,7 +7,7 @@ fun Values' fold op .with Seed
     if Result is .missing
       Result = Value
     else
-      Result = Result Value op
+      Result = Result op Value
     end
   end
   if Result is .missing

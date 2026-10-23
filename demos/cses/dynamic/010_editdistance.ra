@@ -6,11 +6,11 @@ use sequences
 
 Left = stdin .word
 Right = stdin .word
-Left Right edit_distance print
+Left edit_distance Right print
 
 
 rem Keep only the prior distance row.
-fun Left Right edit_distance
+fun Left edit_distance Right
   Width = Right len
   Previous = 0 to Width array
 
@@ -26,8 +26,8 @@ fun Left Right edit_distance
         continue
       end
       Delete = Previous (j + 1)
-      Best = Delete (Current j) min
-      Best = Best (Previous j) min
+      Best = Delete min (Current j)
+      Best = Best min (Previous j)
       Current (j + 1) = Best + 1
     end
 

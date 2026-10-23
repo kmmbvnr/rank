@@ -18,7 +18,7 @@ and `sum`. Setup-only constructs the same three inputs and adds zero in the
 | Expression | Before, ms/pass | After, ms/pass | Speedup |
 |---|---:|---:|---:|
 | `X + Z` | 18.7 | 18.7 | 1.00x |
-| `X Z min` | 372.5 | 38.1 | 9.78x |
+| `X min Z` | 372.5 | 38.1 | 9.78x |
 | `X max Z` | 376.8 | 38.0 | 9.90x |
 | `M choose X Z` | 477.4 | 28.4 | 16.79x |
 

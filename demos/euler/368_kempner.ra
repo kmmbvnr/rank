@@ -9,7 +9,7 @@ use cli
 option Terms integer = 16
 option Digits integer = 3
 
-Answer = Terms Digits kempner 10 round
+Answer = Terms kempner Digits round 10
 Answer print
 
 fun N valid
@@ -72,7 +72,7 @@ fun Max moments
         B S += 1.0
       end
     end
-    V = A B solve
+    V = A solve B
     for S in 0 to 19
       H S M = V S
     end
@@ -80,7 +80,7 @@ fun Max moments
   return H
 end
 
-fun Max Digits kempner
+fun Max kempner Digits
   H = Max moments
   Low = 10 ** (Digits - 1)
   Sum = 0.0

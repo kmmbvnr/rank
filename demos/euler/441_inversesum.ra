@@ -58,7 +58,7 @@ T1 = Md / Dd + Gm / Dd / Dd
 Tot = ((Mu Ds) * T1) sum
 rem Part two: q = d k above N / 2.
 rem Small d: vector over k.
-Dc = Cut N min
+Dc = Cut min N
 for D in 1 to Dc
   if Mu D not equal 0
     Ka = N // 2 // D + 1
@@ -99,5 +99,5 @@ for K in 1 to (K1 max 1)
     Tot += ((Mu Dv) * Wq) sum
   end
 end
-Answer = (Tot - 1) Digits round
+Answer = (Tot - 1) round Digits
 Answer print

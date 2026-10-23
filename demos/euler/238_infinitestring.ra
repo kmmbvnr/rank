@@ -44,24 +44,24 @@ fun P W Total rep
     if Width at least Total
       break
     end
-    Cur = Cur (Cur Width shl) bor
+    Cur = Cur bor (Cur shl Width)
     Width = Width * 2
   end
   return Cur
 end
 fun X popc
-  Xs = X 1 shr
-  A = X - (Xs M1 band)
-  As = A 2 shr
-  B = (A M2 band) + (As M2 band)
-  Bs = B 4 shr
-  C = (B + Bs) M4 band
-  Cs = C 8 shr
-  D = (C + Cs) M8 band
-  Ds = D 16 shr
-  E = (D + Ds) M16 band
-  Es = E 32 shr
-  F = (E + Es) M32 band
+  Xs = X shr 1
+  A = X - (Xs band M1)
+  As = A shr 2
+  B = (A band M2) + (As band M2)
+  Bs = B shr 4
+  C = (B + Bs) band M4
+  Cs = C shr 8
+  D = (C + Cs) band M8
+  Ds = D shr 16
+  E = (D + Ds) band M16
+  Es = E shr 32
+  F = (E + Es) band M32
   return F mod 18446744073709551615
 end
 Mod = 20300713
@@ -118,12 +118,12 @@ for Step in 1 to 40
     Tr = Pair transpose
     Lo' = Tr 0
     Hi' = Tr 1
-    Ws = Lo + (Hi Width shl)
+    Ws = Lo + (Hi shl Width)
     Width = Width * 2
   end
 end
 B = Ws 0
-Full = (1 Dw shl) - 1
+Full = (1 shl Dw) - 1
 Left = Full
 M1 = 1 2 Dw rep
 M2 = 3 4 Dw rep
@@ -133,7 +133,7 @@ M16 = 65535 32 Dw rep
 M32 = 4294967295 64 Dw rep
 Weight = 0
 Part = 0
-Mask = (1 ((Top mod Dw) + 1) shl) - 1
+Mask = (1 shl ((Top mod Dw) + 1)) - 1
 Ev = 0
 Idx = 0
 Pre = 0
@@ -144,14 +144,14 @@ for
   Begun = false
   for P in Pw10
     if Has and not Done
-      Up = B Ev shr
-      Dn = B (Dw - Ev) shl
-      Turn = (Up Dn bor) Full band
-      New = Turn Left band
+      Up = B shr Ev
+      Dn = B shl (Dw - Ev)
+      Turn = (Up bor Dn) band Full
+      New = Turn band Left
       Weight += (New popc) * (1 + Idx)
-      Cut = (New Mask band) popc
+      Cut = (New band Mask) popc
       Part += Cut * (1 + Idx)
-      Left = Left New bxor
+      Left = Left bxor New
       Done = Left equal 0
     end
     Dg = Cur // P mod 10

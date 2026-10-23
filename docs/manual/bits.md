@@ -10,7 +10,7 @@ bit is in both, giving 010.
 
 ```rank
 use bits
-6 3 band
+6 band 3
 ```
 
 ```result
@@ -20,7 +20,7 @@ use bits
 ### Usage
 
 ```text
-A B band
+A band B
 ```
 
 Works on integers of any size. For true
@@ -36,7 +36,7 @@ Write an integer in binary.
 
 ```rank
 use bits
-6 8 binary
+6 binary 8
 ```
 
 ```result
@@ -47,7 +47,7 @@ use bits
 
 ```text
 Number binary
-Number Width binary
+Number binary Width
 ```
 
 With Width, pads with zeros on the left.
@@ -66,7 +66,7 @@ Check whether a single bit is set.
 
 ```rank
 use bits
-6 1 bit
+6 bit 1
 ```
 
 ```result
@@ -76,7 +76,7 @@ true
 ### Usage
 
 ```text
-Number Position bit
+Number bit Position
 ```
 
 Bit 0 is the rightmost one.
@@ -121,7 +121,7 @@ number.
 
 ```rank
 use bits
-6 3 bor
+6 bor 3
 ```
 
 ```result
@@ -131,7 +131,7 @@ use bits
 ### Usage
 
 ```text
-A B bor
+A bor B
 ```
 
 ### See also
@@ -145,7 +145,7 @@ in exactly one number.
 
 ```rank
 use bits
-6 3 bxor
+6 bxor 3
 ```
 
 ```result
@@ -155,7 +155,7 @@ use bits
 ### Usage
 
 ```text
-A B bxor
+A bxor B
 ```
 
 ### See also
@@ -201,7 +201,7 @@ Shifting 3 left by 2 multiplies it by 4.
 
 ```rank
 use bits
-3 2 shl
+3 shl 2
 ```
 
 ```result
@@ -211,7 +211,7 @@ use bits
 ### Usage
 
 ```text
-Number Count shl
+Number shl Count
 ```
 
 Count cannot be negative. Integers never
@@ -228,7 +228,7 @@ power of two, rounding down.
 
 ```rank
 use bits
-12 2 shr
+12 shr 2
 ```
 
 ```result
@@ -238,11 +238,11 @@ use bits
 ### Usage
 
 ```text
-Number Count shr
+Number shr Count
 ```
 
 Count cannot be negative. Negative
-numbers round down too: `-8 1 shr` is
+numbers round down too: `-8 shr 1` is
 -4.
 
 ### See also

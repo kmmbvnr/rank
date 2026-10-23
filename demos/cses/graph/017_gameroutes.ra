@@ -12,11 +12,11 @@ Values = stdin .integer ValueCount array
 Edges = Values reshape M 2
 Graph = new graph (1 to N) .directed
 Graph add Edges
-Graph N game_routes print
+Graph game_routes N print
 
 
 rem Count paths from 1 through a DAG.
-fun Graph N game_routes
+fun Graph game_routes N
   Modulus = 1000000007
   Ways = array shape (N + 1) fill 0
   Ways 1 = 1

@@ -10,11 +10,11 @@ M = stdin .integer
 Count = M * 3
 Values = stdin .integer Count array
 Edges = Values reshape M 3
-N Edges download_speed print
+N download_speed Edges print
 
 
 rem Compute maximum network throughput.
-fun N Edges download_speed
+fun N download_speed Edges
   Graph = new graph (1 to N) .directed
   Graph add Edges
   Result = Graph 1 N maxflow

@@ -22,7 +22,7 @@ rem (isqrt(8i + 1) - 1) / 2 and has two
 rem children in the next row.
 Text = Input read
 Flat = Text "\n" " " translate
-Words = Flat " " split
+Words = Flat split " "
 Real = Words filter not equal "" array
 Vals = Real integer
 Count = Vals len
@@ -41,7 +41,7 @@ Edges' = stack From To Cost transpose
 Net = new graph .directed
 Net add Id
 Net add Edges
-Dist = Net 0 dijkstra .distance
+Dist = Net dijkstra 0 .distance
 Base = Id (Row equal Last) array
 Short = (Dist Base) min
 Answer = Vals 0 + Last * 100 - Short

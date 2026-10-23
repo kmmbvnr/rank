@@ -293,7 +293,7 @@ describe('Rank grammar', () => {
     it('parses explicit unpacking from a formatted text expression', async () => {
         const document = await parse([
             'Pattern = "/integerx/integerx/integer"',
-            'unpack Length Width Height = Line Pattern parse',
+            'unpack Length Width Height = Line parse Pattern',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -398,7 +398,7 @@ describe('Rank grammar', () => {
     it('parses matmul with an explicit axis pair', async () => {
         const document = await parse([
             'use linalg',
-            'C = A B matmul axis 2 0',
+            'C = A matmul B axis 2 0',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -429,7 +429,7 @@ describe('Rank grammar', () => {
     it('parses data-first trigonometric calls', async () => {
         const document = await parse([
             'use numbers',
-            'Angle = Y X atan2',
+            'Angle = Y atan2 X',
             'Wave = Angles sin',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
@@ -683,7 +683,7 @@ describe('Rank grammar', () => {
 
     it('parses functions, array construction and keyed index assignment', async () => {
         const document = await parse([
-            'fun A Target two_sum',
+            'fun A two_sum Target',
             '  for Value i in A',
             '    if Value in Index',
             '      return array Value i',

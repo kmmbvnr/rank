@@ -23,7 +23,7 @@ More = 0 26 1 Es Ps pats
 Answer = 1 + More
 Answer print
 
-fun N E root
+fun N root E
   if E equal 1
     return N
   end
@@ -61,7 +61,7 @@ end
 fun Es Pos Lim Low Used Ps cnt
   E = Es Pos
   if Pos equal (Es len - 1)
-    Top = Lim E root
+    Top = Lim root E
     High = (Sieve to Top) len
     Before = (Sieve till Low) len
     Total = High - Before
@@ -84,10 +84,10 @@ fun Es Pos Lim Low Used Ps cnt
     Same += 1
     At += 1
   end
-  Top = Lim (E * Same) root
+  Top = Lim root (E * Same)
   Total = 0
-  First = Ps Low lowerindex
-  Last = Ps Top upperindex
+  First = Ps lowerindex Low
+  Last = Ps upperindex Top
   for I in First till Last
     P = Ps I
     if P in Used

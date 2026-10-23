@@ -11,11 +11,11 @@ Next = stdin .integer N array
 ValueCount = Q * 2
 Values = stdin .integer ValueCount array
 Queries = Values reshape Q 2
-Next Queries planet_queries print
+Next planet_queries Queries print
 
 
 rem Answer functional-graph jumps.
-fun Next Queries planet_queries
+fun Next planet_queries Queries
   Planets = Next functional
   Count = Queries len
   Answers = array shape Count fill 0

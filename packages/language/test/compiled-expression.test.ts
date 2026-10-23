@@ -35,7 +35,7 @@ describe('shared compiled expression inference', () => {
                 const type = inputs[0];
                 return (type === 'integer' || type === 'real') && inputs.every(input => input === type) ? type : undefined;
             } };
-        expect(inferCompiledExpression(expression('(A max B) 10 min'), scope).expression).toMatchObject({
+        expect(inferCompiledExpression(expression('(A max B) min 10'), scope).expression).toMatchObject({
             kind: 'extreme', name: 'min', type: 'integer',
             left: { kind: 'group', operand: { kind: 'extreme', name: 'max', left: { input: 'A' }, right: { input: 'B' } } },
             right: { kind: 'literal', value: 10n },
@@ -58,7 +58,7 @@ describe('shared compiled expression inference', () => {
                     ? { type: 'integer', input: 'limit' } : undefined,
             extreme: (_name, inputs) => inputs.every(type => type === 'integer') ? 'integer' : undefined,
         };
-        expect(inferCompiledExpression(expression('(Values 0 max Limit) 10 min'), scope).expression).toMatchObject({
+        expect(inferCompiledExpression(expression('(Values 0 max Limit) min 10'), scope).expression).toMatchObject({
             kind: 'extreme', name: 'min',
             left: { kind: 'group', operand: { kind: 'extreme', name: 'max',
                 left: { kind: 'group', operand: { kind: 'input', input: 'cell' } },
@@ -165,7 +165,7 @@ describe('shared compiled expression inference', () => {
     });
 
     it('infers nested integer number calls through the shared contract', () => {
-        const result = inferCompiledExpression(expression('(A B gcd) isqrt'), {
+        const result = inferCompiledExpression(expression('(A gcd B) isqrt'), {
             ...context({ A: 'integer', B: 'integer' }), call: matchCompiledCallSignature,
         });
         expect(result.expression).toMatchObject({ kind: 'call', type: 'integer', operation: { name: 'isqrt' },
@@ -176,11 +176,11 @@ describe('shared compiled expression inference', () => {
     it('requires complete native domains and declines a shadowed spelling', () => {
         for (const [source, bindings] of [
             ['X reverse', { X: 'integer' }],
-            ['X Y gcd', { X: 'real', Y: 'integer' }],
-            ['X Y gcd', { X: 'integer', Y: 'integer', gcd: 'integer' }],
+            ['X gcd Y', { X: 'real', Y: 'integer' }],
+            ['X gcd Y', { X: 'integer', Y: 'integer', gcd: 'integer' }],
             ['X lcm', { X: 'integer' }],
             ['X reverse', { X: 'text', reverse: 'integer' }],
-            ['X Y startswith', { X: 'text', Y: 'bytes' }],
+            ['X startswith Y', { X: 'text', Y: 'bytes' }],
         ] as const) {
             expect(inferCompiledExpression(expression(source), {
                 ...context(bindings), call: matchCompiledCallSignature,

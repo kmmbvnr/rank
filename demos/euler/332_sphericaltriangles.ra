@@ -57,8 +57,8 @@ fun R sphere
         Sum = Bs Pick - RR
         Top = A / (RR * (RR ** 0.5))
         Bot = 1 + Sum / RR
-        Area = 2 * (Top Bot atan2) * RR
-        Best = Best Area min
+        Area = 2 * (Top atan2 Bot) * RR
+        Best = Best min Area
         BestScore = Score
       end
     end

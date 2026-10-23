@@ -26,14 +26,14 @@ for (const operator of ['+=', '-=', '*=']) for (const weightedCase of [false, tr
         const operand = weightedCase ? 'Weights I' : operator === '*=' ? '-1' : '1';
         const bulkOperand = weightedCase ? 'Weights' : operand;
         runtime.execute(`use sequences
-fun Values Weights scalarcase
+fun Values scalarcase Weights
  A = array shape ${buckets} fill ${fill}
  for I in 0 till Values len
   A (Values I) ${operator} ${operand}
  end
  return A
 end
-fun Values Weights bulkcase
+fun Values bulkcase Weights
  A = array shape ${buckets} fill ${fill}
  A Values ${operator} ${bulkOperand} .accumulate
  return A

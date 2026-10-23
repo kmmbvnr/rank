@@ -38,4 +38,4 @@ Result' = S select
   .utilisation = Usage
 end
 Result' = Result sort by .name .month
-Result OutputPath csv
+Result csv OutputPath

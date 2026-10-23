@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { run } from './support.js';
 
-const subtract = 'fun A B subtract\n  return A - B\nend\n';
+const subtract = 'fun A subtract B\n  return A - B\nend\n';
 
 describe('named reduce', () => {
     it('folds from the left, with or without a seed', () => {
@@ -11,7 +11,7 @@ describe('named reduce', () => {
     });
 
     it('keeps the seed and supports a different accumulator type', () => {
-        expect(run('fun Text N append\n  return Text + (N text)\nend\n'
+        expect(run('fun Text append N\n  return Text + (N text)\nend\n'
             + '(1 to 3) reduce append with ""')).toBe('123');
         expect(run(subtract + 'Empty = array shape 0 fill 0\nEmpty reduce subtract with 7')).toBe('7');
         expect(() => run(subtract + 'Empty = array shape 0 fill 0\nEmpty reduce subtract'))
@@ -32,7 +32,7 @@ describe('named reduce', () => {
     });
 
     it.each(['add', 'remove', 'combineadd', 'combineremove'])('does not confuse %s with collection mutation', name => {
-        expect(run(`fun A B ${name}\n  return A + B\nend\nValues = array 2 3 4\nValues reduce ${name} with 0`)).toBe('9');
+        expect(run(`fun A ${name} B\n  return A + B\nend\nValues = array 2 3 4\nValues reduce ${name} with 0`)).toBe('9');
     });
 
     it('rejects operations without a binary arity and unbounded sources', () => {

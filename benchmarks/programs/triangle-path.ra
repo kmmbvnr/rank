@@ -1,7 +1,7 @@
 rem Compiler fixture: Euler 18 fold over
 rem a dense triangle of any height.
 
-fun Triangle Rows maximum_path
+fun Triangle maximum_path Rows
   for Row in (Rows - 2) to 0 by -1
     for Col in 0 to Row
       Cell = Row * (Row + 1) // 2 + Col

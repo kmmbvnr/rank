@@ -55,32 +55,32 @@ for V in 5 to 21 by 2
       for G * Lag * 2 at most T
         Lag *= 2
       end
-      Size = Lag (Need - T) min
+      Size = Lag min (Need - T)
       Mask = 2 ** Size - 1
-      Nr = (B (T - Lag) shr) Mask band
+      Nr = (B shr (T - Lag)) band Mask
       Far = T - G * Lag
-      Fr = (B Far shr) Mask band
-      B = B ((Nr Fr bxor) T shl) bor
+      Fr = (B shr Far) band Mask
+      B = B bor ((Nr bxor Fr) shl T)
       T += Size
     end
     Match = 2 ** (T - G + 1) - 1
     for I in 0 to G - 1
-      X = B I shr
+      X = B shr I
       if Seed I equal 1
-        Match = Match X band
+        Match = Match band X
       else
-        Match = Match (X bnot) band
+        Match = Match band (X bnot)
       end
     end
-    Rest = Match 1 shr
+    Rest = Match shr 1
     if Rest greater 0
-      Low = Rest (0 - Rest) band
+      Low = Rest band (0 - Rest)
       Per = (Low binary) len
     end
   end
-  Whole = B (2 ** Per - 1) band
-  Txt = (Whole Per binary) reverse
-  Spots = Txt "1" findall
+  Whole = B band (2 ** Per - 1)
+  Txt = (Whole binary Per) reverse
+  Spots = Txt findall "1"
   Ones = Spots len
   Pos = Seed sum + 2
   Val = 0

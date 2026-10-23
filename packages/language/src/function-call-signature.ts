@@ -35,7 +35,7 @@ export function functionCallSignature(statement: FunctionStatement): FunctionCal
         const bindings = [...statement.leftBindings, ...statement.rightBindings, ...statement.groups];
         const parameters = statement.parameters.map((name, index): CallParameter => ({
             name, index, deferred: bindings[index]?.deferred ?? false, acceptsFunction: !/^[A-Z]/.test(name),
-            kind: index >= rightEnd ? 'option' : index >= leftCount && /^[a-z]/.test(name) ? 'function' : 'data',
+            kind: index >= rightEnd ? 'option' : /^[a-z]/.test(name) ? 'function' : 'data',
         }));
         signature = {
             parameters, arity: parameters.length, leftCount,

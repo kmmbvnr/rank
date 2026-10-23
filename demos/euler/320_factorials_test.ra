@@ -2,8 +2,8 @@ use testing
 
 test "Legendre valuation"
   use "320_factorials"
-  10 2 valuation equal 8
-  10 3 valuation equal 4
+  10 valuation 2 equal 8
+  10 valuation 3 equal 4
 end
 
 test "statement sample"

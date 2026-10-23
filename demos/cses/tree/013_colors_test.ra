@@ -13,9 +13,9 @@ test "official example"
     3 5
   end
   Tree add Edges
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Colors = array 2 3 2 2 1
-  Actual = Colors Rooted distinct_colors
+  Actual = Colors distinct_colors Rooted
   Actual equal array 3 1 2 1 1
 end
 
@@ -26,9 +26,9 @@ test "one node has one color"
   use sequences
   Nodes = array 1
   Tree = new graph Nodes .undirected
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Colors = array 42
-  Actual = Colors Rooted distinct_colors
+  Actual = Colors distinct_colors Rooted
   Actual equal array 1
 end
 
@@ -41,9 +41,9 @@ test "equal colors stay distinct once"
   Tree add 1 2
   Tree add 2 3
   Tree add 3 4
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Colors = array 7 7 7 7
-  Actual = Colors Rooted distinct_colors
+  Actual = Colors distinct_colors Rooted
   Actual equal array 1 1 1 1
 end
 
@@ -62,8 +62,8 @@ test "branches merge overlapping colors"
     3 7
   end
   Tree add Edges
-  Rooted = Tree 1 root
+  Rooted = Tree root 1
   Colors = array 1 2 2 3 1 3 4
-  Actual = Colors Rooted distinct_colors
+  Actual = Colors distinct_colors Rooted
   Actual equal array 4 3 3 1 1 1 1
 end

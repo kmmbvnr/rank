@@ -295,7 +295,7 @@ which is a project of its own.
 
 Highlighting should use a small stream tokenizer inside CodeMirror rather than a
 second grammar. A Lezer port of `rank.langium` would be a duplicate definition
-of the language and will drift. The Langium parse runs in the worker for
+of the language and will drift. The parse Langium runs in the worker for
 diagnostics, not for color.
 
 **Cut 2, after A3 and B2.** The hints themselves: a type color per line, a shape

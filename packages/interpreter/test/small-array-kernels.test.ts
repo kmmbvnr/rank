@@ -91,8 +91,8 @@ describe('vector dot', () => {
 
     it('retains named gather snapshots when a source is written', () => withRuntime(runtime => {
         runtime.execute('use linalg\nWays = array 2 3 5\nTerms = Ways (array 2 0 2)\nWays 2 = 99');
-        expect(runtime.execute('Terms (array 1 -1 2) matmul')).toBe(13n);
-        expect(runtime.execute('Ways (array 2 0 2) (array 1 -1 2) matmul')).toBe(295n);
+        expect(runtime.execute('Terms matmul (array 1 -1 2)')).toBe(13n);
+        expect(runtime.execute('Ways (array 2 0 2) matmul (array 1 -1 2)')).toBe(295n);
     }));
 
     it('reads host operands once, left to right, stopping at the first bad cell', () => {

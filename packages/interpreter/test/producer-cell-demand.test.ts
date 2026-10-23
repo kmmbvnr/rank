@@ -211,7 +211,7 @@ describe.each([false, true])('reducing empty producer cells (compilation=%s)', c
         const runtime = new Interpreter(line => output.push(line), { compilation });
         try {
             runtime.execute(`use io
-fun A B width rank 1 0 = A len + B
+fun A width B rank 1 0 = A len + B
 fun X empty
  X print
  return array shape 0 fill 0

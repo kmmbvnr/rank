@@ -29,7 +29,7 @@ Vc = array shape 0 fill 0
 for U in 1 to Sq
   for V in 1 to U
     C = U * U + V * V
-    Gu = U V gcd
+    Gu = U gcd V
     Pr = (U + V) mod 2
     Ok = Gu equal 1 and Pr equal 1
     if C at most Sq and Ok
@@ -52,7 +52,7 @@ for Vi in 0 to Va len - 1
   for Cp at most N * N // 2
     Hr = (Rr - 1) // 2
     for Ra in 1 to Hr
-      Gc = Rr Ra gcd
+      Gc = Rr gcd Ra
       Rb = Rr - Ra
       X1 = 1
       Y1 = 0
@@ -75,8 +75,8 @@ for Vi in 0 to Va len - 1
       Q2 = Z2 // Z1
       Xu = Rb * X1 * Q2 + Ra * X2
       Yu = Rb * Y1 * Q2 - Ra * Y2
-      Gx = Xu Yu gcd
-      Gg = Z2 Gx gcd
+      Gx = Xu gcd Yu
+      Gg = Z2 gcd Gx
       Gr = Z2 // Gg
       Sa = Xu abs + (Yu abs)
       Sa = Sa // Gg

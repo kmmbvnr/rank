@@ -9,13 +9,13 @@ use bits
 argument Input path
 
 Containers = Input readlines integer rank 0
-unpack Part1 Part2 = Containers 150 solve
+unpack Part1 Part2 = Containers solve 150
 Part1 print
 Part2 print
 
 
 rem Count fitting subsets and those using the fewest containers.
-fun Containers Target solve
+fun Containers solve Target
   N = Containers len
   Limit = 2 ** N
   Part1 = 0
@@ -26,7 +26,7 @@ fun Containers Target solve
     Total = 0
 
     for I in 0 till N
-      if Mask I bit
+      if Mask bit I
         Total += Containers I
       end
     end

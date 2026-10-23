@@ -12,4 +12,4 @@ R' = Db .facilities
 Result' = R filter
   .facid equal 1 or .facid equal 5
 end
-Result OutputPath csv
+Result csv OutputPath

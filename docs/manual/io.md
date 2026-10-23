@@ -36,8 +36,8 @@ Add text to the end of a file.
 
 ```rank
 use io
-"a" "notes.txt" write
-"b" "notes.txt" append
+"a" write "notes.txt"
+"b" append "notes.txt"
 "notes.txt" read
 ```
 
@@ -48,7 +48,7 @@ ab
 ### Usage
 
 ```text
-Text Path append
+Text append Path
 ```
 
 Creates the file if it does not exist
@@ -66,8 +66,8 @@ Close an open file.
 
 ```rank
 use io
-F = "notes.txt" .write open
-F ("hi" bytes) writebytes
+F = "notes.txt" open .write
+F writebytes ("hi" bytes)
 F close
 "notes.txt" read
 ```
@@ -98,7 +98,7 @@ to the end.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 F = "notes.txt" open
 F eof
 ```
@@ -124,8 +124,8 @@ reaches the file.
 
 ```rank
 use io
-F = "notes.txt" .write open
-F ("hello" bytes) writebytes
+F = "notes.txt" open .write
+F writebytes ("hello" bytes)
 F flush
 "notes.txt" read
 ```
@@ -155,7 +155,7 @@ bit.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 F = "notes.txt" open
 F size
 ```
@@ -190,7 +190,7 @@ write happens, counted in bytes.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 F = "notes.txt" open
 F position
 ```
@@ -258,7 +258,7 @@ Read a whole text file.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 "notes.txt" read
 ```
 
@@ -288,7 +288,7 @@ and l.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 "notes.txt" 1 2 readbytes
 ```
 
@@ -300,7 +300,7 @@ use io
 
 ```text
 Path Offset Count readbytes
-File Count readbytes
+File readbytes Count
 ```
 
 With a path, reads Count bytes starting
@@ -317,7 +317,7 @@ Read a text file line by line.
 
 ```rank
 use io
-"a\nb" "notes.txt" write
+"a\nb" write "notes.txt"
 "notes.txt" readlines
 ```
 
@@ -345,9 +345,9 @@ Jump to a byte position in an open file.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 F = "notes.txt" open
-F 2 seek
+F seek 2
 F position
 ```
 
@@ -358,7 +358,7 @@ F position
 ### Usage
 
 ```text
-File Offset seek
+File seek Offset
 ```
 
 Offset counts bytes from the start of
@@ -374,7 +374,7 @@ How many bytes an open file holds.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 F = "notes.txt" open
 F size
 ```
@@ -400,7 +400,7 @@ there.
 
 ```rank
 use io
-"hello" "notes.txt" write
+"hello" write "notes.txt"
 "notes.txt" read
 ```
 
@@ -411,7 +411,7 @@ hello
 ### Usage
 
 ```text
-Text Path write
+Text write Path
 ```
 
 Creates the file if needed. Any old
@@ -428,8 +428,8 @@ Write raw bytes to an open file.
 
 ```rank
 use io
-F = "notes.txt" .write open
-F ("hello" bytes) writebytes
+F = "notes.txt" open .write
+F writebytes ("hello" bytes)
 F close
 "notes.txt" read
 ```
@@ -441,7 +441,7 @@ hello
 ### Usage
 
 ```text
-File Bytes writebytes
+File writebytes Bytes
 ```
 
 Turn text into bytes first with bytes.

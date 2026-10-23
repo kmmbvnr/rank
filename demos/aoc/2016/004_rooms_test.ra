@@ -18,7 +18,7 @@ end
 test "decryption of encrypted name"
   use "004_rooms"
 
-  Plain = "qzmt-zixmtkozy-ivhz" 343 decrypt
+  Plain = "qzmt-zixmtkozy-ivhz" decrypt 343
   Plain equal "very encrypted name"
 end
 

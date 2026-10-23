@@ -2,7 +2,7 @@ use testing
 
 test "official example 1 finds a valid combination"
   use "010_otoshidama"
-  Result = 9 45000 otoshidama
+  Result = 9 otoshidama 45000
   Ten = Result 0
   Five = Result 1
   One = Result 2
@@ -18,12 +18,12 @@ end
 
 test "official example 2 has no combination"
   use "010_otoshidama"
-  20 196000 otoshidama equal array -1 -1 -1
+  20 otoshidama 196000 equal array -1 -1 -1
 end
 
 test "official example 3 finds a valid combination"
   use "010_otoshidama"
-  Result = 1000 1234000 otoshidama
+  Result = 1000 otoshidama 1234000
   Ten = Result 0
   Five = Result 1
   One = Result 2
@@ -39,5 +39,5 @@ end
 
 test "all bills are 1000 yen"
   use "010_otoshidama"
-  3 3000 otoshidama equal array 0 0 3
+  3 otoshidama 3000 equal array 0 0 3
 end

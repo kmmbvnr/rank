@@ -16,9 +16,9 @@ argument Input path = (
 )
 
 Lines = Input readlines
-Heads' = Lines "Grid" startswith
+Heads' = Lines startswith "Grid"
 Rows = Lines (not Heads)
-Text = Rows "" join
+Text = Rows join ""
 Cells = Text integer rank 0
 Count = Cells len // 81
 Grids = Cells reshape Count 81
@@ -65,8 +65,8 @@ for G in 0 till Count
           Row = Used (RowK C)
           Col = Used (ColK C)
           Box = Used (BoxK C)
-          RC = Row Col bor
-          Mask = RC Box bor
+          RC = Row bor Col
+          Mask = RC bor Box
           Free = 511 - Mask
           N = Pop Free
           if N less PickN
@@ -97,7 +97,7 @@ for G in 0 till Count
       continue
     end
     Rem = Left Depth
-    Mine = Rem (0 - Rem) band
+    Mine = Rem band (0 - Rem)
     Left Depth = Rem - Mine
     Put Depth = Mine
     At = Spot Depth
@@ -110,6 +110,6 @@ for G in 0 till Count
     Fresh = true
   end
   Head = Grid take 3
-  Answer += Head Weight matmul
+  Answer += Head matmul Weight
 end
 Answer print

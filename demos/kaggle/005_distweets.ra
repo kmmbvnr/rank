@@ -18,14 +18,14 @@ argument OutputPath path = "demos/kaggle/submissions/disaster-tweets.csv"
 Train = TrainPath csv
 Test = TestPath csv
 Submission = Train Test 128 0.1 500 solve_table
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 rem Learn vocabulary only from training text.
 fun Train Test Limit Rate Steps solve_table
   TrainTexts = Train .text default ""
   TestTexts = Test .text default ""
-  Vocab = TrainTexts Limit vocab
+  Vocab = TrainTexts vocab Limit
   Y = Train .target
   Pred = TrainTexts Y TestTexts Vocab Rate Steps solve
   Test .target = Pred
@@ -34,7 +34,7 @@ end
 
 
 rem Count normalized Unicode words from the training vocabulary.
-fun Texts Vocab term_counts
+fun Texts term_counts Vocab
   Rows = Texts len
   Columns = Vocab len
   Counts = array shape Rows Columns fill 0.0
@@ -60,8 +60,8 @@ end
 
 
 rem Fit smoothed inverse document frequencies on Train only.
-fun Texts Vocab tfidf_fit
-  Counts = Texts Vocab term_counts
+fun Texts tfidf_fit Vocab
+  Counts = Texts term_counts Vocab
   Documents = Texts len
   Present' = (Counts greater 0.0) 1.0 0.0 choose
   Frequency' = Present sum axis 0
@@ -75,16 +75,16 @@ fun Texts Vocab tfidf_fit
 end
 
 
-fun Texts Model tfidf_transform
-  Counts = Texts Model .vocab term_counts
+fun Texts tfidf_transform Model
+  Counts = Texts term_counts Model .vocab
   return Counts * Model .idf
 end
 
 
 fun TrainTexts Y TestTexts Vocab Rate Steps solve
-  TextModel = TrainTexts Vocab tfidf_fit
-  X = TrainTexts TextModel tfidf_transform
-  Xtest = TestTexts TextModel tfidf_transform
+  TextModel = TrainTexts tfidf_fit Vocab
+  X = TrainTexts tfidf_transform TextModel
+  Xtest = TestTexts tfidf_transform TextModel
   Model = X Y Rate Steps Classifier.logistic
-  return Xtest Model Classifier.logistic_predict
+  return Xtest Classifier.logistic_predict Model
 end

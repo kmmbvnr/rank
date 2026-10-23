@@ -10,7 +10,7 @@ test "official example"
   Queries push array 2 2 4 5
   Queries push array 3 3 5
   Values = array 2 3 1 1 5 3
-  Actual = Values Queries range_updates
+  Actual = Values range_updates Queries
   Actual equal array 7 11 15
 end
 
@@ -24,6 +24,6 @@ test "set overrides pending additions"
   Queries push array 3 1 5
   Queries push array 3 2 3
   Values = array 1 2 3 4 5
-  Actual = Values Queries range_updates
+  Actual = Values range_updates Queries
   Actual equal array 21 4
 end

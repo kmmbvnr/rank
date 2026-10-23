@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/326_modulosums.ra', import.meta.url), 'utf8');
-const definition = source.slice(source.indexOf('fun N M pairs'));
+const definition = source.slice(source.indexOf('fun N pairs M'));
 
 // Direct definition of a_n and all contiguous sums; no period decomposition.
 function brutePairs(n: number, m: number): bigint {
@@ -32,7 +32,7 @@ describe('Euler 326 dense residue counters', () => {
                 runtime.execute(definition);
                 for (const m of [1, 2, 3, 7, 10]) {
                     for (const n of [0, 1, 6 * m - 1, 6 * m, 6 * m + 1, 12 * m + 2]) {
-                        expect(runtime.execute(`${n} ${m} pairs`), `N=${n}, M=${m}`)
+                        expect(runtime.execute(`${n} pairs ${m}`), `N=${n}, M=${m}`)
                             .toBe(brutePairs(n, m));
                     }
                 }

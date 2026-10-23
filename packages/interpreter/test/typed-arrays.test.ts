@@ -98,9 +98,9 @@ describe('typed results of real arithmetic', () => {
 
     it('multiplies matrices and transposes them', () => {
         const matrices = 'M = array shape 100 30 fill 2.0\nV = array shape 30 fill 0.5\n';
-        expect(run(`${real}${matrices}(M V matmul) sum`)).toBe('3000');
+        expect(run(`${real}${matrices}(M matmul V) sum`)).toBe('3000');
         expect(run(`${real}${matrices}(M transpose) shape`)).toBe('30 100');
-        expect(run(`${real}${matrices}((M transpose) (array shape 100 fill 1.0) matmul) sum`)).toBe('6000');
+        expect(run(`${real}${matrices}((M transpose) matmul (array shape 100 fill 1.0)) sum`)).toBe('6000');
     });
 
     it('maps a large real array through a numeric function', () => {

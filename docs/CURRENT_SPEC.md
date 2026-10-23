@@ -562,7 +562,7 @@ especially useful with structured text parsing:
 
 ```rank
 Pattern = "/integerx/integerx/integer"
-unpack Length Width Height = Line Pattern parse
+unpack Length Width Height = Line parse Pattern
 ```
 
 The same word before an expression expands a rank-1 array into adjacent
@@ -591,7 +591,7 @@ consumes:
 
 ```rank
 30 sin
-A B gcd
+A gcd B
 Range lcm
 Answer print
 Model X predict
@@ -609,7 +609,7 @@ its result becomes the first value available to the next function:
 ```rank
 Answer = Fib filter even sum
 Text reverse print
-A B matmul round 6
+A matmul B round 6
 ```
 
 A function still cannot precede its data. Insufficient or excess arguments are
@@ -659,11 +659,11 @@ function calls, and an optional arithmetic continuation. A new function after
 that continuation is a syntax error. Name the intermediate result:
 
 ```rank
-Scores = X W matmul + Bias
+Scores = X matmul W + Bias
 Scores sigmoid
 ```
 
-`X W matmul + Bias sigmoid` is rejected with a message asking for an
+`X matmul W + Bias sigmoid` is rejected with a message asking for an
 intermediate variable. Explicit parentheses start a separate expression;
 short names are preferred when they describe a useful intermediate result.
 There is no numeric limit on the number of operations, and no `|` operator.
@@ -873,7 +873,7 @@ with no numeric value, such as an unknown parameter, and arises from undefined
 real arithmetic like `infinity - infinity`. `nan` is unordered: `less`,
 `greater`, `at most`, `at least` and `equal` with it are false, so it does not
 equal itself and `find` cannot locate it. `Value isnan` tests for it, mapping
-over arrays and sequences like `even`, and `Params isnan true find` gives its
+over arrays and sequences like `even`, and `Params isnan find true` gives its
 position. `nan` is a number; a cell with no value at all is `.NA`.
 
 ## Missing cells
@@ -884,7 +884,7 @@ the array's numeric element type:
 
 ```rank
 Params = array 150000.0 5000.0 .NA 3.0
-Unknown = Params present false find
+Unknown = Params present find false
 ```
 
 Arithmetic and comparison with `.NA` give `.NA`, including `equal`, so a missing
@@ -1144,9 +1144,9 @@ ordinary function. A user function with that spelling is legal only while the
 module supplying the builtin name remains unopened.
 
 Removed builtin spellings produce a migration diagnostic when the receiver type
-is known. The former `Dsu find X` and `Dsu X find` calls report
+is known. The former `Dsu find X` and `Dsu find X` calls report
 `DSU find is now findroot`, both during execution and in `rank check`.
-These spellings are not aliases; collection search still uses `Values Target find`.
+These spellings are not aliases; collection search still uses `Values find Target`.
 
 ## Source modules
 
@@ -1475,36 +1475,33 @@ A i j
 Data .Age
 Cache Key
 A sum
-A B gcd
+A gcd B
 ```
 
 Conceptually, the value comes first and selectors follow.
 
-When the final word names a function, preceding values are its data. Thus
-`A B` is addressing, while `A B gcd` calls `gcd` with `A` and `B`.
-The parser groups calls using vocabulary and binding signatures before
-analysis and execution. A suffix function takes the accumulated arithmetic
-formula or range; addressing within its operands remains tight.
+A unary function follows its input: `A sum`. A binary function takes one
+operand on each side: `A gcd B`. Addressing stays inside each operand:
+`Matrix i matmul Other j` multiplies the selected rows. A following known
+function or a `rank`/`axis` modifier ends the right operand.
 
-Function arity also separates an addressed first argument from the remaining
-arguments. The final `arity - 1` values are separate arguments; the entire
-remaining left chain forms the first argument:
+Declare a binary function in the same order:
 
 ```rank
-Result = T i j Limit above
-rem above receives T i j, then Limit
+fun Acc step X = Acc + X
+Result = 2 step 3
+Prefix = (array 1 2 3) scan step
 ```
 
-Only the first argument may absorb a multi-part addressing chain. Use named
-intermediate values when several arguments require addressing. If the left
-chain cannot form one value, the call has too many arguments and is an error.
+`scan`, `reduce`, `outer` and `segment` receive the function value and pass
+its two arguments directly. They do not require two parameters on the left
+of the function name. Direct aliases retain the same operand placement.
+Existing declarations with both parameters on one side also use the binary call convention.
 
-A field label reads its field before arguments are counted: when a label
-names a field of the record or object just before it, the pair is one value.
-`Model .weights matmul` therefore multiplies by the `.weights` field, and
-`R .slots max` reduces the `.slots` field, without parentheses. A label that
-is not a field of the value before it, such as an option like `.descending`,
-and a column label after a table, stay separate arguments.
+Functions with three or more required operands retain their declared operand sides.
+Group operands when a selector or another call would otherwise cross their
+boundary. A field read belongs to its operand: `Z matmul Model .weights`
+passes the `.weights` field as the right operand.
 
 Inside an address, a field label addresses what it reads, so selectors can
 follow it: `Rows 0 .attributes "Rate"` reads the `.attributes` object of the
@@ -1516,23 +1513,15 @@ chooses the form of their result instead of a field of it: `Text json .flat`
 and `Text xml .flat` return a table of nodes, as `Values sort .descending`
 reverses the order.
 
-For ordinary postfix calls supporting several arities, an exact argument
-count wins; otherwise Rank tries larger arities first. `min` keeps this rule:
-`A B min` compares two operands. Functions with two required left operands,
-such as `A B matmul`, keep both operands separate.
+For functions with unary and binary forms, a call without a right operand is
+unary: `A min` reduces A, while `A min B` compares A and B elementwise.
+`Matrix i min` reduces the selected row; `A min B 0` compares A with the
+selected element of B. A following function starts another pipeline step:
+`A min B sum` means `(A min B) sum`. Arithmetic on the left completes before
+the call: `2 + 3 min 4` means `(2 + 3) min 4`. Group arithmetic on the right,
+as in `0 max (Limit - Used)`.
 
-`max` takes one operand on the left and an optional operand on the right.
-`A max` reduces A; `A max B` compares A and B elementwise. Addressing stays
-inside each operand: `Matrix i max` reduces the selected row, `Matrix # 0 max`
-reduces a column, and `A max B 0` compares A with the selected element of B.
-A known function or a `rank`/`axis` modifier ends the right operand.
-
-Direct aliases retain these operand sides: after `op = max`, `Matrix i op`
-reduces the selected row and `A op B` compares two values. A following function
-starts another step: `Values max sqrt` takes the square root of the maximum.
-To pass another independent left operand to a later postfix function, group
-the completed call: `(A max B) 5 min`. Core names cannot be redefined by a
-local function or parameter.
+Core names cannot be redefined by a local function or parameter.
 
 The fundamental selection model is:
 
@@ -2199,7 +2188,7 @@ non-obvious idea or constraint:
 ```rank
 rem Return the greatest common divisor.
 rem Use the Euclidean algorithm.
-fun A B gcd
+fun A gcd B
   for B not equal 0
     R = A mod B
     A = B
@@ -2229,10 +2218,10 @@ end
 Loading a source file with `use` registers its top-level functions without
 executing its ordinary top-level statements.
 
-For a function with only left operands, data comes before the function name:
+Unary calls follow their input; binary calls put one operand on each side:
 
 ```rank
-G = A B gcd
+G = A gcd B
 Result print
 ```
 
@@ -2256,7 +2245,7 @@ A completed postfix operation can itself be an argument:
 
 ```rank
 use sequences
-fun Values' Factor weighted = Values * Factor
+fun Values' weighted Factor = Values * Factor
 Source' = 1 to 4
 Result' = Source sum 2 weighted
 Saved = Result
@@ -2283,16 +2272,17 @@ parameters and lowercase names are function parameters:
 ```rank
 use numbers
 fun Value rounded Places = Value round Places
-fun X Y apply op = X Y op
+fun X Y apply op = X op Y
 
 1.234 rounded 2
 2 3 apply +
 ```
 
 Function parameters accept named functions and binary arithmetic, comparison,
-and boolean operators. Inside the body, `X Y op` calls the supplied operation.
-Group a compound right operand with parentheses. An undeclared trailing value
-indexes the result, just as it does after an ordinary postfix call.
+and boolean operators. Inside the body, `X op Y` calls the supplied operation.
+In a binary call, selectors stay inside their operand. Group the complete call
+before indexing its result: `(A op B) i`. Functions with more required operands
+follow the positions in their header.
 
 A dotted lowercase word declares an optional group. Its argument is data; the
 call writes the word without the dot:
@@ -2508,7 +2498,7 @@ multiply_abs = matmul abs
 
 The entry stage supplies the complete set of supported argument counts. Thus
 `positive_max = max abs` accepts either one value or two values. Calls use the
-usual postfix argument grouping. Only the entry stage receives the original
+unary or binary operand positions of the entry stage. Only the entry stage receives the original
 arguments; each later stage receives one result, including an array or tuple as
 one value. A later stage that cannot accept one value is rejected when the
 definition is analyzed: `f = abs matmul` needs an explicit second operand.
@@ -2518,8 +2508,8 @@ implicitly returns one expression:
 
 ```rank
 fun V products = V reduce * rank 1 max
-fun A B multiply_abs = A B matmul abs
-fun A B f = (A abs) B matmul
+fun A multiply_abs B = A matmul B abs
+fun A f B = (A abs) matmul B
 ```
 
 Single-line and multiline declarations have the same scope, signature and
@@ -2779,7 +2769,7 @@ keep their identity across name reads. In the REPL, previewing `G` does not
 consume it, and rewinding to a consuming statement resets its consumption.
 See [generator previews](design/generator-previews.md).
 
-With parameters, arguments precede the generator's name:
+A one-parameter generator follows its input:
 
 ```rank
 use numbers
@@ -4227,7 +4217,7 @@ A binary user function or named operation can also combine the values:
 Total = A reduce add with 0
 Smallest = A reduce min
 
-fun Acc Value add
+fun Acc add Value
   return Acc + Value
 end
 ```
@@ -4321,9 +4311,9 @@ integers for tensors. Coordinate matrices are not directly usable as array
 selectors: extract their columns as above; integer-array selectors require
 rank 1.
 
-`Values Target find` returns the zero-based position of the first equal array
+`Values find Target` returns the zero-based position of the first equal array
 element or matching text substring. It raises `.Missing` when no value matches, so `default` supplies
-a fallback. `Values Target findall` returns every matching position and returns
+a fallback. `Values findall Target` returns every matching position and returns
 an empty vector when there are none. Both accept rank-1 arrays and text, whose
 positions count Unicode code points. For text and a text target, they search
 for a substring; `findall` includes overlapping matches. An empty target has
@@ -4333,13 +4323,13 @@ Array sources still compare whole elements. Arrays of targets keep their frame;
 
 `min` and `max` with one argument reduce one finite collection. With two
 arguments they choose between numeric values and broadcast over arrays.
-`max` takes its second operand after its name; `min` takes both before it:
+Both take their second operand after the function name:
 
 ```rank
 Largest = A max
 Bound = Low max High
 Clamped = Values max 0
-Best = Best Now .spent min
+Best = Best min Now .spent
 ```
 
 `A 0 max` reduces the selected element or row, and `M # 0 max` reduces the
@@ -4571,8 +4561,8 @@ functions and returned from functions.
 
 Named sets and counters accept `Name add Value`. A set keeps one equal
 element; a counter increments that element's frequency. The whole expression
-after `add` is evaluated once. Ordinary postfix calls `Name Value add`
-also work, and `add` returns the receiver when used as a function. Named
+after `add` is evaluated once. The same form can be used in an expression;
+`add` returns the receiver. Named
 queues accept `Name push Value`; named indices use addressed assignment.
 
 The first insertion into a set, counter, queue, stack, deque or heap fixes the
@@ -4732,8 +4722,8 @@ Path push 8
 Last = Path pop                 rem 8
 
 Ends = new deque
-Ends 2 pushback
-Ends 1 pushfront
+Ends pushback 2
+Ends pushfront 1
 Left = Ends peekfront
 Right = Ends popback
 
@@ -4747,7 +4737,7 @@ Next = Work pop                 rem vertex B
 entry or the newest stack entry; `peek` returns that entry without removing it.
 A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
 `peekback`. Its plain `push` appends at the back, and `pop`/`peek` use the front.
-Binary functions use postfix syntax, such as `Ends Value pushfront`.
+Binary functions use postfix syntax, such as `Ends pushfront Value`.
 
 A heap is a stable priority queue, smallest first unless created with
 `.descending`. `Heap push Value` uses the value itself
@@ -4848,8 +4838,8 @@ Each distinct value contributes once. An empty set sums to zero; `min` and
 
 ### Sorted integer insertion indices
 
-With `use algo`, `Values Target lowerindex` returns the first index whose value
-is at least `Target`; `Values Target upperindex` returns the first index whose
+With `use algo`, `Values lowerindex Target` returns the first index whose value
+is at least `Target`; `Values upperindex Target` returns the first index whose
 value is greater than `Target`. Both return `Values len` if no value qualifies,
 and zero for an empty vector. Indices are zero-based; duplicate values are
 supported, and integer comparisons retain arbitrary precision.
@@ -4859,7 +4849,7 @@ integer. Sortedness is a caller precondition and is not checked. Each query
 reads and checks only O(log n) cells; it does not materialize the vector or
 linearly rescan it. Scalar targets return an integer; array targets follow the
 default ranks `all 0`. For an inclusive interval `[Low, High]`, its count is
-`(Values High upperindex) - (Values Low lowerindex)`.
+`(Values upperindex High) - (Values lowerindex Low)`.
 
 ### Ordered multiset
 
@@ -4901,7 +4891,7 @@ These method words are contextual library names, not reserved words. Rank
 dispatches `floor`, `ceiling`, `lowerbound` and `upperbound` as multiset
 methods only when the expression before the operation evaluates to a
 multiset. Otherwise the operation resolves as an ordinary function, so a
-program may define and call `fun A B ceiling` as `3 ceiling 4`.
+program may define and call `fun A ceiling B` as `3 ceiling 4`.
 
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
@@ -4983,7 +4973,7 @@ Tree = Values segment combine with Identity
 
 Each input element is already a state. `combine Left Right` must return a
 state, be associative, and leave both operands unchanged. `Identity` must
-satisfy `fun Identity X combine = X` and `fun X Identity combine = X`; these laws are
+satisfy `fun Identity combine X = X` and `fun X combine Identity = X`; these laws are
 part of the caller's contract and are not checked at runtime. The function
 and identity are evaluated once during construction.
 
@@ -5056,7 +5046,7 @@ be constructed but cannot be queried or addressed.
 reaches a numeric target:
 
 ```rank
-Position = Tree Target firstatleast
+Position = Tree firstatleast Target
 ```
 
 It returns `-1` when no prefix reaches the target. An array of targets gives one
@@ -5095,8 +5085,8 @@ values:
 Data = Values wavelet
 Count = Data Left Right Low High within
 Sum = Data Left Right Low High sumwithin
-One = Data (array Left Right) missing
-Answers = Data Queries missing
+One = Data missing (array Left Right)
+Answers = Data missing Queries
 ```
 
 Both position and value ranges are inclusive. `within` counts positions from
@@ -5142,7 +5132,7 @@ unbounded sequence is an error.
 returns a lazy sequence of selections without repetition:
 
 ```rank
-for Pair in Values 2 combinations
+for Pair in Values combinations 2
   Pair score
 end
 ```
@@ -5159,7 +5149,7 @@ the remaining cell shape. Given `Rings` with shape `6 3`, every value from
 `multicomb` is the corresponding generator with repetition:
 
 ```rank
-for Pair in Values 2 multicomb
+for Pair in Values multicomb 2
   Pair score
 end
 ```
@@ -5217,7 +5207,7 @@ other graph algorithms. `Neighbors = Graph U` materializes neighbor values;
 contracts, see [predicate graphs](language/graphs.md#predicate-graphs).
 
 `new graph with Successor .directed` creates an open, unweighted state space.
-Use `Graph Start Goal Limit bfs` with a scalar goal and nonnegative successor-entry
+Use `Graph Start Goal bfs Limit` with a scalar goal and nonnegative successor-entry
 budget. The result adds `.status` (`.reached`, `.exhausted`, `.limit`), `.path` and
 `.examined`; distance and parent indexes can be partial. Unbounded traversals and
 `len` reject successor graphs. See [bounded successor search](language/graphs.md#bounded-successor-search)
@@ -5361,7 +5351,7 @@ End = Planets jump Start Steps
 Steps = Planets distance From To
 Lengths = Planets lengths
 Count = Planets Start Limit upto
-Weighted = Next Cost weighted
+Weighted = Next weighted Cost
 State = Weighted Start Limit upto
 ```
 
@@ -5386,7 +5376,7 @@ to be either its own vertex or a larger vertex. This makes the path monotone,
 so the cached jump table answers each query in `O(log N)` time. It returns zero
 when `Start` exceeds `Limit`. Next-greater links are a typical use.
 
-`Next Cost weighted` prepares the same increasing successor path with one
+`Next weighted Cost` prepares the same increasing successor path with one
 numeric outgoing-edge cost per vertex. Its `upto` result is a record:
 
 - `.count` is the number of visited vertices;
@@ -5406,13 +5396,13 @@ operations or remove it before treating the API as stable.
 
 ## Rooted trees
 
-`Tree Root root` prepares an immutable rooted view of a connected undirected
+`Tree root Root` prepares an immutable rooted view of a connected undirected
 tree. The source graph may use any supported scalar vertices. Preparation
 validates that the graph is a tree, takes `O(N log N)` time and snapshots its
 current edges:
 
 ```rank
-Rooted = Tree 1 root
+Rooted = Tree root 1
 Boss = Rooted Employee K ancestor
 Common = Rooted A B lca
 Length = Rooted A B distance
@@ -5477,9 +5467,9 @@ Graph algorithms are ordinary data-first functions exported by `use graph`.
 They operate on the abstract graph value and may choose a different internal
 representation in future implementations.
 
-`Graph Start bfs` traverses outgoing unweighted edges in breadth-first order;
-`Graph Start dfs` uses depth-first order without consuming the host call stack.
-`Graph Start dijkstra` computes shortest distances for nonnegative numeric
+`Graph bfs Start` traverses outgoing unweighted edges in breadth-first order;
+`Graph dfs Start` uses depth-first order without consuming the host call stack.
+`Graph dijkstra Start` computes shortest distances for nonnegative numeric
 weights and rejects a negative edge. All three return a record with three fields:
 
 - `.distance`: an index from every reached vertex to its distance;
@@ -5489,7 +5479,7 @@ weights and rejects a negative edge. All three return a record with three fields
   Dijkstra.
 
 ```rank
-Result = Graph Start dijkstra
+Result = Graph dijkstra Start
 Distance = Result .distance
 Answer = Distance Target default infinity
 ```
@@ -5514,7 +5504,7 @@ an edge in traversal order. An acyclic graph returns an empty array. Search is
 iterative; self-loops and cycles formed by parallel undirected edges are
 preserved.
 
-`Graph Start euler` returns an Euler trail that begins at `Start` and uses every
+`Graph euler Start` returns an Euler trail that begins at `Start` and uses every
 edge exactly once. It works for directed and undirected graphs, infers the end
 vertex from the degree balances, and returns an empty rank-1 array when no such
 trail exists. A graph without edges returns `array Start`. Parallel edges and
@@ -5522,7 +5512,7 @@ self-loops remain distinct, edge weights do not affect the trail, and equal
 inputs produce insertion-order-stable results. The iterative search takes
 `O(V + E)` time and does not mutate the graph.
 
-`Graph Start bellmanford` accepts negative weights. Its `.distance` and
+`Graph bellmanford Start` accepts negative weights. Its `.distance` and
 `.parent` indices cover vertices reachable from `Start`; `.negative` is a set
 of every reachable vertex whose shortest distance is unbounded below because
 of a reachable negative cycle. Distances stored for those vertices are
@@ -5603,7 +5593,7 @@ renaming columns. Two aliased operands must have distinct names and both be
 rank-1 array tables or SQLite views. Their join keeps each row's fields under
 the corresponding nested label, for example `J .m .firstname` and
 `J .r .firstname`; an unmatched right scope is absent and can be filled with
-`default` after materialization. The SQL join remains lazy until a terminal read.
+`default` after materialization. The join SQL remains lazy until a terminal read.
 Aliasing an already scoped SQLite join is currently an error.
 An ordinary alias binding materializes its source and preserves the role name.
 `RightRows = J .r` materializes a join scope, with missing cells for unmatched
@@ -5640,8 +5630,8 @@ totals, and `sort by` defines their output order. `View (0 till N)` adds
 SQL `LIMIT` after checking bounds with `len`. Field names are schema-checked and quoted; values
 are bound parameters. Joining requires views of the same database. Numeric
 join keys compare by numeric value, while text and numeric keys do not match.
-`Db Start End calendar` produces an inclusive daily SQLite view, while
-`Start End calendar` produces an array table. `N rolling by .field` orders
+`Db Start calendar End` produces an inclusive daily SQLite view, while
+`Start calendar End` produces an array table. `N rolling by .field` orders
 rows and applies named `select` reductions over the current row and up to
 `N-1` predecessors; on SQLite this compiles to an ordered `ROWS` window.
 `sql` exposes the current query and ordered parameters; `explain` inspects its
@@ -5740,7 +5730,7 @@ Age = Data .Age default Median
 Writing mirrors assignment:
 
 ```rank
-Out "submission.csv" csv
+Out csv "submission.csv"
 ```
 
 Output must be a rank-1 array of object rows. The first row determines column
@@ -5804,7 +5794,7 @@ table a direct column selection:
 
 ```rank
 Out = Test (array .PassengerId .Survived)
-Out "submission.csv" csv
+Out csv "submission.csv"
 ```
 
 CSV output requires selected column names to be unique. Ordinary array
@@ -6098,7 +6088,7 @@ Text operations may lift over a whole column:
 
 ```rank
 Cabin = Train .Cabin default "U/0/U"
-Parts = Cabin "/" split
+Parts = Cabin split "/"
 
 Train .Deck = Parts 0
 Train .Number = Parts 1
@@ -6123,7 +6113,7 @@ Data .year = Times year
 ```
 
 `date` converts a datetime to its calendar day. On a SQLite datetime column,
-`datetime date` generates SQL `date(...)`. `Start End calendar` builds an
+`datetime date` generates SQL `date(...)`. `Start calendar End` builds an
 ordinary rank-1 table of inclusive daily `.date` values; with a database as
 the first operand it builds the corresponding lazy SQLite view. Bounds must be
 valid ISO dates or Rank dates; reversed bounds give an empty table.
@@ -6257,8 +6247,8 @@ Highs = A max axis 1
 Complete = Flags all axis 1
 Present = Flags any axis 0
 TrueByRow = Flags count axis 1
-Loss = Pred Target mse
-RowLoss = Pred Target mae axis 1
+Loss = Pred mse Target
+RowLoss = Pred mae Target axis 1
 ```
 
 An axis list is treated as a set, so its written order does not affect the
@@ -6281,8 +6271,8 @@ one shape. Without `axis` they average every squared or absolute difference.
 With `axis` they average only the named axes and preserve the remaining frame:
 
 ```rank
-Loss = Pred Target mse
-PerSample = Pred Target mse axis 1
+Loss = Pred mse Target
+PerSample = Pred mse Target axis 1
 ```
 
 Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
@@ -6335,7 +6325,7 @@ recipe that recomputes on demand.
 `solve` from `use linalg` solves the equation `A * X = B` directly:
 
 ```rank
-X = A B solve
+X = A solve B
 ```
 
 `A` is a square rank-2 numeric matrix. `B` is either a numeric vector of
@@ -6527,8 +6517,8 @@ Keeping one side whole and taking the
 other item by item finds several values in one vector at once:
 
 ```rank
-Kinds = "SAMFL" "" split
-Index = Kinds (Ops "" split) find
+Kinds = "SAMFL" split ""
+Index = Kinds find (Ops split "")
 rem one position for every code
 ```
 
@@ -6541,11 +6531,11 @@ Other built-ins with a binary intrinsic rank:
 | `all 0` | `find`, `findall`, `findroot`, `floor`, `ceiling`, `lowerbound`, `upperbound`, `lowerindex`, `upperindex`, `firstatleast` |
 | `1 0` | `join`, `percentile`, `quantile` |
 
-`Rows "," join` joins each row of a text matrix. `Values Targets findall` has
+`Rows "," join` joins each row of a text matrix. `Values findall Targets` has
 array cells that stack under the frame. `Values reshape unpack Shapes` also
 stacks a result for each row of a shape matrix: every result must have one shape, or the call raises
 `DimensionMismatch`. A built-in without intrinsic binary ranks also accepts
-array cell results under an explicit `rank L R`, so `Matrices Columns solve rank 2 1`
+array cell results under an explicit `rank L R`, so `Matrices solve Columns rank 2 1`
 solves a batch of systems. For other built-ins each cell result must still be a
 scalar. `startswith` keeps whole-operand ranks, because a byte view is an array
 that must be compared whole. `take` and `drop` are sequence operators, not
@@ -6641,7 +6631,7 @@ A user-defined function declares its own ranks with a `rank` tail on the
 header, one entry per positional data operand, in declaration order:
 
 ```rank
-fun X Y inc rank 0 1
+fun X inc Y rank 0 1
   return X + Y
 end
 
@@ -6701,7 +6691,7 @@ selection. `outer` itself does not permute axes.
 `matmul` from `use linalg` contracts one axis from each numeric array:
 
 ```rank
-C = A B matmul
+C = A matmul B
 ```
 
 By default it contracts the last axis of `A` with the first axis of `B`.
@@ -6722,15 +6712,15 @@ An explicit pair selects a different contracted axis from each operand. The
 first number belongs to the left operand and the second to the right:
 
 ```rank
-C = A B matmul axis 2 0
+C = A matmul B axis 2 0
 ```
 
 Both axes are zero-based. Exactly two axes are required, and out-of-range axes
 are errors. Scalar or nonnumeric operands are errors; unequal contracted
 dimensions raise `.DimensionMismatch`.
 
-A deferred binding such as `C' = A B matmul` computes output elements on
-demand. Repeated demands recompute them; `C = A B matmul` stores the completed
+A deferred binding such as `C' = A matmul B` computes output elements on
+demand. Repeated demands recompute them; `C = A matmul B` stores the completed
 array explicitly.
 The calculation uses ordinary Rank numeric promotion: integer-only terms stay
 integer, while a real term promotes that output element to real. A contraction
@@ -6911,7 +6901,7 @@ Y = Angle sin
 X = Angle cos
 Slope = Angle tan
 Angle = Ratio atan
-Angle = Y X atan2
+Angle = Y atan2 X
 ```
 
 The circular functions are `sin`, `cos` and `tan`; their inverse functions are
@@ -6988,8 +6978,8 @@ Zero and negative integers are errors. The divisors of one contain only one.
 `gcd` and `lcm` use data-first application:
 
 ```rank
-G = 54 24 gcd
-L = 8 12 lcm
+G = 54 gcd 24
+L = 8 lcm 12
 ```
 
 `lcm` also acts as a named reduction over a finite sequence:
@@ -6998,7 +6988,7 @@ L = 8 12 lcm
 Answer = (1 to 20) lcm
 ```
 
-Both operations return nonnegative integers. `0 0 gcd` is zero, an `lcm`
+Both operations return nonnegative integers. `0 gcd 0` is zero, an `lcm`
 containing zero is zero, and the `lcm` of an empty sequence is one.
 
 `powmod` raises an integer base to a nonnegative integer exponent while reducing
@@ -7020,7 +7010,7 @@ uses repeated squaring, so it does not construct the potentially huge value
 with `0 at most K at most N`:
 
 ```rank
-Exact = N K binomial
+Exact = N binomial K
 ```
 
 It has intrinsic ranks `0 0`, so it broadcasts over numeric arrays.
@@ -7039,12 +7029,12 @@ Invalid coefficient bounds or modulus conditions raise `.DomainError`.
 
 The core functions `min` and `max` require no `use numbers`. One operand
 reduces a collection. Binary `max` takes its second operand on the right;
-binary `min` keeps both operands on the left:
+binary `min` uses the same operand sides:
 
 ```rank
 Smallest = Values min
 Left = A max B
-Bound = (Low max Limit) High min
+Bound = (Low max Limit) min High
 ```
 
 Both broadcast over arrays using the ordinary trailing-axis rules.
@@ -7108,8 +7098,8 @@ is required here. Scalar `12 divisors count` remains unchanged.
 ```rank
 State = 42 seed
 Shuffled = Values shuffle
-Repeatable = Values 42 shuffle
-Sample = Values 10 choices
+Repeatable = Values shuffle 42
+Sample = Values choices 10
 Noise = Shape Low High uniform
 Rows = Data shuffle axis 0
 Columns = Data 42 shuffle axis 1
@@ -7131,7 +7121,7 @@ of nonnegative integer dimensions. Equal bounds produce a constant tensor;
 zero dimensions produce an empty tensor. Bounds must be finite numbers and the
 lower bound must not exceed the upper bound.
 
-`Values Count choices` independently draws `Count` values with replacement
+`Values choices Count` independently draws `Count` values with replacement
 and returns an eager dense array. For a tensor it draws complete cells along
 the leading axis, preserving their shape. Count must be nonnegative. Count
 zero is valid for an empty input; a positive draw from an empty input is an
@@ -7221,7 +7211,7 @@ rem  0  1 -2  1
 rem  0  0  1 -2
 
 X = array 1 4 9 16
-Y = L X matmul
+Y = L matmul X
 rem 2 2 2 -23
 Boundary = array 0 0 0 25
 D2 = Y + Boundary
@@ -7251,9 +7241,9 @@ trailing-cell and explicit cell-axis rules.
 `solve` directly solves `A * X = B`:
 
 ```rank
-X = A B solve
-BatchedVectors = As Bs solve rank 2 1
-BatchedMatrices = As Bs solve rank 2 2
+X = A solve B
+BatchedVectors = As solve Bs rank 2 1
+BatchedMatrices = As solve Bs rank 2 2
 ```
 
 Both default operands are whole values. Explicit ranks distinguish vector
@@ -7273,8 +7263,8 @@ Gaussian elimination with partial pivoting.
 right array:
 
 ```rank
-C = A B matmul
-C = A B matmul axis 2 0
+C = A matmul B
+C = A matmul B axis 2 0
 ```
 
 The explicit form names the left and right contracted axes. Their dimensions
@@ -7340,23 +7330,23 @@ convergence errors use `.DimensionMismatch`, `.TypeError`, `.DomainError` and
 `use bits` provides bitwise operations over arbitrary-precision integers:
 
 ```rank
-A B band
-A B bor
-A B bxor
+A band B
+A bor B
+A bxor B
 A bnot
-A N shl
-A N shr
-A N bit
+A shl N
+A shr N
+A bit N
 A popcount
 X binary
-X Width binary
+X binary Width
 ```
 
 `bnot` follows infinite two's-complement semantics, so `A bnot` equals
 `-A - 1`. Fixed-width code makes its width explicit with a mask:
 
 ```rank
-Word = Value bnot 65535 band
+Word = Value bnot band 65535
 ```
 
 Shifts require a nonnegative bit count. `shr` is an arithmetic right shift.
@@ -7380,7 +7370,7 @@ pads with leading zeroes and raises an error when the value does not fit:
 
 ```rank
 Bits = 10 binary
-Padded = 3 5 binary
+Padded = 3 binary 5
 rem "1010", "00011"
 ```
 
@@ -7570,8 +7560,8 @@ Rows = Matrix mean axis 1
 Middle = Values median
 Spread = Values std
 Columns = Matrix std axis 0
-Loss = Pred Target mse
-Rows = Pred Target mae axis 1
+Loss = Pred mse Target
+Rows = Pred mae Target axis 1
 Cov = Features covariance
 Cov = Samples covariance axis 1 0
 ```
@@ -7589,8 +7579,8 @@ tensor behavior is described in [Tensors](language/tensors.md). `median` and
 two numeric values, finite sequences or arrays:
 
 ```rank
-Loss = Pred Target mse
-FeatureLoss = Pred Target mae axis 0
+Loss = Pred mse Target
+FeatureLoss = Pred mae Target axis 0
 ```
 
 The inputs follow Rank's trailing-axis broadcasting rules. Without `axis`, the
@@ -7640,13 +7630,13 @@ any of them. Adjacent separators preserve empty parts. An empty separator
 splits by Unicode code point and must be used alone:
 
 ```rank
-Parts = "2x3x4" "x" split
-Fields = Text (array "," ";") split
-Characters = "A😀Б" "" split
+Parts = "2x3x4" split "x"
+Fields = Text split (array "," ";")
+Characters = "A😀Б" split ""
 ```
 
 `Text words` returns lowercase Unicode letter-and-number runs as a rank-1 text
-array; punctuation and whitespace separate words. `Texts Limit vocab` accepts
+array; punctuation and whitespace separate words. `Texts vocab Limit` accepts
 a rank-1 text array and a nonnegative integer limit. It counts all words,
 orders them by descending frequency and then ascending Unicode code point
 order, and returns at most `Limit` terms. An empty input or zero limit returns
@@ -7659,7 +7649,7 @@ when their types differ. It is normally combined with `unpack`:
 
 ```rank
 Pattern = "/word to /word = /integer"
-unpack From To Distance = Line Pattern parse
+unpack From To Distance = Line parse Pattern
 ```
 
 Patterns use `/integer`, `/real`, `/word` and `/text`. Integers and reals are
@@ -7670,10 +7660,10 @@ slash. All other characters, including spaces, match exactly:
 
 ```rank
 Pattern = "/integerx/integerx/integer"
-unpack Length Width Height = "2x3x4" Pattern parse
+unpack Length Width Height = "2x3x4" parse Pattern
 
 Spaced = "/integer x /integer"
-unpack A B = "2 x 3" Spaced parse
+unpack A B = "2 x 3" parse Spaced
 ```
 
 An unknown directive raises `.InvalidFormat`. Input that does not match the
@@ -7683,7 +7673,7 @@ available as the error value respectively.
 `startswith` tests an exact, case-sensitive prefix:
 
 ```rank
-Ready = Text "Rank" startswith
+Ready = Text startswith "Rank"
 ```
 
 Two bytes values use a direct byte comparison with no text conversion or
@@ -7692,7 +7682,7 @@ matches. Text and bytes cannot be mixed implicitly.
 
 ```rank
 Signature = (array 137 80 78 71) bytes
-IsPngPrefix = Header Signature startswith
+IsPngPrefix = Header startswith Signature
 ```
 
 `lower` converts Unicode text to lowercase. `startswith` broadcasts over text
@@ -7764,9 +7754,9 @@ returns one string. An empty collection produces empty text. An empty separator
 concatenates the elements directly:
 
 ```rank
-(array 1 2 3) ", " join print
+(array 1 2 3) join ", " print
 rem 1, 2, 3
-(array "ab" "cd") "" join print
+(array "ab" "cd") join "" print
 rem abcd
 ```
 
@@ -7775,7 +7765,7 @@ A nontext separator, nonscalar element or higher-rank array raises
 
 ```rank
 for Row in Matrix
-  Row text ".6f" " " join print
+  Row text join ".6f" " " print
 end
 ```
 
@@ -8015,8 +8005,8 @@ Line-oriented input is not part of the current language yet.
 Text = Path read
 Lines = Path readlines
 
-Text Path write
-Text Path append
+Text write Path
+Text append Path
 ```
 
 `read` preserves the complete decoded text, including a final line ending.
@@ -8031,7 +8021,7 @@ Random access uses byte offsets. A one-shot block read does not create a visible
 file handle:
 
 ```rank
-Bytes = Path Offset Count readbytes
+Bytes = Path Offset readbytes Count
 ```
 
 `bytes` is a specialized rank-1 tensor whose atoms are integers from 0 through
@@ -8045,7 +8035,7 @@ Repeated and stateful I/O uses a `file` value:
 File = Path open
 
 Header = File 64 readbytes
-File 1024 seek
+File seek 1024
 Chunk = File 128 readbytes
 
 Offset = File position
@@ -8071,7 +8061,7 @@ Handles opened by all three modes can be read. Binary output takes a `bytes`
 value previously obtained from `readbytes`:
 
 ```rank
-Output Bytes writebytes
+Output writebytes Bytes
 Output flush
 ```
 
@@ -8203,7 +8193,7 @@ Third = Bag 2
 Lower = Bag floor Limit
 Upper = Bag ceiling Limit
 Routes = Cities permutations
-Pairs = Values 2 combinations
+Pairs = Values combinations 2
 ```
 
 `new stack`, `new deque` and `new heap` create empty named containers.
@@ -8237,11 +8227,11 @@ operation. `Tree Left Right query` reduces an inclusive range, and addressed
 assignment performs a point update. Construction, bounds and error behavior
 are specified in [Collections](language/collections.md).
 
-`Tree Target firstatleast` finds the first monotone numeric prefix that reaches
+`Tree firstatleast Target` finds the first monotone numeric prefix that reaches
 the target. `Values segment maxsum` selects the native prefix/subarray summary
 profile. `Values wavelet` prepares immutable inclusive range counts through
 `Data Left Right Low High within`. Numeric wavelets also provide `sumwithin`
-for range-value sums and `Data Bounds missing` for positive coin values.
+for range-value sums and `Data missing Bounds` for positive coin values.
 
 Numeric `Values segment +` trees also accept `Tree Left Right = Value` and
 `Tree Left Right += Delta` with lazy `O(log N)` range updates.
@@ -8253,9 +8243,9 @@ Numeric `Values segment +` trees also accept `Tree Left Right = Value` and
 `bellmanford`, `floyd`, `cycle`, `euler`, `topological`, `scc`, `mst`, and `maxflow`
 algorithms. It also provides the experimental `Next functional` prepared value
 with `jump`, `distance`, `lengths`, and the increasing-path `upto` query.
-`Next Cost weighted` adds numeric edge sums to that path. Their inputs and
+`Next weighted Cost` adds numeric edge sums to that path. Their inputs and
 results are specified in [Graphs](language/graphs.md).
-An undirected tree can be prepared with `Tree Root root`; its postfix
+An undirected tree can be prepared with `Tree root Root`; its postfix
 `ancestor`, `lca`, and `distance` queries and traversal fields follow the
 rooted-tree rules above. `Tree pathlengths` provides a lazy unordered-pair
 distance sequence with planned exact and bounded-range counts.
@@ -9208,7 +9198,7 @@ smallest. The result below one million is `997651`.
 Places' = 0 till (Digits len - 1)
 Same = (Digits Places equal Digit) indices
 
-for Pick in Same 3 combinations
+for Pick in Same combinations 3
   Family = Prime Pick replacement_family
   if (Family in primes) count at least 8
     return true
@@ -9248,7 +9238,7 @@ rem LeetCode 1: Two Sum
 rem Return indices of two values
 rem whose sum equals Target.
 
-fun A Target two_sum
+fun A two_sum Target
   Index = new index
   for Value i in A
     Need = Target - Value
@@ -9276,7 +9266,7 @@ This demonstrates:
 rem LeetCode 2: Add Two Numbers
 rem Add reverse-order digit arrays.
 
-fun A B add_two
+fun A add_two B
   Queue = new queue
   N = A len
   M = B len
@@ -9359,7 +9349,7 @@ The solution uses only current Rank constructs and runs in linear time.
 
 The runnable example in `demos/leetcode/004_medarrs.ra` uses binary partitioning
 and keeps the required `O(log(m+n))` running time. It demonstrates `at most`,
-Python-style `//`, real `/`, and the binary forms `A B min` and
+Python-style `//`, real `/`, and the binary forms `A min B` and
 `A max B`. Array boundaries are handled explicitly, so the algorithm does not
 need sentinel infinities even though `use numbers` provides `infinity`.
 
@@ -9523,7 +9513,7 @@ Text splitting over a whole column:
 
 ```rank
 Cabin = Train .Cabin default "U/0/U"
-Parts = Cabin "/" split
+Parts = Cabin split "/"
 
 Train .Deck = Parts 0
 Train .Number = Parts 1
@@ -9566,7 +9556,7 @@ The workflow suggested reusable first-class preprocessing values:
 
 ```rank
 Texts = Train .text default ""
-Vocab = Texts 128 vocab
+Vocab = Texts vocab 128
 
 Model = Texts Vocab tfidf_fit
 X = Texts Model tfidf_transform

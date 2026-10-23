@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/51
 
 use sequences
 
-fun Source Target osa
+fun Source osa Target
   M = Source len
   N = Target len
   D = array shape (M + 1) (N + 1) fill 0
@@ -27,14 +27,14 @@ fun Source Target osa
       Delete = D (I - 1) J + 1
       Insert = D I (J - 1) + 1
       Change = D (I - 1) (J - 1) + Cost
-      Best = (Delete Insert min) Change min
+      Best = (Delete min Insert) min Change
 
       if I greater 1 and J greater 1
         C = Target (J - 2)
         Dprev = Source (I - 2)
         if A equal C and Dprev equal B
           Swap = D (I - 2) (J - 2) + 1
-          Best = Best Swap min
+          Best = Best min Swap
         end
       end
 

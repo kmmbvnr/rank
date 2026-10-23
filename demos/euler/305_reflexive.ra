@@ -15,9 +15,9 @@ end
 Answer print
 
 fun State E A id
-  K = E "," join
+  K = E join ","
   K += ":"
-  K += A "," join
+  K += A join ","
   Ids = State .ids
   if K in Ids
     return Ids K
@@ -86,7 +86,7 @@ fun State X R Top partial
   return State Z C merge
 end
 
-fun State N ranged
+fun State ranged N
   if N equal 0
     return State .unit
   end
@@ -114,8 +114,8 @@ fun State N ranged
   return State Z C merge
 end
 
-fun State N count
-  X = State N ranged
+fun State count N
+  X = State ranged N
   Adds = State .adds
   A = Adds X
   return A 0
@@ -135,24 +135,24 @@ fun N before
   return Z + (N - Base + 1) * D
 end
 
-fun State Target nth
+fun State nth Target
   Hi = 1
-  for State Hi count less Target
+  for State count Hi less Target
     Hi *= 2
   end
   Lo = 1
   for Lo less Hi
     Mid = (Lo + Hi) // 2
-    if State Mid count at least Target
+    if State count Mid at least Target
       Hi = Mid
     else
       Lo = Mid + 1
     end
   end
   N = Lo
-  Old = State (N - 1) count
+  Old = State count (N - 1)
   Left = Target - Old
-  X = State (N - 1) ranged
+  X = State ranged (N - 1)
   Ends = State .ends
   E = (Ends X) 0
   Hit = State .hit
@@ -239,5 +239,5 @@ fun Need solve
     Dig D = State E A id
   end
   State .dig = Dig
-  return State Need nth
+  return State nth Need
 end

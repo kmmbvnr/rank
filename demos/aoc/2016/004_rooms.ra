@@ -17,7 +17,7 @@ Part2 print
 rem Return the sum of real room sector IDs and the northpole room sector ID.
 fun Lines solve
   if Lines type equal .text
-    Lines = Lines "\n" split
+    Lines = Lines split "\n"
   end
 
   Target = "northpole object storage"
@@ -27,10 +27,10 @@ fun Lines solve
   for Line in Lines
     unpack Name Sector Checksum = Line room
 
-    if Name Checksum valid
+    if Name valid Checksum
       Part1 += Sector
 
-      Plain = Name Sector decrypt
+      Plain = Name decrypt Sector
       if Plain equal Target
         Part2 = Sector
       end
@@ -43,24 +43,24 @@ end
 
 rem Parse a room line into name, sector ID, and checksum.
 fun Line room
-  return Line "/text-/integer[/word]" parse
+  return Line parse "/text-/integer[/word]"
 end
 
 
 rem Check if the room checksum matches the five most frequent letters.
 rem When frequencies tie, letters are compared alphabetically.
-fun Name Checksum valid
+fun Name valid Checksum
   Letters = Name "-" "" translate
-  Chars = Letters "" split
-  Common = Chars 5 vocab
-  Expected = Common "" join
+  Chars = Letters split ""
+  Common = Chars vocab 5
+  Expected = Common join ""
   return Expected equal Checksum
 end
 
 
 rem Decrypt a room name with a Caesar cipher shifted by sector ID.
 rem Dashes are replaced with spaces.
-fun Name Sector decrypt
+fun Name decrypt Sector
   Alphabet = "abcdefghijklmnopqrstuvwxyz"
   Shift = Sector mod 26
   Tail = Alphabet (Shift till 26)

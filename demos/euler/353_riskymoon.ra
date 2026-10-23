@@ -140,7 +140,7 @@ fun R moon
       Dot += Zs At * Zs I
       rem Arc length is at least chord length: reject only proven losers.
       Lower = 2.0 * (R2 - Dot) / R2 / (Pi * Pi)
-      if Best + Lower at least ((Dist I) Upper min)
+      if Best + Lower at least ((Dist I) min Upper)
         continue
       end
       Angle = (Dot / R2) acos / Pi
@@ -149,7 +149,7 @@ fun R moon
         Dist I = Value
         Other = Mirror I
         Route = Value + Dist Other
-        Upper = Upper Route min
+        Upper = Upper min Route
       end
     end
   end
@@ -160,5 +160,5 @@ Sum = 0.0
 for N in 1 to Last
   Sum += (2 ** N - 1) moon
 end
-Answer = Sum 10 round
+Answer = Sum round 10
 Answer print

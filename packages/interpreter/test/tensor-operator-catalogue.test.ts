@@ -9,13 +9,13 @@ function run(expression: string, left: string, right: string, boolean: boolean, 
     });
     try {
         const value = runtime.execute(`use sequences
-fun A B probe
+fun A probe B
   Mapped' = ${expression}
   return Mapped ${boolean ? 'count' : 'sum'}
 end
 A = ${left}
 B = ${right}
-A B probe`);
+A probe B`);
         return { value: formatValue(value!), kernels };
     } catch (error) {
         return { error: error instanceof RankError ? error.format() : String(error), kernels };

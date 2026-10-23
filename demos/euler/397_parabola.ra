@@ -55,8 +55,8 @@ for N in 1 to K
     Good = Good and T at most Range
     if Good
       Lo = (T - X) max (-X)
-      Hi = (S + X) X min
-      Hi = Hi ((S - 1) // 2) min
+      Hi = (S + X) min X
+      Hi = Hi min ((S - 1) // 2)
       if Hi at least Lo
         Total += 2 * (Hi - Lo + 1)
       end
@@ -96,8 +96,8 @@ for N in 1 to K
       Lo = (P - X) max (-X)
       Lo = Lo max (Q - X)
       Lo = Lo max (P // 2 + 1)
-      Hi = (P + X) X min
-      Hi = Hi ((Q - 1) // 2) min
+      Hi = (P + X) min X
+      Hi = Hi min ((Q - 1) // 2)
       if Hi at least Lo
         Total += Hi - Lo + 1
       end

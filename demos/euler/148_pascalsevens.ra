@@ -20,7 +20,7 @@ rem the prefix product, times 28 for
 rem each free lower digit.
 Width = 20
 Bases = array shape Width fill 7
-D = Rows Bases digits
+D = Rows digits Bases
 Pre' = (D + 1) scan * with 1 take Width
 Tri' = D * (D + 1) // 2
 Pos' = 0 till Width array

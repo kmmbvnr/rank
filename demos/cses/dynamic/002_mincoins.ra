@@ -7,11 +7,11 @@ N = stdin .integer
 Target = stdin .integer
 Coins = stdin .integer N array
 
-Coins Target minimum_coins print
+Coins minimum_coins Target print
 
 
 rem Find the fewest coins for every sum.
-fun Coins Target minimum_coins
+fun Coins minimum_coins Target
   Missing = Target + 1
   Best = array shape Missing fill Missing
   Best 0 = 0
@@ -22,7 +22,7 @@ fun Coins Target minimum_coins
         continue
       end
       Candidate = Best (Total - Coin) + 1
-      Best Total = Best Total Candidate min
+      Best Total = Best Total min Candidate
     end
   end
 

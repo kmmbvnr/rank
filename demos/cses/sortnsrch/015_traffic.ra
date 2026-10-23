@@ -8,11 +8,11 @@ X = stdin .integer
 N = stdin .integer
 P' = stdin .integer N
 
-X P longest_gaps print
+X longest_gaps P print
 
 
 rem Find the longest segment after each light.
-fun Length Positions' longest_gaps
+fun Length longest_gaps Positions'
   Queue = new queue
   Lights = new multiset
   Gaps = new multiset

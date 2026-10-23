@@ -62,26 +62,26 @@ end
 
 test "published best hand uses one hole card"
   use "001_poker"
-  ("QS 8H 7S QH AC" "AD 7C" bestHand) equal "AD AC QS QH 8H"
+  ("QS 8H 7S QH AC" bestHand "AD 7C") equal "AD AC QS QH 8H"
 end
 
 test "best hand can use zero or two hole cards"
   use "001_poker"
   Board = "AS KS QS JS TS"
-  (Board "2H 3D" bestHand) handValue equal (Board handValue)
-  ("AH KH QH 2C 3D" "JH TH" bestHand) handValue equal (Board handValue)
+  (Board bestHand "2H 3D") handValue equal (Board handValue)
+  ("AH KH QH 2C 3D" bestHand "JH TH") handValue equal (Board handValue)
 end
 
 test "best hand picks the higher full house from two triples"
   use "001_poker"
-  Result = "AS AH KS KH 2D" "AD KD" bestHand
+  Result = "AS AH KS KH 2D" bestHand "AD KD"
   Result handValue equal ("AS AH AD KS KH" handValue)
 end
 
 test "best hand is independent of input order and mixed case"
   use "001_poker"
-  First = "qs8h7sqhac" "ad7c" bestHand
-  Second = "AC QH 7S 8H QS" "7C AD" bestHand
+  First = "qs8h7sqhac" bestHand "ad7c"
+  Second = "AC QH 7S 8H QS" bestHand "7C AD"
   First handValue equal (Second handValue)
 end
 
@@ -89,7 +89,7 @@ test "published showdown has dense ties and hole-card counts"
   use "001_poker"
   use tables
   Players = array "AD 7C" "AS 4D" "QD 8S" "3S 2H"
-  Result = "QS 8H 7S QH AC" Players showdown
+  Result = "QS 8H 7S QH AC" showdown Players
   Result .hand equal array "AD AC QS QH 8H" "AS AC QS QH 8H" "QD QS QH 8S 8H" "QS QH AC 8H 7S"
   Result .rank equal array 2 2 1 3
   Result .used equal array 1 1 2 0
@@ -98,7 +98,7 @@ end
 test "playing a royal-flush board ties every player"
   use "001_poker"
   use tables
-  Result = "AS KS QS JS TS" (array "2H 3D" "4H 5D" "6H 7D") showdown
+  Result = "AS KS QS JS TS" showdown (array "2H 3D" "4H 5D" "6H 7D")
   Result .rank equal array 1 1 1
   Result .used equal array 0 0 0
 end

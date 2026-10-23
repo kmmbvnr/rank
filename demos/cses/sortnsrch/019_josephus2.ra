@@ -7,11 +7,11 @@ use algo
 N = stdin .integer
 K = stdin .integer
 
-N K josephus print
+N josephus K print
 
 
 rem Remove every K-skipped child in order.
-fun N K josephus
+fun N josephus K
   Queue = new queue
   Kids = 1 to N multiset
   Pos = 0

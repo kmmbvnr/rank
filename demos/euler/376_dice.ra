@@ -18,12 +18,12 @@ for V in 1 to Limit
   Left = Limit - V
   for Key in Keys
     Ways = Cur Key
-    Ua = Key 7 band
-    Ub = (Key 3 shr) 7 band
-    Uc = (Key 6 shr) 7 band
-    Wba = (Key 9 shr) 31 band
-    Wcb = (Key 14 shr) 31 band
-    Wac = (Key 19 shr) 31 band
+    Ua = Key band 7
+    Ub = (Key shr 3) band 7
+    Uc = (Key shr 6) band 7
+    Wba = (Key shr 9) band 31
+    Wcb = (Key shr 14) band 31
+    Wac = (Key shr 19) band 31
     for Aa in 0 to (6 - Ua)
       Na = Ua + Aa
       for Bb in 0 to (6 - Ub)
@@ -43,9 +43,9 @@ for V in 1 to Limit
           Ba = Wba + Bb * Ua
           Cb = Wcb + Cc * Ub
           Ac = Wac + Aa * Uc
-          Ba = Ba 19 min
-          Cb = Cb 19 min
-          Ac = Ac 19 min
+          Ba = Ba min 19
+          Cb = Cb min 19
+          Ac = Ac min 19
           if Ba + 6 * (6 - Nb) less 19
             continue
           end
@@ -55,11 +55,11 @@ for V in 1 to Limit
           if Ac + 6 * (6 - Na) less 19
             continue
           end
-          Nkey = Na (Nb 3 shl) bor
-          Nkey = Nkey (Nc 6 shl) bor
-          Nkey = Nkey (Ba 9 shl) bor
-          Nkey = Nkey (Cb 14 shl) bor
-          Nkey = Nkey (Ac 19 shl) bor
+          Nkey = Na bor (Nb shl 3)
+          Nkey = Nkey bor (Nc shl 6)
+          Nkey = Nkey bor (Ba shl 9)
+          Nkey = Nkey bor (Cb shl 14)
+          Nkey = Nkey bor (Ac shl 19)
           if Nkey in Next
             Next Nkey = Next Nkey + Ways
           else
@@ -73,10 +73,10 @@ for V in 1 to Limit
   Cur = Next
   Keys = New
 end
-Term = 6 (6 3 shl) bor
-Term = Term (6 6 shl) bor
-Term = Term (19 9 shl) bor
-Term = Term (19 14 shl) bor
-Term = Term (19 19 shl) bor
+Term = 6 bor (6 shl 3)
+Term = Term bor (6 shl 6)
+Term = Term bor (19 shl 9)
+Term = Term bor (19 shl 14)
+Term = Term bor (19 shl 19)
 Answer = Cur Term // 3
 Answer print

@@ -47,7 +47,7 @@ test('check explains the removed DSU find spelling', t => {
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
     const file = path.join(temporary, 'old-dsu.ra');
     for (const modules of ['use graph', 'use graph\nuse sequences']) {
-        for (const call of ['D find "a"', 'D "a" find']) {
+        for (const call of ['D find "a"', 'D find "a"']) {
             fs.writeFileSync(file, `${modules}\nD = new dsu (array "a")\n${call}\n`);
             const result = check(file);
             assert.equal(result.status, 1);

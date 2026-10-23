@@ -6,13 +6,13 @@ rem month during the twentieth century
 use numbers
 use io
 
-Answer = 1901 2000 count_sundays
+Answer = 1901 count_sundays 2000
 Answer print
 
 
 rem Advance month starts from the known
 rem Monday on 1 January 1900.
-fun FirstYear LastYear count_sundays
+fun FirstYear count_sundays LastYear
   Weekday = 1
   Count = 0
 
@@ -24,7 +24,7 @@ fun FirstYear LastYear count_sundays
         end
       end
 
-      Days = Year Month month_days
+      Days = Year month_days Month
       Weekday = (Weekday + Days) mod 7
     end
   end
@@ -34,7 +34,7 @@ end
 
 
 rem Return the Gregorian length of one month.
-fun Year Month month_days
+fun Year month_days Month
   if Month equal 2
     Leap = Year mod 4 equal 0
     Leap and= (

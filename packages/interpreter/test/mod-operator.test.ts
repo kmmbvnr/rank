@@ -37,7 +37,7 @@ describe('mod', () => {
     });
 
     it.each(['modcombine', 'mod2', 'mod_combine'])('keeps the user function name %s intact', name => {
-        const source = `fun A B ${name} rank 0 0\n return A mod B\nend\n`;
+        const source = `fun A ${name} B rank 0 0\n return A mod B\nend\n`;
         expect(run(source + `(array 20 6) (array 3 4) outer ${name}`)).toBe('2 0 0 2');
         expect(run(source + `(array 20 6 3) scan ${name}`)).toBe('20 2 2');
         expect(run(source + `(array 20 6 3) reduce ${name}`)).toBe('2');

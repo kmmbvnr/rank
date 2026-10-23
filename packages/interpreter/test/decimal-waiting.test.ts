@@ -20,7 +20,8 @@ describe('Euler 316 numeric borders', () => {
         it(`matches an independent border oracle (compilation=${compilation})`, () => {
             const r = new Interpreter(() => {}, { compilation });
             try {
-                r.execute(`use sequences\n${definition}
+                r.execute(`use sequences
+${definition}
 Results = array shape 1000 fill 0
 for I in 1 to 1000
   Results (I - 1) = I waiting

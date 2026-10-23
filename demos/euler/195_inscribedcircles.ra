@@ -39,7 +39,7 @@ for N in 1 to Qb
     break
   end
   Ts = 1 to (Qb // N - N) array
-  Ok' = Ts mod 3 not equal 0 and (N Ts gcd) equal 1
+  Ok' = Ts mod 3 not equal 0 and (N gcd Ts) equal 1
   Qv' = N * (N + Ts)
   Hit' = Tb (Qv - 1) filter Ok
   Total += Hit sum
@@ -50,7 +50,7 @@ for T in 1 to Qa
   end
   if T mod 3 not equal 0
     Ns = 1 to ((Qa // T - T) // 3) array
-    Ok' = (Ns T gcd) equal 1
+    Ok' = (Ns gcd T) equal 1
     Qv' = T * (3 * Ns + T)
     Hit' = Ta (Qv - 1) filter Ok
     Total += Hit sum

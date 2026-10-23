@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-    findOperation, resultTypes, validateShapeSignature, moduleForms, modules, operations, type Operation, type SignatureType,
+    findOperation, resultTypes, isArrayExpression, isExpressionStatement, validateShapeSignature, moduleForms, modules, operations, type Operation, type SignatureType,
 } from '@arrrank/language';
-import { Interpreter, standardModules } from '../src/index.js';
+import { Interpreter, parse, standardModules } from '../src/index.js';
 import type { RuntimeContext } from '../src/modules/types.js';
 import { isNativeFunction, typeName, type RankValue } from '../src/value.js';
 import { TokenInput } from './support.js';
@@ -95,9 +95,9 @@ describe('the operation catalogue', () => {
             ['use sequences\n(1 to 3) reverse', 'array'],
             ['use algo\nuse sequences\nQ = new queue\nQ push 1\nQ reverse', 'array'],
             ['use algo\nuse sequences\nS = new stack\nS push 1\nS reverse', 'array'],
-            ['use algo\nuse sequences\nD = new deque\nD 1 pushback\nD reverse', 'array'],
-            ['use text\n"a,b;c" (array "," ";") split', 'array'],
-            ['use text\n"a,b" "," split', 'array'],
+            ['use algo\nuse sequences\nD = new deque\nD pushback 1\nD reverse', 'array'],
+            ['use text\n"a,b;c" split (array "," ";")', 'array'],
+            ['use text\n"a,b" split ","', 'array'],
         ]) {
             const value = new Interpreter().execute(source)!;
             expect(typeName(value), source).toBe(expected);
@@ -126,22 +126,22 @@ describe('the operation catalogue', () => {
         for (const [source, expected] of [
             ['3 sum', 'integer'], ['(array 1 2) sum', 'integer'], ['(array 1.0 2.0) sum', 'real'],
             ['use algo\nS = new set\nS add 2\nS add 3\nS sum', 'integer'],
-            ['"a" max "z"', 'text'], ['false true min', 'boolean'], ['3 max 4.5', 'real'],
-            ['.NA max 3', 'missing'], ['3 .NA min', 'missing'],
+            ['"a" max "z"', 'text'], ['false min true', 'boolean'], ['3 max 4.5', 'real'],
+            ['.NA max 3', 'missing'], ['3 min .NA', 'missing'],
         ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
     });
 
     it('checks integer bit operations and hash input domains used by signatures', () => {
         for (const [source, expected] of [
-            ['use bits\n3 1 band', 'integer'], ['use bits\n3 1 bor', 'integer'],
-            ['use bits\n3 1 bxor', 'integer'], ['use bits\n3 bnot', 'integer'],
-            ['use bits\n3 1 shl', 'integer'], ['use bits\n3 1 shr', 'integer'],
-            ['use bits\n3 1 bit', 'boolean'], ['use bits\n3 popcount', 'integer'],
-            ['use bits\n5 binary', 'text'], ['use bits\n5 4 binary', 'text'],
-            ['use bits\n(array 1 2) 1 band', 'array'],
+            ['use bits\n3 band 1', 'integer'], ['use bits\n3 bor 1', 'integer'],
+            ['use bits\n3 bxor 1', 'integer'], ['use bits\n3 bnot', 'integer'],
+            ['use bits\n3 shl 1', 'integer'], ['use bits\n3 shr 1', 'integer'],
+            ['use bits\n3 bit 1', 'boolean'], ['use bits\n3 popcount', 'integer'],
+            ['use bits\n5 binary', 'text'], ['use bits\n5 binary 4', 'text'],
+            ['use bits\n(array 1 2) band 1', 'array'],
             ['use crypto\n"x" md5', 'bytes'], ['use crypto\n("x" bytes) md5', 'bytes'],
         ]) expect(typeName(new Interpreter().execute(source)!), source).toBe(expected);
-        expect(() => new Interpreter().execute('use bits\n1.5 1 band')).toThrow();
+        expect(() => new Interpreter().execute('use bits\n1.5 band 1')).toThrow();
         expect(() => new Interpreter().execute('use crypto\n(array 1 2) md5')).toThrow();
     });
 
@@ -173,18 +173,18 @@ describe('the operation catalogue', () => {
         for (const [expression, expected] of [
             ['-3 abs', 'integer'], ['-3.0 abs', 'real'], ['.NA abs', 'missing'],
             ['4 sqrt', 'real'], ['.NA sqrt', 'missing'], ['4 isqrt', 'integer'],
-            ['1 2 atan2', 'real'], ['.NA 2 atan2', 'missing'],
-            ['5 2 binomial', 'integer'], ['.NA 2 binomial', 'missing'],
-            ['5 2 7 binomialmod', 'integer'], ['2 3 7 powmod', 'integer'], ['6 4 gcd', 'integer'],
-            ['6 4 lcm', 'integer'], ['(array 6 4) lcm', 'integer'], ['(1 to 3) lcm', 'integer'],
+            ['1 atan2 2', 'real'], ['.NA atan2 2', 'missing'],
+            ['5 binomial 2', 'integer'], ['.NA binomial 2', 'missing'],
+            ['5 2 7 binomialmod', 'integer'], ['2 3 7 powmod', 'integer'], ['6 gcd 4', 'integer'],
+            ['6 lcm 4', 'integer'], ['(array 6 4) lcm', 'integer'], ['(1 to 3) lcm', 'integer'],
             ['12 factors', 'sequence'], ['12 divisors', 'sequence'], ['3 odd', 'boolean'],
-            ['2 even', 'boolean'], ['.NA isnan', 'boolean'], ['1.25 1 round', 'real'], ['125 -1 round', 'integer'],
+            ['2 even', 'boolean'], ['.NA isnan', 'boolean'], ['1.25 round 1', 'real'], ['125 round -1', 'integer'],
             ['(array 0.0 1.0) sin', 'array'], ['(0 to 2) sin', 'sequence'],
             ['(array 1 2) odd', 'array'], ['(1 to 3) odd', 'sequence'],
         ]) expect(typeName(new Interpreter().execute('use numbers\n' + expression)!), expression).toBe(expected);
         expect(() => new Interpreter().execute('use numbers\n.NA isqrt')).toThrow();
-        expect(() => new Interpreter().execute('use numbers\n1.5 2 gcd')).toThrow();
-        expect(typeName(new Interpreter().execute('use numbers\n.NA 2 round')!)).toBe('missing');
+        expect(() => new Interpreter().execute('use numbers\n1.5 gcd 2')).toThrow();
+        expect(typeName(new Interpreter().execute('use numbers\n.NA round 2')!)).toBe('missing');
         expect(() => new Interpreter().execute('use algo\nuse numbers\nQ = new queue\nQ push 2\nQ lcm')).toThrow();
     });
 
@@ -193,15 +193,15 @@ describe('the operation catalogue', () => {
             ['65 character', 'text'], ['"A" codepoint', 'integer'], ['("A" bytes) hex', 'text'],
             ['"12" integer', 'integer'], ['"1.5" real', 'real'], ['3 text', 'text'],
             ['(array 65 66) bytes', 'bytes'], ['("A" bytes) bytes', 'bytes'],
-            ['(array 1 2) "," join', 'text'], ['(1 to 3) "," join', 'text'],
-            ['"12 blue" "/integer /word" parse', 'tuple'], ['"12 13" "/integer /integer" parse', 'array'],
-            ['"a b" words', 'array'], ['(array "a b" "a c") 2 vocab', 'array'],
+            ['(array 1 2) join ","', 'text'], ['(1 to 3) join ","', 'text'],
+            ['"12 blue" parse "/integer /word"', 'tuple'], ['"12 13" parse "/integer /integer"', 'array'],
+            ['"a b" words', 'array'], ['(array "a b" "a c") vocab 2', 'array'],
             ['"ABC" lower', 'text'], ['(array "ABC" "DEF") lower', 'array'],
             ['"abc" len', 'integer'], ['(tuple 1 "a") len', 'integer'],
         ]) expect(typeName(new Interpreter().execute('use text\n' + expression)!), expression).toBe(expected);
         expect(typeName(new Interpreter().execute('use text\n.NA text')!)).toBe('missing');
         expect(() => new Interpreter().execute('use dates\n(1 duration) text')).toThrow();
-        expect(() => new Interpreter().execute('use text\n(array .NA) "," join')).toThrow();
+        expect(() => new Interpreter().execute('use text\n(array .NA) join ","')).toThrow();
         expect(() => new Interpreter().execute('use text\n"ab" codepoint')).toThrow();
     });
 
@@ -211,7 +211,7 @@ describe('the operation catalogue', () => {
             for (const expression of ['S sum', 'S min', 'S max', 'S len']) {
                 expect(typeName(new Interpreter().execute(initialize + expression)!), name + expression).toBe('integer');
             }
-            expect(typeName(new Interpreter().execute(initialize + 'S "," join')!), name).toBe('text');
+            expect(typeName(new Interpreter().execute(initialize + 'S join ","')!), name).toBe('text');
         }
         expect(typeName(new Interpreter().execute('("ab" bytes) len')!)).toBe('integer');
         expect(() => new Interpreter().execute('use algo\nI = new index\nI len')).toThrow();
@@ -219,13 +219,13 @@ describe('the operation catalogue', () => {
 
     it('checks linear algebra result forms, including empty real determinants', () => {
         for (const [expression, expected] of [
-            ['(array 1 2) diag', 'array'], ['(array 1 2) (array 3 4) matmul', 'integer'],
-            ['(array 1.0 2.0) (array 3.0 4.0) matmul', 'real'],
-            ['((array 1 2) diag) (array 3 4) matmul', 'array'],
+            ['(array 1 2) diag', 'array'], ['(array 1 2) matmul (array 3 4)', 'integer'],
+            ['(array 1.0 2.0) matmul (array 3.0 4.0)', 'real'],
+            ['((array 1 2) diag) matmul (array 3 4)', 'array'],
             ['((array 1 2) diag) det', 'integer'], ['((array 1.0 2.0) diag) det', 'real'],
             ['(array shape 0 0 fill 0.0) det', 'integer'],
             ['((array 1 2) diag) inverse', 'array'], ['((array 1 2) diag) eigh', 'tuple'],
-            ['((array 1 2) diag) (array 3 4) solve', 'array'],
+            ['((array 1 2) diag) solve (array 3 4)', 'array'],
         ]) expect(typeName(new Interpreter().execute('use linalg\n' + expression)!), expression).toBe(expected);
     });
 
@@ -235,11 +235,11 @@ describe('the operation catalogue', () => {
             expect(typeName(new Interpreter().execute(`use stats\n3 ${name}`)!), name).toBe('real');
         }
         for (const [expression, expected] of [
-            ['(array 1 2 3) (array 0.25 0.75) quantile', 'array'],
-            ['(array 1 2 3) (array 25 75) percentile', 'array'],
+            ['(array 1 2 3) quantile (array 0.25 0.75)', 'array'],
+            ['(array 1 2 3) percentile (array 25 75)', 'array'],
             ['(array shape 2 3 fill 1) covariance', 'array'],
             ['(array shape 2 3 fill 1) correlation', 'array'], ['(array shape 2 3 fill 1) corr', 'array'],
-            ['(array 1 2) (array 2 3) mse', 'real'], ['1 2 mae', 'real'],
+            ['(array 1 2) mse (array 2 3)', 'real'], ['1 mae 2', 'real'],
             ['(array "a" "b" "a") mode', 'text'], ['"abc" mode', 'text'],
         ]) expect(typeName(new Interpreter().execute('use stats\n' + expression)!), expression).toBe(expected);
         expect(() => new Interpreter().execute('use algo\nuse stats\nQ = new queue\nQ push 1\nQ mean')).toThrow();
@@ -316,7 +316,18 @@ describe('the operation catalogue', () => {
         for (const entry of profiles) for (const operands of examples[entry.name]) {
             const runtime = new Interpreter();
             try {
-                const value = runtime.execute(`use text\nuse crypto\nuse sequences\nuse bits\nuse numbers\nuse algo\n${operands} ${entry.name}`)!;
+                const arguments_ = parse(`array ${operands}`).statements[0];
+                const values = isExpressionStatement(arguments_) && isArrayExpression(arguments_.value)
+                    ? arguments_.value.items.map(item => item.$cstNode!.text) : [];
+                const call = entry.compiledCall!.inputs.length === 2
+                    ? `${values[0]} ${entry.name} ${values[1]}` : `${operands} ${entry.name}`;
+                const value = runtime.execute(`use text
+use crypto
+use sequences
+use bits
+use numbers
+use algo
+${call}`)!;
                 expect(typeName(value), `${entry.name}: ${operands}`).toBe(entry.compiledCall!.result);
             } finally { runtime.dispose(); }
         }
@@ -326,8 +337,8 @@ describe('the operation catalogue', () => {
         const runtime = new Interpreter();
         try {
             expect(typeName(runtime.execute('(array 65 66) bytes')!)).toBe('bytes');
-            expect(runtime.execute('use text\n(array 1 2) ":" join')).toBe('1:2');
-            const lifted = runtime.execute('(array "a" "b") "a" startswith')!;
+            expect(runtime.execute('use text\n(array 1 2) join ":"')).toBe('1:2');
+            const lifted = runtime.execute('(array "a" "b") startswith "a"')!;
             expect(typeName(lifted)).toBe('array');
         } finally { runtime.dispose(); }
     });
@@ -362,7 +373,7 @@ describe('the operation catalogue', () => {
 
     it('finds an entry by name', () => {
         expect(findOperation('dijkstra')?.module).toBe('graph');
-        expect(findOperation('dijkstra')?.form).toBe('Graph Start dijkstra');
+        expect(findOperation('dijkstra')?.form).toBe('Graph dijkstra Start');
         expect(findOperation('nosuchname')).toBeUndefined();
     });
 });

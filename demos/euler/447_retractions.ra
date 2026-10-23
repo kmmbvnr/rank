@@ -19,7 +19,7 @@ rem hyperbola method for small t and
 rem from a sigma sieve for large t.
 Mod = 1000000007
 Rt = N isqrt
-Tc = Rt Cut min
+Tc = Rt min Cut
 Tot = 0
 rem Moebius up to Rt by small primes.
 Mu = array shape (Rt + 1) fill 1

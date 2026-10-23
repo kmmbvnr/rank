@@ -9,11 +9,11 @@ N = stdin .integer
 K = stdin .integer
 A = stdin .integer N array
 
-A K count_distinct_windows print
+A count_distinct_windows K print
 
 
 rem Count windows with at most K values.
-fun A K count_distinct_windows
+fun A count_distinct_windows K
   Index = new index
   Left = 0
   Distinct = 0

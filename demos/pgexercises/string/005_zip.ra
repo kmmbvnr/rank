@@ -17,4 +17,4 @@ Result' = M select
   .zip = Padded
 end
 Result' = Result sort by .zip
-Result OutputPath csv
+Result csv OutputPath

@@ -5,7 +5,7 @@ test "official perfect precision"
   Truth = array 1 0 1 1 0 1
   Predicted = array 1 0 1 0 0 1
 
-  Score = Truth Predicted precision
+  Score = Truth precision Predicted
   Score equal 1.0
 end
 
@@ -14,7 +14,7 @@ test "official half precision"
   Truth = array 1 0 1 1 0 0
   Predicted = array 1 0 0 0 0 1
 
-  Score = Truth Predicted precision
+  Score = Truth precision Predicted
   Score equal 0.5
 end
 
@@ -23,7 +23,7 @@ test "no positive guesses returns zero"
   Truth = array 1 0 1
   Predicted = array 0 0 0
 
-  Score = Truth Predicted precision
+  Score = Truth precision Predicted
   Score equal 0.0
 end
 
@@ -34,7 +34,7 @@ test "lengths must match"
   Raised = false
 
   try
-    Score = Truth Predicted precision
+    Score = Truth precision Predicted
   catch .DimensionMismatch Error
     Raised = true
   end

@@ -12,10 +12,10 @@ const count = 100_000;
 // Include the first official matching candidate in this short benchmark.
 const start = 3_200_000;
 const guards = {
-    hex: 'if not (Hash "00000" startswith)\n continue\nend',
-    bytes: 'if not (Hash Prefix startswith)\n continue\nend\nif Hash 2 at least 16\n continue\nend',
+    hex: 'if not (Hash startswith "00000")\n continue\nend',
+    bytes: 'if not (Hash startswith Prefix)\n continue\nend\nif Hash 2 at least 16\n continue\nend',
     indexed: 'if Hash 0 not equal 0\n continue\nend\nif Hash 1 not equal 0\n continue\nend\nif Hash 2 at least 16\n continue\nend',
-    positive: 'if Hash Prefix startswith\n if Hash 2 less 16\n  Hits += 1\n end\nend',
+    positive: 'if Hash startswith Prefix\n if Hash 2 less 16\n  Hits += 1\n end\nend',
 };
 
 const selected = process.argv.find(argument => argument.startsWith('--case='))?.slice(7);
@@ -39,8 +39,11 @@ if (!selected) {
     const samples = [];
     const runtime = new Interpreter(undefined, { md5: backend === 'node' ? nodeMd5 : undefined });
     try {
-        runtime.execute(`use text\nuse crypto\nDoor = "abc"\nPrefix = (array 0 0) bytes
-fun Start Count search
+        runtime.execute(`use text
+use crypto
+Door = "abc"
+Prefix = (array 0 0) bytes
+fun Start search Count
   Hits = 0
   N = Start
   Limit = Start + Count

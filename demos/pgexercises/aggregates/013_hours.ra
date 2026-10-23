@@ -22,4 +22,4 @@ Result' = G select
   .hours = .hours sum
 end
 Result' = Result sort by .facid
-Result OutputPath csv
+Result csv OutputPath

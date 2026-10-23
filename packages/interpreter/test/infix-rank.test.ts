@@ -5,7 +5,8 @@ describe.each([false, true])('infix binary ranks (compilation=%s)', compilation 
     function run(expression: string, prefix = '') {
         const runtime = new Interpreter(undefined, { compilation });
         try {
-            runtime.execute(`use sequences\nuse numbers
+            runtime.execute(`use sequences
+use numbers
 A = (array 1 2 3 4 5 6) reshape 2 3
 B = array 3 6
 ${prefix}`);
@@ -30,7 +31,7 @@ ${prefix}`);
         expect(run('A - B rank 1 0 exp')).toBe(run('(A B - rank 1 0) exp'));
         expect(run('A - (B + 1) rank 1 0')).toBe('-3 -2 -1 -3 -2 -1');
         expect(() => run('A - 3 2 min rank 0 0')).toThrow(/rank L R expects/);
-        expect(run('A - (3 2 min rank 0 0)')).toBe('-1 0 1 2 3 4');
+        expect(run('A - (3 min 2 rank 0 0)')).toBe('-1 0 1 2 3 4');
     });
 
     it('supports negative ranks, scalar frames and singleton frames', () => {

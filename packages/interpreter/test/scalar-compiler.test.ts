@@ -9,7 +9,7 @@ function evaluate(expression: string, a: RankValue, b: RankValue, enabled: boole
     const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, scalarCompilation: enabled, tensorFusion: false,
         onScalarExecuted: () => entries++ });
     try {
-        runtime.execute(`fun A B calc\n  return ${expression}\nend`);
+        runtime.execute(`fun A calc B\n  return ${expression}\nend`);
         const fn = runtime.variables.get('calc');
         if (!fn || !isNativeFunction(fn)) throw new Error('missing calc');
         const value = fn.call([a, b]);
@@ -34,7 +34,7 @@ describe('compiled scalar expressions', () => {
     });
 
     it('preserves failure order before reading a later unknown name', () => {
-        const source = 'fun A B calc\n  return (A + B) * Missing\nend\n1 "text" calc';
+        const source = 'fun A calc B\n  return (A + B) * Missing\nend\n1 calc "text"';
         const errors = [false, true].map(scalarCompilation => {
             const runtime = new Interpreter(undefined, { scalarCompilation });
             try { runtime.execute(source); } catch (error) {
@@ -97,7 +97,7 @@ describe('scalar-expression catalogue profiles', () => {
                 // This compiler deliberately requires at least two operations.
                 const expression = `${signature.result === 'boolean' ? 'not' : '+'} (${inner})`;
                 const a = values[signature.inputs[0]][0], b = values[signature.inputs[1] ?? signature.inputs[0]][1];
-                const statement = parse(`fun A B calc\nreturn ${expression}\nend`).statements[0];
+                const statement = parse(`fun A calc B\nreturn ${expression}\nend`).statements[0];
                 if (!isFunctionStatement(statement)) throw new Error('expected function');
                 const returned = statement.statements[0];
                 if (!isReturnStatement(returned) || !returned.value) throw new Error('expected return');
@@ -158,12 +158,12 @@ describe('resumable expression fallback', () => {
 Count = record
  .value = 0
 end
-fun X Count tap
+fun X tap Count
   Count .value += 1
   Count .value print
   return X
 end
-Result = (2 Count tap) * 3 + (4 Count tap) * 5
+Result = (2 tap Count) * 3 + (4 tap Count) * 5
 array Result (Count .value)`,
         `use io
 fun X later

@@ -10,4 +10,4 @@ argument OutputPath path = "demos/pgexercises/data/003_where.csv"
 Db = DbPath sqlite
 R' = Db .facilities
 Result' = R filter .membercost greater 0
-Result OutputPath csv
+Result csv OutputPath

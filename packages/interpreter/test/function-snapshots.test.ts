@@ -65,7 +65,7 @@ Mapped`)).toBe('11 12 13');
     it('snapshots the callback of a lazy outer product', () => {
         expect(run(`use sequences
 Offset = 10
-fun A B pair_sum rank 0 0 = A + B + Offset
+fun A pair_sum B rank 0 0 = A + B + Offset
 Pairs' = (array 1 2) (array 3 4) outer pair_sum
 Offset = 100
 Pairs`)).toBe('14 15 15 16');
@@ -74,7 +74,7 @@ Pairs`)).toBe('14 15 15 16');
     it('snapshots the callback of a sequence scan', () => {
         expect(run(`use sequences
 Offset = 10
-fun A B combine = A + B + Offset
+fun A combine B = A + B + Offset
 S' = 1 to 3 scan combine
 Offset = 100
 S array`)).toBe('1 13 26');
@@ -93,7 +93,7 @@ S array`)).toBe('1 2');
         expect(run(`use algo
 use sequences
 Offset = 0
-fun A B combine = A + B + Offset
+fun A combine B = A + B + Offset
 Tree = (array 1 2 3) segment combine with 0
 Offset = 10
 Before = Tree 1 2 query

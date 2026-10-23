@@ -9,12 +9,12 @@ T = stdin .integer
 for Step in 1 to T
   Y = stdin .integer
   X = stdin .integer
-  Y X spiral print
+  Y spiral X print
 end
 
 
 rem Return the number at row Y and column X.
-fun Y X spiral
+fun Y spiral X
   M = X max Y
   Answer = M * M - M + 1
 

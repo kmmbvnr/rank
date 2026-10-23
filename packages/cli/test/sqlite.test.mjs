@@ -100,13 +100,15 @@ test('SQLite floor division matches array floor division for negative values', (
     for (const storage of ['sqlite', 'array']) {
         const source = storage === 'sqlite'
             ? `Db = ${JSON.stringify(dbPath)} sqlite\n`
-            : `use json\nDb = ${JSON.stringify(JSON.stringify({
+            : `use json
+Db = ${JSON.stringify(JSON.stringify({
                 values_test: [-11, -10, -9, 9, 10, 11].map(n => ({ n })),
-            }))} json\n`;
+            }))} json
+`;
         const result = runSource(directory, `use io\nuse numbers\nuse tables\n${source}`
             + `R' = Db .values_test\nOut' = R select\n  .q = .n // 10\nend\n`
             + (storage === 'sqlite' ? 'Statement = Out sql\nStatement .text print\n' : '')
-            + `Out ${JSON.stringify(output)} csv\n`);
+            + `Out csv ${JSON.stringify(output)}\n`);
         assert.equal(result.status, 0, result.stderr);
         if (storage === 'sqlite') assert.match(result.stdout, /^SELECT /);
         assert.equal(fs.readFileSync(output, 'utf8'), 'q\n-2\n-1\n-1\n0\n1\n1\n');
@@ -143,7 +145,7 @@ test('Rank table projection, masks, joins, distinct and sort compose into SQL', 
         + `Rows' = (Joined (Joined .surname equal "Farrell")) (array .starttime .surname)\n`
         + `Result' = (Rows unique) sort by .starttime .surname\n`
         + 'Query = Result sql\nQuery .text print\nQuery .params print\n'
-        + `Result ${JSON.stringify(output)} csv\nResult .surname print\n`);
+        + `Result csv ${JSON.stringify(output)}\nResult .surname print\n`);
     assert.equal(result.status, 0, result.stderr);
     const lines = result.stdout.trimEnd().split('\n');
     assert.match(lines[0], /SELECT \* FROM \(SELECT DISTINCT/);
@@ -188,7 +190,7 @@ test('left join keeps absent right columns in an empty-first-row CSV', () => fix
         + `Requests' = Db .requests\nRecs' = Db .recommenders\n`
         + `Joined' = Requests Recs leftjoin on .recommendedby equal .memid\n`
         + `Result' = Joined (array .requestid .recname)\n`
-        + `Result ${JSON.stringify(output)} csv\n`);
+        + `Result csv ${JSON.stringify(output)}\n`);
     assert.equal(result.status, 0, result.stderr);
     assert.equal(fs.readFileSync(output, 'utf8'), 'requestid,recname\n1,\n2,Anne\n');
 }));
@@ -227,7 +229,7 @@ test('named computed columns stay in SQL with bound parameters', () => fixture((
         + '  .price = .membercost + 1\n'
         + 'end\n'
         + 'Q = Out sql\nQ .text print\nQ .params len print\n'
-        + `Out ${JSON.stringify(output)} csv\n`);
+        + `Out csv ${JSON.stringify(output)}\n`);
     assert.equal(result.status, 0, result.stderr);
     const lines = result.stdout.trimEnd().split('\n');
     assert.match(lines[0], /AS "caption"/);
@@ -255,7 +257,7 @@ test('choose stays in SQL and leaves an unknown condition missing', () => fixtur
         + `Projected' = Rows select\n  .id = .id\n  .value = Value\n  .ok = Ok\nend\n`
         + `Out' = Projected sort by .id\n`
         + 'Q = Out sql\nQ .text print\n'
-        + `Out ${JSON.stringify(output)} csv\n`);
+        + `Out csv ${JSON.stringify(output)}\n`);
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /CASE WHEN/);
     assert.doesNotMatch(result.stdout, /yes|no/);
@@ -283,7 +285,7 @@ test('lookup builds a correlated self-query without joining or reading rows', ()
         + `Projected' = M select\n  .member = Member\n  .recommender = Rec\nend\n`
         + `Out' = Projected sort by .member\n`
         + 'Q = Out sql\nQ .text print\nQ .params len print\n'
-        + `Out ${JSON.stringify(output)} csv\n`);
+        + `Out csv ${JSON.stringify(output)}\n`);
     assert.equal(result.status, 0, result.stderr);
     const [sql, count] = result.stdout.trimEnd().split('\n');
     assert.match(sql, /\(SELECT .* FROM .* AS found WHERE /);

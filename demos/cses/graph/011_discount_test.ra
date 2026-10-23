@@ -8,7 +8,7 @@ test "official example"
     1 3 7
     2 1 5
   end
-  Edges 3 flight_discount equal 2
+  Edges flight_discount 3 equal 2
 end
 
 test "discounts an expensive edge"
@@ -18,7 +18,7 @@ test "discounts an expensive edge"
     2 3 100
     1 3 60
   end
-  Edges 3 flight_discount equal 30
+  Edges flight_discount 3 equal 30
 end
 
 test "uses one coupon on a longer path"
@@ -29,7 +29,7 @@ test "uses one coupon on a longer path"
     1 3 5
     3 4 20
   end
-  Edges 4 flight_discount equal 13
+  Edges flight_discount 4 equal 13
 end
 
 test "keeps large integer prices exact"
@@ -39,5 +39,5 @@ test "keeps large integer prices exact"
     2 3 9007199254740993
   end
   Expected = 13510798882111489
-  Edges 3 flight_discount equal Expected
+  Edges flight_discount 3 equal Expected
 end

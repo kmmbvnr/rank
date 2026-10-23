@@ -85,8 +85,8 @@ fun S T X left
   Lo = T - X
   Lo = Lo max (-X)
   Hi = S + X
-  Hi = Hi X min
-  Hi = Hi ((S - 1) // 2) min
+  Hi = Hi min X
+  Hi = Hi min ((S - 1) // 2)
   if Hi less Lo
     return 0
   end
@@ -99,8 +99,8 @@ fun P Q X middle
   Lo = Lo max (Q - X)
   Lo = Lo max (P // 2 + 1)
   Hi = P + X
-  Hi = Hi X min
-  Hi = Hi ((Q - 1) // 2) min
+  Hi = Hi min X
+  Hi = Hi min ((Q - 1) // 2)
   if Hi less Lo
     return 0
   end

@@ -2,7 +2,7 @@ rem Dyalog 2013, problem 9: averages of consecutive N-month windows.
 use sequences
 use io
 
-fun N A movingAverage
+fun N movingAverage A
   if N less 1
     .InvalidWindow "movingAverage requires a positive window length" raise
   end
@@ -11,5 +11,5 @@ fun N A movingAverage
 end
 
 Sales = array 200 300 2700 3400 100 2000 400 2100 3500 3000 4700 4300
-Example = 2 Sales movingAverage
+Example = 2 movingAverage Sales
 Example print

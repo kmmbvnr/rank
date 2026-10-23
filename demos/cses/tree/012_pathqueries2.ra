@@ -18,7 +18,7 @@ end
 RawQueries' = stdin .integer (Q * 3) array
 Queries = RawQueries reshape Q 3
 
-Rooted = Graph 1 root
+Rooted = Graph root 1
 Answers = Values Rooted Queries maximums
 Answers print
 
@@ -78,7 +78,7 @@ fun Rooted Maxima A B path_max
 
   PosA = Entry A
   PosB = Entry B
-  First = PosA PosB min
+  First = PosA min PosB
   Last = PosA max PosB
   Part = Maxima First Last query
   return Best max Part

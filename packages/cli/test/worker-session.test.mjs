@@ -61,7 +61,7 @@ test('Ctrl-R through the worker replaces the selected declaration type', async t
         await repl.submit();
     }
     book.active = 1;
-    book.replace('Ranks = "234567890" "" split');
+    book.replace('Ranks = "234567890" split ""');
     await repl.rerun();
     assert.equal(book.cells[1].status, 'ok', JSON.stringify(book.cells[1].output));
     assert.equal((await s.execute('Count', 100, [])).output[0].text, '7');
@@ -180,7 +180,7 @@ test('a cancelled generator reports its closed state instead of replaying Ctrl-C
 test('large native binomial and matrix elimination cancel while the terminal thread stays responsive', { timeout: 10000 }, async t => {
     const s = await session(t);
     await s.execute('use numbers\nuse linalg', 0, []);
-    const binomial = await stop(s, '1000000 500000 binomial', 1);
+    const binomial = await stop(s, '1000000 binomial 500000', 1);
     assert.equal(binomial.interrupted, true);
     assert.match(binomial.output.map(x => x.text).join('\n'), /computing binomial/);
     const cached = await stop(s, '10000000 2 1000000007 binomialmod', 2);
@@ -192,7 +192,7 @@ test('large native binomial and matrix elimination cancel while the terminal thr
     assert.equal(det.interrupted, true);
     assert.match(det.output.map(x => x.text).join('\n'), /linear algebra/);
     assert.equal((await s.execute('Matrix 0 0', 4, [])).output[0].text, '1');
-    assert.equal((await s.execute('30 2 binomial', 5, [])).output[0].text, '435');
+    assert.equal((await s.execute('30 binomial 2', 5, [])).output[0].text, '435');
 });
 
 test('worker prepares notebook functions before stepping a call above their definitions', { timeout: 10000 }, async t => {

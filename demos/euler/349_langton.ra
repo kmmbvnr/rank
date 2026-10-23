@@ -17,7 +17,7 @@ fun Steps ants
   for I in 1 to Steps
     Key = (X + 1000) * 4096 + Y + 1000
     if Key in Black
-      Black = Black Key remove
+      Black = Black remove Key
       Dir = (Dir + 3) mod 4
     else
       Black add Key
@@ -43,7 +43,7 @@ fun Moves solve
   for I in 1 to (Base + Period)
     Key = (X + 1000) * 4096 + Y + 1000
     if Key in Black
-      Black = Black Key remove
+      Black = Black remove Key
       Dir = (Dir + 3) mod 4
     else
       Black add Key

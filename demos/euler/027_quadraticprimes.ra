@@ -21,7 +21,7 @@ fun Limit quadratic_product
 
   for A in (-Limit + 1) till Limit by 2
     for B in primes to Limit
-      Length = A B quadratic_run
+      Length = A quadratic_run B
       if Length greater BestLength
         BestLength = Length
         BestProduct = A * B
@@ -35,7 +35,7 @@ end
 
 rem Count consecutive prime values generated
 rem by n squared plus a*n plus b.
-fun A B quadratic_run
+fun A quadratic_run B
   N = 0
   Value = B
   for Value is_prime

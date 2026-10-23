@@ -10,7 +10,7 @@ use cli
 option Limit integer = 5 * 10 ** 11
 
 rem Count 3^a times a 2-mod-3 square.
-fun N Good g
+fun N g Good
   Total = 0
   for N greater 0
     Total += Good (N isqrt)
@@ -48,7 +48,7 @@ for Q in P1
     break
   end
   if Q not equal P
-    Answer += (N // A) Good g
+    Answer += (N // A) g Good
   end
 end
 
@@ -64,7 +64,7 @@ for P in P1
       break
     end
     if Q not equal P
-      Answer += (N // A) Good g
+      Answer += (N // A) g Good
     end
   end
 end
@@ -87,8 +87,8 @@ for I in 0 to (P1 len - 1)
     for R * R at most C
       T = C // (R * R)
       Hi = (C // T) isqrt
-      Count = P1 Hi upperindex
-      Count -= P1 (R - 1) upperindex
+      Count = P1 upperindex Hi
+      Count -= P1 upperindex (R - 1)
       if P at least R and P at most Hi
         Count -= 1
       end
@@ -96,7 +96,7 @@ for I in 0 to (P1 len - 1)
         Count -= 1
       end
       if Count greater 0
-        Answer += Count * (T Good g)
+        Answer += Count * (T g Good)
       end
       R = Hi + 1
     end

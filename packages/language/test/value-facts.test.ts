@@ -467,16 +467,16 @@ it('keeps closed graph vertex types through neighbor lookup', () => {
     expect(facts('(Graph 1 bfs) .parent 2', new Map([['Graph', graph]]))).toEqual({
         types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
-    expect(facts('(Graph 1 root) .order', new Map([['Graph', graph]]))).toEqual({
+    expect(facts('(Graph root 1) .order', new Map([['Graph', graph]]))).toEqual({
         types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true, completion: 'ready',
     });
-    expect(facts('(Graph 1 root) .parent 2', new Map([['Graph', graph]]))).toEqual({
+    expect(facts('(Graph root 1) .parent 2', new Map([['Graph', graph]]))).toEqual({
         types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
-    expect(facts('(Graph 1 root) .size 2', new Map([['Graph', graph]]))).toEqual({
+    expect(facts('(Graph root 1) .size 2', new Map([['Graph', graph]]))).toEqual({
         types: ['integer'], rank: 0, shape: [], completion: 'ready',
     });
-    const rooted = facts('Graph 1 root', new Map([['Graph', graph]]));
+    const rooted = facts('Graph root 1', new Map([['Graph', graph]]));
     expect(rooted.elements).toEqual(['integer']);
     expect(facts('Rooted 2 3 lca', new Map([['Rooted', rooted]])))
         .toEqual({ types: ['integer'], rank: 0, shape: [] });
@@ -513,7 +513,7 @@ it('distinguishes dsu components from graph components and tracks closed dsu val
 
 it('distinguishes weighted and unweighted functional graph results', () => {
     const plain = facts('(array 2 2) functional');
-    const weighted = facts('(array 2 2) (array 3 4) weighted');
+    const weighted = facts('(array 2 2) weighted (array 3 4)');
     expect(plain).toEqual({ types: ['functional'], functionalWeighted: false });
     expect(weighted).toEqual({ types: ['functional'], functionalWeighted: true });
     expect(facts('Path 1 2 upto', new Map([['Path', plain]])))
@@ -638,11 +638,11 @@ it('tracks callback-free membership masks and short-circuit selectors', () => {
         elements: ['integer'], eagerScalarCells: true });
     expect(facts('Unsafe indices', new Map([...bindings, ['Unsafe', { types: ['array'], rank: 1,
         shape: [null], elements: ['boolean'] }]]))).toEqual({ types: ['array'] });
-    expect(facts('"ababa" "a" findall')).toEqual({ types: ['array'], rank: 1, shape: [null],
+    expect(facts('"ababa" findall "a"')).toEqual({ types: ['array'], rank: 1, shape: [null],
         elements: ['integer'], eagerScalarCells: true });
-    expect(facts('Values 2 findall', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
+    expect(facts('Values findall 2', bindings)).toEqual({ types: ['array'], rank: 1, shape: [null],
         elements: ['integer'], eagerScalarCells: true });
-    expect(facts('Unsafe 2 findall', new Map([...bindings, ['Unsafe', { types: ['array'], rank: 1,
+    expect(facts('Unsafe findall 2', new Map([...bindings, ['Unsafe', { types: ['array'], rank: 1,
         shape: [null], elements: ['integer'] }]]))).toEqual({ types: ['array'] });
     for (const [source, expected] of [
         ['Values first index where Mask', 'integer'], ['Values till Mask', 'array'],
@@ -892,9 +892,9 @@ it('uses declared dense result shapes for native collection operations', () => {
 });
 
 it('keeps text cells in the dense result of split', () => {
-    expect(facts('"a,b" "," split')).toEqual({ types: ['array'], rank: 1,
+    expect(facts('"a,b" split ","')).toEqual({ types: ['array'], rank: 1,
         shape: [null], elements: ['text'], eagerScalarCells: true });
-    expect(facts('"a,b" "," split', new Map([['split', { types: ['function'] }]])))
+    expect(facts('"a,b" split ","', new Map([['split', { types: ['function'] }]])))
         .not.toMatchObject({ eagerScalarCells: true });
 });
 
@@ -949,10 +949,10 @@ it('proves eager cells for known atom array literals', () => {
 });
 
 it('reads only valid parse directives when inferring captured positions', () => {
-    expect(facts('"/42:x" "///integer:/word" parse')).toMatchObject({
+    expect(facts('"/42:x" parse "///integer:/word"')).toMatchObject({
         types: ['tuple'], rank: 0, shape: [], tupleItems: [{ types: ['integer'] }, { types: ['text'] }],
     });
-    expect(facts('"x" "/invalid" parse').positions).toBeUndefined();
+    expect(facts('"x" parse "/invalid"').positions).toBeUndefined();
 });
 
 it('retains rank when a dimension is unknown', () => {
@@ -1072,22 +1072,22 @@ it('keeps the rank of builtins that always return one scalar', () => {
         expect(facts(source)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
     }
     expect(facts('X Y Z merge').types).toEqual([]);
-    expect(facts('(array 1 2) 1 binomial').types).toEqual(['array']);
-    for (const source of ['X Y gcd', 'X Y lcm', 'X Y bit', 'X Y firstatleast']) expect(facts(source).rank).toBeUndefined();
-    expect(facts('12 18 gcd')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('"abc" "a" startswith')).toEqual({ types: ['boolean'], rank: 0, shape: [] });
-    expect(facts('("abc" bytes) ("a" bytes) startswith'))
+    expect(facts('(array 1 2) binomial 1').types).toEqual(['array']);
+    for (const source of ['X gcd Y', 'X lcm Y', 'X bit Y', 'X firstatleast Y']) expect(facts(source).rank).toBeUndefined();
+    expect(facts('12 gcd 18')).toMatchObject({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('"abc" startswith "a"')).toEqual({ types: ['boolean'], rank: 0, shape: [] });
+    expect(facts('("abc" bytes) startswith ("a" bytes)'))
         .toEqual({ types: ['boolean'], rank: 0, shape: [] });
-    expect(facts('(array "a" "b") "a" startswith')).toMatchObject({
+    expect(facts('(array "a" "b") startswith "a"')).toMatchObject({
         types: ['array'], rank: 1, shape: [2],
     });
-    expect(facts('"ab" (array "a" "b") startswith')).toMatchObject({
+    expect(facts('"ab" startswith (array "a" "b")')).toMatchObject({
         types: ['array'], rank: 1, shape: [2],
     });
-    expect(facts('(array "ab" "bc" shape 2 1) (array "a" "b") startswith'))
+    expect(facts('(array "ab" "bc" shape 2 1) startswith (array "a" "b")'))
         .toMatchObject({ types: ['array'], rank: 2, shape: [2, 2] });
-    expect(facts('(array "a" "b") Unknown startswith')).toEqual({ types: ['array'] });
-    expect(facts('"abc" "a" startswith',
+    expect(facts('(array "a" "b") startswith Unknown')).toEqual({ types: ['array'] });
+    expect(facts('"abc" startswith "a"',
         new Map([['startswith', { types: ['function'] }]]))).toEqual({ types: [] });
     expect(facts('X len', new Map([['len', { types: ['function'] }]]))).not.toHaveProperty('rank');
 });
@@ -1097,8 +1097,8 @@ it('keeps scalar rank through unary signs and guarded numeric builtins', () => {
     const vector: ValueFacts = { types: ['array'], rank: 1, shape: [2], elements: ['real'] };
     expect(facts('-Z', new Map([['Z', scalar]]))).toEqual(scalar);
     expect(facts('(-Z) exp', new Map([['Z', scalar]]))).toEqual({ types: ['real'], rank: 0, shape: [] });
-    expect(facts('Z 4 round', new Map([['Z', scalar]]))).toMatchObject({ rank: 0 });
-    expect(facts('2 4 gcd exp')).toEqual({ types: ['real'], rank: 0, shape: [] });
+    expect(facts('Z round 4', new Map([['Z', scalar]]))).toMatchObject({ rank: 0 });
+    expect(facts('2 gcd 4 exp')).toEqual({ types: ['real'], rank: 0, shape: [] });
     expect(facts('Z exp', new Map([['Z', vector]])).rank).toBe(1);
     expect(facts('Z exp', new Map([['Z', { ...vector, eagerScalarCells: true }]])).callbackFreeScalarCells)
         .toBe(true);
@@ -1107,10 +1107,10 @@ it('keeps scalar rank through unary signs and guarded numeric builtins', () => {
 });
 
 it('does not call a shape-preserving numeric operation scalar when its input is unknown', () => {
-    expect(facts('Unknown 4 round').types).toEqual([]);
+    expect(facts('Unknown round 4').types).toEqual([]);
     expect(facts('Unknown sin').types).toEqual([]);
     const mixed = new Map<string, ValueFacts>([['Value', { types: ['array', 'integer'] }]]);
-    expect(facts('Value 4 round', mixed).types).toEqual([]);
+    expect(facts('Value round 4', mixed).types).toEqual([]);
     expect(facts('Value sin', mixed).types).toEqual([]);
 });
 
@@ -1140,7 +1140,7 @@ it('keeps callback-free numeric cells through arithmetic and scalar folds', () =
     expect(facts('Input min', new Map([['Input', { ...input, eagerScalarCells: undefined }]])))
         .toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
     expect(facts('Input max 0', bindings).callbackFreeScalarCells).toBe(true);
-    expect(facts('Input 0 min', bindings).callbackFreeScalarCells).toBe(true);
+    expect(facts('Input min 0', bindings).callbackFreeScalarCells).toBe(true);
     expect(facts('Input max 0', new Map([['Input', { ...input, eagerScalarCells: undefined }]])).callbackFreeScalarCells)
         .toBeUndefined();
     expect(facts('Input all', bindings)).toEqual({ types: ['boolean'], rank: 0, shape: [] });
@@ -1155,13 +1155,13 @@ it('carries callback-free numeric cells through the normal-equation builtins', (
         eagerScalarCells: true };
     const Xt = facts('X transpose', new Map([['X', X]]));
     expect(Xt).toMatchObject({ types: ['array'], shape: [2, 3], callbackFreeScalarCells: true });
-    const A = facts('Xt X matmul', new Map([['Xt', Xt], ['X', X]]));
+    const A = facts('Xt matmul X', new Map([['Xt', Xt], ['X', X]]));
     expect(A).toMatchObject({ types: ['array'], shape: [2, 2], callbackFreeScalarCells: true });
-    const B = facts('Xt Y matmul', new Map([['Xt', Xt], ['Y', Y]]));
+    const B = facts('Xt matmul Y', new Map([['Xt', Xt], ['Y', Y]]));
     expect(B).toMatchObject({ types: ['array'], shape: [2], callbackFreeScalarCells: true });
-    const Theta = facts('A B solve', new Map([['A', A], ['B', B]]));
+    const Theta = facts('A solve B', new Map([['A', A], ['B', B]]));
     expect(Theta).toMatchObject({ types: ['array'], rank: 1, shape: [2], callbackFreeScalarCells: true });
-    expect(facts('Theta 4 round', new Map([['Theta', Theta]]))).toMatchObject({
+    expect(facts('Theta round 4', new Map([['Theta', Theta]]))).toMatchObject({
         types: ['array'], rank: 1, shape: [2], callbackFreeScalarCells: true,
     });
 });
@@ -1180,10 +1180,10 @@ it('keeps a unary builtin result as the left operand of a dyadic builtin', () =>
         eagerScalarCells: true };
     const Error: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['real'],
         callbackFreeScalarCells: true };
-    expect(facts('X transpose Error matmul', new Map([['X', X], ['Error', Error]]))).toMatchObject({
+    expect(facts('X transpose matmul Error', new Map([['X', X], ['Error', Error]]))).toMatchObject({
         types: ['array'], rank: 1, shape: [2], callbackFreeScalarCells: true,
     });
-    expect(facts('X transpose Error matmul', new Map([['X', X], ['Error', Error],
+    expect(facts('X transpose matmul Error', new Map([['X', X], ['Error', Error],
         ['transpose', { types: ['function'] }]]))).not.toMatchObject({
         rank: 1, callbackFreeScalarCells: true,
     });
@@ -1194,7 +1194,7 @@ it('uses the prior unary result when the next builtin also accepts two operands'
     expect(facts('Values unique sort', new Map([['Values', values]]))).toEqual({
         types: ['array'], rank: 1, shape: [null], elements: ['integer'], eagerScalarCells: true,
     });
-    expect(facts('Values 0 sort', new Map([['Values', values]]))).toEqual({ types: ['array'] });
+    expect(facts('Values sort 0', new Map([['Values', values]]))).toEqual({ types: ['array'] });
     expect(facts('Values unique sort', new Map([['Values', values],
         ['unique', { types: ['function'] }]]))).not.toHaveProperty('elements');
 });
@@ -1237,7 +1237,7 @@ it('keeps collection kinds through mapped numeric operations and ranked modifier
     expect(facts('(M max 0) sqrt', bindings).types).toEqual(['array']);
     expect(facts('M round 2', bindings).types).toEqual(['array']);
     expect(facts('-M', bindings).types).toEqual(['array']);
-    expect(facts('V W matmul', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
+    expect(facts('V matmul W', bindings)).toMatchObject({ types: ['integer'], rank: 0 });
     const parsed = services.Rank.parser.LangiumParser.parse<Program>('A = M sqrt\n');
     const statement = parsed.value.statements[0];
     if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
@@ -1318,7 +1318,7 @@ it('instantiates builtin cell signatures and combines intrinsic frames', () => {
     expect(facts('Rows unique', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, null] });
     expect(facts('Matrices inverse', bindings)).toEqual({ types: ['array'], rank: 3, shape: [4, 3, 3] });
     expect(facts('Matrices det', bindings)).toEqual({ types: ['array'], rank: 1, shape: [4] });
-    expect(facts('Rows Other atan2', bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
+    expect(facts('Rows atan2 Other', bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
     expect(facts('Rows sort', new Map([...bindings, ['sort', { types: ['function'] }]]))).toEqual({ types: [] });
     expect(facts('Rows Sort', new Map([...bindings,
         ['Sort', { types: ['function'], builtinOperation: 'sort' }]])))
@@ -1334,13 +1334,13 @@ it('uses cell signatures for explicit ranks and reordered frame axes', () => {
         .toEqual({ types: ['array'], rank: 3, shape: [2, 0, 4] });
     expect(facts('B sum rank 1', bindings)).toEqual({ types: ['array'], rank: 1, shape: [2] });
     expect(facts('B unique rank 1', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, null] });
-    expect(facts('B B atan2 rank 0 0', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, 3] });
+    expect(facts('B atan2 B rank 0 0', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, 3] });
     expect(facts('B inverse', bindings).shape).toBeUndefined();
-    expect(facts('A B atan2', bindings).shape).toBeUndefined();
+    expect(facts('A atan2 B', bindings).shape).toBeUndefined();
 });
 
 it('keeps collection kinds without inventing dimensions or callback proofs', () => {
-    expect(facts('Values 2 round', new Map([['Values', { types: ['array'], elements: ['real'] }]])))
+    expect(facts('Values round 2', new Map([['Values', { types: ['array'], elements: ['real'] }]])))
         .toEqual({ types: ['array'], elements: ['real'] });
     expect(facts('Values sort', new Map([['Values', { types: ['array'] }]]))).toEqual({ types: ['array'] });
     expect(facts('A B Minimum', new Map([
@@ -1352,11 +1352,11 @@ it('keeps collection kinds without inventing dimensions or callback proofs', () 
 
 it('keeps collection search and DSU findroot contracts separate', () => {
     // The targets may be an array, which finds each of them.
-    expect(facts('X Y find').rank).toBeUndefined();
-    expect(facts('(array 1 2) 1 find')).toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('(array 1 2) (array 2 1) find')).toMatchObject({ types: ['array'], rank: 1, shape: [2] });
+    expect(facts('X find Y').rank).toBeUndefined();
+    expect(facts('(array 1 2) find 1')).toEqual({ types: ['integer'], rank: 0, shape: [] });
+    expect(facts('(array 1 2) find (array 2 1)')).toMatchObject({ types: ['array'], rank: 1, shape: [2] });
     const bindings = new Map<string, ValueFacts>([['D', { types: ['dsu'], elements: ['text'] }]]);
-    expect(facts('D "a" findroot', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
+    expect(facts('D findroot "a"', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
     bindings.set('Op', { types: [], builtinOperation: 'findroot' });
     expect(facts('D "a" Op', bindings)).toEqual({ types: ['text'], rank: 1, shape: [null] });
 });
@@ -1366,10 +1366,10 @@ it('broadcasts the binary scalar built-ins with intrinsic 0 0 ranks', () => {
         ['R', { types: ['array'], elements: ['integer'], rank: 2, shape: [2, 3] }],
         ['V', { types: ['array'], elements: ['integer'], rank: 1, shape: [3] }],
     ]);
-    for (const call of ['R R gcd', 'V R lcm', 'R 1 round']) {
+    for (const call of ['R gcd R', 'V lcm R', 'R round 1']) {
         expect(facts(call, bindings)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 3] });
     }
-    expect(facts('V V bit', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['boolean'] });
+    expect(facts('V bit V', bindings)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['boolean'] });
 });
 
 it('resolves a negative explicit rank against the operand rank', () => {
@@ -1379,7 +1379,7 @@ it('resolves a negative explicit rank against the operand rank', () => {
     ]);
     expect(facts('A sum rank -1', bindings)).toEqual(facts('A sum rank 2', bindings));
     expect(facts('A sum rank -2', bindings)).toEqual(facts('A sum rank 1', bindings));
-    expect(facts('A B atan2 rank -3 -2', bindings)).toEqual(facts('A B atan2 rank 0 0', bindings));
+    expect(facts('A atan2 B rank -3 -2', bindings)).toEqual(facts('A atan2 B rank 0 0', bindings));
 });
 
 it('infers the frame of a function with declared ranks', () => {
@@ -1485,7 +1485,7 @@ it('keeps missing cells apart from the numeric type and drops them at default', 
     expect(facts('P (P present)', env).elements).toEqual(['real']);
     expect(facts('P present', env)).toMatchObject({ types: ['array'], elements: ['boolean'], rank: 1, shape: [3] });
     expect(facts('.NA text').types).toEqual(['missing']);
-    expect(facts('.NA 1 round').types).toEqual(['missing']);
+    expect(facts('.NA round 1').types).toEqual(['missing']);
     expect(facts('.NA floor').types).toEqual(['missing']);
     expect(facts('.NA present')).toMatchObject({ types: ['boolean'], rank: 0, shape: [] });
     expect(facts('P filter greater 1.0', env).elements).toEqual(['real', 'missing']);
@@ -1613,9 +1613,9 @@ it('types a named scan as a rank-1 array and keeps the seed in its length', () =
 
 it('does not call the xor of unproved operands a scalar', () => {
     const parsed = services.Rank.parser.LangiumParser.parse<Program>(
-        'use bits\nuse sequences\nfun Values Queries f\n Prefix = Values scan bxor with 0\n'
+        'use bits\nuse sequences\nfun Values f Queries\n Prefix = Values scan bxor with 0\n'
         + ' Left = Queries # 0\n Right = Queries # 1\n Before = Prefix (Left - 1)\n After = Prefix Right\n'
-        + ' return After Before bxor\nend\n');
+        + ' return After bxor Before\nend\n');
     expect(parsed.parserErrors).toEqual([]);
     const values: ValueFacts = { types: ['array'], rank: 1, shape: [3], elements: ['integer'], eagerScalarCells: true };
     const queries: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'],
@@ -1875,7 +1875,7 @@ it('replaces each gathered source axis with the integer selector frame', () => {
 
 it('infers matmul result kind from rank even when dimensions or rank are unknown', () => {
     const array: ValueFacts = { types: ['array'], elements: ['integer'], eagerScalarCells: true };
-    const multiply = (left: ValueFacts, right: ValueFacts) => facts('L R matmul', new Map([['L', left], ['R', right]]));
+    const multiply = (left: ValueFacts, right: ValueFacts) => facts('L matmul R', new Map([['L', left], ['R', right]]));
     expect(multiply(array, array).types).toEqual([]);
     expect(multiply({ ...array, rank: 1 }, { ...array, rank: 1 }))
         .toMatchObject({ types: ['integer'], rank: 0, shape: [] });
@@ -1895,7 +1895,7 @@ it('infers matmul result kind from rank even when dimensions or rank are unknown
 
 
 it('does not use matmul catalogue result kinds for unresolved operands', () => {
-    const parsed = services.Rank.parser.LangiumParser.parse<Program>('A = L R matmul\n');
+    const parsed = services.Rank.parser.LangiumParser.parse<Program>('A = L matmul R\n');
     const statement = parsed.value.statements[0];
     if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
     for (const left of [undefined, ['array']]) {
@@ -1923,11 +1923,11 @@ it('warns about missing conditions, indices and keys without rejecting guarded u
 
 it('does not claim scalar bulk query results after operand facts are invalidated', () => {
     const program = services.Rank.parser.LangiumParser.parse<Program>(
-        'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys Queries find default -1');
+        'use sequences\nKeys = array 10 20 30\nQueries = array 20 99 10\nPositions = Keys find Queries default -1');
     const result = analyzeValues(program.value).bindings.get('Positions')!;
     expect(result.types.length === 0 || result.types.includes('array')).toBe(true);
     const env = new Map<string, ValueFacts>([['Keys', facts('array 10 20 30')], ['Queries', facts('array 20 99 10')]]);
-    expect(facts('Keys Queries find', env)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+    expect(facts('Keys find Queries', env)).toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
 });
 
 

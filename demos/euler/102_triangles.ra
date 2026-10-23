@@ -16,8 +16,8 @@ rem The origin is inside when the cross
 rem products of consecutive vertices all
 rem have one sign.
 Lines = Input readlines
-Flat = Lines "," join
-Parts = Flat "," split
+Flat = Lines join ","
+Parts = Flat split ","
 Nums = Parts integer
 Rows = Lines len
 Grid = Nums reshape Rows 6

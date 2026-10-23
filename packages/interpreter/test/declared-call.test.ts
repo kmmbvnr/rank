@@ -15,7 +15,7 @@ describe('call-shaped function declarations', () => {
         });
         it(`${keyword} accepts symbolic and named function operands`, () => {
             const runtime = new Interpreter();
-            runtime.execute(`${keyword} X Y fold op .with Seed=1\n return (X Y op) + Seed\nend\nfun A B combine = A * B`);
+            runtime.execute(`${keyword} X Y fold op .with Seed=1\n return (X op Y) + Seed\nend\nfun A combine B = A * B`);
             if (keyword === 'memo') {
                 expect(() => runtime.execute('2 3 fold + with 10')).toThrow(/memo arguments and results must be scalar/);
             } else {
@@ -47,7 +47,7 @@ it('uses the closest declaration for contextual words and callback operators', (
     const runtime = new Interpreter();
     expect(runtime.execute(`fun X adjust .by Factor=2 = X * Factor
 fun X outer
- fun X adjust op .with Seed=1 = (X Seed op)
+ fun X adjust op .with Seed=1 = (X op Seed)
  return X adjust + with 10
 end
 (3 outer) adjust by 4`)).toBe(52n);
@@ -78,7 +78,7 @@ it.each([false, true])('runs a user-defined reduction (compilation=%s)', compila
   if Result is .missing
    Result = Value
   else
-   Result = Result Value op
+   Result = Result op Value
   end
  end
  if Result is .missing
@@ -102,7 +102,7 @@ it('keeps indexing and chained calls outside the declared arguments', () => {
 
 it('preserves nullary callback values and multiword comparison operators', () => {
     const runtime = new Interpreter();
-    runtime.execute('fun constant = 9\nfun invoke op = op\nfun A B compare op = A B op');
+    runtime.execute('fun constant = 9\nfun invoke op = op\nfun A B compare op = A op B');
     expect(runtime.execute('invoke constant')).toBe(9n);
     expect(runtime.execute('2 3 compare not equal')).toBe(true);
     expect(runtime.execute('2 3 compare at least')).toBe(false);

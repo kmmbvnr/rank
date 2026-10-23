@@ -11,15 +11,15 @@ test "statement pair and single line"
   use "099_largestexp"
   use io
   Input = "/tmp/euler099.txt"
-  "2,11\n3,7\n" "/tmp/euler099.txt" write
+  "2,11\n3,7\n" write "/tmp/euler099.txt"
   run
 
   Answer equal 2
-  "3,7\n2,11\n" "/tmp/euler099.txt" write
+  "3,7\n2,11\n" write "/tmp/euler099.txt"
   run
 
   Answer equal 1
-  "5,5\n" "/tmp/euler099.txt" write
+  "5,5\n" write "/tmp/euler099.txt"
   run
 
   Answer equal 1

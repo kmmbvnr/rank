@@ -11,11 +11,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 4) array
 Queries = Raw reshape Q 4
 
-Values Queries intervals print
+Values intervals Queries print
 
 
 rem Count each index-value rectangle.
-fun Values Queries intervals
+fun Values intervals Queries
   Data = Values wavelet
   Answers = array shape (Queries len) fill 0
   for Query I in Queries

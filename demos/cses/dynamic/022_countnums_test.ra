@@ -2,27 +2,27 @@ use testing
 
 test "official example"
   use "022_countnums"
-  123 321 count_numbers equal 171
+  123 count_numbers 321 equal 171
 end
 
 test "zero is included"
   use "022_countnums"
-  0 0 count_numbers equal 1
+  0 count_numbers 0 equal 1
 end
 
 test "equal adjacent digits fail"
   use "022_countnums"
-  10 11 count_numbers equal 1
+  10 count_numbers 11 equal 1
 end
 
 test "leading zeroes are not digits"
   use "022_countnums"
-  98 102 count_numbers equal 3
+  98 count_numbers 102 equal 3
 end
 
 test "full-width interval counts every permitted digit length"
   use "022_countnums"
   rem Length L has 9 ** L positive numbers; add zero.
   Expected = 1 + (9 ** 19 - 9) // 8
-  0 (10 ** 18) count_numbers equal Expected
+  0 count_numbers (10 ** 18) equal Expected
 end

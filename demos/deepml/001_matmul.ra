@@ -3,7 +3,7 @@ rem https://www.deep-ml.com/problems/1
 
 use algo
 
-fun A B matrix_dot_vector
+fun A matrix_dot_vector B
   Queue = new queue
   if A 0 len not equal B len
     .DimensionMismatch raise

@@ -30,7 +30,7 @@ for B in 0 to Limit
   Gb = G B
   Pre Gb += 1
   for Ga in 0 to Max
-    Gc = Ga Gb bxor
+    Gc = Ga bxor Gb
     if Gc at most Max
       Answer += Pre Ga * Suf Gc
     end

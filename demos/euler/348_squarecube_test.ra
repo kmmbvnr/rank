@@ -7,6 +7,6 @@ end
 
 test "small palindrome mirror"
   use "348_squarecube"
-  123 true mirror equal 12321
-  123 false mirror equal 123321
+  123 mirror true equal 12321
+  123 mirror false equal 123321
 end

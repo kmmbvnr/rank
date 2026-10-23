@@ -6,7 +6,7 @@ import type { Program } from '../src/generated/ast.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 const matrix = 'M = array shape 2 3\n 1 2 3\n 4 5 6\nend\n';
-const plus = 'fun A B plus\n return A + B\nend\n';
+const plus = 'fun A plus B\n return A + B\nend\n';
 function facts(source: string, expression: string) {
     const parsed = parser.parse<Program>(`use sequences\n${plus}${source}Result = ${expression}\n`);
     expect(parsed.parserErrors).toEqual([]);
@@ -48,6 +48,6 @@ it('infers boolean and mixed numeric cells without narrowing a one-element fold'
 });
 
 it('does not claim numeric cells for a type-changing callback', () => {
-    expect(facts('fun A B mystery\n return B text\nend\n' + matrix, 'M reduce mystery rank 1')?.elements)
+    expect(facts('fun A mystery B\n return B text\nend\n' + matrix, 'M reduce mystery rank 1')?.elements)
         .toBeUndefined();
 });

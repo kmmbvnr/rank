@@ -12,10 +12,10 @@ Text longest print
 rem Find the longest run of one repeated character.
 fun Text longest
   Chars = Text window 1 array
-  Previous' = Chars 1 shift with ""
+  Previous' = Chars shift 1 with ""
   Changes' = Chars not equal Previous
   Starts = Changes indices
-  Ends' = Starts -1 shift with (Text len)
+  Ends' = Starts shift -1 with (Text len)
   Runs' = Ends - Starts
   return Runs max
 end

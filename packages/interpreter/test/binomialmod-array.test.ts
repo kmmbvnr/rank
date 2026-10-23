@@ -41,7 +41,7 @@ describe('binomialmod array operands', () => {
 
     it('agrees with exact binomials on a broadcast grid', () => {
         expect(execute('N = ((20 to 40) copy) reshape 21 1\nK = (0 to 20) copy\n' +
-            '((N K 101 binomialmod) equal ((N K binomial) mod 101)) all')).toBe(true);
+            '((N K 101 binomialmod) equal ((N binomial K) mod 101)) all')).toBe(true);
     });
 
     it.each([
@@ -82,7 +82,7 @@ describe('binomialmod array operands', () => {
 
     it('keeps exact results for moduli and residues above signed 64-bit storage', () => {
         expect(execute('N = array 100 101\nM = 18446744073709551557\n' +
-            '((N 50 M binomialmod) equal ((N 50 binomial) mod M)) all')).toBe(true);
+            '((N 50 M binomialmod) equal ((N binomial 50) mod M)) all')).toBe(true);
         expect(() => execute('(array 5 9007199254740992) 0 18446744073709551557 binomialmod'))
             .toThrow('N is too large to cache');
     });
@@ -101,7 +101,7 @@ describe('binomialmod array operands', () => {
 
     it('extends a cold cache for unsorted N values', () => {
         expect(execute('N = array 40 0 90 5 20\nK = array 20 0 45 2 10\n' +
-            '((N K 103 binomialmod) equal ((N K binomial) mod 103)) all')).toBe(true);
+            '((N K 103 binomialmod) equal ((N binomial K) mod 103)) all')).toBe(true);
     });
 
     it('charges the stored pass to the demand budget without publishing a partial result', () => {

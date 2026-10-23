@@ -11,11 +11,11 @@ Range' = 1 to Limit
 Answer = Range reduce lcm with 1
 Answer print
 
-fun A B lcm
-  return A // (A B gcd) * B
+fun A lcm B
+  return A // (A gcd B) * B
 end
 
-fun A B gcd
+fun A gcd B
   for B not equal 0
     R = A mod B
     A = B

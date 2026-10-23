@@ -107,18 +107,18 @@ Algorithmic collections, range structures and combinatorial generators.
 | --- | --- | --- | --- |
 | `Seen add Value` | collection, mutates | binary all / all | Adds a value to a set, counter or multiset. |
 | `Bag ceiling Limit` | element | binary all / 0 | Smallest stored value at least the limit. |
-| `Values Count combinations` | sequence, lazy | binary all / all | Lazy sequence of the combinations of that size, in input order. |
+| `Values combinations Count` | sequence, lazy | binary all / all | Lazy sequence of the combinations of that size, in input order. |
 | `Heap Priority Value enqueue` | collection, mutates | 3 operands: whole | Inserts a payload into a heap under a separate priority. |
 | `Size fenwick` | fenwick | unary all | Fixed-size integer Fenwick tree with inclusive prefix sums. |
 | `Size groups` | structure | unary all | Compact integer groups under keys from zero up to Size, excluding Size. |
 | `Groups Key Value insert` | collection, mutates | 3 operands: whole | Appends an integer to a keyed group, preserving insertion order. |
-| `Tree Target firstatleast` | integer | binary all / 0 | First position whose monotone prefix aggregate reaches the target. |
-| `Values Target lowerindex` | integer | binary all / 0 | Insertion index of the first integer at least the target in an ascending vector. |
-| `Values Target upperindex` | integer | binary all / 0 | Insertion index of the first integer greater than the target in an ascending vector. |
+| `Tree firstatleast Target` | integer | binary all / 0 | First position whose monotone prefix aggregate reaches the target. |
+| `Values lowerindex Target` | integer | binary all / 0 | Insertion index of the first integer at least the target in an ascending vector. |
+| `Values upperindex Target` | integer | binary all / 0 | Insertion index of the first integer greater than the target in an ascending vector. |
 | `Bag lowerbound Value` | element | binary all / 0 | Smallest stored value at least the query, an alias for ceiling. |
 | `Values segment maxsum` | record | special form | Prefix and subarray sum profile: query returns sum, prefix, suffix and best. |
-| `Data Bounds missing` | integer | binary all / 1 | Smallest subset sum a wavelet position range cannot make. |
-| `Values Count multicomb` | sequence, lazy | binary all / all | Lazy sequence of the combinations of that size with repetition. |
+| `Data missing Bounds` | integer | binary all / 1 | Smallest subset sum a wavelet position range cannot make. |
+| `Values multicomb Count` | sequence, lazy | binary all / all | Lazy sequence of the combinations of that size with repetition. |
 | `Values multiset` | collection | unary all | Ordered multiset holding every value, duplicates kept. |
 | `Q peek` | element | unary all | Next value of a queue, stack, deque or heap, left in place. |
 | `Ends peekback` | element | unary all | Last value of a deque, left in place. |
@@ -128,8 +128,8 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Ends popback` | element, mutates | unary all | Removes and returns the last value of a deque. |
 | `Ends popfront` | element, mutates | unary all | Removes and returns the first value of a deque. |
 | `Q push Value` | collection, mutates | binary all / all | Appends a value to a queue, stack, deque or heap, which orders it by priority. |
-| `Ends Value pushback` | collection, mutates | binary all / all | Appends a value to the back of a deque. |
-| `Ends Value pushfront` | collection, mutates | binary all / all | Adds a value to the front of a deque. |
+| `Ends pushback Value` | collection, mutates | binary all / all | Appends a value to the back of a deque. |
+| `Ends pushfront Value` | collection, mutates | binary all / all | Adds a value to the front of a deque. |
 | `Tree Left Right query` | element | 3 operands: whole | Reduces an inclusive segment-tree range in left-to-right order. |
 | `Bag remove Value` | collection, mutates | binary all / all | Removes one occurrence from a set, counter or multiset. |
 | `Values segment Operation` | segment | special form | Segment tree over one associative binary operation. |
@@ -154,15 +154,15 @@ Bitwise operations over arbitrary-precision integers.
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
-| `A B band` | integer | binary 0 / 0 | Bitwise and. |
+| `A band B` | integer | binary 0 / 0 | Bitwise and. |
 | `Value binary` | text | unary 0; binary all / all | Formats a nonnegative integer as binary text, a width padding with zeroes. |
-| `Value Position bit` | boolean | binary 0 / 0 | Tests a zero-based bit position. |
+| `Value bit Position` | boolean | binary 0 / 0 | Tests a zero-based bit position. |
 | `Value bnot` | integer | unary 0 | Bitwise not in infinite two-complement form, so the result is -Value - 1. |
-| `A B bor` | integer | binary 0 / 0 | Bitwise or. |
-| `A B bxor` | integer | binary 0 / 0 | Bitwise exclusive or. |
+| `A bor B` | integer | binary 0 / 0 | Bitwise or. |
+| `A bxor B` | integer | binary 0 / 0 | Bitwise exclusive or. |
 | `Value popcount` | integer | unary 0 | Number of set bits in a nonnegative integer. |
-| `Value Count shl` | integer | binary 0 / 0 | Shifts left by a nonnegative bit count. |
-| `Value Count shr` | integer | binary 0 / 0 | Arithmetic shift right by a nonnegative bit count. |
+| `Value shl Count` | integer | binary 0 / 0 | Shifts left by a nonnegative bit count. |
+| `Value shr Count` | integer | binary 0 / 0 | Arithmetic shift right by a nonnegative bit count. |
 
 ## cli
 
@@ -188,7 +188,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
 | `Left max [Right]` | number | unary all; binary 0 / 0 | Larger of two numbers, or the largest of one collection. |
-| `Left Right min` | number | unary all; binary 0 / 0 | Smaller of two numbers, or the smallest of one collection. |
+| `Left min [Right]` | number | unary all; binary 0 / 0 | Smaller of two numbers, or the smallest of one collection. |
 | `Values sum` | number | unary all | Adds every numeric cell of an array, collection or finite sequence. |
 | `Mask choose TrueValues FalseValues` | value, lazy | binary all / all; 3 operands: whole | Selects each cell by a boolean mask; SQLite expressions become CASE. |
 | `Value len` | integer | unary all | Code points of text, leading axis of an array, or size of a collection. |
@@ -203,7 +203,7 @@ These constructs are always available.
 | Form | Summary |
 | --- | --- |
 | `Init next repeat Count` | Applies a unary function to the whole state a nonnegative integer number of times; zero returns Init. |
-| `Init next repeat Count till done` | Applies at most Count steps, stopping after done Previous Current returns true; returns Current. |
+| `Init next repeat Count till done` | Applies at most Count steps, stopping after Previous done Current returns true; returns Current. |
 | `Values mod N` | Floored remainder; with equal 0 it tests divisibility, elementwise on arrays. Written mod= to update in place. |
 | `Left max Right` | The larger of two numbers; min gives the smaller. |
 | `Low to High` | Counting range with an inclusive upper bound; after values, keeps those at most High. |
@@ -226,7 +226,7 @@ Calendar dates and local date-times.
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
 | `Text date` | date | unary all | Parses YYYY-MM-DD or truncates a datetime to its calendar day. |
-| `Db Start End calendar` | table, lazy | binary all / all; 3 operands: whole | Inclusive daily table; optional database keeps it as a SQLite view. |
+| `Start calendar End | Db Start End calendar` | table, lazy | binary all / all; 3 operands: whole | Inclusive daily table; optional database keeps it as a SQLite view. |
 | `Value datetime` | datetime | unary all | Parses a local timestamp or casts a date to midnight. |
 | `Seconds duration` | duration, lazy | unary all | Creates an exact duration from integer seconds. |
 | `Value day` | integer | unary 0 | Day of the month of a date or datetime. |
@@ -249,18 +249,18 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 | `Graph Start End MaxStops trips` | sequence, lazy | 4 operands: whole | Lazy simple vertex routes with at most MaxStops intermediate vertices. |
 | `Graph From To edgeweight` | number | 3 operands: whole | Minimum parallel connection weight; missing if no connection exists. |
 | `Rooted Vertex K ancestor` | element | 3 operands: whole | Vertex K parent edges above another in a rooted tree. |
-| `Graph Start bellmanford` | record | binary all / all | Shortest distances allowing negative weights, plus reachable negative cycles. |
-| `Graph Start [Goal Limit] bfs` | record | binary all / all; 4 operands: whole | Breadth-first search; an optional goal and successor-entry budget add status and path. |
+| `Graph bellmanford Start` | record | binary all / all | Shortest distances allowing negative weights, plus reachable negative cycles. |
+| `Graph bfs Start | Graph Start Goal Limit bfs` | record | binary all / all; 4 operands: whole | Breadth-first search; an optional goal and successor-entry budget add status and path. |
 | `Graph bipartite` | record | unary all | Two-colouring of an undirected graph, or possible false for an odd cycle. |
 | `Graph components` | record | unary all | Connected components: their count, a per-vertex index and the roots. |
 | `Graph U V adjacent` | boolean | 3 operands: whole | Tests one directed edge; predicate graphs evaluate their callback. |
 | `Dsu A B connected` | boolean | 3 operands: whole | True when two values share a disjoint-set representative. |
 | `Graph cycle` | array | unary all | One cycle with its first vertex repeated at the end, or an empty array. |
-| `Graph Start dfs` | record | binary all / all | Depth-first search returning distance, parent and discovery order. |
-| `Graph Start dijkstra` | record | binary all / all | Shortest distances for nonnegative numeric weights. |
+| `Graph dfs Start` | record | binary all / all | Depth-first search returning distance, parent and discovery order. |
+| `Graph dijkstra Start` | record | binary all / all | Shortest distances for nonnegative numeric weights. |
 | `Rooted A B distance` | integer | 3 operands: whole | Edges between two vertices of a rooted tree or functional graph. |
-| `Graph Start euler` | array | binary all / all | Euler trail using every edge once, or an empty array when none exists. |
-| `Dsu Value findroot` | element | binary all / 0 | Representative of the disjoint-set component holding a value. |
+| `Graph euler Start` | array | binary all / all | Euler trail using every edge once, or an empty array when none exists. |
+| `Dsu findroot Value` | element | binary all / 0 | Representative of the disjoint-set component holding a value. |
 | `Graph floyd` | record | unary all | All-pairs shortest distances addressed Distance From To. |
 | `Next functional` | functional | unary all | Successor structure prepared for jump, distance and path queries. |
 | `F Start Steps jump` | integer | 3 operands: whole | Vertex reached after exactly that many successor steps. |
@@ -269,11 +269,11 @@ Graphs, disjoint sets, rooted trees and their algorithms.
 | `Graph Source Sink maxflow` | record | 3 operands: whole | Maximum flow value, the per-edge flow and the minimum cut. |
 | `Graph mst` | record | unary all | Minimum spanning forest: connectivity, component count, weight and edges. |
 | `Tree pathlengths` | sequence, lazy | unary all | Lazy sequence of every unordered pair distance in a tree. |
-| `Tree Root root` | record | binary all / all | Immutable rooted view of a connected undirected tree. |
+| `Tree root Root` | record | binary all / all | Immutable rooted view of a connected undirected tree. |
 | `Graph scc` | record | unary all | Strongly connected components of a directed graph. |
 | `Graph topological` | record | unary all | Topological order of a directed graph, or possible false. |
 | `F Start Limit upto` | value | 3 operands: whole | Counts path vertices through a limit; weighted paths return count, sum and last. |
-| `Next Cost weighted` | functional | binary all / all | Functional graph carrying numeric edge costs along its paths. |
+| `Next weighted Cost` | functional | binary all / all | Functional graph carrying numeric edge costs along its paths. |
 
 These need `use graph` but have no name to look up.
 
@@ -295,7 +295,7 @@ Neighbors and straight segments of dense rank-2 arrays.
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
 | `Grid Row Column .eight neighbors` | array | 3 operands: whole; 4 operands: whole | In-bounds row and column pairs around one grid cell; four neighbors by default. |
-| `Grid Width segments` | array | binary all / all | All in-bounds horizontal, vertical and diagonal segments of a fixed width. |
+| `Grid segments Width` | array | binary all / all | All in-bounds horizontal, vertical and diagonal segments of a fixed width. |
 
 ## images
 
@@ -312,7 +312,7 @@ Standard input, whole-file text and stateful file handles.
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
-| `Text Path append` | text, io | binary all / all | Appends UTF-8 text to a file, creating it when missing. |
+| `Text append Path` | text, io | binary all / all | Appends UTF-8 text to a file, creating it when missing. |
 | `File close` | file, io | unary all | Closes a file early; closing an already closed file does nothing. |
 | `File eof` | boolean, io | unary all | True when the position is at or past the end of the file. |
 | `File flush` | file, io | unary all | Asks the host to write buffered output to the file system. |
@@ -320,12 +320,12 @@ Standard input, whole-file text and stateful file handles.
 | `File position` | integer, io | unary all | Current byte offset of an open file. |
 | `Value print` | same, io | unary all | Writes one line and returns the value, so a pipeline continues. |
 | `Path read` | text, io | unary all | Complete decoded UTF-8 text of a file, final line ending included. |
-| `Path Offset Count readbytes` | bytes, io | binary all / all; 3 operands: whole | Reads a block of bytes by offset, or the next Count bytes of an open file. |
+| `File readbytes Count | Path Offset Count readbytes` | bytes, io | binary all / all; 3 operands: whole | Reads a block of bytes by offset, or the next Count bytes of an open file. |
 | `Path readlines` | array, io | unary all | Lines of a file with their separators removed. |
-| `File Offset seek` | file, io | binary all / all | Sets an absolute byte offset from the beginning. |
+| `File seek Offset` | file, io | binary all / all | Sets an absolute byte offset from the beginning. |
 | `File size` | integer, io | unary all | Length of an open file in bytes. |
-| `Text Path write` | text, io | binary all / all | Creates or replaces a file with UTF-8 text. |
-| `File Bytes writebytes` | file, io | binary all / all | Writes a bytes value to an open file. |
+| `Text write Path` | text, io | binary all / all | Creates or replaces a file with UTF-8 text. |
+| `File writebytes Bytes` | file, io | binary all / all | Writes a bytes value to an open file. |
 
 These need `use io` but have no name to look up.
 
@@ -357,8 +357,8 @@ Matrix products, solvers and decompositions.
 | `Values diag [.anti] [Offset]` | array | unary 2 | Construct or extract a diagonal, with optional .anti mode and integer offset. |
 | `Matrix eigh` | tuple | unary 2 | Ascending eigenvalues and their eigenvector columns of a symmetric matrix. |
 | `Matrix inverse` | array, lazy | unary 2 | Inverse of a square matrix, one trailing cell at a time. |
-| `A B matmul` | array, lazy | binary all / all | Contracts the last axis of the left array with the first axis of the right. |
-| `A B solve` | array | binary all / all | Solves A * X = B for a square coefficient matrix. |
+| `A matmul B` | array, lazy | binary all / all | Contracts the last axis of the left array with the first axis of the right. |
+| `A solve B` | array | binary all / all | Solves A * X = B for a square coefficient matrix. |
 
 ## numbers
 
@@ -372,9 +372,9 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Value asin` | real | unary all (scalar map) | Inverse sine in radians, for values from -1 through 1. |
 | `Value asinh` | real | unary all (scalar map) | Inverse hyperbolic sine. |
 | `Value atan` | real | unary all (scalar map) | Inverse tangent in radians. |
-| `Y X atan2` | real | binary 0 / 0 | Angle in radians from the coordinates, keeping the quadrant. |
+| `Y atan2 X` | real | binary 0 / 0 | Angle in radians from the coordinates, keeping the quadrant. |
 | `Value atanh` | real | unary all (scalar map) | Inverse hyperbolic tangent, for values strictly between -1 and 1. |
-| `N K binomial` | integer | binary 0 / 0 | Exact binomial coefficient. |
+| `N binomial K` | integer | binary 0 / 0 | Exact binomial coefficient. |
 | `N K Modulus binomialmod` | integer | 3 operands: whole | Binomial coefficient calculated directly modulo a scalar prime. |
 | `Angle cos` | real | unary all (scalar map) | Cosine of an angle in radians. |
 | `Value cosh` | real | unary all (scalar map) | Hyperbolic cosine. |
@@ -383,20 +383,20 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Value exp` | real | unary all (scalar map) | Natural exponential. |
 | `N factors` | sequence, lazy | unary all | Lazy ascending sequence of the prime factors, repeated factors included. |
 | `Limit factorsieve` | array | unary all | Smallest prime factors from 0 through Limit (at most 1048575); entries 0 and 1 are zero. |
-| `A B gcd` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
+| `A gcd B` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
 | `infinity` | real | source/value | The positive infinite real value. |
 | `Value isnan` | boolean | unary all | True for the real value nan; it does not equal itself. |
 | `Value isqrt` | integer | unary 0 | Exact integer floor of the square root, verified with integer arithmetic. |
-| `A B lcm` | integer | unary all; binary 0 / 0 | Least common multiple, also a reduction over one finite collection. |
+| `A lcm B` | integer | unary all; binary 0 / 0 | Least common multiple, also a reduction over one finite collection. |
 | `Value log` | real | unary all (scalar map) | Natural logarithm of a positive finite number. |
 | `nan` | real | source/value | The real not-a-number value, for a result or cell with no numeric value. |
 | `Value odd` | boolean | unary all | True for an odd integer. |
 | `Base Exponent Modulus powmod` | integer | 3 operands: whole | Modular exponentiation by repeated squaring, never building the full power. |
 | `Value floor | Bag floor Limit` | value | unary all (scalar map); binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
 | `Value ceil` | integer | unary all (scalar map) | Least integer at least a finite number. |
-| `Values Bases digits` | array | binary all / all | Nonnegative integers as mixed-base digits, with the digit axis leading. |
-| `Digits Bases fromDigits` | value | binary all / all | Packs the leading mixed-base digit axis into integers. |
-| `Value Places round` | number | binary 0 / 0 | Rounds to a signed number of decimal places, halfway values to even. |
+| `Values digits Bases` | array | binary all / all | Nonnegative integers as mixed-base digits, with the digit axis leading. |
+| `Digits fromDigits Bases` | value | binary all / all | Packs the leading mixed-base digit axis into integers. |
+| `Value round Places` | number | binary 0 / 0 | Rounds to a signed number of decimal places, halfway values to even. |
 | `Angle sin` | real | unary all (scalar map) | Sine of an angle in radians. |
 | `Value sinh` | real | unary all (scalar map) | Hyperbolic sine. |
 | `Value sqrt` | real | unary 0 | Real square root of a nonnegative number. |
@@ -409,7 +409,7 @@ Seeded pseudorandom sampling.
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
-| `Values Count choices` | array, random | binary all / all | Draws Count values with replacement, complete cells for a tensor. |
+| `Values choices Count` | array, random | binary all / all | Draws Count values with replacement, complete cells for a tensor. |
 | `Seed seed` | integer, random | unary all | Restarts the pseudorandom stream of the session and returns the seed. |
 | `Values shuffle` | array, random | unary all; binary all / all | New array in random order; a seed makes the order repeatable. |
 | `Shape Low High uniform` | array, random | 3 operands: whole | Real tensor drawn from the half-open interval between the bounds. |
@@ -425,8 +425,8 @@ Shapes, orderings, windows and lazy sources.
 | `Values argsort .descending` | array | unary 1; binary all / all | Stable zero-based positions that put the values in order. |
 | `Values copy` | array | unary all | Independent dense copy of an array or finite sequence; equally shaped array or sequence items stack. |
 | `Mask count` | integer | unary all | Number of true cells, or of source items a lazy mask selects. |
-| `Values Target find` | integer | binary all / 0 | First zero-based position of an equal array element or text substring; an array of targets finds each. |
-| `Values Target findall` | array | binary all / 0 | Every zero-based position of an equal array element or overlapping text substring; target arrays need equal counts. |
+| `Values find Target` | integer | binary all / 0 | First zero-based position of an equal array element or text substring; an array of targets finds each. |
+| `Values findall Target` | array | binary all / 0 | Every zero-based position of an equal array element or overlapping text substring; target arrays need equal counts. |
 | `Values flat` | array | unary all; binary all / all | Copies records into fixed-width storage; Count State flat initializes a compact array. |
 | `fibonacci` | sequence, lazy | source/value | Unbounded lazy Fibonacci numbers; bound with to, till, from or after. |
 | `Mask indices` | array | unary all | Zero-based true positions in boolean vectors, or coordinate rows in boolean tensors. |
@@ -442,7 +442,7 @@ Shapes, orderings, windows and lazy sources.
 | `Matrix transpose` | array | unary all | Reverses the axes of an array. |
 | `Values unique` | array | unary 1 | Distinct values in first-appearance order. |
 | `Values window Widths... | Values window unpack Shape` | array, lazy | binary all / all | Overlapping complete cells of that size, with optional stride, padding and padding value. |
-| `Values Count shift` | array, lazy | binary all / all | Moves items along an axis, keeping the shape; vacated positions read zero or a with value. |
+| `Values shift Count` | array, lazy | binary all / all | Moves items along an axis, keeping the shape; vacated positions read zero or a with value. |
 
 These need `use sequences` but have no name to look up.
 
@@ -453,7 +453,7 @@ These need `use sequences` but have no name to look up.
 | `Values sort by .field` | Stable sort by record fields or by one key function. |
 | `Values argsort by .field` | Source positions of that same order. |
 | `Values sort .descending` | Sorts in descending order; argsort and per-key sort directions preserve ties. |
-| `Streams merge by .field` | Merges sorted records lazily by one field or unary key function; A B merge by Key also works. |
+| `Streams merge by .field` | Merges sorted records lazily by one field or unary key function; A merge B by Key also works. |
 | `Values sort .indexes` | Positions that order the values, as argsort does; .indexed gives the sorted values and positions as a pair. |
 
 ## stats
@@ -465,13 +465,13 @@ Averages, spread, error metrics and covariance.
 | `Features correlation` | array, lazy | unary all | Pearson correlation matrix over feature and observation axes. |
 | `Features corr` | array, lazy | unary all | Alias for correlation. |
 | `Features covariance` | array, lazy | unary all | Sample covariance matrix over feature and observation axes. |
-| `Pred Target mae` | real | binary all / all | Mean absolute error between two broadcast numeric values. |
+| `Pred mae Target` | real | binary all / all | Mean absolute error between two broadcast numeric values. |
 | `Values mean` | real | unary all | Arithmetic mean, missing table cells skipped. |
 | `Values median` | real | unary all | Middle value of a sorted copy, averaging the two middle values when even. |
 | `Values mode` | value | unary all | Most frequent value in a collection or array. |
-| `Pred Target mse` | real | binary all / all | Mean squared error between two broadcast numeric values. |
-| `Values P percentile` | value | unary all; binary 1 / 0 | Percentile P in 0..100. |
-| `Values Q quantile` | value | unary all; binary 1 / 0 | Linear interpolation quantile Q in 0..1. |
+| `Pred mse Target` | real | binary all / all | Mean squared error between two broadcast numeric values. |
+| `Values percentile P` | value | unary all; binary 1 / 0 | Percentile P in 0..100. |
+| `Values quantile Q` | value | unary all; binary 1 / 0 | Linear interpolation quantile Q in 0..1. |
 | `Values skew` | real | unary all | Alias for skewness. |
 | `Values skewness` | real | unary all | Sample skewness of numeric values. |
 | `Values std` | real | unary all | Population standard deviation, dividing by N. |
@@ -528,17 +528,17 @@ Splitting, formatting, parsing and code points.
 | `Code character` | text | unary all | One-character text for a Unicode code point. |
 | `Character codepoint` | integer | unary all | Integer code point of exactly one character. |
 | `Bytes hex` | text | unary all | Lowercase hexadecimal text for bytes, without a prefix. |
-| `Values Separator join` | text | binary 1 / 0 | Joins scalar elements of a finite collection into one text; a matrix joins each row. |
-| `Text Pattern parse` | value | binary all / all | Captures /integer, /real, /word and /text from a complete pattern match. |
-| `Text Separator split` | array | binary all / all | Splits at every exact occurrence of a separator, keeping empty parts. |
-| `Value Prefix startswith` | boolean | binary all / all | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |
+| `Values join Separator` | text | binary 1 / 0 | Joins scalar elements of a finite collection into one text; a matrix joins each row. |
+| `Text parse Pattern` | value | binary all / all | Captures /integer, /real, /word and /text from a complete pattern match. |
+| `Text split Separator` | array | binary all / all | Splits at every exact occurrence of a separator, keeping empty parts. |
+| `Value startswith Prefix` | boolean | binary all / all | Exact text or byte prefix test; ordinary arrays broadcast elementwise. |
 | `Text lower` | text | unary all | Converts Unicode text to lowercase. |
 | `Character letter` | boolean | unary all | True where a character is a Unicode letter; text arrays map elementwise. |
 | `Character digit` | boolean | unary all | True where a character is a Unicode decimal digit; text arrays map elementwise. |
 | `Character alnum` | boolean | unary all | True where a character is a Unicode letter or number; text arrays map elementwise. |
 | `Text Width Fill lpad` | text | 3 operands: whole | Pads text on the left without truncating longer values. |
 | `Text Chars Replacement translate` | text | 3 operands: whole | Replaces listed characters, deleting those with no replacement. |
-| `Texts Limit vocab` | array | binary all / all | Most frequent words, at most Limit of them, ties by code point. |
+| `Texts vocab Limit` | array | binary all / all | Most frequent words, at most Limit of them, ties by code point. |
 | `Text words` | array | unary all | Lowercase Unicode letter and number runs. |
 
 ## xml

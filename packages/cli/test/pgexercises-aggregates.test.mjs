@@ -273,7 +273,7 @@ test('top three facility ranks include ties on SQLite views and arrays', () => {
         }
         const inspect = path.join(dir, 'inspect.ra');
         fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
-            .replace('Result OutputPath csv',
+            .replace('Result csv OutputPath',
                 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
             [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -333,7 +333,7 @@ test('facility revenue classes match NTILE on SQLite views and arrays', () => {
         }
         const inspect = path.join(dir, 'inspect.ra');
         fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
-            .replace('Result OutputPath csv',
+            .replace('Result csv OutputPath',
                 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
             [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -397,7 +397,7 @@ test('facility payback matches SQLite arithmetic on views and arrays', () => {
         }
         const inspect = path.join(dir, 'inspect.ra');
         fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
-            .replace('Result OutputPath csv',
+            .replace('Result csv OutputPath',
                 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
             [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
@@ -475,7 +475,7 @@ test('rolling daily revenue includes empty days on SQLite and arrays', () => {
         }
         const inspect = path.join(dir, 'inspect.ra');
         fs.writeFileSync(inspect, fs.readFileSync(file, 'utf8')
-            .replace('Result OutputPath csv', 'use io\nQ = Result sql\nQ .text print'));
+            .replace('Result csv OutputPath', 'use io\nQ = Result sql\nQ .text print'));
         const plan = spawnSync(process.execPath,
             [cli, inspect, dbPath], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(plan.status, 0, plan.stderr);
@@ -549,7 +549,7 @@ test('grouped aggregate programs match SQLite without reading source rows early'
             + 'S\' = G select\n  .visits = count\n  .present = .slots count\n'
             + '  .slots = .slots sum\n  .low = .slots min\n'
             + '  .high = .slots max\n  .average = .slots mean\nend\n'
-            + 'S\' = S sort by .facid\nS OutputPath csv\n');
+            + 'S\' = S sort by .facid\nS csv OutputPath\n');
         const mixedResult = spawnSync(process.execPath,
             [cli, mixed, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
         assert.equal(mixedResult.status, 0, mixedResult.stderr);
@@ -576,7 +576,7 @@ test('rollup keeps real NULL keys distinct and repeats bound source parameters',
             + 'G\' = R rollup by .facid .month\nTotals\' = G select\n'
             + '  .visits = count\n  .slots = .slots sum\nend\n'
             + 'Totals\' = Totals sort by .facid .month .slots\n'
-            + 'Totals OutputPath csv\n';
+            + 'Totals csv OutputPath\n';
         const expected = [
             ['facid', 'month', 'visits', 'slots'],
             ['1', '7', '1', '2'], ['1', '', '1', '3'],
@@ -587,15 +587,17 @@ test('rollup keeps real NULL keys distinct and repeats bound source parameters',
             const source = path.join(dir, `${storage}.ra`);
             const setup = storage === 'sqlite'
                 ? 'Db = DbPath sqlite\n'
-                : `use json\nDb = ${JSON.stringify(JSON.stringify({
+                : `use json
+Db = ${JSON.stringify(JSON.stringify({
                     facts: db.prepare('SELECT * FROM facts').all().map(row =>
                         Object.fromEntries(Object.entries(row).filter(([, value]) => value !== null))),
-                }))} json\n`;
+                }))} json
+`;
             const inspect = storage === 'sqlite'
                 ? 'Q = Totals sql\nQ .params len print\nQ .text print\n' : '';
             fs.writeFileSync(source, 'use cli\nuse io\nuse numbers\nuse sequences\nuse tables\n'
                 + 'argument DbPath path\nargument OutputPath path\n'
-                + setup + body.replace('Totals OutputPath csv\n', inspect + 'Totals OutputPath csv\n'));
+                + setup + body.replace('Totals csv OutputPath\n', inspect + 'Totals csv OutputPath\n'));
             const result = spawnSync(process.execPath,
                 [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });
             assert.equal(result.status, 0, result.stderr);
@@ -658,7 +660,7 @@ for (const compilation of [false, true]) {
                 const runtime = new Interpreter(text => printed.push(text), { io, compilation });
                 try {
                     const source = fs.readFileSync(path.join(examples, file), 'utf8');
-                    const consumer = count ? 'Count print' : 'Result OutputPath csv';
+                    const consumer = count ? 'Count print' : 'Result csv OutputPath';
                     const boundary = source.lastIndexOf(consumer);
                     assert.ok(boundary > 0);
                     const output = path.join(directory, 'out.csv');

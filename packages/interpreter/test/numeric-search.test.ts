@@ -31,7 +31,7 @@ describe('numeric search', () => {
     it('builds once for a shaped target frame and aliases of standard find', () => {
         const runtime = new Interpreter(), d = new RuntimeDiagnostics();
         runtime.execute('use sequences\nf = find\nV = array 5 2 5\nQ = (array 2 5 5 2) reshape 2 2');
-        const result = d.run(() => runtime.execute('V Q f copy'));
+        const result = d.run(() => runtime.execute('V f Q copy'));
         expect(format(result)).toBe('1 0 0 1');
         expect((result as RankArray).shape).toEqual([2, 2]);
         expect(d.numericSearchIndexes).toBe(1);
@@ -50,32 +50,32 @@ describe('numeric search', () => {
     });
 
     it('keeps errors lazy, default elementwise, and shares the default query index', () => {
-        expect(run("use sequences\nV = array 1 2\nQ = array 2 9\nR' = V Q find\nR 0")).toBe('1');
-        expect(() => run('use sequences\nV = array 1 2\nQ = array 2 9\nR = V Q find'))
+        expect(run("use sequences\nV = array 1 2\nQ = array 2 9\nR' = V find Q\nR 0")).toBe('1');
+        expect(() => run('use sequences\nV = array 1 2\nQ = array 2 9\nR = V find Q'))
             .toThrow('no matching value');
-        expect(run('use sequences\nV = array 1 2\nQ = array 2 9\nV Q find default -1')).toBe('1 -1');
+        expect(run('use sequences\nV = array 1 2\nQ = array 2 9\nV find Q default -1')).toBe('1 -1');
         const runtime = new Interpreter(), d = new RuntimeDiagnostics();
-        expect(format(d.run(() => runtime.execute('use sequences\nV = array 1 2\nQ = array 2 9\nV Q find default -1')))).toBe('1 -1');
+        expect(format(d.run(() => runtime.execute('use sequences\nV = array 1 2\nQ = array 2 9\nV find Q default -1')))).toBe('1 -1');
         expect(d.numericSearchIndexes).toBe(1);
-        expect(() => run('use sequences\n(array 1 2) (array 2 9) find copy')).toThrow('no matching value');
+        expect(() => run('use sequences\n(array 1 2) find (array 2 9) copy')).toThrow('no matching value');
     });
 
     it('declines nonnumeric default queries before allocating a numeric source index', () => {
         const runtime = new Interpreter(), diagnostics = new RuntimeDiagnostics();
-        const result = diagnostics.run(() => runtime.execute('use sequences\nV = array 1 2\nQ = array "x" "y"\nV Q find default -1'));
+        const result = diagnostics.run(() => runtime.execute('use sequences\nV = array 1 2\nQ = array "x" "y"\nV find Q default -1'));
         expect(format(result)).toBe('-1 -1');
         expect(diagnostics.numericSearchIndexes).toBe(0);
     });
 
     it('retains snapshots and leaves overrides and user functions alone', () => {
         const runtime = new Interpreter();
-        runtime.execute('use sequences\nV = array 1 2 1\nQ = array 1 2\nR = V Q find');
+        runtime.execute('use sequences\nV = array 1 2 1\nQ = array 1 2\nR = V find Q');
         expect(format(runtime.execute('R copy'))).toBe('0 1');
         runtime.execute('V 0 = 3');
         expect(format(runtime.execute('R copy'))).toBe('0 1');
-        expect(format(runtime.execute('V Q find copy'))).toBe('2 1');
-        expect(run('use sequences\n(array 3 1 3) (array 1 3) find rank 1 0')).toBe('1 0');
-        expect(run('fun V X find = 42\n(array 1 2) (array 2 1) find')).toBe('42');
+        expect(format(runtime.execute('V find Q copy'))).toBe('2 1');
+        expect(run('use sequences\n(array 3 1 3) find (array 1 3) rank 1 0')).toBe('1 0');
+        expect(run('fun V find X = 42\n(array 1 2) find (array 2 1)')).toBe('42');
     });
 
     it('does not speculatively read lazy or host-backed source cells', () => {

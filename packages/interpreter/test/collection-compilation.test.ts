@@ -245,7 +245,7 @@ OtherAnswer = Other array`);
     });
 
     it('compiles integer-array membership parameters in linked scalar calls', () => {
-        const result = compare(`fun X Domain member\n return X in Domain\nend\nDomain = array 2 4\nS = 0\nfor I in 1 to 5\n if I Domain member\n  S += 1\n end\nend`);
+        const result = compare(`fun X member Domain\n return X in Domain\nend\nDomain = array 2 4\nS = 0\nfor I in 1 to 5\n if I member Domain\n  S += 1\n end\nend`);
         expect(result.diagnostics.compiledLoops).toBe(1);
         expect(result.observation.variables.at(-1)).toEqual(['S', '2']);
     });

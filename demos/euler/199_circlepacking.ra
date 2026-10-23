@@ -33,5 +33,5 @@ for Step in 1 to Steps
   B = concat B C C
   C = concat New New New
 end
-Answer = (1 - Covered) 8 round
+Answer = (1 - Covered) round 8
 Answer print

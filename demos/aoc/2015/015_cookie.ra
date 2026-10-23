@@ -21,7 +21,7 @@ fun Lines' solve
   Pattern = "/word: capacity /integer, durability /integer, flavor /integer, texture /integer, calories /integer"
 
   for Line in Lines
-    Parsed = Line Pattern parse
+    Parsed = Line parse Pattern
     unpack Name Cap Dur Fla Tex Cal = Parsed
     Ingredient = array Cap Dur Fla Tex Cal
     Queue push Ingredient

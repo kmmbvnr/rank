@@ -27,9 +27,9 @@ for Pos in 1 to Digits
   NewS = array shape Top fill 0
   for D in 0 to 9
     By = D * D
-    NewC += Cnt By shift
+    NewC += Cnt shift By
     Add = Sum * 10 + D * Cnt
-    NewS += Add By shift
+    NewS += Add shift By
   end
   Cnt = NewC mod Mod
   Sum = NewS mod Mod

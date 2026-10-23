@@ -44,7 +44,7 @@ describe('prepared sequence and dyadic callbacks', () => {
 
     it('keeps the reference dyadic read order and fallback behavior', () => {
         const run = (compiled: boolean) => {
-            const { runtime, calls } = setup(compiled, 'fun X Y helper rank 0 0\nreturn (X + Y) text reverse\nend');
+            const { runtime, calls } = setup(compiled, 'fun X helper Y rank 0 0\nreturn (X + Y) text reverse\nend');
             const reads: string[] = [];
             try {
                 for (const name of ['Left', 'Right']) runtime.variables.set(name, {
@@ -55,7 +55,7 @@ describe('prepared sequence and dyadic callbacks', () => {
                         return BigInt((name === 'Left' ? 10 : 2) + index);
                     },
                 });
-                runtime.execute('Mapped = Left Right helper');
+                runtime.execute('Mapped = Left helper Right');
                 const mapped = runtime.variables.get('Mapped');
                 if (!mapped || !isRankArray(mapped)) throw new Error('missing array');
                 return { values: [...mapped.items], reads, calls: calls.mock.calls.length };
@@ -75,7 +75,7 @@ describe('prepared sequence and dyadic callbacks', () => {
         ['((array 1 2 3 4) reshape 2 2) scan helper axis 1', [1n, 3n, 3n, 7n]],
     ] as const)('uses the checked kernel for %s', (expression, expected) => {
         for (const compiled of [false, true]) {
-            const { runtime, calls } = setup(compiled, 'fun X Y helper rank 0 0\nreturn X + Y\nend');
+            const { runtime, calls } = setup(compiled, 'fun X helper Y rank 0 0\nreturn X + Y\nend');
             try {
                 const value = runtime.execute(expression);
                 if (!value || !isRankArray(value)) throw new Error('missing result');
@@ -88,7 +88,7 @@ describe('prepared sequence and dyadic callbacks', () => {
 
     it('keeps a named scan lazy and checks native replacements between source reads', () => {
         const run = (compiled: boolean) => {
-            const { runtime, calls } = setup(compiled, 'fun X Y helper\nreturn (X + Y) text len\nend');
+            const { runtime, calls } = setup(compiled, 'fun X helper Y\nreturn (X + Y) text len\nend');
             const reads: number[] = [];
             try {
                 runtime.variables.set('Source', sequence({ name: 'source', size: { kind: 'unknown' },

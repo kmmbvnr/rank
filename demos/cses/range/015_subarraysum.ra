@@ -11,11 +11,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Updates = Raw reshape Q 2
 
-Values Updates max_subarrays print
+Values max_subarrays Updates print
 
 
 rem Report the best subarray or zero.
-fun Values Updates max_subarrays
+fun Values max_subarrays Updates
   Tree = Values segment maxsum
   Last = Values len - 1
   Answers = array shape (Updates len) fill 0

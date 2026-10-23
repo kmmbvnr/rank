@@ -47,13 +47,13 @@ Answer print
 fun P Target Prev minimum
   Low = Prev max (Target * (P - 1))
   High = Low
-  for (High P valuation) less Target
-    Have = High P valuation
+  for (High valuation P) less Target
+    Have = High valuation P
     High += (Target - Have) * (P - 1)
   end
   for Low less High
     Mid = Low + (High - Low) // 2
-    if (Mid P valuation) at least Target
+    if (Mid valuation P) at least Target
       High = Mid
     else
       Low = Mid + 1
@@ -62,7 +62,7 @@ fun P Target Prev minimum
   return Low
 end
 
-fun N P valuation
+fun N valuation P
   Sum = 0
   for N greater 0
     N //= P

@@ -125,9 +125,9 @@ describe('column tables', () => {
 
     it('writes a table to csv, absent cells empty', () => {
         const { io, show } = session();
-        show('Data "/out.csv" csv');
+        show('Data csv "/out.csv"');
         expect(new TextDecoder().decode(io.file('/out.csv'))).toBe(`${CSV}\n`.replace('2,female,,71.5', '2,female,,71.5'));
-        show('Data (array .Id .Sex) "/two.csv" csv');
+        show('Data (array .Id .Sex) csv "/two.csv"');
         expect(new TextDecoder().decode(io.file('/two.csv'))).toBe('Id,Sex\n1,male\n2,female\n3,female\n4,male\n');
     });
 });

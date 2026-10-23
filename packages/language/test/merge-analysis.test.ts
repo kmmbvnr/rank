@@ -14,7 +14,7 @@ it('recognizes lazy merge and keyed merge as sequences without reading their ite
         'end',
         'A = array 1 3 5',
         'B = array 2 4 6',
-        "Plain' = A B merge",
+        "Plain' = A merge B",
         "Keyed' = A B merge by identity",
         'C = array 5 3 1',
         'D = array 6 4 2',
@@ -32,7 +32,7 @@ it('recognizes lazy merge and keyed merge as sequences without reading their ite
 });
 
 it('reserves the contextual graph merge name when graph is open', () => {
-    const parsed = parser.parse<Program>('use graph\nfun A B merge\n  return A\nend');
+    const parsed = parser.parse<Program>('use graph\nfun A merge B\n  return A\nend');
     expect(parsed.parserErrors).toEqual([]);
     expect(analyzeValues(parsed.value).diagnostics.map(diagnostic => diagnostic.message))
         .toContain('cannot redefine available builtin: merge');

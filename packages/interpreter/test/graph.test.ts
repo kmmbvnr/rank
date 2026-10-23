@@ -16,7 +16,7 @@ Tree add (array shape 4 2
   3 4
   3 5
 end)
-Rooted = Tree 1 root
+Rooted = Tree root 1
 Parent = Rooted .parent
 Depth = Rooted .depth
 Entry = Rooted .entry
@@ -36,7 +36,7 @@ Tree add (array shape 6 2
   3 6
   6 7
 end)
-Rooted = Tree 1 root
+Rooted = Tree root 1
 A = Rooted 7 2 ancestor
 B = Rooted 4 5 lca
 C = Rooted 4 7 lca
@@ -49,7 +49,7 @@ tuple A B C D
         expect(run(`${prelude}Tree = new graph (1 to 3) .undirected
 Tree add 1 2
 Tree add 2 3
-Rooted = Tree 1 root
+Rooted = Tree root 1
 tuple (Rooted 3 2 ancestor) (Rooted 3 3 ancestor default -1)
 `)).toBe('1 -1');
     });
@@ -57,13 +57,13 @@ tuple (Rooted 3 2 ancestor) (Rooted 3 3 ancestor default -1)
     it('requires an undirected connected tree', () => {
         expect(() => run(`${prelude}Tree = new graph (1 to 2) .directed
 Tree add 1 2
-Tree 1 root
+Tree root 1
 `)).toThrow('root expects an undirected graph');
         expect(() => run(`${prelude}Tree = new graph (1 to 4) .undirected
 Tree add 1 2
 Tree add 1 2
 Tree add 3 4
-Tree 1 root
+Tree root 1
         `)).toThrow('root expects a connected tree');
     });
 
@@ -204,7 +204,7 @@ Path 1 2 upto
         expect(run(`${prelude}
 Next = array 2 3 5 5 5
 Cost = array 10 20 30 40 0
-Path = Next Cost weighted
+Path = Next weighted Cost
 A = Path 1 3 upto
 B = Path 1 4 upto
 C = Path 4 5 upto
@@ -220,22 +220,22 @@ Result
     it('validates weighted paths', () => {
         expect(() => run(`${prelude}
 Next = array 2 2
-Next (array 1) weighted
+Next weighted (array 1)
 `)).toThrow(
             'weighted successors and weights must have equal length',
         );
         expect(() => run(`${prelude}
 Next = array 2 2
-Next (array "x" "x") weighted
+Next weighted (array "x" "x")
 `)).toThrow('weighted requires numeric weights');
     });
 
     it('allows weighted when its module is unopened', () => {
         expect(run(`
-fun A B weighted
+fun A weighted B
   return A + B
 end
-3 4 weighted
+3 weighted 4
 `)).toBe('7');
     });
 
@@ -283,7 +283,7 @@ Union findroot 3
 
     it('keeps DSU method words contextual', () => {
         expect(run(`
-fun A B findroot
+fun A findroot B
   return A + B
 end
 3 findroot 4
@@ -325,7 +325,7 @@ Graph add (array shape 5 2
   3 5
   4 5
 end)
-Result = Graph 1 dfs
+Result = Graph dfs 1
 Distance = Result .distance
 tuple (Result .order) (Distance 5)
 `)).toBe('1 2 4 5 3 3');
@@ -364,7 +364,7 @@ Graph add 1 2 5
 Graph add 1 3 1.5
 Graph add 3 2 1.5
 Graph add 2 4 2
-Result = Graph 1 dijkstra
+Result = Graph dijkstra 1
 Distance = Result .distance
 Parent = Result .parent
 tuple (Distance 2) (Distance 4) (Parent 2)
@@ -377,7 +377,7 @@ Graph = new graph (1 to 4) .directed
 Graph add 1 2 4
 Graph add 1 3 5
 Graph add 2 3 (-2)
-Result = Graph 1 bellmanford
+Result = Graph bellmanford 1
 Distance = Result .distance
 tuple (Distance 3) ((Result .negative) len) (Distance 4 default infinity)
 `)).toBe('2 0 infinity');
@@ -390,7 +390,7 @@ Graph add 2 3 (-2)
 Graph add 3 2 1
 Graph add 3 4 1
 Graph add 5 5 (-1)
-Result = Graph 1 bellmanford
+Result = Graph bellmanford 1
 Negative = Result .negative
 tuple (2 in Negative) (3 in Negative) (4 in Negative) (5 in Negative)
 `)).toBe('true true true false');
@@ -439,7 +439,7 @@ Directed add 2 1
 Undirected = new graph (1 to 2) .undirected
 Undirected add 1 2
 Undirected add 1 2
-tuple (Directed 1 euler) (Undirected 1 euler)
+tuple (Directed euler 1) (Undirected euler 1)
 `)).toBe('1 2 1 3 1 2 1');
     });
 
@@ -447,7 +447,7 @@ tuple (Directed 1 euler) (Undirected 1 euler)
         expect(run(`${prelude}Loop = new graph (1 to 1) .undirected
 Loop add 1 1
 Empty = new graph (1 to 2) .directed
-tuple (Loop 1 euler) (Empty 2 euler)
+tuple (Loop euler 1) (Empty euler 2)
 `)).toBe('1 1 2');
     });
 
@@ -458,16 +458,16 @@ Branch add 1 3
 Split = new graph (1 to 4) .undirected
 Split add 1 2
 Split add 3 4
-tuple ((Branch 1 euler) shape) ((Split 1 euler) shape)
+tuple ((Branch euler 1) shape) ((Split euler 1) shape)
 `)).toBe('0 0');
     });
 
     it('keeps euler available to user functions', () => {
         expect(run(`
-fun A B euler
+fun A euler B
   return A + B
 end
-3 4 euler
+3 euler 4
 `)).toBe('7');
     });
 
@@ -558,7 +558,7 @@ Graph 1 2 maxflow
         expect(() => run(`${prelude}
 Graph = new graph .directed
 Graph add 1 2 (-1)
-Graph 1 dijkstra
+Graph dijkstra 1
 `)).toThrow('dijkstra requires nonnegative edge weights');
         expect(() => run(`${prelude}
 Graph = new graph .directed
@@ -648,10 +648,10 @@ Graph add (array shape 1 1 1 fill 0)
         expect(() => run('new graph .directed'))
             .toThrow('new graph requires: use graph');
         expect(run(`
-fun A B add
+fun A add B
   return A + B
 end
-3 4 add
+3 add 4
 `)).toBe('7');
     });
 
@@ -686,7 +686,7 @@ Graph = new graph .directed
 Graph add 1 2 "heavy"
 `)).toThrow('graph edge weight must be numeric');
         expect(run(`
-fun A B edges
+fun A edges B
   return A + B
 end
 3 edges 4

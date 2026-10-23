@@ -91,11 +91,11 @@ test "each letter is replaced independently"
   use text
   Parts = array shape 1000 fill "abcdefghij"
   Rate = 0.3
-  Name = Parts "" join
+  Name = Parts join ""
   Text = "x"
   run
 
-  Marks = Noisy "" split equal "X"
+  Marks = Noisy split "" equal "X"
   Total = Name len
   Share = Marks count / Total
   (Share - 0.3) abs less 0.02

@@ -36,7 +36,7 @@ Total = 10 ** (K - 1)
 Zero = array 0
 Pos = 0 to 8 array
 for Mask in 1 to 511
-  Sel' = (Mask Pos shr) 1 band equal 1
+  Sel' = (Mask shr Pos) band 1 equal 1
   Rs = (1 to 9 array) filter Sel array
   G = array 1
   for R in Rs

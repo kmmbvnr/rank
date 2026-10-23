@@ -5,18 +5,18 @@ use sequences
 use algo
 use io
 
-11 2011 maximix print
+11 maximix 2011 print
 
-fun N Rank maximix
+fun N maximix Rank
   Text = "ABCDEFGHIJK" (0 till N)
-  Text = Text (N - 2) revsuffix
+  Text = Text revsuffix (N - 2)
   All = array Text
   for I in (N - 3) to 0 by -1
     Next = new queue
     for Text in All
-      After = Text I revsuffix
+      After = Text revsuffix I
       for P in (I + 1) till (N - 1)
-        Next push (After P revsuffix)
+        Next push (After revsuffix P)
       end
     end
     All = Next array
@@ -25,7 +25,7 @@ fun N Rank maximix
   return All (Rank - 1)
 end
 
-fun Text I revsuffix
+fun Text revsuffix I
   Front = Text (0 till I)
   Size = Text len
   Back = Text (I till Size) reverse

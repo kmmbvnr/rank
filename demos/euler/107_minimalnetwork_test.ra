@@ -11,7 +11,7 @@ test "statement network"
   use "107_minimalnetwork"
   use io
   Raw = "-,16,12,21,-,-,-\n16,-,-,17,20,-,-\n12,-,-,28,-,31,-\n21,17,28,-,18,19,23\n-,20,-,18,-,-,11\n-,-,31,19,-,-,27\n-,-,-,23,11,27,-\n"
-  Raw "/tmp/euler107.txt" write
+  Raw write "/tmp/euler107.txt"
   Input = "/tmp/euler107.txt"
   run
 
@@ -21,7 +21,7 @@ end
 test "tree has nothing to save"
   use "107_minimalnetwork"
   use io
-  "-,4\n4,-\n" "/tmp/euler107.txt" write
+  "-,4\n4,-\n" write "/tmp/euler107.txt"
   Input = "/tmp/euler107.txt"
   run
 

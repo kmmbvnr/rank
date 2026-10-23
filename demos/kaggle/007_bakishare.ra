@@ -17,7 +17,7 @@ argument OutputPath path = "demos/kaggle/submissions/bike-sharing.csv"
 Train = TrainPath csv
 Test = TestPath csv
 Submission = Train Test 0.03 1200 solve
-Submission OutputPath csv
+Submission csv OutputPath
 
 
 fun Data bike_features
@@ -46,7 +46,7 @@ fun Train Test Rate Steps solve
   Xtest = Test bike_features
   Y = Train .count + 1 log
   Model = X Y Rate Steps Regression.linear
-  LogPred' = Xtest Model Regression.linear_predict
+  LogPred' = Xtest Regression.linear_predict Model
   Pred' = (LogPred exp - 1) max 0.0
   Test .count = Pred
   return Test (array .datetime .count)

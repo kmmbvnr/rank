@@ -8,10 +8,10 @@ use cli
 option Low integer = 2000000
 option High integer = 1000000000
 
-Answer = Low High pencils
+Answer = Low pencils High
 Answer print
 
-fun Low High pencils
+fun Low pencils High
   L = Low + 1
   K = (High * High) // (L * L)
   if K mod 2 equal 0
@@ -38,7 +38,7 @@ fun L U K below
     if B less L
       return Side * Side
     end
-    B = B U min
+    B = B min U
     Cnt = B - L + 1
     Sum = (L + B) * Cnt // 2
     Part = R * Sum - L * Cnt
@@ -47,7 +47,7 @@ fun L U K below
     if B less L
       return Side * Side
     end
-    B = B U min
+    B = B min U
     Cnt = B - L + 1
     Sum = 0 1 1 K B surdsum
     Sum -= 0 1 1 K (L - 1) surdsum
@@ -111,8 +111,8 @@ fun A B C K surdinv
     Y = -Y
     Z = -Z
   end
-  G = (X abs) (Y abs) gcd
-  G = G Z gcd
+  G = (X abs) gcd (Y abs)
+  G = G gcd Z
   X //= G
   Y //= G
   Z //= G

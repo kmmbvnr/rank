@@ -121,7 +121,7 @@ describe('tensor pipeline fusion', () => {
             const source = `use sequences
 A = (1 to 30 array)${shape}
 B = A * 2
-C = B 12 ${operation}
+C = B ${operation} 12
 C`;
             const result = compare(source);
             const expected = Array.from({ length: 30 }, (_, i) =>
@@ -187,7 +187,7 @@ View probe`;
         const source = `use numbers
 use stats
 use io
-fun A B calculate
+fun A calculate B
   Difference' = A - B
   Squared' = Difference * Difference
   Result = Squared ${reducer}
@@ -195,7 +195,7 @@ fun A B calculate
 end
 A = array 1.0 2.0 3.0
 B = array 3.0 2.0 1.0
-A B calculate print`;
+A calculate B print`;
         const result = compare(source);
         expect(result).not.toHaveProperty('error');
         expect(result.kernels).toBe(1);
@@ -203,7 +203,7 @@ A B calculate print`;
     it('combines inline row addressing and a dot product', () => {
         const source = `use numbers
 use io
-fun A X rows
+fun A rows X
   Result = 0.0
   for I in 0 till 2
     S = (A I * X) sum
@@ -216,7 +216,7 @@ A = array shape 2 3
   4.0 5.0 6.0
 end
 X = array 1.0 1.0 1.0
-A X rows print`;
+A rows X print`;
         const result = compare(source);
         expect(result.output).toEqual(['21']);
         expect(result.kernels).toBe(2);
@@ -283,7 +283,7 @@ S print`);
     });
     it('gathers multidimensional indices before fusing the following arithmetic', () => {
         const source = `use numbers
-fun A I f
+fun A f I
   V = A I
   S = (V * 2) sum
   return S
@@ -292,7 +292,7 @@ A = array 1 2 3
 I = array shape 1 2
   0 1
 end
-A I f`;
+A f I`;
         const result = compare(source);
         expect(result).toHaveProperty('value', '6');
         expect(result.kernels).toBe(1);
@@ -456,10 +456,10 @@ describe('text digits inside tensor kernels', () => {
     const program = `use text
 use numbers
 use io
-fun N Power digitpowers
+fun N digitpowers Power
   return (((N text) integer rank 0) ** Power) sum
 end
-1634 4 digitpowers`;
+1634 digitpowers 4`;
 
     it('fuses integer rendering, rank conversion, powers and reduction', () => {
         expect(compare(program)).toMatchObject({ value: '1634', kernels: 1 });
@@ -468,7 +468,7 @@ end
     it('preserves large integer rendering exactly', () => {
         const input = '9007199254740993';
         const expected = [...input].reduce((sum, digit) => sum + BigInt(digit), 0n);
-        expect(compare(program.replace('1634 4 digitpowers', `${input} 1 digitpowers`)))
+        expect(compare(program.replace('1634 digitpowers 4', `${input} digitpowers 1`)))
             .toMatchObject({ value: String(expected), kernels: 1 });
     });
 
@@ -484,24 +484,24 @@ ${input} digitpowers`;
 
     it.each(['-12', '"1😀2"', '"1 2"', '"12\\n"'])('retains conversion errors for %s', input => {
         const source = typeof input === 'string' && input.startsWith('"')
-            ? program.replace('(N text)', 'N').replace('1634 4 digitpowers', `${input} 2 digitpowers`)
-            : program.replace('1634 4 digitpowers', `${input} 2 digitpowers`);
+            ? program.replace('(N text)', 'N').replace('1634 digitpowers 4', `${input} digitpowers 2`)
+            : program.replace('1634 digitpowers 4', `${input} digitpowers 2`);
         expect(compare(source)).toHaveProperty('error');
     });
 
     it('retains a user custominteger function under rank 0', () => {
-        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun N Power digitpowers', `fun X custominteger
+        const source = program.replace(/\binteger\b/g, 'custominteger').replace('fun N digitpowers Power', `fun X custominteger
   return 2
 end
-fun N Power digitpowers`);
+fun N digitpowers Power`);
         expect(compare(source)).toMatchObject({ value: '64' });
     });
 
     it('retains a user customtext function before the digit pipeline', () => {
-        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun N Power digitpowers', `fun X customtext
+        const source = program.replace(/\btext\b/g, 'customtext').replace('use customtext', 'use text').replace('fun N digitpowers Power', `fun X customtext
   return "99"
 end
-fun N Power digitpowers`);
+fun N digitpowers Power`);
         expect(compare(source)).toMatchObject({ value: '13122' });
     });
 

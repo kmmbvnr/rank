@@ -207,14 +207,14 @@ Saved = items`;
         'N = 1 to 3\nMask = (array 1 2 3) greater 1\nPicked = N Mask',
         'N = 1 till 1\nMask = (array shape 0 fill 1) greater 1\nPicked = N Mask',
         'N = array 1 2 3\nMask = N in (array 2 3)\nPicked = N Mask',
-        'Top = array 3 2 1\nWeight = array 100 10 1\nAnswer = Top Weight matmul',
-        'L = array 1.0 2.0\nR = array 3.0 4.0\nAnswer = L R matmul',
-        'L = array shape 0 fill 1.0\nR = array shape 0 fill 1.0\nAnswer = L R matmul',
-        'M = array 1 2 3 4 shape 2 2\nV = array 2 3\nAnswer = M V matmul',
-        'M = array 1 2 3 4 shape 2 2\nV = array 2 3\nAnswer = V M matmul',
-        'M = array 1 2 3 4 shape 2 2\nAnswer = M M matmul',
-        'M = array 1 2 3 4 shape 2 2\nAnswer = M M matmul rank 1 1',
-        'M = array 1 2 3 4 shape 2 2\nAnswer = M M matmul axis 0 1',
+        'Top = array 3 2 1\nWeight = array 100 10 1\nAnswer = Top matmul Weight',
+        'L = array 1.0 2.0\nR = array 3.0 4.0\nAnswer = L matmul R',
+        'L = array shape 0 fill 1.0\nR = array shape 0 fill 1.0\nAnswer = L matmul R',
+        'M = array 1 2 3 4 shape 2 2\nV = array 2 3\nAnswer = M matmul V',
+        'M = array 1 2 3 4 shape 2 2\nV = array 2 3\nAnswer = V matmul M',
+        'M = array 1 2 3 4 shape 2 2\nAnswer = M matmul M',
+        'M = array 1 2 3 4 shape 2 2\nAnswer = M matmul M rank 1 1',
+        'M = array 1 2 3 4 shape 2 2\nAnswer = M matmul M axis 0 1',
     ])('agrees with runtime: %s', program => {
         const source = `use sequences\nuse linalg\n${program}`;
         const ast = parse(source);

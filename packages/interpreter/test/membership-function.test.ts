@@ -153,7 +153,8 @@ R reshape 8`;
     it.each(['1', '2 0'])('preserves nonleading frame axes %s', axes => {
         const shape = axes === '1' ? '2 3' : '2 2 3';
         const size = axes === '1' ? 18 : 36;
-        const code = source.replace('\nQ mask', `\nM = (0 till ${size / 3} array) reshape ${shape}
+        const code = source.replace('\nQ mask', `
+M = (0 till ${size / 3} array) reshape ${shape}
 M = M copy
 R = M mask axis ${axes === '1' ? '0' : '1'}
 R reshape ${size}`);

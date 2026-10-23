@@ -2,9 +2,9 @@ use testing
 
 test "rank transition"
   use "369_badugi"
-  1 1 extend equal 3
-  1 2 extend equal 5
-  1 3 extend equal 7
+  1 extend 1 equal 3
+  1 extend 2 equal 5
+  1 extend 3 equal 7
 end
 
 test "small Badugi hands"

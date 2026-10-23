@@ -23,6 +23,6 @@ describe('pure builtins over large arrays', () => {
     });
 
     it('reads drawn values as stored numbers', () => {
-        expect(run('use random\nuse sequences\nState = 1 seed\nR = (1 to 6) 5000 choices\n(R sum) greater 0')).toBe(true);
+        expect(run('use random\nuse sequences\nState = 1 seed\nR = (1 to 6) choices 5000\n(R sum) greater 0')).toBe(true);
     });
 });

@@ -29,7 +29,7 @@ fun Limit right_triangle_perimeter
       if (M - N) even
         continue
       end
-      if M N gcd not equal 1
+      if M gcd N not equal 1
         continue
       end
 

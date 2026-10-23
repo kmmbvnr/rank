@@ -72,8 +72,8 @@ structures; mutation requires an explicit parameter.
 
 Named sets and counters accept `Name add Value`. A set keeps one equal
 element; a counter increments that element's frequency. The whole expression
-after `add` is evaluated once. Ordinary postfix calls `Name Value add`
-also work, and `add` returns the receiver when used as a function. Named
+after `add` is evaluated once. The same form can be used in an expression;
+`add` returns the receiver. Named
 queues accept `Name push Value`; named indices use addressed assignment.
 
 A function that needs a structure creates its own with `new`; separate and
@@ -228,8 +228,8 @@ Path push 8
 Last = Path pop                 rem 8
 
 Ends = new deque
-Ends 2 pushback
-Ends 1 pushfront
+Ends pushback 2
+Ends pushfront 1
 Left = Ends peekfront
 Right = Ends popback
 
@@ -251,7 +251,7 @@ read a lazy array; this is separate from the element-type check.
 
 A deque supports `pushfront`, `pushback`, `popfront`, `popback`, `peekfront` and
 `peekback`. Its plain `push` appends at the back, and `pop`/`peek` use the front.
-Binary functions use postfix syntax, such as `Ends Value pushfront`.
+Binary functions use postfix syntax, such as `Ends pushfront Value`.
 
 A heap is a stable priority queue, smallest first unless created with
 `.descending`. `Heap push Value` uses the value itself
@@ -357,8 +357,8 @@ Each distinct value contributes once. An empty set sums to zero; `min` and
 
 ### Sorted integer insertion indices
 
-With `use algo`, `Values Target lowerindex` returns the first index whose value
-is at least `Target`; `Values Target upperindex` returns the first index whose
+With `use algo`, `Values lowerindex Target` returns the first index whose value
+is at least `Target`; `Values upperindex Target` returns the first index whose
 value is greater than `Target`. Both return `Values len` if no value qualifies,
 and zero for an empty vector. Indices are zero-based; duplicate values are
 supported, and integer comparisons retain arbitrary precision.
@@ -368,7 +368,7 @@ integer. Sortedness is a caller precondition and is not checked. Each query
 reads and checks only O(log n) cells; it does not materialize the vector or
 linearly rescan it. Scalar targets return an integer; array targets follow the
 default ranks `all 0`. For an inclusive interval `[Low, High]`, its count is
-`(Values High upperindex) - (Values Low lowerindex)`.
+`(Values upperindex High) - (Values lowerindex Low)`.
 
 ### Ordered multiset
 
@@ -376,7 +376,7 @@ default ranks `all 0`. For an inclusive interval `[Low, High]`, its count is
 `add` calls for an existing value have no effect. It shares multiset operations
 and the `.multiset` runtime type.
 
-`Bag lowerbound X` (also `Bag X lowerbound`) returns the smallest value >= X;
+`Bag lowerbound X` (also `Bag lowerbound X`) returns the smallest value >= X;
 it is an alias for `ceiling`. `Bag upperbound X` returns the smallest value > X.
 These return values, not iterator positions. If no value qualifies, they raise
 a missing-value error that can be handled with `default`. Both use the multiset's
@@ -410,7 +410,7 @@ These method words are contextual library names, not reserved words. Rank
 dispatches `floor`, `ceiling`, `lowerbound` and `upperbound` as multiset
 methods only when the expression before the operation evaluates to a
 multiset. Otherwise the operation resolves as an ordinary function, so a
-program may define and call `fun A B ceiling` as `3 ceiling 4`.
+program may define and call `fun A ceiling B` as `3 ceiling 4`.
 
 `remove` deletes one equal occurrence. Removing an absent value raises
 `.Missing`. `floor` returns the greatest value at most its argument;
@@ -483,7 +483,7 @@ Tree = Values segment combine with Identity
 
 Each input element is already a state. `combine Left Right` must return a
 state, be associative, and leave both operands unchanged. `Identity` must
-satisfy `fun Identity X combine = X` and `fun X Identity combine = X`; these laws are
+satisfy `fun Identity combine X = X` and `fun X combine Identity = X`; these laws are
 part of the caller's contract and are not checked at runtime. The function
 and identity are evaluated once during construction.
 
@@ -556,7 +556,7 @@ be constructed but cannot be queried or addressed.
 reaches a numeric target:
 
 ```rank
-Position = Tree Target firstatleast
+Position = Tree firstatleast Target
 ```
 
 It returns `-1` when no prefix reaches the target. Prefix aggregates must be
@@ -594,8 +594,8 @@ values:
 Data = Values wavelet
 Count = Data Left Right Low High within
 Sum = Data Left Right Low High sumwithin
-One = Data (array Left Right) missing
-Answers = Data Queries missing
+One = Data missing (array Left Right)
+Answers = Data missing Queries
 ```
 
 Both position and value ranges are inclusive. `within` counts positions from
@@ -641,7 +641,7 @@ unbounded sequence is an error.
 returns a lazy sequence of selections without repetition:
 
 ```rank
-for Pair in Values 2 combinations
+for Pair in Values combinations 2
   Pair score
 end
 ```
@@ -653,12 +653,12 @@ is an error.
 
 For a tensor, `combinations` selects cells along the leading axis and preserves
 the remaining cell shape. Given `Rings` with shape `6 3`, every value from
-`Rings 2 combinations` therefore has shape `2 3`.
+`Rings combinations 2` therefore has shape `2 3`.
 
 `multicomb` is the corresponding generator with repetition:
 
 ```rank
-for Pair in Values 2 multicomb
+for Pair in Values multicomb 2
   Pair score
 end
 ```

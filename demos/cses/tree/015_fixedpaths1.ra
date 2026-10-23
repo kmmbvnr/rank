@@ -13,10 +13,10 @@ for i in 1 till N
   B = stdin .integer
   Tree add A B
 end
-Tree K count_paths print
+Tree count_paths K print
 
 
 rem Count unordered pairs K edges apart.
-fun Tree K count_paths
+fun Tree count_paths K
   return (Tree pathlengths equal K) count
 end

@@ -75,9 +75,9 @@ describe('attributable compiler rejections', () => {
     it('attributes per-operation fallback in a cached scalar expression', () => {
         const runtime = new Interpreter(undefined, { scalarFunctionCompilation: false });
         try {
-            runtime.execute('fun A B same\nreturn (A + B) equal A\nend\n"a" "b" same');
+            runtime.execute('fun A same B\nreturn (A + B) equal A\nend\n"a" same "b"');
             const diagnostics = new RuntimeDiagnostics();
-            const result = diagnostics.run(() => runtime.execute('"a" "b" same'));
+            const result = diagnostics.run(() => runtime.execute('"a" same "b"'));
             expect(formatValue(result!)).toBe('false');
             expect(diagnostics.fallbacks['scalar-expression:operator-guard:+']).toBeGreaterThan(0);
             expect(diagnostics.fallbacks['scalar-expression:operator-guard:equal']).toBeGreaterThan(0);
@@ -113,12 +113,12 @@ describe('attributable compiler rejections', () => {
 
     it('names a tensor operation whose generated type guard declined', () => {
         const source = `use sequences
-fun A B same
+fun A same B
   return (A equal B) count
 end
 A = array true false
 B = array true false
-A B same`;
+A same B`;
         const diagnostics = new RuntimeDiagnostics();
         expect(execute(source, diagnostics)).toBe(execute(source));
         expect(diagnostics.fallbacks['tensor:operator-guard:equal']).toBeGreaterThan(0);
@@ -128,19 +128,19 @@ A B same`;
     });
 
     it('records a rejected tensor power without changing the reference result', () => {
-        const source = `fun A B powers
+        const source = `fun A powers B
   return (A ** B) sum
 end
 A = array 2.0 3.0
 B = array -1.0 -2.0
-A B powers`;
+A powers B`;
         const diagnostics = new RuntimeDiagnostics();
         expect(execute(source, diagnostics)).toBe(execute(source));
         expect(diagnostics.fallbacks['tensor:operator-guard:**']).toBeGreaterThan(0);
         expect(diagnostics.compiledTensors).toBe(0);
     });
     it('reports only the first unsupported tensor node, not its parents', () => {
-        const statement = parse('fun A B probe\nMapped = (A to B) + (A reverse)\nreturn Mapped sum\nend').statements[0];
+        const statement = parse('fun A probe B\nMapped = (A to B) + (A reverse)\nreturn Mapped sum\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
         const diagnostics = new RuntimeDiagnostics();
         const kernel = diagnostics.run(() => compileTensorKernel(statement.statements[0], {
@@ -151,7 +151,7 @@ A B powers`;
     });
 
     it('reports one storage rejection per tensor entry attempt', () => {
-        const statement = parse('fun A B probe\nreturn (A + B) sum\nend').statements[0];
+        const statement = parse('fun A probe B\nreturn (A + B) sum\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
         const kernel = compileTensorKernel(statement.statements[0], {
             lookup: name => name === 'A' || name === 'B' ? { kind: 'array', shape: [2], items: [1n, 2n] } : undefined,
@@ -167,7 +167,7 @@ A B powers`;
     });
 
     it('reports the generated guard when a cached tensor kernel declines', () => {
-        const statement = parse('fun A B probe\nreturn (A equal B) count\nend').statements[0];
+        const statement = parse('fun A probe B\nreturn (A equal B) count\nend').statements[0];
         if (!isFunctionStatement(statement)) throw new Error('expected function');
         const values = ownedArray([true, false]);
         const kernel = compileTensorKernel(statement.statements[0], {

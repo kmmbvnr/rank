@@ -143,7 +143,7 @@ Total`))).toBe(200n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
             try {
-                runtime.execute(`fun A N alter\n for I in ${range}\n  A 0 = I\n end\n return A\nend`);
+                runtime.execute(`fun A alter N\n for I in ${range}\n  A 0 = I\n end\n return A\nend`);
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 stats.run(() => alter.call([createArraySnapshot([1n, 2n]), 1n]));
@@ -178,7 +178,7 @@ Total`))).toBe(200n);
             const stats = new RuntimeDiagnostics();
             const runtime = new Interpreter(undefined, { integerLoopCompilation, numberLoopCompilation, scalarEntryCompilation: false });
             try {
-                runtime.execute('fun A Source alter\n for Value in Source\n  A 0 = Value\n end\n return A\nend');
+                runtime.execute('fun A alter Source\n for Value in Source\n  A 0 = Value\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
                 if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
                 stats.run(() => alter.call([createArraySnapshot([1n]), createArraySnapshot([2n])]));
@@ -209,7 +209,7 @@ Total`))).toBe(200n);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
         try {
-            runtime.execute('fun A Flag alter\n for I in 0 till 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
+            runtime.execute('fun A alter Flag\n for I in 0 till 1\n  if Flag\n   A I = 9\n  end\n end\n return A\nend');
             const alter = runtime.variables.get('alter');
             if (!alter || typeof alter !== 'object' || !('call' in alter)) throw new Error('alter');
             expect(stats.run(() => alter.call([createArraySnapshot([1n, 2n]), true]))).toBeDefined();
@@ -286,7 +286,7 @@ Total`))).toBe(30n);
                 runtime.execute(`fun X bump
  return X + 1
 end
-fun B N total
+fun B total N
  Total = 0
  for I in 0 till N
   Total += B 0 + (I bump)
@@ -296,11 +296,11 @@ end
 A = array 2
 B = (A * 3) (array 0)`);
                 (runtime.variables.get('B') as RankArray).items;
-                const first = stats.run(() => runtime.execute('B 3 total'));
+                const first = stats.run(() => runtime.execute('B total 3'));
                 const compiledBefore = stats.compiledLoops;
                 runtime.forgetBindings(['bump']);
                 runtime.execute('fun X bump\n return X + 2\nend');
-                const second = stats.run(() => runtime.execute('B 3 total'));
+                const second = stats.run(() => runtime.execute('B total 3'));
                 return { first, second, compiledBefore, compiledAfter: stats.compiledLoops,
                     hoistedReaders: stats.hoistedReaders, calleeFallbacks: stats.fallbacks['loop:callee'] ?? 0 };
             } finally { runtime.dispose(); }
@@ -318,7 +318,7 @@ B = (A * 3) (array 0)`);
                 runtime.execute(`fun X bump
  return X + 1
 end
-fun B N total
+fun B total N
  Total = 0
  for I in 0 till N
   Total += B 0 + (I bump)
@@ -328,12 +328,12 @@ end
 A = array 2
 B = (A * 3) (array 0)`);
                 (runtime.variables.get('B') as RankArray).items;
-                expect(stats.run(() => runtime.execute('B 3 total'))).toBe(24n);
+                expect(stats.run(() => runtime.execute('B total 3'))).toBe(24n);
                 const compiledBefore = stats.compiledLoops;
                 // A host can replace a binding outside Rank's source contracts.
                 runtime.variables.set('B', createArraySnapshot(['bad']));
                 let error = '';
-                try { stats.run(() => runtime.execute('B 3 total')); }
+                try { stats.run(() => runtime.execute('B total 3')); }
                 catch (caught) { error = caught instanceof RankError ? caught.format() : String(caught); }
                 return { error, compiledBefore, compiledAfter: stats.compiledLoops,
                     storageFallbacks: stats.fallbacks['loop:storage-or-cell-type'] ?? 0 };
@@ -363,7 +363,7 @@ B = (A * 3) (array 0)`);
         const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
             runtime.execute(`use text
-fun B N total
+fun B total N
  Total = 0
  for I in 0 till N
   Total += B 0 + ("A" codepoint)
@@ -373,11 +373,11 @@ end
 A = array 2
 B = (A * 3) (array 0)`);
             (runtime.variables.get('B') as RankArray).items;
-            expect(stats.run(() => runtime.execute('B 3 total'))).toBe(213n);
+            expect(stats.run(() => runtime.execute('B total 3'))).toBe(213n);
             expect(stats.compiledLoops).toBe(1);
             runtime.execute('fun X hostreplacement\n return 7\nend');
             runtime.variables.set('codepoint', runtime.variables.get('hostreplacement')!);
-            expect(stats.run(() => runtime.execute('B 3 total'))).toBe(39n);
+            expect(stats.run(() => runtime.execute('B total 3'))).toBe(39n);
             expect(stats.compiledLoops).toBe(1);
             expect(stats.fallbacks['loop:callee']).toBeGreaterThan(0);
             expect(stats.fallbacks['loop:callee:codepoint']).toBeGreaterThan(0);
@@ -401,9 +401,9 @@ B = (A * 3) (array 0)`);
         const stats = new RuntimeDiagnostics();
         const runtime = new Interpreter(undefined, { scalarEntryCompilation: false });
         try {
-            stats.run(() => runtime.execute('fun N C change\n C .value = N\n return N\nend\nA = array 2\nB = (A * 3) (array 0)\nC = record\n .value = 0\nend'));
+            stats.run(() => runtime.execute('fun N change C\n C .value = N\n return N\nend\nA = array 2\nB = (A * 3) (array 0)\nC = record\n .value = 0\nend'));
             (runtime.variables.get('B') as RankArray).items;
-            expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + (I C change)\nend\nTotal'))).toBe(24n);
+            expect(stats.run(() => runtime.execute('Total = 0\nfor I in 1 to 3\n Total += B 0 + (I change C)\nend\nTotal'))).toBe(24n);
             expect(stats.hoistedReaders).toBe(0);
         } finally { runtime.dispose(); }
     });
@@ -431,13 +431,13 @@ it('rechecks linked helper array storage on each cached loop entry', () => {
     let loops = 0;
     const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onIntegerLoopExecuted: () => loops++ });
     try {
-        runtime.execute(`fun A' I cellread
+        runtime.execute(`fun A' cellread I
  return A I
 end
 fun A' outerread
  Total = 0
  for I in 0 till 1
-  Total += A I cellread
+  Total += A cellread I
  end
  return Total
 end`);

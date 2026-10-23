@@ -23,7 +23,7 @@ rem over squarefree e of a count
 rem D(x // e), so tables of D and of
 rem squarefree counts at all N // t are
 rem built first.
-fun Z Mu feval
+fun Z feval Mu
   R = Z isqrt
   Ks = (1 to R) copy
   Q = Z // Ks
@@ -50,9 +50,9 @@ end
 
 fun Tv Lt St Nr look
   R = Lt len - 2
-  Vl = Lt (Tv R min)
+  Vl = Lt (Tv min R)
   Qv = Nr // Tv
-  Vs = St (Qv R min)
+  Vs = St (Qv min R)
   return (Tv at most R) choose Vl Vs
 end
 
@@ -86,12 +86,12 @@ KcL = array shape (R + 2) fill 0
 S6L = array shape (R + 2) fill 0
 SxL = array shape (R + 2) fill 0
 for V in 1 to R
-  Rs = V Mu feval
+  Rs = V feval Mu
   Dds V = Rs 0
   Kcs V = Rs 1
   S6s V = Rs 2
   Sxs V = Rs 3
-  Rl = (N // V) Mu feval
+  Rl = (N // V) feval Mu
   DdL V = Rl 0
   KcL V = Rl 1
   S6L V = Rl 2

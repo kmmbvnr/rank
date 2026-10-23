@@ -39,7 +39,7 @@ end
 Lg = (Cb * (Hn - Hk)) log / (10.0 log)
 Ex = Lg floor
 Mn = 10 ** (Lg - Ex)
-Mt = Mn Digits round
+Mt = Mn round Digits
 Parts = array (Mt text) "e" (Ex text)
-Answer = Parts "" join
+Answer = Parts join ""
 Answer print

@@ -18,10 +18,10 @@ function evaluate(compiled: boolean, source: string) {
 
 describe('scalar function argument domains', () => {
     it.each([
-        ['fun X Y combine\nreturn X + Y\nend\n"𝄞" "é" combine', '𝄞é'],
-        ['fun X Y both\nreturn X and Y\nend\ntrue false both', 'false'],
-        ['fun Flag Text picktext\nif Flag\nreturn Text reverse\nelse\nreturn Text\nend\nend\ntrue "𝄞é" picktext', '́e𝄞'],
-        ['fun X Y equaltext\nreturn X equal Y\nend\n"𝄞" "𝄞" equaltext', 'true'],
+        ['fun X combine Y\nreturn X + Y\nend\n"𝄞" combine "é"', '𝄞é'],
+        ['fun X both Y\nreturn X and Y\nend\ntrue both false', 'false'],
+        ['fun Flag picktext Text\nif Flag\nreturn Text reverse\nelse\nreturn Text\nend\nend\ntrue picktext "𝄞é"', '́e𝄞'],
+        ['fun X equaltext Y\nreturn X equal Y\nend\n"𝄞" equaltext "𝄞"', 'true'],
     ])('matches ordinary execution for %s', (source, expected) => {
         const reference = evaluate(false, `use sequences\n${source}`);
         const compiled = evaluate(true, `use sequences\n${source}`);
@@ -34,7 +34,7 @@ describe('scalar function argument domains', () => {
         let kernels = 0;
         const runtime = new Interpreter(undefined, { onScalarFunctionExecuted: () => kernels++ });
         try {
-            runtime.execute('fun X Y combine\nreturn X + Y\nend');
+            runtime.execute('fun X combine Y\nreturn X + Y\nend');
             const fn = runtime.variables.get('combine');
             if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
             expect(fn.call([1n, 2n])).toBe(3n);

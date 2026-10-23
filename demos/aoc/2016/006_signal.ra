@@ -18,7 +18,7 @@ rem Return the messages formed by the most and least frequent letters in each co
 fun Lines solve
   Rows = Lines len
   Cols = Lines 0 len
-  Text = Lines "" join
+  Text = Lines join ""
   Grid = Text reshape Rows Cols
 
   Width = Grid len axis 1

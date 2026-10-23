@@ -46,15 +46,15 @@ fun N recurrence
   B 1 = 1
   for N greater 0
     if N odd
-      A = A B combine
+      A = A combine B
     end
-    B = B B combine
+    B = B combine B
     N //= 2
   end
   return (A * A0) sum mod Mod
 end
 
-fun A B combine
+fun A combine B
   P = array shape (K * 2 - 1) fill 0
   for I in 0 till K
     for J in 0 till K

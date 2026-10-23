@@ -193,7 +193,7 @@ A = array shape 2 2
   3 4
 end
 B = array 1 1
-A B matmul
+A matmul B
 ```
 
 ```result
@@ -203,7 +203,7 @@ A B matmul
 ### Usage
 
 ```text
-A B matmul
+A matmul B
 ```
 
 The number of columns of A must equal
@@ -235,7 +235,7 @@ A = array shape 2 2
   2 0
   0 3
 end
-A (array 4 9) solve
+A solve (array 4 9)
 ```
 
 ```result
@@ -245,7 +245,7 @@ A (array 4 9) solve
 ### Usage
 
 ```text
-A B solve
+A solve B
 ```
 
 A is a square matrix of coefficients. B

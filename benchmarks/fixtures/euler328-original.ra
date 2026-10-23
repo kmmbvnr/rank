@@ -38,9 +38,9 @@ fun N costs
       Size = I - 1 - K
       if I at most 100 or Ok Size
         Left = Dp K
-        Right = (K + 1) Size tree
+        Right = (K + 1) tree Size
         Cost = K + 1 + (Left max Right)
-        Best = Best Cost min
+        Best = Best min Cost
       end
     end
     Dp I = Best
@@ -49,7 +49,7 @@ fun N costs
   return Sum
 end
 
-fun Base Size tree
+fun Base tree Size
   if Size less 2
     return 0
   end
@@ -68,8 +68,8 @@ fun Base Size tree
     R = 2 ** (H - 1) - 1
     L = Size - 1 - R
   end
-  Left = Base L tree
-  Right = (Base + L + 1) R tree
+  Left = Base tree L
+  Right = (Base + L + 1) tree R
   return (Left max Right) + Base + L + 1
 end
 

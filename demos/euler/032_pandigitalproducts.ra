@@ -22,7 +22,7 @@ fun Digits pandigital_products
       Product = A * B
       Identity = A text + (B text)
       Identity += Product text
-      if Identity Digits pandigital
+      if Identity pandigital Digits
         Products add Product
       end
     end
@@ -33,7 +33,7 @@ fun Digits pandigital_products
       Product = A * B
       Identity = A text + (B text)
       Identity += Product text
-      if Identity Digits pandigital
+      if Identity pandigital Digits
         Products add Product
       end
     end
@@ -44,7 +44,7 @@ end
 
 
 rem Accept every requested digit exactly once.
-fun Text Digits pandigital
+fun Text pandigital Digits
   if Text len not equal Digits len
     return false
   end

@@ -96,7 +96,7 @@ describe('names read by deferred bindings', () => {
 
     it.each([
         'Q push 9', 'Q push unpack (array 8 9)', 'Q pop',
-        'Q 9 pushfront', 'Q 9 pushback', 'Q popfront', 'Q popback',
+        'Q pushfront 9', 'Q pushback 9', 'Q popfront', 'Q popback',
         'Q add 9', 'Q remove 9', 'Q 1 9 enqueue', 'Q 0 1 merge',
     ])('rejects a mutating receiver operation: %s', write => {
         const { errors } = diagnostics(`use algo\nQ = new queue\nPlan' = Q len\n${write}`);

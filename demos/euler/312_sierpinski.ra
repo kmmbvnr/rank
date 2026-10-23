@@ -4,14 +4,14 @@ rem https://projecteuler.net/problem=312
 use numbers
 use io
 
-A = 10000 4 cycles
-AA = A 4 lift
-B = AA 6 cycles
-BB = B 6 lift
-Answer = BB 8 cycles
+A = 10000 cycles 4
+AA = A lift 4
+B = AA cycles 6
+BB = B lift 6
+Answer = BB cycles 8
 Answer print
 
-fun R K cycles
+fun R cycles K
   Mod = 13 ** K
   Ord = 2 * (13 ** (K - 1))
   Twice = 2 * Ord
@@ -27,14 +27,14 @@ fun R K cycles
   return 8 * P mod Mod
 end
 
-fun A K lift
+fun A lift K
   Mod = 13 ** K
   Phi = Mod - Mod // 13
   Inv = 12 (Phi - 1) Mod powmod
   return 12 * (A * Inv mod Mod)
 end
 
-fun N Mod iterative
+fun N iterative Mod
   C = 1
   if N at least 3
     C = 8 mod Mod

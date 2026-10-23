@@ -181,7 +181,7 @@ The point x=1, y=1 lies at 45°, which is
 
 ```rank
 use numbers
-1 1 atan2
+1 atan2 1
 ```
 
 ```result
@@ -191,7 +191,7 @@ use numbers
 ### Usage
 
 ```text
-Y X atan2
+Y atan2 X
 ```
 
 Note the order: Y comes first. The angle
@@ -238,7 +238,7 @@ different pairs.
 
 ```rank
 use numbers
-5 2 binomial
+5 binomial 2
 ```
 
 ```result
@@ -248,7 +248,7 @@ use numbers
 ### Usage
 
 ```text
-N K binomial
+N binomial K
 ```
 
 N and K are whole numbers with K between
@@ -489,7 +489,7 @@ and B.
 
 ```rank
 use numbers
-12 18 gcd
+12 gcd 18
 ```
 
 ```result
@@ -499,11 +499,11 @@ use numbers
 ### Usage
 
 ```text
-A B gcd
+A gcd B
 ```
 
 A and B are integers. Zero is allowed:
-`0 12 gcd` is 12. The result is never
+`0 gcd 12` is 12. The result is never
 negative.
 
 ### See also
@@ -606,7 +606,7 @@ divide evenly.
 
 ```rank
 use numbers
-12 18 lcm
+12 lcm 18
 ```
 
 ```result
@@ -616,7 +616,7 @@ use numbers
 ### Usage
 
 ```text
-A B lcm
+A lcm B
 Numbers lcm
 ```
 
@@ -770,7 +770,7 @@ decimal places.
 
 ```rank
 use numbers
-3.14159 2 round
+3.14159 round 2
 ```
 
 ```result
@@ -780,7 +780,7 @@ use numbers
 ### Usage
 
 ```text
-Number Places round
+Number round Places
 ```
 
 Places 0 rounds to a whole number.
@@ -1001,7 +1001,7 @@ significant first.
 ```rank
 use numbers
 Base = array 256 256 256
-16711680 Base digits
+16711680 digits Base
 ```
 
 ```result
@@ -1011,7 +1011,7 @@ Base = array 256 256 256
 ### Usage
 
 ```text
-Values Bases digits
+Values digits Bases
 ```
 
 Bases is a nonempty rank-1 integer
@@ -1034,7 +1034,7 @@ Pack a leading digit axis into integers.
 ```rank
 use numbers
 Base = array 256 256 256
-(array 255 0 0) Base fromDigits
+(array 255 0 0) fromDigits Base
 ```
 
 ```result
@@ -1044,7 +1044,7 @@ Base = array 256 256 256
 ### Usage
 
 ```text
-Digits Bases fromDigits
+Digits fromDigits Bases
 ```
 
 Bases follows the `digits` contract.

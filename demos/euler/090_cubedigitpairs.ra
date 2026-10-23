@@ -7,7 +7,7 @@ use algo
 use sequences
 use io
 
-Dice = (0 to 9) 6 combinations copy
+Dice = (0 to 9) combinations 6 copy
 Num = Dice len
 rem A 9 reads as 6, so fold it first.
 Nine' = Dice equal 9

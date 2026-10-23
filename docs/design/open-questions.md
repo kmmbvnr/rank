@@ -369,7 +369,7 @@ using general tensor and reduction primitives, before deciding what belongs in
 
 ## Linear solver dispatch
 
-The current `A B solve` contract deliberately describes `A * X = B` without
+The current `A solve B` contract deliberately describes `A * X = B` without
 exposing a factorization. The interpreter currently uses dense Gaussian
 elimination with partial pivoting. A future implementation may dispatch to:
 

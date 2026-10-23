@@ -26,8 +26,8 @@ if (options.worker) {
         runtime.execute('use numbers\nuse sequences');
         // Independent exact-binomial oracle for the lifted scalar body.
         if (mode === 'lifted') assert.equal(runtime.execute('OracleN = ((20 to 40) copy) reshape 21 1\nOracleK = (0 to 20) copy\n' +
-            '((OracleN OracleK 101 binomialmod) equal ((OracleN OracleK binomial) mod 101)) all'), true);
-        else assert.equal(runtime.execute('40 20 101 binomialmod'), runtime.execute('(40 20 binomial) mod 101'));
+            '((OracleN OracleK 101 binomialmod) equal ((OracleN binomial OracleK) mod 101)) all'), true);
+        else assert.equal(runtime.execute('40 20 101 binomialmod'), runtime.execute('(40 binomial 20) mod 101'));
         const cold = time(() => runtime.execute(`${limit} ${Math.floor(limit / 3)} 1000000007 binomialmod`));
         const heapUsed = process.memoryUsage().heapUsed;
         runtime.execute(`N = (${limit - size + 1} to ${limit}) copy\nK = N // 3`);

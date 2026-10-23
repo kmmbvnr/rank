@@ -27,7 +27,7 @@ describe('Rank random operations', () => {
         expect(value).toMatchObject({ kind: 'array', items: [2n, 3n, 1n] });
         expect(calls).toBe(2);
 
-        interpreter.execute('use random\n(array 1 2 3) 42 shuffle');
+        interpreter.execute('use random\n(array 1 2 3) shuffle 42');
         expect(calls).toBe(2);
     });
 
@@ -35,8 +35,8 @@ describe('Rank random operations', () => {
         expect(run([
             'use random',
             'Source = array 0 1 2 3 4',
-            'First = Source 42 shuffle',
-            'Second = Source 42 shuffle',
+            'First = Source shuffle 42',
+            'Second = Source shuffle 42',
             '(First equal Second) and reduce',
         ].join('\n'))).toBe('true');
     });
@@ -50,7 +50,7 @@ describe('Rank random operations', () => {
         expect(interpreter.execute([
             'use random',
             'Values = array 10 20 30',
-            'Values 3 choices',
+            'Values choices 3',
         ].join('\n'))).toEqual({
             kind: 'array',
             items: [10n, 30n, 20n],
@@ -67,7 +67,7 @@ describe('Rank random operations', () => {
             '  1 2',
             '  3 4',
             'end',
-            'M 3 choices',
+            'M choices 3',
         ].join('\n'))).toEqual({
             kind: 'array',
             items: [3n, 4n, 3n, 4n, 3n, 4n],
@@ -79,15 +79,15 @@ describe('Rank random operations', () => {
         expect(new Interpreter().execute([
             'use random',
             'A = array shape 0 2 fill 0',
-            'A 0 choices',
+            'A choices 0',
         ].join('\n'))).toEqual({ kind: 'array', items: [], shape: [0, 2] });
-        expect(() => run('use random\n(array 1 2) (-1) choices'))
+        expect(() => run('use random\n(array 1 2) choices (-1)'))
             .toThrowError('choices count must be nonnegative');
-        expect(() => run('use random\nA = array shape 0 fill 0\nA 1 choices'))
+        expect(() => run('use random\nA = array shape 0 fill 0\nA choices 1'))
             .toThrowError('choices cannot draw from an empty input');
-        expect(() => run('use random\n1 2 choices'))
+        expect(() => run('use random\n1 choices 2'))
             .toThrowError('choices expects an array or finite sequence');
-        expect(() => run('use random\nuse sequences\nfibonacci 2 choices'))
+        expect(() => run('use random\nuse sequences\nfibonacci choices 2'))
             .toThrowError('choices requires a bounded sequence');
     });
 
@@ -186,11 +186,11 @@ describe('Rank random operations', () => {
     });
 
     it('materializes finite sequences and rejects invalid inputs', () => {
-        expect(run('use random\n(0 till 5) 42 shuffle'))
+        expect(run('use random\n(0 till 5) shuffle 42'))
             .toBe('0 4 2 1 3');
         expect(() => run('use random\nuse sequences\nfibonacci shuffle'))
             .toThrowError('shuffle requires a bounded sequence');
-        expect(() => run('use random\n(array 1 2) 1.5 shuffle'))
+        expect(() => run('use random\n(array 1 2) shuffle 1.5'))
             .toThrowError('shuffle seed must be an integer');
         expect(() => run('use random\n1.5 seed'))
             .toThrowError('seed expects an integer');

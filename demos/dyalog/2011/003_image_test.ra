@@ -15,7 +15,7 @@ test "vertical then horizontal replication"
   use "003_image"
   use sequences
   Image = array 1 2 3 4 5 6 7 8 9 shape 3 3
-  Scaled = (array 2 3) Image scale
+  Scaled = (array 2 3) scale Image
   Expected = array shape 6 9
     1 1 1 2 2 2 3 3 3
     1 1 1 2 2 2 3 3 3
@@ -31,7 +31,7 @@ test "zero scaling makes an empty axis"
   use "003_image"
   use sequences
   Image = array shape 3 3 fill 1
-  Out = (array 0 2) Image scale
+  Out = (array 0 2) scale Image
   (Out shape equal array 0 6) all
 end
 
@@ -41,8 +41,8 @@ test "identity convolution preserves grayscale and RGB"
   Identity = array 1 shape 1 1
   Gray = array 0.0 0.25 0.75 1.0 shape 2 2
   RGB = array 16711680 65280 255 16777215 shape 2 2
-  SameGray = (Identity Gray convolve equal Gray) all
-  SameRGB = (Identity RGB convolveRGB equal RGB) all
+  SameGray = (Identity convolve Gray equal Gray) all
+  SameRGB = (Identity convolveRGB RGB equal RGB) all
   SameGray and SameRGB
 end
 
@@ -75,7 +75,7 @@ test "asymmetric convolution keeps orientation and wraps both axes"
     7.0 7.0 4.0
   end
   Expected = Expected / 30
-  Actual = Kernel Image convolve
+  Actual = Kernel convolve Image
   ((Actual - Expected) abs less 0.000000000001) all
 end
 
@@ -96,7 +96,7 @@ test "signed convolution clips negative values"
     0.0 0.0 0.0
     0.3 0.6 0.9
   end
-  Actual = Kernel Image convolve
+  Actual = Kernel convolve Image
   ((Actual - Expected) abs less 0.000000000001) all
 end
 
@@ -106,5 +106,5 @@ test "RGB convolution averages wrapped color channels before quantization"
   Image = (array 16711680 65280 255) reshape 1 3
   Kernel = (array 1 1 1) reshape 1 3
   Expected = array shape 1 3 fill 5592405
-  ((Kernel Image convolveRGB) equal Expected) all
+  ((Kernel convolveRGB Image) equal Expected) all
 end

@@ -21,7 +21,7 @@ rem fit in memory.
 Root = Limit isqrt
 Total = 0
 for Lo in 1 to (Limit - 1) by Block
-  Hi = (Lo + Block) (Limit) min
+  Hi = (Lo + Block) min (Limit)
   Sig = array shape Block fill 0
   for D in 1 to Root
     D2 = D * D

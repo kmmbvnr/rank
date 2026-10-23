@@ -17,7 +17,7 @@ rem of counts c_d occurs Digits! /
 rem product c_d! times and has one
 rem square sum.
 Pool = 0 to 9 array
-Combs = Pool Digits multicomb copy
+Combs = Pool multicomb Digits copy
 Rows = Combs len
 Cells = Combs reshape Rows Digits 1
 Hist' = Cells equal Pool
@@ -33,7 +33,7 @@ rem Every chain ends at 1 or in the 89
 rem cycle, which never reaches 1.
 Ends = Sums
 for # in 1 to 20
-  Ds = Ends (array 10 10 10 10) digits
+  Ds = Ends digits (array 10 10 10 10)
   Ends = (Ds * Ds) sum axis 0
 end
 Mask = Ends not equal 1

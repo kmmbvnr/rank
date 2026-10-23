@@ -43,9 +43,9 @@ Rm = (array 1 0 0 1) reshape 2 2
 Em = N - 1
 for Em greater 0
   if Em mod 2 equal 1
-    Rm = Rm Fm matmul mod Q
+    Rm = Rm matmul Fm mod Q
   end
-  Fm = Fm Fm matmul mod Q
+  Fm = Fm matmul Fm mod Q
   Em //= 2
 end
 Am = (2 * Rm 0 0 - Rm 0 1) mod Q

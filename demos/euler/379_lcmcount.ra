@@ -28,7 +28,7 @@ for P in Pr
     break
   end
   Sp = Lo (P - 1)
-  End = H (Limit // P2) min
+  End = H min (Limit // P2)
   for I in 1 to End
     V = Limit // I // P
     Q = 0
@@ -52,7 +52,7 @@ for P in Pr reverse
     continue
   end
   Sp = Lo P
-  End = H (Limit // P2) min
+  End = H min (Limit // P2)
   for I in 1 to End
     V = Limit // I // P
     E = 1

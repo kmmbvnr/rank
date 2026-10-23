@@ -3,25 +3,25 @@ use testing
 test "official example"
   use "023_factory"
   Machines = array 3 2 5
-  Machines 7 minimum_time equal 8
+  Machines minimum_time 7 equal 8
 end
 
 test "one machine"
   use "023_factory"
   Machines = array 4
-  Machines 6 minimum_time equal 24
+  Machines minimum_time 6 equal 24
 end
 
 test "parallel equal machines"
   use "023_factory"
   Machines = array 2 2 2
-  Machines 5 minimum_time equal 4
+  Machines minimum_time 5 equal 4
 end
 
 test "large integer result"
   use "023_factory"
   Machines = array 1000000000
   Expected = 1000000000000000000
-  Actual = Machines 1000000000 minimum_time
+  Actual = Machines minimum_time 1000000000
   Actual equal Expected
 end

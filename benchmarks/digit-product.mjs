@@ -29,7 +29,7 @@ use bits
 fun Lows Highs Place Mask carry_sum
   Grid = Lows (Highs * Place) outer +
   Flat = Grid reshape #
-  Selected = Flat (Flat Mask band equal 0)
+  Selected = Flat (Flat band Mask equal 0)
   return Selected sum
 end
 Lows Highs Place Mask carry_sum`;

@@ -17,8 +17,8 @@ rem g(n) = n + 2a. Trial division of
 rem 2a - 1 runs on chunks of odd
 rem candidates.
 G = 13
-for K in 5 to (N 9 min)
-  G += K G gcd
+for K in 5 to (N min 9)
+  G += K gcd G
 end
 Answer = G
 if N greater 9
@@ -28,7 +28,7 @@ if N greater 9
     P = M
     Lim = M isqrt
     for Lo in 3 to Lim by 2000000
-      Hi = Lim (Lo + 1999999) min
+      Hi = Lim min (Lo + 1999999)
       Ds = (Lo to Hi by 2) copy
       Z = (M mod Ds equal 0) indices
       if Z len greater 0

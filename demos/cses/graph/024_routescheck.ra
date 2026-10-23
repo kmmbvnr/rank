@@ -10,7 +10,7 @@ M = stdin .integer
 Count = M * 2
 Values = stdin .integer Count array
 Edges = Values reshape M 2
-Result = N Edges routes_check
+Result = N routes_check Edges
 
 if Result .possible
   "YES" print
@@ -23,7 +23,7 @@ end
 
 
 rem Find a missing directed route.
-fun N Edges routes_check
+fun N routes_check Edges
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   Back = new graph Nodes .directed
@@ -39,10 +39,10 @@ fun N Edges routes_check
   ReverseDist = Reverse .distance
   for City in Nodes
     if ForwardDist City default -1 less 0
-      return 1 City route_failure
+      return 1 route_failure City
     end
     if ReverseDist City default -1 less 0
-      return City 1 route_failure
+      return City route_failure 1
     end
   end
   return record
@@ -53,7 +53,7 @@ fun N Edges routes_check
 end
 
 
-fun From To route_failure
+fun From route_failure To
   return record
     .possible = false
     .source = From

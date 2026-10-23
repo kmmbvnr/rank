@@ -5,7 +5,7 @@ use linalg
 use numbers
 
 rem Convert B coordinates into basis C.
-fun B C transform_basis
-  P = C B solve
+fun B transform_basis C
+  P = C solve B
   return P round 4
 end

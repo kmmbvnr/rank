@@ -12,11 +12,11 @@ M = stdin .integer
 ValueCount = M * 3
 Values = stdin .integer ValueCount array
 Edges = Values reshape M 3
-Edges N flight_discount print
+Edges flight_discount N print
 
 
 rem Try the coupon on every flight.
-fun Edges N flight_discount
+fun Edges flight_discount N
   Nodes = 1 to N
   Graph = new graph Nodes .directed
   Back = new graph Nodes .directed

@@ -11,11 +11,11 @@ test "statement pair"
   use "098_anagramsquares"
   use io
   Input = "/tmp/euler098.txt"
-  "\"CARE\",\"RACE\"" "/tmp/euler098.txt" write
+  "\"CARE\",\"RACE\"" write "/tmp/euler098.txt"
   run
 
   Answer equal 9216
-  "\"BOARD\",\"BROAD\",\"APPLE\"" "/tmp/euler098.txt" write
+  "\"BOARD\",\"BROAD\",\"APPLE\"" write "/tmp/euler098.txt"
   run
 
   Answer equal 18769
@@ -25,7 +25,7 @@ test "pairs without square mapping"
   use "098_anagramsquares"
   use io
   Input = "/tmp/euler098.txt"
-  "\"ACT\",\"CAT\",\"TO\",\"OT\"" "/tmp/euler098.txt" write
+  "\"ACT\",\"CAT\",\"TO\",\"OT\"" write "/tmp/euler098.txt"
   run
 
   Answer equal 0

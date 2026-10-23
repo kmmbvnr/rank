@@ -15,7 +15,10 @@ for (const compilation of [false, true]) describe(`deep concat (compiled=${compi
     }
 
     it.each([1000, 10000])('appends %i distinct cells through a binding and reads every value', n => {
-        expect(run(`A = array shape 0 fill 0\nfor I in 0 till ${n}\n A = concat A (array I)\nend
+        expect(run(`A = array shape 0 fill 0
+for I in 0 till ${n}
+ A = concat A (array I)
+end
 Total = 0
 for X in A
  Total += X

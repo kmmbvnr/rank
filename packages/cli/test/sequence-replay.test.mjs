@@ -293,7 +293,7 @@ fun N held
     "closed" print
   end
 end
-G\' = 3 held`);
+G' = 3 held`);
         assert.equal(interpreter.execute('G 0'), 3n);
         assert.deepEqual(output, ['closed']);
         assert.throws(() => interpreter.execute('G array'), /already been consumed/);
@@ -303,7 +303,7 @@ G\' = 3 held`);
 test('the actual CLI previews assignment, a name and full without spending the generator', () => {
     const result = spawnSync(process.execPath, ['packages/cli/bin/cli.js'], {
         cwd: new URL('../../../', import.meta.url), encoding: 'utf8', timeout: 10_000,
-        input: `${definition}\nG\' = 3 nums\nG\nfull\nG array\nexit\n`,
+        input: `${definition}\nG' = 3 nums\nG\nfull\nG array\nexit\n`,
     });
     assert.equal(result.status, 0);
     assert.equal(result.stderr, '');

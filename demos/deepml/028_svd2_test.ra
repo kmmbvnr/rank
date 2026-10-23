@@ -17,8 +17,8 @@ test "first official reconstruction"
     (S 0) 0.0
     0.0 (S 1)
   end
-  Left = U D matmul
-  Actual = Left V matmul round 6
+  Left = U matmul D
+  Actual = Left matmul V round 6
   Actual equal A
 end
 
@@ -39,8 +39,8 @@ test "second official reconstruction"
     (S 0) 0.0
     0.0 (S 1)
   end
-  Left = U D matmul
-  Actual = Left V matmul round 6
+  Left = U matmul D
+  Actual = Left matmul V round 6
   Actual equal A
 end
 
@@ -69,7 +69,7 @@ test "left factor is orthogonal"
   Result = A svd_2x2
   U = Result 0
   UT = U transpose
-  Identity = U UT matmul round 6
+  Identity = U matmul UT round 6
   Identity equal array shape 2 2
     1.0 0.0
     0.0 1.0
@@ -93,8 +93,8 @@ test "rank deficient reconstruction"
     (S 0) 0.0
     0.0 (S 1)
   end
-  Left = U D matmul
-  Actual = Left V matmul round 6
+  Left = U matmul D
+  Actual = Left matmul V round 6
   Actual equal A
 end
 
@@ -111,8 +111,8 @@ test "zero matrix is supported"
     (S 0) 0.0
     0.0 (S 1)
   end
-  Left = U D matmul
-  Left V matmul equal A
+  Left = U matmul D
+  Left matmul V equal A
 end
 
 test "input must be two by two"

@@ -6,12 +6,12 @@ use numbers
 use sequences
 
 rem Fit coefficients with the normal equation without forming an inverse.
-fun X Y linear_regression
+fun X linear_regression Y
   Xt' = X transpose
-  A = Xt X matmul
-  B = Xt Y matmul
+  A = Xt matmul X
+  B = Xt matmul Y
 
-  Theta = A B solve
+  Theta = A solve B
 
   return Theta round 4
 end

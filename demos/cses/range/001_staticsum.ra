@@ -10,11 +10,11 @@ Values = stdin .integer N array
 Raw = stdin .integer (Q * 2) array
 Queries = Raw reshape Q 2
 
-Values Queries range_sums print
+Values range_sums Queries print
 
 
 rem Answer inclusive one-based ranges.
-fun Values Queries range_sums
+fun Values range_sums Queries
   Prefix = Values scan + with 0
   Left' = Queries # 0
   Right' = Queries # 1

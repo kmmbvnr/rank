@@ -53,7 +53,7 @@ Common analytical operations compile directly to native SQL primitives:
   ```rank
   Rows = Filtered array
   ```
-- Terminal operations like CSV export (`Filtered "out.csv" csv`) or printing execute the query stream directly.
+- Terminal operations like CSV export (`Filtered csv "out.csv"`) or printing execute the query stream directly.
 - SQL `NULL` values become absent fields (ADR-0100), integrating seamlessly with Rank's `default` keyword.
 
 ### 4. First-Class Plan Inspection (`sql`, `explain`)

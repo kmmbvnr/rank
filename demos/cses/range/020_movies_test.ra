@@ -13,7 +13,7 @@ test "official example"
     2 10
     7 10
   end
-  Actual = Movies Queries movie_queries
+  Actual = Movies movie_queries Queries
   Actual equal array 0 2 1
 end
 
@@ -30,6 +30,6 @@ test "ties use the earliest finish"
     2 4
     3 6
   end
-  Actual = Movies Queries movie_queries
+  Actual = Movies movie_queries Queries
   Actual equal array 3 2 1
 end

@@ -28,17 +28,17 @@ Rank establishes **Linear Algebra Solvers and Decompositions via `use linalg`**:
 ```rank
 use linalg
 
-C = A B matmul
-X = A B solve
+C = A matmul B
+X = A solve B
 unpack Values Vectors = Matrix eigh
 ```
 
 ### 1. Matrix Multiplication (`matmul`)
-- Data-first invocation: `C = A B matmul`.
+- Data-first invocation: `C = A matmul B`.
 - Contracts the last axis of $A$ with the first axis of $B$ by default.
 - General axis contraction via `axis`:
   ```rank
-  C = A B matmul axis 2 0
+  C = A matmul B axis 2 0
   ```
 - Handles vectors (dot product), matrix-vector, and tensor contractions cleanly.
 
@@ -46,7 +46,7 @@ unpack Values Vectors = Matrix eigh
 `det`, `inverse`, `diag` and `eigh` declare **intrinsic rank 2** (ADR-0200). `solve` receives whole operands because its right side may be a vector or a matrix:
 - **Direct Linear Solver (`solve`):** Solves the system $AX = B$ directly:
   ```rank
-  X = A B solve
+  X = A solve B
   ```
   Avoids manual inversion and achieves maximum numerical precision via Gaussian elimination with partial pivoting.
 - **Matrix Inversion (`inverse`):**

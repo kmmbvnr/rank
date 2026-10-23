@@ -18,7 +18,7 @@ rem and those with an opposite pair.
 Is = (1 to N) copy
 X = 1248 Is 32323 powmod - 16161
 Y = 8421 Is 30103 powmod - 15051
-G = X abs (Y abs) gcd
+G = X abs gcd (Y abs)
 Nz = (G greater 0) indices
 Dx = X Nz // G Nz
 Dy = Y Nz // G Nz
@@ -34,7 +34,7 @@ Ed = concat Sn (array Nk)
 W = Ed - St
 Cx = (Dx Od) St * 1.0
 Cy = (Dy Od) St * 1.0
-An = Cy Cx atan2
+An = Cy atan2 Cx
 Ao = An argsort
 An = An Ao
 W = W Ao
@@ -44,7 +44,7 @@ M = W len
 rem Opposite ray of each class, in
 rem the doubled circle after it.
 Tp = 8 * (1.0 atan)
-Qa = (0 - Cy) (0 - Cx) atan2
+Qa = (0 - Cy) atan2 (0 - Cx)
 Qa = (Qa less An) choose (Qa + Tp) Qa
 K2 = concat An (An + Tp)
 Ws = concat W W
@@ -64,7 +64,7 @@ I1 = (0 till M) + 1
 A = P1 J - P1 I1
 Q = P2 J - P2 I1
 O = (W * (A * A - Q) // 2) sum
-Jc = J (2 * M - 1) min
+Jc = J min (2 * M - 1)
 Hit = K2 Jc equal Qa
 Wo = Hit choose (Ws Jc) 0
 Tw = W sum

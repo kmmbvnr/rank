@@ -6,11 +6,11 @@ use io
 A = stdin .integer
 B = stdin .integer
 
-A B parity print
+A parity B print
 
 
 rem Classify a product as Even or Odd.
-fun A B parity
+fun A parity B
   if (A * B) mod 2 equal 0
     return "Even"
   end

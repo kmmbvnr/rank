@@ -38,7 +38,7 @@ for P in Digs permutations
     Bad = 0
     for K in 0 to End
       Cur = Cur * 10 + P K
-      Cut = K equal End or (Mask K bit)
+      Cut = K equal End or (Mask bit K)
       if Cut
         if K greater Start
           if P Start equal 0
@@ -68,7 +68,7 @@ for P in Digs permutations
         break
       end
     end
-    Hi = G 98 min
+    Hi = G min 98
     M = 2
     for M at most Hi and Bad + F equal 0
       Dup = 0
@@ -79,21 +79,21 @@ for P in Digs permutations
       if Dup equal 0
         N = M
         for N greater 0
-          B = 1 (N mod 10) shl
-          if (Used B band) not equal 0
+          B = 1 shl (N mod 10)
+          if (Used band B) not equal 0
             Dup = 1
           end
-          Used = Used B bor
+          Used = Used bor B
           N = N // 10
         end
         for J in 0 to Cnt - 1
           N = Blk J // M
           for N greater 0
-            B = 1 (N mod 10) shl
-            if (Used B band) not equal 0
+            B = 1 shl (N mod 10)
+            if (Used band B) not equal 0
               Dup = 1
             end
-            Used = Used B bor
+            Used = Used bor B
             N = N // 10
           end
         end

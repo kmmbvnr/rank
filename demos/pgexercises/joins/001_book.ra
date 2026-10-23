@@ -16,4 +16,4 @@ R' = R filter
   .surname equal "Farrell"
 end
 Result' = R select .starttime
-Result OutputPath csv
+Result csv OutputPath

@@ -44,7 +44,7 @@ fun Grid escape_monsters
   end
 
   rem Test a passable grid position.
-  fun Row Column valid
+  fun Row valid Column
     if Row less 0 or Row at least H
       return false
     end
@@ -63,7 +63,7 @@ fun Grid escape_monsters
     for DY Direction in DYs
       NY = Row + DY
       NX = Column + DXs Direction
-      if not NY NX valid
+      if not NY valid NX
         continue
       end
       if Time at least Danger NY NX
@@ -102,7 +102,7 @@ fun Grid escape_monsters
     for DY Direction in DYs
       NY = Row + DY
       NX = Column + DXs Direction
-      if not NY NX valid
+      if not NY valid NX
         continue
       end
       if Parent NY NX not equal -1

@@ -221,7 +221,7 @@ at least a limit.
 ```rank
 use algo
 Bag = (array 2 5 5 9) multiset
-Bag 6 ceiling
+Bag ceiling 6
 ```
 
 ```result
@@ -231,7 +231,7 @@ Bag 6 ceiling
 ### Usage
 
 ```text
-Bag Limit ceiling
+Bag ceiling Limit
 ```
 
 ### Notes
@@ -253,7 +253,7 @@ The pairs from 1 2 3 are 1 2, 1 3 and 2
 
 ```rank
 use algo
-(array 1 2 3) 2 combinations
+(array 1 2 3) combinations 2
 ```
 
 ```result
@@ -263,7 +263,7 @@ use algo
 ### Usage
 
 ```text
-Values Count combinations
+Values combinations Count
 ```
 
 Each item is used at most once, and the
@@ -357,7 +357,7 @@ first to reach 4 is at position 1.
 ```rank
 use algo
 S = (array 2 3 5) segment +
-S 4 firstatleast
+S firstatleast 4
 ```
 
 ```result
@@ -367,7 +367,7 @@ S 4 firstatleast
 ### Usage
 
 ```text
-Tree Target firstatleast
+Tree firstatleast Target
 ```
 
 Works on a segment tree. The running
@@ -386,7 +386,7 @@ value at least a limit.
 ```rank
 use algo
 Bag = (array 2 5 5 9) multiset
-Bag 5 lowerbound
+Bag lowerbound 5
 ```
 
 ```result
@@ -396,7 +396,7 @@ Bag 5 lowerbound
 ### Usage
 
 ```text
-Bag Limit lowerbound
+Bag lowerbound Limit
 ```
 
 ### See also
@@ -411,7 +411,7 @@ integer vector.
 ```rank
 use algo
 A = array 1 3 3 7
-A 3 lowerindex
+A lowerindex 3
 ```
 
 ```result
@@ -421,7 +421,7 @@ A 3 lowerindex
 ### Usage
 
 ```text
-Values Target lowerindex
+Values lowerindex Target
 ```
 
 ### Notes
@@ -488,7 +488,7 @@ but not 4.
 ```rank
 use algo
 W = (array 1 2 7) wavelet
-W (array 0 2) missing
+W missing (array 0 2)
 ```
 
 ```result
@@ -498,7 +498,7 @@ W (array 0 2) missing
 ### Usage
 
 ```text
-Data Bounds missing
+Data missing Bounds
 ```
 
 Data is a wavelet of positive integers.
@@ -516,7 +516,7 @@ may be picked more than once.
 
 ```rank
 use algo
-(array 1 2) 2 multicomb
+(array 1 2) multicomb 2
 ```
 
 ```result
@@ -526,7 +526,7 @@ use algo
 ### Usage
 
 ```text
-Values Count multicomb
+Values multicomb Count
 ```
 
 From 1 2 the pairs are 1 1, 1 2 and 2 2.
@@ -546,7 +546,7 @@ values.
 ```rank
 use algo
 Bag = (array 3 1 3) multiset
-Bag 2 ceiling
+Bag ceiling 2
 ```
 
 ```result
@@ -607,8 +607,8 @@ without removing it.
 ```rank
 use algo
 D = new deque
-D 1 pushback
-D 2 pushback
+D pushback 1
+D pushback 2
 D peekback
 ```
 
@@ -634,8 +634,8 @@ without removing it.
 ```rank
 use algo
 D = new deque
-D 1 pushback
-D 2 pushback
+D pushback 1
+D pushback 2
 D peekfront
 ```
 
@@ -724,8 +724,8 @@ Take the last value off a deque.
 ```rank
 use algo
 D = new deque
-D 1 pushback
-D 2 pushback
+D pushback 1
+D pushback 2
 D popback
 ```
 
@@ -750,8 +750,8 @@ Take the first value off a deque.
 ```rank
 use algo
 D = new deque
-D 1 pushback
-D 2 pushback
+D pushback 1
+D pushback 2
 D popfront
 ```
 
@@ -776,8 +776,8 @@ Add a value at the back of a deque.
 ```rank
 use algo
 D = new deque
-D 1 pushback
-D 2 pushback
+D pushback 1
+D pushback 2
 D peekback
 ```
 
@@ -788,7 +788,7 @@ D peekback
 ### Usage
 
 ```text
-Deque Value pushback
+Deque pushback Value
 ```
 
 A deque is a line you can add to or take
@@ -805,8 +805,8 @@ Add a value at the front of a deque.
 ```rank
 use algo
 D = new deque
-D 1 pushback
-D 2 pushfront
+D pushback 1
+D pushfront 2
 D peekfront
 ```
 
@@ -817,7 +817,7 @@ D peekfront
 ### Usage
 
 ```text
-Deque Value pushfront
+Deque pushfront Value
 ```
 
 ### See also
@@ -955,7 +955,7 @@ strictly greater than a limit.
 ```rank
 use algo
 Bag = (array 2 5 5 9) multiset
-Bag 5 upperbound
+Bag upperbound 5
 ```
 
 ```result
@@ -965,7 +965,7 @@ Bag 5 upperbound
 ### Usage
 
 ```text
-Bag Limit upperbound
+Bag upperbound Limit
 ```
 
 ### Notes
@@ -985,7 +985,7 @@ integer vector.
 ```rank
 use algo
 A = array 1 3 3 7
-A 3 upperindex
+A upperindex 3
 ```
 
 ```result
@@ -995,7 +995,7 @@ A 3 upperindex
 ### Usage
 
 ```text
-Values Target upperindex
+Values upperindex Target
 ```
 
 ### Notes

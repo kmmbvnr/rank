@@ -51,7 +51,7 @@ for Len in 2 to (Size - 1)
     J = I + Len
     Si = Side I
     Sj = Side J
-    Same = Si Sj band
+    Same = Si band Sj
     Last = Size - 1
     Whole = I equal 0 and J equal Last
     if Same equal 0 or Whole

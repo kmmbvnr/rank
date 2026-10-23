@@ -18,10 +18,10 @@ Part2 print
 
 rem Run the light grid, optionally keeping all four corners on.
 fun Lines Steps Stuck solve
-  Grid = Lines Stuck makegrid
+  Grid = Lines makegrid Stuck
 
   for # in 1 to Steps
-    Grid = Grid Stuck evolve
+    Grid = Grid evolve Stuck
   end
 
   return Grid count
@@ -29,7 +29,7 @@ end
 
 
 rem Convert input rows into one dense square boolean matrix.
-fun Lines Stuck makegrid
+fun Lines makegrid Stuck
   Queue = new queue
   N = Lines len
 
@@ -48,7 +48,7 @@ end
 
 
 rem Apply one cellular-automaton step and preserve the matrix shape.
-fun Grid Stuck evolve
+fun Grid evolve Stuck
   Queue = new queue
   N = Grid len
 

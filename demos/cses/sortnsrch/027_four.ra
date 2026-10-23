@@ -9,7 +9,7 @@ N = stdin .integer
 X = stdin .integer
 A = stdin .integer N array
 
-Answer = A X find_four
+Answer = A find_four X
 
 if Answer len equal 0
   "IMPOSSIBLE" print
@@ -19,7 +19,7 @@ end
 
 
 rem Match each pair with an earlier pair.
-fun A Target find_four
+fun A find_four Target
   Index = new index
   N = A len
 

@@ -39,7 +39,7 @@ fun Q safe rank 1
   Hit = Dx equal Dy and Different
   return not (Hit any)
 end`,
-    pairs: `Pairs = Columns 2 combinations array
+    pairs: `Pairs = Columns combinations 2 array
 I = Pairs # 0 copy
 J = Pairs # 1 copy
 Distances = J - I copy

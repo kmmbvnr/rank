@@ -8,7 +8,7 @@ use cli
 
 option Want integer = 5
 
-fun Prefix Odd mirror
+fun Prefix mirror Odd
   Tail = Prefix
   if Odd
     Tail //= 10
@@ -49,7 +49,7 @@ fun Want solve
     end
     To = 10 ** Half - 1
     for Prefix in From to To
-      Value = Prefix Odd mirror
+      Value = Prefix mirror Odd
       if Value at least 12
         if Value reps equal 4
           Hits push Value

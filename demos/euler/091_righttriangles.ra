@@ -17,10 +17,10 @@ rem count alike by symmetry.
 Ids = 1 to Size array
 X = Ids reshape Size 1
 Y = Ids reshape 1 Size
-G = X Y gcd
+G = X gcd Y
 Down' = (Size - X) * G // Y
 Left' = Y * G // X
-Inner' = Down Left min
+Inner' = Down min Left
 Cells = Inner sum
 Answer = 3 * Size * Size + 2 * Cells
 Answer print

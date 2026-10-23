@@ -68,8 +68,8 @@ A max + 1         →  допустимая арифметика после фу
 
 - Цепочки вроде `1 equal 2 equal false` запрещены без явной группировки.
   Ошибка предлагает скобки или промежуточную переменную.
-- `X W matmul + Bias sigmoid` требует промежуточной переменной:
-  `Scores = X W matmul + Bias`, затем `Scores sigmoid`.
+- `X matmul W + Bias sigmoid` требует промежуточной переменной:
+  `Scores = X matmul W + Bias`, затем `Scores sigmoid`.
   Простое продолжение `A max + 1` при этом разрешено.
 
 ## Что проверено
@@ -122,7 +122,7 @@ A max + 1         →  допустимая арифметика после фу
 | --- | --- | --- |
 | Euler 50, строка 20 | `Primes = (primes till Limit) array` | `Primes = primes till Limit array` |
 | DeepML 24, строка 15 | `Mse = (Error * Error) mean` | `Mse = Error * Error mean` |
-| Kaggle 1, строка 68 | `Probability = (Z Weights matmul + Bias) sigmoid` | `Probability = Z Weights matmul + Bias sigmoid` |
+| Kaggle 1, строка 68 | `Probability = (Z matmul Weights + Bias) sigmoid` | `Probability = Z matmul Weights + Bias sigmoid` |
 | DeepML 10, строка 21 | `Feature - Feature mean` | `Feature - (Feature mean)` |
 | DeepML 23, строка 10 | `Exps / Exps sum` | `Exps / (Exps sum)` |
 | Kaggle 4, строка 67 | `1 till Classes len` | `1 till (Classes len)` |
@@ -176,7 +176,7 @@ Error * Error | mean
 
 Если символ понадобится отдельно, разумно определить его как левую
 группировку накопленного выражения, а не как новый порядок аргументов:
-`E | B gcd` эквивалентно `(E) B gcd`. Формы `E | gcd B` нельзя молча считать
+`E | B gcd` эквивалентно `(E) gcd B`. Формы `E | gcd B` нельзя молча считать
 эквивалентными: в Rank данные предшествуют обычной функции.
 
 Для полноценного решения потребуется также определить `E | reduce *`,
@@ -191,7 +191,7 @@ Error * Error | mean
 ```text
 2 + 3 * 4 sqrt  →  (2 + 3 * 4) sqrt
 2 + 9 sqrt + 1  →  ((2 + 9) sqrt) + 1
-X W matmul + Bias sigmoid  →  ((X W matmul) + Bias) sigmoid
+X matmul W + Bias sigmoid  →  ((X matmul W) + Bias) sigmoid
 ```
 
 Последняя строка показывает возможную группировку в неограниченной модели.
@@ -223,8 +223,8 @@ X W matmul + Bias sigmoid  →  ((X W matmul) + Bias) sigmoid
 
 Естественное ограничение сложности для нескольких аргументов: только первый
 аргумент может быть накопленной формулой; остальные — отдельные значения
-или явно сгруппированные выражения. Например, предложенное `2 + 9 3 gcd`
-означает `(2 + 9) 3 gcd`, а сложный второй аргумент нужно назвать или
+или явно сгруппированные выражения. Например, предложенное `2 + 9 gcd 3`
+означает `(2 + 9) gcd 3`, а сложный второй аргумент нужно назвать или
 заключить в скобки. Это развитие существующего правила первого составного
 аргумента, а не разрешение угадывать произвольные деревья вызовов по типам
 получившихся чисел и массивов. Неоднозначные разбиения нужно отклонять.
@@ -241,8 +241,8 @@ X W matmul + Bias sigmoid  →  ((X W matmul) + Bias) sigmoid
 Fibs till 1000 sum         допустимо
 Error * Error mean round 4  допустимо
 A max + 1                  допустимо
-X W matmul + Bias           допустимо
-X W matmul + Bias sigmoid   требуется промежуточная переменная
+X matmul W + Bias           допустимо
+X matmul W + Bias sigmoid   требуется промежуточная переменная
 ```
 
 Сравнение разделяет выражения значений: вызовы в `A len equal B len`
@@ -274,7 +274,7 @@ X W matmul + Bias sigmoid   требуется промежуточная пер
 
 Но такое ограничение затронет 86 обнаруженных мест с вызовом слева от
 обычной арифметики, помимо 44 случаев справа. Примеры: `Path len - 1`,
-`X W matmul + Bias`, `Centered Transposed matmul / (N - 1)`.
+`X matmul W + Bias`, `Centered matmul Transposed / (N - 1)`.
 Оно делает грамматику строже, но не обеспечивает минимум скобок или строк.
 Для выбранной модели калькулятора предпочтительнее разрешать продолжение
 вычисления после вызова.

@@ -211,9 +211,9 @@ test('an unfinished loop survives adding an import above it and resumes after re
         s.book.toPrompt();
         assert.equal(s.repl.liveEditing, true);
         if (s.repl.liveIterationFocused) await s.enter();
-        await s.type('Choices = N K binomial');
+        await s.type('Choices = N binomial K');
         await s.enter();
-        assert.ok(s.book.current.source.includes('Choices = N K binomial'));
+        assert.ok(s.book.current.source.includes('Choices = N binomial K'));
         assert.ok(s.book.current.source.startsWith('for N in 1 to 100\n'));
     } finally { s.session.dispose(); }
 });
@@ -322,7 +322,7 @@ test('generated live-function editing scenarios recover from likely user mistake
 test('real key routing edits all argument fields and returns from the body to them', async () => {
     const s = scenario();
     try {
-        await s.type('fun X Y add');
+        await s.type('fun X add Y');
         await s.enter();
         await s.type('1');
         await s.down();

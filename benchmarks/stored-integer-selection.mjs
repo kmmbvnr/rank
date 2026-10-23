@@ -16,7 +16,7 @@ const revision = executable => execFileSync('git', ['-C', resolve(executable, '.
 const revisions = Object.fromEntries(Object.entries(runtimes).map(([name, executable]) => [name, revision(executable)]));
 const samples = Number(options.samples ?? 3);
 assert(Number.isInteger(samples) && samples >= 3);
-const expressions = { add: 'X + Z', min: 'X Z min', max: 'X max Z', choose: 'M choose X Z' };
+const expressions = { add: 'X + Z', min: 'X min Z', max: 'X max Z', choose: 'M choose X Z' };
 const names = (options.operators ?? Object.keys(expressions).join(',')).split(',');
 assert(names.every(name => name in expressions));
 const directory = mkdtempSync(join(tmpdir(), 'rank-integer-selection-'));

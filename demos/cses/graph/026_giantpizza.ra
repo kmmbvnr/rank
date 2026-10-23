@@ -22,7 +22,7 @@ for i in 0 till People
   Clauses i 1 = B
 end
 
-Result = Toppings Clauses giant_pizza
+Result = Toppings giant_pizza Clauses
 if Result .possible
   Included = Result .included
   Marks = array shape Toppings fill "-"
@@ -38,16 +38,16 @@ end
 
 
 rem Solve the wishes as a 2-SAT graph.
-fun N Clauses giant_pizza
+fun N giant_pizza Clauses
   LiteralCount = 2 * N
   Literals' = 1 to LiteralCount
   Graph = new graph Literals .directed
   for Clause in Clauses
     unpack WishA WishB = Clause
-    A = WishA N literal
-    B = WishB N literal
-    NotA = A N opposite
-    NotB = B N opposite
+    A = WishA literal N
+    B = WishB literal N
+    NotA = A opposite N
+    NotB = B opposite N
     Graph add NotA B
     Graph add NotB A
   end
@@ -76,7 +76,7 @@ end
 
 
 rem Map a signed wish to a graph vertex.
-fun Wish N literal
+fun Wish literal N
   if Wish greater 0
     return Wish
   end
@@ -85,7 +85,7 @@ end
 
 
 rem Return the complementary literal.
-fun Literal N opposite
+fun Literal opposite N
   if Literal at most N
     return Literal + N
   end

@@ -9,7 +9,7 @@ test "official example"
     1 8
     3 3
   end
-  Actual = Values Queries range_xors
+  Actual = Values range_xors Queries
   Actual equal array 3 0 6 4
 end
 
@@ -21,6 +21,6 @@ test "equal values cancel"
     2 3
     3 3
   end
-  Actual = Values Queries range_xors
+  Actual = Values range_xors Queries
   Actual equal array 0 14 9
 end

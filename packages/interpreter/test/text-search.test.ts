@@ -10,28 +10,28 @@ import { run } from './support.js';
 describe('text search', () => {
     it('uses code-point positions for first and all matches', () => {
         expect([...textMatchPositions('😀a😀a', 'a')]).toEqual([1n, 3n]);
-        expect(run('use sequences\n"😀a😀a" "😀" find')).toBe('0');
-        expect(run('use sequences\n"😀a😀a" "a" findall')).toBe('1 3');
+        expect(run('use sequences\n"😀a😀a" find "😀"')).toBe('0');
+        expect(run('use sequences\n"😀a😀a" findall "a"')).toBe('1 3');
     });
 
     it('preserves missing, empty and non-text target behavior', () => {
-        expect(() => run('use sequences\n"abc" "z" find')).toThrow('find found no matching value');
-        expect(run('use sequences\n"abc" "z" findall')).toBe('');
-        expect(run('use sequences\n"abc" "" find default -1')).toBe('-1');
-        expect(run('use sequences\n"" "" findall')).toBe('');
-        expect(run('use sequences\n"123" 1 find default -1')).toBe('-1');
+        expect(() => run('use sequences\n"abc" find "z"')).toThrow('find found no matching value');
+        expect(run('use sequences\n"abc" findall "z"')).toBe('');
+        expect(run('use sequences\n"abc" find "" default -1')).toBe('-1');
+        expect(run('use sequences\n"" findall ""')).toBe('');
+        expect(run('use sequences\n"123" find 1 default -1')).toBe('-1');
     });
 
     it('keeps array targets as whole-element equality', () => {
-        expect(run('use sequences\n(array "ab" "abc") "ab" find')).toBe('0');
-        expect(run('use sequences\n(array "ab" "abc") "b" findall')).toBe('');
+        expect(run('use sequences\n(array "ab" "abc") find "ab"')).toBe('0');
+        expect(run('use sequences\n(array "ab" "abc") findall "b"')).toBe('');
     });
 
     it('shares the ordinary path for queries that a character index cannot answer', () => {
         expect(queryDefault('find', 'abc', ownedArray(['a', 'bc']))).toBeUndefined();
         expect(queryDefault('find', 'abc', ownedArray(['']))).toBeUndefined();
         expect(queryDefault('find', '😀a', ownedArray(['😀', 'a']))).toBeDefined();
-        expect(run('use sequences\n"abc" (array "a" "bc") find default -1')).toBe('0 1');
+        expect(run('use sequences\n"abc" find (array "a" "bc") default -1')).toBe('0 1');
     });
 
     it('recognizes one code point without confusing it with one UTF-16 unit', () => {
@@ -45,30 +45,30 @@ describe('substring search', () => {
         const runtime = new Interpreter(() => {}, { compilation });
         const search = (code: string) => formatValue(runtime.execute('use sequences\n' + code)!);
         try {
-            expect(search('"0110110110" "011" find')).toBe('0');
-            expect(search('"0110110110" "011" findall')).toBe('0 3 6');
-            expect(search('"aaaa" "aa" findall')).toBe('0 1 2');
-            expect(search('"😀a😀a" "😀a" findall')).toBe('0 2');
-            expect(search('"😀éé" "é" find')).toBe('1');
-            expect(search('"é" "é" find default -1')).toBe('-1');
-            expect(search('"ab" "abc" findall')).toBe('');
-            expect(search('"" "abc" find default -1')).toBe('-1');
-            expect(search('"abc" "" findall')).toBe('');
-            expect(search('"abc" "bc" find default (1 // 0)')).toBe('1');
+            expect(search('"0110110110" find "011"')).toBe('0');
+            expect(search('"0110110110" findall "011"')).toBe('0 3 6');
+            expect(search('"aaaa" findall "aa"')).toBe('0 1 2');
+            expect(search('"😀a😀a" findall "😀a"')).toBe('0 2');
+            expect(search('"😀éé" find "é"')).toBe('1');
+            expect(search('"é" find "é" default -1')).toBe('-1');
+            expect(search('"ab" findall "abc"')).toBe('');
+            expect(search('"" find "abc" default -1')).toBe('-1');
+            expect(search('"abc" findall ""')).toBe('');
+            expect(search('"abc" find "bc" default (1 // 0)')).toBe('1');
         } finally { runtime.dispose(); }
     });
 
     it('preserves shaped target frames, explicit ranks and per-target defaults', () => {
         const runtime = new Interpreter();
         try {
-            const result = runtime.execute('use sequences\nQ = (array "ab" "bc" "z" "") reshape 2 2\n"abcabc" Q find default -1') as RankArray;
+            const result = runtime.execute('use sequences\nQ = (array "ab" "bc" "z" "") reshape 2 2\n"abcabc" find Q default -1') as RankArray;
             expect(result.shape).toEqual([2, 2]);
             expect(formatValue(result)).toBe('0 1 -1 -1');
-            expect(formatValue(runtime.execute('"abcabc" (array "ab" "bc") find rank 1 0')!)).toBe('0 1');
-            expect(formatValue(runtime.execute('"abcabc" (array "ab" "bc") findall')!)).toBe('0 3 1 4');
-            expect((runtime.execute('("abcabc" (array "ab" "bc") findall) shape') as RankArray).items).toEqual([2n, 2n]);
-            expect(() => formatValue(runtime.execute('"aaaa" (array "aa" "aaa") findall')!)).toThrow(/same shape/);
-            expect(() => formatValue(runtime.execute('"abc" (array "bc" "z") find')!)).toThrow('find found no matching value');
+            expect(formatValue(runtime.execute('"abcabc" find (array "ab" "bc") rank 1 0')!)).toBe('0 1');
+            expect(formatValue(runtime.execute('"abcabc" findall (array "ab" "bc")')!)).toBe('0 3 1 4');
+            expect((runtime.execute('("abcabc" findall (array "ab" "bc")) shape') as RankArray).items).toEqual([2n, 2n]);
+            expect(() => formatValue(runtime.execute('"aaaa" findall (array "aa" "aaa")')!)).toThrow(/same shape/);
+            expect(() => formatValue(runtime.execute('"abc" find (array "bc" "z")')!)).toThrow('find found no matching value');
         } finally { runtime.dispose(); }
     });
 

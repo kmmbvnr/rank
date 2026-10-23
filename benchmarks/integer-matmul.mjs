@@ -27,7 +27,7 @@ H = array shape 121 121 fill ${b}${real ? '.0' : ''}
 B = A
 X = ${real ? '0.0' : '0'}
 for I in 1 to 10
-  B = A H matmul
+  B = A matmul H
   X += B 0 0
 end
 X print`;

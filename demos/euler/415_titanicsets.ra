@@ -23,7 +23,7 @@ rem to L and, above L, from
 rem Fj(x) = T - sum over k >= 2 of
 rem k^j Fj(x // k). Sums over l run by
 rem blocks of equal m.
-fun X Md tri
+fun X tri Md
   Od = X mod 2
   Ha = X // (2 - Od)
   Hb = (X + 1) // (1 + Od)
@@ -31,7 +31,7 @@ fun X Md tri
   return Rs mod Md
 end
 
-fun X Md sqs
+fun X sqs Md
   M6 = 6 * Md
   Xa = X mod M6
   Xb = (X + 1) mod M6
@@ -40,7 +40,7 @@ fun X Md sqs
   return (Rs // 6) mod Md
 end
 
-fun E Md p2
+fun E p2 Md
   Rs = E * 0 + 1
   Bs = 2
   for E max greater 0
@@ -55,7 +55,7 @@ end
 
 Mod = 100000000
 Rn = N isqrt + 2
-Lm = (L max Rn) N min
+Lm = (L max Rn) min N
 Ph = (0 to Lm) copy
 Sm = array shape (Lm + 1) fill 1
 Rt = Lm isqrt
@@ -95,7 +95,7 @@ for I in Nq to 1 by -1
   X = N // I
   if X greater Lm
     R = X isqrt
-    K0 = (X // (Lm + 1)) R min
+    K0 = (X // (Lm + 1)) min R
     rem k <= K0: X // k > Lm, so the
     rem recursion tables L0, L1, L2.
     Pa0 = 0
@@ -129,11 +129,11 @@ for I in Nq to 1 by -1
     Hi = Hx (0 to Qm - 1)
     Lo = Hx (1 to Qm)
     D0 = (Hi - Lo) mod Mod
-    Tx = Hx Mod tri
+    Tx = Hx tri Mod
     Ta = Tx (0 to Qm - 1)
     Tb = Tx (1 to Qm)
     D1 = (Ta - Tb) mod Mod
-    Sx = Hx Mod sqs
+    Sx = Hx sqs Mod
     Sa = Sx (0 to Qm - 1)
     Sb = Sx (1 to Qm)
     D2 = (Sa - Sb) mod Mod
@@ -154,8 +154,8 @@ R2 = N isqrt
 Ls = (1 to R2) copy
 Ms = N // Ls
 Sk = Ms at most Lm
-Mc = Ms Lm min
-Ic = Ls Nq min
+Mc = Ms min Lm
+Ic = Ls min Nq
 G0 = Sk choose (C0 Mc) (L0 Ic)
 G1 = Sk choose (C1 Mc) (L1 Ic)
 G2 = Sk choose (C2 Mc) (L2 Ic)
@@ -166,7 +166,7 @@ Nb = 6 * Nm * Lq mod Mod
 Pl = Pl - Nb * G1 mod Mod
 Ls2 = Lq * Lq mod Mod
 Pl = Pl + 2 * Ls2 * G2 mod Mod
-Tw = (Ls - 1) Mod p2
+Tw = (Ls - 1) p2 Mod
 Tm1 = (Tw - 1) mod Mod
 Su1 = ((Pl mod Mod) * Tm1 mod Mod) sum
 rem Blocks of equal m above the root.
@@ -178,8 +178,8 @@ Ab = Lb + 1
 Ca = Na * (C0 Mb) mod Mod
 Cb = (0 - 6 * Nm * (C1 Mb)) mod Mod
 Cc = 2 * (C2 Mb) mod Mod
-Tb = Hb Mod p2
-Ta = (Ab - 1) Mod p2
+Tb = Hb p2 Mod
+Ta = (Ab - 1) p2 Mod
 Bm = Hb mod Mod
 Am = (Ab - 1) mod Mod
 E0 = (Tb - Ta) mod Mod
@@ -191,8 +191,8 @@ E2a = (Am * Am - 2 * Am + 3) mod Mod
 E2 = E2b * Tb mod Mod
 E2 = E2 - (E2a * Ta mod Mod)
 Z0 = Hb - Ab + 1
-Z1 = Hb Mod tri - ((Ab - 1) Mod tri)
-Z2 = Hb Mod sqs - ((Ab - 1) Mod sqs)
+Z1 = Hb tri Mod - ((Ab - 1) tri Mod)
+Z2 = Hb sqs Mod - ((Ab - 1) sqs Mod)
 Q0 = Ca * ((E0 - Z0) mod Mod) mod Mod
 Q1 = Cb * ((E1 - Z1) mod Mod) mod Mod
 Q2 = Cc * ((E2 - Z2) mod Mod) mod Mod

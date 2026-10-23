@@ -10,4 +10,4 @@ argument OutputPath path = "demos/pgexercises/data/001_all.csv"
 
 Db = DbPath sqlite
 Result' = Db .facilities
-Result OutputPath csv
+Result csv OutputPath

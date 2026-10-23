@@ -60,7 +60,7 @@ Ordinary body bindings retain their established type across iterations.
 
 A real binding that holds `infinity` or `-infinity` accepts an integer as its
 first finite value and then settles on `integer`, so
-`Best = infinity; Best = Best Candidate min` stays exact over integers. Like
+`Best = infinity; Best = Best min Candidate` stays exact over integers. Like
 `.NA` in ADR-0108, the seed is a placeholder, not a type commitment. Once the
 binding holds a finite value its type is invariant again.
 

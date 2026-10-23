@@ -5,7 +5,7 @@ import { arrayForWrite, isFlatScalarArray, noteArrayBinding, ownedArray } from '
 
 function demo(runtime: Interpreter, path: string, name: string) {
     const source = readFileSync(new URL(`../../../${path}`, import.meta.url), 'utf8');
-    runtime.execute(source.slice(source.search(new RegExp(`\\bfun (?:[A-Z]\\w*[ \t]+)*${name}\\b`))));
+    runtime.execute(source.slice(source.search(new RegExp(`\\bfun (?:[A-Z]\\w*[ 	]+)*${name}\\b`))));
     const function_ = runtime.variables.get(name);
     if (!function_ || !isNativeFunction(function_)) throw new Error(`missing ${name}`);
     return function_;
@@ -53,7 +53,7 @@ it('rechecks builtin identity before borrowing after a host replacement', () => 
         const max = demo(runtime, 'demos/cses/sortnsrch/008_maxsubarray.ra', 'max_subarray');
         const first = input(1n);
         expect(max.call([first])).toBe(64n);
-        runtime.execute('fun X Y hostreplacement\n return X\nend');
+        runtime.execute('fun X hostreplacement Y\n return X\nend');
         runtime.variables.set('max', runtime.variables.get('hostreplacement')!);
         const next = input(1n);
         const stats = new RuntimeDiagnostics();
@@ -184,7 +184,7 @@ it.each([false, true])('borrows the unchanged queens safety reader (compilation=
     const runtime = new Interpreter(undefined, { compilation });
     try {
         const source = readFileSync(new URL('../../../demos/classic/queens_iterative.ra', import.meta.url), 'utf8');
-        runtime.execute('use numbers\n' + source.slice(source.indexOf('fun Board Row safe'), source.indexOf('\nfor Board in 8 queens')));
+        runtime.execute('use numbers\n' + source.slice(source.indexOf('fun Board safe Row'), source.indexOf('\nfor Board in 8 queens')));
         const safe = runtime.variables.get('safe');
         if (!safe || !isNativeFunction(safe)) throw Error('missing safe');
         const board = ownedArray([0n, 2n, 4n]);
@@ -230,13 +230,13 @@ it.each([false, true])('keeps changing scalar captures visible in a proved array
     try {
         expect(runtime.execute(`fun outer
  Offset = 1
- fun A I read
+ fun A read I
   return (A I) + Offset
  end
  A = array 1 2 3
  Total = 0
  for I in 0 till 2
-  Total += A 0 read
+  Total += A read 0
   Offset += 1
  end
  return Total

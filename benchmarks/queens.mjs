@@ -30,7 +30,7 @@ Boards = Mask "Q" "." choose
 for Board i in Boards
   i + 1 print
   for Row in Board
-    Row " " join print
+    Row join " " print
   end
   "" print
 end`;

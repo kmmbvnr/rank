@@ -47,7 +47,7 @@ end
         expect(compare(`use text
 fun X helper
   Prefix = "12"
-  return X text Prefix startswith
+  return X text startswith Prefix
 end
 123 helper`)).toMatchObject({ value: 'true', calls: 1 });
     });
@@ -126,14 +126,14 @@ Result`)).toBe('31');
 
     it.each([['-13', '5'], ['13', '-5'], ['-13', '-5'], ['9007199254740993', '7']])(
         'preserves floor division and remainder for %s / %s', (a, b) => {
-            expect(compare(`fun A B helper
+            expect(compare(`fun A helper B
   Q = A // B
   R = A mod B
   return Q * 10 + R
 end
 Result = 0
 for I in 1 to 1
-  Result = (${a}) (${b}) helper
+  Result = (${a}) helper (${b})
 end
 Result`).calls).toBe(1);
         });
@@ -194,12 +194,12 @@ end`)).toHaveProperty('error');
     });
 
     it('rejects duplicate parameter bindings before compiled execution', () => {
-        expect(compare(`fun X X helper
+        expect(compare(`fun X helper X
   return X
 end
 Result = 0
 for I in 1 to 1
-  Result = 1 2 helper
+  Result = 1 helper 2
 end
 Result`)).toMatchObject({ error: expect.stringContaining('Duplicate function parameter X'), calls: 0 });
     });

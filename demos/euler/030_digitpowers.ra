@@ -18,7 +18,7 @@ fun Power digit_power_numbers
   Upper = 6 * 9 ** Power
   Total = 0
   for N in 2 to Upper
-    Sum = N Power digit_power_sum
+    Sum = N digit_power_sum Power
     if Sum equal N
       Total += N
     end
@@ -29,7 +29,7 @@ end
 
 rem Apply the power to every decimal digit,
 rem then reduce the resulting values.
-fun N Power digit_power_sum
+fun N digit_power_sum Power
   Text = N text
   Digits' = Text integer rank 0
   Powers' = Digits ** Power

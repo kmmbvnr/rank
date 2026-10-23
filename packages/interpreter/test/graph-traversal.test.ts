@@ -101,15 +101,15 @@ describe('graph traversal providers', () => {
 G = new graph (array 1 2 3) .directed
 G add 2 3 -1
 `;
-        expect(() => run(source + 'G 1 dijkstra')).toThrow('dijkstra requires nonnegative edge weights');
-        expect(() => run(source + 'G 9 dijkstra')).toThrow('graph does not contain the start vertex');
+        expect(() => run(source + 'G dijkstra 1')).toThrow('dijkstra requires nonnegative edge weights');
+        expect(() => run(source + 'G dijkstra 9')).toThrow('graph does not contain the start vertex');
     });
 
     it.each(['bfs', 'dfs', 'dijkstra'])('%s retains text keys and missing disconnected distances', search => {
         expect(run(`use graph
 G = new graph (array "start" "next" "alone") .directed
 G add "start" "next"
-R = G "start" ${search}
+R = G ${search} "start"
 D = R .distance
 P = R .parent
 tuple (D "next") (P "next") (D "alone" default -1)

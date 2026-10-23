@@ -13,7 +13,7 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('2 ** 3 ** 2')).toBe('512');
         expect(run('-2 ** 2')).toBe('-4');
         expect(run('2 + 9 sqrt + 1.0')).toBe(String(Math.sqrt(11) + 1));
-        expect(run('2 + 9 3 gcd')).toBe('1');
+        expect(run('2 + 9 gcd 3')).toBe('1');
         expect(run('2 + 9 type')).toBe('.integer');
     });
 
@@ -35,9 +35,9 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
     });
 
     it('explains implicit addressing while preparing a postfix call', () => {
-        const source = 'A = array 1 2 3\nfun X Y add\n return X + Y\nend\n';
-        expect(run(source + 'A copy A add')).toBe('2 4 6');
-        expect(run(source + 'A copy (A copy) add')).toBe('2 4 6');
+        const source = 'A = array 1 2 3\nfun X add Y\n return X + Y\nend\n';
+        expect(run(source + 'A copy add A')).toBe('2 4 6');
+        expect(run(source + 'A copy add (A copy)')).toBe('2 4 6');
         expect(run(source + 'Indices = array 2 0\nA Indices copy')).toBe('3 1');
         expect(run(source + 'Indices = array 2 0\nA copy Indices copy')).toBe('3 1');
         try {
@@ -57,9 +57,9 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         const runtime = new Interpreter(() => {}, { scalarCompilation: compiled, blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
         runtime.execute('use sequences');
         runtime.execute('A = array 1 2 3');
-        runtime.execute('fun X Y add\n return X + Y\nend');
+        runtime.execute('fun X add Y\n return X + Y\nend');
         expect(() => runtime.execute('A copy A copy add')).toThrowError('While preparing arguments for copy');
-        expect(formatValue(runtime.execute('A copy (A copy) add')!)).toBe('2 4 6');
+        expect(formatValue(runtime.execute('A copy add (A copy)')!)).toBe('2 4 6');
     });
 
     it('applies calls after a comparison to its result and keeps logical clauses independent', () => {
@@ -77,31 +77,30 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run('not 2 less 3')).toBe('false');
         expect(run('not 2 even or 3 odd')).toBe('true');
         expect(run('L = array 1 2 3\nnot 5 in L')).toBe('true');
-        expect(run('use text\nT = "hello"\nnot T "he" startswith')).toBe('false');
+        expect(run('use text\nT = "hello"\nnot T startswith "he"')).toBe('false');
         expect(run('(1 equal 2) equal false')).toBe('true');
     });
 
     it('groups user functions and aliases without depending on the input values', () => {
         expect(run('fun X twice\n return X * 2\nend\n2 + 9 twice')).toBe('22');
         expect(run('root = sqrt\n2 + 9 root')).toBe(String(Math.sqrt(11)));
-        expect(run('op = gcd\n2 + 9 3 op')).toBe('1');
-        expect(run('fun A B pair\n return A * 10 + B\nend\n2 + 9 3 pair')).toBe('113');
+        expect(run('op = gcd\n2 + 9 op 3')).toBe('1');
+        expect(run('fun A pair B\n return A * 10 + B\nend\n2 + 9 pair 3')).toBe('113');
         const interpreter = new Interpreter(() => {}, { scalarCompilation: compiled, blockCompilation: compiled, integerLoopCompilation: compiled, tensorFusion: compiled });
         interpreter.execute('use numbers\nroot = sqrt');
         expect(formatValue(interpreter.execute('2 + 9 root')!)).toBe(String(Math.sqrt(11)));
         expect(formatValue(interpreter.execute('alias_fn = root\n2 + 9 alias_fn')!)).toBe(String(Math.sqrt(11)));
         interpreter.execute('op = gcd');
-        expect(formatValue(interpreter.execute('2 + 9 3 op')!)).toBe('1');
+        expect(formatValue(interpreter.execute('2 + 9 op 3')!)).toBe('1');
     });
 
-    it('requires explicit grouping for a dynamic function parameter', () => {
-        // A function must itself follow data when passed through the host API.
+    it('uses the complete left operand for a dynamic function parameter', () => {
         const runtime = new Interpreter(() => {}, { scalarCompilation: compiled });
         runtime.execute('use numbers\nfun apply op\n return 2 + 9 op\nend');
         const root = runtime.execute('sqrt');
         const apply = runtime.variables.get('apply');
         if (!apply || !isNativeFunction(apply) || root === undefined) throw new Error('expected function');
-        expect(() => apply.call([root])).toThrowError('Group its input');
+        expect(formatValue(apply.call([root]))).toBe(String(Math.sqrt(11)));
         runtime.execute('fun grouped op\n return (2 + 9) op\nend');
         const grouped = runtime.variables.get('grouped');
         if (!grouped || !isNativeFunction(grouped)) throw new Error('expected function');
@@ -114,16 +113,16 @@ for (const compiled of [true, false]) describe(`expression grouping (compiled: $
         expect(run(source + 'A 0 op')).toBe('1');
         expect(run(source + '(A 0) max')).toBe('1');
         expect(run(source + 'A max sqrt')).toBe(String(Math.sqrt(8)));
-        expect(run('2 + 3 4 min')).toBe('4');
-        expect(run('A = array 1 8\n(A max) 5 min')).toBe('5');
+        expect(run('2 + 3 min 4')).toBe('4');
+        expect(run('A = array 1 8\n(A max) min 5')).toBe('5');
     });
 
     it('reads a minus glued to its operand after a space as a sign', () => {
         const source = 'A = array 1 2 3 4\nX = 5\n';
-        expect(run(source + 'A -1 shift')).toBe('2 3 4 0');
-        expect(run(source + 'A -1 shift with 9')).toBe('2 3 4 9');
-        expect(run(source + 'Y = -1\nA Y shift')).toBe('2 3 4 0');
-        expect(run(source + 'A 1 shift with -100')).toBe('-100 1 2 3');
+        expect(run(source + 'A shift -1')).toBe('2 3 4 0');
+        expect(run(source + 'A shift -1 with 9')).toBe('2 3 4 9');
+        expect(run(source + 'Y = -1\nA shift Y')).toBe('2 3 4 0');
+        expect(run(source + 'A shift 1 with -100')).toBe('-100 1 2 3');
         expect(run(source + 'B = A window 2 padding 1 with -5\nB shape')).toBe('5 2');
         expect(run(source + 'X - 1')).toBe('4');
         expect(run(source + 'X-1')).toBe('4');
@@ -160,7 +159,7 @@ describe('grouping diagnostics', () => {
             expect(() => parse('use numbers\nA = array 1 2\n' + expression))
                 .toThrowError('Name the result on the left, then apply the function');
         }
-        expect(() => parse('fun X sigmoid\n return X\nend\nuse linalg\nX W matmul + Bias sigmoid'))
+        expect(() => parse('fun X sigmoid\n return X\nend\nuse linalg\nX matmul W + Bias sigmoid'))
             .toThrowError('intermediate variable');
     });
 });

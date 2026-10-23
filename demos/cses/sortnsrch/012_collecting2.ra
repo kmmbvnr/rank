@@ -11,11 +11,11 @@ A = stdin .integer N array
 Raw = stdin .integer (M * 2) array
 Swaps = Raw reshape M 2
 
-A Swaps collecting_updates print
+A collecting_updates Swaps print
 
 
 rem Update the round count after swaps.
-fun Values Swaps collecting_updates
+fun Values collecting_updates Swaps
   Index = new index
   Queue = new queue
   A = Values copy

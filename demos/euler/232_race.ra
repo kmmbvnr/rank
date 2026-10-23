@@ -43,5 +43,5 @@ for I in (Goal - 1) to 0 by -1
   F = Row take Goal
   Hn = 2 * F - Hn
 end
-Answer = F 0 8 round
+Answer = F 0 round 8
 Answer print

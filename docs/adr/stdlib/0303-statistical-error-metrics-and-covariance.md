@@ -27,7 +27,7 @@ Rank establishes **Statistical Error Metrics and Covariance via `use stats`**:
 use stats
 
 Spread = Values std
-Loss = Predictions Targets mse
+Loss = Predictions mse Targets
 Cov = Features covariance
 ```
 
@@ -47,12 +47,12 @@ Rank provides dedicated first-class loss metrics:
 - `mae`: Mean Absolute Error.
 - Data-first invocation over predictions and targets:
   ```rank
-  Loss = Pred Target mse
+  Loss = Pred mse Target
   ```
 - **Automatic broadcasting:** Operands are broadcast to a common shape before differences are squared or absolutized.
 - **Axis-selective loss:** With `axis`, computes per-sample or per-feature error frames:
   ```rank
-  SampleLosses = Pred Target mse axis 1
+  SampleLosses = Pred mse Target axis 1
   ```
 
 ### 3. Sample Covariance Matrix (`covariance`)
@@ -73,7 +73,7 @@ Ordinary binding completes a statistical result. Deferred binding preserves the
 calculation, including scalar reductions:
 
 ```rank
-Loss' = Predictions Targets mse
+Loss' = Predictions mse Targets
 Cov' = Features covariance
 Saved = Cov
 ```
@@ -88,7 +88,7 @@ computed covariance cells.
 ## Consequences
 
 ### Positive
-* **Self-documenting ML losses:** `Pred Target mse` eliminates repetitive squaring and mean expressions.
+* **Self-documenting ML losses:** `Pred mse Target` eliminates repetitive squaring and mean expressions.
 * **Exact covariance framing:** Clean feature-vs-observation axis specifications eliminate the transpose-and-reshape headaches of traditional `cov()` functions.
 * **Dimensional consistency:** All metrics integrate naturally with Rank's leading-frame and axis reductions (ADR-0200).
 * **Safe error handling:** Clear symbol errors (`.InsufficientData`, `.EmptyReduction`) rather than silent NaN values.

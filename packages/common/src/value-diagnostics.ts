@@ -1,7 +1,27 @@
-import { analyzeValues, describeTypes, functionTestExamples, isFunctionStatement, type ValueFacts, type FunctionStatement, type FunctionTestExample, type ImportedFunction, type Program, type FunctionCallFacts } from '@arrrank/language';
+import { functionCallSignature, analyzeValues, describeTypes, functionTestExamples, isFunctionStatement, type ValueFacts, type FunctionStatement, type FunctionTestExample, type ImportedFunction, type Program, type FunctionCallFacts } from '@arrrank/language';
 import { isNativeFunction, isRankArray, parse, type RankValue } from '@arrrank/interpreter';
 import type { Notebook } from './notebook.js';
 import type { OutputLine } from './repl-session.js';
+
+function parseInScope(source: string, bindings: ReadonlyMap<string, ValueFacts>,
+    functions: ReadonlyMap<string, FunctionStatement>, imports: ReadonlyMap<string, ImportedFunction>): Program {
+    const declarations = new Map(functions);
+    for (const [name, imported] of imports) {
+        const definition = imported.functions.get(imported.name);
+        if (definition) declarations.set(name, definition);
+    }
+    const arities = new Map<string, readonly number[] | false>();
+    for (const [name, value] of bindings) if (!value.types.includes('function')) arities.set(name, false);
+    for (const [name, definition] of declarations) {
+        const value = bindings.get(name);
+        if (!value || value.types.includes('function')) arities.set(name, [functionCallSignature(definition).arity]);
+    }
+    return parse(source, '<input>', {
+        bindings: arities,
+        signatures: new Map([...declarations].map(([name, definition]) => [name, functionCallSignature(definition)])),
+        declarations,
+    });
+}
 
 /** Copy metadata, never array cells, lazy sequences, getters or function results. */
 export function runtimeValueFacts(values: ReadonlyMap<string, RankValue>,
@@ -61,7 +81,7 @@ export function notebookScope(book: Notebook, runtime: readonly [string, ValueFa
         const cell = book.cells[index];
         if (!cell.command) {
             try {
-                const analysis = analyzeValues(parse(cell.source), bindings, functions, [], loadModule, imports);
+                const analysis = analyzeValues(parseInScope(cell.source, bindings, functions, imports), bindings, functions, [], loadModule, imports);
                 bindings = new Map(analysis.bindings);
                 functions = new Map(analysis.functions);
                 imports = new Map(analysis.imports);
@@ -122,7 +142,7 @@ export function notebookValueDiagnostics(book: Notebook, runtime: readonly [stri
     if (current.command || !current.source.trim()) return output;
     const { bindings, functions, imports } = scope ?? notebookScope(book, runtime, loadModule);
     try {
-        const program = parse(current.source);
+        const program = parseInScope(current.source, bindings, functions, imports);
         const definitions = program.statements.filter(isFunctionStatement);
         const locatedExamples = (tests?.examples ?? []).map(example => ({ example,
             path: tests!.path.split(/[\\/]/).at(-1)! }));

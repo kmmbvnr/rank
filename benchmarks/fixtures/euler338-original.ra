@@ -22,8 +22,8 @@ fun N products
     B = N // (I - 1)
     NA = N // A + 1
     NB = N // B + 2
-    Next = NA NB min
-    Next = Next (N + 1) min
+    Next = NA min NB
+    Next = Next min (N + 1)
     Sum += (Next - I) * A * B
     I = Next
   end

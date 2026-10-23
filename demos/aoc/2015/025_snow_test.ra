@@ -3,10 +3,10 @@ use testing
 test "known grid codes"
   use "025_snow"
 
-  1 1 code equal 20151125
-  2 1 code equal 31916031
-  1 2 code equal 18749137
-  6 6 code equal 27995004
+  1 code 1 equal 20151125
+  2 code 1 equal 31916031
+  1 code 2 equal 18749137
+  6 code 6 equal 27995004
 end
 
 test "the manual sentence is parsed"

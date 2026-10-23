@@ -34,7 +34,7 @@ for P in Pr
       for Q in Fs
         for D mod Q equal 0
           Part = D // Q
-          Zero = Part P fibmod equal 0
+          Zero = Part fibmod P equal 0
           if not Zero
             break
           end
@@ -97,7 +97,7 @@ for Lo in 1 to Limit by Segment
 end
 
 Mod = 10000000000000000
-Last = Index Mod fibmod
+Last = Index fibmod Mod
 Root = 5 sqrt
 Phi = (1 + Root) / 2
 Ten = 10 log
@@ -111,7 +111,7 @@ Answer += "e" + (Exp text)
 Answer print
 
 rem Fast doubling F(n) modulo Mod.
-fun N Mod fibmod
+fun N fibmod Mod
   A = 0
   B = 1
   for Bit in N binary

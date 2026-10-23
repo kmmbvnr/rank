@@ -7,7 +7,7 @@ test "fills spending and builds total spend"
   Train = "[{\"Age\":20,\"CryoSleep\":true,\"VIP\":false,\"RoomService\":1,\"FoodCourt\":2,\"ShoppingMall\":3,\"Spa\":4,\"VRDeck\":5}, {\"Age\":30,\"CryoSleep\":false,\"VIP\":true,\"RoomService\":3,\"FoodCourt\":4,\"ShoppingMall\":5,\"Spa\":6}]" json
   Test = "[{\"CryoSleep\":false,\"RoomService\":2,\"FoodCourt\":3,\"ShoppingMall\":4,\"Spa\":5,\"VRDeck\":6}]" json
 
-  unpack X Xtest = Train Test spending_features
+  unpack X Xtest = Train spending_features Test
   Expected = array shape 1 4
     0.0 0.0 25.0 20.0
   end
@@ -33,6 +33,6 @@ test "uses training medians for missing test values"
   Train = "[{\"Age\":20,\"RoomService\":1,\"FoodCourt\":2,\"ShoppingMall\":3,\"Spa\":4,\"VRDeck\":5}]" json
   Test = "[{\"Age\":30}]" json
 
-  unpack X Xtest = Train Test spending_features
+  unpack X Xtest = Train spending_features Test
   Xtest 0 3 equal 15.0
 end

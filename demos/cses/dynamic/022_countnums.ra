@@ -6,11 +6,11 @@ use sequences
 
 Lower = stdin .integer
 Upper = stdin .integer
-Lower Upper count_numbers print
+Lower count_numbers Upper print
 
 
 rem Subtract two inclusive prefixes.
-fun Lower Upper count_numbers
+fun Lower count_numbers Upper
   High = Upper valid_up_to
   Low = Lower - 1 valid_up_to
   return High - Low

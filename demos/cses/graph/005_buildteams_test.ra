@@ -10,7 +10,7 @@ test "official example"
     4 5
   end
   Graph add Edges
-  Result = Graph 5 build_teams
+  Result = Graph build_teams 5
   Result .possible equal true
   Result .teams equal array 1 2 2 1 2
 end
@@ -25,7 +25,7 @@ test "odd cycle is impossible"
     3 1
   end
   Graph add Edges
-  Result = Graph 3 build_teams
+  Result = Graph build_teams 3
   Result .possible equal false
 end
 
@@ -33,7 +33,7 @@ test "isolated pupils get a team"
   use "005_buildteams"
   use graph
   Graph = new graph (1 to 4) .undirected
-  Result = Graph 4 build_teams
+  Result = Graph build_teams 4
   Result .possible equal true
   Result .teams equal array 1 1 1 1
 end
@@ -48,7 +48,7 @@ test "colors separate components"
     4 5
   end
   Graph add Edges
-  Result = Graph 6 build_teams
+  Result = Graph build_teams 6
   Result .possible equal true
   Expected = array 1 2 1 1 2 1
   Result .teams equal Expected

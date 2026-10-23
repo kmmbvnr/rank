@@ -144,5 +144,5 @@ end
 Cols' = 0 till Size array mod Wd
 Ab' = (Cols - Off) abs
 Total = (Dp * Ab) sum
-Answer = Total / Sl 8 round
+Answer = Total / Sl round 8
 Answer print

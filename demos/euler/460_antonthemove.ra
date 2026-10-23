@@ -34,7 +34,7 @@ Mk (Of Nz) = Nz
 Ow = (Mk scan max) copy
 Px = Ow
 Py = Yl Ow + (0 till Np) - Of Ow
-Th = (Py * 1.0) ((W - Px) * 1.0) atan2
+Th = (Py * 1.0) atan2 ((W - Px) * 1.0)
 Od = Th argsort
 Px = (Px Od) copy
 Py = (Py Od) copy
@@ -47,7 +47,7 @@ for J in 1 to Np - 1
   Yj = Py J
   Dx = Xj - Px Is
   Dy = Yj - Py Is
-  Ok = (Dx Dy min) at least 0
+  Ok = (Dx min Dy) at least 0
   Ll = (Dx * Dx + Dy * Dy) sqrt
   Fl = Dy equal 0
   Dn = Fl choose 1 Dy
@@ -57,5 +57,5 @@ for J in 1 to Np - 1
   Bt J = (Ok choose Cs 1000000.0) min
 end
 Ed = (Px equal W) indices
-Answer = (2 * (Bt Ed) min) 9 round
+Answer = (2 * (Bt Ed) min) round 9
 Answer print

@@ -29,8 +29,8 @@ for V in S to 1 by -1
   Next = array shape Rows Cols fill 0
   for U in 0 to N
     for C in 0 to (N - U)
-      Ways = (N - U) C binomial
-      Gain = V * (C (Top - U max 0) min)
+      Ways = (N - U) binomial C
+      Gain = V * (C min (Top - U max 0))
       for T in 0 to (Sum - Gain)
         Old = W U T
         Nu = U + C

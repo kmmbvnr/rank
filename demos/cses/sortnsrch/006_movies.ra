@@ -11,14 +11,14 @@ Movies = new queue
 for # in 1 to N
   Start = stdin .integer
   Finish = stdin .integer
-  Movies push Start Finish movie
+  Movies push Start movie Finish
 end
 
 Movies watch print
 
 
 rem Describe one scheduled movie.
-fun Start Finish movie
+fun Start movie Finish
   Movie = record
     .start = Start
     .finish = Finish

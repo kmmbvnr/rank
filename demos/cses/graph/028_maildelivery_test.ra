@@ -16,7 +16,7 @@ test "official example"
     4 5
   end
   Graph add Edges
-  Path = Graph 8 mail_delivery
+  Path = Graph mail_delivery 8
   Path equal array 1 2 3 5 4 2 6 3 1
 end
 
@@ -29,7 +29,7 @@ test "walks around a simple square"
   Graph add 2 3
   Graph add 3 4
   Graph add 4 1
-  Path = Graph 4 mail_delivery
+  Path = Graph mail_delivery 4
   Path equal array 1 2 3 4 1
 end
 
@@ -40,7 +40,7 @@ test "rejects odd vertex degrees"
   Graph = new graph (1 to 3) .undirected
   Graph add 1 2
   Graph add 2 3
-  Path = Graph 2 mail_delivery
+  Path = Graph mail_delivery 2
   Path len equal 0
 end
 
@@ -53,6 +53,6 @@ test "rejects a disconnected cycle"
   Graph add 1 2
   Graph add 3 4
   Graph add 3 4
-  Path = Graph 4 mail_delivery
+  Path = Graph mail_delivery 4
   Path len equal 0
 end

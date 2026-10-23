@@ -45,11 +45,11 @@ describe('floor modulo', () => {
 
     it('preserves exact integer division identities beyond Number precision', () => {
         const interpreter = new Interpreter();
-        interpreter.execute('fun A B remainder\nreturn A mod B\nend\nfun A B quotient\nreturn A // B\nend');
+        interpreter.execute('fun A remainder B\nreturn A mod B\nend\nfun A quotient B\nreturn A // B\nend');
         for (const a of [-1000000000000000000000000000001n, -6n, -5n, -1n, 0n, 1n, 5n, 6n, 1000000000000000000000000000001n]) {
             for (const b of [-7n, -3n, -1n, 1n, 3n, 7n]) {
-                const r = interpreter.execute(`(${a}) (${b}) remainder`) as bigint;
-                const q = interpreter.execute(`(${a}) (${b}) quotient`) as bigint;
+                const r = interpreter.execute(`(${a}) remainder (${b})`) as bigint;
+                const q = interpreter.execute(`(${a}) quotient (${b})`) as bigint;
                 expect(q * b + r).toBe(a);
                 expect(r === 0n || (r < 0n) === (b < 0n)).toBe(true);
                 expect(r < 0n ? -r : r).toBeLessThan(b < 0n ? -b : b);

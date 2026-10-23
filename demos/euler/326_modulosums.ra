@@ -3,10 +3,10 @@ rem https://projecteuler.net/problem=326
 
 use io
 
-Answer = 1000000000000 1000000 pairs
+Answer = 1000000000000 pairs 1000000
 Answer print
 
-fun N M pairs
+fun N pairs M
   Period = 6 * M
   Whole = N // Period
   Rest = N mod Period

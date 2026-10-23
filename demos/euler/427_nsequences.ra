@@ -31,7 +31,7 @@ for I in N to 1 by -1
   If (I - 1) = If I * I mod Mod
 end
 Rt = N isqrt
-K0 = Rt (N - 1) min
+K0 = Rt min (N - 1)
 Tot = 0
 for Pass in 0 to 1
   Sg = 1 - 2 * Pass
@@ -54,11 +54,11 @@ for Pass in 0 to 1
     Kx = N - 1
     if Pq greater 0
       Kx = (N - 1) // Pq - 1
-      Kx = Kx (N - 1) min
+      Kx = Kx min (N - 1)
     end
     if Pass equal 1
       Kx = N // (Pq + 1) - 1
-      Kx = Kx (N - 1) min
+      Kx = Kx min (N - 1)
     end
     if Kx at most K0
       break

@@ -35,8 +35,8 @@ for N in 1 to Digits
       T = R * 10 mod N
       Bm T += Dg R
     end
-    Bm = Bm 2 min
-    Bk = (Pw Bm matmul) copy
+    Bm = Bm min 2
+    Bk = (Pw matmul Bm) copy
     Nk = array shape 0 fill 0
     Nc = array shape 0 fill 0
     D0 = 0
