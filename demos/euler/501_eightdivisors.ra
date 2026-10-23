@@ -1,0 +1,79 @@
+rem Eight Divisors
+rem https://projecteuler.net/problem=501
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000
+
+rem d(x) = 8 for p^7, p^3 q and p q r.
+rem Counts need pi at the values N //
+rem m: Lucy's sieve keeps Lo v = pi(v)
+rem for v <= sqrt N and Hi i = pi(N //
+rem i), each prime p removing the
+rem numbers with least factor p.
+R = N isqrt
+Lo = (0 to R) - 1
+Lo 0 = 0
+Ii = (1 to R) copy
+Hi = concat (array 0) (N // Ii - 1)
+Zr = Lo * 0
+for P in primes to R
+  P2 = P * P
+  Pc = Lo (P - 1)
+  Lm = R (N // P2) min
+  rem i p <= R: Hi at i p, a slice.
+  M1 = (R // P) Lm min
+  if M1 greater 0
+    Hs = Hi (P to M1 * P by P)
+    Hi (1 to M1) -= Hs - Pc
+  end
+  if Lm greater M1
+    Ib = (M1 + 1 to Lm) copy
+    Lb = Lo (N // (Ib * P))
+    Hi (M1 + 1 to Lm) -= Lb - Pc
+  end
+  rem Lo at v // p: each value p times.
+  if P2 at most R
+    Rp = R // P
+    Nl = Rp - P + 1
+    Ls = Lo (P to Rp)
+    Lr = Ls reshape Nl 1
+    Lr = Lr + Zr (0 till P)
+    Rr = Lr reshape (Nl * P)
+    Rt = Rr (0 to R - P2)
+    Lo (P2 to R) -= Rt - Pc
+  end
+end
+rem pi(x) for x of the form N // m.
+fun X pin
+  Xs = X R min
+  Xb = N // (X 1 max) R min
+  Sm = X at most R
+  return Sm choose (Lo Xs) (Hi Xb)
+end
+Ps = primes to R array
+rem p^3 q, minus q = p; and p^7.
+C3 = (Ps * Ps * Ps at most N) indices
+P3 = Ps C3
+Answer = (N // (P3 * P3 * P3)) pin sum
+Answer -= (N isqrt) isqrt pin
+Q7 = (P3 ** 7 at most N) count
+Answer += Q7
+rem p < q < r: q runs to sqrt(N / p).
+Qh = (N // P3) isqrt pin
+Cn = (Qh - 1 - C3) 0 max
+Of = Cn scan + with 0
+Tl = Of last
+Ow = array shape Tl fill 0
+Ix = (Cn greater 0) indices
+Ow (Of Ix) = Ix
+Ow = Ow scan max
+Qi = (0 till Tl) - Of Ow + C3 Ow + 1
+Pp = P3 Ow
+Qq = Ps Qi
+Pq = (N // (Pp * Qq)) pin - Qi - 1
+Answer += Pq sum
+Answer print

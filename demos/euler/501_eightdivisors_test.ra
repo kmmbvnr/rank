@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "501_eightdivisors"
+  N = 100
+  run
+  Answer equal 10
+  N = 1000
+  run
+  Answer equal 180
+  N = 1000000
+  run
+  Answer equal 224427
+end

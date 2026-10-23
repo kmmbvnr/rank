@@ -184,5 +184,6 @@
   "euler/487_sumsofpowersums.ra": "To fix later: the default input takes about 21 s (Lagrange interpolation on 10^4 nodes for 100 primes, products mod p by doubling); the small _test.ra fixture stays in the audits.",
   "euler/489_commonfactors.ra": "To fix later: the default input takes about 40 s (34200 parameter pairs, each with a factorisation, root lifting and CRT in small array steps); the small _test.ra fixture stays in the audits.",
   "euler/495_distinctproduct.ra": "To fix later: the default input takes about 4 min (5604 partitions of 30, each with up to 30 residue-class running sums over 10^4 exponents; per-statement cost of reshape, axis scan and slice writes dominates); the small _test.ra fixture stays in the audits.",
-  "euler/499_stpetersburg.ra": "To fix later: the default input takes about 24 s (several hundred fixed-point steps of a 14 x 14 transfer matrix with 46 binary powers each, run to the floating-point floor); the small _test.ra fixture stays in the audits."
+  "euler/499_stpetersburg.ra": "To fix later: the default input takes about 24 s (several hundred fixed-point steps of a 14 x 14 transfer matrix with 46 binary powers each, run to the floating-point floor); the small _test.ra fixture stays in the audits.",
+  "euler/501_eightdivisors.ra": "To fix later: the default input takes about 2 min (Lucy prime counting to 10^12 with one array update per prime below 10^6); the small _test.ra fixture stays in the audits."
 }
