@@ -31,7 +31,8 @@ import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
 import { ALL_AXIS, selectAxis } from '../selectors.js';
 import { safeDimension } from '../tensor-index.js';
-import { broadcastShape } from '../tensor-layout.js';
+import { broadcastShape, rankedBroadcastShapes } from '../tensor-layout.js';
+import { denseScalarItems, reshapeStoredArray } from '../owned-array.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
     MISSING, isNativeFunction, isRankArray, isRankFenwick, isRankLabel, typeName, type NativeFunction, type RankValue,
@@ -288,6 +289,23 @@ export class ApplicationEvaluator {
                         let operation = yield* resume(context.evaluate(explicitRank.parts[2]));
                         if (isNativeFunction(operation) && (operation.dyadicRanks || operation.arities.includes(2))) {
                             if (isFunctionOperator(explicitRank.parts[2])) {
+                                // Completed scalar operands need no per-cell result assembly.
+                                // Opaque readers and deferred arrays retain the ranked executor.
+                                if (explicitRank.rightRank !== undefined
+                                    && ['+', '-', '*', '/', '//', 'mod', '**'].includes(explicitRank.parts[2].operator)
+                                    && [left, right].every(value => isRankArray(value)
+                                        ? denseScalarItems(value) !== undefined
+                                        : typeof value === 'bigint' || typeof value === 'number')) {
+                                    const aligned = rankedBroadcastShapes(
+                                        isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : [],
+                                        [Number(explicitRank.rank), Number(explicitRank.rightRank)],
+                                    );
+                                    const a = isRankArray(left) ? reshapeStoredArray(left, aligned.left) : left;
+                                    const b = isRankArray(right) ? reshapeStoredArray(right, aligned.right) : right;
+                                    if (a !== undefined && b !== undefined) {
+                                        return context.operators.evaluateBinary(explicitRank.parts[2].operator, a, b);
+                                    }
+                                }
                                 operation = { ...operation, arrayCells: true,
                                     // Only array results add axes. Text and sequences stay boxed.
                                     dyadicResultShape: (a, b) => broadcastShape(

@@ -10,13 +10,13 @@ import { compilerRejection } from './compiler-rejection.js';
 import {
     flattenApplication, findOperation, unaryApplicationHead, findCompiledOperator, tensorOperatorSignatures, inferCompiledExpression, matchCompiledOperatorDomains,
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
-    isNameExpression, isNumberLiteral,
+    isNameExpression, isNumberLiteral, isFunctionOperator,
     isParenthesizedExpression, isUnaryExpression, isCountClauseExpression, isAllAxisExpression,
     type Expression, type Statement, type ReturnStatement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
 import { type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { arraySliceLayout, reshapeDimensions } from './tensor-layout.js';
+import { arraySliceLayout, reshapeDimensions, rankedBroadcastShapes } from './tensor-layout.js';
 import { arrayRevision, ownedArray, ownedScalarArray, typedArray, IntegerCells } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 
@@ -30,7 +30,7 @@ export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
-    | { kind: 'binary'; op: string; native?: Bitwise; left: TensorNode; right: TensorNode }
+    | { kind: 'binary'; op: string; native?: Bitwise; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
     | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }
     | { kind: 'unary'; op: string; operand: TensorNode }
@@ -63,7 +63,7 @@ function pair(value: Expression): Expression[] | undefined {
 const backing = (items: ArrayLike<RankValue>) => items instanceof BigInt64Array ? 'int64'
     : items instanceof Float64Array ? 'float64' : 'boxed';
 interface View { items: ArrayLike<RankValue>; offset: number; shape: readonly number[]; kind?: string }
-interface Bound { segments?: Bound[]; shape?: readonly number[]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
+interface Bound { segments?: Bound[]; shape?: readonly number[]; operands?: readonly [readonly number[], readonly number[]]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
 const same = (a: readonly number[], b: readonly number[]) => a.length === b.length && a.every((n, i) => n === b[i]);
 
@@ -148,6 +148,15 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
             return source && count ? typed({ kind: 'slice', source, count, drop: e.operator === 'drop' }, domains.get(source)!) : undefined;
         }
         const form = applicationForm(e, name => findOperation(name));
+        if (form.kind === 'rank' && form.parts.length === 3 && form.rightRank !== undefined
+            && isFunctionOperator(form.parts[2])) {
+            const op = form.parts[2].operator;
+            const left = parse(form.parts[0]), right = parse(form.parts[1]);
+            const matched = left && right && matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2),
+                [domains.get(left)!, domains.get(right)!]);
+            return matched ? typed({ kind: 'binary', op, left: left!, right: right!,
+                ranks: [Number(form.rank), Number(form.rightRank)] }, matched.result) : undefined;
+        }
         if (form.kind === 'outer' && form.operands.length === 2 && ['+', '-', '*'].includes(form.operator)) {
             const left = parse(form.operands[0]), right = parse(form.operands[1]);
             const matched = left && right && matchCompiledOperatorDomains(tensorOperatorSignatures(form.operator, 2),
@@ -454,12 +463,20 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 // arrays. Proved progressions are used only as gather selectors.
                 if (!a || !b || a.progression || b.progression) return undefined;
                 let shape = a.shape ?? b.shape;
-                if (a.shape && b.shape && !same(a.shape, b.shape)) {
+                let operands: Bound['operands'];
+                if (node.ranks) {
+                    try {
+                        const aligned = rankedBroadcastShapes(a.shape ?? [], b.shape ?? [], node.ranks);
+                        shape = a.shape || b.shape ? aligned.shape : undefined;
+                        operands = [aligned.left, aligned.right];
+                    } catch { return undefined; }
+                    broadcasts = true;
+                } else if (a.shape && b.shape && !same(a.shape, b.shape)) {
                     try { shape = broadcastShape(a.shape, b.shape); }
                     catch { return undefined; }
                     broadcasts = true;
                 }
-                result = { shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
+                result = { shape, operands, boolean: domains.get(node)!.every(type => type === 'boolean') };
             } else if (node.kind === 'unary') {
                 const a = bind(node.operand);
                 if (a?.progression) return undefined;
@@ -680,12 +697,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     lines.push(`const ${name} = ${source};`);
                 }
                 else if (node.kind === 'binary' || node.kind === 'outer') {
+                    const rankedChild = (operand: TensorNode, shape: readonly number[]) => emit(operand,
+                        address(shape, info.shape ?? [], at), bound.get(operand)!.shape ?? []);
                     const rightSize = node.kind === 'outer'
                         ? bound.get(node.right)!.shape!.reduce((size, n) => size * n, 1) : 0;
                     const a = node.kind === 'outer'
-                        ? emit(node.left, `Math.floor((${at}) / ${rightSize})`, bound.get(node.left)!.shape!) : child(node.left);
+                        ? emit(node.left, `Math.floor((${at}) / ${rightSize})`, bound.get(node.left)!.shape!)
+                        : info.operands ? rankedChild(node.left, info.operands[0]) : child(node.left);
                     const b = node.kind === 'outer'
-                        ? emit(node.right, `((${at}) % ${rightSize})`, bound.get(node.right)!.shape!) : child(node.right);
+                        ? emit(node.right, `((${at}) % ${rightSize})`, bound.get(node.right)!.shape!)
+                        : info.operands ? rankedChild(node.right, info.operands[1]) : child(node.right);
                     const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
                     if (node.kind === 'binary' && node.native) {
                         lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint') ${decline}`);

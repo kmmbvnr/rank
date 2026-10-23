@@ -198,8 +198,22 @@ Their framed results are lazy. Empty reduced cells raise `.EmptyReduction`.
 Standard binary functions may declare intrinsic ranks. Rank splits array
 arguments into trailing cells, broadcasts their leading frames, and applies
 the function to corresponding cells. An atomic or whole-value argument has an
-empty frame and is reused for every cell of the other argument. Explicit
-binary `rank` overrides are not yet part of the language.
+empty frame and is reused for every cell of the other argument. `rank L R`
+overrides the two cell ranks, including on infix arithmetic operators:
+
+```rank
+Tops = Scores max axis 1
+Shift' = Scores - Tops rank 1 0
+Exps = Shift exp
+Totals = Exps sum axis 1
+Weights = Exps / Totals rank 1 0
+```
+
+Here the matrix supplies rank-1 rows and the vector supplies rank-0 scalars.
+Their leading row frames match; the scalar broadcasts within its row. No
+transpose is needed. Without `rank`, arithmetic keeps trailing-axis broadcasting.
+The tensor planner represents the two frame/cell broadcasts directly, retaining
+the operands' row-major order.
 
 The broader tensor direction includes:
 

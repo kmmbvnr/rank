@@ -2,11 +2,11 @@ import { functionDeclarationErrors } from './function-declaration.js';
 import { groupDeclaredCalls } from './declared-calls.js';
 import type { FunctionCallSignature } from './function-call-signature.js';
 import { prepareFunctionBindings, functionBindingPlan } from './function-binding.js';
-import { groupModifiers } from './modifier-grouping.js';
+import { groupInfixRank, groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
     isFunctionStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
-    isLabelLiteral, isNameExpression, type HigherOrderOperator,
+    isLabelLiteral, isNameExpression, isFunctionOperator, type HigherOrderOperator,
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
@@ -182,6 +182,8 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         | { kind: 'materialize'; original: Expression };
 
     function tokens(expression: Expression): Token[] {
+        const ranked = groupInfixRank(expression, standard);
+        if (ranked !== expression) return tokens(ranked);
         // In a repeat call, till introduces a predicate rather than a range bound.
         if (isBinaryExpression(expression) && expression.operator === 'till') {
             const before = tokens(expression.left);
@@ -363,7 +365,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         if (input.some(token => token.kind === 'operator')) {
             for (const token of input) if (token.kind === 'value') {
                 for (const part of flatten(token.value).slice(1)) {
-                    if (!callable(part)) annotate(part, { dataOperand: true });
+                    if (!callable(part) && !isFunctionOperator(part)) annotate(part, { dataOperand: true });
                 }
             }
         }
@@ -374,9 +376,9 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const operator = operators.pop()!;
             const right = values.pop()!;
             const left = values.pop()!;
-            values.push(operator.operator === 'by'
+            values.push(groupInfixRank(operator.operator === 'by'
                 ? { ...left, step: right } as Expression
-                : { ...operator, left, right, step: undefined } as Expression);
+                : { ...operator, left, right, step: undefined } as Expression, standard));
         }
         for (const token of input) {
             if (token.kind === 'value') values.push(token.value);

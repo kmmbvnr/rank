@@ -1,0 +1,1499 @@
+{
+  "issue": 412,
+  "date": "2026-10-23",
+  "baseCommit": "2855d63c",
+  "method": "Three fresh processes per size; two warmups and five timed samples per variant and process. Summary is the median of process medians. Each result is checked against an independent scalar oracle outside the timed interval.",
+  "scope": "Softmax and row-centering blocks, plus a ranked arithmetic reduction; not full attention or covariance.",
+  "summary": [
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "medianMs": 7.132749999999987
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "medianMs": 1.0445000000000846
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "medianMs": 0.8819579999999405
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "medianMs": 5.633000000000038
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "medianMs": 3.880666999999903
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "medianMs": 16.277333
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "medianMs": 5.810959000000025
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "medianMs": 0.6364589999998316
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "medianMs": 0.5470840000000408
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "medianMs": 5.310624999999959
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "medianMs": 4.494792000000075
+    },
+    {
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "medianMs": 15.543833999999947
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "medianMs": 18.365082999999913
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "medianMs": 3.608667000000196
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "medianMs": 1.9985830000000533
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "medianMs": 19.901457999999934
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "medianMs": 13.350041000000147
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "medianMs": 59.279584
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "medianMs": 16.971166999999696
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "medianMs": 1.9429999999997563
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "medianMs": 1.6894589999997152
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "medianMs": 20.489624999999933
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "medianMs": 13.047624999999698
+    },
+    {
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "medianMs": 60.536166000000094
+    }
+  ],
+  "records": [
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        18.981499999999926,
+        16.277333,
+        16.42391699999996,
+        15.786875000000009,
+        15.489874999999984
+      ],
+      "medianMs": 16.277333,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        6.158083000000033,
+        6.464292,
+        5.703500000000076,
+        5.4487080000000105,
+        5.309499999999957
+      ],
+      "medianMs": 5.703500000000076,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        3.9211669999999685,
+        3.866125000000011,
+        4.315667000000076,
+        3.817874999999958,
+        3.597833000000037
+      ],
+      "medianMs": 3.866125000000011,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        8.869374999999991,
+        7.147207999999978,
+        6.781333000000018,
+        6.2489589999999,
+        7.321917000000099
+      ],
+      "medianMs": 7.147207999999978,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        1.072667000000024,
+        1.0427079999999478,
+        1.0334589999999935,
+        1.040834000000018,
+        1.1658330000000205
+      ],
+      "medianMs": 1.0427079999999478,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        2.3439580000000433,
+        0.9172079999999596,
+        0.871167000000014,
+        0.6578329999999823,
+        0.6587089999999307
+      ],
+      "medianMs": 0.871167000000014,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        15.803166000000033,
+        15.314416999999935,
+        15.620541000000003,
+        15.781541000000061,
+        15.800166999999988
+      ],
+      "medianMs": 15.781541000000061,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        5.293332999999961,
+        5.243832999999995,
+        5.297124999999937,
+        6.016457999999943,
+        5.4972080000000005
+      ],
+      "medianMs": 5.297124999999937,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        5.173999999999978,
+        3.6577080000000706,
+        3.622500000000059,
+        4.564834000000019,
+        9.993790999999987
+      ],
+      "medianMs": 4.564834000000019,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        6.153166999999939,
+        6.997708999999986,
+        5.810959000000025,
+        5.728625000000079,
+        5.776624999999967
+      ],
+      "medianMs": 5.810959000000025,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        3.8246659999999792,
+        0.6565419999999449,
+        0.6364589999998316,
+        0.6348749999999654,
+        0.6220000000000709
+      ],
+      "medianMs": 0.6364589999998316,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        0.5878340000001572,
+        0.5283750000000964,
+        0.5518329999999878,
+        0.5385000000001128,
+        0.5109580000000733
+      ],
+      "medianMs": 0.5385000000001128,
+      "kernels": 7,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        18.60587499999997,
+        16.260541999999987,
+        16.415875000000028,
+        15.62058300000001,
+        15.629957999999988
+      ],
+      "medianMs": 16.260541999999987,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        5.972624999999994,
+        6.345000000000027,
+        5.633000000000038,
+        5.31087500000001,
+        5.231999999999971
+      ],
+      "medianMs": 5.633000000000038,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        4.062291999999957,
+        3.880666999999903,
+        4.28712500000006,
+        3.6031249999999773,
+        3.6460420000000795
+      ],
+      "medianMs": 3.880666999999903,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        8.894708000000037,
+        7.132749999999987,
+        6.834333000000015,
+        6.192125000000033,
+        7.307457999999997
+      ],
+      "medianMs": 7.132749999999987,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        1.0917499999999336,
+        1.0445000000000846,
+        1.041832999999997,
+        1.0373749999999973,
+        1.154166000000032
+      ],
+      "medianMs": 1.0445000000000846,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        2.328875000000039,
+        1.0369589999999107,
+        0.9139999999999873,
+        0.6595409999999902,
+        0.6648329999999305
+      ],
+      "medianMs": 0.9139999999999873,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        15.905457999999953,
+        15.273416999999995,
+        15.452583000000004,
+        15.337084000000004,
+        15.790707999999995
+      ],
+      "medianMs": 15.452583000000004,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        5.3229160000000775,
+        5.30174999999997,
+        5.310624999999959,
+        5.878750000000082,
+        5.271582999999964
+      ],
+      "medianMs": 5.310624999999959,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        5.581041999999911,
+        3.6539579999999887,
+        3.6431250000000546,
+        4.494792000000075,
+        9.789708000000019
+      ],
+      "medianMs": 4.494792000000075,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        6.092290999999932,
+        6.867250000000013,
+        5.796500000000037,
+        5.690750000000094,
+        5.681999999999903
+      ],
+      "medianMs": 5.796500000000037,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        3.7964580000000296,
+        0.6731250000000273,
+        0.6330419999999322,
+        0.6330410000000484,
+        0.6150000000000091
+      ],
+      "medianMs": 0.6330419999999322,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        0.6141250000000582,
+        0.5371249999998327,
+        0.5596250000000964,
+        0.5470840000000408,
+        0.5214169999999285
+      ],
+      "medianMs": 0.5470840000000408,
+      "kernels": 7,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        17.689625000000035,
+        17.23579200000006,
+        16.53612499999997,
+        15.40316699999994,
+        15.789042000000109
+      ],
+      "medianMs": 16.53612499999997,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        6.255333999999948,
+        5.775999999999954,
+        5.548917000000074,
+        5.3158750000000055,
+        5.405999999999949
+      ],
+      "medianMs": 5.548917000000074,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        4.037167000000068,
+        3.9457499999999754,
+        3.8042500000000246,
+        3.6917499999999563,
+        4.180374999999913
+      ],
+      "medianMs": 3.9457499999999754,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        7.696499999999901,
+        8.049875000000043,
+        6.509291999999959,
+        6.481999999999971,
+        6.3002500000000055
+      ],
+      "medianMs": 6.509291999999959,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        1.2576249999999618,
+        1.102457999999956,
+        1.0890000000000555,
+        1.0734590000000708,
+        1.190499999999929
+      ],
+      "medianMs": 1.102457999999956,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        0.9245409999999765,
+        0.9277920000000677,
+        0.8819579999999405,
+        0.6701249999999845,
+        0.6465409999999565
+      ],
+      "medianMs": 0.8819579999999405,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        15.504582999999911,
+        16.13808300000005,
+        15.543833999999947,
+        15.984000000000037,
+        15.324165999999991
+      ],
+      "medianMs": 15.543833999999947,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        5.3288330000000315,
+        5.9809999999999945,
+        5.35308299999997,
+        5.327874999999949,
+        6.0182909999999765
+      ],
+      "medianMs": 5.35308299999997,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        4.07770800000003,
+        3.6241660000000593,
+        4.661791999999991,
+        3.934750000000008,
+        3.692124999999919
+      ],
+      "medianMs": 3.934750000000008,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        6.83095800000001,
+        6.183540999999991,
+        5.608499999999935,
+        5.780042000000094,
+        8.905457999999953
+      ],
+      "medianMs": 6.183540999999991,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        1.1850420000000668,
+        8.774374999999964,
+        0.7356250000000273,
+        0.6710000000000491,
+        0.6489169999999831
+      ],
+      "medianMs": 0.7356250000000273,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 64,
+      "columns": 96,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        0.6107919999999467,
+        0.5475420000000213,
+        0.55987499999992,
+        0.5475420000000213,
+        0.5302090000000135
+      ],
+      "medianMs": 0.5475420000000213,
+      "kernels": 7,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        60.047750000000065,
+        59.247999999999934,
+        59.279584,
+        59.62087500000007,
+        59.22758299999998
+      ],
+      "medianMs": 59.279584,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        19.956708999999933,
+        20.277791999999977,
+        20.112166000000002,
+        19.546749999999975,
+        19.261209000000008
+      ],
+      "medianMs": 19.956708999999933,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        13.350041000000147,
+        12.856999999999971,
+        14.092249999999922,
+        15.650583000000097,
+        12.837749999999915
+      ],
+      "medianMs": 13.350041000000147,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        19.98025000000007,
+        20.217541999999867,
+        18.350459,
+        16.953416999999945,
+        17.752499999999827
+      ],
+      "medianMs": 18.350459,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        3.9208340000000135,
+        3.8029160000000957,
+        3.7513329999999314,
+        3.3991249999999127,
+        4.405541000000085
+      ],
+      "medianMs": 3.8029160000000957,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        2.022333000000117,
+        1.9997920000000704,
+        1.9985830000000533,
+        1.969583000000057,
+        1.9727499999999054
+      ],
+      "medianMs": 1.9985830000000533,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        60.50562500000001,
+        60.89491699999985,
+        60.16108299999996,
+        60.536166000000094,
+        61.82483400000001
+      ],
+      "medianMs": 60.536166000000094,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        20.999041000000034,
+        21.40820800000006,
+        20.26887499999998,
+        20.77829100000008,
+        19.69591700000001
+      ],
+      "medianMs": 20.77829100000008,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        12.814124999999876,
+        14.259207999999944,
+        13.917875000000095,
+        13.061666999999943,
+        12.878167000000303
+      ],
+      "medianMs": 13.061666999999943,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        16.965708000000177,
+        17.813207999999577,
+        16.63129200000003,
+        18.626916999999594,
+        16.468582999999853
+      ],
+      "medianMs": 16.965708000000177,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        2.013666000000285,
+        1.9827080000000024,
+        2.0022500000000036,
+        1.993040999999721,
+        1.9627499999996871
+      ],
+      "medianMs": 1.993040999999721,
+      "kernels": 0,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        1.6912090000000717,
+        3.308958000000075,
+        1.6894589999997152,
+        1.6571669999998448,
+        1.6484169999998812
+      ],
+      "medianMs": 1.6894589999997152,
+      "kernels": 7,
+      "process": 1
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        59.956042000000025,
+        60.31658299999992,
+        59.39808400000004,
+        58.96854200000007,
+        58.52125000000001
+      ],
+      "medianMs": 59.39808400000004,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        20.119583000000034,
+        20.428999999999974,
+        19.767499999999927,
+        19.901457999999934,
+        19.473250000000007
+      ],
+      "medianMs": 19.901457999999934,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        13.526459000000159,
+        12.948040999999876,
+        13.36529100000007,
+        12.935833000000002,
+        12.68662500000005
+      ],
+      "medianMs": 12.948040999999876,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        24.213833000000022,
+        19.78408300000001,
+        17.617416999999932,
+        18.4007909999998,
+        17.856583
+      ],
+      "medianMs": 18.4007909999998,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        3.9600410000000466,
+        3.608667000000196,
+        3.543333000000075,
+        3.3548329999998714,
+        3.970458000000008
+      ],
+      "medianMs": 3.608667000000196,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        2.7012500000000728,
+        2.696999999999889,
+        2.4010000000000673,
+        1.930791999999883,
+        4.323875000000044
+      ],
+      "medianMs": 2.696999999999889,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        61.47629099999995,
+        60.87216699999999,
+        60.52820899999983,
+        60.541958999999906,
+        61.21195799999987
+      ],
+      "medianMs": 60.87216699999999,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        19.86262499999998,
+        20.773500000000013,
+        20.098250000000007,
+        20.809833000000026,
+        20.489624999999933
+      ],
+      "medianMs": 20.489624999999933,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        12.81879099999992,
+        13.180875000000015,
+        14.098749999999654,
+        13.047624999999698,
+        12.97275000000036
+      ],
+      "medianMs": 13.047624999999698,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        16.971166999999696,
+        16.58299999999963,
+        17.056916,
+        18.18958300000031,
+        16.66458399999965
+      ],
+      "medianMs": 16.971166999999696,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        1.9570840000001226,
+        1.9281660000001466,
+        1.953958000000057,
+        1.94137499999988,
+        1.9429999999997563
+      ],
+      "medianMs": 1.9429999999997563,
+      "kernels": 0,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        1.991624999999658,
+        1.6605409999997391,
+        1.6703749999996944,
+        1.6587079999999332,
+        1.6305419999998776
+      ],
+      "medianMs": 1.6605409999997391,
+      "kernels": 7,
+      "process": 2
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        59.10429199999999,
+        59.91583300000002,
+        59.43420800000001,
+        57.82445900000005,
+        58.78212499999995
+      ],
+      "medianMs": 59.10429199999999,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        20.330625000000055,
+        20.221750000000043,
+        19.633207999999968,
+        19.514832999999953,
+        19.365125000000035
+      ],
+      "medianMs": 19.633207999999968,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        13.117666999999983,
+        13.174667,
+        13.392125000000078,
+        16.227916999999934,
+        14.80295799999999
+      ],
+      "medianMs": 13.392125000000078,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        20.405292000000145,
+        19.45158399999991,
+        18.365082999999913,
+        18.01454200000012,
+        18.065207999999984
+      ],
+      "medianMs": 18.365082999999913,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        3.631166000000121,
+        4.506290999999919,
+        3.588209000000006,
+        3.387124999999969,
+        3.302791999999954
+      ],
+      "medianMs": 3.588209000000006,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": false,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        1.9586249999999836,
+        1.880333999999948,
+        1.9419170000001031,
+        1.8886250000000473,
+        1.880333999999948
+      ],
+      "medianMs": 1.8886250000000473,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "transpose",
+      "samplesMs": [
+        59.41912500000012,
+        59.2404590000001,
+        60.048542,
+        59.00866599999995,
+        60.067999999999984
+      ],
+      "medianMs": 59.41912500000012,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "ranked",
+      "samplesMs": [
+        20.457957999999962,
+        19.900916999999936,
+        20.223875000000135,
+        20.50129200000015,
+        19.65033399999993
+      ],
+      "medianMs": 20.223875000000135,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "softmax",
+      "variant": "reshape",
+      "samplesMs": [
+        12.920957999999928,
+        13.689292000000023,
+        13.883167000000412,
+        12.927666999999929,
+        12.68770799999993
+      ],
+      "medianMs": 12.927666999999929,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "helper",
+      "samplesMs": [
+        16.974040999999943,
+        18.11679200000026,
+        16.571249999999964,
+        17.21408399999973,
+        17.85199999999986
+      ],
+      "medianMs": 17.21408399999973,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "centering",
+      "variant": "ranked",
+      "samplesMs": [
+        1.9713749999996253,
+        1.9136249999996835,
+        1.9362089999999625,
+        1.9089579999999842,
+        1.9054999999998472
+      ],
+      "medianMs": 1.9136249999996835,
+      "kernels": 0,
+      "process": 3
+    },
+    {
+      "node": "v24.15.0",
+      "rows": 128,
+      "columns": 192,
+      "tensorFusion": true,
+      "workload": "expression",
+      "variant": "ranked",
+      "samplesMs": [
+        1.7015830000000278,
+        1.7001249999998436,
+        1.6944170000001577,
+        3.537000000000262,
+        1.7019999999997708
+      ],
+      "medianMs": 1.7015830000000278,
+      "kernels": 7,
+      "process": 3
+    }
+  ]
+}

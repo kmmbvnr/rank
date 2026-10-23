@@ -65,6 +65,24 @@ export function broadcastShape(
     return shape;
 }
 
+/** Rank broadcasts leading frames and trailing cells independently. Inserting
+ * singleton axes aligns both parts without changing either operand's order. */
+export function rankedBroadcastShapes(left: readonly number[], right: readonly number[], ranks: readonly [number, number]) {
+    const split = (shape: readonly number[], rank: number) => {
+        const cells = Math.min(shape.length, rank < 0 ? Math.max(0, shape.length + rank) : rank);
+        return [shape.slice(0, shape.length - cells), shape.slice(shape.length - cells)];
+    };
+    const [leftFrame, leftCell] = split(left, ranks[0]);
+    const [rightFrame, rightCell] = split(right, ranks[1]);
+    const frame = broadcastShape(leftFrame, rightFrame);
+    const cell = broadcastShape(leftCell, rightCell);
+    const align = (sourceFrame: readonly number[], sourceCell: readonly number[]) => [
+        ...Array(frame.length - sourceFrame.length).fill(1) as number[], ...sourceFrame,
+        ...Array(cell.length - sourceCell.length).fill(1) as number[], ...sourceCell,
+    ];
+    return { shape: [...frame, ...cell], left: align(leftFrame, leftCell), right: align(rightFrame, rightCell) };
+}
+
 export function broadcastOffset(
     index: number,
     resultShape: readonly number[],

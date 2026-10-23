@@ -94,8 +94,26 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
 /** Whether a name at this site is the standard operation rather than a program binding. */
 export type StandardName = (name: NameExpression) => boolean;
 
+/** Rank an infix operator before surrounding arithmetic consumes its right operand. */
+export function groupInfixRank(expression: Expression, standard: StandardName): Expression {
+    if (!isBinaryExpression(expression) || !REDUCE_OPERATORS.has(expression.operator)) return expression;
+    const parts = flattenApplication(expression.right);
+    const rank = parts.findIndex((part, index) => index > 0 && named(part, 'rank'));
+    // A rank after a completed postfix call still belongs to that call.
+    if (rank !== 1 || !isNameExpression(parts[rank]) || !standard(parts[rank])
+        || !isRankNumber(parts[rank + 1]) || !isRankNumber(parts[rank + 2])) return expression;
+    const right = applicationExpression(parts.slice(0, rank), expression.right);
+    const operation = { $type: 'FunctionOperator', operator: expression.operator,
+        $cstNode: expression.$cstNode } as Expression;
+    return groupModifiers(applicationExpression([
+        groupedExpression(expression.left), groupedExpression(right), operation, ...parts.slice(rank),
+    ], expression), standard);
+}
+
 /** Fix modifier boundaries in the syntax tree; evaluation only executes them. */
 export function groupModifiers(expression: Expression, standard: StandardName = () => true): Expression {
+    const ranked = groupInfixRank(expression, standard);
+    if (ranked !== expression) return ranked;
     let prefix: Expression;
     let rest: Expression[];
     if (isBinaryExpression(expression)) {

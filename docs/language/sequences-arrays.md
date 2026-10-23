@@ -1342,6 +1342,21 @@ frames `B`; the result has shape `B N M`, including when `B` is zero. The
 operator broadcasts within each cell, and array-valued cell results stack under
 the broadcast frame. Both ranks are required for this operator form. Ordinary
 infix expressions such as `Weights * Batch` keep trailing-axis broadcasting.
+
+Infix arithmetic also accepts `rank L R` after the right operand:
+
+```rank
+Tops = Scores max axis 1
+Shift = Scores - Tops rank 1 0
+```
+
+`Scores` supplies rows and `Tops` supplies one scalar per row. This is the same
+operation as `Scores Tops - rank 1 0`: leading frames broadcast first, then
+the operator broadcasts inside each pair of cells. Both ranks are required.
+The modifier belongs to that operator, before surrounding arithmetic;
+`A + A * B rank 1 0` ranks the multiplication. Parentheses group a compound
+right operand, as in `A - (B + 1) rank 1 0`. Calls may follow the ranked result,
+as in `A - B rank 1 0 exp`.
 Ranked logical calls evaluate both operands; scalar infix `and`/`or` guards
 retain their short-circuit behavior.
 

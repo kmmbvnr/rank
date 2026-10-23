@@ -19,11 +19,10 @@ fun Q K V self_attention
   Scores = (Q Kt matmul) / (Width sqrt)
 
   Tops = Scores max axis 1
-  Shift' = Scores transpose - Tops
-  Exps = Shift transpose exp
+  Shift' = Scores - Tops rank 1 0
+  Exps = Shift exp
   Totals = Exps sum axis 1
-  Weights' = Exps transpose / Totals
-  Weights' = Weights transpose
+  Weights' = Exps / Totals rank 1 0
 
   return Weights V matmul
 end

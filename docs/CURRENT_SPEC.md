@@ -3976,6 +3976,14 @@ the items of the operand (its rows, for a matrix) without knowing its rank,
 `A F rank -1` therefore applies `F` to every item of `A`. In `rank L R` each
 operand resolves its own rank.
 
+Infix arithmetic accepts the same two cell ranks as the postfix operator call:
+`Scores - Tops rank 1 0` is equivalent to `Scores Tops - rank 1 0`. Each row
+of `Scores` pairs with its corresponding scalar in `Tops`; frames broadcast
+independently of cells. Both ranks are required. The modifier applies to that
+operator before surrounding arithmetic, so `A + A * B rank 1 0` ranks only
+the multiplication. Group compound right operands with parentheses. Ordinary
+arithmetic without the modifier keeps trailing-axis broadcasting.
+
 ```rank
 Totals = Matrix sum rank -1
 rem one sum per row, for any rank of Matrix
