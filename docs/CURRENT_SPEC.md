@@ -1380,6 +1380,12 @@ for I in 0 till 1000
 end
 ```
 
+Large arrays created by `array shape ... fill N` use four-byte signed integer
+cells when the integer fill fits that range. Indexed writes widen the storage
+when needed; reads and reductions still return exact Rank integers. Eligible
+numeric loops update counters in private numeric storage and publish the result
+in a batch. The ordinary value and sharing rules apply.
+
 A generator that reuses one buffer therefore emits values, not its buffer:
 
 ```rank

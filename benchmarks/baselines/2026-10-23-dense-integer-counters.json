@@ -1,0 +1,584 @@
+{
+  "date": "2026-10-23",
+  "baseRevision": "9030e118",
+  "changes": [
+    {
+      "stage": "compact storage only",
+      "sphere": {
+        "checkout": "/private/tmp/rank-378-worktree",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "timing": "full Euler 360 function; parse excluded; fresh processes; small-radius checks before timing",
+        "samples": [
+          {
+            "ms": 5039.633875,
+            "answer": "878825614395267072",
+            "memory": {
+              "rss": 743079936,
+              "heapTotal": 185843712,
+              "heapUsed": 145985128,
+              "external": 236462111,
+              "arrayBuffers": 234406307
+            },
+            "maxRssKiB": 725680,
+            "numberLoops": 2,
+            "overflows": 0,
+            "typedUnpacks": 0
+          },
+          {
+            "ms": 5000.1801669999995,
+            "answer": "878825614395267072",
+            "memory": {
+              "rss": 743473152,
+              "heapTotal": 180338688,
+              "heapUsed": 130442336,
+              "external": 236462111,
+              "arrayBuffers": 234406307
+            },
+            "maxRssKiB": 726064,
+            "numberLoops": 2,
+            "overflows": 0,
+            "typedUnpacks": 0
+          },
+          {
+            "ms": 5069.28025,
+            "answer": "878825614395267072",
+            "memory": {
+              "rss": 742932480,
+              "heapTotal": 179552256,
+              "heapUsed": 129392224,
+              "external": 236462111,
+              "arrayBuffers": 234406307
+            },
+            "maxRssKiB": 725536,
+            "numberLoops": 2,
+            "overflows": 0,
+            "typedUnpacks": 0
+          }
+        ],
+        "medianMs": 5039.633875,
+        "medianMaxRssMiB": 708.671875,
+        "medianRssAfterMiB": 708.65625
+      },
+      "correctness": "202 existing targeted tests and 5 compact-storage tests passed; scalar facade made numeric copies slower"
+    },
+    {
+      "stage": "direct compiled buffer reads and batch publication",
+      "sphere": {
+        "checkout": "/private/tmp/rank-378-worktree",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "timing": "full Euler 360 function; parse excluded; fresh processes; small-radius checks before timing",
+        "samples": [
+          {
+            "ms": 257.28512500000005,
+            "answer": "878825614395267072",
+            "memory": {
+              "rss": 438255616,
+              "heapTotal": 110067712,
+              "heapUsed": 46257680,
+              "external": 255995887,
+              "arrayBuffers": 253937558
+            },
+            "maxRssKiB": 427984,
+            "numberLoops": 2,
+            "overflows": 0,
+            "typedUnpacks": 0
+          },
+          {
+            "ms": 244.46362500000004,
+            "answer": "878825614395267072",
+            "memory": {
+              "rss": 437993472,
+              "heapTotal": 109543424,
+              "heapUsed": 46182864,
+              "external": 255995887,
+              "arrayBuffers": 253937558
+            },
+            "maxRssKiB": 427728,
+            "numberLoops": 2,
+            "overflows": 0,
+            "typedUnpacks": 0
+          },
+          {
+            "ms": 244.12808399999994,
+            "answer": "878825614395267072",
+            "memory": {
+              "rss": 438452224,
+              "heapTotal": 109281280,
+              "heapUsed": 46005584,
+              "external": 255995887,
+              "arrayBuffers": 253937558
+            },
+            "maxRssKiB": 428176,
+            "numberLoops": 2,
+            "overflows": 0,
+            "typedUnpacks": 0
+          }
+        ],
+        "medianMs": 244.46362500000004,
+        "medianMaxRssMiB": 417.953125,
+        "medianRssAfterMiB": 417.953125
+      },
+      "correctness": "107 targeted tests passed"
+    },
+    {
+      "stage": "chunked exact sum over compact storage",
+      "sumBefore": {
+        "checkout": "/private/tmp/rank-378-worktree",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "kernel": "sum",
+        "timing": "fresh processes; sphere: parse excluded, small-radius checks before timing; sum: prepared 19,531,251-cell array",
+        "samples": [
+          {
+            "ms": 2194.775542,
+            "answer": "41943042127952397",
+            "memory": {
+              "rss": 369754112,
+              "heapTotal": 146505728,
+              "heapUsed": 78753704,
+              "external": 80214628,
+              "arrayBuffers": 78156299
+            },
+            "maxRssKiB": 361104
+          },
+          {
+            "ms": 2189.9105830000003,
+            "answer": "41943042127952397",
+            "memory": {
+              "rss": 357810176,
+              "heapTotal": 105103360,
+              "heapUsed": 40990288,
+              "external": 80212103,
+              "arrayBuffers": 78156299
+            },
+            "maxRssKiB": 349616
+          },
+          {
+            "ms": 2172.032208,
+            "answer": "41943042127952397",
+            "memory": {
+              "rss": 370655232,
+              "heapTotal": 173768704,
+              "heapUsed": 111368152,
+              "external": 80214628,
+              "arrayBuffers": 78156299
+            },
+            "maxRssKiB": 361984
+          }
+        ],
+        "medianMs": 2189.9105830000003,
+        "medianMaxRssMiB": 352.640625,
+        "medianRssAfterMiB": 352.625
+      },
+      "correctness": "final 614 targeted tests and Euler 360 small-sphere test passed"
+    }
+  ],
+  "final": {
+    "sphereBaseline": {
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+      "revision": "98f9b498946ac0bc97b51181edc54aebfa765c98",
+      "dirty": false,
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "kernel": "sphere",
+      "timing": "fresh processes; sphere: parse excluded, small-radius checks before timing; sum: prepared 19,531,251-cell array",
+      "samples": [
+        {
+          "ms": 725.6756249999999,
+          "answer": "878825614395267072",
+          "memory": {
+            "rss": 674136064,
+            "heapTotal": 109281280,
+            "heapUsed": 42259248,
+            "external": 314589640,
+            "arrayBuffers": 312531311
+          },
+          "maxRssKiB": 658336,
+          "numberLoops": 2,
+          "overflows": 0,
+          "typedUnpacks": 0
+        },
+        {
+          "ms": 728.07025,
+          "answer": "878825614395267072",
+          "memory": {
+            "rss": 673808384,
+            "heapTotal": 110854144,
+            "heapUsed": 42062480,
+            "external": 314589640,
+            "arrayBuffers": 312531311
+          },
+          "maxRssKiB": 658016,
+          "numberLoops": 2,
+          "overflows": 0,
+          "typedUnpacks": 0
+        },
+        {
+          "ms": 720.878459,
+          "answer": "878825614395267072",
+          "memory": {
+            "rss": 674889728,
+            "heapTotal": 109281280,
+            "heapUsed": 41996992,
+            "external": 314589640,
+            "arrayBuffers": 312531311
+          },
+          "maxRssKiB": 659072,
+          "numberLoops": 2,
+          "overflows": 0,
+          "typedUnpacks": 0
+        }
+      ],
+      "medianMs": 725.6756249999999,
+      "medianMaxRssMiB": 642.90625,
+      "medianRssAfterMiB": 642.90625
+    },
+    "sphereCandidate": {
+      "checkout": "/private/tmp/rank-378-worktree",
+      "revision": "9030e11818106b6757cc540bd914635bd64e507c",
+      "dirty": true,
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "kernel": "sphere",
+      "timing": "fresh processes; sphere: parse excluded, small-radius checks before timing; sum: prepared 19,531,251-cell array",
+      "samples": [
+        {
+          "ms": 226.815042,
+          "answer": "878825614395267072",
+          "memory": {
+            "rss": 437944320,
+            "heapTotal": 109281280,
+            "heapUsed": 46149352,
+            "external": 255995887,
+            "arrayBuffers": 253937558
+          },
+          "maxRssKiB": 427680,
+          "numberLoops": 2,
+          "overflows": 0,
+          "typedUnpacks": 0
+        },
+        {
+          "ms": 224.23333300000002,
+          "answer": "878825614395267072",
+          "memory": {
+            "rss": 438108160,
+            "heapTotal": 109019136,
+            "heapUsed": 46099848,
+            "external": 255995887,
+            "arrayBuffers": 253937558
+          },
+          "maxRssKiB": 427840,
+          "numberLoops": 2,
+          "overflows": 0,
+          "typedUnpacks": 0
+        },
+        {
+          "ms": 226.78720800000002,
+          "answer": "878825614395267072",
+          "memory": {
+            "rss": 438566912,
+            "heapTotal": 109543424,
+            "heapUsed": 46113976,
+            "external": 255995887,
+            "arrayBuffers": 253937558
+          },
+          "maxRssKiB": 428288,
+          "numberLoops": 2,
+          "overflows": 0,
+          "typedUnpacks": 0
+        }
+      ],
+      "medianMs": 226.78720800000002,
+      "medianMaxRssMiB": 417.8125,
+      "medianRssAfterMiB": 417.8125
+    },
+    "sumBaseline": {
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+      "revision": "98f9b498946ac0bc97b51181edc54aebfa765c98",
+      "dirty": false,
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "kernel": "sum",
+      "timing": "fresh processes; sphere: parse excluded, small-radius checks before timing; sum: prepared 19,531,251-cell array",
+      "samples": [
+        {
+          "ms": 21.423750000000013,
+          "answer": "41943042127952397",
+          "memory": {
+            "rss": 296452096,
+            "heapTotal": 99057664,
+            "heapUsed": 29033264,
+            "external": 158339632,
+            "arrayBuffers": 156281303
+          },
+          "maxRssKiB": 289504
+        },
+        {
+          "ms": 17.842792000000003,
+          "answer": "41943042127952397",
+          "memory": {
+            "rss": 296288256,
+            "heapTotal": 98795520,
+            "heapUsed": 29033336,
+            "external": 158339632,
+            "arrayBuffers": 156281303
+          },
+          "maxRssKiB": 289376
+        },
+        {
+          "ms": 21.865249999999975,
+          "answer": "41943042127952397",
+          "memory": {
+            "rss": 296566784,
+            "heapTotal": 98271232,
+            "heapUsed": 29045464,
+            "external": 158339632,
+            "arrayBuffers": 156281303
+          },
+          "maxRssKiB": 289616
+        }
+      ],
+      "medianMs": 21.423750000000013,
+      "medianMaxRssMiB": 282.71875,
+      "medianRssAfterMiB": 282.71875
+    },
+    "sumCandidate": {
+      "checkout": "/private/tmp/rank-378-worktree",
+      "revision": "9030e11818106b6757cc540bd914635bd64e507c",
+      "dirty": true,
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "kernel": "sum",
+      "timing": "fresh processes; sphere: parse excluded, small-radius checks before timing; sum: prepared 19,531,251-cell array",
+      "samples": [
+        {
+          "ms": 15.803458000000006,
+          "answer": "41943042127952397",
+          "memory": {
+            "rss": 215007232,
+            "heapTotal": 64716800,
+            "heapUsed": 29100896,
+            "external": 80214628,
+            "arrayBuffers": 78156299
+          },
+          "maxRssKiB": 210208
+        },
+        {
+          "ms": 16.278542000000016,
+          "answer": "41943042127952397",
+          "memory": {
+            "rss": 215334912,
+            "heapTotal": 64978944,
+            "heapUsed": 29092248,
+            "external": 80214628,
+            "arrayBuffers": 78156299
+          },
+          "maxRssKiB": 210304
+        },
+        {
+          "ms": 15.885083999999978,
+          "answer": "41943042127952397",
+          "memory": {
+            "rss": 215220224,
+            "heapTotal": 65241088,
+            "heapUsed": 29100712,
+            "external": 80214628,
+            "arrayBuffers": 78156299
+          },
+          "maxRssKiB": 210384
+        }
+      ],
+      "medianMs": 15.885083999999978,
+      "medianMaxRssMiB": 205.375,
+      "medianRssAfterMiB": 205.25
+    },
+    "denseWrites": {
+      "metadata": {
+        "date": "2026-10-23T07:01:08.078Z",
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "samples": 3,
+        "source": "\nfun N densewrite\n A = array shape N fill 0\n for I in 0 till N\n  A I = I\n end\n return A (N - 1)\nend\nfun N matrixwrite\n M = array shape N 1 fill 0\n for I in 0 till N\n  M I 0 = 1\n end\n return M (N - 1) 0\nend\nfun N denseupdate\n A = array shape N fill 0\n for I in 0 till N\n  A I += 1\n end\n return A (N - 1)\nend\nfun N denseread\n A = array shape N fill 1\n Total = 0\n for I in 0 till N\n  Total += A I\n end\n return Total\nend\n",
+        "timing": "parse-once microbenchmarks; cold CLI demos; alternating order",
+        "policy": "candidate/baseline median <= 1.25 for each case",
+        "demos": [
+          {
+            "name": "dice",
+            "path": "demos/cses/dynamic/001_dice.ra",
+            "sourceHash": "fbc0e73c63377696b4e9135bfe25dcec037e214164202f151b9e6ae7d9d3b007",
+            "inputHash": "085c348f64a3b543e973a33749e90ba20847b99016a87e5228847597d61ce582",
+            "expected": "874273980"
+          },
+          {
+            "name": "gridpaths",
+            "path": "demos/cses/dynamic/006_gridpaths.ra",
+            "sourceHash": "513c44f5e942487952c2f8189edd32258b5fb9f8c21dcd3667e6884b809b2130",
+            "inputHash": "7619cef73b087d05de1c02fa072f2c41d31c9c2ac90cf89d29259a90f7033fa5",
+            "expected": "965601742"
+          },
+          {
+            "name": "bookshop",
+            "path": "demos/cses/dynamic/007_bookshop.ra",
+            "sourceHash": "091e4817a4c07897baa2324f3901fa1236cb0de841826e82fdc1a339c72f97a9",
+            "inputHash": "4940f53751ce23268d16e9684e3a98620fcfa1948c6a7ba18e762d992d65225a",
+            "expected": "100"
+          },
+          {
+            "name": "editdistance",
+            "path": "demos/cses/dynamic/010_editdistance.ra",
+            "sourceHash": "cfe334006e2311ab35c2ad577cac1a948600f7974bf7930e9a6ab2b141dc2ce9",
+            "inputHash": "81a8d8da3cd5276f8831a59ee915fd074f23fa8086f00a43fe628a3f7c3c822f",
+            "expected": "1000"
+          }
+        ]
+      },
+      "versions": {
+        "candidate": {
+          "checkout": "/private/tmp/rank-378-worktree/",
+          "revision": "9030e11818106b6757cc540bd914635bd64e507c",
+          "dirty": true,
+          "results": {
+            "densewrite": [
+              13.889666000000034,
+              9.257458999999471,
+              4.059957999999824
+            ],
+            "matrixwrite": [
+              64.80445799999995,
+              58.959249999999884,
+              42.38895799999955
+            ],
+            "denseupdate": [
+              7.810959000000025,
+              10.09887499999968,
+              5.78295799999978
+            ],
+            "denseread": [
+              38.14195899999993,
+              31.31474999999955,
+              25.16437500000029
+            ],
+            "dice": [
+              322.92175,
+              286.08620900000005,
+              285.44425000000047
+            ],
+            "gridpaths": [
+              774.0300410000002,
+              693.7592500000001,
+              698.827792
+            ],
+            "bookshop": [
+              526.0897500000001,
+              479.03499999999985,
+              481.420333
+            ],
+            "editdistance": [
+              628.8701659999997,
+              603.9514170000002,
+              597.1929579999996
+            ]
+          },
+          "medians": {
+            "densewrite": 9.257458999999471,
+            "matrixwrite": 58.959249999999884,
+            "denseupdate": 7.810959000000025,
+            "denseread": 31.31474999999955,
+            "dice": 286.08620900000005,
+            "gridpaths": 698.827792,
+            "bookshop": 481.420333,
+            "editdistance": 603.9514170000002
+          }
+        },
+        "baseline": {
+          "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank",
+          "revision": "9030e11818106b6757cc540bd914635bd64e507c",
+          "dirty": false,
+          "results": {
+            "densewrite": [
+              47.36099999999999,
+              31.86595799999941,
+              38.44441699999879
+            ],
+            "matrixwrite": [
+              55.178750000000036,
+              55.66870800000015,
+              39.21441700000105
+            ],
+            "denseupdate": [
+              37.70550000000003,
+              41.84208300000046,
+              28.228167000001122
+            ],
+            "denseread": [
+              34.30624999999998,
+              34.81566699999985,
+              25.143292000000656
+            ],
+            "dice": [
+              318.08016599999996,
+              288.27333400000043,
+              287.06779200000165
+            ],
+            "gridpaths": [
+              775.986375,
+              713.3207080000002,
+              702.215291999999
+            ],
+            "bookshop": [
+              533.7865000000002,
+              475.0482090000005,
+              483.78204200000073
+            ],
+            "editdistance": [
+              606.6481249999997,
+              598.6877079999995,
+              603.8371669999997
+            ]
+          },
+          "medians": {
+            "densewrite": 38.44441699999879,
+            "matrixwrite": 55.178750000000036,
+            "denseupdate": 37.70550000000003,
+            "denseread": 34.30624999999998,
+            "dice": 288.27333400000043,
+            "gridpaths": 713.3207080000002,
+            "bookshop": 483.78204200000073,
+            "editdistance": 603.8371669999997
+          }
+        }
+      },
+      "ratios": {
+        "densewrite": 0.24080112854877633,
+        "matrixwrite": 1.068513694130437,
+        "denseupdate": 0.2071570195329599,
+        "denseread": 0.912800145746025,
+        "dice": 0.9924130165990297,
+        "gridpaths": 0.9796824684360627,
+        "bookshop": 0.9951182375636822,
+        "editdistance": 1.000189206637558
+      },
+      "failures": []
+    }
+  },
+  "verification": {
+    "build": "npm run build passed; only existing Vite chunk-size warnings",
+    "targetedTests": 614,
+    "euler360SmallSpheres": "passed",
+    "fullNpmTest": "not run"
+  },
+  "notes": [
+    "Sphere results are full-radius function calls in three fresh processes with small-radius brute-force checks; CLI startup is excluded.",
+    "Max RSS includes the Node runtime; sample medians are reported. Array storage is 78,125,004 bytes instead of 156,250,008 bytes.",
+    "Dense-writes run with concurrent tests was discarded; the recorded run was isolated and passed all 1.25 ratio limits.",
+    "The Euler 360 program and its algorithm are unchanged."
+  ],
+  "reproduce": [
+    "node benchmarks/dense-integer-counters.mjs",
+    "node benchmarks/dense-integer-counters.mjs --kernel=sum",
+    "node benchmarks/dense-integer-counters.mjs --checkout=/path/to/built/baseline",
+    "node benchmarks/dense-writes.mjs --baseline=/path/to/built/baseline --samples=3"
+  ]
+}

@@ -1,7 +1,7 @@
 import { checkpoint } from './interrupt.js';
 import { reduceTensorMap } from './tensor-map.js';
 import { collectionProtocol, type CollectionProtocolFor, type CollectionCapability } from '@arrrank/language';
-import { arrayValues, denseScalarItems, float64Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
+import { arrayValues, denseScalarItems, float64Cells, integer32Cells, readArrayItem, shouldStream, streamCells, typedElementKind } from './array-storage.js';
 import { extremeMasked, presentReals, sumMasked } from './masked-kernels.js';
 import { reduceSequence, sequenceValues } from './sequence.js';
 import type { RankHeap } from './containers.js';
@@ -42,7 +42,20 @@ const adapters: { [P in keyof ProtocolValues]: (value: ProtocolValues[P], operat
         reduce: operation => {
             const tensor = reduceTensorMap(value, operation);
             if (tensor !== undefined) return tensor;
-            if (operation === 'sum') return sumMasked(value);
+            if (operation === 'sum') {
+                const compact = integer32Cells(value);
+                if (!compact) return sumMasked(value);
+                let total = 0n;
+                for (let start = 0; start < compact.length; start += 4096) {
+                    const end = Math.min(compact.length, start + 4096);
+                    checkpoint('computing numbers', end - start);
+                    // A chunk of signed 32-bit cells sums exactly in binary64.
+                    let chunk = 0;
+                    for (let index = start; index < end; index++) chunk += compact[index];
+                    total += BigInt(chunk);
+                }
+                return total;
+            }
             if (operation !== 'min' && operation !== 'max') return undefined;
             const masked = extremeMasked(value, operation === 'min' ? (a, b) => a < b : (a, b) => a > b);
             if (!masked) return undefined;

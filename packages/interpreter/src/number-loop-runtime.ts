@@ -4,7 +4,7 @@ import { argumentSelectionError, MissingValueError, RankError } from './errors.j
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
-import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, writableIntegerCells, writableRealCells, hasWritableBooleanCells } from './array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopHost, LoopTerm } from './integer-loop-plan.js';
 
@@ -110,7 +110,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             // A single indexed read-only pass can read packed integers in
             // place. Check safe conversion at each actual load; an unsafe cell
             // discards the private scalar attempt before exact replay.
-            if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && info.type === 'integer' && typedElementKind(value) === 'integer') {
+            const compact = info.type === 'integer' ? integer32Cells(value) : undefined;
+            if (compact) {
+                // Private writes retain exact replay on overflow. Read-only
+                // regions can borrow Int32 values directly: every cell is safe.
+                buffers[info.slot] = plan.destinations.has(name) ? new Float64Array(compact) : compact;
+            } else if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && info.type === 'integer' && typedElementKind(value) === 'integer') {
                 buffers[info.slot] = items as ArrayLike<bigint>;
             } else {
                 // Mutating/vector regions use an invocation-private numeric copy.
@@ -146,6 +151,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 if (copy !== undefined) host.writer(name)(copy);
                 const write = prepareScalarArrayWriter(borrowArrayStorage(copy ?? source), true);
                 const cells = buffers[info.slot];
+                if (info.type === 'integer' && writeInteger32Cells(copy ?? source, cells, dirty)) continue;
                 for (let index = first; index < dirty.length; index++) {
                     if (dirty[index]) write(index, info.type === 'boolean' ? Boolean(cells[index]) : info.type === 'real' ? Number(cells[index]) : BigInt(cells[index]));
                 }

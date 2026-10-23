@@ -50,6 +50,12 @@ for I in 0 till 1000
 end
 ```
 
+Large arrays created by `array shape ... fill N` use four-byte signed integer
+cells when the integer fill fits that range. Indexed writes widen the storage
+when needed; reads and reductions still return exact Rank integers. Eligible
+numeric loops update counters in private numeric storage and publish the result
+in a batch. The ordinary value and sharing rules apply.
+
 When the runtime proves that a function only reads scalar cells and cannot
 retain its array parameter, the call can borrow flat scalar storage. Counted
 loops, scalar comparisons and guarded built-ins such as `abs` can participate

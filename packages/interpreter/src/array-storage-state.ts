@@ -6,7 +6,7 @@ export interface OwnedStorage {
     /** The cells. Typed storage stands in here while `typed` is set: only index
      * and length reads are valid on it, and `convert` swaps in a plain array. */
     items: RankValue[];
-    typed?: Float64Array | BigInt64Array;
+    typed?: Float64Array | BigInt64Array | Int32Array;
     /** Bit i set means cell i of `typed` has a value; absent when every cell has one.
      * The buffer holds 0 in a cell without a value. A masked array is not
      * `scalarOnly`: kernels that do not read the bits must not see its buffer. */
