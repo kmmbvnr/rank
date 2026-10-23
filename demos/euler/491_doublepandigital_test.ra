@@ -1,0 +1,10 @@
+use testing
+
+test "count of double pandigitals"
+  use "491_doublepandigital"
+  run
+  Answer equal 194505988824000
+  rem Every kept vector has ten odd
+  rem places.
+  ((K sum rank 1) equal 10) all
+end
