@@ -1,0 +1,73 @@
+rem Sums of totients of powers
+rem https://projecteuler.net/problem=512
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 500000000
+
+rem The sum is G(N), phi summed over
+rem odd m <= N. phi(2^k m) = 2^(k-1)
+rem phi(m), so Phi(x) = G(x) + sum
+rem 2^(k-1) G(x // 2^k) over k >= 1.
+rem Phi at N // m: sieve to N^(2/3),
+rem larger ones by Phi(x) = x(x+1)/2 -
+rem sum Phi(x // d), d >= 2.
+L = ((N * 1.0) ** (2.0 / 3.0)) floor
+L += 10
+Ph = (0 to L) copy
+Rs = (0 to L) copy
+Lr = L isqrt
+for P in primes to Lr
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+  Pe = P
+  for Pe at most L
+    Rs (Pe to L by Pe) //= P
+    Pe *= P
+  end
+end
+Rm = Rs 1 max
+Pr = Ph // Rm * (Rm - 1)
+Ph = (Rs greater 1) choose Pr Ph
+Fs = Ph scan +
+K = N // (L + 1)
+Bg = array shape (K + 2) fill 0
+for Kk in K to 1 by -1
+  X = N // Kk
+  Sx = X isqrt
+  D1 = X // (L + 1)
+  V = X * (X + 1) // 2
+  if D1 at least 2
+    Ds = (2 to D1) copy
+    V -= (Bg (Kk * Ds)) sum
+  end
+  Dd = (D1 + 1 to Sx) copy
+  V -= (Fs (X // Dd)) sum
+  Qs = (1 to X // (Sx + 1)) copy
+  Ct = X // Qs - X // (Qs + 1)
+  V -= (Fs Qs * Ct) sum
+  Bg Kk = V
+end
+rem G at N // 2^j, smallest first.
+J = 0
+for 2 ** (J + 1) at most N
+  J += 1
+end
+Gs = array shape (J + 2) fill 0
+for Jj in J to 0 by -1
+  Mj = 2 ** Jj
+  X = N // Mj
+  F = Fs (X L min)
+  if X greater L
+    F = Bg Mj
+  end
+  Ks = (1 to J - Jj + 1) copy
+  Tw = 2 ** (Ks - 1) * Gs (Jj + Ks)
+  Sb = Tw sum
+  Gs Jj = F - Sb
+end
+Answer = Gs 0
+Answer print

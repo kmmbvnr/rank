@@ -1,0 +1,11 @@
+use testing
+
+test "statement value and brute force"
+  use "512_totientpowers"
+  N = 100
+  run
+  Answer equal 2007
+  N = 100000
+  run
+  Answer equal 2026413875
+end
