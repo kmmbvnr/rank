@@ -1,0 +1,113 @@
+{
+  "issue": 421,
+  "baselineCommit": "f0bae25a",
+  "command": "node benchmarks/selector-type-checks.mjs --checkout CHECKOUT",
+  "node": "v24.15.0",
+  "method": "Three sequential fresh processes per stage; no concurrent builds or tests. Timed loop includes gathers and B sums; total includes setup. Independent checksum oracle excluded.",
+  "stages": {
+    "baseline": {
+      "results": [
+        {
+          "sample": 0,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 455.05929199999997,
+          "gatherMs": 12321.813667,
+          "totalMs": 12776.87475,
+          "answer": "599999940000000"
+        },
+        {
+          "sample": 1,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 463.34950000000003,
+          "gatherMs": 10819.989166,
+          "totalMs": 11283.340041,
+          "answer": "599999940000000"
+        },
+        {
+          "sample": 2,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 426.536291,
+          "gatherMs": 10947.484124999999,
+          "totalMs": 11374.022041,
+          "answer": "599999940000000"
+        }
+      ],
+      "medianGatherMs": 10947.484124999999,
+      "medianTotalMs": 11374.022041
+    },
+    "integerClassification": {
+      "results": [
+        {
+          "sample": 0,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 414.988125,
+          "gatherMs": 7134.387500000001,
+          "totalMs": 7549.377417000001,
+          "answer": "599999940000000"
+        },
+        {
+          "sample": 1,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 417.7367909999999,
+          "gatherMs": 6963.2509580000005,
+          "totalMs": 7380.989458,
+          "answer": "599999940000000"
+        },
+        {
+          "sample": 2,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 424.683875,
+          "gatherMs": 7256.404625,
+          "totalMs": 7681.089999999999,
+          "answer": "599999940000000"
+        }
+      ],
+      "medianGatherMs": 7134.387500000001,
+      "medianTotalMs": 7549.377417000001
+    },
+    "bothClassifications": {
+      "results": [
+        {
+          "sample": 0,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 413.149459,
+          "gatherMs": 3228.9721670000004,
+          "totalMs": 3642.123125,
+          "answer": "599999940000000"
+        },
+        {
+          "sample": 1,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 411.77641700000004,
+          "gatherMs": 3208.652708,
+          "totalMs": 3620.4307500000004,
+          "answer": "599999940000000"
+        },
+        {
+          "sample": 2,
+          "size": 10000000,
+          "rounds": 10,
+          "setupMs": 409.568125,
+          "gatherMs": 3203.815375,
+          "totalMs": 3613.3852500000003,
+          "answer": "599999940000000"
+        }
+      ],
+      "medianGatherMs": 3208.652708,
+      "medianTotalMs": 3620.4307500000004
+    }
+  },
+  "speedup": {
+    "integerVsBaseline": 1.5344672720678543,
+    "bothVsInteger": 2.2234838573249545,
+    "bothVsBaseline": 3.4118632090363326
+  }
+}

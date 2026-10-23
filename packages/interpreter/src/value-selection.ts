@@ -2,7 +2,7 @@ import { maskSelection } from './array-mask-selection.js';
 export { maskSelection };
 import { indexedSource } from './indexed-source.js';
 import { textAt } from './text-storage.js';
-import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem } from './array-storage.js';
+import { denseScalarItems, noteArrayBinding, ownedArray, readArrayItem, storedScalarKinds, typedElementKind } from './array-storage.js';
 import { RankDeque } from './containers.js';
 import { RankIntegerGroups } from './integer-groups.js';
 import { counterFrequency } from './collections.js';
@@ -548,6 +548,9 @@ export function unpackApplicationItems(value: RankValue, axis?: number): RankVal
 
 function isTableFieldList(value: RankValue, includeEmpty = true): boolean {
     if (!isRankArray(value) || value.shape.length !== 1) return false;
+    if (typedElementKind(value)) return includeEmpty && value.shape[0] === 0;
+    const kinds = storedScalarKinds(value);
+    if (kinds) return (includeEmpty && kinds.length === 0) || kinds.includes('text');
     const stored = denseScalarItems(value);
     if (stored) return (includeEmpty && stored.length === 0)
         || Array.prototype.some.call(stored, (item: RankValue) => typeof item === 'string' || isRankLabel(item));

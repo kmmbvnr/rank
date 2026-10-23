@@ -463,6 +463,13 @@ export function isCollectionSelector(value: RankValue): boolean {
 export function isIntegerCollectionSelector(value: RankValue): boolean {
     if (isRankSequence(value)) return true;
     if (!isRankArray(value) && !isRankQueue(value)) return false;
+    if (isRankArray(value)) {
+        const typed = typedElementKind(value);
+        if (typed) return typed === 'integer' || value.shape.includes(0);
+        const kinds = storedScalarKinds(value);
+        // Packed masks keep their existing selection dispatch and diagnostics.
+        if (kinds && !kinds.includes('boolean')) return kinds.every(kind => kind === 'integer');
+    }
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     return stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'bigint')
         : value.items.every(item => typeof item === 'bigint');
