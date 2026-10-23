@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "510_tangentcircles"
+  N = 5
+  run
+  Answer equal 9
+  N = 100
+  run
+  Answer equal 3072
+end
