@@ -1,0 +1,87 @@
+rem Weak Queens
+rem https://projecteuler.net/problem=534
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 14
+
+rem A queen reaching D rows only meets
+rem the last D queens, so step rows on
+rem states of the last D columns (4
+rem bits each), merging equal states.
+rem V, L, R carry the column and the
+rem two diagonal bits for the next row;
+rem the queen falling out of reach is
+rem subtracted. Mirror symmetry halves
+rem the first row. D = 0 gives N^N.
+Of = 16
+Fu = (1 N shl) - 1
+Pw = 2 ** (0 till N)
+Hf = (1 ((N + 1) // 2) shl) - 1
+Answer = N ** N
+for D in 1 till N
+  Mk = 16 ** D
+  Sh = 16 ** (D - 1)
+  St = array 0
+  Cn = array 1
+  V = array 0
+  Lm = array 0
+  Rr = array 0
+  for Rw in 0 till N
+    R1 = Rr // (2 ** Of)
+    Bl = V Lm bor
+    Bl = Bl R1 bor
+    Fr = Fu - (Bl Fu band)
+    if Rw equal 0
+      Fr = Fr * 0 + Hf
+    end
+    F = Fr len
+    Fb = ((Fr reshape F 1) // Pw) mod 2
+    Fv = Fb reshape (F * N)
+    Ix = (Fv equal 1) indices
+    Si = Ix // N
+    C = Ix mod N
+    Bc = Pw C
+    Sx = St Si
+    Cp = Cn Si
+    if Rw equal 0
+      Md = 2 * C equal N - 1
+      Cp = Md choose 1 2
+    end
+    Nw = (Sx * 16 + C) mod Mk
+    Vx = V Si + Bc
+    Lx = (Lm Si + Bc) * 2
+    Rx = (Rr Si + Bc * 2 ** Of) // 2
+    if Rw at least D
+      Od = (Sx // Sh) mod 16
+      Bo = Pw Od
+      Vx = Vx - Bo
+      Lx = Lx - Bo * 2 ** (D + 1)
+      Rx = Rx - Bo * 2 ** (Of - D - 1)
+    end
+    rem Merge equal states after a sort.
+    Od = Nw argsort
+    Ss = Nw Od
+    Ln = Ss len
+    Sa = Ss (1 till Ln)
+    Eq = Sa equal (Ss (0 till Ln - 1))
+    Ne = Eq equal false
+    Fl = concat (array true) Ne
+    Fi = Fl indices
+    G = (Fl integer) scan +
+    G = G - 1
+    St = Ss Fi
+    Cn = array shape (Fi len) fill 0
+    Co = Cp Od
+    Cn G += Co .accumulate
+    V = (Vx Od) Fi
+    Lm = (Lx Od) Fi
+    Rr = (Rx Od) Fi
+  end
+  Answer += Cn sum
+end
+Answer print

@@ -1,0 +1,11 @@
+use testing
+
+test "statement value and brute force"
+  use "534_weakqueens"
+  N = 4
+  run
+  Answer equal 276
+  N = 5
+  run
+  Answer equal 3347
+end
