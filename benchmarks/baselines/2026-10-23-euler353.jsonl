@@ -1,0 +1,9 @@
+{"node":"v24.15.0","cpu":"Apple M5","timing":"fresh process; execute includes parsing; import excluded"}
+{"stage":"baseline","program":"original","last":9,"samplesMs":[5718.775958,5712.799584,5742.18375],"medianMs":5718.775958,"result":1.2388476315}
+{"stage":"inline-isqrt-acos","program":"original","last":9,"samplesMs":[4647.632083,4635.940875,4796.495],"medianMs":4647.632083,"result":1.2388476315}
+{"stage":"mixed-numeric-backend","program":"original","last":9,"samplesMs":[802.090541,809.088917,808.830333],"medianMs":808.830333,"result":1.2388476315}
+{"stage":"reduced-pruned-bidirectional","last":9,"samplesMs":[207.162459,206.098541,209.350833],"medianMs":207.162459,"result":1.2388476315}
+{"stage":"reduced-dense-unidirectional","last":15,"samplesMs":[28859.159625],"result":1.2759860331}
+{"stage":"reduced-pruned-bidirectional","last":15,"samplesMs":[21276.589875,21796.0115,22191.152208],"medianMs":21796.0115,"rssMiB":[202.15625,201.84375,201.984375],"result":1.2759860331}
+{"stage":"independent-unpruned-oracle","last":15,"samplesMs":[9820.443375],"result":1.2759860331}
+{"stage":"individual-radius-oracle-checks","last":15,"samplesMs":[20893.547625],"rssMiB":203.34375,"tolerance":1e-14,"result":1.2759860331}

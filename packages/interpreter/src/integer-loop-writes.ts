@@ -18,8 +18,11 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             const compound = assignment.operator !== '=';
             if (compound && !host.compoundWrites) return undefined;
             const previous = destinations.get(assignment.name), source = arrays.get(assignment.name);
-            if (source && (source.rank !== 1 || source.type !== 'integer')) return undefined;
-            const target = previous ?? { slot: slot(assignment.name), rank: 1, compound, type: 'integer' as const };
+            if (source && source.rank !== 1) return undefined;
+            const type = source?.type ?? previous?.type ?? expressions.realInput(assignment.name)
+                ?? (host.booleanArrays && expressions.knownType(assignment.value) === 'boolean' ? 'boolean' : 'integer');
+            if (!['integer', 'real', 'boolean'].includes(type)) return undefined;
+            const target = previous ?? { slot: slot(assignment.name), rank: 1, compound, type };
             destinations.set(assignment.name, target);
             arrayInputs.add(assignment.name);
             const lines: string[] = [];
@@ -28,22 +31,22 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             const key = `key${state.serial++}`;
             lines.push(`const ${key} = ${index.code};
                 if (${key} < 0 || ${key} >= cells${target.slot}.length) throw badWriteIndex(${key});`);
-            const value = emit(assignment.value, lines, 'integer');
-            if (value?.type !== 'integer') return undefined;
+            const value = emit(assignment.value, lines, type);
+            if (value?.type !== type) return undefined;
             const rhs = `operand${state.serial++}`;
             lines.push(`const ${rhs} = ${value.code};`);
             let result = rhs;
             if (compound) {
                 const op = assignment.operator.slice(0, -1);
-                const signature = loopOperatorSignature(op, ['integer', 'integer'], host.nativeCalls);
-                const out = signature?.compound && signature.result === 'integer'
-                    ? arithmetic(op, { code: `cells${target.slot}[${key}]`, type: 'integer' },
-                        { code: rhs, type: 'integer' }, 'integer', lines) : undefined;
+                const signature = loopOperatorSignature(op, [type, type], host.nativeCalls);
+                const out = signature?.compound && signature.result === type
+                    ? arithmetic(op, { code: `cells${target.slot}[${key}]`, type },
+                        { code: rhs, type }, type, lines) : undefined;
                 if (out === undefined) return undefined;
                 result = out;
             }
             body.push(`location = ${location};`, ...lines,
-                `cells${target.slot}[${key}] = ${result}; changed${target.slot}[${key}] = 1; iterationResult = ${rhs};`);
+                `cells${target.slot}[${key}] = ${result}; changed${target.slot}[${key}] = 1; iterationResult = ${rhs}; resultType = ${JSON.stringify(type)};`);
             return true;
         }
         const compound = assignment.operator !== '=';

@@ -11,7 +11,7 @@ export interface IterationBinding {
 }
 export interface LoopHost {
     readonly observableEntry?: boolean;
-    canDeferWrites?(bindings: readonly [string, 'integer' | 'boolean' | 'array'][]): boolean;
+    canDeferWrites?(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array'][]): boolean;
     readonly tensorReadHoisting: boolean;
     readonly textLoops: boolean;
     readonly textArrayLoops: boolean;

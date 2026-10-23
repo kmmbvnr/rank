@@ -1,11 +1,12 @@
+import { safeIntegerSquareRoot } from './integer-square-root.js';
 import { isForStatement } from '@arrrank/language';
 import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
-import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, writableIntegerCells } from './array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, writableIntegerCells, writableRealCells, hasWritableBooleanCells } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
-import type { CompiledLoop, IntegerLoopPlan, LoopHost } from './integer-loop-plan.js';
+import type { CompiledLoop, IntegerLoopPlan, LoopHost, LoopTerm } from './integer-loop-plan.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
 type NumberCells = ArrayLike<number | bigint>;
@@ -18,8 +19,8 @@ function int32(value: number): number {
     if (value !== (value | 0)) throw overflow;
     return value;
 }
-const rankInteger = (value: unknown): RankValue | undefined =>
-    typeof value === 'number' ? BigInt(value) : value as RankValue | undefined;
+const rankValue = (value: unknown, type: string | undefined): RankValue | undefined =>
+    typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 
 /** Only private scalar/cell writes and trusted eager reads qualify. Nothing is
  * published until success, so overflow can discard this attempt and enter the
@@ -29,16 +30,16 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.length || plan.iterators.length || plan.containers.size
         || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
-        || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean')
-        || [...arrays.values()].some(info => info.type !== 'integer' || info.rank !== 1)
-        || [...plan.destinations.values()].some(info => info.type !== 'integer' || info.rank !== 1 || info.slice)
+        || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
+        || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1)
+        || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1 || info.slice)
         || plan.destinations.size > 0 && plan.vectorIterations.length > 0) return undefined;
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
-    const storage = new Map<string, { slot: number }>([...arrays, ...plan.destinations]);
+    const storage = new Map<string, { slot: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return undefined;
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
-    const bindings = [...written].map(name => [name, localTypes.get(name)!] as [string, 'integer' | 'boolean']);
+    const bindings = [...written].map(name => [name, localTypes.get(name)!] as [string, 'integer' | 'real' | 'boolean']);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);
@@ -46,7 +47,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
     const source = `"use strict"; return function(input, cells, changes, publish) {
-        let ${registers.length ? `${registers.join(',')}, ` : ''}result, location = -1, order = 0;
+        let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0;
         const entered = [];
         try {
             ${root.setup} ${root.header}
@@ -60,12 +61,12 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             throw locate(error, location);
         }
         ${publish}
-        return { value: result };
+        return { value: result, type: resultType };
     };`;
-    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown } | undefined;
+    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string } | undefined;
     let run: Run;
     try {
-        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', source)(
+        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', source)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -76,7 +77,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number) => index < 0 ? new RankError('array index must be nonnegative on axis 0')
-                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError);
+                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError, safeIntegerSquareRoot);
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
@@ -90,6 +91,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             if (localTypes.get(names[slot]) === 'boolean') {
                 if (typeof value !== 'boolean') return undefined;
                 input[slot] = value;
+            } else if (localTypes.get(names[slot]) === 'real') {
+                if (typeof value !== 'number') return undefined;
+                input[slot] = value;
             } else {
                 if (typeof value !== 'bigint' || !Number.isSafeInteger(Number(value))) return recordFallback('number-loop:unsafe-input');
                 input[slot] = Number(value);
@@ -98,13 +102,15 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         for (const [name, info] of storage) {
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== 1 || arrayRevision(value) === undefined) return undefined;
-            if (plan.destinations.has(name) && (hasPendingSelections(value) || value.shape[0] > 0 && !writableIntegerCells(value))) return undefined;
+            if (plan.destinations.has(name) && (hasPendingSelections(value) || value.shape[0] > 0
+                && !(info.type === 'real' ? writableRealCells(value)
+                    : info.type === 'boolean' ? hasWritableBooleanCells(value) : writableIntegerCells(value)))) return undefined;
             const items = denseScalarItems(value) ?? materializedArrayItems(value);
             if (!items) return undefined;
             // A single indexed read-only pass can read packed integers in
             // place. Check safe conversion at each actual load; an unsafe cell
             // discards the private scalar attempt before exact replay.
-            if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && typedElementKind(value) === 'integer') {
+            if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && info.type === 'integer' && typedElementKind(value) === 'integer') {
                 buffers[info.slot] = items as ArrayLike<bigint>;
             } else {
                 // Mutating/vector regions use an invocation-private numeric copy.
@@ -112,7 +118,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 for (let index = 0; index < items.length; index++) {
                     if ((index & 4095) === 0) checkpoint('preparing numeric loop storage');
                     const item = items[index];
-                    if (typeof item !== 'bigint' || !Number.isSafeInteger(Number(item))) return recordFallback('number-loop:unsafe-cell');
+                    if (info.type === 'real' ? typeof item !== 'number'
+                        : info.type === 'boolean' ? typeof item !== 'boolean'
+                            : typeof item !== 'bigint' || !Number.isSafeInteger(Number(item))) return recordFallback('number-loop:unsafe-cell');
                     cells[index] = Number(item);
                 }
                 buffers[info.slot] = cells;
@@ -139,7 +147,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 const write = prepareScalarArrayWriter(borrowArrayStorage(copy ?? source), true);
                 const cells = buffers[info.slot];
                 for (let index = first; index < dirty.length; index++) {
-                    if (dirty[index]) write(index, BigInt(cells[index]));
+                    if (dirty[index]) write(index, info.type === 'boolean' ? Boolean(cells[index]) : info.type === 'real' ? Number(cells[index]) : BigInt(cells[index]));
                 }
             }
             // Declarations are private too: overflow must leave even empty-loop
@@ -152,13 +160,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             // First-write order preserves binding insertion order as well as the
             // final values; contracts were proved total before executing anything.
             for (const [, slot, value] of values.filter(([order]) => order > 0).sort((a, b) => a[0] - b[0])) {
-                host.writer(names[slot])(rankInteger(value)!);
+                host.writer(names[slot])(rankValue(value, localTypes.get(names[slot]))!);
             }
         });
         if (!result) {
             if (diagnostics) diagnostics.numberLoopOverflows++;
             return undefined;
         }
-        return completed(rankInteger(result.value));
+        return completed(rankValue(result.value, result.type));
     } };
 }

@@ -93,12 +93,14 @@ the same time (10.4 s on an idle start). Real `//`, `mod`, real compound
 array writes, real iteration and real-valued callees still fall back with a
 `loop:` diagnostic; see [deferred refactors](loop-compiler-refactors.md).
 
-## Safe Number registers in private integer loops
+## Safe Number registers in private numeric loops
 
 Integer-loop planning and lowering are separate from invocation binding and
-storage access. A second backend uses safe Number registers for integer/boolean
-regions with private scalar writes and eager rank-one integer array reads and
-indexed writes. Array writes use a private `Float64Array` and a changed-cell mask;
+storage access. A second backend uses safe Number registers for integer/real/boolean
+regions with private scalar writes and eager rank-one scalar array reads and
+indexed writes. Integer operations retain safe-integer checks and exact replay;
+real and boolean values preserve their types at publication. `isqrt` and `acos`
+can lower directly after the usual domain and builtin-identity guards. Array writes use a private `Float64Array` and a changed-cell mask;
 overflow discards both before exact BigInt replay. Normal/error exits publish
 changed cells through revision-tracked storage, copying shared sources first.
 Writes with retained selections, and vector iteration combined with array writes,
@@ -108,7 +110,7 @@ storage directly, checking safe conversion at each load; repeated/nested reads
 retain prepared numeric buffers. Every potentially unsafe integer intermediate
 is guarded. Calls, unsupported contracts and observable readers do not enter this
 specialization.
-Normal/error exits preserve exact integer bindings and partial state. Atomics
+Normal/error exits preserve exact integer bindings, real/boolean types and partial state. Atomics
 cancellation publishes completed assignments before unwinding through `finally`.
 Inspection and arbitrary host polling keep the existing publishing backend.
 

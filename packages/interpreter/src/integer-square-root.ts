@@ -22,3 +22,11 @@ export function integerSquareRoot(value: bigint): bigint {
         root = next;
     }
 }
+
+/** Exact floor for a nonnegative safe integer. The floating root is only a seed. */
+export function safeIntegerSquareRoot(value: number): number {
+    let root = Math.floor(Math.sqrt(value));
+    while (root * root > value) root--;
+    while ((root + 1) * (root + 1) <= value) root++;
+    return root;
+}

@@ -42,6 +42,12 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
     ['sqrt', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
         domain: { test: value => `(${value}) < 0`, message: 'sqrt expects a nonnegative value' },
         code: (value, type) => `Math.sqrt(${type === 'integer' ? `Number(${value})` : value})` }],
+    ['isqrt', { module: 'numbers', types: { integer: 'integer' },
+        domain: { test: value => `(${value}) < 0`, message: 'isqrt expects a nonnegative integer' },
+        code: value => `isqrt(${value})` }],
+    ['acos', { module: 'numbers', types: { integer: 'real', real: 'real' }, enabled: host => host.reals,
+        domain: { test: value => `!((${value}) >= -1 && (${value}) <= 1)`, message: 'acos input is outside its domain' },
+        code: value => `Math.acos(Number(${value}))` }],
     ['floor', bound('floor')],
     ['ceil', bound('ceil')],
 ]);
@@ -146,8 +152,6 @@ export function createLoopExpressions(state: LoopCompilationState) {
         return lower(inferred.expression, lines) ?? reject(e);
     }
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[], selection?: { name: string; count: number }): LoopTerm | undefined {
-        // Real intermediates are allowed in Number regions; published
-        // registers still have to satisfy the integer/boolean binding contract.
         if (state.serial > 256) return undefined;
         if (node.kind === 'group') return lower(node.operand, lines);
         if (node.kind === 'literal') {
@@ -511,7 +515,7 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 const coordinate = `index${state.serial++}`;
                 lines.push(`const ${coordinate} = ${indices[0]};
                     if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
-                    const ${name} = safe(Number(cells${info.slot}[${coordinate}]));`);
+                    const ${name} = ${type === 'integer' ? `safe(Number(cells${info.slot}[${coordinate}]))` : type === 'boolean' ? `Boolean(cells${info.slot}[${coordinate}])` : `cells${info.slot}[${coordinate}]`};`);
             } else {
                 lines.push(`const ${name} = reader${info.slot}(${info.rank <= 2 ? indices.join(',') : `[${indices.join(',')}]`});`);
             }

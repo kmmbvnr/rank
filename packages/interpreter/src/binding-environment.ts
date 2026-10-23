@@ -174,7 +174,7 @@ export class BindingEnvironment {
 
     /** A private region can publish once only when all its binding stores are total.
      * No callbacks run between this proof and publication. */
-    canDeferWrites(bindings: readonly [string, 'integer' | 'boolean' | 'array'][]): boolean {
+    canDeferWrites(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array'][]): boolean {
         return bindings.every(([name, type]) => {
             const scope = this.assignmentScope(name);
             if (availableBuiltin(name, this.modules) || this.isConstant(name, scope)) return false;

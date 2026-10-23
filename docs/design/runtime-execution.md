@@ -775,7 +775,7 @@ whose existing graph validation throws.
 Each integer intermediate and range increment is checked for safe-integer
 exactness. Division retains floor rounding and remainder retains the divisor's
 sign. Overflow discards the entire unpublished attempt and executes the original
-BigInt region from its original inputs. Indexed rank-one integer stores use a
+BigInt region from its original inputs. Indexed rank-one integer, real and boolean stores use a
 private numeric buffer and changed-cell mask, so no array writes or callbacks
 escape that attempt. Normal/error publication writes changed cells with tracked
 revisions and copies shared sources without polling during the commit. Writes
@@ -783,9 +783,15 @@ with retained selections, and array writes combined with vector iteration, retai
 the exact backend. A non-nested
 range loop with one indexed read per source at its cursor can read packed integer
 storage directly, validating each conversion; other reads use prepared numeric
-buffers. Real intermediates are allowed when published registers remain integer
-or boolean. Exact Number powers are restricted to exponents 0, 1 and 2.
-Successful exits publish exact BigInt/boolean values;
+buffers. A region may combine integer, real and boolean scalar bindings and
+homogeneous rank-one arrays while retaining each binding and array cell type. Integer loads and intermediates
+remain checked; real cells retain IEEE-754 values, including negative zero.
+The loop result records its scalar type before publication. Exact integer Number
+powers are restricted to exponents 0, 1 and 2. `isqrt` uses an exact integer root
+on the BigInt backend and a corrected floating seed for safe Number integers;
+`acos` lowers directly with the ordinary domain check. Builtin identities are
+rechecked on entry.
+Successful exits publish BigInt integers, real numbers and booleans;
 ordinary errors and cancellation publish preceding successful assignments in
 first-write order before propagating the original located error. No rounded
 Number is converted into an overflow result.

@@ -57,7 +57,7 @@
   "euler/350_constraining_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 350_constraining_test.ra.",
   "euler/351_orchards.ra": "Runs recursive summatory-totient calculations at the default limit 100000000.",
   "euler/352_bloodtests.ra": "Runs nested pooling dynamic programs at size 10000 for 50 probabilities.",
-  "euler/353_riskymoon.ra": "Allocates radius-squared coordinate buffers through radius 32767.",
+  "euler/353_riskymoon.ra": "The reduced default search is practical when compiled; exact point-generation loops through radius 32767 exceed the uncompiled differential execution budget.",
   "euler/354_honeycomb.ra": "Enumerates honeycomb distances below 5*10^11.",
   "euler/355_coprime.ra": "Builds the full prime-assignment optimization at limit 200000.",
   "euler/357_primegenerating.ra": "Enumerates prime candidates through 100000000.",

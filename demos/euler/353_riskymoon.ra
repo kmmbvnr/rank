@@ -2,52 +2,94 @@ rem Risky Moon
 rem https://projecteuler.net/problem=353
 
 use numbers
+use sequences
 use io
 use cli
 
 option Last integer = 15
 
-fun R moon
-  Cap = 8 * R * R + 2
-  Xs = array shape Cap fill 0
-  Ys = array shape Cap fill 0
-  Zs = array shape Cap fill 0
+rem Count unordered nonnegative triples before allocating coordinate storage.
+fun R mooncount
+  R2 = R * R
   Count = 0
-  for X in (0 - R) to R
-    for Y in (0 - R) to R
-      Z2 = R * R - X * X - Y * Y
-      if Z2 at least 0
-        Z = Z2 isqrt
-        if Z * Z equal Z2
-          Xs Count = X
-          Ys Count = Y
-          Zs Count = Z
-          Count += 1
-          if Z greater 0
-            Xs Count = X
-            Ys Count = Y
-            Zs Count = 0 - Z
-            Count += 1
-          end
-        end
+  for X in 0 to ((R2 // 3) isqrt)
+    Left = R2 - X * X
+    for Y in X to ((Left // 2) isqrt)
+      Z2 = Left - Y * Y
+      Z = Z2 isqrt
+      if Z * Z equal Z2
+        Count += 1
       end
     end
+  end
+  return Count
+end
+
+rem Horizontal reflections and coordinate exchange fix both poles.
+rem Encode all representatives 0 <= X <= Y, retaining both signs of Z.
+fun R moonpoints
+  Count = R mooncount
+  Codes = array shape (6 * Count) fill 0
+  Base = R + 1
+  Plane = Base * Base
+  R2 = R * R
+  At = 0
+  for X in 0 to ((R2 // 3) isqrt)
+    Left = R2 - X * X
+    for Y in X to ((Left // 2) isqrt)
+      Z2 = Left - Y * Y
+      Z = Z2 isqrt
+      if Z * Z equal Z2
+        Codes At = (R + Z) * Plane + X * Base + Y
+        Codes (At + 1) = (R - Z) * Plane + X * Base + Y
+        Codes (At + 2) = (R + Y) * Plane + X * Base + Z
+        Codes (At + 3) = (R - Y) * Plane + X * Base + Z
+        Codes (At + 4) = (R + X) * Plane + Y * Base + Z
+        Codes (At + 5) = (R - X) * Plane + Y * Base + Z
+        At += 6
+      end
+    end
+  end
+  return Codes unique sort
+end
+
+fun R moon
+  Codes = R moonpoints
+  Count = Codes len
+  Xs = array shape Count fill 0
+  Ys = array shape Count fill 0
+  Zs = array shape Count fill 0
+  Base = R + 1
+  Plane = Base * Base
+  R2 = R * R
+  for I in 0 till Count
+    Code = Codes I
+    Zs I = Code // Plane - R
+    Xs I = (Code mod Plane) // Base
+    Ys I = Code mod Base
   end
   Dist = array shape Count fill 2.0
   Done = array shape Count fill false
-  Start = 0
-  Goal = 0
+  Start = Count - 1
+  Dist Start = 0.0
+  rem The equatorial axis gives a feasible route with risk 0.5.
+  Upper = 0.5
+  Mirror = array shape Count fill 0
   for I in 0 till Count
-    if Xs I equal 0 and Ys I equal 0
-      if Zs I equal R
-        Start = I
-      end
-      if Zs I equal 0 - R
-        Goal = I
+    Code = Codes I
+    Other = (2 * R - Code // Plane) * Plane + Code mod Plane
+    Lo = 0
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Codes Mid less Other
+        Lo = Mid + 1
+      else
+        Hi = Mid
       end
     end
+    Mirror I = Lo
   end
-  Dist Start = 0.0
   Pi = -1 acos
   for Step in 1 to Count
     At = -1
@@ -58,16 +100,60 @@ fun R moon
         Best = Dist I
       end
     end
+    rem Reflecting this search in Z is the simultaneous search from the south.
+    rem The two unsettled frontiers have the same minimum distance.
+    if 2.0 * Best at least Upper
+      break
+    end
     Done At = true
-    for I in 0 till Count
+    rem A useful edge has chord length < Pi * R * sqrt(Upper - Best).
+    rem Sorted Z coordinates exclude whole bands before scanning candidates.
+    rem The extra integer unit makes the rounded bound conservative.
+    Span = ((((Upper - Best) * Pi * Pi * R2) sqrt) ceil) + 1
+    Bottom = Zs At - Span
+    Top = Zs At + Span
+    Lo = 0
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Zs Mid less Bottom
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    First = Lo
+    Hi = Count
+    for Lo less Hi
+      Mid = (Lo + Hi) // 2
+      if Zs Mid at most Top
+        Lo = Mid + 1
+      else
+        Hi = Mid
+      end
+    end
+    for I in First till Lo
+      if Done I
+        continue
+      end
       Dot = Xs At * Xs I + Ys At * Ys I
       Dot += Zs At * Zs I
-      Angle = (Dot / (R * R)) acos / Pi
+      rem Arc length is at least chord length: reject only proven losers.
+      Lower = 2.0 * (R2 - Dot) / R2 / (Pi * Pi)
+      if Best + Lower at least ((Dist I) Upper min)
+        continue
+      end
+      Angle = (Dot / R2) acos / Pi
       Value = Best + Angle * Angle
-      Dist I = Dist I Value min
+      if Value less Dist I
+        Dist I = Value
+        Other = Mirror I
+        Route = Value + Dist Other
+        Upper = Upper Route min
+      end
     end
   end
-  return Dist Goal
+  return Upper
 end
 
 Sum = 0.0

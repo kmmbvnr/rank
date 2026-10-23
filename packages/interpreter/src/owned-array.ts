@@ -102,6 +102,12 @@ export function realCells(value: RankArray): ArrayLike<number> | undefined {
         ? state.items as unknown as number[] : undefined;
 }
 
+/** Writable owned real cells, with the same publication contract as integer cells. */
+export function writableRealCells(value: RankArray): ArrayLike<number> | undefined {
+    const state = ownedStorage.get(value);
+    return state && !state.readOnlyCells ? realCells(value) : undefined;
+}
+
 /** Trusted integer cells only, read in place. A bulk integer write preserves this
  * physical kind, but its caller must separately validate the binding's semantic contract. */
 export function writableIntegerCells(value: RankArray): ArrayLike<bigint> | undefined {
@@ -607,7 +613,7 @@ export function createOwned(
 }
 
 /** Prepare once per compiled region; avoid a WeakMap lookup on each write. */
-export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | boolean | string) => void {
+export function prepareScalarArrayWriter(value: RankValue | undefined, batch = false): (index: number, item: bigint | number | boolean | string) => void {
     const array = value as RankArray;
     const state = array && borrowedStorage.get(array);
     if (!state) return (index, item) => { array.items[index] = item; };

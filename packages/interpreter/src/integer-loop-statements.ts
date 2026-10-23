@@ -245,7 +245,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             writers.push(host.writer(assignment.name));
             writerNames.push(assignment.name);
             body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,
-                `${numberMode ? dirty(destination) : `writers[${index}](out${index});`} r${destination} = out${index}; iterationResult = out${index};`);
+                `${numberMode ? dirty(destination) : `writers[${index}](out${index});`} r${destination} = out${index}; iterationResult = out${index}; ${numberMode ? `resultType = ${JSON.stringify(type)};` : ''}`);
             assigned.add(assignment.name);
         }
         return 'next';
