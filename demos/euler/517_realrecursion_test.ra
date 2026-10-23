@@ -1,0 +1,9 @@
+use testing
+
+test "small prime range"
+  use "517_realrecursion"
+  Lo = 100
+  W = 100
+  run
+  Answer equal 581119212
+end
