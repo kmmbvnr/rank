@@ -1,0 +1,105 @@
+rem Tricoloured Coin Fountains
+rem https://projecteuler.net/problem=519
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option N integer = 20000
+
+rem F = Nu / De with the q-series
+rem Nu = sum (-1)^m x^(m(m+2))/(x;x)_m
+rem and De with x^(m(m+1)); then
+rem t = x A / (1 - 2 x A), A = 2F - 1,
+rem is x P / (De - 2 x P), P = 2 Nu -
+rem De, and T(n) = 3 [x^n] t.
+M = 1000000000
+B = 500
+Nb = N // B + 1
+Np = Nb * B
+Z = array shape (Np + B) fill 0
+R = Z copy
+R 0 = 1
+Nu = Z copy
+De = Z copy
+G = 1
+J = 0
+W = Np + B
+for J * (J + 1) at most N
+  E1 = J * (J + 2)
+  E2 = J * (J + 1)
+  R1 = R (0 till W - E1)
+  Nu (E1 till W) += G * R1
+  R2 = R (0 till W - E2)
+  De (E2 till W) += G * R2
+  rem Divide R by 1 - x^(J+1): a
+  rem prefix sum along stride J + 1.
+  K = J + 1
+  Nr = W // K + 1
+  Rk = concat R (Z (0 till Nr * K - W))
+  Rm = (Rk reshape Nr K) scan + axis 0
+  Rf = Rm reshape (Nr * K)
+  R = (Rf (0 till W)) mod M
+  G = -G
+  J += 1
+end
+P = (2 * Nu - De) mod M
+Xp = concat (array 0) (P (0 till W - 1))
+Q = (De - 2 * Xp) mod M
+rem Solve t Q = x P by blocks of B.
+rem Kt row j holds q(j+1) .. q(j+B),
+rem so the coefficients before block
+rem s add (t reversed) Kt (0 till s).
+I = (0 till Np * B) copy
+Ix = I // B + I mod B + 1
+Ix = Ix (W - 1) min
+Kt = (Q Ix) reshape Np B
+rem Halves below 2^15 keep each sum
+rem of products below 2^53.
+Kl = Kt mod 32768
+Kh = Kt // 32768
+rem Ei is 1 / Q to B terms, and Zt the
+rem transposed Toeplitz of Ei solves
+rem each block by one product.
+Ei = array shape B fill 0
+Ei 0 = 1
+for K in 1 till B
+  Qs = Q (1 to K)
+  Es = (Ei (0 till K)) reverse
+  S = (Qs * (Es mod 32768)) sum
+  Sh = (Qs * (Es // 32768)) sum mod M
+  Ei K = (0 - S - Sh * 32768) mod M
+end
+I = (0 till B * B) copy
+Iz = I mod B - I // B + B
+Ez = concat (array shape B fill 0) Ei
+Zt = (Ez Iz) reshape B B
+T = array shape 0 fill 0
+for A in 0 till Nb
+  S = A * B
+  V = Xp (S till S + B)
+  if A greater 0
+    Tr = T reverse
+    Lo = Tr mod 32768
+    Hi = Tr // 32768
+    Tm = stack Lo Hi
+    Ka = (Kl (0 till S)) copy
+    Kb = (Kh (0 till S)) copy
+    Ca = Tm Ka matmul
+    Cb = Tm Kb matmul
+    Md = (Ca 1 + Cb 0) mod M
+    Hh = (Cb 1) mod M
+    Cs = Ca 0 + Md * 32768
+    Cs = (Cs + Hh * 1073741824) mod M
+    V = (V - Cs) mod M
+  end
+  Vm = stack (V mod 32768) (V // 32768)
+  C = Vm Zt matmul
+  Ct = C 0 + ((C 1) mod M) * 32768
+  Tb = Ct mod M
+  T = (concat T Tb) copy
+end
+Answer = 3 * T N mod M
+Answer print

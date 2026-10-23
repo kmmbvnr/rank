@@ -193,5 +193,6 @@
   "euler/511_nicesequences.ra": "To fix later: the default input takes about 3.5 min (about 60 cyclic convolutions of length 4321, each a 4321 x 4322 circulant built by a gather, #421); the small _test.ra fixture stays in the audits.",
   "euler/513_integralmedian.ra": "To fix later: the default input takes about 42 s (floor sums over about 10^6 trapezoid calls for each of about 450 quotient values); the small _test.ra fixture stays in the audits.",
   "euler/514_geoboard.ra": "To fix later: the default input takes about 2.5 min (6000 primitive directions, each a sort and prefix sums over 10201 grid points); the small _test.ra fixture stays in the audits.",
-  "euler/518_primetriples.ra": "To fix later: the default input takes about 32 s, mostly per-pair membership tests and gather selector checks (#421); the small _test.ra fixture stays in the audits."
+  "euler/518_primetriples.ra": "To fix later: the default input takes about 32 s, mostly per-pair membership tests and gather selector checks (#421); the small _test.ra fixture stays in the audits.",
+  "euler/519_tricolouredcoin.ra": "To fix later: the default input takes about 23 s, mostly matmul operand conversion of sliced blocks (#431); the small _test.ra fixture stays in the audits."
 }

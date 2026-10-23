@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "519_tricolouredcoin"
+  N = 4
+  run
+  Answer equal 48
+  N = 10
+  run
+  Answer equal 17760
+  N = 1234
+  run
+  Answer equal 881371376
+end
