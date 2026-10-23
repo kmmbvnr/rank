@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "463_weirdrecurrence"
+  N = 8
+  run
+  Answer equal 22
+  N = 100
+  run
+  Answer equal 3604
+end
+
+test "first sums"
+  use "463_weirdrecurrence"
+  N = 5
+  run
+  Answer equal 11
+  N = 1000
+  run
+  Answer equal 336588
+end
