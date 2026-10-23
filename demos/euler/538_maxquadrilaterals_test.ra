@@ -1,0 +1,14 @@
+use testing
+
+test "brute force prefixes"
+  use "538_maxquadrilaterals"
+  N = 5
+  run
+  Answer equal 99
+  N = 120
+  run
+  Answer equal 138648
+  N = 3000
+  run
+  Answer equal 397768273
+end

@@ -1,0 +1,121 @@
+rem Maximum quadrilaterals
+rem https://projecteuler.net/problem=538
+
+use numbers
+use sequences
+use bits
+use algo
+use io
+use cli
+
+option N integer = 3000000
+
+rem For a fixed largest side the best
+rem quadrilateral takes the three next
+rem smaller values, so only consecutive
+rem 4-blocks of the sorted prefix count,
+rem scored by Brahmagupta's 16 A^2. The
+rem best only grows, and the prefix
+rem changes the blocks only when a value
+rem gets its 1st to 4th copy: step over
+rem those events, testing the blocks
+rem that hold the new copy.
+Ns = (1 to N) copy
+B3 = (3 * Ns) popcount
+B2 = (2 * Ns) popcount
+B1 = (Ns + 1) popcount
+U = 2 ** B3 + 3 ** B2 + B1
+Uq = (U unique) sort
+Rk = Uq U lowerindex
+Od = Rk argsort
+Rs = Rk Od
+Nd = Rs len
+Ix = (0 till Nd) copy
+Sa = Rs (1 till Nd)
+Eq = Sa equal (Rs (0 till Nd - 1))
+Nq = Eq equal false
+Fl = concat (array true) Nq
+G = (Fl integer) scan +
+G = G - 1
+Oc = Ix - (Fl indices) G
+rem The first four copies of each value.
+Ev = (Oc less 4) indices
+Et = (Od Ev) + 1
+Er = Rs Ev
+Eo = Et argsort
+Et = Et Eo
+Er = Er Eo
+Ne = Et len
+Dn = Uq len
+Cc = array shape Dn fill 0
+Pe = array shape Ne fill 0
+Qb = 0.0
+Pb = 0
+for E in 0 till Ne
+  I = Er E
+  V = Uq I
+  Cc I += 1
+  Cv = (Cc I) 4 min
+  rem Three entries below and above.
+  Lm = (Cc (0 till I)) greater 0
+  Lp = Lm indices
+  Ln = Lp len
+  Ls = (Ln - 3) max 0
+  Lp = Lp (Ls till Ln)
+  Cl = (Cc Lp) 3 min
+  Xl = Cl scan +
+  Tl = Xl last default 0
+  Rl = (0 till Tl) copy
+  Lw = Uq (Lp (Xl Rl upperindex))
+  Ts = (Tl - 3) max 0
+  Lw = Lw (Ts till Tl)
+  Um = (Cc (I + 1 till Dn)) greater 0
+  Up = Um indices
+  Un = (Up len) 3 min
+  Up = (Up (0 till Un)) + I + 1
+  Cu = (Cc Up) 3 min
+  Xu = Cu scan +
+  Tu = Xu last default 0
+  Ru = (0 till Tu) copy
+  Uw = Uq (Up (Xu Ru upperindex))
+  Te = Tu 3 min
+  Uw = Uw (0 till Te)
+  Vs = array shape Cv fill V
+  W = concat Lw Vs Uw
+  V0 = Lw len
+  Wn = W len
+  if Wn at least 4
+    S = (0 to Wn - 4) copy
+    Ok = S at most V0 + Cv - 1
+    Ok = Ok and (S + 3 at least V0)
+    S = S (Ok indices)
+    Wa = W S
+    Wb = W (S + 1)
+    Wc = W (S + 2)
+    Wd = W (S + 3)
+    A = Wa * 1.0
+    B = Wb * 1.0
+    C = Wc * 1.0
+    D = Wd * 1.0
+    Q = A + B + C - D
+    Q = Q * (A + B - C + D)
+    Q = Q * (A - B + C + D)
+    Q = Q * (B + C + D - A)
+    Q = (D less A + B + C) choose Q 0.0
+    P = Wa + Wb + Wc + Wd
+    Qm = Q max
+    Pm = (P ((Q equal Qm) indices)) max
+    Bt = Qm equal Qb
+    Bt = Bt and (Pm greater Pb)
+    Bt = Bt or (Qm greater Qb)
+    if Bt
+      Qb = Qm
+      Pb = Pm
+    end
+  end
+  Pe E = Pb
+end
+Ta = Et (1 till Ne)
+Nx = concat Ta (array (N + 1))
+Answer = (Pe * (Nx - Et)) sum
+Answer print
