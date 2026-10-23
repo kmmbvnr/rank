@@ -1,0 +1,76 @@
+rem Maximum number of divisors
+rem https://projecteuler.net/problem=485
+
+use numbers
+use sequences
+use io
+use cli
+
+option U integer = 100000000
+option K integer = 100000
+option Bs integer = 10000000
+
+rem Blocks of up to Bs numbers. tau by
+rem small primes: Ct counts the
+rem exponent of p, Sw keeps the
+rem product of small prime powers; n
+rem above Sw has one more prime. Only
+rem products: division is slower.
+rem Window maxima (van Herk) over the
+rem block with the last K - 1 values
+rem before it: blocks of K, prefix and
+rem suffix maxima, then max(suffix i,
+rem prefix i + K - 1).
+Rt = U isqrt
+Ps = primes to Rt array
+Tl = array shape 0 fill 0
+Answer = 0
+for Lo in 1 to U by Bs
+  Hi = (Lo + Bs - 1) U min
+  Nn = Hi - Lo + 1
+  Tau = array shape Nn fill 1
+  Ct = Tau * 0
+  Sw = Tau
+  for P in Ps
+    F = (Lo + P - 1) // P * P
+    if F at most Hi
+      S1 = F - Lo till Nn by P
+      Ct S1 = 1
+      Sw S1 *= P
+      Pe = P * P
+      for Pe at most Hi
+        Fe = (Lo + Pe - 1) // Pe * Pe
+        Sl = Fe - Lo till Nn by Pe
+        Ct Sl += 1
+        Sw Sl *= P
+        Pe *= P
+      end
+      Tau S1 *= Ct S1 + 1
+    end
+  end
+  Bg = Sw less (Lo to Hi)
+  Tau = Bg choose (Tau * 2) Tau
+  Ex = concat Tl Tau
+  Ne = Ex len
+  if Ne at least K
+    Nb = (Ne + K - 1) // K
+    Nk = Nb * K
+    A = array shape Nk fill 0
+    A (0 till Ne) = Ex
+    Bm = A reshape Nb K
+    Pm = Bm scan max axis 1
+    Pf = Pm reshape Nk
+    Ar = A reverse
+    Br = Ar reshape Nb K
+    Sm = Br scan max axis 1
+    Sf = Sm reshape Nk
+    Sf = Sf reverse
+    W = Ne - K + 1
+    Ws = Sf (0 till W)
+    Mx = Ws (Pf (K - 1 till Ne)) max
+    Answer += Mx sum
+  end
+  T0 = (Ne - K + 1) 0 max
+  Tl = Ex (T0 till Ne) copy
+end
+Answer print

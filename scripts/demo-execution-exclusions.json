@@ -179,5 +179,6 @@
   "euler/478_mixtures.ra": "To fix later: the default input takes about 23 s and 2.9 GB (mu and phi sieve to 10^7 and 8.6 x 10^7 grouped Moebius terms); the small _test.ra fixture stays in the audits.",
   "euler/482_incenter.ra": "To fix later: the default input takes about 55 s and 3.6 GB (2.3 x 10^7 legs and 5.2 x 10^7 windowed pairs); the small _test.ra fixture stays in the audits.",
   "euler/483_repeatedpermutation.ra": "To fix later: the default input takes about 47 s (3.6 x 10^6 transitions on BigInt weights of about 2400 bits, generic item reads, #415); the small _test.ra fixture stays in the audits.",
-  "euler/484_arithmeticderivative.ra": "To fix later: the default input takes about 2.2 min (1.5 x 10^8 state-prime pairs over 7 x 10^5 powerful-number states, about 24 % in selector checks, #421); the small _test.ra fixture stays in the audits."
+  "euler/484_arithmeticderivative.ra": "To fix later: the default input takes about 2.2 min (1.5 x 10^8 state-prime pairs over 7 x 10^5 powerful-number states, about 24 % in selector checks, #421); the small _test.ra fixture stays in the audits.",
+  "euler/485_maxdivisors.ra": "To fix later: the default input takes about 2 min and 3.2 GB (segmented tau sieve over 10^8 by strided slice updates, then van Herk window maxima); the small _test.ra fixture stays in the audits."
 }
