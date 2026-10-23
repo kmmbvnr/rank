@@ -1,0 +1,8 @@
+use testing
+
+test "simulated moves, n <= 12"
+  use "497_drunkenhanoi"
+  N = 12
+  run
+  Answer equal 276944020
+end
