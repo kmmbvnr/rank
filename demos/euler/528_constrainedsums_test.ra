@@ -1,0 +1,9 @@
+use testing
+
+test "brute force for k = 1..3"
+  use "528_constrainedsums"
+  Lo = 1
+  Hi = 3
+  run
+  Answer equal 1137
+end

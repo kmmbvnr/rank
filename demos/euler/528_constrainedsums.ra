@@ -1,0 +1,41 @@
+rem Constrained Sums
+rem https://projecteuler.net/problem=528
+
+use numbers
+use sequences
+use io
+use cli
+
+option Lo integer = 10
+option Hi integer = 15
+
+rem With a slack term the count is
+rem C(n + k, k) without the caps x_m <=
+rem b^m. Inclusion-exclusion over the
+rem violated set A subtracts b^m + 1
+rem for each m in A: S = sum (-1)^|A|
+rem C(n - s(A) + k, k). As k < p, Lucas
+rem keeps only the top argument mod p.
+P = 1000000007
+Answer = 0
+for K in Lo to Hi
+  Nn = 10 ** K
+  Sg = array 0
+  Sn = array 1
+  for Mm in 1 to K
+    Cm = K ** Mm + 1
+    Ix = (Sg + Cm at most Nn) indices
+    Sg = (concat Sg (Sg Ix + Cm)) copy
+    Sn = (concat Sn (0 - Sn Ix)) copy
+  end
+  U = (Nn - Sg + K) mod P
+  Pr = U * 0 + 1
+  for I in 0 till K
+    Pr = Pr * ((U - I) mod P) mod P
+  end
+  Fk = (1 to K) reduce *
+  Iv = Fk (P - 2) P powmod
+  T = (Sn * Pr) sum mod P
+  Answer = (Answer + T * Iv) mod P
+end
+Answer print
