@@ -258,10 +258,11 @@ export function createLoopExpressions(state: LoopCompilationState) {
                 types.push('text-array');
                 continue;
             }
-            const expected = input === 'text-or-array' ? 'text' : input === 'same' ? firstType
+            const expected = input === 'number' ? undefined : input === 'text-or-array' ? 'text' : input === 'same' ? firstType
                 : input === 'text-or-bytes' ? knownType(part) ?? (isNameExpression(part) ? 'text' : undefined) : input;
             const value = emit(operands[index], lines, expected);
             if (!value || expected && value.type !== expected
+                || input === 'number' && value.type !== 'integer' && value.type !== 'real'
                 || input === 'text-or-bytes' && !['text', 'bytes'].includes(value.type)) return undefined;
             firstType ??= value.type;
             arguments_.push(value.code);
