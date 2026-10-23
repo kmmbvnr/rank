@@ -1,0 +1,14 @@
+use testing
+
+test "brute force values"
+  use "488_unbalancednim"
+  N = 8
+  run
+  Answer equal 42
+  N = 30
+  run
+  Answer equal 5684
+  N = 70
+  run
+  Answer equal 61032
+end

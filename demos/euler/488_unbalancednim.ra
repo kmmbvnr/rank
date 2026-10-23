@@ -1,0 +1,51 @@
+rem Unbalanced Nim
+rem https://projecteuler.net/problem=488
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000000000
+
+rem Losing positions: for p = 2^k - 1,
+rem c = p + n, b = p + t, a = (n xor
+rem t) - 1 with 1 <= n <= p, t < n.
+rem Per block sum over n <= m of X(n)
+rem = sum (n xor t) over t < n, plus
+rem polynomial sums; odd n give a = 0
+rem once, which is dropped.
+rem S(2^j + r) = S(2^j) + r C_j + S(r)
+rem with S(n) = X(0) + .. + X(n - 1)
+rem and C_j = 2^j (3 2^j - 1) / 2.
+Js = (0 to 62) copy
+Tj = 2 ** Js
+Cj = Tj * (3 * Tj - 1) // 2
+Sj = Js * 0
+for J in 0 till 62
+  Sj (J + 1) = 2 * Sj J + Tj J * Cj J
+end
+Ks = (1 to 62) copy
+P = 2 ** Ks - 1
+Lm = N - 1 - P
+M = P Lm min
+Ok = (M at least 1) indices
+P = P Ok
+M = M Ok
+rem S(m + 1) for every block at once.
+R = M + 1
+Sx = M * 0
+for J in 62 to 0 by -1
+  Bt = R at least Tj J
+  Rl = R - Tj J
+  Sx += Bt choose (Sj J + Rl * Cj J) 0
+  R = Bt choose Rl R
+end
+S1 = M * (M + 1) // 2
+S2 = M * (M + 1) * (2 * M + 1) // 6
+St = (M + 1) * M * (M - 1) // 6
+Q = (M + 1) // 2
+Bk = Sx + St + S2 + (2 * P - 1) * S1
+Bk -= (2 * P - 1) * Q + 2 * Q * Q
+Answer = Bk sum mod 1000000000
+Answer print
