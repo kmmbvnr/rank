@@ -1,0 +1,126 @@
+{
+  "date": "2026-10-23",
+  "baselineCommit": "639ee9cb22e0fbfe3e65fc3b7d3e17af1fad8058",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "demoSha256": "44a85d9258a7cf51b160d05b0c9a5dd9a01cd76f1a1ae0fbe463764508afc4f5",
+  "notes": [
+    "Fresh sequential processes; no tests or builds overlapped with the full-input timings.",
+    "Execution includes parse; cold wall includes imports/startup. RuntimeDiagnostics enabled in both versions.",
+    "CPU times are microseconds; peakRss is bytes.",
+    "Baseline combines the initial run and two repeats. Candidate uses a separate three-run confirmation series; the first exploratory candidate run is recorded separately.",
+    "K=3000 CPU profiles were exploratory attribution only, not speed comparisons. The initial profile overlapped with focused tests."
+  ],
+  "baseline": [
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 29278.3995,
+      "coldMs": 29606.644792000003,
+      "cpu": {
+        "user": 29377232,
+        "system": 303286
+      },
+      "peakRss": 1239252992,
+      "states": 16734773,
+      "compiledEntries": 1
+    },
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 32807.136,
+      "coldMs": 33187.925917,
+      "cpu": {
+        "user": 33220870,
+        "system": 422877
+      },
+      "peakRss": 1239908352,
+      "states": 16734773,
+      "compiledEntries": 1
+    },
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 29366.785625,
+      "coldMs": 29828.009833999997,
+      "cpu": {
+        "user": 29909121,
+        "system": 407727
+      },
+      "peakRss": 1233698816,
+      "states": 16734773,
+      "compiledEntries": 1
+    }
+  ],
+  "candidateInitial": [
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 23146.649125,
+      "coldMs": 23674.066166999997,
+      "cpu": {
+        "user": 23385224,
+        "system": 534827
+      },
+      "peakRss": 1205420032,
+      "states": 16734773,
+      "compiledEntries": 1
+    }
+  ],
+  "candidate": [
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 21081.699166000002,
+      "coldMs": 21679.639625,
+      "cpu": {
+        "user": 21498224,
+        "system": 309427
+      },
+      "peakRss": 1239318528,
+      "states": 16734773,
+      "compiledEntries": 1
+    },
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 20743.799042,
+      "coldMs": 21183.202375,
+      "cpu": {
+        "user": 20834851,
+        "system": 299795
+      },
+      "peakRss": 1240203264,
+      "states": 16734773,
+      "compiledEntries": 1
+    },
+    {
+      "size": 10000,
+      "answer": "438505383468410633",
+      "executionMs": 20459.262209,
+      "coldMs": 21118.322499999995,
+      "cpu": {
+        "user": 20845041,
+        "system": 297217
+      },
+      "peakRss": 1242972160,
+      "states": 16734773,
+      "compiledEntries": 1
+    }
+  ],
+  "integrationVerification": {
+    "parentCommit": "645ad67c",
+    "note": "After rebasing onto updated main; separate correctness/timeout verification, excluded from the controlled candidate comparison.",
+    "size": 10000,
+    "answer": "438505383468410633",
+    "executionMs": 15236.371834,
+    "coldMs": 15581.520292,
+    "cpu": {
+      "user": 15789241,
+      "system": 194704
+    },
+    "peakRss": 1238204416,
+    "states": 16734773,
+    "compiledEntries": 1
+  }
+}

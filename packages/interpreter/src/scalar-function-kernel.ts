@@ -203,6 +203,16 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         }
         if (expression.kind === 'call') {
             const arguments_ = expression.arguments.map(argument => lower(argument, lines));
+            // Entry guards still check the bits binding. Exact BigInt operators
+            // need no native call frame and cannot invoke user callbacks.
+            const bitwise = { band: '&', bor: '|', bxor: '^' } as const;
+            if (expression.operation.module === 'bits'
+                && Object.prototype.hasOwnProperty.call(bitwise, expression.operation.name)
+                && expression.arguments.length === 2 && expression.arguments.every(argument => argument.type === 'integer')) {
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ${arguments_[0]} ${bitwise[expression.operation.name as keyof typeof bitwise]} ${arguments_[1]};`);
+                return result;
+            }
             const index = calls.push({ operation: expression.operation, inputs: expression.arguments.map(({ type }) => typeof type === 'string' ? type
                 : !isCompiledContainer(type) && (type.element === 'text' || type.element === 'integer') && type.rank === 1 ? `${type.element}-array` : 'array') }) - 1;
             const result = `v${serial++}`;
