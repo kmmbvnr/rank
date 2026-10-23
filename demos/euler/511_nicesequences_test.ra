@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "511_nicesequences"
+  N = 3
+  K = 4
+  run
+  Answer equal 4
+  N = 4
+  K = 11
+  run
+  Answer equal 8
+  N = 1111
+  K = 24
+  run
+  Answer equal 840643584
+end

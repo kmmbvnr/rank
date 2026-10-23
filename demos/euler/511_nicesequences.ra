@@ -1,0 +1,70 @@
+rem Sequences with nice divisibility
+rem properties
+rem https://projecteuler.net/problem=511
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1234567898765
+option K integer = 4321
+
+rem Count the divisors of n by residue
+rem mod k; n picks multiply in the
+rem ring Z[x]/(x^k - 1), so raise that
+rem vector to the n-th power by
+rem squaring and read residue -n.
+Md = 1000000000
+fun F G Ti conv
+  rem Cyclic convolution: sum over i of
+  rem F(-i) G(t + i), rows of the
+  rem rotations of G by a reshape.
+  Kk = G len
+  K1 = Kk + 1
+  H = (G Ti) reshape Kk K1
+  Ft = (F (1 till Kk)) reverse
+  Fr = concat (F (0 till 1)) Ft
+  Fp = concat Fr (array 0)
+  Pr = (H * Fp) mod Md
+  return Pr sum axis 1 mod Md
+end
+rem Divisors of N from its factors.
+Ds = array 1
+X = N
+P = 2
+for P * P at most X
+  E = 0
+  for X mod P equal 0
+    X //= P
+    E += 1
+  end
+  if E greater 0
+    Pw = P ** (0 to E)
+    Nd = Ds len
+    Dm = (Ds reshape Nd 1) * Pw
+    Ds = Dm reshape (Nd * (E + 1))
+  end
+  P += 1
+end
+if X greater 1
+  Ds = concat Ds (Ds * X)
+end
+C = array shape K fill 0
+for D in Ds
+  C (D mod K) += 1
+end
+R = array shape K fill 0
+R 0 = 1
+rem Ti tiles G k + 1 times.
+Ti = (0 till K * (K + 1)) mod K
+E = N
+for E greater 0
+  if E mod 2 equal 1
+    R = R C Ti conv
+  end
+  C = C C Ti conv
+  E //= 2
+end
+Answer = R ((0 - N) mod K)
+Answer print
