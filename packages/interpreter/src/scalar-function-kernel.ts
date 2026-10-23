@@ -267,15 +267,33 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     const start = emit(range.left, lines), end = emit(range.right, lines);
                     const step = range.step ? emit(range.step, lines) : '1n';
                     const id = serial++;
+                    const indexed = binding.names[1] !== undefined && binding.names[1] !== '#';
                     lines.push(`const start${id} = ${start}, end${id} = ${end}, step${id} = ${step};
-                        if (step${id} === 0n) throw new RankError('range step must be a nonzero integer');
-                        for (let cursor${id} = start${id}, ordinal${id} = 0n;
+                        if (step${id} === 0n) throw new RankError('range step must be a nonzero integer');`);
+                    if (indexed) {
+                        // Boxing a numeric ordinal on every iteration is slower than
+                        // the existing BigInt induction; keep this variant exact.
+                        lines.push(`for (let cursor${id} = start${id}, ordinal${id} = 0n;
                             step${id} > 0n ? cursor${id} ${range.operator === 'to' ? '<=' : '<'} end${id}
                                 : cursor${id} ${range.operator === 'to' ? '>=' : '>'} end${id};
-                            cursor${id} += step${id}, ordinal${id}++) {
-                            location = ${location}; checkpoint();`);
+                            cursor${id} += step${id}, ordinal${id}++) {`);
+                    } else {
+                        // Guard the span and the terminating increment as well as
+                        // the bounds. Body values remain exact Rank integers.
+                        lines.push(`const from${id} = Number(start${id}), to${id} = Number(end${id}), by${id} = Number(step${id});
+                            const narrow${id} = Number.isSafeInteger(from${id}) && Number.isSafeInteger(to${id})
+                                && Number.isSafeInteger(by${id}) && Number.isSafeInteger(to${id} + by${id})
+                                && Number.isSafeInteger(to${id} - from${id});
+                            const limit${id} = narrow${id} ? to${id} : end${id}, stride${id} = narrow${id} ? by${id} : step${id};
+                            for (let cursor${id} = narrow${id} ? from${id} : start${id};
+                                stride${id} > 0 ? cursor${id} ${range.operator === 'to' ? '<=' : '<'} limit${id}
+                                    : cursor${id} ${range.operator === 'to' ? '>=' : '>'} limit${id};
+                                cursor${id} += stride${id}) {`);
+                    }
+                    lines.push(`location = ${location}; checkpoint();`);
                     binding.names.forEach((name, index) => {
-                        if (name !== '#') lines.push(`${slot(name)} = ${index ? 'ordinal' : 'cursor'}${id};`);
+                        if (name !== '#') lines.push(`${slot(name)} = ${indexed
+                            ? `${index ? 'ordinal' : 'cursor'}${id}` : `narrow${id} ? BigInt(cursor${id}) : cursor${id}`};`);
                     });
                 } else {
                     lines.push(`for (;;) { location = ${location}; checkpoint();`);

@@ -1,0 +1,351 @@
+{
+  "base": "486694a1",
+  "decision": "Lower single-binding scalar-function range induction to number when bounds, step, span and terminating increment are safe integers. Keep body values as BigInt and keep ordinal-bearing loops on their existing backend. Broader number ordinal lowering regressed and is not retained. Integer-loop already has number registers and offsets; no duplicate backend added.",
+  "validation": "166 focused scalar-function/number-loop tests and TypeScript checks passed. 51 new cases compare inclusive/exclusive ranges, descending steps, safe-integer boundaries, large exact integers, break/continue, zero step and nested mutation against reference execution.",
+  "runs": {
+    "before": {
+      "node": "v24.15.0",
+      "checkout": "/private/tmp/rank-415-baseline",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "1000000",
+          "ms": [
+            13.669291999999984,
+            12.689750000000004,
+            12.140499999999975,
+            12.251082999999994,
+            12.138332999999989,
+            11.855457999999999,
+            11.973582999999962
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "1000000",
+          "ms": [
+            12.177624999999978,
+            11.914625000000001,
+            11.724499999999978,
+            12.49716699999999,
+            12.05845899999997,
+            11.913666999999975,
+            11.931125000000009
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "1000000",
+          "ms": [
+            20.259708999999987,
+            12.411290999999949,
+            12.355165999999997,
+            12.66937500000006,
+            12.230540999999903,
+            12.183708000000024,
+            12.326416999999992
+          ]
+        }
+      ]
+    },
+    "after": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "1000000",
+          "ms": [
+            11.396124999999984,
+            9.13570900000002,
+            10.729167000000018,
+            9.08770800000002,
+            8.411999999999978,
+            8.487207999999953,
+            8.489416000000006
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "1000000",
+          "ms": [
+            16.44395800000001,
+            16.41262499999999,
+            16.769665999999972,
+            16.383332999999993,
+            16.606750000000034,
+            16.284917000000007,
+            16.362707999999998
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "1000000",
+          "ms": [
+            11.126374999999996,
+            10.47241600000001,
+            10.767417000000023,
+            10.680500000000052,
+            10.509957999999983,
+            11.316041000000041,
+            10.66716699999995
+          ]
+        }
+      ]
+    },
+    "selected": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "1000000",
+          "ms": [
+            10.547791999999987,
+            9.922957999999994,
+            10.088999999999999,
+            10.482500000000016,
+            9.45670899999999,
+            9.464833999999996,
+            9.762208999999984
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "1000000",
+          "ms": [
+            14.694291000000021,
+            13.98558300000002,
+            14.61854199999999,
+            13.89587499999999,
+            14.371667000000002,
+            14.316666999999995,
+            13.972332999999992
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "1000000",
+          "ms": [
+            11.862458000000004,
+            12.462541999999985,
+            12.428457999999978,
+            12.640125000000012,
+            12.145583999999985,
+            12.414458000000025,
+            12.429083999999932
+          ]
+        }
+      ]
+    },
+    "selected-repeat": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "1000000",
+          "ms": [
+            19.07779100000002,
+            12.419500000000028,
+            12.107874999999979,
+            15.449457999999993,
+            13.97283299999998,
+            11.449124999999981,
+            11.660500000000013
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "1000000",
+          "ms": [
+            12.961165999999992,
+            12.628499999999974,
+            12.762749999999983,
+            12.637958999999967,
+            12.862124999999992,
+            12.68787500000002,
+            12.848792000000003
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "1000000",
+          "ms": [
+            13.408957999999984,
+            11.383582999999987,
+            13.467624999999998,
+            12.172333999999978,
+            11.04766699999999,
+            10.598916999999972,
+            10.69175000000007
+          ]
+        }
+      ]
+    },
+    "long-before": {
+      "node": "v24.15.0",
+      "checkout": "/private/tmp/rank-415-baseline",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "10000000",
+          "ms": [
+            141.28616699999998,
+            135.422083,
+            137.79379200000005,
+            136.08629099999996,
+            136.56074999999998
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "10000000",
+          "ms": [
+            140.23179199999993,
+            135.93995799999993,
+            139.16004199999998,
+            138.57895800000006,
+            138.31104200000004
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "10000000",
+          "ms": [
+            228.78429199999982,
+            146.73395800000003,
+            146.66041700000005,
+            145.2369580000004,
+            142.88716599999998
+          ]
+        }
+      ]
+    },
+    "long-selected": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "10000000",
+          "ms": [
+            90.45904200000001,
+            91.96129100000002,
+            93.01125000000002,
+            94.30045800000005,
+            94.00966600000004
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "10000000",
+          "ms": [
+            142.74750000000006,
+            140.38033300000006,
+            137.280667,
+            141.26145799999995,
+            141.96604100000013
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "10000000",
+          "ms": [
+            135.79004200000008,
+            117.63449999999989,
+            120.01733399999989,
+            119.02570800000012,
+            118.32958299999996
+          ]
+        }
+      ]
+    },
+    "long-selected-repeat": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "10000000",
+          "ms": [
+            96.11450000000002,
+            94.15191599999997,
+            95.75574999999998,
+            95.41174999999998,
+            97.43645800000002
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "10000000",
+          "ms": [
+            143.81495900000004,
+            139.96866599999987,
+            137.7462919999998,
+            139.0977499999999,
+            140.68949999999995
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "10000000",
+          "ms": [
+            135.73575000000005,
+            131.10850000000005,
+            130.476625,
+            116.37645800000018,
+            115.73204199999986
+          ]
+        }
+      ]
+    },
+    "long-before-repeat": {
+      "node": "v24.15.0",
+      "checkout": "/private/tmp/rank-415-baseline",
+      "note": "Direct scalar-function kernel; three 10000-iteration warmups. Checks outside timing. No interpreter parsing or function dispatch in timing.",
+      "results": [
+        {
+          "name": "cursor-only",
+          "iterations": "10000000",
+          "ms": [
+            144.89441599999998,
+            143.64666699999992,
+            144.01149999999996,
+            140.67670899999996,
+            137.99450000000002
+          ]
+        },
+        {
+          "name": "cursor-and-ordinal",
+          "iterations": "10000000",
+          "ms": [
+            135.05604199999993,
+            137.78133300000013,
+            139.64537500000006,
+            140.806959,
+            139.72629099999995
+          ]
+        },
+        {
+          "name": "integer-sum",
+          "iterations": "10000000",
+          "ms": [
+            234.6177499999999,
+            147.92650000000003,
+            145.22725000000037,
+            145.50583400000005,
+            148.6859169999998
+          ]
+        }
+      ]
+    }
+  }
+}
