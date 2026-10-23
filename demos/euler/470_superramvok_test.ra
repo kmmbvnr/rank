@@ -1,0 +1,15 @@
+use testing
+
+test "S(6, 1) = 208.3"
+  use "470_superramvok"
+  N = 6
+  run
+  (Sd 1 - 208.3) abs less 0.000000001
+end
+
+test "F(10)"
+  use "470_superramvok"
+  N = 10
+  run
+  Answer equal 45968
+end

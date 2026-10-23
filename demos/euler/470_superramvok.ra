@@ -1,0 +1,95 @@
+rem Super Ramvok
+rem https://projecteuler.net/problem=470
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option N integer = 20
+
+rem On a face set A of size k with t
+rem rolls left, h_t = mean max(v,
+rem h_(t-1)). Its gains D_t shrink,
+rem so the best profit at cost c >= 1
+rem is sum max(D_t - c, 0); at c = 0
+rem it is max A. All 2^N sets at once:
+rem Pc, Pv hold the count and sum of
+rem faces <= j, which give h_t.
+N1 = N + 1
+Ns = 2 ** N
+Ss = (1 till Ns) copy
+Bx = (Ss - 1) * N1
+Pc = array shape ((Ns - 1) * N1) fill 0
+Pv = Pc
+K = Ss * 0
+Sa = K
+Mx = K
+for J in 1 to N
+  Bj = (Ss // (2 ** (J - 1))) mod 2
+  K += Bj
+  Sa += Bj * J
+  Mx = (Bj equal 1) choose J Mx
+  Pc (Bx + J) = K
+  Pv (Bx + J) = Sa
+end
+rem Histograms of the gains by (size,
+rem largest face, floor of gain).
+G = K * N1 + Mx
+Ct = array shape (N1 * N1 * N1) fill 0
+St = array shape (N1 * N1 * N1) fill 0.0
+Hv = Ss * 0.0
+for T in 1 to N
+  Jf = (Hv floor) N min
+  Ix = Bx + Jf
+  Hn = (Hv * (Pc Ix) + Sa - Pv Ix) / K
+  Dl = Hn - Hv
+  Hv = Hn
+  Ky = G * N1 + ((Dl floor) N min)
+  Od = Ky argsort
+  Ks = Ky Od
+  Ds = Dl Od
+  Nk = Ks -1 shift with -1
+  Ei = (Ks not equal Nk) indices
+  Cu = (Ds scan +) Ei
+  Ku = Ks Ei
+  Ct Ku += Ei - (Ei 1 shift with -1)
+  St Ku += Cu - (Cu 1 shift with 0.0)
+end
+C3 = Ct reshape N1 N1 N1
+S3 = St reshape N1 N1 N1
+rem For each d the mean profit a_k(c)
+rem over k-subsets of 1..d, then the
+rem super game: x_k = a_k + k/d
+rem x_(k-1) + (1 - k/d) x_(k+1) and
+rem x_d = a_d + x_(d-1).
+Cs = (0 to N) copy
+Tot = 0.0
+Sd = Cs * 0.0
+for D in 4 to N
+  Ad = array shape D N1 fill 0.0
+  for Kk in 1 to D
+    Cb = (C3 Kk (1 to D)) sum axis 0
+    Sb = (S3 Kk (1 to D)) sum axis 0
+    Cx = (Cb reverse scan +) reverse
+    Sx = (Sb reverse scan +) reverse
+    Av = Sx - Cs * Cx
+    rem Sum of max A is k C(d+1, k+1).
+    Bn = (D + 1) (Kk + 1) binomial
+    Av 0 = Kk * Bn * 1.0
+    Ad (Kk - 1) = Av / (D Kk binomial)
+  end
+  Ks = (1 to D) * 1.0
+  Lw = Ks (1 till D) / D
+  Lw (D - 2) = 1.0
+  Uw = 1.0 - Ks (0 till D - 1) / D
+  Mt = (Ks * 0 + 1) diag
+  Mt -= Lw diag -1
+  Mt -= Uw diag 1
+  X = Mt Ad solve
+  Sd = X (D - 1)
+  Tot += Sd sum
+end
+Answer = (Tot + 0.5) floor
+Answer print
