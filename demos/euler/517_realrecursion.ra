@@ -17,16 +17,6 @@ rem sums binomial(T + k, k) over k.
 M = 1000000007
 Ps = primes from Lo + 1 till Lo + W
 P = Ps array
-Mx = Lo + W
-F = array shape (Mx + 1) fill 1
-for I in 1 to Mx
-  F I = F (I - 1) * I mod M
-end
-Fi = array shape (Mx + 1) fill 1
-Fi Mx = (F Mx) (M - 2) M powmod
-for I in Mx to 1 by -1
-  Fi (I - 1) = Fi I * I mod M
-end
 rem Every (p, k) pair in one array.
 Sq = P isqrt
 Wd = (Sq max) + 1
@@ -42,6 +32,6 @@ rem is an integer.
 Ce = (K * K * Pk) isqrt + 1
 Ce = (K greater 0) choose Ce 0
 N = Pk - Ce + K
-T = F N * Fi K mod M * Fi (N - K) mod M
+T = N K M binomialmod
 Answer = (T sum) mod M
 Answer print
