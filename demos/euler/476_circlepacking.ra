@@ -1,0 +1,43 @@
+rem Circle Packing III
+rem https://projecteuler.net/problem=476
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1803
+
+rem Sides a <= b <= c = b + u, u < a.
+rem With x, y, z = p - 2a, p - 2b, p -
+rem 2c: r^2 = xyz / 4p. A corner of
+rem angle t shrinks circles by q =
+rem (1 - s)/(1 + s), s = sin(t/2), and
+rem sin^2(A/2) = yz / 4bc, sin^2(B/2)
+rem = xz / 4ac. The two next circles
+rem are r q_A and r max(q_B, q_A^2).
+Tot = 0.0
+Cnt = 0
+for A in 1 to N // 2
+  Nb = N - 2 * A + 1
+  Bs = (A to N - A) * 1.0
+  Bc = Bs reshape Nb 1
+  Us = (0 till A) * 1.0
+  Yz = A * A - Us * Us
+  X = 2 * Bc + Us - A
+  C = Bc + Us
+  R2 = X * Yz / (4.0 * (X + 2 * A))
+  Ta = Yz / (4.0 * Bc * C)
+  Tb = X * (A - Us) / (4.0 * A * C)
+  Sa = Ta ** 0.5
+  Sb = Tb ** 0.5
+  Qa = (1.0 - Sa) / (1.0 + Sa)
+  Qb = (1.0 - Sb) / (1.0 + Sb)
+  Q3 = Qb (Qa * Qa) max
+  F = R2 * (1.0 + Qa * Qa + Q3 * Q3)
+  Tot += F sum
+  Cnt += Nb * A
+end
+Pi = 4 * (1.0 atan)
+Answer = (Tot * Pi / Cnt) 5 round
+Answer print

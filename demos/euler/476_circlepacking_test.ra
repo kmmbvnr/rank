@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "476_circlepacking"
+  N = 2
+  run
+  Answer equal 0.31998
+  N = 5
+  run
+  Answer equal 1.25899
+end
+
+test "n = 50"
+  use "476_circlepacking"
+  N = 50
+  run
+  Answer equal 90.43267
+end

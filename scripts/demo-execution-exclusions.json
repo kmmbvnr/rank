@@ -174,5 +174,6 @@
   "euler/474_lastdigitsdivisors.ra": "To fix later: the default input takes about 86 s (78498 prime steps over 5000 unit residues, about 37 % in selector checks, #421); the small _test.ra fixture stays in the audits.",
   "euler/465_polarpolygons.ra": "To fix later: the default input takes about 23 s and 2.8 GB (phi sieve to 2.1 x 10^7 and 4800 array sums for the large totient sums); the small _test.ra fixture stays in the audits.",
   "euler/466_distinctproducts.ra": "To fix later: the default input takes about 25 s (10^7 merged inclusion-exclusion states over 64 rows); the small _test.ra fixture stays in the audits.",
-  "euler/470_superramvok.ra": "To fix later: the default input takes about 30 s (20 value steps over all 2^20 face sets); the small _test.ra fixture stays in the audits."
+  "euler/470_superramvok.ra": "To fix later: the default input takes about 30 s (20 value steps over all 2^20 face sets); the small _test.ra fixture stays in the audits.",
+  "euler/476_circlepacking.ra": "To fix later: the default input takes about 50 s (2.4 x 10^8 triangles, two square roots each, #423); the small _test.ra fixture stays in the audits."
 }
