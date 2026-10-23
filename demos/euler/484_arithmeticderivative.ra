@@ -1,0 +1,94 @@
+rem Arithmetic Derivative
+rem https://projecteuler.net/problem=484
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 5000000000000000
+
+rem g(n) = gcd(n, n') is multiplicative
+rem with g(p) = 1 and g(p^e) = p^e if p
+rem divides e, else p^(e-1). So g = 1
+rem * h with h on powerful numbers:
+rem sum g = sum h(u) (N // u). Walk
+rem the u by increasing primes: a
+rem state (first prime, N // u, h(u))
+rem adds c_e (L // p^e) for every
+rem later p^e and recurses only when
+rem L // p^e > p^2.
+Lm = N isqrt
+Pr = primes to Lm array
+Np = Pr len
+Answer = N - 1
+Si = array 0
+Sl = array N
+Sc = array 1
+Ch = 4000000
+for Si len greater 0
+  rem Primes up to sqrt L per state.
+  Rt = Sl isqrt
+  Nq = Rt len
+  Ky = concat (Pr * 2) (Rt * 2 + 1)
+  Od = Ky argsort
+  Ip = ((Od less Np) choose 1 0) scan +
+  Hi = array shape Nq fill 0
+  Qp = (Od at least Np) indices
+  Hi (Od Qp - Np) = Ip Qp
+  Cn = (Hi - Si) 0 max
+  Cs = Cn scan + with 0
+  Ni = array shape 0 fill 0
+  Nl = Ni
+  Nc = Ni
+  St = 0
+  for St less Nq
+    Cb = Cs St
+    Cm = Cb + Ch
+    En = (Cs at most Cm) count - 1
+    En = (En (St + 1) max) Nq min
+    Tl = Cs En - Cb
+    if Tl greater 0
+      Of = Cs (St till En) - Cb
+      Cr = Cn (St till En)
+      Ix = (Cr greater 0) indices
+      Ow = array shape Tl fill 0
+      Ow (Of Ix) = Ix + St
+      Ow = Ow scan max
+      Pi = (0 till Tl) + Cb - Cs Ow
+      Pi += Si Ow
+      P = Pr Pi
+      L0 = Sl Ow
+      C0 = Sc Ow
+      Pe = P * P
+      Gp = P * 0 + 1
+      E = 2
+      for Pe len greater 0
+        L = L0 // Pe
+        Dv = E mod P equal 0
+        Ge = Dv choose Pe (Pe // P)
+        Cc = C0 * (Ge - Gp)
+        Answer += (Cc * L) sum
+        Kd = (L greater P * P) indices
+        Ni = concat Ni (Pi Kd + 1)
+        Nl = concat Nl (L Kd)
+        Nc = concat Nc (Cc Kd)
+        Gp = Ge
+        E += 1
+        Kb = Pe at most L0 // P
+        Ka = Kb indices
+        P = P Ka
+        Pe = Pe Ka * P
+        Gp = Gp Ka
+        L0 = L0 Ka
+        C0 = C0 Ka
+        Pi = Pi Ka
+      end
+    end
+    St = En
+  end
+  Si = Ni
+  Sl = Nl
+  Sc = Nc
+end
+Answer print
