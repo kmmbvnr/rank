@@ -1,0 +1,42 @@
+rem Problem 500!!!
+rem https://projecteuler.net/problem=500
+
+use numbers
+use sequences
+use io
+use cli
+
+option K integer = 500500
+
+rem 2^K divisors: every exponent is
+rem 2^b - 1 with sum b = K, and each
+rem extra unit at p multiplies by the
+rem next of p, p^2, p^4, ... The least
+rem n multiplies the K smallest such
+rem numbers (each prime's are a
+rem prefix). All of them lie below
+rem the K-th prime.
+Md = 500500507
+Lm = 20 * K
+Pr = primes to Lm array
+Pk = Pr (K - 1)
+Pr = Pr (0 till K)
+Cs = Pr
+Q = Pr
+for (Q * Q at most Pk) any
+  Q = Q ((Q * Q at most Pk) indices)
+  Q = Q * Q
+  Cs = concat Cs Q
+end
+Cs = Cs sort
+Pw = Cs (0 till K) mod Md
+for Pw len greater 1
+  if Pw len mod 2 equal 1
+    Pw = concat Pw (array 1)
+  end
+  Hh = Pw len // 2
+  Ph = Pw (0 till Hh)
+  Pw = Ph * Pw (Hh till 2 * Hh) mod Md
+end
+Answer = Pw 0
+Answer print

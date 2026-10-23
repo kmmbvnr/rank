@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "500_problem500"
+  K = 4
+  run
+  Answer equal 120
+end
