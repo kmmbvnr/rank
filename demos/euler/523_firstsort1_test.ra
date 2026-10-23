@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "523_firstsort1"
+  N = 4
+  run
+  Answer equal 3.25
+  N = 10
+  run
+  ((E - 4629 / 40) abs) less 0.000001
+end
