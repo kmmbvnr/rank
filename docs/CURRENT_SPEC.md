@@ -4390,6 +4390,7 @@ function immediately after it to every pair of cells:
 ```rank
 Sums = A B outer +
 Products = A B outer *
+Remainders = A B outer mod
 Grid = Values Values outer bxor
 operation = min
 Smallest = A B outer operation

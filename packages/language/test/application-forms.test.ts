@@ -37,6 +37,7 @@ it.each([
     ['A edges 1', 'graph-edges'],
     ['A scan + with 0', 'scan'], ['A scan + axis 1', 'scan'], ['A scan min axis 0', 'named-scan'], ['A reduce +', 'reduce'], ['A segment +', 'segment'],
     ['A B outer +', 'outer'], ['1 + 2', 'plain'],
+    ['A B outer mod', 'outer'], ['A scan mod', 'scan'], ['A reduce mod', 'reduce'],
 ])('classifies %s as %s', (source, kind) => {
     const parsed = parser.parse<Program>(`Result = ${source}\n`);
     expect(parsed.parserErrors.map(error => error.message)).toEqual([]);
