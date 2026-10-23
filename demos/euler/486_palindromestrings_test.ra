@@ -1,0 +1,8 @@
+use testing
+
+test "statement values"
+  use "486_palindromestrings"
+  L = 5000000000
+  run
+  Answer equal 51
+end

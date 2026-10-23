@@ -1,0 +1,80 @@
+rem Palindrome-containing strings
+rem https://projecteuler.net/problem=486
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 1000000000000000000
+
+rem Avoiding palindromes of length >=
+rem 5 means avoiding lengths 5 and 6;
+rem the avoider counts are 2^n up to
+rem 4, then 24, 30, 32, 32 and from n
+rem = 9 the cycle 32 34 36 34 32 32.
+rem So F(9 + 6t + u) = 2^(10+u) 64^t -
+rem (200 t + C_u); F(5..8) = 8, 42,
+rem 138, 362 are never 0. Mod each of
+rem 9, 1997, 4877, fixing s = t mod
+rem ord(64) leaves 200 t = const.
+fun A Ma B Mb crt
+  rem t = A mod Ma, t = B mod Mb.
+  G = Ma Mb gcd
+  M1 = Ma // G
+  M2 = Mb // G
+  rem Inverse of M1 mod M2 by Euclid.
+  R0 = M1
+  R1 = M2
+  S0 = 1
+  S1 = 0
+  for R1 not equal 0
+    Q = R0 // R1
+    Tr = R0 - Q * R1
+    R0 = R1
+    R1 = Tr
+    Ts = S0 - Q * S1
+    S0 = S1
+    S1 = Ts
+  end
+  Iv = S0 mod M2
+  Cp = ((B - A) mod G equal 0) indices
+  K = ((B Cp - A Cp) // G mod M2) * Iv
+  X = A Cp + Ma * (K mod M2)
+  return X mod (M1 * Mb)
+end
+Cu = array 182 216 252 286 318 350
+Ms = array 9 1997 4877
+Answer = 0
+for U in 0 to 5
+  Tm = (L - 9 - U) // 6
+  if Tm less 0
+    continue
+  end
+  Rs = array 0
+  Mr = 1
+  for M in Ms
+    Ks = (1 till M) copy
+    Ok = (64 Ks M powmod) equal 1
+    Or = Ks ((Ok indices) 0)
+    Ss = (0 till Or) copy
+    Ys = (0 till M) copy
+    Iy = (Ys * 200 mod M) equal 1
+    I2 = Ys ((Iy indices) 0)
+    Tw = 2 (10 + U) M powmod
+    Pw = 64 Ss M powmod
+    Ta = (Tw * Pw - Cu U) * I2 mod M
+    Bm = Ss Or Ta M crt
+    Pm = Or M lcm
+    rem Pairs with earlier residues.
+    Nb = Bm len
+    Ip = (0 till Rs len * Nb) copy
+    Ra = Rs (Ip // Nb)
+    Rs = Ra Mr (Bm (Ip mod Nb)) Pm crt
+    Mr = Mr Pm lcm
+  end
+  Lv = Rs at most Tm
+  Ct = (Tm - Rs) // Mr + 1
+  Answer += (Lv choose Ct 0) sum
+end
+Answer print
