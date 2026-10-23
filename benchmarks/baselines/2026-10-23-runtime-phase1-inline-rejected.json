@@ -1,0 +1,193 @@
+{
+  "base": "ad390a70",
+  "experiment": "benchmarks/fixtures/415-inline-storage.patch",
+  "decision": "Reject inline ownedStorage on current Proxy-backed arrays. Hot guard/borrow reads regress; array creation results are GC-sensitive. Production implementation restored. This experiment does not evaluate a future representation without Proxy or inline derived-only metadata.",
+  "reproduce": [
+    "npx tsc -b packages/interpreter/tsconfig.json",
+    "node benchmarks/array-metadata.mjs",
+    "git apply benchmarks/fixtures/415-inline-storage.patch",
+    "npx tsc -b packages/interpreter/tsconfig.json",
+    "node benchmarks/array-metadata.mjs",
+    "git apply -R benchmarks/fixtures/415-inline-storage.patch",
+    "npx tsc -b packages/interpreter/tsconfig.json"
+  ],
+  "runs": {
+    "before": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three warmups of 10000 operations per case. Includes a result assertion in write guard. Creation/binding uses iterations / 20 arrays. Microbenchmarks, not end-to-end speedups.",
+      "results": [
+        {
+          "name": "owned-write-guard",
+          "iterations": 1000000,
+          "ms": [
+            21.367583999999994,
+            21.515749999999997,
+            22.347499999999997,
+            21.168374999999997,
+            20.823166000000015,
+            20.922375000000017,
+            21.10537500000001
+          ]
+        },
+        {
+          "name": "owned-borrow",
+          "iterations": 1000000,
+          "ms": [
+            9.152040999999997,
+            9.075125000000014,
+            9.239208999999988,
+            9.134792000000004,
+            8.906750000000045,
+            9.13941699999998,
+            9.413583000000017
+          ]
+        },
+        {
+          "name": "derived-borrow",
+          "iterations": 1000000,
+          "ms": [
+            9.607000000000028,
+            9.775874999999985,
+            9.848458999999991,
+            9.719458999999972,
+            9.692542000000003,
+            9.728167000000042,
+            9.911417000000029
+          ]
+        },
+        {
+          "name": "new-array-binding",
+          "iterations": 50000,
+          "ms": [
+            72.19870900000001,
+            55.58549999999997,
+            81.37141699999995,
+            149.613208,
+            45.18629199999998,
+            70.14304200000004,
+            30.520624999999995
+          ]
+        }
+      ]
+    },
+    "inline-owned": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three warmups of 10000 operations per case. Includes a result assertion in write guard. Creation/binding uses iterations / 20 arrays. Microbenchmarks, not end-to-end speedups.",
+      "results": [
+        {
+          "name": "owned-write-guard",
+          "iterations": 1000000,
+          "ms": [
+            29.162291999999994,
+            29.00158300000001,
+            28.54124999999999,
+            27.915208000000007,
+            28.570999999999998,
+            28.047583000000003,
+            28.112167
+          ]
+        },
+        {
+          "name": "owned-borrow",
+          "iterations": 1000000,
+          "ms": [
+            12.870999999999981,
+            12.838958999999988,
+            13.033500000000004,
+            12.855208000000005,
+            12.822957999999971,
+            12.877999999999986,
+            12.93716599999999
+          ]
+        },
+        {
+          "name": "derived-borrow",
+          "iterations": 1000000,
+          "ms": [
+            10.950166000000024,
+            11.091541999999947,
+            11.225666999999987,
+            11.088707999999997,
+            11.179458999999952,
+            11.11891700000001,
+            11.104667000000006
+          ]
+        },
+        {
+          "name": "new-array-binding",
+          "iterations": 50000,
+          "ms": [
+            55.83175,
+            45.66104199999995,
+            60.17208299999993,
+            33.17374999999993,
+            69.81429100000003,
+            21.151917000000026,
+            46.925749999999994
+          ]
+        }
+      ]
+    },
+    "restored": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three warmups of 10000 operations per case. Includes a result assertion in write guard. Creation/binding uses iterations / 20 arrays. Microbenchmarks, not end-to-end speedups.",
+      "results": [
+        {
+          "name": "owned-write-guard",
+          "iterations": 1000000,
+          "ms": [
+            23.082250000000002,
+            22.117625000000004,
+            21.816709000000003,
+            21.37575000000001,
+            21.335999999999984,
+            21.684292,
+            21.41066699999999
+          ]
+        },
+        {
+          "name": "owned-borrow",
+          "iterations": 1000000,
+          "ms": [
+            9.800250000000005,
+            9.254917000000034,
+            9.235833000000014,
+            9.318415999999957,
+            9.659290999999996,
+            9.266166000000055,
+            9.702042000000006
+          ]
+        },
+        {
+          "name": "derived-borrow",
+          "iterations": 1000000,
+          "ms": [
+            10.265040999999997,
+            10.163707999999986,
+            9.470917000000043,
+            9.328833999999972,
+            9.316624999999988,
+            9.884749999999997,
+            9.559458000000006
+          ]
+        },
+        {
+          "name": "new-array-binding",
+          "iterations": 50000,
+          "ms": [
+            76.00579099999999,
+            57.52891600000004,
+            82.11408300000005,
+            173.44816600000001,
+            46.42529200000001,
+            71.76266599999997,
+            29.935917000000018
+          ]
+        }
+      ]
+    }
+  }
+}
