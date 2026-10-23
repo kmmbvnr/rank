@@ -142,6 +142,33 @@ it('copies frame contracts without sharing later empty-array refinements and res
     first.define('A', ownedArray(['x']), new Set(['array']));
 });
 
+it('shares persistent nested snapshots without sharing later refinements', () => {
+    const first = new LocalFrame(undefined);
+    const nested = (...items: import('../src/value.js').RankValue[]) => ownedArray([ownedArray(items)]);
+    first.define('A', nested(), new Set(['array']));
+    const fork = new LocalFrame(undefined);
+    fork.adoptContracts(first);
+    first.set('A', nested(1n));
+    fork.set('A', nested('text'));
+    expect(() => first.set('A', nested('text'))).toThrow(/array elements/);
+    expect(() => fork.set('A', nested(1n))).toThrow(/array elements/);
+});
+
+it('snapshots live record fields inside an array when copying frame contracts', () => {
+    const runtime = new Interpreter();
+    try {
+        const source = runtime.execute('R = record\n .items = array shape 0 fill .NA\nend\nR')!;
+        const first = new LocalFrame(undefined);
+        first.define('A', ownedArray([source]), new Set(['array']));
+        const fork = new LocalFrame(undefined);
+        fork.adoptContracts(first);
+        runtime.execute('R .items = array 1');
+        const replacement = runtime.execute('record\n .items = array "text"\nend')!;
+        expect(() => first.set('A', ownedArray([replacement]))).toThrow(/integer.*text/);
+        expect(() => fork.set('A', ownedArray([replacement]))).not.toThrow();
+    } finally { runtime.dispose(); }
+});
+
 it('keeps RHS effects but rejects an eager write before publishing any cell', () => {
     const r = new Interpreter();
     r.execute('State = record\n .count = 0\nend\nfun X State wrong\n State .count += 1\n return "bad"\nend\nA = array 1 2');

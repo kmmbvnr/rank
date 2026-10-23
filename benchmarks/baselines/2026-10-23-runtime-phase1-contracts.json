@@ -1,0 +1,108 @@
+{
+  "base": "dc0a009b",
+  "decision": "Share persistent array/tuple contract snapshots; retain deep snapshots for live record maps. Reject the larger interning prototype: it slows common scalar checks and adds a global descriptor pool. This is not O(1) equality or copy for record-bearing contracts.",
+  "experimentPatch": "benchmarks/fixtures/415-contract-interning.patch",
+  "experimentPatchSha256": "e0bb786094dce43bedafb281de56176db54c1bd7d7dcce450a12a96a6d7da926",
+  "runs": {
+    "before": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "scalar-check",
+          "iterations": 100000,
+          "ms": [
+            42.319083000000006,
+            36.31241700000001,
+            36.3665,
+            37.00050000000002,
+            34.02562499999999,
+            34.54649999999998,
+            34.367208000000005
+          ]
+        },
+        {
+          "name": "nested-contract-copy",
+          "iterations": 100000,
+          "ms": [
+            616.872791,
+            621.397834,
+            620.681,
+            621.004625,
+            622.0005409999999,
+            620.7093330000002,
+            625.3304590000002
+          ]
+        }
+      ]
+    },
+    "fast2": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "scalar-check",
+          "iterations": 100000,
+          "ms": [
+            46.820875,
+            45.170208,
+            44.37608300000002,
+            44.95920799999999,
+            46.586292000000014,
+            44.54366699999997,
+            46.40716699999996
+          ]
+        },
+        {
+          "name": "nested-contract-copy",
+          "iterations": 100000,
+          "ms": [
+            1.0910000000000082,
+            0.79200000000003,
+            0.8285830000000374,
+            0.8288330000000315,
+            0.7531250000000114,
+            0.7885419999999499,
+            0.7887499999999932
+          ]
+        }
+      ]
+    },
+    "shared": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "scalar-check",
+          "iterations": 100000,
+          "ms": [
+            37.05604200000002,
+            31.607916999999986,
+            32.07891599999999,
+            30.814667000000014,
+            30.830375000000004,
+            31.59499999999997,
+            31.029125000000022
+          ]
+        },
+        {
+          "name": "nested-contract-copy",
+          "iterations": 100000,
+          "ms": [
+            0.6996670000000336,
+            0.6437909999999647,
+            0.47204199999998764,
+            0.524167000000034,
+            0.5238329999999678,
+            0.5107499999999732,
+            0.5099169999999731
+          ]
+        }
+      ]
+    }
+  },
+  "validation": "113 focused binding/storage/value-semantics tests passed, including independent nested refinements and live record snapshot isolation."
+}

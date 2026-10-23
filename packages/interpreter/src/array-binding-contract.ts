@@ -33,11 +33,13 @@ function union(cells: Iterable<Contract>): Contract[] {
 /** Recursive array/tuple contract shared by bindings and function results. */
 export class ArrayBindingContract {
     private contract?: Contract;
+    private liveFields = false;
     private version?: RankArray;
 
     private commit(next: Contract | undefined): void {
         if (next !== this.contract) {
             this.contract = next;
+            this.liveFields = hasRecordFields(next);
             if (this.version) this.version.items[0] = 0n;
             if (next) this.observe?.(next);
         }
@@ -47,7 +49,8 @@ export class ArrayBindingContract {
 
     copy(): ArrayBindingContract {
         const copy = new ArrayBindingContract(this.name, this.errorKind);
-        copy.contract = this.contract && structuredClone(this.contract);
+        copy.contract = this.contract && (this.liveFields ? structuredClone(this.contract) : this.contract);
+        copy.liveFields = this.liveFields;
         return copy;
     }
 
@@ -360,6 +363,19 @@ export class ArrayBindingContract {
             if (source[key] !== undefined) Object.defineProperty(target, key, { value: source[key] });
         }
     }
+}
+
+// Array/tuple descriptors are persistent: refinement replaces their path.
+// Record fields are live maps, so preview/frame copies must still snapshot them.
+function hasRecordFields(contract: Contract | undefined): boolean {
+    const pending = contract ? [contract] : [];
+    while (pending.length) {
+        const next = pending.pop()!;
+        if (next.fields) return true;
+        for (const child of next.elements ?? []) pending.push(child);
+        for (const child of next.positions ?? []) pending.push(child);
+    }
+    return false;
 }
 
 function equalContract(left: Contract, right: Contract): boolean {

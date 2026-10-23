@@ -1,0 +1,140 @@
+diff --git a/packages/interpreter/src/array-binding-contract.ts b/packages/interpreter/src/array-binding-contract.ts
+index d054413a..a063f6bc 100644
+--- a/packages/interpreter/src/array-binding-contract.ts
++++ b/packages/interpreter/src/array-binding-contract.ts
+@@ -8,6 +8,7 @@ import { arrayElementTypes } from './array-element-types.js';
+ import { evaluateArrayItem, registerArrayCellEvaluation, holdArraySource, materializedArrayItems, materializeCells, prepareArrayRead, arrayCells, arrayValues, collectArrayCells, registerArrayReadPlan, ownedArray, readArrayItem, registerArrayDependencies } from './array-storage.js';
+ import { MissingValueError, RankError } from './errors.js';
+ import { checkpoint } from './interrupt.js';
++import { contractDescriptor, contractTransition, immutableContract } from './contract-descriptor.js';
+ import { registerScalarView } from './integer-view.js';
+ import { recordContract, retainRecordContract } from './record-contract.js';
+ import { isRankArray, isRankRecord, isRankTuple, tuple, requireHomogeneous, MISSING, mergeCollectionElementType, typeName, unionElementType,
+@@ -36,6 +37,7 @@ export class ArrayBindingContract {
+     private version?: RankArray;
+ 
+     private commit(next: Contract | undefined): void {
++        if (next) next = contractDescriptor(next);
+         if (next !== this.contract) {
+             this.contract = next;
+             if (this.version) this.version.items[0] = 0n;
+@@ -47,15 +49,18 @@ export class ArrayBindingContract {
+ 
+     copy(): ArrayBindingContract {
+         const copy = new ArrayBindingContract(this.name, this.errorKind);
+-        copy.contract = this.contract && structuredClone(this.contract);
++        copy.contract = this.contract && (immutableContract(this.contract) ? this.contract : structuredClone(this.contract));
+         return copy;
+     }
+ 
+     private merge(expected: Contract | undefined, received: Contract): Contract {
+         try {
+             if (received.elements) requireHomogeneous(received.elements);
++            if (expected === received) return expected;
++            received = contractDescriptor(received);
+             if (expected && equalContract(expected, received)) return expected;
+-            const result = mergeCollectionElementType(`${this.name} array elements`, expected, received, false, true);
++            const merge = () => mergeCollectionElementType(`${this.name} array elements`, expected, received, false, true);
++            const result = expected ? contractTransition(expected, received, merge) : merge();
+             return expected && equalContract(expected, result) ? expected : result;
+         }
+         catch (error) {
+@@ -210,7 +215,13 @@ export class ArrayBindingContract {
+             if (value.shape.some(size => size === 0)) { done({ value, contract: { ...base, elements: [] } }); return; }
+             const types = arrayElementTypes(value, true);
+             if (types && !types.some(type => ['array', 'bytes', 'record', 'tuple'].includes(type))) {
+-                done({ value, contract: { ...base, elements: types.filter(type => type !== 'missing').map(type => ({ type })) } });
++                const kinds = types.filter(type => type !== 'missing');
++                const expected = path ? this.at(path) : this.contract;
++                // Reuse established scalar evidence before allocating a new descriptor.
++                const unchanged = expected && sameKind(expected, base) && !expected.positions
++                    && expected.elements?.length === kinds.length && expected.elements.every(cell =>
++                        !cell.elements && !cell.fields && !cell.positions && kinds.includes(cell.type));
++                done({ value, contract: unchanged ? expected : { ...base, elements: kinds.map(type => ({ type })) } });
+                 return;
+             }
+             const items = types && materializedArrayItems(value);
+@@ -363,6 +374,7 @@ export class ArrayBindingContract {
+ }
+ 
+ function equalContract(left: Contract, right: Contract): boolean {
++    if (immutableContract(left) && immutableContract(right)) return left === right;
+     const pending: [Contract, Contract][] = [[left, right]];
+     while (pending.length) {
+         const [a, b] = pending.pop()!;
+diff --git a/packages/interpreter/src/contract-descriptor.ts b/packages/interpreter/src/contract-descriptor.ts
+new file mode 100644
+index 00000000..a0b59603
+--- /dev/null
++++ b/packages/interpreter/src/contract-descriptor.ts
+@@ -0,0 +1,70 @@
++import type { CollectionElementType } from './value.js';
++
++type Contract = CollectionElementType;
++const identities = new WeakMap<Contract, number>();
++const normalized = new WeakMap<Contract, Contract>();
++const descriptors = new Map<string, WeakRef<Contract>>();
++let serial = 0;
++const released = new FinalizationRegistry<{ key: string; reference: WeakRef<Contract> }>(({ key, reference }) => {
++    if (descriptors.get(key) === reference) descriptors.delete(key);
++});
++
++/** Only descriptors without live record fields can be shared by a snapshot. */
++export function immutableContract(value: Contract): boolean {
++    return identities.has(value);
++}
++
++/** Canonicalize persistent array/tuple domains. Record maps remain live: a
++ * field refinement must still reach every binding that retained that record. */
++export function contractDescriptor(value: Contract): Contract {
++    const previous = normalized.get(value);
++    if (previous) return previous;
++    const pending: { value: Contract; children?: boolean }[] = [{ value }];
++    while (pending.length) {
++        const task = pending.pop()!, node = task.value;
++        if (normalized.has(node)) continue;
++        if (identities.has(node) || node.fields) {
++            normalized.set(node, node);
++            continue;
++        }
++        if (!task.children) {
++            pending.push({ value: node, children: true });
++            for (const child of [...node.elements ?? [], ...node.positions ?? []]) pending.push({ value: child });
++            continue;
++        }
++        const elements = node.elements?.map(child => normalized.get(child)!);
++        const positions = node.positions?.map(child => normalized.get(child)!);
++        if ([...elements ?? [], ...positions ?? []].some(child => !immutableContract(child))) {
++            normalized.set(node, node);
++            continue;
++        }
++        const key = JSON.stringify([node.type, node.rank, elements?.map(child => identities.get(child)),
++            positions?.map(child => identities.get(child))]);
++        let descriptor = descriptors.get(key)?.deref();
++        if (!descriptor) {
++            descriptor = Object.freeze({ type: node.type, ...(node.rank === undefined ? {} : { rank: node.rank }),
++                ...(elements === undefined ? {} : { elements: Object.freeze(elements) }),
++                ...(positions === undefined ? {} : { positions: Object.freeze(positions) }) });
++            identities.set(descriptor, ++serial);
++            const reference = new WeakRef(descriptor);
++            descriptors.set(key, reference);
++            released.register(descriptor, { key, reference });
++        }
++        normalized.set(node, descriptor);
++    }
++    return normalized.get(value)!;
++}
++
++const transitions = new WeakMap<Contract, WeakMap<Contract, Contract>>();
++
++/** Successful immutable merges contain no binding name or mutable record state. */
++export function contractTransition(expected: Contract, received: Contract, merge: () => Contract): Contract {
++    if (!immutableContract(expected) || !immutableContract(received)) return merge();
++    let following = transitions.get(expected);
++    const cached = following?.get(received);
++    if (cached) return cached;
++    const result = contractDescriptor(merge());
++    if (!following) transitions.set(expected, following = new WeakMap());
++    following.set(received, result);
++    return result;
++}
