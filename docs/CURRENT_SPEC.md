@@ -739,6 +739,12 @@ is
 
 `at least` means `>=`; `at most` means `<=`.
 
+`equal` and `not equal` reject comparisons between a boolean and an integer
+or real with `.TypeError`, including corresponding values inside tuples,
+records and cells compared at rank. Compare a flag with `true` or `false`, or
+convert it explicitly with `integer` when a numeric value is needed.
+Membership tests keep booleans and numbers as distinct values.
+
 Ordering comparisons accept two scalars from one comparable family: numeric,
 text, boolean, symbol, date or datetime. Integers and reals share the numeric
 family. Text and symbols use a case-sensitive lexicographic order by Unicode
@@ -3561,6 +3567,19 @@ The same holds for a boolean array made by a predicate (`A even`), by
 comparing an array with a scalar (`A greater 2`), or by `not`, `and`, `or` and
 `xor` over such masks: `A even sum` adds the even cells of `A`, read in
 row-major order.
+
+Use `count` from `sequences` to count true flags. For example:
+
+```rank
+use sequences
+Sv = array shape 5 fill 0
+Sv 2 = 1
+(Sv equal 0) count rem 4: number of zero cells
+(Sv equal 0) sum   rem 0: sum of the selected zero cells
+```
+
+Parentheses keep the inline mask's selection behavior. A stored mask or an
+ordinary boolean array passed to `sum` raises a numeric type error.
 
 A mask read by its name has left its pipeline and is only booleans. A numeric
 operation on it is an error that names the explicit forms:

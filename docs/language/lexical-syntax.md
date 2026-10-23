@@ -604,6 +604,12 @@ is
 
 `at least` means `>=`; `at most` means `<=`.
 
+`equal` and `not equal` reject comparisons between a boolean and an integer
+or real with `.TypeError`, including corresponding values inside tuples,
+records and cells compared at rank. Compare a flag with `true` or `false`, or
+convert it explicitly with `integer` when a numeric value is needed.
+Membership tests keep booleans and numbers as distinct values.
+
 Ordering comparisons accept two scalars from one comparable family: numeric,
 text, boolean, symbol, date or datetime. Integers and reals share the numeric
 family. Text and symbols use a case-sensitive lexicographic order by Unicode

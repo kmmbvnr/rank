@@ -1,5 +1,6 @@
 import { readArrayItem } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
+import { RankError } from './errors.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     formatValue, isRankTuple, isRankArray, isRankDate, isRankDuration, isRankRecord,
@@ -42,19 +43,25 @@ function compareCellOrder(left: RankValue, right: RankValue, compared: WeakMap<o
 }
 
 export function equalValues(left: RankValue, right: RankValue): boolean {
-    return equalNestedValues(left, right, new WeakMap());
+    return equalNestedValues(left, right, new WeakMap(), true);
 }
 
 // Membership retains value-based numeric keys, including nested record fields.
 export function equalMembershipValues(left: RankValue, right: RankValue): boolean {
-    return equalNestedValues(left, right, new WeakMap());
+    return equalNestedValues(left, right, new WeakMap(), false);
 }
 
 function equalNestedValues(
     left: RankValue,
     right: RankValue,
     compared: WeakMap<object, WeakSet<object>>,
+    strictBoolean: boolean,
 ): boolean {
+    if (strictBoolean && (typeof left === 'boolean' && (typeof right === 'bigint' || typeof right === 'number')
+        || typeof right === 'boolean' && (typeof left === 'bigint' || typeof left === 'number'))) {
+        throw new RankError('equal and not equal cannot compare boolean and numeric values; '
+            + 'compare with true or false, or convert explicitly with integer', 'TypeError');
+    }
     if ((typeof left === 'bigint' || typeof left === 'number')
         && (typeof right === 'bigint' || typeof right === 'number')) {
         if (typeof left === typeof right) return left === right;
@@ -77,14 +84,14 @@ function equalNestedValues(
     if (isRankTuple(left) && isRankTuple(right)) {
         if (left.items.length !== right.items.length) return false;
         if (alreadyCompared(left, right, compared)) return true;
-        return left.items.every((item, index) => equalNestedValues(item, right.items[index], compared));
+        return left.items.every((item, index) => equalNestedValues(item, right.items[index], compared, strictBoolean));
     }
     if (isRankArray(left) && isRankArray(right)) {
         if (!sameShape(left.shape, right.shape)) return false;
         if (alreadyCompared(left, right, compared)) return true;
         const size = arraySize(left.shape);
         for (let index = 0; index < size; index += 1) {
-            if (!equalNestedValues(arrayItem(left, index), arrayItem(right, index), compared)) {
+            if (!equalNestedValues(arrayItem(left, index), arrayItem(right, index), compared, strictBoolean)) {
                 return false;
             }
         }
@@ -95,7 +102,7 @@ function equalNestedValues(
         if (alreadyCompared(left, right, compared)) return true;
         for (const [name, value] of left.entries) {
             const other = right.entries.get(name);
-            if (other === undefined || !equalNestedValues(value, other, compared)) return false;
+            if (other === undefined || !equalNestedValues(value, other, compared, strictBoolean)) return false;
         }
         return true;
     }
