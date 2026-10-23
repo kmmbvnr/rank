@@ -1,0 +1,85 @@
+rem Divisibility of Harmonic Number
+rem Denominators
+rem https://projecteuler.net/problem=541
+
+use numbers
+use sequences
+use io
+use cli
+
+option P integer = 137
+
+rem H(pn + k) = H(n) / p + B(n) + sum of
+rem 1 / (pn + t), t <= k, B(n) the sum
+rem of 1 / m over m <= pn, p not | m.
+rem So n can be in J only if n // p is.
+rem Mod p^S: 1 / (ap + t) = sum (-ap)^j
+rem / t^(j + 1), and sum a^j over a < n
+rem is sum S2(j, i) i! C(n, i + 1).
+S = 20
+Pm = P ** S
+Ph = P ** (S - 1) * (P - 1)
+Ex = Ph - 1
+Ts = (1 till P) copy
+It = Ts Ex Pm powmod
+rem Stirling numbers of the second kind.
+St = array shape S S fill 0
+St 0 0 = 1
+for J in 1 till S
+  for I in 1 to J
+    Sa = I * St (J - 1) I
+    St J I = Sa + St (J - 1) (I - 1)
+  end
+end
+rem Ck(i): coefficient of C(n, i + 1).
+Ck = array shape S fill 0
+Fi = 1
+for I in 0 till S
+  for J in I till S
+    Ej = J + 1
+    Sj = ((It Ej Pm powmod) sum) mod Pm
+    Sg = 1 - 2 * (J mod 2)
+    Cf = Sg * P ** J * Sj * St J I * Fi
+    Ck I = (Ck I + Cf) mod Pm
+  end
+  Fi *= I + 1
+end
+rem 1 / (i + 1)! mod p^S.
+Fa = (1 to S) scan *
+If = Fa Ex Pm powmod
+rem Seeds n < p, then lift layer by
+rem layer while children survive.
+Hs = (It scan +) mod Pm
+Sd = ((Hs mod P) equal 0) indices
+Nd = Sd + 1
+Hv = Hs Sd
+Best = 0
+if (Nd len) greater 0
+  Best = Nd max
+end
+Ks = (1 till P) copy
+for (Nd len) greater 0
+  Nn = Nd len
+  Bn = Nd * 0
+  Pr = Bn + 1
+  for I in 0 till S
+    Pr = Pr * (Nd - I) mod Pm
+    Ci = (If I) * (Ck I) mod Pm
+    Bn = (Bn + Pr * Ci) mod Pm
+  end
+  Hn = (Hv // P + Bn) mod Pm
+  Q = (Nd reshape Nn 1) * P + Ks
+  Iq = Q Ex Pm powmod
+  Hc = Hn reshape Nn 1
+  Hm = concat Hc Iq axis 1
+  Hm = (Hm scan + axis 1) mod Pm
+  Hf = Hm reshape (Nn * P)
+  Ix = ((Hf mod P) equal 0) indices
+  Nd = (Nd (Ix // P)) * P + Ix mod P
+  Hv = Hf Ix
+  if (Nd len) greater 0
+    Best = Best max (Nd max)
+  end
+end
+Answer = P * Best + P - 1
+Answer print
