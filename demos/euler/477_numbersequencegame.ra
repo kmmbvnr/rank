@@ -1,0 +1,95 @@
+rem Number Sequence Game
+rem https://projecteuler.net/problem=477
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000
+
+rem With D the best score difference,
+rem the first player gets (sum + D)
+rem / 2. A peak b >= a, c plays like
+rem the single a - b + c; with no
+rem peak left the values form a
+rem valley, and taking the larger end
+rem means taking them in descending
+rem order: D alternates their signs.
+Md = 1000000007
+Mx = 200000
+Sq = array shape Mx fill 0
+S = 0
+for I in 0 till Mx
+  Sq I = S
+  S = (S * S + 45) mod Md
+end
+rem First repeat: equal neighbours in
+rem a stable sort. Prefix Pp, cycle Cl.
+Od = Sq argsort
+Vs = Sq Od
+Nx = Vs -1 shift with -1
+Eq = (Vs equal Nx) indices
+Js = Od (Eq + 1)
+Jm = Js min
+Pp = Od (Eq (Js min .index))
+Cl = Jm - Pp
+rem Past the prefix, score the anchor
+rem Pp + r and one aligned cycle more;
+rem each further cycle adds the same.
+Ln = N
+Kc = 0
+if N greater Pp + Cl
+  R = (N - Pp) mod Cl
+  Ln = Pp + R + Cl
+  Kc = (N - Pp - R) // Cl
+end
+St = array shape (Ln + 1) fill 0
+Tp = 0
+Tot = 0
+Sa = St (0 till 0)
+Ta = 0
+Cu = Ln
+if Kc greater 0
+  Cu = Ln - Cl
+end
+Ed = array Cu Ln
+for Ph in 0 to 1
+  Lo = 0
+  if Ph equal 1
+    Lo = Ed 0
+    Sa = St (0 till Tp) copy
+    Ta = Tot
+  end
+  Hi = Ed Ph
+  for J in Lo till Hi
+    X = Sq J
+    Tot += X
+    St Tp = X
+    Tp += 1
+    Go = true
+    for Go and Tp at least 3
+      A = St (Tp - 3)
+      B = St (Tp - 2)
+      C = St (Tp - 1)
+      if B at least A and B at least C
+        St (Tp - 3) = A - B + C
+        Tp -= 2
+      else
+        Go = false
+      end
+    end
+  end
+end
+Wb = St (0 till Tp) sort .descending
+Sg = 1 - 2 * ((0 till Tp) mod 2)
+Db = (Wb * Sg) sum
+Answer = (Tot + Db) // 2
+if Kc greater 0
+  Wa = Sa sort .descending
+  Sg = 1 - 2 * ((0 till Wa len) mod 2)
+  Da = (Wa * Sg) sum
+  Ga = (Ta + Da) // 2
+  Answer = Ga + Kc * (Answer - Ga)
+end
+Answer print
