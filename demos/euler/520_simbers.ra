@@ -1,0 +1,47 @@
+rem Simbers
+rem https://projecteuler.net/problem=520
+
+use numbers
+use sequences
+use io
+use cli
+
+option U integer = 39
+
+rem An even digit's count is even:
+rem (1 + (-1)^c) / 2; an odd digit's is
+rem 0 or odd: (2 0^c + 1 - (-1)^c) / 2.
+rem Expanding the products gives 2^5
+rem 3^5 weight choices, each adding
+rem coef lambda^t to 2^10 A(t). The
+rem leading zero term B(t - 1) swaps
+rem digit 0 to (1 - (-1)^c) / 2.
+M = 1000000123
+Bs = array 2 2 2 2 2 3 3 3 3 3
+Nc = 7776
+Dg = ((0 till Nc) copy) Bs digits
+Ty = array 0 0 0 0 0 3 3 3 3 3
+Ix = (Ty reshape 10 1) + Dg
+Wt = array 1 -1 0 0 1 -1
+Ct = array 1 1 0 2 1 -1
+L = (Wt Ix) reduce + axis 0
+Cf = (Ct Ix) reduce * axis 0
+Cd = Cf * (1 - 2 * Dg 0)
+rem Q(n) sums C lambda (lambda^n - 1)
+rem / (lambda - 1) minus D times the
+rem same sum without the lambda.
+I = (0 till Nc * U) copy
+Ci = I mod Nc
+N = 2 ** (I // Nc + 1)
+Lm = (L Ci) mod M
+Pw = Lm N M powmod
+Iv = (Lm - 1) mod M (M - 2) M powmod
+G0 = (Pw - 1) * Iv mod M
+G0 = (Lm equal 1) choose (N mod M) G0
+G1 = Lm * G0 mod M
+Cc = (Cf Ci) mod M
+Cz = (Cd Ci) mod M
+T = (Cc * G1 - Cz * G0) mod M
+In = 1024 (M - 2) M powmod
+Answer = (T sum) mod M * In mod M
+Answer print

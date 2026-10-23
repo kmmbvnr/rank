@@ -1,0 +1,11 @@
+use testing
+
+test "small powers of two"
+  use "520_simbers"
+  U = 1
+  run
+  Answer equal 29
+  U = 2
+  run
+  Answer equal 980
+end
