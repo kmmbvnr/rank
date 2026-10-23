@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
-import { borrowArrayStorage, filledArray, integer32Cells, prepareScalarArrayReader, prepareScalarArrayWriter, readArrayItem, typedElementKind, writeInteger32Cells } from '../src/array-storage.js';
+import { borrowArrayStorage, eagerOperandItems, filledArray, integer32Cells, prepareScalarArrayReader, prepareScalarArrayWriter, readArrayItem, typedElementKind, writeArrayCell, writeInteger32Cells } from '../src/array-storage.js';
 
 const N = 10000;
 
@@ -11,6 +11,18 @@ describe('compact integer counters', () => {
         expect(typedElementKind(array)).toBe('integer');
         expect(readArrayItem(array, N - 1)).toBe(-2147483648n);
         expect(array.items[0]).toBe(-2147483648n);
+    });
+
+    it('prepares eager integer operands without proxy reads or stale cells', () => {
+        const array = filledArray(-2147483648n, [N]);
+        expect(eagerOperandItems(array)).not.toBeInstanceOf(BigInt64Array);
+        const first = eagerOperandItems(array, true)!;
+        expect(first).toBeInstanceOf(BigInt64Array);
+        expect(first[0]).toBe(-2147483648n);
+        writeArrayCell(array, 0, 2147483647n);
+        expect(eagerOperandItems(array, true)![0]).toBe(2147483647n);
+        writeArrayCell(array, 1, 1n << 80n);
+        expect(eagerOperandItems(array, true)![1]).toBe(1n << 80n);
     });
 
     it('widens without truncation and keeps borrowed readers current', () => {

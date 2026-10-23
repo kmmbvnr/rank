@@ -537,8 +537,8 @@ function denseMatmul(
 ): RankArray | undefined {
     const size = outputShape.reduce((product, dimension) => product * dimension, 1);
     if (size * contracted < DENSE_MATMUL_WORK) return undefined;
-    const leftItems = eagerOperandItems(left);
-    const rightItems = eagerOperandItems(right);
+    const leftItems = eagerOperandItems(left, true);
+    const rightItems = eagerOperandItems(right, true);
     if (!leftItems || !rightItems) return undefined;
     const leftStrides = stridesOf(left.shape);
     const rightStrides = stridesOf(right.shape);
@@ -552,11 +552,25 @@ function denseMatmul(
     // Real cells multiply and sum to real cells: the result is one typed buffer.
     const realMode = contracted > 0 && realCells(left) !== undefined && realCells(right) !== undefined;
     if (realMode) {
-        return typedArray(realMatmul(
+        return typedArray(numberMatmul(
             float64Cells(left)!, float64Cells(right)!, size, contracted, leftInner, rightInner,
             outputShape, outputStrides, leftRank), outputShape);
     }
-    const cells: (bigint | number)[] = realMode ? new Float64Array(size) as unknown as number[] : new Array(size);
+    // Bound absolute products, not just the final sum: cancellation must not
+    // hide an inexact intermediate. BigInt checks cannot round an unsafe bound.
+    const a = boundedIntegerOperand(leftItems);
+    const b = a && boundedIntegerOperand(rightItems);
+    if (a && b && a.max * b.max * BigInt(contracted) <= 9007199254740991n) {
+        const numbers = numberMatmul(a.cells, b.cells, size, contracted, leftInner, rightInner,
+            outputShape, outputStrides, leftRank);
+        const integers = new BigInt64Array(size);
+        for (let index = 0; index < size; index++) {
+            if ((index & 4095) === 0) checkpoint('storing integer matrix product');
+            integers[index] = BigInt(numbers[index]);
+        }
+        return typedArray(integers, outputShape);
+    }
+    const cells: (bigint | number)[] = new Array(size);
     // The two operand offsets of each output cell come from an odometer over
     // the output coordinates, so no cell pays for a division per axis.
     const rank = outputShape.length;
@@ -603,11 +617,27 @@ function denseMatmul(
         if (error instanceof RankError) return undefined;
         throw error;
     }
-    return realMode ? typedArray(cells as unknown as Float64Array, outputShape) : ownedArray(cells, outputShape, true);
+    return ownedArray(cells, outputShape, true);
 }
 
-/** Real matrix products over typed buffers: one loop shape, so the JIT keeps it monomorphic. */
-function realMatmul(
+/** Only stored integer operands whose conversion to Number is exact qualify. */
+function boundedIntegerOperand(items: ArrayLike<RankValue>): { cells: Float64Array; max: bigint } | undefined {
+    const cells = new Float64Array(items.length);
+    let max = 0n;
+    for (let index = 0; index < items.length; index++) {
+        if ((index & 4095) === 0) checkpoint('checking integer matrix bounds');
+        const item = items[index];
+        if (typeof item !== 'bigint') return undefined;
+        const absolute = item < 0n ? -item : item;
+        if (absolute > 9007199254740991n) return undefined;
+        if (absolute > max) max = absolute;
+        cells[index] = Number(item);
+    }
+    return { cells, max };
+}
+
+/** Number products over typed buffers, for reals or proved exact integers. */
+function numberMatmul(
     leftItems: Float64Array, rightItems: Float64Array, size: number, contracted: number,
     leftInner: number, rightInner: number, outputShape: readonly number[],
     outputStrides: readonly number[], leftRank: number,

@@ -211,6 +211,14 @@ the number of rows of B. This is not the
 same as A * B, which multiplies cell by
 cell.
 
+Integer operands produce exact integer
+results, including beyond 64 bits.
+Dense products can use a numeric kernel
+when a bound proves every product and
+partial sum stays between
+-(2^53 - 1) and 2^53 - 1.
+Other integer products use BigInt.
+
 ### See also
 
 outer, inverse, solve

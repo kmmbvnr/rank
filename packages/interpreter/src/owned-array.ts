@@ -337,9 +337,20 @@ const MAX_EAGER_OPERAND_CELLS = 1 << 25;
  * large partner. Declines when reading raises (the lazy path raises it when
  * the cell is demanded) or when a cell is not a number.
  */
-export function eagerOperandItems(value: RankArray): ArrayLike<RankValue> | undefined {
+export function eagerOperandItems(value: RankArray, repeatedReads = false): ArrayLike<RankValue> | undefined {
     // Reading the cells of a masked array would turn it into a plain one.
     if (ownedStorage.get(value)?.validity) return undefined;
+    // Compact integer items expose BigInt through a Proxy. Repeated-read
+    // kernels convert once; single-pass consumers keep allocation-free reads.
+    const compact = repeatedReads && integer32Cells(value);
+    if (compact) {
+        const cells = new BigInt64Array(compact.length);
+        for (let index = 0; index < compact.length; index++) {
+            if ((index & 4095) === 0) checkpoint('preparing integer operand');
+            cells[index] = BigInt(compact[index]);
+        }
+        return cells;
+    }
     const stored = denseScalarItems(value);
     if (stored) return stored;
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);

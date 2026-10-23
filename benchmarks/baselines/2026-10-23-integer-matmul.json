@@ -1,0 +1,207 @@
+{
+  "issue": 426,
+  "baselineCommit": "961ae3de",
+  "timing": "10 products of 121 x 121 matrices; includes parsing and program execution; result checks outside timer",
+  "method": "Three fresh processes per case and stage, run sequentially. All 14641 final cells and accumulated checksum checked.",
+  "stages": {
+    "baseline": {
+      "change": "unchanged",
+      "cases": {
+        "integer": {
+          "case": "integer",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 4361.417417,
+          "samples": [
+            {
+              "elapsedMs": 4655.061707999999,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 4361.417417,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 4337.339791,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            }
+          ]
+        },
+        "wide": {
+          "case": "wide",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 4828.97925,
+          "samples": [
+            {
+              "elapsedMs": 4354.708458,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 4828.97925,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 5471.953125,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            }
+          ]
+        },
+        "real": {
+          "case": "real",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 216.983542,
+          "samples": [
+            {
+              "elapsedMs": 216.983542,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 215.97125,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 220.744959,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            }
+          ]
+        }
+      }
+    },
+    "stage1": {
+      "change": "snapshot compact integer operands for repeated reads",
+      "cases": {
+        "integer": {
+          "case": "integer",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 421.779375,
+          "samples": [
+            {
+              "elapsedMs": 344.18570900000003,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 445.36025,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 421.779375,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            }
+          ]
+        },
+        "wide": {
+          "case": "wide",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 428.17062500000003,
+          "samples": [
+            {
+              "elapsedMs": 421.009,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 428.17062500000003,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 448.342959,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            }
+          ]
+        }
+      }
+    },
+    "stage2": {
+      "change": "guarded exact Number kernel with BigInt fallback",
+      "cases": {
+        "integer": {
+          "case": "integer",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 283.74645799999996,
+          "samples": [
+            {
+              "elapsedMs": 283.74645799999996,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 260.05704199999997,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 284.474667,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            }
+          ]
+        },
+        "wide": {
+          "case": "wide",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 403.166,
+          "samples": [
+            {
+              "elapsedMs": 407.304917,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 403.166,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 388.10737500000005,
+              "checksum": "1209999998790000000",
+              "cellsChecked": 14641
+            }
+          ]
+        },
+        "real": {
+          "case": "real",
+          "node": "v24.15.0",
+          "cpu": "Apple M5",
+          "medianMs": 258.915625,
+          "samples": [
+            {
+              "elapsedMs": 253.17616699999996,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 258.915625,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            },
+            {
+              "elapsedMs": 263.025458,
+              "checksum": "39648069960351930",
+              "cellsChecked": 14641
+            }
+          ]
+        }
+      }
+    }
+  }
+}
