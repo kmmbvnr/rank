@@ -1,0 +1,73 @@
+rem Minimum values of the Carmichael
+rem function
+rem https://projecteuler.net/problem=533
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 20000000
+
+rem L(n) - 1 is the largest M(t), t <
+rem n, M(t) the largest m with lambda(m)
+rem | t: 2^a with a = 1 for odd t, v2(t)
+rem + 2 else, times p^(vp(t) + 1) for
+rem each odd prime p with p - 1 | t.
+rem Sieve log M(t) in fixed point over
+rem all t, then build the best M mod
+rem 10^9 from the divisors of t.
+Sc = 2.0 ** 40
+Ps = primes from 3 to N array
+Lq = ((Ps log) * Sc) integer
+L2 = ((2.0 log) * Sc) integer
+Lg = array shape N fill L2
+Lg (2 till N by 2) += 2 * L2
+Q = 4
+for Q less N
+  Lg (Q till N by Q) += L2
+  Q *= 2
+end
+for T in 0 till Ps len
+  D = Ps T - 1
+  Lg (D till N by D) += Lq T
+end
+rem Higher powers of small primes.
+for T in 0 till Ps len
+  Pp = Ps T
+  Q = (Pp - 1) * Pp
+  if Q at least N
+    break
+  end
+  for Q less N
+    Lg (Q till N by Q) += Lq T
+    Q *= Pp
+  end
+end
+Lg 0 = 0
+Tb = Lg max .index
+Md = 1000000000
+Mt = 2 ** 1
+V2 = 0
+X = Tb
+for X mod 2 equal 0
+  X //= 2
+  V2 += 1
+end
+if V2 greater 0
+  Mt = 2 ** (V2 + 2)
+end
+for Dd in Tb divisors
+  Pp = Dd + 1
+  if (Pp greater 2) and (Pp in primes)
+    E = 1
+    Y = Tb
+    for Y mod Pp equal 0
+      Y //= Pp
+      E += 1
+    end
+    Mt = Mt * (Pp E Md powmod) mod Md
+  end
+end
+Answer = (Mt + 1) mod Md
+Answer print

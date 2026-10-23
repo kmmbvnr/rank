@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "533_carmichael"
+  N = 6
+  run
+  Answer equal 241
+  N = 100
+  run
+  Answer equal 174525281
+end
