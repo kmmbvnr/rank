@@ -36,7 +36,7 @@
   "euler/328_lowestcost.ra": "Full N=200000 search: compiled execution is fast, but 500 million candidates exceed the reference audit budget (#359).",
   "euler/328_lowestcost_default_test.ra": "Manual full-input assertion; smaller independent minimax checks remain in the ordinary suites (#359).",
   "euler/331_crossflips.ra": "Traverses boundaries for board sizes approaching 2 ** 30.",
-  "euler/333_specialpartitions.ra": "Enumerates special partitions below 1000000.",
+  "euler/333_specialpartitions.ra": "Builds 13 million count cells in the full uncompiled reference.",
   "euler/336_maximix.ra": "Builds and sorts the full 11-carriage maximix collection.",
   "euler/336_maximix_default_test.ra": "Manual full-input assertion for the default-scale workload; small assertions remain in 336_maximix_test.ra.",
   "euler/337_totientstairs.ra": "Builds totient and DP arrays through 20000000.",

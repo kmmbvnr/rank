@@ -83,6 +83,15 @@ retains the original candidate window. Interpreter-only timings, profiles,
 correctness checks and reproduction commands are in the
 [benchmark report](../../benchmarks/euler328-results.md).
 
+## Special partition counts (333)
+
+Euler 333 counts partitions by parity and successive powers of three, using
+fresh dense rows instead of returning a count array through recursive branches.
+The default limit is one million; the prime sum is 3053105. The original
+recursion, an experiment with the existing shared `counter`, the recurrence
+and per-cell oracle checks are recorded in the
+[benchmark report](../../benchmarks/euler333-results.md).
+
 ## Problems 401-450
 
 Written: all of 401-450, one program and one test file each. The tests

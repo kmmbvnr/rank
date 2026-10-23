@@ -66,6 +66,23 @@ describe.each([false, true])('counter gather (compilation=%s)', compilation => {
         expect(() => run('Counts = new counter\nResult = Counts 1\nResult = Counts (array 1 2)')).toThrow(/cannot receive/);
     });
 
+    it('shares an explicit accumulator across recursive branches and isolates fresh counters', () => {
+        expect(formatValue(run(`fun Depth Counts visit
+ if Depth equal 0
+  Counts add 7
+  return Counts
+ end
+ Left = (Depth - 1) Counts visit
+ Right = (Depth - 1) Counts visit
+ return Counts
+end
+A = new counter
+Alias = 4 A visit
+B = new counter
+Other = 2 B visit
+array (A 7) (Alias 7) (B 7) (Other 7)`)!)).toBe('16 16 4 4');
+    });
+
     it('returns gathered arrays from repeated function calls', () => {
         expect(formatValue(run('fun Keys frequencies\n Counts = new counter Keys\n return Counts Keys\nend\nA = (array "ab" "ab" "cd") frequencies\nB = (array "x" "x") frequencies\nconcat A B')!))
             .toBe('2 2 1 2 2');

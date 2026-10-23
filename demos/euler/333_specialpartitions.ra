@@ -10,32 +10,42 @@ option Limit integer = 1000000
 Limit solve print
 
 fun Limit solve
-  Cnt = array shape Limit fill 0
-  Base = 2 log
-  Max = (Limit log / Base) floor
-  Cnt = 0 1000 0 Limit Cnt Max walk
+  Cnt = Limit partitioncounts
   Ps = primes till Limit
   Good' = Cnt Ps equal 1
   return (Ps filter Good) sum
 end
 
-fun I J Sum Limit Cnt Max walk
-  if I greater Max
-    if Sum greater 0
-      Cnt Sum += 1
-    end
-    return Cnt
+rem Counts include the empty partition at zero and exclude Limit.
+fun Limit partitioncounts
+  Counts = array shape Limit fill 0
+  if Limit equal 0
+    return Counts
   end
-  Cnt = (I + 1) J Sum Limit Cnt Max walk
-  V = 2 ** I
-  for K in 0 till J
-    if Sum + V greater Limit - 1
-      break
+  Counts 0 = 1
+  Power = 1
+  rem Each row admits the next power of three as the partition's odd term.
+  for Power less Limit
+    Next = array shape Limit fill 0
+    Next 0 = 1
+    for N in 1 till Limit
+      Ways = 0
+      if N mod 2 equal 0
+        rem All terms are even: divide them by two.
+        Half = N // 2
+        Ways = Next Half
+      else
+        Ways = Counts N
+        rem The only odd term is a power of three; the rest divide by two.
+        if N greater Power - 1
+          Half = (N - Power) // 2
+          Ways += Counts Half
+        end
+      end
+      Next N = Ways
     end
-    I1 = I + 1
-    S1 = Sum + V
-    Cnt = I1 K S1 Limit Cnt Max walk
-    V *= 3
+    Counts = Next
+    Power *= 3
   end
-  return Cnt
+  return Counts
 end

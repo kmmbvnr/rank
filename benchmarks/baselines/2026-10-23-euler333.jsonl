@@ -1,0 +1,19 @@
+{"node":"v24.15.0","cpu":"Apple M5","timing":"fresh processes; solve includes table allocation, compilation and prime selection; imports, definitions and oracle excluded; diagnostic runs separate"}
+{"trial":0,"variant":"original","limit":10000,"diagnostic":false,"executeMs":4445.2615829999995,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":0,"variant":"counter","limit":10000,"diagnostic":false,"executeMs":2922.505042,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":0,"variant":"layered","limit":10000,"diagnostic":false,"executeMs":31.958208000000013,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":0,"variant":"layered","limit":1000000,"diagnostic":false,"executeMs":1218.718042,"answer":"3053105","referenceCalls":183872640,"referenceLeaves":40549126}
+{"trial":1,"variant":"layered","limit":10000,"diagnostic":false,"executeMs":31.47966600000001,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":1,"variant":"counter","limit":10000,"diagnostic":false,"executeMs":2411.6905,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":1,"variant":"original","limit":10000,"diagnostic":false,"executeMs":4467.630792,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":1,"variant":"layered","limit":1000000,"diagnostic":false,"executeMs":1342.811083,"answer":"3053105","referenceCalls":183872640,"referenceLeaves":40549126}
+{"trial":2,"variant":"original","limit":10000,"diagnostic":false,"executeMs":3850.7865420000003,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":2,"variant":"counter","limit":10000,"diagnostic":false,"executeMs":2463.73475,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":2,"variant":"layered","limit":10000,"diagnostic":false,"executeMs":31.799582999999984,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429}
+{"trial":2,"variant":"layered","limit":1000000,"diagnostic":false,"executeMs":1199.896792,"answer":"3053105","referenceCalls":183872640,"referenceLeaves":40549126}
+{"variant":"original","limit":10000,"diagnostic":true,"executeMs":3839.272,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429,"cowCopies":60428,"cowCopiedCells":604280000}
+{"variant":"counter","limit":10000,"diagnostic":true,"executeMs":2444.197917,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429,"cowCopies":0,"cowCopiedCells":0}
+{"variant":"layered","limit":10000,"diagnostic":true,"executeMs":38.92654200000004,"answer":"24853","referenceCalls":290442,"referenceLeaves":60429,"cowCopies":0,"cowCopiedCells":0}
+{"variant":"layered","limit":1000000,"diagnostic":true,"executeMs":1367.354583,"answer":"3053105","referenceCalls":183872640,"referenceLeaves":40549126,"cowCopies":0,"cowCopiedCells":0}
+{"variant":"original","limit":1000000,"timeoutMs":30000,"status":"timeout"}
+{"variant":"counter","limit":1000000,"timeoutMs":30000,"status":"timeout"}
