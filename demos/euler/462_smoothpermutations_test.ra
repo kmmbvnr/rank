@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "462_smoothpermutations"
+  N = 6
+  run
+  F equal 5
+  N = 8
+  run
+  F equal 9
+  N = 20
+  run
+  F equal 450
+end
+
+test "n = 1000"
+  use "462_smoothpermutations"
+  N = 1000
+  run
+  Answer equal "8.8521816557e21"
+end

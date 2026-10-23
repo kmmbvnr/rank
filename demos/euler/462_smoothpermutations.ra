@@ -1,0 +1,35 @@
+rem Permutation of 3-smooth Numbers
+rem https://projecteuler.net/problem=462
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000000000
+
+rem 2^a 3^b is cell (b, a) of a Young
+rem diagram: row b holds the a with
+rem 2^a <= N / 3^b. Valid orders are
+rem its standard tableaux, counted by
+rem the hook-length formula.
+B = (0 to 40) copy
+B = B ((3 ** B at most N) indices)
+Q = N // (3 ** B)
+W = 2 ** (0 to 62) copy
+L = (Q W outer at least) count rank 1
+C = (0 till (L first)) copy
+H = (C L outer less) count rank 1
+R = (0 till L len) copy
+Hk = ((L - R - 1) C outer -) + H
+Hk = (L C outer greater) choose Hk 1
+Dn = (Hk reduce *) reduce *
+F = (1 to (L sum)) reduce * // Dn
+rem Ten decimals, rounded exactly.
+E = (F text) len - 1
+Rd = (F * 10 ** 12 // 10 ** E + 5) // 10
+Ld = Rd text
+Answer = Ld (0 till 1) + "."
+Answer += Ld (1 till 11) + "e"
+Answer += E text
+Answer print
