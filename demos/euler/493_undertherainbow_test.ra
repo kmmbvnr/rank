@@ -1,0 +1,16 @@
+use testing
+
+test "statement value"
+  use "493_undertherainbow"
+  run
+  Answer equal "6.818741802"
+end
+
+test "two colours, one ball each"
+  use "493_undertherainbow"
+  C = 2
+  B = 1
+  D = 1
+  run
+  Answer equal "1.000000000"
+end
