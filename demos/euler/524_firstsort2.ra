@@ -1,0 +1,117 @@
+rem First Sort II
+rem https://projecteuler.net/problem=524
+
+use numbers
+use sequences
+use bits
+use algo
+use io
+use cli
+
+option K integer = 8916100448256
+
+rem F(P) sums 2^s over the entries that
+rem are not left-to-right maxima, s the
+rem count of smaller entries before.
+rem An identity prefix doubles F at the
+rem same rank, so drop the factors 2.
+rem The best P has N = bits + 1 entries
+rem and uses each bit of K once; fill
+rem it greedily by value, checking that
+rem the rest can still take the bits.
+Kd = K
+for Kd mod 2 equal 0
+  Kd //= 2
+end
+N = (Kd binary) len + 1
+Vs = (0 till N) copy
+rem Can the free values Pf, filled from
+rem the right after Uf, use bits Bf?
+rem The q-th smallest gives s = a + q.
+fun Sn Uf Pf Bf fz
+  if Pf equal 0
+    return Bf equal 0
+  end
+  R = Vs ((Pf Vs bit) indices)
+  L = R len
+  Tp = R (L - 1)
+  Rc = (1 Tp shl) greater Uf
+  Mk = (1 R shl) - 1
+  Sq = (Uf Mk band) popcount
+  Sq += (0 till L)
+  Lc = L
+  if Rc
+    Lc = L - 1
+  end
+  if Lc equal 0
+    return Bf equal 0
+  end
+  Hb = 1 (Sq (Lc - 1) + 1) shl
+  if Bf at least Hb
+    return false
+  end
+  Ky = ((Uf 21 shl) + Pf) 21 shl
+  Ky += Bf
+  if Ky in Sn
+    return false
+  end
+  for Q in Lc - 1 to 0 by -1
+    Sv = Sq Q
+    if Bf Sv bit
+      P2 = Pf - (1 (R Q) shl)
+      B2 = Bf - (1 Sv shl)
+      if Sn Uf P2 B2 fz
+        return true
+      end
+    end
+  end
+  if Rc
+    P2 = Pf - (1 Tp shl)
+    if Sn Uf P2 Bf fz
+      return true
+    end
+  end
+  Sn add Ky
+  return false
+end
+Seen = new set
+Fu = (1 N shl) - 1
+U = 0
+Bm = Kd
+P = array shape N fill 0
+for I in 0 till N
+  for V in 0 till N
+    if U V bit
+      continue
+    end
+    Bv = 1 V shl
+    A = (U (Bv - 1) band) popcount
+    Nb = Bm
+    if Bv less U
+      if not (Bm A bit)
+        continue
+      end
+      Nb = Bm - (1 A shl)
+    end
+    Nu = U + Bv
+    Pl = Fu - Nu
+    if Seen Nu Pl Nb fz
+      U = Nu
+      Bm = Nb
+      P I = V + 1
+      break
+    end
+  end
+end
+rem Rank: later smaller entries times
+rem the factorial weights.
+Ix = (0 till N) copy
+Gt = (P reshape N 1) greater P
+Af = (Ix reshape N 1) less Ix
+Gm = (Gt and Af) integer
+C = Gm reduce + axis 1
+Fs = (1 till N) scan *
+Fs = concat (array 1) Fs
+W = Fs (N - 1 - Ix)
+Answer = (C * W) sum + 1
+Answer print

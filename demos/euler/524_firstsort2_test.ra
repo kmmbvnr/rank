@@ -1,0 +1,17 @@
+use testing
+
+test "brute force ranks"
+  use "524_firstsort2"
+  K = 5
+  run
+  Answer equal 8
+  K = 6
+  run
+  Answer equal 5
+  K = 79
+  run
+  Answer equal 7143
+  K = 1001
+  run
+  Answer equal 3634441
+end
