@@ -8,6 +8,8 @@ use cli
 
 option Limit integer = 10 ** 8
 
+Sieve = (Limit + 1) primesieve
+
 fun N good
   if N equal 1
     return true
@@ -15,12 +17,12 @@ fun N good
   if N mod 2 equal 1 or N mod 4 equal 0
     return false
   end
-  if 2 + N // 2 not in primes
+  if 2 + N // 2 not in Sieve
     return false
   end
   for D in 3 to (N isqrt)
     if N mod D equal 0
-      if D + N // D not in primes
+      if D + N // D not in Sieve
         return false
       end
     end

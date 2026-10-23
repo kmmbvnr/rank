@@ -1,0 +1,21 @@
+{"node":"v24.15.0","cpu":"Apple M5","timing":"fresh processes; Euler includes parsing and sieve construction; lookup excludes oracle"}
+{"case":"lookup-bounded","buildMs":0.03754200000000196,"queryMs":723.262417,"totalMs":723.2999590000001,"queries":10000,"hits":1169,"trial":0}
+{"case":"lookup-bounded","buildMs":0.02837499999999693,"queryMs":713.785625,"totalMs":713.814,"queries":10000,"hits":1169,"trial":1}
+{"case":"lookup-bounded","buildMs":0.03458299999999781,"queryMs":725.92325,"totalMs":725.957833,"queries":10000,"hits":1169,"trial":2}
+{"case":"lookup-bounded","medianBuildMs":0.03458299999999781,"medianQueryMs":723.262417,"medianTotalMs":723.2999590000001}
+{"case":"lookup-unbounded","buildMs":0.03529100000000085,"queryMs":9.065000000000012,"totalMs":9.100291000000013,"queries":10000,"hits":1169,"trial":0}
+{"case":"lookup-unbounded","buildMs":0.027458000000009974,"queryMs":8.45029199999999,"totalMs":8.47775,"queries":10000,"hits":1169,"trial":1}
+{"case":"lookup-unbounded","buildMs":0.03133400000000108,"queryMs":7.698915999999997,"totalMs":7.730249999999998,"queries":10000,"hits":1169,"trial":2}
+{"case":"lookup-unbounded","medianBuildMs":0.03133400000000108,"medianQueryMs":8.45029199999999,"medianTotalMs":8.47775}
+{"case":"lookup-dense","buildMs":94.461542,"queryMs":0.31758300000001327,"totalMs":94.77912500000001,"queries":10000,"hits":1169,"bitmapBytes":6250001,"trial":0}
+{"case":"lookup-dense","buildMs":91.82575000000001,"queryMs":0.3823329999999885,"totalMs":92.208083,"queries":10000,"hits":1169,"bitmapBytes":6250001,"trial":1}
+{"case":"lookup-dense","buildMs":92.85200000000002,"queryMs":0.3322079999999801,"totalMs":93.184208,"queries":10000,"hits":1169,"bitmapBytes":6250001,"trial":2}
+{"case":"lookup-dense","medianBuildMs":92.85200000000002,"medianQueryMs":0.3322079999999801,"medianTotalMs":93.184208}
+{"case":"euler-original","executeMs":4559.645875,"answer":"1739023853137","trial":0}
+{"case":"euler-original","executeMs":4539.715708,"answer":"1739023853137","trial":1}
+{"case":"euler-original","executeMs":4563.165083,"answer":"1739023853137","trial":2}
+{"case":"euler-original","medianExecuteMs":4559.645875}
+{"case":"euler-sieve","executeMs":3654.865291,"answer":"1739023853137","trial":0}
+{"case":"euler-sieve","executeMs":3665.888417,"answer":"1739023853137","trial":1}
+{"case":"euler-sieve","executeMs":3679.936417,"answer":"1739023853137","trial":2}
+{"case":"euler-sieve","medianExecuteMs":3665.888417}

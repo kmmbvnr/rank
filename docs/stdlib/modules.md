@@ -716,6 +716,33 @@ if Candidate in primes
 end
 ```
 
+For repeated primality queries over a known finite range, `Limit primesieve`
+eagerly builds an odd-only bitmap and returns a stored finite prime sequence.
+The bound is inclusive and must be an integer from `0` through `4294967295`.
+Membership takes O(1) time after construction:
+
+```rank
+Sieve = 100000001 primesieve
+IsPrime = 99999989 in Sieve
+Window = Sieve from 100 till 130
+rem Window is 101 103 107 109 113 127
+```
+
+Ordinary binding retains this completed bitmap, including inside records and
+tuples. It does not expand the sequence into an array of primes. Bounds share
+the same bitmap; `copy` or postfix `array` explicitly materializes the prime
+values. Sequence addressing, such as `Sieve 5`, still selects a prime by its
+zero-based position; use `N in Sieve` to test primality. Negative numbers,
+nonintegral reals and numbers above the bound are not members. Integer-valued
+reals follow ordinary numeric membership rules.
+
+Storage is one bit per odd value, rounded up to whole bytes: the bound
+`100000001` uses `6250001` bitmap bytes (about 5.96 MiB), and the maximum bound
+uses 256 MiB. Construction takes O(Limit log log Limit) time and supports host
+cancellation. No smallest-prime-factor table is built. An apostrophe binding,
+such as `Sieve' = Limit primesieve`, retains its usual expression replay
+semantics and rebuilds the table when demanded; use ordinary `=` to build once.
+
 A boundary remains part of membership, so `23 in (primes till 20)` is false.
 `fibonacci` also supports membership without an upper bound: its plan advances
 only as far as the queried value and respects lower and upper boundaries.

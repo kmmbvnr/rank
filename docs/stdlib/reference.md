@@ -430,6 +430,7 @@ Shapes, orderings, windows and lazy sources.
 | `Values reverse` | value | unary all | Reverses text by code point, an array along its leading axis, or a queue or finite sequence into an array. |
 | `Values first` | element | unary all | First item of text, an array, a queue or a sequence; missing when empty. |
 | `Values last` | element | unary all | Last item of text, an array, a queue or a finite sequence; missing when empty. |
+| `Limit primesieve` | sequence | unary all | Primes through an inclusive finite bound, with an eager odd-only bitmap and constant-time membership. |
 | `primes` | sequence, lazy | source/value | Unbounded ascending primes, with planned membership and positional seeking. |
 | `Values reshape Dims... | Values reshape unpack Shape` | array | special form | Dense array in row-major order; unpack a shape vector or matrix of shape rows when needed. |
 | `Value shape` | array | unary all | Axis lengths as a rank-1 array. |

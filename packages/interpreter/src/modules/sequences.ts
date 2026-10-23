@@ -7,6 +7,7 @@ import { sortValue, argsortValue, sortableKind, stableOrder } from './sequence-o
 export { sortValue, argsortValue, sortByKeys } from './sequence-order.js';
 import { uniqueValue } from './sequence-distinct.js';
 export { uniqueLength } from './sequence-distinct.js';
+import { densePrimePlan } from '../dense-prime-sieve.js';
 import { primePlan } from '../prime-sequence.js';
 import { registerSequenceMembership } from '../sequence-membership.js';
 import { above, within, strongerLower, strongerUpper, membershipInteger, type Boundary } from '../sequence-bounds.js';
@@ -58,6 +59,7 @@ export const sequencesModule: RuntimeModule = {
     flat: () => native('flat', [1, 2], flatRecords),
     fibonacci: () => sequence(fibonacciPlan()),
     primes: () => sequence(primePlan()),
+    primesieve: () => native('primesieve', 1, args => sequence(densePrimePlan(args[0]))),
     shape: () => native('shape', 1, arguments_ => shapeOf(arguments_[0])),
     copy: () => native('copy', 1, arguments_ =>
         arguments_[0] instanceof FlatRecords

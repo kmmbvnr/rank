@@ -52,6 +52,7 @@ export function materializeValue(value: RankValue): RankValue {
     const pending: { node: Completion; index: number }[] = [];
     const enter = (input: RankValue): { value: RankValue; node?: Completion } => {
         let computed = demandValue(input);
+        if (isStoredValue(computed)) return { value: computed };
         if (isRankSequence(computed)) computed = materializeSequence(computed);
         else if (isRankSqliteTable(computed)) computed = materializeSqlite(computed);
         else if (isRankSqliteExpression(computed)) computed = materializeSqliteExpression(computed);

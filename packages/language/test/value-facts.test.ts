@@ -1902,3 +1902,7 @@ it('keeps empty and unknown-length present selections sound', () => {
     expect(facts('P (P present)', new Map([['P', empty]]))).toMatchObject({ types: ['array'], shape: [0], elements: ['real'] });
     expect(facts('P (P present)', new Map([['P', { ...empty, shape: [null] }]]))).toMatchObject({ types: ['array', 'sequence'], elements: ['real'] });
 });
+
+it('recognizes the primesieve sequence constructor', () => {
+    expect(facts('100 primesieve')).toMatchObject({ types: ['sequence'] });
+});
