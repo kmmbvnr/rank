@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "490_jumpingfrog"
+  L = 10
+  run
+  Answer equal 18230635
+  L = 20
+  run
+  Answer equal 192114219
+  L = 1000
+  run
+  Answer equal 225031475
+end

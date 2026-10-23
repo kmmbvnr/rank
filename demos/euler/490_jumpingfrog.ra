@@ -1,0 +1,90 @@
+rem Jumping frog
+rem https://projecteuler.net/problem=490
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option L integer = 100000000000000
+
+rem Frontier DP over the last three
+rem stones gives f(n) = 2f(n-1) -
+rem f(n-2) + 2f(n-3) + f(n-4) + f(n-5)
+rem - f(n-7) - f(n-8) from n = 9, with
+rem f(1..8) = 1 1 1 2 6 14 28 56. Cubes
+rem of the state x = (f(n) .. f(n-7))
+rem live in the 120 monomials x_i x_j
+rem x_k, i <= j <= k; one more row
+rem keeps the running sum.
+Md = 1000000000
+fun A B mulmod
+  rem Exact as reals: 2^15 * 2^30 * 121
+  rem stays below 2^53.
+  Br = B * 1.0
+  P1 = (A // 32768 * 1.0) Br matmul
+  P0 = (A mod 32768 * 1.0) Br matmul
+  Q1 = P1 integer mod Md
+  Q0 = P0 integer
+  return (Q1 * 32768 + Q0) mod Md
+end
+C = array shape 8 8 fill 0
+C 0 = array 2 -1 2 1 1 0 -1 -1
+for I in 1 till 8
+  C I (I - 1) = 1
+end
+rem Monomials and their positions.
+T3 = (0 till 512) copy
+Ta = T3 // 64
+Tb = T3 // 8 mod 8
+Tc = T3 mod 8
+Up = (Ta at most Tb) and (Tb at most Tc)
+Mo = Up indices
+Nm = Mo len
+Ps = array shape 512 fill 0
+Ps Mo = (0 till Nm) copy
+Lo = (Ta Tb min) Tc min
+Hi = (Ta Tb max) Tc max
+Mi = Ta + Tb + Tc - Lo - Hi
+Sk = Lo * 64 + Mi * 8 + Hi
+Fd = array shape (512 * Nm) fill 0
+Fd (T3 * Nm + Ps Sk) = 1
+Fm = Fd reshape 512 Nm
+rem Row of each monomial: the product
+rem of three rows of C, folded.
+Ci = (C (Ta Mo)) reshape Nm 8 1 1
+Cj = (C (Tb Mo)) reshape Nm 1 8 1
+Ck = (C (Tc Mo)) reshape Nm 1 1 8
+Kr = (Ci * Cj * Ck) reshape Nm 512
+Tm = (Kr Fm matmul) mod Md
+N1 = Nm + 1
+M = array shape N1 N1 fill 0
+for I in 0 till Nm
+  M I (0 till Nm) = Tm I
+end
+M Nm (0 till Nm) = Tm 0
+M Nm Nm = 1
+rem State at n = 8.
+X8 = array 56 28 14 6 2 1 1 1
+F8 = (X8 reverse) ** 3
+V = array shape N1 1 fill 0
+Xm = X8 (Ta Mo) * X8 (Tb Mo)
+Xm = Xm * X8 (Tc Mo)
+V (0 till Nm) = Xm reshape Nm 1
+V Nm = array (F8 sum)
+Answer = 0
+if L at most 8
+  Answer = (F8 (0 till L)) sum
+else
+  E = L - 8
+  for E greater 0
+    if E mod 2 equal 1
+      V = M V mulmod
+    end
+    M = M M mulmod
+    E //= 2
+  end
+  Answer = V Nm 0 mod Md
+end
+Answer print
