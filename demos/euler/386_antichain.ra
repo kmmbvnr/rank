@@ -1,6 +1,7 @@
 rem Maximum Length of an Antichain
 rem https://projecteuler.net/problem=386
 
+use algo
 use numbers
 use sequences
 use io
@@ -10,13 +11,25 @@ option Limit integer = 10 ** 8
 
 rem Exponents fix the divisor width.
 rem Equal powers use rising primes.
-Ps = primes to Limit array
+Sieve = Limit primesieve
+rem Only non-final factors and the smallest pattern primes need enumeration.
+Small = Limit isqrt
+if Small less 2
+  Small = 2
+end
+Ps = primes to Small array
 Es = array shape 0 fill 0
 More = 0 26 1 Es Ps pats
 Answer = 1 + More
 Answer print
 
 fun N E root
+  if E equal 1
+    return N
+  end
+  if E equal 2
+    return N isqrt
+  end
   Lo = 1
   Hi = N
   for Lo less Hi
@@ -25,20 +38,6 @@ fun N E root
       Lo = Mid
     else
       Hi = Mid - 1
-    end
-  end
-  return Lo
-end
-
-fun Ps X pi
-  Lo = 0
-  Hi = Ps len
-  for Lo less Hi
-    Mid = (Lo + Hi) // 2
-    if Ps Mid at most X
-      Lo = Mid + 1
-    else
-      Hi = Mid
     end
   end
   return Lo
@@ -63,8 +62,8 @@ fun Es Pos Lim Low Used Ps cnt
   E = Es Pos
   if Pos equal (Es len - 1)
     Top = Lim E root
-    High = Ps Top pi
-    Before = Ps (Low - 1) pi
+    High = (Sieve to Top) len
+    Before = (Sieve till Low) len
     Total = High - Before
     for U in Used
       if U at least Low
@@ -87,13 +86,10 @@ fun Es Pos Lim Low Used Ps cnt
   end
   Top = Lim (E * Same) root
   Total = 0
-  for P in Ps
-    if P less Low
-      continue
-    end
-    if P greater Top
-      break
-    end
+  First = Ps Low lowerindex
+  Last = Ps Top upperindex
+  for I in First till Last
+    P = Ps I
     if P in Used
       continue
     end
@@ -114,6 +110,9 @@ fun Es Pos Lim Low Used Ps cnt
 end
 
 fun I Last V Es Ps pats
+  if I at least (Ps len)
+    return 0
+  end
   P = Ps I
   Pow = 1
   Total = 0

@@ -2,7 +2,7 @@ import {
     flattenApplication, forIteration, isNameExpression, isNumberLiteral,
     type Expression, type ForBinding, type ForStatement, type Statement,
 } from '@arrrank/language';
-import { arrayCells, arrayValues, materializedArrayItems, ownedArray } from '../array-storage.js';
+import { arrayCells, arrayValues, materializedArrayItems, ownedArray, storedScalarKinds } from '../array-storage.js';
 import type { BindingEnvironment } from '../binding-environment.js';
 import { BreakSignal, ContinueSignal } from '../control-signals.js';
 import { RankDeque, RankHeap } from '../containers.js';
@@ -176,7 +176,7 @@ function* forEntries(
         const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
         validateForBindings(binding.names, frameAxes.length);
         bindings.declareTypes(binding.names, [
-            spec.cellRank === 0 ? typesOf(materializedArrayItems(value) ?? []) : new Set(['array']),
+            spec.cellRank === 0 ? arrayIterationTypes(value) : new Set(['array']),
             ...frameAxes.map(() => new Set(['integer'])),
         ]);
         yield* tensorEntries(value, frameAxes, tensorCells);
@@ -234,7 +234,7 @@ export function declareIterationTypes(
     if (isRankArray(value)) {
         const types = provenType
             ? new Set(value.shape.every(n => n !== 0) ? [provenType] : [])
-            : typesOf(materializedArrayItems(value) ?? []);
+            : arrayIterationTypes(value);
         bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
     } else if (isRankQueue(value)) {
         const types = value instanceof RankDeque
@@ -375,6 +375,13 @@ function iterationValues(value: RankValue): Iterable<RankValue> {
     if (isRankMultiset(value)) return value.values();
     if (typeof value === 'string') return [...value];
     throw new RankError(`for expects text or a sequence, got ${typeName(value)}`);
+}
+
+function arrayIterationTypes(value: RankArray): ReadonlySet<string> {
+    const kinds = storedScalarKinds(value);
+    // Numeric limits have the language type "real", just like iterationType.
+    return kinds ? new Set(kinds.map(kind => kind === 'numeric-limit' ? 'real' : kind))
+        : typesOf(materializedArrayItems(value) ?? []);
 }
 
 function typesOf(values: Iterable<RankValue>): ReadonlySet<string> {

@@ -14,6 +14,7 @@ export interface CollectionSize {
 function sequenceLength(value: RankSequence): bigint {
     if (value.plan.size.kind === 'infinite') throw new RankError('len requires a finite sequence');
     if (value.plan.size.kind === 'exact') return value.plan.size.value;
+    if (value.plan.length) return value.plan.length();
     let length = 0n;
     for (const _ of value.plan.iterate()) length++;
     return length;

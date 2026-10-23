@@ -330,6 +330,8 @@ export interface SequencePlan {
     // or other source-specific planning without changing Rank syntax.
     at?(index: bigint): RankValue | undefined;
     contains?(value: RankValue): boolean;
+    /** Exact finite length computed by the source without enumerating its values. */
+    length?(): bigint;
     withLowerBound?(limit: bigint, inclusive: boolean): SequencePlan;
     withUpperBound?(limit: bigint, inclusive: boolean): SequencePlan;
     withFilter?(predicate: SequencePredicate): SequencePlan | undefined;

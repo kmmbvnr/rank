@@ -2,6 +2,12 @@ use testing
 
 test "maximum antichain"
   use "386_antichain"
+  Limit = 1
+  run
+  Answer equal 1
+  Limit = 2
+  run
+  Answer equal 2
   Limit = 10
   run
   Answer equal 12
@@ -17,4 +23,7 @@ test "maximum antichain"
   Limit = 100000
   run
   Answer equal 357503
+  Limit = 1000000
+  run
+  Answer equal 4153927
 end

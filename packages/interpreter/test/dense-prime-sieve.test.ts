@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, isRankSequence } from '../src/index.js';
 import { DensePrimeSieve, densePrimePlan, maxDensePrimeInteger } from '../src/dense-prime-sieve.js';
-import { withInterrupt, type InterruptSignal } from '../src/interrupt.js';
+import { withInterrupt, withDemandBudget, type InterruptSignal } from '../src/interrupt.js';
 
 function reference(limit: number): Uint8Array {
     const primes = new Uint8Array(limit + 1).fill(1);
@@ -91,8 +91,66 @@ S`)).toBe(BigInt(reference(200003).slice(199900).reduce((a, b) => a + b, 0)));
     it('uses one bit per odd value at the requested Euler bound', () => {
         const table = new DensePrimeSieve(100000001);
         expect(table.byteLength).toBe(6250001);
+        expect(table.count(100000000)).toBe(5761455);
+        expect(table.countIndexByteLength).toBe(97660);
         for (const n of [2, 3, 99999989]) expect(table.contains(n)).toBe(true);
         for (const n of [1, 99980001, 100000000, 100000001, 100000007]) expect(table.contains(n)).toBe(false);
+    });
+
+    it('counts prefixes against an independent sieve across bit and rank-block boundaries', () => {
+        const limit = 200003, expected = reference(limit), table = new DensePrimeSieve(limit);
+        let count = 0;
+        expect(table.countIndexByteLength).toBe(0);
+        for (let n = 0; n <= limit; n++) {
+            count += expected[n];
+            if (n < 100 || n % 97 === 0 || Math.abs(n % 4096) < 4 || n === limit) {
+                expect(table.count(n)).toBe(count);
+            }
+        }
+        expect(table.count(limit + 1)).toBe(count);
+        expect(table.countIndexByteLength).toBeLessThan(500);
+        for (let n = 0; n < 20; n++) {
+            const small = new DensePrimeSieve(n);
+            expect(small.count(n)).toBe(reference(n).reduce((a, b) => a + b, 0));
+        }
+    });
+
+    it.each([false, true])('counts bounded views without enumerating primes, compilation=%s', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute('use sequences\nS = 200003 primesieve');
+            const value = runtime.variables.get('S')!;
+            if (!isRankSequence(value)) throw new Error('expected sequence');
+            expect(withDemandBudget(20000, () => runtime.execute('S len'))).toBe(17985n);
+            expect(runtime.execute('S len')).toBe(17985n);
+            expect(runtime.execute('S from 31 till 41 len')).toBe(2n);
+            expect(runtime.execute('S after 31 to 41 len')).toBe(2n);
+            expect(runtime.execute('S from 41 till 31 len')).toBe(0n);
+            expect(runtime.execute('S to (-10 ** 100) len')).toBe(0n);
+            expect(runtime.execute('S from (10 ** 100) len')).toBe(0n);
+            expect(runtime.execute('S from (-10 ** 100) to (10 ** 100) len')).toBe(17985n);
+            expect(runtime.execute('S to 2 len')).toBe(1n);
+            expect(runtime.execute('S till 2 len')).toBe(0n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('shares a completed counting index between bounded views', () => {
+        const plan = densePrimePlan(1000000n);
+        expect(plan.length!()).toBe(78498n);
+        // Enough for two indexed queries, but not for building another index.
+        const view = plan.withUpperBound!(100000n, true).withLowerBound!(10000n, true);
+        expect(withDemandBudget(512, () => view.length!())).toBe(8363n);
+    });
+
+    it('discards a cancelled counting index and can retry on the same sieve', () => {
+        const table = new DensePrimeSieve(1000000);
+        let polls = 0;
+        const signal: InterruptSignal = { length: 1, load: () => 0, store() {}, wait() {},
+            exchange: () => ++polls >= 3 ? 1 : 0 };
+        expect(() => withInterrupt(signal, () => table.count(1000000))).toThrow('Interrupted');
+        expect(table.countIndexByteLength).toBe(0);
+        expect(table.count(1000000)).toBe(78498);
+        expect(table.contains(999983)).toBe(true);
     });
 
     it('rejects invalid bounds before allocation', () => {

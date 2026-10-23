@@ -716,8 +716,8 @@ if Candidate in primes
 end
 ```
 
-For repeated primality queries over a known finite range, `Limit primesieve`
-eagerly builds an odd-only bitmap and returns a stored finite prime sequence.
+For repeated primality and prime-counting queries over a known finite range,
+`Limit primesieve` eagerly builds an odd-only bitmap and returns a stored finite prime sequence.
 The bound is inclusive and must be an integer from `0` through `4294967295`.
 Membership takes O(1) time after construction:
 
@@ -726,6 +726,10 @@ Sieve = 100000001 primesieve
 IsPrime = 99999989 in Sieve
 Window = Sieve from 100 till 130
 rem Window is 101 103 107 109 113 127
+Count = (Sieve to 100000000) len
+rem Count is 5761455
+WindowCount = Window len
+rem WindowCount is 6
 ```
 
 Ordinary binding retains this completed bitmap, including inside records and
@@ -739,7 +743,12 @@ reals follow ordinary numeric membership rules.
 Storage is one bit per odd value, rounded up to whole bytes: the bound
 `100000001` uses `6250001` bitmap bytes (about 5.96 MiB), and the maximum bound
 uses 256 MiB. Construction takes O(Limit log log Limit) time and supports host
-cancellation. No smallest-prime-factor table is built. An apostrophe binding,
+cancellation. `len` counts primes exactly without enumerating them. Its first
+counting query builds a shared `Uint32` prefix index, one count per 256 bitmap bytes; later
+queries scan at most one block per endpoint. Bounds share both the bitmap and
+this index. At `100000001`, the index adds 97,660 bytes (about 0.093 MiB).
+Counting supports host cancellation; an interrupted index build can be retried.
+No smallest-prime-factor table is built. An apostrophe binding,
 such as `Sieve' = Limit primesieve`, retains its usual expression replay
 semantics and rebuilds the table when demanded; use ordinary `=` to build once.
 

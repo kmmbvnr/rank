@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError, formatValue } from '../src/index.js';
+import { Interpreter, RankError, RuntimeDiagnostics, formatValue } from '../src/index.js';
 
 function execute(source: string, directIteration: boolean) {
     const output: string[] = [];
@@ -147,4 +147,22 @@ for V i j in M rank 0
 end`);
         expect(result.output).toEqual(['1', '0', '0', '2', '0', '1', '3', '1', '0', '4', '1', '1']);
     });
+});
+
+it.each([false, true])('keeps packed storage during repeated early-exit loops, compilation=%s', compilation => {
+    const runtime = new Interpreter(undefined, { compilation });
+    const diagnostics = new RuntimeDiagnostics();
+    try {
+        runtime.execute('use sequences\nPs = primes to 100000 array');
+        const answer = diagnostics.run(() => runtime.execute(`Total = 0
+for I in 1 to 20
+ for P in Ps
+  Total += P
+  break
+ end
+end
+Total`));
+        expect(answer).toBe(40n);
+        expect(diagnostics.typedUnpacks).toBe(0);
+    } finally { runtime.dispose(); }
 });

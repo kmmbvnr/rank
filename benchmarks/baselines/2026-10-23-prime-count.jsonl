@@ -1,0 +1,38 @@
+{"base": "731f2942", "node": "v24.15.0", "cpu": "Apple M5", "timing": "fresh process per sample; count query timings exclude sieve construction"}
+{"stage": "baseline", "trial": 0, "limit": 100000, "ms": 1487.001291, "answer": "357503", "phase": "loops"}
+{"stage": "baseline", "trial": 1, "limit": 100000, "ms": 1498.862584, "answer": "357503", "phase": "loops"}
+{"stage": "baseline", "trial": 2, "limit": 100000, "ms": 1491.387083, "answer": "357503", "phase": "loops"}
+{"stage": "loop-types", "trial": 0, "limit": 100000, "ms": 903.9911659999999, "answer": "357503", "phase": "loops"}
+{"stage": "loop-types", "trial": 1, "limit": 100000, "ms": 890.784042, "answer": "357503", "phase": "loops"}
+{"stage": "loop-types", "trial": 2, "limit": 100000, "ms": 903.845875, "answer": "357503", "phase": "loops"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "count", "limit": 100000000, "original": false, "phase": "count-before"}
+{"trial": 0, "case": "count", "limit": 100000000, "setupMs": 350.43449999999996, "coldQueryMs": 2872.5835420000003, "queryMs": 2818.449666, "queries": 3, "checksum": "17284365", "phase": "count-before"}
+{"trial": 1, "case": "count", "limit": 100000000, "setupMs": 349.17825000000005, "coldQueryMs": 2852.267667, "queryMs": 2792.515791, "queries": 3, "checksum": "17284365", "phase": "count-before"}
+{"trial": 2, "case": "count", "limit": 100000000, "setupMs": 344.136833, "coldQueryMs": 2849.227375, "queryMs": 2854.6475829999995, "queries": 3, "checksum": "17284365", "phase": "count-before"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "count", "limit": 100000000, "original": false, "phase": "count-after"}
+{"trial": 0, "case": "count", "limit": 100000000, "setupMs": 357.54325000000006, "coldQueryMs": 27.599958000000015, "queryMs": 2.6954580000000306, "queries": 3, "checksum": "17284365", "phase": "count-after"}
+{"trial": 1, "case": "count", "limit": 100000000, "setupMs": 349.74145799999997, "coldQueryMs": 26.98183400000005, "queryMs": 2.8010000000000446, "queries": 3, "checksum": "17284365", "phase": "count-after"}
+{"trial": 2, "case": "count", "limit": 100000000, "setupMs": 344.40291699999995, "coldQueryMs": 28.344875000000002, "queryMs": 2.799582999999984, "queries": 3, "checksum": "17284365", "phase": "count-after"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "euler", "limit": 1000000, "original": false, "phase": "euler-count-only"}
+{"trial": 0, "case": "euler", "limit": 1000000, "executeMs": 2643.227667, "answer": "4153927", "phase": "euler-count-only"}
+{"trial": 1, "case": "euler", "limit": 1000000, "executeMs": 2372.087083, "answer": "4153927", "phase": "euler-count-only"}
+{"trial": 2, "case": "euler", "limit": 1000000, "executeMs": 2261.0492080000004, "answer": "4153927", "phase": "euler-count-only"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "euler", "limit": 1000000, "original": false, "phase": "euler-bounded"}
+{"trial": 0, "case": "euler", "limit": 1000000, "executeMs": 2131.935875, "answer": "4153927", "phase": "euler-bounded"}
+{"trial": 1, "case": "euler", "limit": 1000000, "executeMs": 2137.538708, "answer": "4153927", "phase": "euler-bounded"}
+{"trial": 2, "case": "euler", "limit": 1000000, "executeMs": 2100.665583, "answer": "4153927", "phase": "euler-bounded"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "euler", "limit": 1000000, "original": false, "phase": "euler-final-small"}
+{"trial": 0, "case": "euler", "limit": 1000000, "executeMs": 2084.489583, "answer": "4153927", "phase": "euler-final-small"}
+{"trial": 1, "case": "euler", "limit": 1000000, "executeMs": 2083.32875, "answer": "4153927", "phase": "euler-final-small"}
+{"trial": 2, "case": "euler", "limit": 1000000, "executeMs": 2095.464209, "answer": "4153927", "phase": "euler-final-small"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "euler", "limit": 100000000, "original": false, "phase": "euler-final-full"}
+{"trial": 0, "case": "euler", "limit": 100000000, "executeMs": 32590.285083000002, "answer": "528755790", "phase": "euler-final-full"}
+{"trial": 1, "case": "euler", "limit": 100000000, "executeMs": 32588.035417, "answer": "528755790", "phase": "euler-final-full"}
+{"trial": 2, "case": "euler", "limit": 100000000, "executeMs": 33035.52475, "answer": "528755790", "phase": "euler-final-full"}
+{"limit": 100000000, "answer": "528755790", "ms": 3476.55, "phase": "oracle"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "count", "limit": 100000000, "original": false, "phase": "integrated-count", "integrationBase": "2672a22a"}
+{"trial": 0, "case": "count", "limit": 100000000, "setupMs": 350.978333, "coldQueryMs": 28.526208999999994, "queryMs": 2.7627499999999827, "queries": 3, "checksum": "17284365", "phase": "integrated-count", "integrationBase": "2672a22a"}
+{"trial": 1, "case": "count", "limit": 100000000, "setupMs": 349.251208, "coldQueryMs": 27.83583299999998, "queryMs": 2.7373329999999214, "queries": 3, "checksum": "17284365", "phase": "integrated-count", "integrationBase": "2672a22a"}
+{"trial": 2, "case": "count", "limit": 100000000, "setupMs": 347.88712499999997, "coldQueryMs": 29.62433299999998, "queryMs": 2.6988750000000437, "queries": 3, "checksum": "17284365", "phase": "integrated-count", "integrationBase": "2672a22a"}
+{"node": "v24.15.0", "cpu": "Apple M5", "case": "euler", "limit": 100000000, "original": false, "phase": "integrated-euler", "integrationBase": "2672a22a"}
+{"trial": 0, "case": "euler", "limit": 100000000, "executeMs": 32539.988666999998, "answer": "528755790", "phase": "integrated-euler", "integrationBase": "2672a22a"}
