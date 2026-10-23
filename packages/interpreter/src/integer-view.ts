@@ -1,4 +1,4 @@
-import { arrayCellValidator, arrayRevision, denseScalarItems, materializedArrayItems, storedOperandItems, storedScalarKinds } from './array-storage.js';
+import { arrayCellValidator, arrayRevision, integer32Cells, denseScalarItems, materializedArrayItems, storedOperandItems, storedScalarKinds } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -135,7 +135,8 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
         checked.set(source, proof = { revision, integer });
     }
     if (!proof.integer) return undefined;
-    return wrap(index => items[index] as bigint);
+    const compact = integer32Cells(source);
+    return wrap(compact ? index => BigInt(compact[index]) : index => items[index] as bigint);
 }
 
 /** Borrow trusted stored cells through pure views without lazy cell caches.
@@ -145,7 +146,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
  */
 export function prepareStoredScalarView(value: RankValue, allowChecks = false): {
     read(index: number): RankValue; kinds: readonly string[] | undefined;
-    items: ArrayLike<RankValue>; regular: boolean; linear?: LinearView; validate?: (cell: RankValue, index: number) => void;
+    items: ArrayLike<RankValue>; compact?: Int32Array; regular: boolean; linear?: LinearView; validate?: (cell: RankValue, index: number) => void;
     validateUniform?: (cell: RankValue) => void;
 } | undefined {
     if (!isRankArray(value)) return undefined;
@@ -193,5 +194,5 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
         ? (cell: RankValue): void => {
             for (let i = layers.length - 1; i >= 0; i--) { layers[i].validate?.(cell, 0); layers[i].check?.(cell); }
         } : undefined;
-    return { read, kinds, items, regular: layers.every(layer => layer.regular), linear, validate: check, validateUniform };
+    return { read, kinds, items, compact: integer32Cells(source), regular: layers.every(layer => layer.regular), linear, validate: check, validateUniform };
 }

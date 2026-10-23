@@ -1,3 +1,4 @@
+import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
 import { arrayDependencyNode, arrayRevision, derivedArray, readArrayItem, registerArrayReadPlan } from './array-storage.js';
 import { prepareIntegerView, registerIntegerReadPlan } from './integer-view.js';
 import { inspectionEnabled } from './interrupt.js';
@@ -131,6 +132,24 @@ export function concatArrays(arrays: readonly RankArray[], shape: readonly numbe
         }
         if (missing) throw missing;
         return item;
+    });
+    const inputShapes = arrays.map(source => [...source.shape]);
+    registerArrayCopy(value, () => {
+        if (arrays.some((source, i) => source.shape.length !== inputShapes[i].length
+            || source.shape.some((size, j) => size !== inputShapes[i][j]))) return undefined;
+        const inner = shape.slice(axis + 1).reduce((n, size) => n * size, 1);
+        const outer = shape.slice(0, axis).reduce((n, size) => n * size, 1);
+        const width = shape[axis] * inner;
+        return copyStoredArrayBlocks(shape, arrays, function* () {
+            for (let row = 0; row < outer; row++) {
+                let target = row * width;
+                for (const source of arrays) {
+                    const length = source.shape[axis] * inner;
+                    if (length) yield { source, offset: row * length, length, target };
+                    target += length;
+                }
+            }
+        });
     });
     concats.set(value, { axis, dependency, shape: [...shape], root, read: value.itemAt });
     registerArrayReadPlan(value, { prepare: () => prepareIntegerConcat(root, shape, axis) });

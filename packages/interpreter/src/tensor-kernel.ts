@@ -61,7 +61,7 @@ function pair(value: Expression): Expression[] | undefined {
     return isApplicationExpression(atom) && atom.arguments.length === 1 ? [atom.head, atom.arguments[0]] : undefined;
 }
 const backing = (items: ArrayLike<RankValue>) => items instanceof BigInt64Array ? 'int64'
-    : items instanceof Float64Array ? 'float64' : 'boxed';
+    : items instanceof Float64Array ? 'float64' : items instanceof Int32Array ? 'int32' : 'boxed';
 interface View { items: ArrayLike<RankValue>; offset: number; shape: readonly number[]; kind?: string }
 interface Bound { segments?: Bound[]; shape?: readonly number[]; operands?: readonly [readonly number[], readonly number[]]; boolean: boolean; slot?: number; view?: View; scalar?: RankValue; filter?: boolean; digits?: boolean; progression?: { start: number; step: number; divisor?: number } }
 const numeric = (value: unknown) => typeof value === 'bigint' || typeof value === 'number' && Number.isFinite(value);
@@ -498,7 +498,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     const stride = shape.reduce((p, n) => p * n, 1);
                     const view = { ...a.view, shape, offset: a.view.offset + Number(b.scalar) * stride };
                     if (shape.length === 0) {
-                        const scalar = view.items[view.offset];
+                        const scalar = view.items instanceof Int32Array ? BigInt(view.items[view.offset]) : view.items[view.offset];
                         if (!numeric(scalar) && typeof scalar !== 'boolean') return undefined;
                         result = { scalar, boolean: typeof scalar === 'boolean', slot: scalars.push(scalar) - 1 };
                     } else result = { shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
@@ -646,6 +646,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 }
                 return terms.join(' + ') || '0';
             }
+            const load = (slot: number | undefined, index: string): string => {
+                const read = `data[${slot}][offsets[${slot}] + (${index})]`;
+                return data[slot!] instanceof Int32Array ? `BigInt(${read})` : read;
+            };
             function emit(node: TensorNode, index = 'i', frame = output!.shape!): string {
                 const info = bound.get(node)!;
                 const at = info.shape ? address(info.shape, frame, index) : '0';
@@ -667,14 +671,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     }
                 }
                 else if (info.digits) lines.push(`const ${name} = BigInt(scalars[${info.slot}].charCodeAt(${at}) - 48);`);
-                else if (info.view) lines.push(`const ${name} = data[${info.slot}][offsets[${info.slot}] + (${at})];`);
+                else if (info.view) lines.push(`const ${name} = ${load(info.slot, at)};`);
                 else if (info.segments) {
                     const index = `(${at})`;
                     let end = 0;
                     const parts = info.segments.map((segment, position) => {
                         const start = end;
                         end += segment.shape!.reduce((n, dimension) => n * dimension, 1);
-                        const read = `data[${segment.slot}][offsets[${segment.slot}] + ${index} - ${start}]`;
+                        const read = load(segment.slot, `${index} - ${start}`);
                         return position === info.segments!.length - 1 ? read : `${index} < ${end} ? ${read} : `;
                     });
                     lines.push(`const ${name} = ${parts.join('')};`);
@@ -752,7 +756,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     } else {
                         const source = bound.get(node.source)!;
                         lines.push(`if (typeof ${b} !== 'bigint' || ${b} < 0n || ${b} >= BigInt(${source.shape![0]})) ${decline}`);
-                        lines.push(`const ${name} = data[${source.slot}][offsets[${source.slot}] + Number(${b})];`);
+                        lines.push(`const ${name} = ${load(source.slot, `Number(${b})`)};`);
                     }
                 }
                 return name;

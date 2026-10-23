@@ -1,0 +1,699 @@
+{
+  "baselineCommit": "e4a46f92",
+  "stages": {
+    "baseline": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "rows": 500,
+        "columns": 9996,
+        "samples": 3
+      },
+      {
+        "name": "fill",
+        "medianMs": 3902.914875,
+        "results": [
+          {
+            "name": "fill",
+            "ms": 3929.382333,
+            "checksum": "74970000",
+            "rssMiB": 421.03125
+          },
+          {
+            "name": "fill",
+            "ms": 3832.9129580000003,
+            "checksum": "74970000",
+            "rssMiB": 420.71875
+          },
+          {
+            "name": "fill",
+            "ms": 3902.914875,
+            "checksum": "74970000",
+            "rssMiB": 420.515625
+          }
+        ]
+      },
+      {
+        "name": "fill-copy",
+        "medianMs": 4009.78975,
+        "results": [
+          {
+            "name": "fill-copy",
+            "ms": 3909.513708,
+            "checksum": "74970000",
+            "rssMiB": 434.765625
+          },
+          {
+            "name": "fill-copy",
+            "ms": 4046.4925,
+            "checksum": "74970000",
+            "rssMiB": 393.59375
+          },
+          {
+            "name": "fill-copy",
+            "ms": 4009.78975,
+            "checksum": "74970000",
+            "rssMiB": 431.546875
+          }
+        ]
+      },
+      {
+        "name": "computed",
+        "medianMs": 1676.39975,
+        "results": [
+          {
+            "name": "computed",
+            "ms": 1726.897375,
+            "checksum": "74970000",
+            "rssMiB": 537.75
+          },
+          {
+            "name": "computed",
+            "ms": 1622.98175,
+            "checksum": "74970000",
+            "rssMiB": 542.8125
+          },
+          {
+            "name": "computed",
+            "ms": 1676.39975,
+            "checksum": "74970000",
+            "rssMiB": 536.984375
+          }
+        ]
+      },
+      {
+        "name": "slice-vector",
+        "medianMs": 4552.282875000001,
+        "results": [
+          {
+            "name": "slice-vector",
+            "ms": 4564.7245,
+            "checksum": "22500000",
+            "rssMiB": 727.78125
+          },
+          {
+            "name": "slice-vector",
+            "ms": 4390.885417,
+            "checksum": "22500000",
+            "rssMiB": 651.953125
+          },
+          {
+            "name": "slice-vector",
+            "ms": 4552.282875000001,
+            "checksum": "22500000",
+            "rssMiB": 728.5
+          }
+        ]
+      },
+      {
+        "name": "slice-matrix",
+        "medianMs": 9057.282833,
+        "results": [
+          {
+            "name": "slice-matrix",
+            "ms": 9057.282833,
+            "checksum": "22500000",
+            "rssMiB": 564.859375
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 8964.341666,
+            "checksum": "22500000",
+            "rssMiB": 565.78125
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 9139.067166,
+            "checksum": "22500000",
+            "rssMiB": 566.578125
+          }
+        ]
+      },
+      {
+        "name": "concat",
+        "medianMs": 6489.790583,
+        "results": [
+          {
+            "name": "concat",
+            "ms": 6489.790583,
+            "checksum": "24990000",
+            "rssMiB": 600.03125
+          },
+          {
+            "name": "concat",
+            "ms": 6661.554792,
+            "checksum": "24990000",
+            "rssMiB": 601.890625
+          },
+          {
+            "name": "concat",
+            "ms": 6487.681042,
+            "checksum": "24990000",
+            "rssMiB": 606.578125
+          }
+        ]
+      }
+    ],
+    "compact reads": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "rows": 500,
+        "columns": 9996,
+        "samples": 3
+      },
+      {
+        "name": "fill",
+        "medianMs": 590.93625,
+        "results": [
+          {
+            "name": "fill",
+            "ms": 590.93625,
+            "checksum": "74970000",
+            "rssMiB": 351.390625
+          },
+          {
+            "name": "fill",
+            "ms": 578.265875,
+            "checksum": "74970000",
+            "rssMiB": 318.984375
+          },
+          {
+            "name": "fill",
+            "ms": 591.670042,
+            "checksum": "74970000",
+            "rssMiB": 349.6875
+          }
+        ]
+      },
+      {
+        "name": "fill-copy",
+        "medianMs": 598.728875,
+        "results": [
+          {
+            "name": "fill-copy",
+            "ms": 580.511833,
+            "checksum": "74970000",
+            "rssMiB": 329.125
+          },
+          {
+            "name": "fill-copy",
+            "ms": 602.354125,
+            "checksum": "74970000",
+            "rssMiB": 356.484375
+          },
+          {
+            "name": "fill-copy",
+            "ms": 598.728875,
+            "checksum": "74970000",
+            "rssMiB": 362.390625
+          }
+        ]
+      },
+      {
+        "name": "computed",
+        "medianMs": 1665.403291,
+        "results": [
+          {
+            "name": "computed",
+            "ms": 1608.451708,
+            "checksum": "74970000",
+            "rssMiB": 543.234375
+          },
+          {
+            "name": "computed",
+            "ms": 1712.307667,
+            "checksum": "74970000",
+            "rssMiB": 538.015625
+          },
+          {
+            "name": "computed",
+            "ms": 1665.403291,
+            "checksum": "74970000",
+            "rssMiB": 537.65625
+          }
+        ]
+      },
+      {
+        "name": "slice-vector",
+        "medianMs": 4647.174917,
+        "results": [
+          {
+            "name": "slice-vector",
+            "ms": 4647.174917,
+            "checksum": "22500000",
+            "rssMiB": 652.25
+          },
+          {
+            "name": "slice-vector",
+            "ms": 4578.108083,
+            "checksum": "22500000",
+            "rssMiB": 729.0625
+          },
+          {
+            "name": "slice-vector",
+            "ms": 4664.578083,
+            "checksum": "22500000",
+            "rssMiB": 651.40625
+          }
+        ]
+      },
+      {
+        "name": "slice-matrix",
+        "medianMs": 8953.482417,
+        "results": [
+          {
+            "name": "slice-matrix",
+            "ms": 9036.600083,
+            "checksum": "22500000",
+            "rssMiB": 564.921875
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 8859.703083,
+            "checksum": "22500000",
+            "rssMiB": 566.15625
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 8953.482417,
+            "checksum": "22500000",
+            "rssMiB": 570.296875
+          }
+        ]
+      },
+      {
+        "name": "concat",
+        "medianMs": 3103.484333,
+        "results": [
+          {
+            "name": "concat",
+            "ms": 3180.50225,
+            "checksum": "24990000",
+            "rssMiB": 679.46875
+          },
+          {
+            "name": "concat",
+            "ms": 3103.484333,
+            "checksum": "24990000",
+            "rssMiB": 679.53125
+          },
+          {
+            "name": "concat",
+            "ms": 3096.5480420000004,
+            "checksum": "24990000",
+            "rssMiB": 684.546875
+          }
+        ]
+      }
+    ],
+    "slice copies": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "rows": 500,
+        "columns": 9996,
+        "samples": 3
+      },
+      {
+        "name": "fill",
+        "medianMs": 591.394625,
+        "results": [
+          {
+            "name": "fill",
+            "ms": 591.394625,
+            "checksum": "74970000",
+            "rssMiB": 350.796875
+          },
+          {
+            "name": "fill",
+            "ms": 597.1305,
+            "checksum": "74970000",
+            "rssMiB": 350.65625
+          },
+          {
+            "name": "fill",
+            "ms": 583.331875,
+            "checksum": "74970000",
+            "rssMiB": 348.734375
+          }
+        ]
+      },
+      {
+        "name": "fill-copy",
+        "medianMs": 576.26,
+        "results": [
+          {
+            "name": "fill-copy",
+            "ms": 576.26,
+            "checksum": "74970000",
+            "rssMiB": 356.625
+          },
+          {
+            "name": "fill-copy",
+            "ms": 581.337583,
+            "checksum": "74970000",
+            "rssMiB": 357.03125
+          },
+          {
+            "name": "fill-copy",
+            "ms": 572.249,
+            "checksum": "74970000",
+            "rssMiB": 356.140625
+          }
+        ]
+      },
+      {
+        "name": "computed",
+        "medianMs": 1687.9744580000001,
+        "results": [
+          {
+            "name": "computed",
+            "ms": 1687.9744580000001,
+            "checksum": "74970000",
+            "rssMiB": 539.125
+          },
+          {
+            "name": "computed",
+            "ms": 1705.9436249999999,
+            "checksum": "74970000",
+            "rssMiB": 537.53125
+          },
+          {
+            "name": "computed",
+            "ms": 1654.365792,
+            "checksum": "74970000",
+            "rssMiB": 537.78125
+          }
+        ]
+      },
+      {
+        "name": "slice-vector",
+        "medianMs": 1374.614333,
+        "results": [
+          {
+            "name": "slice-vector",
+            "ms": 1399.313208,
+            "checksum": "22500000",
+            "rssMiB": 561.84375
+          },
+          {
+            "name": "slice-vector",
+            "ms": 1374.614333,
+            "checksum": "22500000",
+            "rssMiB": 557.265625
+          },
+          {
+            "name": "slice-vector",
+            "ms": 1251.42875,
+            "checksum": "22500000",
+            "rssMiB": 557.8125
+          }
+        ]
+      },
+      {
+        "name": "slice-matrix",
+        "medianMs": 218.88133300000004,
+        "results": [
+          {
+            "name": "slice-matrix",
+            "ms": 218.88133300000004,
+            "checksum": "22500000",
+            "rssMiB": 249.84375
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 214.92033299999997,
+            "checksum": "22500000",
+            "rssMiB": 249.8125
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 219.21175000000005,
+            "checksum": "22500000",
+            "rssMiB": 246.578125
+          }
+        ]
+      },
+      {
+        "name": "concat",
+        "medianMs": 3088.159333,
+        "results": [
+          {
+            "name": "concat",
+            "ms": 3263.222667,
+            "checksum": "24990000",
+            "rssMiB": 685.40625
+          },
+          {
+            "name": "concat",
+            "ms": 3045.908917,
+            "checksum": "24990000",
+            "rssMiB": 680.921875
+          },
+          {
+            "name": "concat",
+            "ms": 3088.159333,
+            "checksum": "24990000",
+            "rssMiB": 679.5625
+          }
+        ]
+      }
+    ],
+    "concat copies (final)": [
+      {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "rows": 500,
+        "columns": 9996,
+        "samples": 3
+      },
+      {
+        "name": "fill",
+        "medianMs": 823.1081659999999,
+        "results": [
+          {
+            "name": "fill",
+            "ms": 602.83375,
+            "checksum": "74970000",
+            "rssMiB": 343.71875
+          },
+          {
+            "name": "fill",
+            "ms": 823.1081659999999,
+            "checksum": "74970000",
+            "rssMiB": 346.203125
+          },
+          {
+            "name": "fill",
+            "ms": 879.9448749999999,
+            "checksum": "74970000",
+            "rssMiB": 350.765625
+          }
+        ]
+      },
+      {
+        "name": "fill-copy",
+        "medianMs": 852.4225000000001,
+        "results": [
+          {
+            "name": "fill-copy",
+            "ms": 852.4225000000001,
+            "checksum": "74970000",
+            "rssMiB": 357.1875
+          },
+          {
+            "name": "fill-copy",
+            "ms": 943.3412910000002,
+            "checksum": "74970000",
+            "rssMiB": 362.671875
+          },
+          {
+            "name": "fill-copy",
+            "ms": 823.553583,
+            "checksum": "74970000",
+            "rssMiB": 370.28125
+          }
+        ]
+      },
+      {
+        "name": "computed",
+        "medianMs": 1912.0301660000002,
+        "results": [
+          {
+            "name": "computed",
+            "ms": 1918.8739580000001,
+            "checksum": "74970000",
+            "rssMiB": 537.1875
+          },
+          {
+            "name": "computed",
+            "ms": 1912.0301660000002,
+            "checksum": "74970000",
+            "rssMiB": 538.625
+          },
+          {
+            "name": "computed",
+            "ms": 1820.331375,
+            "checksum": "74970000",
+            "rssMiB": 537.546875
+          }
+        ]
+      },
+      {
+        "name": "slice-vector",
+        "medianMs": 1402.0410829999998,
+        "results": [
+          {
+            "name": "slice-vector",
+            "ms": 1494.176625,
+            "checksum": "22500000",
+            "rssMiB": 556.6875
+          },
+          {
+            "name": "slice-vector",
+            "ms": 1402.0410829999998,
+            "checksum": "22500000",
+            "rssMiB": 557.953125
+          },
+          {
+            "name": "slice-vector",
+            "ms": 1365.200042,
+            "checksum": "22500000",
+            "rssMiB": 555.765625
+          }
+        ]
+      },
+      {
+        "name": "slice-matrix",
+        "medianMs": 230.63187500000004,
+        "results": [
+          {
+            "name": "slice-matrix",
+            "ms": 217.098416,
+            "checksum": "22500000",
+            "rssMiB": 241.515625
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 230.63187500000004,
+            "checksum": "22500000",
+            "rssMiB": 249.890625
+          },
+          {
+            "name": "slice-matrix",
+            "ms": 234.777667,
+            "checksum": "22500000",
+            "rssMiB": 250.234375
+          }
+        ]
+      },
+      {
+        "name": "concat",
+        "medianMs": 229.594333,
+        "results": [
+          {
+            "name": "concat",
+            "ms": 227.195541,
+            "checksum": "24990000",
+            "rssMiB": 251.265625
+          },
+          {
+            "name": "concat",
+            "ms": 242.76704199999995,
+            "checksum": "24990000",
+            "rssMiB": 256.453125
+          },
+          {
+            "name": "concat",
+            "ms": 229.594333,
+            "checksum": "24990000",
+            "rssMiB": 256.390625
+          }
+        ]
+      }
+    ]
+  },
+  "interleavedComputedControl": [
+    {
+      "stage": "baseline",
+      "sample": 0,
+      "name": "computed",
+      "ms": 3973.9882079999998,
+      "checksum": "74970000",
+      "rssMiB": 542.421875
+    },
+    {
+      "stage": "final",
+      "sample": 0,
+      "name": "computed",
+      "ms": 2279.0256249999998,
+      "checksum": "74970000",
+      "rssMiB": 542.65625
+    },
+    {
+      "stage": "final",
+      "sample": 1,
+      "name": "computed",
+      "ms": 2248.2655,
+      "checksum": "74970000",
+      "rssMiB": 541.4375
+    },
+    {
+      "stage": "baseline",
+      "sample": 1,
+      "name": "computed",
+      "ms": 2323.1892080000002,
+      "checksum": "74970000",
+      "rssMiB": 543.328125
+    },
+    {
+      "stage": "baseline",
+      "sample": 2,
+      "name": "computed",
+      "ms": 2166.60025,
+      "checksum": "74970000",
+      "rssMiB": 543.6875
+    },
+    {
+      "stage": "final",
+      "sample": 2,
+      "name": "computed",
+      "ms": 2065.5870409999998,
+      "checksum": "74970000",
+      "rssMiB": 538.765625
+    },
+    {
+      "stage": "final",
+      "sample": 3,
+      "name": "computed",
+      "ms": 2092.1906249999997,
+      "checksum": "74970000",
+      "rssMiB": 537.0625
+    },
+    {
+      "stage": "baseline",
+      "sample": 3,
+      "name": "computed",
+      "ms": 2043.9055,
+      "checksum": "74970000",
+      "rssMiB": 538.265625
+    },
+    {
+      "stage": "baseline",
+      "sample": 4,
+      "name": "computed",
+      "ms": 2089.516458,
+      "checksum": "74970000",
+      "rssMiB": 541.265625
+    },
+    {
+      "stage": "final",
+      "sample": 4,
+      "name": "computed",
+      "ms": 2065.750792,
+      "checksum": "74970000",
+      "rssMiB": 541.9375
+    }
+  ]
+}

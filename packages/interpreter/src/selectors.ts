@@ -1,3 +1,4 @@
+import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
 import { registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
@@ -23,7 +24,7 @@ const arraySize = (shape: readonly number[]): number =>
 // Large irregular scalar gathers avoid a per-cell Map cache.
 const DENSE_SLICE_CELLS = 1 << 16;
 
-function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (index: number) => number, linear?: LinearView, regular = linear !== undefined): RankArray {
+function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (index: number) => number, linear?: LinearView, regular = linear !== undefined, blockSize = 1): RankArray {
     let current = source;
     let position = offsetAt;
     const dependencies = [source];
@@ -36,6 +37,16 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
         position = index => index;
         linear = { offset: 0, stride: 1 };
         dependencies[0] = snapshot;
+    });
+    registerArrayCopy(result, () => {
+        const total = arraySize(shape);
+        const run = linear?.stride === 1 ? total : blockSize;
+        if (run <= 1 || total === 0) return undefined;
+        return copyStoredArrayBlocks(shape, [current], function* () {
+            for (let target = 0; target < total; target += run) {
+                yield { source: current, offset: position(target), length: run, target };
+            }
+        });
     });
     registerPackedBooleanSelection(result, () => current, () => linear?.stride === 1 ? linear.offset : undefined);
     return result;
@@ -340,10 +351,27 @@ export function sliceArray(
         const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
         return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }
-    const result = selectionArray(selection.shape, source, selection.offsetAt, selection.linear, !!regular);
+    const result = selectionArray(selection.shape, source, selection.offsetAt, selection.linear, !!regular, contiguousSelectionBlock(selection));
     if (material) deferSelectionCopy(result);
     if (columnNames) Object.defineProperty(result, 'columnNames', { value: columnNames });
     return source.columnNames ? result : inheritSemanticArrayType(source, result);
+}
+
+/** The largest trailing run with adjacent source cells. Row windows copy one
+ * block per row, while full trailing axes collapse into a single larger run. */
+function contiguousSelectionBlock(selection: TensorSelection): number {
+    const { axes, sourceShape } = selection;
+    if (!axes || !sourceShape) return 1;
+    let run = 1, stride = 1;
+    for (let axis = axes.length - 1; axis >= 0; axis--) {
+        const selected = axes[axis];
+        if (selected.preserve && selected.size > 1) {
+            if (selected.linear?.stride !== 1 || stride !== run) break;
+            run *= selected.size;
+        }
+        stride *= sourceShape[axis];
+    }
+    return run;
 }
 
 /** Copy the selected cells in output order. With a per-axis plan the source

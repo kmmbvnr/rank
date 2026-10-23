@@ -34,9 +34,9 @@ Right = B (0 till 9999)
 R = Left - Right
 R sum`));
             expect(result).toBe(99999999n);
-            expect(diagnostics.cellsComputed).toBe(19998);
+            expect(diagnostics.cellsComputed).toBe(0);
             diagnostics.run(() => r.execute('Left sum\nRight sum\nR sum'));
-            expect(diagnostics.cellsComputed).toBe(19998);
+            expect(diagnostics.cellsComputed).toBe(0);
             // A retained result and both inputs remain independent of a later write.
             r.execute('B 0 = 99');
             expect(r.execute('Right 0')).toBe(1n);

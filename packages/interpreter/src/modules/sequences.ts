@@ -1,3 +1,4 @@
+import { copyArrayStorage } from '../array-copy.js';
 import { materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
 import { permutedArray } from '../array-permutation.js';
 import { findValue, findAllValues } from './sequence-search.js';
@@ -277,6 +278,8 @@ export function copyArray(value: RankValue): RankArray {
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);
+    const planned = copyArrayStorage(value);
+    if (planned) return planned;
     const numeric = privateLoopPolling() ? copyStoredNumericArray(value) : undefined;
     if (numeric) { inheritArrayDeclaration(value, numeric); return setSemanticArrayType(numeric, type); }
     const packed = materializePackedBooleans(value);

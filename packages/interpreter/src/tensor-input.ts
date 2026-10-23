@@ -1,4 +1,4 @@
-import { arrayRevision, denseScalarItems, materializedArrayItems, storedScalarKinds } from './array-storage.js';
+import { arrayRevision, integer32Cells, denseScalarItems, materializedArrayItems, storedScalarKinds } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { ownedStorage } from './array-storage-state.js';
 import { privateLoopPolling } from './interrupt.js';
@@ -21,13 +21,13 @@ export function tensorInput(value: RankArray): TensorInput | undefined {
         const items = denseScalarItems(value) ?? materializedArrayItems(value);
         if (items && items.length === value.shape.reduce((a, b) => a * b, 1)) {
             const kinds = storedScalarKinds(value);
-            return { items, offset: 0, shape: value.shape, kind: kinds?.length === 1 ? kinds[0] : undefined };
+            return { items: integer32Cells(value) ?? items, offset: 0, shape: value.shape, kind: kinds?.length === 1 ? kinds[0] : undefined };
         }
         return undefined;
     }
     const validate = view.validate && value.shape.every(n => n > 0)
         ? () => view.validateUniform!(view.items[view.linear!.offset]) : undefined;
-    return { items: view.items, offset: view.linear.offset, shape: value.shape, kind: view.kinds[0], validate };
+    return { items: view.compact ?? view.items, offset: view.linear.offset, shape: value.shape, kind: view.kinds[0], validate };
 }
 
 export function validateTensorInputs(checks: readonly (() => void)[] | undefined): boolean {
