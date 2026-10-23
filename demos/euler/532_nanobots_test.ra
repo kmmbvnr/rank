@@ -1,0 +1,11 @@
+use testing
+
+test "small threshold"
+  use "532_nanobots"
+  Lt = 10
+  Mx = 50
+  run
+  Er = (L 0 - 2.840190629) abs
+  Er less 0.000001
+  Answer equal 95.57
+end

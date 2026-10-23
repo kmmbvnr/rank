@@ -1,0 +1,36 @@
+rem Nanobots on Geodesics
+rem https://projecteuler.net/problem=532
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option Lt integer = 1000
+option Mx integer = 2000
+
+rem With s = sin(pi / n) one bot runs
+rem L = int sqrt(1 / s^2 - u^2) / (1 -
+rem u^2) du on [0, 0.999]; u = tanh w
+rem makes it the smooth integral of
+rem sqrt(1 / s^2 - tanh^2 w) dw. L grows
+rem with n: find the first L > Lt and
+rem give n L.
+Pi = 3.141592653589793
+H = 2000
+Wm = 0.999 atanh
+Hs = Wm / H
+T2 = ((0 to H) * Hs) tanh ** 2
+rem Simpson weights 1 4 2 .. 4 1.
+Wt = ((0 to H) mod 2 * 2 + 2) * 1.0
+Wt 0 = 1.0
+Wt H = 1.0
+Ns = (3 to Mx) copy
+K = Ns len
+Is = 1 / ((Pi / Ns) sin ** 2)
+F = ((Is reshape K 1) - T2) ** 0.5
+L = (F Wt matmul) * Hs / 3
+Ix = ((L greater Lt) indices) first
+Answer = ((Ns Ix) * (L Ix)) 2 round
+Answer print
