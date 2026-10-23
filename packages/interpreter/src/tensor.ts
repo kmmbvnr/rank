@@ -1,5 +1,5 @@
 import { mapPackedBooleanArrays } from './packed-booleans.js';
-import { mapStoredIntegers } from './integer-array-kernel.js';
+import { chooseStoredIntegers, mapStoredIntegers } from './integer-array-kernel.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
 import { prepareDenseOperands, isArrayValue, numericKinds, DENSE_MIN_CELLS } from './tensor-operands.js';
@@ -230,6 +230,8 @@ function mapStoredViews(left: RankValue, right: RankValue, shape: readonly numbe
 export function chooseDenseArrays(
     condition: RankValue, whenTrue: RankValue, whenFalse: RankValue, shape: readonly number[],
 ): RankArray | undefined {
+    const integers = chooseStoredIntegers(condition, whenTrue, whenFalse, shape);
+    if (integers) return integers;
     const size = shape.reduce((product, dimension) => product * dimension, 1);
     if (size < DENSE_MIN_CELLS) return undefined;
     const operands = [condition, whenTrue, whenFalse];

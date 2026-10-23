@@ -1,0 +1,92 @@
+{"phase": "initial-before", "node": "v24.15.0", "cpu": "Apple M5", "N": 1600000, "passes": 20}
+{"phase": "initial-before", "trial": 0, "name": "add", "ms": 931.8275830000002, "answer": "25615968000000"}
+{"phase": "initial-before", "trial": 0, "name": "min", "ms": 7989.303250000001, "answer": "15984000000"}
+{"phase": "initial-before", "trial": 0, "name": "max", "ms": 8017.595708999999, "answer": "25599984000000"}
+{"phase": "initial-before", "trial": 0, "name": "choose", "ms": 10141.502832999999, "answer": "15984000000"}
+{"phase": "initial-before", "trial": 1, "name": "choose", "ms": 10034.716916999998, "answer": "15984000000"}
+{"phase": "initial-before", "trial": 1, "name": "max", "ms": 7967.492459000001, "answer": "25599984000000"}
+{"phase": "initial-before", "trial": 1, "name": "min", "ms": 7975.048125000001, "answer": "15984000000"}
+{"phase": "initial-before", "trial": 1, "name": "add", "ms": 930.281624999996, "answer": "25615968000000"}
+{"phase": "initial-before", "trial": 2, "name": "add", "ms": 925.3945419999945, "answer": "25615968000000"}
+{"phase": "initial-before", "trial": 2, "name": "min", "ms": 8010.5199999999895, "answer": "15984000000"}
+{"phase": "initial-before", "trial": 2, "name": "max", "ms": 7930.763999999996, "answer": "25599984000000"}
+{"phase": "initial-before", "trial": 2, "name": "choose", "ms": 10036.091083000007, "answer": "15984000000"}
+{"phase": "initial-setup-and-euler", "trial": 0, "name": "setup", "ms": 544.346833, "answer": "0"}
+{"phase": "initial-setup-and-euler", "trial": 0, "name": "array414", "ms": 9520.617541, "answer": "334961735971658529"}
+{"phase": "initial-setup-and-euler", "trial": 1, "name": "setup", "ms": 547.1154580000002, "answer": "0"}
+{"phase": "initial-setup-and-euler", "trial": 1, "name": "array414", "ms": 9449.756958999998, "answer": "334961735971658529"}
+{"phase": "initial-setup-and-euler", "trial": 2, "name": "setup", "ms": 550.3237079999999, "answer": "0"}
+{"phase": "initial-setup-and-euler", "trial": 2, "name": "array414", "ms": 9420.296666999999, "answer": "334961735971658529"}
+{"phase": "integer-extrema-only", "node": "v24.15.0", "cpu": "Apple M5", "cells": 1600000, "passes": 20, "samples": 3, "timing": "fresh CLI processes; subtract setup median and divide by 20; includes copy and sum"}
+{"phase": "integer-extrema-only", "trial": 0, "name": "setup", "ms": 554.5616669999999, "answer": "0"}
+{"phase": "integer-extrema-only", "trial": 0, "name": "add", "ms": 920.2355, "answer": "25615968000000"}
+{"phase": "integer-extrema-only", "trial": 0, "name": "min", "ms": 5072.916042, "answer": "15984000000"}
+{"phase": "integer-extrema-only", "trial": 0, "name": "max", "ms": 7328.666334, "answer": "25599984000000"}
+{"phase": "integer-extrema-only", "trial": 1, "name": "max", "ms": 9050.660125000002, "answer": "25599984000000"}
+{"phase": "integer-extrema-only", "trial": 1, "name": "min", "ms": 6670.542375000001, "answer": "15984000000"}
+{"phase": "integer-extrema-only", "trial": 1, "name": "add", "ms": 933.1774579999983, "answer": "25615968000000"}
+{"phase": "integer-extrema-only", "trial": 1, "name": "setup", "ms": 553.0635000000002, "answer": "0"}
+{"phase": "integer-extrema-only", "trial": 2, "name": "setup", "ms": 545.6788329999981, "answer": "0"}
+{"phase": "integer-extrema-only", "trial": 2, "name": "add", "ms": 920.7649590000001, "answer": "25615968000000"}
+{"phase": "integer-extrema-only", "trial": 2, "name": "min", "ms": 4509.161917000001, "answer": "15984000000"}
+{"phase": "integer-extrema-only", "trial": 2, "name": "max", "ms": 4569.519957999997, "answer": "25599984000000"}
+{"phase": "integer-extrema-and-typed-copy", "node": "v24.15.0", "cpu": "Apple M5", "cells": 1600000, "passes": 20, "samples": 3, "timing": "fresh CLI processes; subtract setup median and divide by 20; includes copy and sum"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 0, "name": "setup", "ms": 569.621625, "answer": "0"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 0, "name": "add", "ms": 922.378959, "answer": "25615968000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 0, "name": "min", "ms": 1305.916125, "answer": "15984000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 0, "name": "max", "ms": 1301.5154579999994, "answer": "25599984000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 0, "name": "euler414", "ms": 6849.037834, "answer": "334961735971658529"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 1, "name": "euler414", "ms": 6165.549334000001, "answer": "334961735971658529"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 1, "name": "max", "ms": 1304.4102499999972, "answer": "25599984000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 1, "name": "min", "ms": 1325.3700830000016, "answer": "15984000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 1, "name": "add", "ms": 928.1282499999979, "answer": "25615968000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 1, "name": "setup", "ms": 550.6263330000002, "answer": "0"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 2, "name": "setup", "ms": 549.4496249999975, "answer": "0"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 2, "name": "add", "ms": 924.8710839999985, "answer": "25615968000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 2, "name": "min", "ms": 1308.757749999997, "answer": "15984000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 2, "name": "max", "ms": 1307.4988750000011, "answer": "25599984000000"}
+{"phase": "integer-extrema-and-typed-copy", "trial": 2, "name": "euler414", "ms": 5885.450874999999, "answer": "334961735971658529"}
+{"phase": "choose-dispatch-disabled", "node": "v24.15.0", "cpu": "Apple M5", "cells": 1600000, "passes": 20, "samples": 3, "runtimes": {"candidate": "/private/tmp/rank-417-worktree/packages/cli/bin/cli.js"}, "revisions": {"candidate": "2a272ecb5b98c4eaa732d1696409b36715447894"}, "timing": "fresh CLI processes; subtract setup median and divide by 20; includes copy and sum"}
+{"phase": "choose-dispatch-disabled", "trial": 0, "version": "candidate", "name": "setup", "ms": 544.4820830000001, "answer": "0"}
+{"phase": "choose-dispatch-disabled", "trial": 0, "version": "candidate", "name": "choose", "ms": 6682.410375, "answer": "15984000000"}
+{"phase": "choose-dispatch-disabled", "trial": 1, "version": "candidate", "name": "choose", "ms": 7043.931291, "answer": "15984000000"}
+{"phase": "choose-dispatch-disabled", "trial": 1, "version": "candidate", "name": "setup", "ms": 922.5610829999987, "answer": "0"}
+{"phase": "choose-dispatch-disabled", "trial": 2, "version": "candidate", "name": "setup", "ms": 726.3476250000003, "answer": "0"}
+{"phase": "choose-dispatch-disabled", "trial": 2, "version": "candidate", "name": "choose", "ms": 6958.560125, "answer": "15984000000"}
+{"phase": "fixed-comparison", "node": "v24.15.0", "cpu": "Apple M5", "cells": 1600000, "passes": 20, "samples": 3, "runtimes": {"candidate": "/private/tmp/rank-417-worktree/packages/cli/bin/cli.js", "baseline": "/private/tmp/rank-417-baseline/packages/cli/bin/cli.js"}, "revisions": {"candidate": "2a272ecb5b98c4eaa732d1696409b36715447894", "baseline": "2a272ecb5b98c4eaa732d1696409b36715447894"}, "timing": "fresh CLI processes; subtract setup median and divide by 20; includes copy and sum"}
+{"phase": "fixed-comparison", "trial": 0, "version": "candidate", "name": "setup", "ms": 553.694208, "answer": "0"}
+{"phase": "fixed-comparison", "trial": 0, "version": "baseline", "name": "setup", "ms": 547.9745839999999, "answer": "0"}
+{"phase": "fixed-comparison", "trial": 0, "version": "candidate", "name": "add", "ms": 912.5182500000001, "answer": "25615968000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "baseline", "name": "add", "ms": 924.2622919999999, "answer": "25615968000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "candidate", "name": "min", "ms": 1304.7350420000002, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "baseline", "name": "min", "ms": 8067.248084, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "candidate", "name": "max", "ms": 1316.0425830000004, "answer": "25599984000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "baseline", "name": "max", "ms": 8108.4921669999985, "answer": "25599984000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "candidate", "name": "choose", "ms": 1115.6805830000012, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "baseline", "name": "choose", "ms": 10163.134666999998, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 0, "version": "candidate", "name": "euler414", "ms": 4475.869374999995, "answer": "334961735971658529"}
+{"phase": "fixed-comparison", "trial": 0, "version": "baseline", "name": "euler414", "ms": 9462.992166000004, "answer": "334961735971658529"}
+{"phase": "fixed-comparison", "trial": 1, "version": "baseline", "name": "euler414", "ms": 9387.296583999996, "answer": "334961735971658529"}
+{"phase": "fixed-comparison", "trial": 1, "version": "candidate", "name": "euler414", "ms": 4516.889750000002, "answer": "334961735971658529"}
+{"phase": "fixed-comparison", "trial": 1, "version": "baseline", "name": "choose", "ms": 10060.952041000004, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "candidate", "name": "choose", "ms": 1106.036334000004, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "baseline", "name": "max", "ms": 8083.879415999996, "answer": "25599984000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "candidate", "name": "max", "ms": 1301.0663329999952, "answer": "25599984000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "baseline", "name": "min", "ms": 7997.488541999992, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "candidate", "name": "min", "ms": 1310.7517500000104, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "baseline", "name": "add", "ms": 922.1539170000033, "answer": "25615968000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "candidate", "name": "add", "ms": 927.2942500000063, "answer": "25615968000000"}
+{"phase": "fixed-comparison", "trial": 1, "version": "baseline", "name": "setup", "ms": 550.5135000000009, "answer": "0"}
+{"phase": "fixed-comparison", "trial": 1, "version": "candidate", "name": "setup", "ms": 546.8873329999915, "answer": "0"}
+{"phase": "fixed-comparison", "trial": 2, "version": "candidate", "name": "setup", "ms": 540.4338340000104, "answer": "0"}
+{"phase": "fixed-comparison", "trial": 2, "version": "baseline", "name": "setup", "ms": 544.7997500000056, "answer": "0"}
+{"phase": "fixed-comparison", "trial": 2, "version": "candidate", "name": "add", "ms": 921.8533339999994, "answer": "25615968000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "baseline", "name": "add", "ms": 915.5651660000003, "answer": "25615968000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "candidate", "name": "min", "ms": 1308.7726249999978, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "baseline", "name": "min", "ms": 7937.252000000008, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "candidate", "name": "max", "ms": 1307.7767500000045, "answer": "25599984000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "baseline", "name": "max", "ms": 7995.698459000007, "answer": "25599984000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "candidate", "name": "choose", "ms": 1146.2200840000005, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "baseline", "name": "choose", "ms": 10095.649999999994, "answer": "15984000000"}
+{"phase": "fixed-comparison", "trial": 2, "version": "candidate", "name": "euler414", "ms": 4496.2070419999945, "answer": "334961735971658529"}
+{"phase": "fixed-comparison", "trial": 2, "version": "baseline", "name": "euler414", "ms": 9475.681874999995, "answer": "334961735971658529"}

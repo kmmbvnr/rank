@@ -104,6 +104,20 @@ export function realCells(value: RankArray): ArrayLike<number> | undefined {
         ? state.items as unknown as number[] : undefined;
 }
 
+/** Copy a completed numeric buffer without a boxed intermediate or type scan. */
+export function copyStoredNumericArray(value: RankArray): RankArray | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly || !state.typed || state.validity || value.itemAt !== undefined) return undefined;
+    checkpoint('copying numeric array', state.typed.length);
+    return createOwned(state.typed.slice(), value.shape, true, value.columnNames);
+}
+
+/** Borrow a completed boolean bitmap for callback-free synchronous kernels. */
+export function booleanCells(value: RankArray): BooleanCells | undefined {
+    const state = ownedStorage.get(value);
+    return state?.stable && state.scalarOnly && value.itemAt === undefined ? state.booleans : undefined;
+}
+
 /** Writable owned real cells, with the same publication contract as integer cells. */
 export function writableRealCells(value: RankArray): ArrayLike<number> | undefined {
     const state = ownedStorage.get(value);

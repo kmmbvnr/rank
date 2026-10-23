@@ -139,9 +139,11 @@ export class RankApplication {
                     { value: right, axes: b.frameShape.map((_, axis) => axis) },
                 ]));
         }
-        if (leftRank === 0 && rightRank === 0
-            && fn === this.standardFunctions.get(standardModules.numbers.gcd)) {
-            const integers = mapStoredIntegers(left, right, 'gcd');
+        if (leftRank === 0 && rightRank === 0 && hasNativeImplementation(fn)) {
+            const operation = fn === this.standardFunctions.get(standardModules.numbers.gcd) ? 'gcd'
+                : fn === this.standardFunctions.get(standardModules.core.min) ? 'min'
+                : fn === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined;
+            const integers = operation && mapStoredIntegers(left, right, operation);
             if (integers) return completed(integers);
         }
         // The standard find holds the complete left vector and maps scalar
