@@ -1,0 +1,8 @@
+use testing
+
+test "smaller limits"
+  use "526_largestprime"
+  L = 100000000000
+  run
+  Answer equal 455559334569
+end

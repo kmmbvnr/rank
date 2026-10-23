@@ -1,0 +1,90 @@
+rem Largest prime factors of consecutive
+rem numbers
+rem https://projecteuler.net/problem=526
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 10000000000000000
+
+rem Force small factors on n .. n + 8:
+rem n = 5 mod 9, 1 mod 5, 3 mod 7 puts
+rem 315 in n + 4, n = 1 or 7 mod 16
+rem shares 2^6 3^2 among the odd
+rem offsets, and n mod 11 in 1..2, n
+rem mod 13 in 1..4 keep 11 and 13 out.
+rem Then each n + j over its 7-smooth
+rem part should be prime. Scan n = N0 +
+rem r - M k by growing k in blocks: the
+rem first hits are the largest.
+M = 720720
+R = (0 till M) copy
+Ok = (R mod 9 equal 5)
+Ok = Ok and (R mod 5 equal 1)
+Ok = Ok and (R mod 7 equal 3)
+R16 = R mod 16
+O16 = (R16 equal 1) or (R16 equal 7)
+Ok = Ok and O16
+R11 = R mod 11
+Ok = Ok and (R11 at least 1)
+Ok = Ok and (R11 at most 2)
+R13 = R mod 13
+Ok = Ok and (R13 at least 1)
+Ok = Ok and (R13 at most 4)
+Rs = R (Ok indices)
+N0 = L // M * M
+rem Sieve k with 17 <= p < 1000: p
+rem divides n + j when M k = N0 + r +
+rem j mod p.
+Ps = primes from 17 till 1000 array
+Iv = M (Ps - 2) Ps powmod
+Bk = 1000000
+Km = N0 // M
+Answer = 0
+Hit = 0 - 1
+for K0 in 0 till Km by Bk
+  Kn = Bk (Km - K0) min
+  for Rr in Rs
+    Mk = array shape Kn fill true
+    for T in 0 till Ps len
+      P = Ps T
+      Ip = Iv T
+      C = (N0 + Rr) mod P * Ip - K0
+      for J in 0 till 9
+        S0 = (C + J * Ip) mod P
+        Mk (S0 till Kn by P) = false
+      end
+    end
+    Kk = K0 + (Mk indices)
+    N = N0 + Rr - M * Kk
+    N = N ((N at most L) indices)
+    Sm = N * 0
+    Gd = N greater 0
+    for J in 0 till 9
+      X = N + J
+      for Q in array 2 3 5 7
+        for I in 1 to 54
+          Dv = X mod Q equal 0
+          X = Dv choose (X // Q) X
+        end
+      end
+      Gd = Gd and (X in primes)
+      Sm += X
+    end
+    if Gd any
+      Sg = (Sm (Gd indices)) max
+      Answer = Answer max Sg
+      if Hit less 0
+        Hit = K0
+      end
+    end
+  end
+  Dn = Hit at least 0
+  Dn = Dn and (K0 greater Hit)
+  if Dn
+    break
+  end
+end
+Answer print
