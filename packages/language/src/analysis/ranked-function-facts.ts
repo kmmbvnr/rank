@@ -1,5 +1,5 @@
 import type { IntrinsicRank } from '../operations.js';
-import { rankedOperandShapes } from './operation-shape.js';
+import { axisResultShape, rankedOperandShapes } from './operation-shape.js';
 import { stableRecordField, UNKNOWN_VALUE, type ValueFacts } from './value-domain.js';
 
 /** Map abstract cell facts through a callback without evaluating any cells.
@@ -21,7 +21,7 @@ export function rankedFunctionFacts(operands: readonly ValueFacts[], ranks: read
     if (result.types.join() === 'array') {
         // Shape-only callback analysis also supplies axes for empty frames.
         if (result.rank === undefined) return { types: ['array'] };
-        const shape = [...frame, ...result.shape ?? Array(result.rank).fill(null)];
+        const shape = axisResultShape(frame, result.shape ?? Array(result.rank).fill(null), axes);
         return { types: ['array'], rank: shape.length, shape, elements: result.elements };
     }
     if (result.types.includes('array')) return { types: ['array'] };

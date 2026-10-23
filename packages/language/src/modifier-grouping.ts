@@ -127,8 +127,9 @@ export function groupModifiers(expression: Expression, standard: StandardName = 
             || (OUTER_OPERATORS.has(expression.operator) && named(parts[0], 'outer'));
         if (!supported) return expression;
         const rankPosition = comparison ? parts.findIndex(part => named(part, 'rank')) : -1;
-        if (comparison && rankPosition < 0) return expression;
-        const end = comparison ? rankPosition + 2 : reduce || scan ? foldModifierEnd(parts, 1) : 1;
+        let axisEnd = 1;
+        if (comparison && rankPosition < 0) while (isNumberLiteral(parts[axisEnd])) axisEnd++;
+        const end = comparison ? rankPosition < 0 ? axisEnd : rankPosition + 2 : reduce || scan ? foldModifierEnd(parts, 1) : 1;
         if (parts.length <= end) return expression;
         prefix = { ...expression, right: applicationExpression(parts.slice(0, end)) } as Expression;
         rest = parts.slice(end);

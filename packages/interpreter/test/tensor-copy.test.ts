@@ -3,11 +3,12 @@ import { Interpreter, createArraySnapshot, isRankArray, type RankArray, type Ran
 import { native } from '../src/modules/shared.js';
 
 describe('tensor cell copies', () => {
-    it('matches independent coordinate grouping for all cell ranks and reordered frame axes', () => {
+    it('matches independent coordinate grouping for all cell ranks and unordered cell-axis lists', () => {
         const shapes = [[2, 3, 4], [2, 0, 4], [0, 3, 4]];
         const axes = [[], [0], [1], [2], [0, 1], [1, 0], [0, 2], [2, 0], [1, 2], [2, 1],
             [0, 1, 2], [2, 0, 1], [2, 1, 0]];
-        for (const shape of shapes) for (const frame of axes) for (const owned of [false, true]) for (const tensorCellCompilation of [false, true]) {
+        for (const shape of shapes) for (const cellAxes of axes) for (const owned of [false, true]) for (const tensorCellCompilation of [false, true]) {
+            const frame = shape.map((_, axis) => axis).filter(axis => !cellAxes.includes(axis));
             const items = Array.from({ length: shape[0] * shape[1] * shape[2] }, (_, i) => BigInt(i + 1));
             const input: RankArray = owned ? createArraySnapshot(items, shape) : { kind: 'array', items, shape };
             const cellShape = shape.filter((_, axis) => !frame.includes(axis));
@@ -34,7 +35,7 @@ describe('tensor cell copies', () => {
                     : { shape: [], items: [value] });
                 return 0n;
             }));
-            runtime.execute(`for Cell in A ${frame.length ? `axis ${frame.join(' ')} ` : ''}rank ${3 - frame.length}
+            runtime.execute(`for Cell in A ${cellAxes.length ? `axis ${cellAxes.join(' ')}` : 'rank 0'}
   Cell observe
 end`);
             expect(observed, JSON.stringify({ shape, frame, owned })).toEqual(

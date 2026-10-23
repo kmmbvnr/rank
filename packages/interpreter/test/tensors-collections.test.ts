@@ -414,7 +414,7 @@ describe('Rank tensors and collections', () => {
         expect(run([
             ...matrix,
             'Total = 0',
-            'for Column j in M axis 1 rank 1',
+            'for Column j in M axis 0',
             '  Total += Column 0 * 10 + Column 1',
             'end',
             'Total',
@@ -433,7 +433,7 @@ describe('Rank tensors and collections', () => {
             '  5 6 7 8',
             'end',
             'Total = 0',
-            'for Line i j in T axis 0 1 rank 1',
+            'for Line i j in T axis 2',
             '  Total += Line 0 * 10 + Line 1',
             'end',
             'Total',
@@ -443,7 +443,7 @@ describe('Rank tensors and collections', () => {
             'for Cell i in M axis 0 1 rank 1',
             '  Cell',
             'end',
-        ].join('\n'))).toThrowError('axis count 2 plus cell rank 1 must equal tensor rank 2');
+        ].join('\n'))).toThrowError('axis count 2 must equal cell rank 1');
         expect(() => run([
             ...matrix,
             'for Value i j in M axis 0 0 rank 0',
@@ -469,16 +469,16 @@ describe('Rank tensors and collections', () => {
             '  7 8 9 10 11 12',
             'end',
             'Trailing = T cell_sum rank 2',
-            'Selected = T cell_sum axis 1 rank 2',
-            'Reordered = T cell_sum axis 2 0 rank 1',
+            'Selected = T cell_sum axis 0 2',
+            'Reordered = T cell_sum axis 1',
             'Ok = (Trailing shape equal array 2) and reduce',
             'Ok and= (Trailing equal array 21 57) and reduce',
             'Ok and= (Selected shape equal array 3) and reduce',
             'Ok and= (Selected equal array 18 26 34) and reduce',
             'Ok and= (Reordered shape equal array 2 2) and reduce',
             'Expected = array shape 2 2',
-            '  9 27',
-            '  12 30',
+            '  9 12',
+            '  27 30',
             'end',
             'Ok and= (Reordered equal Expected) and reduce',
             'Ok',
@@ -506,9 +506,9 @@ describe('Rank tensors and collections', () => {
             '  return Cell reduce +',
             'end',
             'T = array shape 2 3 4 fill 0',
-            'T total axis 0 1 rank 2',
+            'T total axis 0 rank 2',
         ].join('\n'))).toThrowError(
-            'axis count 2 plus cell rank 2 must equal tensor rank 3',
+            'axis count 1 must equal cell rank 2',
         );
         expect(() => run([
             'fun Cell total',

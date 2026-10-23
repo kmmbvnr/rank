@@ -44,6 +44,34 @@ so it can be endless: cut it with take.
 A record has named fields and a table
 has named columns.
 
+### Rows and columns
+
+`axis` names the dimensions used by an
+operation. In a matrix, axis 0 runs
+down each column and axis 1 runs across
+each row:
+
+```rank
+M = (1 to 6) reshape 2 3
+M sum axis 0
+```
+
+```result
+5 7 9
+```
+
+`M reverse axis 1` reverses each row
+and keeps the matrix layout. A function
+can receive a whole column with
+`M F axis 0`; a loop can use
+`for Column j in M axis 0`.
+
+`rank 1` chooses the last axis instead
+of naming it. On a matrix this means
+rows; on a higher tensor it means the
+last-axis vectors. See the tensor rules
+for functions whose results change rank.
+
 ### See also
 
 use, array, for, fun

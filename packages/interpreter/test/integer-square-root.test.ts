@@ -126,7 +126,7 @@ describe('stored scalar builtin arrays', () => {
         expect(run(source + 'A isqrt')).toBe('0 1 2 3 4 5');
         expect(run(source + '(A isqrt) shape')).toBe('2 3');
         expect(run(source + 'A isqrt rank 0')).toBe('0 1 2 3 4 5');
-        expect(run(source + '(A isqrt axis 1 0 rank 0) shape')).toBe('3 2');
+        expect(run(source + '(A transpose isqrt rank 0) shape')).toBe('3 2');
         expect(run('(array shape 0 3 fill 0) isqrt shape')).toBe('0 3');
         expect(run('(array shape 3 0 fill 0) isqrt shape')).toBe('3 0');
     });

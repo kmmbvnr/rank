@@ -26,7 +26,7 @@ export function operationShapeFacts(
     if (!cellShape) return;
     // Ranked assembly boxes non-array collections instead of adding their axes.
     if (frame.length && ['text', 'sequence'].includes(operation.result)) return;
-    const shape = [...frame, ...cellShape];
+    const shape = axisResultShape(frame, cellShape, axes);
     const mappedArray = operands.length > 2 && operation.mapsScalarCells
         && operands.some(operand => operand.types.join() === 'array');
     const types = operation.name === 'matmul' ? (shape.length ? ['array'] : ['integer', 'real'])
@@ -47,10 +47,11 @@ function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readon
     // Only tensors expose leading frames here. Text and sequences have their
     // own mapping/boxing rules and keep their specialized transfers.
     if (value.types.join() !== 'array') return shape.length > cellRank ? undefined : { cell: shape, frame: [] };
-    const selected = axes ?? Array.from({ length: Math.max(0, shape.length - cellRank) }, (_, n) => n);
+    const selected = axes ? shape.map((_, axis) => axis).filter(axis => !axes.includes(axis)) : Array.from({ length: Math.max(0, shape.length - cellRank) }, (_, n) => n);
     if (selected.some(n => !Number.isSafeInteger(n) || n < 0 || n >= shape.length)
         || new Set(selected).size !== selected.length
-        || axes && shape.length - selected.length !== cellRank) return;
+        || axes && (axes.length !== cellRank || new Set(axes).size !== axes.length
+            || axes.some(axis => !Number.isSafeInteger(axis) || axis < 0 || axis >= shape.length))) return;
     return { cell: shape.filter((_, n) => !selected.includes(n)), frame: selected.map(n => shape[n]) };
 }
 
@@ -79,4 +80,11 @@ export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: read
         cells.push(part.cell);
     }
     return { cells, frame };
+}
+
+/** Restore same-rank explicit cell results to their source-axis positions. */
+export function axisResultShape(frame: KnownShape, cell: KnownShape, axes?: readonly number[]): KnownShape {
+    if (!axes || cell.length !== axes.length) return [...frame, ...cell];
+    let f = 0, c = 0;
+    return Array.from({ length: frame.length + cell.length }, (_, axis) => axes.includes(axis) ? cell[c++] : frame[f++]);
 }

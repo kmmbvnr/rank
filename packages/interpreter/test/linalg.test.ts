@@ -53,7 +53,7 @@ describe('Rank linear algebra', () => {
 
     it('keeps frame axes and negative ranks independent of diagonal parameters', () => {
         const prefix = 'use linalg\nuse sequences\nBatch = array shape 2 3 3 fill 1\n';
-        expect(run(prefix + 'Batch diag .anti 1 axis 0 rank 2 shape')).toBe('2 2');
+        expect(run(prefix + 'Batch diag .anti 1 axis 1 2 shape')).toBe('2 2');
         expect(run(prefix + 'Batch diag .anti 1 rank -1 shape')).toBe('2 2');
         expect(run('use linalg\nuse sequences\nBatch = array shape 0 3 3 fill 1\nBatch diag .anti 1 rank 2 shape')).toBe('0 2');
     });
@@ -237,7 +237,7 @@ describe('Rank linear algebra', () => {
             'end',
         ];
         expect(run([...tensor, 'T det'].join('\n'))).toBe('-7 2');
-        expect(run([...tensor, 'T det axis 1 rank 2'].join('\n'))).toBe('10 1');
+        expect(run([...tensor, 'T det axis 0 2'].join('\n'))).toBe('10 1');
     });
 
     it('validates determinant matrices and elements', () => {
@@ -474,8 +474,8 @@ describe('Rank linear algebra', () => {
             '  4 7 1 0',
             '  2 6 0 1',
             'end',
-            'T inverse axis 1 rank 2',
-        ].join('\n')), [0.6, -0.7, -0.2, 0.4, 1, 0, 0, 1]);
+            'T inverse axis 0 2',
+        ].join('\n')), [0.6, -0.7, 1, 0, -0.2, 0.4, 0, 1]);
     });
 
     it('preserves the cell shape for an empty batch', () => {

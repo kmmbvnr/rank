@@ -17,7 +17,7 @@ Every operation and supported arity below records its declared cell ranks.
 A numeric rank selects trailing axes; leading axes form a broadcast frame.
 Inputs with fewer axes are passed whole and validated by the operation.
 Cell rank does not guess whether a matrix represents a batch of vectors.
-Explicit `rank` overrides these defaults; `axis` selects frame axes.
+Explicit `rank` overrides these defaults; `axis` selects cell axes and preserves their positions for same-rank array results.
 
 Unary global reductions (`sum`, `min`, `max`, boolean reductions and
 statistics) take whole values. Structural operations, text/document parsers,
@@ -110,6 +110,8 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Values Count combinations` | sequence, lazy | binary all / all | Lazy sequence of the combinations of that size, in input order. |
 | `Heap Priority Value enqueue` | collection, mutates | 3 operands: whole | Inserts a payload into a heap under a separate priority. |
 | `Size fenwick` | fenwick | unary all | Fixed-size integer Fenwick tree with inclusive prefix sums. |
+| `Size groups` | structure | unary all | Compact integer groups under keys from zero up to Size, excluding Size. |
+| `Groups Key Value insert` | collection, mutates | 3 operands: whole | Appends an integer to a keyed group, preserving insertion order. |
 | `Tree Target firstatleast` | integer | binary all / 0 | First position whose monotone prefix aggregate reaches the target. |
 | `Values Target lowerindex` | integer | binary all / 0 | Insertion index of the first integer at least the target in an ascending vector. |
 | `Values Target upperindex` | integer | binary all / 0 | Insertion index of the first integer greater than the target in an ascending vector. |
@@ -373,13 +375,14 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Y X atan2` | real | binary 0 / 0 | Angle in radians from the coordinates, keeping the quadrant. |
 | `Value atanh` | real | unary all (scalar map) | Inverse hyperbolic tangent, for values strictly between -1 and 1. |
 | `N K binomial` | integer | binary 0 / 0 | Exact binomial coefficient. |
-| `N K Modulus binomialmod` | integer | 3 operands: whole | Binomial coefficient calculated directly modulo a prime. |
+| `N K Modulus binomialmod` | integer | 3 operands: whole | Binomial coefficient calculated directly modulo a scalar prime. |
 | `Angle cos` | real | unary all (scalar map) | Cosine of an angle in radians. |
 | `Value cosh` | real | unary all (scalar map) | Hyperbolic cosine. |
 | `N divisors` | sequence, lazy | unary 0 | Lazy ascending sequence of the positive divisors. |
 | `Value even` | boolean | unary all | True for an even integer. |
 | `Value exp` | real | unary all (scalar map) | Natural exponential. |
 | `N factors` | sequence, lazy | unary all | Lazy ascending sequence of the prime factors, repeated factors included. |
+| `Limit factorsieve` | array | unary all | Smallest prime factors from 0 through Limit (at most 1048575); entries 0 and 1 are zero. |
 | `A B gcd` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
 | `infinity` | real | source/value | The positive infinite real value. |
 | `Value isnan` | boolean | unary all | True for the real value nan; it does not equal itself. |

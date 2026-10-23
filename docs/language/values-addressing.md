@@ -257,7 +257,7 @@ With one name, `for Value in A` binds only the value.
 Tensor iteration may bind one coordinate name for every frame axis:
 
 ```rank
-for Line i j in T axis 0 1 rank 1
+for Line i j in T axis 2
   Line print
 end
 ```

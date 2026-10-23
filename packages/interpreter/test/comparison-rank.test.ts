@@ -32,12 +32,12 @@ for (const compiled of [true, false]) describe(`comparison rank (compiled: ${com
         expect(run(matrix + 'A B less rank 1 count')).toBe('1');
     });
 
-    it('selects frame axes for columns and reorders larger frames', () => {
-        expect(run(matrix + 'A B equal axis 1 rank 1')).toBe('true false');
-        expect(run(matrix + 'A B equal axis 0 rank 1')).toBe('false true');
-        expect(run('A = array shape 2 3 4 fill 1\nB = A copy\nB 1 2 0 = 9\nR = A B equal axis 1 0 rank 1\nR shape'))
-            .toBe('3 2');
-        expect(run('A = array shape 2 3 4 fill 1\nB = A copy\nB 1 2 0 = 9\nA B equal axis 1 0 rank 1'))
+    it('selects cell axes for columns and keeps remaining frame order', () => {
+        expect(run(matrix + 'A B equal axis 0')).toBe('true false');
+        expect(run(matrix + 'A B equal axis 1')).toBe('false true');
+        expect(run('A = array shape 2 3 4 fill 1\nB = A copy\nB 1 2 0 = 9\nR = A B equal axis 2\nR shape'))
+            .toBe('2 3');
+        expect(run('A = array shape 2 3 4 fill 1\nB = A copy\nB 1 2 0 = 9\nA B equal axis 2'))
             .toBe('true true true true true false');
     });
 

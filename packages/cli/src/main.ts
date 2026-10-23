@@ -234,7 +234,7 @@ const REFERENCE_PREAMBLE = [
     'A numeric rank selects trailing axes; leading axes form a broadcast frame.',
     'Inputs with fewer axes are passed whole and validated by the operation.',
     'Cell rank does not guess whether a matrix represents a batch of vectors.',
-    'Explicit `rank` overrides these defaults; `axis` selects frame axes.',
+    'Explicit `rank` overrides these defaults; `axis` selects cell axes and preserves their positions for same-rank array results.',
     '',
     'Unary global reductions (`sum`, `min`, `max`, boolean reductions and',
     'statistics) take whole values. Structural operations, text/document parsers,',

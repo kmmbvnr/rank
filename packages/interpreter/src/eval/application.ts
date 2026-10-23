@@ -131,7 +131,7 @@ export class ApplicationEvaluator {
             const ranked = withOperands(fn);
             if (data.length === 1) {
                 if (ranks.length > 1) throw new RankError('rank expects one entry for one data operand');
-                const rank = ranks[0] ?? (typeof fn.monadicRank === 'number' ? fn.monadicRank : 0);
+                const rank = ranks[0] ?? axes?.length ?? (typeof fn.monadicRank === 'number' ? fn.monadicRank : 0);
                 return yield* resume(context.rankApplication.applyUnaryAtRank(data[0], ranked, rank, axes));
             }
             if (axes) throw new RankError('axis expects one data operand');

@@ -55,7 +55,7 @@ export function filterPredicateForm(condition: Expression): { name: string; axes
         rank = Number(value.value);
         index += 2;
     }
-    return index === parts.length ? { name: name.name, axes, rank } : undefined;
+    return index === parts.length ? { name: name.name, axes, rank: rank ?? axes?.length } : undefined;
 }
 
 /** `Values till 10` and `1 to 10`: a range operator without a step. */

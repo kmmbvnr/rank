@@ -54,15 +54,15 @@ it('checks tensor filter predicates against cells left by the selected axes', ()
         }] }]).diagnostics.map(item => item.message);
     };
     expect(knownMessages('fun V heavy\n  return V sum greater 8\nend\n',
-        'heavy axis 1 2 rank 1')).toEqual([]);
+        'heavy axis 0')).toEqual([]);
     expect(knownMessages('fun V wrong\n  return V + "bad" equal 0\nend\n',
-        'wrong axis 0 2 rank 1'))
+        'wrong axis 1'))
         .toContain('wrong: operator + does not accept integer and text');
     expect(knownMessages('fun V heavy\n  return V sum greater 8\nend\n',
-        'heavy axis 0 rank 1'))
+        'heavy axis 0 rank 2'))
         .toContain('filter axis count plus cell rank must equal source rank, with distinct valid axes');
     expect(knownMessages('fun V heavy\n  return V sum greater 8\nend\n',
-        '\n    heavy axis 0 2 rank 1\n    heavy axis 1 2 rank 1\n  end'))
+        '\n    heavy axis 1\n    heavy axis 0\n  end'))
         .toContain('filter conditions must traverse the same axes');
 });
 

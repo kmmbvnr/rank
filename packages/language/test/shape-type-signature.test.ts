@@ -99,8 +99,8 @@ it('reuses rank and axis partitioning for transposed cells', () => {
     const transpose = findOperation('transpose')!;
     expect(operationShapeFacts(transpose, [array([2, 3, 4])], [2]))
         .toMatchObject({ types: ['array'], rank: 3, shape: [2, 4, 3] });
-    expect(operationShapeFacts(transpose, [array([2, 3, 4])], [2], [1]))
-        .toMatchObject({ types: ['array'], rank: 3, shape: [3, 4, 2] });
+    expect(operationShapeFacts(transpose, [array([2, 3, 4])], [2], [0, 2]))
+        .toMatchObject({ types: ['array'], rank: 3, shape: [4, 3, 2] });
 });
 
 it('keeps dot-product scalar cells distinct from ranked result frames', () => {

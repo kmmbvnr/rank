@@ -6,7 +6,7 @@ import { groupInfixRank, groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
     isArrayAssignmentStatement, isAssignmentStatement, isOperationAssignmentStatement,
-    isFunctionStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
+    isFunctionStatement, isForStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
     isAllAxisExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression, isFunctionOperator, type HigherOrderOperator,
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
@@ -382,7 +382,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const modifier = parts[first + 1];
             const unary = arities?.join() === '1' && parts.slice(1, first).some(isAllAxisExpression)
                 || arities?.includes(1) && isNameExpression(modifier)
-                    && (modifier.name === 'axis' || modifier.name === 'rank'
+                    && (modifier.name === 'axis' && !['quantile', 'percentile'].includes(operation!.name) || modifier.name === 'rank'
                         && !isNumberLiteral(parts[first + 3]) && !isUnaryExpression(parts[first + 3]));
             if (first > 0) return [
                 { kind: 'value', value: first > 1 && unary
@@ -539,6 +539,14 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             if (property.startsWith('$')) continue;
             // Symbolic modifiers belong to the binary operation, including its
             // left operand. Do not group their suffix as a standalone call.
+            if (isForStatement(node) && property === 'condition' && isBinaryExpression(value) && value.operator === 'in') {
+                const parts = flatten(value.right);
+                if (parts.some(part => isNameExpression(part) && part.name === 'axis')) {
+                    value.left = visit(value.left) as Expression;
+                    value.right = application(parts.map(part => visit(part) as Expression), value.right);
+                    continue;
+                }
+            }
             if (isAstNode(value)) record[property] = visit(value, !(symbolicRight && property === 'right'));
             else if (Array.isArray(value)) record[property] = value.map(item => isAstNode(item) ? visit(item) : item);
         }

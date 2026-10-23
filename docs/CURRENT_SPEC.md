@@ -1579,7 +1579,7 @@ With one name, `for Value in A` binds only the value.
 Tensor iteration may bind one coordinate name for every frame axis:
 
 ```rank
-for Line i j in T axis 0 1 rank 1
+for Line i j in T axis 2
   Line print
 end
 ```
@@ -3694,9 +3694,9 @@ Without a modifier, `filter` passes each sequence item or each array cell
 along the leading axis to the predicate. For a matrix, those cells are rows;
 the predicate's declared rank does not change this default. `rank R` chooses
 cells with R axes. For an array with N axes, the remaining N - R axes form the
-frame traversed by the filter. `axis` names those frame axes in traversal
-order and must name exactly N - R distinct axes; without it, they are the
-first N - R axes. The predicate returns one
+frame traversed by the filter. `axis` names the cell axes directly; their
+complement is traversed in natural source order. An optional `rank R` must
+equal the number of cell axes. Without `axis`, the frame uses the first N - R axes. The predicate returns one
 boolean per cell. A predicate over whole rows or columns keeps the other array
 axis:
 
@@ -3705,7 +3705,7 @@ rem M has shape 3 2
 Heavy = M filter row_total
 rem Heavy has shape 2 2: the rows the predicate kept
 
-Wide = M filter column_total axis 1
+Wide = M filter column_total axis 0
 rem Wide has shape 3 1: the columns the predicate kept
 ```
 
@@ -3715,8 +3715,8 @@ produces an atom mask, not one boolean per row; write
 `M filter (M greater 3)` to select those atoms explicitly. When a filter
 traverses several axes, the retained cells are collected in traversal order;
 those frame axes become one axis at their first original position. For an array
-with shape `2 3 4`, `filter P rank 1` sends twelve vectors of length 4 to P
-and returns shape `k 4`. `filter P axis 1 2 rank 1` sends twelve vectors of
+with shape `2 3 4`, `filter P rank 1` sends six vectors of length 4 to P
+and returns shape `k 4`. `filter P axis 0` sends twelve vectors of
 length 2 and returns shape `2 k`. Here k is the number of accepted cells.
 Conditions in one filter block must traverse the same axes.
 
@@ -4037,22 +4037,28 @@ Totals = Matrix sum rank -1
 rem one sum per row, for any rank of Matrix
 ```
 
-An explicit `axis` list before `rank` names the frame axes. The remaining axes,
-kept in their original order, form the cell passed to the unary function:
+An explicit `axis` list names the cell axes passed to a unary function. The
+remaining axes form the frame. Both sets keep their natural source order;
+`axis 2 0` means the same as `axis 0 2`. Axes are zero-based, distinct and in
+bounds. `rank` is optional alongside `axis`; if supplied, it must equal the
+number of selected cell axes:
 
 ```rank
 rem T has shape 2 64 128
 A = T F rank 2
 rem frame 2, cells 64 128
 
-B = T F axis 1 rank 2
+B = T F axis 0 2
 rem frame 64, cells 2 128
 ```
 
-The axis order also determines the frame order in the result. For a tensor of
-shape `2 3 4 5`, `T F axis 1 3 rank 2` applies `F` to `2 4` cells and produces
-results in a `3 5` frame. The number of frame axes plus the cell rank must equal
-the tensor rank. Frame axes are zero-based, unique and in bounds.
+For shape `2 3 4 5`, `T F axis 0 2` passes `2 4` cells to `F` over a `3 5`
+frame. If `F` returns an array of rank 2, its two axes occupy source positions
+0 and 2, even when their lengths change. For example, a result cell of shape
+`6 7` produces shape `6 3 7 5`. A scalar result leaves shape `3 5`; an array
+of a different rank appends its axes after the frame. Text, tuples and sequences
+remain boxed cell values. Explicit axes do not reorder either cells or frames;
+use `transpose` for a permutation. Bare `rank` retains frame-then-cell assembly.
 
 Every cell result must have the same shape. Scalar results leave only the frame
 shape; array results append their shape to the frame. Source cells and the
@@ -4143,19 +4149,19 @@ are unequal; they are not broadcast inside a whole-cell comparison. Results
 are computed on demand over array frames. Ordinary binding stores their values;
 deferred binding keeps the captured inputs and recomputes.
 
-An explicit `axis` list names frame axes for **both** array operands, retaining
-the listed order. The remaining axes form each cell:
+An explicit `axis` list names cell axes for **both** array operands. The
+remaining axes form each frame in natural source order:
 
 ```rank
-A B equal axis 0 rank 1
-A B equal axis 1 rank 1
-A B less axis 1 rank 1 count
+A B equal axis 1
+A B equal axis 0
+A B less axis 0 count
 ```
 
 For matrices these compare rows, columns, and count columns of `A` that sort
 before the corresponding columns of `B`. Axis numbers must be unique and in
-bounds; the number of frame axes plus the cell rank must equal each operand's
-array rank. Explicit axes require arrays on both sides.
+bounds. A redundant `rank R` must equal the number of selected axes.
+Explicit axes require arrays on both sides.
 
 Sequences stay lazy at `rank 0`; a higher rank materializes a bounded sequence
 for comparison as one vector. Known infinite sequences are rejected for a
@@ -4452,12 +4458,12 @@ callback effects. An ordinary `Saved = Pairs` binding retains the completed
 result. A deferred assignment does not make a single-pass operand restartable;
 bind its completed data before reusing it.
 
-Explicit binary comparison rank and frame axes are supported as described
+Explicit binary comparison rank and cell axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
 
-An axis-qualified cell view may become an operand of `outer`. Its `axis` order
-will define frame order and its `rank` will define the cells, allowing rows of
-one tensor to be paired with columns of another without moving data. The
+A future axis-qualified cell view could select cells independently for each
+operand of `outer`, allowing rows of one tensor to be paired with columns of
+another without an explicit transpose. The
 expression syntax is deferred because `axis` already introduces selection;
 `outer` itself does not permute axes.
 
@@ -6287,7 +6293,7 @@ square numeric matrix:
 ```rank
 D = A det
 BatchDeterminants = Batch det
-Planes = T det axis 1 rank 2
+Planes = T det axis 0 2
 ```
 
 Integer-only cells produce exact `integer` results. A cell containing any
@@ -6323,11 +6329,12 @@ matrix and returns a real matrix with the same shape:
 ```rank
 B = A inverse
 BatchInverse = Batch inverse
-Planes = T inverse axis 1 rank 2
+Planes = T inverse axis 0 2
 ```
 
 The second expression applies to every trailing matrix cell. The third uses
-axis 1 as the frame and forms each matrix from the remaining two axes. A
+axes 0 and 2 for each matrix, preserving axis 1 as its frame. The result
+keeps the original axis positions. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
 `.SingularMatrix`. Ordinary binding completes every ranked matrix result;
 `BatchInverse' = Batch inverse` keeps a recipe. Repeated demands recompute the
@@ -6453,7 +6460,7 @@ For a row-wise table calculation:
 Geo distance rank 1
 ```
 
-An explicit axis list selects the frame, so non-trailing and non-contiguous
+An explicit axis list selects the cell, so non-trailing and non-contiguous
 cells do not require a transpose:
 
 ```rank
@@ -6461,20 +6468,20 @@ rem T has shape 2 64 128
 Rows = T normalize rank 2
 rem two cells of shape 64 128
 
-Planes = T normalize axis 1 rank 2
+Planes = T normalize axis 0 2
 rem 64 cells of shape 2 128
 ```
 
-For `T shape = 2 3 4 5`, `T F axis 1 3 rank 2` has frame shape `3 5` and
-passes cells of shape `2 4` to `F`. Explicit axes are frame axes and their
-written order becomes the leading result-axis order. All remaining source axes
-form the cell in natural order. The number of frame axes plus the cell rank
-must equal the tensor rank.
+For shape `2 3 4 5`, `T F axis 0 2` passes `2 4` cells to `F` over a `3 5`
+frame. If `F` returns an array of rank 2, its two axes occupy source positions
+0 and 2, even when their lengths change. For example, a result cell of shape
+`6 7` produces shape `6 3 7 5`. A scalar result leaves shape `3 5`; an array
+of a different rank appends its axes after the frame. Text, tuples and sequences
+remain boxed cell values. Explicit axes do not reorder either cells or frames;
+use `transpose` for a permutation. Bare `rank` retains frame-then-cell assembly.
 
-Scalar cell results have the frame shape. Array results append their common
-shape to the frame. Source cells and assembled results are lazy read-only views;
-each demanded function result is cached. This avoids a separate
-dataframe-specific row API.
+Source cells and assembled results are lazy read-only views. Deferred binding
+recomputes demanded cells; ordinary binding completes the result.
 
 A binary operation takes one cell rank per operand with `rank L R`. The left
 operand is split into cells of rank `L`, the right into cells of rank `R`, and
@@ -6546,22 +6553,22 @@ for Value i j in M rank 0
 end
 ```
 
-`axis` explicitly lists the frame axes being iterated. It is core contextual
+`axis` explicitly lists the axes of each cell. The remaining axes are iterated. It is core contextual
 vocabulary, not a reserved grammar keyword, and it comes before its numeric
 arguments so they cannot be confused with addressing:
 
 ```rank
-for Column j in M axis 1 rank 1
+for Column j in M axis 0
   Column print
 end
 
-for Line i j in T axis 0 1 rank 1
+for Line i j in T axis 2
   Line print
 end
 ```
 
 The first binding receives the cell. Subsequent bindings receive coordinates
-for the listed frame axes in the same order. Index bindings may be omitted.
+for the remaining frame axes in natural source order. Index bindings may be omitted.
 Axis numbers are zero-based and unique, and this invariant must hold:
 
 ```text
@@ -6653,7 +6660,7 @@ completed. Arithmetic and axis permutations preserve these observations;
 selecting no producer positions makes no producer calls. Unused nonempty
 scalar operands are not evaluated for an empty product.
 
-Explicit binary comparison rank and frame axes are supported as described
+Explicit binary comparison rank and cell axes are supported as described
 in the Rank section. General binary function rank overrides remain deferred.
 
 A future axis-qualified cell view can be passed to `outer`: `axis` order will
@@ -7152,7 +7159,7 @@ of diagonal matrices with shape `[B N N]`. No batch interpretation is guessed.
 Empty frames preserve every shape-determined result axis, including offsets.
 
 Parameters configure the unary operation before `rank`; they are not ranked
-data operands. Existing frame-axis selection retains its meaning:
+data operands. Explicit cell-axis selection applies after diagonal configuration:
 
 ```rank
 Lines = Windows diag .anti 1
@@ -7205,14 +7212,14 @@ matrix:
 ```rank
 D = A det
 BatchDeterminants = Batch det
-Planes = T det axis 1 rank 2
+Planes = T det axis 0 2
 ```
 
 Integer-only matrices produce exact `integer` results; matrices containing a
 `real` produce `real`. A singular matrix returns zero, and the determinant of a
 `0` by `0` matrix is one. A non-square matrix raises `.DimensionMismatch`; a
 nonnumeric element raises `.TypeError`. Higher-rank inputs use the ordinary
-trailing-cell and `axis ... rank 2` rules.
+trailing-cell and explicit cell-axis rules.
 
 `solve` directly solves `A * X = B`:
 
@@ -7259,10 +7266,10 @@ BatchInverse = Batch inverse
 
 It accepts a square rank-2 matrix and returns a real matrix of the same shape.
 On a higher-rank tensor it applies independently to every trailing matrix cell.
-The ordinary `axis ... rank 2` form selects matrices on other axes:
+An explicit pair of cell axes selects matrices on other axes:
 
 ```rank
-Planes = T inverse axis 1 rank 2
+Planes = T inverse axis 0 2
 ```
 
 A non-square cell raises `.DimensionMismatch`; a singular cell raises

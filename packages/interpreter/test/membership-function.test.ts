@@ -155,7 +155,7 @@ R reshape 8`;
         const size = axes === '1' ? 18 : 36;
         const code = source.replace('\nQ mask', `\nM = (0 till ${size / 3} array) reshape ${shape}
 M = M copy
-R = M mask axis ${axes} rank 1
+R = M mask axis ${axes === '1' ? '0' : '1'}
 R reshape ${size}`);
         const fused = execute(code, true);
         expect(fused.result).toBe(execute(code, false).result);

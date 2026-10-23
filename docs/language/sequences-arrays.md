@@ -887,9 +887,9 @@ Without a modifier, `filter` passes each sequence item or each array cell
 along the leading axis to the predicate. For a matrix, those cells are rows;
 the predicate's declared rank does not change this default. `rank R` chooses
 cells with R axes. For an array with N axes, the remaining N - R axes form the
-frame traversed by the filter. `axis` names those frame axes in traversal
-order and must name exactly N - R distinct axes; without it, they are the
-first N - R axes. The predicate returns one
+frame traversed by the filter. `axis` names the cell axes directly; their
+complement is traversed in natural source order. An optional `rank R` must
+equal the number of cell axes. Without `axis`, the frame uses the first N - R axes. The predicate returns one
 boolean per cell. A predicate over whole rows or columns keeps the other array
 axis:
 
@@ -898,7 +898,7 @@ rem M has shape 3 2
 Heavy = M filter row_total
 rem Heavy has shape 2 2: the rows the predicate kept
 
-Wide = M filter column_total axis 1
+Wide = M filter column_total axis 0
 rem Wide has shape 3 1: the columns the predicate kept
 ```
 
@@ -908,8 +908,8 @@ produces an atom mask, not one boolean per row; write
 `M filter (M greater 3)` to select those atoms explicitly. When a filter
 traverses several axes, the retained cells are collected in traversal order;
 those frame axes become one axis at their first original position. For an array
-with shape `2 3 4`, `filter P rank 1` sends twelve vectors of length 4 to P
-and returns shape `k 4`. `filter P axis 1 2 rank 1` sends twelve vectors of
+with shape `2 3 4`, `filter P rank 1` sends six vectors of length 4 to P
+and returns shape `k 4`. `filter P axis 0` sends twelve vectors of
 length 2 and returns shape `2 k`. Here k is the number of accepted cells.
 Conditions in one filter block must traverse the same axes.
 
@@ -1323,22 +1323,28 @@ selects rows of a matrix and scalar items of a vector. User functions receive
 whole operands by default and may declare intrinsic ranks in their headers.
 A declaration may use `all` for a whole operand; call-site overrides use integers.
 
-An explicit `axis` list before `rank` names the frame axes. The remaining axes,
-kept in their original order, form the cell passed to the unary function:
+An explicit `axis` list names the cell axes passed to a unary function. The
+remaining axes form the frame. Both sets keep their natural source order;
+`axis 2 0` means the same as `axis 0 2`. Axes are zero-based, distinct and in
+bounds. `rank` is optional alongside `axis`; if supplied, it must equal the
+number of selected cell axes:
 
 ```rank
 rem T has shape 2 64 128
 A = T F rank 2
 rem frame 2, cells 64 128
 
-B = T F axis 1 rank 2
+B = T F axis 0 2
 rem frame 64, cells 2 128
 ```
 
-The axis order also determines the frame order in the result. For a tensor of
-shape `2 3 4 5`, `T F axis 1 3 rank 2` applies `F` to `2 4` cells and produces
-results in a `3 5` frame. The number of frame axes plus the cell rank must equal
-the tensor rank. Frame axes are zero-based, unique and in bounds.
+For shape `2 3 4 5`, `T F axis 0 2` passes `2 4` cells to `F` over a `3 5`
+frame. If `F` returns an array of rank 2, its two axes occupy source positions
+0 and 2, even when their lengths change. For example, a result cell of shape
+`6 7` produces shape `6 3 7 5`. A scalar result leaves shape `3 5`; an array
+of a different rank appends its axes after the frame. Text, tuples and sequences
+remain boxed cell values. Explicit axes do not reorder either cells or frames;
+use `transpose` for a permutation. Bare `rank` retains frame-then-cell assembly.
 
 ### Frame agreement and binary calls
 
@@ -1394,13 +1400,15 @@ Only positional data operands participate in ranked application; function
 operands and optional configuration stay fixed. General lifting supports one or
 two data operands. Calls with more data operands receive whole values; they do
 not gain automatic n-ary lifting. General binary calls do not accept explicit
-frame axes; the comparison forms below do. Special forms such as `reduce`,
+cell axes; the comparison forms below do. Special forms such as `reduce`,
 `outer`, constructors and indexing retain their documented application rules.
 
 ### Result assembly and validation
 
 Every array-valued cell result must have the same shape. Scalar results leave
-only the frame shape; array results append their shape to the frame. Text,
+only the frame shape. Bare `rank` appends array-result axes to the frame;
+explicit `axis` restores their source positions when the cell rank is unchanged,
+and appends them otherwise. Text,
 sequences and tuples returned as cell values stay boxed rather than contributing
 array axes. Rank does not pad unequal results to a common size.
 
@@ -1505,25 +1513,25 @@ are unequal; they are not broadcast inside a whole-cell comparison. Results
 are computed on demand over array frames. Ordinary binding stores their values;
 deferred binding keeps the captured inputs and recomputes.
 
-An explicit `axis` list names frame axes for **both** array operands, retaining
-the listed order. The remaining axes form each cell:
+An explicit `axis` list names cell axes for **both** array operands. The
+remaining axes form each frame in natural source order:
 
 ```rank
-A B equal axis 0 rank 1
-A B equal axis 1 rank 1
-A B less axis 1 rank 1 count
+A B equal axis 1
+A B equal axis 0
+A B less axis 0 count
 ```
 
 For matrices these compare rows, columns, and count columns of `A` that sort
 before the corresponding columns of `B`. Axis numbers must be unique and in
-bounds; the number of frame axes plus the cell rank must equal each operand's
-array rank. Explicit axes require arrays on both sides.
+bounds. A redundant `rank R` must equal the number of selected axes.
+Explicit axes require arrays on both sides.
 
 Sequences stay lazy at `rank 0`; a higher rank materializes a bounded sequence
 for comparison as one vector. Known infinite sequences are rejected for a
 whole-vector comparison. Comparison ranks must be nonnegative. A single
 comparison `rank R` applies to both operands;
-`rank L R` selects their cell ranks separately. The explicit frame-axis forms
+`rank L R` selects their cell ranks separately. The explicit cell-axis forms
 in this subsection apply to these six comparisons.
 
 ## Repeat
@@ -1849,9 +1857,9 @@ single-pass operand restartable; bind its completed data before reusing it.
 For paired cells with broadcasting, use the [ranked-call forms](#rank).
 `outer` instead forms all pairs using the supplied operation's intrinsic ranks.
 
-An axis-qualified cell view may become an operand of `outer`. Its `axis` order
-will define frame order and its `rank` will define the cells, allowing rows of
-one tensor to be paired with columns of another without moving data. The
+A future axis-qualified cell view could select cells independently for each
+operand of `outer`, allowing rows of one tensor to be paired with columns of
+another without an explicit transpose. The
 expression syntax is deferred because `axis` already introduces selection;
 `outer` itself does not permute axes.
 

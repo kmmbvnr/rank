@@ -79,7 +79,7 @@ export class Operators {
             }
             if (isRankQueue(value)) value = asRankArray(value)!;
             if (spec.axes !== undefined) {
-                if (!isRankArray(value)) throw new RankError('axis rank expects arrays');
+                if (!isRankArray(value)) throw new RankError('axis expects arrays');
                 return tensorCells(value, tensorFrameAxes(value.shape, spec.axes, spec.rank));
             }
             return dyadicCells(value, spec.rank, true);

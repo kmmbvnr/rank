@@ -512,6 +512,7 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (grouped) return expression(grouped);
                 const parts = flattenApplication(value);
                 const form = applicationForm(value, name => isBound(name) || locals.has(name) ? false : findOperation(name));
+                if (form.kind === 'axis-matmul') return propagate('matmul', [form.left, form.right]);
                 // Zero repeat still evaluates its operands, but never invokes either callback.
                 // Only direct, known non-nullary function references can be skipped here.
                 if (form.kind === 'repeat' && fact(form.count).integer === '0') {

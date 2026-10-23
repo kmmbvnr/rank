@@ -15,7 +15,7 @@ function array(shape: Shape): string {
 /** Reference rules from CURRENT_SPEC, independent of the analyzer and runtime helpers. */
 function cellAndFrame(shape: Shape, rank: number, axes?: Shape): { cell: Shape; frame: Shape } {
     const cellRank = rank < 0 ? Math.max(0, shape.length + rank) : Math.min(shape.length, rank);
-    const frameAxes = axes ?? Array.from({ length: shape.length - cellRank }, (_, index) => index);
+    const frameAxes = axes ? shape.map((_, axis) => axis).filter(axis => !axes.includes(axis)) : Array.from({ length: shape.length - cellRank }, (_, index) => index);
     const selected = new Set(frameAxes);
     return {
         cell: shape.filter((_, index) => !selected.has(index)),
@@ -75,11 +75,11 @@ it('agrees on bounded unary cell/frame shapes, including negative ranks and empt
     expect(knownRanks).toBeGreaterThan(20);
 });
 
-it('agrees on explicit frame-axis order for fixed-shape cell results', () => {
+it('agrees on explicit cell-axis selection for fixed-shape cell results', () => {
     let cases = 0;
     for (const shape of [[0, 2], [1, 2], [2, 2], [0, 1, 2], [2, 1, 2]]) {
         for (const axes of shape.length === 2 ? [[0], [1]] : [[0], [1], [2], [1, 0], [2, 0]]) {
-            const rank = shape.length - axes.length;
+            const rank = axes.length;
             const { frame } = cellAndFrame(shape, rank, axes);
             const source = `use numbers\nA = ${array(shape)}\nR = A sum axis ${axes.join(' ')} rank ${rank}`;
             check(source, frame);
@@ -316,5 +316,15 @@ it('routes broadcast matrix cells in frame order without mixing contraction axes
             expect(result.shape).toEqual([2, 3, 2, 2]);
             expect(result.items).toEqual(expected);
         } finally { runtime.dispose(); }
+    }
+});
+
+
+it('agrees on source-axis placement for same-rank callbacks and changed lengths', () => {
+    for (const shape of [[2, 3, 4], [2, 0, 4]]) {
+        const source = `use sequences\nA = ${array(shape)}\n`;
+        check(source + 'R = A reverse axis 0 2', shape);
+        check(source + 'R = A sort axis 0', shape);
+        check(source + 'fun X ends\n return array (X 0) (X 0) (X 1)\nend\nR = A ends axis 0', [3, shape[1], shape[2]]);
     }
 });

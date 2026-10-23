@@ -623,7 +623,9 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     || !['sequence', 'array'].includes(source.types.join())) continue;
                 const rank = predicate.rank ?? (source.rank ?? 1) - 1;
                 const frameRank = (source.rank ?? 1) - rank;
-                const axes = predicate.axes ?? Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
+                const axes = predicate.axes
+                ? Array.from({ length: source.rank! }, (_, axis) => axis).filter(axis => !predicate.axes!.includes(axis))
+                : Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
                 if (source.rank !== undefined && (rank < 0 || frameRank < 1
                     || axes.length !== frameRank || new Set(axes).size !== axes.length
                     || axes.some(axis => axis < 0 || axis >= source.rank!))) {
@@ -1027,9 +1029,10 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (rank < 0n || sourceRank === undefined
             || source.types.length && source.types.join() !== 'array') return;
         const axes = form.axes;
-        if (axes && (axes.length + Number(rank) !== sourceRank
+        if (axes && (axes.length !== Number(rank)
             || new Set(axes).size !== axes.length || axes.some(axis => axis < 0 || axis >= sourceRank))) return;
-        const frame = axes ? axes.map(axis => source.shape?.[axis] ?? null)
+        const frame = axes ? Array.from({ length: sourceRank }, (_, axis) => axis)
+            .filter(axis => !axes.includes(axis)).map(axis => source.shape?.[axis] ?? null)
             : source.shape?.slice(0, Math.max(0, sourceRank - Number(rank)))
                 ?? Array<number | null>(Math.max(0, sourceRank - Number(rank))).fill(null);
         if (frame.length === 0 || frame.every(n => n !== null) && frame.reduce<number>((size, n) => size * n!, 1) <= 1) return;

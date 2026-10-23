@@ -18,7 +18,7 @@ import { ResourceMap } from './resource-summary.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { filterSequence, positionalSelection, sequence, sequenceMask } from './sequence.js';
 import { selectAxis } from './selectors.js';
-import { TABLE_INPUT, collectionExpression, frameAxes, readsFields, tableExpression } from './table-expression.js';
+import { TABLE_INPUT, collectionExpression, predicateCellAxes, readsFields, tableExpression } from './table-expression.js';
 import { arrayOffset, coordinatesAt } from './tensor-index.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { selectGroupedColumnar, selectColumns, filterTable } from './table-ops.js';
@@ -232,11 +232,11 @@ export function compileTableExpression(
                             // so the mask selects along the frame rather than over atoms.
                             if (isRankArray(source) && isRankArray(mask)
                                 && mask.shape.length < source.shape.length) {
-                                return selectFrameCells(source, mask, filterFrameAxes(conditions, mask.shape.length));
+                                return selectFrameCells(source, mask, filterFrameAxes(conditions, mask.shape.length, source.shape.length));
                             }
                             if (isRankArray(source) && isRankArray(mask)
-                                && conditions.some(condition => frameAxes(condition).length)) {
-                                return selectFrameCells(source, mask, filterFrameAxes(conditions, mask.shape.length));
+                                && conditions.some(condition => predicateCellAxes(condition).length)) {
+                                return selectFrameCells(source, mask, filterFrameAxes(conditions, mask.shape.length, source.shape.length));
                             }
                             // An empty mask would read as an empty index list and select an array.
                             if (isRankArray(source) && isRankArray(mask)) return context.maskSelection(source, mask);
@@ -401,11 +401,11 @@ function ranksOf(keys: readonly (readonly (RankValue | undefined)[])[] | undefin
 }
 
 /** Every line of a filter block must address the same frame cells. */
-function filterFrameAxes(conditions: readonly Expression[], rank: number): number[] {
+function filterFrameAxes(conditions: readonly Expression[], rank: number, sourceRank: number): number[] {
     const leading = Array.from({ length: rank }, (_, axis) => axis);
     const axes = conditions.map(condition => {
-        const explicit = frameAxes(condition);
-        return explicit.length ? explicit : leading;
+        const explicit = predicateCellAxes(condition);
+        return explicit.length ? Array.from({ length: sourceRank }, (_, axis) => axis).filter(axis => !explicit.includes(axis)) : leading;
     });
     if (axes.some(frame => frame.join() !== axes[0].join())) {
         throw new RankError('filter conditions must traverse the same axes', 'DimensionMismatch');

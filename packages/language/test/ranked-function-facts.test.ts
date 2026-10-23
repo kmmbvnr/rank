@@ -35,11 +35,11 @@ it('preserves inferred result cell axes under empty and unknown frames', () => {
         .toEqual({ types: ['array'], rank: 1, shape: [null], elements: ['integer'] });
 });
 
-it('uses explicit frame axes and declines incompatible frames', () => {
+it('uses explicit cell axes and declines incompatible frames', () => {
     expect(rankedFunctionFacts([matrix], [1], inputs => {
         expect(inputs[0].shape).toEqual([2]);
         return integer;
-    }, [1])).toEqual({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+    }, [0])).toEqual({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
     for (const axes of [[0, 0], [2], [-1]]) {
         expect(rankedFunctionFacts([matrix], [1], () => integer, axes)).toEqual({ types: [] });
     }

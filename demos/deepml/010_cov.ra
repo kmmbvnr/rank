@@ -14,7 +14,6 @@ fun V covmatrix
 
   Means = V mean axis 1
   Centered = V - Means rank 1 0
-  Transposed' = Centered transpose
-  return Centered Transposed matmul / (N - 1)
+  return (Centered Centered matmul axis 1 1) / (N - 1)
 
 end

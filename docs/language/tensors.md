@@ -243,7 +243,7 @@ square numeric matrix:
 ```rank
 D = A det
 BatchDeterminants = Batch det
-Planes = T det axis 1 rank 2
+Planes = T det axis 0 2
 ```
 
 Integer-only cells produce exact `integer` results. A cell containing any
@@ -279,11 +279,12 @@ matrix and returns a real matrix with the same shape:
 ```rank
 B = A inverse
 BatchInverse = Batch inverse
-Planes = T inverse axis 1 rank 2
+Planes = T inverse axis 0 2
 ```
 
 The second expression applies to every trailing matrix cell. The third uses
-axis 1 as the frame and forms each matrix from the remaining two axes. A
+axes 0 and 2 for each matrix, preserving axis 1 as its frame. The result
+keeps the original axis positions. A
 non-square cell raises `.DimensionMismatch`; a singular cell raises
 `.SingularMatrix`. Ordinary binding completes every ranked matrix result;
 `BatchInverse' = Batch inverse` keeps a recipe. Repeated demands recompute the
@@ -440,7 +441,7 @@ For a row-wise table calculation:
 Geo distance rank 1
 ```
 
-An explicit axis list selects the frame, so non-trailing and non-contiguous
+An explicit axis list selects the cell, so non-trailing and non-contiguous
 cells do not require a transpose:
 
 ```rank
@@ -448,7 +449,7 @@ rem T has shape 2 64 128
 Rows = T normalize rank 2
 rem two cells of shape 64 128
 
-Planes = T normalize axis 1 rank 2
+Planes = T normalize axis 0 2
 rem 64 cells of shape 2 128
 ```
 
@@ -486,22 +487,22 @@ for Value i j in M rank 0
 end
 ```
 
-`axis` explicitly lists the frame axes being iterated. It is core contextual
+`axis` explicitly lists the axes of each cell. The remaining axes are iterated. It is core contextual
 vocabulary, not a reserved grammar keyword, and it comes before its numeric
 arguments so they cannot be confused with addressing:
 
 ```rank
-for Column j in M axis 1 rank 1
+for Column j in M axis 0
   Column print
 end
 
-for Line i j in T axis 0 1 rank 1
+for Line i j in T axis 2
   Line print
 end
 ```
 
 The first binding receives the cell. Subsequent bindings receive coordinates
-for the listed frame axes in the same order. Index bindings may be omitted.
+for the remaining frame axes in natural source order. Index bindings may be omitted.
 Axis numbers are zero-based and unique, and this invariant must hold:
 
 ```text

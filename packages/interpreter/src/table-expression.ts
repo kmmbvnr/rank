@@ -27,11 +27,11 @@ export function readsFields(expression: Expression): boolean {
 }
 
 /**
- * The frame axes an explicit `axis` names inside a predicate. A predicate with
+ * The cell axes an explicit `axis` names inside a predicate. A predicate with
  * a cell rank produces one mask value per frame cell, so its frame decides
  * which axes of the source the mask selects along.
  */
-export function frameAxes(expression: Expression): number[] {
+export function predicateCellAxes(expression: Expression): number[] {
     const parts = flatten(expression);
     const start = parts.findIndex(part => isNameExpression(part) && part.name === 'axis');
     if (start < 0) return [];
@@ -74,7 +74,7 @@ export function collectionExpression(expression: Expression, cellRank?: number):
         // A filter predicate receives one cell along the selected frame axis.
         // An explicit rank still chooses a different cell size.
         const parts = flatten(node);
-        const ranked = parts.some(part => isNameExpression(part) && part.name === 'rank');
+        const ranked = parts.some(part => isNameExpression(part) && (part.name === 'rank' || part.name === 'axis'));
         const predicate = isNameExpression(parts[0]);
         const call = [input, ...parts];
         if (predicate && !ranked && cellRank !== undefined) {

@@ -283,7 +283,9 @@ function evaluateFacts(expression: Expression, lookup: FactLookup): ValueFacts {
             && lookup(predicate.name)?.types.join() === 'function') {
             const cellRank = predicate.rank ?? source.rank - 1;
             const frameRank = source.rank - cellRank;
-            const axes = predicate.axes ?? Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
+            const axes = predicate.axes
+                ? Array.from({ length: source.rank! }, (_, axis) => axis).filter(axis => !predicate.axes!.includes(axis))
+                : Array.from({ length: Math.max(0, frameRank) }, (_, axis) => axis);
             const validAxes = axes.length === frameRank && new Set(axes).size === axes.length
                 && axes.every(axis => axis >= 0 && axis < source.rank!);
             if (cellRank === 0 && validAxes) {

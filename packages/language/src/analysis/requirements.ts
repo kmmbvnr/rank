@@ -172,7 +172,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (shape.rank === undefined) return undefined;
             const cell = rank < 0 ? Math.max(0, shape.rank + rank) : Math.min(rank, shape.rank);
             const frame = shape.rank - cell;
-            return frame === 0 ? [] : axes ? axes.map(axis => shape.shape?.[axis]) : shape.shape?.slice(0, frame);
+            return frame === 0 ? [] : axes ? Array.from({ length: shape.rank }, (_, axis) => axis).filter(axis => !axes.includes(axis)).map(axis => shape.shape?.[axis]) : shape.shape?.slice(0, frame);
         };
         const entersCells = (arg: Value, rank: number, axes?: readonly number[]): boolean =>
             frameLengths(arg, rank, axes)?.every(n => n !== null && n !== undefined && n > 0) === true;
@@ -253,8 +253,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const count = graph.shape(arg).rank;
                 const cellCount = count === undefined ? undefined : rank < 0 ? Math.max(0, count + rank) : Math.min(rank, count);
                 if (count !== undefined && cellCount !== undefined) {
-                    const selected = axes ? new Set(axes) : new Set(Array.from({ length: count - cellCount }, (_, n) => n));
-                    const cellAxes = Array.from({ length: count }, (_, n) => n).filter(axis => !selected.has(axis));
+                    const cellAxes = axes ? [...axes].sort((a, b) => a - b) : Array.from({ length: cellCount }, (_, n) => count - cellCount + n);
                     for (const [axis, sourceAxis] of cellAxes.entries()) cell.dimensions.set(axis, graph.dimension(arg, sourceAxis));
                 }
                 frames.push(frame);
@@ -293,7 +292,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 graph.solver.frame(args[0].rank, frame.rank, cells[0], site(node, `${definition.name} frame`));
                 graph.solver.sum(args[0].rank, frame.rank, instance.params[0].rank, site(node, `${definition.name} cell`));
                 graph.solver.sum(output.rank, frame.rank, instance.result.rank, site(node, `${definition.name} result`));
-                if (axes && cells[0] >= 0) requireRank(args[0], axes.length + cells[0], axes.length + cells[0], node, 'axis count + cell rank');
+                if (axes && cells[0] >= 0) requireRank(args[0], Math.max(...axes) + 1, Infinity, node, 'selected cell axes');
             }
         };
         function expression(node: Expression): Value {
@@ -409,7 +408,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     if (operation) { signature(operation, args, output, node, ranks, form.axes); builtinEffects(operation, args); }
                 }
                 if (form.axes && args.length === 1 && ranks[0] >= 0) {
-                    requireRank(args[0], form.axes.length + ranks[0], form.axes.length + ranks[0], node, 'axis count + cell rank');
+                    requireRank(args[0], Math.max(...form.axes) + 1, Infinity, node, 'selected cell axes');
                 }
                 return output;
             }

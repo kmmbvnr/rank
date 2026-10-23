@@ -1,5 +1,5 @@
 import {
-    flattenApplication, forIteration, isNameExpression, isNumberLiteral,
+    flattenApplication, forIteration, isNameExpression,
     type Expression, type ForBinding, type ForStatement, type Statement,
 } from '@arrrank/language';
 import { arrayCells, arrayValues, materializedArrayItems, ownedArray, storedScalarKinds } from '../array-storage.js';
@@ -273,28 +273,20 @@ interface TensorIterationSpec {
 
 function tensorIterationSpec(expression: Expression): TensorIterationSpec | undefined {
     const parts = flattenApplication(expression);
-    const rankWord = parts.at(-2);
-    const rankValue = parts.at(-1);
-    if (!rankWord || !rankValue || !isNameExpression(rankWord)
-        || rankWord.name !== 'rank' || !isNumberLiteral(rankValue)
-        || typeof rankValue.value !== 'bigint') return undefined;
-
-    const cellRank = safeDimension(rankValue.value, 'rank');
-    const beforeRank = parts.slice(0, -2);
-    const axisPosition = beforeRank.findIndex(part => isNameExpression(part) && part.name === 'axis');
+    const axisPosition = parts.findIndex(part => isNameExpression(part) && part.name === 'axis');
+    const rankPosition = parts.findIndex(part => isNameExpression(part) && part.name === 'rank');
+    if (axisPosition < 0 && rankPosition < 0) return undefined;
+    const cellRank = rankPosition < 0 ? undefined : safeDimension(integerLiteral(parts[rankPosition + 1], 'rank'), 'rank');
+    if (rankPosition >= 0 && rankPosition !== parts.length - 2) throw new RankError('rank expects one integer');
     if (axisPosition < 0) {
-        if (beforeRank.length !== 1) return undefined;
-        return { source: beforeRank[0], cellRank };
+        if (rankPosition !== 1) return undefined;
+        return { source: parts[0], cellRank: cellRank! };
     }
-    if (axisPosition !== 1 || beforeRank.length === 2) {
-        throw new RankError('axis expects an array followed by one or more axis numbers');
-    }
-    const axisParts = beforeRank.slice(2);
-    return {
-        source: beforeRank[0],
-        axes: axisParts.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')),
-        cellRank,
-    };
+    if (axisPosition !== 1) throw new RankError('axis expects an array followed by one or more cell axes');
+    const axisParts = parts.slice(2, rankPosition < 0 ? undefined : rankPosition);
+    if (!axisParts.length) throw new RankError('axis expects one or more cell axes');
+    const axes = axisParts.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis'));
+    return { source: parts[0], axes, cellRank: cellRank ?? axes.length };
 }
 
 function validateForBindings(names: readonly string[], frameRank: number): void {

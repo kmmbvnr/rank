@@ -38,9 +38,9 @@ describe('intrinsic matrix cells', () => {
         const source = `${prefix}A = array shape 2 3 4 fill 2\nd = diag\n`;
         expect(run(`${source}A d shape`)).toBe('2 3');
         expect(run(`${source}(A d .anti 1) shape`)).toBe('2 3');
-        expect(run(`${source}A diag axis 1 rank 2 shape`)).toBe('3 2');
+        expect(run(`${source}A diag axis 0 2 shape`)).toBe('3 2');
         expect(analyzeValues(parse(`${source}R = A d`)).bindings.get('R')?.shape).toEqual([2, 3]);
-        expect(analyzeValues(parse(`${source}R = A diag axis 1 rank 2`)).bindings.get('R')?.shape).toEqual([3, 2]);
+        expect(analyzeValues(parse(`${source}R = A diag axis 0 2`)).bindings.get('R')?.shape).toEqual([3, 2]);
     });
 
     it('assembles eigenvalue/eigenvector tuples as one element per matrix cell', () => {

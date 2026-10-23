@@ -464,7 +464,7 @@ describe('Rank grammar', () => {
     it('parses determinant application with rank and axis', async () => {
         const document = await parse([
             'use linalg',
-            'Values = T det axis 1 rank 2',
+            'Values = T det axis 0 2',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
@@ -661,7 +661,7 @@ describe('Rank grammar', () => {
 
     it('parses tensor for bindings with axis and cell rank', async () => {
         const document = await parse([
-            'for Line i j in T axis 0 1 rank 1',
+            'for Line i j in T axis 2',
             '  Total += Line 0',
             'end',
         ].join('\n'));

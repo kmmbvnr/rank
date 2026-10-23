@@ -1,3 +1,4 @@
+import { permutedArray } from './array-permutation.js';
 import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
@@ -5,7 +6,7 @@ import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
 import { ALL_AXIS, atArray, sliceArray, tensorSelection } from './selectors.js';
 import { rankedNumericFind } from './numeric-search.js';
-import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, prepareArrayRead, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
 import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, flatMapResult, mapExecution, type Evaluation } from './execution.js';
@@ -41,14 +42,14 @@ export class RankApplication {
         value: RankValue,
         fn: Extract<RankValue, { kind: 'function' }>,
         cellRank: number,
-        frameAxes?: readonly number[],
+        cellAxes?: readonly number[],
     ): Evaluation<RankValue> {
         if (fn.name === 'text' && isRankSqliteExpression(value)) {
             return completed(textFunctionSqlite(
                 value.boolean ? 'rank_boolean_text' : 'rank_text', [value]));
         }
-        if (frameAxes !== undefined && !isRankArray(value)) {
-            throw new RankError('axis rank expects an array');
+        if (cellAxes !== undefined && !isRankArray(value)) {
+            throw new RankError('axis expects an array');
         }
         if (cellRank < 0) {
             // Text and sequences have one axis of elements.
@@ -69,10 +70,27 @@ export class RankApplication {
                 [new Map<string, RankValue>([['source', value], ['callback', fn]])]));
         }
         if (isRankArray(value)) {
-            if (frameAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
-            const axes = tensorFrameAxes(value.shape, frameAxes, cellRank);
+            if (cellAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
+            const axes = tensorFrameAxes(value.shape, cellAxes, cellRank);
             if (axes.length === 0) return this.invoke(fn, [value]);
-            return completed(this.applyToTensorCells(value, fn, axes));
+            const result = this.applyToTensorCells(value, fn, axes);
+            // Explicit cell axes retain their positions when the callback returns
+            // the same cell rank. Rank-only application still stacks frame + cell.
+            if (cellAxes && isRankArray(result) && result.shape.length === value.shape.length) {
+                const order = [...axes, ...value.shape.map((_, axis) => axis).filter(axis => cellAxes.includes(axis))];
+                const permutation = value.shape.map((_, axis) => order.indexOf(axis));
+                if (permutation.every((axis, index) => axis === index)) return completed(result);
+                const restored = permutedArray(result, permutation);
+                if (isPureLazyFunction(fn)) registerArrayReadPlan(restored, { prepare: () => {
+                    const read = prepareArrayRead(result);
+                    return read && (index => {
+                        const coordinates = coordinatesAt(restored.shape, index);
+                        return read(arrayOffset(result.shape, order.map(axis => coordinates[axis])));
+                    });
+                } });
+                return completed(restored);
+            }
+            return completed(result);
         }
         return this.invoke(fn, [value]);
     }
@@ -395,17 +413,15 @@ export function tensorFrameAxes(
     if (cellRank > shape.length) {
         throw new RankError(`rank ${cellRank} exceeds tensor rank ${shape.length}`);
     }
-    const frameRank = shape.length - cellRank;
-    const axes = specifiedAxes ?? Array.from({ length: frameRank }, (_, index) => index);
-    if (axes.length !== frameRank) {
-        throw new RankError(
-            `axis count ${axes.length} plus cell rank ${cellRank} must equal tensor rank ${shape.length}`,
-        );
+    if (specifiedAxes === undefined) return Array.from({ length: shape.length - cellRank }, (_, index) => index);
+    if (new Set(specifiedAxes).size !== specifiedAxes.length) throw new RankError('axis numbers must be unique');
+    for (const axis of specifiedAxes) {
+        if (!Number.isSafeInteger(axis) || axis < 0 || axis >= shape.length) throw new RankError(`axis out of bounds: ${axis}`);
     }
-    if (new Set(axes).size !== axes.length) throw new RankError('axis numbers must be unique');
-    for (const axis of axes) {
-        if (axis >= shape.length) throw new RankError(`axis out of bounds: ${axis}`);
+    if (specifiedAxes.length !== cellRank) {
+        throw new RankError(`axis count ${specifiedAxes.length} must equal cell rank ${cellRank}`);
     }
+    const axes = shape.map((_, axis) => axis).filter(axis => !specifiedAxes.includes(axis));
     return axes;
 }
 

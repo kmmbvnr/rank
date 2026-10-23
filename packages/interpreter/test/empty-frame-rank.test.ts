@@ -41,7 +41,7 @@ describe('Rank over an empty frame', () => {
     });
 
     it('uses the cell shape of explicit frame axes', () => {
-        expect(shape('T = array shape 2 0 4 fill 1\nR = T sort axis 1 0 rank 1')).toBe('0 2 4');
+        expect(shape('T = array shape 2 0 4 fill 1\nR = T sort axis 2')).toBe('2 0 4');
         expect(shape('use linalg\nB = array shape 0 2 2 fill 1\nR = B det')).toBe('0');
     });
 

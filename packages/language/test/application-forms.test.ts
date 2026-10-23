@@ -16,7 +16,7 @@ it.each([
     ['new graph with linked .directed', 'new-graph'],
     ['new graph Nodes with linked .directed .cached', 'invalid'],
     ['A diag .anti', 'diagonal'], ['A diag -1', 'diagonal'],
-    ['A diag .anti K rank 2', 'diagonal'], ['A diag .anti 1 axis 0 rank 2', 'diagonal'],
+    ['A diag .anti K rank 2', 'diagonal'], ['A diag .anti 1 axis 1 2', 'diagonal'],
     ['A len axis 1', 'axis-length'], ['A sum axis 1', 'axis-reduction'],
     ['A argsort axis 1', 'axis-argsort'], ['A shuffle axis 1', 'axis-shuffle'],
     ['A 0.5 quantile axis 1', 'axis-quantile'], ['A B mse axis 1', 'axis-metric'],

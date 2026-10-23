@@ -36,8 +36,8 @@ describe.each([false, true])('empty ranked composition (compilation=%s)', compil
         ['Rows log', [2, 0], ['1', '2']],
         ['Rows vector rank 0', [2, 0, 2], ['1', '2']],
         ['(Rows vector rank 0) 1', [0, 2], ['2']],
-        ['Rows vector axis 1 0 rank 0', [0, 2, 2], ['1', '2']],
-        ['(Rows vector axis 1 0 rank 0) # 1 #', [0, 2], ['2']],
+        ['Rows transpose vector rank 0', [0, 2, 2], ['1', '2']],
+        ['(Rows transpose vector rank 0) # 1 #', [0, 2], ['2']],
         ['Rows transpose sum rank 1', [0], ['1', '2']],
         ['Rows transpose vector rank 1', [0, 2], ['1', '2']],
         ['Rows (array 10) both', [2, 0, 2], ['1', '2']],
@@ -109,7 +109,7 @@ Saved = ${expression} (array shape 0 fill 0) find`);
         try {
             runtime.execute(`${setup}
 Cube' = ((1 to 6) reshape 2 3) empty rank 0
-Mapped' = Cube vector axis 2 1 0 rank 0
+Mapped' = Cube transpose vector rank 0
 Saved = Mapped`);
             expect(runtime.variables.get('Saved')).toMatchObject({ shape: [0, 3, 2, 2] });
             expect(output).toEqual(['1', '4', '2', '5', '3', '6']);

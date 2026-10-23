@@ -629,8 +629,8 @@ Mask = Names at most "M"
 ```
 
 For whole-cell comparisons use postfix `A B equal rank 1` (vectors),
-`A B equal rank 2` (matrices), or an explicit frame axis such as
-`A B equal axis 1 rank 1` (matrix columns). The same modifiers support
+`A B equal rank 2` (matrices), or explicit cell axes such as
+`A B equal axis 0` (matrix columns). The same modifiers support
 `not equal`, `less`, `greater`, `at least`, and `at most`; see
 [Binary comparison rank](sequences-arrays.md#binary-comparison-rank).
 

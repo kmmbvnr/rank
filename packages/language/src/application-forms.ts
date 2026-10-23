@@ -47,7 +47,7 @@ export function diagonalForm(
     const offset = next && !isNamed(next, 'rank', nameOf) && !isNamed(next, 'axis', nameOf) ? parts[end++] : undefined;
     const base = [applicationExpression(parts.slice(0, index)), parts[index]];
     const suffix = parts.slice(end);
-    const ranked = suffix.length ? explicitRankApplication([...base, ...suffix], nameOf) : undefined;
+    const ranked = suffix.length ? (explicitRankApplication([...base, ...suffix], nameOf) ?? explicitCellAxisApplication([...base, ...suffix], nameOf)) : undefined;
     if (suffix.length && !ranked) return undefined;
     return { kind: 'diagonal', source: base[0], mode, offset, rank: ranked?.rank, axes: ranked?.axes };
 }
@@ -577,6 +577,8 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form19) return { ...form19, kind: 'functional-method' };
     const form20 = explicitMultisetMethod(parts, nameOf);
     if (form20) return { ...form20, kind: 'multiset-method' };
+    const cellAxes = explicitCellAxisApplication(parts, nameOf);
+    if (cellAxes) return { ...cellAxes, kind: 'rank' };
     return { kind: 'plain' };
 }
 
@@ -780,6 +782,15 @@ function rankLiteral(part: Expression | undefined): number | undefined {
     return Number(value);
 }
 
+/** Generic cell axes are a set in source order; rank is optional and must agree. */
+function explicitCellAxisApplication(parts: Expression[], nameOf: NameOf):
+    { parts: Expression[]; rank: bigint; axes: readonly number[] } | undefined {
+    if (!isNamed(parts[2], 'axis', nameOf)) return undefined;
+    if (parts.length < 4) throw new ApplicationSyntaxError('axis expects one or more cell axes');
+    const axes = parts.slice(3).map(axis => literalDimension(integerLiteral(axis, 'axis'), 'axis'));
+    return { parts: parts.slice(0, 2), rank: BigInt(axes.length), axes };
+}
+
 function explicitRankApplication(
     parts: Expression[], nameOf: NameOf,
 ): { parts: Expression[]; rank: bigint; rightRank?: bigint; axes?: readonly number[] } | undefined {
@@ -805,7 +816,7 @@ function explicitRankApplication(
     if (axisPosition < 0) return { parts: beforeRank, rank: BigInt(cellRank) };
     if (axisPosition !== 2 || beforeRank.length === 3) {
         throw new ApplicationSyntaxError(
-            'axis rank expects data and a unary operation followed by one or more frame axes',
+            'axis rank expects data and a unary operation followed by one or more cell axes',
         );
     }
     return {
@@ -832,13 +843,14 @@ function explicitComparisonRank(expression: Expression): ComparisonRank | undefi
     const parts = flattenApplication(expression.right);
     if (!isNamed(parts[0], 'rank') && !isNamed(parts[0], 'axis')) return undefined;
     const rankIndex = parts.findIndex(part => isNamed(part, 'rank'));
-    if (rankIndex < 0 || rankIndex !== parts.length - 2
-        || (isNamed(parts[0], 'rank') ? rankIndex !== 0 : rankIndex < 2)) {
-        throw new ApplicationSyntaxError('comparison expects rank R or axis A ... rank R');
+    if (rankIndex >= 0 && (rankIndex !== parts.length - 2
+        || (isNamed(parts[0], 'rank') ? rankIndex !== 0 : rankIndex < 2))) {
+        throw new ApplicationSyntaxError('comparison expects rank R or axis A ...');
     }
-    const rank = literalDimension(integerLiteral(parts[rankIndex + 1], 'rank'), 'rank');
-    const axes = rankIndex === 0 ? undefined : parts.slice(1, rankIndex)
-        .map(axis => literalDimension(integerLiteral(axis, 'axis'), 'axis'));
+    const axes = isNamed(parts[0], 'axis') ? parts.slice(1, rankIndex < 0 ? undefined : rankIndex)
+        .map(axis => literalDimension(integerLiteral(axis, 'axis'), 'axis')) : undefined;
+    if (axes && !axes.length) throw new ApplicationSyntaxError('axis expects one or more cell axes');
+    const rank = rankIndex < 0 ? axes!.length : literalDimension(integerLiteral(parts[rankIndex + 1], 'rank'), 'rank');
     const operands = flattenApplication(expression.left);
     if (operands.length !== 2) throw new ApplicationSyntaxError(`rank comparison expects two operands, got ${operands.length}`);
     return { operator: expression.operator, left: operands[0], right: operands[1], rank, axes };

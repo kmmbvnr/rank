@@ -317,7 +317,7 @@ it('keeps trailing matrix dimensions after a row predicate', () => {
     expect(facts('Matrix filter heavy', new Map([['Matrix', matrix], ['heavy', predicate]]))).toEqual({
         types: ['array'], rank: 2, shape: [null, 2], elements: ['integer'],
     });
-    expect(facts('Matrix filter heavy axis 1', new Map([['Matrix', matrix], ['heavy', predicate]]))).toEqual({
+    expect(facts('Matrix filter heavy axis 0', new Map([['Matrix', matrix], ['heavy', predicate]]))).toEqual({
         types: ['array'], rank: 2, shape: [3, null], elements: ['integer'],
     });
 });
@@ -329,13 +329,13 @@ it('infers the remaining cell axes when a tensor filter traverses several axes',
     expect(facts('Tensor filter heavy rank 1', bindings)).toEqual({
         types: ['array'], rank: 2, shape: [null, 4], elements: ['integer'],
     });
-    expect(facts('Tensor filter heavy axis 0 2 rank 1', bindings)).toEqual({
+    expect(facts('Tensor filter heavy axis 1', bindings)).toEqual({
         types: ['array'], rank: 2, shape: [null, 3], elements: ['integer'],
     });
-    expect(facts('Tensor filter heavy axis 1 2 rank 1', bindings)).toEqual({
+    expect(facts('Tensor filter heavy axis 0', bindings)).toEqual({
         types: ['array'], rank: 2, shape: [2, null], elements: ['integer'],
     });
-    expect(facts('Tensor filter\n  heavy axis 1 2 rank 1\n  heavy axis 1 2 rank 1\nend', bindings)).toEqual({
+    expect(facts('Tensor filter\n  heavy axis 0\n  heavy axis 0\nend', bindings)).toEqual({
         types: ['array'], rank: 2, shape: [2, null], elements: ['integer'],
     });
 });
@@ -1330,8 +1330,8 @@ it('uses cell signatures for explicit ranks and reordered frame axes', () => {
         ['A', { types: ['array'], rank: 3, shape: [2, 0, 4] }],
         ['B', { types: ['array'], rank: 2, shape: [2, 3] }],
     ]);
-    expect(facts('A sort axis 1 0 rank 1', bindings))
-        .toEqual({ types: ['array'], rank: 3, shape: [0, 2, 4] });
+    expect(facts('A sort axis 2', bindings))
+        .toEqual({ types: ['array'], rank: 3, shape: [2, 0, 4] });
     expect(facts('B sum rank 1', bindings)).toEqual({ types: ['array'], rank: 1, shape: [2] });
     expect(facts('B unique rank 1', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, null] });
     expect(facts('B B atan2 rank 0 0', bindings)).toEqual({ types: ['array'], rank: 2, shape: [2, 3] });
@@ -1416,7 +1416,7 @@ it('warns when rank lifts a function with a data-dependent result length', () =>
 });
 
 it('warns when explicit frame axes lift a data-dependent result', () => {
-    const source = 'use sequences\nM = array 1 1 2 3 shape 2 2\n(M unique axis 0 rank 1) print\n';
+    const source = 'use sequences\nM = array 1 1 2 3 shape 2 2\n(M unique axis 1) print\n';
     expect(ragged(source)).toMatchObject([{ severity: 'warning', message: expect.stringContaining('`unique`') }]);
 });
 

@@ -21,8 +21,7 @@ fun X Y W Rate Iter Size Mode descent
   for # in 0 till Iter
     if Mode equal .batch
       Error = X W matmul - Y
-      XT' = X transpose
-      Gradient' = XT Error matmul
+      Gradient' = X Error matmul axis 0 0
       Gradient' = Gradient * 2 / N
       W -= Rate * Gradient
       continue
@@ -43,8 +42,7 @@ fun X Y W Rate Iter Size Mode descent
         Xb = X (I till J)
         Yb' = Y (I till J)
         Error = Xb W matmul - Yb
-        XT' = Xb transpose
-        Gradient' = XT Error matmul
+        Gradient' = Xb Error matmul axis 0 0
         Gradient' = Gradient * 2 / Size
         W -= Rate * Gradient
       end

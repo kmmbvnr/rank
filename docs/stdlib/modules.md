@@ -477,7 +477,7 @@ of diagonal matrices with shape `[B N N]`. No batch interpretation is guessed.
 Empty frames preserve every shape-determined result axis, including offsets.
 
 Parameters configure the unary operation before `rank`; they are not ranked
-data operands. Existing frame-axis selection retains its meaning:
+data operands. Explicit cell-axis selection applies after diagonal configuration:
 
 ```rank
 Lines = Windows diag .anti 1
@@ -530,14 +530,14 @@ matrix:
 ```rank
 D = A det
 BatchDeterminants = Batch det
-Planes = T det axis 1 rank 2
+Planes = T det axis 0 2
 ```
 
 Integer-only matrices produce exact `integer` results; matrices containing a
 `real` produce `real`. A singular matrix returns zero, and the determinant of a
 `0` by `0` matrix is one. A non-square matrix raises `.DimensionMismatch`; a
 nonnumeric element raises `.TypeError`. Higher-rank inputs use the ordinary
-trailing-cell and `axis ... rank 2` rules.
+trailing-cell and explicit cell-axis rules.
 
 `solve` directly solves `A * X = B`:
 
@@ -584,10 +584,10 @@ BatchInverse = Batch inverse
 
 It accepts a square rank-2 matrix and returns a real matrix of the same shape.
 On a higher-rank tensor it applies independently to every trailing matrix cell.
-The ordinary `axis ... rank 2` form selects matrices on other axes:
+An explicit pair of cell axes selects matrices on other axes:
 
 ```rank
-Planes = T inverse axis 1 rank 2
+Planes = T inverse axis 0 2
 ```
 
 A non-square cell raises `.DimensionMismatch`; a singular cell raises

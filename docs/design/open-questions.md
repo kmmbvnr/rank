@@ -576,34 +576,15 @@ short one-line formulas, but introduce two substitution pitfalls for learners:
    explicit filtering or selection; ordered boolean extrema remain supported.
    See [Selection with boolean masks](../language/sequences-arrays.md#selection-with-boolean-masks).
 
-## Disambiguating `axis` and `rank` roles
+## Disambiguating `axis` and `rank` roles — resolved in #430
 
-`rank` and `axis` scale Rank from vectors to multidimensional tensors
-(see [Tensors](../language/tensors.md)), but the word `axis` currently carries
-several distinct — and sometimes opposite — meanings depending on context:
+Generic `axis` selects cell axes; the complement is the frame. Same-rank array
+results retain source-axis placement. `rank` alone keeps trailing-cell selection
+and frame-then-cell assembly. See [the canonical rules](../language/sequences-arrays.md#rank).
 
-1. **Consumed / reduced dimension:** In `A mean axis 0` or `T sum axis 0 2`,
-   `axis` names the coordinate dimensions collapsed by the reduction.
-2. **Preserved frame dimension (with `rank`):** In `T normalize axis 1 rank 2`
-   or `for Column j in M axis 1 rank 1`, `axis 1` names the *frame* axis that is
-   iterated or preserved on the outside, while the operation applies to the
-   remaining cell axes (`number of frame axes + cell rank = tensor rank`).
-3. **Positional slice selector:** In `M axis 1 j` or `M axis 1 array 0 2 5`,
-   `axis` selects the coordinate dimension being indexed (equivalent to `M # j`).
-4. **Operation-specific axis contract:** In `Samples covariance axis 1 0` (feature
-   axis, then observation axis), `A B matmul axis 2 0` (left contracted axis,
-   then right contracted axis), or `T transpose axis 2 0 1` (output axis
-   permutation), the numbers after `axis` have operation-specific positional
-   roles.
-
-- *Open questions:*
-  - Should the "collapsed axis" role and the "preserved frame axis" role use
-    distinct vocabulary (e.g. `along` / `axis` vs frame selection, or clearer
-    teaching/diagnostic separation) so that `axis` does not mean "dimension
-    consumed by the operation" in one line and "outer frame dimension kept
-    outside the operation" in the next?
-  - How can the mental model progress smoothly from BASIC-level 1D/2D loops to
-    APL/J-style frame/cell rank polymorphism without a steep cognitive cliff?
+Independent cell-axis selection for the two arguments of an arbitrary binary
+function remains open. The existing `matmul` contraction pair, covariance's
+feature/observation pair, and `transpose` permutation keep their own contracts.
 
 ## Smoothing the "modern BASIC" learning curve (follow-up directions)
 
@@ -619,8 +600,6 @@ future design evaluation:
    writability modes (`=` completing sequences vs keeping lazy array views,
    `'= ` deferred plans freezing captured bindings, prefix/postfix `array`, and
    postfix `copy` for writable storage) during ordinary array work.
-3. **Separating axis collapse from frame selection (`along` / `axis` vs `rank`):**
-   Clearly separate in teaching materials — and potentially in surface keywords
-   (such as distinguishing collapsing an axis via `along` / `axis` from choosing
-   frame axes for `rank`) — so that the single word `axis` does not mean opposite
-   things in two adjacent lines of code.
+3. **Axis polarity — resolved:** Generic `axis` names the operated-on cell axes.
+   Teaching can start with rows (`axis 1`) and columns (`axis 0`), then introduce
+   the remaining frame and bare `rank` for trailing cells.

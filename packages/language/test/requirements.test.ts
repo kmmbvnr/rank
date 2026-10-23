@@ -41,7 +41,7 @@ it('does not impose a lower bound for clamped or negative ordinary ranks', () =>
     expect(infer('A = array 1 2\nA sum rank 5').conflicts).toEqual([]);
     expect(infer('A = array 1 2\nA sum rank -1').conflicts).toEqual([]);
     expect(binding('A = Input decode\nA + reduce rank 3', 'A').rank.min).toBe(3);
-    expect(binding('A = Input decode\nA sum axis 0 rank 2', 'A').rank).toMatchObject({ min: 3, max: 3 });
+    expect(binding('A = Input decode\nA sum axis 0 2', 'A').rank).toMatchObject({ min: 3, max: Infinity });
 });
 it('propagates lifted-result requirements without merging separate calls', () => {
     const source = 'fun X parse\n return X decode\nend\nData = array shape 3 4 fill 1\nRows = Data parse rank 1\nRows # 2';

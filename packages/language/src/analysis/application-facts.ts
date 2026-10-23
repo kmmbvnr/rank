@@ -153,6 +153,24 @@ export function applicationExpressionFacts(
 export function applicationFormFacts(expression: Expression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     switch (form.kind) {
+        case 'axis-matmul': {
+            const operands = [infer(form.left, lookup), infer(form.right, lookup)];
+            const reordered = operands.map((value, side) => {
+                const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
+                const axis = form.axes[side];
+                if (value.types.join() !== 'array' || !shape || axis < 0 || axis >= shape.length) return undefined;
+                const rest = shape.filter((_, index) => index !== axis);
+                return { ...value, shape: side === 0 ? [...rest, shape[axis]] : [shape[axis], ...rest] };
+            });
+            if (!reordered[0] || !reordered[1]) return UNKNOWN_VALUE;
+            const operation = findOperation('matmul')!;
+            const shaped = operationShapeFacts(operation, [reordered[0], reordered[1]], ['all', 'all']);
+            if (!shaped) return UNKNOWN_VALUE;
+            const types: Types = operands.every(value => value.elements?.length && value.elements.every(type => type === 'integer'))
+                ? ['integer'] : ['integer', 'real'];
+            return shaped.rank === 0 ? { ...shaped, types } : { ...shaped, elements: types,
+                ...(hasNumericArrayNoCallbackProof(operation, operands) ? { callbackFreeScalarCells: true as const } : {}) };
+        }
         case 'diagonal': {
             const source = infer(form.source, lookup);
             const offsetFacts = form.offset ? infer(form.offset, lookup) : undefined;
@@ -290,7 +308,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             return isApplicationExpression(expression)
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         // These forms have runtime implementations but no abstract transfer yet.
-        case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-matmul': case 'axis-quantile':
+        case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-quantile':
         case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
         case 'axis-transpose': case 'axis-selection':
             return UNKNOWN_VALUE;

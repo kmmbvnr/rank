@@ -305,7 +305,7 @@ it('summarizes the normal-equation pipeline for callback-free numeric arrays', (
     expect(analyze(source, 'linear_regression', ['matmul'], [matrix, vector]).unknown).toBe(true);
 });
 
-it('summarizes the unchanged gradient-descent loop for callback-free numeric arrays', () => {
+it('summarizes the axis-contracted gradient-descent loop for callback-free numeric arrays', () => {
     const source = readFileSync(new URL('../../../demos/deepml/015_gd.ra', import.meta.url), 'utf8');
     const matrix: ValueFacts = { types: ['array'], rank: 2, shape: [3, 2], elements: ['integer'],
         eagerScalarCells: true };
@@ -317,7 +317,7 @@ it('summarizes the unchanged gradient-descent loop for callback-free numeric arr
         .toMatchObject({ unknown: false, io: false });
     expect(analyze(source, 'linear_regression', [], [{ ...matrix, eagerScalarCells: undefined }, vector, rate, steps])
         .unknown).toBe(true);
-    expect(analyze(source, 'linear_regression', ['transpose'], [matrix, vector, rate, steps]).unknown)
+    expect(analyze(source, 'linear_regression', ['matmul'], [matrix, vector, rate, steps]).unknown)
         .toBe(true);
 });
 

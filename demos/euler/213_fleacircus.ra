@@ -57,8 +57,8 @@ Dm' = D reshape Z Fn
 Pq' = (1 - Dm) reduce * rank 1
 M = Pq reshape N N
 Mv = M reverse
-Mh' = M transpose reverse transpose
-Mb' = Mv transpose reverse transpose
+Mh' = M reverse axis 1
+Mb' = Mv reverse axis 1
 Empty' = M * Mv * Mh * Mb
 Answer = Empty sum 6 round
 Answer print
