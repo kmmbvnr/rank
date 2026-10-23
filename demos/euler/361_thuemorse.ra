@@ -10,7 +10,7 @@ option Power integer = 18
 option Mod integer = 10 ** 9
 
 rem Factors beginning with one.
-fun N count
+memo N count
   if N at most 3
     return N
   end
@@ -24,7 +24,7 @@ fun N count
 end
 
 rem Cumulative factor count.
-fun N prefix
+memo N prefix
   if N at most 3
     return N * (N + 1) // 2
   end

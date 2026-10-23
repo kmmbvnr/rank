@@ -121,7 +121,6 @@
   "euler/399_squarefree.ra": "Full input prepares prime ranks through 5714285 and searches 100 million squarefree Fibonacci indices; it exceeds 30 seconds before output (issue #396). Small statement examples remain in 399_squarefree_test.ra.",
   "euler/110_reciprocals2.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
   "euler/110_reciprocals2_default_test.ra": "Default Target=4000000 expands prime-exponent candidate tensors and exceeds 30 seconds before output; smaller targets remain in 110_reciprocals2_test.ra.",
-  "euler/361_thuemorse.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/362_squarefree.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/370_triangles.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/372_pencils.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
