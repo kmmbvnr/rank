@@ -67,6 +67,15 @@ also use the array-output terminal without requiring a source-level `copy`:
 Packed = (Numerator + Shift) * Width + Denominator
 ```
 
+Stored vector gathers can feed these arithmetic expressions in the same loop:
+
+```rank
+Va = W * Pv Tg mod Md
+```
+
+Boolean filters keep ordinary execution on this implicit path. Explicit copy
+and reduction kernels retain their existing selection support.
+
 This path fuses one expression and keeps named bindings observable. It accepts
 stored numeric arrays and scalar operands, including trailing-axis broadcasting.
 It does not merge arbitrary statements or evaluate unread lazy inputs. Division,
@@ -80,6 +89,10 @@ Runtime binding
 supplies shapes, scalar values and storage offsets before emitting a cached
 JavaScript loop. Source kernels never eliminate or skip other assignments.
 Typed input buffers are read in place rather than unpacked into ordinary arrays.
+Fixed-size copy outputs with a proved integer or real domain write directly to
+`BigInt64Array` or `Float64Array`. Integers below the existing packing threshold
+stay boxed; an Int64 overflow preserves exact values by switching to boxed
+storage. Layout and executable caches distinguish physical input backing types.
 `benchmarks/tensor-expression.mjs` compares implicit expression fusion against
 separate passes for integer polynomials, real arithmetic and matrix/vector
 broadcasting, checking every result against an independent oracle.

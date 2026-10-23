@@ -35,6 +35,56 @@ function compare(source: string) {
     return actual;
 }
 
+describe('completed gather arithmetic', () => {
+    const source = `use sequences
+W = array 1 2 3 4
+Pv = array 7 11 13
+Ix = array 2 0 1 2
+Va = W * Pv Ix mod 17
+Va`;
+
+    it('fuses an ordinary gather/multiply/mod assignment before the next statement', () => {
+        const actual = compare(source);
+        expect(actual.value).toBe('13 14 16 1');
+        expect(actual.kernels).toBe(1);
+        expect(actual.compiled[0]).toContain('new IntegerCells(size)');
+    });
+
+    it.each(['array 2 0 1 -1', 'array 2 0 1 3', 'array 2 0 1 9007199254740993', 'array 2.0 0.0 1.0 2.0'])
+    ('keeps selector failures for %s', indices => {
+        expect(compare(source.replace('array 2 0 1 2', indices))).toHaveProperty('error');
+    });
+
+    it('retains escaped results and input snapshots across subsequent writes', () => {
+        const actual = compare(source + '\nAlias = Va\nPv 0 = 99\nVa 0 = 3\narray Alias Va');
+        expect(actual).not.toHaveProperty('error');
+        expect(actual.value).toContain('13 14 16 1');
+        expect(actual.value).toContain('3 14 16 1');
+    });
+
+    it('preserves empty-domain arithmetic failures', () => {
+        const empty = source.replace('array 1 2 3 4', 'array shape 0 fill 0')
+            .replace('array 2 0 1 2', 'array shape 0 fill 0');
+        expect(compare(empty)).toMatchObject({ value: '' });
+        expect(compare(empty.replace('mod 17', 'mod (1 // 0)'))).toHaveProperty('error');
+    });
+
+    it.each([
+        ['array 7 11 13', 'array 7 .NA 13'],
+        ['array 1 2 3 4', 'array 1 .NA 3 4'],
+    ])('keeps missing-value propagation for %s', (from, to) => {
+        expect(compare(source.replace(from, to))).toHaveProperty('value');
+    });
+
+    it('retains missing-index errors', () => {
+        expect(compare(source.replace('array 2 0 1 2', 'array 2 .NA 1 2'))).toHaveProperty('error');
+    });
+
+    it('retains shape errors before publishing an output', () => {
+        expect(compare(source.replace('array 1 2 3 4', 'array 1 2'))).toHaveProperty('error');
+    });
+});
+
 describe('indirect gather bitwise reduction fusion', () => {
     it.each(['(0 till 6) mod 3', '((0 till 6) mod 3) copy', 'array 0 1 2 0 1 2', '(-3 till 3) mod 3'])('fuses selectors %s', slots => {
         const actual = compare(program.replace('(0 till 6) mod 3', slots));

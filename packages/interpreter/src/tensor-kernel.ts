@@ -211,6 +211,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         let operations = 0;
         const arithmetic = (node: TensorNode): boolean => {
             if (node.kind === 'input') return true;
+            if (node.kind === 'select') return arithmetic(node.source) && arithmetic(node.selector);
             if (node.kind === 'unary' && ['+', '-'].includes(node.op)) {
                 operations++;
                 return arithmetic(node.operand);
@@ -563,6 +564,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         try { domain(root); } catch { return recordFallback('tensor:filtered-domain'); }
         const compact = terminal === 'copy' && domain(root);
+        if (implicit && compact) return recordFallback('tensor:implicit-filter');
         const resolved = new Map<TensorNode, readonly CompiledAtomType[]>();
         function outputTypes(node: TensorNode): readonly CompiledAtomType[] {
             const previous = resolved.get(node);
