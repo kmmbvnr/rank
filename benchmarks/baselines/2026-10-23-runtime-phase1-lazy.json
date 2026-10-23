@@ -1,0 +1,126 @@
+{
+  "base": "466a399d",
+  "decision": "Reuse a lazy validator only for the same binding and structural path, while its recipe/getter/shape are unchanged. Independent bindings retain their own validators. Avoid flattening different observers into one contract.",
+  "smallSameCheckout": {
+    "before": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "scalar-check",
+          "iterations": 10000,
+          "ms": [
+            5.430624999999992,
+            3.57133300000001,
+            4.217500000000001,
+            3.856540999999993,
+            3.244499999999988
+          ]
+        },
+        {
+          "name": "lazy-rebinding",
+          "iterations": 10000,
+          "ms": [
+            2.206249999999983,
+            1.0049999999999955,
+            2.26233400000001,
+            1.1789170000000126,
+            0.9606660000000034
+          ]
+        },
+        {
+          "name": "nested-contract-copy",
+          "iterations": 10000,
+          "ms": [
+            0.13554200000001515,
+            0.09970900000001848,
+            0.07945899999998574,
+            0.077541999999994,
+            0.09125000000000227
+          ]
+        }
+      ]
+    },
+    "after": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "scalar-check",
+          "iterations": 10000,
+          "ms": [
+            5.963583999999997,
+            3.577416999999997,
+            4.228666999999987,
+            3.8950000000000102,
+            3.168707999999995
+          ]
+        },
+        {
+          "name": "lazy-rebinding",
+          "iterations": 10000,
+          "ms": [
+            0.9314580000000063,
+            0.4498749999999916,
+            0.31970900000000313,
+            0.31670799999999133,
+            0.2899589999999961
+          ]
+        },
+        {
+          "name": "nested-contract-copy",
+          "iterations": 10000,
+          "ms": [
+            0.11458300000001032,
+            0.0870000000000033,
+            0.27608299999999986,
+            0.05566699999999969,
+            0.05837499999999807
+          ]
+        }
+      ]
+    }
+  },
+  "large": {
+    "before": {
+      "node": "v24.15.0",
+      "checkout": "/private/tmp/rank-415-baseline",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "lazy-rebinding",
+          "iterations": 1000000,
+          "ms": [
+            240.98412499999998,
+            328.9375,
+            195.18391699999995,
+            308.67204200000003,
+            310.61595799999986
+          ]
+        }
+      ]
+    },
+    "after": {
+      "node": "v24.15.0",
+      "checkout": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-415",
+      "note": "Three 1000-operation warmups. Copies retain a ring of 1024 bindings. Microbenchmarks; setup excluded.",
+      "results": [
+        {
+          "name": "lazy-rebinding",
+          "iterations": 1000000,
+          "ms": [
+            29.409667000000013,
+            21.28533300000001,
+            22.49283300000002,
+            20.52895799999999,
+            18.581999999999994
+          ]
+        }
+      ]
+    }
+  },
+  "note": "Large comparison uses baseline 2510ed0a for the old reader implementation. No snapshot copies run in that selected case. 1000000 iterations means 1000 chains of 64 rebindings, not one million element reads. Microbenchmarks only.",
+  "validation": "102 focused contracts/revisions tests and TypeScript checks passed."
+}

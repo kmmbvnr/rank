@@ -35,6 +35,9 @@ export class ArrayBindingContract {
     private contract?: Contract;
     private liveFields = false;
     private version?: RankArray;
+    private checkedReaders?: WeakMap<RankArray, {
+        path?: Path; read: RankArray['itemAt']; shape: readonly number[]; items: PropertyDescriptor['get'];
+    }>;
 
     private commit(next: Contract | undefined): void {
         if (next !== this.contract) {
@@ -267,6 +270,13 @@ export class ArrayBindingContract {
     }
 
     private lazy(value: RankArray, base: Contract, path: Path | undefined): Prepared {
+        const previous = this.checkedReaders?.get(value);
+        if (previous && previous.read === value.itemAt && previous.shape === value.shape
+            && previous.items === Object.getOwnPropertyDescriptor(value, 'items')?.get && samePath(previous.path, path)) {
+            // The reader already validates this binding's current contract at
+            // this path. Other bindings keep their independent checks.
+            return { value, contract: base };
+        }
         const version = this.version ??= ownedArray([0n]);
         const prepared: Prepared = { value, contract: base };
         const validate = this.validator(value, base, path);
@@ -332,6 +342,8 @@ export class ArrayBindingContract {
             registerScalarView(checked, source, index => index, { accepts: () =>
                 this.at(path)?.elements?.some(cell => cell.type === 'integer') === true,
                 check: validate, scalarCheck: true, linear: () => ({ offset: 0, stride: 1 }) });
+            (this.checkedReaders ??= new WeakMap()).set(checked, { path, read: checked.itemAt,
+                shape: checked.shape, items: Object.getOwnPropertyDescriptor(checked, 'items')?.get });
             return checked;
         };
         const checked = wrap(value);
@@ -363,6 +375,15 @@ export class ArrayBindingContract {
             if (source[key] !== undefined) Object.defineProperty(target, key, { value: source[key] });
         }
     }
+}
+
+function samePath(left: Path | undefined, right: Path | undefined): boolean {
+    while (left && right) {
+        if (!sameKind(left.key, right.key) || left.key.position !== right.key.position) return false;
+        left = left.parent;
+        right = right.parent;
+    }
+    return left === right;
 }
 
 // Array/tuple descriptors are persistent: refinement replaces their path.

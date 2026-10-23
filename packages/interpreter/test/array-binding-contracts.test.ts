@@ -4,6 +4,7 @@ import { MISSING, type RankArray } from '../src/value.js';
 import { LocalFrame } from '../src/frame.js';
 import { ownedArray, readArrayItem, typedArray } from '../src/array-storage.js';
 import { demandValue } from '../src/plan.js';
+import { ArrayBindingContract } from '../src/array-binding-contract.js';
 
 for (const compiled of [true, false]) describe(`array binding contracts (compiled ${compiled})`, () => {
     const runtime = () => new Interpreter(() => {}, { integerLoopCompilation: compiled, scalarCompilation: compiled,
@@ -167,6 +168,41 @@ it('snapshots live record fields inside an array when copying frame contracts', 
         expect(() => first.set('A', ownedArray([replacement]))).toThrow(/integer.*text/);
         expect(() => fork.set('A', ownedArray([replacement]))).not.toThrow();
     } finally { runtime.dispose(); }
+});
+
+it('reuses a lazy check for the same binding and path without reading ahead', () => {
+    const binding = new ArrayBindingContract('A');
+    let reads = 0;
+    let item: import('../src/value.js').RankValue = 1n;
+    const source: RankArray = { kind: 'array', shape: [1], items: [], itemAt: () => { reads++; return item; } };
+    const checked = binding.check(source);
+    for (let i = 0; i < 128; i++) expect(binding.check(checked)).toBe(checked);
+    expect(reads).toBe(0);
+    expect(readArrayItem(checked, 0)).toBe(1n);
+    item = 'bad';
+    expect(() => readArrayItem(checked, 0)).toThrow(/A.*integer.*text/);
+    expect(reads).toBe(2);
+});
+
+it('retains independent validators when a checked reader enters another binding', () => {
+    const first = new ArrayBindingContract('A'), second = new ArrayBindingContract('B');
+    let item: import('../src/value.js').RankValue = 1n;
+    const checked = first.check({ kind: 'array', shape: [1], items: [], itemAt: () => item } as RankArray);
+    const other = second.check(checked);
+    expect(other).not.toBe(checked);
+    first.check(ownedArray([1n]));
+    second.check(ownedArray([2n]));
+    item = 'text';
+    expect(() => readArrayItem(other, 0)).toThrow(/A.*integer.*text/);
+});
+
+it('wraps a checked reader again when the host replaces its recipe', () => {
+    const binding = new ArrayBindingContract('A');
+    const checked = binding.check({ kind: 'array', shape: [1], items: [], itemAt: () => 1n } as RankArray);
+    Object.defineProperty(checked, 'itemAt', { value: () => 'text' });
+    const replacement = binding.check(checked);
+    expect(replacement).not.toBe(checked);
+    expect(() => readArrayItem(replacement, 0)).toThrow(/A.*integer.*text/);
 });
 
 it('keeps RHS effects but rejects an eager write before publishing any cell', () => {
