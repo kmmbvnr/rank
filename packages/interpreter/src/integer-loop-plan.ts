@@ -43,6 +43,7 @@ export interface LoopHost {
     arrayOffset(source: RankArray, indices: readonly bigint[]): number;
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     textRead(source: string, index: bigint): string;
+    copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean): RankArray;
     iteration(condition: Expression | undefined): IterationBinding | undefined;
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;

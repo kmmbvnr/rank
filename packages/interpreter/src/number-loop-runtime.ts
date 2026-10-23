@@ -55,6 +55,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length || plan.containers.size
         || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
+        // A condition loop has no traversal bound to amortize private buffers.
+        // Repeated short invocations would copy the whole destination per entry;
+        // the exact backend writes owned cells directly instead.
+        || !plan.iteration && plan.destinations.size > 0
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1)
         || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1 || info.slice)

@@ -22,6 +22,23 @@ function compare(source: string) {
 }
 
 describe('private safe-integer loop registers', () => {
+    it('uses direct exact stores for repeatedly entered condition loops', () => {
+        const diagnostics = compare(`A = array shape 4096 fill 0
+J = 0
+for J less 20
+ Go = true
+ for Go
+  A J = J
+  Go = false
+ end
+ J += 1
+ Scratch = array J
+end`);
+        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.compiledLoops).toBe(20);
+        expect(diagnostics.cowCopies).toBe(0);
+    });
+
     it.each([
         [0, -1], [-1, -1], [2147483647, -1], [-2147483648, -1],
         [-2147483648, 2147483647], [123456789, -123456789],

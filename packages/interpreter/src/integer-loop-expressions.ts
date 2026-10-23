@@ -7,7 +7,7 @@ import { IntegerEntries } from './integer-entries.js';
 import { IndexEntries } from './index-storage.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import {
-    flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
+    applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
     isParenthesizedExpression, isNumberLiteral, isNameExpression, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
@@ -307,6 +307,46 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         let source = e;
         while (isParenthesizedExpression(source)) source = source.value;
+        if (!state.numberMode && host.arrayLocals && host.arrayReads) {
+            let selection = source, copied = false, selectedArguments = 0;
+            if (isApplicationExpression(selection)) {
+                const parts = flattenApplication(selection), last = parts.at(-1);
+                if (last && isNameExpression(last) && last.name === 'copy' && host.nativeCalls
+                    && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
+                    copied = true;
+                    selectedArguments = parts.length - 1;
+                    selection = applicationExpression(parts.slice(0, -1), selection);
+                    while (isParenthesizedExpression(selection)) selection = selection.value;
+                }
+            }
+            const range = rangeSliceOperands(selection);
+            if (range && isNameExpression(range.source) && !range.source.name.includes('.')
+                && !localTypes.has(range.source.name)) {
+                const name = range.source.name, previous = arrays.get(name);
+                const current = previous ? undefined : host.read(name);
+                const kinds = current && isRankArray(current) ? storedScalarKinds(current) : undefined;
+                const type = previous?.type ?? (kinds?.length === 1 ? kinds[0] : undefined);
+                const rank = previous?.rank ?? (current && isRankArray(current) ? current.shape.length : undefined);
+                if (rank !== undefined && range.axis < BigInt(rank) && (type === 'integer'
+                    || type === 'real' && host.reals || type === 'boolean' && host.booleanArrays
+                    || type === 'text' && host.textArrayLoops)) {
+                    const start = emit(range.start, lines, 'integer'), end = emit(range.end, lines, 'integer');
+                    if (start?.type !== 'integer' || end?.type !== 'integer') return undefined;
+                    const info = previous ?? { slot: slot(name), rank, type };
+                    arrays.set(name, info);
+                    if (!assigned.has(name)) arrayInputs.add(name);
+                    if (copied) builtins.set('copy', 'sequences');
+                    // A region writes directly into owned storage. Complete the
+                    // selection now so later stores cannot change its snapshot.
+                    const result = `v${state.serial++}`;
+                    const call = `copySlice(r${info.slot}, ${start.code}, ${end.code}, ${range.axis}, ${range.inclusive})`;
+                    lines.push(selectedArguments > 1
+                        ? `let ${result}; try { ${result} = ${call}; } catch (error) { throw argumentSelectionError(error, 'copy', ${selectedArguments}); }`
+                        : `const ${result} = ${call};`);
+                    return { code: result, type: { kind: 'array', element: type, rank } };
+                }
+            }
+        }
         if (isApplicationExpression(source)) {
             // Whole-value stores/returns may accept an array call. Other forms
             // keep the shared scalar inference, including min/max grouping.

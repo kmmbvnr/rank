@@ -30,7 +30,8 @@ import { ReturnSignal } from './control-signals.js';
 import { compileIntegerLoop } from './integer-loop.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
-import { atArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
+import { copyArray } from './modules/sequences.js';
+import { ALL_AXIS, atArray, sliceArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { textAt } from './text-storage.js';
 import { isRankArray, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
@@ -234,6 +235,11 @@ export class FastPaths {
             textArrayLoops: this.context.options().textArrayLoopCompilation !== false,
             nestedLoops: this.context.options().nestedLoopCompilation !== false,
             arrayRead: atArray,
+            copySlice: (source, start, end, axis, inclusive) => {
+                const selectors: RankValue[] = Array(axis).fill(ALL_AXIS);
+                selectors.push(this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end));
+                return copyArray(sliceArray(source, tensorSelection(source, selectors)));
+            },
             textRead: textAt,
             returns: this.context.options().loopReturnCompilation !== false,
             yields: this.context.options().loopYieldCompilation !== false,
