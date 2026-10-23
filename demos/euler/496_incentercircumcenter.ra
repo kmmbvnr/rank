@@ -1,0 +1,62 @@
+rem Incenter and circumcenter of
+rem triangle
+rem https://projecteuler.net/problem=496
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 1000000000
+
+rem The triangles are r s t with
+rem coprime r < s < 2r, scale t, rst
+rem <= L; sum rst. Moebius over d =
+rem gcd(r, s) drops the coprimality:
+rem F = sum mu(d) d^2 G(L // d^2), G
+rem the same sum over all r < s < 2r.
+rem All (d, r) at once walk the blocks
+rem of s where L // (d^2 r s) = m is
+rem constant: r T(m) (sum of s).
+Rt = L isqrt
+Mu = array shape (Rt + 1) fill 1
+Mu 0 = 0
+Rs = (0 to Rt) copy
+for P in primes to Rt
+  Mu (P to Rt by P) *= -1
+  Mu (P * P to Rt by P * P) = 0
+  Rs (P to Rt by P) //= P
+end
+Mu = (Rs greater 1) choose (0 - Mu) Mu
+Ds = (Mu not equal 0) indices
+Xd = L // (Ds * Ds)
+Nr = Xd isqrt
+rem Pairs (d, r): r = 1 .. sqrt(X_d).
+Of = Nr scan + with 0
+Tl = Of last
+Ow = array shape Tl fill 0
+Nd = Ds len
+Ow (Of (0 till Nd)) = (0 till Nd) copy
+Ow = Ow scan max
+R = (0 till Tl) - Of Ow + 1
+X = Xd Ow
+Dw = Ds Ow
+W = (Mu Dw) * Dw * Dw
+A = R + 1
+U = (2 * R - 1) (X // R) min
+Answer = 0
+for A len greater 0
+  Ac = (A at most U) indices
+  R = R Ac
+  X = X Ac
+  W = W Ac
+  A = A Ac
+  U = U Ac
+  M = X // (R * A)
+  B = U (X // (R * M)) min
+  Sb = (B * (B + 1) - A * (A - 1)) // 2
+  Tm = M * (M + 1) // 2
+  Answer += (W * R * Tm * Sb) sum
+  A = B + 1
+end
+Answer print

@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "496_incentercircumcenter"
+  L = 15
+  run
+  Answer equal 45
+end
+
+test "direct coprime sum"
+  use "496_incentercircumcenter"
+  L = 1000
+  run
+  Answer equal 586885
+end
