@@ -244,6 +244,30 @@ addressing, and the meaning of `axis` and `rank` on unequal rows. Absent cells
 must remain distinct from numeric zero. Combining rows into a rectangular
 tensor with explicit padding is a separate conversion (see Stack / combine).
 
+## Weighted bipartite matching
+
+Consider maximum-weight bipartite matching as a future extension of the
+`graph` library. Given finite left and right vertex collections and integer
+weighted edges, it could return the maximum total weight and selected pairs,
+allow unmatched vertices, and preserve graph value semantics. The operation's
+name and input/output forms remain open; maximizing weight must be distinguished
+from maximizing the number of pairs.
+
+[Project Euler 355](../../demos/euler/355_coprime.ra) currently implements the
+Hungarian algorithm in Rank. On Node 24.15.0, five separate CLI runs at
+`Limit=200000` took 777–794 ms (median 791 ms), returning `1726545007`.
+The current solution is fast enough for this workload, so
+[issue #376](https://github.com/kmmbvnr/rank/issues/376) does not justify an
+implementation now. Revisit the idea when more programs need the operation;
+its main benefit would be avoiding repeated implementations of the algorithm.
+
+References include NetworkX's
+[`max_weight_matching`](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.matching.max_weight_matching.html)
+and SciPy's
+[`linear_sum_assignment`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linear_sum_assignment.html).
+The latter requires a full assignment of the smaller side; allowing arbitrary
+unmatched vertices would need dummy assignments.
+
 ## Graph accelerator packing
 
 The current first-class `graph` API is specified in
