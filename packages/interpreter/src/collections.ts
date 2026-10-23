@@ -1,4 +1,5 @@
 import { checkValueMutable, valueProtection } from './value-protection.js';
+import { IntegerEntries } from './integer-entries.js';
 import { IndexEntries } from './index-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap, ResourceSummary } from './resource-summary.js';
@@ -13,6 +14,7 @@ import { checkCollectionElementType, isRankCounter, isRankMultiset, isRankSet, t
 // and replacements must keep ordinary dispatch, where callbacks can re-enter Rank.
 const ownedSets = new WeakMap<RankSet, { entries: ResourceMap<RankValue>; resources: ResourceSummary; valueOfEntry: (value: RankValue) => RankValue }>();
 const mapMethods = Object.getOwnPropertyDescriptors(ResourceMap.prototype);
+const integerMethods = Object.getOwnPropertyDescriptors(IntegerEntries.prototype);
 const resourceMethods = Object.getOwnPropertyDescriptors(ResourceSummary.prototype);
 const mapSet = Map.prototype.set;
 
@@ -36,8 +38,14 @@ export function prepareSetAdd(value: RankValue | undefined): ((values: RankValue
     if (Map.prototype.set !== mapSet
         || Object.getOwnPropertyDescriptor(entries, 'resources')?.value !== storage.resources
         || Object.getOwnPropertyDescriptor(entries, 'valueOfEntry')?.value !== storage.valueOfEntry) return undefined;
+    for (const [name, descriptor] of Object.entries(mapMethods)) {
+        const current = Object.getOwnPropertyDescriptor(ResourceMap.prototype, name);
+        if (current?.value !== descriptor.value || current?.get !== descriptor.get || current?.set !== descriptor.set
+            || Object.prototype.hasOwnProperty.call(entries, name)
+            || !Object.prototype.hasOwnProperty.call(integerMethods, name) && Object.prototype.hasOwnProperty.call(IntegerEntries.prototype, name)) return undefined;
+    }
     const objects: [object, object, PropertyDescriptorMap][] = [
-        [entries, ResourceMap.prototype, mapMethods], [storage.resources, ResourceSummary.prototype, resourceMethods],
+        [entries, IntegerEntries.prototype, integerMethods], [storage.resources, ResourceSummary.prototype, resourceMethods],
     ];
     for (const [object, prototype, methods] of objects) {
         if (Object.getPrototypeOf(object) !== prototype) return undefined;
@@ -69,7 +77,7 @@ export function newStructure(name: string): RankValue {
         case 'heap': return new RankHeap();
         case 'set': {
             const valueOfEntry = (value: RankValue) => value;
-            const entries = new ResourceMap<RankValue>(valueOfEntry);
+            const entries = new IntegerEntries(valueOfEntry);
             const result = entries.resources.track({ kind: 'set', entries });
             ownedSets.set(result, { entries, resources: entries.resources, valueOfEntry });
             return result;

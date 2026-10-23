@@ -1,7 +1,7 @@
 import { compiledFunctionTypeKey, type CompiledFunctionType } from '@arrrank/language';
 
 /** Only integer-valued reference containers are admitted to linked regions. */
-export type CompiledContainerType = { readonly kind: 'index' }
+export type CompiledContainerType = { readonly kind: 'index' } | { readonly kind: 'set' }
     | { readonly kind: 'deque'; readonly mode: 'queue' | 'deque' | 'stack' };
 export type CompiledCalleeType = CompiledFunctionType | CompiledContainerType;
 export function isCompiledContainer(type: CompiledCalleeType): type is CompiledContainerType {

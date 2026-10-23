@@ -136,6 +136,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             lines.push(`const ${name} = ${receiver}.kind === 'array'
                 ? arrayOffset(${receiver}, [${keys.join(',')}]) : key([${keys.join(',')}]);`);
         }
+        lines.push(`if (${receiver}.kind === 'index') checkValueMutable(${receiver});`);
         const expected = booleanUpdate ? 'boolean' : target.type ?? arrays.get(assignment.name)?.type
             ?? (compound ? expressions.realInput(assignment.name) ?? 'integer' : undefined);
         const value = emit(assignment.value, lines, expected);
@@ -146,7 +147,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
         let result = value.code;
         if (compound) {
             const rhs = `operand${state.serial++}`, old = `old${state.serial++}`;
-            lines.push(`const ${rhs} = ${value.code}, ${old} = ${receiver}.items[${name}];`);
+            lines.push(`const ${rhs} = ${value.code}, ${old} = ${receiver}.kind === 'index' ? indexRead(${receiver}, ${name}, 'index key not found') : ${receiver}.items[${name}];`);
             const op = assignment.operator.slice(0, -1);
             const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
             const out = signature?.compound && signature.result === value.type
@@ -154,7 +155,8 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
             if (out === undefined) return reject(assignment);
             result = out;
             body.push(`location = ${location};`, ...lines,
-                `write${target.slot}(${name}, ${result}); iterationResult = ${rhs};`);
+                `if (${receiver}.kind === 'index') { indexSet(${receiver}, ${name}, ${result}); iterationResult = undefined; }
+                else { write${target.slot}(${name}, ${result}); iterationResult = ${rhs}; }`);
         } else {
             body.push(`location = ${location};`, ...lines, `if (${receiver}.kind === 'array') {
                 write${target.slot}(${name}, ${result}); iterationResult = ${value.code};

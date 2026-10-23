@@ -3,7 +3,7 @@ import type { Expression, ForStatement, Statement, CompiledLoopType } from '@arr
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { Evaluation } from './execution.js';
-import { isRankBytes, type RankArray, type RankValue } from './value.js';
+import { isRankBytes, type RankArray, type RankSet, type RankValue } from './value.js';
 
 export interface IterationBinding {
     readonly names: readonly string[];
@@ -19,7 +19,7 @@ export interface LoopHost {
     readonly arrayReads: boolean;
     readonly arrayIteration: boolean;
     declareIteration?(binding: IterationBinding, source: RankArray): void;
-    iterationValues(binding: IterationBinding, source: RankArray | RankDeque | string, elementType?: 'integer' | 'text'): Iterable<RankValue>;
+    iterationValues(binding: IterationBinding, source: RankArray | RankDeque | RankSet | string, elementType?: 'integer' | 'text'): Iterable<RankValue>;
     readonly arrayWrites: boolean;
     readonly inlineWriteOffsets: boolean;
     readonly compoundWrites: boolean;
@@ -86,11 +86,11 @@ export interface IntegerLoopPlan {
     locations: Statement[];
     required: Set<number>;
     localTypes: Map<string, LoopTerm['type']>;
-    containers: Map<string, { slot: number; kind: 'index' | 'deque'; integers: boolean; mode?: RankDeque['mode'] }>;
+    containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set'; integers: boolean; mode?: RankDeque['mode'] }>;
     builtins: Map<string, string>;
     calls: { numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
-    iterators: ((source: RankArray | RankDeque | string) => Iterable<RankValue>)[];
+    iterators: ((source: RankArray | RankDeque | RankSet | string) => Iterable<RankValue>)[];
     writerNames: string[];
     binderNames: string[];
     writers: ((value: RankValue) => void)[];

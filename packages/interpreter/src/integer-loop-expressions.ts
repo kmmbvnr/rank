@@ -3,6 +3,7 @@ import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan
 import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
+import { IntegerEntries } from './integer-entries.js';
 import { IndexEntries } from './index-storage.js';
 import { compiledArgumentType } from './compiled-argument-type.js';
 import {
@@ -11,7 +12,7 @@ import {
     isParenthesizedExpression, isNumberLiteral, isNameExpression, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
-import { isRankArray, isRankIndex } from './value.js';
+import { isRankArray, isRankIndex, isRankSet } from './value.js';
 import { RankDeque } from './containers.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision, storedScalarKinds } from './array-storage.js';
 
@@ -61,7 +62,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     const numberMode = state.numberMode && !wide;
     const safe = wide ? (code: string) => code : state.safe;
 
-    function container(name: string, kind: 'index' | 'deque', integers = false): string | undefined {
+    function container(name: string, kind: 'index' | 'deque' | 'set', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
         const old = containers.get(name);
         if (old && old.kind !== kind) return undefined;
@@ -424,8 +425,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         const existing = isNameExpression(part) ? arrays.get(part.name) : undefined;
                         const current = isNameExpression(part) && !localTypes.has(part.name) ? host.read(part.name) : undefined;
                         if (current && isNameExpression(part) && (current instanceof RankDeque
-                            || isRankIndex(current) && current.entries instanceof ResourceMap)) {
-                            const kind = current instanceof RankDeque ? 'deque' : 'index';
+                            || isRankIndex(current) && current.entries instanceof ResourceMap
+                            || isRankSet(current) && current.entries instanceof IntegerEntries && current.entries.integers)) {
+                            const kind = current instanceof RankDeque ? 'deque' : isRankSet(current) ? 'set' : 'index';
                             const receiver = container(part.name, kind);
                             if (!receiver) return undefined;
                             containers.get(part.name)!.integers = true;
@@ -433,7 +435,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                             if (current instanceof RankDeque) {
                                 containers.get(part.name)!.mode = current.mode;
                                 types.push({ kind: 'deque', mode: current.mode });
-                            } else types.push({ kind: 'index' });
+                            } else types.push({ kind: isRankSet(current) ? 'set' : 'index' });
                             continue;
                         }
                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }

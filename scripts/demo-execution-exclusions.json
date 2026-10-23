@@ -129,7 +129,6 @@
   "euler/379_lcmcount.ra": "The default input takes about 15 s compiled after #386; the small _test.ra fixture stays in the audits.",
   "euler/386_antichain.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/388_lines.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
-  "euler/393_ants.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/397_parabola.ra": "To fix later: the default input takes over 30 s compiled; the small _test.ra fixture stays in the audits.",
   "euler/365_hugebinomial.ra": "To fix later: the default input takes over 120 s in the reference interpreter; the small _test.ra fixture stays in the audits.",
   "euler/374_partproduct.ra": "To fix later: the default input takes over 120 s in the reference interpreter; the small _test.ra fixture stays in the audits.",

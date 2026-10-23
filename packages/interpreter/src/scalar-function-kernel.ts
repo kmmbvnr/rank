@@ -1,12 +1,13 @@
+import { checkValueMutable } from './value-protection.js';
 import { materializeValue } from './materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
-import { newStructure } from './collections.js';
-import { indexGet, indexHas, indexSet, indexKey } from './index-storage.js';
+import { newStructure, addToCollection, expectAddCollection } from './collections.js';
+import { indexGet, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
 import {
-    findCompiledOperator,
-    isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement,
+    findCompiledOperator, applicationForm, findOperation,
+    isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement,
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
@@ -227,6 +228,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const value = emit(command.value, lines, true);
                 if (typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
                 lines.push(`return ${value};`);
+            } else if (isExpressionStatement(command)) {
+                const mutation = applicationForm(command.value, findOperation, true);
+                if (mutation.kind === 'collection-mutation' && mutation.operation === 'add' && isNameExpression(mutation.receiver)) {
+                    const receiver = slot(mutation.receiver.name);
+                    lines.push(`expectAddCollection(${receiver});`);
+                    const value = emit(mutation.value, lines);
+                    lines.push(`checkpoint('adding set element'); addToCollection(${receiver}, ${value});`);
+                } else emit(command.value, lines);
             } else if (isAssignmentStatement(command)) {
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
@@ -256,6 +265,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     lines.push(`if (${keys.map((key, axis) => `${key} < 0n || ${coordinates[axis]} >= ${receiver}.shape[${axis}]`).join(' || ')}) scalarArrayWriteOffset(${receiver}, [${keys.join(',')}]);`);
                     lines.push(`const ${offset} = ${coordinates.reduce((offset, coordinate, axis) => axis ? `(${offset} * ${receiver}.shape[${axis}] + ${coordinate})` : coordinate, '')};`);
                 }
+                if (!proof!.arrayWrites.has(command)) lines.push(`const ${offset} = indexKey([${keys.join(',')}]); checkValueMutable(${receiver});`);
                 let value = emit(command.value, lines);
                 if (proof!.arrayWrites.has(command)) {
                     if (command.operator !== '=') {
@@ -267,7 +277,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     lines.push(`const ${copy} = arrayForWrite(${receiver});
                         if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
                         (${writer} ??= prepareWriter(${receiver}))(${offset}, ${value});`);
-                } else lines.push(`indexSet(${receiver}, indexKey([${keys.join(',')}]), ${value});`);
+                } else {
+                    if (command.operator !== '=') {
+                        const previous = `v${serial++}`;
+                        lines.push(`const ${previous} = indexRead(${receiver}, ${offset}, 'index key not found');`);
+                        value = binary(findCompiledOperator(command.operator.slice(0, -1))!, previous, value, lines, 'integer');
+                    }
+                    lines.push(`indexSet(${receiver}, ${offset}, ${value});`);
+                }
             } else if (isForStatement(command)) {
                 const binding = forIteration(command.condition);
                 lines.push('{');
@@ -363,7 +380,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'indexGet', 'indexHas', 'indexSet', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, indexGet, indexHas, indexSet, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection) as Kernel['run'] }; }
+    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

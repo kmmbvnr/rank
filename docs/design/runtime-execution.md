@@ -836,7 +836,11 @@ branch retains the reference result (`undefined`). General calls and suspension 
 
 The loop compiler accepts stable named `RankDeque` receivers (queue, deque or
 stack) for `push`, `len` and `pop`, and stable named indexes for integer-key
-membership and plain integer-value indexed assignment, including multiple keys.
+membership, reads and plain or compound integer-value indexed assignment, including multiple keys.
+Tracked integer sets support live insertion-order traversal, including ordinal bindings.
+Their integer-domain proof is maintained on writes, deletion and clear, so loop
+entry does not scan every element again. Set additions retain the collection contract
+and resource tracking; custom storage and callbacks keep ordinary execution.
 Mutations call the existing container methods and resource-aware index map;
 queue/stack order, empty-pop errors and partial mutations retain runtime behavior.
 
@@ -848,14 +852,15 @@ Container rebinding anywhere in the region, even in just one branch, declines.
 
 `even`/`odd`, deque `len` and `pop` require their actual standard-library bindings.
 Shadowing or reassignment of those names prevents specialization. Missing modules
-retain reference execution and its error timing. Index reads, compound index
-writes, other receiver classes and arbitrary calls are not yet lowered.
+retain reference execution and its error timing. Compound index writes prepare
+the key and check protection before evaluating the RHS, then read the current
+value and preserve missing-key errors. General receiver classes retain ordinary execution.
 
 
 ### Typed helpers called by compiled loops
 
 A loop can directly link a proven user-function kernel with integer, boolean,
-text, eligible eager-array, or integer-valued index/queue/deque/stack arguments.
+text, eligible eager-array, or integer-valued index/queue/deque/stack/set arguments.
 `compiled-callee.ts` describes its argument/result domains, local binding
 constraints, and conservative mutation effects. The existing scalar proof and
 kernel have a loop-capable mode shared with ordinary scalar entry. Ordinary
@@ -867,14 +872,16 @@ Callee bodies may use scalar assignments, branches, early returns, conditional
 loops and inline integer `to`/`till` ranges. They may allocate local indexes,
 queue-family containers, and `array shape ... fill ...` scratch storage. Index
 access in a callee is limited to one integer key and integer values; deque cells
-are integers. Full scalar array reads and cell writes, including supported
+are integers. Set arguments support integer `add`, and standalone proved calls
+can carry recursive index/set updates without a lexical frame per call. Index
+compound assignments retain exact BigInt arithmetic. Full scalar array reads and cell writes, including supported
 compound operators, retain the proved element type and rank. Array `take`/`drop`
 and the standard `copy` operation reuse ordinary slicing and copying semantics.
 Typed array results can feed subsequent linked calls. Caller regions containing
 both indexed writes and array-returning calls remain conservative fallbacks.
 A loop's potentially empty body does not establish
 new locals for subsequent reads. Unsupported control flow, other collection returns,
-record arguments, recursion, memo functions and generators keep ordinary calls.
+record arguments, unproved recursion, memo functions and generators keep ordinary calls.
 No source-language syntax or ownership annotations are required.
 
 Read-only scalar captures specialize by domain, never by their observed values.
@@ -896,7 +903,7 @@ version on a write, including when an array is passed twice or locally aliased.
 Private kernels reuse existing borrowed-storage readers and writers, refreshing
 them after rebinding or COW. Bounds and arithmetic failures retain their source
 order, and writes continue to publish storage revisions.
-Index/deque mutations retain reference identity and use the existing resource-
+Index/deque/set mutations retain reference identity and use the existing resource-
 aware maps and container methods. A callee with container activity or array
 writes disables caller storage borrowing/reader hoisting. No resource tracking
 is removed. This conservative path can copy array parameters rather than apply

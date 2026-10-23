@@ -3,7 +3,7 @@ import { type IterationBinding } from './integer-loop-plan.js';
 import { isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
 import { RankDeque } from './containers.js';
 import { orderedSource } from './ordered-source.js';
-import type { RankArray } from './value.js';
+import { isRankSet, type RankArray } from './value.js';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
@@ -44,14 +44,14 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                 setup = `${tests.join('\n')} const iterable = iterators[${iterators.length}](${source.code}); ${indexed ? 'let ordinal = 0n;' : ''}`;
                 iterators.push(source => host.iterationValues(iteration, source));
                 header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
-            } else if (isNameExpression(range) && host.read(range.name) instanceof RankDeque) {
+            } else if (isNameExpression(range) && (host.read(range.name) instanceof RankDeque || isRankSet(host.read(range.name)!))) {
                 // Keep the ordinary live iterator: appended work and front/back
                 // operations must have exactly the same order as interpreted BFS.
                 if (numberMode || slice || reverse || !host.arrayIteration) return undefined;
-                const receiver = container(range.name, 'deque', true);
+                const receiver = container(range.name, isRankSet(host.read(range.name)!) ? 'set' : 'deque', true);
                 if (!receiver) return undefined;
                 setup = `const iterable = iterators[${iterators.length}](${receiver}); ${indexed ? 'let ordinal = 0n;' : ''}`;
-                iterators.push(source => host.iterationValues(iteration, source));
+                iterators.push(source => host.iterationValues(iteration, source, 'integer'));
                 header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
             } else if (isNameExpression(range)) {
                 if (!host.arrayIteration || range.name.includes('.')) return undefined;

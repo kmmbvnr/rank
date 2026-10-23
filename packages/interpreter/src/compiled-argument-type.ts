@@ -2,7 +2,9 @@ import { compiledScalarTypes, type CompiledScalarType, type CompiledArrayType, t
 import { arrayRevision, denseScalarItems, storedScalarKinds, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { semanticArrayType } from './semantic-array-type.js';
-import { isRankIndex, type RankArray, type RankValue } from './value.js';
+import { isRankIndex, isRankSet, type RankArray, type RankValue } from './value.js';
+import { IntegerEntries } from './integer-entries.js';
+import { prepareSetAdd } from './collections.js';
 import { IndexEntries } from './index-storage.js';
 import { RankDeque } from './containers.js';
 import { valueProtection } from './value-protection.js';
@@ -24,6 +26,7 @@ function integerDeque(value: RankValue): value is RankDeque {
 /** Tracked integer indices retain a constant-time domain proof on mutation. */
 export function compiledEntryArgumentType(value: RankValue): CompiledCalleeType | undefined {
     if (isRankIndex(value) && value.entries instanceof IndexEntries && value.entries.integers && !valueProtection(value)) return { kind: 'index' };
+    if (isRankSet(value) && prepareSetAdd(value) && value.entries instanceof IntegerEntries && value.entries.integers) return { kind: 'set' };
     if (integerDeque(value) && !valueProtection(value)) return { kind: 'deque', mode: value.mode };
     return checkedArgumentType(value, true);
 }

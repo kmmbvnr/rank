@@ -11,6 +11,7 @@ import { resume, type Evaluation } from '../execution.js';
 import type { CompiledLoop } from '../fast-paths.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
+import { hasIntegerIteration } from '../integer-entries.js';
 import { materializeValue } from '../materialize.js';
 import { isRankPlan } from '../plan.js';
 import { compileGeneratorLoop } from '../generator-loop.js';
@@ -242,7 +243,9 @@ export function declareIterationTypes(
         bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
     } else if (isRankSet(value)) {
         bindings.declareTypes(binding.names, [
-            typesOf(value.entries.values()),
+            provenType ? new Set(value.entries.size ? [provenType] : [])
+                : hasIntegerIteration(value.entries)
+                    ? new Set(value.entries.size ? ['integer'] : []) : typesOf(value.entries.values()),
             new Set(['integer']),
         ]);
     } else if (isRankCounter(value)) {

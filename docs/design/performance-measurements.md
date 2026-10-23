@@ -976,3 +976,40 @@ took about 50 seconds each on the shared host; this is a memory reduction claim,
 not a parser speed improvement. The memory test waits asynchronously for its
 child so it does not block Vitest reporting, and has a 150-second child deadline.
 The large imported-ML analysis fixture has its own 20-second test deadline.
+
+
+## Sparse profile dynamic programs (#393)
+
+Euler 393 now uses compiled integer-set traversal, recursive index/set helpers,
+and exact compound index writes. The demo algorithm is unchanged. Integer-domain
+proofs are maintained by collection mutations instead of rescanning every set at
+loop entry. Operations retain BigInt values, resource tracking, aliases, live
+insertion order, protection checks and missing-key errors. Host iterator
+overrides retain ordinary execution.
+
+On Apple M5 / Node 24.15.0, three fresh-process samples per reported median:
+
+| Workload | Baseline | Index compilation only | With integer sets | Overall speedup |
+| --- | --- | --- | --- | --- |
+| 100,000 exact index accumulations | 103.13 ms | 22.25 ms | 21.65 ms | 4.76x |
+| Euler 393 F(8) | 2169.97 ms | 2139.41 ms | 184.97 ms | 11.73x |
+| Euler 393 F(10) | 33312.26 ms | 32228.27 ms | 1324.34 ms | 25.15x |
+
+The intermediate F(10) value is a single observation. Parsing is excluded from
+execution time. F(10) remains exactly `112398351350823112`; F(2), F(3), F(4),
+F(6) and F(8) also retain their reference results. Small cases through F(6) are
+compared with compilation disabled. F(10) is covered directly by a focused test,
+and its previous corpus execution exclusion is removed. These measurements are
+machine observations, not a CI timing guarantee.
+
+Reproduce after building, with an optional separately built baseline checkout:
+
+```sh
+node benchmarks/sparse-profile.mjs --case=index
+node benchmarks/sparse-profile.mjs --size=10
+node benchmarks/sparse-profile.mjs --checkout=/path/to/baseline --size=10
+```
+
+The harness asserts exact answers and fails on a worker error or timeout.
+[Raw samples and phase provenance](../../benchmarks/baselines/2026-10-23-sparse-profile.json)
+record timings, input sizes, runtime versions and peak process RSS.

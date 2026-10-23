@@ -1,0 +1,250 @@
+{
+  "baselineInterpreterRevision": "63ff216f1b3a05b7d03c6dbfbbac9e111fa34b4a",
+  "implementationBase": "99e2ecbc03c9ec5bc64ecfe5da0ad5cff0ecb887",
+  "notes": [
+    "Frozen interpreter builds; unchanged Euler 393 algorithm.",
+    "Fresh process per sample; execution excludes parsing. Other workload defaults and complete sample arrays are recorded below.",
+    "The intermediate F(10) measurement has one sample; baseline and final medians have three samples."
+  ],
+  "phases": {
+    "baseline": {
+      "index": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/tmp/rank393-baseline",
+        "kind": "index",
+        "size": 100000,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 103.02162500000003,
+            "answer": "9007204254790993",
+            "peakRssKiB": 173152
+          },
+          {
+            "executionMs": 104.06962499999997,
+            "answer": "9007204254790993",
+            "peakRssKiB": 172064
+          },
+          {
+            "executionMs": 103.12737500000003,
+            "answer": "9007204254790993",
+            "peakRssKiB": 172192
+          }
+        ],
+        "medianExecutionMs": 103.12737500000003
+      },
+      "ants8": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/tmp/rank393-baseline",
+        "kind": "ants",
+        "size": 8,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 2169.9685,
+            "answer": "22902801416",
+            "peakRssKiB": 472896
+          },
+          {
+            "executionMs": 2185.143333,
+            "answer": "22902801416",
+            "peakRssKiB": 472992
+          },
+          {
+            "executionMs": 2166.975666,
+            "answer": "22902801416",
+            "peakRssKiB": 476336
+          }
+        ],
+        "medianExecutionMs": 2169.9685
+      },
+      "ants10": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/tmp/rank393-baseline",
+        "kind": "ants",
+        "size": 10,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 32365.033291999996,
+            "answer": "112398351350823112",
+            "peakRssKiB": 788560
+          },
+          {
+            "executionMs": 33673.414000000004,
+            "answer": "112398351350823112",
+            "peakRssKiB": 660512
+          },
+          {
+            "executionMs": 33312.263916,
+            "answer": "112398351350823112",
+            "peakRssKiB": 679008
+          }
+        ],
+        "medianExecutionMs": 33312.263916
+      }
+    },
+    "indexCompilation": {
+      "index": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/private/tmp/rank-issue-393",
+        "kind": "index",
+        "size": 100000,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 22.324457999999993,
+            "answer": "9007204254790993",
+            "peakRssKiB": 138512
+          },
+          {
+            "executionMs": 22.232624999999985,
+            "answer": "9007204254790993",
+            "peakRssKiB": 137696
+          },
+          {
+            "executionMs": 22.248917000000006,
+            "answer": "9007204254790993",
+            "peakRssKiB": 137392
+          }
+        ],
+        "medianExecutionMs": 22.248917000000006
+      },
+      "ants8": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/private/tmp/rank-issue-393",
+        "kind": "ants",
+        "size": 8,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 2146.703542,
+            "answer": "22902801416",
+            "peakRssKiB": 478784
+          },
+          {
+            "executionMs": 2130.477209,
+            "answer": "22902801416",
+            "peakRssKiB": 471232
+          },
+          {
+            "executionMs": 2139.4127080000003,
+            "answer": "22902801416",
+            "peakRssKiB": 487328
+          }
+        ],
+        "medianExecutionMs": 2139.4127080000003
+      },
+      "ants10": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/private/tmp/rank-issue-393",
+        "kind": "ants",
+        "size": 10,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 32228.273208,
+            "answer": "112398351350823112",
+            "peakRssKiB": 652816
+          }
+        ],
+        "medianExecutionMs": 32228.273208
+      }
+    },
+    "numericSets": {
+      "index": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/private/tmp/rank-issue-393",
+        "kind": "index",
+        "size": 100000,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 21.72645799999998,
+            "answer": "9007204254790993",
+            "sourceHash": "1321cd7b06935818a2f949283c6df6f9730a63bb0c82b5fa876b75823bfdd131",
+            "peakRssKiB": 144832
+          },
+          {
+            "executionMs": 21.647624999999948,
+            "answer": "9007204254790993",
+            "sourceHash": "1321cd7b06935818a2f949283c6df6f9730a63bb0c82b5fa876b75823bfdd131",
+            "peakRssKiB": 138464
+          },
+          {
+            "executionMs": 21.636124999999993,
+            "answer": "9007204254790993",
+            "sourceHash": "1321cd7b06935818a2f949283c6df6f9730a63bb0c82b5fa876b75823bfdd131",
+            "peakRssKiB": 138080
+          }
+        ],
+        "medianExecutionMs": 21.647624999999948
+      },
+      "ants8": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/private/tmp/rank-issue-393",
+        "kind": "ants",
+        "size": 8,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 185.091541,
+            "answer": "22902801416",
+            "sourceHash": "f522274e2230f3fa3f5905d730d49789d10162cee1d7f6933eb2f7c2344cb5ce",
+            "peakRssKiB": 198896
+          },
+          {
+            "executionMs": 182.601625,
+            "answer": "22902801416",
+            "sourceHash": "f522274e2230f3fa3f5905d730d49789d10162cee1d7f6933eb2f7c2344cb5ce",
+            "peakRssKiB": 194512
+          },
+          {
+            "executionMs": 184.96687499999996,
+            "answer": "22902801416",
+            "sourceHash": "f522274e2230f3fa3f5905d730d49789d10162cee1d7f6933eb2f7c2344cb5ce",
+            "peakRssKiB": 194240
+          }
+        ],
+        "medianExecutionMs": 184.96687499999996
+      },
+      "ants10": {
+        "node": "v24.15.0",
+        "cpu": "Apple M5",
+        "checkout": "/private/tmp/rank-issue-393",
+        "kind": "ants",
+        "size": 10,
+        "timing": "fresh processes; execution excludes parsing",
+        "results": [
+          {
+            "executionMs": 1322.395958,
+            "answer": "112398351350823112",
+            "sourceHash": "e48d64fcdd3acee05bce90bdf732db2132f6c133040155cd788396416b702cf7",
+            "peakRssKiB": 319280
+          },
+          {
+            "executionMs": 1324.344333,
+            "answer": "112398351350823112",
+            "sourceHash": "e48d64fcdd3acee05bce90bdf732db2132f6c133040155cd788396416b702cf7",
+            "peakRssKiB": 319648
+          },
+          {
+            "executionMs": 1331.943584,
+            "answer": "112398351350823112",
+            "sourceHash": "e48d64fcdd3acee05bce90bdf732db2132f6c133040155cd788396416b702cf7",
+            "peakRssKiB": 323952
+          }
+        ],
+        "medianExecutionMs": 1324.344333
+      }
+    }
+  }
+}

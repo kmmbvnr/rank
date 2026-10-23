@@ -3,7 +3,7 @@ import {
     functionScope, functionCallSignature, lexicalBinding, applicationForm, findOperation, unaryApplicationHead,
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
-    isNameExpression, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
+    isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
     isCountClauseExpression, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
@@ -307,6 +307,21 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (!parameters.has(command.name)) locals.add(command.name);
                 continue;
             }
+            if (loops && isExpressionStatement(command)) {
+                const mutation = applicationForm(command.value, findOperation, true);
+                if (mutation.kind === 'collection-mutation' && mutation.operation === 'add'
+                    && isNameExpression(mutation.receiver) && !env.has('add') && !lexicalBinding(scope, 'add')) {
+                    const receiver = env.get(mutation.receiver.name);
+                    if (receiver && isCompiledContainer(receiver) && receiver.kind === 'set'
+                        && type(mutation.value, env) === 'integer') {
+                        modules.add('algo');
+                        nativeReads.add('add');
+                        continue;
+                    }
+                }
+                if (!type(command.value, env)) return reject(command);
+                continue;
+            }
             if (loops && isPushStatement(command)) {
                 const receiver = isNameExpression(command.receiver) ? env.get(command.receiver.name) : undefined;
                 if (!receiver || !isCompiledContainer(receiver) || receiver.kind !== 'deque'
@@ -321,9 +336,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     || command.indices.some(index => index.all || index.sign || !index.value || type(index.value, env) !== 'integer')
                     || type(command.value, env) !== (isCompiledContainer(receiver) ? 'integer' : receiver.element)) return reject(command, 'container-write');
                 if (command.operator !== '=') {
-                    if (isCompiledContainer(receiver)) return reject(command, 'container-write');
-                    const signature = scalarOperatorSignature(command.operator.slice(0, -1), [receiver.element, receiver.element]);
-                    if (!signature?.compound || signature.result !== receiver.element) return reject(command, 'array-compound');
+                    const element = isCompiledContainer(receiver) ? 'integer' : receiver.element;
+                    const signature = scalarOperatorSignature(command.operator.slice(0, -1), [element, element]);
+                    if (!signature?.compound || signature.result !== element) return reject(command, 'array-compound');
                 }
                 if (!isCompiledContainer(receiver)) arrayWrites.add(command);
                 continue;
