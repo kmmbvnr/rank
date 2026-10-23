@@ -173,10 +173,10 @@ Total`))).toBe(200n);
         }
     });
 
-    it('does not copy a shared destination when array iteration is empty', () => {
+    it.each([false, true])('does not copy a shared destination when array iteration is empty (number compilation %s)', numberLoopCompilation => {
         for (const integerLoopCompilation of [false, true]) {
             const stats = new RuntimeDiagnostics();
-            const runtime = new Interpreter(undefined, { integerLoopCompilation, scalarEntryCompilation: false });
+            const runtime = new Interpreter(undefined, { integerLoopCompilation, numberLoopCompilation, scalarEntryCompilation: false });
             try {
                 runtime.execute('fun A Source alter\n for Value in Source\n  A 0 = Value\n end\n return A\nend');
                 const alter = runtime.variables.get('alter');
@@ -186,7 +186,21 @@ Total`))).toBe(200n);
                 noteArrayBinding(array);
                 expect(stats.run(() => alter.call([array, createArraySnapshot([])]))).toBe(array);
                 expect(stats.cowCopies).toBe(0);
-                if (integerLoopCompilation) expect(stats.fallbacks['loop:empty-shared-destination']).toBeGreaterThan(0);
+                expect(array.items).toEqual([1n]);
+                if (integerLoopCompilation) {
+                    if (numberLoopCompilation) {
+                        // Number loops publish only dirty cells, so an empty loop needs no fallback.
+                        expect(stats.numberLoops).toBe(2);
+                        expect(stats.compiledLoops).toBe(2);
+                        expect(stats.fallbacks).not.toHaveProperty('loop:empty-shared-destination');
+                    } else {
+                        expect(stats.numberLoops).toBe(0);
+                        expect(stats.compiledLoops).toBe(1);
+                        expect(stats.fallbacks['loop:empty-shared-destination']).toBe(1);
+                    }
+                } else {
+                    expect(stats.compiledLoops).toBe(0);
+                }
             } finally { runtime.dispose(); }
         }
     });
@@ -413,9 +427,9 @@ end`));
     });
 });
 
-it('rechecks linked helper array storage on each cached region entry', () => {
+it('rechecks linked helper array storage on each cached loop entry', () => {
     let loops = 0;
-    const runtime = new Interpreter(undefined, { onIntegerLoopExecuted: () => loops++ });
+    const runtime = new Interpreter(undefined, { scalarEntryCompilation: false, onIntegerLoopExecuted: () => loops++ });
     try {
         runtime.execute(`fun A' I cellread
  return A I
@@ -439,5 +453,7 @@ end`);
         });
         expect(fn.call([{ kind: 'array', shape: [2], items }])).toBe(9n);
         expect(loops).toBe(1);
+        expect(fn.call([createArraySnapshot([11n, 12n])])).toBe(11n);
+        expect(loops).toBe(2);
     } finally { runtime.dispose(); }
 });
