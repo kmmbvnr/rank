@@ -1,0 +1,25 @@
+use testing
+
+test "statement value"
+  use "474_lastdigitsdivisors"
+  N = 50
+  D = 123
+  run
+  Answer equal 17888
+end
+
+test "brute force values"
+  use "474_lastdigitsdivisors"
+  N = 40
+  D = 7
+  run
+  Answer equal 65664
+  N = 45
+  D = 1750
+  run
+  Answer equal 110880
+  N = 80
+  D = 65432
+  run
+  Answer equal 14894618
+end

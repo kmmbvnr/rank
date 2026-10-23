@@ -1,0 +1,95 @@
+rem Last digits of divisors
+rem https://projecteuler.net/problem=474
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 1000000
+option D integer = 65432
+
+rem D = 2^a 5^b T with a, b below its
+rem K digits: a divisor ending in D
+rem has exactly 2^a 5^b, and its rest
+rem is the unit T mod M = 10^K / (2^a
+rem 5^b). Count the products of the
+rem other prime powers by residue.
+Md = 10000000000000061
+K = (D text) len
+T = D
+Al = 0
+Be = 0
+for T mod 2 equal 0
+  T //= 2
+  Al += 1
+end
+for T mod 5 equal 0
+  T //= 5
+  Be += 1
+end
+M = 10 ** K // (2 ** Al * 5 ** Be)
+Pr = primes to N array
+rem Exponents of the primes in N!.
+E = Pr * 0
+Pk = Pr
+for (Pk at most N) any
+  E += N // Pk
+  Lo = Pk at most N
+  Pk = Lo choose (Pk * Pr) Pk
+end
+E5 = 0
+if N at least 5
+  E5 = E 2
+end
+Answer = 0
+if Al at most E 0 and Be at most E5
+  Rs = (0 till M) copy
+  Cp = (Rs 10 gcd) equal 1
+  Us = Rs (Cp indices)
+  Nu = Us len
+  Ps = Rs * 0
+  Ps Us = (0 till Us len) copy
+  rem Tx w i: position of u_i times
+  rem the unit at position w.
+  Ur = Us reshape Nu 1
+  Tf = (Ur * Us mod M) reshape (Nu * Nu)
+  Tg = Ps Tf
+  Tx = Tg reshape Nu Nu
+  A = Us * 0
+  A (Ps 1) = 1
+  rem Exponent j of p moves count from
+  rem x to x p^j: the sum of e + 1
+  rem shifts by p^-1, built by binary
+  rem doubling. Sums stay below 2^63
+  rem for 8 doublings between mods.
+  Fr = Pr mod 2 equal 1
+  Fr = Fr and (Pr mod 5 not equal 0)
+  Bd = 0
+  for I in Fr indices
+    Pv = (Pr I) (Nu - 1) M powmod
+    R1 = Tx (Ps Pv)
+    Bt = (E I + 1) binary
+    Sm = A
+    Cu = 1
+    for J in 1 till Bt len
+      W = Pv Cu M powmod
+      Sm += Sm (Tx (Ps W))
+      Cu *= 2
+      Bd += 1
+      if Bt J equal "1"
+        Sm = A + Sm R1
+        Cu += 1
+        Bd += 1
+      end
+      if Bd at least 8
+        Sm = Sm mod Md
+        Bd = 0
+      end
+    end
+    A = Sm
+  end
+  Answer = (A (Ps (T mod M))) mod Md
+end
+Answer print
