@@ -1,0 +1,12 @@
+use testing
+
+test "seven chefs"
+  use "481_chefshowdown"
+  N = 7
+  run
+  Answer equal 42.2817605
+  Ex = array 0.08965042 0.20775702
+  Ex = concat Ex (array 0.15291406)
+  Ok = ((Ws (0 to 2) - Ex) abs) max
+  Ok less 0.000000005
+end

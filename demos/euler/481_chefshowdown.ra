@@ -1,0 +1,106 @@
+rem Chef Showdown
+rem https://projecteuler.net/problem=481
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 14
+
+rem State: alive set M and the chef t
+rem to cook. W holds every chef's win
+rem chance, D the expected dishes. t
+rem picks the target whose removal
+rem gives t the best chance (nearest
+rem on ties); that state has one chef
+rem fewer. Around the turn cycle X_r
+rem = p U_r + (1 - p) X_(r+1) solves
+rem by unrolling once. All sets of a
+rem size at once; W flat by (M, t, i).
+Nm = 2 ** N
+Fb = array shape (N + 2) fill 1
+for I in 3 to N + 1
+  Fb I = Fb (I - 1) + Fb (I - 2)
+end
+Pk = Fb (1 to N) / (Fb (N + 1) * 1.0)
+Ib = (0 till N) copy
+W = array shape (Nm * N * N) fill 0.0
+D = array shape (Nm * N) fill 0.0
+W (((2 ** Ib) * N + Ib) * N + Ib) = 1.0
+Pc = (0 till Nm) copy popcount
+Ep = 0.000000000001
+for Q in 2 to N
+  Mk = (Pc equal Q) indices
+  K = Mk len
+  KN = K * N
+  Bt = (Mk (2 ** Ib) outer //) mod 2
+  Co = ((Bt equal 1) indices) transpose
+  Mt = ((Co 1) reshape K Q) transpose
+  Aq = array shape Q K N fill 0.0
+  Cq = array shape Q K fill 0.0
+  Bq = array shape Q K fill 0.0
+  for R in 0 till Q
+    T = Mt R
+    Bv = T * 0.0 - 1.0
+    Bs = T * 0
+    Bn = T * 0
+    rem Targets by distance from t.
+    for S in 1 till Q
+      J = Mt ((R + S) mod Q)
+      Nx = Mt ((R + 1) mod Q)
+      if S equal 1
+        Nx = Mt ((R + 2) mod Q)
+      end
+      Sm = Mk - 2 ** J
+      Vv = W ((Sm * N + Nx) * N + T)
+      Up = Vv greater Bv + Ep
+      Bv = Up choose Vv Bv
+      Bs = Up choose Sm Bs
+      Bn = Up choose Nx Bn
+    end
+    Ps = Pk T
+    Ix = (Bs * N + Bn) * N
+    Im = (Ix reshape K 1) + Ib
+    Ig = Im reshape KN
+    Ug = (W Ig) reshape K N
+    Aq R = Ug * (Ps reshape K 1)
+    Cq R = 1.0 + Ps * D (Bs * N + Bn)
+    Bq R = 1.0 - Ps
+  end
+  rem X_0 by unrolling the cycle, then
+  rem back substitution.
+  Cp = Bq 0 * 0.0 + 1.0
+  X = Aq 0 * 0.0
+  Y = Cq 0 * 0.0
+  for R in 0 till Q
+    X += Aq R * (Cp reshape K 1)
+    Y += Cq R * Cp
+    Cp *= Bq R
+  end
+  Dn = 1.0 - Cp
+  X /= Dn reshape K 1
+  Y /= Dn
+  Xs = X
+  Ys = Y
+  for R in Q - 1 to 0 by -1
+    if R greater 0
+      Br = Bq R
+      X = Aq R + (Br reshape K 1) * X
+      Y = Cq R + Br * Y
+    else
+      X = Xs
+      Y = Ys
+    end
+    T = Mt R
+    Iv = (Mk * N + T) * N
+    Iw = (Iv reshape K 1) + Ib
+    W (Iw reshape KN) = X reshape KN
+    D (Mk * N + T) = Y
+  end
+end
+Full = Nm - 1
+Ws = W ((Full * N) * N + Ib)
+Answer = (D (Full * N)) 8 round
+Answer print
