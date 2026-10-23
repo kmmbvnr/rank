@@ -1,6 +1,7 @@
 import { registerPackedBooleanShift } from './packed-booleans.js';
 import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
+import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
 import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
@@ -31,7 +32,14 @@ export function sequenceMask(
     predicate: SequencePredicate,
 ): RankSequenceMask {
     const mapped = mapSequence(source, predicate.name, value => predicate.test(value), predicate.pure, predicate.captures);
-    return { kind: 'sequence', plan: mapped.plan, source, predicate };
+    return { kind: 'sequence', plan: {
+        ...mapped.plan,
+        scalarItems: true,
+        ...(source.plan.at && predicate.pure && { at: (index: bigint) => {
+            const item = source.plan.at!(index);
+            return item === undefined ? undefined : predicate.test(item);
+        } }),
+    }, source, predicate };
 }
 
 export function filterSequence(
@@ -425,6 +433,17 @@ export function arraySequenceOperands(left: RankValue, right: RankValue): [RankV
         right = materializeSequence(right);
     }
     return [left, right];
+}
+
+/** A tensor operand with the axes of copy. Proven scalar, addressable,
+ * replayable sources need no eager traversal; other sources stack once. */
+export function sequenceArrayOperand(value: RankValue): RankValue {
+    if (!isRankSequence(value)) return value;
+    const plan = value.plan;
+    if (plan.size.kind !== 'exact' || !plan.scalarItems || !plan.at
+        || !plan.replay || plan.singlePass) return materializeSequence(value);
+    const size = safeDimension(plan.size.value, 'sequence operand size');
+    return derivedArray([size], [value], index => atSequence(value, BigInt(index)), isKnownFileFree(value));
 }
 
 export function materializeSequence(source: RankSequence): RankArray {

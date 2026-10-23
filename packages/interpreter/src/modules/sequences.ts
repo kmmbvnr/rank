@@ -24,7 +24,7 @@ import { FlatRecords, flatRecords } from '../flat.js';
 import { ownedArray, derivedArray, denseScalarItems, copyMaterializedArrayItems, arrayValueTraversal, collectArrayCells, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
-import { atSequence, materializeSequence, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
+import { atSequence, materializeSequence, sequenceArrayOperand, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
 import { atArray } from '../selectors.js';
 import { RankPersistentSumSegment, RankRangeSumSegment } from '../segment.js';
 import { chooseSqlite, lengthSqlite, uniqueSqlite } from './sqlite.js';
@@ -113,10 +113,16 @@ function endItem(value: RankValue, back: boolean): RankValue {
 }
 
 export function chooseValue(condition: RankValue, whenTrue: RankValue, whenFalse: RankValue): RankValue {
-    const values = [condition, whenTrue, whenFalse];
+    let values = [condition, whenTrue, whenFalse];
     if (values.some(isRankSqliteExpression)) {
         return chooseSqlite(condition, whenTrue, whenFalse);
     }
+    // A scalar condition can select a whole stream without inspecting either branch.
+    if (typeof condition === 'boolean' && !values.some(isRankArray)) {
+        return condition ? whenTrue : whenFalse;
+    }
+    values = values.map(sequenceArrayOperand);
+    [condition, whenTrue, whenFalse] = values;
     const arrays = values.filter(isRankArray);
     if (arrays.length === 0) {
         if (typeof condition !== 'boolean') {

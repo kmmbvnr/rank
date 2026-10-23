@@ -1084,6 +1084,14 @@ scalar boolean selects one branch; arrays broadcast by the usual trailing-axis
 rules and produce a lazy array. Only the chosen branch is read at each cell.
 The mask must contain booleans, and an absent mask cell gives an absent result
 cell. Incompatible shapes are errors. `choose` is available without `use sequences`.
+
+Finite sequence masks and branches also participate in this broadcasting.
+Exact, replayable scalar sequences with direct indexing (including ranges and
+arithmetic over them) stay lazy: only selected branch cells are read. Other
+finite sequences are materialized as with `copy` to establish their axes before
+selection; generators of equally shaped arrays stack their cell axes.
+A scalar boolean with two sequence branches selects one whole sequence.
+
 The earlier postfix calls remain valid. Parenthesize compound alternatives.
 
 ```rank

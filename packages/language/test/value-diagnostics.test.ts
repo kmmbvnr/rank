@@ -67,6 +67,7 @@ it('checks tensor filter predicates against cells left by the selected axes', ()
 });
 
 it('analyzes data-first choose without opening sequences', () => {
+    expect(messages("Q' = 1 to 6\nE' = Q mod 2 equal 0\nH' = E choose (Q // 2) (Q + 0)")).toEqual([]);
     expect(messages('A = true choose 1 2\nB = 1 choose (array 10 20)\nA + B')).toEqual([]);
     expect(messages('A = false choose "no" "yes"\nA + 1'))
         .toContain('operator + does not accept text and integer');

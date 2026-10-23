@@ -587,6 +587,7 @@ function openRange(start: bigint, step: bigint): RankSequence {
     return sequence({
         name: `${start} to # by ${step}`,
         replay: 'direct',
+        scalarItems: true,
         size: { kind: 'infinite' },
         openRange: { start, step },
         at: index => start + index * step,
@@ -630,6 +631,7 @@ function buildRange(start: bigint, end: bigint, inclusive: boolean, stride?: big
     return sequence({
         name: `${start} ${inclusive ? 'to' : 'till'} ${end}${stride === undefined ? '' : ` by ${stride}`}`,
         replay: 'direct',
+        scalarItems: true,
         size: {
             kind: 'exact',
             value: size,
@@ -695,8 +697,8 @@ function presentMembershipTest(right: RankValue, indexed: boolean): (value: Rank
 }
 
 
-function withAt(source: RankSequence, at: (index: bigint) => RankValue | undefined): RankSequence {
-    return { kind: 'sequence', plan: { ...source.plan, at } };
+function withAt(source: RankSequence, at: (index: bigint) => RankValue | undefined, scalarItems?: true): RankSequence {
+    return { kind: 'sequence', plan: { ...source.plan, at, scalarItems } };
 }
 
 /** Arithmetic over an addressable sequence is addressable: item i is the operation applied to item i. */
@@ -708,13 +710,13 @@ function withOrigin(mapped: RankSequence, from: RankSequence, step: (item: RankV
         : { source: from, map: step } };
 }
 
-function addressable(mapped: RankSequence, source: RankSequence, operation: (item: RankValue) => RankValue): RankSequence {
+function addressable(mapped: RankSequence, source: RankSequence, operation: (item: RankValue) => RankValue, scalar: RankValue): RankSequence {
     const at = source.plan.at;
     if (!at) return mapped;
     return withAt(mapped, index => {
         const item = at.call(source.plan, index);
         return item === undefined ? undefined : operation(item);
-    });
+    }, source.plan.scalarItems && typeof scalar !== 'object' ? true : undefined);
 }
 
 const DENSE_OPERATORS = new Set(['+', '-', '*', '/', '//', 'mod', '**', 'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal']);
@@ -732,17 +734,17 @@ function mapBinary(
         return a && b ? withAt(zipped, index => {
             const x = a.call(left.plan, index), y = b.call(right.plan, index);
             return x === undefined || y === undefined ? undefined : scalarOperation(x, y);
-        }) : zipped;
+        }, left.plan.scalarItems && right.plan.scalarItems ? true : undefined) : zipped;
     }
     if (isRankSequence(left)) {
         const mapped = withOrigin(addressable(mapSequence(left, name, item => scalarOperation(item, right), typeof right !== 'object'), left,
-            item => scalarOperation(item, right)), left, item => scalarOperation(item, right));
+            item => scalarOperation(item, right), right), left, item => scalarOperation(item, right));
         if (name === 'mod' && typeof right === 'bigint') registerModularRange(mapped.plan, left.plan, right);
         return mapped;
     }
     if (isRankSequence(right)) {
         return withOrigin(addressable(mapSequence(right, name, item => scalarOperation(left, item), typeof left !== 'object'), right,
-            item => scalarOperation(left, item)), right, item => scalarOperation(left, item));
+            item => scalarOperation(left, item), left), right, item => scalarOperation(left, item));
     }
     const leftArray = asRankArray(left);
     const rightArray = asRankArray(right);

@@ -1074,7 +1074,7 @@ export const operations: readonly Operation[] = [
         monadicRank: 1, summary: 'Stable zero-based positions that put the values in order.' },
     { name: 'choose', grouping: { trailingOperands: 'alternatives' }, module: 'core', arities: [2, 3],
         signatures: [{ inputs: [{ union: ['integer', integerArray] }, genericArray], result: { union: [elementVariable, 'array'] } },
-            { inputs: [{ union: ['boolean', booleanArray, 'column'] }, { variable: 0 }, { variable: 1 }],
+            { inputs: [{ union: ['boolean', booleanArray, 'sequence', 'column'] }, { variable: 0 }, { variable: 1 }],
                 result: { union: [{ variable: 0 }, { variable: 1 }, 'array', 'column'] } }],
         form: 'Mask choose TrueValues FalseValues', result: 'value', lazy: true,
         summary: 'Selects each cell by a boolean mask; SQLite expressions become CASE.' },
