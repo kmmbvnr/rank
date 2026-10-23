@@ -1,0 +1,83 @@
+rem Repeated permutation
+rem https://projecteuler.net/problem=483
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 350
+
+rem g(n) sums lcm^2 / prod c^m m! over
+rem cycle types. States (t cells used,
+rem lcm) weigh n! / (t0! prod c^m m!),
+rem an integer. Lengths go by largest
+rem prime p, descending: after the p
+rem block no factor p comes back, so
+rem p^a leaves the lcm and p^(2a)
+rem joins the weight.
+Fc = (1 to N) scan * with 1
+Lp = array shape (N + 1) fill 0
+for P in primes to N
+  Lp (P to N by P) = P
+end
+T = (0 to N) copy
+Lk = T * 0 + 1
+Wt = Fc N // Fc
+Kb = 10000000000000
+Ps = (primes to N array) reverse
+for P in Ps
+  for C in (Lp equal P) indices
+    Ct = T
+    Cl = Lk
+    Cw = Wt
+    Cm = 1
+    for M in 1 to N // C
+      Cm *= C * M
+      Sl = (T + M * C at most N) indices
+      Ct = concat Ct (T Sl + M * C)
+      Ls = Lk Sl
+      Ln = Ls * C // (Ls C gcd)
+      Cl = concat Cl Ln
+      Cw = concat Cw (Wt Sl // Cm)
+    end
+    rem Merge equal (t, lcm).
+    Ky = Ct * Kb + Cl
+    Od = Ky argsort
+    Ky = Ky Od
+    Cs = (Cw Od) scan +
+    Nk = Ky -1 shift with -1
+    Ei = (Ky not equal Nk) indices
+    Gs = Cs Ei
+    Wt = Gs - (Gs 1 shift)
+    T = Ky Ei // Kb
+    Lk = Ky Ei mod Kb
+  end
+  rem Move p^a out of the lcm.
+  for (Lk mod P equal 0) any
+    Dv = Lk mod P equal 0
+    Lk = Dv choose (Lk // P) Lk
+    Wt = Dv choose (Wt * P * P) Wt
+  end
+  Ky = T * Kb + Lk
+  Od = Ky argsort
+  Ky = Ky Od
+  Cs = (Wt Od) scan +
+  Nk = Ky -1 shift with -1
+  Ei = (Ky not equal Nk) indices
+  Gs = Cs Ei
+  Wt = Gs - (Gs 1 shift)
+  T = Ky Ei // Kb
+  Lk = Ky Ei mod Kb
+end
+Fn = (T equal N) indices
+G = (Lk Fn * Lk Fn * Wt Fn) sum
+rem Ten significant digits, exactly.
+E = (G // Fc N) text len - 1
+Dn = Fc N * 10 ** E
+Rd = (G * 10 ** 10 // Dn + 5) // 10
+Ld = Rd text
+Answer = Ld (0 till 1) + "."
+Answer += Ld (1 till 10) + "e"
+Answer += E text
+Answer print

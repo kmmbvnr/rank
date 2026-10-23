@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "483_repeatedpermutation"
+  N = 3
+  run
+  Answer equal "5.166666667e0"
+  N = 5
+  run
+  Answer equal "1.734166667e1"
+  N = 20
+  run
+  Answer equal "5.106136147e3"
+end
