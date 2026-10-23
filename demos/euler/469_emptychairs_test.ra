@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "469_emptychairs"
+  N = 4
+  run
+  Answer equal "0.50000000000000"
+  N = 6
+  run
+  (E - 5.0 / 9) abs less 0.000000000001
+end
