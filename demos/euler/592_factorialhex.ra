@@ -1,0 +1,64 @@
+rem Factorial Trailing Digits 2
+rem https://projecteuler.net/problem=592
+
+use numbers
+use sequences
+use bits
+use text
+use io
+use cli
+
+option N integer = 2432902008176640000
+
+rem N! = 2^v odd, v = N - popcount N.
+rem Dropping v // 4 hex zeros leaves
+rem 2^(v mod 4) odd mod 2^48. The odd
+rem part is the product over n = N,
+rem N // 2, ... of the odd numbers up
+rem to n. With S = 2^16, n = q S + u,
+rem the class of an odd r is r + j S,
+rem so mod 2^48 its product is
+rem r^q (1 + a e1 + a^2 e2), a = S / r,
+rem e1 = q (q - 1) / 2, e2 = q (q - 1)
+rem (q - 2) (3q - 1) / 24, plus the
+rem term r + q S for r up to u.
+Md = 2 ** 48
+Sz = 2 ** 16
+Rs = (1 to (Sz - 1) by 2) array
+Iv = Rs
+for # in 1 to 6
+  Iv = (Iv * (2 - Rs * Iv)) mod Md
+end
+Aa = (Sz * Iv) mod Md
+Tt = 1
+Nv = N
+for Nv greater 0
+  Q = Nv // Sz
+  U = Nv mod Sz
+  E1 = (Q * (Q - 1) // 2) mod Md
+  E2 = Q * (Q - 1) * (Q - 2)
+  E2 *= 3 * Q - 1
+  E2 = (E2 // 24) mod Md
+  Pw = Rs Q Md powmod
+  A2 = (Aa * Aa) mod Md
+  Cr = (1 + Aa * E1 + A2 * E2) mod Md
+  V = (Pw * Cr) mod Md
+  Ex = Rs ((Rs at most U) indices)
+  V = concat V ((Ex + Q * Sz) mod Md)
+  for (V len) greater 1
+    if (V len) mod 2 equal 1
+      V = concat V (array 1)
+    end
+    H = V len // 2
+    Lw = V (0 till H array)
+    Hg = V (H till (2 * H) array)
+    V = (Lw * Hg) mod Md
+  end
+  Tt = (Tt * (V 0)) mod Md
+  Nv //= 2
+end
+Pc = N popcount
+Fv = (Tt * 2 ** ((N - Pc) mod 4)) mod Md
+Dg = Fv digits (array shape 12 fill 16)
+Answer = "0123456789ABCDEF" Dg
+Answer print
