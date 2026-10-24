@@ -22,7 +22,8 @@ rem step through partitions in order.
 Pi = 3.141592653589793
 Lf = array shape 120 fill 0.0
 for I in 2 to 119
-  Lf I = (Lf (I - 1)) + (I * 1.0) log
+  Lg = (I * 1.0) log
+  Lf I = (Lf (I - 1)) + Lg
 end
 Answer = 0.0
 Pa = array shape 60 fill 0
@@ -33,7 +34,8 @@ for N in 3 to K
   if E equal 0
     M = 0
   end
-  Lt = Lf (2 * N - 4) - Lf (N - 1) - Lf (N - 3)
+  Lt = Lf (2 * N - 4) - Lf (N - 1)
+  Lt -= Lf (N - 3)
   Go = 1
   for Go equal 1
     Lw = Lf N - Lf (N - M)
@@ -71,7 +73,8 @@ for N in 3 to K
         Sm += Cq asin
       end
       if Mj
-        Sm = Sm - 2 * (((Lm * Tt) min 1.0) asin)
+        Cq = (Lm * Tt) min 1.0
+        Sm = Sm - 2 * (Cq asin)
         if Sm greater 0
           Lo = Tt
         else
@@ -88,11 +91,13 @@ for N in 3 to K
     Ar = (N - M) * ((1 - Tt * Tt) sqrt)
     for I in 0 till M
       Ll = 1 + Pa I
-      Rm = (1 - Ll * Ll * Tt * Tt) max 0.0
+      Lt2 = Ll * Tt
+      Rm = (1 - Lt2 * Lt2) max 0.0
       Ar += Ll * (Rm sqrt)
     end
     if Mj
-      Rm = (1 - Lm * Lm * Tt * Tt) max 0.0
+      Lt2 = Lm * Tt
+      Rm = (1 - Lt2 * Lt2) max 0.0
       Ar = Ar - 2 * Lm * (Rm sqrt)
       Ar = Ar abs
     end
@@ -100,9 +105,17 @@ for N in 3 to K
     Pb = (Lw - Lt) exp
     Answer += Pb * Ar
     Ones = 0
-    for (M greater 0) and ((Pa (M - 1)) equal 1)
+    Tr = 0 equal 1
+    if M greater 0
+      Tr = (Pa (M - 1)) equal 1
+    end
+    for Tr
       M -= 1
       Ones += 1
+      Tr = 0 equal 1
+      if M greater 0
+        Tr = (Pa (M - 1)) equal 1
+      end
     end
     if M equal 0
       Go = 0
