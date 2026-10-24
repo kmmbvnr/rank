@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "570_snowflakes"
+  run
+  Answer equal 271197444
+end
+
+test "statement values"
+  use "570_snowflakes"
+  N = 3
+  run
+  Answer equal 6
+  N = 500
+  run
+  Answer equal 5124
+end

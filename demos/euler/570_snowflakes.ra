@@ -1,0 +1,29 @@
+rem Snowflakes
+rem https://projecteuler.net/problem=570
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+
+rem A(n) = 6 (2 U - V) and B(n) = 6
+rem ((3n - 23) U + (2n + 13) V) with U =
+rem 4^(n-2), V = 3^(n-2). A common
+rem divisor of 2U - V and the other
+rem factor divides 7n + 3, so
+rem G(n) = 6 gcd(7n + 3, 2U - V).
+Answer = 0
+Bk = 1000000
+for B0 in 3 to N by Bk
+  B1 = (B0 + Bk - 1) min N
+  Ns = B0 to B1 array
+  Md = 7 * Ns + 3
+  Ex = Ns - 2
+  U = 4 Ex Md powmod
+  V = 3 Ex Md powmod
+  R = (2 * U - V) mod Md
+  Answer += 6 * (Md gcd R) sum
+end
+Answer print
