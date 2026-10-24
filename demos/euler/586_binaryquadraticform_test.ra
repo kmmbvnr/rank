@@ -1,0 +1,19 @@
+use testing
+
+test "default input"
+  use "586_binaryquadraticform"
+  run
+  Answer equal 82490213
+end
+
+test "statement values"
+  use "586_binaryquadraticform"
+  N = 100000
+  R = 4
+  run
+  Answer equal 237
+  N = 100000000
+  R = 6
+  run
+  Answer equal 59517
+end

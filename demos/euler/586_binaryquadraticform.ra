@@ -1,0 +1,181 @@
+rem Binary Quadratic Form
+rem https://projecteuler.net/problem=586
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000000
+option R integer = 40
+
+rem k = a^2 + 3ab + b^2 (a > b > 0) has
+rem floor(tau(x) / 2) forms when k =
+rem x 5^t u^2, x made of primes 1, 4 mod
+rem 5 and u of primes 2, 3 mod 5, else
+rem none. So f = sum over such x with
+rem tau(x) = 2R or 2R + 1 of G(n // x),
+rem G(q) the count of m = 5^t u^2 up to
+rem q. A walk over prime powers in
+rem increasing prime order keeps the
+rem divisor count still due; a last
+rem prime with exponent 1 is summed over
+rem m with the split prime counts
+rem pi(M // m).
+Pm = 5000000
+Qm = 3000000
+Ss = array shape (Pm + 1) fill 1
+Ss 0 = 0
+Ss 1 = 0
+Pr = Pm isqrt
+for I in 2 to Pr
+  if (Ss I) equal 1
+    for J in (I * I) to Pm by I
+      Ss J = 0
+    end
+  end
+end
+Ix = (Ss equal 1) indices
+Rs = Ix mod 5
+Sl = (Rs equal 1) or (Rs equal 4)
+Sp = Ix (Sl indices)
+Np = Sp len
+Fl = Ss * 0
+Fl Sp = 1
+Cs = (Fl scan +) array
+Ur = Qm isqrt
+Ine = array shape (Ur + 1) fill 1
+Ine 0 = 0
+for P in Ix
+  if P at most Ur
+    Rp = P mod 5
+    Bd = (Rp equal 0) or (Rp equal 1)
+    if Bd or (Rp equal 4)
+      for J in P to Ur by P
+        Ine J = 0
+      end
+    end
+  end
+end
+Mk = array shape (Qm + 1) fill 0
+Pw = 1
+for Pw at most Qm
+  for U in 1 to Ur
+    if (Ine U) equal 1
+      M = Pw * U * U
+      if M at most Qm
+        Mk M = 1
+      end
+    end
+  end
+  Pw *= 5
+end
+Gp = (Mk scan +) array
+Mv = (Mk equal 1) indices
+Nm = Mv len
+Dv = array shape 82 20 fill 0
+Dn = array shape 82 fill 0
+Lg = array shape 82 fill 0
+for Rr in 2 to 81
+  for D in 2 to Rr
+    if Rr mod D equal 0
+      Dv Rr (Dn Rr) = D
+      Dn Rr += 1
+    end
+  end
+  Lb = 0
+  Cv = 1
+  for Cv less Rr
+    Cv *= 2
+    Lb += 1
+  end
+  Lg Rr = Lb
+end
+Tot = 0
+Sx = array shape 64 fill 0
+Sr = array shape 64 fill 0
+Sj0 = array shape 64 fill 0
+Sc = array shape 64 fill 0
+Sp0 = 0
+for T in 2 * R to 2 * R + 1
+  Sx Sp0 = 1
+  Sr Sp0 = T
+  Sj0 Sp0 = 0
+  Sc Sp0 = 0
+  Sp0 += 1
+end
+for Sp0 greater 0
+  T = Sp0 - 1
+  X = Sx T
+  Rq = Sr T
+  J = Sc T
+  Fa = 0
+  if J less Np
+    P = Sp J
+    Sc T = J + 1
+    Cap = N // P
+    Nd = Dn Rq
+    for K in 0 till Nd
+      D = Dv Rq K
+      Pe = 1
+      for Q in 2 to D
+        if Pe greater Cap
+          Pe = N + 1
+        else
+          Pe *= P
+        end
+      end
+      Ok = Pe at most (N // X)
+      if Ok
+        Y = X * Pe
+        if D equal Rq
+          Fa = 1
+          Tot += Gp (N // Y)
+        else
+          Rn = Rq // D
+          Pn = N + 1
+          if J + 1 less Np
+            Pn = Sp (J + 1)
+          end
+          Zr = N // Y
+          Lb = Lg Rn
+          for Q in 1 to Lb
+            Zr = Zr // Pn
+          end
+          if Zr at least 1
+            Fa = 1
+            if Rn equal 2
+              Mq = N // Y
+              Go = 1
+              I = 0
+              Gw = (Go equal 1) and (I less Nm)
+              for Gw
+                Mi = Mv I
+                Qv = (Mq // Mi) min Pm
+                Cn = (Cs Qv) - (J + 1)
+                if Cn greater 0
+                  Tot += Cn
+                  I += 1
+                else
+                  Go = 0
+                end
+                Gw = (Go equal 1) and (I less Nm)
+              end
+            else
+              Sx Sp0 = Y
+              Sr Sp0 = Rn
+              Sj0 Sp0 = J + 1
+              Sc Sp0 = J + 1
+              Sp0 += 1
+            end
+          end
+        end
+      end
+    end
+  end
+  if Fa equal 0
+    Sp0 = T
+  end
+end
+Answer = Tot
+Answer print
