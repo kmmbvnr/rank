@@ -60,7 +60,8 @@ for Bs in 2 to Bm
     Dg = (V // Bs ** J) mod Bs
     Bt = 1 shl Dg
     Tf = Tf bor Bt
-    Tt = Tt bor (Bt * ((V at least Bs ** J) integer))
+    Pz = (V at least Bs ** J) integer
+    Tt = Tt bor (Bt * Pz)
   end
   Of Bs = Ta len
   Sz Bs = Zs
@@ -76,13 +77,16 @@ Hits = array shape 0 fill 0
 for D1 in 1 to Bm
   for D2 in 0 to Bm
     for D3 in 0 to Bm
-      Ok = (D2 not equal D1) and (D3 not equal D1)
+      Ok = D2 not equal D1
+      Ok = Ok and (D3 not equal D1)
       Ok = Ok and (D3 not equal D2)
       if Ok and ((Hits len) less T)
-        Ds = (Al not equal D1) and (Al not equal D2)
+        Ds = Al not equal D1
+        Ds = Ds and (Al not equal D2)
         Ds = Ds and (Al not equal D3)
         Dl = Al (Ds indices)
-        Hv = ((D1 * B + D2) * B + D3) * B ** Ls
+        Hv = (D1 * B + D2) * B + D3
+        Hv *= B ** Ls
         Wd = Pw * Dl
         Sm = Wd reduce + axis 1
         X = Hv + Sm
@@ -100,7 +104,8 @@ for D1 in 1 to Bm
             Mk = Mk bor (Ta Ix)
             Cur = Q
           end
-          X = X ((Mk equal (2 ** Bs - 1)) indices)
+          Fl = 2 ** Bs - 1
+          X = X ((Mk equal Fl) indices)
         end
         Hits = concat Hits X
       end
