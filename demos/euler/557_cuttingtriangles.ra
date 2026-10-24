@@ -1,0 +1,73 @@
+rem Cutting Triangles
+rem https://projecteuler.net/problem=557
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000
+
+rem With p = a + b and q = a + c, the
+rem area T obeys 1/T + 1/a = 1/p + 1/q
+rem and d > 0 follows. So S(n) adds T
+rem for each pair of pairs a < p <= q
+rem < T <= n with equal 1/x + 1/y. Sort
+rem the pairs by reduced fraction then
+rem x; a pair of rank i in a group of m
+rem is the outer one for m - 1 - i, so
+rem it adds y (m - 1 - i).
+Tot = N * (N + 1) // 2
+Za = array shape Tot fill 0
+Bk = 200
+Off = 0
+for X0 in 1 to N by Bk
+  X1 = (X0 + Bk - 1) min N
+  Rw = X1 - X0 + 1
+  Wd = N - X0 + 1
+  Xb = (X0 to X1 array) reshape Rw 1
+  Yb = X0 to N array
+  Mk = Yb at least Xb
+  Fl = Mk reshape (Rw * Wd)
+  Ix = Fl indices
+  Xp = X0 + Ix // Wd
+  Yp = X0 + Ix mod Wd
+  Sm = Xp + Yp
+  Pr = Xp * Yp
+  Gc = Sm gcd Pr
+  Ky = (Pr // Gc) * 32768 + Sm // Gc
+  Zb = Ky * 16384 + Xp
+  Ln = Zb len
+  Za (Off till (Off + Ln) array) = Zb
+  Off += Ln
+end
+Za = Za sort
+Ks = Za // 16384
+Hi = Ks (1 till Tot array)
+Lw = Ks (0 till (Tot - 1) array)
+Sa = (Hi equal Lw) integer
+Mm = concat Sa (array 0)
+Nx = concat (array 0) Sa
+Mm = Mm max Nx
+Mi = (Mm equal 1) indices
+Zm = Za Mi
+Km = Zm // 16384
+Xm = Zm mod 16384
+Dr = Km // 32768
+Nr = Km mod 32768
+Ym = Dr * Xm // (Nr * Xm - Dr)
+Nm = Km len
+Hk = Km (1 till Nm array)
+Lk = Km (0 till (Nm - 1) array)
+St = (Hk not equal Lk) integer
+St = concat (array 1) St
+Gi = (St scan +) array
+Gs = (St equal 1) indices
+Ng = Gs len
+Cn = array shape (Ng + 1) fill 0
+Cn Gi += 1 .accumulate
+Pn = 0 till Nm array
+Rk = Pn - (Gs (Gi - 1))
+Ms = Cn Gi
+Answer = (Ym * (Ms - 1 - Rk)) sum
+Answer print

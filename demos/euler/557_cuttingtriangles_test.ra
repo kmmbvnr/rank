@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "557_cuttingtriangles"
+  N = 20
+  run
+  Answer equal 259
+  N = 54
+  run
+  Answer equal 3331
+  N = 55
+  run
+  Answer equal 3441
+end
