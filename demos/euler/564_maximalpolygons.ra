@@ -1,0 +1,123 @@
+rem Maximal Polygons
+rem https://projecteuler.net/problem=564
+
+use numbers
+use sequences
+use io
+use cli
+
+option K integer = 50
+
+rem Sides 1 + e with e >= 0 summing to
+rem n - 3 form a partition of n - 3 plus
+rem n - m sides of 1. The best polygon
+rem is cyclic; with t = 1 / (2R) the
+rem angles asin(l t) sum to pi (centre
+rem inside) or the long side's angle
+rem equals the rest (centre outside).
+rem Bisect t, take the area sum of
+rem l sqrt(1 - l^2 t^2) / (4 t), weight
+rem by the multinomial chance, and
+rem step through partitions in order.
+Pi = 3.141592653589793
+Lf = array shape 120 fill 0.0
+for I in 2 to 119
+  Lf I = (Lf (I - 1)) + (I * 1.0) log
+end
+Answer = 0.0
+Pa = array shape 60 fill 0
+for N in 3 to K
+  E = N - 3
+  Pa 0 = E
+  M = 1
+  if E equal 0
+    M = 0
+  end
+  Lt = Lf (2 * N - 4) - Lf (N - 1) - Lf (N - 3)
+  Go = 1
+  for Go equal 1
+    Lw = Lf N - Lf (N - M)
+    Run = 1
+    for I in 1 till M
+      if (Pa I) equal (Pa (I - 1))
+        Run += 1
+      else
+        Lw -= Lf Run
+        Run = 1
+      end
+    end
+    if M greater 0
+      Lw -= Lf Run
+    end
+    Lm = 1
+    if M greater 0
+      Lm = 1 + Pa 0
+    end
+    Tm = 1.0 / Lm
+    Fs = (N - M) * ((Tm min 1.0) asin)
+    for I in 0 till M
+      Cq = ((1 + Pa I) * Tm) min 1.0
+      Fs += Cq asin
+    end
+    Lo = 0.0
+    Hi = Tm
+    Mj = Fs less Pi
+    Tt = 0.0
+    for Bi in 1 to 50
+      Tt = (Lo + Hi) / 2
+      Sm = (N - M) * (Tt asin)
+      for I in 0 till M
+        Cq = ((1 + Pa I) * Tt) min 1.0
+        Sm += Cq asin
+      end
+      if Mj
+        Sm = Sm - 2 * (((Lm * Tt) min 1.0) asin)
+        if Sm greater 0
+          Lo = Tt
+        else
+          Hi = Tt
+        end
+      else
+        if Sm less Pi
+          Lo = Tt
+        else
+          Hi = Tt
+        end
+      end
+    end
+    Ar = (N - M) * ((1 - Tt * Tt) sqrt)
+    for I in 0 till M
+      Ll = 1 + Pa I
+      Rm = (1 - Ll * Ll * Tt * Tt) max 0.0
+      Ar += Ll * (Rm sqrt)
+    end
+    if Mj
+      Rm = (1 - Lm * Lm * Tt * Tt) max 0.0
+      Ar = Ar - 2 * Lm * (Rm sqrt)
+      Ar = Ar abs
+    end
+    Ar = Ar / (4 * Tt)
+    Pb = (Lw - Lt) exp
+    Answer += Pb * Ar
+    Ones = 0
+    for (M greater 0) and ((Pa (M - 1)) equal 1)
+      M -= 1
+      Ones += 1
+    end
+    if M equal 0
+      Go = 0
+    else
+      Pa (M - 1) -= 1
+      V = Pa (M - 1)
+      R = Ones + 1
+      for R greater 0
+        Q = V min R
+        Pa M = Q
+        M += 1
+        R -= Q
+      end
+    end
+  end
+end
+Answer = Answer round 6
+Answer print

@@ -1,0 +1,140 @@
+rem Maximal Perimeter
+rem https://projecteuler.net/problem=562
+
+use numbers
+use sequences
+use io
+use cli
+
+option R integer = 10000000
+option Dm integer = 2000000
+
+rem Perimeter is 2 L plus a term below
+rem 10^-14, so take the largest L^2 =
+rem a^2 + b^2 <= 4 R^2 that has a
+rem triangle, then the largest term.
+rem For a primitive edge u = (a, b)
+rem look for lattice points A with A
+rem and A + u in the disc (a thin lens
+rem around -u / 2). The third vertex is
+rem A + w or A + u - w, w = (wx, wy)
+rem solving a wy - b wx = 1 with
+rem q = u . w in [0, L^2). The
+rem circumradius is sqrt((q^2 + 1)
+rem (m^2 + 1)) / (2 L), m = L^2 - q.
+Q4 = 4 * R * R
+R2 = R * R
+Bl = 0
+Bd = 0.0
+Ba = 0
+Bb = 0
+Bq = 0
+A0 = (Q4 // 2) isqrt
+for A in A0 to 2 * R
+  Mx = (Q4 - A * A) isqrt
+  Mx = Mx min A
+  Mn = ((Q4 - Dm - A * A) max 0) isqrt
+  for B in Mn to Mx
+    L2 = A * A + B * B
+    G = A
+    H = B
+    for H greater 0
+      Tg = G mod H
+      G = H
+      H = Tg
+    end
+    Ok = G equal 1
+    Ok = Ok and (L2 at least Bl)
+    Ok = Ok and (L2 at least Q4 - Dm)
+    if Ok
+      R0 = A
+      R1 = B
+      S0 = 1
+      S1 = 0
+      T0 = 0
+      T1 = 1
+      for R1 greater 0
+        Qq = R0 // R1
+        Tp = R0 - Qq * R1
+        R0 = R1
+        R1 = Tp
+        Tp = S0 - Qq * S1
+        S0 = S1
+        S1 = Tp
+        Tp = T0 - Qq * T1
+        T0 = T1
+        T1 = Tp
+      end
+      Wy = S0
+      Wx = 0 - T0
+      Qv = A * Wx + B * Wy
+      Kf = Qv // L2
+      Wx -= Kf * A
+      Wy -= Kf * B
+      Qv = A * Wx + B * Wy
+      Mm = L2 - Qv
+      D = Q4 - L2
+      Lf = L2 * 1.0
+      Ln = Lf sqrt
+      Hw = (D * 1.0) sqrt
+      Hx = Hw * 0.5 * B / Ln + 3
+      Hx += D * A / (8.0 * R * Ln)
+      Xc = 0.0 - A / 2.0
+      X0 = ((Xc - Hx) floor) integer
+      X1 = ((Xc + Hx) ceil) integer
+      Fe = 0
+      for X in X0 to X1
+        S1q = R2 - X * X
+        S2q = R2 - (X + A) * (X + A)
+        Fit = S1q at least 0
+        Fit = Fit and (S2q at least 0)
+        if Fit
+          Y1 = S1q isqrt
+          Y2 = S2q isqrt
+          Lo = (0 - Y1) max (0 - B - Y2)
+          Hi = Y1 min (Y2 - B)
+          for Y in Lo to Hi
+            Cx = X + Wx
+            Cy = Y + Wy
+            Dx = X + A - Wx
+            Dy = Y + B - Wy
+            C2 = Cx * Cx + Cy * Cy
+            E2 = Dx * Dx + Dy * Dy
+            In1 = C2 at most R2
+            In2 = E2 at most R2
+            if In1 or In2
+              Fe = 1
+            end
+          end
+        end
+      end
+      if Fe equal 1
+        Qf = Qv * 1.0
+        Mf = Mm * 1.0
+        Sa = (Qf * Qf + 1.0) sqrt
+        Sb = (Mf * Mf + 1.0) sqrt
+        T1f = 1.0 / (Sa + Qf)
+        T2f = 1.0 / (Sb + Mf)
+        Dt = (T1f + T2f) / Ln
+        Nw = L2 greater Bl
+        Nw = Nw or (Dt greater Bd)
+        if Nw
+          Bl = L2
+          Bd = Dt
+          Ba = A
+          Bb = B
+          Bq = Qv
+        end
+      end
+    end
+  end
+end
+Mq = Bl - Bq
+Nm = (Bq * Bq + 1) * (Mq * Mq + 1)
+Dn = 4 * Bl * R2
+T = (Nm // Dn) isqrt
+Tw = (2 * T + 1) * (2 * T + 1)
+Up = Tw * Dn at most 4 * Nm
+T += Up integer
+Answer = T
+Answer print
