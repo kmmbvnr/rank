@@ -1,0 +1,13 @@
+use testing
+
+test "statement values"
+  use "576_irrationaljumps"
+  N = 3
+  Gi = 60000000000000000
+  run
+  Answer equal 29.5425
+  N = 10
+  Gi = 10000000000000000
+  run
+  Answer equal 266.901
+end

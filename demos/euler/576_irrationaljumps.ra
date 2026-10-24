@@ -1,0 +1,145 @@
+rem Irrational Jumps
+rem https://projecteuler.net/problem=576
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100
+option Gi integer = 20000000000000
+
+rem Gap g = Gi / 10^18. For a prime p
+rem the k-th landing is x(k) =
+rem frac(k / sqrt p) and a gap start d
+rem is first hit at the least k with
+rem x(k) in (d, d + g), worth k / sqrt
+rem p. Sort the landings (10^18 fixed
+rem point, exact) and slide the window
+rem with a monotone deque to get the
+rem plateaus of k in d. The jumps of
+rem all the primes' plateaus are sorted
+rem events whose running sum has the
+rem maximum.
+Sc = 10 ** 18
+Lim = Sc - Gi
+Ep = array shape 0 fill 0
+Ed = array shape 0 fill 0.0
+for P in primes till (N + 1) array
+  A = (Sc * Sc // P) isqrt
+  Rp = (P * 1.0) sqrt
+  Al = 1.0 / Rp
+  K = 4096
+  Cv = 1
+  Ss = array shape 1 fill 0
+  Ik = array shape 1 fill 0
+  for Cv equal 1
+    Ks = 1 to K array
+    Xs = (Ks * A) mod Sc
+    Od = Xs argsort
+    Ss = Xs Od
+    Ik = Ks Od
+    Lw = Ss 0
+    Up = Sc - (Ss (K - 1))
+    Hi = Ss (1 till K array)
+    Lo = Ss (0 till (K - 1) array)
+    Gp = Hi - Lo
+    Mg = (Gp reduce max) max (Lw max Up)
+    if Mg at most Gi
+      Cv = 0
+    else
+      K *= 2
+    end
+  end
+  Dq = array shape (K + 1) fill 0
+  Pp = array shape (2 * K + 4) fill 0
+  Vv = array shape (2 * K + 4) fill 0
+  Hd = 0
+  Tl = 0
+  R = 0
+  L = 0
+  Fr = 1
+  for Fr equal 1
+    Fr = 0
+    if R less K
+      if (Ss R) at most Gi
+        Fr = 1
+        Bk = Ik R
+        Cm = 1
+        for Cm equal 1
+          Cm = 0
+          if Tl greater Hd
+            Bq = Ik (Dq (Tl - 1))
+            if Bq at least Bk
+              Tl -= 1
+              Cm = 1
+            end
+          end
+        end
+        Dq Tl = R
+        Tl += 1
+        R += 1
+      end
+    end
+  end
+  Pp 0 = 0
+  Vv 0 = Ik (Dq Hd)
+  Np = 1
+  Go = 1
+  Big = 4 * Sc
+  for Go equal 1
+    Lp = Big
+    if L less K
+      Lp = Ss L
+    end
+    En = Big
+    if R less K
+      En = (Ss R) - Gi
+    end
+    Pos = Lp min En
+    if Pos greater Lim
+      Go = 0
+    else
+      if Lp at most En
+        if Hd less Tl
+          if (Dq Hd) equal L
+            Hd += 1
+          end
+        end
+        L += 1
+      else
+        Bk = Ik R
+        Cm = 1
+        for Cm equal 1
+          Cm = 0
+          if Tl greater Hd
+            Bq = Ik (Dq (Tl - 1))
+            if Bq at least Bk
+              Tl -= 1
+              Cm = 1
+            end
+          end
+        end
+        Dq Tl = R
+        Tl += 1
+        R += 1
+      end
+      if Hd less Tl
+        Pp Np = Pos
+        Vv Np = Ik (Dq Hd)
+        Np += 1
+      end
+    end
+  end
+  Vp = Vv (0 till Np array)
+  Nm = Np - 1
+  Vm = Vv (0 till Nm array)
+  Vq = concat (array 0) Vm
+  Ep = concat Ep (Pp (0 till Np array))
+  Ed = concat Ed (Al * (Vp - Vq))
+end
+Od = Ep argsort
+Ds = Ed Od
+Cs = (Ds scan +) array
+Answer = (Cs reduce max) round 4
+Answer print
