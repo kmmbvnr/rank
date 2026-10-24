@@ -487,10 +487,10 @@ it('keeps Euler 1 computed integer arrays and boolean masks, including compound 
 });
 
 
-it('infers Euler 13 call results and uncalled locals, with backward parameter contracts', () => {
-    const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
+it('infers leading-sum call results and uncalled locals, with backward parameter contracts', () => {
+    const source = readFileSync(new URL('./fixtures/leading-sum.ra', import.meta.url), 'utf8');
     expect(formatNameFacts(factsAt(source, source.indexOf('Answer ='))!)).toBe('Answer · integer');
-    expect(formatNameFacts(factsAt(source, source.indexOf('Numbers Digits leading_sum'))!)).toBe('Numbers · integer [100]');
+    expect(formatNameFacts(factsAt(source, source.indexOf('Numbers leading_sum Digits'))!)).toBe('Numbers · integer [100]');
     const definition = source.slice(source.search(/\bfun (?:[A-Z]\w*[ \t]+)*leading_sum\b/));
     expect(formatNameFacts(factsAt(definition, definition.indexOf('Prefix ='))!)).toBe('Prefix · text');
     expect(formatNameFacts(factsAt(definition, definition.indexOf('Digits'))!)).toBe('Digits · integer');
@@ -500,8 +500,8 @@ it('infers Euler 13 call results and uncalled locals, with backward parameter co
 });
 
 
-it('shows backward parameter requirements on the Euler 13 function definition', () => {
-    const source = readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8');
+it('shows backward parameter requirements on an infix function definition', () => {
+    const source = readFileSync(new URL('./fixtures/leading-sum.ra', import.meta.url), 'utf8');
     const found = factsAt(source, source.indexOf('leading_sum', source.search(/^fun[^\n]*\bleading_sum\b/m)))!;
     expect(found.signature).toBe('(number | missing) [rank ≥ 0] i → i');
     expect(layoutNameFacts(found, 40)).toEqual(['leading_sum ·', '  (number | missing) [rank ≥ 0]', '  i → i']);

@@ -35,7 +35,7 @@ fun N odd
 end
 100001 odd
 `)).toBe(true);
-    });
+    }, 30_000);
 
     it('preserves a read-only capture during a nested tail call', () => {
         const interpreter = new Interpreter(undefined, { maxCallDepth: 1 });

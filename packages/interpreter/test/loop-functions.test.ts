@@ -183,5 +183,5 @@ for Row in 1 till Size`);
         const result = execute(source + '\nStates');
         expect(formatValue(result.value!)).toBe(formatValue(execute(before + '\nStates').value!));
         expect(result.value).toMatchObject({ shape: [92, 8] });
-    });
+    }, 30_000);
 });

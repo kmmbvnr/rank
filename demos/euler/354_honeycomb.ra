@@ -40,14 +40,14 @@ Good = Good scan +
 Answer = 0
 
 rem Exponents 24,2.
-P = 7
-P24 = P ** 24
+BasePrime = 7
+P24 = BasePrime ** 24
 for Q in P1
   A = P24 * Q * Q
   if A greater N
     break
   end
-  if Q not equal P
+  if Q not equal BasePrime
     Answer += (N // A) g Good
   end
 end

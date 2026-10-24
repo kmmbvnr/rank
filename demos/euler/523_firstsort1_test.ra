@@ -1,4 +1,5 @@
 use testing
+use numbers
 
 test "statement values"
   use "523_firstsort1"

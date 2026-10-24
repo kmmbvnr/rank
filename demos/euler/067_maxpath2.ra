@@ -41,7 +41,7 @@ Edges' = stack From To Cost transpose
 Net = new graph .directed
 Net add Id
 Net add Edges
-Dist = Net dijkstra 0 .distance
+Dist = (Net dijkstra 0) .distance
 Base = Id (Row equal Last) array
 Short = (Dist Base) min
 Answer = Vals 0 + Last * 100 - Short

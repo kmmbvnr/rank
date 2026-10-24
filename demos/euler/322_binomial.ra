@@ -81,8 +81,8 @@ fun N Limit Base nocarry
     Small = Cap min BD
     NextLoose = Loose * (Cap + 1)
     NextTight = 0
-    for D in 0 to Small
-      if D less BD
+    for Digit in 0 to Small
+      if Digit less BD
         NextLoose += Tight
       else
         NextTight += Tight

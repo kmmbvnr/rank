@@ -1,4 +1,5 @@
 use testing
+use numbers
 
 test "S(6, 1) = 208.3"
   use "470_superramvok"

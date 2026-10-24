@@ -402,8 +402,8 @@ PowerExpression returns Expression:
 // A one-line condition parses to the end of the line; grouping then keeps only
 // its predicate and moves the operations after it back into the pipeline.
 ApplicationExpression returns Expression:
-    (PrimaryApplicationExpression |
-    TableWritePreviewExpression |
+    (TableWritePreviewExpression |
+    PrimaryApplicationExpression |
     TextBlockExpression |
     NonPrimaryExpression
     ({infer ApplicationExpression.head=current}

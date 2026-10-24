@@ -1,7 +1,7 @@
 name: CI
 
 # Actions minutes are metered: PRs run the light suites only,
-# the full set (sharded audits, rust) runs on manual dispatch.
+# the sharded audits run on manual dispatch; Rust verification is paused.
 on:
   pull_request:
     branches: [main]
@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter"},{"suite":"name-facts"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3},{"suite":"rust"}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter"}]}') }}
+      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '{"include":[{"suite":"packages"},{"suite":"cli"},{"suite":"interpreter"},{"suite":"name-facts"},{"suite":"type-audit","shard":0},{"suite":"type-audit","shard":1},{"suite":"type-audit","shard":2},{"suite":"type-audit","shard":3},{"suite":"differential","shard":0},{"suite":"differential","shard":1},{"suite":"differential","shard":2},{"suite":"differential","shard":3}]}' || '{"include":[{"suite":"packages"},{"suite":"interpreter"}]}') }}
     name: ${{ matrix.suite }} ${{ matrix.shard }} (Node 24)
     steps:
       - uses: actions/checkout@v5
@@ -85,11 +85,6 @@ jobs:
         with:
           name: differential-${{ matrix.shard }}
           path: packages/interpreter/differential-${{ matrix.shard }}.json
-      - name: Verify Euler 1–10 Rust rewrites
-        if: matrix.suite == 'rust'
-        env:
-          CARGO_TARGET_DIR: ${{ runner.temp }}/rank-euler-target
-        run: npm run test:rust
 
   type-audit-coverage:
     needs: test

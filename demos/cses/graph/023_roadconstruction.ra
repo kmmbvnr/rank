@@ -29,7 +29,7 @@ fun N road_progress Roads
     if RootA not equal RootB
       Combined = Sizes RootA
       Combined += Sizes RootB
-      Union RootA merge RootB
+      Union RootA RootB merge
       Root = Union findroot RootA
       Sizes Root = Combined
       Largest = Largest max Combined

@@ -103,6 +103,8 @@ export interface Operation {
     readonly result: ResultKind;
     /** A whole-value read may be absent independently of its operand types. */
     readonly nullable?: true;
+    /** Native immutable storage survives ordinary binding without expansion. */
+    readonly storedResult?: true;
     /** Audited language overloads for readers and editors, independent of compiler subsets. */
     readonly signatures?: readonly TypeSignature[];
     /** Scalar contracts whose argument-wise array/SQL expansion is recorded in signatures. */
@@ -1134,7 +1136,7 @@ export const operations: readonly Operation[] = [
     { name: 'present', module: 'core', arities: [1], form: 'Values present', result: 'boolean',
         signatures: [{ inputs: ['unknown'], result: { union: ['boolean', booleanArray, { collection: 'sequence', element: 'boolean' }] } }],
         summary: 'Mask of the cells that have a value: false for `.NA` and for cells that read as `.Missing`.' },
-    { name: 'primesieve', module: 'sequences', arities: [1], form: 'Limit primesieve', result: 'sequence',
+    { name: 'primesieve', module: 'sequences', arities: [1], form: 'Limit primesieve', result: 'sequence', storedResult: true,
         signatures: [{ inputs: ['integer'], result: { collection: 'sequence', element: 'integer' } }],
         summary: 'Primes through an inclusive finite bound, with an eager odd-only bitmap and constant-time membership.' },
     { name: 'primes', module: 'sequences', arities: [], form: 'primes', result: 'sequence',

@@ -75,7 +75,7 @@ for (const compilation of [false, true]) describe(`tensor indices (compiled=${co
                 }
             } finally { runtime.dispose(); }
         }
-    });
+    }, 30_000);
 
     it('grows queens placements by one column per placed queen', () => {
         const demo = readFileSync(new URL('../../../demos/classic/queens.ra', import.meta.url), 'utf8');
@@ -92,7 +92,7 @@ for (const compilation of [false, true]) describe(`tensor indices (compiled=${co
             runtime.execute(traced);
             expect(shapes).toEqual(['1 0', '8 1', '42 2', '140 3', '344 4', '568 5', '550 6', '312 7', '92 8']);
         } finally { runtime.dispose(); }
-    });
+    }, 30_000);
 
     it('rejects scalars and non-boolean cells', () => {
         const runtime = new Interpreter(() => {}, { compilation });

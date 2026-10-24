@@ -1,6 +1,11 @@
-import { checkpoint } from './interrupt.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
 
 export function greatestCommonDivisor(left: bigint, right: bigint): bigint {
+    const x = Number(left), y = Number(right);
+    if (privateLoopPolling() && Number.isSafeInteger(x) && Number.isSafeInteger(y)) {
+        checkpoint('computing numbers');
+        return BigInt(safeIntegerGcd(x, y));
+    }
     let a = left < 0n ? -left : left;
     let b = right < 0n ? -right : right;
     while (b !== 0n) {

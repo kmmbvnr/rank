@@ -990,16 +990,16 @@ test('a live eval error keeps the terminal cursor on the erroneous line', async 
     assert.doesNotMatch(frame.text, /<function inc>/);
 });
 
-test('postfix comparisons select whole arrays and column cells in the terminal', async t => {
+test('postfix comparisons select whole arrays and axis cells in the terminal', async t => {
     const frames = await drive(t, [
         { keys: 'A = array shape 2 2 fill 1' + ENTER, until: 'shape 2 2' },
         { keys: 'B = array shape 2 2 fill 1' + ENTER, until: 'shape 2 2' },
         { keys: 'B 0 1 = 9' + ENTER, until: '3›' },
         { keys: 'A B equal rank 2' + ENTER, until: 'false' },
-        { keys: 'A B equal axis 1 rank 1' + ENTER, until: 'true false' },
+        { keys: 'A B equal axis 1 rank 1' + ENTER, until: 'false true' },
     ], 80, 22);
     assert.match(frames[3].text, /false/);
-    assert.match(frames[4].text, /true false/);
+    assert.match(frames[4].text, /false true/);
     assert.doesNotMatch(frames[4].text, /Syntax:|Runtime:/);
 });
 

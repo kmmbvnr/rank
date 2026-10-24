@@ -20,7 +20,7 @@ R = 0 till Wheel by 10 array
 for P in primes from 3 till 14
   Sq = 0 till P array
   Hit' = (Sq * Sq + Off) mod P equal 0
-  Bad' = Hit any axis 0
+  Bad = Hit any axis 0
   R = R filter (not Bad (R mod P)) array
 end
 Blocks = Limit // Wheel + 1
@@ -34,7 +34,7 @@ C = C filter C less Limit array
 for P in primes from 17 till 100
   Sq = 0 till P array
   Hit' = (Sq * Sq + Off) mod P equal 0
-  Bad' = Hit any axis 0
+  Bad = Hit any axis 0
   C = C filter (not Bad (C mod P)) array
 end
 for K in array 1 3 7 9 13 27

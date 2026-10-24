@@ -188,7 +188,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 return !types?.length || !types.every(type => type === 'integer' || type === 'real');
             })) return;
             const cellRanks = ranks ?? (args.length === 1 ? [operation.monadicRank ?? 'all']
-                : operation.dyadicRanks ?? args.map(() => 'all'));
+                : operation.dyadicRanks ?? args.map(() => args.length > 2 && operation.mapsScalarCells ? 0 : 'all'));
             const unaryRank = args.length === 1 ? cellRanks[0] : undefined;
             const unaryPattern = args.length === 1 ? shape.args[0] : undefined;
             if (typeof unaryRank === 'number' && unaryPattern

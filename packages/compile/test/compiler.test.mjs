@@ -150,8 +150,9 @@ test('a ra file is the default command and emits the complete task without an ag
   assert.equal(result.stdout, await task(file));
 });
 
-const hasCargo = spawnSync('cargo', ['--version']).status === 0;
-test('Rust verification checks replay effects, capture, eager parameters and deferred failures', {skip: !hasCargo}, async t => {
+const runRust = process.env.RANK_TEST_RUST === '1'
+  && spawnSync('cargo', ['--version']).status === 0;
+test('Rust verification checks replay effects, capture, eager parameters and deferred failures', {skip: !runRust}, async t => {
   const {file, dir} = await fixture(t, planSource);
   const out = join(dir, 'out');
   const casesFile = join(dir, 'cases.json');
@@ -190,7 +191,7 @@ test('Rust verification checks replay effects, capture, eager parameters and def
   assert.equal(bad.cases[0].actual.stdout, 'entered\n1\n2\n3\n9\n9\n9\n1\n2\n3\n12\n4\n');
 });
 
-test('verification builds a program, detects wrong output and rejects stub builds', {skip: !hasCargo}, async t => {
+test('verification builds a program, detects wrong output and rejects stub builds', {skip: !runRust}, async t => {
   const {file, dir} = await fixture(t);
   const out = join(dir, 'out');
   const casesFile = join(dir, 'cases.json');

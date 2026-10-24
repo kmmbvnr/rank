@@ -8,8 +8,8 @@ use cli
 option Limit integer = 10 ** 14
 
 Mod = 982451653
-M = ((8 * Limit + 9) isqrt - 3) // 2
-Top = M + 3
+MaxM = ((8 * Limit + 9) isqrt - 3) // 2
+Top = MaxM + 3
 Inv = array shape (Top + 1) fill 0
 Inv 1 = 1
 for I in 2 to Top
@@ -20,7 +20,7 @@ Answer = 1
 Fact = 1
 Harm = 0
 Upto = 1
-for M in 1 to M
+for M in 1 to MaxM
   Target = M + 2
   for Upto less Target
     Upto += 1

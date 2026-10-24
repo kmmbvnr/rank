@@ -289,7 +289,8 @@ Modulus must be one scalar prime.
 N must be smaller than Modulus, with
 0 at most K at most N.
 
-For stored arrays, the modulus is checked
+For stored arrays, the modulus is
+checked
 once and the factorial cache is extended
 once to the largest N. Later calls reuse
 that cache. Deferred cells are computed
@@ -1058,3 +1059,30 @@ one scalar integer.
 ### See also
 
 digits
+
+## factorsieve
+
+Smallest prime factors through a bound.
+
+```rank
+use numbers
+10 factorsieve
+```
+
+```result
+0 0 2 3 2 5 2 7 2 3 2
+```
+
+### Usage
+
+```text
+Limit factorsieve
+```
+
+Returns Limit + 1 integers. Entries 0
+and 1 are zero. Limit must be between 0
+and 1048575.
+
+### See also
+
+divisors

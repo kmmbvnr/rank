@@ -26,9 +26,9 @@ function compare(source: string, options?: InterpreterOptions) {
 }
 
 describe('compiled function body completion', () => {
-    it('keeps a function loop binder local when a global has the same name', () => {
+    it('rejects a function loop binder that shadows a global', () => {
         const result = compare('I = 99\nfun A count\n Total = 0\n for I in 0 till (A len)\n  Total += A I\n end\n return Total\nend\n(array 2 3) count\nI');
-        expect(result).toMatchObject({ value: '99' });
+        expect(result.error).toContain('I is already bound outside this block');
     });
 
     it.each(['0', 'false', '""'])('returns %s without treating it as missing', value => {

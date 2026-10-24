@@ -240,11 +240,10 @@ describe('queue iteration type summaries', () => {
         expect(queue.iterationTypes(classify)).toEqual(new Set(['bigint']));
     });
 
-    it('checks newly inserted types before executing a reused loop', () => {
+    it('rejects a conflicting insertion through an alias after iteration', () => {
         expect(() => run(prelude + `
 Q = new queue
 Q push 1
-V = 0
 for V in Q
   break
 end
@@ -253,7 +252,7 @@ Alias push "text"
 for V in Q
   break
 end
-`)).toThrow(/cannot receive/);
+`)).toThrow('queue holds integer');
     });
 
     it('retains the element contract after the last value is removed', () => {
@@ -265,11 +264,9 @@ for Old in Q
 end
 Removed = Q pop
 Q push 7
-V = 0
 for V in Q
   break
 end
-V
 `)).toThrow('queue holds text');
     });
 

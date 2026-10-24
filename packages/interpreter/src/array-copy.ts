@@ -18,6 +18,8 @@ export function registerArrayCopy(value: RankArray, copy: () => RankArray | unde
 export function copyArrayStorage(value: RankArray): RankArray | undefined {
     if (!privateLoopPolling() || inspectionEnabled() || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
     const plan = copies.get(value);
+    // Do not probe a lazy result's shape to discover that it has no storage.
+    if (!plan && !prepareStoredScalarView(value, true)) return undefined;
     if (plan && (value.itemAt !== plan.reader || value.shape.length !== plan.shape.length
         || value.shape.some((size, axis) => size !== plan.shape[axis]))) return undefined;
     const size = value.shape.reduce((n, dimension) => n * dimension, 1);

@@ -128,8 +128,8 @@ argument Name Type = Default
 
 Arguments are filled in the order they
 are declared. Type is integer, real,
-text, path or boolean. Without a default,
-the argument is required.
+text, path or boolean. An argument is
+required unless it has a default.
 
 ### See also
 
@@ -191,17 +191,20 @@ option is left out.
 
 `text` accepts any text, including empty
 and multiline values. In zsh or bash,
-pass newlines inside one quoted argument:
+pass newlines inside one quoted
+argument:
 
 ```sh
-rank program.ra --message=$'first\nsecond'
+rank program.ra \
+  --message=$'first\nsecond'
 ```
 
 Use `--message=--hello` for a value that
 starts with `--`. For positional text,
 put `--` before such a value.
 
-`path` marks text intended as a filename.
+`path` marks text intended as a
+filename.
 Input binding preserves it unchanged;
 it does not resolve it against the
 program's directory or read the file.

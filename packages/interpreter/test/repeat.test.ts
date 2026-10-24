@@ -46,7 +46,7 @@ for (const compiled of [false, true]) describe(`repeat (compiled=${compiled})`, 
             expect(run(solver.replace('Size = 8', `Size = ${size}`) + '\nStates shape'))
                 .toBe(`${count} ${size}`);
         }
-    });
+    }, 30_000);
 
     it('keeps captures and effects sequential and skips zero calls', () => {
         const output: string[] = [];

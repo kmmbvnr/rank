@@ -120,7 +120,8 @@ test('notebook returns to prompt and stops the queued suffix on cancellation', {
 test('worker keeps editing metadata and file state in sync', { timeout: 10000 }, async t => {
     const s = await session(t);
     await s.execute('use numbers', 0, []);
-    assert.ok(s.complete('fac')[0].includes('factors '));
+    assert.ok(s.complete('fac')[0].includes('factors'));
+    assert.ok(s.complete('fac')[0].includes('factorsieve'));
     assert.deepEqual(s.complete('fun N lychel\n  for # in 1 to 50\n    Back = N text reverse integer\n    N += B'),
         [['Back '], 'B']);
     await s.execute('alias off', 1, []);

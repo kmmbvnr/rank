@@ -209,6 +209,6 @@ for (const compilation of [false, true]) describe(`real index diagnostics (compi
         expect(run('F = array 1 2 3 4\nF (array false true true false)'))
             .toBe('2 3');
         expect(() => run('F = array 1 2 3 4\nF (array false true)'))
-            .toThrow('mask length 2 does not match axis 0 size 4');
+            .toThrow('mask shape mismatch: 4 and 2');
     });
 });

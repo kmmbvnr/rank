@@ -532,7 +532,13 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 if (token.kind === 'materialize') {
                     values.push({ ...token.original, source } as Expression);
                 } else if (token.kind === 'symbolic') {
-                    values.push({ ...token.original, left: source, right: visit(token.original.right, false) } as Expression);
+                    // Keep the modifier and its trailing pipeline attached to
+                    // the fold until its left operand has been placed.
+                    const head = flatten(token.original.right)[0];
+                    const fold = isNameExpression(head) && (head.name === 'reduce' || head.name === 'scan');
+                    values.push({ ...token.original, left: source, right: fold
+                        ? application(flatten(token.original.right).map(part => visit(part) as Expression), token.original.right)
+                        : visit(token.original.right, false) } as Expression);
                 } else {
                     const operand = (value: Expression) => isApplicationExpression(value) || isBinaryExpression(value)
                         ? grouped(value) : value;

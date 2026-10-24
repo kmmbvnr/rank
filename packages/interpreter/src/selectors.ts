@@ -5,7 +5,7 @@ import { framedArray } from './framed-array.js';
 import { permutedArray } from './array-permutation.js';
 import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
-import { inheritSemanticArrayType } from './semantic-array-type.js';
+import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
 import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
@@ -527,11 +527,12 @@ export function isIntegerCollectionSelector(value: RankValue): boolean {
     if (isRankSequence(value)) return true;
     if (!isRankArray(value) && !isRankQueue(value)) return false;
     if (isRankArray(value)) {
+        if (value.shape.includes(0) && semanticArrayType(value).scalar === 'boolean') return false;
         const typed = typedElementKind(value);
         if (typed) return typed === 'integer' || value.shape.includes(0);
         const kinds = storedScalarKinds(value);
         // Packed masks keep their existing selection dispatch and diagnostics.
-        if (kinds && !kinds.includes('boolean')) return kinds.every(kind => kind === 'integer');
+        if (kinds) return kinds.every(kind => kind === 'integer');
     }
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     return stored ? Array.prototype.every.call(stored, (item: RankValue) => typeof item === 'bigint')

@@ -16,11 +16,13 @@ for (const indexed of [false, true]) describe(`scalar range induction (ordinal $
     for (const terminal of ['to', 'till']) it.each(cases)(
         `matches reference ${terminal} from %s to %s step %s`, (start, end, step) => {
             const source = `fun Start End Step helper
-I = -999
-Ord = -999
+Last = -999
+LastOrd = -999
 Count = 0
 Sum = 0
 for I ${indexed ? 'Ord ' : ''}in Start ${terminal} End by Step
+ Last = I
+ ${indexed ? 'LastOrd = Ord' : ''}
  Count += 1
  if Count equal 2
   continue
@@ -30,7 +32,7 @@ for I ${indexed ? 'Ord ' : ''}in Start ${terminal} End by Step
   break
  end
 end
-return array Sum I Ord Count
+return array Sum Last LastOrd Count
 end`;
             const statement = parse(source).statements[0];
             if (!isFunctionStatement(statement)) throw new Error('expected function');

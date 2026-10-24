@@ -27,7 +27,7 @@ fun Cities road_components Roads
   for i in 0 till Total by 2
     A = Roads i
     B = Roads (i + 1)
-    Union A merge B
+    Union A B merge
   end
 
   Roots = new queue

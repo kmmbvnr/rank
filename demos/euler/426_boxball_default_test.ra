@@ -1,0 +1,7 @@
+use testing
+
+test "full box-ball system"
+  use "426_boxball"
+  run
+  Answer equal 31591886008
+end

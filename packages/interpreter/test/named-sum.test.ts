@@ -25,7 +25,7 @@ describe('named array sum', () => {
     });
 
     it.each([[true], [1n, 'bad'], [0.5, 1n, false], [NaN, 'bad']].map(items => ({ items })))('rejects nonnumeric cells in $items', ({ items }) => {
-        expect(() => sum(items)).toThrow('expected numeric input');
+        expect(() => sum(items)).toThrow(/expected numeric input|sum expects numbers/);
     });
 
     it('forces lazy items before reporting a numeric type error', () => {

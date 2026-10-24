@@ -25,6 +25,9 @@ type Sample = readonly [string, () => RankValue[], KnownShape];
 const samples: readonly Sample[] = [
     ...['ceiling', 'floor', 'lowerbound', 'upperbound'].map((name): Sample =>
         [`algo.${name}`, () => [new RankMultiset().add(1n).add(5n), 3n], []]),
+    ...['lowerindex', 'upperindex'].map((name): Sample =>
+        [`algo.${name}`, () => [vector(1n, 3n, 5n), 3n], []]),
+    ['numbers.factorsieve', () => [10n], [11]],
     ['algo.firstatleast', () => [new RankRangeSumSegment([1n, 2n, 3n]), 3n], []],
     ['algo.missing', () => [new RankWavelet(vector(1n, 2n, 4n)), vector(0n, 2n)], []],
     ['algo.permutations', () => [vector(1n, 2n, 3n)], [6]],

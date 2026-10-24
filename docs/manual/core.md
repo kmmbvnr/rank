@@ -2039,8 +2039,10 @@ A max B
 Values max
 ```
 
-Addressing binds within each operand: `A 0 max` reduces the selected row;
-`A max B 0` compares A with the selected element of B.
+Addressing stays within each operand.
+`A 0 max` reduces the selected row.
+`A max B 0` compares A with the selected
+element of B.
 An empty collection has no largest item.
 
 ### See also

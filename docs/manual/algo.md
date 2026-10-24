@@ -1075,3 +1075,62 @@ All four bounds are included.
 ### See also
 
 sumwithin, wavelet
+
+## groups
+
+Create integer groups under bounded
+keys.
+
+```rank
+use algo
+G = 4 groups
+G 2 7 insert
+G 2
+```
+
+```result
+7
+```
+
+### Usage
+
+```text
+Size groups
+```
+
+Keys range from 0 through Size - 1.
+Values in each group keep insertion
+order.
+
+### See also
+
+insert
+
+## insert
+
+Append an integer to a keyed group.
+
+```rank
+use algo
+G = 4 groups
+G 2 7 insert
+G 2 9 insert
+G 2
+```
+
+```result
+7 9
+```
+
+### Usage
+
+```text
+Groups Key Value insert
+```
+
+Mutates Groups and returns it. Both Key
+and Value must be integers.
+
+### See also
+
+groups

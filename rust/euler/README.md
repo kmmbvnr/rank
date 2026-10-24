@@ -21,7 +21,7 @@ All 20 projects build; **237 comparisons pass**.
 From the repository root, with built Rank packages and Rust/Cargo available:
 
 ```sh
-npm run test:rust
+npm run verify:rust
 cargo run --release --manifest-path rust/euler/002_evenfib/exact/Cargo.toml -- --limit 100
 ```
 

@@ -834,3 +834,30 @@ or with Fill.
 ### See also
 
 window, reverse
+
+## primesieve
+
+Primes through an inclusive bound.
+
+```rank
+use sequences
+10 primesieve
+```
+
+```result
+2 3 5 7
+```
+
+### Usage
+
+```text
+Limit primesieve
+```
+
+Builds an odd-only bitmap eagerly. The
+result supports constant-time
+membership.
+
+### See also
+
+primes

@@ -1,5 +1,6 @@
-import { derivedArray, readArrayItem } from './array-storage.js';
+import { arrayValues, derivedArray, readArrayItem } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
+import { registerArrayCopy } from './array-copy.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import type { NativeFunction, RankArray, RankValue } from './value.js';
 
@@ -25,8 +26,6 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
         || frameAxes.length !== source.shape.length
         || !frameAxes.every((axis, index) => axis === index)
         || !prepareStoredScalarView(source, true)) return undefined;
-    const batch = registered.batch?.(source);
-    if (batch) return batch;
     const operation = registered.scalar;
     const shape = [...source.shape];
     const size = shape.reduce((n, dimension) => n * dimension, 1);
@@ -35,7 +34,10 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
         checkpoint('computing numbers');
         return operation(readArrayItem(source, index));
     };
-    return derivedArray(shape, [source], read, true, undefined, function* () {
+    const result = derivedArray(shape, [source], read, true, undefined, function* () {
+        // Batch work belongs to this observation, just like scalar reads.
+        const batch = registered.batch?.(source);
+        if (batch) { yield* arrayValues(batch); return; }
         // Opaque host polling may replace storage between cells. Only a pass
         // without host callbacks can keep a prepared completed-storage reader.
         const stored = privateLoopPolling() ? prepareStoredScalarView(source, true) : undefined;
@@ -46,4 +48,6 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
             } else yield read(index);
         }
     });
+    if (registered.batch) registerArrayCopy(result, () => registered.batch!(source));
+    return result;
 }

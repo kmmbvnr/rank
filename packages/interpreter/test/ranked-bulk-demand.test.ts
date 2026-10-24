@@ -95,7 +95,7 @@ describe('bulk ranked application demand', () => {
             if (++calls === 2) throw new InterruptedError('test callback');
             return args[0];
         });
-        expect(() => runtime.apply(ownedArray(Array.from({ length: size }, () => 3n))))
+        expect(() => runtime.apply(ownedArray(Array.from({ length: size }, () => 3))).items)
             .toThrow(InterruptedError);
         expect(calls).toBe(2);
     });

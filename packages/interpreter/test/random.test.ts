@@ -172,7 +172,7 @@ describe('Rank random operations', () => {
             '  1 2 3',
             '  11 12 13',
             'end',
-            'M 42 shuffle axis 1',
+            'M shuffle 42 axis 1',
         ].join('\n'))).toBe('3 1 2 13 11 12');
         expect(run([
             'use random',
@@ -181,7 +181,7 @@ describe('Rank random operations', () => {
             '  3 4',
             '  5 6',
             'end',
-            'M 42 shuffle axis 0',
+            'M shuffle 42 axis 0',
         ].join('\n'))).toBe('5 6 1 2 3 4');
     });
 

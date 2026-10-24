@@ -84,7 +84,8 @@ Count = 10000000 countprimes`);
     it('replays an overflowing length-bounded region without publishing private writes', () => {
         const result = compare('A = array 2 3 5\nSum = 9007199254740990\nfor I in 0 till (A len)\n Sum += A I\nend');
         expect(result.observation.variables).toContainEqual(['Sum', '9007199254741000']);
-        expect(result.diagnostics.numberLoops).toBe(1);
+        // The first guarded attempt overflows; the suffix gets its own attempt.
+        expect(result.diagnostics.numberLoops).toBe(2);
         expect(result.diagnostics.numberLoopOverflows).toBe(1);
     });
 

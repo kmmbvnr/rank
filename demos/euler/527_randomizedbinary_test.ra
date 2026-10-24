@@ -1,4 +1,5 @@
 use testing
+use numbers
 
 test "n = 6"
   use "527_randomizedbinary"

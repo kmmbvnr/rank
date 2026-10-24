@@ -53,9 +53,9 @@ fun S W P count
   Z = W len - 1
   D = array shape (Z + 1) fill 0
   D 0 = 1
-  for B in 0 to 40
+  for BitIndex in 0 to 40
     E = array shape (Z + 1) fill 0
-    Bit = (S shr B) band 1
+    Bit = (S shr BitIndex) band 1
     for Carry in 0 to Z
       for Ones in 0 to Z
         Total = Carry + Ones

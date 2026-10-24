@@ -72,8 +72,8 @@ end`);
 Seen = new set
 X = "kept"
 Total = 0
-for X in Seen
-  Total += X
+for Item in Seen
+  Total += Item
 end
 Answer = X`);
         expect(result.answer).toBe('kept');

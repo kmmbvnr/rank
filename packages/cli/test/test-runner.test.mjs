@@ -49,3 +49,19 @@ test('rank test reports failing tests with duration and error', t => {
     assert.match(result.stderr, /not ok .*fail_test\.ra: fails \((?:<1|\d+)(?:ms|\.\d+s)\)/);
     assert.match(result.stdout, /1 files, 1 failed/);
 });
+
+
+test('rank test skips compiled archives during discovery but accepts an explicit archived file', t => {
+    const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-test-archive-'));
+    t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
+    fs.writeFileSync(path.join(temporary, 'simple_test.ra'), 'use testing\ntest "passes"\n  true\nend');
+    const archive = path.join(temporary, 'compiled');
+    fs.mkdirSync(archive);
+    fs.writeFileSync(path.join(archive, 'rank-compile.json'), '{}');
+    const archivedTest = path.join(archive, 'source_test.ra');
+    fs.writeFileSync(archivedTest, 'use testing\ntest "fails"\n  false\nend');
+    const discovered = runTest(temporary);
+    assert.equal(discovered.status, 0, discovered.stderr);
+    assert.match(discovered.stdout, /1 files, 0 failed/);
+    assert.equal(runTest(archivedTest).status, 1);
+});

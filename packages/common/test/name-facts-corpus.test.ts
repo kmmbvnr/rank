@@ -12,6 +12,9 @@ import {
 import { Interpreter, isRankArray, isRankPlan, parse, typeName } from '@arrrank/interpreter';
 import { nameFactsIn } from '../src/name-facts.js';
 
+const executionTimeouts: Record<string, number> = JSON.parse(fs.readFileSync(
+    new URL('../../../scripts/demo-execution-timeouts.json', import.meta.url), 'utf8'));
+
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
 const executionExclusions = new Set(Object.keys(JSON.parse(fs.readFileSync(
     new URL('../../../scripts/demo-execution-exclusions.json', import.meta.url), 'utf8'))));
@@ -108,7 +111,7 @@ describe('facts at a name against the values a run produced', () => {
             }
             expect(contradictions).toEqual([]);
         // Bound each program, rather than giving the growing corpus one deadline.
-        }, 300_000);
+        }, executionTimeouts[path.relative(demos, file)] ?? 300_000);
     }
 
     afterAll(() => {

@@ -1,5 +1,6 @@
 import { functionCallSignature, type FunctionCallSignature } from '../function-call-signature.js';
 import { functionBindingPlan } from '../function-binding.js';
+import { explicitCollectionMutation } from '../application-forms.js';
 import { completedTypes } from './completion-facts.js';
 import { flattenApplication as flatten, forIteration } from '../expressions.js';
 /**
@@ -179,6 +180,8 @@ export function expressionFreeReads(expression: Expression): readonly NameExpres
 }
 
 interface Slot {
+    /** A stored native sequence may reach this binding on some control-flow path. */
+    stored?: boolean;
     readonly name: string;
     kind: BindingKind;
     bound: Site;
@@ -349,12 +352,18 @@ class Analyzer {
             if (statement.operator !== '=') this.read(statement.name, statement);
             this.expression(statement.value);
             const expressionType = this.typeOf(statement.value);
-            const value = statement.deferred ? expressionType : completedTypes(expressionType);
+            let source = statement.value;
+            while (isParenthesizedExpression(source)) source = source.value;
+            const last = flatten(source).at(-1);
+            const stored = isNameExpression(source) ? this.lookup(source.name)?.stored
+                : isNameExpression(last) && this.aliasOperation(last.name)?.storedResult;
+            const value = statement.deferred || stored ? expressionType : completedTypes(expressionType);
             this.bind(statement.name, 'assignment', statement, statement.operator === '='
                 ? value
                 : compoundType(statement.operator,
                     this.lookup(statement.name)?.types ?? UNKNOWN, value),
                 statement.operator === '=' ? this.functionArities(statement.value) : undefined);
+            this.lookup(statement.name)!.stored ||= statement.operator === '=' && !!stored;
             return;
         }
         if (isOperationAssignmentStatement(statement)) {
@@ -502,9 +511,11 @@ class Analyzer {
         }
         if (isApplicationExpression(expression)) {
             const parts = flatten(expression);
+            const mutation = explicitCollectionMutation(expression);
             for (const [index, part] of parts.entries()) {
-                const method = index > 0 && index < parts.length - 1
-                    && isNameExpression(part) && METHODS.has(part.name);
+                const method = index > 0 && isNameExpression(part)
+                    && (index < parts.length - 1 && METHODS.has(part.name)
+                        || mutation?.operation === part.name);
                 if (!method || isNameExpression(part)
                     && (this.lookup(part.name) || this.externalFunctions.has(part.name))) this.expression(part);
             }

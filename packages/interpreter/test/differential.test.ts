@@ -1,10 +1,14 @@
-import { appendFileSync, existsSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { appendFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { setImmediate } from 'node:timers/promises';
 import { afterAll, describe, expect, it } from 'vitest';
 import { Interpreter, RankError, RuntimeDiagnostics, type RankFileMode, type RankValue } from '../src/index.js';
 import { MemoryIo, TokenInput } from './support.js';
+
+const executionTimeouts: Record<string, number> = JSON.parse(readFileSync(
+    new URL('../../../scripts/demo-execution-timeouts.json', import.meta.url), 'utf8'));
 
 const demos = resolve(import.meta.dirname, '../../../demos');
 function programs(directory: string): string[] {
@@ -18,12 +22,16 @@ const executionExclusions = new Set(Object.keys(JSON.parse(readFileSync(
     new URL('../../../scripts/demo-execution-exclusions.json', import.meta.url), 'utf8'))));
 const sources = new Map(programs(demos).map(file => [file, readFileSync(file, 'utf8')]));
 
+const trackedDataFiles = new Set(execFileSync('git', ['ls-files', '-z', '--', 'demos'], {
+    cwd: resolve(demos, '..'), encoding: 'utf8',
+}).split('\0').filter(Boolean).map(file => resolve(demos, '..', file)));
+
 // Read checked-in demo data on demand; every run keeps its writes in memory.
 class CorpusIo extends MemoryIo {
     private mount(path: string): void {
         if (this.files.has(path)) return;
         const file = resolve(demos, '..', path);
-        if (!existsSync(file)) return;
+        if (!trackedDataFiles.has(file) || !existsSync(file)) return;
         const actual = realpathSync(file);
         if (!actual.startsWith(realpathSync(demos) + sep) || actual.endsWith('.ra') || !statSync(actual).isFile()) return;
         this.files.set(path, new Uint8Array(readFileSync(actual)));
@@ -127,6 +135,8 @@ describe('compiled and reference demo execution', () => {
         await setImmediate();
         expect(reference.entries).toBe(0);
         expect(compiled.observation).toEqual(reference.observation);
+        // Matching failures are not a passing embedded test file.
+        if (file.endsWith('_test.ra')) expect(compiled.observation.error, relative(demos, file)).toBeUndefined();
         const failedTests = compiled.observation.tests.filter(result => !result.passed)
             .map(({ name, error }) => ({ name, error }));
         expect(failedTests, relative(demos, file)).toEqual([]);
@@ -143,7 +153,8 @@ describe('compiled and reference demo execution', () => {
         tests += compiled.observation.tests.length;
         entries += compiled.entries;
         numberEntries += compiled.numberEntries;
-    }, timeout);
+    }, process.env.RANK_DIFFERENTIAL_TIMEOUT_MS !== undefined ? timeout
+        : executionTimeouts[relative(demos, file)] ? executionTimeouts[relative(demos, file)] * 2 : timeout);
     afterAll(() => {
         console.log(`differential: ${compared}/${files.length} compared, ${completed} completed, ${tests} test blocks, ${entries} compiled entries, ${numberEntries} Number loop entries`);
         if (compared !== files.length) return; // A name-filtered run reports only selected fixtures.
@@ -158,4 +169,14 @@ describe('compiled and reference demo execution', () => {
             expect(numberEntries).toBeGreaterThan(0);
         }
     });
+});
+
+it('does not mount downloaded data outside the checked-in corpus', () => {
+    const directory = mkdtempSync(resolve(demos, '.corpus-data-'));
+    try {
+        const file = resolve(directory, 'input.csv');
+        writeFileSync(file, 'Value\n42\n');
+        expect(() => new CorpusIo({}).file(relative(resolve(demos, '..'), file)))
+            .toThrow('file does not exist');
+    } finally { rmSync(directory, { recursive: true, force: true }); }
 });

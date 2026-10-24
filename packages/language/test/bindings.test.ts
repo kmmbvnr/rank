@@ -198,6 +198,26 @@ describe('binding facts', () => {
         expect(result.words).toEqual([]);
     });
 
+    it('recognizes normalized graph mutations without requiring algo', async () => {
+        const result = await facts(['use graph', 'G = new graph .directed',
+            'Edges = array shape 1 2 fill 1', 'G add Edges']);
+        expect(result.missing).toEqual([]);
+        expect(result.words).toEqual([]);
+    });
+
+    it('preserves stored sequence types through ordinary and deferred aliases', async () => {
+        for (const deferred of ['', "'"]) {
+            const result = await facts(['use sequences', `Sv${deferred} = (100 primesieve)`, 'Alias = Sv']);
+            expect(result.scopes.find(scope => scope.kind === 'program')?.bindings
+                .filter(binding => ['Sv', 'Alias'].includes(binding.name)).map(binding => binding.types))
+                .toEqual([['sequence'], ['sequence']]);
+        }
+        const conditional = await facts(['use sequences', 'Sv = 100 primesieve',
+            'if false', '  Sv = 1 to 3', 'end', 'Alias = Sv']);
+        expect(conditional.scopes.find(scope => scope.kind === 'program')?.bindings
+            .find(binding => binding.name === 'Alias')?.types).toContain('sequence');
+    });
+
     it('reports the source modules a program loads', async () => {
         const result = await facts(['use "helper"', 'A = 3 twice'], ['twice']);
         expect(result.imports).toEqual([

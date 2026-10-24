@@ -84,7 +84,8 @@ for L in 1 to Top
         Mask = Use reshape (Na * Nb)
         Fn = Flat filter Mask array
         Fq = Fd filter Mask array
-        G = Fn abs gcd Fq
+        Abs = Fn abs
+        G = Abs gcd Fq
         Rn' = Fn // G
         Rd' = Fq // G
         More' = (Rn + Shift) * Wide + Rd

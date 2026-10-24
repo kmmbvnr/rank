@@ -412,7 +412,7 @@ Row = A inspect`);
         } finally { runtime.dispose(); }
     });
 
-    it('keeps the same array shared when another parameter also binds it', () => {
+    it('does not mark read-only aliased arguments as shared', () => {
         const runtime = new Interpreter();
         try {
             runtime.execute(`fun V read
@@ -426,7 +426,8 @@ Value = array 10 20`);
             const inspect = runtime.variables.get('inspect');
             if (!inspect || !isNativeFunction(inspect)) throw new Error('inspect');
             expect(inspect.call([value, value])).toBe(10n);
-            expect(isSharedArray(value)).toBe(true);
+            expect(isSharedArray(value)).toBe(false);
+            expect(value.items).toEqual([10n, 20n]);
         } finally { runtime.dispose(); }
     });
 

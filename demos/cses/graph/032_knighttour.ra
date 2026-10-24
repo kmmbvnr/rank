@@ -6,9 +6,9 @@ use io
 use numbers
 use sequences
 
-X = stdin .integer
-Y = stdin .integer
-X knight_tour Y print
+InputX = stdin .integer
+InputY = stdin .integer
+InputX knight_tour InputY print
 
 
 rem Search low-degree moves first.

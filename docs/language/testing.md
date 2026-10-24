@@ -6,6 +6,21 @@ Rank tests live in separate files ending in `_test.ra` and run with:
 rank test path
 ```
 
+Recursive discovery skips compiled project archives containing `rank-compile.json`.
+An archived test can still be run by passing its file path explicitly.
+
+Rust verification is paused in ordinary tests and CI. Run `npm run verify:rust`
+for the Euler rewrites, or `RANK_TEST_RUST=1 npm test --workspace @arrrank/compile`
+for the compiler integration checks.
+
+The corpus audits compare both execution modes on bounded inputs for expensive
+workloads listed in `scripts/demo-execution-exclusions.json`. Full compiled
+answers for Euler 299 and 426 are checked by
+`packages/interpreter/test/full-scale-demos.test.ts`; `rank test .` also runs
+their separate `_default_test.ra` files.
+The differential audit reads checked-in data only; locally downloaded datasets
+do not change its inputs. Embedded tests supply their own bounded fixtures.
+
 A test block contains ordinary Rank statements. Its body uses two spaces of
 indentation:
 

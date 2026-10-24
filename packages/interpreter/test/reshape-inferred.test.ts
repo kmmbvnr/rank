@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, formatValue, type RankArray } from '../src/index.js';
-import { denseScalarItems, typedArray, ownedArray } from '../src/array-storage.js';
+import { booleanCells, denseScalarItems, typedArray, ownedArray } from '../src/array-storage.js';
 import { reshapeWithDimensions } from '../src/modules/sequences.js';
 
 describe('typed reshape storage', () => {
@@ -29,7 +29,8 @@ describe('boxed reshape storage', () => {
         'shares scalar cells and isolates Rank writes: case %#', (...values) => {
             const source = ownedArray(values);
             const shaped = reshapeWithDimensions(source, [2n, 2n]) as RankArray;
-            expect(denseScalarItems(shaped)).toBe(denseScalarItems(source));
+            if (typeof values[0] === 'boolean') expect(booleanCells(shaped)).toBe(booleanCells(source));
+            else expect(denseScalarItems(shaped)).toBe(denseScalarItems(source));
             const runtime = new Interpreter();
             runtime.variables.set('A', source);
             runtime.variables.set('B', shaped);

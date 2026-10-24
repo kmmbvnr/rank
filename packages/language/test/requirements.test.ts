@@ -12,6 +12,11 @@ function parse(source: string): Program {
 }
 const infer = (source: string) => inferRequirements(parse(source));
 const binding = (source: string, name: string) => infer(source).bindings.find(item => item.name === name)!;
+it('broadcasts scalar cells for three-argument builtins in shape requirements', () => {
+    const program = parse('use numbers\nPs = array 7 11 13\nR = 13 ((Ps - 1) // 2) Ps powmod');
+    expect(inferRequirements(program).conflicts).toEqual([]);
+    expect(analyzeValues(program).bindings.get('R')).toMatchObject({ types: ['array'], rank: 1, shape: [3] });
+});
 it.each(['sort', 'det', 'inverse'])('does not require a nonexistent scalar cell in an empty ranked %s', operation => {
     for (const rank of [0, -1]) {
         const prelude = 'use sequences\nuse linalg\n';

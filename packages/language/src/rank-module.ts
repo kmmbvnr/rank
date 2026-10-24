@@ -60,7 +60,7 @@ function withBoundedErrorLookahead(services: RankServices, incomplete = false, s
         ...services.parser.ParserConfig,
         maxLookahead: 1,
         lookaheadStrategy: strategy ?? new LLStarLookaheadStrategy({ incomplete,
-            logging: services.LanguageMetaData.mode === 'production' ? () => {} : undefined }),
+            logging: services.LanguageMetaData.mode === 'production' ? () => {} : message => console.error(message) }),
     } });
     return { ...services, parser };
 }
@@ -78,7 +78,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
         LangiumParser: services => {
             // Enumerating three-token error paths for an unfinished `array` blocks typing for hundreds of ms.
             const strategy = new ErrorLookaheadStrategy({
-                logging: services.LanguageMetaData.mode === 'production' ? () => {} : undefined,
+                logging: services.LanguageMetaData.mode === 'production' ? () => {} : message => console.error(message),
             });
             const parser = createLangiumParser(withBoundedErrorLookahead(services, false, strategy));
             const parse = parser.parse.bind(parser);

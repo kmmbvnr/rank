@@ -376,7 +376,7 @@ function formatTestDuration(durationMs: number): string {
 }
 
 async function runTests(target: string): Promise<void> {
-    const files = await findFiles(path.resolve(target), name => name.endsWith('_test.ra'));
+    const files = await findFiles(path.resolve(target), name => name.endsWith('_test.ra'), true);
     if (files.length === 0) {
         throw new RankError(`no *_test.ra files found in ${target}`);
     }
@@ -420,16 +420,17 @@ async function runTests(target: string): Promise<void> {
 }
 
 async function findFiles(
-    target: string, matches: (name: string) => boolean,
+    target: string, matches: (name: string) => boolean, skipCompiledProjects = false,
 ): Promise<string[]> {
     const stat = await fs.stat(target);
     if (stat.isFile()) return matches(target) ? [target] : [];
     const entries = await fs.readdir(target, { withFileTypes: true });
+    if (skipCompiledProjects && entries.some(entry => entry.name === 'rank-compile.json')) return [];
     const nested = await Promise.all(entries
         .filter(entry => entry.name !== 'node_modules' && !entry.name.startsWith('.'))
         .map(entry => {
             const child = path.join(target, entry.name);
-            if (entry.isDirectory()) return findFiles(child, matches);
+            if (entry.isDirectory()) return findFiles(child, matches, skipCompiledProjects);
             return Promise.resolve(matches(entry.name) ? [child] : []);
         }));
     return nested.flat().sort();

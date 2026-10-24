@@ -7,6 +7,10 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { analyzeBindings, analyzeValues } from '@arrrank/language';
 import { Interpreter, isRankArray, isRankPlan, parse, typeName } from '../src/index.js';
 
+// Full-scale combinatorial workloads retain their assertions with a larger deadline.
+const executionTimeouts: Record<string, number> = JSON.parse(fs.readFileSync(
+    new URL('../../../scripts/demo-execution-timeouts.json', import.meta.url), 'utf8'));
+
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
 // Share the execution budget with differential tests; static checks still see every source.
 const executionExclusions = new Set(Object.keys(JSON.parse(fs.readFileSync(
@@ -118,7 +122,7 @@ describe('inferred types against the values a run produced', () => {
             if (!result.ran) context.skip();
             expect(result.contradictions).toEqual([]);
         // Bound each program, rather than giving the growing corpus one deadline.
-        }, 300_000);
+        }, executionTimeouts[path.relative(demos, file)] ?? 300_000);
     }
 
     afterAll(() => {

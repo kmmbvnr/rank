@@ -288,15 +288,15 @@ it('keeps Euler 1 types across restored notebook cells before execution', () => 
 });
 
 
-it('infers Euler 13 types and parameter requirements across restored cells', () => {
+it('infers leading-sum types and parameter requirements across restored cells', () => {
     const session = createReplSession();
     const repl = new NotebookRepl(session);
     try {
-        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/013_largesum.ra', import.meta.url), 'utf8'));
+        repl.notebook.restore(readFileSync(new URL('./fixtures/leading-sum.ra', import.meta.url), 'utf8'));
         for (const [site, expected, offset = 0] of [
             ['Answer =', 'Answer · integer'], ['Answer print', 'Answer · integer'],
             ['fun Numbers leading_sum Digits', 'leading_sum · (number | missing) [rank ≥ 0] i → i', 19],
-            ['Prefix =', 'Prefix · text'], ['fun Numbers leading_sum Digits', 'Digits · integer', 12],
+            ['Prefix =', 'Prefix · text'], ['fun Numbers leading_sum Digits', 'Digits · integer', 24],
             ['fun Numbers leading_sum Digits', 'Numbers · c[#]<integer>', 4],
         ] as const) {
             const index = repl.notebook.cells.findIndex(cell => cell.source.includes(site));

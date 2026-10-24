@@ -111,6 +111,9 @@ function contractType(value: CollectionElementType, elements: boolean): unknown 
 
 /** Reuse the analyzer's scalar operator rules; never run an operator to probe a type. */
 export function binaryArrayType(operator: string, left: RankValue, right: RankValue): SemanticArrayType | undefined {
+    if (['equal', 'notequal', 'less', 'greater', 'atmost', 'atleast', 'and', 'or', 'xor'].includes(operator)) {
+        return { key: '["boolean"]', scalar: 'boolean' };
+    }
     const scalar = (value: RankValue) => isRankArray(value) ? semanticArrayType(value).scalar : typeName(value);
     const a = scalar(left), b = scalar(right);
     if (!a || !b) return undefined;

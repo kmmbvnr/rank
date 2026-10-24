@@ -7,6 +7,19 @@ import { readArrayItem } from '../src/array-storage.js';
 import { checkpoint, InterruptedError, withInterrupt } from '../src/interrupt.js';
 
 describe('stored segmented integer arithmetic', () => {
+    it('keeps batched gcd exact across signs and the safe integer boundary', () => {
+        const values = [0n, -12n, 18n, 9007199254740991n, 9007199254740993n, 1n << 100n];
+        for (const right of values) {
+            const result = mapStoredIntegers(ownedArray(values), right, 'gcd')!;
+            const expected = values.map(left => {
+                let a = left < 0n ? -left : left, b = right < 0n ? -right : right;
+                while (b) [a, b] = [b, a % b];
+                return a;
+            });
+            expect(result.items).toEqual(expected);
+        }
+    });
+
     it.each([true, false])('bounds the recurrence without copy (compiled=%s)', compilation => {
         const runtime = new Interpreter(undefined, { compilation });
         try {

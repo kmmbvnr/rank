@@ -13,8 +13,8 @@ fun N maximix Rank
   All = array Text
   for I in (N - 3) to 0 by -1
     Next = new queue
-    for Text in All
-      After = Text revsuffix I
+    for Arrangement in All
+      After = Arrangement revsuffix I
       for P in (I + 1) till (N - 1)
         Next push (After revsuffix P)
       end

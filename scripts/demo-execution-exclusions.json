@@ -210,5 +210,9 @@
   "euler/545_faulhaberformulas.ra": "To fix later: the default input takes about 67 s, a prime sieve to 1.3e9 and strided marks for about a million forbidden divisors; the small _test.ra fixture stays in the audits.",
   "euler/548_gozintachains.ra": "To fix later: the default input takes about 14 s, 17562 exponent patterns with exact chain counts as big integers; the small _test.ra fixture stays in the audits.",
   "euler/549_divisibilityfactorials.ra": "To fix later: the default input takes about 2.5 min and 4 GB, a largest-prime-factor sieve to 10^8 by strided writes; the small _test.ra fixture stays in the audits.",
-  "euler/536_modulopower.ra": "To fix later: the default input takes about 2.2 min and 5 GB (tables to 10^7, about 850,000 branch nodes, 2 x 10^7 powmod checks); the small _test.ra fixture stays in the audits."
+  "euler/536_modulopower.ra": "To fix later: the default input takes about 2.2 min and 5 GB (tables to 10^7, about 850,000 branch nodes, 2 x 10^7 powmod checks); the small _test.ra fixture stays in the audits.",
+  "euler/299_threesimilar.ra": "The full bound performs millions of scalar Euclidean steps in the uncompiled reference. full-scale-demos.test.ts checks the full compiled answer; small comparisons remain in 299_threesimilar_test.ra.",
+  "euler/299_threesimilar_default_test.ra": "Full compiled input is asserted by full-scale-demos.test.ts; bounded cross-mode assertions remain in 299_threesimilar_test.ra.",
+  "euler/426_boxball.ra": "The full bound processes ten million runs in the uncompiled reference. full-scale-demos.test.ts checks the compiled answer and an independent per-ball oracle; small comparisons remain in 426_boxball_test.ra.",
+  "euler/426_boxball_default_test.ra": "Full compiled input and an independent oracle are asserted by full-scale-demos.test.ts; bounded cross-mode assertions remain in 426_boxball_test.ra."
 }

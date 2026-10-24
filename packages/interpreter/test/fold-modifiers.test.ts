@@ -44,6 +44,8 @@ describe('orthogonal fold modifiers', () => {
     });
 
     it('uses named builtins and preserves a following pipeline', () => {
+        expect(run(matrix + 'M reduce * rank 1 max')).toBe('120');
+        expect(run(matrix + 'M reduce * rank 1 min')).toBe('6');
         expect(run(matrix + 'M reduce min rank 1')).toBe('1 4');
         expect(run(matrix + 'M reduce max axis 0 with 10')).toBe('10 10 10');
         expect(run(matrix + 'M scan min axis 1 with 9')).toBe('9 1 1 1 9 4 4 4');

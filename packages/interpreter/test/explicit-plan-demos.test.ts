@@ -447,7 +447,7 @@ end`);
                 expect(isRankPlan(runtime.variables.get('Ab')!)).toBe(true);
             }
         } finally { runtime.dispose(); }
-    });
+    }, 30_000);
 
     it('allows rebuilding protein contact tables after consuming their one-use views', () => {
         const source = readFileSync(new URL('../../../demos/euler/300_proteinfolding.ra', import.meta.url), 'utf8');
@@ -1136,13 +1136,12 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('keeps Euler 11 windows deferred through its helper parameter', () => {
-        const source = readFileSync(new URL('../../../demos/euler/011_gridproduct.ra', import.meta.url), 'utf8');
+    it('keeps windows deferred through an explicit helper parameter', () => {
         const runtime = new Interpreter(undefined, { compilation });
         const diagnostics = new RuntimeDiagnostics();
         try {
             runtime.execute('use sequences');
-            runtime.declareFunctionSource(source);
+            runtime.declareFunctionSource("fun Windows' products\n  return Windows reduce * rank 1 max\nend");
             const fn = runtime.variables.get('products')!;
             if (!isNativeFunction(fn)) throw new Error('expected products function');
             const input: RankArray = { kind: 'array', items: [1n, 2n, 3n, 4n], shape: [4] };

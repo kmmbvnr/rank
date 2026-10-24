@@ -1,0 +1,13 @@
+use io
+use sequences
+Digits = 10
+Numbers = array shape 100 fill 1
+Answer = Numbers leading_sum Digits
+Answer print
+
+fun Numbers leading_sum Digits
+  Total = Numbers sum
+  Text = Total text
+  Prefix = Text take Digits
+  return Prefix integer
+end

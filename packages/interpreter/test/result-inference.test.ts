@@ -192,13 +192,13 @@ Saved = items`;
     it.each([
         'N = array 1 2 3\nPicked = N (array true false)',
         'N = array 1 2 3\nPicked = N (array 0 true)',
-        'N = array shape 0 3 fill 1\nPicked = N (N greater 0)',
     ])('preserves invalid selector errors: %s', program => {
         const runtime = new Interpreter(undefined, { compilation });
         try { expect(() => runtime.execute(program)).toThrow(); }
         finally { runtime.dispose(); }
     });
     it.each([
+        'N = array shape 0 3 fill 1\nMask = N greater 0\nPicked = N Mask',
         'N = 1 to 20 array\nMask = N mod 3 equal 0\nPicked = N Mask',
         'N = array 1 2 3 4 shape 2 2\nMask = N greater 2\nPicked = N Mask',
         'N = array 1 2 3\nMask = N greater 9\nPicked = N Mask',

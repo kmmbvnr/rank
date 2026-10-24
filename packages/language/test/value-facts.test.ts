@@ -557,10 +557,11 @@ it('infers numeric scans without treating unsafe cell readers as callback-free',
         shape: [3], elements: ['integer'], callbackFreeScalarCells: true });
     expect(facts('(array 1 2) scan + with 0.5')).toEqual({ types: ['array'], rank: 1,
         shape: [3], elements: ['integer', 'real'], callbackFreeScalarCells: true });
-    // An axis scan keeps the shape of any rank, so it claims no rank-1 facts.
-    expect(facts('(array 1 2 3) scan + axis 0')).toEqual({ types: [] });
+    // Axis scans preserve the known source geometry.
+    expect(facts('(array 1 2 3) scan + axis 0')).toEqual({ types: ['array'], rank: 1,
+        shape: [3], elements: ['integer'], callbackFreeScalarCells: true });
     expect(facts('Unsafe scan + with 0', new Map([['Unsafe', { types: ['array'], rank: 1,
-        shape: [3], elements: ['integer'] }]]))).toEqual({ types: [] });
+        shape: [3], elements: ['integer'] }]]))).toEqual({ types: ['array'], rank: 1, shape: [4] });
 });
 
 it('keeps numeric cells through callback-free sequence arithmetic', () => {
@@ -759,7 +760,7 @@ it('keeps scalar rank through boolean comparisons and negation', () => {
 it('infers numeric full reductions only from callback-free scalar cells', () => {
     expect(facts('(1 to 4) reduce *')).toEqual({ types: ['integer'], rank: 0, shape: [] });
     expect(facts('(array 1 2 3) reduce +')).toEqual({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts('(array 1.5 2.5) reduce +')).toEqual({ types: ['integer', 'real'], rank: 0, shape: [] });
+    expect(facts('(array 1.5 2.5) reduce +')).toEqual({ types: ['real'], rank: 0, shape: [] });
     expect(facts('Lazy reduce +', new Map([['Lazy', { types: ['sequence'], rank: 1,
         shape: [null], elements: ['integer'] }]]))).toEqual({ types: [] });
 });
@@ -1604,11 +1605,11 @@ it('types a named scan as a rank-1 array and keeps the seed in its length', () =
         elements: ['integer'] });
     expect(facts('V scan bxor', values)).toMatchObject({ types: ['array'], rank: 1, shape: [3] });
     expect(facts('V scan max with 0', values)).toMatchObject({ types: ['array'], rank: 1, shape: [4] });
-    // Real cells, unproved cells, an array seed and a shadowed operation claim nothing.
-    expect(facts('R scan bxor with 0', values).types).toEqual([]);
-    expect(facts('U scan bxor with 0', values).types).toEqual([]);
-    expect(facts('V scan bxor with V', values).types).toEqual([]);
-    expect(facts('V scan bxor with 0', new Map([...values, ['bxor', { types: ['function'] }]])).types).toEqual([]);
+    // Shape transfer remains valid without a proved scalar cell domain.
+    expect(facts('R scan bxor with 0', values)).toEqual({ types: ['array'], rank: 1, shape: [4] });
+    expect(facts('U scan bxor with 0', values)).toEqual({ types: ['array'], rank: 1, shape: [4] });
+    expect(facts('V scan bxor with V', values)).toEqual({ types: ['array'], rank: 1, shape: [4] });
+    expect(facts('V scan bxor with 0', new Map([...values, ['bxor', { types: ['function'] }]]))).toEqual({ types: ['array'], rank: 1, shape: [4] });
 });
 
 it('does not call the xor of unproved operands a scalar', () => {
@@ -1847,9 +1848,9 @@ it('distinguishes boolean masks, integer gathers and unresolved selectors', () =
     }
     expect(select({ types: ['array'], rank: 2, shape: [null, 3], elements: ['boolean'] }).types)
         .toEqual(['array', 'sequence']);
-    // Runtime tries integer addressing first; an empty array satisfies it.
+    // Proven boolean masks retain their meaning even without cells.
     expect(select({ types: ['array'], rank: 1, shape: [0], elements: ['boolean'], eagerScalarCells: true }))
-        .toMatchObject({ types: ['array'], rank: 2, shape: [0, 3] });
+        .toMatchObject({ types: ['sequence'], rank: 1, shape: [null] });
     expect(select({ types: ['array'], rank: 2, elements: ['boolean'] }).callbackFreeScalarCells)
         .toBeUndefined();
 });
@@ -1865,7 +1866,7 @@ it('replaces each gathered source axis with the integer selector frame', () => {
     expect(facts('M # I', env)).toMatchObject({ types: ['array'], rank: 3, shape: [3, 2, 2] });
     expect(facts('M 1 I', env)).toMatchObject({ types: ['array'], rank: 2, shape: [2, 2] });
     env.set('I', { ...selector, rank: 3, shape: [2, 0, 3], elements: ['boolean'] });
-    expect(facts('M I', env)).toMatchObject({ types: ['array'], rank: 4, shape: [2, 0, 3, 4] });
+    expect(facts('M I', env)).toMatchObject({ types: ['sequence'], rank: 1, shape: [null] });
     env.set('I', { ...selector, shape: undefined });
     expect(facts('M I', env)).toMatchObject({ types: ['array'], rank: 3, shape: [null, null, 4] });
     env.set('I', { ...selector, rank: undefined, shape: undefined });
@@ -1938,5 +1939,7 @@ it('keeps empty and unknown-length present selections sound', () => {
 });
 
 it('recognizes the primesieve sequence constructor', () => {
-    expect(facts('100 primesieve')).toMatchObject({ types: ['sequence'] });
+    expect(facts('100 primesieve')).toMatchObject({ types: ['sequence'], completion: 'ready' });
+    const program = services.Rank.parser.LangiumParser.parse<Program>('use sequences\nSv = (100 primesieve)\nAlias = Sv').value;
+    for (const name of ['Sv', 'Alias']) expect(analyzeValues(program).bindings.get(name)).toMatchObject({ types: ['sequence'] });
 });

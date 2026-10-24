@@ -1,0 +1,8 @@
+use testing
+
+test "default input"
+  use "299_threesimilar"
+  run
+
+  Answer equal 549936643
+end

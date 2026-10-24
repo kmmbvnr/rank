@@ -41,7 +41,7 @@ Totals = Distances array
 Totals print
 
 rem Reachability and minimum cost use existing operations.
-Reachable = Graph 0 bfs .order
+Reachable = (Graph bfs 0) .order
 CheapestNetwork = Graph mst
 CheapestNetwork .weight print
 

@@ -1,12 +1,5 @@
 use testing
 
-test "default input"
-  use "299_threesimilar"
-  run
-
-  Answer equal 549936643
-end
-
 test "problem examples"
   use "299_threesimilar"
   Limit = 100

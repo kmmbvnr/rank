@@ -793,6 +793,8 @@ function transferApplicationFacts(
             'date', 'datetime', 'duration', 'tuple'].includes(type))
             ? { types: modified, rank: 0, shape: [] } : { types: modified };
         if (operation?.arities.includes(arity)) {
+            if (operation.storedResult) return { types: resultTypes(operation), completion: 'ready',
+                ...(operation.result === 'sequence' ? { rank: 1, shape: [null] } : {}) };
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
             if (arity === 1 && operation.name === 'integer' && source.types.length
                 && source.types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) {
@@ -1211,7 +1213,8 @@ function transferApplicationFacts(
             ? undefined : infer(part, lookup));
         const integerPositions = (value: ValueFacts | undefined): boolean => !!value
             && ['array', 'sequence'].includes(value.types.join()) && value.rank !== undefined
-            && (value.elements?.join() === 'integer' || value.shape?.includes(0) === true)
+            && (value.elements?.join() === 'integer' || value.shape?.includes(0) === true
+                && !value.elements?.includes('boolean'))
             && (value.eagerScalarCells === true || value.callbackFreeScalarCells === true);
         if (selectors.some(integerPositions) && parts.slice(1).every((part, index) =>
             isAllAxisExpression(part) || selectors[index]?.rank === 0
@@ -1239,7 +1242,8 @@ function transferApplicationFacts(
         infer(parts[1], lookup).types.join())) {
         if (source.types.join() === 'text') return { types: ['text'], rank: 1, shape: [null] };
         const selector = infer(parts[1], lookup);
-        const empty = selector.types.join() === 'array' && selector.shape?.includes(0);
+        const empty = selector.types.join() === 'array' && selector.shape?.includes(0)
+            && !selector.elements?.includes('boolean');
         const integerSelector = empty || selector.elements?.join() === 'integer'
             || selector.types.join() === 'queue';
         const booleanMask = !empty && selector.elements?.join() === 'boolean';
@@ -1251,7 +1255,7 @@ function transferApplicationFacts(
         if (source.types.join() === 'array') {
             // A mask selects atoms into a sequence, not leading-axis rows.
             if (booleanMask && (selector.types.join() === 'sequence'
-                || selector.shape?.length && selector.shape.every(size => size !== null && size > 0))) {
+                || selector.shape?.length && selector.shape.every(size => size !== null && size >= 0))) {
                 return { types: ['sequence'], rank: 1, shape: [null], ...cells };
             }
             if (integerSelector) {

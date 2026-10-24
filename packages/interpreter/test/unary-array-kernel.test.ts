@@ -19,7 +19,7 @@ describe('stored unary numeric kernels', () => {
             values[1] = NaN;
             values[2] = Infinity;
             runtime.variables.set('Input', typedArray(values, [32, 64]));
-            const result = runtime.execute(`Input ${name}`)!;
+            const result = runtime.execute(`Result = Input ${name}\nResult`)!;
             expect(isRankArray(result)).toBe(true);
             if (!isRankArray(result)) return;
             expect(result.shape).toEqual([32, 64]);
@@ -33,7 +33,7 @@ describe('stored unary numeric kernels', () => {
         try {
             runtime.execute('use numbers');
             runtime.variables.set('Input', typedArray(new BigInt64Array(size).fill(81n)));
-            const result = runtime.execute('Input sqrt') as RankArray;
+            const result = runtime.execute('Result = Input sqrt\nResult') as RankArray;
             expect(typedElementKind(result)).toBe('real');
             expect(readArrayItem(result, size - 1)).toBe(9);
             runtime.variables.set('Wide', typedArray(new BigInt64Array(size).fill(-(1n << 63n))));
@@ -48,7 +48,7 @@ describe('stored unary numeric kernels', () => {
             const operation = name === 'floor' ? Math.floor : Math.ceil;
             const values = Float64Array.from({ length: size }, (_, i) => (i - 1024) * 0.25);
             runtime.variables.set('Input', typedArray(values, [32, 64]));
-            const compact = runtime.execute(`Input ${name}`) as RankArray;
+            const compact = runtime.execute(`Result = Input ${name}\nResult`) as RankArray;
             expect(typedElementKind(compact)).toBe('integer');
             expect(integer32Cells(compact)).toBeDefined();
             expect(compact.shape).toEqual([32, 64]);
@@ -74,7 +74,7 @@ describe('stored unary numeric kernels', () => {
             const root = 94906265n;
             const values = BigInt64Array.from({ length: size }, (_, i) => root * root + BigInt(i % 3) - 1n);
             runtime.variables.set('Input', typedArray(values));
-            const result = runtime.execute('Input isqrt') as RankArray;
+            const result = runtime.execute('Result = Input isqrt\nResult') as RankArray;
             expect(typedElementKind(result)).toBe('integer');
             expect(integer32Cells(result)).toBeDefined();
             for (let i = 0; i < size; i++) expect(readArrayItem(result, i)).toBe(i % 3 === 0 ? root - 1n : root);

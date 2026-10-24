@@ -27,7 +27,7 @@
         "bench:variable": "npm run build && node benchmarks/dyalog-variable.mjs",
         "bench:tables": "npm run build && node benchmarks/year-tables.mjs",
         "rank": "node packages/cli/bin/cli.js",
-        "test:rust": "node rust/euler/verify.mjs"
+        "verify:rust": "node rust/euler/verify.mjs"
     },
     "devDependencies": {
         "@types/node": "~20.19.42",

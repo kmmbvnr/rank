@@ -98,7 +98,7 @@ ${argument} wrapper`);
         }
     });
 
-    it('keeps recursion and effectful callees on the ordinary path', () => {
+    it('compiles self tail calls and keeps effectful callees on the ordinary path', () => {
         const recursive = `fun N helper
  if N equal 0
   return 0
@@ -106,7 +106,7 @@ ${argument} wrapper`);
  return (N - 1) helper
 end`;
         const statement = parse(recursive).statements[0];
-        expect(scalarFunctionResult(statement as Parameters<typeof scalarFunctionResult>[0], true, undefined, true)).toBeUndefined();
+        expect(scalarFunctionResult(statement as Parameters<typeof scalarFunctionResult>[0], true, undefined, true)).toBeDefined();
         expect(compare(recursive + '\n100 helper', { maxCallDepth: 1 }).value).toBe('0');
         expect(compare('use io\nfun X noisy\n X print\n return X\nend\nfun X wrapper\n return X noisy\nend\n3 wrapper')).toMatchObject({ value: '3', output: ['3'], calls: 0 });
     });

@@ -99,6 +99,8 @@ const arrayBatches = new WeakMap<NativeFunction, (source: RankArray, axes: reado
 export class FunctionInvocation {
     readonly maxDepth: number;
     private depth = 0;
+    private scalarHostDepth = 0;
+    private scalarFallbackDepth = 0;
     private control: FunctionControl<FunctionDefinition> | undefined;
     private readonly sources = new WeakMap<NativeFunction, FunctionStatement>();
     private readonly globalScalarCalls = new WeakMap<FunctionStatement, Map<string, PreparedScalarCall>>();
@@ -686,6 +688,13 @@ export class FunctionInvocation {
                 return (arguments_: RankValue[], tail = false) => {
                     checkpoint();
                     if (tail) throw new TailCallSignal(definition, arguments_, run);
+                    // Keep shallow searches compiled, but transfer deep calls
+                    // to resumable frames before exhausting the host stack.
+                    if (this.scalarHostDepth >= 128) {
+                        this.scalarFallbackDepth++;
+                        try { return runExecution(this.callFunction(statement, arguments_, context)); }
+                        finally { this.scalarFallbackDepth--; }
+                    }
                     return run(arguments_);
                 };
             }
@@ -723,6 +732,7 @@ export class FunctionInvocation {
                 throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
             }
             if (!tail) this.depth += 1;
+            this.scalarHostDepth++;
             try {
                 for (;;) {
                     try {
@@ -742,10 +752,13 @@ export class FunctionInvocation {
                         throw error;
                     }
                 }
-            } finally { if (!tail) this.depth -= 1; }
+            } finally {
+                this.scalarHostDepth--;
+                if (!tail) this.depth -= 1;
+            }
         };
         if (kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
-            if (inspectionEnabled()) return false;
+            if (inspectionEnabled() || this.scalarFallbackDepth) return false;
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
                 || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
