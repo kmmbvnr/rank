@@ -1,0 +1,41 @@
+rem Distinct Colourings of a Rubik Cube
+rem https://projecteuler.net/problem=599
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10
+
+rem Burnside over the 8! 3^7 cube
+rem moves. A permutation with k cycles
+rem has 3^(8-k) twist choices per twist
+rem class; a cycle of twist 0 gives 3
+rem sticker cycles, else 1. With z
+rem zero-twist cycles there are C(k, z)
+rem (2^m + 2 (-1)^m) / 3 twist sets
+rem with sum 0, m = k - z, and N^(k+2z)
+rem colourings each.
+Cs = array shape 9 fill 0
+Cs 0 = 1
+for I in 0 till 8
+  Lo = Cs (0 till 8 array)
+  Sh = concat (array 0) Lo
+  Cs = I * Cs + Sh
+end
+Tot = 0
+for K in 1 to 8
+  In = 0
+  for Z in 0 to K
+    M = K - Z
+    Sg = 1 - 2 * (M mod 2)
+    Aa = (2 ** M + 2 * Sg) // 3
+    Bn = K binomial Z
+    In += Bn * Aa * N ** (K + 2 * Z)
+  end
+  Cc = Cs K
+  Tot += Cc * 3 ** (8 - K) * In
+end
+Answer = Tot // (40320 * 3 ** 7)
+Answer print

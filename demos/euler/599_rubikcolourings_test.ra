@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "599_rubikcolourings"
+  run
+  Answer equal 12395526079546335
+end
+
+test "statement and trivial values"
+  use "599_rubikcolourings"
+  N = 2
+  run
+  Answer equal 183
+  N = 1
+  run
+  Answer equal 1
+end
