@@ -168,9 +168,7 @@ Notes from this range:
 
 ## Problems 462-550
 
-Written: 462-550 except 536, one program and one test file each. 536
-is still open: the eulersolve search needs about 850,000 branch nodes and
-30 million candidate checks, which needs an array form first. The tests
+Written: all of 462-550, one program and one test file each. The tests
 keep to small inputs, statement values and brute-force checks. Every
 default answer was compared with the eulersolve.org C++ solution compiled
 locally, or with its Python solution or an independent Python program where
@@ -193,6 +191,9 @@ Methods that differ from the eulersolve outlines:
   and reduces them through a matrix of x^(R + k) with split real matmul.
 - 533 sieves log M(t) over every t instead of a highly-composite search.
 - 541 writes the block sum as a closed form in Stirling numbers.
+- 536 recomputes each branch's congruence from its chosen primes, so
+  every CRT step stays below 10^18, and checks a cofactor u by tables of
+  lambda(u) up to 10^7 or by 2^(m+3) = 1 mod u and trial division.
 - 544 counts colourings by the number of colours used, so the sum over q
   is a sum of falling factorials, and keeps one count row per pattern.
 - 550 proves that the Grundy value depends only on Omega(x).
@@ -212,3 +213,5 @@ Notes from this range:
   fast paths (#431).
 - `binomialmod` builds factorial tables up to N; for N near 10^8 use a
   falling product instead.
+- `choose` with boolean branches built by comparisons returns numbers
+  (#436); combine masks with `and` / `or` instead.
