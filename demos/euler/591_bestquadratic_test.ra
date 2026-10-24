@@ -1,0 +1,33 @@
+use testing
+
+test "default input"
+  use "591_bestquadratic"
+  run
+  Answer equal 526007984625966
+end
+
+test "statement values"
+  use "591_bestquadratic"
+  M = 10
+  D0 = 2
+  D1 = 2
+  run
+  Answer equal 6
+  M = 100
+  D0 = 5
+  D1 = 5
+  run
+  Answer equal 55
+  M = 1000000
+  D0 = 7
+  D1 = 7
+  run
+  Answer equal 560323
+end
+
+test "brute-force sum"
+  use "591_bestquadratic"
+  M = 1000
+  run
+  Answer equal 47949
+end

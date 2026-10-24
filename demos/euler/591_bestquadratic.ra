@@ -1,0 +1,106 @@
+rem Best Quadratic Approximations
+rem https://projecteuler.net/problem=591
+
+use numbers
+use io
+use cli
+
+option M integer = 10000000000000
+option D0 integer = 2
+option D1 integer = 99
+
+rem The pairs (b, a + b sqrt d) form a
+rem lattice. The best a + b sqrt d for
+rem pi with |a|, |b| <= M is among the
+rem points near the target in a Gauss
+rem reduced basis of the box-scaled
+rem lattice, in 10^45 fixed point.
+rem Sum |a|.
+Sc = 10 ** 45
+Ph = 31415926535897932384626
+Pl = 43383279502884197169399
+Pi = Ph * 10 ** 23 + Pl
+Answer = 0
+for D in D0 to D1
+  Rd = D isqrt
+  if Rd * Rd not equal D
+    Aq = (D * Sc * Sc) isqrt
+    Bd = (((M + 4) * Sc) // Aq) min M
+    B4 = Bd ** 4
+    S2 = Sc * Sc
+    B1 = 1
+    A1 = 0
+    B2 = 0
+    A2 = 1
+    Cn = 1
+    for Cn equal 1
+      Y1 = A1 * Sc + B1 * Aq
+      Y2 = A2 * Sc + B2 * Aq
+      N1 = B1 * B1 * S2 + Y1 * Y1 * B4
+      N2 = B2 * B2 * S2 + Y2 * Y2 * B4
+      if N2 less N1
+        T = B1
+        B1 = B2
+        B2 = T
+        T = A1
+        A1 = A2
+        A2 = T
+        T = Y1
+        Y1 = Y2
+        Y2 = T
+        T = N1
+        N1 = N2
+        N2 = T
+      end
+      Ip = B1 * B2 * S2 + Y1 * Y2 * B4
+      Mu = (2 * Ip + N1) // (2 * N1)
+      if Mu equal 0
+        Cn = 0
+      else
+        B2 -= Mu * B1
+        A2 -= Mu * A1
+      end
+    end
+    Y1 = A1 * Sc + B1 * Aq
+    Y2 = A2 * Sc + B2 * Aq
+    Dt = B1 * Y2 - B2 * Y1
+    Pt = Pi
+    Sn = 1
+    if Dt less 0
+      Sn = 0 - 1
+    end
+    Dt = Dt abs
+    Cr1 = (0 - B2 * Pt * Sn) * 2 + Dt
+    Cr1 = Cr1 // (2 * Dt)
+    Cr2 = (B1 * Pt * Sn) * 2 + Dt
+    Cr2 = Cr2 // (2 * Dt)
+    Be = 0
+    Ba = 0
+    Bb = 0
+    Fd = 0
+    for I in (0 - 4) to 4
+      for J in (0 - 4) to 4
+        C1 = Cr1 + I
+        C2 = Cr2 + J
+        Bc = C1 * B1 + C2 * B2
+        Ac = C1 * A1 + C2 * A2
+        Ok = (Bc abs) at most M
+        Ok = Ok and ((Ac abs) at most M)
+        if Ok
+          Er = Ac * Sc + Bc * Aq - Pi
+          Er = Er abs
+          Nw = Fd equal 0
+          Nw = Nw or (Er less Be)
+          if Nw
+            Fd = 1
+            Be = Er
+            Ba = Ac
+            Bb = Bc
+          end
+        end
+      end
+    end
+    Answer += Ba abs
+  end
+end
+Answer print
