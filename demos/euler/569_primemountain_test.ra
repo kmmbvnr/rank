@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "569_primemountain"
+  N = 100
+  run
+  Answer equal 227
+  N = 100000
+  run
+  Answer equal 650364
+end

@@ -1,0 +1,139 @@
+rem Prime Mountain Range
+rem https://projecteuler.net/problem=569
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 2500000
+
+rem Peak k has x = p1 + .. + p(2k-1) and
+rem y = p1 - p2 + .. + p(2k-1). Peak j
+rem shows from k if its slope to k is
+rem below that of every peak between,
+rem so scan left for strict minima. A
+rem hull of each prefix says whether
+rem any is left, which ends the scan.
+rem Slopes compare by cross products
+rem kept exact with 25-bit limbs.
+Fx = N * 2.0 + 20
+Lg = Fx log
+Ll = Lg log
+Lm = (Fx * (Lg + Ll) * 1.1) floor
+Lm = (Lm integer) + 200
+Hf = Lm // 2
+Cp = array shape (Hf + 1) fill 0
+Rt = Lm isqrt
+for I in 1 to Rt // 2
+  if Cp I equal 0
+    P = 2 * I + 1
+    for J in (P * P // 2) to Hf by P
+      Cp J = 1
+    end
+  end
+end
+Ix = (Cp equal 0) indices
+Ix = Ix ((Ix greater 0) indices)
+Pr = concat (array 2) (2 * Ix + 1)
+Pr = Pr (0 till (2 * N) array)
+Id = 0 till (2 * N) array
+Sg = 1 - 2 * (Id mod 2)
+Xs = (Pr scan +) array
+Ys = ((Pr * Sg) scan +) array
+Ke = (0 till N array) * 2
+Xk = concat (array 0) (Xs Ke)
+Yk = concat (array 0) (Ys Ke)
+Hl = Xk * 0
+St = Xk * 0
+Sp = 0
+Bs = 33554432
+for I in 1 to N
+  Go = 1
+  for (Sp greater 1) and (Go equal 1)
+    A = St (Sp - 2)
+    B = St (Sp - 1)
+    Abx = Xk B - Xk A
+    Aby = Yk B - Yk A
+    Bcx = Xk I - Xk B
+    Bcy = Yk I - Yk B
+    H1 = Abx // Bs
+    L1 = Abx mod Bs
+    H2 = Bcx // Bs
+    L2 = Bcx mod Bs
+    Dh = Bcy * H1 - Aby * H2
+    Dl = Bcy * L1 - Aby * L2
+    if Dh + Dl // Bs less 0
+      Go = 0
+    else
+      Sp -= 1
+    end
+  end
+  if Sp greater 0
+    Hl I = St (Sp - 1)
+  end
+  St Sp = I
+  Sp += 1
+end
+Answer = 0
+for K in 2 to N
+  Cnt = 1
+  Bst = K - 1
+  T = Bst
+  Yc = Yk K
+  Xc = Xk K
+  Go = 1
+  for (T greater 1) and (Go equal 1)
+    Ex = 0
+    V = T - 1
+    for (V greater 0) and (Ex equal 0)
+      A1 = Yc - Yk V
+      B1 = Xc - Xk Bst
+      A2 = Yc - Yk Bst
+      B2 = Xc - Xk V
+      H1 = B1 // Bs
+      L1 = B1 mod Bs
+      H2 = B2 // Bs
+      L2 = B2 mod Bs
+      Dh = A1 * H1 - A2 * H2
+      Dl = A1 * L1 - A2 * L2
+      if Dh + Dl // Bs less 0
+        Ex = 1
+      else
+        V = Hl V
+      end
+    end
+    if Ex equal 0
+      Go = 0
+    else
+      J = T - 1
+      Fd = 0
+      for (J greater 0) and (Fd equal 0)
+        A1 = Yc - Yk J
+        B1 = Xc - Xk Bst
+        A2 = Yc - Yk Bst
+        B2 = Xc - Xk J
+        H1 = B1 // Bs
+        L1 = B1 mod Bs
+        H2 = B2 // Bs
+        L2 = B2 mod Bs
+        Dh = A1 * H1 - A2 * H2
+        Dl = A1 * L1 - A2 * L2
+        if Dh + Dl // Bs less 0
+          Fd = 1
+        else
+          J -= 1
+        end
+      end
+      if Fd equal 0
+        Go = 0
+      else
+        Cnt += 1
+        Bst = J
+        T = J
+      end
+    end
+  end
+  Answer += Cnt
+end
+Answer print
