@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "595_incrementalrandomsort"
+  run
+  Answer equal 54.17529329
+end
+
+test "statement values"
+  use "595_incrementalrandomsort"
+  N = 2
+  run
+  Answer equal 1
+  N = 5
+  run
+  Answer equal 4.836969
+end

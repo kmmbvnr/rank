@@ -1,0 +1,50 @@
+rem Incremental Random Sort
+rem https://projecteuler.net/problem=595
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 52
+
+rem After a check the k pieces behave
+rem as 1 .. k in a random order, and
+rem the next check joins each i followed
+rem by i + 1. A permutation of k has s
+rem such successions in C(k-1, s) t(k-s)
+rem ways, t(m) = D(m) + D(m-1) the ones
+rem with none, D the derangements. With
+rem E(k) the shuffles still due, E(1) =
+rem 0 and E(k) = 1 + sum of P(k to k-s)
+rem E(k-s); S(n) = sum P(n to k) E(k).
+Dr = array shape (N + 1) fill 0
+Dr 0 = 1
+for M in 2 to N
+  Sm = Dr (M - 1) + Dr (M - 2)
+  Dr M = (M - 1) * Sm
+end
+Fa = array shape (N + 1) fill 1
+for M in 1 to N
+  Fa M = M * Fa (M - 1)
+end
+Ts = array shape (N + 1) fill 1
+for M in 1 to N
+  Ts M = Dr M + Dr (M - 1)
+end
+Ee = array shape (N + 1) fill 0.0
+Answer = 0.0
+for K in 2 to N
+  S = 0 to (K - 1) array
+  Cn = (K - 1) binomial S
+  Cn = Cn * (Ts (K - S))
+  Pr = (Cn * 1.0) / (Fa K * 1.0)
+  Ev = Ee (K - S)
+  Su = (Pr * Ev) sum
+  P0 = Pr 0
+  Ee K = (1 + Su) / (1 - P0)
+  En = Ee K
+  Answer = Su + P0 * En
+end
+Answer = Answer round 8
+Answer print
