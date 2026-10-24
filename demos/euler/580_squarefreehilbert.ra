@@ -1,0 +1,64 @@
+rem Squarefree Hilbert Numbers
+rem https://projecteuler.net/problem=580
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 9999999999999999
+
+rem No prime 1 mod 4 may be squared and
+rem at most one prime q = 3 mod 4, so
+rem n = m or q^2 m with m squarefree.
+rem Inclusion-exclusion over odd v gives
+rem sum c(v) f(N // v^2), f(t) =
+rem (t + 3) // 4 counting m = 1 mod 4,
+rem c(v) = mu(v) (1 - t) with t the
+rem count of primes 3 mod 4 in v, or
+rem -mu(m) for v = q^2 m. The factors
+rem come from a sieve by blocks of v.
+Um = N isqrt
+Sq = Um isqrt
+Pl = primes from 3 till (Sq + 1) array
+Bk = 2000000
+Answer = 0
+for V0 in 1 to Um by 2 * Bk
+  Ln = ((Um - V0) // 2 + 1) min Bk
+  V = V0 + 2 * (0 till Ln array)
+  R = V
+  Mu = V * 0 + 1
+  T = V * 0
+  Qs = V * 0
+  for P in Pl
+    for E in 1 to 3
+      Q = P ** E
+      Rm = (Q - (V0 mod Q)) mod Q
+      S0 = (Rm * ((Q + 1) // 2)) mod Q
+      Ix = (S0 to (Ln - 1) by Q) array
+      Q3 = (P mod 4 equal 3) integer
+      if E equal 1
+        R Ix = (R Ix) // P
+        Mu Ix = 0 - Mu Ix
+        T Ix += Q3
+      elif E equal 2
+        R Ix = (R Ix) // P
+        Mu Ix = (0 - Mu Ix) * Q3
+        T Ix -= Q3
+        Qs Ix += Q3
+      else
+        Mu Ix = 0
+      end
+    end
+  end
+  Big = (R greater 1) integer
+  Mu = Mu * (1 - 2 * Big)
+  E3 = ((R mod 4) equal 3) integer
+  T += Big * E3
+  C = Mu * (1 - T)
+  C = (Qs equal 1) choose (0 - Mu) C
+  C = (Qs greater 1) choose 0 C
+  Tq = (N // (V * V) + 3) // 4
+  Answer += (C * Tq) sum
+end
+Answer print

@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "580_squarefreehilbert"
+  N = 99
+  run
+  Answer equal 23
+  N = 9999999
+  run
+  Answer equal 2327192
+end

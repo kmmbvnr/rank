@@ -1,0 +1,36 @@
+rem 47-smooth Triangular Numbers
+rem https://projecteuler.net/problem=581
+
+use numbers
+use sequences
+use io
+use cli
+
+option B integer = 10000000000000
+
+rem T(2x) = x (2x + 1) and T(2x - 1) =
+rem x (2x - 1) with coprime factors, so
+rem T(n) is smooth when both factors
+rem are. List the 47-smooth x up to B
+rem and test 2x + 1 and 2x - 1 in the
+rem list of those up to 2B + 1.
+Lm = 2 * B + 1
+Sm = array 1
+for P in primes till 48 array
+  Cu = Sm
+  for (Cu len) greater 0
+    Cu = Cu * P
+    Ix = (Cu at most Lm) indices
+    Cu = Cu Ix
+    Sm = concat Sm Cu
+  end
+end
+Xs = Sm ((Sm at most B) indices)
+Up = (2 * Xs + 1) in Sm
+Dn = (2 * Xs - 1) in Sm
+Xu = Xs (Up indices)
+Xd = Xs (Dn indices)
+Su = (2 * Xu) sum
+Sd = (2 * Xd - 1) sum
+Answer = Su + Sd
+Answer print
