@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "578_decreasingprimepowers"
+  N = 100
+  run
+  Answer equal 94
+  N = 1000000
+  run
+  Answer equal 922052
+end
