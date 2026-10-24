@@ -2058,3 +2058,14 @@ Validation: the workspace build passed, as did 259 focused interpreter tests,
 execution-exclusion checks. Name-filtered type and differential audits passed
 for the demo and its test file (four checks); the remaining corpus was skipped.
 No full test suite was run.
+
+## Range values and array expressions in loops (#432)
+
+Finite integer ranges, stepped selections and `copy` now compile inside loop
+bodies. Integer array arithmetic can feed array bindings and rank-one slice
+stores through the existing runtime kernels. Shape checks and RHS snapshots
+precede bulk writes; unsupported forms keep ordinary evaluation.
+
+The unchanged Euler 521 program meets the 0.2 ms per-prime limit outside array
+work at N = 10^9. [Measurements and focused verification](../../benchmarks/loop-range-values-results.md)
+record both implementation stages and the remaining array cost.

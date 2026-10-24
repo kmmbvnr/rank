@@ -1,3 +1,4 @@
+import { selectValues } from './value-selection.js';
 import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
@@ -239,6 +240,12 @@ export class FastPaths {
                 const selectors: RankValue[] = Array(axis).fill(ALL_AXIS);
                 selectors.push(this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end));
                 return copyArray(sliceArray(source, tensorSelection(source, selectors)));
+            },
+            arrayValues: {
+                range: (start, end, inclusive, step) => this.context.operators.evaluateBinary(inclusive ? 'to' : 'till', start, end, step),
+                select: (source, selector) => copyArray(selectValues(this.context.modules, [source, selector])),
+                copy: copyArray,
+                binary: (operator, left, right) => this.context.operators.evaluateBinary(operator, left, right),
             },
             textRead: textAt,
             returns: this.context.options().loopReturnCompilation !== false,

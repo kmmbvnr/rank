@@ -90,26 +90,30 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 }`);
             const expected = booleanUpdate ? 'boolean' : target.type ?? arrays.get(assignment.name)?.type
                 ?? (compound ? expressions.realInput(assignment.name) ?? 'integer' : undefined);
-            const value = emit(assignment.value, lines, expected);
-            if (!value || value.type === 'text' || value.type === 'bytes' || value.type === 'boolean' && !host.booleanArrays
-                || expected && value.type !== expected
-                || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== value.type) return reject(assignment);
-            target.type = value.type;
+            const value = expressions.emitValue(assignment.value, lines, expected);
+            if (!value) return reject(assignment);
+            const vector = typeof value.type !== 'string';
+            const type = typeof value.type === 'string' ? value.type : value.type.element;
+            if (type === 'text' || type === 'bytes' || type === 'boolean' && !host.booleanArrays
+                || vector && (type !== 'integer' || !['=', '+=', '-=', '*='].includes(assignment.operator))
+                || expected && type !== expected
+                || arrays.has(assignment.name) && arrays.get(assignment.name)!.type !== type) return reject(assignment);
+            target.type = type;
             const cell: string[] = [], operand = `operand${state.serial++}`, offset = `offset${n}`;
             let result = operand;
-            if (compound) {
+            if (compound && !vector) {
                 const op = assignment.operator.slice(0, -1);
-                const signature = loopOperatorSignature(op, [value.type, value.type], host.nativeCalls);
-                const out = signature?.compound && signature.result === value.type
-                    ? arithmetic(op, { code: `${receiver}.items[${offset}]`, type: value.type }, { code: operand, type: value.type }, value.type, cell) : undefined;
+                const signature = loopOperatorSignature(op, [type, type], host.nativeCalls);
+                const out = signature?.compound && signature.result === type
+                    ? arithmetic(op, { code: `${receiver}.items[${offset}]`, type }, { code: operand, type }, type, cell) : undefined;
                 if (out === undefined) return reject(assignment);
                 result = out;
             }
             // Integer runs commit through the bulk writer: reading an old cell
             // through `items` would unpack a typed buffer for the whole array.
-            const bulk = value.type === 'integer' && ['=', '+=', '-=', '*='].includes(assignment.operator)
-                ? `count${n} > 0 && fill(r${target.slot}, Number(first${n}), count${n}, Number(stride${n}), ${operand}, ${JSON.stringify(assignment.operator)})` : 'false';
-            body.push(`location = ${location};`, ...lines, `const ${operand} = ${value.code};
+            const bulk = type === 'integer' && ['=', '+=', '-=', '*='].includes(assignment.operator)
+                ? `${vector ? '' : `count${n} > 0 && `}fill(r${target.slot}, Number(first${n}), count${n}, Number(stride${n}), ${operand}, ${JSON.stringify(assignment.operator)})` : 'false';
+            body.push(`location = ${location};`, ...lines, `const ${operand} = ${vector ? `materializeValue(${value.code})` : value.code};
                 if (!(${bulk})) for (let index${n} = 0, ${offset} = Number(first${n}), delta${n} = Number(stride${n}); index${n} < count${n}; index${n}++, ${offset} += delta${n}) {
                     checkpoint(); ${cell.join('\n')} write${target.slot}(${offset}, ${result});
                 }

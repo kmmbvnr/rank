@@ -17,7 +17,7 @@ import { hasIntegerIteration } from './integer-entries.js';
 import { prepareSetAdd } from './collections.js';
 import { RankDeque } from './containers.js';
 import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
-import { storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
+import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined): CompiledLoop | undefined {
@@ -41,7 +41,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -54,12 +54,22 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             : rank === 2 ? prepareMatrixArrayReader(value, host.arrayRead, stableReads)
                 : prepareArrayReader(value, host.arrayRead, stableReads), ownedArray, checkpoint, host.textRead, takeDropValue,
             (message: string) => new RankError(message, 'DomainError'),
-            (array: RankValue, first: number, count: number, stride: number, operand: bigint, operator: '=' | '+=' | '-=' | '*=') => {
+            (array: RankValue, first: number, count: number, stride: number, operand: RankValue, operator: '=' | '+=' | '-=' | '*=') => {
+                let values: bigint | bigint[];
+                if (typeof operand === 'bigint') values = operand;
+                else {
+                    if (!isRankArray(operand)) throw new RankError('assignment expects integer cells');
+                    if (operand.shape.length !== 1 || operand.shape[0] !== count) {
+                        throw new RankError(`assignment shape mismatch: ${[count]} and ${operand.shape}`, 'DimensionMismatch');
+                    }
+                    // Snapshot the complete RHS before the first destination write.
+                    values = Array.from({ length: count }, (_, index) => readArrayItem(operand, index) as bigint);
+                }
                 if (!isRankArray(array) || !writableIntegerCells(array)) return false;
-                writeIntegerSelection(array, count, index => first + index * stride, operand, operator);
+                writeIntegerSelection(array, count, index => first + index * stride, values, operator);
                 return true;
             }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
-            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice); }
+            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, host.arrayValues); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0

@@ -304,6 +304,88 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         lines.push(`const ${name} = ${numberMode && signature.result === 'integer' ? safe(code) : code};`);
         return { code: name, type: signature.result };
     }
+    // Array operands use the same concrete range/selection operations as the
+    // evaluator, without re-entering expression evaluation on every iteration.
+    function arrayType(e: Expression): CompiledArrayType | undefined {
+        while (isParenthesizedExpression(e)) e = e.value;
+        if (isNameExpression(e) && !e.name.includes('.') && !localTypes.has(e.name)) {
+            const previous = arrays.get(e.name);
+            if (previous && previous.type !== 'bytes') return { kind: 'array', element: previous.type, rank: previous.rank };
+            const current = host.read(e.name);
+            if (current && isRankArray(current) && storedScalarKinds(current)?.join() === 'integer') {
+                return { kind: 'array', element: 'integer', rank: current.shape.length };
+            }
+        }
+        if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+            return { kind: 'array', element: 'integer', rank: 1 };
+        }
+        if (isBinaryExpression(e) && ['+', '-', '*', '//', 'mod'].includes(e.operator)) {
+            const left = arrayType(e.left), right = arrayType(e.right);
+            if ((left || right) && (!left || left.element === 'integer') && (!right || right.element === 'integer')) {
+                return { kind: 'array', element: 'integer', rank: Math.max(left?.rank ?? 0, right?.rank ?? 0) };
+            }
+        }
+        if (isApplicationExpression(e)) {
+            const parts = flattenApplication(e), last = parts.at(-1)!;
+            if (parts.length >= 2 && isNameExpression(last) && last.name === 'copy'
+                && host.nativeCalls && !localTypes.has('copy') && !arrays.has('copy') && !containers.has('copy')) {
+                return arrayType(applicationExpression(parts.slice(0, -1), e));
+            }
+            if (parts.length === 2) {
+                const source = arrayType(parts[0]), selector = arrayType(last);
+                if (source && selector?.element === 'integer') return { ...source, rank: source.rank + selector.rank - 1 };
+            }
+        }
+        return undefined;
+    }
+    function emitArrayValue(e: Expression, lines: string[]): LoopValue | undefined {
+        while (isParenthesizedExpression(e)) e = e.value;
+        const type = arrayType(e);
+        if (!type) return undefined;
+        if (isNameExpression(e)) {
+            const info = arrays.get(e.name) ?? { slot: slot(e.name), rank: type.rank, type: type.element };
+            arrays.set(e.name, info);
+            if (!assigned.has(e.name)) arrayInputs.add(e.name);
+            return { code: `r${info.slot}`, type };
+        }
+        let code: string;
+        if (isBinaryExpression(e) && ['to', 'till'].includes(e.operator)) {
+            const start = emit(e.left, lines, 'integer'), end = emit(e.right, lines, 'integer');
+            const step = e.step ? emit(e.step, lines, 'integer') : undefined;
+            if (start?.type !== 'integer' || end?.type !== 'integer' || e.step && step?.type !== 'integer') return undefined;
+            code = `arrayValues.range(${start.code}, ${end.code}, ${e.operator === 'to'}, ${step?.code ?? 'undefined'})`;
+        } else if (isBinaryExpression(e)) {
+            const left = emitValue(e.left, lines, 'integer'), right = emitValue(e.right, lines, 'integer');
+            if (!left || !right || (typeof left.type === 'string' ? left.type : left.type.element) !== 'integer'
+                || (typeof right.type === 'string' ? right.type : right.type.element) !== 'integer') return undefined;
+            code = `arrayValues.binary(${JSON.stringify(e.operator)}, ${left.code}, ${right.code})`;
+        } else if (isApplicationExpression(e)) {
+            const parts = flattenApplication(e), last = parts.at(-1)!;
+            const copied = isNameExpression(last) && last.name === 'copy';
+            const source = copied ? applicationExpression(parts.slice(0, -1), e) : parts[0];
+            const selector = last;
+            const inputLines: string[] = [];
+            const input = emitValue(source, inputLines);
+            if (!input || typeof input.type === 'string') return undefined;
+            let inputCode = input.code;
+            if (copied && parts.length > 2) {
+                inputCode = `receiver${state.serial++}`;
+                lines.push(`let ${inputCode}; try { ${inputLines.join('\n')} ${inputCode} = ${input.code}; }
+                    catch (error) { throw argumentSelectionError(error, 'copy', ${parts.length - 1}); }`);
+            } else lines.push(...inputLines);
+            if (copied) {
+                builtins.set('copy', 'sequences');
+                code = `arrayValues.copy(${inputCode})`;
+            } else {
+                const index = emitValue(selector, lines);
+                if (!index || typeof index.type === 'string' || index.type.element !== 'integer') return undefined;
+                code = `arrayValues.select(${input.code}, ${index.code})`;
+            }
+        } else return undefined;
+        const name = `v${state.serial++}`;
+        lines.push(`const ${name} = ${code};`);
+        return { code: name, type };
+    }
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         let source = e;
         while (isParenthesizedExpression(source)) source = source.value;
@@ -346,6 +428,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     return { code: result, type: { kind: 'array', element: type, rank } };
                 }
             }
+        }
+        if (!state.numberMode && host.arrayLocals && host.arrayReads && host.arrayValues && arrayType(source)) {
+            return emitArrayValue(source, lines);
         }
         if (isApplicationExpression(source)) {
             // Whole-value stores/returns may accept an array call. Other forms

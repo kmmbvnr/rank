@@ -44,6 +44,12 @@ export interface LoopHost {
     arrayRead(source: RankArray, indices: readonly bigint[]): RankValue;
     textRead(source: string, index: bigint): string;
     copySlice(source: RankArray, start: bigint, end: bigint, axis: number, inclusive: boolean): RankArray;
+    readonly arrayValues?: {
+        range(start: bigint, end: bigint, inclusive: boolean, step?: bigint): RankValue;
+        select(source: RankValue, selector: RankValue): RankArray;
+        copy(value: RankValue): RankArray;
+        binary(operator: string, left: RankValue, right: RankValue): RankValue;
+    };
     iteration(condition: Expression | undefined): IterationBinding | undefined;
     read(name: string): RankValue | undefined;
     writer(name: string): (value: RankValue) => void;
