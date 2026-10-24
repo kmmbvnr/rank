@@ -1,0 +1,128 @@
+rem Chromatic Conundrum
+rem https://projecteuler.net/problem=544
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option R integer = 10
+option C integer = 9
+option N integer = 1112131415
+
+rem Count colourings that name colours
+rem in order of first use: with j
+rem colours, F(q) = sum N(j) q!/(q-j)!
+rem and sum F(x), x <= N, is sum N(j)
+rem j! C(N + 1, j + 1). Sweep cells with
+rem the canonical pattern of the last C
+rem cells (4 bits each, 15 = none yet)
+rem and a count row over j per pattern.
+P = 1000000007
+Pw = 16 ** (0 till C)
+Jw = R * C + 2
+Jv = (0 till Jw) copy
+Pc = array ((15 * Pw) sum)
+V = array shape 1 Jw fill 0
+V 0 0 = 1
+for Rw in 0 till R
+  for Cl in 0 till C
+    Np = Pc len
+    Pq = Pc reshape Np 1
+    Lm = (Pq // Pw) mod 16
+    Lf = Lm reshape (Np * C)
+    Ir = (0 till Np) copy
+    Up = Lf (Ir * C)
+    Lt = Up * 0 + 15
+    if Cl greater 0
+      Lt = Lf (Ir * C + C - 1)
+    end
+    Lr = (Lm equal 15) choose (0 - 1) Lm
+    D = (Lr reduce max axis 1) + 1
+    rem Options: join block 0..C-1, or a
+    rem new block (label 14).
+    Kc = C + 1
+    Ci = (0 till Np * Kc) copy
+    Cs = Ci // Kc
+    Co = Ci mod Kc
+    Ok = Co equal C
+    Pr = Co * 0
+    for K in 1 till C
+      Lk = Lf (Cs * C + K)
+      Pr += (Lk equal Co) integer
+    end
+    Dc = D Cs
+    Uq = Up Cs
+    Lq = Lt Cs
+    Jn = (Co less Dc) and (Pr greater 0)
+    Eu = (Co equal Uq) equal false
+    El = (Co equal Lq) equal false
+    Jn = Jn and Eu and El
+    Ok = Ok or Jn
+    Ci = Ok indices
+    Cs = Cs Ci
+    Co = Co Ci
+    Nc = Ci len
+    rem Drop the oldest cell, append the
+    rem new one, relabel in order.
+    Mp = array shape (Nc * 16) fill 0
+    Mp = Mp - 1
+    Nx = Cs * 0
+    Cd = Cs * 0
+    Ib = (0 till Nc) copy
+    for K in 0 till C
+      X = Co
+      if K less C - 1
+        X = Lf (Cs * C + K + 1)
+      end
+      X = (X equal C) choose 14 X
+      Fx = Ib * 16 + X
+      M = Mp Fx
+      Nw = (M less 0) and (X less 15)
+      Wi = Nw indices
+      Mp (Fx Wi) = Nx Wi
+      Nx += Nw integer
+      M = Mp Fx
+      Lb = (X equal 15) choose 15 M
+      Cd += Lb * Pw K
+    end
+    Uc = (Cd unique) sort
+    Tx = Uc Cd lowerindex
+    Nv = array shape (Uc len) Jw fill 0
+    Rv = V Cs
+    Jo = (Co less C) indices
+    Rj = Rv Jo
+    Nv (Tx Jo) += Rj .accumulate
+    No = (Co equal C) indices
+    Rn = Rv No
+    Ne = No len
+    Dn = (D (Cs No)) reshape Ne 1
+    Mu = (Jv - Dn) max 0
+    Od = Rn * Mu mod P
+    Rf = Rn reshape (Ne * Jw)
+    Rh = Rf (0 till Ne * Jw - 1)
+    Sf = concat (array 0) Rh
+    Sm = Sf reshape Ne Jw
+    Nn = (Od + Sm) mod P
+    Nv (Tx No) += Nn .accumulate
+    V = Nv mod P
+    Pc = Uc
+  end
+end
+Nj = (V reduce + axis 0) mod P
+rem Lucas: N + 1 above P keeps n mod P,
+rem and j! C(n, j + 1) is the falling
+rem product of j + 1 terms over j + 1.
+N0 = (N + 1) mod P
+Fp = Jv * 0
+Pf = 1
+for I in 0 till Jw
+  Pf = Pf * ((N0 - I) mod P) mod P
+  Fp I = Pf
+end
+Iv = (Jv + 1) (P - 2) P powmod
+Wj = Fp * Iv mod P
+Answer = ((Nj * Wj) mod P) sum
+Answer = Answer mod P
+Answer print

@@ -205,5 +205,6 @@
   "euler/537_primecounting.ra": "To fix later: the default input takes about 20 s, about 20 NTT products of length 65536 by gathers and scatters; the small _test.ra fixture stays in the audits.",
   "euler/534_weakqueens.ra": "To fix later: the default input takes about 9 min and 4.3 GB, up to 6.5 million merged states per row for each reach D; the small _test.ra fixture stays in the audits.",
   "euler/538_maxquadrilaterals.ra": "To fix later: the default input takes about 15 s, ranking 3 million terms and stepping 6456 count events; the small _test.ra fixture stays in the audits.",
-  "euler/540_primitivetriples.ra": "To fix later: the default input takes about 100 s and 2.7 GB (a Moebius sieve to 2.5e7 and row sums for about 9000 odd d); the small _test.ra fixture stays in the audits."
+  "euler/540_primitivetriples.ra": "To fix later: the default input takes about 100 s and 2.7 GB (a Moebius sieve to 2.5e7 and row sums for about 9000 odd d); the small _test.ra fixture stays in the audits.",
+  "euler/544_chromaticconundrum.ra": "To fix later: the default input takes about 75 s, 90 frontier steps over 5017 patterns times 92 colour counts; the small _test.ra fixture stays in the audits."
 }

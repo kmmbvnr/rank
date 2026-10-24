@@ -1,0 +1,15 @@
+use testing
+
+test "statement value and small grids"
+  use "544_chromaticconundrum"
+  R = 4
+  C = 4
+  N = 15
+  run
+  Answer equal 325951319
+  R = 3
+  C = 3
+  N = 5
+  run
+  Answer equal 152680
+end
