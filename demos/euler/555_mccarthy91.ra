@@ -1,0 +1,27 @@
+rem McCarthy 91 Function
+rem https://projecteuler.net/problem=555
+
+use numbers
+use sequences
+use io
+use cli
+
+option P integer = 1000000
+option M integer = 1000000
+
+rem For n <= m, M(n) = M(n + g) with
+rem g = k - s, so M(n) = n + q g - s.
+rem Fixed points need g | s, s = g(t-1)
+rem k = g t, t <= p // g. They are
+rem g numbers m - s + 1 .. m - s + g,
+rem summing to g (m + g + 1)
+rem + g (g - 1) / 2 - g^2 t over t.
+G = 1 to P array
+T = P // G
+Cn = T - 1
+St = T * (T + 1) // 2 - 1
+A = Cn * G * (M + G + 1)
+B = Cn * G * (G - 1) // 2
+C = G * G * St
+Answer = (A + B - C) sum
+Answer print

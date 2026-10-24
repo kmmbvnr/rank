@@ -1,0 +1,19 @@
+use testing
+
+test "default input"
+  use "555_mccarthy91"
+  run
+  Answer equal 208517717451208352
+end
+
+test "statement values"
+  use "555_mccarthy91"
+  P = 10
+  M = 10
+  run
+  Answer equal 225
+  P = 1000
+  M = 1000
+  run
+  Answer equal 208724467
+end
