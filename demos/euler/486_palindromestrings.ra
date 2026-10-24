@@ -20,7 +20,7 @@ rem 9, 1997, 4877, fixing s = t mod
 rem ord(64) leaves 200 t = const.
 fun A Ma B Mb crt
   rem t = A mod Ma, t = B mod Mb.
-  G = Ma Mb gcd
+  G = Ma gcd Mb
   M1 = Ma // G
   M2 = Mb // G
   rem Inverse of M1 mod M2 by Euclid.
@@ -65,13 +65,13 @@ for U in 0 to 5
     Pw = 64 Ss M powmod
     Ta = (Tw * Pw - Cu U) * I2 mod M
     Bm = Ss Or Ta M crt
-    Pm = Or M lcm
+    Pm = Or lcm M
     rem Pairs with earlier residues.
     Nb = Bm len
     Ip = (0 till Rs len * Nb) copy
     Ra = Rs (Ip // Nb)
     Rs = Ra Mr (Bm (Ip mod Nb)) Pm crt
-    Mr = Mr Pm lcm
+    Mr = Mr lcm Pm
   end
   Lv = Rs at most Tm
   Ct = (Tm - Rs) // Mr + 1

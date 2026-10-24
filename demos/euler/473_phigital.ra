@@ -97,7 +97,7 @@ for Nn in 2 till Nm
     Cn = (Pw choose 1 0) scan +
     Cs = (Pw choose Wu 0) scan +
     Ix = (0 till Vs len) copy
-    Pv = Vs 1 shift with 0
+    Pv = Vs shift 1 with 0
     Nw = Vs not equal Pv
     Nw 0 = true
     St = (Nw choose Ix 0) scan max

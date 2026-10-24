@@ -23,7 +23,7 @@ H = N // 2
 H1 = H + 1
 Pr = primes to N array
 Tp = Pr len
-Nx = Pr -1 shift with (N + 1)
+Nx = Pr shift -1 with (N + 1)
 W = Nx - Pr
 Ws = (Pr at most 30) count
 Pi = array shape (N + 1) fill 0
@@ -34,7 +34,7 @@ Sp = (0 to N) copy
 Rt = N isqrt
 for P in primes to Rt
   Sl = P * P to N by P
-  Sp Sl = (Sp Sl) P min
+  Sp Sl = (Sp Sl) min P
 end
 Mm = (2 to N) copy
 Cu = Mm
@@ -90,7 +90,7 @@ Cs = De scan +
 St = (Ky mod H1 equal 0) choose Ix 0
 St = St scan max
 Al = Cs - (Cs - De) St
-Nk = Ky -1 shift with -1
+Nk = Ky shift -1 with -1
 Kp = (Ky not equal Nk) indices
 Ky = Ky Kp
 Al = Al Kp
@@ -129,7 +129,7 @@ for Lv greater 0
   Lr = Rb choose Ix 0
   Lr = Lr scan max
   Ky = Kz // 2
-  Nk = Ky -1 shift with -1
+  Nk = Ky shift -1 with -1
   Kp = (Ky not equal Nk) indices
   A = Pq (Ll Kp)
   B = Pq (Lr Kp)

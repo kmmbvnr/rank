@@ -29,5 +29,5 @@ for A in Ab
   V = A * B * Nr / Dn
   Answer += (V sum) * Tp / M
 end
-Answer = Answer 8 round
+Answer = Answer round 8
 Answer print

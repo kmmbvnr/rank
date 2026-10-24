@@ -37,7 +37,7 @@ for I in 0 till 30
   L0 = Lo I
   L1 = Ps I
   Dg = St (L0 till L1)
-  V I = Dg (Dg * 0 + 10) fromDigits
+  V I = Dg fromDigits (Dg * 0 + 10)
 end
 Bv = V (0 till 15)
 Av = V (15 till 30) - B * Bv

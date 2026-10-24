@@ -23,9 +23,9 @@ Zr = Lo * 0
 for P in primes to R
   P2 = P * P
   Pc = Lo (P - 1)
-  Lm = R (N // P2) min
+  Lm = R min (N // P2)
   rem i p <= R: Hi at i p, a slice.
-  M1 = (R // P) Lm min
+  M1 = (R // P) min Lm
   if M1 greater 0
     Hs = Hi (P to M1 * P by P)
     Hi (1 to M1) -= Hs - Pc
@@ -49,8 +49,8 @@ for P in primes to R
 end
 rem pi(x) for x of the form N // m.
 fun X pin
-  Xs = X R min
-  Xb = N // (X max 1) R min
+  Xs = X min R
+  Xb = (N // (X max 1)) min R
   Sm = X at most R
   return Sm choose (Lo Xs) (Hi Xb)
 end

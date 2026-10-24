@@ -45,7 +45,7 @@ Km = N0 // M
 Answer = 0
 Hit = 0 - 1
 for K0 in 0 till Km by Bk
-  Kn = Bk (Km - K0) min
+  Kn = Bk min (Km - K0)
   for Rr in Rs
     Mk = array shape Kn fill true
     for T in 0 till Ps len

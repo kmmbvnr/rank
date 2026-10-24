@@ -23,7 +23,7 @@ S = 1
 C = 1
 for J in Nb - 2 to 0 by -1
   M = C
-  Bt = (N J bit) integer
+  Bt = (N bit J) integer
   C = 2 * M + Bt
   P = 2 * (M + 1 - P)
   So = 1 + 2 * M * (M + 3) - 4 * S

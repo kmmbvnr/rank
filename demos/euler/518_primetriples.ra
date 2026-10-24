@@ -33,7 +33,7 @@ for V in 2 to Rv
     D = D Dk
     Cs = Cs Dk
     U = 1 till V
-    G = U V gcd
+    G = U gcd V
     U = U ((G equal 1) indices)
     I = (0 till (U len) * Nd) copy
     Ui = U (I // Nd)

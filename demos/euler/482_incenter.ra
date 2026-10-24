@@ -29,7 +29,7 @@ Ok = Ok and ((Mg - Ng) mod 2 equal 1)
 Ix = Ok indices
 Mg = Mg Ix
 Ng = Ng Ix
-Ix = ((Mg Ng gcd) equal 1) indices
+Ix = ((Mg gcd Ng) equal 1) indices
 Mg = Mg Ix
 Ng = Ng Ix
 A0 = Mg * Mg - Ng * Ng
@@ -38,7 +38,7 @@ C0 = Mg * Mg + Ng * Ng
 R0 = concat A0 B0
 X0 = concat B0 A0
 H0 = concat C0 C0
-Kc = (R // R0) (H // X0) min
+Kc = (R // R0) min (H // X0)
 Ix = (Kc greater 0) indices
 R0 = R0 Ix
 X0 = X0 Ix
@@ -67,8 +67,8 @@ rem positions in the sorted legs: one
 rem sort of legs and bounds.
 R2 = Rr * Rr
 Qi = (Xx * Xx at most 3 * R2) indices
-V1 = (R2 Qi // Xx Qi) H min
-V2 = (3 * R2 Qi // Xx Qi) H min
+V1 = (R2 Qi // Xx Qi) min H
+V2 = (3 * R2 Qi // Xx Qi) min H
 Nq = Qi len
 Rq = Rr Qi * H1
 Kq = concat (Rr * H1 + Xx) (Rq + V1)
@@ -101,7 +101,7 @@ for St less Nq
   rem Next chunk: up to Ch pairs.
   Cm = Cb + Ch
   En = (Cs at most Cm) count - 1
-  En = (En max (St + 1)) Nq min
+  En = (En max (St + 1)) min Nq
   Np = Cs En - Cb
   if Np greater 0
     Of = Cs (St till En) - Cb

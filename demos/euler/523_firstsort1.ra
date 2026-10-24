@@ -15,5 +15,5 @@ rem 2^(n - 1) - 1, so E(n) is the sum
 rem of (2^(j - 1) - 1) / j for j <= n.
 J = (1 to N) copy
 E = ((2.0 ** (J - 1) - 1) / J) sum
-Answer = E 2 round
+Answer = E round 2
 Answer print

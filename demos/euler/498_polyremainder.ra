@@ -18,12 +18,12 @@ rem - 1). Binomials mod the prime by
 rem Lucas: one small binomial per
 rem base-p digit, as array products.
 Pm = 999999937
-fun U V binp
+fun U binp V
   rem C(U, V) mod Pm, U, V < Pm.
   if V greater U
     return 0
   end
-  W = V (U - V) min
+  W = V min (U - V)
   Is = (1 to W) copy
   Pr = concat ((U - W + Is) mod Pm) Is
   rem Halving products mod Pm.
@@ -55,7 +55,7 @@ if D less M and M at most N
     A = Ns I
     B = Ks I
     for A greater 0 or B greater 0
-      Bd = (A mod Pm) (B mod Pm) binp
+      Bd = (A mod Pm) binp (B mod Pm)
       Answer = Answer * Bd mod Pm
       A //= Pm
       B //= Pm

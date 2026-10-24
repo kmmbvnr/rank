@@ -18,7 +18,7 @@ V = (N + 1) / 2.0
 for T in N - 1 to 1 by -1
   St = (N + 1.0) / (T + 1)
   K = (V / St + 0.000000000001) floor
-  K = (K max 0) T min
+  K = (K max 0) min T
   Sv = St * K * (K + 1) / 2
   V = (Sv + (T - K) * V) / T
 end

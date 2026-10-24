@@ -22,7 +22,7 @@ rem an explicit stack (the search is
 rem sequential).
 Q = 1152921504606846976
 Mk = Q - 1
-fun K D tree
+fun K tree D
   rem Value of the depth-D subtree at K.
   X = 1
   Pr = 0
@@ -72,7 +72,7 @@ fun K D tree
         if Mx
           Sa T = Sa T max Rv
         else
-          Sb T = Sb T Rv min
+          Sb T = (Sb T) min Rv
         end
         if Sa T at least Sb T
           Rv = Mx choose (Sa T) (Sb T)
@@ -93,7 +93,7 @@ fun K D tree
         if Mx
           Rv = Sa T max Rv
         else
-          Rv = Sb T Rv min
+          Rv = (Sb T) min Rv
         end
         T -= 1
       end
@@ -103,7 +103,7 @@ fun K D tree
       L = (3 * X + 2 * Pr) mod Q
       R = (2 * X + 3 * Pr) mod Q
       Mx = Sd T mod 2 equal 1
-      Lo = L R min
+      Lo = L min R
       Hi = L max R
       Fi = Mx choose Hi Lo
       Se = Mx choose Lo Hi
@@ -132,12 +132,12 @@ fun S D Bs Ll node
   J0 = Bs + S
   if S + 2 ** D at most Ll
     Kl = J0 // 2 ** D
-    return Kl D tree
+    return Kl tree D
   end
   Dk = D max 1
   Ky = J0 // 2 ** Dk
   Dm = Dk - 1
-  Tv = Ky Dm tree
+  Tv = Ky tree Dm
   return Mk - Tv
 end
 Answer = 1
@@ -174,7 +174,7 @@ if N greater 1
     if E mod 2 equal 1
       Z = Z max (Sv E)
     else
-      Z = Z (Sv E) min
+      Z = Z min (Sv E)
     end
   end
   Answer = Z

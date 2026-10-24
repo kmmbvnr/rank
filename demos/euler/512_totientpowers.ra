@@ -60,7 +60,7 @@ Gs = array shape (J + 2) fill 0
 for Jj in J to 0 by -1
   Mj = 2 ** Jj
   X = N // Mj
-  F = Fs (X L min)
+  F = Fs (X min L)
   if X greater L
     F = Bg Mj
   end

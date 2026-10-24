@@ -31,7 +31,7 @@ for Answer equal 0
     Pp = G * U + 1
     Na = (Pp in Al) equal false
     Ok = (Pp in Sv) and Na
-    Gu = (G * U) Bs gcd
+    Gu = (G * U) gcd Bs
     Ok = Ok and (Gu equal G)
     for R in U (Ok indices)
       Mk (R to Mb by R) = false

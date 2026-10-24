@@ -18,7 +18,7 @@ rem in 0..2 the products are powers
 rem of 2.
 Ix = (0 till 3 ** 10) copy
 Bs = array shape 10 fill 3
-K = (Ix Bs digits) transpose
+K = (Ix digits Bs) transpose
 Ds = (0 till 10) copy
 Ok = (K sum rank 1) equal 10
 W = (K * Ds) sum rank 1

@@ -51,8 +51,8 @@ for P in primes to C
   Pc = Lo (P - 1)
   Ps = Sl (P - 1)
   Answer += P * (Hi P - Pc) mod M
-  Lm = R (N // P2) min
-  M1 = (R // P) Lm min
+  Lm = R min (N // P2)
+  M1 = (R // P) min Lm
   if M1 greater 0
     Ix = P to M1 * P by P
     Hs = Hi Ix
@@ -87,13 +87,13 @@ Ct = N // (Pb * Pb)
 Cs = Ct scan +
 Nt = Cs last
 Po = (0 till Nt) copy
-J = Cs Po upperindex
+J = Cs upperindex Po
 I = Po - (Cs - Ct) J + 1
 Pp = Pb J
 Q = I * Pp
 Bg = Q at most R
-Qh = Q R min
-Ql = N // Q R min
+Qh = Q min R
+Ql = (N // Q) min R
 Vc = Bg choose (Hi Qh) (Lo Ql)
 Vs = Bg choose (Sh Qh) (Sl Ql)
 Dc = Vc - Lo (Pp - 1)

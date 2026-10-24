@@ -41,16 +41,16 @@ Tt = Cs last
 rem Pairs in chunks to bound memory.
 Answer = 0
 for K0 in 0 till Tt by 2000000
-  Ke = (K0 + 2000000) Tt min
+  Ke = (K0 + 2000000) min Tt
   K = (K0 till Ke) copy
-  I = Cs K upperindex
+  I = Cs upperindex K
   J = I + 1 + K - (Cs - Ct) I
   Nn = Lo + I
   Mm = Lo + J
   A = Ph Nn
   B = Ph Mm
   D = J - I
-  G = Nn D gcd
+  G = Nn gcd D
   Ok = ((B - A) mod G equal 0) indices
   Nn = Nn Ok
   A = A Ok

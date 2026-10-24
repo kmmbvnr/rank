@@ -20,7 +20,7 @@ rem - 3) with H the harmonic number.
 H0 = (N binary) len - 1
 Tl = 2 ** (H0 + 1) - H0 - 2
 Bn = H0 + 1 - Tl / N
-Nm = N 1000000 min
+Nm = N min 1000000
 Hn = (1.0 / (1 to Nm)) sum
 if N greater 1000000
   Ga = 0.5772156649015329
@@ -29,5 +29,5 @@ if N greater 1000000
 end
 Rn = 2 * Hn + 3 / (N + 1) - 3
 Rn = Rn * (N + 1) / N
-Answer = (Rn - Bn) 8 round
+Answer = (Rn - Bn) round 8
 Answer print

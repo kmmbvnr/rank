@@ -38,7 +38,7 @@ end
 Cs = concat (array 0) (H scan +)
 Cs = Cs copy
 X = L // Q
-A = (Cs (H X upperindex)) mod 2 ** 32
+A = (Cs (H upperindex X)) mod 2 ** 32
 rem Split q at 2^16 to keep the
 rem products below 2^63.
 Q1 = Q mod 65536

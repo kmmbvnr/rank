@@ -19,9 +19,9 @@ rem the queen falling out of reach is
 rem subtracted. Mirror symmetry halves
 rem the first row. D = 0 gives N^N.
 Of = 16
-Fu = (1 N shl) - 1
+Fu = (1 shl N) - 1
 Pw = 2 ** (0 till N)
-Hf = (1 ((N + 1) // 2) shl) - 1
+Hf = (1 shl ((N + 1) // 2)) - 1
 Answer = N ** N
 for D in 1 till N
   Mk = 16 ** D
@@ -33,9 +33,9 @@ for D in 1 till N
   Rr = array 0
   for Rw in 0 till N
     R1 = Rr // (2 ** Of)
-    Bl = V Lm bor
-    Bl = Bl R1 bor
-    Fr = Fu - (Bl Fu band)
+    Bl = V bor Lm
+    Bl = Bl bor R1
+    Fr = Fu - (Bl band Fu)
     if Rw equal 0
       Fr = Fr * 0 + Hf
     end

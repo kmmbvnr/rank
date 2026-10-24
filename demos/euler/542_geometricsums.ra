@@ -19,7 +19,7 @@ rem beaten for good past a bound by any
 rem steeper one, so M(k) only changes
 rem at multiples of live a^p; sum the
 rem signs over the constant blocks.
-fun U Pp dl
+fun U dl Pp
   E = Pp + 1
   return U ** E - (U - 1) ** E
 end
@@ -39,7 +39,7 @@ Nn = array shape 0 fill 0
 Dd = Nn
 Cb = 0
 for Rc in 1 to 100000
-  Ok = ((Ur Pv dl) greater Cb) indices
+  Ok = ((Ur dl Pv) greater Cb) indices
   if (Ok len) equal 0
     break
   end
@@ -48,12 +48,12 @@ for Rc in 1 to 100000
   Lo = Hi * 0 + 2
   for Bi in 1 to 40
     Md = (Lo + Hi) // 2
-    G = (Md Pq dl) greater Cb
+    G = (Md dl Pq) greater Cb
     Hi = G choose Md Hi
     Lo = G choose Lo (Md + 1)
   end
   Nc = Lo ** Pq
-  Dc = Lo Pq dl
+  Dc = Lo dl Pq
   Nm = Nc min
   Bd = (Dc ((Nc equal Nm) indices)) max
   Nn = concat Nn (array Nm)
@@ -69,13 +69,13 @@ B = (Dd reshape K 1) * Nn
 Mk = A greater B
 Dn = Mk choose (A - B) 1
 Rb = Mk choose ((A * Nn) // Dn) N
-Rl = (Rb reduce min axis 1) N min
+Rl = (Rb reduce min axis 1) min N
 rem Events: live multiples of each n.
 Ct = Rl // Nn
 Cs = Ct scan +
 Tt = Cs last
 Po = (0 till Tt) copy
-Ix = Cs Po upperindex
+Ix = Cs upperindex Po
 Ev = (Nn Ix) * (Po - (Cs - Ct) Ix + 1)
 St = ((concat (array 4) Ev) unique) sort
 Ns = St len

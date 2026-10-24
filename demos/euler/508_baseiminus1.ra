@@ -35,23 +35,23 @@ fun Mt fold
   Ys = Y Od
   Zs = Z Od
   Ws = W Od
-  Ne = Xs not equal (Xs -1 shift)
-  Ny = Ys not equal (Ys -1 shift)
-  Nz = Zs not equal (Zs -1 shift)
-  Nw = Ws not equal (Ws -1 shift)
+  Ne = Xs not equal (Xs shift -1)
+  Ny = Ys not equal (Ys shift -1)
+  Nz = Zs not equal (Zs shift -1)
+  Nw = Ws not equal (Ws shift -1)
   Ne = Ne or Ny or Nz or Nw
   Nl = Ne len
   Ne (Nl - 1) = true
   Ei = Ne indices
   Cs = (C Od) scan +
   Gs = Cs Ei
-  Gc = (Gs - (Gs 1 shift)) mod Md
+  Gc = (Gs - (Gs shift 1)) mod Md
   Rx = Xs Ei
   Ry = Ys Ei
   Rz = Zs Ei
   return stack Rx Ry Rz (Ws Ei) Gc
 end
-fun Lo Hi evens
+fun Lo evens Hi
   return Hi // 2 - (Lo - 1) // 2
 end
 Answer = 0
@@ -78,9 +78,9 @@ for Nn greater 0
   B0 = B0 Bg
   B1 = B1 Bg
   C = C Bg
-  Ea = (A0 A1 evens) mod Md
+  Ea = (A0 evens A1) mod Md
   Oa = ((A1 - A0 + 1) mod Md) - Ea
-  Eb = (B0 B1 evens) mod Md
+  Eb = (B0 evens B1) mod Md
   Ob = ((B1 - B0 + 1) mod Md) - Eb
   Od = (Ea * Ob + Oa * Eb) mod Md
   Answer += (C * Od mod Md) sum
@@ -93,9 +93,9 @@ for Nn greater 0
   V0 = Tm 2
   V1 = Tm 3
   Ct = Tm 4
-  Eu = U0 U1 evens
+  Eu = U0 evens U1
   Ou = U1 - U0 + 1 - Eu
-  Ev = V0 V1 evens
+  Ev = V0 evens V1
   Ov = V1 - V0 + 1 - Ev
   Oo = (Ou mod Md) * (Ov mod Md) mod Md
   Answer += (Ct * Oo mod Md) sum

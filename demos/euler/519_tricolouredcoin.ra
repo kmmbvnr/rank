@@ -54,7 +54,7 @@ rem so the coefficients before block
 rem s add (t reversed) Kt (0 till s).
 I = (0 till Np * B) copy
 Ix = I // B + I mod B + 1
-Ix = Ix (W - 1) min
+Ix = Ix min (W - 1)
 Kt = (Q Ix) reshape Np B
 rem Halves below 2^15 keep each sum
 rem of products below 2^53.
@@ -87,8 +87,8 @@ for A in 0 till Nb
     Tm = stack Lo Hi
     Ka = (Kl (0 till S)) copy
     Kb = (Kh (0 till S)) copy
-    Ca = Tm Ka matmul
-    Cb = Tm Kb matmul
+    Ca = Tm matmul Ka
+    Cb = Tm matmul Kb
     Md = (Ca 1 + Cb 0) mod M
     Hh = (Cb 1) mod M
     Cs = Ca 0 + Md * 32768
@@ -96,7 +96,7 @@ for A in 0 till Nb
     V = (V - Cs) mod M
   end
   Vm = stack (V mod 32768) (V // 32768)
-  C = Vm Zt matmul
+  C = Vm matmul Zt
   Ct = C 0 + ((C 1) mod M) * 32768
   Tb = Ct mod M
   T = (concat T Tb) copy

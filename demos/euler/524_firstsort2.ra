@@ -32,12 +32,12 @@ fun Sn Uf Pf Bf fz
   if Pf equal 0
     return Bf equal 0
   end
-  R = Vs ((Pf Vs bit) indices)
+  R = Vs ((Pf bit Vs) indices)
   L = R len
   Tp = R (L - 1)
-  Rc = (1 Tp shl) greater Uf
-  Mk = (1 R shl) - 1
-  Sq = (Uf Mk band) popcount
+  Rc = (1 shl Tp) greater Uf
+  Mk = (1 shl R) - 1
+  Sq = (Uf band Mk) popcount
   Sq += (0 till L)
   Lc = L
   if Rc
@@ -46,27 +46,27 @@ fun Sn Uf Pf Bf fz
   if Lc equal 0
     return Bf equal 0
   end
-  Hb = 1 (Sq (Lc - 1) + 1) shl
+  Hb = 1 shl (Sq (Lc - 1) + 1)
   if Bf at least Hb
     return false
   end
-  Ky = ((Uf 21 shl) + Pf) 21 shl
+  Ky = ((Uf shl 21) + Pf) shl 21
   Ky += Bf
   if Ky in Sn
     return false
   end
   for Q in Lc - 1 to 0 by -1
     Sv = Sq Q
-    if Bf Sv bit
-      P2 = Pf - (1 (R Q) shl)
-      B2 = Bf - (1 Sv shl)
+    if Bf bit Sv
+      P2 = Pf - (1 shl (R Q))
+      B2 = Bf - (1 shl Sv)
       if Sn Uf P2 B2 fz
         return true
       end
     end
   end
   if Rc
-    P2 = Pf - (1 Tp shl)
+    P2 = Pf - (1 shl Tp)
     if Sn Uf P2 Bf fz
       return true
     end
@@ -75,23 +75,23 @@ fun Sn Uf Pf Bf fz
   return false
 end
 Seen = new set
-Fu = (1 N shl) - 1
+Fu = (1 shl N) - 1
 U = 0
 Bm = Kd
 P = array shape N fill 0
 for I in 0 till N
   for V in 0 till N
-    if U V bit
+    if U bit V
       continue
     end
-    Bv = 1 V shl
-    A = (U (Bv - 1) band) popcount
+    Bv = 1 shl V
+    A = (U band (Bv - 1)) popcount
     Nb = Bm
     if Bv less U
-      if not (Bm A bit)
+      if not (Bm bit A)
         continue
       end
-      Nb = Bm - (1 A shl)
+      Nb = Bm - (1 shl A)
     end
     Nu = U + Bv
     Pl = Fu - Nu

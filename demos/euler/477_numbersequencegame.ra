@@ -28,7 +28,7 @@ rem First repeat: equal neighbours in
 rem a stable sort. Prefix Pp, cycle Cl.
 Od = Sq argsort
 Vs = Sq Od
-Nx = Vs -1 shift with -1
+Nx = Vs shift -1 with -1
 Eq = (Vs equal Nx) indices
 Js = Od (Eq + 1)
 Jm = Js min

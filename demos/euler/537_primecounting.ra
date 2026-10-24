@@ -50,7 +50,7 @@ for S in 0 till Lg
   Tf S = Wf Jh M powmod
   Ti S = Wi Jh M powmod
 end
-fun X Tw ntt
+fun X ntt Tw
   Y = X Br
   for S in 0 till Lg
     Ei = Ie S
@@ -66,14 +66,14 @@ Mm = M - 2
 Il = L Mm M powmod
 Z = array shape L fill 0
 rem Product of P and Q mod x^(N + 1).
-fun P Q pmul
+fun P pmul Q
   Fp = Z copy
   Fp (0 to N) = P
   Fq = Z copy
   Fq (0 to N) = Q
-  Fp = Fp Tf ntt
-  Fq = Fq Tf ntt
-  R = (Fp * Fq mod M) Ti ntt
+  Fp = Fp ntt Tf
+  Fq = Fq ntt Tf
+  R = (Fp * Fq mod M) ntt Ti
   return (R (0 to N)) * Il mod M
 end
 R = array shape (N + 1) fill 0
@@ -82,11 +82,11 @@ Bs = A
 E = K
 for E greater 0
   if E mod 2 equal 1
-    R = R Bs pmul
+    R = R pmul Bs
   end
   E //= 2
   if E greater 0
-    Bs = Bs Bs pmul
+    Bs = Bs pmul Bs
   end
 end
 Answer = R N

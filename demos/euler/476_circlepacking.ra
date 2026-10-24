@@ -39,5 +39,5 @@ for A in 1 to N // 2
   Cnt += Nb * A
 end
 Pi = 4 * (1.0 atan)
-Answer = (Tot * Pi / Cnt) 5 round
+Answer = (Tot * Pi / Cnt) round 5
 Answer print

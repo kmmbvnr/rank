@@ -27,14 +27,14 @@ for I in 0 to Depth
     Pc I J = Up (J - 1) + Up J
   end
 end
-fun Cs R subtree
+fun Cs subtree R
   W = array shape (R + 1) fill 0
   W 0 = 1
   for Cc in Cs
     Wn = W
-    for J in 1 to (Cc R min)
+    for J in 1 to (Cc min R)
       Bj = Pc (0 to R) J
-      Wn += (W J shift) * Bj
+      Wn += (W shift J) * Bj
     end
     W = Wn
   end
@@ -60,7 +60,7 @@ for Wi in 0 till 5
     for L in 0 till Ch
       if C L greater 0
         C L -= 1
-        P += C (R - 1) subtree
+        P += C subtree (R - 1)
         C L += 1
       end
     end
@@ -82,7 +82,7 @@ for Q greater 0
   for L in 0 till 26
     if Go and C L greater 0
       C L -= 1
-      Tl = C (R - 1) subtree
+      Tl = C subtree (R - 1)
       if Q less Tl
         Answer += (L + 97) character
         R -= 1

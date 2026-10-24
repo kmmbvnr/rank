@@ -32,7 +32,7 @@ fun Cr Cb X rr
     Lo = Hi
     Hi *= 2
   end
-  Hi = Hi X min
+  Hi = Hi min X
   for Hi - Lo greater 1
     Mi = (Lo + Hi) // 2
     if Mi + (Cr Cb Mi rr) at most X

@@ -102,5 +102,5 @@ for Q in 2 to N
 end
 Full = Nm - 1
 Ws = W ((Full * N) * N + Ib)
-Answer = (D (Full * N)) 8 round
+Answer = (D (Full * N)) round 8
 Answer print

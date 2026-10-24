@@ -30,7 +30,7 @@ Ns = (3 to Mx) copy
 K = Ns len
 Is = 1 / ((Pi / Ns) sin ** 2)
 F = ((Is reshape K 1) - T2) ** 0.5
-L = (F Wt matmul) * Hs / 3
+L = (F matmul Wt) * Hs / 3
 Ix = ((L greater Lt) indices) first
-Answer = ((Ns Ix) * (L Ix)) 2 round
+Answer = ((Ns Ix) * (L Ix)) round 2
 Answer print

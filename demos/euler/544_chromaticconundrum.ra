@@ -88,7 +88,7 @@ for Rw in 0 till R
       Cd += Lb * Pw K
     end
     Uc = (Cd unique) sort
-    Tx = Uc Cd lowerindex
+    Tx = Uc lowerindex Cd
     Nv = array shape (Uc len) Jw fill 0
     Rv = V Cs
     Jo = (Co less C) indices

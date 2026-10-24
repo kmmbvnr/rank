@@ -46,10 +46,10 @@ Rv = (Z + I + 1) reverse
 Rv 0 = Z 0 + 1
 D = 1
 for D at most M
-  Fc = Fc * (Fc D shift with 1) mod P
-  Pf = Pf * (Pf D shift with 1) mod P
-  Sf = Sf * (Sf D shift with 1) mod P
-  Rv = Rv * (Rv D shift with 1) mod P
+  Fc = Fc * (Fc shift D with 1) mod P
+  Pf = Pf * (Pf shift D with 1) mod P
+  Sf = Sf * (Sf shift D with 1) mod P
+  Rv = Rv * (Rv shift D with 1) mod P
   D *= 2
 end
 Sf = Sf reverse

@@ -65,11 +65,11 @@ for S in Ss
     Od = Cr argsort
     Cr = Cr Od
     Cs = (Cc Od) scan +
-    Nx = Cr -1 shift with -1
+    Nx = Cr shift -1 with -1
     Ei = (Cr not equal Nx) indices
     Cr = Cr Ei
     Gs = Cs Ei
-    Cc = Gs - (Gs 1 shift)
+    Cc = Gs - (Gs shift 1)
     B1 = concat B1 (2 * Cr)
     C1 = concat C1 Cc
     Ob = (Cr mod 6 equal 4) indices

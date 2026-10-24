@@ -19,7 +19,7 @@ rem digit 0 to (1 - (-1)^c) / 2.
 M = 1000000123
 Bs = array 2 2 2 2 2 3 3 3 3 3
 Nc = 7776
-Dg = ((0 till Nc) copy) Bs digits
+Dg = ((0 till Nc) copy) digits Bs
 Ty = array 0 0 0 0 0 3 3 3 3 3
 Ix = (Ty reshape 10 1) + Dg
 Wt = array 1 -1 0 0 1 -1

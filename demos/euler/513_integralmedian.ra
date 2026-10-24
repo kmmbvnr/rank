@@ -38,7 +38,7 @@ fun Sl It Dn Lo Hi Bd trap
     Sm = ((U - L) abs) at most 8
     rem Short ranges: add directly.
     Si = Sm indices
-    Mn = (L Si) (U Si) min
+    Mn = (L Si) min (U Si)
     Wd = ((U Si) - (L Si)) abs
     Aj = (Q Si) choose 0 1
     Ui = U Si
@@ -146,7 +146,7 @@ fun V fval
     U0 = 1 + (I + 1) mod 2
     V0 = 1 + (J + 1) mod 2
     Uv = (U0 to Um by 2) copy
-    Vt = (V // 2) (Uv - 1) min
+    Vt = (V // 2) min (Uv - 1)
     Cv = ((Vt - V0) // 2 + 1) max 0
     Of = Cv scan + with 0
     Tl = Of last

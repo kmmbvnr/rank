@@ -37,7 +37,7 @@ for P in Ps
       Sl = (T + M * C at most N) indices
       Ct = concat Ct (T Sl + M * C)
       Ls = Lk Sl
-      Ln = Ls * C // (Ls C gcd)
+      Ln = Ls * C // (Ls gcd C)
       Cl = concat Cl Ln
       Cw = concat Cw (Wt Sl // Cm)
     end
@@ -46,10 +46,10 @@ for P in Ps
     Od = Ky argsort
     Ky = Ky Od
     Cs = (Cw Od) scan +
-    Nk = Ky -1 shift with -1
+    Nk = Ky shift -1 with -1
     Ei = (Ky not equal Nk) indices
     Gs = Cs Ei
-    Wt = Gs - (Gs 1 shift)
+    Wt = Gs - (Gs shift 1)
     T = Ky Ei // Kb
     Lk = Ky Ei mod Kb
   end
@@ -63,10 +63,10 @@ for P in Ps
   Od = Ky argsort
   Ky = Ky Od
   Cs = (Wt Od) scan +
-  Nk = Ky -1 shift with -1
+  Nk = Ky shift -1 with -1
   Ei = (Ky not equal Nk) indices
   Gs = Cs Ei
-  Wt = Gs - (Gs 1 shift)
+  Wt = Gs - (Gs shift 1)
   T = Ky Ei // Kb
   Lk = Ky Ei mod Kb
 end

@@ -19,7 +19,7 @@ rem by |v_i|; try its floor and the
 rem next integer. All lattices of a
 rem chunk at once.
 Md = 10000000
-fun A B mm3
+fun A mm3 B
   rem Product of two 3 x 3 matrices,
   rem each a row of 9.
   Ar = A reshape 3 3 1
@@ -32,13 +32,13 @@ rem lattice ahead.
 A = array 0 1 0 0 0 1 1 1 1
 M = array 1 0 0 0 1 0 0 0 1
 for I in 1 to 12
-  M = M A mm3
+  M = M mm3 A
 end
 Ch = 2 ** Lc
 S0 = array 0 1 1
 Answer = 0
 for C0 in 0 till N by Ch
-  Nc = Ch (N - C0) min
+  Nc = Ch min (N - C0)
   rem States of the chunk by doubling:
   rem append M^(2^k) times the block.
   Sx = array (S0 0)
@@ -55,7 +55,7 @@ for C0 in 0 till N by Ch
     Sx = concat Sx Nx
     Sy = concat Sy Ny
     Sz = concat Sz Nz
-    Mp = Mp Mp mm3
+    Mp = Mp mm3 Mp
   end
   rem Mp = M^(2^Lc) starts the next.
   M3 = Mp reshape 3 3

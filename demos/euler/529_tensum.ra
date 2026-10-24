@@ -25,44 +25,44 @@ rem the recurrence by Berlekamp-Massey
 rem and raise x^N mod its polynomial.
 P = 1000000007
 Bw = Sd + 1
-Fm = (1 Bw shl) - 1
+Fm = (1 shl Bw) - 1
 rem Next keys H * 2^Bw + S for digit X,
 rem -1 where the tail sum passes Sd.
-fun Ks X nxt
-  H = Ks Bw shr
-  Sm = Ks Fm band
+fun Ks nxt X
+  H = Ks shr Bw
+  Sm = Ks band Fm
   Dm = Sm * 0
   for B in 1 to Sd
-    Dm = (Sm B bit) choose B Dm
+    Dm = (Sm bit B) choose B Dm
   end
   Dp = Dm + X
-  Dc = Dp Sd min
-  Bd1 = 1 Dc shl
-  S2 = Sm Bd1 bor
+  Dc = Dp min Sd
+  Bd1 = 1 shl Dc
+  S2 = Sm bor Bd1
   Sc = Sd - Dc
-  Cl = H Sc bit
-  Hn = (H Dc shl) Fm band
+  Cl = H bit Sc
+  Hn = (H shl Dc) band Fm
   for B in 0 to Sd
     Sb = (Dc - B) max 0
-    Sh = 1 Sb shl
-    Up = (S2 B bit) and (B at most Dc)
+    Sh = 1 shl Sb
+    Up = (S2 bit B) and (B at most Dc)
     Ad = Up choose Sh 0
-    Hn = Hn Ad bor
+    Hn = Hn bor Ad
   end
-  Kc = (Hn Bw shl) + 1
-  Ko = (H Bw shl) + S2
+  Kc = (Hn shl Bw) + 1
+  Ko = (H shl Bw) + S2
   Kn = Cl choose Kc Ko
   Ok = Dp at most Sd
   return Ok choose Kn (0 - 1)
 end
 rem Reachable states, breadth first.
-K0 = (1 Bw shl) + 1
+K0 = (1 shl Bw) + 1
 Al = array K0
 Fr = array K0
 for Fr len greater 0
-  Nx = Fr 0 nxt
+  Nx = Fr nxt 0
   for X in 1 to 9
-    Nx = concat Nx (Fr X nxt)
+    Nx = concat Nx (Fr nxt X)
   end
   Nx = Nx ((Nx at least 0) indices)
   Nx = Nx unique
@@ -77,12 +77,12 @@ Ny = Ns + 1
 rem Transitions, state Ns the sink.
 Tf = array shape (Ny * 10) fill Ns
 for X in 0 to 9
-  Kx = Ks X nxt
-  Ix = Ks Kx lowerindex
+  Kx = Ks nxt X
+  Ix = Ks lowerindex Kx
   Ix = (Kx at least 0) choose Ix Ns
   Tf (X till Ns * 10 by 10) = Ix
 end
-Ac = (Ks Fm band) equal 1
+Ac = (Ks band Fm) equal 1
 Ac = concat Ac (array false)
 rem Moore refinement: split classes by
 rem the classes of the ten successors.
@@ -94,7 +94,7 @@ for Rd in 1 to Ny
     Sx = Cl (Tf (X till Ny * 10 by 10))
     V = Kq * Ny + Sx
     Uq = (V unique) sort
-    Kq = Uq V lowerindex
+    Kq = Uq lowerindex V
   end
   Nn = (Kq max) + 1
   if Nn equal Nc
@@ -118,7 +118,7 @@ Src = Sr (Kp indices)
 Dst = Mt (Kp indices)
 Am = (Ac Rp) integer
 rem T(L) for L < Nt by stepping counts.
-C0 = Cl (Ks K0 lowerindex)
+C0 = Cl (Ks lowerindex K0)
 Vv = array shape Nc fill 0
 Ds = Mt (C0 * 10 + (1 to 9))
 Vv Ds += 1 .accumulate
@@ -217,13 +217,13 @@ for J in Nb - 1 to 0 by -1
   Hl = Hg mod 32768
   Hh = Hg // 32768
   Hm = (stack Hl Hh) * 1.0
-  Ca = (Hm Rl matmul) integer
-  Cb = (Hm Rh matmul) integer
+  Ca = (Hm matmul Rl) integer
+  Cb = (Hm matmul Rh) integer
   Md = (Ca 1 + Cb 0) mod P
   Rd = Ca 0 + Md * 32768
   Rd = Rd + ((Cb 1) mod P) * 1073741824
   Xc = (Cv (0 till R) + Rd) mod P
-  if N J bit
+  if N bit J
     Tp = Xc (R - 1)
     Vs = Xc (0 till R - 1)
     Vs = concat (array 0) Vs

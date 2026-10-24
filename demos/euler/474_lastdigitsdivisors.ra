@@ -46,7 +46,7 @@ end
 Answer = 0
 if Al at most E 0 and Be at most E5
   Rs = (0 till M) copy
-  Cp = (Rs 10 gcd) equal 1
+  Cp = (Rs gcd 10) equal 1
   Us = Rs (Cp indices)
   Nu = Us len
   Ps = Rs * 0

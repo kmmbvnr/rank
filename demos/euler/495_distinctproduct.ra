@@ -28,10 +28,10 @@ for (Pk at most N) any
   Pk = Lo choose (Pk * Pr) Pk
 end
 Es = E sort
-Nx = Es -1 shift with -1
+Nx = Es shift -1 with -1
 Ei = (Es not equal Nx) indices
 Ue = Es Ei
-Fe = Ei - (Ei 1 shift with -1)
+Fe = Ei - (Ei shift 1 with -1)
 Em = Ue last
 rem Partitions of K as multiplicity
 rem rows, parts K down to 1.

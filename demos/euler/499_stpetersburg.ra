@@ -32,9 +32,9 @@ fun Ro J X rowpow
   Jr = J
   for (Jr max) greater 0
     Bm = (Jr mod 2) * 1.0
-    Vx = V Xp matmul
+    Vx = V matmul Xp
     V = V + (Bm reshape Nr 1) * (Vx - V)
-    Xp = Xp Xp matmul
+    Xp = Xp matmul Xp
     Jr = Jr // 2
   end
   return V
@@ -75,7 +75,7 @@ Pl = Lv choose Pq 0.0
 Wb = Wb * (Pl reshape Nq 1)
 Cm = (Wb reshape D H D) sum axis 1
 I1 = (Ey * 0 + 1.0) diag
-U0 = (I1 - Cm) Q solve
+U0 = (I1 - Cm) solve Q
 Answer = 0.0
 C0 = B - D
 if C0 greater 0
@@ -85,5 +85,5 @@ if C0 greater 0
   Ru = (Rw 0 * U0) sum
   Answer = 1.0 - Ru
 end
-Answer = Answer 7 round
+Answer = Answer round 7
 Answer print

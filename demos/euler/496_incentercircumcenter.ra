@@ -43,7 +43,7 @@ X = Xd Ow
 Dw = Ds Ow
 W = (Mu Dw) * Dw * Dw
 A = R + 1
-U = (2 * R - 1) (X // R) min
+U = (2 * R - 1) min (X // R)
 Answer = 0
 for A len greater 0
   Ac = (A at most U) indices
@@ -53,7 +53,7 @@ for A len greater 0
   A = A Ac
   U = U Ac
   M = X // (R * A)
-  B = U (X // (R * M)) min
+  B = U min (X // (R * M))
   Sb = (B * (B + 1) - A * (A - 1)) // 2
   Tm = M * (M + 1) // 2
   Answer += (W * R * Tm * Sb) sum

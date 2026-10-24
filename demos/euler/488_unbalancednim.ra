@@ -28,7 +28,7 @@ end
 Ks = (1 to 62) copy
 P = 2 ** Ks - 1
 Lm = N - 1 - P
-M = P Lm min
+M = P min Lm
 Ok = (M at least 1) indices
 P = P Ok
 M = M Ok

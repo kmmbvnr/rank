@@ -69,11 +69,11 @@ Kb = N // (U0 + 1)
 Us = concat (1 to U0) (N // (1 to Kb))
 Us = Us copy
 U1 = Us + 1
-Fa = Bg (Us (K + 1) min)
-Ga = Fs ((N // Us) L min)
+Fa = Bg (Us min (K + 1))
+Ga = Fs ((N // Us) min L)
 Fa = (Us at most K) choose Fa Ga
-Fb = Bg (U1 (K + 1) min)
-Gb = Fs ((N // U1) L min)
+Fb = Bg (U1 min (K + 1))
+Gb = Fs ((N // U1) min L)
 Fb = (U1 at most K) choose Fb Gb
 Cm = 4 * (Fa - Fb)
 rem c > 0, so a positive exponent

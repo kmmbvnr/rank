@@ -19,7 +19,7 @@ rem odd d of mu(d) R(N // d^2). Small
 rem X read a table of R; a large X sums
 rem its rows, the first 2K rows full
 rem (K^2 pairs), the rest by isqrt.
-T = (N 10000000 min) max 5
+T = (N min 10000000) max 5
 Dm = (N // 5) isqrt
 rem mu by slices over small primes; one
 rem prime above sqrt Dm may remain.
@@ -37,12 +37,12 @@ rem pair at m^2 + n^2.
 Mt = T isqrt
 Ms = (2 to Mt) copy
 Nx = ((T - Ms * Ms) max 0) isqrt
-Nx = (Ms - 1) Nx min
+Nx = (Ms - 1) min Nx
 Cm = (Nx + 1 - Ms mod 2) // 2
 Cs = Cm scan +
 Np = Cs last
 Po = (0 till Np) copy
-Ix = Cs Po upperindex
+Ix = Cs upperindex Po
 Mi = Ms Ix
 Ki = Po - (Cs - Cm) Ix
 Ni = 2 * Ki + 1 + Mi mod 2
@@ -65,7 +65,7 @@ for D in Dv Bg
   Rx = K * K
   Mx = (Xd - 1) isqrt
   for M1 in 2 * K + 1 to Mx by 2000000
-    M2 = (M1 + 1999999) Mx min
+    M2 = (M1 + 1999999) min Mx
     M = (M1 to M2) copy
     V = Xd - M * M
     Sq = ((V * 1.0) ** 0.5) integer
@@ -74,7 +74,7 @@ for D in Dv Bg
     Sp = Sq + 1
     Un = (Sp * Sp at most V) integer
     Sq = Sq + Un
-    Nm = (M - 1) Sq min
+    Nm = (M - 1) min Sq
     Rx += ((Nm + 1 - M mod 2) // 2) sum
   end
   Answer += (Mu D) * Rx

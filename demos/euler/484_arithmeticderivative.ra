@@ -46,7 +46,7 @@ for Si len greater 0
     Cb = Cs St
     Cm = Cb + Ch
     En = (Cs at most Cm) count - 1
-    En = (En max (St + 1)) Nq min
+    En = (En max (St + 1)) min Nq
     Tl = Cs En - Cb
     if Tl greater 0
       Of = Cs (St till En) - Cb

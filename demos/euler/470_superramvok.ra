@@ -41,21 +41,21 @@ Ct = array shape (N1 * N1 * N1) fill 0
 St = array shape (N1 * N1 * N1) fill 0.0
 Hv = Ss * 0.0
 for T in 1 to N
-  Jf = (Hv floor) N min
+  Jf = (Hv floor) min N
   Ix = Bx + Jf
   Hn = (Hv * (Pc Ix) + Sa - Pv Ix) / K
   Dl = Hn - Hv
   Hv = Hn
-  Ky = G * N1 + ((Dl floor) N min)
+  Ky = G * N1 + ((Dl floor) min N)
   Od = Ky argsort
   Ks = Ky Od
   Ds = Dl Od
-  Nk = Ks -1 shift with -1
+  Nk = Ks shift -1 with -1
   Ei = (Ks not equal Nk) indices
   Cu = (Ds scan +) Ei
   Ku = Ks Ei
-  Ct Ku += Ei - (Ei 1 shift with -1)
-  St Ku += Cu - (Cu 1 shift with 0.0)
+  Ct Ku += Ei - (Ei shift 1 with -1)
+  St Ku += Cu - (Cu shift 1 with 0.0)
 end
 C3 = Ct reshape N1 N1 N1
 S3 = St reshape N1 N1 N1
@@ -76,9 +76,9 @@ for D in 4 to N
     Sx = (Sb reverse scan +) reverse
     Av = Sx - Cs * Cx
     rem Sum of max A is k C(d+1, k+1).
-    Bn = (D + 1) (Kk + 1) binomial
+    Bn = (D + 1) binomial (Kk + 1)
     Av 0 = Kk * Bn * 1.0
-    Ad (Kk - 1) = Av / (D Kk binomial)
+    Ad (Kk - 1) = Av / (D binomial Kk)
   end
   Ks = (1 to D) * 1.0
   Lw = Ks (1 till D) / D
@@ -87,7 +87,7 @@ for D in 4 to N
   Mt = (Ks * 0 + 1) diag
   Mt -= Lw diag -1
   Mt -= Uw diag 1
-  X = Mt Ad solve
+  X = Mt solve Ad
   Sd = X (D - 1)
   Tot += Sd sum
 end

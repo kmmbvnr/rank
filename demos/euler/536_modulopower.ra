@@ -22,7 +22,7 @@ rem Branch on the next prime while too
 rem many u remain; check u by tables of
 rem lambda(u) = lcm(p - 1) up to U0, or
 rem by 2^(m+3) = 1 mod u then exactly.
-Uz = U0 N min
+Uz = U0 min N
 rem Tables: least prime factor, then
 rem peel it off to get squarefree, the
 rem largest prime and lambda.
@@ -47,7 +47,7 @@ for It in 1 to 30
   Mp Ix = Pq
   La = Lm Ix
   P1 = Pq - 1
-  Gc = La P1 gcd
+  Gc = La gcd P1
   Lm Ix = La // Gc * P1
   Kp = (Rn greater 1) indices
   Ix = Ix Kp
@@ -63,14 +63,14 @@ Cp 0 = 1
 for I in 1 to Npr
   Cm = Cp (I - 1) * Pr (I - 1)
   N1 = N + 1
-  Cp I = Cm N1 min
+  Cp I = Cm min N1
   if Cp I greater N
     break
   end
 end
 rem Inverse of A mod B (coprime, B > 1)
 rem by Euclid over arrays.
-fun A B inv
+fun A inv B
   R0 = B
   R1 = A mod B
   T0 = R0 * 0
@@ -125,22 +125,22 @@ for Q len greater 0
     Pc = Bf (Rw * D + C)
     Md = Pc - 1
     A = (Q // Pc) mod Md
-    G = A Md gcd
+    G = A gcd Md
     V = V and (3 mod G equal 0)
     M2 = Md // G
     Rh = (0 - 3 // G) mod M2
     A2 = (A // G) mod M2
-    Rp = Rh * (A2 M2 inv) mod M2
+    Rp = Rh * (A2 inv M2) mod M2
     rem Merge with u = Rp mod M2.
     Ck = (R mod M2) equal Rp
-    G2 = M M2 gcd
+    G2 = M gcd M2
     Dr = Rp - R
     Gd = Dr mod G2 equal 0
     M1 = M // G2
     Mg = M2 // G2
     Df = (Dr // G2) mod Mg
     Am = M1 mod Mg
-    Iv = Am Mg inv
+    Iv = Am inv Mg
     Tt = Df * Iv mod Mg
     Nm = M1 * M2
     Nr = R + M * Tt
@@ -162,7 +162,7 @@ for Q len greater 0
   rem Bound on u, and its candidates.
   Lq = N // Q
   Cb = Cp Bi
-  Lt = Lq Cb min
+  Lt = Lq min Cb
   F0 = (R equal 0) choose M R
   Cn = (Lt - F0) // M + 1
   Cn = (F0 greater Lt) choose 0 Cn
@@ -174,7 +174,7 @@ for Q len greater 0
   Tc = Cs last default 0
   if Tc greater 0
     Po = (0 till Tc) copy
-    Jx = Cs Po upperindex
+    Jx = Cs upperindex Po
     Tk = Po - (Cs - Ce) Jx
     Ni = Ei Jx
     U = (F0 Ni) + Tk * (M Ni)
@@ -193,7 +193,7 @@ for Q len greater 0
     Uf = U Fs
     Qf = Qn Fs
     Mf = Qf * Uf
-    Go = (Uf Qf gcd) equal 1
+    Go = (Uf gcd Qf) equal 1
     Ex = Mf + 3
     Pw = 2 Ex Uf powmod
     Go = Go and (Pw equal 1)
@@ -206,13 +206,13 @@ for Q len greater 0
   rem smallest with Q q <= N.
   Xi = ((En equal false) and V) indices
   Lx = Lq Xi
-  Kp = Pr Lx upperindex
+  Kp = Pr upperindex Lx
   Bx = Bi Xi
-  Kc = Kp Bx min
+  Kc = Kp min Bx
   Cs = Kc scan +
   Tc = Cs last default 0
   Po = (0 till Tc) copy
-  Jx = Cs Po upperindex
+  Jx = Cs upperindex Po
   Pj = Xi Jx
   Cj = Po - (Cs - Kc) Jx
   Nc = (Pr Cj) reshape Tc 1

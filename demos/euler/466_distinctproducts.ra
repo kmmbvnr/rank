@@ -21,7 +21,7 @@ rem merging equal lcms.
 Answer = 0
 for D in 1 to M
   Es = (D + 1 to M) copy
-  Qv = Es // (Es D gcd)
+  Qv = Es // (Es gcd D)
   Qv = Qv unique sort
   Qv = Qv ((Qv at most N) indices)
   rem Drop q with a smaller divisor.
@@ -32,7 +32,7 @@ for D in 1 to M
   Ls = array 1
   Cs = array 1
   for Q in Qs
-    Lc = Ls * Q // (Ls Q gcd)
+    Lc = Ls * Q // (Ls gcd Q)
     Ok = (Lc at most N) indices
     Ky = concat Ls (Lc Ok)
     Cf = concat Cs (0 - Cs Ok)
@@ -40,10 +40,10 @@ for D in 1 to M
     Ky = Ky Od
     Cf = Cf Od
     rem Sum the runs of equal lcm.
-    Nx = Ky -1 shift with -1
+    Nx = Ky shift -1 with -1
     Ei = (Ky not equal Nx) indices
     Gs = (Cf scan +) Ei
-    Gs = Gs - (Gs 1 shift)
+    Gs = Gs - (Gs shift 1)
     Nz = (Gs not equal 0) indices
     Ls = (Ky Ei) Nz
     Cs = Gs Nz
