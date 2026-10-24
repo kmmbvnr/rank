@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "556_squarefreegaussian"
+  N = 10
+  run
+  Answer equal 7
+  N = 100
+  run
+  Answer equal 54
+  N = 10000
+  run
+  Answer equal 5218
+  N = 100000000
+  run
+  Answer equal 52126906
+end

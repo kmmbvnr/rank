@@ -1,0 +1,79 @@
+rem Squarefree Gaussian Integers
+rem https://projecteuler.net/problem=556
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000000
+
+rem Mobius over Z[i]: 4 f(n) = sum over
+rem m <= sqrt n of w(m) G(n // m^2) with
+rem G(x) the lattice points in the disc
+rem except 0, w(m) the sum of mu(d) over
+rem d of norm m. w is multiplicative:
+rem 2: -1, 0; p = 1 mod 4: -2, 1, 0;
+rem p = 3 mod 4: 0, -1, 0 (powers 1, 2,
+rem 3+); a cofactor prime q > sqrt m
+rem gives -2 or 0. Group m by n // m^2.
+Mx = N isqrt
+Sq = Mx isqrt
+W = array shape (Mx + 1) fill 1
+S = W
+Tb = array 0 -1 0 0 0 -2 1 0 0 0 -1 0
+for P in primes till (Sq + 4) array
+  Ix = (P to Mx by P) array
+  Q1 = Ix // P
+  E = 1 + ((Q1 mod P equal 0) integer)
+  E += (Q1 mod (P * P) equal 0) integer
+  Cl = 2
+  if P equal 2
+    Cl = 0
+  elif P mod 4 equal 1
+    Cl = 1
+  end
+  Fe = Tb (Cl * 4 + E)
+  W Ix = (W Ix) * Fe
+  S Ix = (S Ix) * (P ** E)
+end
+Ms = 0 to Mx array
+Cf = Ms // S
+Tc = array 0 -2 0 0
+Fc = Tc (Cf mod 4)
+Fc = (Cf equal 1) choose 1 Fc
+W = W * Fc
+W 0 = 0
+Pw = (W scan +) array
+rem Single m up to about (2 n)^(1/3);
+rem beyond it the quotients n // m^2
+rem are at most Kz, each a block of m.
+Cu = ((2.0 * N) ** 0.3333333) floor
+Cu = (Cu integer) min Mx
+Mi = 1 to Cu array
+Wi = W Mi
+Ki = N // (Mi * Mi)
+Kz = N // ((Cu + 1) * (Cu + 1))
+Kt = 1 to Kz array
+Hi = (N // Kt) isqrt
+Lo = (N // (Kt + 1)) isqrt
+Lo = Lo max Cu
+Wt = (Pw Hi) - (Pw Lo)
+Kv = concat Ki Kt
+Wv = concat Wi Wt
+Nz = (Wv not equal 0) indices
+Kv = Kv Nz
+Wv = Wv Nz
+Nk = Kv len
+Gv = Wv * 0
+for I in 0 till Nk
+  X = Kv I
+  R = X isqrt
+  H = (X // 2) isqrt
+  Ar = 1 to H array
+  Rt = (X - Ar * Ar) isqrt
+  Sm = Rt sum
+  Gv I = 4 * (R + 2 * Sm - H * H)
+end
+Answer = ((Wv * Gv) sum) // 4
+Answer print
