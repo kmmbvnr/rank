@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "568_reciprocalgames2"
+  run
+  Answer equal 4228020
+end
+
+test "statement and exact values"
+  use "568_reciprocalgames2"
+  N = 6
+  run
+  Answer equal 3828125
+  N = 100
+  run
+  Answer equal 4092119
+  N = 1000
+  run
+  Answer equal 6985917
+end

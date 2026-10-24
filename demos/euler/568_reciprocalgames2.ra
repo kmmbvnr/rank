@@ -1,0 +1,34 @@
+rem Reciprocal Games II
+rem https://projecteuler.net/problem=568
+
+use numbers
+use io
+use cli
+
+option N integer = 123456789
+
+rem D(n) = H(n) / 2^n, with H the
+rem harmonic number from its asymptotic
+rem series. The digits come from the
+rem fractional part of log10 H(n) -
+rem n log10 2, the second term kept as
+rem an exact integer to 30 places.
+Sc = 10 ** 30
+Lt = 301029995663981195213738894724
+Fn = (N * Lt) mod Sc
+Gm = 0.5772156649015329
+X = N * 1.0
+Ln = X log
+H = Ln + Gm + 1 / (2 * X)
+H -= 1 / (12 * X ** 2)
+H += 1 / (120 * X ** 4)
+H -= 1 / (252 * X ** 6)
+H += 1 / (240 * X ** 8)
+Lh = H log
+L10 = 10.0 log
+Fr = Lh / L10 - Fn / Sc
+Fl = Fr floor
+Fr = Fr - Fl
+Pw = 10.0 ** (Fr + 6)
+Answer = Pw floor integer
+Answer print
