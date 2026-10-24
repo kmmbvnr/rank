@@ -1,0 +1,50 @@
+rem Verifying Primes
+rem https://projecteuler.net/problem=574
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 3800
+
+rem For a prime p take the least prime q
+rem with q^2 > p and Pr, the product of
+rem the primes below q. Each of them
+rem divides A or B, so A = 0 or p mod r
+rem for each r. The CRT gives A mod Pr
+rem as a sum over subsets, taken in
+rem doubling steps. Sums need A in
+rem [p/2, p); differences the least A
+rem above p that p does not divide.
+Qs = primes till 100 array
+Ps = primes till N array
+Answer = 0
+for P in Ps
+  Qm = Qs * Qs
+  Q = Qs ((Qm greater P) indices 0)
+  Sm = Qs ((Qs less Q) indices)
+  Pr = 1
+  for R in Sm
+    Pr *= R
+  end
+  Mr = Pr // Sm
+  Iv = (Mr mod Sm) (Sm - 2) Sm powmod
+  Wr = (P mod Sm) * Mr * Iv
+  Ar = array 0
+  for W in Wr
+    Ar = concat Ar (Ar + W)
+  end
+  A0 = Ar mod Pr
+  Lo = (P + 1) // 2
+  Ks = ((Lo - A0 + Pr - 1) // Pr) max 0
+  As = A0 + Ks * Pr
+  Kd = ((P - A0) // Pr + 1) max 0
+  Ad = A0 + Kd * Pr
+  Dv = ((Ad mod P) equal 0) integer
+  Ad += Dv * Pr
+  Cn = (As less P) choose As Ad
+  Cn = Cn min Ad
+  Answer += Cn min
+end
+Answer print
