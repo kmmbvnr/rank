@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "589_poohsticks"
+  K = 5
+  run
+  Answer equal 7722.82
+end

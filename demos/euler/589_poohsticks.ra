@@ -1,0 +1,101 @@
+rem Poohsticks Marathon
+rem https://projecteuler.net/problem=589
+
+use numbers
+use sequences
+use io
+use cli
+
+option K integer = 100
+option D integer = 5
+
+rem For times n .. m let u = n + D,
+rem v = m + D, q = m - n + 1. The
+rem expected rest X(r), Y(r) of a race
+rem with gap r in the even and the lead
+rem phase obey a linear system (Xb, Yb
+rem the means over u .. v). Gaussian
+rem elimination without pivoting solves
+rem it (I minus a substochastic matrix);
+rem E follows from the opening times.
+Answer = 0.0
+for M in 2 to K
+  for Nn in 1 till M
+    U = Nn + D
+    V = M + D
+    Q = M - Nn + 1
+    Sz = 2 * V + 2
+    Wx = 2 * V
+    Wy = Wx + 1
+    Wd = Sz + 1
+    Aa = array shape Sz Wd fill 0.0
+    Iq = 1.0 / Q
+    for R in 1 to V
+      Ix = R - 1
+      Iy = V + R - 1
+      Aa Ix Ix = 1.0
+      Aa Iy Iy = 1.0
+      Hi = V min (R - 1)
+      Cs = 0.0
+      for T in U to Hi
+        Cj = V + R - T - 1
+        Aa Ix Cj -= Iq
+        Cs += T
+      end
+      InR = R at least U
+      InR = InR and (R at most V)
+      if InR
+        Aa Ix Wx -= Iq
+        Aa Iy Wy -= Iq
+        Cs += R
+      end
+      Lo = U max (R + 1)
+      for T in Lo to V
+        Cj = V + T - R - 1
+        Aa Ix Cj -= Iq
+        Cj = T - R - 1
+        Aa Iy Cj -= Iq
+        Cs += R
+      end
+      Aa Ix Sz = Cs * Iq
+      Aa Iy Sz = Cs * Iq
+    end
+    Aa Wx Wx = 1.0
+    Aa Wy Wy = 1.0
+    for R in U to V
+      Aa Wx (R - 1) = 0.0 - Iq
+      Aa Wy (V + R - 1) = 0.0 - Iq
+    end
+    for C in 0 till Sz
+      Pv = Aa C C
+      for R in (C + 1) till Sz
+        F = (Aa R C) / Pv
+        if F not equal 0.0
+          for J in C to Sz
+            Aa R J -= F * (Aa C J)
+          end
+        end
+      end
+    end
+    Xs = array shape Sz fill 0.0
+    for C in (Sz - 1) to 0 by -1
+      S = Aa C Sz
+      for J in (C + 1) till Sz
+        S = S - (Aa C J) * (Xs J)
+      end
+      Xs C = S / (Aa C C)
+    end
+    Xb = Xs Wx
+    Ep = 0.0
+    Tot = 0.0
+    for A in Nn to M
+      for B in (A + 1) to M
+        Ep += A + Xs (V + B - A - 1)
+      end
+      Tot += A + Xb
+    end
+    Answer += (2 * Ep + Tot) * Iq * Iq
+  end
+end
+Answer = Answer round 2
+Answer print
