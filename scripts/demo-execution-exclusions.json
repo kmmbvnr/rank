@@ -234,5 +234,6 @@
   "euler/589_poohsticks.ra": "To fix later: the default input takes about 2.4 min (4950 dense real linear systems of up to 212 unknowns solved by compiled Gaussian elimination loops); the small _test.ra fixture stays in the audits.",
   "euler/569_primemountain.ra": "To fix later: the default input takes about 65 s and 2.5 GB (an odd-only sieve to 1.9 x 10^8 and compiled hull and visibility scans for 2.5 x 10^6 peaks with limb-split exact slope tests); the small _test.ra fixture stays in the audits.",
   "euler/564_maximalpolygons.ra": "To fix later: the default input takes about 50 s (7 x 10^5 partitions, each a 50-step bisection over its sides in compiled real loops); the small _test.ra fixture stays in the audits.",
-  "euler/584_birthdayrevisited.ra": "To fix later: the default input takes about 80 s (120 start states, each a 365-day transfer DP over 120 states and 137 populations in compiled real loops, about 2 x 10^9 updates); the small _test.ra fixture stays in the audits."
+  "euler/584_birthdayrevisited.ra": "To fix later: the default input takes about 80 s (120 start states, each a 365-day transfer DP over 120 states and 137 populations in compiled real loops, about 2 x 10^9 updates); the small _test.ra fixture stays in the audits.",
+  "euler/583_heronenvelopes.ra": "To fix later: the default input takes about 32 s (Pythagorean triples to 10^7 generated in two compiled passes, two sorts of about 2 x 10^7 packed keys, then a compiled match with a binary search per candidate); the small _test.ra fixture stays in the audits."
 }

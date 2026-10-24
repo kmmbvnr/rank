@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "583_heronenvelopes"
+  P = 10000
+  run
+  Answer equal 884680
+end

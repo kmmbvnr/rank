@@ -1,0 +1,143 @@
+rem Heron Envelopes
+rem https://projecteuler.net/problem=583
+
+use numbers
+use sequences
+use io
+use cli
+
+option P integer = 10000000
+
+rem Half width a, rectangle height h,
+rem flap height t and leg s need
+rem a^2 + t^2 = s^2, (2a)^2 + h^2 = d^2
+rem and a^2 + (h+t)^2 = q^2, t < h; the
+rem perimeter is 2 (a + h + s). List
+rem flaps (a, t) and rectangles (a, h)
+rem from all Pythagorean triples,
+rem packed as a * 2^23 + leg and sorted,
+rem then for each a and h add the t
+rem with t and h + t both flaps.
+Lm = P // 2
+Bt = 8388608
+Mq = (2 * Lm) isqrt
+Tk = array shape 1 fill 0
+Rk = array shape 1 fill 0
+Nt = 0
+Nr = 0
+for Ps in 0 to 1
+  Pt = 0
+  Pr = 0
+  for M in 2 to Mq
+    for N in 1 till M
+      Ok = (M - N) mod 2 equal 1
+      if Ok
+        G = M
+        H = N
+        for H greater 0
+          Tg = G mod H
+          G = H
+          H = Tg
+        end
+        if G equal 1
+          X = M * M - N * N
+          Y = 2 * M * N
+          C = M * M + N * N
+          if C at most 2 * Lm
+            Km = (2 * Lm) // C
+            for K in 1 to Km
+              Kx = K * X
+              Ky = K * Y
+              if K * C at most Lm
+                if Ps equal 1
+                  Tk Pt = Kx * Bt + Ky
+                  Tq = Pt + 1
+                  Tk Tq = Ky * Bt + Kx
+                end
+                Pt += 2
+              end
+              Ev = Ky mod 2 equal 0
+              Hy = Ky // 2
+              Fy = Hy + Kx at most Lm
+              if Ev and Fy
+                if Ps equal 1
+                  Rk Pr = Hy * Bt + Kx
+                end
+                Pr += 1
+              end
+              Ev = Kx mod 2 equal 0
+              Hx = Kx // 2
+              Fx = Hx + Ky at most Lm
+              if Ev and Fx
+                if Ps equal 1
+                  Rk Pr = Hx * Bt + Ky
+                end
+                Pr += 1
+              end
+            end
+          end
+        end
+      end
+    end
+  end
+  if Ps equal 0
+    Nt = Pt
+    Nr = Pr
+    Tk = array shape Nt fill 0
+    Rk = array shape Nr fill 0
+  end
+end
+Tk = Tk sort
+Rk = Rk sort
+Answer = 0
+Pt = 0
+Pr = 0
+for A in 1 to Lm
+  T0 = Pt
+  Nx = (A + 1) * Bt
+  for (Pt less Nt) and ((Tk Pt) less Nx)
+    Pt += 1
+  end
+  R0 = Pr
+  for (Pr less Nr) and ((Rk Pr) less Nx)
+    Pr += 1
+  end
+  for I in R0 till Pr
+    Hh = (Rk I) - A * Bt
+    Rem = Lm - A - Hh
+    Go = Rem greater 0
+    for J in T0 till Pt
+      T = (Tk J) - A * Bt
+      if Go and (T less Hh)
+        S = (A * A + T * T) isqrt
+        if S at most Rem
+          U = Hh + T
+          Lo = T0
+          Hi = Pt - 1
+          Fd = 0
+          Key = A * Bt + U
+          Cn = Lo at most Hi
+          for Cn
+            Md = (Lo + Hi) // 2
+            Kv = Tk Md
+            if Kv equal Key
+              Fd = 1
+            elif Kv less Key
+              Lo = Md + 1
+            else
+              Hi = Md - 1
+            end
+            Cn = Lo at most Hi
+            Cn = Cn and (Fd equal 0)
+          end
+          if Fd equal 1
+            Answer += 2 * (A + Hh + S)
+          end
+        else
+          Go = 0 equal 1
+        end
+      end
+    end
+  end
+end
+Answer print

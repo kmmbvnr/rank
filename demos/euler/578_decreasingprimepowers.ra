@@ -1,0 +1,152 @@
+rem Decreasing Prime Powers
+rem https://projecteuler.net/problem=578
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000000000
+
+rem g(L, i, e) counts the ways to extend
+rem with primes from index i on, with
+rem exponents up to e. With exponent 1
+rem only: 1, plus each prime p up to
+rem sqrt L followed by the same count
+rem for L / p, plus the primes above
+rem sqrt L, counted by pi(L) read at
+rem quotient points of N from a Lucy
+rem sieve. An exponent e >= 2 on p
+rem recurses on L / p^e with cap e. A
+rem stack walks the tree.
+Rt = N isqrt
+Sm = array shape (Rt + 2) fill 0
+Lg = array shape (Rt + 2) fill 0
+for V in 2 to Rt
+  Sm V = V - 1
+end
+for K in 1 to Rt
+  Lg K = N // K - 1
+end
+for P in 2 to Rt
+  if (Sm P) greater (Sm (P - 1))
+    Sp = Sm (P - 1)
+    P2 = P * P
+    Kt = Rt min (N // P2)
+    for K in 1 to Kt
+      Kp = K * P
+      if Kp at most Rt
+        Lg K -= (Lg Kp) - Sp
+      else
+        Lg K -= (Sm (N // Kp)) - Sp
+      end
+    end
+    for V in Rt to P2 by -1
+      Sm V -= (Sm (V // P)) - Sp
+    end
+  end
+end
+Dp = Sm * 0
+Ra = 1 till (Rt + 1) array
+Rb = 0 till Rt array
+Dp Ra = (Sm Ra) - (Sm Rb)
+Pl = (Dp equal 1) indices
+Np = Pl len
+Tot = 0
+Sl = array shape 200 fill 0
+Si = array shape 200 fill 0
+Se = array shape 200 fill 0
+Sf = array shape 200 fill 0
+Sj = array shape 200 fill 0
+Sk = array shape 200 fill 0
+Sp0 = 1
+Sl 0 = N
+Si 0 = 0
+Se 0 = 43
+Sf 0 = 1
+Sj 0 = 0
+Sk 0 = 0
+for Sp0 greater 0
+  T = Sp0 - 1
+  L = Sl T
+  I = Si T
+  Em = Se T
+  if Sk T equal 0
+    Sk T = 1
+    if Em equal 1
+      Sq = L isqrt
+      Hi = 0
+      if L at most Rt
+        Hi = Sm L
+      else
+        Hi = Lg (N // L)
+      end
+      Lo = (Sm Sq) max I
+      Gp = (Hi - Lo) max 0
+      Tot += 1 + Gp
+      Sj T = I
+    end
+  end
+  Done = 0
+  if Em equal 1
+    J = Sj T
+    Sq = L isqrt
+    Ok = J less Np
+    if Ok
+      Ok = (Pl J) at most Sq
+    end
+    if Ok
+      Sj T = J + 1
+      Sl Sp0 = L // (Pl J)
+      Si Sp0 = J + 1
+      Se Sp0 = 1
+      Sk Sp0 = 0
+      Sp0 += 1
+    else
+      Sp0 -= 1
+    end
+  else
+    Ex = Sf T
+    if Ex equal 1
+      Sf T = 2
+      Sj T = I
+      Sl Sp0 = L
+      Si Sp0 = I
+      Se Sp0 = 1
+      Sk Sp0 = 0
+      Sp0 += 1
+    else
+      J = Sj T
+      Pw = 1
+      Ok = J less Np
+      if Ok
+        Pj = Pl J
+        Pw = Pj
+        for Q in 2 to Ex
+          Pw *= Pj
+          if Pw greater L
+            Pw = L + 1
+          end
+        end
+        Ok = Pw at most L
+      end
+      if Ok
+        Sj T = J + 1
+        Sl Sp0 = L // Pw
+        Si Sp0 = J + 1
+        Se Sp0 = Ex
+        Sf Sp0 = 1
+        Sk Sp0 = 0
+        Sp0 += 1
+      else
+        Sf T = Ex + 1
+        Sj T = I
+        if Ex + 1 greater Em
+          Sp0 -= 1
+        end
+      end
+    end
+  end
+end
+Answer = Tot
+Answer print
