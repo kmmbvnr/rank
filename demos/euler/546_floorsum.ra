@@ -1,0 +1,79 @@
+rem The Floor's Revenge
+rem https://projecteuler.net/problem=546
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000000
+option Ka integer = 2
+option Kb integer = 10
+
+rem f(kx + s) = sum of f(t // k), t <=
+rem kx + s, so f(n) nests prefix sums
+rem along the base-k digits of n. Keep
+rem two polynomials over the digits read
+rem (B below the digits of n, E equal),
+rem stored by values at 0..D; a prefix
+rem sum is a running total and kx + s is
+rem reached by Lagrange weights.
+P = 1000000007
+D = 60
+Zn = Kb * (D + 1)
+rem W(i, z): weight of node i at z, the
+rem product of z - j over j /= i over
+rem that of i - j.
+Z = (0 till Zn) copy
+I = (0 to D) copy
+Dz = (Z - (I reshape (D + 1) 1)) mod P
+Pre = array shape (D + 1) Zn fill 1
+Suf = Pre
+Cp = Z * 0 + 1
+Cs = Cp
+for J in 0 to D
+  Pre J = Cp
+  Cp = Cp * (Dz J) mod P
+  Js = D - J
+  Suf Js = Cs
+  Cs = Cs * (Dz Js) mod P
+end
+Fa = concat (array 1) ((1 to D) scan *)
+Dn = (Fa I) * (Fa (D - I)) mod P
+Sg = 1 - 2 * ((D - I) mod 2)
+Dn = (Dn * Sg) mod P
+Iv = Dn (P - 2) P powmod
+W = Pre * Suf mod P
+W = W * (Iv reshape (D + 1) 1) mod P
+Answer = 0
+for K in Ka to Kb
+  Dg = array shape 0 fill 0
+  X = N
+  for X greater 0
+    Dg = concat Dg (array (X mod K))
+    X //= K
+  end
+  B = array shape (D + 1) fill K
+  E = B * 0 + Dg 0 + 1
+  Zk = K * (D + 1)
+  Xk = K * I
+  for J in 1 till Dg len
+    Dj = Dg J
+    Sb = (B scan +) mod P
+    Se = (E scan +) mod P
+    Sc = Sb reshape (D + 1) 1
+    Wb = (W * Sc) mod P
+    Vb = (Wb reduce + axis 0) mod P
+    Ec = Se reshape (D + 1) 1
+    We = (W * Ec) mod P
+    Ve = (We reduce + axis 0) mod P
+    Vk = Vb (0 till Zk)
+    Vm = Vk reshape (D + 1) K
+    B = (Vm reduce + axis 1) mod P
+    Lo = ((0 till K) less Dj) integer
+    El = (Vm * Lo) reduce + axis 1
+    E = (El + Ve (Xk + Dj)) mod P
+  end
+  Answer = (Answer + E 0) mod P
+end
+Answer print

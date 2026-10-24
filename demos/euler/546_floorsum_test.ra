@@ -1,0 +1,15 @@
+use testing
+
+test "brute force values"
+  use "546_floorsum"
+  N = 10
+  Ka = 5
+  Kb = 5
+  run
+  Answer equal 18
+  N = 100000
+  Ka = 2
+  Kb = 10
+  run
+  Answer equal 483728360
+end
