@@ -165,3 +165,50 @@ Notes from this range:
 - Integers wider than 64 bits promote to BigInt arrays, which is fine for
   small tables and very slow for 10^7 cells. Reduce products modulo before
   they pass 9 x 10^18 (and split a factor at 2^15 for matrix products, 416).
+
+## Problems 462-550
+
+Written: 462-550 except 536, one program and one test file each. 536
+is still open: the eulersolve search needs about 850,000 branch nodes and
+30 million candidate checks, which needs an array form first. The tests
+keep to small inputs, statement values and brute-force checks. Every
+default answer was compared with the eulersolve.org C++ solution compiled
+locally, or with its Python solution or an independent Python program where
+the C++ needs Boost (524, 538, 542).
+
+Defaults that take 10 s or more are left out of the audits
+(`scripts/demo-execution-exclusions.json`) with the time and the reason; 505
+(an alpha-beta search of about 2 x 10^9 nodes) is not reachable in the
+interpreter.
+
+No APL, J or K solutions for this range turned up in a web search (the
+collections found stop near the early problems).
+
+Methods that differ from the eulersolve outlines:
+
+- 524 uses F(P) = sum of 2^s over the entries that are not left-to-right
+  maxima, s the number of smaller entries before; a greedy pass with a
+  memoised completion check builds the permutation instead of storing it.
+- 529 squares polynomials by indexed accumulation (`.accumulate` at i + j)
+  and reduces them through a matrix of x^(R + k) with split real matmul.
+- 533 sieves log M(t) over every t instead of a highly-composite search.
+- 541 writes the block sum as a closed form in Stirling numbers.
+- 544 counts colourings by the number of colours used, so the sum over q
+  is a sum of falling factorials, and keeps one count row per pattern.
+- 550 proves that the Grundy value depends only on Omega(x).
+
+Notes from this range:
+
+- Postfix calls take the whole left side: `A + B sum`, `0 till L len`,
+  `X - (Y) integer` and `for V in 2 to N isqrt` all misparse; bind the
+  operand first. Binary `max` is now infix (`A max B`).
+- Copy a slice before `matmul`; a lazy slice is read cell by cell (#431).
+- Group sums, histograms and polynomial products are fastest with indexed
+  accumulation (`H Ix += V .accumulate`).
+- Range values, slice reads and `copy` keep loops out of the compiler
+  (#432); lifted `powmod` maps element by element (#433); integer
+  `reduce + axis 0` and `concat axis 1` are slow (#434); strided integer
+  writes cost about 140 ns per cell (#435); real arrays miss the integer
+  fast paths (#431).
+- `binomialmod` builds factorial tables up to N; for N near 10^8 use a
+  falling product instead.
