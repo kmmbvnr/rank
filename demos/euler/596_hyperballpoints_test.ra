@@ -1,0 +1,17 @@
+use testing
+
+test "statement values"
+  use "596_hyperballpoints"
+  R = 2
+  run
+  Answer equal 89
+  R = 5
+  run
+  Answer equal 3121
+  R = 100
+  run
+  Answer equal 493490641
+  R = 10000
+  run
+  Answer equal 733649750
+end

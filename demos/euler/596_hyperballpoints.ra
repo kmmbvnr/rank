@@ -1,0 +1,53 @@
+rem Lattice Points in a Hyperball
+rem https://projecteuler.net/problem=596
+
+use numbers
+use sequences
+use io
+use cli
+
+option R integer = 100000000
+
+rem Jacobi: r4(n) = 8 sum of the d | n
+rem with 4 not dividing d, so with
+rem Q = R^2 and S(M) = sum d (M // d)
+rem T = 1 + 8 (S(Q) - 4 S(Q // 4)).
+rem S(M) = sum of tri(M // k), tri(m) =
+rem m (m + 1) / 2, for k up to s =
+rem isqrt M, then for each value v the
+rem count of k above s with M // k = v.
+Md = 1000000007
+Bk = 4000000
+Q = R * R
+Tot = 0
+for J in 0 to 1
+  Mm = Q // (1 + 3 * J)
+  Wt = 1 - 5 * J
+  S = Mm isqrt
+  Sm = 0
+  for K0 in 1 to S by Bk
+    K1 = (K0 + Bk - 1) min S
+    Qs = Mm // (K0 to K1 array)
+    Ev = (Qs mod 2 equal 0) integer
+    A = Ev * (Qs // 2) + (1 - Ev) * Qs
+    Q1 = Qs + 1
+    B = Ev * Q1 + (1 - Ev) * (Q1 // 2)
+    Am = A mod Md
+    Bm = B mod Md
+    Sm += ((Am * Bm) mod Md) sum
+  end
+  Vm = Mm // (S + 1)
+  for V0 in 1 to Vm by Bk
+    V1 = (V0 + Bk - 1) min Vm
+    Vs = V0 to V1 array
+    Hi = Mm // Vs
+    Lo = (Mm // (Vs + 1)) max S
+    Cn = Hi - Lo
+    Tv = (Vs * (Vs + 1) // 2) mod Md
+    Pd = (Tv * Cn) mod Md
+    Sm += Pd sum
+  end
+  Tot += Wt * (Sm mod Md)
+end
+Answer = (1 + 8 * Tot) mod Md
+Answer print

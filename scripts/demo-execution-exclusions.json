@@ -225,5 +225,6 @@
   "euler/563_robotwelders.ra": "To fix later: the default input takes about 37 s and 3.9 GB (3 x 10^7 pairs of 23-smooth sides in 25 area windows, each expanded by ragged gathers and fully sorted); the small _test.ra fixture stays in the audits.",
   "euler/574_verifyingprimes.ra": "To fix later: the default input takes about 18 s (for each of 500 primes up to 2^18 big-integer CRT residues built by doubling); the small _test.ra fixture stays in the audits.",
   "euler/580_squarefreehilbert.ra": "To fix later: the default input takes about 1.7 min (a Moebius-style sieve of 5 x 10^7 odd values in 25 blocks, with gather/scatter rounds for each prime below 10^4 and its square and cube); the small _test.ra fixture stays in the audits.",
-  "euler/581_smoothtriangular.ra": "To fix later: the default input takes about 25 s and 6 GB (3 x 10^7 47-smooth numbers up to 2 x 10^13, each matched with its neighbours 2x +- 1 by sorting two arrays of 6 x 10^7 cells); the small _test.ra fixture stays in the audits."
+  "euler/581_smoothtriangular.ra": "To fix later: the default input takes about 25 s and 6 GB (3 x 10^7 47-smooth numbers up to 2 x 10^13, each matched with its neighbours 2x +- 1 by sorting two arrays of 6 x 10^7 cells); the small _test.ra fixture stays in the audits.",
+  "euler/596_hyperballpoints.ra": "To fix later: the default input takes about 75 s (about 1.5 x 10^8 divisor-sum cells in blocks of 4 x 10^6, each with a floor division, parity split and modular products); the small _test.ra fixture stays in the audits."
 }
