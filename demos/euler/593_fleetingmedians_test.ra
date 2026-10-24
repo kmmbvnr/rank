@@ -1,0 +1,16 @@
+use testing
+
+test "statement values"
+  use "593_fleetingmedians"
+  N = 10
+  K = 10
+  run
+  Answer equal "2021.5"
+  N = 100
+  run
+  Answer equal "463628.5"
+  N = 100000
+  K = 10000
+  run
+  Answer equal "675348207.5"
+end

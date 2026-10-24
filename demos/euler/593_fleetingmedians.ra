@@ -1,0 +1,106 @@
+rem Fleeting Medians
+rem https://projecteuler.net/problem=593
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000000
+option K integer = 100000
+
+rem p(k)^k mod 10007 needs only the
+rem exponent mod 10006. S2 lies in
+rem 0 .. 20012, so a window keeps a
+rem count per value and two pointers
+rem for the middle ranks t1 = (K+1)//2
+rem and t2 = (K+2)//2, each moved by
+rem the few steps a slide needs. The
+rem sum of both ranks is halved at the
+rem end (.5 when odd).
+Fx = N * 1.0 + 6
+Lg = Fx log
+Ll = Lg log
+Lm = (Fx * (Lg + Ll) * 1.1) floor
+Lm = (Lm integer) + 200
+Hf = Lm // 2
+Cp = array shape (Hf + 1) fill 0
+Rt = Lm isqrt
+for I in 1 to Rt // 2
+  if Cp I equal 0
+    P = 2 * I + 1
+    for J in (P * P // 2) to Hf by P
+      Cp J = 1
+    end
+  end
+end
+Ix = (Cp equal 0) indices
+Ix = Ix ((Ix greater 0) indices)
+Pr = concat (array 2) (2 * Ix + 1)
+Pr = Pr (0 till N array)
+Ks = 1 to N array
+Ex = Ks mod 10006
+Sv = Pr Ex 10007 powmod
+Z7 = (Pr mod 10007) equal 0
+Sv = Z7 choose 0 Sv
+S2 = Sv + Sv (Ks // 10000)
+Cn = array shape 20013 fill 0
+for I in 0 till K
+  Cn (S2 I) += 1
+end
+T1 = (K + 1) // 2
+T2 = (K + 2) // 2
+V1 = 0
+B1 = 0
+for (B1 + Cn V1) less T1
+  B1 += Cn V1
+  V1 += 1
+end
+V2 = 0
+B2 = 0
+for (B2 + Cn V2) less T2
+  B2 += Cn V2
+  V2 += 1
+end
+Tot = V1 + V2
+for I in K till N
+  Od = S2 (I - K)
+  Nw = S2 I
+  Cn Od -= 1
+  Cn Nw += 1
+  if Od less V1
+    B1 -= 1
+  end
+  if Nw less V1
+    B1 += 1
+  end
+  if Od less V2
+    B2 -= 1
+  end
+  if Nw less V2
+    B2 += 1
+  end
+  for B1 at least T1
+    V1 -= 1
+    B1 -= Cn V1
+  end
+  for (B1 + Cn V1) less T1
+    B1 += Cn V1
+    V1 += 1
+  end
+  for B2 at least T2
+    V2 -= 1
+    B2 -= Cn V2
+  end
+  for (B2 + Cn V2) less T2
+    B2 += Cn V2
+    V2 += 1
+  end
+  Tot += V1 + V2
+end
+Whole = (Tot // 2) text
+Answer = Whole + ".0"
+if Tot mod 2 equal 1
+  Answer = Whole + ".5"
+end
+Answer print
