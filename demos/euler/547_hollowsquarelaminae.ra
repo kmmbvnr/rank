@@ -1,0 +1,99 @@
+rem Distance of random points within
+rem hollow square laminae
+rem https://projecteuler.net/problem=547
+
+use numbers
+use sequences
+use linalg
+use io
+use cli
+
+option N integer = 40
+
+rem K(dx, dy): total distance between
+rem two unit cells offset by (dx, dy),
+rem Gauss-Legendre on the triangular
+rem difference density. Whole blocks
+rem count each offset, the hole by
+rem inclusion-exclusion: F(R) = F(O) -
+rem 2 F(O, H) + F(H), with F(O, H) from
+rem prefix sums of cell interactions.
+Q = 64
+Pi = 3.141592653589793
+Ik = (1 to Q) * 1.0
+X = (Pi * (Ik - 0.25) / (Q + 0.5)) cos
+Dp = X * 0
+for It in 1 to 8
+  P0 = X * 0 + 1
+  P1 = X
+  for K in 2 to Q
+    P2 = (2 * K - 1) * X * P1
+    P2 = (P2 - (K - 1) * P0) / K
+    P0 = P1
+    P1 = P2
+  end
+  Dp = Q * (X * P1 - P0) / (X * X - 1)
+  X = X - P1 / Dp
+end
+Uq = (X + 1) / 2
+Wq = 1 / ((1 - X * X) * Dp * Dp)
+Aq = Wq * (1 - Uq)
+rem K over all (dx, u) x (dy, v) rows,
+rem then the node weights by blocks.
+Lq = N * Q
+Od = (0 till N) reshape N 1
+Xp = (Od + Uq) reshape Lq
+Xm = (Od - Uq) reshape Lq
+Sp = Xp * Xp
+Sm = Xm * Xm
+Cp = Sp reshape Lq 1
+Cm = Sm reshape Lq 1
+M = (Cp + Sp) ** 0.5
+M = M + (Cp + Sm) ** 0.5
+M = M + (Cm + Sp) ** 0.5
+M = M + (Cm + Sm) ** 0.5
+Ci = (0 till Lq) copy
+Bm = ((Ci // Q) equal Od) integer
+Am = Bm * (Aq (Ci mod Q))
+Kt = (Am M matmul) (Am transpose) matmul
+rem F(w, h) and cell-to-square sums W.
+Ix = (0 till N) copy
+Wr = (0 to N) reshape (N + 1) 1
+Z0 = (Ix equal 0) integer
+Cw = ((Wr - Ix) max 0) * (2 - Z0)
+F = (Cw Kt matmul) (Cw transpose) matmul
+Ir = Ix reshape N 1
+Cu = (Ir - Ix at least 0) integer
+Ch = (Ir + Ix at most N - 1) integer
+Cu = Cu + Ch - Z0
+W = (Cu Kt matmul) (Cu transpose) matmul
+Zc = array shape N 1 fill 0.0
+Wp = concat Zc W axis 1
+Zr = array shape 1 (N + 1) fill 0.0
+Wp = concat Zr Wp axis 0
+Ps = (Wp scan + axis 0) scan + axis 1
+rem All (size, offset) pairs per axis.
+Ig = (0 till N * N) copy
+Xg = Ig // N
+Ag = Ig mod N
+Ok = (Xg at least 1) and (Ag at least 1)
+Ok = Ok and (Xg + Ag at most N - 1)
+Xl = Xg (Ok indices)
+Al = Ag (Ok indices)
+Mn = Xl len
+Rt = (Al + Xl) reshape Mn 1
+Rb = Al reshape Mn 1
+Ct = Al + Xl
+Cb = Al
+Pf = Ps reshape ((N + 1) * (N + 1))
+Np = N + 1
+Fo = Pf (Rt * Np + Ct)
+Fo = Fo - Pf (Rb * Np + Ct)
+Fo = Fo - Pf (Rt * Np + Cb)
+Fo = Fo + Pf (Rb * Np + Cb)
+Ff = F reshape (Np * Np)
+Fh = Ff ((Xl reshape Mn 1) * Np + Xl)
+Ar = N * N - (Xl reshape Mn 1) * Xl
+Tm = ((F N N) - 2 * Fo + Fh) / (Ar * Ar)
+Answer = (Tm sum) 4 round
+Answer print

@@ -1,0 +1,11 @@
+use testing
+
+test "small squares"
+  use "547_hollowsquarelaminae"
+  N = 3
+  run
+  Answer equal 1.6514
+  N = 4
+  run
+  Answer equal 19.6564
+end
