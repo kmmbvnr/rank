@@ -1,0 +1,11 @@
+use testing
+
+test "brute force and reference sums"
+  use "548_gozintachains"
+  L = 100
+  run
+  Answer equal 49
+  L = 1000000
+  run
+  Answer equal 516961
+end

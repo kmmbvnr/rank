@@ -1,0 +1,154 @@
+rem Gozinta Chains
+rem https://projecteuler.net/problem=548
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 10000000000000000
+
+rem g(n) depends on the exponents a of n
+rem only: with T(j) = prod C(a_i + j -
+rem 1, j - 1), chains of k steps number
+rem sum (-1)^(k-j) C(k, j) T(j). List
+rem patterns whose least number is <= L,
+rem compute G and keep G <= L whose own
+rem exponents are the pattern: small
+rem primes first, then the cofactor.
+Jm = 60
+Js = (1 to Jm) copy
+Ps = primes till 100 array
+Np = Ps len
+rem Cb(e, j) = C(e + j - 1, j - 1).
+Cb = array shape (Jm + 1) Jm fill 0
+for E in 1 to Jm
+  Na = E + Js - 1
+  Ka = Js - 1
+  Cb E = Na Ka binomial
+end
+rem Cw(w, j) = sum (-1)^(k-j) C(k, j),
+rem k = j .. w.
+Cw = array shape (Jm + 1) Jm fill 0
+for W in 1 to Jm
+  Cw W = Cw (W - 1)
+  Sg = 1 - 2 * ((W - Js) mod 2)
+  Kc = Js W min
+  Tk = W Kc binomial
+  In = (W at least Js) integer
+  Cw W = Cw W + In * Sg * Tk
+end
+rem Patterns by exponents that never
+rem grow, on the primes in order.
+Rv = array 1
+Pe = array Jm
+Ip = array 0
+Om = array 0
+T = array shape 1 Jm fill 1
+Ce = array shape 1 (Jm + 1) fill 0
+Ev = (0 to Jm) copy
+Z1 = array shape 0 fill 0
+Aw = Z1
+At = array shape 0 Jm fill 0
+Ac = array shape 0 (Jm + 1) fill 0
+Nm = Np - 1
+Zt = At
+Zc = Ac
+for (Rv len) greater 0
+  Ne = Z1
+  Nr = Z1
+  Ni = Z1
+  No = Z1
+  Nt = Zt
+  Nc = Zc
+  Ic = Ip Nm min
+  Pp = Ps Ic
+  for E in 1 to Jm
+    Vn = Rv * Pp ** E
+    Om2 = E at most Pe
+    Om2 = Om2 and (Ip less Np)
+    Om2 = Om2 and (Vn at most L)
+    Ok = Om2 indices
+    Nr = concat Nr (Vn Ok)
+    Ne = concat Ne (Ok * 0 + E)
+    Ni = concat Ni ((Ip Ok) + 1)
+    No = concat No ((Om Ok) + E)
+    Nt = concat Nt ((T Ok) * (Cb E))
+    Oh = (Ev equal E) integer
+    Nc = concat Nc ((Ce Ok) + Oh)
+  end
+  Rv = Nr
+  Pe = Ne
+  Ip = Ni
+  Om = No
+  T = Nt
+  Ce = Nc
+  Aw = concat Aw Om
+  At = concat At T
+  Ac = concat Ac Ce
+end
+Gm = (Cw Aw) * At
+G = Gm reduce + axis 1
+Gk = (G at most L) indices
+G = G Gk
+Ac = Ac Gk
+rem Primes to 71 take their exponents
+rem out of the pattern; the rest needs
+rem a cofactor of primes above 71.
+Nk = G len
+Rw = (0 till Nk) copy
+X = G
+Cg = array shape (Nk * (Jm + 1)) fill 0
+for P in primes till 72
+  K = X * 0
+  for I in 1 to Jm
+    Dv = (X mod P equal 0) integer
+    K += Dv
+    X = (Dv equal 1) choose (X // P) X
+  end
+  Kp = (K greater 0) indices
+  Fi = (Rw Kp) * (Jm + 1) + (K Kp)
+  Cg Fi += 1 .accumulate
+end
+Rm = Ac - (Cg reshape Nk (Jm + 1))
+Fit = (Rm reduce min axis 1) at least 0
+Se = (Rm * Ev) reduce + axis 1
+On = (X equal 1) and (Se equal 0)
+Bg = (X greater 1) and (Se greater 0)
+Sz = Se max 0
+Bg = Bg and (X at least 73 ** Sz)
+Sv = (Fit and (On or Bg)) indices
+rem Survivors: primes to 10^6 divide
+rem out, leaving 1, p, p^2 or p q.
+Fp = primes from 73 till 1000000 array
+Answer = 1
+for S in Sv
+  Y = X S
+  Cy = Ev * 0
+  Dq = (Y mod Fp equal 0) indices
+  for Q in Fp Dq
+    K = 0
+    for Y mod Q equal 0
+      Y //= Q
+      K += 1
+    end
+    Cy K += 1
+  end
+  if Y greater 1
+    Rq = Y isqrt
+    Sq = Rq * Rq equal Y
+    Sq = Sq and (Rq in primes)
+    if Y in primes
+      Cy 1 += 1
+    elif Sq
+      Cy 2 += 1
+    else
+      Cy 1 += 2
+    end
+  end
+  Rs = Rm S
+  if (Cy equal Rs) all
+    Answer += G S
+  end
+end
+Answer print
