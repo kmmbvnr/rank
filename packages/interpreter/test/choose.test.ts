@@ -4,6 +4,25 @@ import { sequence } from '../src/sequence.js';
 import { chooseValue } from '../src/modules/sequences.js';
 import { readArrayItem } from '../src/array-storage.js';
 
+for (const compilation of [false, true]) describe(`choose boolean comparisons (compilation=${compilation})`, () => {
+    it.each([1023, 1024, 1226, 4096])('preserves boolean branches at %i cells', size => {
+        for (const mixedMask of [false, true]) {
+            const runtime = new Interpreter(() => {}, { compilation });
+            try {
+                runtime.execute('use sequences\n'
+                    + `X = (0 till ${size}) copy\n`
+                    + `M = ${mixedMask ? '(X mod 5) equal 0' : 'X less 0'}\n`
+                    + 'A = (X mod 3) equal 0\nB = (X mod 2) equal 0\nC = M choose A B');
+                const expected = Array.from({ length: size }, (_, i) =>
+                    mixedMask && i % 5 === 0 ? i % 3 === 0 : i % 2 === 0);
+                expect(formatValue(runtime.execute('C')!)).toBe(expected.join(' '));
+                expect(runtime.execute('(M and C) count')).toBe(BigInt(expected.filter((value, i) =>
+                    mixedMask && i % 5 === 0 && value).length));
+            } finally { runtime.dispose(); }
+        }
+    });
+});
+
 describe('choose', () => {
     it('accepts the condition before choose without a module import', () => {
         const runtime = new Interpreter();

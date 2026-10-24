@@ -257,8 +257,15 @@ export function chooseDenseArrays(
     const testStep = isArrayValue(condition) ? 1 : 0;
     const yesStep = isArrayValue(whenTrue) ? 1 : 0;
     const noStep = isArrayValue(whenFalse) ? 1 : 0;
-    const reals = (values: ArrayLike<RankValue>) => values instanceof Float64Array
-        || Array.prototype.every.call(values, cell => typeof cell === 'number');
+    const reals = (values: ArrayLike<RankValue>) => {
+        if (values instanceof Float64Array) return true;
+        // Packed storage facades expose indexed reads without own properties;
+        // Array.prototype.every would skip those cells and accept any type.
+        for (let index = 0; index < values.length; index++) {
+            if (typeof values[index] !== 'number') return false;
+        }
+        return true;
+    };
     const real = reals(yes) && reals(no);
     const out: RankValue[] = real ? new Float64Array(size) as unknown as RankValue[] : new Array(size);
     for (let start = 0; start < size; start += DENSE_CHUNK) {
