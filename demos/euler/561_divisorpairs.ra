@@ -1,0 +1,26 @@
+rem Divisor Pairs
+rem https://projecteuler.net/problem=561
+
+use numbers
+use bits
+use io
+use cli
+
+option M integer = 904961
+option N integer = 1000000000000
+
+rem S((p_m#)^n) = (T^m - U^m), with
+rem T = (n+1)(n+2)/2, U = n+1. For odd m
+rem its 2-adic valuation is m v(U/2) for
+rem odd n, 0 for n = 2 mod 4, v(n) - 1
+rem for 4 | n. Summing gives m v(K!)
+rem + T + v(T!), K = (N+1)//2, T = N//4,
+rem with v(x!) = x - popcount(x).
+Kk = (N + 1) // 2
+Tt = N // 4
+Pk = Kk popcount
+Pt = Tt popcount
+Vk = Kk - Pk
+Vt = Tt - Pt
+Answer = M * Vk + Tt + Vt
+Answer print
