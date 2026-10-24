@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "585_nestedsquareroots"
+  N = 10
+  run
+  Answer equal 17
+  N = 15
+  run
+  Answer equal 46
+  N = 20
+  run
+  Answer equal 86
+  N = 30
+  run
+  Answer equal 213
+  N = 100
+  run
+  Answer equal 2918
+  N = 5000
+  run
+  Answer equal 11134074
+end

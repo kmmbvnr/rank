@@ -1,0 +1,197 @@
+rem Nested Square Roots
+rem https://projecteuler.net/problem=585
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 5000000
+
+rem A denestable value is a two-root sum
+rem sqrt(k a) + sqrt(k b), a + b = s
+rem coprime and not both squares, with
+rem x = k s, or four roots from two such
+rem kernels s, t with x = k s t. With
+rem f(s) = phi(s) / 2 - (primitive
+rem u^2 + v^2 = s) the ordered counts
+rem are C1 = sum f(s) (n // s) and
+rem C2 = sum f(s) C1(n // s). C3 of them
+rem (kernel pairs with equal squarefree
+rem part of a b) fall back to two roots,
+rem and F = C1 + (C2 - C3) / 2. A class
+rem rho has a = r1 u^2, b = r2 v^2 and
+rem r1 r2 = rho.
+Ph = 0 to N array
+for I in 2 to N
+  if (Ph I) equal I
+    for J in I to N by I
+      Ph J -= (Ph J) // I
+    end
+  end
+end
+Rr = 0 to N array
+Rr = Rr * 0
+S0 = N isqrt
+for U in 1 to S0
+  for V in 1 till U
+    S = U * U + V * V
+    if S at most N
+      Ga = U
+      Gb = V
+      for Gb greater 0
+        Tg = Ga mod Gb
+        Ga = Gb
+        Gb = Tg
+      end
+      if Ga equal 1
+        Rr S += 1
+      end
+    end
+  end
+end
+Pf = Ph * 0
+for S in 3 to N
+  Fs = (Ph S) // 2 - (Rr S)
+  Pf S = (Pf (S - 1)) + Fs
+end
+C1 = 0
+S = 1
+for S at most N
+  Q = N // S
+  Hi = N // Q
+  C1 += ((Pf Hi) - (Pf (S - 1))) * Q
+  S = Hi + 1
+end
+C2 = 0
+S = 1
+for S at most N
+  Q = N // S
+  Hi = N // Q
+  Cm = 0
+  T = 1
+  for T at most Q
+    Q2 = Q // T
+    H2 = Q // Q2
+    Cm += ((Pf H2) - (Pf (T - 1))) * Q2
+    T = H2 + 1
+  end
+  C2 += ((Pf Hi) - (Pf (S - 1))) * Cm
+  S = Hi + 1
+end
+Mx = S0 * S0 // 4 + 10
+Sf = 0 to Mx array
+Sp = 0 to Mx array
+Mr = Mx isqrt
+for P in 2 to Mr
+  Pp = P * P
+  for J in Pp to Mx by Pp
+    for (Sf J) mod Pp equal 0
+      Sf J = (Sf J) // Pp
+    end
+  end
+  if (Sp P) equal P
+    for J in (P * P) to Mx by P
+      if (Sp J) equal J
+        Sp J = P
+      end
+    end
+  end
+end
+C3 = 0
+Pr = array shape 12 fill 0
+for Sk in 3 to S0
+  for A in 1 to (Sk - 1) // 2
+    Ga = Sk
+    Gb = A
+    for Gb greater 0
+      Tg = Ga mod Gb
+      Ga = Gb
+      Gb = Tg
+    end
+    Rho = Sf (A * (Sk - A))
+    if (Ga equal 1) and (Rho greater 1)
+      Np = 0
+      Rm = Rho
+      for Rm greater 1
+        P = Sp Rm
+        Pr Np = P
+        Np += 1
+        for Rm mod P equal 0
+          Rm = Rm // P
+        end
+      end
+      Tm = N // Sk
+      Q0 = 0
+      Q1 = 0
+      Nm = 2 ** Np
+      for Mk in 0 till Nm
+        R1 = 1
+        for I in 0 till Np
+          Bt = (Mk // 2 ** I) mod 2
+          if Bt equal 1
+            R1 *= Pr I
+          end
+        end
+        R2 = Rho // R1
+        if R1 less R2
+          Aa = 1
+          for R1 * Aa * Aa less Tm
+            Ab = R1 * Aa * Aa
+            Bb = 1
+            T = Ab + R2
+            for T at most Tm
+              if T at least Sk
+                Ok = 1
+                Ga = Aa
+                Gb = Bb
+                for Gb greater 0
+                  Tg = Ga mod Gb
+                  Ga = Gb
+                  Gb = Tg
+                end
+                if Ga not equal 1
+                  Ok = 0
+                end
+                Ga = R1
+                Gb = Bb
+                for Gb greater 0
+                  Tg = Ga mod Gb
+                  Ga = Gb
+                  Gb = Tg
+                end
+                if Ga not equal 1
+                  Ok = 0
+                end
+                Ga = R2
+                Gb = Aa
+                for Gb greater 0
+                  Tg = Ga mod Gb
+                  Ga = Gb
+                  Gb = Tg
+                end
+                if Ga not equal 1
+                  Ok = 0
+                end
+                if Ok equal 1
+                  Qq = N // (Sk * T)
+                  if T equal Sk
+                    Q0 += Qq
+                  else
+                    Q1 += Qq
+                  end
+                end
+              end
+              Bb += 1
+              T = Ab + R2 * Bb * Bb
+            end
+            Aa += 1
+          end
+        end
+      end
+      C3 += 2 * Q1 + Q0
+    end
+  end
+end
+Answer = C1 + (C2 - C3) // 2
+Answer print
