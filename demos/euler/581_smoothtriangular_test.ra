@@ -1,0 +1,14 @@
+use testing
+
+test "brute-force sums"
+  use "581_smoothtriangular"
+  B = 100
+  run
+  Answer equal 9315
+  B = 1000
+  run
+  Answer equal 216276
+  B = 5000
+  run
+  Answer equal 1337437
+end

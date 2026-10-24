@@ -12,8 +12,8 @@ rem T(2x) = x (2x + 1) and T(2x - 1) =
 rem x (2x - 1) with coprime factors, so
 rem T(n) is smooth when both factors
 rem are. List the 47-smooth x up to B
-rem and test 2x + 1 and 2x - 1 in the
-rem list of those up to 2B + 1.
+rem and match 2x + 1 and 2x - 1 with
+rem those up to 2B + 1 after a sort.
 Lm = 2 * B + 1
 Sm = array 1
 for P in primes till 48 array
@@ -26,11 +26,17 @@ for P in primes till 48 array
   end
 end
 Xs = Sm ((Sm at most B) indices)
-Up = (2 * Xs + 1) in Sm
-Dn = (2 * Xs - 1) in Sm
-Xu = Xs (Up indices)
-Xd = Xs (Dn indices)
-Su = (2 * Xu) sum
-Sd = (2 * Xd - 1) sum
-Answer = Su + Sd
+Zu = concat Sm (2 * Xs + 1)
+Zu = Zu sort
+Nu = Zu len
+Hu = Zu (1 till Nu array)
+Lu = Zu (0 till (Nu - 1) array)
+Mu = Hu ((Hu equal Lu) indices)
+Zd = concat Sm (2 * Xs - 1)
+Zd = Zd sort
+Nd = Zd len
+Hd = Zd (1 till Nd array)
+Ld = Zd (0 till (Nd - 1) array)
+Md = Hd ((Hd equal Ld) indices)
+Answer = (Mu - 1) sum + (Md sum)
 Answer print
