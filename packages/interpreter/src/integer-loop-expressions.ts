@@ -76,6 +76,21 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         if (index < 0) { index = names.length; names.push(name); }
         return index;
     }
+    /** Scalar coordinates share axis checks and row-major addressing for reads and writes. */
+    function numberOffset(info: { slot: number; rank: number }, indices: readonly string[], lines: string[], write = false): string {
+        let offset = '0';
+        indices.forEach((index, axis) => {
+            const coordinate = `index${state.serial++}`;
+            const size = info.rank === 1 ? `cells${info.slot}.length` : `size${info.slot}_${axis}`;
+            lines.push(`const ${coordinate} = ${index};
+                if (${coordinate} < 0 || ${coordinate} >= ${size}) throw ${write ? 'badWriteIndex' : 'badIndex'}(${coordinate}, ${axis});`);
+            const value = wide ? `Number(${coordinate})` : coordinate;
+            offset = axis === 0 ? value : `(${offset} * ${size} + ${value})`;
+        });
+        const key = `key${state.serial++}`;
+        lines.push(`const ${key} = ${offset};`);
+        return key;
+    }
     function knownType(expression: Expression): LoopTerm['type'] | undefined {
         const fact = expressionFacts(expression, name => {
             const local = localTypes.get(name);
@@ -640,7 +655,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             const type = previous?.type ?? destinations.get(head.name)?.type ?? hint ?? realInput(head.name) ?? 'integer';
             if (type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || type === 'bytes') return undefined;
             if (hint && hint !== type || type === 'boolean' && !host.booleanArrays) return undefined;
-            if (previous && previous.rank !== arguments_.length) return undefined;
+            if (previous && previous.rank !== arguments_.length
+                || destinations.has(head.name) && destinations.get(head.name)!.rank !== arguments_.length) return undefined;
             const indices: string[] = [];
             for (const argument of arguments_) {
                 const value = emit(argument, lines);
@@ -652,17 +668,13 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (!assigned.has(head.name)) arrayInputs.add(head.name);
             const name = `v${state.serial++}`;
             if (state.numberMode) {
-                if (info.rank !== 1) return undefined;
                 const argument = arguments_[0];
-                state.indexedReads.set(head.name, !state.indexedReads.has(head.name) && isNameExpression(argument) ? argument.name : undefined);
-                const coordinate = `index${state.serial++}`;
-                const offset = wide ? `Number(${coordinate})` : coordinate;
+                state.indexedReads.set(head.name, info.rank === 1 && !state.indexedReads.has(head.name) && isNameExpression(argument) ? argument.name : undefined);
+                const offset = numberOffset(info, indices, lines);
                 const cell = `cells${info.slot}[${offset}]`;
                 const load = type === 'integer' ? wide ? `BigInt(${cell})` : `safe(Number(${cell}))`
                     : type === 'boolean' ? `Boolean(${cell})` : cell;
-                lines.push(`const ${coordinate} = ${indices[0]};
-                    if (${coordinate} < 0 || ${coordinate} >= cells${info.slot}.length) throw badIndex(${coordinate});
-                    const ${name} = ${load};`);
+                lines.push(`const ${name} = ${load};`);
             } else {
                 lines.push(`const ${name} = reader${info.slot}(${info.rank <= 2 ? indices.join(',') : `[${indices.join(',')}]`});`);
             }
@@ -733,7 +745,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         }
         return undefined;
     }
-    return { container, slot, knownType, realInput, emit, emitValue, arithmetic };
+    return { container, slot, knownType, realInput, emit, emitValue, arithmetic, numberOffset };
 }
 
 export type LoopExpressions = ReturnType<typeof createLoopExpressions>;

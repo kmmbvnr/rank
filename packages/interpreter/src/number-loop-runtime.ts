@@ -60,21 +60,26 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         // the exact backend writes owned cells directly instead.
         || !plan.iteration && plan.destinations.size > 0
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
-        || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1)
-        || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank !== 1 || info.slice)
+        || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1)
+        || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1 || info.slice)
         // A traversal must keep its original cells even when the same binding is
         // written. Other names have separate private buffers, preserving COW.
         || plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]))) return undefined;
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
-    const storage = new Map<string, { slot: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
+    const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return undefined;
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
     const bindings = [...written].map(name => [name, localTypes.get(name)!] as [string, 'integer' | 'real' | 'boolean']);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);
-    for (const info of storage.values()) registers.push(`cells${info.slot} = cells[${info.slot}]`);
+    for (const info of storage.values()) {
+        registers.push(`cells${info.slot} = cells[${info.slot}]`);
+        if (info.rank > 1) for (let axis = 0; axis < info.rank; axis++) {
+            registers.push(`size${info.slot}_${axis} = input[${info.slot}].shape[${axis}]`);
+        }
+    }
     for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
     const source = `"use strict"; return function(input, cells, changes, calls, publish) {
@@ -102,13 +107,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
             (name: string) => new RankError(`${name} expects a nonnegative integer count`),
-            (index: number) => new MissingValueError(index < 0
-                ? 'array index out of bounds on axis 0' : `array index out of bounds on axis 0: ${index}`),
+            (index: number | bigint, axis = 0) => new MissingValueError(index < 0
+                ? `array index out of bounds on axis ${axis}` : `array index out of bounds on axis ${axis}: ${index}`),
             (message: string) => new RankError(message, 'DomainError'),
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
-            (index: number) => index < 0 ? new RankError('array index must be nonnegative on axis 0')
-                : new MissingValueError(`array index out of bounds on axis 0: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower);
+            (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
+                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower);
     } catch { return undefined; }
     host.compiled?.(source);
     return { run: (insideFinally = false) => {
@@ -142,8 +147,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         }
         for (const [name, info] of storage) {
             const value = host.read(name);
-            if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== 1 || arrayRevision(value) === undefined) return undefined;
-            if (plan.destinations.has(name) && (hasPendingSelections(value) || value.shape[0] > 0
+            if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank || arrayRevision(value) === undefined) return undefined;
+            if (plan.destinations.has(name) && (hasPendingSelections(value) || !value.shape.includes(0)
                 && !(info.type === 'real' ? writableRealCells(value)
                     : info.type === 'boolean' ? hasWritableBooleanCells(value) : writableIntegerCells(value)))) return undefined;
             const items = denseScalarItems(value) ?? materializedArrayItems(value);

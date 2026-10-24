@@ -14,25 +14,27 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
         if (numberMode) {
             // Number regions mutate invocation-private cells. No array
             // store escapes until the region succeeds or raises an error.
-            const address = assignment.indices[0];
-            if (!host.arrayWrites || assignment.name.includes('.') || assignment.indices.length !== 1
-                || address.all || address.sign || !address.value) return undefined;
+            if (!host.arrayWrites || assignment.name.includes('.') || !assignment.indices.length
+                || assignment.indices.some(address => address.all || address.sign || !address.value)) return undefined;
             const compound = assignment.operator !== '=';
             if (compound && !host.compoundWrites) return undefined;
             const previous = destinations.get(assignment.name), source = arrays.get(assignment.name);
-            if (source && source.rank !== 1) return undefined;
+            const rank = assignment.indices.length;
+            if (source && source.rank !== rank || previous && previous.rank !== rank) return undefined;
             const type = source?.type ?? previous?.type ?? expressions.realInput(assignment.name)
                 ?? (host.booleanArrays && expressions.knownType(assignment.value) === 'boolean' ? 'boolean' : 'integer');
             if (!['integer', 'real', 'boolean'].includes(type)) return undefined;
-            const target = previous ?? { slot: slot(assignment.name), rank: 1, compound, type };
+            const target = previous ?? { slot: slot(assignment.name), rank, compound, type };
             destinations.set(assignment.name, target);
             arrayInputs.add(assignment.name);
             const lines: string[] = [];
-            const index = emit(address.value, lines, 'integer');
-            if (index?.type !== 'integer') return undefined;
-            const key = `key${state.serial++}`;
-            lines.push(`const ${key} = ${index.code};
-                if (${key} < 0 || ${key} >= cells${target.slot}.length) throw badWriteIndex(${key});`);
+            const indices: string[] = [];
+            for (const address of assignment.indices) {
+                const index = emit(address.value!, lines, 'integer');
+                if (index?.type !== 'integer') return undefined;
+                indices.push(index.code);
+            }
+            const key = expressions.numberOffset(target, indices, lines, true);
             const value = emit(assignment.value, lines, type);
             if (value?.type !== type) return undefined;
             const rhs = `operand${state.serial++}`;
