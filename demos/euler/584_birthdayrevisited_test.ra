@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "584_birthdayrevisited"
+  N = 10
+  K = 3
+  D = 1
+  run
+  Answer equal 5.78688636
+  N = 100
+  D = 7
+  run
+  Answer equal 8.48967364
+end

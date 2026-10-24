@@ -1,0 +1,97 @@
+rem Birthday Problem Revisited
+rem https://projecteuler.net/problem=584
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 365
+option K integer = 4
+option D integer = 7
+
+rem E = sum over n of P(no K people
+rem within D days of each other) = sum
+rem of A(n) n! / N^n, A(n) the weight
+rem sum over day counts c_1 .. c_N with
+rem every D + 1 cyclic days holding at
+rem most K - 1 people, of prod 1 / c_i!.
+rem A(n) is the x^n coefficient of the
+rem trace of the N-th power of a
+rem transfer matrix on the counts of
+rem the last D days (sum <= K - 1), each
+rem new day c weighing x^c / c!.
+Bs = K ** D
+Ix = array shape Bs fill 0 - 1
+Sn = 0
+Ds = array shape 0 fill 0
+for Cd in 0 till Bs
+  Sm = 0
+  Cu = Cd
+  for # in 1 to D
+    Sm += Cu mod K
+    Cu = Cu // K
+  end
+  if Sm at most K - 1
+    Ix Cd = Sn
+    Ds = concat Ds (array Cd)
+    Sn += 1
+  end
+end
+Mc = K - 1
+Nx = array shape Sn K fill 0 - 1
+Su = array shape Sn fill 0
+Sh = K ** (D - 1)
+for S in 0 till Sn
+  Cd = Ds S
+  Sm = 0
+  Cu = Cd
+  for # in 1 to D
+    Sm += Cu mod K
+    Cu = Cu // K
+  end
+  Su S = Sm
+  for C in 0 to Mc - Sm
+    Nc = (Cd mod Sh) * K + C
+    Nx S C = Ix Nc
+  end
+end
+Pm = N * Mc // (D + 1)
+If = array shape K fill 1.0
+for C in 1 till K
+  If C = (If (C - 1)) / C
+end
+Ac = array shape (Pm + 1) fill 0.0
+for S0 in 0 till Sn
+  Dp = array shape Sn (Pm + 1) fill 0.0
+  Dp S0 0 = 1.0
+  for Dy in 1 to N
+    Nw = Dp * 0.0
+    for S in 0 till Sn
+      for C in 0 to Mc - (Su S)
+        T = Nx S C
+        W = If C
+        for P in 0 to Pm - C
+          Nw T (P + C) += W * (Dp S P)
+        end
+      end
+    end
+    Dp = Nw
+  end
+  for P in 0 to Pm
+    Ac P += Dp S0 P
+  end
+end
+Lf = array shape (Pm + 1) fill 0.0
+for P in 1 to Pm
+  Lg = (P * 1.0) log
+  Lf P = (Lf (P - 1)) + Lg
+end
+Ln = (N * 1.0) log
+Answer = 0.0
+for P in 0 to Pm
+  Ex = (Lf P) - P * Ln
+  Answer += (Ac P) * (Ex exp)
+end
+Answer = Answer round 8
+Answer print
