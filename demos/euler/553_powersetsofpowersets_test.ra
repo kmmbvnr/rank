@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "553_powersetsofpowersets"
+  N = 2
+  K = 1
+  run
+  Answer equal 6
+  N = 3
+  run
+  Answer equal 111
+  N = 4
+  K = 2
+  run
+  Answer equal 486
+  N = 100
+  K = 10
+  run
+  Answer equal 728209718
+end

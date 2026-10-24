@@ -1,0 +1,83 @@
+rem Power Sets of Power Sets
+rem https://projecteuler.net/problem=553
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 10000
+option K integer = 10
+
+rem R(r) = 2^(2^r - 1) - 1 families on
+rem r labels. Inclusion-exclusion gives
+rem a(n) / n! of them using every label,
+rem log gives the connected ones H, and
+rem C = n! [x^n] e^x H^K / K! with H^K
+rem by the power recurrence. Arrays are
+rem kept reversed to slice convolutions.
+Md = 1000000007
+Mm = Md - 1
+Ex = Md - 2
+Fa = array shape (N + 1) fill 1
+for I in 1 to N
+  Pv = Fa (I - 1)
+  Fa I = (Pv * I) mod Md
+end
+Iq = Fa Ex Md powmod
+Js = 0 to N array
+E = (2 Js Mm powmod) - 1
+Rr = ((2 E Md powmod) - 1 + Md) mod Md
+Cc = (Rr * Iq) mod Md
+Od = Js mod 2
+Dd = Iq + Od * (Md - 2 * Iq)
+Dr = Dd (N - Js)
+Ah = Js * 0
+for M in 0 to N
+  Sl = (N - M) to N array
+  Cs = Cc (0 to M array)
+  Ds = Dr Sl
+  Ah M = (((Cs * Ds) mod Md) sum) mod Md
+end
+Ar = Ah (N - Js)
+Bv = Js * 0
+Hh = Js * 0
+for M in 1 to N
+  Sl = (N - M) to (N - 1) array
+  Bs = Bv (0 to (M - 1) array)
+  As = Ar Sl
+  Sm = (((Bs * As) mod Md) sum) mod Md
+  Pv = Fa (M - 1)
+  Qv = Iq M
+  Im = (Pv * Qv) mod Md
+  Am = Ah M
+  Xm = (Im * Sm) mod Md
+  Hh M = (Am + Md - Xm) mod Md
+  Hm = Hh M
+  Bv M = (M * Hm) mod Md
+end
+Z = N - K
+Gg = Hh (1 to (Z + 1) array)
+Pr = array shape (Z + 1) fill 0
+Pr Z = 1
+for M in 1 to Z
+  Jm = 1 to M array
+  Wt = (((K + 1) * Jm - M) mod Md)
+  Gs = Gg Jm
+  Sl = (Z - M + 1) to Z array
+  Ps = Pr Sl
+  Tt = (Wt * Gs) mod Md
+  Tt = (Tt * Ps) mod Md
+  Sm = ((Tt sum) mod Md)
+  Pv = Fa (M - 1)
+  Qv = Iq M
+  Im = (Pv * Qv) mod Md
+  Pr (Z - M) = (Im * Sm) mod Md
+end
+Iz = Iq (0 to Z array)
+Tot = (((Pr * Iz) mod Md) sum) mod Md
+Fn = Fa N
+Ik = Iq K
+Fk = (Fn * Ik) mod Md
+Answer = (Fk * Tot) mod Md
+Answer print
