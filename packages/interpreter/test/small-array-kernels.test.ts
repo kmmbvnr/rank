@@ -78,8 +78,9 @@ describe('vector dot', () => {
             ownedArray([1n], [1], true))).toBe(0);
     });
 
-    it('consumes trusted reordered and duplicate selections without lazy cell caches', () => {
-        const source = ownedArray([2n, 3n, 5n], [3], true);
+    it.each(['plain', 'int32', 'int64'] as const)('consumes trusted reordered and duplicate %s selections without lazy cell caches', storage => {
+        const source = storage === 'plain' ? ownedArray([2n, 3n, 5n], [3], true)
+            : typedArray(storage === 'int32' ? new Int32Array([2, 3, 5]) : new BigInt64Array([2n, 3n, 5n]));
         const indices = ownedArray([2n, 0n, 2n], [3], true);
         const diagnostics = new RuntimeDiagnostics();
         diagnostics.run(() => {
@@ -87,6 +88,14 @@ describe('vector dot', () => {
             expect(matmulValues(view, ownedArray([1n, -1n, 2n], [3], true))).toBe(13n);
         });
         expect(diagnostics.cellsComputed).toBe(0);
+    });
+
+    it('keeps signed compact dot products exact beyond the Number range', () => {
+        const a = Int32Array.from({ length: 25000 }, (_, i) => i % 2 ? -2147483648 : 2147483647);
+        const b = Int32Array.from({ length: 25000 }, (_, i) => i % 3 ? 999999937 : -123456789);
+        let expected = 0n;
+        for (let i = 0; i < a.length; i++) expected += BigInt(a[i]) * BigInt(b[i]);
+        expect(matmulValues(typedArray(a), typedArray(b))).toBe(expected);
     });
 
     it('retains named gather snapshots when a source is written', () => withRuntime(runtime => {

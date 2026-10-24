@@ -163,7 +163,11 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
     if (source.itemAt !== undefined) return undefined;
     const items = denseScalarItems(source) && storedOperandItems(source);
     if (!items) return undefined;
-    let read = (index: number): RankValue => items[index];
+    // Int32 items expose BigInt through a Proxy. Native readers can convert
+    // the borrowed buffer directly, keeping the same checks on every layer.
+    const compact = integer32Cells(source);
+    let read = compact ? (index: number): RankValue => BigInt(compact[index])
+        : (index: number): RankValue => items[index];
     for (let layer = layers.length - 1; layer >= 0; layer--) {
         const previous: (index: number) => RankValue = read;
         const { offset, validate, check } = layers[layer];
@@ -194,5 +198,5 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
         ? (cell: RankValue): void => {
             for (let i = layers.length - 1; i >= 0; i--) { layers[i].validate?.(cell, 0); layers[i].check?.(cell); }
         } : undefined;
-    return { read, kinds, items, compact: integer32Cells(source), regular: layers.every(layer => layer.regular), linear, validate: check, validateUniform };
+    return { read, kinds, items, compact, regular: layers.every(layer => layer.regular), linear, validate: check, validateUniform };
 }

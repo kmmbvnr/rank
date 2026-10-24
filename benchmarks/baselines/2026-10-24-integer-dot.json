@@ -1,0 +1,113 @@
+{
+  "issue": 443,
+  "baselineCommit": "29ea09d7",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "method": "Three sequential fresh processes per case and stage. Includes parsing, operand construction, selections and 2000 contractions of 25000 integer pairs; independent BigInt oracle outside timer. Baseline also ran a selection-only control between rounds.",
+  "notes": "The sum spelling in the issue has a different checksum. The equivalent case adds mod after the sum to match dot.",
+  "stages": {
+    "baseline": {
+      "medianMs": {
+        "dot": 9278.357666,
+        "sum": 6370.915291,
+        "equivalent": 6961.758708
+      },
+      "samples": {
+        "dot": [
+          {
+            "ms": 9278.357666,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 9273.4565,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 10317.658625,
+            "checksum": "437875206000"
+          }
+        ],
+        "sum": [
+          {
+            "ms": 6514.977958,
+            "checksum": "24724440916258000"
+          },
+          {
+            "ms": 5905.937875,
+            "checksum": "24724440916258000"
+          },
+          {
+            "ms": 6370.915291,
+            "checksum": "24724440916258000"
+          }
+        ],
+        "equivalent": [
+          {
+            "ms": 7066.8889580000005,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 5939.554875,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 6961.758708,
+            "checksum": "437875206000"
+          }
+        ]
+      }
+    },
+    "directCompactReads": {
+      "change": "Read compact Int32 storage directly in prepareStoredScalarView; retain all view checks. No dot-specific changes.",
+      "medianMs": {
+        "dot": 3249.0739160000003,
+        "sum": 6920.323582999999,
+        "equivalent": 7335.628458
+      },
+      "samples": {
+        "dot": [
+          {
+            "ms": 3249.0739160000003,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 3076.705333,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 3949.6122920000003,
+            "checksum": "437875206000"
+          }
+        ],
+        "sum": [
+          {
+            "ms": 7612.360291,
+            "checksum": "24724440916258000"
+          },
+          {
+            "ms": 6920.323582999999,
+            "checksum": "24724440916258000"
+          },
+          {
+            "ms": 6105.863665999999,
+            "checksum": "24724440916258000"
+          }
+        ],
+        "equivalent": [
+          {
+            "ms": 7335.628458,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 7489.420625,
+            "checksum": "437875206000"
+          },
+          {
+            "ms": 5996.5371669999995,
+            "checksum": "437875206000"
+          }
+        ]
+      }
+    }
+  }
+}
