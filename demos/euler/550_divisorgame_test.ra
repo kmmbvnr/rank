@@ -1,0 +1,13 @@
+use testing
+
+test "statement value and brute force"
+  use "550_divisorgame"
+  N = 10
+  K = 5
+  run
+  Answer equal 40085
+  N = 100
+  K = 3
+  run
+  Answer equal 819374
+end

@@ -1,0 +1,62 @@
+rem Divisor game
+rem https://projecteuler.net/problem=550
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 10000000
+option K integer = 1000000000000
+
+rem A move splits x into two proper
+rem divisors > 1. Those divisors reach
+rem every Omega below Omega(x), so by
+rem induction the Grundy value is G(w),
+rem w = Omega(x): the mex of G(i) xor
+rem G(j), i, j < w. The losing k-tuples
+rem have xor 0: their count is 1 / 64
+rem times the sum of the k-th powers of
+rem the Walsh-Hadamard histogram.
+Md = 987654321
+Om = array shape (N + 1) fill 0
+for P in primes to N
+  Q = P
+  for Q at most N
+    Om (Q to N by Q) += 1
+    Q *= P
+  end
+end
+Wm = 30
+Hw = array shape (Wm + 1) fill 0
+Oc = Om (2 to N)
+Hw Oc += 1 .accumulate
+G = array shape (Wm + 1) fill 0
+for W in 2 to Wm
+  Gs = G (1 till W)
+  Nw = W - 1
+  Xm = Gs Gs outer bxor
+  X = Xm reshape (Nw * Nw)
+  Sn = array shape 128 fill false
+  Sn X = true
+  G W = ((Sn equal false) indices) first
+end
+rem Histogram by Grundy value, then the
+rem 64-point Walsh-Hadamard transform.
+Hg = array shape 64 fill 0
+Hg (G (0 to Wm)) += Hw .accumulate
+J = (0 till 64) copy
+Sg = ((J J outer band) popcount) mod 2
+Ht = ((1 - 2 * Sg) * Hg) reduce + axis 1
+Pw = (Ht mod Md) K Md powmod
+rem Md is odd but not prime: 1 / 64 is
+rem (Md t + 1) / 64 for t below 64.
+Ts = (0 till 64) copy
+Tm = (Md * Ts + 1) mod 64
+Ti = (Tm equal 0) indices
+I64 = (Md * (Ts (Ti first)) + 1) // 64
+Lz = (Pw sum) mod Md * I64 mod Md
+Al = (N - 1) K Md powmod
+Answer = (Al - Lz) mod Md
+Answer print
