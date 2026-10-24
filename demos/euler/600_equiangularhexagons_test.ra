@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "600_equiangularhexagons"
+  run
+  Answer equal 2668608479740672
+end
+
+test "statement values"
+  use "600_equiangularhexagons"
+  N = 6
+  run
+  Answer equal 1
+  N = 12
+  run
+  Answer equal 10
+  N = 100
+  run
+  Answer equal 31248
+end
