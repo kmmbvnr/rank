@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "588_quintinomial"
+  run
+  Answer equal 11651930052
+end
+
+test "statement values"
+  use "588_quintinomial"
+  T = 1
+  run
+  Answer equal 17
+  T = 2
+  run
+  Answer equal 52
+end

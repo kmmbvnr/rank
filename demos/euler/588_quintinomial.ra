@@ -1,0 +1,65 @@
+rem Quintinomial Coefficients
+rem https://projecteuler.net/problem=588
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option T integer = 18
+
+rem Over GF(2) P(x)^2 = P(x^2), so P^k
+rem is the product of P(x^(2^b)) for
+rem the set bits b of k, and exponent
+rem m = sum d_b 2^b with d_b in 0 .. 4
+rem there. Sweep the bits from the low
+rem end with a carry c; the output bit
+rem is (c + d) mod 2 and the new carry
+rem (c + d) // 2. A mask of the carries
+rem reached an odd number of times
+rem is the state, 32 of them, and
+rem counts of bit strings move on it.
+Nx = array shape 4 32 fill 0
+for Kb in 0 to 1
+  for O in 0 to 1
+    for Mk in 0 to 31
+      Nm = 0
+      for C in 0 to 4
+        if (Mk shr C) band 1 equal 1
+          for Dg in 0 to 4 * Kb
+            S = C + Dg
+            if S mod 2 equal O
+              Bt = 1 shl (S // 2)
+              Nm = Nm bxor Bt
+            end
+          end
+        end
+      end
+      Nx (Kb * 2 + O) Mk = Nm
+    end
+  end
+end
+Ms = 0 to 31 array
+Ix = ((Ms band 1) equal 1) indices
+Answer = 0
+for I in 1 to T
+  K = 10 ** I
+  Ln = 0
+  for (K shr Ln) greater 0
+    Ln += 1
+  end
+  Ct = array shape 32 fill 0
+  Ct 1 = 1
+  for B in 0 till Ln + 3
+    Kb = (K shr B) band 1
+    Cn = array shape 32 fill 0
+    for O in 0 to 1
+      Tg = Nx (Kb * 2 + O)
+      Cn Tg += Ct .accumulate
+    end
+    Ct = Cn
+  end
+  Answer += (Ct Ix) sum
+end
+Answer print
