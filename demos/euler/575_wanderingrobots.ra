@@ -1,0 +1,32 @@
+rem Wandering Robots
+rem https://projecteuler.net/problem=575
+
+use numbers
+use sequences
+use io
+use cli
+
+option W integer = 1000
+
+rem The walk is reversible, so the
+rem long-run share of a room is its
+rem weight over the total weight: the
+rem degree plus one when the stay
+rem chance is shared, the degree when
+rem it is fixed. Square-numbered rooms
+rem are 1, 4, 9, ... W^2. Average the
+rem two cases.
+Sq = (1 to W array) ** 2 - 1
+Rw = Sq // W
+Cl = Sq mod W
+E1 = (Rw equal 0) integer
+E2 = (Rw equal (W - 1)) integer
+E3 = (Cl equal 0) integer
+E4 = (Cl equal (W - 1)) integer
+Dg = 4 - E1 - E2 - E3 - E4
+Dt = 4 * W * (W - 1)
+Pa = ((Dg + 1) sum) / (Dt + W * W)
+Pb = (Dg sum) / Dt
+Answer = (Pa + Pb) / 2
+Answer = Answer round 12
+Answer print

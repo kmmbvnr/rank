@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "575_wanderingrobots"
+  run
+  Answer equal 0.000989640561
+end
+
+test "five by five grid"
+  use "575_wanderingrobots"
+  W = 5
+  run
+  Answer equal 0.177976190476
+end
