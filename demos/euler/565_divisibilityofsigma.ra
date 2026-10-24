@@ -1,0 +1,141 @@
+rem Divisibility of Sum of Divisors
+rem https://projecteuler.net/problem=565
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000000
+
+rem sigma is multiplicative, so 2017
+rem divides s(n) when some q^e exactly
+rem dividing n has 2017 | s(q^e), i.e.
+rem the order of q mod 2017 divides
+rem e + 1. Sum n over
+rem these events by inclusion-exclusion:
+rem singles minus pairs (triples need
+rem three such prime powers, too big).
+rem Primes q = -1 mod 2017 (order 2,
+rem e = 1) come from a sieve over
+rem q = 2017 k - 1; the others only
+rem occur for q up to sqrt N. With
+rem tri(x) = x (x + 1) / 2, the n < N
+rem with v_q(n) = e sum to q^e (tri(M)
+rem - q tri(M // q)), M = N // q^e.
+Pd = 2017
+Sq = N isqrt
+Sp = primes till (Sq + 1) array
+Km = (N + 1) // Pd
+Cp = array shape (Km + 1) fill 0
+for R in Sp
+  if R not equal Pd
+    Iv = (Pd mod R) (R - 2) R powmod
+    Kn = (R * R + Pd) // Pd
+    Kd = (Kn - Iv + R - 1) // R
+    Kz = Iv + R * (Kd max 0)
+    Ix = (Kz to Km by R) array
+    Cp Ix = 1
+  end
+end
+Ks = (Cp equal 0) indices
+Ks = Ks ((Ks greater 0) indices)
+Q2 = Pd * Ks - 1
+Ao = Sp mod Pd
+Ok = (Ao greater 1) and (Ao less 2016)
+Qo = Sp (Ok indices)
+Ao = Qo mod Pd
+Od = Ao * 0 + (Pd - 1)
+for F in array 2 2 2 2 2 3 3 7
+  Ex = Od // F
+  Ts = (Ao Ex Pd powmod) equal 1
+  Od = Ts choose Ex Od
+end
+Pw = Qo
+Em = Qo * 0
+Lv = (Pw at most N) integer
+for (Lv sum) greater 0
+  Em += Lv
+  Pw = Pw * Qo
+  Lv = (Pw at most N) integer
+end
+Tq = array shape 0 fill 0
+Te = Tq
+for Mu in 1 to 40
+  Ee = Od * Mu - 1
+  Ix = (Ee at most Em) indices
+  Tq = concat Tq (Qo Ix)
+  Te = concat Te (Ee Ix)
+end
+Tp = Tq ** Te
+M2 = N // Q2
+Mq = M2 // Q2
+T1 = M2 * (M2 + 1) // 2
+T2 = Mq * (Mq + 1) // 2
+Singles = (Q2 * (T1 - Q2 * T2)) sum
+Mo = N // Tp
+Mq = Mo // Tq
+T1 = Mo * (Mo + 1) // 2
+T2 = Mq * (Mq + 1) // 2
+Singles += (Tp * (T1 - Tq * T2)) sum
+Pairs = 0
+for Q in Q2
+  if Q * Q at most N
+    Lm = N // Q
+    Up = Q2 greater Q
+    Gt = Up and (Q2 at most Lm)
+    Rr = Q2 (Gt indices)
+    Pr = Q * Rr
+    X = N // Pr
+    Xa = X // Q
+    Xb = X // Rr
+    Xc = X // (Q * Rr)
+    Tx = X * (X + 1) // 2
+    Ta = Xa * (Xa + 1) // 2
+    Tb = Xb * (Xb + 1) // 2
+    Tc = Xc * (Xc + 1) // 2
+    In = Tx - Q * Ta - Rr * Tb
+    In = In + Q * Rr * Tc
+    Pairs += (Pr * In) sum
+  end
+end
+Nt = Tp len
+for J in 0 till Nt
+  Pe = Tp J
+  Bq = Tq J
+  Lm = N // Pe
+  Rr = Q2 ((Q2 at most Lm) indices)
+  Pr = Rr * Pe
+  X = N // Pr
+  Xa = X // Rr
+  Xb = X // Bq
+  Xc = X // (Rr * Bq)
+  Tx = X * (X + 1) // 2
+  Ta = Xa * (Xa + 1) // 2
+  Tb = Xb * (Xb + 1) // 2
+  Tc = Xc * (Xc + 1) // 2
+  In = Tx - Rr * Ta - Bq * Tb
+  In = In + Rr * Bq * Tc
+  Pairs += (Pr * In) sum
+  for L in (J + 1) till Nt
+    Pl = Tp L
+    Ql = Tq L
+    Pp = Pe * Pl
+    Dq = Ql not equal Bq
+    if Dq and (Pp at most N)
+      X = N // Pp
+      Xa = X // Bq
+      Xb = X // Ql
+      Xc = X // (Bq * Ql)
+      Tx = X * (X + 1) // 2
+      Ta = Xa * (Xa + 1) // 2
+      Tb = Xb * (Xb + 1) // 2
+      Tc = Xc * (Xc + 1) // 2
+      In = Tx - Bq * Ta - Ql * Tb
+      In = In + Bq * Ql * Tc
+      Pairs += Pp * In
+    end
+  end
+end
+Answer = Singles - Pairs
+Answer print
