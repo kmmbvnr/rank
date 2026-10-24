@@ -1,0 +1,45 @@
+rem Nearly Isosceles 120 Deg Triangles
+rem https://projecteuler.net/problem=582
+
+use numbers
+use io
+use cli
+
+option E integer = 100
+option G integer = 100
+
+rem With b = a + d, c^2 = a^2 + ab + b^2
+rem becomes U^2 - 3 X^2 = d^2, U = 2c,
+rem X = 2a + d. Each class of solutions
+rem starts with |X| at most d / 2, and
+rem (U, X) moves to (2U + 3X, U + 2X)
+rem along the class. A start whose
+rem step back is also inside is skipped.
+Nm = 10 ** E
+Answer = 0
+for D in 1 to G
+  Lm = D // 2
+  for Y in (0 - Lm) to Lm
+    Sq = D * D + 3 * Y * Y
+    U = Sq isqrt
+    Xb = 2 * Y - U
+    Sk = (0 - Lm) at most Xb
+    Sk = Sk and (Xb at most Lm)
+    if (U * U equal Sq) and (not Sk)
+      X = Y
+      for U // 2 at most Nm
+        Ev = U mod 2 equal 0
+        Ok = Ev and (X greater D)
+        Od = (X - D) mod 2 equal 0
+        Ok = Ok and Od
+        if Ok
+          Answer += 1
+        end
+        U2 = 2 * U + 3 * X
+        X = U + 2 * X
+        U = U2
+      end
+    end
+  end
+end
+Answer print
