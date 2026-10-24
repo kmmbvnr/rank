@@ -186,7 +186,7 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
     // The common case has one selection and no checked binding wrapper.
     const only = layers.length === 1 ? layers[0] : undefined;
     const check = only && !only.check ? only.validate : layers.length ? validate : undefined;
-    const kinds = allowChecks ? storedScalarKinds(source) : undefined;
+    const kinds = allowChecks ? storedScalarKinds(source, true) : undefined;
     // With one proved physical kind and no column-specific contracts, every
     // selected cell has the same domain. Observe it once before a real kernel;
     // arbitrary checks and mixed domains must keep their per-cell validation.

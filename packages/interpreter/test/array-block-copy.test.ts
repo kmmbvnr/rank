@@ -1,11 +1,30 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, type RankArray } from '../src/index.js';
-import { integer32Cells, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
+import { eagerOperandItems, integer32Cells, readArrayItem, typedArray, typedElementKind } from '../src/array-storage.js';
 import { copyArrayStorage } from '../src/array-copy.js';
 import { withInterrupt, InterruptedError } from '../src/interrupt.js';
 import { sliceArray, tensorSelection, ALL_AXIS } from '../src/selectors.js';
 
 for (const compilation of [true, false]) describe(`stored block copies (compilation=${compilation})`, () => {
+    it('keeps real storage packed through repeated slice copies in a loop', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute('use sequences\nX = (0 till 20000) copy\nY = X * 1.0\nTotal = 0.0');
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(() => runtime.execute(`for R in 1 to 4
+ A = (Y (10 till 10010)) copy
+ Total += A 0 + A 9999
+end
+Total`));
+            expect(result).toBe(40076);
+            expect(diagnostics.typedUnpacks).toBe(0);
+            expect(diagnostics.cellsComputed).toBe(0);
+            expect(diagnostics.elementTypeScannedCells).toBe(0);
+            runtime.execute('Y 10 = -1.0');
+            expect(runtime.execute('Total')).toBe(40076);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['int32', 'int64', 'real'] as const)('copies row windows directly from %s storage', kind => {
         const runtime = new Interpreter(undefined, { compilation });
         const data = kind === 'int32' ? Int32Array.from({ length: 90000 }, (_, i) => i - 45000)
@@ -109,6 +128,14 @@ for (const compilation of [true, false]) describe(`concat block copies (compilat
 });
 
 describe('block copy guards', () => {
+    it('propagates cancellation while preparing a stored slice for an eager kernel', () => {
+        const source = typedArray(new Float64Array(100000).fill(0.5));
+        const selected = sliceArray(source, tensorSelection(source, [ALL_AXIS])) as RankArray;
+        const signal = new Int32Array(new SharedArrayBuffer(4));
+        Atomics.store(signal, 0, 1);
+        expect(() => withInterrupt(signal, () => eagerOperandItems(selected, true))).toThrow(InterruptedError);
+    });
+
     it('keeps cancellation checkpoints and leaves source storage unchanged', () => {
         const source = typedArray(new Int32Array(100000).fill(2));
         const selected = sliceArray(source, tensorSelection(source, [ALL_AXIS])) as RankArray;

@@ -1,10 +1,46 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, isRankArray } from '../src/index.js';
-import { borrowArrayStorage, eagerOperandItems, filledArray, integer32Cells, prepareScalarArrayReader, prepareScalarArrayWriter, readArrayItem, typedElementKind, writeArrayCell, writeInteger32Cells } from '../src/array-storage.js';
+import { borrowArrayStorage, eagerOperandItems, filledArray, integer32Cells, IntegerCells, prepareScalarArrayReader, prepareScalarArrayWriter, readArrayItem, typedArray, typedElementKind, writeArrayCell, writeInteger32Cells } from '../src/array-storage.js';
 
 const N = 10000;
 
 describe('compact integer counters', () => {
+    it('gathers repeated compact integer selectors without widening the result', () => {
+        const runtime = new Interpreter();
+        runtime.variables.set('M', typedArray(Int32Array.from({ length: N }, (_, i) => i - 5000)));
+        runtime.variables.set('Ix', typedArray(new Int32Array([9999, 0, 9999, 5]), [2, 2]));
+        runtime.variables.set('Negative', typedArray(new Int32Array([-1])));
+        runtime.variables.set('Outside', typedArray(new Int32Array([N])));
+        try {
+            const result = runtime.execute('M Ix');
+            if (!result || !isRankArray(result)) throw Error('expected array');
+            expect(result.shape).toEqual([2, 2]);
+            expect(integer32Cells(result)).toBeDefined();
+            expect(Array.from({ length: 4 }, (_, i) => readArrayItem(result, i))).toEqual([4999n, -5000n, 4999n, -4995n]);
+            expect(() => runtime.execute('M Negative')).toThrow(/nonnegative/);
+            expect(() => runtime.execute('M Outside')).toThrow(/out of bounds/);
+        } finally { runtime.dispose(); }
+    });
+
+    it('builds compact integer results and widens without losing prior cells', () => {
+        const build = (tail?: bigint) => {
+            const cells = new IntegerCells(N);
+            for (let i = 0; i < N; i++) cells.set(i, i === 0 ? -2147483648n : 2147483647n);
+            if (tail !== undefined) cells.set(2, tail);
+            return cells.array([N]);
+        };
+        expect(integer32Cells(build())?.byteLength).toBe(N * 4);
+        const wide = build(2147483648n);
+        expect(integer32Cells(wide)).toBeUndefined();
+        expect(readArrayItem(wide, 0)).toBe(-2147483648n);
+        expect(readArrayItem(wide, 1)).toBe(2147483647n);
+        expect(readArrayItem(wide, 2)).toBe(2147483648n);
+        const exact = build(-(1n << 80n));
+        expect(readArrayItem(exact, 0)).toBe(-2147483648n);
+        expect(readArrayItem(exact, 1)).toBe(2147483647n);
+        expect(readArrayItem(exact, 2)).toBe(-(1n << 80n));
+    });
+
     it('allocates four-byte cells and exposes Rank integers', () => {
         const array = filledArray(-2147483648n, [N]);
         expect(integer32Cells(array)?.byteLength).toBe(N * 4);

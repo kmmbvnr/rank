@@ -235,9 +235,9 @@ export function borrowArrayStorage(value: RankValue | undefined): RankValue | un
     if (!value || !isRankArray(value)) return value;
     const state = ownedStorage.get(value);
     if (!state?.stable) return value;
-    // An integer buffer is borrowed packed. A write that does not fit replaces
-    // it with boxed cells, so the view and its readers follow state.items.
-    if (!state.booleans && (!(state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) || state.validity)) state.convert?.();
+    // Numeric buffers stay packed until a write needs boxed cells. The view
+    // and its readers follow state.items when that write replaces the buffer.
+    if (!state.booleans && (!state.typed || state.validity)) state.convert?.();
     const view: RankArray = { kind: 'array', shape: [...value.shape], get items() { return state.items; } };
     borrowedStorage.set(view, state);
     return view;

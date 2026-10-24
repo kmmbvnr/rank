@@ -100,5 +100,7 @@ export function copyStoredArrayBlocks(shape: readonly number[], inputs: readonly
             else out.set(cells as Int32Array | Float64Array, block.target + start);
         }
     }
-    return typedArray(out, shape);
+    const kinds = [...prepared.values()].map(view => view.kinds?.length === 1 ? view.kinds[0] : undefined);
+    const uniformKind = kinds[0] && kinds.every(kind => kind === kinds[0]) ? kinds[0] : undefined;
+    return typedArray(out, shape, undefined, uniformKind);
 }

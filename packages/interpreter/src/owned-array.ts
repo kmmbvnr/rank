@@ -1,5 +1,6 @@
 import { BooleanCells, booleanItems } from './boolean-cells.js';
-import { checkpoint, privateLoopPolling } from './interrupt.js';
+import { copyArrayStorage } from './array-copy.js';
+import { checkpoint, InterruptedError, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
@@ -49,14 +50,16 @@ function scalarKind(value: RankValue | undefined): string | undefined {
     }
 }
 
-/** Exact kinds in trusted scalar storage, without forcing a reader or declaring
- * a semantic type. Same-kind writes keep this proof valid across data revisions. */
-export function storedScalarKinds(value: RankArray): readonly string[] | undefined {
+/** Physical kinds in trusted scalar storage, without forcing a reader. Contract
+ * checks request exact numeric-limit counts; ordinary Float64 type queries do
+ * not need to distinguish infinities from other real cells. */
+export function storedScalarKinds(value: RankArray, numericLimits = false): readonly string[] | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly) return undefined;
     // An integer buffer can hold nothing else, and scanning it would box every cell.
     if (state.booleans) return state.booleans.length ? ['boolean'] : [];
     if (state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) return state.typed.length ? ['integer'] : [];
+    if (state.typed instanceof Float64Array && !numericLimits) return state.typed.length ? ['real'] : [];
     if (!state.elementKinds) {
         const kinds = new Map<string, number>();
         const diagnostics = currentDiagnostics();
@@ -361,6 +364,8 @@ export function eagerOperandItems(value: RankArray, repeatedReads = false): Arra
         // A host buffer has no revision, so its reads stay in the host's order.
         if (arrayRevision(value) === undefined) return undefined;
         try {
+            const copied = copyArrayStorage(value);
+            if (copied) return eagerOperandItems(copied, repeatedReads);
             const items = value.items;
             for (let index = 0; index < size; index += 1) {
                 const cell = items[index];
@@ -368,6 +373,7 @@ export function eagerOperandItems(value: RankArray, repeatedReads = false): Arra
             }
             return items;
         } catch (error) {
+            if (error instanceof InterruptedError) throw error;
             if (error instanceof RankError) return undefined;
             throw error;
         }
@@ -463,9 +469,12 @@ export function filledArray(fill: RankValue, shape: readonly number[]): RankArra
  * Takes ownership of `data`. */
 export function typedArray(
     data: Float64Array | BigInt64Array | Int32Array, shape: readonly number[] = [data.length],
-    columnNames?: readonly string[],
+    columnNames?: readonly string[], scalarKind?: string,
 ): RankArray {
-    return createOwned(data, shape, true, columnNames);
+    const value = createOwned(data, shape, true, columnNames);
+    // Internal copies may carry a proved uniform domain, including infinities.
+    if (scalarKind) ownedStorage.get(value)!.elementKinds = new Map(data.length ? [[scalarKind, data.length]] : []);
+    return value;
 }
 
 /** Integer arrays from this size up are packed. Smaller ones stay boxed, since
@@ -485,20 +494,27 @@ function packedIntegers(items: RankValue[]): BigInt64Array | undefined {
     return packed;
 }
 
-/** Builds the cells of a fresh integer array: packed in one BigInt64Array, or
- * exact bigints from the first value that does not fit in 64 bits. */
+/** Build integer cells in Int32, widening to Int64 or arbitrary precision only
+ * when a produced value needs it. Never narrow a mathematical integer. */
 export class IntegerCells {
-    private packed?: BigInt64Array;
+    private packed?: Int32Array | BigInt64Array;
     private exact?: bigint[];
 
     constructor(size: number) {
-        if (size >= PACKED_CELLS) this.packed = new BigInt64Array(size);
+        if (size >= PACKED_CELLS) this.packed = new Int32Array(size);
         else this.exact = new Array(size);
     }
 
     set(index: number, value: bigint): void {
-        const packed = this.packed;
+        let packed = this.packed;
         if (packed) {
+            if (packed instanceof Int32Array) {
+                if (fitsInt32(value)) {
+                    packed[index] = Number(value);
+                    return;
+                }
+                this.packed = packed = BigInt64Array.from(packed, BigInt);
+            }
             if (fitsInt64(value)) {
                 packed[index] = value;
                 return;

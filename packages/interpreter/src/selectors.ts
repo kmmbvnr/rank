@@ -8,7 +8,7 @@ import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -157,11 +157,12 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
         const stored = isRankArray(selector) ? denseScalarItems(selector) : undefined;
         const kinds = stored && storedScalarKinds(selector as RankArray);
         if (stored && kinds?.length === 1 && kinds[0] === 'integer') {
+            const compact = integer32Cells(selector as RankArray);
             const indices = new Float64Array(stored.length);
             let unique = true;
-            for (let i = 0; i < stored.length; i++) {
+            for (let i = 0; i < indices.length; i++) {
                 checkpoint('checking array indices');
-                const value = stored[i] as bigint;
+                const value = compact ? compact[i] : stored[i] as bigint;
                 const offset = Number(value);
                 if (offset < 0) throw new RankError(`array index must be nonnegative on axis ${axis}`);
                 if (offset >= size) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${value}`);
@@ -355,10 +356,11 @@ export function sliceArray(
     const regular = selection.linear || selection.axes?.every(axis => axis.linear);
     const material = stored && (kind !== undefined || total >= DENSE_SLICE_CELLS);
     if (!regular && material) {
+        const compact = integer32Cells(source);
         const reals = kind === 'real' || (kind === undefined && realCells(source) !== undefined);
-        const out: RankValue[] | Float64Array | BigInt64Array = reals ? new Float64Array(total)
+        const out: RankValue[] | Float64Array | BigInt64Array | Int32Array = compact ? new Int32Array(total) : reals ? new Float64Array(total)
             : kind === 'integer' ? new BigInt64Array(total) : new Array(total);
-        gather(stored, out as unknown as RankValue[], selection, total);
+        gather(compact ?? stored, out as unknown as RankValue[], selection, total);
         const result = Array.isArray(out) ? ownedArray(out, selection.shape, true, columnNames) : typedArray(out, selection.shape, columnNames);
         return source.columnNames ? result : inheritSemanticArrayType(source, result);
     }

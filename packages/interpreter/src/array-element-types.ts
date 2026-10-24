@@ -8,7 +8,7 @@ const elementTypeCache = new WeakMap<RankArray, { revision: number; types: strin
 
 export function arrayElementTypes(value: RankArray, numericLimits = false): string[] | undefined {
     if (value.kind === 'bytes') return value.shape.some(size => size === 0) ? [] : ['integer'];
-    const stored = storedScalarKinds(value);
+    const stored = storedScalarKinds(value, numericLimits);
     if (stored) return numericLimits ? [...stored]
         : [...new Set(stored.map(kind => kind === 'numeric-limit' ? 'real' : kind))].sort();
     const cache = numericLimits ? numericLimitCache : elementTypeCache;

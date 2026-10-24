@@ -1,9 +1,10 @@
 import { prepareStoredScalarView } from '../integer-view.js';
+import { copyArrayStorage } from '../array-copy.js';
 import { tensorSource } from '../tensor-source.js';
 import { diagonalResultShape, matmulResultShape } from '@arrrank/language';
 import { tuple } from '../value.js';
-import { checkpoint, interruptibleCallback } from '../interrupt.js';
-import { derivedArray, eagerOperandItems, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
+import { checkpoint, interruptibleCallback, InterruptedError, privateLoopPolling } from '../interrupt.js';
+import { denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, readArrayShape, float64Cells, realCells, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { isRankArray, isRankLabel, type RankArray, type RankValue } from '../value.js';
 import { expectNumeric, native } from './shared.js';
@@ -537,9 +538,16 @@ function denseMatmul(
 ): RankArray | undefined {
     const size = outputShape.reduce((product, dimension) => product * dimension, 1);
     if (size * contracted < DENSE_MATMUL_WORK) return undefined;
-    const leftItems = eagerOperandItems(left, true);
-    const rightItems = eagerOperandItems(right, true);
-    if (!leftItems || !rightItems) return undefined;
+    // Retain the copied operand's storage kind: Int32 cells are integers, even
+    // though their raw buffer contains JS numbers. Other lazy inputs keep the
+    // ordinary eager-operand fallback and demand-time errors.
+    try {
+        if (!denseScalarItems(left)) left = copyArrayStorage(left) ?? left;
+        if (!denseScalarItems(right)) right = copyArrayStorage(right) ?? right;
+    } catch (error) {
+        if (error instanceof RankError && !(error instanceof InterruptedError)) return undefined;
+        throw error;
+    }
     const leftStrides = stridesOf(left.shape);
     const rightStrides = stridesOf(right.shape);
     const leftInner = leftStrides[leftAxis];
@@ -556,10 +564,15 @@ function denseMatmul(
             float64Cells(left)!, float64Cells(right)!, size, contracted, leftInner, rightInner,
             outputShape, outputStrides, leftRank), outputShape);
     }
+    const leftCompact = privateLoopPolling() ? integer32Cells(left) : undefined;
+    const rightCompact = privateLoopPolling() ? integer32Cells(right) : undefined;
+    let leftItems = leftCompact ? undefined : eagerOperandItems(left, true);
+    let rightItems = rightCompact ? undefined : eagerOperandItems(right, true);
+    if (!leftCompact && !leftItems || !rightCompact && !rightItems) return undefined;
     // Bound absolute products, not just the final sum: cancellation must not
     // hide an inexact intermediate. BigInt checks cannot round an unsafe bound.
-    const a = boundedIntegerOperand(leftItems);
-    const b = a && boundedIntegerOperand(rightItems);
+    const a = boundedIntegerOperand(leftItems, leftCompact);
+    const b = a && boundedIntegerOperand(rightItems, rightCompact);
     if (a && b && a.max * b.max * BigInt(contracted) <= 9007199254740991n) {
         const numbers = numberMatmul(a.cells, b.cells, size, contracted, leftInner, rightInner,
             outputShape, outputStrides, leftRank);
@@ -570,6 +583,11 @@ function denseMatmul(
         }
         return typedArray(integers, outputShape);
     }
+    // Unsafe bounds and mixed real/integer products still use exact Rank
+    // values. Only this fallback needs to box a compact integer operand.
+    leftItems ??= eagerOperandItems(left, true);
+    rightItems ??= eagerOperandItems(right, true);
+    if (!leftItems || !rightItems) return undefined;
     const cells: (bigint | number)[] = new Array(size);
     // The two operand offsets of each output cell come from an odometer over
     // the output coordinates, so no cell pays for a division per axis.
@@ -621,7 +639,16 @@ function denseMatmul(
 }
 
 /** Only stored integer operands whose conversion to Number is exact qualify. */
-function boundedIntegerOperand(items: ArrayLike<RankValue>): { cells: Float64Array; max: bigint } | undefined {
+function boundedIntegerOperand(items: ArrayLike<RankValue> | undefined, compact?: Int32Array): { cells: Float64Array | Int32Array; max: bigint } | undefined {
+    if (compact) {
+        let max = 0;
+        for (let index = 0; index < compact.length; index++) {
+            if ((index & 4095) === 0) checkpoint('checking integer matrix bounds');
+            max = Math.max(max, Math.abs(compact[index]));
+        }
+        return { cells: compact, max: BigInt(max) };
+    }
+    if (!items) return undefined;
     const cells = new Float64Array(items.length);
     let max = 0n;
     for (let index = 0; index < items.length; index++) {
@@ -638,7 +665,7 @@ function boundedIntegerOperand(items: ArrayLike<RankValue>): { cells: Float64Arr
 
 /** Number products over typed buffers, for reals or proved exact integers. */
 function numberMatmul(
-    leftItems: Float64Array, rightItems: Float64Array, size: number, contracted: number,
+    leftItems: Float64Array | Int32Array, rightItems: Float64Array | Int32Array, size: number, contracted: number,
     leftInner: number, rightInner: number, outputShape: readonly number[],
     outputStrides: readonly number[], leftRank: number,
 ): Float64Array {

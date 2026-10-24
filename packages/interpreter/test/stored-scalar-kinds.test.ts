@@ -2,11 +2,45 @@ import { describe, expect, it } from 'vitest';
 import { Interpreter, MISSING, RuntimeDiagnostics, type RankArray } from '../src/index.js';
 import { arrayElementTypes } from '../src/array-element-types.js';
 import { arrayDeclaration } from '../src/array-declaration.js';
+import { copyArrayStorage } from '../src/array-copy.js';
 import { arrayRevision, borrowArrayStorage, ownedArray, prepareScalarArrayWriter, realCells, storedScalarKinds, typedArray } from '../src/array-storage.js';
 import { prepareIntegerView } from '../src/integer-view.js';
 import { semanticArrayType } from '../src/semantic-array-type.js';
 
 describe('physical scalar kind evidence', () => {
+    it('reads Float64 physical kinds without scanning and preserves exact infinity contracts', () => {
+        const array = typedArray(new Float64Array([1.5, Infinity, NaN]));
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => {
+            expect(storedScalarKinds(array)).toEqual(['real']);
+            expect(arrayElementTypes(array)).toEqual(['real']);
+            expect(storedScalarKinds(typedArray(new Float64Array(0)))).toEqual([]);
+        });
+        expect(diagnostics.elementTypeScannedCells).toBe(0);
+        expect(arrayElementTypes(array, true)).toEqual(['numeric-limit', 'real']);
+        const borrowed = borrowArrayStorage(array);
+        const write = prepareScalarArrayWriter(borrowed);
+        write(1, 2.5);
+        expect(arrayElementTypes(array, true)).toEqual(['real']);
+        write(0, -Infinity);
+        expect(arrayElementTypes(array, true)).toEqual(['numeric-limit', 'real']);
+    });
+
+    it('carries an infinity-only contract through a real block copy', () => {
+        const source = typedArray(new Float64Array(5000).fill(Infinity));
+        const copied = copyArrayStorage(source)!;
+        const diagnostics = new RuntimeDiagnostics();
+        diagnostics.run(() => expect(arrayElementTypes(copied, true)).toEqual(['numeric-limit']));
+        expect(diagnostics.elementTypeScannedCells).toBe(0);
+        const runtime = new Interpreter();
+        try {
+            runtime.variables.set('A', copied);
+            runtime.execute('A 0 = 1');
+            expect(runtime.execute('A 0')).toBe(1n);
+            expect(() => runtime.execute('A 0 = 1.0')).toThrow(/array elements/);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['set', 'defineProperty'])('invalidates after a partially failed length %s', operation => {
         const array = ownedArray([1n, 2n, 3n, 4n]);
         array.items[2] = true;

@@ -1,13 +1,37 @@
 import { describe, expect, it } from 'vitest';
+import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 import { matmulValues } from '../src/modules/linalg.js';
 import { derivedArray, filledArray, ownedArray, readArrayItem, typedArray, writeArrayCell } from '../src/array-storage.js';
 import { isRankArray, type RankArray } from '../src/value.js';
 import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
 
 describe('exact integer matrix products', () => {
+    it.each(['int32', 'int64', 'real'] as const)('copies leading-axis %s views in blocks before contraction', kind => {
+        const runtime = new Interpreter();
+        const left = Array.from({ length: 2 * 90 }, (_, i) => i % 7 - 3);
+        const right = Array.from({ length: 200 * 64 }, (_, i) => i % 13 - 6);
+        const cells = (items: number[]) => kind === 'real' ? Float64Array.from(items)
+            : kind === 'int32' ? Int32Array.from(items) : BigInt64Array.from(items, BigInt);
+        runtime.variables.set('L', typedArray(cells(left), [2, 90]));
+        runtime.variables.set('K', typedArray(cells(right), [200, 64]));
+        try {
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(() => runtime.execute('use sequences\nuse linalg\nL matmul (K (10 till 100))')) as RankArray;
+            expect(result.shape).toEqual([2, 64]);
+            for (let row = 0; row < 2; row++) for (let column = 0; column < 64; column++) {
+                let expected = 0;
+                for (let k = 0; k < 90; k++) expected += left[row * 90 + k] * right[(k + 10) * 64 + column];
+                expect(readArrayItem(result, row * 64 + column)).toBe(kind === 'real' ? expected : BigInt(expected));
+            }
+            expect(diagnostics.cellsComputed).toBe(0);
+            expect(diagnostics.typedUnpacks).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
         [999999999n, 32767n],
         [1000000000n, 1000000000n],
+        [-2147483648n, -2147483648n],
         [-(1n << 70n), 3n],
     ])('preserves exact dense results for %s times %s', (a, b) => {
         const n = 65;
