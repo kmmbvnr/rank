@@ -214,5 +214,6 @@
   "euler/299_threesimilar.ra": "The full bound performs millions of scalar Euclidean steps in the uncompiled reference. full-scale-demos.test.ts checks the full compiled answer; small comparisons remain in 299_threesimilar_test.ra.",
   "euler/299_threesimilar_default_test.ra": "Full compiled input is asserted by full-scale-demos.test.ts; bounded cross-mode assertions remain in 299_threesimilar_test.ra.",
   "euler/426_boxball.ra": "The full bound processes ten million runs in the uncompiled reference. full-scale-demos.test.ts checks the compiled answer and an independent per-ball oracle; small comparisons remain in 426_boxball_test.ra.",
-  "euler/426_boxball_default_test.ra": "Full compiled input and an independent oracle are asserted by full-scale-demos.test.ts; bounded cross-mode assertions remain in 426_boxball_test.ra."
+  "euler/426_boxball_default_test.ra": "Full compiled input and an independent oracle are asserted by full-scale-demos.test.ts; bounded cross-mode assertions remain in 426_boxball_test.ra.",
+  "euler/552_chineseleftovers2.ra": "To fix later: the default input takes about 66 s (26k Garner stages, each with mod-multiply updates over the remaining primes, about 3 x 10^8 BigInt cells); the small _test.ra fixture stays in the audits."
 }

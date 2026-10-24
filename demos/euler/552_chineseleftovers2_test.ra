@@ -1,0 +1,11 @@
+use testing
+
+test "statement and smaller bounds"
+  use "552_chineseleftovers2"
+  L = 50
+  run
+  Answer equal 69
+  L = 10000
+  run
+  Answer equal 741693
+end

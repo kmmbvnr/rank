@@ -1,0 +1,47 @@
+rem Chinese Leftovers II
+rem https://projecteuler.net/problem=552
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 300000
+
+rem A(i) = A(i-1) + M(i-1) t with the
+rem digit t below the next prime p, so
+rem t needs only A and M mod p. Keep
+rem both mod every prime q: A(q) = 0
+rem marks q. Primes behind p stay in A
+rem with A(q) nonzero; trim in bulk.
+Ps = primes till (L + 1) array
+Np = Ps len
+Q = Ps
+A = Q * 0 + 1
+M = 2 mod Q
+Hit = Ps * 0
+Off = 0
+for I in 1 till Np
+  Z = A equal 0
+  if Z any
+    Zi = Z indices
+    Hit (Zi + Off) = 1
+  end
+  Pos = I - Off
+  P = Q Pos
+  Mi = M Pos
+  Iv = Mi (P - 2) P powmod
+  Ai = A Pos
+  T = ((I + 1 - Ai + P) * Iv) mod P
+  A = (A + M * T) mod Q
+  M = (M * P) mod Q
+  if Pos greater 1000
+    Ix = Pos till (Q len) array
+    Q = Q Ix
+    A = A Ix
+    M = M Ix
+    Off = I
+  end
+end
+Answer = (Ps * Hit) sum
+Answer print
