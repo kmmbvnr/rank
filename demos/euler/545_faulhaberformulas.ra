@@ -1,0 +1,45 @@
+rem Faulhaber's Formulas
+rem https://projecteuler.net/problem=545
+
+use numbers
+use sequences
+use io
+use cli
+
+option Q integer = 100000
+
+rem By von Staudt-Clausen D(k) is the
+rem product of the primes p with p - 1
+rem | k. 20010 = 2 3 5 23 29 needs 1, 2,
+rem 4, 22, 28 | k: k = 308 m. Any other
+rem prime p = g u + 1, g = gcd(p - 1,
+rem 308), rules out every m divisible
+rem by u; sieve m and double the range
+rem until Q values survive.
+Bs = 308
+Gs = array 2 4 14 22 28 44 154 308
+Al = array 3 5 23 29
+Mb = 1024
+Answer = 0
+for Answer equal 0
+  Mb *= 2
+  Sv = (Bs * Mb + 1) primesieve
+  Mk = array shape (Mb + 1) fill true
+  Mk 0 = false
+  U = (1 to Mb) copy
+  for G in Gs
+    Pp = G * U + 1
+    Na = (Pp in Al) equal false
+    Ok = (Pp in Sv) and Na
+    Gu = (G * U) Bs gcd
+    Ok = Ok and (Gu equal G)
+    for R in U (Ok indices)
+      Mk (R to Mb by R) = false
+    end
+  end
+  Ix = Mk indices
+  if (Ix len) at least Q
+    Answer = Bs * Ix (Q - 1)
+  end
+end
+Answer print

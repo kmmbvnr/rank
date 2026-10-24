@@ -1,0 +1,11 @@
+use testing
+
+test "brute force terms"
+  use "545_faulhaberformulas"
+  Q = 2
+  run
+  Answer equal 21868
+  Q = 10
+  run
+  Answer equal 96404
+end
