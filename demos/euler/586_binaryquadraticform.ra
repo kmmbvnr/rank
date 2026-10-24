@@ -148,7 +148,8 @@ for Sp0 greater 0
               Mq = N // Y
               Go = 1
               I = 0
-              Gw = (Go equal 1) and (I less Nm)
+              Gw = Go equal 1
+              Gw = Gw and (I less Nm)
               for Gw
                 Mi = Mv I
                 Qv = (Mq // Mi) min Pm
@@ -159,7 +160,8 @@ for Sp0 greater 0
                 else
                   Go = 0
                 end
-                Gw = (Go equal 1) and (I less Nm)
+                Gw = Go equal 1
+              Gw = Gw and (I less Nm)
               end
             else
               Sx Sp0 = Y
