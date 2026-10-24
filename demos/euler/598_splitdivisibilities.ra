@@ -1,0 +1,148 @@
+rem Split Divisibilities
+rem https://projecteuler.net/problem=598
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+option N integer = 100
+
+rem N! = prod p^e. A pair (prod p^x,
+rem prod p^(e - x)) has equal divisor
+rem counts when, for every prime q, the
+rem q-valuations of the x + 1 and
+rem e - x + 1 balance to 0. Primes 2 3
+rem 5 7 form a grid kept where the
+rem balances of the other q vanish; the
+rem rest (e + 1 <= 10) only move the
+rem balances of 2 3 5 7, summed in a
+rem sparse table. Match both for total
+rem 0; unordered pairs halve it.
+Ps = primes till (N + 1) array
+Np = Ps len
+Es = Ps * 0
+Q = Ps * 0 + N
+for (Q sum) greater 0
+  Q = Q // Ps
+  Es += Q
+end
+Ms = 0 to 100 array
+Nu = array shape Np 101 fill 0
+for I in 0 till Np
+  Pw = Ps I
+  Rw = Ms * 0
+  for Pw at most 100
+    Rw += (Ms mod Pw equal 0) integer
+    Pw *= Ps I
+  end
+  Nu I = Rw
+end
+E0 = Es 0
+E1 = Es 1
+E2 = Es 2
+E3 = Es 3
+N0 = E0 + 1
+N1 = E1 + 1
+N2 = E2 + 1
+N3 = E3 + 1
+X0 = 0 to E0 array
+A0 = X0 + 1
+B0 = E0 - X0 + 1
+X1 = 0 to E1 array
+A1 = X1 + 1
+B1 = E1 - X1 + 1
+X2 = 0 to E2 array
+A2 = X2 + 1
+B2 = E2 - X2 + 1
+X3 = 0 to E3 array
+A3 = X3 + 1
+B3 = E3 - X3 + 1
+Tt = N0 * N1 * N2 * N3
+Ok = array shape N0 N1 N2 N3 fill 1
+for Iq in 4 till Np
+  Rq = Nu Iq
+  G0 = (Rq A0) - (Rq B0)
+  G1 = (Rq A1) - (Rq B1)
+  G2 = (Rq A2) - (Rq B2)
+  G3 = (Rq A3) - (Rq B3)
+  Bq = G0 reshape N0 1 1 1
+  Bq = Bq + (G1 reshape 1 N1 1 1)
+  Bq = Bq + (G2 reshape 1 1 N2 1)
+  Bq = Bq + (G3 reshape 1 1 1 N3)
+  Ok = Ok * ((Bq equal 0) integer)
+end
+Ix = ((Ok reshape Tt) equal 1) indices
+Ky = Ix * 0
+for Iq in 0 till 4
+  Rq = Nu Iq
+  G0 = (Rq A0) - (Rq B0)
+  G1 = (Rq A1) - (Rq B1)
+  G2 = (Rq A2) - (Rq B2)
+  G3 = (Rq A3) - (Rq B3)
+  Bq = G0 reshape N0 1 1 1
+  Bq = Bq + (G1 reshape 1 N1 1 1)
+  Bq = Bq + (G2 reshape 1 1 N2 1)
+  Bq = Bq + (G3 reshape 1 1 1 N3)
+  Bf = Bq reshape Tt
+  Ky = Ky * 100 + (Bf Ix) + 50
+end
+Ky = Ky sort
+Na = Ky len
+Hk = Ky (1 till Na array)
+Lk = Ky (0 till (Na - 1) array)
+Ch = (Hk not equal Lk) indices
+St = concat (array 0) (Ch + 1)
+En = concat (Ch + 1) (array Na)
+K1 = Ky St
+C1 = En - St
+Wt = array 1000000 10000 100 1
+Ks = array 50505050
+Cs = array 1
+for Ip in 4 till Np
+  E = Es Ip
+  Xs = 0 to E array
+  Xa = Xs + 1
+  Xb = E - Xs + 1
+  Dk = Xs * 0
+  for Iq in 0 till 4
+    Rq = Nu Iq
+    Dl = (Rq Xa) - (Rq Xb)
+    Dk += Dl * (Wt Iq)
+  end
+  Nn = Ks len
+  Km = (Ks reshape Nn 1) + Dk
+  Cm = (Cs reshape Nn 1) + Dk * 0
+  Kn = Km reshape (Nn * (E + 1))
+  Cn = Cm reshape (Nn * (E + 1))
+  Od = Kn argsort
+  Kn = Kn Od
+  Cn = Cn Od
+  Na = Kn len
+  Hk = Kn (1 till Na array)
+  Lk = Kn (0 till (Na - 1) array)
+  Ch = (Hk not equal Lk) indices
+  St = concat (array 0) (Ch + 1)
+  En = concat (Ch + 1) (array Na)
+  Cc = (Cn scan +) array
+  Ce = Cc (En - 1)
+  Ne = En len
+  Lc = Ce (0 till (Ne - 1) array)
+  Cp = concat (array 0) Lc
+  Ks = Kn St
+  Cs = Ce - Cp
+end
+M = 0
+Nk = Ks len
+for J in 0 till (K1 len)
+  Kq = 101010100 - (K1 J)
+  Pos = Ks lowerindex Kq
+  if Pos less Nk
+    if (Ks Pos) equal Kq
+      M += (C1 J) * (Cs Pos)
+    end
+  end
+end
+Answer = M // 2
+Answer print

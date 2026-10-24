@@ -1,0 +1,8 @@
+use testing
+
+test "statement value"
+  use "598_splitdivisibilities"
+  N = 10
+  run
+  Answer equal 3
+end
