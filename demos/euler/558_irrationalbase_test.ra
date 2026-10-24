@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "558_irrationalbase"
+  M = 10
+  run
+  Answer equal 61
+  M = 1000
+  run
+  Answer equal 19403
+  M = 20000
+  run
+  Answer equal 562820
+end

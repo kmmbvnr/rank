@@ -1,0 +1,72 @@
+rem Irrational Base
+rem https://projecteuler.net/problem=558
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 5000000
+
+rem r^3 = r^2 + 1 gives r^(e+1) = r^e
+rem + r^(e-2). Greedy digits of j^2
+rem take the largest r^e left with
+rem e below the last by 3. Powers are
+rem integers scaled by 10^70 (table
+rem index e + 200); the exponent comes
+rem from a log and a fix-up, and ends
+rem when the rest is below r^-200.
+Sc = 10 ** 70
+Tl = 10 ** 4
+Lo = Sc
+Hi = 2 * Sc
+for # in 1 to 240
+  Md = (Lo + Hi) // 2
+  C3 = Md * Md * Md
+  if C3 greater Md * Md * Sc + Sc ** 3
+    Hi = Md
+  else
+    Lo = Md
+  end
+end
+Tb = array shape 291 fill 0
+Tb 200 = Sc
+Tb 201 = Lo
+Tb 202 = Lo * Lo // Sc
+for I in 203 to 290
+  Tb I = Tb (I - 1) + Tb (I - 3)
+end
+Tb 199 = Tb 202 - Tb 201
+for I in 198 to 0 by -1
+  Tb I = Tb (I + 1) * Tb 199 // Sc
+end
+Ls = Sc * 1.0 log
+Lr = (Lo * 1.0 log) - Ls
+Answer = 0
+Bk = 250000
+for B0 in 1 to M by Bk
+  B1 = (B0 + Bk - 1) min M
+  J = B0 to B1 array
+  R = J * J * Sc
+  Ex = J * 0 + 290
+  for (R len) greater 0
+    Rt = R + Tl
+    Lv = (Rt * 1.0) log
+    Ei = ((Lv - Ls) / Lr) floor
+    Ei = (Ei integer) + 200
+    Ei = (Ei min Ex) max 0
+    Nx = (Ei + 1) min 290
+    Up = (Tb Nx) at most Rt
+    Up = Up and (Ei + 1 at most Ex)
+    Ei += Up integer
+    Dn = (Tb Ei) greater Rt
+    Ei -= Dn integer
+    Answer += R len
+    R = R - (Tb Ei)
+    Ex = Ei - 3
+    Kp = (R + Tl at least Tb 0) indices
+    R = R Kp
+    Ex = Ex Kp
+  end
+end
+Answer print
