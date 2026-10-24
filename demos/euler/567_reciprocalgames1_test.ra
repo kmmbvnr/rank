@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "567_reciprocalgames1"
+  run
+  Answer equal 75.44817535
+end
+
+test "statement and exact values"
+  use "567_reciprocalgames1"
+  M = 6
+  run
+  Answer equal 7.58932292
+  M = 1000
+  run
+  Answer equal 28.55158507
+end

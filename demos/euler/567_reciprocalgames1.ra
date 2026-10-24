@@ -1,0 +1,39 @@
+rem Reciprocal Games I
+rem https://projecteuler.net/problem=567
+
+use numbers
+use sequences
+use io
+use cli
+
+option M integer = 123456789
+
+rem With B(n) = sum of 2^-j / (n - j),
+rem J_B(n) = B(n) and J_A(n) = B(n) -
+rem H(n) / 2^n, so S(m) = sum of
+rem 2 B(n) - H(n) / 2^n = 4 H(m) -
+rem 2 B(m) - sum of H(n) / 2^n. The
+rem last sum stops at n = 60 (the rest
+rem is below 10^-17); H(m) is exact up
+rem to 1000 and else asymptotic, and
+rem B(m) stops after 200 terms.
+Ks = 1 to (M min 1000) array
+Hs = (1 / (Ks * 1.0)) scan + array
+Ns = 1 to (M min 60) array
+Hn = Hs (Ns - 1)
+Tl = (Hn / 2.0 ** Ns) sum
+Hm = 0.0
+if M at most 1000
+  Hm = Hs (M - 1)
+else
+  X = M * 1.0
+  Hm = X log + 0.5772156649015329
+  Hm += 1 / (2 * X) - 1 / (12 * X * X)
+  Hm += 1 / (120 * X ** 4)
+end
+Js = 0 to ((M - 1) min 200) array
+Dn = (M - Js) * 1.0 * 2.0 ** Js
+Bm = (1 / Dn) sum
+Answer = 4 * Hm - 2 * Bm - Tl
+Answer = Answer round 8
+Answer print
