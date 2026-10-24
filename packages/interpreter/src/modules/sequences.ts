@@ -41,6 +41,8 @@ import {
     isRankSequence,
     isRankSqliteExpression,
     isRankSqliteTable,
+    isRankSqliteScope,
+    isRankTable,
     isRankTableAlias,
     isRankSet,
     isRankLabel,
@@ -752,6 +754,18 @@ export function flatRecordWrite(
         target.set(index, result);
         return result;
     };
+}
+
+/** Complete the postfix array operand before publishing it to its consumer. */
+export function materializeArray(source: RankValue): RankValue {
+    const result = isRankSequence(source) ? materializeSequence(source)
+        : isRankArray(source)
+        || isRankSqliteTable(source) || isRankSqliteExpression(source) || isRankSqliteScope(source) ? source
+        : isRankTableAlias(source) && isRankSqliteTable(source.source) ? source.source
+        : isRankTable(source) ? source.toRows()
+        : materializeCollection(source);
+    if (result) return materializeValue(result);
+    throw new RankError('postfix array expects an array, sequence, queue, stack, deque, set, multiset, table or SQLite table');
 }
 
 /**

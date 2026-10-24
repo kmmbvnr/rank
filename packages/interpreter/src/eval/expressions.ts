@@ -33,7 +33,7 @@ import { BuiltinRegistry } from '../modules/builtins.js';
 import { readStdin, stdinMode, stdinSequence } from '../modules/io.js';
 import { keyedSort, sortByFields, sortFieldDescending } from '../modules/keyed-sort.js';
 import { mergeSorted } from '../modules/sorted-merge.js';
-import { materializeCollection } from '../modules/sequences.js';
+import { materializeArray } from '../modules/sequences.js';
 import { tableAlias } from '../modules/tables.js';
 import { expectInteger, type Operators } from '../operators.js';
 import { recordContract } from '../record-contract.js';
@@ -45,8 +45,8 @@ import { materializeSequence, sequence, stackItems } from '../sequence.js';
 import { compileTableExpression } from '../table-query-expression.js';
 import { maskSelection, unpackApplicationItems } from '../value-selection.js';
 import {
-    isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence, isRankSqliteExpression,
-    isRankSqliteTable, isRankSqliteScope, isRankTable, isRankTableAlias, MISSING, typeName,
+    isNativeFunction, isRankArray, isRankObject, isRankRecord, isRankSequence,
+    MISSING, typeName,
     type NativeFunction, type RankArray, type RankRecord, type RankSequence, type RankValue,
 } from '../value.js';
 import type { ApplicationEvaluator } from './application.js';
@@ -639,17 +639,7 @@ export class ExpressionEvaluator {
             ); };
         }
         if (isMaterializeExpression(expression)) {
-            return function* (): Execution<RankValue> {
-                const source = (yield* resume(expressions.evaluate(expression.source)));
-                const result = isRankSequence(source) ? materializeSequence(source)
-                    : isRankArray(source)
-                    || isRankSqliteTable(source) || isRankSqliteExpression(source) || isRankSqliteScope(source) ? source
-                    : isRankTableAlias(source) && isRankSqliteTable(source.source) ? source.source
-                    : isRankTable(source) ? source.toRows()
-                    : materializeCollection(source);
-                if (result) return materializeValue(result);
-                throw new RankError('postfix array expects an array, sequence, queue, stack, deque, set, multiset, table or SQLite table');
-            };
+            return () => mapResult(expressions.evaluate(expression.source), materializeArray);
         }
         if (isAllAxisExpression(expression)) {
             return function* (): Execution<RankValue> { throw new RankError('# is only valid inside tensor addressing'); };

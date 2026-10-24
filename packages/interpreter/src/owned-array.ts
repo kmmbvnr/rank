@@ -174,6 +174,7 @@ function storeCell(state: OwnedStorage, index: number, value: RankValue): void {
         }
         // Widen before writing; existing borrowed readers follow state.items.
         state.typed = typed = BigInt64Array.from(typed, BigInt);
+        state.slices = undefined;
         state.items = typed as unknown as RankValue[];
     }
     if (typed instanceof BigInt64Array && !state.validity && typeof value === 'bigint' && fitsInt64(value)) {
@@ -597,15 +598,27 @@ export function sharedTypedArray(data: Float64Array | BigInt64Array | Int32Array
     return value;
 }
 
-/** A contiguous slice of completed numeric storage. Both values detach before
- * a Rank write, so retaining a slice needs no eager copy of its cells. */
+/** Completed numeric slices share their buffer. Source writes outside the
+ * retained ranges remain in place; overlapping or whole-value writes detach. */
 export function sliceStoredArray(value: RankArray, offset: number, shape: readonly number[]): RankArray | undefined {
     const state = ownedStorage.get(value);
     if (!state?.stable || !state.scalarOnly || !state.typed || state.validity || state.readOnlyCells
         || value.itemAt !== undefined || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
-    const size = shape.reduce((total, length) => total * length, 1);
+    const size = shape.reduce((n, dimension) => n * dimension, 1);
+    if (offset < 0 || offset + size > state.typed.length) return undefined;
+    checkpoint('sharing numeric slice', size);
     const result = sharedTypedArray(state.typed.subarray(offset, offset + size), shape);
-    state.owners = SHARED;
+    if (state.elementKinds?.size === 1) {
+        const kind = state.elementKinds.keys().next().value!;
+        ownedStorage.get(result)!.elementKinds = new Map(size ? [[kind, size]] : []);
+    }
+    if (size) {
+        const previous = state.slices?.cells === state.typed ? state.slices : undefined;
+        if (previous) {
+            previous.start = Math.min(previous.start, offset);
+            previous.end = Math.max(previous.end, offset + size);
+        } else state.slices = { cells: state.typed, start: offset, end: offset + size };
+    }
     return result;
 }
 
@@ -848,6 +861,7 @@ export function createOwned(
             }
             state.items = plain;
             state.typed = undefined;
+            state.slices = undefined;
             state.booleans = undefined;
             state.convert = undefined;
             Object.defineProperty(raw, 'items', { value: new Proxy(plain, new OwnedItemsHandler(state)), writable: true, enumerable: true, configurable: true });

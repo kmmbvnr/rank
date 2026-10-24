@@ -284,7 +284,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                         value = binary(findCompiledOperator(command.operator.slice(0, -1))!, previous, value, lines, expressions.get(command.value)!.type);
                     }
                     const copy = `v${serial++}`;
-                    lines.push(`const ${copy} = arrayForWrite(${receiver});
+                    lines.push(`const ${copy} = arrayForWrite(${receiver}, ${offset});
                         if (${copy}) { ${receiver} = ${copy}; noteArrayBinding(${receiver}); ${writer} = undefined; reader${slots.get(command.name)} = undefined; }
                         (${writer} ??= prepareWriter(${receiver}))(${offset}, ${value});`);
                 } else {

@@ -1,4 +1,5 @@
-import type { SequencePlan } from './value.js';
+import { ownedStorage } from './array-storage-state.js';
+import type { RankArray, SequencePlan } from './value.js';
 
 interface ArithmeticRange {
     readonly start: bigint;
@@ -17,6 +18,21 @@ export function arithmeticRange(plan: SequencePlan): ArithmeticRange | undefined
     const entry = ranges.get(plan);
     return entry && plan.iterate === entry.iterate && plan.at === entry.at
         && plan.size.kind === 'exact' && plan.size.value === entry.range.count ? entry.range : undefined;
+}
+
+// Materialization preserves a constructor proof until a tracked or host write.
+const arrayRanges = new WeakMap<RankArray, { range: ArithmeticRange; revision: number }>();
+export function registerArrayRange(value: RankArray, range: ArithmeticRange): RankArray {
+    const state = ownedStorage.get(value);
+    if (state) arrayRanges.set(value, { range, revision: state.revision });
+    return value;
+}
+
+export function arrayRange(value: RankArray): ArithmeticRange | undefined {
+    const entry = arrayRanges.get(value), state = ownedStorage.get(value);
+    return entry && state?.stable && state.scalarOnly && state.revision === entry.revision
+        && value.itemAt === undefined && value.shape.length === 1
+        && BigInt(value.shape[0]) === entry.range.count ? entry.range : undefined;
 }
 
 interface ModularRange extends ArithmeticRange { readonly divisor: bigint }

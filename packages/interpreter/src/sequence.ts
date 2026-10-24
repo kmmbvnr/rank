@@ -5,7 +5,7 @@ import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
 import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
-import { arithmeticRange } from './range-plan.js';
+import { arithmeticRange, registerArrayRange } from './range-plan.js';
 import { booleanReductionHint } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
 import { isKnownFileFree } from './resource-summary.js';
@@ -462,7 +462,7 @@ export function materializeSequence(source: RankSequence): RankArray {
             let value = range.start + BigInt(start) * range.step;
             for (let i = start; i < end; i++, value += range.step) cells.set(i, value);
         }
-        return cells.array([size]);
+        return registerArrayRange(cells.array([size]), range);
     }
     return stackItems(interruptibleValues(source.plan.iterate(), 'materializing sequence'), undefined, 'sequence');
 }

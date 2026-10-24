@@ -300,9 +300,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
     // A write is where sharing has to be paid for: shared storage
     // becomes this name's own copy, which the name then keeps.
     const rebind = host.compileAssign(statement.name);
-    const owned = (target: RankValue): RankValue => {
+    const owned = (target: RankValue, offset?: number): RankValue => {
         const copy = isRankArray(target) && hasDeferredSelectionCopy(target)
-            ? privateArrayCopy(target) : arrayForWrite(target);
+            ? privateArrayCopy(target) : arrayForWrite(target, offset);
         if (copy === undefined) return target;
         rebind(copy);
         return copy;
@@ -332,7 +332,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     const replacement = materializeValue(operator === undefined ? value
                         : host.operators.evaluateBinary(operator, demandValue(readArrayItem(target, offset)), value));
                     const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
-                    target = owned(target) as typeof target;
+                    target = owned(target, offset) as typeof target;
                     writeArrayCell(target, offset, checked);
                     return completed(value);
                 }

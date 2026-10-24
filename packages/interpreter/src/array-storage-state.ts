@@ -26,6 +26,8 @@ export interface OwnedStorage {
     resources: ResourceSummary;
     stored: StoredValueSummary;
     owners?: number;
+    /** Conservative union of numeric views into this exact typed buffer. */
+    slices?: { cells: Float64Array | BigInt64Array | Int32Array; start: number; end: number };
     nestedEpoch?: number;
     checkedBirth?: number;
     nestedRevision?: number;

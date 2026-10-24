@@ -3,7 +3,7 @@ import { registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
 import { permutedArray } from './array-permutation.js';
-import { arithmeticRange } from './range-plan.js';
+import { arithmeticRange, arrayRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
@@ -139,7 +139,8 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
             return { preserve: true, size: Number(count), unique: true, linear: { offset, stride },
                 indexAt: (coordinate: number) => offset + coordinate * stride };
         }
-        const range = isRankSequence(selector) && arithmeticRange(selector.plan);
+        const range = isRankSequence(selector) ? arithmeticRange(selector.plan)
+            : isRankArray(selector) ? arrayRange(selector) : undefined;
         if (range) {
             const { start, step, count } = range;
             if (count > 0n) {

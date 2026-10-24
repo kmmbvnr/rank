@@ -1,0 +1,323 @@
+{
+  "issue": 442,
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "timing": "Parse and execution, process startup excluded. Fresh process per sample; default inputs sampled once, small inputs three times.",
+  "notes": [
+    "Original baseline 559 at 29ea09d7 overlapped brief build/test activity. Default inputs are sampled once; ratios are indicative. Integrated measurements ran sequentially without concurrent verification by this task.",
+    "The program sources and algorithms are unchanged. Buffer identity tests, rather than diagnostic cell counts alone, verify numeric slice sharing.",
+    "Native views apply to contiguous typed numeric storage; other storage retains the existing materialization fallback.",
+    "The view stage alone slowed Euler 559 relative to range-proof-only, while improving Euler 553. Inline range selection removes the remaining temporary index buffers.",
+    "main advanced to 034a2bd4 during the task. The integrated comparison isolates this change from the intervening #443, #438, #445 and #444 changes. Pre-integration stages retain the original measurements for each mechanism."
+  ],
+  "validation": {
+    "build": "npm run build passed, including web and Capacitor sync",
+    "focusedTests": {
+      "files": 19,
+      "passed": 569
+    },
+    "demoFixtures": [
+      "552_chineseleftovers2",
+      "553_powersetsofpowersets",
+      "559_permutedmatrices"
+    ],
+    "fullNpmTest": "not run"
+  },
+  "originalBaselineCommit": "29ea09d7",
+  "baselineCommit": "034a2bd4",
+  "originalBaselineSamples": [
+    {
+      "id": "559_permutedmatrices",
+      "n": 50000,
+      "ms": 179755.096959,
+      "answer": "684724920"
+    },
+    {
+      "id": "553_powersetsofpowersets",
+      "n": 10000,
+      "ms": 18360.597916,
+      "answer": "57717170"
+    },
+    {
+      "id": "559_permutedmatrices",
+      "n": 5000,
+      "ms": 5530.533458,
+      "answer": "363762335"
+    },
+    {
+      "id": "553_powersetsofpowersets",
+      "n": 3000,
+      "ms": 3985.103292,
+      "answer": "91201233"
+    }
+  ],
+  "preIntegrationStages": [
+    {
+      "name": "range-proof",
+      "smallSamples": [
+        {
+          "trial": 0,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 4532.576084,
+          "answer": "363762335"
+        },
+        {
+          "trial": 0,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 3311.409333,
+          "answer": "91201233"
+        },
+        {
+          "trial": 1,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 4770.627375,
+          "answer": "363762335"
+        },
+        {
+          "trial": 1,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 3583.768792,
+          "answer": "91201233"
+        },
+        {
+          "trial": 2,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 4694.139875,
+          "answer": "363762335"
+        },
+        {
+          "trial": 2,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 3360.6877910000003,
+          "answer": "91201233"
+        }
+      ],
+      "defaultSamples": [
+        {
+          "trial": 0,
+          "id": "559_permutedmatrices",
+          "n": 50000,
+          "ms": 117742.298458,
+          "answer": "684724920"
+        },
+        {
+          "trial": 0,
+          "id": "553_powersetsofpowersets",
+          "n": 10000,
+          "ms": 17925.250666,
+          "answer": "57717170"
+        }
+      ]
+    },
+    {
+      "name": "typed-slice-views-and-disjoint-writes",
+      "smallSamples": [
+        {
+          "trial": 0,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 4851.610917,
+          "answer": "363762335"
+        },
+        {
+          "trial": 0,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 3583.3817080000003,
+          "answer": "91201233"
+        },
+        {
+          "trial": 1,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 5025.099083,
+          "answer": "363762335"
+        },
+        {
+          "trial": 1,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 3434.112458,
+          "answer": "91201233"
+        },
+        {
+          "trial": 2,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 5323.481583,
+          "answer": "363762335"
+        },
+        {
+          "trial": 2,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 3284.151459,
+          "answer": "91201233"
+        }
+      ],
+      "defaultSamples": [
+        {
+          "trial": 0,
+          "id": "559_permutedmatrices",
+          "n": 50000,
+          "ms": 125521.16575,
+          "answer": "684724920"
+        },
+        {
+          "trial": 0,
+          "id": "553_powersetsofpowersets",
+          "n": 10000,
+          "ms": 14414.152792,
+          "answer": "57717170"
+        }
+      ]
+    },
+    {
+      "name": "inline-range-selectors",
+      "smallSamples": [
+        {
+          "trial": 0,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 3387.0837500000002,
+          "answer": "363762335"
+        },
+        {
+          "trial": 0,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 2852.20175,
+          "answer": "91201233"
+        },
+        {
+          "trial": 1,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 3420.174875,
+          "answer": "363762335"
+        },
+        {
+          "trial": 1,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 2842.775125,
+          "answer": "91201233"
+        },
+        {
+          "trial": 2,
+          "id": "559_permutedmatrices",
+          "n": 5000,
+          "ms": 3405.776209,
+          "answer": "363762335"
+        },
+        {
+          "trial": 2,
+          "id": "553_powersetsofpowersets",
+          "n": 3000,
+          "ms": 2844.748709,
+          "answer": "91201233"
+        }
+      ],
+      "defaultSamples": [
+        {
+          "trial": 0,
+          "id": "559_permutedmatrices",
+          "n": 50000,
+          "ms": 68501.672166,
+          "answer": "684724920"
+        },
+        {
+          "trial": 0,
+          "id": "553_powersetsofpowersets",
+          "n": 10000,
+          "ms": 15802.200792,
+          "answer": "57717170"
+        }
+      ]
+    }
+  ],
+  "integratedComparison": {
+    "baseline": [
+      {
+        "trial": 0,
+        "id": "559_permutedmatrices",
+        "n": 50000,
+        "ms": 117802.142708,
+        "answer": "684724920"
+      },
+      {
+        "trial": 0,
+        "id": "553_powersetsofpowersets",
+        "n": 10000,
+        "ms": 14960.469708999999,
+        "answer": "57717170"
+      }
+    ],
+    "candidate": [
+      {
+        "trial": 0,
+        "id": "559_permutedmatrices",
+        "n": 50000,
+        "ms": 68304.280417,
+        "answer": "684724920"
+      },
+      {
+        "trial": 0,
+        "id": "553_powersetsofpowersets",
+        "n": 10000,
+        "ms": 13125.667875,
+        "answer": "57717170"
+      }
+    ],
+    "candidateSmallSamples": [
+      {
+        "trial": 0,
+        "id": "559_permutedmatrices",
+        "n": 5000,
+        "ms": 3544.069708,
+        "answer": "363762335"
+      },
+      {
+        "trial": 0,
+        "id": "553_powersetsofpowersets",
+        "n": 3000,
+        "ms": 2845.884042,
+        "answer": "91201233"
+      },
+      {
+        "trial": 1,
+        "id": "559_permutedmatrices",
+        "n": 5000,
+        "ms": 3440.684333,
+        "answer": "363762335"
+      },
+      {
+        "trial": 1,
+        "id": "553_powersetsofpowersets",
+        "n": 3000,
+        "ms": 2836.439875,
+        "answer": "91201233"
+      },
+      {
+        "trial": 2,
+        "id": "559_permutedmatrices",
+        "n": 5000,
+        "ms": 3503.094042,
+        "answer": "363762335"
+      },
+      {
+        "trial": 2,
+        "id": "553_powersetsofpowersets",
+        "n": 3000,
+        "ms": 2840.581584,
+        "answer": "91201233"
+      }
+    ]
+  }
+}

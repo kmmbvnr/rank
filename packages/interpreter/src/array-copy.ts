@@ -1,5 +1,5 @@
 import { arrayDeclaration, declareArray } from './array-declaration.js';
-import { MAX_HELD_CELLS, typedArray } from './array-storage.js';
+import { MAX_HELD_CELLS, sliceStoredArray, typedArray } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { inheritSemanticArrayType } from './semantic-array-type.js';
@@ -26,6 +26,22 @@ export function copyArrayStorage(value: RankArray): RankArray | undefined {
     const result = plan ? plan.copy() : copyStoredArrayBlocks(value.shape, [value], function* () {
         yield { source: value, offset: 0, length: size, target: 0 };
     });
+    if (!result) return undefined;
+    const declaration = arrayDeclaration(value);
+    if (declaration) declareArray(result, declaration);
+    return inheritSemanticArrayType(value, result);
+}
+
+/** Binding completes native numeric selections without copying their cells.
+ * Explicit copy keeps using copyArrayStorage. No lazy callbacks, missing values,
+ * per-column checks or arbitrary host readers can establish this proof. */
+export function materializeArrayView(value: RankArray): RankArray | undefined {
+    if (!privateLoopPolling() || inspectionEnabled() || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
+    const view = prepareStoredScalarView(value, true);
+    if (!view?.linear || view.linear.stride !== 1 || !view.validateUniform) return undefined;
+    const size = value.shape.reduce((n, dimension) => n * dimension, 1);
+    if (size) view.validateUniform(view.items[view.linear.offset]);
+    const result = sliceStoredArray(view.source, view.linear.offset, value.shape);
     if (!result) return undefined;
     const declaration = arrayDeclaration(value);
     if (declaration) declareArray(result, declaration);

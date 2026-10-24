@@ -1,4 +1,4 @@
-import { copyArrayStorage } from './array-copy.js';
+import { copyArrayStorage, materializeArrayView } from './array-copy.js';
 import { materializePackedBooleans } from './packed-booleans.js';
 import type { CallParameter } from '@arrrank/language';
 import { denseScalarItems, collectArrayCells, ownedArray, ownedObject } from './array-storage.js';
@@ -67,7 +67,7 @@ export function materializeValue(value: RankValue): RankValue {
         }
         if (isStoredValue(computed)) return { value: computed };
         if (isRankArray(computed)) {
-            const copied = copyArrayStorage(computed);
+            const copied = materializeArrayView(computed) ?? copyArrayStorage(computed);
             if (copied) return { value: copied };
             const packed = materializePackedBooleans(computed);
             if (packed) return { value: inheritSemanticArrayType(computed, packed) };

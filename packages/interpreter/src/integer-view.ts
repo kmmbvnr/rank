@@ -146,7 +146,7 @@ export function prepareIntegerView(value: RankValue, allowChecks = false): { sha
  */
 export function prepareStoredScalarView(value: RankValue, allowChecks = false): {
     read(index: number): RankValue; kinds: readonly string[] | undefined;
-    items: ArrayLike<RankValue>; compact?: Int32Array; regular: boolean; linear?: LinearView; validate?: (cell: RankValue, index: number) => void;
+    source: RankArray; items: ArrayLike<RankValue>; compact?: Int32Array; regular: boolean; linear?: LinearView; validate?: (cell: RankValue, index: number) => void;
     validateUniform?: (cell: RankValue) => void;
 } | undefined {
     if (!isRankArray(value)) return undefined;
@@ -198,5 +198,5 @@ export function prepareStoredScalarView(value: RankValue, allowChecks = false): 
         ? (cell: RankValue): void => {
             for (let i = layers.length - 1; i >= 0; i--) { layers[i].validate?.(cell, 0); layers[i].check?.(cell); }
         } : undefined;
-    return { read, kinds, items, compact, regular: layers.every(layer => layer.regular), linear, validate: check, validateUniform };
+    return { read, kinds, source, items, compact, regular: layers.every(layer => layer.regular), linear, validate: check, validateUniform };
 }

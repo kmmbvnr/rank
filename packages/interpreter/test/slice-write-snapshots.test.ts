@@ -34,7 +34,7 @@ A sum`));
         } finally { runtime.dispose(); }
     });
 
-    it.each([65535, 65536, 65537])('shares %s contiguous cells and detaches on a source write', size => {
+    it.each([65535, 65536, 65537])('shares %s contiguous cells and detaches on an overlapping write', size => {
         const runtime = session();
         const diagnostics = new RuntimeDiagnostics();
         try {
@@ -44,6 +44,7 @@ A sum`));
             expect(runtime.execute('S 0')).toBe(0n);
             expect(runtime.variables.get('A')).not.toBe(source);
             expect(diagnostics.cowCopies).toBe(1);
+            expect(runtime.execute('S sum')).toBe(BigInt(size) * BigInt(size - 1) / 2n);
             expect(diagnostics.cowCopiedCells).toBe(size + 1);
         } finally { runtime.dispose(); }
     });

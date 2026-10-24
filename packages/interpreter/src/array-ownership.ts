@@ -150,7 +150,15 @@ export function hasPendingSelections(value: RankArray): boolean {
 /** True when a write must first protect aliases or retained selections. */
 export function isSharedArray(value: RankValue): boolean {
     return typeof value === 'object' && value.kind === 'array'
-        && ((ownership(value)?.owners ?? 0) >= SHARED || (pendingSelections.get(value)?.size ?? 0) > 0);
+        && ((ownership(value)?.owners ?? 0) >= SHARED || (pendingSelections.get(value)?.size ?? 0) > 0
+            || sharesNumericSlices(value));
+}
+
+/** Numeric slice bounds refer to the current buffer only. Boxing or widening
+ * detaches that buffer, so its old views no longer constrain source writes. */
+function sharesNumericSlices(value: RankArray): boolean {
+    const state = ownedStorage.get(value);
+    return state?.typed !== undefined && state.slices?.cells === state.typed;
 }
 
 /** Storage this name owns alone. The result is unbound: the caller binds it. */
@@ -187,19 +195,26 @@ export function privateArrayCopy(value: RankArray): RankArray {
     return copy;
 }
 
-/** Protect retained selections, then copy storage if ordinary aliases need it. */
-export function arrayForWrite(value: RankValue): RankArray | undefined {
+/** Protect aliases and retained selections before a Rank write. An offset
+ * proves one scalar address; omitted addresses conservatively protect all cells. */
+export function arrayForWrite(value: RankValue, offset?: number): RankArray | undefined {
     // Host descriptors can invalidate writable storage even without an alias.
     if (typeof value === 'object' && value.kind === 'array') {
         const stored = ownedStorage.get(value);
         if (stored && (!stored.stable || stored.readOnlyCells)) return privateArrayCopy(value);
+        if (sharesNumericSlices(value)) {
+            const bounds = stored!.slices!;
+            if (offset === undefined || !Number.isSafeInteger(offset)
+                || offset >= bounds.start && offset < bounds.end) return privateArrayCopy(value);
+        }
     }
     if (!isSharedArray(value)) return undefined;
     const source = value as RankArray;
     // Ordinary aliases still require a whole-value copy; their lazy readers
     // can keep reading the old source without detaching anything.
     if ((ownership(source)?.owners ?? 0) >= SHARED) return privateArrayCopy(source);
-    const pending = pendingSelections.get(source)!;
+    const pending = pendingSelections.get(source);
+    if (!pending) return undefined;
     for (const reference of pending) {
         const selection = reference.deref();
         if (selection?.freeze && !selection.freeze()) {

@@ -8,12 +8,15 @@ import { queryDefault } from '../query-default.js';
 import { demand, isRankPlan } from '../plan.js';
 import {
     lastArrayUseProofs, applicationExpression as applicationParts, assertNever, flattenApplication, groupedExpression,
-    isAllAxisExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
+    isAllAxisExpression, isBinaryExpression, isMaterializeExpression, isUnaryExpression, isParenthesizedExpression, isApplicationExpression,
     isNameExpression, isNumberLiteral, isStringLiteral, isUnpackExpression, isFunctionOperator, renamedBuiltinCall,
     type KnownShape, type LastArrayUseProof, type DeclaredCallExpression, type ApplicationForm, type ArrayItem,
     type Expression, type Operation,
 } from '@arrrank/language';
-import { checkpoint } from '../interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { arithmeticRange } from '../range-plan.js';
+import { MAX_HELD_CELLS } from '../array-storage.js';
+import { currentDiagnostics } from '../diagnostics.js';
 import { RankError } from '../errors.js';
 import {
     runExecution, completed, flatMapResult, mapExecution, mapResult, resume, type Evaluation, type Execution,
@@ -22,7 +25,7 @@ import type { FastPaths } from '../fast-paths.js';
 import type { FunctionInvocation } from '../function-invocation.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
 import { fenwickSum } from '../modules/algo.js';
-import { uniqueLength } from '../modules/sequences.js';
+import { materializeArray, uniqueLength } from '../modules/sequences.js';
 import { numericUniqueSort } from '../numeric-collections.js';
 import { formattedText } from '../modules/text.js';
 import { type Operators } from '../operators.js';
@@ -35,7 +38,7 @@ import { broadcastShape, rankedBroadcastShapes } from '../tensor-layout.js';
 import { denseScalarItems, reshapeStoredArray } from '../owned-array.js';
 import { callArguments, canApplySelectors, hasField, unpackApplicationItems } from '../value-selection.js';
 import {
-    MISSING, isNativeFunction, isRankArray, isRankFenwick, isRankLabel, typeName, type NativeFunction, type RankValue,
+    MISSING, isNativeFunction, isRankArray, isRankFenwick, isRankLabel, isRankSequence, typeName, type NativeFunction, type RankValue,
 } from '../value.js';
 
 /** What evaluating application forms needs from the rest of evaluation. */
@@ -531,6 +534,25 @@ export class ApplicationEvaluator {
     ): () => Evaluation<RankValue> {
         const context = this.context;
         const application = this;
+        let selector = parts.length === 2 ? parts[1] : undefined;
+        while (selector && isParenthesizedExpression(selector)) selector = selector.value;
+        const material = selector && isMaterializeExpression(selector) ? selector : undefined;
+        let range = material?.source;
+        while (range && isParenthesizedExpression(range)) range = range.value;
+        if (material && range && isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) {
+            return function* (): Execution<RankValue> {
+                const receiver = yield* resume(context.evaluate(parts[0]));
+                const source = yield* resume(context.evaluate(material.source));
+                const proof = isRankSequence(source) ? arithmeticRange(source.plan) : undefined;
+                const direct = isRankArray(receiver) && proof && proof.count <= MAX_HELD_CELLS
+                    && privateLoopPolling() && !inspectionEnabled();
+                if (direct) {
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) diagnostics.rangeSelectorViews++;
+                }
+                return yield* resume(application.apply([receiver, direct ? source : materializeArray(source)], missing, 0, [], tail));
+            };
+        }
         const lastUses = lastArrayUseProofs(expression, parts.slice(0, -1));
         const renamed = renamedBuiltinCall(parts);
         const checkRename = renamed ? (receiver: RankValue): void => {

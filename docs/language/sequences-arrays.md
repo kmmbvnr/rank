@@ -754,8 +754,15 @@ selections without copying the whole source. Arithmetic on regular slices of
 stored numeric arrays can read their cells directly, including shifted and
 strided differences. Small selections over plain arrays keep their lazy,
 read-only interface until completed. Ordinary bindings such as `Part = A (2 till 6)`
-complete the selection and make it writable. Typed selections and large
-stored selections defer their private storage until a write needs it.
+complete the selection and make it writable. A contiguous selection of a typed
+numeric buffer can keep sharing that buffer after ordinary binding. A Rank
+write outside the retained ranges can stay in the source buffer. Overlapping
+writes and writes through the selection take private storage. Accessing public
+`items` from JavaScript also gives that value its own cells. An integer array materialized directly from a
+range preserves its range proof until modified. A range used directly as
+`A (2 till 6 array)` can also skip building the index array; its bounds are
+still evaluated once. Strided selections and other storage keep their
+existing completion rules.
 
 A range preserves one axis; an integer array replaces the selected axis with
 its shape. A scalar integer removes its axis. The complete selector rules are defined in

@@ -39,6 +39,8 @@ export class RuntimeDiagnostics {
     cowCopiedCells = 0;
     elementTypeScans = 0;
     elementTypeScannedCells = 0;
+    /** Inline range-array selectors consumed without an index-cell buffer. */
+    rangeSelectorViews = 0;
     selectionSnapshots = 0;
     selectionSnapshotCells = 0;
     /** Typed buffers turned back into boxed cells, which costs 4 to 8 times the memory. */
