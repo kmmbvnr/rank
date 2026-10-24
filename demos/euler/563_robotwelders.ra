@@ -1,0 +1,96 @@
+rem Robot Welders
+rem https://projecteuler.net/problem=563
+
+use numbers
+use sequences
+use io
+use cli
+
+option L integer = 60000000
+option K integer = 100
+
+rem Sides are 23-smooth. Pairs x <= y
+rem <= 11x / 10 of them meet on the area
+rem xy; count the pairs by area in
+rem windows of areas (ratio 4) until
+rem each of 2 .. K has appeared.
+Sm = array 1
+for P in primes till 24 array
+  Cu = Sm
+  for (Cu len) greater 0
+    Cu = Cu * P
+    Ix = (Cu at most L) indices
+    Cu = Cu Ix
+    Sm = concat Sm Cu
+  end
+end
+Sm = Sm sort
+Ns = Sm len
+Sk = Sm * 2 + 1
+Rl = (L * 10 // 11) ** 2
+Mn = array shape (K + 1) fill 0
+Fd = 0
+Lo = 1
+for (Fd less (K - 1)) and (Lo less Rl)
+  Hi = (Lo * 4) min Rl
+  Xm = (Hi - 1) isqrt
+  Nx = ((Sm at most Xm) integer) sum
+  Xs = Sm (0 till Nx array)
+  Y0 = (Lo + Xs - 1) // Xs
+  Y0 = Y0 max Xs
+  Y1 = (11 * Xs) // 10
+  Y1 = Y1 min ((Hi - 1) // Xs)
+  Zk = concat Sk (Y0 * 2)
+  Zk = concat Zk (Y1 * 2 + 2)
+  Od = Zk argsort
+  Nz = Zk len
+  Inv = array shape Nz fill 0
+  Inv Od = 0 till Nz array
+  Fs = (Od less Ns) integer
+  Cs = (Fs scan +) array
+  Ix0 = Ns + (0 till Nx array)
+  Ix1 = Ix0 + Nx
+  Il = Cs (Inv Ix0)
+  Ih = Cs (Inv Ix1)
+  Cn = (Ih - Il) max 0
+  Tt = Cn sum
+  if Tt greater 0
+    Of = (Cn scan +) array
+    Of = Of - Cn
+    Nb = (Cn greater 0) indices
+    Mk = array shape Tt fill 0
+    Mk (Of Nb) += 1 .accumulate
+    Ms = (Mk scan +) array
+    Ow = Nb (Ms - 1)
+    Id = 0 till Tt array
+    Q = Il Ow
+    Yi = Q + Id - (Of Ow)
+    Ar = (Sm Ow) * (Sm Yi)
+    Ar = Ar sort
+    Na = Ar len
+    Hk = Ar (1 till Na array)
+    Lk = Ar (0 till (Na - 1) array)
+    Ch = (Hk not equal Lk) indices
+    St = concat (array 0) (Ch + 1)
+    En = concat (Ch + 1) (array Na)
+    Rn = En - St
+    Lw = Rn at least 2
+    Up = Rn at most K
+    Sl = (Lw and Up) indices
+    Rs = Rn Sl
+    As = Ar (St Sl)
+    for J in 2 to K
+      if Mn J equal 0
+        Hit = (Rs equal J) indices
+        if Hit len greater 0
+          Hf = Hit 0
+          Mn J = As Hf
+          Fd += 1
+        end
+      end
+    end
+  end
+  Lo = Hi
+end
+Answer = Mn sum
+Answer print

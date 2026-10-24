@@ -1,0 +1,12 @@
+use testing
+
+test "statement and brute-force sums"
+  use "563_robotwelders"
+  L = 3000000
+  K = 3
+  run
+  Answer equal 1083240
+  K = 10
+  run
+  Answer equal 3813201480
+end

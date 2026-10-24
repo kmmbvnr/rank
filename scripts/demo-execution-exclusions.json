@@ -221,5 +221,6 @@
   "euler/557_cuttingtriangles.ra": "To fix later: the default input takes about 43 s and 5.4 GB (5 x 10^7 pairs (x, y), each with a gcd and a packed key, then one sort of the whole array); the small _test.ra fixture stays in the audits.",
   "euler/558_irrationalbase.ra": "To fix later: the default input takes about 3.8 min (5 x 10^6 greedy expansions run together, about 45 rounds of a log, a table gather and big-integer subtractions over the live cells); the small _test.ra fixture stays in the audits.",
   "euler/559_permutedmatrices.ra": "To fix later: the default input takes about 2.5 min (a reciprocal series per k with a sliced multiply-mod-sum dot product per term, about 2 x 10^9 cells in total); the small _test.ra fixture stays in the audits.",
-  "euler/560_coprimenim.ra": "To fix later: the default input takes about 15 s (an odd-multiple sieve to 3200, 664k primes and 20 Walsh-Hadamard rounds over 2^20 cells with gathers); the small _test.ra fixture stays in the audits."
+  "euler/560_coprimenim.ra": "To fix later: the default input takes about 15 s (an odd-multiple sieve to 3200, 664k primes and 20 Walsh-Hadamard rounds over 2^20 cells with gathers); the small _test.ra fixture stays in the audits.",
+  "euler/563_robotwelders.ra": "To fix later: the default input takes about 37 s and 3.9 GB (3 x 10^7 pairs of 23-smooth sides in 25 area windows, each expanded by ragged gathers and fully sorted); the small _test.ra fixture stays in the audits."
 }
