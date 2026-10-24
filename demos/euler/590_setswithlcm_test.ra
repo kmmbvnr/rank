@@ -1,0 +1,17 @@
+use testing
+
+test "statement and brute-force values"
+  use "590_setswithlcm"
+  N = 4
+  run
+  Answer equal 44
+  N = 6
+  run
+  Answer equal 3748
+  N = 10
+  run
+  Answer equal 946139968
+  N = 16
+  run
+  Answer equal 265773312
+end

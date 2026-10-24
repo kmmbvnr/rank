@@ -1,0 +1,87 @@
+rem Sets with a Given LCM
+rem https://projecteuler.net/problem=590
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 50000
+
+rem H(n) = sum over subsets S of the
+rem primes of (-1)^|S| 2^M, M the
+rem divisor count of n with p in S
+rem lowered by one exponent. For
+rem n = lcm(1 .. N) only d = e + 1
+rem matters, so primes with equal d
+rem form a group of c, of which i are
+rem picked: (-1)^i C(c, i) and a factor
+rem (d-1)^i d^(c-i) in M. M is kept
+rem mod the order of 2 mod 5^9 and
+rem capped at 9; the d = 2 group is
+rem the outer loop, 2^M mod 10^9 by CRT.
+Md = 1000000000
+Lc = 1562500
+F5 = 1953125
+Ps = primes till (N + 1) array
+Cu = Ps
+Ex = Ps * 0
+Lv = (Cu at most N) integer
+for (Lv sum) greater 0
+  Ex += Lv
+  Cu = Cu * Ps
+  Lv = (Cu at most N) integer
+end
+Dv = Ex + 1
+Cf = array 1
+Em = array 1
+Ec = array 1
+for U in Dv unique
+  C = ((Dv equal U) integer) sum
+  if U not equal 2
+    I = 0 to C array
+    Bn = C binomial I
+    Bn = Bn mod Md
+    Sg = 1 - 2 * (I mod 2)
+    Cg = (Bn * Sg + Md) mod Md
+    Fx = (U - 1) ** I * U ** (C - I)
+    Nn = Cf len
+    Mm = C + 1
+    Tm = (Cf reshape Nn 1) * Cg
+    Tm = Tm mod Md
+    Cf = Tm reshape (Nn * Mm)
+    Fm = Fx mod Lc
+    Tm = (Em reshape Nn 1) * Fm
+    Tm = Tm mod Lc
+    Em = Tm reshape (Nn * Mm)
+    Fc = Fx min 9
+    Tm = (Ec reshape Nn 1) * Fc
+    Tm = Tm min 9
+    Ec = Tm reshape (Nn * Mm)
+  end
+end
+C2 = ((Dv equal 2) integer) sum
+Kt = 0 till Lc array
+T5 = 2 Kt F5 powmod
+Iv = 512 (Lc - 1) F5 powmod
+Bc = 1
+Answer = 0
+for I in 0 to C2
+  Fi = 2 ** (C2 - I)
+  Fm = Fi mod Lc
+  E = (Em * Fm) mod Lc
+  Fc = Fi min 9
+  Ecp = (Ec * Fc) min 9
+  Tv = (T5 E) * Iv
+  Vx = 512 * (Tv mod F5)
+  Sm = 2 ** Ecp
+  Val = (Ecp equal 9) choose Vx Sm
+  Pv = (Cf * Val) mod Md
+  Sv = (Pv sum) mod Md
+  Sg = 1 - 2 * (I mod 2)
+  Bm = Bc mod Md
+  Answer += Sg * ((Bm * Sv) mod Md)
+  Bc = Bc * (C2 - I) // (I + 1)
+end
+Answer = Answer mod Md
+Answer print
