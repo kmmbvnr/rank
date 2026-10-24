@@ -208,5 +208,6 @@
   "euler/540_primitivetriples.ra": "To fix later: the default input takes about 100 s and 2.7 GB (a Moebius sieve to 2.5e7 and row sums for about 9000 odd d); the small _test.ra fixture stays in the audits.",
   "euler/544_chromaticconundrum.ra": "To fix later: the default input takes about 75 s, 90 frontier steps over 5017 patterns times 92 colour counts; the small _test.ra fixture stays in the audits.",
   "euler/545_faulhaberformulas.ra": "To fix later: the default input takes about 67 s, a prime sieve to 1.3e9 and strided marks for about a million forbidden divisors; the small _test.ra fixture stays in the audits.",
-  "euler/548_gozintachains.ra": "To fix later: the default input takes about 14 s, 17562 exponent patterns with exact chain counts as big integers; the small _test.ra fixture stays in the audits."
+  "euler/548_gozintachains.ra": "To fix later: the default input takes about 14 s, 17562 exponent patterns with exact chain counts as big integers; the small _test.ra fixture stays in the audits.",
+  "euler/549_divisibilityfactorials.ra": "To fix later: the default input takes about 2.5 min and 4 GB, a largest-prime-factor sieve to 10^8 by strided writes; the small _test.ra fixture stays in the audits."
 }

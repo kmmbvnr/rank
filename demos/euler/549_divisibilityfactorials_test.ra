@@ -1,0 +1,11 @@
+use testing
+
+test "brute force sums"
+  use "549_divisibilityfactorials"
+  N = 100
+  run
+  Answer equal 2012
+  N = 1000
+  run
+  Answer equal 136817
+end

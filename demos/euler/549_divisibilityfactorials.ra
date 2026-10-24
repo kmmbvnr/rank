@@ -1,0 +1,55 @@
+rem Divisibility of factorials
+rem https://projecteuler.net/problem=549
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 100000000
+
+rem s(n) is the largest t(p, a) over
+rem the p^a || n, t(p, a) the least m
+rem with v_p(m!) >= a. For a = 1 that
+rem is p, so start from the largest
+rem prime factor (primes in order, each
+rem overwriting its multiples), then
+rem raise multiples of p^a, a >= 2.
+S = array shape (N + 1) fill 0
+for P in primes to N
+  S (P to N by P) = P
+end
+Rt = N isqrt
+Ps = primes to Rt array
+Z1 = array shape 0 fill 0
+Pa = Z1
+Ea = Z1
+for A in 2 to 30
+  Pk = Ps ((Ps ** A at most N) indices)
+  Pa = concat Pa Pk
+  Ea = concat Ea (Pk * 0 + A)
+end
+rem t by bisection on Legendre's sum.
+Lo = Pa * 0 + 1
+Hi = Pa * Ea
+for It in 1 to 40
+  Md = (Lo + Hi) // 2
+  V = Md * 0
+  Q = Pa
+  for J in 1 to 30
+    V += Md // Q
+    Q = Q * Pa
+  end
+  G = V at least Ea
+  Hi = G choose Md Hi
+  Lo = G choose Lo (Md + 1)
+end
+T = Hi
+for I in 0 till Pa len
+  Q = (Pa I) ** (Ea I)
+  Sl = Q to N by Q
+  Ti = T I
+  S Sl = (S Sl) max Ti
+end
+Answer = (S (2 to N)) sum
+Answer print
