@@ -1,0 +1,77 @@
+rem Idempotent Matrices
+rem https://projecteuler.net/problem=572
+
+use numbers
+use io
+use cli
+
+option N integer = 200
+
+rem An idempotent 3x3 integer matrix is
+rem 0, I, a rank-1 matrix p w^T or
+rem I - p w^T with p . w = 1, and
+rem (p, w), (-p, -w) give one matrix.
+rem Rank 1 needs max|p| max|w| <= n;
+rem rank 2 needs |p_i w_j| <= n for
+rem i != j and |1 - p_i w_i| <= n. The
+rem count of w for p is unchanged by
+rem permuting p and flipping signs, so
+rem take p = (a, b, c), a >= b >= c >= 0
+rem and weigh by its orbit; w1 follows
+rem from w2, w3 in range.
+Tot = 0
+for A in 1 to N
+  Wr = N // A
+  for B in 0 to A
+    for C in 0 to B
+      C1 = 0
+      C2 = 0
+      for W2 in (0 - Wr) to Wr
+        for W3 in (0 - Wr) to Wr
+          Nu = 1 - B * W2 - C * W3
+          if Nu mod A equal 0
+            W1 = Nu // A
+            Aw1 = W1 abs
+            Aw2 = W2 abs
+            Aw3 = W3 abs
+            Wm = Aw1 max Aw2
+            Wm = Wm max Aw3
+            if A * Wm at most N
+              C1 += 1
+            end
+            Mx = (1 - A * W1) abs
+            Dg2 = (1 - B * W2) abs
+            Dg3 = (1 - C * W3) abs
+            Mx = Mx max Dg2
+            Mx = Mx max Dg3
+            Mx = Mx max (A * Aw2)
+            Mx = Mx max (A * Aw3)
+            Mx = Mx max (B * Aw1)
+            Mx = Mx max (B * Aw3)
+            Mx = Mx max (C * Aw1)
+            Mx = Mx max (C * Aw2)
+            if Mx at most N
+              C2 += 1
+            end
+          end
+        end
+      end
+      Pm = 6
+      if (A equal B) and (B equal C)
+        Pm = 1
+      elif (A equal B) or (B equal C)
+        Pm = 3
+      end
+      Nz = 1
+      if B greater 0
+        Nz += 1
+      end
+      if C greater 0
+        Nz += 1
+      end
+      Tot += Pm * (2 ** Nz) * (C1 + C2)
+    end
+  end
+end
+Answer = Tot // 2 + 2
+Answer print

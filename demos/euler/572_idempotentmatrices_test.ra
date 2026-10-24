@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "572_idempotentmatrices"
+  run
+  Answer equal 19737656
+end
+
+test "statement values"
+  use "572_idempotentmatrices"
+  N = 1
+  run
+  Answer equal 164
+  N = 2
+  run
+  Answer equal 848
+end
