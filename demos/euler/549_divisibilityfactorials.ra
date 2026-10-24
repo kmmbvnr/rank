@@ -47,9 +47,12 @@ end
 T = Hi
 for I in 0 till Pa len
   Q = (Pa I) ** (Ea I)
-  Sl = Q to N by Q
   Ti = T I
-  S Sl = (S Sl) max Ti
+  rem Each multiple is independent; avoid a temporary slice and RHS snapshot.
+  for K in Q to N by Q
+    S K = (S K) max Ti
+  end
 end
-Answer = (S (2 to N)) sum
+rem S 0 and S 1 stay zero, so sum the stored array without a temporary slice.
+Answer = S sum
 Answer print

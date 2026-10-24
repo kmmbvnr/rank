@@ -206,15 +206,56 @@ export function fillBooleanSelection(
  * Callers have protected ownership, established an integer binding, and removed
  * lazy reads/callbacks from operands and offsets. Compound writes accumulate
  * repeated offsets. Snapshot writes instead supply precomputed replacements
- * with '=' when offsets are not proven unique. */
+ * with '=' when offsets are not proven unique. `linear`, when supplied, is
+ * the proven equivalent of offsetAt, not an inferred range of addresses. */
 export function writeIntegerSelection(
     value: RankArray, count: number, offsetAt: (index: number) => number,
     operand: bigint | readonly bigint[], operator: '=' | '+=' | '-=' | '*=',
+    linear?: { offset: number; stride: number },
 ): void {
     const state = ownedStorage.get(value)!;
     const diagnostics = currentDiagnostics();
     if (diagnostics) { diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count; }
     state.revision = noteMutation(state.birth);
+    // A scalar replacement neither reads old cells nor changes physical kind.
+    // Check representability once, outside the cell loop. Observable host
+    // polling keeps the ordinary path, which reloads storage after each poll.
+    if (operator === '=' && typeof operand === 'bigint' && !state.validity && privateLoopPolling()) {
+        const cells = state.typed;
+        if (cells instanceof Int32Array && fitsInt32(operand)) {
+            const replacement = Number(operand);
+            if (linear) {
+                for (let start = 0; start < count; start += 1024) {
+                    const end = Math.min(count, start + 1024);
+                    checkpoint('writing array', end - start);
+                    let offset = linear.offset + start * linear.stride;
+                    for (let i = start; i < end; i++, offset += linear.stride) cells[offset] = replacement;
+                }
+            } else {
+                for (let i = 0; i < count; i++) {
+                    checkpoint('writing array');
+                    cells[offsetAt(i)] = replacement;
+                }
+            }
+            return;
+        }
+        if (cells instanceof BigInt64Array && fitsInt64(operand)) {
+            if (linear) {
+                for (let start = 0; start < count; start += 1024) {
+                    const end = Math.min(count, start + 1024);
+                    checkpoint('writing array', end - start);
+                    let offset = linear.offset + start * linear.stride;
+                    for (let i = start; i < end; i++, offset += linear.stride) cells[offset] = operand;
+                }
+            } else {
+                for (let i = 0; i < count; i++) {
+                    checkpoint('writing array');
+                    cells[offsetAt(i)] = operand;
+                }
+            }
+            return;
+        }
+    }
     // Choose the operator once: no operator dispatch, broadcasting allocation,
     // scalar-kind changes or user code during the commit.
     const combine = operator === '=' ? (_: bigint, next: bigint) => next

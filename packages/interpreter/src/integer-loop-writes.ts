@@ -47,6 +47,13 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 if (out === undefined) return undefined;
                 result = out;
             }
+            if (type === 'integer') {
+                // Preserve compact private storage until a safe Number needs
+                // more than Int32. Publish through the updated buffer too.
+                lines.push(`if (cells${target.slot} instanceof Int32Array && ${result} !== (${result} | 0)) {
+                    cells${target.slot} = cells[${target.slot}] = new Float64Array(cells${target.slot});
+                }`);
+            }
             body.push(`location = ${location};`, ...lines,
                 `cells${target.slot}[${key}] = ${result}; changed${target.slot}[${key}] = 1; iterationResult = ${rhs}; resultType = ${JSON.stringify(type)};`);
             return true;

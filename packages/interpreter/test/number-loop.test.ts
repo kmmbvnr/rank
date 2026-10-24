@@ -22,6 +22,26 @@ function compare(source: string) {
 }
 
 describe('private safe-integer loop registers', () => {
+    it.each(['2147483647', '-2147483649', '9007199254740989'])('widens private Int32 stores without truncating %s', wide => {
+        const diagnostics = compare(`A = array shape 4096 fill 0
+Alias = A
+Wide = ${wide}
+for I in 0 to 2
+ A I = Wide + I
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it('publishes compound stores after a private buffer widens', () => {
+        const diagnostics = compare(`A = array shape 4096 fill 2147483647
+for I in 0 to 2
+ A I += 1
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
     it('uses direct exact stores for repeatedly entered condition loops', () => {
         const diagnostics = compare(`A = array shape 4096 fill 0
 J = 0

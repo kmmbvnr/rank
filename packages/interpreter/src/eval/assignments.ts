@@ -235,7 +235,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 const destination = owned(target) as typeof target;
                 if (statement.accumulate) {
                     accumulateIntegerSelection(destination, count, selection.offsetAt, values, operation as '+=' | '-=' | '*=');
-                } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation);
+                } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation, selection.linear);
                 return result;
             }
         }

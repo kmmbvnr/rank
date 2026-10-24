@@ -155,7 +155,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             if (compact) {
                 // Private writes retain exact replay on overflow. Read-only
                 // regions can borrow Int32 values directly: every cell is safe.
-                buffers[info.slot] = plan.destinations.has(name) ? new Float64Array(compact) : compact;
+                // Stores widen the private copy before a value can truncate.
+                buffers[info.slot] = plan.destinations.has(name) ? compact.slice() : compact;
             } else if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && info.type === 'integer' && typedElementKind(value) === 'integer') {
                 buffers[info.slot] = items as ArrayLike<bigint>;
             } else {

@@ -66,7 +66,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                     values = Array.from({ length: count }, (_, index) => readArrayItem(operand, index) as bigint);
                 }
                 if (!isRankArray(array) || !writableIntegerCells(array)) return false;
-                writeIntegerSelection(array, count, index => first + index * stride, values, operator);
+                writeIntegerSelection(array, count, index => first + index * stride, values, operator, { offset: first, stride });
                 return true;
             }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, host.arrayValues); }
