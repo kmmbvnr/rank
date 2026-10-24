@@ -34,7 +34,7 @@ A sum`));
         } finally { runtime.dispose(); }
     });
 
-    it.each([65535, 65536, 65537])('snapshots %s selected cells without retaining the source', size => {
+    it.each([65535, 65536, 65537])('shares %s contiguous cells and detaches on a source write', size => {
         const runtime = session();
         const diagnostics = new RuntimeDiagnostics();
         try {
@@ -42,9 +42,9 @@ A sum`));
             const source = runtime.variables.get('A');
             diagnostics.run(() => runtime.execute(`S = A (0 to ${size - 1})\nA 0 = 99`));
             expect(runtime.execute('S 0')).toBe(0n);
-            expect(runtime.variables.get('A')).toBe(source);
-            expect(isSharedArray(source!)).toBe(false);
-            expect(diagnostics.cowCopiedCells).toBe(0);
+            expect(runtime.variables.get('A')).not.toBe(source);
+            expect(diagnostics.cowCopies).toBe(1);
+            expect(diagnostics.cowCopiedCells).toBe(size + 1);
         } finally { runtime.dispose(); }
     });
 

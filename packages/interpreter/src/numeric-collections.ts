@@ -1,4 +1,4 @@
-import { denseScalarItems, typedArray, ownedScalarArray } from './array-storage.js';
+import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { integerConcatCells } from './concat-array.js';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
@@ -6,6 +6,17 @@ import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 const MIN_INT64 = -(1n << 63n), MAX_INT64 = (1n << 63n) - 1n;
 type NumericBuffer = BigInt64Array | Float64Array | Uint8Array;
+
+/** Only a proved self-rebinding sort may consume a uniquely held buffer. */
+export function numericSortInPlace(value: RankValue, descending = false): RankArray | undefined {
+    if (!isRankArray(value) || isSharedArray(value)) return undefined;
+    const result = sortStoredIntegerArray(value, descending);
+    if (result) {
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) { diagnostics.numericSorts++; diagnostics.numericInPlaceSorts++; }
+    }
+    return result;
+}
 
 /** Admission inspects no host/lazy cells, contracts or public items getter. */
 export function numericCells(value: RankValue): ArrayLike<RankValue> | undefined {

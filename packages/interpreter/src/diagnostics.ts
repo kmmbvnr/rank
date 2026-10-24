@@ -18,6 +18,7 @@ export class RuntimeDiagnostics {
     compiledGraphAdds = 0;
     compiledEffectCalls = 0;
     numericSorts = 0;
+    numericInPlaceSorts = 0;
     numericDistincts = 0;
     numericUniqueSorts = 0;
     numericSearches = 0;

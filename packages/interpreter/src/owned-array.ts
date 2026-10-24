@@ -1,6 +1,6 @@
 import { BooleanCells, booleanItems } from './boolean-cells.js';
 import { copyArrayStorage } from './array-copy.js';
-import { checkpoint, InterruptedError, privateLoopPolling } from './interrupt.js';
+import { checkpoint, InterruptedError, interruptsEnabled, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { ResourceSummary } from './resource-summary.js';
 import { StoredValueSummary } from './stored-value.js';
@@ -113,6 +113,24 @@ export function copyStoredNumericArray(value: RankArray): RankArray | undefined 
     if (!state?.stable || !state.scalarOnly || !state.typed || state.validity || value.itemAt !== undefined) return undefined;
     checkpoint('copying numeric array', state.typed.length);
     return createOwned(state.typed.slice(), value.shape, true, value.columnNames);
+}
+
+/** The caller has proved that this binding is replaced by its sorted result.
+ * Retained readers must be ruled out separately with isSharedArray. Native
+ * sort cannot poll, and integer buffers need no value-dependent validation. */
+export function sortStoredIntegerArray(value: RankArray, descending: boolean): RankArray | undefined {
+    const state = ownedStorage.get(value);
+    if (interruptsEnabled() || !privateLoopPolling() || !state?.stable || !state.scalarOnly || state.owners !== 1
+        || state.readOnlyCells || state.validity || value.itemAt !== undefined || value.shape.length !== 1
+        || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
+    const cells = state.typed;
+    if (!(cells instanceof BigInt64Array || cells instanceof Int32Array)) return undefined;
+    // Allocate the new value facade before touching the binding's old cells.
+    const result = typedArray(cells, value.shape);
+    state.revision = noteMutation(state.birth);
+    cells.sort();
+    if (descending) cells.reverse();
+    return result;
 }
 
 /** Borrow a completed boolean bitmap for callback-free synchronous kernels. */
@@ -577,6 +595,18 @@ export function sharedTypedArray(data: Float64Array | BigInt64Array | Int32Array
     const value = typedArray(data, shape);
     ownedStorage.get(value)!.owners = SHARED;
     return value;
+}
+
+/** A contiguous slice of completed numeric storage. Both values detach before
+ * a Rank write, so retaining a slice needs no eager copy of its cells. */
+export function sliceStoredArray(value: RankArray, offset: number, shape: readonly number[]): RankArray | undefined {
+    const state = ownedStorage.get(value);
+    if (!state?.stable || !state.scalarOnly || !state.typed || state.validity || state.readOnlyCells
+        || value.itemAt !== undefined || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
+    const size = shape.reduce((total, length) => total * length, 1);
+    const result = sharedTypedArray(state.typed.subarray(offset, offset + size), shape);
+    state.owners = SHARED;
+    return result;
 }
 
 /** Shape-only value copy. Rank writes through either value detach the buffer. */

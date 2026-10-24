@@ -2,12 +2,13 @@ import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.
 import { unpackApplicationItems } from '../value-selection.js';
 import {
     deferredBindingReferences, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
-    applicationExpression, flattenApplication, isApplicationExpression, isNameExpression, isNumberLiteral,
+    applicationExpression, flattenApplication, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy, prepareStoredScalarView } from '../integer-view.js';
 import { materializeValue, materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
+import { numericSortInPlace } from '../numeric-collections.js';
 import { materializeSequence } from '../sequence.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, accumulateIntegerSelection, reduceIntegerUpdates,
     hasWritableBooleanCells, fillBooleanSelection, writeArrayCell } from '../array-storage.js';
@@ -42,6 +43,8 @@ export interface AssignmentContext {
     compileAssign(name: string): (value: RankValue) => void;
     protect(names: readonly string[], plan: AssignmentStatement): () => void;
     resolveVariable(name: string): RankValue;
+    isStandardFunction(module: string, name: string): boolean;
+    canConsumeBinding(): boolean;
     checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
     select(values: RankValue[]): RankValue;
@@ -359,6 +362,12 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
     const stored = (value: RankValue): RankValue => {
         return statement.deferred ? value : materializeValue(value);
     };
+    const parts = operator === undefined && !statement.deferred && !statement.name.includes('.')
+        && isApplicationExpression(statement.value) ? flattenApplication(statement.value) : [];
+    const selfSort = (parts.length === 2 || parts.length === 3 && isLabelLiteral(parts[2])
+        && ['ascending', 'descending'].includes(parts[2].name))
+        && isNameExpression(parts[0]) && parts[0].name === statement.name
+        && isNameExpression(parts[1]) && parts[1].name === 'sort';
     if (direct) {
         return { run: () => {
             const result = stored(operator === undefined ? direct() : host.operators.evaluateBinary(
@@ -369,6 +378,12 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         } };
     }
     return { stream: () => {
+        if (selfSort && host.options().compilation !== false && host.canConsumeBinding()
+            && host.isStandardFunction('sequences', 'sort')) {
+            const sorted = numericSortInPlace(host.resolveVariable(statement.name),
+                parts.length === 3 && isLabelLiteral(parts[2]) && parts[2].name === 'descending');
+            if (sorted) { write(sorted); return completed(sorted); }
+        }
         const previous = operator === undefined ? undefined : host.resolveVariable(statement.name);
         return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
             const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));

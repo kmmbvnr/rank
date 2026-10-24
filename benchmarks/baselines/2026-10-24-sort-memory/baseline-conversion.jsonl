@@ -1,0 +1,2 @@
+{"testCase": "conversion", "size": 10000000, "ms": 621.446917, "peakMiB": 769.5625, "buffersMiB": 153.81007289886475, "node": "v24.15.0", "checked": true}
+{"testCase": "conversion", "size": 10000000, "ms": 651.6234159999999, "peakMiB": 765.9375, "buffersMiB": 153.81007289886475, "node": "v24.15.0", "checked": true}

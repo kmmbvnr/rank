@@ -96,6 +96,11 @@ Writable = Source
 it helps express the intent to take a snapshot; it is not required for array
 independence or writability.
 
+Contiguous slices of completed numeric buffers can share storage until either
+array is written. A write then takes a private copy; the saved slice keeps its
+original values. Temporary slices used inside expressions do not themselves
+require a copy of the source.
+
 `transpose` returns a lazy read-only view. Without an axis modifier it reverses
 the order of every axis:
 

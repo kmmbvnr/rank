@@ -1,5 +1,34 @@
 import { RankError } from './errors.js';
-import type { RankValue } from './value.js';
+import { booleanCells, IntegerCells, typedArray } from './array-storage.js';
+import { prepareStoredScalarView } from './integer-view.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
+import { isRankArray, type RankArray, type RankValue } from './value.js';
+
+/** Convert completed scalar storage directly into compact exact integers.
+ * Host readers and observable polling retain the ordinary mapping path. */
+export function integerArray(value: RankValue): RankArray | undefined {
+    if (!privateLoopPolling() || !isRankArray(value)) return undefined;
+    const bits = booleanCells(value);
+    if (bits) {
+        const cells = new Int32Array(bits.length);
+        for (let start = 0; start < cells.length; start += 32) {
+            if ((start & 4095) === 0) checkpoint('converting boolean array', Math.min(4096, cells.length - start));
+            const word = bits.words[start >>> 5];
+            const end = Math.min(start + 32, cells.length);
+            for (let i = start; i < end; i++) cells[i] = word >>> (i - start) & 1;
+        }
+        return typedArray(cells, value.shape);
+    }
+    const view = prepareStoredScalarView(value, true);
+    if (!view) return undefined;
+    const size = value.shape.reduce((total, length) => total * length, 1);
+    const cells = new IntegerCells(size);
+    for (let i = 0; i < size; i++) {
+        if ((i & 4095) === 0) checkpoint('converting integer array', Math.min(4096, size - i));
+        cells.set(i, integerValue(view.read(i)));
+    }
+    return cells.array(value.shape);
+}
 
 export function integerValue(value: RankValue): bigint {
     if (typeof value === 'boolean') return value ? 1n : 0n;

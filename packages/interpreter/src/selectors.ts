@@ -8,7 +8,7 @@ import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
 import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
-import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
 import { sequenceValues } from './sequence.js';
@@ -40,6 +40,10 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
     });
     registerArrayCopy(result, () => {
         const total = arraySize(shape);
+        if (linear?.stride === 1) {
+            const shared = sliceStoredArray(current, linear.offset, shape);
+            if (shared) return shared;
+        }
         const run = linear?.stride === 1 ? total : blockSize;
         if (run <= 1 || total === 0) return undefined;
         return copyStoredArrayBlocks(shape, [current], function* () {
@@ -158,6 +162,23 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
         const kinds = stored && storedScalarKinds(selector as RankArray);
         if (stored && kinds?.length === 1 && kinds[0] === 'integer') {
             const compact = integer32Cells(selector as RankArray);
+            // Materialized ranges retain their affine addressing. Prove it from
+            // trusted cells; an arbitrary index vector still uses the gather.
+            if (shape?.length === 1) {
+                const count = stored.length;
+                const first = count ? Number(compact ? compact[0] : stored[0]) : 0;
+                const stride = count > 1 ? Number(compact ? compact[1] : stored[1]) - first : 1;
+                let regular = true;
+                for (let i = 0; i < count; i++) {
+                    if ((i & 4095) === 0) checkpoint('checking linear array indices', Math.min(4096, count - i));
+                    if (Number(compact ? compact[i] : stored[i]) !== first + i * stride) { regular = false; break; }
+                }
+                const last = first + (count - 1) * stride;
+                if (regular && (!count || Math.min(first, last) >= 0 && Math.max(first, last) < size)) {
+                    return { preserve: true, size: count, shape, unique: count <= 1 || stride !== 0,
+                        linear: { offset: first, stride }, indexAt: (coordinate: number) => first + coordinate * stride };
+                }
+            }
             const indices = new Float64Array(stored.length);
             let unique = true;
             for (let i = 0; i < indices.length; i++) {

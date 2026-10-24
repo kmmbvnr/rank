@@ -6,6 +6,7 @@ import {
 } from '@arrrank/language';
 import { BindingEnvironment } from './binding-environment.js';
 import { MutationGuards } from './mutation-guards.js';
+import { hasNativeImplementation } from './native-implementation.js';
 import { EnvironmentOverlay, effectiveEnvironment, withEnvironment, type RankEnvironment } from './environment.js';
 import { bindInputs } from './cli-args.js';
 import { CheckedInputContracts } from './checked-input.js';
@@ -261,6 +262,14 @@ export class Interpreter {
             compileDirect: expression => this.expressions.compileDirect(expression),
             compileAssign: name => this.compileAssign(name),
             resolveVariable: name => this.resolveVariable(name),
+            // Local parameters may borrow a caller's array without an ownership
+            // increment. Keep their self-rebindings on the copying path.
+            canConsumeBinding: () => this.bindings.current === undefined,
+            isStandardFunction: (module, name) => {
+                const value = this.resolve(name);
+                return isNativeFunction(value) && this.builtins.is(module, name, value)
+                    && hasNativeImplementation(value) && value.monadicRank === 1;
+            },
             evaluateAddressParts: item => this.expressions.evaluateAddressParts(item),
             select: values => select(values),
             requireModule: requireOpen,

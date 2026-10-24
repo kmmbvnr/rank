@@ -1,0 +1,2 @@
+{"testCase": "euler", "size": 50005000, "ms": 32619.396459000003, "peakMiB": 2169.234375, "buffersMiB": 433.7913579940796, "node": "v24.15.0", "checked": true}
+{"testCase": "euler", "size": 50005000, "ms": 31755.678167, "peakMiB": 2180.015625, "buffersMiB": 465.27982997894287, "node": "v24.15.0", "checked": true}

@@ -42,14 +42,22 @@ for X0 in 1 to N by Bk
   Off += Ln
 end
 Za = Za sort
-Ks = Za // 16384
-Hi = Ks (1 till Tot array)
-Lw = Ks (0 till (Tot - 1) array)
-Sa = (Hi equal Lw) integer
-Mm = concat Sa (array 0)
-Nx = concat (array 0) Sa
-Mm = Mm max Nx
-Mi = (Mm equal 1) indices
+rem Compare adjacent keys in overlapping windows;
+rem keep only the endpoints of matching pairs.
+rem The overlap includes matches across windows.
+Window = 1000000
+Mi = array shape 0 fill 0
+for Start in 1 till Tot by Window
+  Stop = (Start + Window) min Tot
+  Kb = Za ((Start - 1) till Stop) // 16384
+  Count = Kb len
+  Hi = Kb (1 till Count)
+  Lw = Kb (0 till (Count - 1))
+  Hits = (Hi equal Lw) indices
+  Hits += Start
+  Mi = concat Mi (Hits - 1) Hits
+end
+Mi = Mi unique sort
 Zm = Za Mi
 Km = Zm // 16384
 Xm = Zm mod 16384

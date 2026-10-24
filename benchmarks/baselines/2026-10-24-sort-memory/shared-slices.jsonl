@@ -1,0 +1,2 @@
+{"testCase": "slice", "size": 50005000, "ms": 560.685208, "peakMiB": 705.15625, "buffersMiB": 572.291895866394, "node": "v24.15.0", "checked": true}
+{"testCase": "slice", "size": 50005000, "ms": 567.589792, "peakMiB": 705.453125, "buffersMiB": 572.291895866394, "node": "v24.15.0", "checked": true}

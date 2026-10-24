@@ -1,0 +1,2 @@
+{"testCase": "sort", "size": 50005000, "ms": 861.074708, "peakMiB": 509.53125, "buffersMiB": 381.5379629135132, "node": "v24.15.0", "checked": true}
+{"testCase": "sort", "size": 50005000, "ms": 862.363334, "peakMiB": 515, "buffersMiB": 381.5379629135132, "node": "v24.15.0", "checked": true}

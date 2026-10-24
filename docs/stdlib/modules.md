@@ -786,6 +786,12 @@ Scalar membership in another bounded sequence uses a finite linear scan;
 batch membership builds a lookup once. An unbounded sequence without its own
 membership plan is rejected.
 
+`sort` preserves its input's value. A top-level self-rebinding such as
+`A = A sort` can reuse a uniquely held Int32 or Int64 buffer. Aliases, retained
+readers, local function parameters and execution with interruption keep the
+ordinary copying path. The optimization also accepts `.ascending` and
+`.descending`; it does not change integer precision or ordering.
+
 `argsort` has intrinsic rank 1 and returns stable, zero-based sorting positions.
 For tensors it returns the same shape, orders along the last axis by default,
 and accepts `axis N` to select another axis.
