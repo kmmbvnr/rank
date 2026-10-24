@@ -1,0 +1,81 @@
+rem Centaurs on a Chess Board
+rem https://projecteuler.net/problem=554
+
+use numbers
+use sequences
+use io
+use cli
+
+option Top integer = 90
+
+rem Rows of a 2n board hold k pieces on
+rem one side and n-k on the other, which
+rem gives C(n) = 8 binom(2n, n) - 3n^2
+rem - 2n - 7 (checked for n <= 4 by
+rem search and n = 10 by the statement).
+rem Lucas splits binom(2n, n) mod p into
+rem base-p digits, whose factorials come
+rem from block products (B = 10^4).
+Pm = 100000007
+Ex = Pm - 2
+Bk = 10000
+Fb = array shape (Top + 1) fill 1
+for I in 3 to Top
+  A1 = Fb (I - 1)
+  A2 = Fb (I - 2)
+  Fb I = A1 + A2
+end
+Nn = Fb (2 to Top array)
+Nq = Nn len
+Nt = 3 * Nq
+Bs = array Pm Pm Pm
+V2 = 2 * Nn
+Up = V2 digits Bs
+Lo = Nn digits Bs
+Dn = Up - Lo
+Ok = (Dn at least 0) integer
+Dn = Dn max 0
+Ua = Up reshape Nt
+La = Lo reshape Nt
+Da = Dn reshape Nt
+Xs = concat (concat Ua La) Da
+Nb = Pm // Bk + 1
+Bl = (0 till Nb array) * Bk
+Cu = Bl * 0 + 1
+for J in 1 to Bk
+  Cu = (Cu * (Bl + J)) mod Pm
+end
+Pre = array shape (Nb + 1) fill 1
+for I in 0 till Nb
+  Pv = Pre I
+  Cv = Cu I
+  Pre (I + 1) = (Pv * Cv) mod Pm
+end
+Kx = Xs // Bk
+Kb = Kx * Bk
+Tl = Xs - Kb
+Pr = Kx * 0 + 1
+for J in 1 till Bk
+  Pj = (Pr * (Kb + J)) mod Pm
+  Pr = (Tl at least J) choose Pj Pr
+end
+Fx = ((Pre Kx) * Pr) mod Pm
+Fu = Fx (0 till Nt array)
+Fl = Fx (Nt till (2 * Nt) array)
+Fd = Fx ((2 * Nt) till (3 * Nt) array)
+Dm = (Fl * Fd) mod Pm
+Iv = Dm Ex Pm powmod
+Tm = (Fu * Iv) mod Pm
+Of = Ok reshape Nt
+Tm = Tm * Of
+Tr = Tm reshape 3 Nq
+R0 = Tr 0
+R1 = Tr 1
+R2 = Tr 2
+Bn = (R0 * R1) mod Pm
+Bn = (Bn * R2) mod Pm
+Nm = Nn mod Pm
+Sb = (3 * Nm * Nm + 2 * Nm + 7) mod Pm
+Cn = (8 * Bn + Pm - Sb) mod Pm
+Answer = (Cn sum) mod Pm
+Answer print

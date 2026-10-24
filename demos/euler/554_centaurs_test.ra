@@ -1,0 +1,8 @@
+use testing
+
+test "statement values in the sum"
+  use "554_centaurs"
+  Top = 5
+  run
+  Answer equal 2073
+end
