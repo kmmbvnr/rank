@@ -1,0 +1,57 @@
+rem Coprime Nim
+rem https://projecteuler.net/problem=560
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+option N integer = 10000000
+option K integer = 10000000
+
+rem Grundy value of a pile: 0 if even,
+rem 1 for 1, else the index of its
+rem least prime factor. Count piles by
+rem value c; the K-pile xor-0 positions
+rem number (1 / m) sum of the K-th
+rem powers of the Walsh-Hadamard
+rem transform of c (length m).
+Md = 1000000007
+Lm = N - 1
+Ps = primes till (Lm + 1) array
+Np = Ps len
+Cc = array shape Np fill 1
+Al = array shape (Lm + 1) fill 1
+Sq = Lm isqrt
+Ns = ((Ps at most Sq) integer) sum
+for I in 1 till Ns
+  P = Ps I
+  Ix = (P to Lm by 2 * P) array
+  Cc I = (Al Ix) sum
+  Al Ix = 0
+end
+Lg = 0
+Mm = 1
+for Mm less Np + 1
+  Mm *= 2
+  Lg += 1
+end
+Wt = array shape Mm fill 0
+Wt 0 = Lm // 2
+Wt 1 = 1
+Hi = 2 till (Np + 1) array
+Wt Hi = Cc (1 till Np array)
+Ix = 0 till Mm array
+for E in 0 till Lg
+  H = 2 ** E
+  Xp = Wt (Ix bxor H)
+  Bt = (Ix band H) // H
+  Wt = Xp + Wt * (1 - 2 * Bt)
+end
+Th = Wt mod Md
+Pw = Th K Md powmod
+Iv = Mm (Md - 2) Md powmod
+Sm = (Pw sum) mod Md
+Answer = (Sm * Iv) mod Md
+Answer print
