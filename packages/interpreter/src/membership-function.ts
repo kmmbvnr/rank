@@ -7,6 +7,7 @@ import { ownedArray } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { prepareIntegerView } from './integer-view.js';
 import { isNativeFunction, type RankValue } from './value.js';
+import { membershipKeys } from './membership-keys.js';
 
 type Node = { kind: 'read'; name: string } | { kind: 'literal'; value: bigint }
     | { kind: 'concat'; parts: Node[] }
@@ -18,7 +19,7 @@ export interface RankedMembership {
 }
 
 /** Compile straight-line integer vector arithmetic consumed by membership.
- * Local intermediates stay private: concat writes keys directly into a Set.
+ * Local intermediates stay private: concat writes keys directly into the lookup.
  * Unsupported bodies/values decline before evaluating any array cell. */
 export function compileMembershipFunction(statement: FunctionStatement): {
     locals: readonly string[];
@@ -114,7 +115,7 @@ export function compileMembershipFunction(statement: FunctionStatement): {
         const query = bind(left), candidates = bind(right);
         if (!query || !candidates || 'scalar' in query || 'scalar' in candidates) return undefined;
         // Only after every guard succeeded may we read the proven storage.
-        const keys = new Set<bigint>();
+        const keys = membershipKeys<bigint>(candidates.length);
         const add = (node: Node): void => {
             if (node.kind === 'concat') { node.parts.forEach(add); return; }
             const value = bound.get(node)!;

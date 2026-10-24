@@ -669,7 +669,8 @@ function presentMembershipTest(right: RankValue, indexed: boolean): (value: Rank
     if (isRankSet(right) || isRankCounter(right)) return value => right.entries.has(setValueKey(value));
     if (isRankMultiset(right)) return value => right.has(value);
     const source = asRankArray(right);
-    if (source) return membershipLookup(shouldStream(source) ? streamCells(source) : source);
+    if (source) return shouldStream(source)
+        ? membershipLookup(streamCells(source), arraySize(source.shape)) : membershipLookup(source);
     if (isRankSequence(right)) {
         if (!right.plan.contains && right.plan.size.kind !== 'infinite' && indexed) {
             return membershipLookup(right.plan.iterate());
