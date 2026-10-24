@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "559_permutedmatrices"
+  N = 5
+  run
+  Answer equal 879391168
+  N = 50
+  run
+  Answer equal 819573537
+end

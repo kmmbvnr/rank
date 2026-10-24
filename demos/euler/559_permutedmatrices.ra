@@ -1,0 +1,58 @@
+rem Permuted Matrices
+rem https://projecteuler.net/problem=559
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 50000
+
+rem Inclusion-exclusion over the ascent
+rem runs gives P(k, n, n) = (n!)^n g
+rem with u(m) = (m!)^-n, b = n // k,
+rem s = n mod k, and a the reciprocal
+rem of sum (-1)^j u(jk) z^j. Then g is
+rem a(b) if s = 0, else the sum over j
+rem of (-1)^j a(b-j) u(s + jk).
+Md = 1000000123
+Fa = array shape (N + 1) fill 1
+for I in 1 to N
+  Pv = Fa (I - 1)
+  Fa I = (Pv * I) mod Md
+end
+Ex = Md - 2
+Iq = Fa Ex Md powmod
+Uu = Iq N Md powmod
+Gs = 0
+for K in 1 to N
+  B = N // K
+  S = N mod K
+  Jj = 1 to B array
+  Uk = Uu (Jj * K)
+  Sg = 2 * (Jj mod 2) - 1
+  Wr = (Uk * Sg) mod Md
+  Wr = Wr (B - Jj)
+  Aa = array shape (B + 1) fill 0
+  Aa 0 = 1
+  for I in 1 to B
+    Xs = Aa (0 till I array)
+    Ys = Wr ((B - I) till B array)
+    Zs = (Xs * Ys) mod Md
+    Aa I = (Zs sum) mod Md
+  end
+  if S equal 0
+    Gs += Aa B
+  else
+    Jz = 0 to B array
+    Us = Uu (S + Jz * K)
+    Sg = 1 - 2 * (Jz mod 2)
+    Ar = Aa (B - Jz)
+    Zs = (Ar * Us * Sg) mod Md
+    Gs += Zs sum
+  end
+end
+Fn = Fa N
+Fp = Fn N Md powmod
+Answer = ((Gs mod Md) * Fp) mod Md
+Answer print
