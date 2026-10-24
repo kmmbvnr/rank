@@ -1,0 +1,22 @@
+rem Counting Hexagons
+rem https://projecteuler.net/problem=577
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 12345
+
+rem A hexagon has a side vector (a, b)
+rem and its 60 degree turn; for each
+rem k = a + b there are k of them and
+rem one needs a triangle of side 3k,
+rem leaving C(n - 3k + 2, 2) places in
+rem side n. Summed over n = 3 .. N this
+rem is sum k C(N - 3k + 3, 3).
+K = 1 to (N // 3) array
+M = N - 3 * K + 1
+Tm = K * M * (M + 1) * (M + 2) // 6
+Answer = Tm sum
+Answer print

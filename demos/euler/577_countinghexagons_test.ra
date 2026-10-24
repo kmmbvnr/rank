@@ -1,0 +1,26 @@
+use testing
+
+test "default input"
+  use "577_countinghexagons"
+  run
+  Answer equal 265695031399260211
+end
+
+test "statement values"
+  use "577_countinghexagons"
+  N = 3
+  run
+  Answer equal 1
+  N = 6
+  run
+  Prev = Answer
+  N = 5
+  run
+  Prev - Answer equal 12
+  N = 20
+  run
+  Prev = Answer
+  N = 19
+  run
+  Prev - Answer equal 966
+end
