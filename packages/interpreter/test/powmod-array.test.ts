@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, isRankArray, type RankArray } from '../src/index.js';
-import { ownedArray } from '../src/array-storage.js';
+import { DemandBudgetExhausted, Interpreter, isRankArray, withDemandBudget, type RankArray } from '../src/index.js';
+import { denseScalarItems, integer32Cells, ownedArray } from '../src/array-storage.js';
+import { modularPower } from '../src/primality.js';
 
 function execute(source: string) {
     const runtime = new Interpreter();
@@ -11,6 +12,56 @@ function execute(source: string) {
 }
 
 describe('powmod array operands', () => {
+    it('writes completed integer operands to stored cells', () => {
+        const runtime = new Interpreter();
+        try {
+            const result = runtime.execute('use numbers\nuse sequences\nA = (2 to 8193) copy\nA 3 135707531 powmod') as RankArray;
+            expect(denseScalarItems(result)).toBeDefined();
+            expect(integer32Cells(result)).toBeDefined();
+            expect(result.items[0]).toBe(8n);
+            expect(result.items[8191]).toBe(8193n ** 3n % 135707531n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('borrows signed 64-bit inputs exactly within the safe Number range', () => {
+        const runtime = new Interpreter();
+        const inputs = [-(2n ** 53n - 1n), 2n ** 53n - 1n, -4294967297n, 4294967297n, -1n, 0n];
+        const bases = Array.from({ length: 8192 }, (_, i) => inputs[i % inputs.length]);
+        runtime.variables.set('A', ownedArray(bases, [8192]));
+        try {
+            const result = runtime.execute('use numbers\nA 3 135707531 powmod') as RankArray;
+            expect(integer32Cells(result)).toBeDefined();
+            expect(result.items).toEqual(bases.map(base => modularPower(base, 3n, 135707531n)));
+        } finally { runtime.dispose(); }
+    });
+
+    it('cancels the stored pass without publishing a partial result', () => {
+        const runtime = new Interpreter();
+        try {
+            runtime.execute('use numbers\nA = array shape 8192 fill 2');
+            expect(() => withDemandBudget(100, () => runtime.execute('Q = A 3 7 powmod')))
+                .toThrow(DemandBudgetExhausted);
+            expect(runtime.variables.has('Q')).toBe(false);
+            expect(runtime.execute('(A 3 7 powmod) sum')).toBe(8192n);
+        } finally { runtime.dispose(); }
+    });
+
+    it('matches BigInt for mixed moduli, wide integers and broadcast exponents', () => {
+        const runtime = new Interpreter();
+        const bases = [1073643523n, 1073250360n, -135707530n, 2n ** 53n + 1n, 2n ** 100n + 3n];
+        const moduli = [1073676290n, 1073283121n, 135707531n, 2n ** 30n + 1n, 2n ** 53n - 1n];
+        const exponents = [0n, 2n, 2n ** 32n, 2n ** 53n + 1n];
+        runtime.variables.set('A', ownedArray(bases, [5, 1]));
+        runtime.variables.set('M', ownedArray(moduli, [5, 1]));
+        runtime.variables.set('E', ownedArray(exponents, [4]));
+        try {
+            const result = runtime.execute('use numbers\nA E M powmod') as RankArray;
+            expect(result.shape).toEqual([5, 4]);
+            expect(result.items).toEqual(bases.flatMap((base, i) =>
+                exponents.map(exponent => modularPower(base, exponent, moduli[i]))));
+        } finally { runtime.dispose(); }
+    });
+
     it('preserves the array container for a rank-zero operand', () => {
         const runtime = new Interpreter();
         runtime.variables.set('A', ownedArray([2n], []));

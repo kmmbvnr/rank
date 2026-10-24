@@ -1,0 +1,57 @@
+{
+  "issue": 433,
+  "baseCommit": "dda5daa3",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "size": 12344318,
+  "method": "Three sequential fresh Node processes per variant. Time the eager Rank assignment Pw = (Ms - 1) Ms 135707531 powmod. Input setup and host .items export are excluded. Check 129 result cells against an independent BigInt oracle outside timing.",
+  "checksum": "8872775522",
+  "variants": {
+    "baseline": {
+      "elapsedMs": [
+        3969.785375,
+        4712.864167,
+        5095.977416
+      ],
+      "exportMs": [
+        478.725458,
+        627.589208,
+        637.848834
+      ],
+      "medianMs": 4712.864167
+    },
+    "storedBigInt": {
+      "method": "Candidate stored ternary mapper called without the Number kernel, using the unchanged BigInt modularPower and original domain checks. Benchmark-only native factory override.",
+      "elapsedMs": [
+        2308.584417,
+        2353.499667,
+        2256.827208
+      ],
+      "exportMs": [
+        436.86475,
+        440.456333,
+        443.899375
+      ],
+      "medianMs": 2308.584417
+    },
+    "optimized": {
+      "elapsedMs": [
+        1550.8765,
+        1449.033959,
+        1449.914292
+      ],
+      "exportMs": [
+        723.220416,
+        663.242583,
+        621.479792
+      ],
+      "medianMs": 1449.914292
+    }
+  },
+  "euler522": {
+    "method": "One full default-input run per checkout, unchanged Rank source; timings exclude module import.",
+    "baselineMs": 9004.554625,
+    "optimizedMs": 3620.824208,
+    "answer": "96772715"
+  }
+}

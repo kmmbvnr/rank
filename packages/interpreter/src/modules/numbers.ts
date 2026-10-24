@@ -4,6 +4,7 @@ import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
 import { integerSquareRoot, safeIntegerSquareRoot } from '../integer-square-root.js';
 import { mapStoredUnary } from '../unary-array-kernel.js';
 import { mapScalarArrays } from '../scalar-array-map.js';
+import { mapStoredIntegerTernary } from '../integer-array-kernel.js';
 import { expectMultiset } from '../multiset.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from '../interrupt.js';
 import { prepareIntegerView } from '../integer-view.js';
@@ -12,6 +13,7 @@ import { elementSource, type ElementSource } from '../element-source.js';
 import { denseScalarItems, derivedArray, IntegerCells, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { modularPower, probablePrime } from '../primality.js';
+import { safeIntegerModularPower } from '../modular-power.js';
 import { compareOrderedValues, orderedKind } from '../ordered.js';
 import { mapBroadcastArrays } from '../tensor.js';
 import { maxSqlite, sumSqlite } from './sqlite.js';
@@ -111,7 +113,10 @@ export const numbersModule: RuntimeModule = {
         greatestCommonDivisor(expectInteger(arguments_[0]), expectInteger(arguments_[1]))), {
         'integer,integer': ([a, b]) => safeIntegerGcd(a, b),
     }),
-    powmod: () => native('powmod', 3, args => mapScalarArrays(args, arguments_ => checkedModularPower(
+    powmod: () => native('powmod', 3, args => mapStoredIntegerTernary(args, checkedModularPower,
+        (base, exponent, modulus) => exponent >= 0 && modulus > 0 && modulus <= 1073741824
+            ? safeIntegerModularPower(base, exponent, modulus) : undefined)
+        ?? mapScalarArrays(args, arguments_ => checkedModularPower(
         expectInteger(arguments_[0]),
         expectInteger(arguments_[1]),
         expectInteger(arguments_[2]),
@@ -466,6 +471,10 @@ function leastCommonMultiple(left: bigint, right: bigint): bigint {
 function checkedModularPower(base: bigint, exponent: bigint, modulus: bigint): bigint {
     if (exponent < 0n) throw new RankError('powmod exponent must be nonnegative');
     if (modulus <= 0n) throw new RankError('powmod modulus must be positive');
+    const b = Number(base), e = Number(exponent), m = Number(modulus);
+    if (Number.isSafeInteger(b) && Number.isSafeInteger(e) && m <= 1073741824) {
+        return BigInt(safeIntegerModularPower(b, e, m));
+    }
     return modularPower(base, exponent, modulus);
 }
 
