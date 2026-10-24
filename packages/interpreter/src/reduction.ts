@@ -1,12 +1,13 @@
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
-import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
+import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { standardModules } from './modules/index.js';
 import type { RuntimeModule } from './modules/types.js';
 import { sumIndexed } from './modules/numbers.js';
 import { statisticsCell } from './modules/stats.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
@@ -42,6 +43,10 @@ export class ReductionEvaluator {
         seed?: RankValue,
         axes?: readonly number[],
     ): RankValue {
+        if (operator === '+' && axes?.length === 1 && isRankArray(value)) {
+            const packed = sumIntegerAxis(value, axes[0], seed);
+            if (packed !== undefined) return packed;
+        }
         if (axes) {
             if (isRankArray(value) && new Set(axes).size === axes.length
                 && axes.every(axis => axis >= value.shape.length - axes.length && axis < value.shape.length)) {
@@ -414,4 +419,38 @@ function reductionIdentity(operator: string): RankValue {
     if (operator === 'and') return true;
     if (operator === 'or' || operator === 'xor') return false;
     throw new RankError(`reduce ${operator} does not define a value for an empty cell`);
+}
+
+/** A dense Int32 fold can accumulate exact integers in doubles: even the
+ * largest absolute partial sum is bounded by length * 2^31. The seed stays
+ * BigInt and is added afterwards, so it never weakens that proof. */
+function sumIntegerAxis(value: RankArray, axis: number, seed?: RankValue): RankValue | undefined {
+    if (inspectionEnabled() || !privateLoopPolling() || value.itemAt !== undefined
+        || seed !== undefined && typeof seed !== 'bigint') return undefined;
+    const cells = integer32Cells(value);
+    if (!cells || axis < 0 || axis >= value.shape.length) return undefined;
+    const length = value.shape[axis];
+    if (length > Math.floor(Number.MAX_SAFE_INTEGER / 2147483648)) return undefined;
+    const inner = arraySize(value.shape.slice(axis + 1));
+    const outer = arraySize(value.shape.slice(0, axis));
+    const shape = value.shape.filter((_, index) => index !== axis);
+    if (inner === 0) return ownedArray([], shape);
+    const totals = new Float64Array(outer * inner);
+    for (let block = 0; block < outer; block++) {
+        const target = block * inner;
+        for (let row = 0; row < length; row++) {
+            const source = (block * length + row) * inner;
+            for (let start = 0; start < inner; start += 65536) {
+                const end = Math.min(inner, start + 65536);
+                checkpoint('summing integer axis', end - start);
+                for (let lane = start; lane < end; lane++) totals[target + lane] += cells[source + lane];
+            }
+        }
+    }
+    const items: RankValue[] = new Array(totals.length);
+    for (let index = 0; index < totals.length; index++) {
+        if ((index & 4095) === 0) checkpoint('completing integer axis sum');
+        items[index] = BigInt(totals[index]) + ((seed as bigint | undefined) ?? 0n);
+    }
+    return shape.length ? ownedArray(items, shape) : items[0];
 }

@@ -1,0 +1,118 @@
+{
+  "issue": 434,
+  "date": "2026-10-24T05:08:55.587789+00:00",
+  "baseRevision": "406fd5d0",
+  "command": "node --expose-gc benchmarks/integer-axis-reduction.mjs --samples=3",
+  "method": "Separate processes on the same built runtime. Baseline reduction.ts from the base revision was transpiled to ES2020 and temporarily substituted for reduction.js; the built implementation was restored for the after run.",
+  "scope": "Single-axis reduce + on packed Int32 storage, with exact integer partial-sum bounds and optional arbitrary precision integer seed. Wider storage and unsupported inputs keep the reference path.",
+  "correctness": "Every output cell compared to independent BigInt anti-diagonal accumulation outside the timer.",
+  "before": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "size": 2772,
+    "samples": 3,
+    "inputCells": 7683984,
+    "reducedCells": 15370739,
+    "correct": true,
+    "medianMs": {
+      "paddingMs": 4.976208000000042,
+      "concatAxis1Ms": 13.774500000000103,
+      "firstReshapeMs": 3.8550420000001395,
+      "concatPaddingMs": 13.062290999999277,
+      "secondReshapeMs": 2.6268329999999196,
+      "reduceAxis0Ms": 8372.388917000002,
+      "preparationMs": 34.272874000000115
+    },
+    "results": [
+      {
+        "paddingMs": 9.22854099999995,
+        "concatAxis1Ms": 13.774500000000103,
+        "firstReshapeMs": 4.323166000000015,
+        "concatPaddingMs": 13.548375000000078,
+        "secondReshapeMs": 2.6268329999999196,
+        "reduceAxis0Ms": 4443.679083,
+        "preparationMs": 34.272874000000115
+      },
+      {
+        "paddingMs": 4.976208000000042,
+        "concatAxis1Ms": 16.040082999999868,
+        "firstReshapeMs": 3.8550420000001395,
+        "concatPaddingMs": 13.062290999999277,
+        "secondReshapeMs": 5.825958999999784,
+        "reduceAxis0Ms": 8993.650916999999,
+        "preparationMs": 38.78337499999907
+      },
+      {
+        "paddingMs": 3.635415999999168,
+        "concatAxis1Ms": 11.157167000001209,
+        "firstReshapeMs": 2.087667000001602,
+        "concatPaddingMs": 8.695792000000438,
+        "secondReshapeMs": 1.8072919999995065,
+        "reduceAxis0Ms": 8372.388917000002,
+        "preparationMs": 23.747918000002755
+      }
+    ]
+  },
+  "after": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "size": 2772,
+    "samples": 3,
+    "inputCells": 7683984,
+    "reducedCells": 15370739,
+    "correct": true,
+    "medianMs": {
+      "paddingMs": 4.0031249999999545,
+      "concatAxis1Ms": 18.88241599999992,
+      "firstReshapeMs": 3.969291999999996,
+      "concatPaddingMs": 11.95858300000009,
+      "secondReshapeMs": 4.440209000000095,
+      "reduceAxis0Ms": 42.0375419999998,
+      "preparationMs": 37.63566600000013
+    },
+    "results": [
+      {
+        "paddingMs": 27.086499999999887,
+        "concatAxis1Ms": 31.967624999999998,
+        "firstReshapeMs": 12.608042000000069,
+        "concatPaddingMs": 24.394917000000078,
+        "secondReshapeMs": 4.440209000000095,
+        "reduceAxis0Ms": 42.0375419999998,
+        "preparationMs": 73.41079300000024
+      },
+      {
+        "paddingMs": 2.974958000000015,
+        "concatAxis1Ms": 18.88241599999992,
+        "firstReshapeMs": 3.969291999999996,
+        "concatPaddingMs": 11.95858300000009,
+        "secondReshapeMs": 2.825375000000122,
+        "reduceAxis0Ms": 34.7919159999999,
+        "preparationMs": 37.63566600000013
+      },
+      {
+        "paddingMs": 4.0031249999999545,
+        "concatAxis1Ms": 11.293457999999873,
+        "firstReshapeMs": 2.176625000000058,
+        "concatPaddingMs": 10.86633299999994,
+        "secondReshapeMs": 5.397958000000017,
+        "reduceAxis0Ms": 43.71608400000014,
+        "preparationMs": 29.73437399999989
+      }
+    ]
+  },
+  "reductionSpeedup": 199.1645685896678,
+  "verification": {
+    "build": "npm run build passed (web, mobile web and Capacitor sync included)",
+    "postMainUpdateBuild": "npx tsc -b tsconfig.build.json passed",
+    "targetedTests": {
+      "files": [
+        "integer-axis-reduction.test.ts",
+        "fold-modifiers.test.ts",
+        "cell-axis.test.ts",
+        "array-block-copy.test.ts"
+      ],
+      "passed": 92
+    },
+    "fullSuite": "not run"
+  }
+}
