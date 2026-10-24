@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "579_latticecubes"
+  N = 1
+  run
+  Answer equal 8
+  N = 2
+  run
+  Answer equal 91
+  N = 4
+  run
+  Answer equal 1878
+  N = 5
+  run
+  Answer equal 5832
+  N = 10
+  run
+  Answer equal 387003
+  N = 50
+  run
+  Answer equal 948928129
+end

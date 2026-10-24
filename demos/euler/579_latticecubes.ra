@@ -1,0 +1,179 @@
+rem Lattice Points in Lattice Cubes
+rem https://projecteuler.net/problem=579
+
+use numbers
+use io
+use cli
+
+option N integer = 5000
+
+rem A cube's edge frame is a proper
+rem integer matrix with orthogonal
+rem columns of equal length, a multiple
+rem of a primitive one R(q) / g, q a
+rem primitive integer quaternion (up to
+rem sign), g = 1, 2, 4 for N(q) odd,
+rem 2 mod 4, 0 mod 4. A frame scaled by
+rem s has edges L = s L0, T(s) = prod
+rem (n + 1 - s span) placements and
+rem L^3 + (L+1) s D + 1 lattice points,
+rem D the sum of the gcds of its three
+rem primitive edges. Each cube shows in
+rem 24 frames. Sums are kept mod
+rem 24 * 10^9, then divided by 24.
+Mo = 24000000000
+Ps = N * 4
+Rm = Ps isqrt
+Tot = 0
+for A in 0 to Rm
+  for B in (0 - Rm) to Rm
+    S1 = A * A + B * B
+    if S1 at most Ps
+      Rc = (Ps - S1) isqrt
+      for C in (0 - Rc) to Rc
+        S2 = S1 + C * C
+        Rd = (Ps - S2) isqrt
+        for D in (0 - Rd) to Rd
+          Q = S2 + D * D
+          Od = A mod 2 + B mod 2
+          Od += C mod 2 + D mod 2
+          Pos = A greater 0
+          if A equal 0
+            Pos = B greater 0
+            if B equal 0
+              Pos = C greater 0
+              if C equal 0
+                Pos = D greater 0
+              end
+            end
+          end
+          G = 0
+          if Od equal 4
+            G = 4
+          elif Od equal 2
+            G = 2
+          elif Od mod 2 equal 1
+            G = 1
+          end
+          Ok = Pos and (G greater 0)
+          L0 = Q // (G max 1)
+          Ok = Ok and (L0 at most N)
+          R11 = 0
+          R12 = 0
+          R13 = 0
+          R21 = 0
+          R22 = 0
+          R23 = 0
+          R31 = 0
+          R32 = 0
+          R33 = 0
+          Sx = 0
+          Sy = 0
+          Sz = 0
+          Sm = N + 1
+          if Ok
+            Aa = A * A
+            Bb = B * B
+            Cc = C * C
+            Dd = D * D
+            R11 = Aa + Bb - Cc - Dd
+            R12 = 2 * (B * C - A * D)
+            R13 = 2 * (B * D + A * C)
+            R21 = 2 * (B * C + A * D)
+            R22 = Aa - Bb + Cc - Dd
+            R23 = 2 * (C * D - A * B)
+            R31 = 2 * (B * D - A * C)
+            R32 = 2 * (C * D + A * B)
+            R33 = Aa - Bb - Cc + Dd
+            Sx = R11 abs
+            Sx += R12 abs
+            Sx += R13 abs
+            Sy = R21 abs
+            Sy += R22 abs
+            Sy += R23 abs
+            Sz = R31 abs
+            Sz += R32 abs
+            Sz += R33 abs
+            Sx = Sx // G
+            Sy = Sy // G
+            Sz = Sz // G
+            Sm = Sx max Sy
+            Sm = Sm max Sz
+          end
+          Ok = Ok and (Sm at most N)
+          Ga = A
+          if Ok
+            Gb = B abs
+            for Gb greater 0
+              Tg = Ga mod Gb
+              Ga = Gb
+              Gb = Tg
+            end
+            Gb = C abs
+            for Gb greater 0
+              Tg = Ga mod Gb
+              Ga = Gb
+              Gb = Tg
+            end
+            Gb = D abs
+            for Gb greater 0
+              Tg = Ga mod Gb
+              Ga = Gb
+              Gb = Tg
+            end
+          end
+          Ok = Ok and (Ga equal 1)
+          Dl = 0
+          if Ok
+            for Cl in 0 to 2
+              X1 = R11
+              X2 = R21
+              X3 = R31
+              if Cl equal 1
+                X1 = R12
+                X2 = R22
+                X3 = R32
+              elif Cl equal 2
+                X1 = R13
+                X2 = R23
+                X3 = R33
+              end
+              Ha = X1 abs
+              Hb = X2 abs
+              for Hb greater 0
+                Tg = Ha mod Hb
+                Ha = Hb
+                Hb = Tg
+              end
+              Hb = X3 abs
+              for Hb greater 0
+                Tg = Ha mod Hb
+                Ha = Hb
+                Hb = Tg
+              end
+              Dl += Ha // G
+            end
+            Smax = N // Sm
+            for K in 1 to Smax
+              Tx = N + 1 - K * Sx
+              Tx *= N + 1 - K * Sy
+              Tx *= N + 1 - K * Sz
+              Lc = K * L0
+              Pt = Lc * Lc * Lc + 1
+              Pt += (Lc + 1) * K * Dl
+              Tm = Tx mod Mo
+              Pm = Pt mod Mo
+              Hi = Pm // 131072
+              Lo = Pm mod 131072
+              Xm = (Tm * Hi) mod Mo
+              Xm = Xm * 131072 + Tm * Lo
+              Tot = (Tot + Xm) mod Mo
+            end
+          end
+        end
+      end
+    end
+  end
+end
+Answer = Tot // 24
+Answer print
