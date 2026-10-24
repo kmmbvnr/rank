@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "587_concavetriangle"
+  run
+  Answer equal 2240
+end
+
+test "ten percent threshold"
+  use "587_concavetriangle"
+  Eps = 0.1
+  run
+  Answer equal 15
+end
