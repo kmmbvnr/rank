@@ -1,0 +1,47 @@
+rem Unfair Race
+rem https://projecteuler.net/problem=573
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000
+
+rem E(n) = sum over k of the terms
+rem C(n, k) (k/n)^k ((n-k)/n)^(n-k),
+rem where k = n gives 1. The binomial
+rem comes from log-factorials by the
+rem Stirling series (exact below 10).
+Ks = 1 to (N - 1) array
+Kr = Ks * 1.0
+Lk = Kr log
+X2 = Kr * Kr
+X3 = X2 * Kr
+Tw = Kr * 6.283185307179586
+Lw = Tw log
+Lq = Kr * Lk - Kr + Lw / 2
+Lq = Lq + 1 / (12 * Kr)
+Lq = Lq - 1 / (360 * X3)
+Lq = Lq + 1 / (1260 * X3 * X2)
+Lq = Lq - 1 / (1680 * X3 * X2 * X2)
+Sd = (1 to 9 array) * 1.0
+Sl = Sd log
+Sm = Sl scan + array
+Lq (0 till 9 array) = Sm
+Xn = N * 1.0
+Ln = Xn log
+Wn = Xn * 6.283185307179586
+Lc = Wn log
+Fn = Xn * Ln - Xn + Lc / 2
+Fn = Fn + 1 / (12 * Xn)
+Fn = Fn - 1 / (360 * Xn ** 3)
+Fr = Lq reverse
+Lt = Fn - Lq - Fr
+Lt = Lt + Kr * (Lk - Ln)
+Rm = Xn - Kr
+Lr = Rm log
+Lt = Lt + Rm * (Lr - Ln)
+Tt = Lt exp
+Answer = ((Tt sum) + 1) round 4
+Answer print
