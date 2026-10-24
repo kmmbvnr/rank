@@ -149,11 +149,11 @@ export class BindingEnvironment {
     }
 
     /** Protection belongs to a name's scope and survives ordinary rebinding. */
-    protect(name: string, plan: string): () => void {
+    protect(name: string, plan: string, note: string): () => void {
         const frame = this.current?.find(name) ?? this.globals;
         const value = frame.get(name);
         if (value === undefined) return () => undefined;
-        const message = deferredBindingMessage(name, plan);
+        const message = deferredBindingMessage(name, plan) + note;
         const publish = prepareCaptureProtection(value, message);
         return () => { publish(); frame.protectName(name, message); };
     }

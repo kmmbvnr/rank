@@ -40,7 +40,7 @@ export interface AssignmentContext {
     defer(expression: Expression): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
     compileAssign(name: string): (value: RankValue) => void;
-    protect(names: readonly string[], plan: string): () => void;
+    protect(names: readonly string[], plan: AssignmentStatement): () => void;
     resolveVariable(name: string): RankValue;
     checkArrayWrite(name: string, target: RankValue, values: readonly RankValue[], offsets?: readonly number[]): readonly RankValue[];
     evaluateAddressParts(item: AddressItem): Evaluation<RankValue[]>;
@@ -372,7 +372,7 @@ export function prepareAssignment(statement: AssignmentStatement, host: Assignme
         const previous = operator === undefined ? undefined : host.resolveVariable(statement.name);
         return mapResult(statement.deferred ? host.defer(statement.value) : host.evaluate(statement.value), value => {
             const result = stored(operator === undefined ? value : host.operators.evaluateBinary(operator, previous!, value));
-            const protect = statement.deferred ? host.protect(protectedNames, statement.name) : undefined;
+            const protect = statement.deferred ? host.protect(protectedNames, statement) : undefined;
             write(result);
             protect?.();
             return result;

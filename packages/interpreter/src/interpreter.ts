@@ -33,7 +33,7 @@ import { clonePreviewValue } from './preview-values.js';
 import { RankApplication } from './rank-application.js';
 import { ReductionEvaluator } from './reduction.js';
 import { ResourceOwnership } from './resource-ownership.js';
-import { locateError, registerSource, sourceIdOf } from './source-location.js';
+import { locateError, planBindingNote, registerSource, scopeDiagnosticMessage, sourceIdOf } from './source-location.js';
 import { selectValues } from './value-selection.js';
 import { withoutAmbientTensorPlan } from './tensor-map.js';
 import { isNativeFunction, type RankValue } from './value.js';
@@ -251,7 +251,8 @@ export class Interpreter {
         };
         this.writes = {
             protect: (names, plan) => {
-                const publish = names.map(name => this.protect(name, plan));
+                const note = planBindingNote(plan, this.options.sourceId ?? '<input>');
+                const publish = names.map(name => this.protect(name, plan.name, note));
                 return () => { for (const apply of publish) apply(); };
             },
             defer: expression => this.expressions.defer(expression),
@@ -320,7 +321,7 @@ export class Interpreter {
     private executeProgramBody(program: Program, args: readonly string[], assertBooleanExpressions: boolean): RankValue | undefined {
         validateFunctionPlacement(program.statements, 'top');
         const scopeError = functionScopeDiagnostics(program)[0];
-        if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
+        if (scopeError) throw this.locateError(new RankError(scopeDiagnosticMessage(scopeError, this.options.sourceId ?? '<input>'), 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
         this.mutations.program(program);
         const declarations = new Map<string, FunctionStatement>();
@@ -349,7 +350,7 @@ export class Interpreter {
         const program = this.parse(source);
         validateFunctionPlacement(program.statements, 'top');
         const scopeError = functionScopeDiagnostics(program)[0];
-        if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
+        if (scopeError) throw this.locateError(new RankError(scopeDiagnosticMessage(scopeError, this.options.sourceId ?? '<input>'), 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         return program.statements.filter(isFunctionStatement).map(statement => statement.name);
@@ -545,10 +546,10 @@ export class Interpreter {
         return value;
     }
 
-    private protect(name: string, plan: string): () => void {
+    private protect(name: string, plan: string, note: string): () => void {
         const qualified = splitQualified(name);
-        if (qualified) return this.aliases.get(qualified.alias)?.protect(qualified.member, plan) ?? (() => undefined);
-        return this.bindings.protect(name, plan);
+        if (qualified) return this.aliases.get(qualified.alias)?.protect(qualified.member, plan, note) ?? (() => undefined);
+        return this.bindings.protect(name, plan, note);
     }
 
     private checkMutable(name: string, local = false): void {
@@ -636,7 +637,7 @@ export class Interpreter {
     private prepareModule(program: Program): void {
         validateFunctionPlacement(program.statements, 'top');
         const scopeError = functionScopeDiagnostics(program)[0];
-        if (scopeError) throw this.locateError(new RankError(scopeError.message, 'Scope'), scopeError.node);
+        if (scopeError) throw this.locateError(new RankError(scopeDiagnosticMessage(scopeError, this.options.sourceId ?? '<input>'), 'Scope'), scopeError.node);
         this.checkBuiltinBindings(program);
         this.declareFunctions(program.statements);
         for (const statement of program.statements) {

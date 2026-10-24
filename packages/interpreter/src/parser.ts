@@ -4,6 +4,7 @@ import {
     functionScopeDiagnostics, blockScopeDiagnostics, createRankServices, expressionDiagnostics, isTextBlockExpression, textBlockModeError, type GroupingOptions,
 } from '@arrrank/language';
 import { RankError, type RankErrorLocation } from './errors.js';
+import { scopeDiagnosticMessage } from './source-location.js';
 
 const services = createRankServices(EmptyFileSystem).Rank;
 
@@ -120,7 +121,7 @@ export function parse(
     const scopeError = [...blockScopeDiagnostics(result.value, known, syntheticNames),
         ...functionScopeDiagnostics(result.value)][0];
     if (scopeError) {
-        const error = new RankError(scopeError.message, 'Scope');
+        const error = new RankError(scopeDiagnosticMessage(scopeError, sourceId), 'Scope');
         error.location = locate(scopeError.node.$cstNode);
         throw error;
     }

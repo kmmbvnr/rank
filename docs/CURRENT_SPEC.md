@@ -1461,6 +1461,8 @@ A name captured by an apostrophe binding is read-only for the rest of its
 scope. A later indexed or field write through that name is rejected, while
 rebinding remains allowed. Shared records and containers also reject writes
 through aliases after capture. Array aliases keep copy-on-write value semantics.
+A rejected write reports where the plan was bound (source, line and column),
+while the error location still points to the attempted write.
 
 Ordinary binding completes plans recursively inside tuples, records and
 containers. A known infinite result is an error. Deferred binding preserves

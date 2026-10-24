@@ -1,4 +1,5 @@
 import type { AstNode, CstNode } from 'langium';
+import { isAssignmentStatement, type ScopeDiagnostic } from '@arrrank/language';
 import { normalizeStackError } from './execution.js';
 import { RankError } from './errors.js';
 
@@ -12,6 +13,21 @@ export function registerSource(node: AstNode, id: string): void {
 
 export function sourceIdOf(node: CstNode, fallback: string): string {
     return sourceIds.get(node.root) ?? fallback;
+}
+
+/** Keep the plan's origin in the protection message, even across later executions. */
+export function planBindingNote(node: AstNode, fallback: string): string {
+    const cst = node.$cstNode;
+    if (!cst) return '';
+    const { line, character } = cst.range.start;
+    return ` Plan bound at ${sourceIdOf(cst, fallback)}:${line + 1}:${character + 1}.`;
+}
+
+/** Static writes use the same plan-origin note as persisted runtime protection. */
+export function scopeDiagnosticMessage(diagnostic: ScopeDiagnostic, fallback: string): string {
+    const source = diagnostic.source;
+    return diagnostic.message + (isAssignmentStatement(source) && source.deferred
+        ? planBindingNote(source, fallback) : '');
 }
 
 /** Attaches the first location an error passes on its way out; inner locations win. */
