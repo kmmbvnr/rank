@@ -1,0 +1,78 @@
+rem Sum of Digits Sequence
+rem https://projecteuler.net/problem=551
+
+use numbers
+use sequences
+use io
+use cli
+
+option N integer = 1000000000000000
+
+rem Write a(n) = 10^4 q + r, c = digit
+rem sum of q. Then r grows by ds(r) + c
+rem until it carries into q, leaving a
+rem r below 36 + 9 Dg. G(c, r) = (steps,
+rem r after the carry) is one table, and
+rem 10 blocks of 10^d q's compose into
+rem one of 10^(d+1) by gathers.
+P = 10000
+Dg = 13
+Cm = 9 * Dg
+S = Cm + 37
+Pl = array shape 4 fill 10
+Dd' = (0 till P array) digits Pl
+Ds = Dd sum axis 0
+Cc = (0 to Cm array) reshape (Cm + 1) 1
+Ix = Cc * 0 + (0 till S array)
+X = Ix
+X 0 0 = P
+K = X * 0
+Lv = (X less P) integer
+for (Lv sum) greater 0
+  Xc = X min (P - 1)
+  X += Lv * (Ds Xc + Cc)
+  K += Lv
+  Lv = (X less P) integer
+end
+Kt = array shape Dg (Cm + 1) S fill 0
+Rt = Kt
+Kt 0 = K
+Rt 0 = X - P
+for D in 1 till Dg
+  Kd = Kt (D - 1)
+  Rd = Rt (D - 1)
+  Kf = Kd reshape ((Cm + 1) * S)
+  Rf = Rd reshape ((Cm + 1) * S)
+  Rc = Ix
+  Ka = K * 0
+  for J in 0 to 9
+    Fi = ((Cc + J) min Cm) * S + Rc
+    Ka += Kf Fi
+    Rc = Rf Fi
+  end
+  Kt D = Ka
+  Rt D = Rc
+end
+rem Take the largest blocks that fit in
+rem the remaining steps, from a(1) = 1.
+Q = 0
+Sq = 0
+R = 1
+Rm = N - 1
+for I in 0 till Dg
+  D = Dg - 1 - I
+  for # in 1 to 9
+    Kk = Kt D Sq R
+    if Kk at most Rm
+      Rm -= Kk
+      R = Rt D Sq R
+      Q += 10 ** D
+      Sq += 1
+    end
+  end
+end
+for # in 1 to Rm
+  R += Ds R + Sq
+end
+Answer = Q * P + R
+Answer print
