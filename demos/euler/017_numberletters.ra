@@ -49,14 +49,14 @@ rem Every name, in order: 1-99, then
 rem 100-999 as hundreds with an optional
 rem "and" tail, then 1000.
 Nil = array ""
-Tail = concat Nil Ones axis 0
-Dozens = Tens Tail outer + reshape 80
-Under = concat Ones Teens Dozens axis 0
+Tail = concat Nil Ones
+Dozens = Tens Tail outer + reshape #
+Under = concat Ones Teens Dozens
 And = "and" + Under
-Rest = concat Nil And axis 0
+Rest = concat Nil And
 Hund = (Ones + "hundred") Rest outer +
-Over = Hund reshape 900
+Over = Hund reshape #
 Last = array "onethousand"
-Words = concat Under Over Last axis 0
+Words = concat Under Over Last
 Counts = Words len rank 0 take Limit
 Counts sum print
