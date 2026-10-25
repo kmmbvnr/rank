@@ -21,7 +21,7 @@ describe.each([false, true])('producer geometry through composition (compilation
         ['Rows transpose', [0, 2], ['1', '2']],
         ['Rows transpose * 2', [0, 2], ['1', '2']],
         ['Rows + Rows', [2, 0], ['1', '1', '2', '2']],
-        ['Rows log rank 2', [2, 0], ['1', '2']],
+        ['Rows log', [2, 0], ['1', '2']],
         ['(Rows * 2) 1', [0], ['2']],
         ['(-Rows) 1', [0], ['2']],
         ['Rows transpose # 1', [0], ['2']],

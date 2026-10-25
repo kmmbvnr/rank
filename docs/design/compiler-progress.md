@@ -2264,3 +2264,14 @@ completion boundaries, unused and repeated deferred maps, frozen helper captures
 native replacements, exact mixed numeric comparisons, rectangular and empty
 matrices, gather/unpack errors, and matching error locations. Existing Euler
 023, 030 and 044 compilation regressions pass in the focused run.
+
+The follow-up suite repair fixes those five interpreter failures and the three
+language failures recorded above. Effect analysis now proves primitive-array
+`integer`/`real` conversion only with known callback-free cells, restoring the
+K-means zero-step proof without accepting the repeat callback. Stale scalar-math
+signatures, shape samples, producer tests and removed loop-modifier syntax were
+updated to the current contracts; ordered cell-axis coverage remains exhaustive.
+The offline manual again meets its 40-column limit. Final verification passes
+all 8,266 tests in the broad interpreter selection and all 1,447 language tests,
+plus the build/typechecks, semantic/application-form checks and both poker files
+in the differential runner. The broad-run exclusions above remain unchanged.

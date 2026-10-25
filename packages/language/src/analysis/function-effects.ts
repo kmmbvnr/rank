@@ -367,7 +367,8 @@ export function functionEffects(resolve: (name: string) => FunctionStatement | u
                 if (hasCompiledCallNoCallbackProof(operation, arguments_.map(fact))) return true;
                 if (['integer', 'real'].includes(name) && arguments_.length === 1) {
                     const input = fact(arguments_[0]);
-                    return input.types.length > 0 && input.types.every(type => ['integer', 'real', 'text'].includes(type));
+                    return input.types.length > 0 && input.types.every(type => ['integer', 'real', 'text'].includes(type))
+                        || hasMappedScalarNoCallbackProof(operation, [input]);
                 }
                 if (['split', 'parse'].includes(name) && arguments_.length === 2) {
                     return arguments_.every(argument => fact(argument).types.join() === 'text');

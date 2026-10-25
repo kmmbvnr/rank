@@ -3,7 +3,7 @@ import { Interpreter, createArraySnapshot, isRankArray, type RankArray, type Ran
 import { native } from '../src/modules/shared.js';
 
 describe('tensor cell copies', () => {
-    it('matches independent coordinate grouping for all cell ranks and unordered cell-axis lists', () => {
+    it('matches independent coordinate grouping for all cell ranks and ordered cell-axis lists', () => {
         const shapes = [[2, 3, 4], [2, 0, 4], [0, 3, 4]];
         const axes = [[], [0], [1], [2], [0, 1], [1, 0], [0, 2], [2, 0], [1, 2], [2, 1],
             [0, 1, 2], [2, 0, 1], [2, 1, 0]];
@@ -11,7 +11,7 @@ describe('tensor cell copies', () => {
             const frame = shape.map((_, axis) => axis).filter(axis => !cellAxes.includes(axis));
             const items = Array.from({ length: shape[0] * shape[1] * shape[2] }, (_, i) => BigInt(i + 1));
             const input: RankArray = owned ? createArraySnapshot(items, shape) : { kind: 'array', items, shape };
-            const cellShape = shape.filter((_, axis) => !frame.includes(axis));
+            const cellShape = cellAxes.map(axis => shape[axis]);
             const groups: { coordinates: number[]; items: RankValue[] }[] = [];
             // Enumerate frame tuples independently of the interpreter's linear decoder.
             const visit = (coordinates: number[]) => {
@@ -22,22 +22,31 @@ describe('tensor cell copies', () => {
                 }
             };
             visit([]);
-            for (let a = 0; a < shape[0]; a++) for (let b = 0; b < shape[1]; b++) for (let c = 0; c < shape[2]; c++) {
-                const coordinates = [a, b, c];
-                const group = groups.find(group => frame.every((axis, i) => coordinates[axis] === group.coordinates[i]))!;
-                group.items.push(items[(a * shape[1] + b) * shape[2] + c]);
+            for (const group of groups) {
+                const coordinates = shape.map(() => 0);
+                frame.forEach((axis, index) => { coordinates[axis] = group.coordinates[index]; });
+                const visitCells = (cellAxis: number) => {
+                    if (cellAxis === cellAxes.length) {
+                        group.items.push(items[(coordinates[0] * shape[1] + coordinates[1]) * shape[2] + coordinates[2]]);
+                        return;
+                    }
+                    const axis = cellAxes[cellAxis];
+                    for (let i = 0; i < shape[axis]; i++) {
+                        coordinates[axis] = i;
+                        visitCells(cellAxis + 1);
+                    }
+                };
+                visitCells(0);
             }
             const observed: { shape: readonly number[]; items: RankValue[] }[] = [];
             const runtime = new Interpreter(undefined, { tensorCellCompilation });
             runtime.variables.set('A', input);
-            runtime.variables.set('observe', native('observe', 1, ([value]) => {
+            runtime.variables.set('observe', { ...native('observe', 1, ([value]) => {
                 observed.push(isRankArray(value) ? { shape: [...value.shape], items: [...value.items] }
                     : { shape: [], items: [value] });
                 return 0n;
-            }));
-            runtime.execute(`for Cell in A ${cellAxes.length ? `axis ${cellAxes.join(' ')}` : 'rank 0'}
-  Cell observe
-end`);
+            }), arrayCells: true, monadicResultShape: () => [] });
+            runtime.execute(`Observed = A observe ${cellAxes.length ? `axis ${cellAxes.join(' ')} rank ${cellAxes.length}` : 'rank 0'}`);
             expect(observed, JSON.stringify({ shape, frame, owned })).toEqual(
                 groups.map(group => ({ shape: cellShape, items: group.items })),
             );

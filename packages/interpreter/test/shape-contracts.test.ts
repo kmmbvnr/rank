@@ -60,6 +60,9 @@ const samples: readonly Sample[] = [
     ['linalg.inverse', () => [matrix], [2, 2]],
     ['linalg.solve', () => [matrix, vector(4n, 8n)], [2]],
     ['linalg.solve', () => [matrix, matrix], [2, 2]],
+    ...['acos', 'acosh', 'asin', 'asinh', 'atan', 'atanh', 'cos', 'cosh',
+        'exp', 'log', 'sin', 'sinh', 'tan', 'tanh', 'floor', 'ceil'].map((name): Sample =>
+        [`numbers.${name}`, () => [name === 'acosh' ? 2 : 0.5], []]),
     ['numbers.abs', () => [-2n], []],
     ['numbers.atan2', () => [1n, 2n], []],
     ['numbers.binomial', () => [5n, 2n], []],

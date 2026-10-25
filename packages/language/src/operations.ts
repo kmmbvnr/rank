@@ -1323,6 +1323,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [null], result: null }],
         mapsScalarCells: true, monadicRank: 'all', summary: 'Converts booleans to 0 or 1, truncates finite reals, preserves integers, or parses signed decimal text; maps collections preserving shape.' },
     { name: 'real', module: 'core', arities: [1], form: 'Value real', result: 'real',
+        scalarNoCallback: 'primitive',
         signatures: mappingSignatures({ union: ['integer', 'real', 'text'] }, 'real'),
         shape: [{ args: [null], result: null }],
         mapsScalarCells: true, monadicRank: 'all',

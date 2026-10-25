@@ -177,9 +177,9 @@ it('distinguishes date mapping, scalar components and SQL column overloads', () 
 
 it('describes numeric maps, missing propagation and integer-only reductions', () => {
     expect(operationSignature(findOperation('abs')!, [{ types: ['real'] }])).toBe('real → real [rank 0]');
-    expect(operationSignature(findOperation('sin')!, [{ types: ['missing'] }])).toBe('missing → missing');
+    expect(operationSignature(findOperation('sin')!, [{ types: ['missing'] }])).toBe('missing → missing [rank 0]');
     expect(operationSignature(findOperation('sin')!, [{ types: ['array'], elements: ['integer'] }]))
-        .toBe("c<number> → c<real | missing>");
+        .toBe("number → real [rank 0]");
     expect(operationSignature(findOperation('odd')!, [{ types: ['sequence'], elements: ['integer'] }]))
         .toBe("c<integer> → c<boolean>");
     expect(operationSignature(findOperation('lcm')!, 1))

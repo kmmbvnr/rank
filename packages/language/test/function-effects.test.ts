@@ -350,6 +350,17 @@ it('skips zero-repeat callback bodies but not callback factories or unknown coun
     expect(analyze(factory, 'helper', [], [count('0')]).unknown).toBe(true);
 });
 
+it.each(['integer', 'real'])('proves %s conversion only for known callback-free scalar arrays', conversion => {
+    const source = `fun Values helper\n Result = Values ${conversion}\n return Result\nend`;
+    const array: ValueFacts = { types: ['array'], rank: 2, shape: [2, 1], elements: ['integer'] };
+    for (const proof of [{ eagerScalarCells: true }, { callbackFreeScalarCells: true }] as const) {
+        expect(analyze(source, 'helper', [], [{ ...array, ...proof }])).toMatchObject({
+            unknown: false, result: { types: ['array'], rank: 2, shape: [2, 1], callbackFreeScalarCells: true },
+        });
+    }
+    expect(analyze(source, 'helper', [], [array]).unknown).toBe(true);
+});
+
 it('keeps the K-means zero-step call separate from its unsupported repeat callback', () => {
     const source = readFileSync(new URL('../../../demos/deepml/017_kmeans.ra', import.meta.url), 'utf8');
     const points: ValueFacts = { types: ['array'], rank: 2, shape: [2, 1], elements: ['integer'],
