@@ -9,8 +9,7 @@ use sequences
 
 option Limit integer = 1000
 
-Small = array shape 10
-  ""
+Ones = array shape 9
   "one"
   "two"
   "three"
@@ -20,7 +19,7 @@ Small = array shape 10
   "seven"
   "eight"
   "nine"
-end len rank 0 copy
+end
 
 Teens = array shape 10
   "ten"
@@ -33,11 +32,9 @@ Teens = array shape 10
   "seventeen"
   "eighteen"
   "nineteen"
-end len rank 0 copy
+end
 
-Tens = array shape 10
-  ""
-  ""
+Tens = array shape 8
   "twenty"
   "thirty"
   "forty"
@@ -46,33 +43,20 @@ Tens = array shape 10
   "seventy"
   "eighty"
   "ninety"
-end len rank 0 copy
-
-Numbers' = 1 to Limit
-Counts' = Numbers letters rank 0
-Counts sum print
-
-fun Value letters
-  if Value equal 1000
-    return "one" len + ("thousand" len)
-  end
-
-  Count = 0
-  N = Value
-  if N at least 100
-    unpack D N = N divmod 100
-    Count += Small D + ("hundred" len)
-    if N greater 0
-      Count += "and" len
-    end
-  end
-
-  if N at least 20
-    unpack D N = N divmod 10
-    Count += Tens D
-  elif N at least 10
-    return Count + Teens (N - 10)
-  end
-
-  return Count + Small N
 end
+
+rem Every name, in order: 1-99, then
+rem 100-999 as hundreds with an optional
+rem "and" tail, then 1000.
+Nil = array ""
+Tail = concat Nil Ones axis 0
+Dozens = Tens Tail outer + reshape 80
+Under = concat Ones Teens Dozens axis 0
+And = "and" + Under
+Rest = concat Nil And axis 0
+Hund = (Ones + "hundred") Rest outer +
+Over = Hund reshape 900
+Last = array "onethousand"
+Words = concat Under Over Last axis 0
+Counts = Words len rank 0 take Limit
+Counts sum print

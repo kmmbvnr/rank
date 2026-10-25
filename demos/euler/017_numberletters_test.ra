@@ -21,6 +21,6 @@ test "British and"
 
   run
 
-  342 letters equal 23
-  115 letters equal 20
+  Words 341 len equal 23
+  Words 114 len equal 20
 end
