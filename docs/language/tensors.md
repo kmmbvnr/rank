@@ -156,9 +156,9 @@ and appends the accumulator shape. Scanning columns of shape `Rows Columns`
 therefore produces shape `Columns Rows` without a seed.
 An empty result uses the seed shape, or the input-cell shape without a seed.
 
-An explicit `rank R` may omit `axis` only when exactly one outer axis remains:
-`M scan add rank 1` infers axis 0. Several outer axes require an explicit
-traversal axis. With no outer axis, the scan is rejected. `rank` and `axis` may appear in either
+An explicit `rank R` always requires an explicit `axis`, including `rank 0`:
+`M scan add rank 1 axis 0` scans whole rows. With no outer axis, the scan is
+rejected. `rank` and `axis` may appear in either
 order before `with Seed`. Symbols, named builtins and user functions share
 these rules. Scalar row prefixes use `scan + axis -1`.
 
@@ -176,8 +176,8 @@ This also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
 `reduce <op|fn> rank R axis N` removes source axis N, then selects the trailing
 R remaining axes as the input cell, in source order. Earlier remaining axes
 form independent folds. Rank defaults to 0. Without either modifier, all scalar
-elements are folded in row-major order. With explicit `rank`, `axis` may be
-omitted only when exactly one outer axis remains, as in `scan`. Multiple
+elements are folded in row-major order. An explicit `rank` always requires
+an explicit `axis`, including `rank 0`, as in `scan`. Multiple
 distinct traversal axes are supported by `reduce`; remove all of them before
 selecting the input cell. The input rank plus traversal axis count must not
 exceed the source rank.

@@ -78,7 +78,7 @@ it('analyzes data-first choose without opening sequences', () => {
 it('accepts clamped and negative ordinary ranks but checks reduction ranks', () => {
     expect(messages('A = array 1 2\nA sum rank 5')).toEqual([]);
     expect(messages('A = array 1 2\nA sum rank -1')).toEqual([]);
-    expect(messages('A = array 1 2\nA + reduce rank 5'))
+    expect(messages('A = array 1 2\nA + reduce rank 5 axis 0'))
         .toContain('rank 5 exceeds value rank 1');
 });
 
@@ -908,7 +908,7 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
 });
 
 it('checks reductions against the input-cell traversal rule', () => {
-    expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 3'))
+    expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 3 axis 0'))
         .toEqual(['rank 3 exceeds value rank 2']);
     expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 2')[0]).toContain('requires an explicit axis');
 });
@@ -928,7 +928,7 @@ it('does not reuse shapes after a call that may change a captured binding', () =
 it('checks nested expressions and respects text rank', () => {
     expect(messages('array (1 + "x")')).toEqual(['operator + does not accept integer and text']);
     expect(messages('"a" + "long"')).toEqual([]);
-    expect(messages('"abc" reduce + rank 0')).toEqual([]);
+    expect(messages('"abc" reduce +')).toEqual([]);
 });
 
 it('infers a helper result from its body and literal call arguments', () => {

@@ -14,7 +14,7 @@ describe('reduction input cells', () => {
     it.each(['+', 'plus'])('combines complete rows with %s, with optional seeds', operation => {
         expect(result(matrix + plus + `M reduce ${operation} rank 1 axis 0`))
             .toEqual({ text: '5 7 9', shape: [3] });
-        expect(result(matrix + plus + `M reduce ${operation} rank 1 with (array 10 20 30)`))
+        expect(result(matrix + plus + `M reduce ${operation} rank 1 axis 0 with (array 10 20 30)`))
             .toEqual({ text: '15 27 39', shape: [3] });
     });
 
@@ -57,12 +57,12 @@ describe('reduction input cells', () => {
     });
 
     it('handles empty traversal, empty cells and empty frames without inventing callback calls', () => {
-        expect(result('E = array shape 0 3 fill 0\nE reduce + rank 1'))
+        expect(result('E = array shape 0 3 fill 0\nE reduce + rank 1 axis 0'))
             .toEqual({ text: '0 0 0', shape: [3] });
-        expect(result(plus + 'E = array shape 0 3 fill 0\nE reduce plus rank 1 with (array 7 8)'))
+        expect(result(plus + 'E = array shape 0 3 fill 0\nE reduce plus rank 1 axis 0 with (array 7 8)'))
             .toEqual({ text: '7 8', shape: [2] });
-        expect(() => run(plus + 'E = array shape 0 3 fill 0\nE reduce plus rank 1')).toThrow(/initial value/);
-        expect(result('E = array shape 2 0 fill 0\nE reduce + rank 1'))
+        expect(() => run(plus + 'E = array shape 0 3 fill 0\nE reduce plus rank 1 axis 0')).toThrow(/initial value/);
+        expect(result('E = array shape 2 0 fill 0\nE reduce + rank 1 axis 0'))
             .toEqual({ text: '', shape: [0] });
         expect(result('E = array shape 0 2 3 fill 0\nE reduce + rank 1 axis 1'))
             .toEqual({ text: '', shape: [0, 3] });
@@ -185,8 +185,8 @@ describe('orthogonal fold modifiers', () => {
     });
 
     it('retains rank-one sequences and scalar rank-zero reductions', () => {
-        expect(run(plus + '(1 to 3) scan plus rank 0 with 0')).toBe('0 1 3 6');
-        expect(run("use sequences\nPrefix' = primes scan + rank 0 with 0\nPrefix 4")).toBe('17');
+        expect(run(plus + '(1 to 3) scan plus with 0')).toBe('0 1 3 6');
+        expect(run("use sequences\nPrefix' = primes scan + with 0\nPrefix 4")).toBe('17');
         expect(run(plus + '7 reduce plus with 10')).toBe('17');
         expect(run('7 reduce + with 10')).toBe('17');
     });
@@ -208,9 +208,9 @@ describe('scan input cells', () => {
         const end = operation === 'max' ? '4 5 6' : '5 7 9';
         expect(result(prefix + `M scan ${operation} rank 1 axis 0`))
             .toEqual({ text: `1 2 3 ${end}`, shape: [2, 3] });
-        expect(result(prefix + `M scan ${operation} rank 1`))
+        expect(result(prefix + `M scan ${operation} rank 1 axis 0`))
             .toEqual(result(prefix + `M scan ${operation} axis -2 rank 1`));
-        expect(result(prefix + `M scan ${operation} rank 1 with (array 0 0 0)`))
+        expect(result(prefix + `M scan ${operation} rank 1 axis 0 with (array 0 0 0)`))
             .toEqual({ text: `0 0 0 1 2 3 ${end}`, shape: [3, 3] });
     });
 
@@ -219,7 +219,7 @@ describe('scan input cells', () => {
             tensorCellCompilation: compiled });
         try {
             runtime.execute(matrix + 'use numbers\ncombine = gcd\n');
-            expect(formatValue(runtime.execute('M scan combine rank 1')!)).toBe('1 2 3 1 1 3');
+            expect(formatValue(runtime.execute('M scan combine rank 1 axis 0')!)).toBe('1 2 3 1 1 3');
         } finally { runtime.dispose(); }
     });
 
@@ -237,7 +237,7 @@ Rev = T reverse axis 0
 `;
         expect(result(source + 'Rev scan pick rank 1 axis 0')).toEqual({ shape: [5, 5],
             text: '9 1 2 3 4 10 4 6 8 4 14 11 14 8 4 16 17 14 8 4 18 17 14 8 4' });
-        expect(result(source + '(Rev drop 1) scan pick rank 1 with (Rev 0)'))
+        expect(result(source + '(Rev drop 1) scan pick rank 1 axis 0 with (Rev 0)'))
             .toEqual(result(source + 'Rev scan pick rank 1 axis 0'));
     });
 
@@ -247,7 +247,7 @@ Rev = T reverse axis 0
             text: '1 2 3 4 5 6 17 28 39 50 61 72' });
         expect(result(source + 'T scan digits rank 1 axis 1')).toEqual({ shape: [2, 2, 3],
             text: '1 2 3 14 25 36 7 8 9 80 91 102' });
-        expect(result(source + 'T scan + rank 2')).toEqual({ shape: [2, 2, 3],
+        expect(result(source + 'T scan + rank 2 axis 0')).toEqual({ shape: [2, 2, 3],
             text: '1 2 3 4 5 6 8 10 12 14 16 18' });
         expect(result(source + 'T scan digits rank 1 axis 1 with (array 0 0 0)')).toEqual({ shape: [2, 3, 3],
             text: '0 0 0 1 2 3 14 25 36 0 0 0 7 8 9 80 91 102' });
@@ -255,25 +255,24 @@ Rev = T reverse axis 0
 
     it('allows fixed-shape accumulators different from input cells', () => {
         const source = matrix + 'fun Acc total Row = Acc + (Row sum)\n';
-        expect(result(source + 'M scan total rank 1 with 0')).toEqual({ shape: [3], text: '0 6 21' });
+        expect(result(source + 'M scan total rank 1 axis 0 with 0')).toEqual({ shape: [3], text: '0 6 21' });
         expect(result(matrix + 'M scan + rank 0 axis 1 with (array 10 20)'))
             .toEqual({ shape: [2, 4, 2], text: '10 20 11 21 13 23 16 26 10 20 14 24 19 29 25 35' });
-        expect(() => run(matrix + 'M scan + rank 1 with 0')).toThrow(/matching shapes/);
-        expect(() => run(matrix + 'fun A grow B = concat A B\nM scan grow rank 1')).toThrow(/matching shapes/);
+        expect(() => run(matrix + 'M scan + rank 1 axis 0 with 0')).toThrow(/matching shapes/);
+        expect(() => run(matrix + 'fun A grow B = concat A B\nM scan grow rank 1 axis 0')).toThrow(/matching shapes/);
     });
 
     it('preserves empty traversal, frame and cell dimensions', () => {
-        expect(result('E = array shape 0 3 fill 0\nE scan + rank 1')).toEqual({ shape: [0, 3], text: '' });
-        expect(result('E = array shape 0 3 fill 0\nE scan + rank 1 with (array 7 8)'))
+        expect(result('E = array shape 0 3 fill 0\nE scan + rank 1 axis 0')).toEqual({ shape: [0, 3], text: '' });
+        expect(result('E = array shape 0 3 fill 0\nE scan + rank 1 axis 0 with (array 7 8)'))
             .toEqual({ shape: [1, 2], text: '7 8' });
         expect(result('E = array shape 0 2 3 fill 0\nE scan + rank 1 axis 1 with (array 7 8)'))
             .toEqual({ shape: [0, 3, 2], text: '' });
-        expect(result('E = array shape 2 0 fill 0\nE scan + rank 1')).toEqual({ shape: [2, 0], text: '' });
+        expect(result('E = array shape 2 0 fill 0\nE scan + rank 1 axis 0')).toEqual({ shape: [2, 0], text: '' });
     });
 
-    it.each(['reduce', 'scan'])('only infers the unique outer axis for %s', fold => {
-        expect(run(matrix + `M ${fold} + rank 1`)).toBe(run(matrix + `M ${fold} + rank 1 axis 0`));
-        for (const rank of [0, 2]) expect(() => run(matrix + `M ${fold} + rank ${rank}`)).toThrow(/explicit axis/);
+    it.each(['reduce', 'scan'])('requires traversal axes for every explicit rank in %s', fold => {
+        for (const rank of [0, 1, 2]) expect(() => run(matrix + `M ${fold} + rank ${rank}`)).toThrow(/explicit axis/);
         expect(() => run('T = array shape 2 3 4 fill 1\n' + `T ${fold} + rank 1`)).toThrow(/explicit axis/);
         expect(() => run(matrix + `M ${fold} + rank 2 axis -1`)).toThrow(/axis count exceeds/);
     });
@@ -362,5 +361,32 @@ describe('fold cells after removing traversal axes (#454)', () => {
             .toEqual({ shape: [2, 4], text: '0 0 0 0 0 0 0 0' });
         expect(result('E = array shape 2 0 fill 0\nE scan + rank 1 axis 1 with (array 7 8)'))
             .toEqual({ shape: [1, 2], text: '7 8' });
+    });
+});
+
+describe('explicit traversal axis for ranked folds', () => {
+    it.each(['+', 'plus'])('rejects missing axes for %s on every input kind', operation => {
+        for (const fold of ['reduce', 'scan']) {
+            for (const source of ['M', '(array 1 2 3)', '(1 to 3)', '"abc"']) {
+                for (const rank of [0, 1]) {
+                    for (const seed of ['', ' with 0']) {
+                        expect(() => run(matrix + plus + `${source} ${fold} ${operation} rank ${rank}${seed}`))
+                            .toThrow(`${fold} with rank requires an explicit axis; specify rank R axis N`);
+                    }
+                }
+            }
+        }
+    });
+
+    it.each(['+', 'plus'])('preserves unranked and explicit-axis folds for %s', operation => {
+        expect(run(matrix + plus + `M reduce ${operation}`)).toBe('21');
+        expect(run(plus + `(1 to 3) reduce ${operation}`)).toBe('6');
+        expect(run(plus + `(1 to 3) scan ${operation}`)).toBe('1 3 6');
+        expect(() => run(matrix + plus + `M scan ${operation}`)).toThrow(/rank-1/);
+        expect(run(matrix + plus + `M reduce ${operation} axis 1`)).toBe('6 15');
+        expect(run(matrix + plus + `M reduce ${operation} rank 0 axis 1`)).toBe('6 15');
+        expect(result(matrix + plus + `M scan ${operation} rank 0 axis 1`))
+            .toEqual(result(matrix + plus + `M scan ${operation} axis 1`));
+        expect(run(matrix + 'M sum rank 1')).toBe('6 15');
     });
 });

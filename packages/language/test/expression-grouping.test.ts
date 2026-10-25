@@ -56,7 +56,7 @@ describe('shared expression grouping', () => {
         ['M scan next', 'use numbers'],
         ['M scan next with Seed', 'use numbers'],
         ['M scan next with (1 + 2)', 'use numbers'],
-        ['M reduce + rank 1', 'use numbers'],
+        ['M reduce + rank 1 axis 0', 'use numbers'],
         ['A B outer *', 'use numbers'],
         ['M segment min', 'use algo\nuse numbers'],
         ['M segment combine with Identity', 'use algo\nuse numbers'],
@@ -127,7 +127,7 @@ describe('shared expression grouping', () => {
 
         it.each([
             ['A scan + with 0', 'A + scan with 0'],
-            ['A reduce * rank 1', 'A * reduce rank 1'],
+            ['A reduce * rank 1 axis 0', 'A * reduce rank 1 axis 0'],
             ['A segment +', 'A + segment'],
             ['A B outer *', 'A B * outer'],
             ['A B outer not equal', 'A B not equal outer'],

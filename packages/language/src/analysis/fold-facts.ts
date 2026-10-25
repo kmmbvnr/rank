@@ -10,6 +10,7 @@ export function foldShapeFacts(
     scan: boolean, form: FoldModifiers, source: ValueFacts,
     infer: (expression: Expression) => ValueFacts, cells?: Types, preservesCell = false,
 ): ValueFacts | undefined {
+    if (form.rank && !form.axis && !form.axes) return undefined;
     if (source.rank === undefined) return undefined;
     const sourceRank = source.rank;
     if ((form.axis || form.axes) && source.types.join() !== 'array') return undefined;
@@ -21,7 +22,6 @@ export function foldShapeFacts(
     const rank = form.rank && integer(form.rank);
     if (form.rank && (rank === undefined || rank > source.rank)) return undefined;
     const axes = form.axes?.map(part => integer(part, true));
-    if (form.rank && !form.axis && !form.axes && sourceRank - rank! !== 1) return undefined;
     const axis = form.axis ? integer(form.axis, true) : rank === undefined ? undefined : 0;
     const shape = source.shape ?? Array(source.rank).fill(null) as null[];
     if (scan) {

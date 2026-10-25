@@ -365,6 +365,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
 /** `Values scan bxor with 0`: a builtin scalar operation folded over proven numeric cells. */
 function namedFold(form: Extract<ApplicationForm, { kind: 'named-scan' | 'named-reduce' }>, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts) {
+    if (form.rank && !form.axis && !form.axes) return undefined;
     if (!isNameExpression(form.operation)) return undefined;
     const source = infer(form.source, lookup);
     const seed = form.seed && infer(form.seed, lookup);

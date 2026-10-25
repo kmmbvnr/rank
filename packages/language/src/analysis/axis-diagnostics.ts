@@ -1,13 +1,19 @@
+import { foldAxisDiagnostic } from '../fold-axes.js';
 import { normalizeAxis } from '../axis-index.js';
 import type { ApplicationForm } from '../application-forms.js';
 import type { Expression } from '../generated/ast.js';
 import type { ValueFacts } from './value-domain.js';
 
-/** Validate axes only when the source rank is known, without executing callbacks. */
+/** Validate fold modifiers and known axes without executing callbacks. */
 export function axisDiagnostics(form: ApplicationForm, expression: Expression,
     infer: (expression: Expression) => ValueFacts): { node: Expression; kind: 'DimensionMismatch'; message: string }[] {
     const diagnostics: { node: Expression; kind: 'DimensionMismatch'; message: string }[] = [];
     const check = (source: Expression, axes: readonly (number | Expression)[] | undefined, cellRank?: Expression, operation = 'reduce') => {
+        const diagnostic = foldAxisDiagnostic(operation, cellRank !== undefined, axes !== undefined);
+        if (diagnostic) {
+            diagnostics.push({ node: cellRank!, kind: 'DimensionMismatch', message: diagnostic });
+            return;
+        }
         const rank = infer(source).rank;
         if (rank === undefined) return;
         const cell = cellRank && infer(cellRank).integer;
@@ -15,12 +21,7 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
             diagnostics.push({ node: cellRank!, kind: 'DimensionMismatch', message: `rank ${cell} exceeds value rank ${rank}` });
             return;
         }
-        if (!axes) {
-            if (cell !== undefined && Number(cell) <= rank && Number(cell) >= 0 && rank - Number(cell) !== 1)
-                diagnostics.push({ node: cellRank!, kind: 'DimensionMismatch', message:
-                    `${operation} rank ${cell} requires an explicit axis unless exactly one axis remains outside the input cell; use axis N for scalar cells or rank R axis N for input cells` });
-            return;
-        }
+        if (!axes) return;
         const seen = new Set<number>();
         for (const axis of axes) {
             const literal = typeof axis === 'number' ? axis : infer(axis).integer;

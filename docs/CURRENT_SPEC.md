@@ -4195,8 +4195,8 @@ first, then `rank R` selects the trailing `R` remaining axes as the input cell,
 in source order. The earlier remaining axes form independent folds. The default
 is `rank 0`, so ordinary reduction consumes individual elements. The input cell
 rank plus the number of traversal axes must not exceed the source rank. With
-neither modifier, all scalar elements are folded in row-major order. With explicit `rank R`, `axis` may be omitted only when exactly one axis
-remains outside the input cell; that axis is 0. Otherwise, write `axis` explicitly.
+neither modifier, all scalar elements are folded in row-major order. An explicit
+`rank R` always requires an explicit `axis`, including `rank 0`.
 The order of an explicit axis list does not change traversal order.
 `rank` and `axis` may appear together, in either order, before optional `with`.
 Reduction ranks are nonnegative integer literals. Axis literals may be negative:
@@ -4249,7 +4249,7 @@ inside each rank-R region. To sum each matrix row, use `reduce + axis 1`.
 To reduce each trailing two-dimensional block, use `reduce + axis -2 -1`,
 regardless of the number of leading frame axes.
 `scan` uses the same input-cell rank and traversal-axis contract, returning all
-states. For a matrix, `M sum rank 1` sums each row, while `M reduce + rank 1`
+states. For a matrix, `M sum rank 1` sums each row, while `M reduce + rank 1 axis 0`
 passes rows to `+` and combines them. Use `M reduce + axis -1` for row sums.
 
 Named reductions use the same data-first style:
@@ -4386,11 +4386,12 @@ RowStates = M scan add rank 1 axis 0
 selects the trailing `R` remaining axes as the input cell, just as in `reduce`.
 The earlier remaining axes form independent scans. The default is rank 0
 (individual elements). The input cell rank plus one must not exceed the source
-rank. With explicit `rank`, `axis` may be omitted only when exactly
-one outer axis remains. Thus `M scan add rank 1` combines whole rows along axis 0.
-For shape `Batch Rows Columns`, `rank 1` requires an explicit axis; use
+rank. An explicit `rank` always requires an explicit `axis`, including `rank 0`.
+Thus `M scan add rank 1 axis 0` combines whole rows along axis 0.
+For shape `Batch Rows Columns`, use
 `rank 1 axis 1` to scan rows independently in each batch. A rank equal to the
-source rank leaves no traversal axis and is rejected.
+source rank leaves no traversal axis and is rejected. For lazy sequences and
+text, omit `rank` for scalar folds; explicit axes require an array.
 
 Without a seed, the first input cell initializes each scan and the traversal
 length stays unchanged. With a seed, the traversal axis grows from `D` to `D + 1`,

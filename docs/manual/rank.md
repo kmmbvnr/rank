@@ -74,6 +74,17 @@ rows; on a higher tensor it means the
 last-axis vectors. See the tensor rules
 for functions whose results change rank.
 
+For `reduce` and `scan`, `rank R` selects
+input cells after removing the traversal
+axes. An explicit `rank` always requires
+an explicit `axis`, including `rank 0`.
+`M reduce + rank 1 axis 0` combines whole
+rows; `M sum rank 1` sums each row.
+Without either modifier, `reduce` folds
+all elements, while `scan` requires a
+rank-1 input. Omit `rank` for scalar
+folds over lazy sequences and text.
+
 ### See also
 
 use, array, for, fun

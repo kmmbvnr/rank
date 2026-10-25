@@ -61,7 +61,7 @@ it('infers symbolic input-cell shapes without treating callback cells as scalars
 });
 
 it('uses the scalar seed shape for empty input-cell folds and frames', () => {
-    expect(facts('E = array shape 0 3 fill 0\n', 'E reduce + rank 1 with 7'))
+    expect(facts('E = array shape 0 3 fill 0\n', 'E reduce + rank 1 axis 0 with 7'))
         .toMatchObject({ rank: 0, shape: [] });
     expect(facts('E = array shape 0 2 3 fill 0\n', 'E reduce + rank 1 axis 1 with 7'))
         .toMatchObject({ rank: 1, shape: [0] });
@@ -70,29 +70,27 @@ it('uses the scalar seed shape for empty input-cell folds and frames', () => {
 it.each(['+', 'plus', 'max'])('infers input-cell scan states for %s', operation => {
     expect(facts(matrix, `M scan ${operation} rank 1 axis 0`))
         .toMatchObject({ types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'] });
-    expect(facts(matrix, `M scan ${operation} rank 1`))
-        .toMatchObject({ rank: 2, shape: [2, 3] });
     expect(facts(matrix, `M scan ${operation} axis -2 rank 1 with (array 0 0 0)`))
         .toMatchObject({ rank: 2, shape: [3, 3], elements: ['integer'] });
     expect(facts('T = array shape 2 3 4 fill 1\n', `T scan ${operation} rank 1 axis 1`))
         .toMatchObject({ rank: 3, shape: [2, 3, 4] });
-    expect(facts('T = array shape 2 3 4 fill 1\n', `T scan ${operation} rank 2 with (array shape 3 4 fill 0)`))
+    expect(facts('T = array shape 2 3 4 fill 1\n', `T scan ${operation} rank 2 axis 0 with (array shape 3 4 fill 0)`))
         .toMatchObject({ rank: 3, shape: [3, 3, 4] });
 });
 
 it('uses accumulator shapes independently of input-cell shapes', () => {
-    expect(facts('fun Acc total Row = Acc + (Row sum)\n', '((array 1 2 3 4 5 6) reshape 2 3) scan total rank 1 with 0'))
+    expect(facts('fun Acc total Row = Acc + (Row sum)\n', '((array 1 2 3 4 5 6) reshape 2 3) scan total rank 1 axis 0 with 0'))
         .toMatchObject({ rank: 1, shape: [3], elements: ['integer'] });
     expect(facts(matrix, 'M scan + rank 0 axis 1 with (array 10 20)'))
         .toMatchObject({ rank: 3, shape: [2, 4, 2], elements: ['integer'] });
     expect(facts('E = array shape 0 2 3 fill 0\n', 'E scan + rank 1 axis 1 with (array 7 8)'))
         .toMatchObject({ shape: [0, 3, 2] });
-    expect(facts('E = array shape 0 3 fill 0\n', 'E scan + rank 1'))
+    expect(facts('E = array shape 0 3 fill 0\n', 'E scan + rank 1 axis 0'))
         .toMatchObject({ shape: [0, 3] });
 });
 
-it.each(['reduce +', 'reduce plus', 'scan +', 'scan plus'])('diagnoses ambiguous traversal for %s', fold => {
-    for (const rank of [0, 2]) {
+it.each(['reduce +', 'reduce plus', 'scan +', 'scan plus'])('diagnoses missing traversal axes for %s', fold => {
+    for (const rank of [0, 1, 2]) {
         const parsed = parser.parse<Program>(`${plus}${matrix}M ${fold} rank ${rank}\n`);
         expect(analyzeValues(parsed.value).diagnostics.some(d => d.message.includes('requires an explicit axis'))).toBe(true);
     }
@@ -124,4 +122,19 @@ it('infers empty selected cells and seeded states on nonleading traversal axes',
     expect(facts(matrix, 'M scan + rank 1 axis 1 with (array 10 20)')).toMatchObject({ shape: [4, 2] });
     expect(facts('fun Acc total Col = Acc + (Col sum)\n' + matrix, '((array 1 2 3 4 5 6) reshape 2 3) scan total rank 1 axis 1 with 0'))
         .toMatchObject({ shape: [4] });
+});
+
+it.each(['+', 'plus'])('requires explicit fold axes for %s even with unknown inputs', operation => {
+    for (const fold of ['reduce', 'scan']) {
+        for (const source of ['M', '(array 1 2 3)', '(1 to 3)', '"abc"', 'Input']) {
+            for (const rank of [0, 1]) {
+                for (const seed of ['', ' with 0']) {
+                    const parsed = parser.parse<Program>(`use sequences\n${plus}${matrix}${source} ${fold} ${operation} rank ${rank}${seed}`);
+                    expect(parsed.parserErrors).toEqual([]);
+                    expect(analyzeValues(parsed.value).diagnostics.map(d => d.message), `${source} ${fold} ${operation} rank ${rank}${seed}`)
+                        .toContain(`${fold} with rank requires an explicit axis; specify rank R axis N`);
+                }
+            }
+        }
+    }
 });

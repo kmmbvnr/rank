@@ -111,7 +111,7 @@ it('recognizes symbolic modifiers once and respects a shadowed modifier', () => 
         return symbolicApplicationForm(statement.value, standard);
     };
     expect(symbolic('Values scan + with 0')?.kind).toBe('scan');
-    expect(symbolic('Values reduce + rank 1 with 0')?.kind).toBe('reduce');
+    expect(symbolic('Values reduce + rank 1 axis 0 with 0')?.kind).toBe('reduce');
     expect(symbolic('Values segment +')?.kind).toBe('segment');
     expect(symbolic('A B outer *')?.kind).toBe('outer');
     expect(symbolic('Values scan + axis 1')?.kind).toBe('scan');

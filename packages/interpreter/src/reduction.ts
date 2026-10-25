@@ -1,4 +1,4 @@
-import { foldAxisPartition } from '@arrrank/language';
+import { foldAxisPartition, foldAxisDiagnostic } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
@@ -181,18 +181,14 @@ export class ReductionEvaluator {
         }), [value, ...captures, ...(seed === undefined ? [] : [seed])]);
     }
 
-    /** An explicit input rank can infer traversal only from a single outer axis. */
+    /** Check the shared modifier contract before inspecting the input shape. */
     private foldAxes(value: RankValue, rank: number | undefined, axes: readonly number[] | undefined,
         operation: string): readonly number[] | undefined {
+        const diagnostic = foldAxisDiagnostic(operation, rank !== undefined, axes !== undefined);
+        if (diagnostic) throw new RankError(diagnostic);
         if (rank === undefined) return axes;
         const sourceRank = valueRank(value);
         if (rank < 0 || rank > sourceRank) throw new RankError(`rank ${rank} exceeds value rank ${sourceRank}`);
-        if (axes === undefined) {
-            if (sourceRank - rank !== 1) throw new RankError(
-                `${operation} rank ${rank} requires an explicit axis unless exactly one axis remains outside the input cell; use axis N for scalar cells or rank R axis N for input cells`);
-            // Rank-zero sequence/text folds retain their streaming path.
-            return isRankArray(value) ? [0] : undefined;
-        }
         return axes;
     }
 
