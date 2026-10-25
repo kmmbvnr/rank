@@ -24,7 +24,11 @@ Triangle = array shape 15 15
    4 62 98 27 23  9 70 98 73 93 38 53 60  4 23
 end
 
-fun Low pick Up = Up + (Low max (concat (Low drop 1) (array 0)))
+fun Low pick Up
+  Right = concat (Low drop 1) (array 0)
+  return Up + (Low max Right)
+end
+
 Rev = Triangle reverse axis 0
 Best = Rev reduce pick rank 1 axis 0
 Answer = Best 0
