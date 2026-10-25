@@ -249,8 +249,6 @@ export class ApplicationEvaluator {
             }
             case 'diagonal':
             case 'axis-matmul':
-            case 'axis-covariance':
-            case 'axis-correlation':
             case 'axis-quantile':
             case 'axis-metric':
             case 'axis-shuffle':

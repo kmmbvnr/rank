@@ -412,23 +412,18 @@ export function covarianceValue(
     const batchShape = batchAxes.map(axis => value.shape[axis]);
     const outputShape = [...batchShape, features, features];
 
-    const coordinatesFor = (batch: readonly number[], feature: number, observation: number) => {
-        const coordinates = Array(value.shape.length).fill(0) as number[];
-        batchAxes.forEach((axis, position) => {
-            coordinates[axis] = batch[position];
-        });
-        coordinates[featureAxis] = feature;
-        coordinates[observationAxis] = observation;
-        return coordinates;
-    };
-    const meanAt = (batch: readonly number[], feature: number, means: Map<number, number>): number => {
+    // Rank dispatch has already selected the cell. Address its axes with
+    // strides rather than allocating coordinate arrays for every observation.
+    const strides = value.shape.map((_, axis) => arraySize(value.shape.slice(axis + 1)));
+    const featureStride = strides[featureAxis], observationStride = strides[observationAxis];
+    const meanAt = (base: number, feature: number, means: Map<number, number>): number => {
         const previous = means.get(feature);
         if (previous !== undefined) return previous;
         let total = 0;
         for (let observation = 0; observation < observations; observation += 1) {
             checkpoint('computing statistics');
-            const coordinates = coordinatesFor(batch, feature, observation);
-            total += Number(expectNumeric(arrayItem(value, arrayOffset(value.shape, coordinates))));
+            total += Number(expectNumeric(arrayItem(value,
+                base + feature * featureStride + observation * observationStride)));
         }
         const result = total / observations;
         means.set(feature, result);
@@ -436,21 +431,21 @@ export function covarianceValue(
     };
     const resultAt = (index: number, means = new Map<number, number>()): number => {
         const output = coordinatesAt(outputShape, index);
-        const batch = output.slice(0, batchShape.length);
+        let base = 0;
+        batchAxes.forEach((axis, position) => { base += output[position] * strides[axis]; });
         const leftFeature = output[batchShape.length];
         const rightFeature = output[batchShape.length + 1];
-        const leftMean = meanAt(batch, leftFeature, means);
-        const rightMean = meanAt(batch, rightFeature, means);
+        const leftMean = meanAt(base, leftFeature, means);
+        const rightMean = meanAt(base, rightFeature, means);
         let total = 0;
         for (let observation = 0; observation < observations; observation += 1) {
             checkpoint('computing statistics');
-            const leftCoordinates = coordinatesFor(batch, leftFeature, observation);
-            const rightCoordinates = coordinatesFor(batch, rightFeature, observation);
+            const observationOffset = base + observation * observationStride;
             const left = Number(expectNumeric(
-                arrayItem(value, arrayOffset(value.shape, leftCoordinates)),
+                arrayItem(value, observationOffset + leftFeature * featureStride),
             ));
             const right = Number(expectNumeric(
-                arrayItem(value, arrayOffset(value.shape, rightCoordinates)),
+                arrayItem(value, observationOffset + rightFeature * featureStride),
             ));
             total += (left - leftMean) * (right - rightMean);
         }

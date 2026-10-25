@@ -264,6 +264,8 @@ export interface NativeFunction {
     readonly name: string;
     readonly arities: readonly number[];
     readonly monadicRank: IntrinsicRank;
+    /** Result axes are new axes, rather than corresponding input-cell axes. */
+    readonly cellResultPlacement?: 'append';
     /** Result cell shape for an argument cell of this shape, when known without
      * calling the function. Ranked application over an empty frame has no cell
      * to call. A null dimension is unknown; an undefined shape leaves even

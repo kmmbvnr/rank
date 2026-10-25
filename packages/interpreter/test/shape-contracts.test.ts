@@ -23,6 +23,7 @@ const file: RankValue = { kind: 'file', closed: false, handle: {
 // logical result shape, measured from headers without enumerating lazy values.
 type Sample = readonly [string, () => RankValue[], KnownShape];
 const samples: readonly Sample[] = [
+    ...['covariance', 'correlation', 'corr'].map((name): Sample => [`stats.${name}`, () => [matrix], [2, 2]]),
     ...['ceiling', 'floor', 'lowerbound', 'upperbound'].map((name): Sample =>
         [`algo.${name}`, () => [new RankMultiset().add(1n).add(5n), 3n], []]),
     ...['lowerindex', 'upperindex'].map((name): Sample =>

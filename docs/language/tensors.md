@@ -361,7 +361,8 @@ must be finite and numeric.
 
 `covariance` from `use stats` calculates sample covariance. By default, the
 last axis contains observations, the preceding axis contains features, and all
-earlier axes are independent batches:
+earlier axes are independent batches. Its intrinsic monadic rank is 2; a cell
+has shape `[features, observations]`:
 
 ```rank
 Cov = Features covariance
@@ -383,8 +384,13 @@ BatchCov = T covariance axis 2 0
 The first number selects the feature axis and the second selects the
 observation axis. Nonnegative axes are zero-based; negative axes count from the end.
 The normalized axes must be valid and distinct. All remaining axes
-become batch axes in their original order. This operation-specific `axis` form
-already defines the cells and is not combined with `rank`.
+become batch axes in their original order. This uses ordinary ordered unary
+cell selection; `rank 2` may accompany `axis`, and `covariance rank 2` uses
+trailing cells. `correlation` and its alias `corr` use the same contract.
+Both output axes represent features, so these operations declare append
+placement rather than restoring input-axis positions: the result is always
+`[batch axes..., features, features]`. For example, input shape `2 3 4`
+with `axis 0 2` produces shape `3 2 2`; `axis 2 0` produces `3 4 4`.
 
 Covariance divides by `N - 1`, always returns real values, and raises
 `.InsufficientData` when the observation axis has fewer than two items. The

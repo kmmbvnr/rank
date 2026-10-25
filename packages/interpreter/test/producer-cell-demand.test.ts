@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, isRankArray, type RankArray, type RankFile, type RankValue } from '../src/index.js';
 import { ArrayBindingContract } from '../src/array-binding-contract.js';
-import { ownedArray } from '../src/array-storage.js';
+import { framedArray } from '../src/framed-array.js';
+import { arrayValues, ownedArray } from '../src/array-storage.js';
 import { completed, runExecution } from '../src/execution.js';
 import { materializeValue } from '../src/materialize.js';
 import { native } from '../src/modules/shared.js';
@@ -47,6 +48,18 @@ describe('producer cell selection', () => {
         const columns = tensorCells(rows, [1]);
         materializeValue(columns.cellAt(1));
         expect(calls).toEqual([6n, 2n, 5n]);
+    });
+
+    it('permutes selected axes inside producer-backed cells', () => {
+        const source = framedArray([2], i => ownedArray(
+            Array.from({ length: 12 }, (_, j) => BigInt(i * 12 + j + 1)), [3, 4]), {
+            shape: [3, 4], ownFiles() {}, mismatch: () => Error('shape'),
+        });
+        const cells = tensorCells(source, [1], [2, 0]);
+        expect(cells.cellShape).toEqual([4, 2]);
+        const selected = array(cells.cellAt(1));
+        expect([...arrayValues(selected)]).toEqual([5n, 17n, 6n, 18n, 7n, 19n, 8n, 20n]);
+        expect([...arrayValues(selected)]).toEqual([5n, 17n, 6n, 18n, 7n, 19n, 8n, 20n]);
     });
 
     it('keeps gather order and duplicate producer observations', () => {

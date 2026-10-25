@@ -46,6 +46,19 @@ postcondition overhead.
 - Signature instantiation binds dimensions and solves sums with one unknown;
   it is not a general arithmetic solver. Multiplication is not supported.
 
+## Ordered unary cell axes (#457)
+
+Unary `axis` selection preserves the written cell-axis order; frame axes keep
+source order. Runtime and shape analysis restore same-rank result axes by their
+corresponding positions in that list, including selections covering the whole
+operand. Binary cell selection and reduction traversal retain their existing rules.
+
+`covariance`, `correlation` and `corr` declare monadic rank 2 and cell shape
+`[f, n] -> [f, f]`. Their `cellResultPlacement: 'append'` contract keeps new
+feature axes after the batch frame. They use the ordinary rank/axis application
+form, including aliases and matching explicit `rank 2`; no dedicated covariance
+or correlation axis AST form remains.
+
 ## Standard-library names
 
 Standard-library operation names are unique, enforced by the catalogue test.

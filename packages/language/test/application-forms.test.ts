@@ -21,7 +21,7 @@ it.each([
     ['A argsort axis 1', 'axis-argsort'], ['A shuffle axis 1', 'axis-shuffle'],
     ['A quantile 0.5 axis 1', 'axis-quantile'], ['A mse B axis 1', 'axis-metric'],
     ['A transpose axis 1 0', 'axis-transpose'], ['A matmul B axis 1 0', 'axis-matmul'],
-    ['A covariance axis 0 1', 'axis-covariance'], ['A corr axis 0 1', 'axis-correlation'],
+    ['A covariance axis 0 1', 'rank'], ['A corr axis 0 1', 'rank'],
     ['A sum rank 1', 'rank'],
     ['A window 2 3', 'window'], ['A window unpack Sizes', 'window'],
     ['A window 2 3 shape', 'plain'], ['A window 2 3 axis 0 1 shape', 'plain'],

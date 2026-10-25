@@ -1366,8 +1366,9 @@ whole operands by default and may declare intrinsic ranks in their headers.
 A declaration may use `all` for a whole operand; call-site overrides use integers.
 
 An explicit `axis` list names the cell axes passed to a unary function. The
-remaining axes form the frame. Both sets keep their natural source order;
-`axis 2 0` means the same as `axis 0 2`. Nonnegative axes count from zero on
+remaining axes form the frame in natural source order. Cell axes follow the
+written order: `axis 2 0` passes axis 2 first and axis 0 second, whereas
+`axis 0 2` passes axis 0 first. Nonnegative axes count from zero on
 the left; negative axes count from the right (`-1` is last). Normalized axes
 must be distinct and in bounds. `rank` is optional alongside `axis`; if supplied,
 it must equal the number of selected cell axes:
@@ -1386,8 +1387,13 @@ frame. If `F` returns an array of rank 2, its two axes occupy source positions
 0 and 2, even when their lengths change. For example, a result cell of shape
 `6 7` produces shape `6 3 7 5`. A scalar result leaves shape `3 5`; an array
 of a different rank appends its axes after the frame. Text, tuples and sequences
-remain boxed cell values. Explicit axes do not reorder either cells or frames;
-use `transpose` for a permutation. Bare `rank` retains frame-then-cell assembly.
+remain boxed cell values. With `axis 2 0`, the same `6 7` result cell instead
+produces shape `7 3 6 5`: result axis 0 maps to source axis 2 and result axis 1
+to source axis 0. This also applies when all source axes are selected.
+Bare `rank` retains frame-then-cell assembly. Operations whose result axes are
+new axes, such as `covariance`, `correlation` and `corr`, declare append placement:
+their feature-by-feature matrix always follows the batch frame. Order-invariant
+reductions keep their existing axis-set semantics.
 
 ### Frame agreement and binary calls
 

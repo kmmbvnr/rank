@@ -328,3 +328,12 @@ it('agrees on source-axis placement for same-rank callbacks and changed lengths'
         check(source + 'fun X ends\n return array (X 0) (X 0) (X 1)\nend\nR = A ends axis 0', [3, shape[1], shape[2]]);
     }
 });
+
+it('agrees on ordered unary cells and appended statistical result axes', () => {
+    const source = 'use sequences\nuse stats\nA = (1 to 24) reshape 2 3 4\n';
+    check(source + 'fun X fixed\n return (1 to 35) reshape 5 7\nend\nR = A fixed axis 2 0', [7, 3, 5]);
+    check(source + 'R = A covariance axis 0 2', [3, 2, 2]);
+    check(source + 'R = A covariance axis 2 0', [3, 4, 4]);
+    check(source + 'R = A correlation axis -1 -3 rank 2', [3, 4, 4]);
+    check(source + 'R = A corr rank 2', [2, 3, 3]);
+});

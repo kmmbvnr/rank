@@ -53,6 +53,7 @@ export function native(
         arities,
         monadicRank: operation?.monadicRank ?? 'all',
         monadicResultShape: resultShape,
+        cellResultPlacement: operation?.cellResultPlacement,
         dyadicRanks: operation?.dyadicRanks,
         dyadicResultShape,
         arrayCells: operation?.arrayCells,

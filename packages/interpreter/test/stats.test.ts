@@ -233,15 +233,32 @@ describe('Rank statistics', () => {
             .toThrowError('division by zero');
     });
 
+    it('uses ranked dispatch for ordered axes, aliases and empty batches', () => {
+        const source = 'use stats\nuse sequences\nT = (1 to 24) reshape 2 3 4\n';
+        for (const name of ['covariance', 'correlation', 'corr']) {
+            expect(run(source + `T ${name} rank 2`)).toBe(run(source + `T ${name}`));
+            expect(run(source + `T ${name} axis 0 2`))
+                .toBe(run(source + `(T transpose axis 1 0 2) ${name}`));
+            expect(run(source + `T ${name} axis 2 0`))
+                .toBe(run(source + `(T transpose axis 1 2 0) ${name}`));
+            expect(run(source + `T ${name} axis 2 0 shape`)).toBe('3 4 4');
+            expect(run(source + `f = ${name}\nT f axis -1 -3 rank 2`))
+                .toBe(run(source + `T ${name} axis 2 0`));
+            expect(run(source + `(array shape 0 2 3 fill 1) ${name} shape`)).toBe('0 2 2');
+            expect(run(source + `(array shape 2 0 3 fill 1) ${name} axis 0 2 shape`)).toBe('0 2 2');
+            expect(run(source + `(array shape 2 0 3 fill 1) ${name} shape`)).toBe('2 0 0');
+        }
+    });
+
     it('validates observation counts and axes', () => {
         expect(() => run('use stats\n(array shape 2 1 fill 0) covariance'))
             .toThrowError('covariance requires at least two observations');
         expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0'))
-            .toThrowError('covariance axis expects feature and observation axes');
+            .toThrowError('covariance expects cell shape');
         expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0 0'))
-            .toThrowError('covariance axes must be unique');
+            .toThrowError('unique');
         expect(() => run('use stats\n(array shape 2 3 fill 0) covariance axis 0 2'))
-            .toThrowError('covariance axis out of bounds: 2');
+            .toThrowError('axis out of bounds: 2');
     });
 
     it('calculates population variance and supports var alias, rank, and axis', () => {

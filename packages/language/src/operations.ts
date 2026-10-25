@@ -143,6 +143,8 @@ export interface Operation {
     readonly valueCallbackFree?: true;
     /** Omitted when the operation takes its whole argument at once (`all`). */
     readonly monadicRank?: IntrinsicRank;
+    /** Result axes are new axes, rather than corresponding input-cell axes. */
+    readonly cellResultPlacement?: 'append';
     readonly dyadicRanks?: readonly [IntrinsicRank, IntrinsicRank];
     /** The result length depends on the values, not only on the operand shapes (Σ in the shape signature). */
     readonly dataLength?: true;
@@ -1205,15 +1207,18 @@ export const operations: readonly Operation[] = [
         result: 'array', lazy: true,
         summary: 'Moves items along an axis, keeping the shape; vacated positions read zero or a with value.' },
 
-    { name: 'correlation', module: 'stats', arities: [1], form: 'Features correlation',
+    { name: 'correlation', module: 'stats', arities: [1], monadicRank: 2,
+        cellResultPlacement: 'append', shape: [{ args: [['f', 'n']], result: ['f', 'f'] }], form: 'Features correlation',
         signatures: [{ inputs: [numericArray], result: realArray }],
         result: 'array', lazy: true,
         summary: 'Pearson correlation matrix over feature and observation axes.' },
-    { name: 'corr', module: 'stats', arities: [1], form: 'Features corr',
+    { name: 'corr', module: 'stats', arities: [1], monadicRank: 2,
+        cellResultPlacement: 'append', shape: [{ args: [['f', 'n']], result: ['f', 'f'] }], form: 'Features corr',
         signatures: [{ inputs: [numericArray], result: realArray }],
         result: 'array', lazy: true,
         summary: 'Alias for correlation.' },
-    { name: 'covariance', module: 'stats', arities: [1], form: 'Features covariance',
+    { name: 'covariance', module: 'stats', arities: [1], monadicRank: 2,
+        cellResultPlacement: 'append', shape: [{ args: [['f', 'n']], result: ['f', 'f'] }], form: 'Features covariance',
         signatures: [{ inputs: [numericArray], result: realArray }],
         result: 'array', lazy: true,
         summary: 'Sample covariance matrix over feature and observation axes.' },

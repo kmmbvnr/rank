@@ -8,7 +8,7 @@ import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
 import { ALL_AXIS, atArray, reverseArrayAxis, sliceArray, tensorSelection } from './selectors.js';
 import { rankedNumericFind } from './numeric-search.js';
-import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, denseScalarItems, prepareArrayRead, readArrayItem, registerArrayDependencies, registerArrayReadPlan, typedArray } from './array-storage.js';
+import { arrayCells, arrayFrameAxes, arrayValues, derivedArray, ownedArray, denseScalarItems, prepareArrayRead, readArrayItem, registerArrayDependencies, registerArrayReadPlan, sliceStoredArray, typedArray } from './array-storage.js';
 import { prepareStoredScalarView, registerScalarView } from './integer-view.js';
 import type { RankedMembership } from './membership-function.js';
 import { completed, flatMapResult, mapExecution, type Evaluation } from './execution.js';
@@ -77,21 +77,22 @@ export class RankApplication {
             if (cellAxes) cellAxes = resolveAxes(cellAxes, value.shape.length);
             if (cellAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
             const axes = tensorFrameAxes(value.shape, cellAxes, cellRank);
-            if (axes.length === 0) return this.invoke(fn, [value]);
+            if (axes.length === 0 && (!cellAxes || cellAxes.every((axis, index) => axis === index))) return this.invoke(fn, [value]);
             // Stored operands have no callback reads to reorder. Avoid eagerly
             // rebuilding a reversed cell for each scalar of the restored view.
             if (cellAxes?.length && fn === this.standardFunctions.get(standardModules.sequences.reverse)
                 && denseScalarItems(value) !== undefined) {
-                return completed(reverseArrayAxis(value, Math.min(...cellAxes)));
+                return completed(reverseArrayAxis(value, cellAxes[0]));
             }
-            const result = this.applyToTensorCells(value, fn, axes);
+            const result = this.applyToTensorCells(value, fn, axes, cellAxes);
             // Trailing cells already have the requested placement, even when
             // their result rank changes. Do not probe an unknown cell shape.
-            if (!cellAxes || axes.every((axis, index) => axis === index)) return completed(result);
+            if (!cellAxes || fn.cellResultPlacement === 'append'
+                || [...axes, ...cellAxes].every((axis, index) => axis === index)) return completed(result);
             // Explicit cell axes retain their positions when the callback returns
             // the same cell rank. Rank-only application still stacks frame + cell.
             if (cellAxes && isRankArray(result) && result.shape.length === value.shape.length) {
-                const order = [...axes, ...value.shape.map((_, axis) => axis).filter(axis => cellAxes!.includes(axis))];
+                const order = [...axes, ...cellAxes];
                 const permutation = value.shape.map((_, axis) => order.indexOf(axis));
                 if (permutation.every((axis, index) => axis === index)) return completed(result);
                 const restored = permutedArray(result, permutation);
@@ -312,9 +313,10 @@ export class RankApplication {
         value: RankArray,
         fn: Extract<RankValue, { kind: 'function' }>,
         frameAxes: readonly number[],
+        cellAxes?: readonly number[],
     ): RankValue {
         fn = fn.snapshot?.() ?? fn;
-        const cells = tensorCells(value, frameAxes);
+        const cells = tensorCells(value, frameAxes, cellAxes);
         const frameSize = arraySize(cells.frameShape);
         if (frameSize === 0) {
             const resultShape = this.emptyFrameCellShape(fn, cells.cellShape) ?? [];
@@ -488,11 +490,14 @@ interface TensorCells {
     readonly cellAt: (frameIndex: number) => RankValue;
 }
 
-export function tensorCells(source: RankArray, frameAxes: readonly number[]): TensorCells {
+export function tensorCells(source: RankArray, frameAxes: readonly number[], orderedCellAxes?: readonly number[]): TensorCells {
     const frameShape = frameAxes.map(axis => source.shape[axis]);
     const frameSet = new Set(frameAxes);
-    const cellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
+    const naturalCellAxes = source.shape.map((_, axis) => axis).filter(axis => !frameSet.has(axis));
+    const cellAxes = orderedCellAxes ?? naturalCellAxes;
     const cellShape = cellAxes.map(axis => source.shape[axis]);
+    const strides = source.shape.map((_, axis) => arraySize(source.shape.slice(axis + 1)));
+    const contiguous = cellAxes.every((axis, index) => axis === frameAxes.length + index);
     return {
         frameShape,
         cellShape,
@@ -504,14 +509,25 @@ export function tensorCells(source: RankArray, frameAxes: readonly number[]): Te
             if (cellShape.length === 0) {
                 return arrayItem(source, arrayOffset(source.shape, sourceCoordinates));
             }
-            if (arrayCells(source)) return sliceArray(source, tensorSelection(source,
-                sourceCoordinates.map((coordinate, axis) => frameSet.has(axis) ? BigInt(coordinate) : ALL_AXIS)));
-            const offset = (cellIndex: number) => {
-                const coordinates = [...sourceCoordinates];
-                coordinatesAt(cellShape, cellIndex).forEach((coordinate, index) => {
-                    coordinates[cellAxes[index]] = coordinate;
-                });
-                return arrayOffset(source.shape, coordinates);
+            if (arrayCells(source)) {
+                const cell = sliceArray(source, tensorSelection(source,
+                    sourceCoordinates.map((coordinate, axis) => frameSet.has(axis) ? BigInt(coordinate) : ALL_AXIS)));
+                const order = cellAxes.map(axis => naturalCellAxes.indexOf(axis));
+                return !isRankArray(cell) || order.every((axis, index) => axis === index) ? cell : permutedArray(cell, order);
+            }
+            const base = arrayOffset(source.shape, sourceCoordinates);
+            // A contiguous completed numeric cell can share storage. The storage
+            // layer protects overlapping writes with its usual slice ownership.
+            const stored = contiguous ? sliceStoredArray(source, base, cellShape) : undefined;
+            if (stored) return stored;
+            const offset = contiguous ? (cellIndex: number) => base + cellIndex : (cellIndex: number) => {
+                let result = base;
+                for (let index = cellAxes.length - 1; index >= 0; index--) {
+                    const coordinate = cellIndex % cellShape[index];
+                    cellIndex = Math.floor(cellIndex / cellShape[index]);
+                    result += coordinate * strides[cellAxes[index]];
+                }
+                return result;
             };
             return registerScalarView(derivedArray(cellShape, [source], index => arrayItem(source, offset(index))), source, offset);
         },

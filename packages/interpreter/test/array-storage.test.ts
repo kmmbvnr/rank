@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, MISSING, createArraySnapshot, isNativeFunction, type RankArray, type RankValue } from '../src/index.js';
-import { eagerArrayStorage, isSharedArray, ownedArray } from '../src/array-storage.js';
+import { arrayValues, derivedArray, eagerArrayStorage, isSharedArray, ownedArray } from '../src/array-storage.js';
 import { MemoryIo } from './support.js';
 
 describe('eager array storage', () => {
@@ -547,4 +547,18 @@ describe('owned array element validation', () => {
         expect(ownedArray([row, row]).shape).toEqual([2]);
         expect(() => ownedArray([row, row, matrix])).toThrow(/one element type/);
     });
+});
+
+
+it('retains derived real-domain evidence without confusing numeric limits or columns', () => {
+    for (const cells of [[1.5, 2.5, NaN, Infinity, 3.5], [Infinity, Infinity, 1n, -Infinity]]) {
+        expect([...arrayValues(derivedArray([cells.length], [], i => cells[i]))]).toEqual(cells);
+    }
+    for (const cells of [[1.5, 2.5, Infinity, 1n], [Infinity, Infinity, 1n, 1.5], [1.5, 2.5, true]]) {
+        expect(() => [...arrayValues(derivedArray([cells.length], [], i => cells[i]))]).toThrow(/one element type/);
+    }
+    const cells = [1.5, 1n, 2.5, 2n];
+    const table = derivedArray([2, 2], [], i => cells[i]);
+    Object.assign(table, { columnNames: ['real', 'integer'] });
+    expect([...arrayValues(table)]).toEqual(cells);
 });

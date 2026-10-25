@@ -50,7 +50,7 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
         }
         case 'axis-matmul': check(form.left, [form.axes[0]]); check(form.right, [form.axes[1]]); break;
         case 'window': case 'axis-reduction': case 'axis-transpose': case 'axis-quantile':
-        case 'axis-covariance': case 'axis-correlation': check(form.source, form.axes); break;
+            check(form.source, form.axes); break;
         case 'axis-length': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort':
             check(form.source, form.axis === undefined ? undefined : [form.axis]); break;
     }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Interpreter } from '../src/index.js';
 import { arrayValues, derivedArray, ownedArray, readArrayItem } from '../src/array-storage.js';
 import { materializeValue } from '../src/materialize.js';
 import { covarianceValue } from '../src/modules/stats.js';
@@ -59,6 +60,28 @@ describe('covariance observation state', () => {
         fail = false;
         expect([...arrayValues(covariance)]).toEqual([1, 1, 1, 1]);
         expect(reads).toBe(30);
+    });
+
+    it('retains covariance traversal state inside a ranked frame', () => {
+        const runtime = new Interpreter();
+        let reads = 0;
+        runtime.variables.set('Data', derivedArray([2, 2, 3], [], index => {
+            reads++;
+            return (index % 6 + 1) * (index < 6 ? 1 : 2);
+        }, true));
+        try {
+            const value = runtime.execute('use stats\nData covariance rank 2') as RankArray;
+            expect([...arrayValues(value)]).toEqual([1, 1, 1, 1, 4, 4, 4, 4]);
+            expect(reads).toBe(60);
+            expect([...arrayValues(value)]).toEqual([1, 1, 1, 1, 4, 4, 4, 4]);
+            expect(reads).toBe(120);
+            const prefix = arrayValues(value);
+            expect(prefix.next().value).toBe(1);
+            prefix.return?.();
+            expect(reads).toBe(129);
+            expect([...arrayValues(value)]).toEqual([1, 1, 1, 1, 4, 4, 4, 4]);
+            expect(reads).toBe(189);
+        } finally { runtime.dispose(); }
     });
 
     it('does not read source cells for an empty feature frame', () => {

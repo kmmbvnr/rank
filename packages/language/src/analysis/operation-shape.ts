@@ -27,7 +27,7 @@ export function operationShapeFacts(
     if (!cellShape) return;
     // Ranked assembly boxes non-array collections instead of adding their axes.
     if (frame.length && ['text', 'sequence'].includes(operation.result)) return;
-    const shape = axisResultShape(frame, cellShape, axes);
+    const shape = axisResultShape(frame, cellShape, operation.cellResultPlacement === 'append' ? undefined : axes, operands.length === 1);
     const mappedArray = operands.length > 2 && operation.mapsScalarCells
         && operands.some(operand => operand.types.join() === 'array');
     const types = operation.name === 'matmul' ? (shape.length ? ['array'] : ['integer', 'real'])
@@ -38,10 +38,11 @@ export function operationShapeFacts(
 }
 
 /** Shared rank/axis partition for builtin operations and user callbacks. */
-function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readonly number[]):
+function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readonly number[], ordered = false):
     { cell: KnownShape | undefined; frame: KnownShape } | undefined {
     const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
-    if (rank === 'all') return { cell: shape, frame: [] };
+    if (rank === 'all' && !axes) return { cell: shape, frame: [] };
+    if (rank === 'all') rank = axes!.length;
     if (typeof rank !== 'number' || !Number.isSafeInteger(rank) || !shape) return;
     // A negative rank counts down from the operand's own rank.
     const cellRank = rank < 0 ? Math.max(0, shape.length + rank) : rank;
@@ -54,7 +55,7 @@ function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readon
         || new Set(selected).size !== selected.length
         || axes && (axes.length !== cellRank || new Set(axes).size !== axes.length
             || axes.some(axis => !Number.isSafeInteger(axis) || axis < 0 || axis >= shape.length))) return;
-    return { cell: shape.filter((_, n) => !selected.includes(n)), frame: selected.map(n => shape[n]) };
+    return { cell: ordered && axes ? axes.map(axis => shape[axis]) : shape.filter((_, n) => !selected.includes(n)), frame: selected.map(n => shape[n]) };
 }
 
 /** A mismatch is proven only when both frame axes are concrete and cannot stretch. */
@@ -75,7 +76,7 @@ export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: read
     const cells: (KnownShape | undefined)[] = [];
     let frame: KnownShape = [];
     for (let i = 0; i < operands.length; i++) {
-        const part = rankedOperandPart(operands[i], ranks[i], axes);
+        const part = rankedOperandPart(operands[i], ranks[i], axes, operands.length === 1);
         if (!part || incompatibleShapes({ types: ['array'], shape: frame },
             { types: ['array'], shape: part.frame })) return;
         frame = broadcastShape(frame, part.frame);
@@ -85,9 +86,10 @@ export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: read
 }
 
 /** Restore same-rank explicit cell results to their source-axis positions. */
-export function axisResultShape(frame: KnownShape, cell: KnownShape, axes?: readonly number[]): KnownShape {
+export function axisResultShape(frame: KnownShape, cell: KnownShape, axes?: readonly number[], ordered = false): KnownShape {
     if (!axes || cell.length !== axes.length) return [...frame, ...cell];
     axes = axes.map(axis => normalizeAxis(axis, frame.length + cell.length));
-    let f = 0, c = 0;
-    return Array.from({ length: frame.length + cell.length }, (_, axis) => axes.includes(axis) ? cell[c++] : frame[f++]);
+    if (!ordered) axes = [...axes].sort((a, b) => a - b);
+    let f = 0;
+    return Array.from({ length: frame.length + cell.length }, (_, axis) => axes.includes(axis) ? cell[axes.indexOf(axis)] : frame[f++]);
 }

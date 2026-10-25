@@ -4042,8 +4042,9 @@ rem one sum per row, for any rank of Matrix
 ```
 
 An explicit `axis` list names the cell axes passed to a unary function. The
-remaining axes form the frame. Both sets keep their natural source order;
-`axis 2 0` means the same as `axis 0 2`. Nonnegative axes count from zero on
+remaining axes form the frame in natural source order. Cell axes follow the
+written order: `axis 2 0` passes axis 2 first and axis 0 second, whereas
+`axis 0 2` passes axis 0 first. Nonnegative axes count from zero on
 the left; negative axes count from the right (`-1` is last). Normalized axes
 must be distinct and in bounds. `rank` is optional alongside `axis`; if supplied,
 it must equal the number of selected cell axes:
@@ -4062,8 +4063,13 @@ frame. If `F` returns an array of rank 2, its two axes occupy source positions
 0 and 2, even when their lengths change. For example, a result cell of shape
 `6 7` produces shape `6 3 7 5`. A scalar result leaves shape `3 5`; an array
 of a different rank appends its axes after the frame. Text, tuples and sequences
-remain boxed cell values. Explicit axes do not reorder either cells or frames;
-use `transpose` for a permutation. Bare `rank` retains frame-then-cell assembly.
+remain boxed cell values. With `axis 2 0`, the same `6 7` result cell instead
+produces shape `7 3 6 5`: result axis 0 maps to source axis 2 and result axis 1
+to source axis 0. This also applies when all source axes are selected.
+Bare `rank` retains frame-then-cell assembly. Operations whose result axes are
+new axes, such as `covariance`, `correlation` and `corr`, declare append placement:
+their feature-by-feature matrix always follows the batch frame. Order-invariant
+reductions keep their existing axis-set semantics.
 
 Every cell result must have the same shape. Scalar results leave only the frame
 shape; array results append their shape to the frame. Source cells and the
@@ -6413,7 +6419,8 @@ must be finite and numeric.
 
 `covariance` from `use stats` calculates sample covariance. By default, the
 last axis contains observations, the preceding axis contains features, and all
-earlier axes are independent batches:
+earlier axes are independent batches. Its intrinsic monadic rank is 2; a cell
+has shape `[features, observations]`:
 
 ```rank
 Cov = Features covariance
@@ -6433,9 +6440,15 @@ BatchCov = T covariance axis 2 0
 ```
 
 The first number selects the feature axis and the second selects the
-observation axis. Both are zero-based, valid, and distinct. All remaining axes
-become batch axes in their original order. This operation-specific `axis` form
-already defines the cells and is not combined with `rank`.
+observation axis. Negative axes count from the end; normalized axes must be valid
+and distinct. All remaining axes
+become batch axes in their original order. This uses ordinary ordered unary
+cell selection; `rank 2` may accompany `axis`, and `covariance rank 2` uses
+trailing cells. `correlation` and its alias `corr` use the same contract.
+Both output axes represent features, so these operations declare append
+placement rather than restoring input-axis positions: the result is always
+`[batch axes..., features, features]`. For example, input shape `2 3 4`
+with `axis 0 2` produces shape `3 2 2`; `axis 2 0` produces `3 4 4`.
 
 Covariance divides by `N - 1`, always returns real values, and raises
 `.InsufficientData` when the observation axis has fewer than two items. The
@@ -6515,8 +6528,13 @@ frame. If `F` returns an array of rank 2, its two axes occupy source positions
 0 and 2, even when their lengths change. For example, a result cell of shape
 `6 7` produces shape `6 3 7 5`. A scalar result leaves shape `3 5`; an array
 of a different rank appends its axes after the frame. Text, tuples and sequences
-remain boxed cell values. Explicit axes do not reorder either cells or frames;
-use `transpose` for a permutation. Bare `rank` retains frame-then-cell assembly.
+remain boxed cell values. With `axis 2 0`, the same `6 7` result cell instead
+produces shape `7 3 6 5`: result axis 0 maps to source axis 2 and result axis 1
+to source axis 0. This also applies when all source axes are selected.
+Bare `rank` retains frame-then-cell assembly. Operations whose result axes are
+new axes, such as `covariance`, `correlation` and `corr`, declare append placement:
+their feature-by-feature matrix always follows the batch frame. Order-invariant
+reductions keep their existing axis-set semantics.
 
 Source cells and assembled results are lazy read-only views. Deferred binding
 recomputes demanded cells; ordinary binding completes the result.

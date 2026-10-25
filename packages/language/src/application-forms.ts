@@ -394,8 +394,6 @@ export type ApplicationForm =
     | Recognized<'named-outer', typeof explicitNamedOuterApplication>
     | Recognized<'rank', typeof explicitRankApplication>
     | Recognized<'axis-matmul', typeof explicitAxisMatmul>
-    | Recognized<'axis-covariance', typeof explicitAxisCovariance>
-    | Recognized<'axis-correlation', typeof explicitAxisCorrelation>
     | Recognized<'axis-quantile', typeof explicitAxisQuantile>
     | Recognized<'window', typeof explicitWindow>
     | Recognized<'axis-shift', typeof explicitAxisShift>
@@ -558,10 +556,6 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form1) return { ...form1, kind: 'rank' };
     const form2 = explicitAxisMatmul(parts, nameOf);
     if (form2) return { ...form2, kind: 'axis-matmul' };
-    const form3 = explicitAxisCovariance(parts, nameOf);
-    if (form3) return { ...form3, kind: 'axis-covariance' };
-    const form4 = explicitAxisCorrelation(parts, nameOf);
-    if (form4) return { ...form4, kind: 'axis-correlation' };
     const form5 = explicitAxisQuantile(parts, nameOf);
     if (form5) return { ...form5, kind: 'axis-quantile' };
     const position = parts.findIndex((part, index) => index > 0
@@ -737,48 +731,6 @@ function explicitAxisMatmul(parts: Expression[], nameOf: NameOf): AxisMatmulAppl
     };
 }
 
-interface AxisCovarianceApplication {
-    readonly source: Expression;
-    readonly name: string;
-    readonly axes: readonly [number, number];
-}
-
-function explicitAxisCovariance(parts: Expression[], nameOf: NameOf): AxisCovarianceApplication | undefined {
-    if (parts.length < 3 || !isNamed(parts[1], 'covariance', nameOf) || !isNamed(parts[2], 'axis', nameOf)) {
-        return undefined;
-    }
-    if (parts.length !== 5) {
-        throw new ApplicationSyntaxError('covariance axis expects feature and observation axes');
-    }
-    return {
-        source: parts[0],
-        name: 'covariance',
-        axes: [
-            literalDimension(integerLiteral(parts[3], 'covariance axis'), 'covariance axis'),
-            literalDimension(integerLiteral(parts[4], 'covariance axis'), 'covariance axis'),
-        ],
-    };
-}
-
-function explicitAxisCorrelation(parts: Expression[], nameOf: NameOf): AxisCovarianceApplication | undefined {
-    if (parts.length < 3 || (!isNamed(parts[1], 'correlation', nameOf) && !isNamed(parts[1], 'corr', nameOf)) || !isNamed(parts[2], 'axis', nameOf)) {
-        return undefined;
-    }
-    const name = isNamed(parts[1], 'corr', nameOf) ? 'corr' : 'correlation';
-    if (parts.length !== 5) {
-        throw new ApplicationSyntaxError(`${name} axis expects feature and observation axes`);
-    }
-    return {
-        source: parts[0],
-        name,
-        axes: [
-            literalDimension(integerLiteral(parts[3], `${name} axis`), `${name} axis`),
-            literalDimension(integerLiteral(parts[4], `${name} axis`), `${name} axis`),
-        ],
-    };
-}
-
-
 /** A rank is an integer literal; a negative rank counts down from the operand's own rank, as in J. */
 function rankLiteral(part: Expression | undefined): number | undefined {
     const limit = BigInt(Number.MAX_SAFE_INTEGER);
@@ -791,7 +743,7 @@ function rankLiteral(part: Expression | undefined): number | undefined {
     return Number(value);
 }
 
-/** Generic cell axes are a set in source order; rank is optional and must agree. */
+/** Unary cell axes preserve written order; rank is optional and must agree. */
 function explicitCellAxisApplication(parts: Expression[], nameOf: NameOf):
     { parts: Expression[]; rank: bigint; axes: readonly number[] } | undefined {
     if (!isNamed(parts[2], 'axis', nameOf)) return undefined;

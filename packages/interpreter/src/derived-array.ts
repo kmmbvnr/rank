@@ -31,9 +31,11 @@ export function derivedArray(
         const column = value.columnNames && shape.length === 2 ? index % shape[1] : 0;
         if (cell === MISSING) return;
         const scalar = typeof cell;
-        // The common scalar domain has already been checked for this column.
-        // Reals still distinguish finite/NaN values from numeric limits below.
-        if (column === lastColumn && scalar === lastScalar) return;
+        // Cache scalar domain evidence, including reals, without conflating
+        // finite/NaN numbers with the numeric limits accepted by integer arrays.
+        const scalarKind = scalar === 'number' && !Number.isFinite(cell) && !Number.isNaN(cell)
+            ? 'numeric-limit' : scalar;
+        if (column === lastColumn && scalarKind === lastScalar) return;
         let observedKinds = observedColumns.get(column);
         if (!observedKinds) observedColumns.set(column, observedKinds = new Map());
         const type = typeof cell === 'number' && !Number.isFinite(cell) && !Number.isNaN(cell)
@@ -46,7 +48,8 @@ export function derivedArray(
             observedKinds.set(key, kind);
         }
         lastColumn = column;
-        lastScalar = scalar === 'bigint' || scalar === 'boolean' || scalar === 'string' ? scalar : undefined;
+        lastScalar = scalar === 'bigint' || scalar === 'boolean' || scalar === 'string' || scalar === 'number'
+            ? scalarKind : undefined;
     };
     const finishRead = (index: number, result: RankValue): RankValue => {
         checkCell(result, index);

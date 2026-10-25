@@ -68,3 +68,20 @@ it('maps known sequence cells without claiming that the mapped reader is callbac
     expect(rankedFunctionFacts([{ ...source, callbackFreeScalarCells: undefined }], [0], () => integer))
         .toEqual({ types: [] });
 });
+
+
+it('infers ordered unary cells and restores their result axes, including whole operands', () => {
+    const tensor: ValueFacts = { ...matrix, rank: 3, shape: [2, 3, 4] };
+    expect(rankedFunctionFacts([tensor], [2], inputs => {
+        expect(inputs[0].shape).toEqual([4, 2]);
+        return { ...matrix, shape: [5, 7] };
+    }, [2, 0]).shape).toEqual([7, 3, 5]);
+    expect(rankedFunctionFacts([matrix], [2], inputs => {
+        expect(inputs[0].shape).toEqual([3, 2]);
+        return { ...matrix, shape: [5, 7] };
+    }, [1, 0]).shape).toEqual([7, 5]);
+    expect(rankedFunctionFacts([tensor], [3], inputs => {
+        expect(inputs[0].shape).toEqual([4, 2, 3]);
+        return integer;
+    }, [2, 0, 1])).toEqual(integer);
+});

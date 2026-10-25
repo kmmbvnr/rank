@@ -15,9 +15,30 @@ describe.each([false, true])('explicit operation cell axes (compilation=%s)', co
     it('selects noncontiguous cells and restores same-rank results', () => {
         const source = 'use sequences\nT = (1 to 24) reshape 2 3 4\nfun X flip\n return X reverse\nend\n';
         expect(run(source + 'T flip axis 0 2')).toBe(run(source + 'T reverse'));
-        expect(run(source + 'T flip axis 2 0')).toBe(run(source + 'T flip axis 0 2'));
+        expect(run(source + 'T flip axis 2 0')).toBe(run(source + 'T reverse axis 2'));
+        expect(run(source + 'T reverse axis 2 0')).toBe(run(source + 'T reverse axis 2'));
         expect(run(source + 'T flip axis 0 2 shape')).toBe('2 3 4');
     });
+    it('passes ordered full-rank and noncontiguous cells to callbacks', () => {
+        const source = 'use sequences\nT = (1 to 24) reshape 2 3 4\nfun X dims\n return X shape\nend\n';
+        expect(run(source + 'T dims axis 0 2')).toBe('2 4 2 4 2 4');
+        expect(run(source + 'T dims axis 2 0')).toBe('4 2 4 2 4 2');
+        expect(run(source + 'T dims axis -1 -3')).toBe('4 2 4 2 4 2');
+        expect(run(source + 'T dims axis 2 0 1')).toBe('4 2 3');
+        expect(run(source + 'T reverse axis 2 0 1'))
+            .toBe(run(source + 'T reverse axis 2'));
+        expect(run(matrix + 'fun X dims\n return X shape\nend\nM dims axis 1 0')).toBe('3 2');
+    });
+    it('places changed result dimensions by written axis position', () => {
+        const source = 'use sequences\nT = (1 to 24) reshape 2 3 4\nfun X fixed\n return (1 to 35) reshape 5 7\nend\n';
+        expect(run(source + 'T fixed axis 2 0 shape')).toBe('7 3 5');
+        const expected = Array.from({ length: 7 }, (_, a) =>
+            Array.from({ length: 3 }, () => Array.from({ length: 5 }, (_, c) => c * 7 + a + 1))).flat(2).join(' ');
+        expect(run(source + 'T fixed axis 2 0')).toBe(expected);
+        expect(run('use sequences\nT = array shape 0 3 4 fill 1\nT reverse axis 2 1 shape')).toBe('0 3 4');
+        expect(run('use sequences\nT = array shape 2 3 0 fill 1\nT reverse axis 2 0 shape')).toBe('2 3 0');
+    });
+
     it('stacks rank-changing results after the remaining frame', () => {
         const source = 'use sequences\nT = (1 to 24) reshape 2 3 4\nfun X total\n return X sum\nend\n';
         expect(run(source + 'T total axis 0 2')).toBe(run(source + 'T sum axis 0 2'));

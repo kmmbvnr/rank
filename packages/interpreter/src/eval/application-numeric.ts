@@ -3,13 +3,13 @@ import { RankError } from '../errors.js';
 import { resume, type Evaluation, type Execution } from '../execution.js';
 import { diagonal, diagonalOptions, diagonalShape, matmulValues } from '../modules/linalg.js';
 import { shuffleValue } from '../modules/random.js';
-import { correlationValue, covarianceValue, errorMetricValue, quantileValue } from '../modules/stats.js';
+import { errorMetricValue, quantileValue } from '../modules/stats.js';
 import { isNativeFunction, type RankValue } from '../value.js';
 
 import type { ApplicationContext } from './application.js';
 import type { ModuleApplication } from './application-module.js';
 
-type NumericForm = Extract<ApplicationForm, { kind: 'diagonal' | 'axis-matmul' | 'axis-covariance' | 'axis-correlation' | 'axis-quantile' | 'axis-metric' | 'axis-shuffle' }>;
+type NumericForm = Extract<ApplicationForm, { kind: 'diagonal' | 'axis-matmul' | 'axis-quantile' | 'axis-metric' | 'axis-shuffle' }>;
 
 export function compileNumericApplication(context: ApplicationContext, application: ModuleApplication,
     form: NumericForm): () => Evaluation<RankValue> {
@@ -43,28 +43,6 @@ export function compileNumericApplication(context: ApplicationContext, applicati
                     (yield* resume(context.evaluate(axisMatmul.left))),
                     (yield* resume(context.evaluate(axisMatmul.right))),
                     axisMatmul.axes,
-                );
-            };
-        }
-
-        case 'axis-covariance': {
-            const axisCovariance = form;
-            return function* (): Execution<RankValue> {
-                context.requireModule('stats', 'covariance');
-                return covarianceValue(
-                    (yield* resume(context.evaluate(axisCovariance.source))),
-                    axisCovariance.axes,
-                );
-            };
-        }
-
-        case 'axis-correlation': {
-            const axisCorrelation = form;
-            return function* (): Execution<RankValue> {
-                context.requireModule('stats', axisCorrelation.name);
-                return correlationValue(
-                    (yield* resume(context.evaluate(axisCorrelation.source))),
-                    axisCorrelation.axes,
                 );
             };
         }

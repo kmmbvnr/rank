@@ -17,7 +17,8 @@ Every operation and supported arity below records its declared cell ranks.
 A numeric rank selects trailing axes; leading axes form a broadcast frame.
 Inputs with fewer axes are passed whole and validated by the operation.
 Cell rank does not guess whether a matrix represents a batch of vectors.
-Explicit `rank` overrides these defaults; `axis` selects cell axes and preserves their positions for same-rank array results.
+Explicit `rank` overrides these defaults; unary `axis` selects cell axes in written order and restores corresponding positions for same-rank array results.
+Operations with new result axes (covariance, correlation and corr) append them after the frame instead.
 
 Unary global reductions (`sum`, `min`, `max`, boolean reductions and
 statistics) take whole values. Structural operations, text/document parsers,
@@ -467,9 +468,9 @@ Averages, spread, error metrics and covariance.
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
-| `Features correlation` | array, lazy | unary all | Pearson correlation matrix over feature and observation axes. |
-| `Features corr` | array, lazy | unary all | Alias for correlation. |
-| `Features covariance` | array, lazy | unary all | Sample covariance matrix over feature and observation axes. |
+| `Features correlation` | array, lazy | unary 2 | Pearson correlation matrix over feature and observation axes. |
+| `Features corr` | array, lazy | unary 2 | Alias for correlation. |
+| `Features covariance` | array, lazy | unary 2 | Sample covariance matrix over feature and observation axes. |
 | `Pred mae Target` | real | binary all / all | Mean absolute error between two broadcast numeric values. |
 | `Values mean` | real | unary all | Arithmetic mean, missing table cells skipped. |
 | `Values median` | real | unary all | Middle value of a sorted copy, averaging the two middle values when even. |

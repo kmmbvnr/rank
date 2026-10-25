@@ -60,17 +60,22 @@ export function framedArray(
             yield* arrayCellValues(arrayCells(result)!, first === undefined ? 0 : 1);
             return;
         }
-        const read = prepare(first)!;
-        const size = sizeOf(shape());
-        for (let index = 0; index < size; index++) {
+        // Preserve each cell's sequential traversal (and its observation-local
+        // state) instead of turning a full traversal into independent item reads.
+        const fast = options.prepare?.(cellShape!);
+        const width = sizeOf(cellShape!);
+        for (let index = 0; index < sizeOf(frameShape); index++) {
             checkpoint('reading ranked result');
-            let item: RankValue;
-            try { item = read(index); }
+            let cell: RankValue;
+            try { cell = index === 0 && first !== undefined ? first
+                : fast ? check(fast(index), index) : readCell(index); }
             catch (error) {
                 if (!(error instanceof MissingValueError) || !error.soft) throw error;
-                item = MISSING;
+                for (let offset = 0; offset < width; offset++) yield MISSING;
+                continue;
             }
-            yield item;
+            if (isRankArray(cell)) yield* arrayValues(cell);
+            else yield cell;
         }
     };
     const result: RankArray = {

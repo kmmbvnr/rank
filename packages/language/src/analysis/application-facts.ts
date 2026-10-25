@@ -333,7 +333,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
         case 'plain': case 'new-dsu': case 'new-filled': case 'new-heap': case 'text-format': case 'rank':
         case 'named-segment': case 'named-outer': case 'sort-direction':
-        case 'axis-length': case 'axis-reduction': case 'axis-covariance': case 'axis-correlation':
+        case 'axis-length': case 'axis-reduction':
         case 'functional-method': case 'graph-edges':
             return isApplicationExpression(expression)
                 ? transferApplicationFacts(expression, form, lookup, infer) : UNKNOWN_VALUE;
@@ -568,6 +568,11 @@ function transferApplicationFacts(
             const shaped = operationShapeFacts(operation, operands, ranks, form.axes);
             if (shaped) {
                 const source = operands[0];
+                if (operands.length === 1 && ['covariance', 'correlation', 'corr'].includes(operation.name)
+                    && (source.eagerScalarCells || source.callbackFreeScalarCells)
+                    && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
+                    return { ...shaped, elements: ['real'], callbackFreeScalarCells: true };
+                }
                 if (operands.length === 1 && ranks[0] === 0 && source.elements?.length
                     && operation.shape?.some(s => s.args.length === 1 && s.args[0]?.length === 0 && s.result?.length === 0)) {
                     const elements = inferSignatureResultTypes(operation.signatures ?? [],
@@ -724,13 +729,12 @@ function transferApplicationFacts(
         return { types: source.elements, rank: 0, shape: [] };
     }
     const covarianceOperation = parts.length === 2 && isNameExpression(last) ? operationBinding(last.name, lookup) : undefined;
-    const covariance = form.kind === 'axis-covariance' || form.kind === 'axis-correlation' ? form : undefined;
-    if ((covariance || covarianceOperation && [findOperation('covariance'), findOperation('correlation'),
+    if ((covarianceOperation && [findOperation('covariance'), findOperation('correlation'),
         findOperation('corr')].includes(covarianceOperation))
         && source.types.join() === 'array' && source.shape && source.shape.length >= 2
         && (source.eagerScalarCells || source.callbackFreeScalarCells)
         && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
-        const axes = covariance?.axes.map(axis => normalizeAxis(axis, source.shape!.length)) ?? [source.shape.length - 2, source.shape.length - 1];
+        const axes = [source.shape.length - 2, source.shape.length - 1];
         if (axes.every(axis => Number.isSafeInteger(axis) && axis >= 0 && axis < source.shape!.length)
             && axes[0] !== axes[1]) {
             const shape = [...source.shape.filter((_, axis) => !axes.includes(axis)),

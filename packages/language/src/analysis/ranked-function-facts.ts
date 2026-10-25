@@ -9,9 +9,11 @@ export function rankedFunctionFacts(operands: readonly ValueFacts[], ranks: read
     const partition = rankedFunctionInputs(operands, ranks, axes);
     if (!partition) return UNKNOWN_VALUE;
     const { inputs, frame } = partition;
-    if (!frame.length) return invoke(operands);
+    if (!frame.length && !axes) return invoke(operands);
     const result = invoke(inputs);
     if (result.bottom || !result.types.length) return UNKNOWN_VALUE;
+    if (!frame.length) return result.types.join() === 'array' && result.shape
+        ? { ...result, shape: axisResultShape([], result.shape, axes, operands.length === 1) } : result;
     if (operands.length === 1 && operands[0].types.join() === 'sequence') {
         return result.rank === 0 ? { types: ['sequence'], rank: 1,
             shape: operands[0].shape ?? [null], elements: result.types,
@@ -21,7 +23,7 @@ export function rankedFunctionFacts(operands: readonly ValueFacts[], ranks: read
     if (result.types.join() === 'array') {
         // Shape-only callback analysis also supplies axes for empty frames.
         if (result.rank === undefined) return { types: ['array'] };
-        const shape = axisResultShape(frame, result.shape ?? Array(result.rank).fill(null), axes);
+        const shape = axisResultShape(frame, result.shape ?? Array(result.rank).fill(null), axes, operands.length === 1);
         return { types: ['array'], rank: shape.length, shape, elements: result.elements };
     }
     if (result.types.includes('array')) return { types: ['array'] };
@@ -42,7 +44,7 @@ export function rankedFunctionInputs(operands: readonly ValueFacts[], ranks: rea
     const { cells, frame } = partition;
     const inputs = operands.map((source, i): ValueFacts => {
         const shape = cells[i];
-        if (!shape || source.types.join() !== 'array' || shape.length === source.rank) return source;
+        if (!shape || source.types.join() !== 'array' || !axes && shape.length === source.rank) return source;
         if (!shape.length) return stableRecordField({ types: source.elements ?? [] });
         return { types: ['array'], rank: shape.length, shape, elements: source.elements,
             ...(source.eagerScalarCells ? { eagerScalarCells: true as const } : {}),
