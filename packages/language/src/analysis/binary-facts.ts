@@ -200,7 +200,7 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
         const operands = [infer(symbolic.left, lookup), infer(symbolic.right, lookup)];
         const framed = operands.map(value => symbolic.rank === 0 && !symbolic.axes && value.types.join() === 'text'
             ? { types: ['array'], rank: 1, shape: value.shape ?? [null] } : value);
-        const partition = rankedOperandShapes(framed, [symbolic.rank, symbolic.rank], symbolic.axes);
+        const partition = rankedOperandShapes(framed, [symbolic.rank, symbolic.rank], undefined, symbolic.axes?.map(axis => [axis]));
         if (!partition) return undefined;
         const shape = partition.frame;
         return shape.length ? { types: ['array'], rank: shape.length, shape, elements: ['boolean'],

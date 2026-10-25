@@ -65,7 +65,7 @@ export class Operators {
             }
             return this.sequenceComparison(spec.operator, left, right);
         }
-        const cells = (value: RankValue): OuterCells => {
+        const cells = (value: RankValue, side: number): OuterCells => {
             if (isRankSequence(value)) {
                 if (value.plan.size.kind === 'infinite') {
                     throw new RankError('rank comparison requires a bounded sequence');
@@ -80,11 +80,11 @@ export class Operators {
             if (isRankQueue(value)) value = asRankArray(value)!;
             if (spec.axes !== undefined) {
                 if (!isRankArray(value)) throw new RankError('axis expects arrays');
-                return tensorCells(value, tensorFrameAxes(value.shape, spec.axes, spec.rank));
+                return tensorCells(value, tensorFrameAxes(value.shape, [spec.axes[side]], spec.rank));
             }
             return dyadicCells(value, spec.rank, true);
         };
-        const a = cells(left), b = cells(right);
+        const a = cells(left, 0), b = cells(right, 1);
         if (a.frameShape.length === 0 && b.frameShape.length === 0) {
             return compareCells(spec.operator, a.cellAt(0), b.cellAt(0));
         }

@@ -46,7 +46,7 @@ describe.each([false, true])('negative tensor axes (compilation=%s)', compilatio
         expect(() => run(prefix + 'M reduce + rank 1 axis -2 -1')).toThrow('axis count exceeds');
     });
     it.each(['M reduce + axis AX', 'M sum axis AX', 'M reverse axis AX', 'M window 1 1 axis AX',
-        'M transpose axis AX', 'M M equal axis AX'])('rejects normalized duplicate axes: %s', form => {
+        'M transpose axis AX'])('rejects normalized duplicate axes: %s', form => {
         expect(() => run(prefix + form.replace('AX', '1 -1'))).toThrow('unique');
     });
     it.each(['M reduce + axis -3', 'M sum axis -3', 'M reverse axis -3', 'M scan + axis -3',

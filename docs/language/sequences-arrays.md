@@ -1562,19 +1562,24 @@ are unequal; they are not broadcast inside a whole-cell comparison. Results
 are computed on demand over array frames. Ordinary binding stores their values;
 deferred binding keeps the captured inputs and recomputes.
 
-An explicit `axis` list names cell axes for **both** array operands. The
-remaining axes form each frame in natural source order:
+An explicit `axis L R` selects axis `L` from the left array and axis `R`
+from the right array as one-dimensional cells. `axis A` is shorthand for
+`axis A A`. The remaining axes form each frame in natural source order:
 
 ```rank
 A B equal axis 1
 A B equal axis 0
+A B equal axis 1 0
 A B less axis 0 count
 ```
 
-For matrices these compare rows, columns, and count columns of `A` that sort
-before the corresponding columns of `B`. Axis numbers must be unique and in
-bounds. A redundant `rank R` must equal the number of selected axes.
-Explicit axes require arrays on both sides.
+For matrices these compare rows, columns, rows of `A` with columns of `B`,
+and count columns of `A` that sort before the corresponding columns of `B`.
+Each axis must be in bounds for its own operand; negative axes resolve against
+that operand’s rank. More than two axes are rejected. A redundant `rank R`
+must be `rank 1`. Explicit axes require arrays on both sides. Frame broadcasting
+and comparison of different cell shapes follow the same rules as `rank`.
+Use `rank` to compare cells with more than one dimension.
 
 Sequences stay lazy at `rank 0`; a higher rank materializes a bounded sequence
 for comparison as one vector. Known infinite sequences are rejected for a

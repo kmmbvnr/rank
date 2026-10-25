@@ -853,11 +853,15 @@ function explicitComparisonRank(expression: Expression): ComparisonRank | undefi
     }
     const axes = isNamed(parts[0], 'axis') ? parts.slice(1, rankIndex < 0 ? undefined : rankIndex)
         .map(axis => literalDimension(integerLiteral(axis, 'axis'), 'axis')) : undefined;
-    if (axes && !axes.length) throw new ApplicationSyntaxError('axis expects one or more cell axes');
-    const rank = rankIndex < 0 ? axes!.length : literalDimension(integerLiteral(parts[rankIndex + 1], 'rank'), 'rank');
+    if (axes && (axes.length < 1 || axes.length > 2)) {
+        throw new ApplicationSyntaxError('comparison axis expects one or two axes');
+    }
+    const rank = rankIndex < 0 ? 1 : literalDimension(integerLiteral(parts[rankIndex + 1], 'rank'), 'rank');
     const operands = flattenApplication(expression.left);
     if (operands.length !== 2) throw new ApplicationSyntaxError(`rank comparison expects two operands, got ${operands.length}`);
-    return { operator: expression.operator, left: operands[0], right: operands[1], rank, axes };
+    if (axes && rank !== 1) throw new ApplicationSyntaxError('comparison axis requires cell rank 1');
+    return { operator: expression.operator, left: operands[0], right: operands[1], rank,
+        axes: axes && [axes[0], axes[1] ?? axes[0]] };
 }
 
 

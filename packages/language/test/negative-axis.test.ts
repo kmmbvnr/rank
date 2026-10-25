@@ -30,7 +30,7 @@ it.each([
     expect(result.bindings.get('Result')).toMatchObject({ rank: shape.length, shape });
 });
 it.each(['M reduce + axis 1 -1', 'M sum axis 1 -1', 'M reverse axis 1 -1',
-    'M transpose axis 1 -1', 'M window 1 1 axis 1 -1', 'M M equal axis 1 -1'])('diagnoses normalized duplicates: %s', expression => {
+    'M transpose axis 1 -1', 'M window 1 1 axis 1 -1'])('diagnoses normalized duplicates: %s', expression => {
     expect(analyze('Result = ' + expression).diagnostics.some(d => d.message.includes('unique'))).toBe(true);
 });
 it.each(['M reduce + axis -3', 'M sum axis -3', 'M reverse axis -3',
@@ -60,4 +60,23 @@ it('checks ordinary axis operations in a loop source', () => {
     expect(analyze('for Cell in (M reverse axis -1)\n Cell sum\nend').diagnostics).toEqual([]);
     expect(analyze('for Cell in (M reverse axis 1 -1)\n Cell sum\nend').diagnostics.some(d => d.message.includes('unique'))).toBe(true);
     expect(analyze('for Cell in (M reverse axis -3)\n Cell sum\nend').diagnostics.some(d => d.message.includes('invalid for rank 2'))).toBe(true);
+});
+
+it('infers separate comparison axes and validates each operand', () => {
+    for (const axes of ['1 0', '-1 -2']) {
+        const result = analyze(`B = array shape 3 2 fill 1\nResult = M B equal axis ${axes}`);
+        expect(result.diagnostics).toEqual([]);
+        expect(result.bindings.get('Result')).toMatchObject({ rank: 1, shape: [2] });
+    }
+    for (const axes of ['1', '1 1', '1 -1']) {
+        const result = analyze(`Result = M M equal axis ${axes}`);
+        expect(result.diagnostics).toEqual([]);
+        expect(result.bindings.get('Result')).toMatchObject({ shape: [2] });
+    }
+    expect(analyze('B = array shape 3 fill 1\nResult = M B equal axis 1 0').diagnostics).toEqual([]);
+    expect(analyze('B = array shape 1 4 fill 1\nResult = M B equal axis 1').diagnostics).toEqual([]);
+    expect(analyze('B = array shape 3 fill 1\nResult = M B equal axis 1 1').diagnostics
+        .some(d => d.message.includes('invalid for rank 1'))).toBe(true);
+    expect(analyze('Result = M M equal axis 0 1').diagnostics
+        .some(d => d.message.includes('frame shape mismatch'))).toBe(true);
 });

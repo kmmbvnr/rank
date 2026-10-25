@@ -1,3 +1,4 @@
+import { rankedFrameConflict } from './operation-shape.js';
 import { foldAxisDiagnostic } from '../fold-axes.js';
 import { normalizeAxis } from '../axis-index.js';
 import type { ApplicationForm } from '../application-forms.js';
@@ -43,7 +44,16 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
         case 'reduce': case 'named-reduce': check(form.source, form.axes, form.rank); break;
         case 'scan': case 'named-scan': check(form.source, form.axis === undefined ? undefined : [form.axis], form.rank, 'scan'); break;
         case 'rank': check(form.parts[0], form.axes); break;
-        case 'comparison-rank': check(form.left, form.axes); check(form.right, form.axes); break;
+        case 'comparison-rank': {
+            if (!form.axes) break;
+            check(form.left, [form.axes[0]]);
+            check(form.right, [form.axes[1]]);
+            const conflict = rankedFrameConflict([infer(form.left), infer(form.right)], [1, 1],
+                undefined, form.axes.map(axis => [axis]));
+            if (conflict) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
+                message: `comparison frame shape mismatch: ${conflict.left.join(' ')} and ${conflict.right.join(' ')}` });
+            break;
+        }
         case 'axis-metric': {
             const left = infer(form.left).rank, right = infer(form.right).rank;
             if (left !== undefined && right !== undefined) check(left >= right ? form.left : form.right, form.axes);

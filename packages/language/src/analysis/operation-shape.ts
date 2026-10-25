@@ -60,10 +60,10 @@ function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readon
 
 /** A mismatch is proven only when both frame axes are concrete and cannot stretch. */
 export function rankedFrameConflict(operands: readonly ValueFacts[], ranks: readonly IntrinsicRank[],
-    axes?: readonly number[]): { left: KnownShape; right: KnownShape } | undefined {
+    axes?: readonly number[], operandAxes?: readonly (readonly number[])[]): { left: KnownShape; right: KnownShape } | undefined {
     if (operands.length !== 2 || ranks.length !== 2) return;
-    const left = rankedOperandPart(operands[0], ranks[0], axes)?.frame;
-    const right = rankedOperandPart(operands[1], ranks[1], axes)?.frame;
+    const left = rankedOperandPart(operands[0], ranks[0], operandAxes?.[0] ?? axes)?.frame;
+    const right = rankedOperandPart(operands[1], ranks[1], operandAxes?.[1] ?? axes)?.frame;
     if (left && right && incompatibleShapes({ types: ['array'], shape: left }, { types: ['array'], shape: right })) {
         return { left, right };
     }
@@ -71,12 +71,12 @@ export function rankedFrameConflict(operands: readonly ValueFacts[], ranks: read
 }
 
 export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: readonly IntrinsicRank[],
-    axes?: readonly number[]): { cells: (KnownShape | undefined)[]; frame: KnownShape } | undefined {
+    axes?: readonly number[], operandAxes?: readonly (readonly number[])[]): { cells: (KnownShape | undefined)[]; frame: KnownShape } | undefined {
     if (operands.length !== ranks.length) return;
     const cells: (KnownShape | undefined)[] = [];
     let frame: KnownShape = [];
     for (let i = 0; i < operands.length; i++) {
-        const part = rankedOperandPart(operands[i], ranks[i], axes, operands.length === 1);
+        const part = rankedOperandPart(operands[i], ranks[i], operandAxes?.[i] ?? axes, operands.length === 1);
         if (!part || incompatibleShapes({ types: ['array'], shape: frame },
             { types: ['array'], shape: part.frame })) return;
         frame = broadcastShape(frame, part.frame);

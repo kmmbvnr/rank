@@ -169,9 +169,15 @@ axis, `-1` is the last, and `-2` is the second-to-last. A negative axis `A`
 resolves to `source rank + A`. Bounds and uniqueness checks use these normalized
 indices: `axis -3` is invalid for a rank-2 matrix, and `axis 1 -1` repeats an
 axis. Reduction input-cell axes are selected after normalization too.
-This also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
+Axis normalization also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
 `concat`, `window`, `transpose`, and
 `unpack ... = ... axis ...`. Array element indices themselves remain nonnegative.
+
+Postfix binary comparisons use `A B equal axis L R`: `L` selects a vector
+cell axis in `A`, and `R` selects one in `B`. Each axis is normalized and
+checked against its own operand. `axis N` means `axis N N`, so equal axis
+numbers are valid. The remaining frames broadcast normally; different cell
+lengths remain comparable. At most two axes are accepted.
 
 `reduce <op|fn> rank R axis N` removes source axis N, then selects the trailing
 R remaining axes as the input cell, in source order. Earlier remaining axes

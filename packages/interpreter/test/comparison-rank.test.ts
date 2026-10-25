@@ -41,6 +41,27 @@ for (const compiled of [true, false]) describe(`comparison rank (compiled: ${com
             .toBe('true true true true true false');
     });
 
+    it('selects a separate vector axis for each operand', () => {
+        const source = 'A = (1 to 6) reshape 2 3\nB = (array 1 4 2 5 3 6) reshape 3 2\n';
+        for (const [op, expected] of [['equal', 'true true'], ['not equal', 'false false'],
+            ['less', 'false false'], ['greater', 'false false'],
+            ['at least', 'true true'], ['at most', 'true true']]) {
+            expect(run(source + `A B ${op} axis 1 0`)).toBe(expected);
+        }
+        expect(run(source + 'A B equal axis -1 -2')).toBe('true true');
+        expect(run(source + 'A A equal axis 1 1')).toBe('true true');
+        expect(run(source + 'A A equal axis 1 -1')).toBe('true true');
+        expect(run(source + 'A B equal axis 1 0 rank 1')).toBe('true true');
+        expect(run('A = array shape 2 3 fill 1\nB = array 1 1 1\nA B equal axis 1 0')).toBe('true true');
+        expect(run('A = array shape 2 3 fill 1\nB = array shape 1 4 fill 1\nA B equal axis 1')).toBe('false false');
+        expect(run('A = array shape 0 3 fill 1\nB = array shape 3 1 fill 1\nR = A B equal axis 1 0\nR shape')).toBe('0');
+        expect(run('A = array shape 2 0 fill 1\nB = array shape 0 2 fill 1\nA B equal axis 1 0')).toBe('true true');
+        expect(() => run(source + 'A B equal axis 0 1 2')).toThrow('one or two axes');
+        expect(() => run(source + 'A B equal axis 0 2')).toThrow();
+        expect(() => run(source + 'A B equal axis 0 0')).toThrow('shape mismatch');
+        expect(() => run(source + 'A B equal axis 1 0 rank 2')).toThrow('cell rank 1');
+    });
+
     it('broadcasts frames, handles empty frames and keeps a named result', () => {
         expect(run('A = array shape 2 3 fill 1\nB = array 1 1 1\nA B equal rank 1')).toBe('true true');
         expect(run('A = array shape 0 3 fill 1\nB = array 1 1 1\nR = A B equal rank 1\nR shape')).toBe('0');
@@ -54,7 +75,7 @@ for (const compiled of [true, false]) describe(`comparison rank (compiled: ${com
         for (const suffix of ['axis 2 rank 1', 'axis 0 0 rank 0', 'axis 0 rank 0', 'axis 0 rank 3', 'rank -1', 'rank 1.5']) {
             expect(() => run(matrix + `A B equal ${suffix}`)).toThrow();
         }
-        expect(() => run('3 3 equal axis 0 rank 0')).toThrow('arrays');
+        expect(() => run('3 3 equal axis 0')).toThrow('arrays');
     });
 
     it('keeps rank-zero sequences lazy and compares bounded sequences at rank one', () => {

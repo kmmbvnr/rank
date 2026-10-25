@@ -283,3 +283,18 @@ R' = G 0 5 10 bfs
     expect(result.bindings.get('G')?.types).toEqual(['graph']);
     expect(result.bindings.get('N')?.callbackFreeScalarCells).not.toBe(true);
 });
+
+it.each([
+    ['1', [1, 1]], ['1 0', [1, 0]], ['-1 -2', [-1, -2]],
+] as const)('classifies comparison axes per operand: %s', (axes, expected) => {
+    const parsed = parser.parse<Program>(`Result = A B equal axis ${axes}\n`);
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value)).toMatchObject({ kind: 'comparison-rank', rank: 1, axes: expected });
+});
+it('rejects more than two comparison axes', () => {
+    const parsed = parser.parse<Program>('Result = A B equal axis 0 1 2\n');
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value)).toMatchObject({ kind: 'invalid', message: 'comparison axis expects one or two axes' });
+});
