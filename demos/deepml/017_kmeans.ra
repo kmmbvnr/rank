@@ -7,8 +7,8 @@ use stats
 
 rem Assign points to their nearest centroid and recompute cluster means.
 fun Points K InitialCentroids Max k_means
-  Samples = Points real rank 0
-  Centroids = InitialCentroids real rank 0
+  Samples = Points real
+  Centroids = InitialCentroids real
   N = Points len
   fun Centroids step
     Labels = array shape N fill 0

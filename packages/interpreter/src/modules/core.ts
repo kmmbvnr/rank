@@ -11,7 +11,7 @@ import {
 import { numericExtreme, sumValue } from './numbers.js';
 import { chooseIndexed, chooseValue, lengthOf } from './sequences.js';
 import { mapValue, native } from './shared.js';
-import { integerArray, integerValue, realValue } from '../numeric-conversions.js';
+import { integerArray, integerValue, realArray, realValue } from '../numeric-conversions.js';
 import { numericConversionSqlite } from './sqlite.js';
 import type { RuntimeModule } from './types.js';
 
@@ -46,8 +46,9 @@ export const coreModule: RuntimeModule = {
     integer: () => ({ ...native('integer', 1, ([value]) => isRankSqliteExpression(value)
         ? numericConversionSqlite(value, 'integer') : integerArray(value) ?? mapValue(value, integerValue)),
         monadicResultShape: shape => shape }),
-    real: () => native('real', 1, ([value]) => isRankSqliteExpression(value)
-        ? numericConversionSqlite(value, 'real') : realValue(value)),
+    real: () => ({ ...native('real', 1, ([value]) => isRankSqliteExpression(value)
+        ? numericConversionSqlite(value, 'real') : realArray(value) ?? mapValue(value, realValue)),
+        monadicResultShape: shape => shape }),
     text: () => native('text', 1, ([value]) => {
         if (value === MISSING) return MISSING;
         if (typeof value === 'object' && !isRankLabel(value) && !isRankDate(value)) {

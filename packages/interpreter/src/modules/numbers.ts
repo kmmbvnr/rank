@@ -1,3 +1,4 @@
+import { registerScalarBuiltin } from '../scalar-builtin.js';
 import { Factorizer, maxFactorTableInteger } from '../factorization.js';
 import { withNumberCalls } from '../typed-native.js';
 import { greatestCommonDivisor, safeIntegerGcd } from '../integer-gcd.js';
@@ -10,7 +11,7 @@ import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } f
 import { prepareIntegerView } from '../integer-view.js';
 import { arrayStrides, broadcastOffset, broadcastShape } from '../tensor-layout.js';
 import { elementSource, type ElementSource } from '../element-source.js';
-import { denseScalarItems, derivedArray, IntegerCells, ownedArray, typedArray } from '../array-storage.js';
+import { derivedArray, IntegerCells, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { modularPower, probablePrime } from '../primality.js';
 import { safeIntegerModularPower } from '../modular-power.js';
@@ -100,9 +101,8 @@ export const numbersModule: RuntimeModule = {
         value => Number.isFinite(value) && value > 0,
     ),
     exp: () => unaryMath('exp', Math.exp),
-    floor: () => native('floor', [1, 2], args => args.length === 2
-        ? expectMultiset(args[0]).floor(args[1]) : integerBound(args[0], 'floor', Math.floor)),
-    ceil: () => native('ceil', 1, args => integerBound(args[0], 'ceil', Math.ceil)),
+    floor: () => integerBound('floor', Math.floor),
+    ceil: () => integerBound('ceil', Math.ceil),
     digits: () => native('digits', 2, args => radixDigits(args[0], args[1])),
     fromDigits: () => native('fromDigits', 2, args => fromRadixDigits(args[0], args[1])),
     round: () => native('round', 2, arguments_ =>
@@ -191,45 +191,14 @@ function unaryMath(
     operation: (value: number) => number,
     accepts: (value: number) => boolean = () => true,
 ) {
-    return native(name, 1, arguments_ => mapUnaryNumeric(
-        arguments_[0],
-        name,
-        value => {
-            if (!accepts(value)) {
-                throw new RankError(`${name} input is outside its domain`, 'DomainError');
-            }
-            return operation(value);
-        },
-    ));
-}
-
-function mapUnaryNumeric(
-    value: RankValue,
-    name: string,
-    operation: (value: number) => number,
-): RankValue {
-    // A cell with no value stays without one.
-    const apply = (item: RankValue): RankValue =>
-        item === MISSING ? MISSING : operation(numericReal(item, name));
-    if (isRankSequence(value)) return mapSequence(value, name, apply, true);
-    if (!isRankArray(value)) return apply(value);
-    // A large stored array is mapped at once; a cell that raises leaves the
-    // lazy path to raise it when read.
-    const stored = denseScalarItems(value);
-    if (stored && stored.length >= 1024) {
-        try {
-            // The result is real by construction: one typed buffer.
-            const cells = new Float64Array(stored.length);
-            for (let index = 0; index < stored.length; index += 1) {
-                if ((index & 0xfff) === 0) checkpoint('computing array');
-                cells[index] = operation(numericReal(stored[index], name));
-            }
-            return typedArray(cells, value.shape);
-        } catch (error) {
-            if (!(error instanceof RankError)) throw error;
+    const checked = (value: number): number => {
+        if (!accepts(value)) {
+            throw new RankError(`${name} input is outside its domain`, 'DomainError');
         }
-    }
-    return mapScalarArrays([value], ([item]) => apply(item));
+        return operation(value);
+    };
+    return scalarNative(name, item => item === MISSING ? MISSING : checked(numericReal(item, name)),
+        source => mapStoredUnary(source, 'number', checked));
 }
 
 function mapBinaryValue(
@@ -732,7 +701,7 @@ export function sumElements(source: ElementSource): bigint | number {
     return items ? sumArray(items) : sumStream(source.values());
 }
 
-function integerBound(value: RankValue, name: string, operation: (value: number) => number): RankValue {
+function integerBound(name: 'floor' | 'ceil', operation: (value: number) => number) {
     const checked = (number: number): number => {
         if (!Number.isFinite(number)) throw new RankError(`${name} expects a finite number`, 'DomainError');
         return operation(number);
@@ -742,13 +711,9 @@ function integerBound(value: RankValue, name: string, operation: (value: number)
         const number = numericReal(value, name);
         return BigInt(checked(number));
     };
-    if (isRankSequence(value)) return mapSequence(value, name, apply, true);
-    if (isRankArray(value)) {
-        const stored = mapStoredUnary(value, 'number', checked, 'integer');
-        if (stored) return stored;
-    }
-    return isRankArray(value) ? derivedArray(value.shape, [value], i => apply(value.itemAt?.(i) ?? value.items[i]), true)
-        : apply(value);
+    return registerScalarBuiltin(native(name, name === 'floor' ? [1, 2] : 1, args => args.length === 2
+        ? expectMultiset(args[0]).floor(args[1]) : apply(args[0])), apply,
+        source => mapStoredUnary(source, 'number', checked, 'integer'));
 }
 
 function radixBases(value: RankValue): bigint[] {

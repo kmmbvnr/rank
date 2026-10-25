@@ -17,7 +17,7 @@ import {
 import { applicationExpression, flattenApplication, groupedUnaryDyadicChain, unaryApplicationHead } from '../expressions.js';
 import { findOperation } from '../operations.js';
 import { applicationForm, assertNever, type ApplicationForm } from '../application-forms.js';
-import { mapsScalarCells, modifierResultTypes, resultTypes, type Types } from './types.js';
+import { mapsScalarCells, modifierResultTypes, resultTypes, wholeMappedScalarTypes, type Types } from './types.js';
 import { broadcastShape, incompatibleShapes, isAtom, stableRecordField, UNKNOWN_VALUE,
     type FactLookup, type ValueFacts } from './value-domain.js';
 import {
@@ -566,7 +566,16 @@ function transferApplicationFacts(
             && operands.every(value => value.types.join() === 'array')) {
             const ranks = form.rightRank === undefined ? [Number(form.rank)] : [Number(form.rank), Number(form.rightRank)];
             const shaped = operationShapeFacts(operation, operands, ranks, form.axes);
-            if (shaped) return shaped;
+            if (shaped) {
+                const source = operands[0];
+                if (operands.length === 1 && ranks[0] === 0 && source.elements?.length
+                    && operation.shape?.some(s => s.args.length === 1 && s.args[0]?.length === 0 && s.result?.length === 0)) {
+                    const elements = inferSignatureResultTypes(operation.signatures ?? [],
+                        [{ union: source.elements as readonly SignatureAtom[] }]);
+                    if (elements?.length) return { ...shaped, elements };
+                }
+                return shaped;
+            }
         }
     }
     const grouped = groupedUnaryDyadicChain(expression, name => lookup(name) === undefined);
@@ -840,10 +849,8 @@ function transferApplicationFacts(
             if (operation.storedResult) return { types: resultTypes(operation), completion: 'ready',
                 ...(operation.result === 'sequence' ? { rank: 1, shape: [null] } : {}) };
             const operands = unaryTail ? [source] : parts.slice(0, -1).map(part => infer(part, lookup));
-            if (arity === 1 && operation.name === 'integer' && source.types.length
-                && source.types.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) {
-                return { types: ['integer'], rank: 0, shape: [] };
-            }
+            const mappedScalar = arity === 1 && wholeMappedScalarTypes(operation, source.types);
+            if (mappedScalar) return stableRecordField({ types: mappedScalar });
             if (last.name === 'merge') {
                 return mergedSequenceFacts(operands);
             }
@@ -1103,7 +1110,10 @@ function transferApplicationFacts(
             const collection = source.types.join() === 'array' || source.types.join() === 'sequence';
             if (arity === 1 && collection && mapsScalarCells(operation)) return {
                 types: source.types, rank: source.rank, shape: source.shape,
-                elements: resultTypes(operation),
+                elements: source.elements?.length
+                    ? inferSignatureResultTypes(operation.signatures ?? [],
+                        [{ union: source.elements as readonly SignatureAtom[] }]) ?? resultTypes(operation)
+                    : resultTypes(operation),
                 ...(hasMappedScalarNoCallbackProof(operation, operands)
                     ? { callbackFreeScalarCells: true as const } : {}),
             };

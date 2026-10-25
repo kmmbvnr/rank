@@ -2219,7 +2219,11 @@ integer` is -3.
 ### Notes
 
 Rank never converts types on its own;
-call integer when you need one.
+call integer when you need one. Arrays
+map elementwise while preserving shape;
+sequences map lazily. Text is parsed as
+one number. Use `"1203" integer rank 0`
+to convert individual digits.
 
 ### See also
 
@@ -2244,7 +2248,15 @@ Value real
 ```
 
 Accepts integers and text holding a
-number.
+number. Arrays map elementwise while
+preserving shape, and sequences map
+lazily, just as with `integer`.
+`Points real` converts every numeric
+cell of a matrix. `"12.5" real` parses
+the whole string; `"1203" real rank 0`
+converts individual digits. Explicit
+`real rank 0` remains valid for arrays
+and sequences.
 
 ### See also
 

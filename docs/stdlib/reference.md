@@ -27,15 +27,20 @@ uses its requested window dimensions and axes. `matmul` contracts the last
 left axis with the first right axis; `solve` accepts a whole matrix and a
 vector or matrix right side. Batched solve requires `rank 2 1` or `rank 2 2`.
 
-`sort`, `argsort`, `unique`, `integer` and `real` use rank 1. Sort direction
-labels configure that unary operation rather than adding a data operand.
-Numeric conversion overloads retain their existing element mapping; text
-parses as a whole string, with explicit rank 0 for individual digits.
+`sort`, `argsort` and `unique` use rank 1. Sort direction labels configure
+that unary operation rather than adding a data operand. `integer` and
+`real` take whole values and map array cells or lazy sequence elements,
+preserving shape and collection kind. Text parses as a whole string;
+explicit rank 0 converts individual Unicode code points.
+Unary scalar math (`abs`, `sqrt`, `isqrt`, `exp`, `log`, trigonometric
+functions, `floor` and `ceil`) uses rank 0 with scalar result cells.
+Explicit higher cell ranks pass those cells whole and reject arrays.
+`floor` also retains its separate binary ordered-collection query.
 `det`, `inverse`, `diag` and `eigh` use rank 2. Configured diagonal modes
-and offsets keep that rank. Internally mapped scalar math is marked
-separately from declared ranks; this audit preserves its existing behavior.
-`even`, `odd`, `isnan` and date conversions also retain their internal
-collection mapping and query overloads despite declaring whole-value ranks.
+and offsets keep that rank. `even`, `odd`, `isnan` and date conversions
+retain their internal collection mapping and query overloads. Calendar
+components use rank 0. Text parsers and operations such as `lower` keep
+whole text cells; scalar rank would instead select individual characters.
 
 Special forms (constructors, indexing, `reduce`, `scan`, `outer`, `take`,
 `drop`, and other syntax below) keep their own application rules. Calls
@@ -137,7 +142,7 @@ Algorithmic collections, range structures and combinatorial generators.
 | `Bag upperbound Value` | element | binary all / 0 | Smallest stored value greater than the query. |
 | `Values wavelet` | structure | unary all | Immutable wavelet matrix for range counts and sums. |
 | `Data Left Right Low High within` | integer | 5 operands: whole | Counts wavelet values inside inclusive position and value ranges. |
-| `Value floor | Bag floor Limit` | value | unary all (scalar map); binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
+| `Value floor | Bag floor Limit` | value | unary 0; binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
 
 These need `use algo` but have no name to look up.
 
@@ -195,7 +200,7 @@ Always available: conversions, ranges, length, sums and extrema. No use required
 | `Values present` | boolean | unary all | Mask of the cells that have a value: false for `.NA` and for cells that read as `.Missing`. |
 | `Value bytes` | bytes | unary all | Converts UTF-8 text or a rank-1 array of integers in 0..255 to compact bytes. |
 | `Value integer` | integer | unary all (scalar map) | Converts booleans to 0 or 1, truncates finite reals, preserves integers, or parses signed decimal text; maps collections preserving shape. |
-| `Value real` | real | unary 1 | Converts an integer or decimal text to a real, or preserves a real. |
+| `Value real` | real | unary all (scalar map) | Converts integers or decimal text to reals, or preserves reals; maps collections preserving shape. |
 | `Value text` | text | unary all | Formats one scalar as text; a .Nf literal after it selects fixed decimals. |
 
 These constructs are always available.
@@ -367,20 +372,20 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
 | `Value abs` | number | unary 0 | Absolute value, keeping the integer or real type. |
-| `Value acos` | real | unary all (scalar map) | Inverse cosine in radians, for values from -1 through 1. |
-| `Value acosh` | real | unary all (scalar map) | Inverse hyperbolic cosine, for values at least 1. |
-| `Value asin` | real | unary all (scalar map) | Inverse sine in radians, for values from -1 through 1. |
-| `Value asinh` | real | unary all (scalar map) | Inverse hyperbolic sine. |
-| `Value atan` | real | unary all (scalar map) | Inverse tangent in radians. |
+| `Value acos` | real | unary 0 | Inverse cosine in radians, for values from -1 through 1. |
+| `Value acosh` | real | unary 0 | Inverse hyperbolic cosine, for values at least 1. |
+| `Value asin` | real | unary 0 | Inverse sine in radians, for values from -1 through 1. |
+| `Value asinh` | real | unary 0 | Inverse hyperbolic sine. |
+| `Value atan` | real | unary 0 | Inverse tangent in radians. |
 | `Y atan2 X` | real | binary 0 / 0 | Angle in radians from the coordinates, keeping the quadrant. |
-| `Value atanh` | real | unary all (scalar map) | Inverse hyperbolic tangent, for values strictly between -1 and 1. |
+| `Value atanh` | real | unary 0 | Inverse hyperbolic tangent, for values strictly between -1 and 1. |
 | `N binomial K` | integer | binary 0 / 0 | Exact binomial coefficient. |
 | `N K Modulus binomialmod` | integer | 3 operands: whole | Binomial coefficient calculated directly modulo a scalar prime. |
-| `Angle cos` | real | unary all (scalar map) | Cosine of an angle in radians. |
-| `Value cosh` | real | unary all (scalar map) | Hyperbolic cosine. |
+| `Angle cos` | real | unary 0 | Cosine of an angle in radians. |
+| `Value cosh` | real | unary 0 | Hyperbolic cosine. |
 | `N divisors` | sequence, lazy | unary 0 | Lazy ascending sequence of the positive divisors. |
 | `Value even` | boolean | unary all | True for an even integer. |
-| `Value exp` | real | unary all (scalar map) | Natural exponential. |
+| `Value exp` | real | unary 0 | Natural exponential. |
 | `N factors` | sequence, lazy | unary all | Lazy ascending sequence of the prime factors, repeated factors included. |
 | `Limit factorsieve` | array | unary all | Smallest prime factors from 0 through Limit (at most 1048575); entries 0 and 1 are zero. |
 | `A gcd B` | integer | binary 0 / 0 | Greatest common divisor, always nonnegative. |
@@ -388,20 +393,20 @@ Arithmetic, roots, logarithms, trigonometry and number theory.
 | `Value isnan` | boolean | unary all | True for the real value nan; it does not equal itself. |
 | `Value isqrt` | integer | unary 0 | Exact integer floor of the square root, verified with integer arithmetic. |
 | `A lcm B` | integer | unary all; binary 0 / 0 | Least common multiple, also a reduction over one finite collection. |
-| `Value log` | real | unary all (scalar map) | Natural logarithm of a positive finite number. |
+| `Value log` | real | unary 0 | Natural logarithm of a positive finite number. |
 | `nan` | real | source/value | The real not-a-number value, for a result or cell with no numeric value. |
 | `Value odd` | boolean | unary all | True for an odd integer. |
 | `Base Exponent Modulus powmod` | integer | 3 operands: whole | Modular exponentiation by repeated squaring, never building the full power. |
-| `Value floor | Bag floor Limit` | value | unary all (scalar map); binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
-| `Value ceil` | integer | unary all (scalar map) | Least integer at least a finite number. |
+| `Value floor | Bag floor Limit` | value | unary 0; binary all / 0 | Greatest integer at most a finite number, or largest stored value at most a limit. |
+| `Value ceil` | integer | unary 0 | Least integer at least a finite number. |
 | `Values digits Bases` | array | binary all / all | Nonnegative integers as mixed-base digits, with the digit axis leading. |
 | `Digits fromDigits Bases` | value | binary all / all | Packs the leading mixed-base digit axis into integers. |
 | `Value round Places` | number | binary 0 / 0 | Rounds to a signed number of decimal places, halfway values to even. |
-| `Angle sin` | real | unary all (scalar map) | Sine of an angle in radians. |
-| `Value sinh` | real | unary all (scalar map) | Hyperbolic sine. |
+| `Angle sin` | real | unary 0 | Sine of an angle in radians. |
+| `Value sinh` | real | unary 0 | Hyperbolic sine. |
 | `Value sqrt` | real | unary 0 | Real square root of a nonnegative number. |
-| `Angle tan` | real | unary all (scalar map) | Tangent of an angle in radians. |
-| `Value tanh` | real | unary all (scalar map) | Hyperbolic tangent. |
+| `Angle tan` | real | unary 0 | Tangent of an angle in radians. |
+| `Value tanh` | real | unary 0 | Hyperbolic tangent. |
 
 ## random
 

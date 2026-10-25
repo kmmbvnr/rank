@@ -1251,6 +1251,25 @@ With integer operands, floor division and remainder keep exact integer results:
 M3 = N mod 3 equal 0
 ```
 
+Unary scalar math from `numbers` uses cell rank 0: `abs`, `sqrt`, `isqrt`,
+`exp`, `log`, trigonometric functions, `floor` and `ceil` map scalar cells
+and preserve array shape. Sequence elements map lazily. Their scalar cell
+contracts also apply through aliases and higher-order calls. Explicit
+`rank 1` passes whole vector cells and is rejected by these scalar functions;
+it does not request another elementwise pass. The binary `Bag floor Limit`
+query retains its separate ranks.
+
+Numeric conversions `integer` and `real` take whole values and map
+collections internally. This preserves array shape and lazy sequences while
+allowing a scalar text value to be parsed as one number. For example,
+`"12.5" real` is one real value, while `"1203" real rank 0` produces four
+real digit cells. Both `Points real` and `Points real rank 0` convert every
+cell of a numeric matrix.
+
+Calendar components such as `year` and `day` also use scalar rank 0.
+Date parsers and text operations retain whole text cells and their declared
+collection overloads; their text semantics are separate from scalar math.
+
 ## Operation modifiers
 
 Two kinds of trailing words change how an operation is applied.

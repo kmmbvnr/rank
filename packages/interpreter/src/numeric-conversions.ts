@@ -30,6 +30,20 @@ export function integerArray(value: RankValue): RankArray | undefined {
     return cells.array(value.shape);
 }
 
+/** Convert only completed cells; lazy and host-backed values use scalar mapping. */
+export function realArray(value: RankValue): RankArray | undefined {
+    if (!privateLoopPolling() || !isRankArray(value)) return undefined;
+    const view = prepareStoredScalarView(value, true);
+    if (!view) return undefined;
+    const size = value.shape.reduce((total, length) => total * length, 1);
+    const cells = new Float64Array(size);
+    for (let i = 0; i < size; i++) {
+        if ((i & 4095) === 0) checkpoint('converting real array', Math.min(4096, size - i));
+        cells[i] = realValue(view.read(i));
+    }
+    return typedArray(cells, value.shape);
+}
+
 export function integerValue(value: RankValue): bigint {
     if (typeof value === 'boolean') return value ? 1n : 0n;
     if (typeof value === 'bigint') return value;

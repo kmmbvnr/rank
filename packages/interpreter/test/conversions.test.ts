@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue, isRankArray } from '../src/index.js';
+import { demandValue } from '../src/plan.js';
+import { Interpreter, formatValue, isRankArray, isRankSequence } from '../src/index.js';
 
 for (const compiled of [true, false]) describe(`explicit conversions (compiled=${compiled})`, () => {
     function runtime() {
@@ -74,6 +75,40 @@ for (const compiled of [true, false]) describe(`explicit conversions (compiled=$
         expect(formatValue(r.execute('1 to 3 real rank 0 array')!)).toBe('1 2 3');
         expect(formatValue(r.execute('"1203" integer rank 0')!)).toBe('1 2 0 3');
         expect(r.execute('"1203" integer')).toBe(1203n);
+    });
+
+    it('maps real conversion over numeric and text arrays of any rank', () => {
+        const r = runtime();
+        try {
+            for (const shape of ['0 3', '2 2', '2 1 2']) {
+                for (const fill of ['2', '2.5', '"2.5"']) {
+                    for (const call of ['real', 'real rank 0', 'real rank 1']) {
+                        const value = r.execute(`(array shape ${shape} fill ${fill}) ${call}`)!;
+                        expect(isRankArray(value)).toBe(true);
+                        if (!isRankArray(value)) continue;
+                        expect(value.shape).toEqual(shape.split(' ').map(Number));
+                        expect(value.items).toEqual(Array(value.shape.reduce((a, b) => a * b, 1))
+                            .fill(fill === '2' ? 2 : 2.5));
+                    }
+                }
+            }
+            expect(r.execute('"12.5" real')).toBe(12.5);
+            expect(formatValue(r.execute('"1203" real rank 0')!)).toBe('1 2 0 3');
+            expect(() => r.execute('(array "2.5" "bad") real')).toThrow('invalid real text');
+            expect(() => r.execute('(array true false) real')).toThrow('real expects');
+        } finally { r.dispose(); }
+    });
+
+    it('keeps real conversion lazy through aliases and explicit scalar rank', () => {
+        const r = runtime();
+        try {
+            r.execute('use sequences\ncast = real');
+            for (const call of ['real', 'real rank 0', 'cast']) {
+                r.execute(`Values' = (1 to #) ${call}`);
+                expect(isRankSequence(demandValue(r.variables.get('Values')!))).toBe(true);
+                expect(formatValue(r.execute('Values take 3')!)).toBe('1 2 3');
+            }
+        } finally { r.dispose(); }
     });
 
     it('supports text conversion and formatting without importing text operations', () => {

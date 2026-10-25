@@ -55,6 +55,14 @@ const COMPARISONS = new Set([
 const BOOLEANS = new Set(['and', 'or', 'xor']);
 
 const ARITHMETIC = new Set(['+', '-', '*', '/', '//', 'mod', '**']);
+/** Whole-value maps accept scalar text without introducing a character frame. */
+export function wholeMappedScalarTypes(operation: Operation, source: Types): Types | undefined {
+    if (!operation.mapsScalarCells || (operation.monadicRank ?? 'all') !== 'all'
+        || !source.length || !source.every(type => SCALARS.has(type))) return;
+    return inferSignatureResultTypes(operation.signatures ?? [],
+        [{ union: source as readonly SignatureAtom[] }]);
+}
+
 /** Scalar-cell operations whose successful array/sequence result keeps the input kind. */
 export function mapsScalarCells(operation: Operation): boolean {
     return operation.monadicRank === 0 || operation.mapsScalarCells === true;
@@ -341,8 +349,8 @@ function applicationType(expression: ApplicationExpression, lookup: TypeLookup):
             if (operands.some(value => same(value, 'array'))) return ['array'];
             if (!operands.every(value => within(value, SCALARS))) return UNKNOWN;
         }
-        if (arity === 1 && operation.name === 'integer'
-            && source.length && source.every(type => ['integer', 'real', 'boolean', 'text'].includes(type))) return ['integer'];
+        const mappedScalar = arity === 1 && wholeMappedScalarTypes(operation, source);
+        if (mappedScalar) return mappedScalar;
         if (arity === 1 && within(source, NUMBERS)) {
             const result = inferSignatureResultTypes(operation.signatures ?? [],
                 [{ union: source as readonly SignatureAtom[] }]);

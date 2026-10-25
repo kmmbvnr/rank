@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { materializeValue } from '../src/materialize.js';
 import { Interpreter, isNativeFunction, type RankValue } from '../src/index.js';
 
 const names = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh', 'atan2'];
@@ -25,7 +26,7 @@ end`);
                 return { runtime, fn, entries: () => entries };
             });
             const call = (index: number, args: RankValue[]) => {
-                try { return { value: runtimes[index].fn.call(args) }; }
+                try { return { value: materializeValue(runtimes[index].fn.call(args)) }; }
                 catch (error) { return { error: (error as Error).message }; }
             };
             try {
