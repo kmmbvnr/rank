@@ -104,3 +104,31 @@ end`);
         } finally { runtime.dispose(); }
     });
 });
+
+
+describe.each([false, true])('snapshots inside borrowed write regions (compilation=%s)', compilation => {
+    it.each([
+        { fill: '0', update: '(Phase + 1) * -5000000000', expected: -5000000000n },
+        { fill: '0.0', update: '(Phase + 1) * 0.5', expected: 0.5 },
+    ])('keeps a copied slice independent of later stores: $fill', ({ fill, update, expected }) => {
+        let loops = 0;
+        const runtime = new Interpreter(() => {}, {
+            compilation, scalarEntryCompilation: false, numberLoopCompilation: false,
+            onIntegerLoopExecuted: () => loops++,
+        });
+        try {
+            runtime.execute(`use sequences
+A = array shape 70000 fill ${fill}
+Saved = array shape 0 fill ${fill}
+for Phase in 0 to 1
+ if Phase equal 1
+  Saved = A (0 till 2) copy
+ end
+ A 0 = ${update}
+end`);
+            expect(runtime.execute('Saved 0')).toBe(expected);
+            expect(runtime.execute('A 0')).toBe(typeof expected === 'bigint' ? expected * 2n : expected * 2);
+            expect(loops).toBe(compilation ? 1 : 0);
+        } finally { runtime.dispose(); }
+    });
+});

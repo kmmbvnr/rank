@@ -87,9 +87,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         const entered = [];
         try {
             ${root.setup} ${root.header}
-                let iterationResult;
+                let iterationResult, iterationType = 'integer';
                 ${root.bindings} ${body.join('\n')}
-                result = iterationResult; location = -1;
+                result = iterationResult; resultType = iterationType; location = -1;
             }
         } catch (error) {
             if (error === overflow) return undefined;

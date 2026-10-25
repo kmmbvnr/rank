@@ -15,7 +15,9 @@ export function registerArrayCopy(value: RankArray, copy: () => RankArray | unde
     copies.set(value, { reader: value.itemAt, shape: [...value.shape], copy });
 }
 
-export function copyArrayStorage(value: RankArray): RankArray | undefined {
+/** Borrowed compiler writers cannot detach storage for snapshots created after entry.
+ * They request independent cells instead of a shared slice. */
+export function copyArrayStorage(value: RankArray, shareStorage = true): RankArray | undefined {
     if (!privateLoopPolling() || inspectionEnabled() || value.columnNames || value.tableScopes || value.sortKeys) return undefined;
     const plan = copies.get(value);
     // Do not probe a lazy result's shape to discover that it has no storage.
@@ -23,7 +25,7 @@ export function copyArrayStorage(value: RankArray): RankArray | undefined {
     if (plan && (value.itemAt !== plan.reader || value.shape.length !== plan.shape.length
         || value.shape.some((size, axis) => size !== plan.shape[axis]))) return undefined;
     const size = value.shape.reduce((n, dimension) => n * dimension, 1);
-    const result = plan ? plan.copy() : copyStoredArrayBlocks(value.shape, [value], function* () {
+    const result = plan && shareStorage ? plan.copy() : copyStoredArrayBlocks(value.shape, [value], function* () {
         yield { source: value, offset: 0, length: size, target: 0 };
     });
     if (!result) return undefined;

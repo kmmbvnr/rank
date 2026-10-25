@@ -4,6 +4,11 @@ import { test } from 'node:test';
 
 const exclusions = JSON.parse(readFileSync(new URL('./demo-execution-exclusions.json', import.meta.url), 'utf8'));
 const files = new Set(Object.keys(exclusions));
+const timedOutFixtures = new Set([
+    'euler/030_digitpowers_test.ra',
+    'euler/276_primitivetriangles_test.ra',
+    'euler/562_maximalperimeter_test.ra',
+]);
 
 test('execution exclusions name existing workloads and explain the resource cost', () => {
     for (const [file, reason] of Object.entries(exclusions)) {
@@ -20,11 +25,22 @@ test('execution exclusions name existing workloads and explain the resource cost
     assert.ok(!files.has('euler/332_sphericaltriangles.ra'), 'array geometry and sphere symmetries keep all 50 radii eligible');
 });
 
-test('new full-scale exclusions retain their small test fixtures', () => {
+test('recorded timeouts stay excluded while corrected compiler cases remain eligible', () => {
+    for (const file of [...timedOutFixtures, 'euler/576_irrationaljumps.ra']) {
+        assert.ok(files.has(file), file);
+        assert.match(exclusions[file], /Exceeded the 300-second differential execution budget/, file);
+    }
+    for (const file of ['atcoder/edpc/10_sushi.ra', 'atcoder/edpc/10_sushi_test.ra',
+        'euler/477_numbersequencegame.ra', 'euler/477_numbersequencegame_test.ra']) {
+        assert.ok(!files.has(file), file);
+    }
+});
+
+test('new full-scale exclusions retain their small test fixtures unless they timed out', () => {
     for (const file of files) {
         const problem = Number(file.match(/^euler\/(\d+)_/)?.[1]);
         // Euler 300 belongs to the legacy 201-300 execution-budget batch.
-        if (!(problem >= 301)) continue;
+        if (!(problem >= 301) || timedOutFixtures.has(file)) continue;
         assert.ok(!file.endsWith('_test.ra') || file.endsWith('_default_test.ra'), file);
         const fixture = file.endsWith('_default_test.ra')
             ? file.replace('_default_test.ra', '_test.ra') : file.replace(/\.ra$/, '_test.ra');

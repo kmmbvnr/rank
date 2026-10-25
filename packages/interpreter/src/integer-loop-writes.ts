@@ -57,7 +57,7 @@ export function createLoopIndexedWrites(state: LoopCompilationState, expressions
                 }`);
             }
             body.push(`location = ${location};`, ...lines,
-                `cells${target.slot}[${key}] = ${result}; changed${target.slot}[${key}] = 1; iterationResult = ${rhs}; resultType = ${JSON.stringify(type)};`);
+                `cells${target.slot}[${key}] = ${result}; changed${target.slot}[${key}] = 1; iterationResult = ${rhs}; iterationType = ${JSON.stringify(type)};`);
             return true;
         }
         const compound = assignment.operator !== '=';

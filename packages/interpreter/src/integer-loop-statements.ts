@@ -54,10 +54,12 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 const binding = host.iteration(assignment.condition);
                 const loop = loopParts(assignment, binding, location);
                 if (!loop) return reject(assignment);
-                body.push(`{ let result; location = ${location}; ${loop.setup} ${loop.header}`,
-                    'let iterationResult;', loop.bindings);
+                // Keep the type with the last completed iteration: a later
+                // continue or break can change registers without replacing it.
+                body.push(`{ let result${numberMode ? ', resultType = "integer"' : ''}; location = ${location}; ${loop.setup} ${loop.header}`,
+                    `let iterationResult${numberMode ? ', iterationType = "integer"' : ''};`, loop.bindings);
                 if (statements(assignment.statements, body, allowTail && !binding) === undefined) return reject(assignment);
-                body.push(`result = iterationResult; location = ${location}; } iterationResult = result; }`);
+                body.push(`result = iterationResult; ${numberMode ? 'resultType = iterationType;' : ''} location = ${location}; } iterationResult = result; ${numberMode ? 'iterationType = resultType;' : ''} }`);
                 // An inner loop may run zero times, or leave through break.
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);
@@ -249,7 +251,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             writers.push(host.writer(assignment.name));
             writerNames.push(assignment.name);
             body.push(`location = ${location};`, ...lines, `const out${index} = ${result};`,
-                `${numberMode ? dirty(destination) : `writers[${index}](out${index});`} r${destination} = out${index}; iterationResult = out${index}; ${numberMode ? `resultType = ${JSON.stringify(type)};` : ''}`);
+                `${numberMode ? dirty(destination) : `writers[${index}](out${index});`} r${destination} = out${index}; iterationResult = out${index}; ${numberMode ? `iterationType = ${JSON.stringify(type)};` : ''}`);
             assigned.add(assignment.name);
         }
         return 'next';

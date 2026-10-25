@@ -22,6 +22,24 @@ function compare(source: string) {
 }
 
 describe('private safe-integer loop registers', () => {
+    it.each(['continue', 'break'])('retains a nested real result type across %s', control => {
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
+        try {
+            const value = diagnostics.run(() => runtime.execute(`for Outer in 0 to 0
+ for Inner in 0 to 1
+  if Inner equal 1
+   Integer = 1
+   ${control}
+  end
+  Real = 0.5
+ end
+end`));
+            expect(value).toBe(0.5);
+            expect(diagnostics.numberLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['2147483647', '-2147483649', '9007199254740989'])('widens private Int32 stores without truncating %s', wide => {
         const diagnostics = compare(`A = array shape 4096 fill 0
 Alias = A

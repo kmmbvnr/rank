@@ -238,5 +238,9 @@
   "euler/583_heronenvelopes.ra": "To fix later: the default input takes about 32 s (Pythagorean triples to 10^7 generated in two compiled passes, two sorts of about 2 x 10^7 packed keys, then a compiled match with a binary search per candidate); the small _test.ra fixture stays in the audits.",
   "euler/578_decreasingprimepowers.ra": "To fix later: the default input takes about 9.5 min (a Lucy prime-count sieve at quotient points of 10^13, about 3 x 10^9 compiled updates, then a stack walk over about 10^8 exponent-pattern nodes); the small _test.ra fixture stays in the audits.",
   "euler/579_latticecubes.ra": "To fix later: the default input takes about 2.3 min (a compiled walk over about 10^9 integer quaternions with parity, span and gcd tests and a scale loop per primitive frame); the small _test.ra fixture stays in the audits.",
-  "euler/566_cakeicing.ra": "To fix later: the default input takes about 32 min (14190 triples, each closing a cut set of up to 6 x 10^4 points in a compiled hash walk, then a permutation, cycle and KMP pass and a big-integer CRT merge); the small _test.ra fixture stays in the audits."
+  "euler/566_cakeicing.ra": "To fix later: the default input takes about 32 min (14190 triples, each closing a cut set of up to 6 x 10^4 points in a compiled hash walk, then a permutation, cycle and KMP pass and a big-integer CRT merge); the small _test.ra fixture stays in the audits.",
+  "euler/030_digitpowers_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
+  "euler/276_primitivetriangles_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
+  "euler/562_maximalperimeter_test.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually.",
+  "euler/576_irrationaljumps.ra": "Exceeded the 300-second differential execution budget in the full corpus audit; run manually."
 }

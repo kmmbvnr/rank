@@ -276,11 +276,11 @@ function* collectionValues(value: RankValue, operation: string): IterableIterato
     yield* source ? source.values() : [value];
 }
 
-export function copyArray(value: RankValue): RankArray {
+export function copyArray(value: RankValue, shareStorage = true): RankArray {
     if (isRankSequence(value)) return materializeSequence(value);
     if (!isRankArray(value)) throw new RankError('copy expects an array or sequence');
     const type = semanticArrayType(value);
-    const planned = copyArrayStorage(value);
+    const planned = copyArrayStorage(value, shareStorage);
     if (planned) return planned;
     const numeric = privateLoopPolling() ? copyStoredNumericArray(value) : undefined;
     if (numeric) { inheritArrayDeclaration(value, numeric); return setSemanticArrayType(numeric, type); }
