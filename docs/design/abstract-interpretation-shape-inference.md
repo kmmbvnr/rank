@@ -168,9 +168,12 @@ The abstract interpreter defines transfer rules for each Rank primitive:
 
 ### 4. Reductions (`sum`, `max`, `reduce * rank K`)
 - Unqualified `sum` / `max` / `min`: collapses all dimensions to scalar ($R=0$).
-- `reduce rank K`:
-  - Static guard: verifies $0 \le K < R_{input}$.
-  - Collapses cell rank $K$, reducing the overall tensor rank by 1.
+- `reduce rank K axis A`:
+  - Input cells occupy the trailing K axes; verify $0 \le K \le R_{input}$.
+  - Traversal axes must be outside those input cells. Other axes form independent folds.
+  - Result shape is the independent frame followed by the accumulator shape. A callback
+    can change accumulator rank, so its result must be proved or left unknown.
+  - Without `axis`, fold all axes outside the input cell. Rank defaults to zero.
 
 ### 5. Whole-axis selection and indexing (`#`)
 - Syntax `Matrix # j`:
@@ -385,7 +388,7 @@ at line 42: Data.filter(x => x > 0).window(5).map(w => w.sum()).reduce((a, b) =>
 *Focus: Catch dimension and axis count bugs immediately with minimal complexity.*
 - Extend `analysis/types.ts` with `rank: number` metadata for every `Types`
   result.
-- Check reductions: enforce $0 \le K < \text{rank}$ on all `reduce rank K`.
+- Check reductions: enforce $0 \le K \le \text{rank}$ on all `reduce rank K`.
 - Check axis operations: enforce $0 \le A < \text{rank}$ on `axis A`.
 - Check selectors: enforce selector count $\le \text{rank}$ on `#` slice chains.
 - Enforce loop invariants: flag any `loopCarried` variable whose rank differs

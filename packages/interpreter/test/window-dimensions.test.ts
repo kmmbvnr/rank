@@ -20,7 +20,7 @@ for (const compiled of [true, false]) describe(`window dimensions (compiled ${co
     it('continues builtin and user function pipelines and preserves source pipelines', () => {
         expect(run(`${grid}M window 2 2 diag`)).toBe('1 5 2 6 4 8 5 9');
         expect(run(`${grid}M window unpack S diag .anti`)).toBe('2 4 3 5 5 7 6 8');
-        expect(run(`${grid}products = reduce * rank 1 max\nM window 2 2 diag products`)).toBe('45');
+        expect(run(`${grid}products = reduce * axis 2 max\nM window 2 2 diag products`)).toBe('45');
         expect(run(`${grid}M reverse window 2 2 shape`)).toBe('2 2 2 2');
         expect(run('(1 to 5) window 3 copy shape')).toBe('3 3');
         expect(run('"abcd" window 2 array len')).toBe('3');

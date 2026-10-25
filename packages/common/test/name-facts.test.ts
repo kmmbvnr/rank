@@ -509,7 +509,7 @@ it('shows backward parameter requirements on an infix function definition', () =
 
 
 it('keeps the proved Euler 17 cell signature after printing its sum', () => {
-    const source = readFileSync(new URL('../../../demos/euler/017_numberletters.ra', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('./fixtures/number-letters.ra', import.meta.url), 'utf8');
     const found = factsAt(source, source.indexOf('letters', source.search(/^fun[^\n]*\bletters\b/m)))!;
     expect(found.signature).toBe('i → i');
 });

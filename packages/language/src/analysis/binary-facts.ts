@@ -247,7 +247,7 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
             : boolean && type === 'boolean');
         if (cells) cells = [...new Set([...cells, ...binaryType(symbolic.operator, cells, cells)])];
         const result = foldShapeFacts(symbolic.kind === 'scan', symbolic, source,
-            expression => infer(expression, lookup), cells);
+            expression => infer(expression, lookup), cells, true);
         if (result) return { ...result, ...(symbolic.kind === 'scan' && cells ? { callbackFreeScalarCells: true as const } : {}) };
     }
     return undefined;

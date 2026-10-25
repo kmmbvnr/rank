@@ -8,7 +8,7 @@ it('shows the Euler 17 function signature in notebook calls and its later defini
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        repl.notebook.restore(readFileSync(new URL('../../../demos/euler/017_numberletters.ra', import.meta.url), 'utf8'));
+        repl.notebook.restore(readFileSync(new URL('./fixtures/number-letters.ra', import.meta.url), 'utf8'));
         for (const executed of [false, true]) {
             if (executed) {
                 await repl.restart();

@@ -142,7 +142,7 @@ end
         runtime.execute('A 0 = 10\nA 1 = 20');
         expect(call(runtime, 'fused', temp, 0n)).toBe(12n);
         runtime.variables.set('M', vector([1n, 2n, 3n, 4n], [2, 2]));
-        expect(force(runtime.execute('(M * 2 + M) reduce + rank 1')!))
+        expect(force(runtime.execute('(M * 2 + M) reduce + axis 1')!))
             .toEqual({ shape: [2], items: [9n, 21n] });
         runtime.dispose();
     });

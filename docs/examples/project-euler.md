@@ -166,7 +166,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits window Width
-Products = Windows reduce * rank 1
+Products = Windows reduce * axis 1
 Answer = Products max
 ```
 
@@ -226,7 +226,7 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-products = reduce * rank 1 max
+products = reduce * axis 2 max
 H = Grid window 4 axis 1 products
 V = Grid window 4 axis 0 products
 D = Grid window 4 4 diag products
@@ -361,24 +361,43 @@ is `21124`.
 ## 18. Maximum path sum I
 
 ```rank
-rem Project Euler 18
+rem Maximum Path Sum I
 rem https://projecteuler.net/problem=18
+rem Find the largest top-to-bottom path
+rem sum through a number triangle
 
-for Row in (Rows - 2) to 0 by -1
-  for Col in 0 to Row
-    Cell = Row * (Row + 1) // 2 + Col
-    Left = Triangle (Cell + Row + 1)
-    Right = Triangle (Cell + Row + 2)
-    Best = Left max Right
-    Triangle Cell += Best
-  end
+use io
+use sequences
+
+Triangle = array shape 15 15
+  75  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+  95 64  0  0  0  0  0  0  0  0  0  0  0  0  0
+  17 47 82  0  0  0  0  0  0  0  0  0  0  0  0
+  18 35 87 10  0  0  0  0  0  0  0  0  0  0  0
+  20  4 82 47 65  0  0  0  0  0  0  0  0  0  0
+  19  1 23 75  3 34  0  0  0  0  0  0  0  0  0
+  88  2 77 73  7 63 67  0  0  0  0  0  0  0  0
+  99 65  4 28  6 16 70 92  0  0  0  0  0  0  0
+  41 41 26 56 83 40 80 70 33  0  0  0  0  0  0
+  41 48 72 33 47 32 37 16 94 29  0  0  0  0  0
+  53 71 44 65 25 43 91 52 97 51 14  0  0  0  0
+  70 11 33 28 77 73 17 78 39 68 17 57  0  0  0
+  91 71 52 38 17 14 91 43 58 50 27 29 48  0  0
+  63 66  4 68 89 53 67 30 73 16 69 87 40 31  0
+   4 62 98 27 23  9 70 98 73 93 38 53 60  4 23
 end
-Answer = Triangle 0
+
+fun Low pick Up = Up + (Low max (concat (Low drop 1) (array 0)))
+Rev = Triangle reverse axis 0
+Best = Rev reduce pick rank 1 axis 0
+Answer = Best 0
+Answer print
 ```
 
-The triangular input is stored densely in row-major triangular order and
-folded upward in place, so the algorithm also scales to the larger form of
-the problem. The first cell becomes `1074`.
+The triangle is padded to a rectangular matrix. Reverse axis 0 to visit rows
+from bottom to top, then fold whole rows with `rank 1 axis 0`. Each step adds
+the upper row to the larger of its two possible children. The first element
+of the final row is `1074`.
 
 ## 19. Counting Sundays
 

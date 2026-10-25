@@ -1,6 +1,7 @@
+import { framedArray } from './framed-array.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
-import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
+import { arrayCells, arrayValues, arrayValueTraversal, denseScalarItems, derivedArray, eagerOperandItems, integer32Cells, registerArrayDependencies, ownedArray, readArrayItem, shouldStream, typedArray } from './array-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { isPureLazyFunction, snapshotLazyFunction } from './lazy-function.js';
 import { standardModules } from './modules/index.js';
@@ -30,6 +31,8 @@ export class ReductionEvaluator {
         private readonly standardFunctions: ReadonlyMap<RuntimeModule[string], NativeFunction>,
         private readonly tensorFusion: boolean | (() => boolean),
         private readonly scalarCallback: (fn: NativeFunction) => ((arguments_: RankValue[]) => RankValue) | undefined,
+        private readonly invoke: (fn: NativeFunction, arguments_: RankValue[]) => RankValue,
+        private readonly ownFiles: (value: RankValue) => void,
     ) {}
 
     private isTensorFusion(): boolean {
@@ -43,37 +46,32 @@ export class ReductionEvaluator {
         seed?: RankValue,
         axes?: readonly number[],
     ): RankValue {
+        if (cellRank !== undefined && cellRank > 0 || axes && seed !== undefined && isRankArray(seed)) {
+            return this.reduceInputCells(value, cellRank ?? 0, axes, seed,
+                (left, right) => this.binary(operator, left, right), () => {
+                    const identity = reductionIdentity(operator);
+                    const shape = isRankArray(value) && cellRank ? value.shape.slice(-cellRank) : [];
+                    return ownedArray(Array(arraySize(shape)).fill(identity), shape);
+                });
+        }
         if (operator === '+' && axes?.length === 1 && isRankArray(value)) {
             const packed = sumIntegerAxis(value, axes[0], seed);
             if (packed !== undefined) return packed;
         }
-        if (axes) {
-            if (isRankArray(value) && new Set(axes).size === axes.length
-                && axes.every(axis => axis >= value.shape.length - axes.length && axis < value.shape.length)) {
-                cellRank = axes.length;
-            } else return this.reduceAxes(value, axes, cell => this.reduceCell(operator, cell, seed), seed === undefined ? [] : [seed]);
+        // Scalar folds over trailing axes retain the contiguous/window kernels.
+        if (axes && isRankArray(value) && new Set(axes).size === axes.length
+            && axes.every(axis => axis >= value.shape.length - axes.length && axis < value.shape.length)) {
+            if (axes.length === value.shape.length) return this.reduceCell(operator, value, seed);
+            const reducedRank = axes.length;
+            const frameShape = value.shape.slice(0, value.shape.length - reducedRank);
+            const size = arraySize(value.shape.slice(-reducedRank));
+            const producer = arrayCells(value) ? dyadicCells(value, reducedRank, true) : undefined;
+            return derivedArray(frameShape, seed === undefined ? [value] : [value, seed], index => producer
+                ? this.reduceCell(operator, producer.cellAt(index), seed)
+                : this.reduceArrayCell(operator, value, index * size, size, seed), true);
         }
-        if (cellRank === undefined) return this.reduceCell(operator, value, seed);
-        if (isRankArray(value)) {
-            if (cellRank > value.shape.length) {
-                throw new RankError(`rank ${cellRank} exceeds tensor rank ${value.shape.length}`);
-            }
-            if (cellRank === value.shape.length) return this.reduceCell(operator, value, seed);
-            const frameShape = value.shape.slice(0, value.shape.length - cellRank);
-            const cellShape = value.shape.slice(value.shape.length - cellRank);
-            const cellSize = arraySize(cellShape);
-            const producer = arrayCells(value) ? dyadicCells(value, cellRank, true) : undefined;
-            return derivedArray(frameShape, [value], frameIndex => {
-                if (producer) return this.reduceCell(operator, producer.cellAt(frameIndex), seed);
-                const start = frameIndex * cellSize;
-                return cellRank === 0
-                    ? this.reduceCell(operator, arrayItem(value, start), seed)
-                    : this.reduceArrayCell(operator, value, start, cellSize, seed);
-            }, true);
-        }
-        if (cellRank > valueRank(value)) {
-            throw new RankError(`rank ${cellRank} exceeds value rank ${valueRank(value)}`);
-        }
+        if (axes) return this.reduceAxes(value, axes, cell => this.reduceCell(operator, cell, seed),
+            seed === undefined ? [] : [seed]);
         return this.reduceCell(operator, value, seed);
     }
 
@@ -113,12 +111,14 @@ export class ReductionEvaluator {
 
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
         rank?: number, axes?: readonly number[]): RankValue {
-        if (rank !== undefined) {
-            if (rank > valueRank(value)) throw new RankError(`rank ${rank} exceeds value rank ${valueRank(value)}`);
-            if (isRankArray(value)) axes = Array.from({ length: rank }, (_, i) => value.shape.length - rank + i);
+        if (rank !== undefined && rank > 0 || axes !== undefined) {
+            const scalar = this.scalarCallback(operation);
+            return this.reduceInputCells(value, rank ?? 0, axes, seed,
+                (left, right) => scalar && !isRankArray(left) && !isRankArray(right)
+                    ? scalar([left, right]) : this.invoke(operation, [left, right]), () => {
+                    throw new RankError(`reduce ${operation.name} requires an initial value for an empty collection`);
+                }, [operation]);
         }
-        if (axes) return this.reduceAxes(value, axes, cell => this.evaluateNamedReduction(operation, cell, seed),
-            seed === undefined ? [operation] : [operation, seed]);
         const scalar = this.scalarCallback(operation);
         const values = reductionValues(value, operation.name);
         let result = seed;
@@ -130,6 +130,43 @@ export class ReductionEvaluator {
             throw new RankError(`reduce ${operation.name} requires an initial value for an empty collection`);
         }
         return result;
+    }
+
+    /** Fold trailing input cells; axes outside those cells form traversal or independent frames. */
+    private reduceInputCells(value: RankValue, rank: number, axes: readonly number[] | undefined,
+        seed: RankValue | undefined, combine: (left: RankValue, right: RankValue) => RankValue,
+        empty: () => RankValue, captures: readonly RankValue[] = []): RankValue {
+        if (!isRankArray(value)) throw new RankError('reduce with input cell rank or axis expects an array');
+        const boundary = value.shape.length - rank;
+        if (boundary < 0) throw new RankError(`rank ${rank} exceeds tensor rank ${value.shape.length}`);
+        const traversal = axes ?? Array.from({ length: boundary }, (_, i) => i);
+        if (new Set(traversal).size !== traversal.length) throw new RankError('reduce axes must be unique');
+        if (traversal.some(axis => axis < 0 || axis >= boundary)) {
+            throw new RankError('reduce axis must be outside the trailing input cell');
+        }
+        const frameAxes = Array.from({ length: boundary }, (_, i) => i).filter(axis => !traversal.includes(axis));
+        const frames = tensorCells(value, frameAxes);
+        const fold = (index: number): RankValue => {
+            const region = frames.cellAt(index);
+            if (!isRankArray(region)) throw new RankError('reduce cell region must be an array');
+            const cells = dyadicCells(region, rank);
+            let accumulator = seed;
+            for (let i = 0; i < arraySize(cells.frameShape); i++) {
+                checkpoint('reducing input cells');
+                const cell = cells.cellAt(i);
+                accumulator = accumulator === undefined ? cell : combine(accumulator, cell);
+            }
+            return accumulator === undefined ? empty() : accumulator;
+        };
+        if (!frameAxes.length) return fold(0);
+        if (arraySize(frames.frameShape) === 0) {
+            const resultShape = seed === undefined ? rank === 0 ? [] : value.shape.slice(-rank) : isRankArray(seed) ? seed.shape : [];
+            return ownedArray([], [...frames.frameShape, ...resultShape]);
+        }
+        return registerArrayDependencies(framedArray(frames.frameShape, fold, {
+            ownFiles: this.ownFiles,
+            mismatch: () => new RankError('reduce results must have matching shapes', 'DimensionMismatch'),
+        }), [value, ...captures, ...(seed === undefined ? [] : [seed])]);
     }
 
     /** Select scalar lines; rank R scans the leading axis of each trailing rank-R cell. */

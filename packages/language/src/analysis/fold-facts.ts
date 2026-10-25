@@ -6,7 +6,7 @@ import type { ValueFacts } from './value-domain.js';
 /** Shape transfer shared by symbolic folds and named callbacks; no callback is executed. */
 export function foldShapeFacts(
     scan: boolean, form: FoldModifiers, source: ValueFacts,
-    infer: (expression: Expression) => ValueFacts, cells?: Types,
+    infer: (expression: Expression) => ValueFacts, cells?: Types, preservesCell = false,
 ): ValueFacts | undefined {
     if (source.rank === undefined) return undefined;
     const sourceRank = source.rank;
@@ -32,8 +32,24 @@ export function foldShapeFacts(
             rank: output.length, shape: output, ...(cells?.length ? { elements: cells } : {}) };
     }
     if (axes?.some(axis => axis === undefined || axis >= sourceRank) || axes && new Set(axes).size !== axes.length) return undefined;
-    const frame = axes ? shape.filter((_, index) => !axes.includes(index))
-        : rank === undefined ? [] : shape.slice(0, source.rank - rank);
+    // Positive input cells may produce an accumulator of any rank. Do not
+    // claim a scalar result without analysing the callback and seed.
+    if (rank !== undefined && rank > 0) {
+        if (!preservesCell || !cells?.length || source.types.join() !== 'array') return undefined;
+        const boundary = sourceRank - rank;
+        if (axes?.some(axis => axis === undefined || axis >= boundary)) return undefined;
+        const frame = axes ? shape.slice(0, boundary).filter((_, i) => !axes.includes(i)) : [];
+        const traversed = shape.slice(0, boundary).filter((_, i) => !axes || axes.includes(i));
+        if (form.seed && (frame.includes(0) || traversed.includes(0))) {
+            return frame.length ? { types: ['array'], rank: frame.length, shape: frame, elements: cells }
+                : { types: cells, rank: 0, shape: [] };
+        }
+        if (form.seed && (frame.includes(null) || traversed.includes(null))) return undefined;
+        const output = [...frame, ...shape.slice(boundary)];
+        return { types: ['array'], rank: output.length, shape: output, elements: cells };
+    }
+    if (!cells?.length) return undefined;
+    const frame = axes ? shape.filter((_, index) => !axes.includes(index)) : [];
     return frame.length ? { types: ['array'], rank: frame.length, shape: frame,
         ...(cells?.length ? { elements: cells } : {}) }
         : cells?.length ? { types: cells, rank: 0, shape: [] } : undefined;

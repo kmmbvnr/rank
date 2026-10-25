@@ -54,7 +54,7 @@ for R in 1 to Rings
   D = G sum axis 0 copy
 end
 Dm' = D reshape Z Fn
-Pq' = (1 - Dm) reduce * rank 1
+Pq' = (1 - Dm) reduce * axis 1
 M = Pq reshape N N
 Mv = M reverse
 Mh' = M reverse axis 1

@@ -324,7 +324,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     const value = expression(form.source), rank = form.rank && literal(form.rank);
                     if (rank !== undefined && typeof rank === 'number' && rank >= 0) {
                         requireRank(value, rank, Infinity, form.rank!, `reduce needs rank >= ${rank}`);
-                        graph.solver.equal(output.rank, value.rank, site(node, 'reduce rank'), -rank);
+                        // Callback result rank is independent of the input cell rank.
                     }
                     return output;
                 }

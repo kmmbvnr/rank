@@ -614,7 +614,7 @@ A lowercase name before `=` defines a function. An operation pipeline needs no
 named parameters:
 
 ```rank
-products = reduce * rank 1 max
+products = reduce * axis 1 max
 multiply_abs = matmul abs
 ```
 
@@ -629,7 +629,7 @@ An explicit parameter declaration starts with `fun` (or `memo`). Its `=` body
 implicitly returns one expression:
 
 ```rank
-fun V products = V reduce * rank 1 max
+fun V products = V reduce * axis 1 max
 fun A multiply_abs B = A matmul B abs
 fun A f B = (A abs) matmul B
 ```
@@ -652,11 +652,11 @@ A composition receives whole operands by default. Internal operations keep their
 own rank rules. A call-site `rank` applies to the complete composition:
 
 ```rank
-products = reduce * rank 1 max
+products = reduce * axis 1 max
 Answer = (array (H products) (V products) (D products) (U products)) max
 ```
 
-Here `rank 1` applies to `reduce *`. Each direction is passed to `products`
+Here `axis 1` applies to `reduce *`. Each direction is passed to `products`
 separately, and the final `max` compares four scalar results.
 Similarly, `total = matmul sum` sums the complete multiplication result;
 `A B total rank 2 2` instead sums each matrix-cell multiplication separately.

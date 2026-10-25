@@ -18,7 +18,7 @@ for (const size of [0, 13, 1000, 10000, 100000]) {
   if (size < 13) continue;
   const cases = [false, true].map(tensorFusion => {
     const runtime = new Interpreter(() => {}, { tensorFusion });
-    runtime.execute('use sequences\nuse numbers\nfun largest Digits\n  Windows = Digits window 13\n  Products = Windows reduce * rank 1\n  return Products max\nend');
+    runtime.execute('use sequences\nuse numbers\nfun largest Digits\n  Windows = Digits window 13\n  Products = Windows reduce * axis 1\n  return Products max\nend');
     const input = { kind: 'array', shape: [size], items };
     const call = () => runtime.variables.get('largest').call([input]);
     return { runtime, tensorFusion, call, samplesMs: [] };
@@ -35,20 +35,21 @@ for (const size of [0, 13, 1000, 10000, 100000]) {
     c.runtime.dispose();
   }
 }
-const cases = [false, true].map(tensorFusion => ({
-  runtime: new Interpreter(() => {}, { tensorFusion }), tensorFusion, samplesMs: [],
-}));
-for (const c of cases) for (let i = 0; i < 3; i++) assert.equal(c.runtime.execute(source), 23514624000n);
+const cases = [false, true].map(tensorFusion => ({ tensorFusion, samplesMs: [] }));
+const executeDemo = tensorFusion => {
+  const runtime = new Interpreter(() => {}, { tensorFusion });
+  try { return runtime.execute(source); } finally { runtime.dispose(); }
+};
+for (const c of cases) for (let i = 0; i < 3; i++) assert.equal(executeDemo(c.tensorFusion), 23514624000n);
 for (let i = 0; i < 9; i++) for (const c of i % 2 ? [...cases].reverse() : cases) {
   const start = performance.now();
-  const value = c.runtime.execute(source);
+  const value = executeDemo(c.tensorFusion);
   c.samplesMs.push(performance.now() - start);
   assert.equal(value, 23514624000n);
 }
 for (const c of cases) {
-  results.push({ fixture: 'unchanged Euler 8 with parsing', size: 1000,
+  results.push({ fixture: 'Euler 8 with parsing and a fresh runtime', size: 1000,
     tensorFusion: c.tensorFusion, samplesMs: c.samplesMs });
-  c.runtime.dispose();
 }
 console.log(JSON.stringify({ node: process.version,
   sourceHash: createHash('sha256').update(source).digest('hex'), results }, null, 2));

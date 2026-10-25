@@ -23,7 +23,7 @@ describe('modifier pipelines', () => {
         const matrix = 'M = array shape 2 2\n  1 2\n  3 4\nend\n';
         expect(run('use numbers\n' + matrix + 'M sum axis 0 sum')).toBe('10');
         expect(run('use numbers\n' + matrix + 'M sum axis 0 rank 1 sum')).toBe('10');
-        expect(run('use numbers\n' + matrix + 'M reduce + rank 1 sum')).toBe('10');
+        expect(run('use numbers\n' + matrix + 'M reduce + axis 1 sum')).toBe('10');
     });
 
     it('keeps independent modifier pipelines on both sides of comparisons', () => {

@@ -21,7 +21,7 @@ describe('mod', () => {
 
     it('preserves axis, rank and following pipeline modifiers', () => {
         const source = 'use sequences\nM = array shape 2 3\n 20 6 3\n 17 5 2\nend\n';
-        expect(run(source + 'M reduce mod rank 1')).toBe('2 0');
+        expect(run(source + 'M reduce mod axis 1')).toBe('2 0');
         expect(run(source + 'M reduce mod axis 0')).toBe('3 1 1');
         expect(run(source + 'M scan mod axis 1')).toBe('20 2 2 17 2 0');
         expect(run(source + 'M scan mod rank 1 with 43 shape')).toBe('2 4');

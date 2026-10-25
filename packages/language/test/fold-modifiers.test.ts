@@ -16,7 +16,7 @@ function facts(source: string, expression: string) {
 }
 
 it.each(['+', 'plus', 'min'])('infers ranked and axis fold shapes for %s', operation => {
-    expect(facts(matrix, `M reduce ${operation} rank 1 with 0`))
+    expect(facts(matrix, `M reduce ${operation} axis 1 with 0`))
         .toMatchObject({ types: ['array'], rank: 1, shape: [2], elements: ['integer'] });
     expect(facts(matrix, `M reduce ${operation} axis 0 with 0`))
         .toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
@@ -33,7 +33,7 @@ it.each(['+', 'plus', 'min'])('infers ranked and axis fold shapes for %s', opera
 it.each(['+', 'plus'])('preserves empty axis and empty frame shapes for %s', operation => {
     const empty = 'E = array shape 2 0 3 fill 0\n';
     expect(facts(empty, `E reduce ${operation} axis 1 with 7`)).toMatchObject({ shape: [2, 3], elements: ['integer'] });
-    expect(facts(empty, `E reduce ${operation} rank 1 with 7`)).toMatchObject({ shape: [2, 0] });
+    expect(facts(empty, `E reduce ${operation} axis 2 with 7`)).toMatchObject({ shape: [2, 0] });
     expect(facts(empty, `E scan ${operation} axis 1 with 7`)).toMatchObject({ shape: [2, 1, 3] });
     expect(facts(empty, `E scan ${operation} rank 1 with 7`)).toMatchObject({ shape: [2, 0, 4] });
 });
@@ -48,6 +48,21 @@ it('infers boolean and mixed numeric cells without narrowing a one-element fold'
 });
 
 it('does not claim numeric cells for a type-changing callback', () => {
-    expect(facts('fun A mystery B\n return B text\nend\n' + matrix, 'M reduce mystery rank 1')?.elements)
+    expect(facts('fun A mystery B\n return B text\nend\n' + matrix, 'M reduce mystery axis 1')?.elements)
         .toBeUndefined();
+});
+
+it('infers symbolic input-cell shapes without treating callback cells as scalars', () => {
+    expect(facts(matrix, 'M reduce + rank 1 axis 0'))
+        .toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
+    expect(facts('T = array shape 2 3 4 fill 1\n', 'T reduce + rank 1 axis 1'))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [2, 4], elements: ['integer'] });
+    expect(facts(matrix, 'M reduce + rank 0')).toMatchObject({ rank: 0, shape: [] });
+});
+
+it('uses the scalar seed shape for empty input-cell folds and frames', () => {
+    expect(facts('E = array shape 0 3 fill 0\n', 'E reduce + rank 1 with 7'))
+        .toMatchObject({ rank: 0, shape: [] });
+    expect(facts('E = array shape 0 2 3 fill 0\n', 'E reduce + rank 1 axis 1 with 7'))
+        .toMatchObject({ rank: 1, shape: [0] });
 });

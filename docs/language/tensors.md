@@ -151,14 +151,15 @@ callbacks receive individual elements rather than entire slices.
 
 ## Axis reductions
 
-`reduce <op|fn>` also accepts `axis` with one or more distinct axes and an
-optional seed, for example `M reduce add axis 0 with 0`. It folds the selected
-elements in row-major order, preserving the other axes. The order of the axis
-list does not change the fold order. `rank R` instead reduces each trailing
-rank-`R` cell, for example `M reduce add rank 1 with 0`. `rank` and `axis` are
-alternatives and precede `with`. Empty cells return the seed when supplied;
-without one, symbolic identities still apply, while named folds require a seed.
-An empty frame returns an empty result without invoking the callback.
+`reduce <op|fn> rank R axis N` folds trailing rank-R input cells along
+source axis N. The axis must be outside the input cell; other axes form
+independent folds. Rank defaults to 0. Without `axis`, all axes outside the
+cell are folded in row-major order. Multiple distinct axes are supported.
+For a matrix, `M reduce add rank 1 axis 0` combines whole rows, while
+`M reduce add axis 1` combines scalars independently within each row.
+`with Seed` remains optional and follows the modifiers. Without it, the first
+cell starts the accumulator. See [Reduce](sequences-arrays.md#reduce) for empty
+inputs and result assembly.
 
 `sum`, `mean`, `std`, `min`, `max`, `all` and `any` without modifiers reduce
 every element. `axis` reduces only the named axes and preserves the remaining
@@ -370,13 +371,12 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M window WindowShape
-Scores = Blocks reduce + rank 2 with 0
+Scores = Blocks reduce + axis 2 3 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
 form the leading window-position frame and the requested window axes are
-appended as trailing cells. This makes `rank 2` apply directly to each `2 3`
-block.
+appended as trailing cells. The reduction selects axes 2 and 3 to sum each `2 3` block.
 
 Selected axes follow the operation:
 

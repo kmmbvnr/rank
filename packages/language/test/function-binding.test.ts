@@ -14,7 +14,7 @@ function parse(source: string): Program {
 }
 describe('function binding analysis', () => {
     it('groups complete entry stages and records all supported arities', () => {
-        const program = parse('use numbers\nproducts = reduce * rank 1 max\npositive_max = max abs');
+        const program = parse('use numbers\nproducts = reduce * axis 1 max\npositive_max = max abs');
         const plans = program.statements.filter(isFunctionBindingStatement).map(functionBindingPlan);
         expect(expressionDiagnostics(program)).toEqual([]);
         expect(plans.map(plan => plan.arities)).toEqual([[1], [1, 2]]);

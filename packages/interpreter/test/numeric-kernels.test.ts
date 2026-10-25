@@ -154,7 +154,7 @@ end
         expect(runtime.execute('(array 2 3 4) reduce * with 10')).toBe(240n);
         expect(runtime.execute('(array 2 3 4) reduce - with 20')).toBe(11n);
         expect(runtime.execute('(array shape 0 fill 0) reduce - with 10')).toBe(10n);
-        expect(items(runtime.execute('M = array shape 2 3\n  1 2 3\n  4 5 6\nend\nM reduce + rank 1 with 10')!))
+        expect(items(runtime.execute('M = array shape 2 3\n  1 2 3\n  4 5 6\nend\nM reduce + axis 1 with 10')!))
             .toEqual([16n, 25n]);
         runtime.dispose();
     });
@@ -162,10 +162,10 @@ end
     it('reduces tensor cells by rank and keeps zero-sized frames', () => {
         const runtime = new Interpreter();
         runtime.variables.set('A', vector([1n, 2n, 3n, 4n, 5n, 6n], [2, 3]));
-        expect(items(runtime.execute('A reduce + rank 1')!)).toEqual([6n, 15n]);
-        expect(items(runtime.execute('A reduce + rank 0')!)).toEqual([1n, 2n, 3n, 4n, 5n, 6n]);
+        expect(items(runtime.execute('A reduce + axis 1')!)).toEqual([6n, 15n]);
+        expect(runtime.execute('A reduce + rank 0')).toBe(21n);
         runtime.variables.set('Empty', vector([], [2, 0]));
-        expect(items(runtime.execute('Empty reduce + rank 1')!)).toEqual([0n, 0n]);
+        expect(items(runtime.execute('Empty reduce + axis 1')!)).toEqual([0n, 0n]);
         runtime.dispose();
     });
 

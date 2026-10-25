@@ -2494,7 +2494,7 @@ A lowercase name before `=` defines a function. An operation pipeline needs no
 named parameters:
 
 ```rank
-products = reduce * rank 1 max
+products = reduce * axis 1 max
 multiply_abs = matmul abs
 ```
 
@@ -2509,7 +2509,7 @@ An explicit parameter declaration starts with `fun` (or `memo`). Its `=` body
 implicitly returns one expression:
 
 ```rank
-fun V products = V reduce * rank 1 max
+fun V products = V reduce * axis 1 max
 fun A multiply_abs B = A matmul B abs
 fun A f B = (A abs) matmul B
 ```
@@ -2532,11 +2532,11 @@ A composition receives whole operands by default. Internal operations keep their
 own rank rules. A call-site `rank` applies to the complete composition:
 
 ```rank
-products = reduce * rank 1 max
+products = reduce * axis 1 max
 Answer = (array (H products) (V products) (D products) (U products)) max
 ```
 
-Here `rank 1` applies to `reduce *`. Each direction is passed to `products`
+Here `axis 1` applies to `reduce *`. Each direction is passed to `products`
 separately, and the final `max` compares four scalar results.
 Similarly, `total = matmul sum` sums the complete multiplication result;
 `A B total rank 2 2` instead sums each matrix-cell multiplication separately.
@@ -4187,63 +4187,59 @@ six comparison operators above; general binary function rank remains deferred.
 
 ## Reduce
 
-A reduction collapses values:
+`reduce` is a left fold. The combining function receives the accumulator and
+next input cell, and returns the next accumulator:
 
 ```rank
+Total = A reduce +
 Total = A reduce + with 0
-Product = A reduce *
+Best = M reduce pick rank 1 axis 0
 ```
 
-Without an explicit rank, reduction consumes the complete finite value in
-row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
-to one atom while preserving its leading frame:
+`rank R` selects trailing rank-`R` input cells. The default is `rank 0`, so
+ordinary reduction consumes individual elements. `axis` selects one or more
+distinct source axes outside those cells. Remaining axes form independent
+folds. Without `axis`, all axes outside the input cell are folded in row-major
+order. The order of an explicit axis list does not change traversal order.
+`rank` and `axis` may appear together, in either order, before optional `with`.
+Ranks and axes are nonnegative integer literals.
 
 ```rank
-RowTotals = M reduce + rank 1 with 0
-BlockProducts = Blocks reduce * rank 2
+RowTotals = M reduce + axis 1
+ColumnTotals = M reduce + axis 0
+CombinedRow = M reduce add rank 1 axis 0
+BatchRows = T reduce add rank 1 axis 1
+
+fun Acc add Cell = Acc + Cell
 ```
 
-`with Seed` supplies an explicit initial accumulator. The seed is combined with
-the first value, reused independently for every `reduce rank R` cell, and
-returned unchanged for an empty cell. Reduction is a left fold. Without
-`with`, a scalar and a rank-0 cell reduce to themselves.
-The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `mod`, `and`,
-`or` and `xor`.
-Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
-`false` and `false` respectively. Other operations reject an empty cell. A
-reduction of an unbounded sequence is an error.
+For a matrix, `rank 1 axis 0` passes whole rows to the function. For shape
+`Batch Rows Columns`, `rank 1 axis 1` folds rows independently in each batch.
+The result stacks each independent fold's result beneath the remaining frame;
+those results must have matching shapes. The accumulator can have a different
+type or rank from the input cells. A rank equal to the source rank selects the
+whole array as one input cell.
 
-A binary user function or named operation can also combine the values:
+**`with Seed` is optional.** Without it, the first input cell initializes the
+accumulator. With it, the seed is combined with the first cell. The seed
+expression is evaluated once and reused independently for each fold. An empty
+fold returns the seed unchanged. Without a seed, symbolic `+`, `*`, `and`,
+`or` and `xor` use identities `0`, `1`, `true`, `false` and `false`, respectively,
+filled to the input cell shape. Other empty folds require a seed. An empty
+frame never invokes the callback; its result uses the seed shape when supplied,
+otherwise the input cell shape.
 
-```rank
-Total = A reduce add with 0
-Smallest = A reduce min
+The symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `mod`, `and`, `or`
+and `xor`. Named binary operations and user functions accept the same modifiers.
+Callbacks use their normal intrinsic rank rules, as in a direct call; those
+rules do not choose the reduction input cell rank.
+Positive input cell rank requires an array. Scalar inputs and finite sequences
+support rank-0 reduction; an unbounded sequence cannot be reduced.
 
-fun Acc add Value
-  return Acc + Value
-end
-```
-
-The function receives the accumulator followed by the next source element.
-Without `with`, the first element initializes the accumulator; an empty source
-requires an explicit seed. The accumulator may have a different type from the
-source elements. Named reductions accept the same `rank`, `axis` and `with` modifiers as symbolic
-reductions:
-
-```rank
-RowTotals = M reduce add rank 1 with 0
-ColumnMinima = M reduce min axis 0
-Total = Blocks reduce + axis 0 2 with 0
-```
-
-`axis` selects one or more distinct axes to reduce, preserving the remaining
-axes in their original order. Selected elements are folded in row-major order,
-independently of the order of the axis list. `rank R` selects every trailing
-rank-`R` cell; `rank 0` combines each item with the seed, or keeps it without a
-seed. Ranks and axes are nonnegative integer literals. Use either `rank` or
-`axis`, followed by optional `with Seed`; combining both is an error. A seed
-expression is evaluated once and reused for each cell. Empty frames produce
-empty results without invoking the combining operation.
+This replaces the earlier meaning of `reduce rank R`, which reduced atoms
+inside each rank-R region. To sum each matrix row, use `reduce + axis 1`.
+To reduce each trailing block in a rank-4 tensor, use `reduce + axis 2 3`.
+`scan` retains its separately documented rank and axis contract.
 
 Named reductions use the same data-first style:
 
@@ -6432,13 +6428,12 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M window WindowShape
-Scores = Blocks reduce + rank 2 with 0
+Scores = Blocks reduce + axis 2 3 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes
 form the leading window-position frame and the requested window axes are
-appended as trailing cells. This makes `rank 2` apply directly to each `2 3`
-block.
+appended as trailing cells. The reduction selects axes 2 and 3 to sum each `2 3` block.
 
 Selected axes follow the operation:
 
@@ -8433,7 +8428,7 @@ option Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits window Width
-Products = Windows reduce * rank 1
+Products = Windows reduce * axis 1
 Answer = Products max
 ```
 
@@ -8504,7 +8499,7 @@ finite plan. The default limit produces `142913828922`; limit 10 produces `17`.
 rem Project Euler 11
 rem https://projecteuler.net/problem=11
 
-products = reduce * rank 1 max
+products = reduce * axis 2 max
 H = Grid window 4 axis 1 products
 V = Grid window 4 axis 0 products
 D = Grid window 4 4 diag products
@@ -8639,26 +8634,43 @@ is `21124`.
 ## 18. Maximum path sum I
 
 ```rank
-rem Project Euler 18
+rem Maximum Path Sum I
 rem https://projecteuler.net/problem=18
+rem Find the largest top-to-bottom path
+rem sum through a number triangle
 
-Work = Triangle copy
-for Row in (Rows - 2) to 0 by -1
-  for Column in 0 to Row
-    Parent = Row * (Row + 1) // 2 + Column
-    Left = Parent + Row + 1
-    Right = Left + 1
-    LeftValue = Work Left
-    RightValue = Work Right
-    BestChild = LeftValue max RightValue
-    Work Parent += BestChild
-  end
+use io
+use sequences
+
+Triangle = array shape 15 15
+  75  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+  95 64  0  0  0  0  0  0  0  0  0  0  0  0  0
+  17 47 82  0  0  0  0  0  0  0  0  0  0  0  0
+  18 35 87 10  0  0  0  0  0  0  0  0  0  0  0
+  20  4 82 47 65  0  0  0  0  0  0  0  0  0  0
+  19  1 23 75  3 34  0  0  0  0  0  0  0  0  0
+  88  2 77 73  7 63 67  0  0  0  0  0  0  0  0
+  99 65  4 28  6 16 70 92  0  0  0  0  0  0  0
+  41 41 26 56 83 40 80 70 33  0  0  0  0  0  0
+  41 48 72 33 47 32 37 16 94 29  0  0  0  0  0
+  53 71 44 65 25 43 91 52 97 51 14  0  0  0  0
+  70 11 33 28 77 73 17 78 39 68 17 57  0  0  0
+  91 71 52 38 17 14 91 43 58 50 27 29 48  0  0
+  63 66  4 68 89 53 67 30 73 16 69 87 40 31  0
+   4 62 98 27 23  9 70 98 73 93 38 53 60  4 23
 end
+
+fun Low pick Up = Up + (Low max (concat (Low drop 1) (array 0)))
+Rev = Triangle reverse axis 0
+Best = Rev reduce pick rank 1 axis 0
+Answer = Best 0
+Answer print
 ```
 
-The triangular input is stored densely in row-major triangular order. A
-writable `copy` is folded upward in place, so the algorithm also scales to the
-larger form of the problem. The first cell becomes `1074`.
+The triangle is padded to a rectangular matrix. Reverse axis 0 to visit rows
+from bottom to top, then fold whole rows with `rank 1 axis 0`. Each step adds
+the upper row to the larger of its two possible children. The first element
+of the final row is `1074`.
 
 ## 19. Counting Sundays
 
@@ -9779,7 +9791,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits window Width
-Products = Windows reduce * rank 1
+Products = Windows reduce * axis 1
 Answer = Products max
 ```
 
@@ -9884,7 +9896,7 @@ to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits window Width
-Products = Windows reduce * rank 1
+Products = Windows reduce * axis 1
 Answer = Products max
 ```
 

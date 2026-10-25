@@ -202,7 +202,7 @@ end`);
 
 describe.each([false, true])('reducing empty producer cells (compilation=%s)', compilation => {
     it.each([
-        ['Rows reduce + rank 1 with 0', [2]], ['Rows reduce + with 0', null],
+        ['Rows reduce + axis 1 with 0', [2]], ['Rows reduce + with 0', null],
         ['Rows reduce max with 0', null],
         ['Rows sum axis 1', [2]], ['Rows sum rank 1', [2]],
         ['Rows (array 0) outer width', [2, 1]],
@@ -227,7 +227,7 @@ Rows' = (array 1 2) empty rank 0`);
         } finally { runtime.dispose(); }
     });
 
-    it.each(['Rows max axis 1', 'Rows mean axis 1', 'Rows reduce - rank 1'])('%s stops at the first invalid empty cell after producing it', expression => {
+    it.each(['Rows max axis 1', 'Rows mean axis 1', 'Rows reduce - axis 1'])('%s stops at the first invalid empty cell after producing it', expression => {
         const output: string[] = [];
         const runtime = new Interpreter(line => output.push(line), { compilation });
         try {

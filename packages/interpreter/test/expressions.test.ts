@@ -360,7 +360,7 @@ Result`)).toBe('itb');
 
             'use sequences',
             'Windows = (1 to 4) window 3',
-            'Windows reduce * rank 1',
+            'Windows reduce * axis 1',
         ].join('\n'))).toBe('6 24');
         expect(run('use sequences\n(array 1 2) window 3')).toBe('');
         expect(run('use sequences\n(array 1 2 3) window 2 shape')).toBe('2 2');
@@ -410,12 +410,12 @@ Result`)).toBe('itb');
             ...source,
             'Size = array 2 2',
             'Windows = M window Size',
-            'Windows reduce + rank 2',
+            'Windows reduce + axis 2 3',
         ].join('\n'))).toBe('14 18 22 30 34 38');
         expect(run([
             ...source,
             'Windows = M window 3 axis 1',
-            'Windows reduce + rank 1',
+            'Windows reduce + axis 2',
         ].join('\n'))).toBe('6 9 18 21 30 33');
         expect(() => run([
             ...source,

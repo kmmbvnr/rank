@@ -165,6 +165,8 @@ export class Interpreter {
             (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
             name => this.resolve(name), this.builtins.functions, () => this.options.tensorFusion !== false,
             fn => this.functions.scalarCallback(fn),
+            (fn, args) => runExecution(this.rankApplication.applyIntrinsicRank(fn, args)),
+            value => this.resources.ownFiles(value),
         );
         this.rankApplication = new RankApplication(
             (fn, args) => this.functions.invoke(fn, args),

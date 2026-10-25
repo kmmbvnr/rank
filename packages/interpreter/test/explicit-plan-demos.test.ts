@@ -1141,7 +1141,7 @@ end`);
         const diagnostics = new RuntimeDiagnostics();
         try {
             runtime.execute('use sequences');
-            runtime.declareFunctionSource("fun Windows' products\n  return Windows reduce * rank 1 max\nend");
+            runtime.declareFunctionSource("fun Windows' products\n  return Windows reduce * axis 1 max\nend");
             const fn = runtime.variables.get('products')!;
             if (!isNativeFunction(fn)) throw new Error('expected products function');
             const input: RankArray = { kind: 'array', items: [1n, 2n, 3n, 4n], shape: [4] };

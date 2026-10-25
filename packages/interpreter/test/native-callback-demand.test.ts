@@ -13,7 +13,7 @@ const array = (value: RankValue): RankArray => {
 };
 const operators = (ownFiles: (value: RankValue) => void = () => {}) => new Operators(ownFiles, () => undefined);
 const reductions = (fn: NativeFunction) => new ReductionEvaluator(() => { throw Error('unexpected operator'); },
-    () => fn, new Map(), false, () => undefined);
+    () => fn, new Map(), false, () => undefined, (operation, args) => operation.call(args), () => {});
 
 describe('native callback result demand', () => {
     it('repeats named outer callbacks for each complete observation and retry', () => {

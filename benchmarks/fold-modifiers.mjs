@@ -11,13 +11,13 @@ runtime.execute('use sequences\nT = ((1 to 20000) reshape 1000 20) * 1.5\nfun A 
 
 const cases = [
     ['reduce-symbol', 'T reduce +'],
-    ['reduce-rank-symbol', 'T reduce + rank 1'],
+    ['reduce-row-symbol', 'T reduce + axis 1'],
     ['reduce-function', 'T reduce plus'],
     ['scan-axis-symbol', 'T scan + axis 0'],
     ['scan-axis-function', 'T scan plus axis 0'],
 ];
 if (!legacy) cases.push(
-    ['reduce-rank-function', 'T reduce plus rank 1'],
+    ['reduce-row-function', 'T reduce plus axis 1'],
     ['reduce-axis-symbol', 'T reduce + axis 1'],
     ['reduce-axis-function', 'T reduce plus axis 1'],
     ['scan-axis-seed-symbol', 'T scan + axis 0 with 0.0'],
@@ -35,7 +35,7 @@ for (let row = 0; row < 1000; row++) for (let column = 1; column <= 20; column++
 }
 for (const [name, expression] of cases) {
     const scan = name.startsWith('scan');
-    const ranked = name.includes('rank') || name.startsWith('reduce-axis');
+    const ranked = name.includes('row') || name.startsWith('reduce-axis');
     const seeded = name.includes('seed');
     const expected = scan ? [[1000 + Number(seeded), 20], 20000 + Number(seeded) * 20, prefixes]
         : ranked ? [[1000], 1000, total] : [[], 1, total];

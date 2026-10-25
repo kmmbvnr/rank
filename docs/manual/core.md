@@ -1418,10 +1418,20 @@ operator.
 ```text
 Values reduce Operator
 Values reduce Operator with Start
+Matrix reduce Function rank 1 axis 0
 ```
 
-Works left to right: ((2 + 3) + 4). With
-with, the combining begins from Start.
+Works left to right: ((2 + 3) + 4).
+`with Start` is optional. Without it,
+the first input cell starts the fold.
+
+Rank selects trailing input cells;
+rank 0, the default, selects scalars.
+Axis selects traversal axes outside
+those cells. Other axes form independent
+folds. Without axis, fold all cells in
+row-major order. `rank 1 axis 0` passes
+whole matrix rows to the function.
 
 ### Notes
 

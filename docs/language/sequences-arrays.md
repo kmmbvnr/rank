@@ -1660,63 +1660,59 @@ can be clearer than constructing an extra state solely for the predicate.
 
 ## Reduce
 
-A reduction collapses values:
+`reduce` is a left fold. The combining function receives the accumulator and
+next input cell, and returns the next accumulator:
 
 ```rank
+Total = A reduce +
 Total = A reduce + with 0
-Product = A reduce *
+Best = M reduce pick rank 1 axis 0
 ```
 
-Without an explicit rank, reduction consumes the complete finite value in
-row-major order. `reduce rank R` instead reduces every trailing rank-`R` cell
-to one atom while preserving its leading frame:
+`rank R` selects trailing rank-`R` input cells. The default is `rank 0`, so
+ordinary reduction consumes individual elements. `axis` selects one or more
+distinct source axes outside those cells. Remaining axes form independent
+folds. Without `axis`, all axes outside the input cell are folded in row-major
+order. The order of an explicit axis list does not change traversal order.
+`rank` and `axis` may appear together, in either order, before optional `with`.
+Ranks and axes are nonnegative integer literals.
 
 ```rank
-RowTotals = M reduce + rank 1 with 0
-BlockProducts = Blocks reduce * rank 2
+RowTotals = M reduce + axis 1
+ColumnTotals = M reduce + axis 0
+CombinedRow = M reduce add rank 1 axis 0
+BatchRows = T reduce add rank 1 axis 1
+
+fun Acc add Cell = Acc + Cell
 ```
 
-`with Seed` supplies an explicit initial accumulator. The seed is combined with
-the first value, reused independently for every `reduce rank R` cell, and
-returned unchanged for an empty cell. Reduction is a left fold. Without
-`with`, a scalar and a rank-0 cell reduce to themselves.
-The current symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `mod`, `and`,
-`or` and `xor`.
-Empty `+`, `*`, `and`, `or` and `xor` reductions produce `0`, `1`, `true`,
-`false` and `false` respectively. Other operations reject an empty cell. A
-reduction of an unbounded sequence is an error.
+For a matrix, `rank 1 axis 0` passes whole rows to the function. For shape
+`Batch Rows Columns`, `rank 1 axis 1` folds rows independently in each batch.
+The result stacks each independent fold's result beneath the remaining frame;
+those results must have matching shapes. The accumulator can have a different
+type or rank from the input cells. A rank equal to the source rank selects the
+whole array as one input cell.
 
-A binary user function or named operation can also combine the values:
+**`with Seed` is optional.** Without it, the first input cell initializes the
+accumulator. With it, the seed is combined with the first cell. The seed
+expression is evaluated once and reused independently for each fold. An empty
+fold returns the seed unchanged. Without a seed, symbolic `+`, `*`, `and`,
+`or` and `xor` use identities `0`, `1`, `true`, `false` and `false`, respectively,
+filled to the input cell shape. Other empty folds require a seed. An empty
+frame never invokes the callback; its result uses the seed shape when supplied,
+otherwise the input cell shape.
 
-```rank
-Total = A reduce add with 0
-Smallest = A reduce min
+The symbolic reducers are `+`, `-`, `*`, `**`, `/`, `//`, `mod`, `and`, `or`
+and `xor`. Named binary operations and user functions accept the same modifiers.
+Callbacks use their normal intrinsic rank rules, as in a direct call; those
+rules do not choose the reduction input cell rank.
+Positive input cell rank requires an array. Scalar inputs and finite sequences
+support rank-0 reduction; an unbounded sequence cannot be reduced.
 
-fun Acc add Value
-  return Acc + Value
-end
-```
-
-The function receives the accumulator followed by the next source element.
-Without `with`, the first element initializes the accumulator; an empty source
-requires an explicit seed. The accumulator may have a different type from the
-source elements. Named reductions accept the same `rank`, `axis` and `with` modifiers as symbolic
-reductions:
-
-```rank
-RowTotals = M reduce add rank 1 with 0
-ColumnMinima = M reduce min axis 0
-Total = Blocks reduce + axis 0 2 with 0
-```
-
-`axis` selects one or more distinct axes to reduce, preserving the remaining
-axes in their original order. Selected elements are folded in row-major order,
-independently of the order of the axis list. `rank R` selects every trailing
-rank-`R` cell; `rank 0` combines each item with the seed, or keeps it without a
-seed. Ranks and axes are nonnegative integer literals. Use either `rank` or
-`axis`, followed by optional `with Seed`; combining both is an error. A seed
-expression is evaluated once and reused for each cell. Empty frames produce
-empty results without invoking the combining operation.
+This replaces the earlier meaning of `reduce rank R`, which reduced atoms
+inside each rank-R region. To sum each matrix row, use `reduce + axis 1`.
+To reduce each trailing block in a rank-4 tensor, use `reduce + axis 2 3`.
+`scan` retains its separately documented rank and axis contract.
 
 Named reductions use the same data-first style:
 

@@ -15,7 +15,7 @@ Euler 8 stages:
 
 ```rank
 Windows' = Digits window Width
-Products' = Windows reduce * rank 1
+Products' = Windows reduce * axis 1
 Answer = Products max
 ```
 

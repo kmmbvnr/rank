@@ -40,7 +40,7 @@ for Free in 1 to Size - 1
   Cells = Rows * Count
   Kept' = Hit choose Cands 0
   Flat' = Kept reshape 10 Cells
-  Sums' = Flat reduce + rank 1
+  Sums' = Flat reduce + axis 1
   Seen' = Hit reshape 10 Cells
   Has = Seen any rank 1
   Fresh' = Has and not Found

@@ -22,7 +22,7 @@ fun Steps empty_cells
   Move = 8 transition_matrix
   Power = Move matrix_power Steps
   Absence' = 1.0 - (Power transpose)
-  Empty' = Absence reduce * rank 1
+  Empty' = Absence reduce * axis 1
   return Empty sum
 end
 

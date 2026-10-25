@@ -51,7 +51,7 @@ Grid = array shape 20 20
 end
 
 rem Greatest product in each direction.
-products = reduce * rank 1 max
+products = reduce * axis 2 max
 H = Grid window 4 axis 1 products
 V = Grid window 4 axis 0 products
 D = Grid window 4 4 diag products

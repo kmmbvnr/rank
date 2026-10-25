@@ -55,7 +55,7 @@ vertical pipelines (`|>` or fluent dot-chaining):
 rem Preferred Rank style:
 Digits = Number integer rank 0
 Windows = Digits window Width
-Products = Windows reduce * rank 1
+Products = Windows reduce * axis 1
 Answer = Products max
 ```
 
@@ -160,7 +160,7 @@ to replace nested index-manipulation loops with rank operations:
 
 ```rank
 Windows = Digits window Width
-Products = Windows reduce * rank 1
+Products = Windows reduce * axis 1
 Answer = Products max
 ```
 
