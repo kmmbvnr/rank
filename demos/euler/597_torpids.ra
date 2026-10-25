@@ -9,6 +9,13 @@ use cli
 option N integer = 13
 option L integer = 1800
 
+rem M is the course length in 40 m units.
+rem K counts boats from rear to front.
+fun N M K w_k
+  DistanceSum = N * M - N * (N - 1) // 2
+  return (M - K + 1) * 1.0 / DistanceSum
+end
+
 rem With m = L / 40 and X uniform, the
 rem boat with the largest X^(1/(m-k+1))
 rem settles first, with weight
@@ -27,10 +34,9 @@ for Nb in 2 to N
   Pr = 1 - 2 * ((Nb - 1) mod 2)
   Sg Nb (Nb - 1) = Pr * Bd
   for Mx in Nb to Mm
-    Rw = Nb * Mx - Nb * (Nb - 1) // 2
     Su = 0.0
     for K in 1 to Nb
-      Wt = (Mx - K + 1) * 1.0 / Rw
+      Wt = Nb Mx K w_k
       Sa = Sg K (K - 1)
       Sb = Sg (Nb - K) (Mx - K)
       Su += Wt * Sa * Sb
