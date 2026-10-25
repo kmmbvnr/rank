@@ -4001,20 +4001,6 @@ constructs the algorithmic collection described in
 Parentheses remain available to make grouping explicit.
 
 
-## Each
-
-`each` applies a scalar function to every atom while preserving shape:
-
-```rank
-Numbers = Text integer each
-Flags = Values odd each
-```
-
-`each` is reserved as the friendly spelling of rank-0 application. Whether it
-is an exact alias for `rank 0` in every value model, especially for text,
-tables and nested values, remains open. The examples above are design sketches
-until that equivalence is settled.
-
 ## Rank
 
 General cell-wise application follows J-like trailing-cell semantics:

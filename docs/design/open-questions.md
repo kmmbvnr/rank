@@ -74,12 +74,6 @@ This is not current syntax. The design still needs to settle value binding,
 guards, destructuring, a default case and whether the interpreter checks that
 all members of an inferred union are covered.
 
-## `each` and `rank 0`
-
-`each` is reserved as the readable spelling of rank-0 application. It is not
-yet settled whether it is an exact alias for `rank 0` for text, tables and
-nested values, or whether those value models need a distinct rule.
-
 ## Argument expansion
 
 Vararg declarations currently use `*`, but the data-first call-site spelling
