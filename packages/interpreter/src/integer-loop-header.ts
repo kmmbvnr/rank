@@ -1,10 +1,12 @@
 import { loopTraversal } from './loop-traversal.js';
 import { type IterationBinding, type LoopContinuation } from './integer-loop-plan.js';
-import { isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
+import { forAxes, isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
 import { RankDeque } from './containers.js';
 import { orderedSource } from './ordered-source.js';
-import { isRankSet, type RankArray } from './value.js';
+import { isRankArray, isRankSet, type RankArray } from './value.js';
 
+import { integerLiteral } from './eval/application.js';
+import { resolveAxes, safeDimension } from './tensor-index.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 import type { LoopExpressions } from './integer-loop-expressions.js';
 
@@ -15,7 +17,60 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
     } = state;
     const {container, slot, knownType, emit} = expressions;
 
-    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation): { setup: string; header: string; bindings: string } | undefined {
+    // Full-axis scalar walks use the same guarded numeric buffers as vector
+    // iteration. Partial-axis cells retain the lazy general traversal.
+    function scalarAxisParts(iteration: IterationBinding, location: number) {
+        const spec = forAxes(iteration.iterable);
+        if (!spec || !numberMode || !host.arrayIteration || !isNameExpression(spec.source)) return undefined;
+        const source = spec.source.name;
+        const value = host.read(source);
+        if (value === undefined || !isRankArray(value) || source.includes('.') || assigned.has(source)) return undefined;
+        let axes: readonly number[];
+        try {
+            axes = resolveAxes(spec.axes.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')), value.shape.length);
+        } catch { return undefined; }
+        if (!axes.length || axes.length !== value.shape.length || iteration.names.length > axes.length + 1
+            || iteration.names.some(name => name.includes('.'))
+            || new Set(iteration.names.filter(name => name !== '#')).size !== iteration.names.filter(name => name !== '#').length) return undefined;
+        const old = arrays.get(source);
+        if (old && (old.rank !== value.shape.length || old.type !== 'integer')) return undefined;
+        const info = old ?? { slot: slot(source), rank: value.shape.length, type: 'integer' as const };
+        arrays.set(source, info);
+        arrayInputs.add(source);
+        const vector = vectorIterations.length;
+        vectorIterations.push({ slot: info.slot, binding: iteration });
+        const indexed = iteration.names.slice(1).some(name => name !== '#');
+        const offset = indexed ? value.shape.slice(1).reduce((offset, _, axis) =>
+            `(${offset} * size${info.slot}_${axis + 1} + coordinate${axis + 1})`, 'coordinate0') : 'position';
+        let bindings = '', declarations = '';
+        for (const [index, name] of iteration.names.entries()) {
+            if (name === '#') continue;
+            if (localTypes.has(name) && localTypes.get(name) !== 'integer') return undefined;
+            localTypes.set(name, 'integer');
+            const target = slot(name);
+            const bound = index === 0 ? `iterable[${offset}]` : `coordinate${index - 1}`;
+            declarations += dirty(target);
+            bindings += `r${target} = ${bound};\n`;
+            binders.push(host.writer(name));
+            binderNames.push(name);
+            assigned.add(name);
+            written.add(name);
+        }
+        if (declarations) bindings = `if (!axisBound${vector}) { ${declarations} axisBound${vector} = true; }\n` + bindings;
+        const breakLabel = indexed ? `axisWalk${state.serial++}` : undefined;
+        const header = indexed ? `${breakLabel}: ` + value.shape.map((_, axis) => {
+            const size = value.shape.length === 1 ? 'iterable.length' : `size${info.slot}_${axis}`;
+            return `for (let coordinate${axis} = 0; coordinate${axis} < ${size}; coordinate${axis}++)`;
+        }).join(' ') : 'for (; position < iterable.length; position++)';
+        return {
+            setup: `const iterable = cells[${info.slot}]; ${indexed ? '' : 'let position = 0;'}
+                ${declarations ? `let axisBound${vector} = false;` : ''} entered[${vector}] = true;`,
+            header: `${header} { location = ${location}; checkpoint();`,
+            bindings, breakLabel,
+        };
+    }
+
+    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation): { setup: string; header: string; bindings: string; breakLabel?: string } | undefined {
         return compileLoopParts(node, iteration, location, continuation) ?? reject(node, 'loop-header');
     }
     function compileLoopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation) {
@@ -25,6 +80,7 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
+            if (forAxes(iteration.iterable)) return continuation ? undefined : scalarAxisParts(iteration, location);
             const traversal = loopTraversal(iteration);
             if (!traversal) return undefined;
             let { source: range, indexed, slice, reverse } = traversal;

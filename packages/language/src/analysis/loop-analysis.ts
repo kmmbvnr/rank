@@ -9,7 +9,8 @@ import {
     isTryStatement, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '../generated/ast.js';
-import { flattenApplication } from '../expressions.js';
+import { forAxes, flattenApplication } from '../expressions.js';
+import { normalizeAxis } from '../axis-index.js';
 import { type Types } from './types.js';
 import { contractRank, invalidate, loopBinding, mergeEnvironments, settledShape } from './control-flow.js';
 import { functionEffects } from './function-effects.js';
@@ -91,21 +92,57 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
             const value = context.complete(env.get(names[0])!, env);
             env.set(names[0], value);
         }
-        if (names[1] && names[1] !== '#') env.set(names[1], {
+        for (const name of names.slice(1)) if (name !== '#') env.set(name, {
             types: ['integer'], acceptedTypes: ['integer'], rank: 0, shape: [],
         });
+    }
+
+    // Present selected coordinates as the leading iteration frame to the existing
+    // loop analysis; the remaining source axes describe each bound value.
+    function iterationCollection(iterable: Expression, env: Map<string, ValueFacts>): ValueFacts {
+        const spec = forAxes(iterable);
+        if (!spec) return inspect(iterable, env);
+        const collection = inspect(spec.source, env);
+        if (collection.types.length && collection.types.join() !== 'array') {
+            diagnostics.push({ node: iterable, kind: 'TypeError', message: 'for axis expects an array' });
+            return UNKNOWN_VALUE;
+        }
+        const rank = collection.rank;
+        if (rank === undefined) return UNKNOWN_VALUE;
+        const axes: number[] = [];
+        for (const expression of spec.axes) {
+            const literal = expressionFacts(expression, name => env.get(name)).integer;
+            if (literal === undefined) return UNKNOWN_VALUE;
+            const axis = normalizeAxis(Number(literal), rank);
+            if (!Number.isSafeInteger(Number(literal)) || axis < 0 || axis >= rank) {
+                diagnostics.push({ node: expression, kind: 'DimensionMismatch', message: `axis ${literal} is invalid for rank ${rank}` });
+                return UNKNOWN_VALUE;
+            }
+            if (axes.includes(axis)) {
+                diagnostics.push({ node: expression, kind: 'DimensionMismatch', message: 'axis numbers must be unique' });
+                return UNKNOWN_VALUE;
+            }
+            axes.push(axis);
+        }
+        const shape = collection.shape ?? Array(rank).fill(null);
+        const count = axes.some(axis => shape[axis] === 0) ? 0
+            : axes.every(axis => shape[axis] !== null) ? axes.reduce((n, axis) => n * shape[axis]!, 1) : null;
+        return { ...collection, rank: rank - axes.length + 1,
+            shape: [count, ...shape.filter((_, axis) => !axes.includes(axis))],
+            dims: undefined, positions: undefined, positionFacts: undefined, integers: undefined };
     }
 
     function loop(statement: ForStatement, env: Map<string, ValueFacts>): void {
         const condition = statement.condition;
         if (condition && isBooleanLiteral(condition) && !condition.value) return;
         const candidate = loopBinding(condition);
-        const source = candidate?.iterable ?? condition;
+        const source = candidate ? forAxes(candidate.iterable)?.source ?? candidate.iterable : condition;
         if (source) invalidateCalls(source, env);
-        const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
+        const collection = candidate ? iterationCollection(candidate.iterable, env)
+            : source ? inspect(source, env) : UNKNOWN_VALUE;
         const membership = candidate && (candidate.names.length === 1
-            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)
-            || safeEmptyArrayIteration(candidate.iterable, collection)) ? candidate : undefined;
+            || safeIndexedIteration(collection) && safeIndexedSource(source!)
+            || safeEmptyArrayIteration(source, collection)) ? candidate : undefined;
         const count = membership && collection.rank !== undefined && collection.rank > 0
             ? collection.shape?.[0] : undefined;
         if (count === 0) {
@@ -326,12 +363,13 @@ export function createLoopAnalysis(context: LoopAnalysisContext) {
         const condition = statement.condition;
         if (condition && isBooleanLiteral(condition) && !condition.value) return { values: [], fallsThrough: true };
         const candidate = loopBinding(condition);
-        const source = candidate?.iterable ?? condition;
+        const source = candidate ? forAxes(candidate.iterable)?.source ?? candidate.iterable : condition;
         if (source) invalidateCalls(source, env);
-        const collection = source ? inspect(source, env) : UNKNOWN_VALUE;
+        const collection = candidate ? iterationCollection(candidate.iterable, env)
+            : source ? inspect(source, env) : UNKNOWN_VALUE;
         const membership = candidate && (candidate.names.length === 1
-            || safeIndexedIteration(collection) && safeIndexedSource(candidate.iterable)
-            || safeEmptyArrayIteration(candidate.iterable, collection)) ? candidate : undefined;
+            || safeIndexedIteration(collection) && safeIndexedSource(source!)
+            || safeEmptyArrayIteration(source, collection)) ? candidate : undefined;
         const count = membership && collection.rank !== undefined && collection.rank > 0
             ? collection.shape?.[0] : undefined;
         if (count === 0) {

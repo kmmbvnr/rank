@@ -243,18 +243,23 @@ The first name binds the current value and the optional second name binds its
 zero-based index. The names are separate tokens: the whitespace is required.
 With one name, `for Value in A` binds only the value.
 
-Tensor iteration always walks the leading axis. A matrix yields rows, with
-one optional row index. To visit columns, iterate their indices and use `#`:
+Tensor iteration walks axis 0 by default. Select axis 1 to visit columns:
 
 ```rank
-for j in 0 till (M len axis 1)
-  Column = M # j
+for Column j in M axis 1
   Column print
+end
+for Value i j in M axis 0 1
+  Value print
 end
 ```
 
-`for` has no `axis` or `rank` modifiers and accepts at most one index binding.
-Use nested ranges and ordinary addressing to visit tensor coordinates.
+Selected axes are removed from each value. The loop visits their coordinate
+combinations in row-major source-axis order, regardless of the written axis
+order. Indices follow that same order, may be omitted from the right, and may
+be skipped with `#`. Negative axes count from the end. Duplicate axes, invalid
+axes, too many bindings and a loop `rank` modifier are errors. See
+[Tensors](tensors.md#iteration-along-selected-axes) for examples.
 
 ## Whole-axis tensor addressing
 

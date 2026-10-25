@@ -40,7 +40,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         return true;
     }
 
-    function statements(commands: readonly Statement[], body: string[], allowTail: boolean): 'next' | 'stop' | undefined {
+    function statements(commands: readonly Statement[], body: string[], allowTail: boolean, breakLabel?: string): 'next' | 'stop' | undefined {
         for (const assignment of commands) {
             const location = locations.length;
             // Bound the complete region, including nested branches and loops.
@@ -58,7 +58,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 // continue or break can change registers without replacing it.
                 body.push(`{ let result${numberMode ? ', resultType = "integer"' : ''}; location = ${location}; ${loop.setup} ${loop.header}`,
                     `let iterationResult${numberMode ? ', iterationType = "integer"' : ''};`, loop.bindings);
-                if (statements(assignment.statements, body, allowTail && !binding) === undefined) return reject(assignment);
+                if (statements(assignment.statements, body, allowTail && !binding, loop.breakLabel) === undefined) return reject(assignment);
                 body.push(`result = iterationResult; ${numberMode ? 'resultType = iterationType;' : ''} location = ${location}; } iterationResult = result; ${numberMode ? 'iterationType = resultType;' : ''} }`);
                 // An inner loop may run zero times, or leave through break.
                 assigned.clear();
@@ -98,7 +98,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             }
             if (isBreakStatement(assignment) || isContinueStatement(assignment)) {
                 state.hasControl = true;
-                body.push(`location = ${location}; ${isBreakStatement(assignment) ? 'break' : 'continue'};`);
+                body.push(`location = ${location}; ${isBreakStatement(assignment) ? `break${breakLabel ? ' ' + breakLabel : ''}` : 'continue'};`);
                 return 'stop';
             }
             if (isExpressionStatement(assignment)) {
@@ -159,14 +159,14 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     const condition = emit(branch.condition, lines, 'boolean');
                     if (condition?.type !== 'boolean') return reject(assignment);
                     body.push(`location = ${location};`, ...lines, `if (${condition.code}) {`);
-                    const flow = statements(branch.statements, body, allowTail);
+                    const flow = statements(branch.statements, body, allowTail, breakLabel);
                     if (flow === undefined) return reject(assignment);
                     if (flow === 'next') outcomes.push(new Set(assigned));
                     body.push('} else {');
                 }
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);
-                const flow = statements(assignment.elseStatements, body, allowTail);
+                const flow = statements(assignment.elseStatements, body, allowTail, breakLabel);
                 if (flow === undefined) return reject(assignment);
                 if (flow === 'next') outcomes.push(new Set(assigned));
                 body.push('}'.repeat(branches.length));

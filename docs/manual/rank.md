@@ -65,8 +65,13 @@ and keeps the matrix layout. A function
 can receive a whole column with
 `M F axis 0`. Loops visit rows along
 axis 0. To visit columns, use
-`for j in 0 till (M len axis 1)` and
-select `Column = M # j` in the body.
+`for Col j in M axis 1`.
+`for V i j in M axis 0 1` visits every
+element in source-axis order. Indices
+may be omitted from the right; `#`
+skips one. Each value has the listed
+axes removed. `rank` is not supported
+on loops.
 
 `rank 1` chooses the last axis instead
 of naming it. On a matrix this means
@@ -97,9 +102,14 @@ One input, as in `sum`, `sort` or
 function works inside. The other axes
 repeat it, like a batch.
 
-`reduce` and `scan`: `axis` is the axis
-the running value steps along, and
-`rank` is the size of each step.
+`for`, `reduce` and `scan`: `axis`
+names the traversal axes. A loop yields
+what remains after fixing their
+coordinates. Adding the rows from
+`for Row in M axis 0` elementwise
+produces `M sum axis 0`.
+For folds, `rank` selects the input
+cell after removing traversal axes.
 
 Two inputs, as in `matmul` or `equal`:
 `axis L R` joins axis L of the left

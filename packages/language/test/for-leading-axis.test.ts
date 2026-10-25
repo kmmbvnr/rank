@@ -6,8 +6,7 @@ import type { Program } from '../src/generated/ast.js';
 
 const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 it.each([
-    ['Cell in M axis 0', 'does not accept axis or rank'],
-    ['Cell in M rank 1', 'does not accept axis or rank'],
+    ['Cell in M rank 1', 'does not accept rank'],
     ['Cell i j in M', 'at most one index'],
     ['# i j in M', 'at most one index'],
 ])('diagnoses removed loop syntax: %s', (header, message) => {

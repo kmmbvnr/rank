@@ -41,6 +41,13 @@ export function forIteration(condition: Expression | undefined): ForBinding | un
     return { names: parts.map(part => isNameExpression(part) ? part.name : '#'), iterable: condition.right };
 }
 
+/** Loop axes enumerate coordinates; unlike call axes, they are removed from each value. */
+export function forAxes(expression: Expression): { source: Expression; axes: Expression[] } | undefined {
+    const parts = flattenApplication(expression);
+    return isNameExpression(parts[1]) && parts[1].name === 'axis'
+        ? { source: parts[0], axes: parts.slice(2) } : undefined;
+}
+
 /**
  * A contiguous slice is a range selector: `Values (A until B)` along the first
  * axis, `M # (A until B)` along the next. The range has no step.

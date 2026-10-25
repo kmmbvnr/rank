@@ -109,7 +109,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if (!root) return undefined;
     const statements = createLoopStatements(state, expressions, loopParts);
     const body: string[] = [];
-    if (!statements(statement.statements, body, !iteration)) return undefined;
+    if (!statements(statement.statements, body, !iteration, root.breakLabel)) return undefined;
     // Index aliases can be written under another name. All writes in a region
     // with typed container arguments must preserve their integer cell domain.
     if ([...containers.values()].some(info => info.kind === 'index' && info.integers)

@@ -587,10 +587,27 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             if (property.startsWith('$')) continue;
             if (isForStatement(node) && property === 'condition' && isBinaryExpression(value) && value.operator === 'in') {
                 const names = flatten(value.left);
-                if (names.length > 2 && names.every(name => isNameExpression(name) || isAllAxisExpression(name))) report(value.left, 'for expects one value name and at most one index name.');
                 const parts = flatten(value.right);
-                if (isNameExpression(parts[1]) && ['axis', 'rank'].includes(parts[1].name)) {
-                    report(value.right, 'for does not accept axis or rank modifiers; use ranges and # addressing.');
+                const axes = isNameExpression(parts[1]) && parts[1].name === 'axis' ? parts.slice(2) : undefined;
+                if (isNameExpression(parts[1]) && parts[1].name === 'rank'
+                    || axes?.some(part => isNameExpression(part) && part.name === 'rank')) {
+                    report(value.right, 'for does not accept rank; use axis to select traversal axes.');
+                }
+                if (axes) {
+                    if (!axes.length || axes.some(part => !(isNumberLiteral(part) && typeof part.value === 'bigint')
+                        && !(isUnaryExpression(part) && part.operator === '-' && isNumberLiteral(part.operand)
+                            && typeof part.operand.value === 'bigint'))) {
+                        report(value.right, 'for axis expects one or more integer literals.');
+                    }
+                    if (names.length > axes.length + 1) {
+                        report(value.left, 'for expects one value name and at most one index name per traversal axis.');
+                    }
+                    value.left = visit(value.left) as Expression;
+                    value.right = application(parts.map(part => visit(part) as Expression), value.right);
+                    continue;
+                }
+                if (names.length > 2 && names.every(name => isNameExpression(name) || isAllAxisExpression(name))) {
+                    report(value.left, 'for expects one value name and at most one index name; use axis for multiple indices.');
                 }
             }
             if (isAstNode(value)) record[property] = visit(value, !(symbolicRight && property === 'right'));

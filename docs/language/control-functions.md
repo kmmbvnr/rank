@@ -171,7 +171,7 @@ end
 ```
 
 For a tensor, ordinary iteration yields cells along its leading axis. Explicit
-cell-rank and axis iteration are defined in [Tensors](tensors.md).
+traversal axes and coordinate bindings are defined in [Tensors](tensors.md).
 
 ## Errors and exceptions
 

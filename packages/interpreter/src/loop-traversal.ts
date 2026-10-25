@@ -1,4 +1,4 @@
-import { flattenApplication, isCountClauseExpression, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
+import { forAxes, flattenApplication, isCountClauseExpression, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import type { IterationBinding } from './integer-loop-plan.js';
 
 /** Normalize traversal syntax independently of backend code generation. */
@@ -9,6 +9,7 @@ export interface LoopTraversal {
     slice?: { count: Expression; drop: boolean };
 }
 export function loopTraversal(binding: IterationBinding): LoopTraversal | undefined {
+    if (forAxes(binding.iterable)) return undefined;
     const names = binding.names;
     if (names.length > 2 || names.some(name => name.includes('.'))
         || new Set(names.filter(name => name !== '#')).size !== names.filter(name => name !== '#').length) return undefined;

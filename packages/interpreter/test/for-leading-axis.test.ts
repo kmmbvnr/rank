@@ -8,10 +8,10 @@ describe.each([false, true])('leading-axis loops (compilation=%s)', compilation 
         try { return formatValue(runtime.execute(source)!); }
         finally { runtime.dispose(); }
     }
-    it.each(['axis 0', 'axis -1', 'rank 0', 'rank 1', 'axis 0 rank 1'])(
+    it.each(['rank 0', 'rank 1', 'axis 0 rank 1'])(
         'rejects removed modifiers: %s', modifier => {
             expect(() => run(matrix + `for Cell in M ${modifier}\n Cell\nend`))
-                .toThrow('for does not accept axis or rank modifiers');
+                .toThrow('for does not accept rank');
         });
     it.each(['M', 'array shape 0 5 fill 0'])('rejects multiple indices even for empty sources: %s', source => {
         expect(() => run(matrix + `for Cell i j in ${source}\n Cell\nend`))

@@ -23,13 +23,14 @@ Function parameters and local variables establish their rank per call.
 
 ## How `axis` and `rank` read
 
-The same two words serve three kinds of operation. `rank R` always selects the
+The same two words serve several kinds of operation. `rank R` always selects the
 trailing `R` axes as a cell; `axis` names axes explicitly.
 
 | Kind | Examples | `axis` means | `rank` means |
 | --- | --- | --- | --- |
 | One input | `sum`, `sort`, `inverse`, `normalize` | The cell axes the function works inside; the other axes form the frame (a batch that repeats the function). | The trailing `R` axes form the cell. |
 | Fold | `reduce`, `scan` | The traversal axes the accumulator steps along; they are removed first. | After removal, the trailing `R` remaining axes form the input cell passed to each step. |
+| Loop | `for` | The traversal axes to enumerate; each value has these axes removed. | Not supported. |
 | Two inputs | `matmul`, `equal`, `less` | `axis L R`: axis `L` of the left operand is paired with axis `R` of the right one (contracted by `matmul`, compared as a vector cell by `equal`). | `rank L R`: one cell rank per operand. |
 
 For example, `M sum axis 0` consumes axis 0 and leaves one total per column;
@@ -535,32 +536,45 @@ rem one position for every code
 `M find Targets rank 1 0` pairs each row of `M` with its own target. Each cell
 result here is a scalar position; other functions may return array cells.
 
-## Iteration along the leading axis
+## Iteration along selected axes
 
-`for` over a rank-N tensor yields its rank-(N-1) cells along axis 0:
+Without `axis`, `for` walks axis 0: a matrix yields rows. Explicit axes name
+coordinates to enumerate, not the axes inside each value:
 
 ```rank
-for Row i in M
+for Row i in M axis 0
   Row print
 end
-```
-
-The first binding receives the cell. The optional second binding receives its
-zero-based leading-axis index. Either binding may use `#` as a placeholder.
-`for` does not accept `axis` or `rank` modifiers or multiple coordinate bindings.
-
-To visit columns, iterate a range and select each column with `#` addressing:
-
-```rank
-for j in 0 till (M len axis 1)
-  Column = M # j
-  Column print
+for Col j in M axis 1
+  Col print
+end
+for Value i j in M axis 0 1
+  Value print
 end
 ```
 
-Use nested index ranges for individual tensor coordinates. Ordinary operations
-in the source expression retain their modifiers, for example
-`for Mean in (M mean axis 0)`.
+A `3 5` matrix gives 3 rows, 5 columns, or 15 scalar elements respectively.
+The value has the selected axes removed; remaining axes keep source order.
+For shape `A B C`, `for S j in T axis 1` yields `B` arrays of shape `A C`.
+`for Row i j in T axis 0 1` yields `A * B` vectors of length `C`.
+
+Axes are a set: `axis 1 0` and `axis 0 1` both walk row-major in source-axis
+order. Negative axes count from the end; duplicates (including normalized
+ones) and out-of-range axes are errors. Use nested loops for another order.
+
+The first binding receives the value. Subsequent bindings receive zero-based
+coordinates of the selected axes in source-axis order. Indices may be omitted
+from the right, and `#` skips a binding: `for V i in M axis 0 1` binds only the
+row index; `for V # j in M axis 0 1` binds only the column index. Too many
+bindings are rejected even for empty sources. `rank` is not a loop modifier.
+Iteration stays lazy; bound values have the usual copy-on-write semantics.
+
+Loop axes differ from function cell axes: `M F axis 0` passes whole columns
+to `F`, while `for Row in M axis 0` yields rows. `M sum axis 0` gives the same
+result as adding those rows elementwise, producing one total per column.
+Ordinary operations in the source retain their modifiers, for example
+`for Mean in (M mean axis 0)`. Parenthesize a computed source before adding
+loop axes: `for Col in (M + 1) axis 1`.
 
 A range selects a slice and an integer array selects arbitrary positions;
 `#` keeps a whole axis, so positional selectors can address any axis:

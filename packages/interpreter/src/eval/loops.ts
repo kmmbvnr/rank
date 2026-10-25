@@ -1,5 +1,5 @@
 import {
-    forIteration,
+    forAxes, forIteration,
     type Expression, type ForBinding, type ForStatement, type Statement,
 } from '@arrrank/language';
 import { arrayCells, arrayValues, materializedArrayItems, ownedArray, storedScalarKinds } from '../array-storage.js';
@@ -17,10 +17,11 @@ import { materializeValue } from '../materialize.js';
 import { isRankPlan } from '../plan.js';
 import { compileGeneratorLoop } from '../generator-loop.js';
 import { tensorCells } from '../rank-application.js';
+import { integerLiteral } from './application.js';
 import { sequenceValues } from '../sequence.js';
 import type { ExecutionContext, LoopControl, PreparedStatement } from '../statement-control.js';
 import { compileTensorCellCopy } from '../tensor-cell-compiler.js';
-import { arrayOffset, coordinatesAt } from '../tensor-index.js';
+import { arrayOffset, coordinatesAt, resolveAxes, safeDimension } from '../tensor-index.js';
 import {
     expectBoolean, isRankArray, isRankCounter, isRankMultiset, isRankObject, isRankQueue, isRankSequence, isRankSet,
     typeName, type RankArray, type RankValue,
@@ -100,8 +101,9 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         let result: RankValue | undefined;
         let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
         if (binding) {
-            const iterable = (yield* resume(loop.evaluate(binding.iterable)));
-            const flat = loop.options().directIteration !== false
+            const axes = forAxes(binding.iterable);
+            const iterable = (yield* resume(loop.evaluate(axes?.source ?? binding.iterable)));
+            const flat = loop.options().directIteration !== false && !axes
                 && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
             const entries = flat ? iterationAtoms(loop.bindings, binding, iterable)
                 : forEntries(loop.bindings, binding, iterable, loop.options().tensorCellCompilation !== false);
@@ -212,6 +214,20 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
 function* forEntries(
     bindings: BindingEnvironment, binding: ForBinding, value: RankValue, tensorCells: boolean,
 ): IterableIterator<ForEntry> {
+    const spec = forAxes(binding.iterable);
+    if (spec) {
+        if (!isRankArray(value)) throw new RankError('for axis expects an array');
+        if (!spec.axes.length) throw new RankError('for axis expects one or more integer literals');
+        const axes = [...resolveAxes(spec.axes.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis')),
+            value.shape.length)].sort((a, b) => a - b);
+        validateForBindings(binding.names, axes.length);
+        bindings.declareTypes(binding.names, [
+            axes.length === value.shape.length ? arrayIterationTypes(value) : new Set(['array']),
+            ...axes.map(() => new Set(['integer'])),
+        ]);
+        yield* tensorEntries(value, axes, tensorCells);
+        return;
+    }
     if (isRankObject(value)) {
         validateForBindings(binding.names);
         bindings.declareTypes(binding.names, [
@@ -259,12 +275,13 @@ export function declareIterationTypes(
     bindings: BindingEnvironment, binding: ForBinding, value: RankValue,
     provenType?: 'integer' | 'text',
 ): void {
-    validateForBindings(binding.names);
+    const spec = forAxes(binding.iterable);
+    validateForBindings(binding.names, spec?.axes.length ?? 1);
     if (isRankArray(value)) {
         const types = provenType
             ? new Set(value.shape.every(n => n !== 0) ? [provenType] : [])
             : arrayIterationTypes(value);
-        bindings.declareTypes(binding.names, [types, new Set(['integer'])]);
+        bindings.declareTypes(binding.names, [types, ...Array.from({ length: spec?.axes.length ?? 1 }, () => new Set(['integer']))]);
     } else if (isRankQueue(value)) {
         const types = value instanceof RankDeque
             ? new Set([...value.iterationTypes(iterationType)].filter(type => type !== 'unknown')) : typesOf(value.items);
@@ -293,10 +310,10 @@ interface ForEntry {
     readonly indices: readonly RankValue[];
 }
 
-function validateForBindings(names: readonly string[]): void {
-    if (names.length !== 1 && names.length !== 2) {
+function validateForBindings(names: readonly string[], axes = 1): void {
+    if (names.length < 1 || names.length > axes + 1) {
         throw new RankError(
-            `for expects one value name and at most one index name, got ${names.length}`,
+            `for expects one value name, followed by at most ${axes} index names, got ${names.length}`,
         );
     }
 }

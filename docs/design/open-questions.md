@@ -572,7 +572,9 @@ short one-line formulas, but introduce two substitution pitfalls for learners:
 
 ## Disambiguating `axis` and `rank` roles — resolved in #430
 
-Generic `axis` selects cell axes; the complement is the frame. Same-rank array
+Generic function `axis` selects cell axes; the complement is the frame.
+`for`, `reduce` and `scan` instead name traversal axes. Loop values have those
+axes removed; multiple loop axes enumerate coordinates in source-axis order. Same-rank array
 results retain source-axis placement. `rank` alone keeps trailing-cell selection
 and frame-then-cell assembly. See [the canonical rules](../language/sequences-arrays.md#rank).
 
@@ -605,5 +607,6 @@ future design evaluation:
    `'= ` deferred plans freezing captured bindings, prefix/postfix `array`, and
    postfix `copy` for writable storage) during ordinary array work.
 3. **Axis polarity — resolved:** Generic `axis` names the operated-on cell axes.
-   Teaching can start with rows (`axis 1`) and columns (`axis 0`), then introduce
-   the remaining frame and bare `rank` for trailing cells.
+   For function calls, rows use cell `axis 1` and columns use cell `axis 0`.
+   Loops instead enumerate traversal axes: `for Row in M axis 0` visits rows
+   and `for Col in M axis 1` visits columns. Folds also name traversal axes.
