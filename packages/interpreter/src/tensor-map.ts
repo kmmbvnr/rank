@@ -17,7 +17,7 @@ interface MapRecipe {
 const maps = new WeakMap<RankArray, MapRecipe>();
 const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
-    'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not']);
+    'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0']);
 const reductions: ReadonlySet<string> = new Set<TensorReduction>(['sum', 'mean', 'min', 'max', 'count', 'any', 'all']);
 interface PlanScope {
     readonly host: TensorKernelHost;
@@ -92,6 +92,7 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
     if (!consumerCompilation || !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
+    const textDigits = scope.host.textDigits;
     const domains = new Map<TensorNode, readonly CompiledAtomType[]>();
     const visiting = new Set<RankArray>();
     const guards: (() => boolean)[] = [];
@@ -112,6 +113,7 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
         if (typeof value === 'bigint') return typed({ kind: 'input', value }, ['integer']);
         if (typeof value === 'number' && Number.isFinite(value)) return typed({ kind: 'input', value }, ['real']);
         if (typeof value === 'boolean') return typed({ kind: 'input', value }, ['boolean']);
+        if (typeof value === 'string' && textDigits) return typed({ kind: 'input', value }, ['text']);
         if (!isRankArray(value) || visiting.has(value)) return undefined;
         visiting.add(value);
         try {
@@ -155,8 +157,11 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
                 if (!node) return undefined;
                 operands.push(node);
             }
-            const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(map.operator, operands.length),
-                operands.map(node => domains.get(node)!));
+            if (map.operator === 'integer0') guards.push(() => scope!.host.builtin('integer'));
+            const matched = map.operator === 'integer0' && operands.length === 1 && textDigits
+                ? { result: ['integer'] as const }
+                : matchCompiledOperatorDomains(tensorOperatorSignatures(map.operator, operands.length),
+                    operands.map(node => domains.get(node)!));
             if (!matched) return undefined;
             transformed = true;
             const node = typed(operands.length === 1 ? { kind: 'unary', op: map.operator, operand: operands[0]! }

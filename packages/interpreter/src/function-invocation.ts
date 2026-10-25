@@ -41,6 +41,8 @@ import { compileScalarFunction } from './scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
 import { compileDistinctFunction } from './distinct-function.js';
 import { currentDiagnostics } from './diagnostics.js';
+import { hasNativeImplementation } from './native-implementation.js';
+import { FunctionPlanDemandError } from './function-plan.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
@@ -73,7 +75,7 @@ export interface FunctionHost {
     execute(statements: Statement[], generator: boolean, control?: FunctionControl): Evaluation<RankValue | undefined>;
     locate(error: unknown, node: AstNode): unknown;
     /** A proven scalar body that the selected argument types may enter directly, when that path is enabled. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined;
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly nonnegative: readonly number[]; readonly loops: true } | undefined;
     /** Offers a function to flat combinators; `available` is checked before each use. */
     flatCombine(fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean): void;
 }
@@ -574,11 +576,11 @@ export class FunctionInvocation {
         // Runtime storage proofs can differ while the public semantic type
         // remains unresolved. Cache code by its proven domains, not that key.
         const typedEntries = new Map<string, {
-            readonly locals: readonly string[]; readonly call: PreparedScalarCall;
+            readonly locals: readonly string[]; readonly nonnegative: readonly number[]; readonly call: PreparedScalarCall;
         } | null>();
         return (arguments_: RankValue[]): PreparedScalarCall | undefined => {
             if (inspectionEnabled() || arguments_.length !== arity) return undefined;
-            let call = scalar, locals = proof?.locals;
+            let call = scalar, locals = proof?.locals, nonnegative = proof?.nonnegative;
             if (!arguments_.every(value => typeof value === 'bigint')) {
                 let types: CompiledCalleeType[] | undefined;
                 if (arguments_.some(value => typeof value === 'object')) {
@@ -596,13 +598,15 @@ export class FunctionInvocation {
                 if (entry === undefined) {
                     const typedProof = this.host.scalarEntry(statement, generator, types, captures);
                     const typedCall = typedProof ? this.prepareScalarCall(statement, context, types, typedProof.loops, captures) : undefined;
-                    entry = typedCall ? { locals: typedProof!.locals, call: typedCall } : null;
+                    entry = typedCall ? { locals: typedProof!.locals, nonnegative: typedProof!.nonnegative, call: typedCall } : null;
                     typedEntries.set(key, entry);
                 }
                 call = entry?.call;
                 locals = entry?.locals;
+                nonnegative = entry?.nonnegative;
             }
             return call && !locals!.some(name => context?.find(name))
+                && !nonnegative!.some(index => typeof arguments_[index] !== 'bigint' || (arguments_[index] as bigint) < 0n)
                 && (!call.available || call.available()) ? call : undefined;
         };
     }
@@ -727,6 +731,11 @@ export class FunctionInvocation {
                 ?? this.builtins.lookup(name) ?? (() => { throw this.builtins.unknown(name); })(),
         }, operation.module, operation.name, inputs));
         const calls: ((arguments_: RankValue[]) => RankValue)[] = [];
+        const planConsumed = () => {
+            this.options().onTensorKernelExecuted?.();
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.compiledTensors++;
+        };
         const run: PreparedScalarCall = (arguments_, tail = false) => {
             if (!tail && this.depth >= this.maxDepth) {
                 throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
@@ -737,8 +746,9 @@ export class FunctionInvocation {
                 for (;;) {
                     try {
                         this.options().onScalarFunctionExecuted?.();
-                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars);
+                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars, planConsumed);
                     } catch (error) {
+                        if (error instanceof FunctionPlanDemandError) throw error.error;
                         // A self tail transfer replaces this frame without growing
                         // either the Rank call depth or the JavaScript stack.
                         if (error instanceof TailCallSignal && error.compiled === run) {
@@ -757,8 +767,9 @@ export class FunctionInvocation {
                 if (!tail) this.depth -= 1;
             }
         };
-        if (kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (kernel.plans || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
+            if (kernel.plans && (this.options().tensorFusion === false || !privateLoopPolling())) return false;
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
                 || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
@@ -787,7 +798,8 @@ export class FunctionInvocation {
             for (const name of kernel.guards) {
                 const operation = findOperation(name);
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
-                if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)) return false;
+                if (!operation || !this.modules.has(operation.module) || !value || !this.builtins.is(operation.module, name, value)
+                    || kernel.plans && (!isNativeFunction(value) || !hasNativeImplementation(value))) return false;
             }
             for (let index = 0; index < binders.length; index++) {
                 const call = binders[index]();

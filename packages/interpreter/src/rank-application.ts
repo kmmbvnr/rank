@@ -2,6 +2,7 @@ import { resolveAxes } from './tensor-index.js';
 import { permutedArray } from './array-permutation.js';
 import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
+import { registerTensorMap } from './tensor-map.js';
 import { mapStoredIntegers } from './integer-array-kernel.js';
 import { rankedCells } from './ranked-cells.js';
 import { framedArray } from './framed-array.js';
@@ -61,7 +62,9 @@ export class RankApplication {
             if (cellRank >= 1) return this.invoke(fn, [value]);
             const cells = textCells(value);
             // Text cells are immutable inputs; each ranked demand still recomputes.
-            return completed(this.applyToTensorCells(derivedArray(cells.frameShape, [], cells.cellAt, true), fn, [0]));
+            const result = this.applyToTensorCells(derivedArray(cells.frameShape, [], cells.cellAt, true), fn, [0]);
+            return completed(fn === this.standardFunctions.get(standardModules.core.integer) && hasNativeImplementation(fn)
+                ? registerTensorMap(result, 'integer0', [value]) : result);
         }
         if (isRankSequence(value)) {
             if (cellRank >= 1) return this.invoke(fn, [value]);

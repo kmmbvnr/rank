@@ -121,6 +121,28 @@ Native outer maps preserve the Cartesian domain, including all operand axes,
 and compose mapped operands and nested products. Unproved sequence operands and
 named outer callbacks continue through their existing runtime readers.
 
+Native text-to-integer conversion at rank zero also publishes a map recipe.
+Named deferred conversion and arithmetic stages can feed one reduction loop
+without completing digit or arithmetic arrays. The text kernel accepts decimal
+digits and retains ordinary conversion for other characters or a replaced
+builtin. Plan construction reuses syntax preparation, result facts for matching
+input metadata, and kernel preparation; every capture still binds its own values
+and every demand recomputes its result and runs binding checks. Compiling an
+enclosing scalar function or loop remains a separate capability.
+
+The scalar-function compiler also carries explicit recipes for fresh local
+deferred stages. Supported pure scalar/vector arithmetic, decimal-character
+integer conversion and text conversion can feed a `sum` or an ordinary local
+completion directly in generated code. Separate consumers recompute; an
+ordinary array assignment emits and retains its own completed storage. A helper
+returning a plan may join a compiled caller at a proved ordinary assignment,
+so the helper's stages and the caller's control flow need no interpreter frames.
+Escaping plans, stage rebindings, captured-slot reassignments, mutable containers,
+array writes and unsupported layouts or callbacks retain ordinary execution.
+Native implementations are checked at entry, inspection disables the path, and
+integer powers with parameter exponents require propagated nonnegative entry
+guards. Negative exponents retain their ordinary integer/real result behavior.
+
 The [tensor kernel ADR](../adr/implementation/0003-tensor-kernel-fusion-and-execution-planner.md)
 describes native composition, per-demand checks, early boolean terminals and
 code-only caching. Unsupported sources retain their canonical capabilities.

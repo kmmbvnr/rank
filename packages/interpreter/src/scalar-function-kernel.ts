@@ -22,8 +22,15 @@ import { takeDropValue } from './sequence.js';
 import { copyArray, materializeCollection } from './modules/sequences.js';
 import { hasDeferredSelectionCopy } from './integer-view.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
+import { emitFunctionPlan, functionPlanArrays, FunctionPlanDemandError } from './function-plan.js';
+import { textPoints } from './text-storage.js';
+import { integerValue } from './numeric-conversions.js';
+import { formatValue } from './value.js';
+import { broadcastShape } from './tensor.js';
 
 interface Kernel {
+    readonly source: string;
+    readonly plans: boolean;
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[];
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
@@ -31,11 +38,11 @@ interface Kernel {
     readonly calls: readonly { operation: Operation; inputs: readonly string[] }[];
     readonly guards: readonly string[];
     readonly modules: readonly string[];
-    readonly locations: readonly Statement[];
+    readonly locations: readonly (Statement | Expression)[];
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[],
         userCalls?: readonly ((arguments_: RankValue[], tail?: boolean) => RankValue)[],
         memberships?: readonly ((value: bigint) => boolean)[],
-        captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[]): RankValue;
+        captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[], planConsumed?: () => void): RankValue;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
@@ -55,7 +62,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         return `r${slots.get(name)}`;
     };
     statement.parameters.forEach(slot);
-    const locations: Statement[] = [];
+    const locations: (Statement | Expression)[] = [];
     const calls: { operation: Operation; inputs: readonly string[] }[] = [];
     const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
@@ -93,6 +100,16 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
+            if (operation === 'integer-power') {
+                const [left, right] = expression.input.indices!.map(input => lower(input, lines));
+                const result = `v${serial++}`;
+                lines.push(`const ${result} = ${expression.input.negative ? '-' : ''}((${left}) ** (${right}));`);
+                return result;
+            }
+            if (operation === 'plan') return emitFunctionPlan(expression.input.plan!, lines, {
+                variable: () => `v${serial++}`, slot, binary,
+                locate: (source, body) => body.push(`location = ${locations.push(source) - 1};`),
+            });
             if (operation === 'materialize-deque') {
                 const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
                 lines.push(`const ${result} = materializeCollection(${value});`);
@@ -235,9 +252,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             const location = locations.push(command) - 1;
             lines.push(`location = ${location};`);
             if (isReturnStatement(command) && command.value) {
-                const value = emit(command.value, lines, true);
-                if (typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${value});`);
-                lines.push(`return ${value};`);
+                const body = proof!.planReturns.has(command) ? [] : lines;
+                const value = emit(command.value, body, true);
+                if (typeof expressions.get(command.value)!.type !== 'string') body.push(`noteArrayBinding(${value});`);
+                body.push(`return ${value};`);
+                if (body !== lines) {
+                    const origin = locations.push(command.value) - 1;
+                    lines.push(`try { ${body.join('\n')} } catch (error) { throw new FunctionPlanDemandError(locate(error, ${origin})); }`);
+                }
             } else if (isExpressionStatement(command)) {
                 const mutation = applicationForm(command.value, findOperation, true);
                 if (mutation.kind === 'collection-mutation' && mutation.operation === 'add' && isNameExpression(mutation.receiver)) {
@@ -247,6 +269,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     lines.push(`checkpoint('adding set element'); addToCollection(${receiver}, ${value});`);
                 } else emit(command.value, lines);
             } else if (isAssignmentStatement(command)) {
+                // These immutable recipes have no work until their consumer.
+                // Their captured slots cannot be rebound in an accepted proof.
+                const stage = proof!.planBindings.get(command);
+                if (stage) {
+                    for (const name of functionPlanArrays(stage)) lines.push(`noteArrayBinding(${slot(name)});`);
+                    continue;
+                }
                 let value = emit(command.value, lines);
                 if (command.operator !== '=') value = binary(findCompiledOperator(command.operator.slice(0, -1))!, slot(command.name), value, lines, expressions.get(command.value)!.type);
                 // An ordinary local is a completion boundary just as in the
@@ -374,12 +403,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         const parameter = statement.parameters.lastIndexOf(name);
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
-    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars) {
+    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars, planConsumed) {
         ${stableCaptures && scalarCaptures.length ? 'const scalarValues = scalars.map(read => read());' : ''}
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
         ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
-        ${proof.arrayWrites.size ? 'args.forEach(noteArrayBinding);' : ''}
+        ${proof.arrayWrites.size || proof.planBindings.size ? 'args.forEach(noteArrayBinding);' : ''}
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
@@ -402,7 +431,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection) as Kernel['run'] }; }
+    try { kernel = { source, plans: proof.planBindings.size > 0, locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, formatValue } from '../src/index.js';
+import { Interpreter, formatValue, isNativeFunction } from '../src/index.js';
 import { sequence } from '../src/sequence.js';
 import { MemoryIo } from './support.js';
 import { isRankPlan } from '../src/plan.js';
@@ -13,6 +13,37 @@ function counted() {
 }
 
 describe.each([false, true])('scalar expression plans (compilation=%s)', compilation => {
+    it('keeps data-dependent symbolic dimensions fresh between captures', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`fun Input' cardinality
+ Size' = Input len
+ return Size
+end`);
+            const fn = runtime.variables.get('cardinality')!;
+            if (!isNativeFunction(fn)) throw Error('expected function');
+            const input = { kind: 'array' as const, shape: [3], containsFiles: false as const,
+                get items(): never { throw Error('must not read cells during capture'); },
+                itemAt: (index: number) => BigInt(index),
+            };
+            const first = fn.call([input]), second = fn.call([input]);
+            if (!isRankPlan(first) || !isRankPlan(second)) throw Error('expected plans');
+            expect(first.result?.dim).toBeDefined();
+            expect(second.result?.dim).not.toEqual(first.result?.dim);
+        } finally { runtime.dispose(); }
+    });
+
+    it('rechecks captured result evidence when a prepared function changes input shape or type', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute("fun Input twice\n Result' = Input * 2\n return Result\nend");
+            for (const [expression, expected] of [
+                ['(array 1 2) twice', '2 4'], ['3 twice', '6'],
+                ['(array 1 2 3) twice', '2 4 6'], ['1.5 twice', '3'],
+            ]) expect(formatValue(runtime.execute(expression)!)).toBe(expected);
+        } finally { runtime.dispose(); }
+    });
+
     it('defers a reduction, recomputes consumers and retains an eager result', () => {
         const source = counted();
         const output: string[] = [];

@@ -382,14 +382,14 @@ export class FastPaths {
     }
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
-    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly loops: true } | undefined {
+    scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly nonnegative: readonly number[]; readonly loops: true } | undefined {
         if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
         // Entry arguments admit scalars, checked arrays and tracked integer indices/deques.
         // Container storage is integer-only, cannot escape through a scalar return,
         // and needs no resource frame. Argument array writes still need one.
-        return proof && !proof.arrayWrites.size
-            ? { locals: proof.locals, loops: true } : undefined;
+        return proof && !proof.arrayWrites.size && !proof.planReturn
+            ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
     }
 
     /** Lets flat combinators run a scalar user function without entering Rank. */
@@ -414,7 +414,7 @@ export class FastPaths {
         return types => {
             const scalarTypes = definition.owner.scalarCaptureTypes(statement, definition.context);
             const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true, [], scalarTypes);
-            if (!proof) return undefined;
+            if (!proof || proof.planReturn || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
             return {
                 parameters: types,

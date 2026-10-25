@@ -1,9 +1,9 @@
-import { isAstNode, type AstNode } from 'langium';
+import { AstUtils, isAstNode, type AstNode } from 'langium';
 import {
     applicationExpression, applicationForm, expressionFacts, expressionFreeReads, flattenApplication,
     isAllAxisExpression, isApplicationExpression, isBinaryExpression, isBooleanLiteral, isBoundClauseExpression, isDeclaredCallExpression, isLabelLiteral, isNumberLiteral, isStringLiteral,
     isExpression, isKeyedSortExpression, isNameExpression, isParenthesizedExpression, isStdinExpression, isSubjectComparisonExpression, isUnaryExpression, nameNeedsExecution, UNKNOWN_VALUE,
-    type Expression, type NameExpression, type Operation,
+    type Expression, type NameExpression, type Operation, type ValueFacts,
 } from '@arrrank/language';
 import { denseScalarItems } from '../array-storage.js';
 import { semanticArrayType } from '../semantic-array-type.js';
@@ -38,6 +38,12 @@ type ConstructionMode = 'defer' | 'propagate' | 'demand';
 export class PlanConstruction {
     private nextReference = 0;
     private readonly references = new WeakSet<Expression>();
+    private readonly simpleSyntax = new WeakMap<Expression, boolean>();
+    private readonly facts = new WeakMap<Expression, { key: string; result: ValueFacts }>();
+    private readonly kernels = new WeakMap<Expression, {
+        compiled: (() => RankValue | undefined) | undefined;
+        withinPlan: <T>(run: () => T) => T;
+    }>();
 
     constructor(private readonly context: ConstructionContext) {}
 
@@ -68,7 +74,25 @@ export class PlanConstruction {
         if (fn && (!isNameExpression(source) || fn.arities.includes(0)) && this.wholeCall(fn)) {
             return this.context.execute(expression, tail);
         }
+        // Native expression trees contain no calls to stage. Recheck function
+        // bindings on each entry, but retain their syntax and capture directly.
+        if (this.canCaptureDirectly(expression) && !this.hasUserFunction(expression)) {
+            return this.finish(expression, mode, tail);
+        }
         return this.inScope(expression, mode, tail);
+    }
+
+    private canCaptureDirectly(expression: Expression): boolean {
+        let simple = this.simpleSyntax.get(expression);
+        if (simple === undefined) {
+            simple = AstUtils.streamAst(expression).every(node => {
+                if (isBinaryExpression(node)) return !['and', 'or', 'default'].includes(node.operator);
+                return ['NameExpression', 'NumberLiteral', 'StringLiteral', 'BooleanLiteral', 'LabelLiteral',
+                    'ParenthesizedExpression', 'UnaryExpression', 'ApplicationExpression'].includes(node.$type);
+            });
+            this.simpleSyntax.set(expression, simple);
+        }
+        return simple;
     }
 
     private *inScope(expression: Expression, mode: ConstructionMode, tail: boolean): Execution<RankValue> {
@@ -80,12 +104,16 @@ export class PlanConstruction {
 
     private *construct(expression: Expression, mode: ConstructionMode, tail: boolean): Execution<RankValue> {
         const rewritten = yield* resume(this.rewrite(expression, tail));
+        return yield* resume(this.finish(rewritten, mode, tail));
+    }
+
+    private finish(rewritten: Expression, mode: ConstructionMode, tail: boolean): Evaluation<RankValue> {
         let source = rewritten;
         while (isParenthesizedExpression(source)) source = source.value;
         if (isNameExpression(source)) {
             const value = this.context.findVariable(source.name);
             if (value !== undefined && (!isNativeFunction(value) || this.isReference(source)
-                || !value.arities.includes(0))) return value;
+                || !value.arities.includes(0))) return completed(value);
         }
         // A ready integer range is metadata only. The same `to`/`till` syntax
         // can also bound a collection and read cells to find its endpoint;
@@ -95,9 +123,9 @@ export class PlanConstruction {
             && (!source.step || this.readyInteger(source.step));
         if (mode === 'demand' || mode === 'propagate' && !this.hasInput(rewritten) || range
             || this.metadataBound(source)) {
-            return yield* resume(this.context.execute(rewritten, tail));
+            return this.context.execute(rewritten, tail);
         }
-        return this.capture(rewritten);
+        return completed(this.capture(rewritten));
     }
 
     private metadataBound(expression: Expression): boolean {
@@ -319,7 +347,8 @@ export class PlanConstruction {
         }
         const snapshot = new LocalFrame(undefined, new Map(), new Set(dependencies.keys()));
         for (const [name, value] of dependencies) snapshot.set(name, value);
-        const result = expressionFacts(expression, name => {
+        const inputs = new Map<string, ValueFacts | undefined>();
+        const inputFacts = (name: string): ValueFacts | undefined => {
             const value = dependencies.get(name);
             if (value === undefined) return undefined;
             if (isRankPlan(value)) return value.result ?? UNKNOWN_VALUE;
@@ -339,9 +368,27 @@ export class PlanConstruction {
                     ? { rank: shape.length, shape: Array(shape.length).fill(null) } : {}) };
             }
             return UNKNOWN_VALUE;
-        });
-        const compiled = this.context.compileReduction(expression);
-        const withinPlan = this.context.tensorPlanScope(expression);
+        };
+        for (const node of expressionFreeReads(expression)) inputs.set(node.name, inputFacts(node.name));
+        const key = JSON.stringify([...inputs]);
+        let evidence = this.facts.get(expression);
+        if (evidence?.key !== key) {
+            evidence = { key, result: expressionFacts(expression, name => inputs.get(name)) };
+            // Fresh symbolic dimensions and collection identities belong to a
+            // capture. Share only flat type/shape evidence across invocations.
+            if (Object.keys(evidence.result).every(field => ['types', 'elements', 'rank', 'shape',
+                'completion', 'eagerScalarCells', 'callbackFreeScalarCells'].includes(field))) {
+                this.facts.set(expression, evidence);
+            } else this.facts.delete(expression);
+        }
+        const result = evidence.result;
+        let kernel = this.kernels.get(expression);
+        if (!kernel) {
+            kernel = { compiled: this.context.compileReduction(expression),
+                withinPlan: this.context.tensorPlanScope(expression) };
+            this.kernels.set(expression, kernel);
+        }
+        const { compiled, withinPlan } = kernel;
         return { kind: 'plan', expression, dependencies, result,
             evaluate: () => completed(this.context.bindings.withFrame(snapshot, () => withinPlan(() => {
                 try {
