@@ -70,7 +70,7 @@ for J less 20
   Go = false
  end
  J += 1
- Scratch = array J
+ Scratch = tuple J
 end`);
         expect(diagnostics.numberLoops).toBe(0);
         expect(diagnostics.compiledLoops).toBe(20);

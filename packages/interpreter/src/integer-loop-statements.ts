@@ -3,7 +3,7 @@ import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
     isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
-    isParenthesizedExpression, isNameExpression, type Statement, type AssignmentStatement,
+    isParenthesizedExpression, isNameExpression, isUnpackStatement, type Statement, type AssignmentStatement,
 } from '@arrrank/language';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -48,6 +48,28 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             if (isAssignmentStatement(assignment) && assignment.deferred) return reject(assignment, 'deferred-binding');
             if (location >= 128) return reject(assignment, 'statement-budget');
             locations.push(assignment);
+            if (isUnpackStatement(assignment)) {
+                if (numberMode || !host.arrayLocals || assignment.names.some(name => name.includes('.'))) return reject(assignment);
+                const lines: string[] = [];
+                const value = emitValue(assignment.value, lines);
+                if (!value || typeof value.type === 'string' || value.type.rank !== 1) return reject(assignment);
+                const type = value.type.element;
+                if (type === 'boolean' && !host.booleanLocals) return reject(assignment);
+                const source = `unpacked${state.serial++}`;
+                body.push(`location = ${location};`, ...lines,
+                    `const ${source} = unpackArray(${value.code}, ${assignment.names.length});`);
+                for (const [position, name] of assignment.names.entries()) {
+                    if (name === '#') continue;
+                    if (arrays.has(name) || localTypes.has(name) && localTypes.get(name) !== type) return reject(assignment);
+                    const destination = slot(name), index = writers.length;
+                    localTypes.set(name, type);
+                    written.add(name); assigned.add(name);
+                    writers.push(host.writer(name)); writerNames.push(name);
+                    body.push(`writers[${index}](${source}[${position}]); r${destination} = ${source}[${position}];`);
+                }
+                body.push(`iterationResult = ${value.code};`);
+                continue;
+            }
             if (isForStatement(assignment)) {
                 if (!host.nestedLoops) return reject(assignment);
                 const incoming = new Set(assigned);
@@ -134,8 +156,20 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 if (!isNameExpression(assignment.receiver)) return reject(assignment);
                 const receiver = container(assignment.receiver.name, 'deque');
                 const lines: string[] = [];
-                const value = emit(assignment.value, lines);
-                if (!receiver || value?.type !== 'integer') return reject(assignment);
+                const value = emitValue(assignment.value, lines);
+                if (!receiver || !value) return reject(assignment);
+                const info = state.containers.get(assignment.receiver.name)!;
+                if (typeof value.type === 'string') {
+                    if (value.type !== 'integer' || info.array) return reject(assignment);
+                    info.integers = true;
+                } else {
+                    if (value.type.element !== 'integer' || info.integers
+                        || info.array && (info.array.rank !== value.type.rank || info.array.type !== value.type.element)) return reject(assignment);
+                    info.array = { rank: value.type.rank, type: value.type.element };
+                    let source = assignment.value;
+                    while (isParenthesizedExpression(source)) source = source.value;
+                    if (isNameExpression(source)) state.dequeArrays.add(source.name);
+                }
                 state.needsAlgo = true;
                 body.push(`location = ${location};`, ...lines, `${receiver}.push(${value.code}); iterationResult = undefined;`);
                 continue;
@@ -182,7 +216,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 let expression = assignment.value;
                 while (isParenthesizedExpression(expression)) expression = expression.value;
                 const source = isNameExpression(expression) ? arrays.get(expression.name) : undefined;
-                if (isArrayExpression(expression) || source) {
+                if (isArrayExpression(expression) && expression.dimensions.length || source) {
                     if (localTypes.has(assignment.name)) return reject(assignment);
                     const lines: string[] = [];
                     let rank: number, type: LoopTerm['type'], value: string;
@@ -210,6 +244,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                         const name = expression.name;
                         if (!assigned.has(name)) arrayInputs.add(name);
                         aliases.push([assignment.name, name]);
+                        if (arrayDefinitions.has(name)) state.localAliases.push([assignment.name, name]);
                         rank = source.rank; type = source.type; value = `r${source.slot}`;
                     }
                     if (!bindArray(assignment, value, rank, type, lines, body, location)) return undefined;
@@ -229,6 +264,7 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
             const scalarExpressions = wide ? exactExpressions! : expressions;
             const value = scalarExpressions.emitValue(assignment.value, lines, booleanUpdate ? 'boolean' : textUpdate ? 'text' : undefined);
             if (value && typeof value.type !== 'string') {
+                if ('deque' in value && value.deque) state.dequeArrays.add(assignment.name);
                 if (assignment.operator !== '=' || !bindArray(assignment, value.code, value.type.rank, value.type.element, lines, body, location)) return reject(assignment);
                 continue;
             }

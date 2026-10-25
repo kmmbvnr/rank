@@ -5,11 +5,11 @@ import { type CompiledCalleeType } from './compiled-callee-type.js';
 import { ResourceMap } from './resource-summary.js';
 import { IntegerEntries } from './integer-entries.js';
 import { IndexEntries } from './index-storage.js';
-import { compiledArgumentType } from './compiled-argument-type.js';
+import { compiledArgumentType, hasNativeDeque } from './compiled-argument-type.js';
 import {
     applicationExpression, rangeSliceOperands, flattenApplication, expressionFacts, findOperation, findCompiledOperator, inferCompiledExpression,
     loopOperatorSignature, isApplicationExpression, isBinaryExpression, isUnaryExpression, isStringLiteral,
-    isParenthesizedExpression, isNumberLiteral, isNameExpression, type Expression, type CompiledLoopType,
+    isParenthesizedExpression, isNumberLiteral, isNameExpression, isArrayExpression, type Expression, type CompiledLoopType,
     type CompiledExpression, type Operation, type CompiledArrayType,
 } from '@arrrank/language';
 import { isRankArray, isRankIndex, isRankSet } from './value.js';
@@ -65,7 +65,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function container(name: string, kind: 'index' | 'deque' | 'set', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
         const old = containers.get(name);
-        if (old && old.kind !== kind) return undefined;
+        if (old && (old.kind !== kind || integers && old.array)) return undefined;
         const info = old ?? { slot: slot(name), kind, integers };
         info.integers ||= integers;
         containers.set(name, info);
@@ -114,7 +114,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 : (denseScalarItems(value) ?? materializedArrayItems(value))?.[0] : value;
         return typeof first === 'number' ? 'real' : undefined;
     }
-    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType };
+    type LoopValue = LoopTerm | { readonly code: string; readonly type: CompiledArrayType; readonly deque?: boolean };
     function isScalar(value: LoopValue): value is LoopTerm { return typeof value.type === 'string'; }
     interface LoopInput { readonly term: LoopTerm; readonly lines: readonly string[] }
     function emit(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopTerm | undefined {
@@ -404,6 +404,40 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     function emitValue(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
         let source = e;
         while (isParenthesizedExpression(source)) source = source.value;
+        if (!state.numberMode && host.arrayLocals && host.arrayReads) {
+            if (isArrayExpression(source) && !source.dimensions.length && !source.range && !source.fill && !source.rows.length && source.items.length) {
+                const cells: string[] = [];
+                let type: CompiledArrayType['element'] | undefined;
+                for (const item of source.items) {
+                    const value = emit(item.value, lines);
+                    if (!value || value.type === 'bytes' || type && type !== value.type
+                        || item.sign && !['integer', 'real'].includes(value.type)) return undefined;
+                    type = value.type;
+                    const cell = `cell${state.serial++}`;
+                    lines.push(`const ${cell} = ${item.sign === '-' ? `-(${value.code})` : value.code};`);
+                    cells.push(cell);
+                }
+                const name = `v${state.serial++}`;
+                lines.push(`const ${name} = ownedArray([${cells.join(',')}], [${cells.length}], true);`);
+                return { code: name, type: { kind: 'array', element: type!, rank: 1 } };
+            }
+            if (isApplicationExpression(source) && source.arguments.length === 1
+                && isNameExpression(source.head) && isNameExpression(source.arguments[0]) && source.arguments[0].name === 'pop') {
+                const name = source.head.name, current = host.read(name);
+                const first = current && hasNativeDeque(current) && current.size ? current.at(0) : undefined;
+                const type = first && compiledArgumentType(first);
+                if (type && typeof type !== 'string' && type.kind === 'array' && type.element === 'integer') {
+                    const receiver = container(name, 'deque');
+                    const info = containers.get(name);
+                    if (!receiver || !info || info.integers || info.array && (info.array.rank !== type.rank || info.array.type !== type.element)) return undefined;
+                    info.array = { rank: type.rank, type: type.element };
+                    builtins.set('pop', 'algo');
+                    const result = `v${state.serial++}`;
+                    lines.push(`const ${result} = ${receiver}.pop();`);
+                    return { code: result, type, deque: true };
+                }
+            }
+        }
         if (!state.numberMode && host.arrayLocals && host.arrayReads) {
             let selection = source, copied = false, selectedArguments = 0;
             if (isApplicationExpression(selection)) {

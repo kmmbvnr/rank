@@ -213,8 +213,8 @@ for I k in A
 end
 Total`);
         expect(result.value).toBe(91n);
-        // Replacing the array binding makes this region ineligible to compile.
-        expect(result.loops).toBe(0);
+        // The compiled remainder retains the original traversal snapshot.
+        expect(result.loops).toBe(1);
     });
 
     it('preserves text traversal and the index after switching', () => {

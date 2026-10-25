@@ -101,7 +101,7 @@ export interface IntegerLoopPlan {
     locations: Statement[];
     required: Set<number>;
     localTypes: Map<string, LoopTerm['type']>;
-    containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set'; integers: boolean; mode?: RankDeque['mode'] }>;
+    containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
     builtins: Map<string, string>;
     calls: { numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];

@@ -1,0 +1,612 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "runtime": "current checkout",
+  "baselineRuntime": "/private/tmp/rank088/before/index.js",
+  "diagnostics": false,
+  "frames": {
+    "original": 421978,
+    "pruned": 204620
+  },
+  "measurements": "serial fresh processes; complete execution including parsing; process peak RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "stack",
+      "executeMs": 4322.129667,
+      "peakRssKiB": 591456,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "stack",
+      "executeMs": 1705.624333,
+      "peakRssKiB": 621104,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 4344.676333,
+      "peakRssKiB": 593824,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4218.802917
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 10.079291000000012
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 6.2306250000001455
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 1719.551125,
+      "peakRssKiB": 631424,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1597.202334
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 7.28733299999999
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.238500000000158
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "scalar",
+      "executeMs": 195.323042,
+      "peakRssKiB": 177344,
+      "sourceHash": "6acb8bd3bd3f6ce8ee6449186ef88cc55938267b8f2a0276e3487ee11c527887",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "pruned",
+      "executeMs": 929.0627499999999,
+      "peakRssKiB": 627536,
+      "sourceHash": "07dd9f09129fcb0fc3fbc176993a68dfa2582f90688a5759b502ca49e7846f04",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "lazy",
+      "executeMs": 6638.041,
+      "peakRssKiB": 507488,
+      "sourceHash": "89668591650f7084cd975e5570b56843e7765d82a09b8b73fa4436a9a043e87b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "lazy",
+      "executeMs": 6626.173374999999,
+      "peakRssKiB": 506624,
+      "sourceHash": "89668591650f7084cd975e5570b56843e7765d82a09b8b73fa4436a9a043e87b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "pruned",
+      "executeMs": 954.5170420000001,
+      "peakRssKiB": 641376,
+      "sourceHash": "07dd9f09129fcb0fc3fbc176993a68dfa2582f90688a5759b502ca49e7846f04",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "scalar",
+      "executeMs": 200.95395800000003,
+      "peakRssKiB": 176496,
+      "sourceHash": "6acb8bd3bd3f6ce8ee6449186ef88cc55938267b8f2a0276e3487ee11c527887",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 1752.6139580000001,
+      "peakRssKiB": 634336,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1630.7920829999998
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 7.339167000000089
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.385833000000048
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 4400.229416,
+      "peakRssKiB": 590320,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4273.231875
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 9.963291999999456
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 7.118666000000303
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "stack",
+      "executeMs": 1706.198875,
+      "peakRssKiB": 621664,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "stack",
+      "executeMs": 4509.389458000001,
+      "peakRssKiB": 596464,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "stack",
+      "executeMs": 4294.917875,
+      "peakRssKiB": 585952,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "stack",
+      "executeMs": 1709.1656670000002,
+      "peakRssKiB": 623424,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 4433.327791,
+      "peakRssKiB": 590496,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4305.931084
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 9.757333000000472
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 6.125167000000147
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 1745.531917,
+      "peakRssKiB": 637200,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1623.1730000000002
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 7.62741700000015
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.449207999999999
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "scalar",
+      "executeMs": 200.84633299999996,
+      "peakRssKiB": 176304,
+      "sourceHash": "6acb8bd3bd3f6ce8ee6449186ef88cc55938267b8f2a0276e3487ee11c527887",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "pruned",
+      "executeMs": 976.3714160000001,
+      "peakRssKiB": 632256,
+      "sourceHash": "07dd9f09129fcb0fc3fbc176993a68dfa2582f90688a5759b502ca49e7846f04",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "lazy",
+      "executeMs": 6627.407875,
+      "peakRssKiB": 508368,
+      "sourceHash": "89668591650f7084cd975e5570b56843e7765d82a09b8b73fa4436a9a043e87b",
+      "tests": []
+    }
+  ],
+  "baselineRevision": "28e5afe003d1afb3fa2efcac566b6469b404cd4b",
+  "baselineArtifact": "Copy of packages/interpreter/out after tsc -b tsconfig.build.json and before the array-frame changes; same checkout language/common modules for both versions.",
+  "diagnosticRuns": {
+    "before": {
+      "case": "stack",
+      "executeMs": 4299.911,
+      "peakRssKiB": 590288,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 11999,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 10,
+          "tensor:unsupported-type:array": 1,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:greater": 2,
+          "loop:unsupported-node:UnpackStatement": 1,
+          "tensor:output-shape": 421978,
+          "scalar-expression:unsupported-op:and": 1,
+          "loop:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:unsupported-op:K": 2,
+          "scalar-expression:unsupported-op:less": 2,
+          "tensor:binding:unique": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    },
+    "after": {
+      "case": "stack",
+      "executeMs": 1708.012459,
+      "peakRssKiB": 620432,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 11999,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 2,
+          "tensor:unsupported-type:array": 1,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:len": 1,
+          "scalar-expression:unsupported-op:greater": 1,
+          "tensor:binding:unique": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    }
+  },
+  "preliminaryReference": [
+    {
+      "engine": "reference",
+      "prune": false,
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/088_productsum_stack.ra",
+      "ms": 4301.717250000001,
+      "output": [
+        "7587457"
+      ],
+      "tests": [],
+      "case": "original-ref",
+      "sample": 0
+    },
+    {
+      "engine": "reference",
+      "prune": false,
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/088_productsum_stack_test.ra",
+      "ms": 4359.3640829999995,
+      "output": [],
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "7587457"
+          ],
+          "durationMs": 4233.48425
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "output": [
+            "30",
+            "61"
+          ],
+          "durationMs": 8.598041999999623
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "output": [
+            "4",
+            "10"
+          ],
+          "durationMs": 7.092124999999214
+        }
+      ],
+      "case": "fixture-ref",
+      "sample": 0
+    },
+    {
+      "engine": "reference",
+      "prune": false,
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/088_productsum_stack_test.ra",
+      "ms": 4363.563792,
+      "output": [],
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "7587457"
+          ],
+          "durationMs": 4234.857
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "output": [
+            "30",
+            "61"
+          ],
+          "durationMs": 8.710125000000517
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "output": [
+            "4",
+            "10"
+          ],
+          "durationMs": 6.1096669999997175
+        }
+      ],
+      "case": "fixture-ref",
+      "sample": 1
+    },
+    {
+      "engine": "reference",
+      "prune": false,
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/088_productsum_stack.ra",
+      "ms": 4297.815208,
+      "output": [
+        "7587457"
+      ],
+      "tests": [],
+      "case": "original-ref",
+      "sample": 1
+    },
+    {
+      "engine": "reference",
+      "prune": false,
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/088_productsum_stack.ra",
+      "ms": 4315.891708,
+      "output": [
+        "7587457"
+      ],
+      "tests": [],
+      "case": "original-ref",
+      "sample": 2
+    },
+    {
+      "engine": "reference",
+      "prune": false,
+      "file": "/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/088_productsum_stack_test.ra",
+      "ms": 4355.730125,
+      "output": [],
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "7587457"
+          ],
+          "durationMs": 4227.222374999999
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "output": [
+            "30",
+            "61"
+          ],
+          "durationMs": 8.687417000000096
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "output": [
+            "4",
+            "10"
+          ],
+          "durationMs": 6.867292000000816
+        }
+      ],
+      "case": "fixture-ref",
+      "sample": 2
+    }
+  ],
+  "preliminaryReferenceNote": "Separate serial fresh-process diagnostic pass before implementation, using the same main/fixture. These samples are not interleaved with the final paired compiled benchmark.",
+  "changedRuntimeArtifacts": [
+    {
+      "path": "compiled-argument-type.js",
+      "beforeSha256": "5c0f6d1879197282c3e31b59922041b186f23193a34d5f2198d9fbd53a7516d9",
+      "afterSha256": "09e9396952f2bbf2c47075524decff8a9bf24cf51d12823e7d01bb6763131e56"
+    },
+    {
+      "path": "integer-loop-expressions.js",
+      "beforeSha256": "cc7b3e9a8b1f4255a2543f1a0acf37bbcfce3257f3db8b448bb37496d20cf590",
+      "afterSha256": "8da975f5684c462719994d0915e00e2238c907e9f798f83870cd9d06473f0643"
+    },
+    {
+      "path": "integer-loop-runtime.js",
+      "beforeSha256": "15d7721e55d2ccf21a9fd30230e8edb8553d8cf2163f13333dca6e4236d09bd5",
+      "afterSha256": "017053c642072bb7068f6a94d763ef45de848b8d0a5461981ceb0be8e3872dd1"
+    },
+    {
+      "path": "integer-loop-state.js",
+      "beforeSha256": "173c73be69ed75b2dfdc1b8829f2df737698a14eaf5dbedc196f66373e606240",
+      "afterSha256": "21afc4a8f72ea1a373d63fc936040de69897473e1f78a56e630ba12ff4979390"
+    },
+    {
+      "path": "integer-loop-statements.js",
+      "beforeSha256": "8ea909fb50807a980efffc7556e01a2205c0fd4e571d4d4055b3ffde1ee9c376",
+      "afterSha256": "1b755cd5de124aee89bdbec61b0e6730bf2801f5f1830c4963722d713a3a676f"
+    },
+    {
+      "path": "integer-loop.js",
+      "beforeSha256": "60b0e0dd728b774d4c25ad6cf59a01240962afeb2dec915665f156febb108da5",
+      "afterSha256": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394"
+    }
+  ]
+}

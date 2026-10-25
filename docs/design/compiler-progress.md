@@ -2290,3 +2290,45 @@ The offline manual again meets its 40-column limit. Final verification passes
 all 8,266 tests in the broad interpreter selection and all 1,447 language tests,
 plus the build/typechecks, semantic/application-form checks and both poker files
 in the differential runner. The broad-run exclusions above remain unchanged.
+
+## Euler 088: scalar array frames inside compiled loops
+
+Whole-loop lowering now accepts homogeneous scalar vector literals and
+rank-one scalar-array `unpack`, including placeholders and repeated targets.
+Native stacks, queues and deques can hold integer arrays; entry guards check
+their methods, array ranks and stored cell domains. Ordinary collection checks
+still run on insertion. Arity is checked before unpack stores, and earlier
+completed stores and error locations retain reference behavior.
+
+The unchanged `088_productsum_stack.ra` now compiles its complete DFS as one
+exact integer loop. Three serial fresh-process medians on Node v24.15.0 /
+Apple M5: main 4.322 to 1.706 s (2.53x), fixture 4.400 to 1.746 s (2.52x).
+The compiler improvement does not remove frame allocation: process peak RSS
+rises about 5%/7%, respectively. Default input, algorithm, answer, golden tests
+and execution lanes are unchanged.
+
+Arrays retained by a deque, including aliases, keep interpreted stores when
+the region cannot preserve their snapshots through per-statement copy-on-write.
+Writes through locally created array aliases have the same restriction.
+Deferred bindings also keep the reference path. In the separate experiment,
+changing `K` and `Next` to deferred bindings slowed this scalar workload to
+6.627 s; the deferred-binding rejection was not removed. An independent `k`
+bound cuts DFS frames from 421978 to 204620 and measured 0.955 s, while flattening
+frames into four scalar stack entries measured 0.201 s. These source variants
+remain benchmark experiments.
+
+[Measurements, limitations and reproduction](../../benchmarks/euler088-stack-results.md)
+include source hashes, baseline artifact hashes, three-sample timing/RSS data,
+separate diagnostics and checks of every `Best` entry against a numeric DFS.
+
+Verification passes the build and test typecheck, semantic/application-form
+checks, all 8370 tests in the ordinary interpreter selection, and differential
+and name/type execution of both Euler files with all three embedded tests.
+The ordinary selection excludes the exhaustive type and differential corpora
+and Nurikabe; only the two Euler files were selected in those audits here.
+Twenty-one new tests cover scalar domains, stack/queue/deque growth, unpack errors,
+signed literals, partial stores, empty pops, host overrides, copy-on-write
+fallbacks and unused deferred expressions. Existing receiver-rebinding/Turbo
+tests now check compilation and retained traversal snapshots. The stale
+Euler 060 helper test was repaired to check its existing 3-to-7 edge in the
+current bitset representation instead of the removed `.graph` field.

@@ -103,7 +103,7 @@ Total`))!)).toBe('6');
                 expect(formatValue(d.run(() => runtime.execute(`Total = ${zero}
 for I in 0 to 2
   Total += X I
-  Scratch = array Total
+  Scratch = tuple Total
 end
 Total`))!)).toBe('6');
                 expect(d.compiledLoops).toBe(0);
@@ -929,7 +929,7 @@ end`);
         expect(result.loops).toBe(0);
     });
 
-    it('declines receiver rebinding', () => {
+    it('compiles scalar-array receiver rebinding', () => {
         const result = compare(`A = array 1 2
 Total = 0
 for I in 0 till 2
@@ -938,7 +938,7 @@ for I in 0 till 2
 end
 Total`);
         expect(result.value).toBe('5');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 });
 
@@ -1109,7 +1109,7 @@ end`);
         expect(result.variables).toEqual([]);
     });
 
-    it('declines heterogeneous arrays and receiver rebinding', () => {
+    it('declines heterogeneous arrays and preserves iteration across receiver rebinding', () => {
         expect(compare(`A = array 1 2.5
 for Value in A
   Result = Value
@@ -1122,7 +1122,7 @@ for Value in A
 end
 Total`);
         expect(result.value).toBe('3');
-        expect(result.loops).toBe(0);
+        expect(result.loops).toBe(1);
     });
 });
 

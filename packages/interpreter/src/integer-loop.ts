@@ -128,12 +128,18 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
         changed = false;
         for (const [target, source] of aliases) {
             if (writable.has(target) && !writable.has(source)) { writable.add(source); changed = true; }
+            if (state.dequeArrays.has(target) && !state.dequeArrays.has(source)) { state.dequeArrays.add(source); changed = true; }
+            if (state.dequeArrays.has(source) && !state.dequeArrays.has(target)) { state.dequeArrays.add(target); changed = true; }
         }
     }
-    // Local text aliases need copy-on-write at the individual store, not just
+    // A deque retains snapshots of pushed arrays. Their local stores need
+    // per-statement copy-on-write, beyond the region-entry write guard.
+    if ([...state.dequeArrays].some(name => writable.has(name))) return reject(statement, 'deque-array-write');
+    // Local aliases need copy-on-write at the individual store, not just
     // at region entry. Keep those writes interpreted until that lowering exists.
     if (aliases.some(([target, source]) => arrays.get(source)?.type === 'text'
-        && (writable.has(target) || writable.has(source)))) return reject(statement, 'unstable-bindings');
+        && (writable.has(target) || writable.has(source)))
+        || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
     return {
         statement, names, wideScalars, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,

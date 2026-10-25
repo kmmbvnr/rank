@@ -912,7 +912,7 @@ end`);
         ['052_permutedmultiples', '142857 permuted', true],
         ['056_digitsum', '(2 ** 1000) digit_sum', 1366n],
         ['059_xor', '((array 65) decrypt (array 42) equal (array 107)) all', true],
-        ['060_primepairs', 'Data = 20 build\nGraph = Data .graph\nGraph 3 7 adjacent', true],
+        ['060_primepairs', 'Data = 20 build\nRows = Data .rows\n((Rows 0) band 2) equal 2', true],
     ] as const)('runs the actual Euler %s helper on a small input', (name, expression, expected) => {
         const source = readFileSync(new URL(`../../../demos/euler/${name}.ra`, import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation });

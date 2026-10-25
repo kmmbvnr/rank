@@ -16,7 +16,8 @@ import { isRankArray, isRankIndex, isRankSet, isNativeFunction, type RankArray, 
 import { hasIntegerIteration } from './integer-entries.js';
 import { prepareSetAdd } from './collections.js';
 import { RankDeque } from './containers.js';
-import { hasIntegerDequeIteration } from './compiled-argument-type.js';
+import { hasIntegerDequeIteration, hasNativeDeque } from './compiled-argument-type.js';
+import { unpackApplicationItems } from './value-selection.js';
 import { setValueKey } from './set.js';
 import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
 import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
@@ -43,7 +44,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setValueKey', source)(
+    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setValueKey', 'unpackArray', source)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -71,7 +72,12 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 writeIntegerSelection(array, count, index => first + index * stride, values, operator, { offset: first, stride });
                 return true;
             }, indexRead, () => new RankError('zero cannot be raised to a negative power'),
-            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, host.arrayValues, host.continuation?.result, setValueKey); }
+            () => new RankError('power result is not real'), textLength, primeRange, materializeValue, argumentSelectionError, integerSquareRoot, host.copySlice, host.arrayValues, host.continuation?.result, setValueKey,
+            (value: RankValue, count: number) => {
+                const items = unpackApplicationItems(value);
+                if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);
+                return items;
+            }); }
     catch { return reject(); }
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
@@ -162,6 +168,14 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             if (value === undefined) return entryGuard('input-type', name);
             if (info.kind === 'index' ? !isRankIndex(value) : info.kind === 'set' ? !isRankSet(value) : !(value instanceof RankDeque)) return entryGuard('input-type', name);
             if (info.mode && (!(value instanceof RankDeque) || value.mode !== info.mode)) return entryGuard('input-type', name);
+            if (info.array) {
+                if (!hasNativeDeque(value) || info.integers) return entryGuard('input-type', name);
+                for (let index = 0; index < value.size; index++) {
+                    checkpoint();
+                    const item = value.at(index);
+                    if (!item || !isRankArray(item) || item.shape.length !== info.array.rank || !matchingCells(item, info.array.type)) return entryGuard('storage-or-cell-type', name);
+                }
+            }
             if (info.kind === 'set') {
                 if (!isRankSet(value) || !prepareSetAdd(value) || !hasIntegerIteration(value.entries)) return entryGuard('input-type', name);
                 values[info.slot] = value;

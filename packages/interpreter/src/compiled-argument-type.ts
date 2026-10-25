@@ -20,14 +20,18 @@ export function nativeDequeMethods(): boolean {
 }
 
 /** Entry proofs must not admit host overrides that can re-enter the interpreter. */
-export function hasIntegerDequeIteration(value: RankValue): value is RankDeque {
+export function hasNativeDeque(value: RankValue): value is RankDeque {
     if (typeof value !== 'object' || Object.getPrototypeOf(value) !== RankDeque.prototype) return false;
     for (const [name, descriptor] of dequeMethods) {
         const current = Object.getOwnPropertyDescriptor(RankDeque.prototype, name);
         if (Object.prototype.hasOwnProperty.call(value, name) || current?.value !== descriptor.value
             || current?.get !== descriptor.get || current?.set !== descriptor.set) return false;
     }
-    return (value as RankDeque).integers;
+    return true;
+}
+
+export function hasIntegerDequeIteration(value: RankValue): value is RankDeque {
+    return hasNativeDeque(value) && value.integers;
 }
 
 /** Tracked integer indices retain a constant-time domain proof on mutation. */
