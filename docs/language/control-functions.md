@@ -435,6 +435,11 @@ ranks; `rank L` changes the first and keeps the second operand's declared rank
 [rank rules](sequences-arrays.md#rank) for frame agreement, result assembly
 and empty-frame limits.
 
+Tensor addressing also accepts `rank`, with one entry per explicit selector
+and a matching `#` for each whole-axis selector. See
+[ranked addressing](values-addressing.md#ranked-tensor-addressing); this does
+not change the operand counts supported by ranked user-function calls.
+
 The [fold demo](../../demos/classic/fold.ra) implements reduction with
 `fun Values' fold op .with Seed`. The deferred input is consumed once.
 An omitted seed starts from the first item;

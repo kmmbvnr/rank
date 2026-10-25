@@ -12,15 +12,17 @@ fun X to_categorical Columns
   Rows = X len
   Out = array shape Rows Columns fill 0
 
-  for Label Row in X
+  for Label in X
     if Label less 0
       .DomainError raise
     end
     if Label at least Columns
       .DomainError raise
     end
-    Out Row Label = 1
   end
+
+  RowIndices = (0 till Rows) array
+  Out RowIndices X rank 0 0 = 1
 
   return Out
 end

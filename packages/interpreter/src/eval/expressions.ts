@@ -308,11 +308,12 @@ export class ExpressionEvaluator {
                 const bindings = new Map(names.map(name => [name, this.operationOf(name)]));
                 const next = names.map(name => {
                     const identity = bindings.get(name);
-                    return identity === false ? '\0' : identity?.name ?? name;
+                    return identity === false ? (isNativeFunction(this.context.findVariable(name) ?? MISSING) ? '\0function' : '\0') : identity?.name ?? name;
                 }).join(' ');
                 if (!compiled || signature !== next) {
                     const form = applicationForm(expression, name => bindings.has(name)
-                        ? bindings.get(name) : this.operationOf(name));
+                        ? bindings.get(name) : this.operationOf(name), false,
+                        name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
                     compiled = this.context.application.compileForm(expression, form, missing, tail);
                     signature = next;
                 }

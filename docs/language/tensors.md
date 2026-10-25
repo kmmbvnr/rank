@@ -463,6 +463,8 @@ rem 64 cells of shape 2 128
 The [canonical rank rules](sequences-arrays.md#rank) define frame-axis order,
 cell selection, broadcasting and result assembly, including array-valued results
 and empty frames. A binary operation accepts `rank L R`, one rank per operand.
+Addressing uses one entry per selector, such as `A Rows Cols rank 0 0` or
+`T Rows # Cols rank 0 # 0`; see [ranked tensor addressing](values-addressing.md#ranked-tensor-addressing).
 Keeping one side whole and taking the other item by item finds several values in one vector at once:
 
 ```rank

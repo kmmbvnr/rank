@@ -1,5 +1,5 @@
 import {
-    isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression,
+    isAllAxisExpression, isApplicationExpression, isArrayExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression,
     type Expression, type NameExpression,
 } from './generated/ast.js';
 import { applicationExpression, flattenApplication, groupedExpression } from './expressions.js';
@@ -77,8 +77,13 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
     }
     const rank = parts.findIndex((part, index) => index >= 2 && named(part, 'rank'));
     if (rank >= 0) {
-        // `rank L R` takes a second number for the right operand of a binary operation.
-        const end = isRankNumber(parts[rank + 2]) ? rank + 3 : rank + 2;
+        // Addressing can have any number of ranked selectors. Keep its complete
+        // list together; the form classifier owns arity and placeholder checks.
+        let end = rank + 1;
+        while (isRankNumber(parts[end]) || isAllAxisExpression(parts[end])) end++;
+        // Retain an invalid first operand so the rank validator, rather than
+        // a later ordinary name lookup, reports the malformed modifier.
+        if (end === rank + 1 && end < parts.length) end++;
         if (parts.length > end) return end;
     }
     const axis = parts.findIndex((part, index) => index >= 2 && named(part, 'axis'));

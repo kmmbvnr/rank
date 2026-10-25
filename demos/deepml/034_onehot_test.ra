@@ -54,3 +54,23 @@ test "labels must fit the width"
 
   Raised
 end
+
+test "negative labels retain the domain error"
+  use "034_onehot"
+  Raised = false
+  try
+    X = array 1 -1
+    Result = X to_categorical 3
+  catch .DomainError Error
+    Raised = true
+  end
+  Raised
+end
+
+test "empty input permits zero width"
+  use "034_onehot"
+  use sequences
+  X = array shape 0 fill 0
+  Result = X to_categorical 0
+  (Result shape) equal array 0 0
+end

@@ -298,6 +298,87 @@ chain fails if that value is not addressable. Invalid indices and masks whose
 length differs from their axis are errors. Outside tensor addressing, `#` is
 valid only as a discarded `for` binding.
 
+### Ranked tensor addressing
+
+An explicit `rank` pairs selector cells over their broadcast frames. The source
+array stays whole. Each rank-list entry corresponds to one explicit selector;
+a whole-axis `#` must have a matching `#` entry:
+
+```rank
+Values = A Rows Cols rank 0 0
+Lines = T Rows # Cols rank 0 # 0
+```
+
+For `Rows = array 0 2` and `Cols = array 1 3`, the first expression selects
+`A 0 1` and `A 2 3`. Ordinary `A Rows Cols` still selects all four combinations.
+Scalar indices broadcast; incompatible frames are errors, not truncated pairs.
+Three or more selectors work in the same way:
+
+```rank
+Values = Cube Is Js Ks rank 0 0 0
+```
+
+Rank describes the selector cell passed to each ordinary address. With Rows
+of shape `B` and ColGroups of shape `B C`, this selects each row's own C columns:
+
+```rank
+Values = A Rows ColGroups rank 0 1
+rem Result shape B C.
+```
+
+With RowGroups of shape `B R` and ColGroups of shape `B C`,
+`A RowGroups ColGroups rank 1 1` selects B rectangles of shape `R C`.
+Selectors of shapes `10 3` and `10 4 5` with `rank 1 2` produce shape
+`10 3 4 5`. Without rank, their full shapes contribute independent axes.
+
+Results follow ordinary rank assembly: frame axes first, then the axes of one
+selection. For A of shape `H W` and Cols of shape `B`:
+
+```rank
+Columns = A # Cols
+rem H B: columns retain their matrix orientation.
+Vectors = A # Cols rank # 0
+rem B H: each selected column becomes a result row.
+```
+
+Enumerating every column in order in the second form transposes the matrix.
+In contrast, `A # # rank # #` has no frame axes and returns the original shape
+and values. A scalar selector also has no frame: `A 1 # rank 0 #` selects one
+row, while a length-1 vector at rank zero contributes a length-1 frame axis.
+Omitted trailing axes remain whole and do not need rank-list entries.
+Ranked selectors must be explicit: `unpack` selectors are not supported in this
+form. Parenthesize a compound receiver or selector expression to keep its own
+addressing or operations inside that operand.
+
+Parentheses make the scope of a following operation explicit:
+
+```rank
+Total = (A Rows Cols rank 0 0) sum
+```
+
+Ordinary bindings complete the selection. Apostrophe bindings retain its
+deferred expression and creation-time dependencies under the usual capture
+and mutation rules; ranked addressing does not introduce a result cache.
+
+The same positions can be written:
+
+```rank
+A Rows Cols rank 0 0 = Values
+A Rows Cols rank 0 0 += Values
+A Rows Cols rank 0 0 += Values .accumulate
+```
+
+An array RHS must match the ranked selection's shape; a scalar fills it.
+Destination order is frame-major, followed by ordinary selection order within
+each frame cell. Repeated destinations retain the usual snapshot and
+last-replacement rules, with `.accumulate` including every numeric update.
+
+For machine-learning data, paired scalar indices select the target-class
+probability from each sample's row. With Rows of shape `B` and Candidates of
+shape `B K`, `Probabilities Rows Candidates rank 0 1` retrieves K candidate
+class scores per sample. These gathers do not compute the class indices or
+the loss themselves.
+
 `axis` remains the explicit form when an operation consumes or selects a named
 axis:
 

@@ -4,7 +4,8 @@ import { expressionFreeReads } from './bindings.js';
 import { signatureType } from '../type-signature.js';
 import { instantiateTypeSignatures } from '../signature-matching.js';
 import { declaredRanks } from '../function-ranks.js';
-import { applicationForm } from '../application-forms.js';
+import { applicationForm, rankedAddressAssignmentForm, type ApplicationForm } from '../application-forms.js';
+import { applicationFormFacts } from './application-facts.js';
 import { rankedFunctionFacts, rankedFunctionInputs } from './ranked-function-facts.js';
 import type { FunctionRelationship } from './function-relationships.js';
 import { arrayBindingContract, establishedArrayContract, refineArrayContract, contractElements, arrayContractConflict } from './array-binding-contract.js';
@@ -598,6 +599,27 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         }
     }
 
+    function checkRankedAddress(form: Extract<ApplicationForm, { kind: 'ranked-address' }>, node: AstNode,
+        env: Map<string, ValueFacts>): void {
+        const lookup = (name: string) => env.get(name);
+        const source = expressionFacts(form.source, lookup);
+        if (source.rank !== undefined && form.selectors.length > source.rank) diagnostics.push({ node, kind: 'DimensionMismatch',
+            message: `array expects at most ${source.rank} selectors` });
+        const operands = form.selectors.map(selector => expressionFacts(selector, lookup));
+        for (let i = 0; i < operands.length; i++) {
+            if (form.ranks[i] === '#') continue;
+            for (let j = i + 1; j < operands.length; j++) {
+                if (form.ranks[j] === '#') continue;
+                const conflict = rankedFrameConflict([operands[i], operands[j]], [form.ranks[i] as number, form.ranks[j] as number]);
+                if (conflict) {
+                    diagnostics.push({ node, kind: 'DimensionMismatch',
+                        message: `shape mismatch: [${conflict.left.join(', ')}] and [${conflict.right.join(', ')}]` });
+                    return;
+                }
+            }
+        }
+    }
+
     function inspect(expression: Expression, env: Map<string, ValueFacts>): ValueFacts {
         const lookup: FactLookup = Object.assign((name: string) => env.get(name), {
             invoke: (name: string, arguments_: readonly ValueFacts[], cellCall = false) => calls.call(name, arguments_, env, expression, cellCall),
@@ -719,7 +741,12 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 diagnostics.push({ node: renamed.operation, kind: 'TypeError', code: 'BuiltinRename', message: renamed.message });
             }
             for (const part of parts.slice(1)) inspect(part, env);
-            const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name));
+            const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name), false,
+                name => env.get(name)?.types.includes('function') ?? /^[a-z]/.test(name));
+            if (form.kind === 'ranked-address') checkRankedAddress(form, expression, env);
+            if (form.kind === 'invalid' && /address rank|rank #|requires rank #/.test(form.message)) {
+                diagnostics.push({ node: expression, kind: 'DimensionMismatch', message: form.message });
+            }
             const reductionName = parts.at(-1);
             const reduction = isNameExpression(reductionName) && (!env.has(reductionName.name) || env.get(reductionName.name)?.builtinOperation)
                 ? findOperation(env.get(reductionName.name)?.builtinOperation ?? reductionName.name) : undefined;
@@ -1250,6 +1277,20 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 });
                 invalidateCalls(statement.value, env);
                 const replacement = complete(inspect(statement.value, env), env);
+                if (statement.selectorRanks.length) {
+                    try {
+                        const form = rankedAddressAssignmentForm(statement)!;
+                        checkRankedAddress(form, statement, env);
+                        const selected = applicationFormFacts(form.source, form, name => env.get(name), expressionFacts);
+                        if (replacement.types.join() === 'array' && selected?.shape && replacement.shape
+                            && (selected.shape.length !== replacement.shape.length || selected.shape.some((size, axis) =>
+                                size !== null && replacement.shape![axis] !== null && size !== replacement.shape![axis]))) {
+                            diagnostics.push({ node: statement.value, kind: 'DimensionMismatch', message: 'ranked assignment shape mismatch' });
+                        }
+                    } catch (error) {
+                        diagnostics.push({ node: statement, kind: 'DimensionMismatch', message: error instanceof Error ? error.message : String(error) });
+                    }
+                }
                 let fact = env.get(statement.name);
                 if (fact?.checkedInputId !== undefined) {
                     for (const [name, alias] of env) if (alias.checkedInputId === fact.checkedInputId) {

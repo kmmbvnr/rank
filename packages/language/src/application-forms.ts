@@ -1,8 +1,8 @@
 import { bindCallWords } from './call-words.js';
 import {
     isAllAxisExpression, isParenthesizedExpression, isNumberLiteral, isNewStructureExpression, isStringLiteral, isUnaryExpression, isUnpackExpression,
-    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression,
-    type Expression,
+    isApplicationExpression, isBinaryExpression, isLabelLiteral, isNameExpression, isFunctionOperator,
+    type Expression, type ArrayAssignmentStatement, type AddressItem, type UnaryExpression, type NameExpression,
 } from './generated/ast.js';
 import { findOperation, type Operation } from './operations.js';
 import { applicationExpression, flattenApplication } from './expressions.js';
@@ -367,6 +367,8 @@ type Recognized<K extends string, F extends (...args: never[]) => unknown> =
 const FILLED_STRUCTURES: ReadonlySet<string> = new Set(['queue', 'stack', 'deque', 'heap', 'set', 'counter', 'multiset', 'orderedset']);
 
 export type ApplicationForm =
+    | { readonly kind: 'ranked-address'; readonly source: Expression;
+        readonly selectors: readonly Expression[]; readonly ranks: readonly (number | '#')[] }
     | { readonly kind: 'plain' }
     | { readonly kind: 'repeat'; readonly source: Expression; readonly operation: Expression; readonly count: Expression; readonly until?: Expression }
     | { readonly kind: 'checked-read'; readonly reader: 'csv' | 'json' | 'xml'; readonly parts: readonly Expression[] }
@@ -414,6 +416,7 @@ export type ApplicationForm =
 export function applicationForm(
     input: Expression | readonly Expression[], lookup: ApplicationLookup = findOperation,
     statement = false,
+    isFunction?: (name: string) => boolean,
 ): ApplicationForm {
     // Binding-dependent names belong to this classification, never to AST nodes.
     const names = new WeakMap<Expression, string>();
@@ -447,14 +450,14 @@ export function applicationForm(
             while (isParenthesizedExpression(read)) read = read.value;
             parts.splice(0, 1, ...flattenApplication(read));
         }
-        return classifyParts(parts, lookup, nameOf);
+        return classifyParts(parts, lookup, nameOf, isFunction);
     } catch (error) {
         if (error instanceof ApplicationSyntaxError) return { kind: 'invalid', message: error.message };
         throw error;
     }
 }
 
-function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: NameOf): ApplicationForm {
+function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: NameOf, isFunction?: (name: string) => boolean): ApplicationForm {
     if (isNamed(parts[2], 'repeat', nameOf)) {
         return parts.length === 4 || parts.length === 6 && isNamed(parts[4], 'till', nameOf)
             ? { kind: 'repeat', source: parts[0], operation: parts[1], count: parts[3], until: parts[5] }
@@ -512,7 +515,12 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
         && lookup('reshape') === findOperation('reshape')) {
         return { kind: 'invalid', message: 'reshape dimensions must follow reshape' };
     }
-    if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window', nameOf))) return { kind: 'unpack' };
+    if (parts.some(isUnpackExpression) && !parts.some(part => isNamed(part, 'window', nameOf))) {
+        // A spread coordinate has no positional correspondence with the rank
+        // list. Keep ordinary unpack calls, but reject ranked address spreads.
+        rankedAddressForm(parts, lookup, isFunction);
+        return { kind: 'unpack' };
+    }
     if (isNewStructureExpression(parts[0]) && parts[0].structure === 'graph') {
         if (parts.some(part => isNamed(part, 'with', nameOf))) {
             if (parts.length === 4 && isNamed(parts[1], 'with', nameOf)) {
@@ -543,6 +551,8 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form15) return { ...form15, kind: 'named-scan' };
     const namedReduce = explicitNamedReduceApplication(parts, nameOf);
     if (namedReduce) return { ...namedReduce, kind: 'named-reduce' };
+    const address = rankedAddressForm(parts, lookup, isFunction);
+    if (address) return address;
     const form1 = explicitRankApplication(parts, nameOf);
     if (form1) return { ...form1, kind: 'rank' };
     const form2 = explicitAxisMatmul(parts, nameOf);
@@ -799,6 +809,49 @@ function explicitCellAxisApplication(parts: Expression[], nameOf: NameOf):
     if (parts.length < 4) throw new ApplicationSyntaxError('axis expects one or more cell axes');
     const axes = parts.slice(3).map(axis => literalDimension(integerLiteral(axis, 'axis'), 'axis'));
     return { parts: parts.slice(0, 2), rank: BigInt(axes.length), axes };
+}
+
+/** Address ranks correspond positionally to selectors, including whole axes. */
+function rankedAddressForm(parts: Expression[], lookup: ApplicationLookup, isFunction?: (name: string) => boolean): Extract<ApplicationForm, { kind: 'ranked-address' }> | undefined {
+    const marker = parts.findIndex(part => isNamed(part, 'rank'));
+    if (marker < 2) return undefined;
+    const selectors = parts.slice(1, marker);
+    // Function applications keep their existing rank grammar. Declared calls
+    // are grouped before this classifier; builtin operations are catalogue-owned.
+    if (selectors.some(part => isFunctionOperator(part)
+        || isNameExpression(part) && (!!lookup(part.name) || (isFunction ? isFunction(part.name) : /^[a-z]/.test(part.name))))) return undefined;
+    if (selectors.some(isUnpackExpression)) throw new ApplicationSyntaxError('ranked addressing does not support unpack selectors; write each selector explicitly');
+    const suffix = parts.slice(marker + 1);
+    if (suffix.length !== selectors.length) {
+        throw new ApplicationSyntaxError('address rank expects one entry per explicit selector, including #');
+    }
+    const ranks = suffix.map((part, index) => {
+        if (isAllAxisExpression(selectors[index])) {
+            if (!isAllAxisExpression(part)) throw new ApplicationSyntaxError('whole-axis selector # requires rank #');
+            return '#' as const;
+        }
+        if (isAllAxisExpression(part)) throw new ApplicationSyntaxError('rank # requires a whole-axis selector #');
+        const rank = rankLiteral(part);
+        if (rank === undefined) throw new ApplicationSyntaxError('address rank expects an integer or matching #');
+        return rank;
+    });
+    return { kind: 'ranked-address', source: parts[0], selectors, ranks };
+}
+
+/** Use the same rank validation and shape form for addressed reads and writes. */
+export function rankedAddressAssignmentForm(statement: ArrayAssignmentStatement): Extract<ApplicationForm, { kind: 'ranked-address' }> | undefined {
+    if (!statement.selectorRanks.length) return undefined;
+    const expression = (item: AddressItem): Expression => {
+        if (item.spread) throw new ApplicationSyntaxError('ranked assignment does not support unpack selectors');
+        if (item.all) return { $type: 'AllAxisExpression' };
+        if (!item.value) throw new ApplicationSyntaxError('address rank expects a selector');
+        return item.sign ? { $type: 'UnaryExpression', operator: item.sign, operand: item.value } as UnaryExpression : item.value;
+    };
+    return rankedAddressForm([
+        { $type: 'NameExpression', name: statement.name } as NameExpression,
+        ...statement.indices.map(expression), { $type: 'NameExpression', name: 'rank' } as NameExpression,
+        ...statement.selectorRanks.map(expression),
+    ], () => false, () => false);
 }
 
 function explicitRankApplication(

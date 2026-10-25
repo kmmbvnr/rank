@@ -145,7 +145,8 @@ export function applicationExpressionFacts(
     expression: ApplicationExpression, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts,
 ): ValueFacts | undefined {
-    const form = applicationForm(expression, name => operationBinding(name, lookup));
+    const form = applicationForm(expression, name => operationBinding(name, lookup), false,
+        name => lookup(name)?.types.includes('function') ?? /^[a-z]/.test(name));
     return applicationFormFacts(expression, form, lookup, infer);
 }
 
@@ -153,6 +154,32 @@ export function applicationExpressionFacts(
 export function applicationFormFacts(expression: Expression, form: ApplicationForm, lookup: FactLookup,
     infer: (expression: Expression, lookup: FactLookup) => ValueFacts): ValueFacts | undefined {
     switch (form.kind) {
+        case 'ranked-address': {
+            const source = infer(form.source, lookup);
+            const sourceShape = source.shape ?? (source.rank === undefined ? undefined : Array(source.rank).fill(null));
+            if (source.types.join() !== 'array' || !sourceShape || form.selectors.length > sourceShape.length) return UNKNOWN_VALUE;
+            let frame: (number | null)[] = [];
+            const cell: (number | null)[] = [];
+            const maskAxes: number[] = [];
+            for (let axis = 0; axis < sourceShape.length; axis++) {
+                const selector = form.selectors[axis];
+                if (!selector || isAllAxisExpression(selector)) { cell.push(sourceShape[axis]); continue; }
+                const value = infer(selector, lookup);
+                const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
+                if (!shape) return UNKNOWN_VALUE;
+                const rank = form.ranks[axis] as number;
+                const cellRank = rank < 0 ? Math.max(0, shape.length + rank) : Math.min(rank, shape.length);
+                const next = shape.slice(0, shape.length - cellRank);
+                if (incompatibleShapes({ types: ['array'], shape: frame }, { types: ['array'], shape: next })) return UNKNOWN_VALUE;
+                frame = broadcastShape(frame, next);
+                if (value.elements?.join() === 'boolean' && cellRank > 0) { maskAxes.push(cell.length); cell.push(null); }
+                else cell.push(...shape.slice(shape.length - cellRank));
+            }
+            if (frame.includes(0)) for (const axis of maskAxes) cell[axis] = 0;
+            const shape = [...frame, ...cell];
+            return shape.length ? { types: ['array'], elements: source.elements, rank: shape.length, shape }
+                : { types: source.elements ?? [], rank: 0, shape: [] };
+        }
         case 'axis-matmul': {
             const operands = [infer(form.left, lookup), infer(form.right, lookup)];
             const reordered = operands.map((value, side) => {

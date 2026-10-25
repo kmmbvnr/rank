@@ -1,4 +1,5 @@
 import { functionReference } from './function-reference.js';
+import { rankedAddress } from '../ranked-address.js';
 import { compileNumericApplication } from './application-numeric.js';
 import { compileSequenceApplication } from './application-sequences.js';
 import { compileStructureApplication } from './application-structures.js';
@@ -154,6 +155,17 @@ export class ApplicationEvaluator {
         const application = this;
         const parts = flattenApplication(expression);
         switch (form.kind) {
+            case 'ranked-address': {
+                const source = context.compile(form.source);
+                const selectors = form.selectors.map(selector => isAllAxisExpression(selector)
+                    ? () => completed(ALL_AXIS) : context.compile(selector));
+                return function* (): Execution<RankValue> {
+                    const receiver = yield* resume(source());
+                    const values: RankValue[] = [];
+                    for (const selector of selectors) values.push(yield* resume(selector()));
+                    return rankedAddress(receiver, values, form.ranks, value => context.resources.ownFiles(value));
+                };
+            }
             case 'checked-read': {
                 const read = applicationParts(form.parts, expression);
                 const first = form.parts[0];

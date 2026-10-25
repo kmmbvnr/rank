@@ -1,0 +1,378 @@
+{
+  "node": "v24.15.0",
+  "samples": 7,
+  "gc": true,
+  "report": [
+    {
+      "name": "paired-points",
+      "shape": [
+        8192
+      ],
+      "measurements": {
+        "ranked": [
+          {
+            "milliseconds": 4.43504200000001,
+            "heapDelta": 10324144
+          },
+          {
+            "milliseconds": 4.816208000000017,
+            "heapDelta": 9839688
+          },
+          {
+            "milliseconds": 4.4024160000000165,
+            "heapDelta": 10040296
+          },
+          {
+            "milliseconds": 4.163457999999991,
+            "heapDelta": 9937152
+          },
+          {
+            "milliseconds": 4.129957999999988,
+            "heapDelta": 10148520
+          },
+          {
+            "milliseconds": 4.201624999999922,
+            "heapDelta": 9983312
+          },
+          {
+            "milliseconds": 4.185249999999996,
+            "heapDelta": 10208984
+          }
+        ],
+        "wrapper": [
+          {
+            "milliseconds": 7.239000000000033,
+            "heapDelta": 14626976
+          },
+          {
+            "milliseconds": 7.1652500000000146,
+            "heapDelta": 14333136
+          },
+          {
+            "milliseconds": 7.588459,
+            "heapDelta": 13347824
+          },
+          {
+            "milliseconds": 6.500292000000002,
+            "heapDelta": 15118352
+          },
+          {
+            "milliseconds": 7.3393749999999045,
+            "heapDelta": 13929144
+          },
+          {
+            "milliseconds": 6.491125000000011,
+            "heapDelta": 13558424
+          },
+          {
+            "milliseconds": 6.867250000000013,
+            "heapDelta": 13394944
+          }
+        ],
+        "loop": [
+          {
+            "milliseconds": 3.7676250000000095,
+            "heapDelta": 2989168
+          },
+          {
+            "milliseconds": 3.660792000000015,
+            "heapDelta": 2869952
+          },
+          {
+            "milliseconds": 3.658916999999974,
+            "heapDelta": 2957936
+          },
+          {
+            "milliseconds": 3.484958000000006,
+            "heapDelta": 2875264
+          },
+          {
+            "milliseconds": 3.6241670000000568,
+            "heapDelta": 2825264
+          },
+          {
+            "milliseconds": 3.4026249999999436,
+            "heapDelta": 2707832
+          },
+          {
+            "milliseconds": 3.264332999999965,
+            "heapDelta": 2776328
+          }
+        ]
+      }
+    },
+    {
+      "name": "paired-blocks",
+      "shape": [
+        64,
+        4,
+        8
+      ],
+      "measurements": {
+        "ranked": [
+          {
+            "milliseconds": 1.8065409999999247,
+            "heapDelta": 2076728
+          },
+          {
+            "milliseconds": 1.681583000000046,
+            "heapDelta": 2054632
+          },
+          {
+            "milliseconds": 1.5878340000000435,
+            "heapDelta": 1993288
+          },
+          {
+            "milliseconds": 1.650792000000024,
+            "heapDelta": 1995656
+          },
+          {
+            "milliseconds": 1.7521249999999782,
+            "heapDelta": 1997720
+          },
+          {
+            "milliseconds": 1.5590419999999767,
+            "heapDelta": 1999232
+          },
+          {
+            "milliseconds": 1.529042000000004,
+            "heapDelta": 2005384
+          }
+        ],
+        "wrapper": [
+          {
+            "milliseconds": 5.596249999999941,
+            "heapDelta": 7436520
+          },
+          {
+            "milliseconds": 5.450249999999983,
+            "heapDelta": 7465224
+          },
+          {
+            "milliseconds": 5.364459000000011,
+            "heapDelta": 7441400
+          },
+          {
+            "milliseconds": 5.355167000000051,
+            "heapDelta": 7372768
+          },
+          {
+            "milliseconds": 5.3188749999999345,
+            "heapDelta": 7367376
+          },
+          {
+            "milliseconds": 5.136499999999955,
+            "heapDelta": 8062608
+          },
+          {
+            "milliseconds": 5.175834000000009,
+            "heapDelta": 7382192
+          }
+        ]
+      }
+    },
+    {
+      "name": "column-transpose",
+      "shape": [
+        64,
+        256
+      ],
+      "measurements": {
+        "ranked": [
+          {
+            "milliseconds": 5.454791999999998,
+            "heapDelta": 8907272
+          },
+          {
+            "milliseconds": 5.416583999999943,
+            "heapDelta": 8985088
+          },
+          {
+            "milliseconds": 5.964708000000087,
+            "heapDelta": 8889104
+          },
+          {
+            "milliseconds": 5.455708999999956,
+            "heapDelta": 8985088
+          },
+          {
+            "milliseconds": 5.925416000000041,
+            "heapDelta": 8952848
+          },
+          {
+            "milliseconds": 4.917625000000044,
+            "heapDelta": 8980592
+          },
+          {
+            "milliseconds": 4.866000000000099,
+            "heapDelta": 8873600
+          }
+        ],
+        "transpose": [
+          {
+            "milliseconds": 4.519207999999935,
+            "heapDelta": 6579296
+          },
+          {
+            "milliseconds": 4.682874999999967,
+            "heapDelta": 6574032
+          },
+          {
+            "milliseconds": 5.303750000000036,
+            "heapDelta": 6607336
+          },
+          {
+            "milliseconds": 4.920082999999977,
+            "heapDelta": 6612328
+          },
+          {
+            "milliseconds": 5.198792000000026,
+            "heapDelta": 6584392
+          },
+          {
+            "milliseconds": 4.485708000000045,
+            "heapDelta": 6577992
+          },
+          {
+            "milliseconds": 4.322709000000032,
+            "heapDelta": 6599104
+          }
+        ]
+      }
+    },
+    {
+      "name": "paired-write",
+      "shape": [
+        256,
+        64
+      ],
+      "measurements": {
+        "ranked": [
+          {
+            "milliseconds": 0.9542500000000018,
+            "heapDelta": 1562504
+          },
+          {
+            "milliseconds": 1.094583000000057,
+            "heapDelta": 1565672
+          },
+          {
+            "milliseconds": 1.183415999999852,
+            "heapDelta": 1574136
+          },
+          {
+            "milliseconds": 1.1506669999998849,
+            "heapDelta": 1565912
+          },
+          {
+            "milliseconds": 1.1452080000001388,
+            "heapDelta": 1572864
+          },
+          {
+            "milliseconds": 1.1210000000000946,
+            "heapDelta": 1546456
+          },
+          {
+            "milliseconds": 1.0522080000000642,
+            "heapDelta": 1557824
+          }
+        ],
+        "loop": [
+          {
+            "milliseconds": 1.3134999999999764,
+            "heapDelta": 1263952
+          },
+          {
+            "milliseconds": 1.212833000000046,
+            "heapDelta": 1259000
+          },
+          {
+            "milliseconds": 1.225125000000162,
+            "heapDelta": 1267640
+          },
+          {
+            "milliseconds": 1.2065410000000156,
+            "heapDelta": 1265720
+          },
+          {
+            "milliseconds": 1.2531659999999647,
+            "heapDelta": 1231144
+          },
+          {
+            "milliseconds": 1.1319169999999303,
+            "heapDelta": 1233488
+          },
+          {
+            "milliseconds": 1.2863749999999072,
+            "heapDelta": 1274696
+          }
+        ]
+      }
+    },
+    {
+      "name": "euler-597",
+      "measurements": {
+        "before": [
+          {
+            "milliseconds": 7.544416999999839,
+            "heapDelta": 10245592
+          },
+          {
+            "milliseconds": 7.252874999999904,
+            "heapDelta": 10091832
+          },
+          {
+            "milliseconds": 7.206916999999976,
+            "heapDelta": 10260504
+          },
+          {
+            "milliseconds": 7.166332999999895,
+            "heapDelta": 10255712
+          },
+          {
+            "milliseconds": 7.51170900000011,
+            "heapDelta": 10191904
+          },
+          {
+            "milliseconds": 7.398500000000013,
+            "heapDelta": 10187584
+          },
+          {
+            "milliseconds": 7.236832999999933,
+            "heapDelta": 10152688
+          }
+        ],
+        "ranked": [
+          {
+            "milliseconds": 41.66670799999997,
+            "heapDelta": 11667872
+          },
+          {
+            "milliseconds": 41.87083299999995,
+            "heapDelta": 68040608
+          },
+          {
+            "milliseconds": 38.05316700000003,
+            "heapDelta": 66455040
+          },
+          {
+            "milliseconds": 39.04899999999998,
+            "heapDelta": 66051664
+          },
+          {
+            "milliseconds": 42.01508299999978,
+            "heapDelta": 67433920
+          },
+          {
+            "milliseconds": 40.78649999999993,
+            "heapDelta": 67706848
+          },
+          {
+            "milliseconds": 40.77612500000009,
+            "heapDelta": 65542784
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
+import { rankedAddressSelection } from '../ranked-address.js';
 import { unpackApplicationItems } from '../value-selection.js';
 import {
-    deferredBindingReferences, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
+    deferredBindingReferences, rankedAddressAssignmentForm, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral,
     isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
@@ -105,12 +106,21 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
 
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
+    let ranks: readonly (number | '#')[] | undefined;
+    try { ranks = rankedAddressAssignmentForm(statement)?.ranks; }
+    catch (error) { throw new RankError(error instanceof Error ? error.message : String(error), 'Syntax'); }
     if (statement.accumulate && !['+=', '-=', '*='].includes(statement.operator)) {
         throw new RankError('.accumulate supports only +=, -= and *= on numeric arrays', 'Syntax');
     }
     const general = function* (
         target: RankValue, selectors: RankValue[], evaluated?: RankValue,
     ): Execution<RankValue | undefined> {
+        if (ranks && (!isRankArray(target) || isRankTable(target) || target instanceof FlatRecords)) {
+            throw new RankError('ranked assignment expects a tensor array', 'TypeError');
+        }
+        if (ranks && selectors.some(selector => isRankLabel(selector) && selector.name !== '#')) {
+            throw new RankError('ranked assignment expects tensor axis selectors', 'TypeError');
+        }
         if (statement.accumulate && (!isRankArray(target) || target.kind !== 'array' || isRankTable(target) || target instanceof FlatRecords)) {
             throw new RankError('.accumulate expects a numeric array target', 'TypeError');
         }
@@ -161,7 +171,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         if (target.itemAt !== undefined && !hasDeferredSelectionCopy(target)) {
             throw new RankError('cannot assign to a lazy array');
         }
-        const selection = tensorSelection(target, selectors);
+        const selection = ranks ? rankedAddressSelection(target, selectors, ranks) : tensorSelection(target, selectors);
         // The compiled single-cell form hands its value over when the
         // shape rules have to decide what happens to it.
         let result = demandValue(evaluated
@@ -212,7 +222,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             );
         }
         if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
-            && (target.shape.length === 1 || statement.accumulate)
+            && (target.shape.length === 1 || statement.accumulate || ranks !== undefined)
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
             && (typeof result === 'bigint' || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);
@@ -238,7 +248,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 const destination = owned(target) as typeof target;
                 if (statement.accumulate) {
                     accumulateIntegerSelection(destination, count, selection.offsetAt, values, operation as '+=' | '-=' | '*=');
-                } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation, selection.linear);
+                } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation as '=' | '+=' | '-=' | '*=', selection.linear);
                 return result;
             }
         }
@@ -307,7 +317,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         rebind(copy);
         return copy;
     };
-    const address = statement.indices.length === 1 ? statement.indices[0] : undefined;
+    const address = !ranks && statement.indices.length === 1 ? statement.indices[0] : undefined;
     const directIndex = address && !address.all && !address.sign && !address.spread && address.value
         ? host.compileDirect(address.value) : undefined;
     const directValue = host.compileDirect(statement.value);

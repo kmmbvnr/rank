@@ -168,7 +168,8 @@ export class PlanConstruction {
         }
         if (isApplicationExpression(expression)) {
             const parts = flattenApplication(expression);
-            const form = applicationForm(expression, name => this.context.operationOf(name));
+            const form = applicationForm(expression, name => this.context.operationOf(name), false,
+                name => { const value = this.context.findVariable(name); return value !== undefined && isNativeFunction(value); });
             if (form.kind === 'plain') {
                 for (let index = 1; index < parts.length; index++) {
                     const part = parts[index];

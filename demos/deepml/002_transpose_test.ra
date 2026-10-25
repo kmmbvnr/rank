@@ -36,3 +36,37 @@ test "empty leading axis"
 
   A transpose_matrix equal Expected
 end
+
+test "empty trailing axis retains the other dimension"
+  use "002_transpose"
+  use sequences
+  A = array shape 3 0 fill 0
+  Result = A transpose_matrix
+  (Result shape) equal array 0 3
+end
+
+test "one row becomes one column"
+  use "002_transpose"
+  A = array shape 1 3
+    1 2 3
+  end
+  Expected = array shape 3 1
+    1
+    2
+    3
+  end
+  A transpose_matrix equal Expected
+end
+
+test "one column becomes one row"
+  use "002_transpose"
+  A = array shape 3 1
+    1
+    2
+    3
+  end
+  Expected = array shape 1 3
+    1 2 3
+  end
+  A transpose_matrix equal Expected
+end

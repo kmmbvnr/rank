@@ -1,6 +1,6 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isPrimaryTailExpression, type Program, type ApplicationExpression,
+    isPrimaryTailExpression, isArrayAssignmentStatement, isNameExpression, type Program, type ApplicationExpression,
     type KeyedRollingExpression, type KeyedReachExpression, type KeyedJoinExpression,
     type KeyedMergeExpression,
 } from './generated/ast.js';
@@ -11,6 +11,15 @@ type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
 export function normalizePrimaryApplications(program: Program): void {
     // Keep the node objects: their CST nodes and descendants already refer to them.
     for (const node of AstUtils.streamAst(program).toArray()) {
+        if (isArrayAssignmentStatement(node)) {
+            const marker = node.indices.findIndex((item, index) => index > 0
+                && !item.sign && !item.spread && isNameExpression(item.value) && item.value.name === 'rank');
+            if (marker >= 0 && marker + 1 < node.indices.length) {
+                node.selectorRanks = node.indices.slice(marker + 1);
+                node.indices = node.indices.slice(0, marker);
+                AstUtils.linkContentToContainer(node);
+            }
+        }
         if (!isPrimaryTailExpression(node)) continue;
         const operator = node.operator?.replace(/\s+/g, '');
         let properties: Fields<ApplicationExpression> | Fields<KeyedRollingExpression>

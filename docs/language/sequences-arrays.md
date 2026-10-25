@@ -1325,6 +1325,11 @@ operation on corresponding cells, and assemble the results. Cell selection does
 not relax the operation's input requirements. For example, choosing matrix cells
 for `matmul` does not make unequal contracted dimensions compatible.
 
+[Ranked tensor addressing](values-addressing.md#ranked-tensor-addressing) uses
+the same frame and result assembly rules. Its receiver stays whole and each
+explicit selector has a corresponding rank entry, including `#` for a fixed
+whole axis: `T Rows # Cols rank 0 # 0`. The selector count is not limited to two.
+
 ### Cell selection
 
 A cell contains the trailing axes selected by its rank; the remaining leading

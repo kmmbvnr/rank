@@ -2,6 +2,15 @@ grammar Rank
 
 interface Expression {}
 
+interface ArrayAssignmentStatement {
+    name: string
+    indices: AddressItem[]
+    selectorRanks: AddressItem[]
+    operator: string
+    value: Expression
+    accumulate: boolean
+}
+
 interface KeyedRollingExpression extends Expression {
     source: Expression
     width: Expression
@@ -207,7 +216,7 @@ ForStatement:
 UnpackStatement:
     'unpack' names+=UnpackTarget+ '=' value=Expression;
 
-ArrayAssignmentStatement:
+ArrayAssignmentStatement returns ArrayAssignmentStatement:
     name=AssignableName indices+=AddressItem+
     operator=AssignmentOperator value=Expression (accumulate?=ACCUMULATE)?;
 
