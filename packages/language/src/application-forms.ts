@@ -129,9 +129,9 @@ function foldModifiers(parts: Expression[], start: number, scan: boolean, nameOf
         const word = parts[index++];
         if (isNamed(word, 'with', nameOf) && seed === undefined && index === parts.length - 1) {
             seed = parts[index++];
-        } else if (isNamed(word, 'rank', nameOf) && rank === undefined && (!scan || axes === undefined) && seed === undefined && parts[index]) {
+        } else if (isNamed(word, 'rank', nameOf) && rank === undefined && seed === undefined && parts[index]) {
             rank = parts[index++];
-        } else if (isNamed(word, 'axis', nameOf) && (!scan || rank === undefined) && axes === undefined && seed === undefined) {
+        } else if (isNamed(word, 'axis', nameOf) && axes === undefined && seed === undefined) {
             axes = [];
             while (foldNumber(parts[index])) {
                 axes.push(parts[index++]);
@@ -139,7 +139,7 @@ function foldModifiers(parts: Expression[], start: number, scan: boolean, nameOf
             if (!axes.length || scan && axes.length !== 1) throw new ApplicationSyntaxError(scan
                 ? 'scan axis expects one integer axis' : 'reduce axis expects one or more integer axes');
         } else throw new ApplicationSyntaxError(scan
-            ? 'scan expects rank R or axis N, followed by optional with Seed'
+            ? 'scan expects optional rank R and axis N, followed by optional with Seed'
             : 'reduce expects optional rank R and axis axes, followed by optional with Seed');
     }
     return { rank, seed, ...(scan ? { axis: axes?.[0] } : { axes }) };

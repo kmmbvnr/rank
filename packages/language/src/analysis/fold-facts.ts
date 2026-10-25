@@ -20,13 +20,21 @@ export function foldShapeFacts(
     const rank = form.rank && integer(form.rank);
     if (form.rank && (rank === undefined || rank > source.rank)) return undefined;
     const axes = form.axes?.map(part => integer(part, true));
-    const axis = form.axis ? integer(form.axis, true) : rank === undefined ? undefined : source.rank - rank;
+    if (form.rank && !form.axis && !form.axes && sourceRank - rank! !== 1) return undefined;
+    const axis = form.axis ? integer(form.axis, true) : rank === undefined ? undefined : 0;
     const shape = source.shape ?? Array(source.rank).fill(null) as null[];
     if (scan) {
-        if (rank === 0 || form.axis && axis === undefined || axis !== undefined && axis >= sourceRank) return undefined;
+        const boundary = sourceRank - (rank ?? 0);
+        if (form.axis && axis === undefined || axis !== undefined && axis >= boundary) return undefined;
         if (axis === undefined && source.rank !== 1) return undefined;
-        if (source.types.join() === 'array' && (form.axis || form.rank) && form.seed && infer(form.seed).rank !== 0) return undefined;
-        const output = [...shape];
+        if (rank && source.types.join() !== 'array') return undefined;
+        const tensor = source.types.join() === 'array' && !!(form.axis || form.rank);
+        const seed = form.seed && infer(form.seed);
+        if (tensor && seed && seed.types.join() !== 'array' && seed.rank !== 0) return undefined;
+        const stateShape = tensor && seed ? seed.shape ?? (seed.rank === 0 ? [] : undefined)
+            : shape.slice(boundary);
+        if (!stateShape) return undefined;
+        const output = [...shape.slice(0, boundary), ...stateShape];
         const along = axis ?? 0;
         if (form.seed && output[along] !== null) output[along]!++;
         return { types: [source.types.join() === 'sequence' && !form.axis ? 'sequence' : 'array'],
@@ -49,6 +57,7 @@ export function foldShapeFacts(
         const output = [...frame, ...shape.slice(boundary)];
         return { types: ['array'], rank: output.length, shape: output, elements: cells };
     }
+    if (form.seed && infer(form.seed).rank !== 0) return undefined;
     if (!cells?.length) return undefined;
     const frame = axes ? shape.filter((_, index) => !axes.includes(index)) : [];
     return frame.length ? { types: ['array'], rank: frame.length, shape: frame,

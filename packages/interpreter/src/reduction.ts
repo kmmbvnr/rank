@@ -1,4 +1,4 @@
-import { resolveAxis, resolveAxes } from './tensor-index.js';
+import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
@@ -47,6 +47,7 @@ export class ReductionEvaluator {
         seed?: RankValue,
         axes?: readonly number[],
     ): RankValue {
+        axes = this.foldAxes(value, cellRank, axes, 'reduce');
         if (axes && isRankArray(value)) axes = resolveAxes(axes, value.shape.length, 'reduce');
         if (cellRank !== undefined && cellRank > 0 || axes && seed !== undefined && isRankArray(seed)) {
             return this.reduceInputCells(value, cellRank ?? 0, axes, seed,
@@ -78,7 +79,10 @@ export class ReductionEvaluator {
     }
 
     evaluateScan(operator: string, value: RankValue, seed?: RankValue, axis?: number, rank?: number): RankValue {
-        axis = this.scanAxisNumber(value, axis, rank);
+        axis = this.foldAxes(value, rank, axis === undefined ? undefined : [axis], 'scan')?.[0];
+        if (axis !== undefined && ((rank ?? 0) > 0 || seed !== undefined && isRankArray(seed))) {
+            return this.scanInputCells(value, rank ?? 0, axis, seed, (left, right) => this.binary(operator, left, right));
+        }
         if (axis !== undefined) return this.evaluateScanAxis(operator, value, axis, seed);
         return this.scanValues(value, operator, seed,
             numericKernel(operator, (a, b) => this.binary(operator, a, b)));
@@ -101,7 +105,10 @@ export class ReductionEvaluator {
     }
 
     evaluateNamedScan(operation: NativeFunction, value: RankValue, seed?: RankValue, axis?: number, rank?: number): RankValue {
-        axis = this.scanAxisNumber(value, axis, rank);
+        axis = this.foldAxes(value, rank, axis === undefined ? undefined : [axis], 'scan')?.[0];
+        if (axis !== undefined && ((rank ?? 0) > 0 || seed !== undefined && isRankArray(seed))) {
+            return this.scanInputCells(value, rank ?? 0, axis, seed, (left, right) => this.invoke(operation, [left, right]));
+        }
         if (axis !== undefined) return this.evaluateNamedScanAxis(operation, value, axis, seed);
         if (isRankSequence(value)) operation = snapshotLazyFunction(operation);
         const scalar = this.scalarCallback(operation);
@@ -113,6 +120,7 @@ export class ReductionEvaluator {
 
     evaluateNamedReduction(operation: NativeFunction, value: RankValue, seed?: RankValue,
         rank?: number, axes?: readonly number[]): RankValue {
+        axes = this.foldAxes(value, rank, axes, 'reduce');
         if (rank !== undefined && rank > 0 || axes !== undefined) {
             const scalar = this.scalarCallback(operation);
             return this.reduceInputCells(value, rank ?? 0, axes, seed,
@@ -170,11 +178,66 @@ export class ReductionEvaluator {
         }), [value, ...captures, ...(seed === undefined ? [] : [seed])]);
     }
 
-    /** Select scalar lines; rank R scans the leading axis of each trailing rank-R cell. */
-    private scanAxisNumber(value: RankValue, axis?: number, rank?: number): number | undefined {
-        if (rank === undefined) return axis;
-        if (rank === 0 || rank > valueRank(value)) throw new RankError('scan rank must be between 1 and the source rank');
-        return isRankArray(value) ? value.shape.length - rank : undefined;
+    /** An explicit input rank can infer traversal only from a single outer axis. */
+    private foldAxes(value: RankValue, rank: number | undefined, axes: readonly number[] | undefined,
+        operation: string): readonly number[] | undefined {
+        if (rank === undefined) return axes;
+        const sourceRank = valueRank(value);
+        if (rank < 0 || rank > sourceRank) throw new RankError(`rank ${rank} exceeds value rank ${sourceRank}`);
+        if (axes === undefined) {
+            if (sourceRank - rank !== 1) throw new RankError(
+                `${operation} rank ${rank} requires an explicit axis unless exactly one axis remains outside the input cell; use axis N for scalar cells or rank R axis N for input cells`);
+            // Rank-zero sequence/text folds retain their streaming path.
+            return isRankArray(value) ? [0] : undefined;
+        }
+        return axes;
+    }
+
+    /** Stack equal-shaped states, preserving the traversal axis among the outer axes. */
+    private scanInputCells(value: RankValue, rank: number, axis: number, seed: RankValue | undefined,
+        combine: (left: RankValue, right: RankValue) => RankValue): RankValue {
+        if (!isRankArray(value)) throw new RankError('scan with input cell rank or axis expects an array');
+        axis = resolveAxis(axis, value.shape.length);
+        const boundary = value.shape.length - rank;
+        if (axis >= boundary) throw new RankError('scan axis must be outside the trailing input cell');
+        const frameAxes = Array.from({ length: boundary }, (_, i) => i).filter(i => i !== axis);
+        const frames = tensorCells(value, frameAxes);
+        const prefix = [...value.shape.slice(0, boundary)];
+        const length = prefix[axis];
+        if (seed !== undefined) prefix[axis]++;
+        let stateShape: readonly number[] | undefined = seed === undefined ? undefined : isRankArray(seed) ? seed.shape : [];
+        const states: RankValue[] = new Array(arraySize(prefix));
+        for (let frame = 0; frame < arraySize(frames.frameShape); frame++) {
+            const cells = dyadicCells(frames.cellAt(frame), rank);
+            const coordinates = coordinatesAt(frames.frameShape, frame);
+            coordinates.splice(axis, 0, 0);
+            let accumulator = seed;
+            const store = (step: number, state: RankValue) => {
+                const shape = isRankArray(state) ? state.shape : [];
+                if (stateShape === undefined) stateShape = [...shape];
+                else if (!sameShape(stateShape, shape)) throw new RankError('scan states must have matching shapes', 'DimensionMismatch');
+                this.ownFiles(state);
+                coordinates[axis] = step;
+                // Realize each state once: later steps must not replay its lazy callback reads.
+                const stored = isRankArray(state) ? ownedArray(Array.from(arrayValues(state)), shape) : state;
+                states[arrayOffset(prefix, coordinates)] = stored;
+                return stored;
+            };
+            if (seed !== undefined) accumulator = store(0, seed);
+            for (let step = 0; step < length; step++) {
+                checkpoint('scanning input cells');
+                const cell = cells.cellAt(step);
+                accumulator = accumulator === undefined ? cell : combine(accumulator, cell);
+                accumulator = store(step + (seed === undefined ? 0 : 1), accumulator);
+            }
+        }
+        stateShape ??= rank === 0 ? [] : value.shape.slice(-rank);
+        const items: RankValue[] = [];
+        for (const state of states) {
+            if (isRankArray(state)) for (const item of arrayValues(state)) items.push(item);
+            else items.push(state);
+        }
+        return ownedArray(items, [...prefix, ...stateShape]);
     }
 
     private reduceAxes(value: RankValue, axes: readonly number[], reduce: (cell: RankValue) => RankValue,
@@ -211,7 +274,7 @@ export class ReductionEvaluator {
                     const source = (block * length + step) * inner;
                     for (let lane = 0; lane < inner; lane++) {
                         const accumulated = operation(out[at - inner + lane], arrayItem(value, source + lane));
-                        if (valueRank(accumulated) !== 0) throw new RankError('scan axis operation must return a scalar');
+                        if (valueRank(accumulated) !== 0) throw new RankError('scan states must have matching shapes', 'DimensionMismatch');
                         out[at + lane] = accumulated;
                     }
                 }
@@ -243,6 +306,7 @@ export class ReductionEvaluator {
                 const at = start + step * inner;
                 for (let index = at; index < at + inner; index += 1) {
                     out[index] = step === 0 ? cells[index] : operation(out[index - inner], cells[index]);
+                    if (valueRank(out[index]) !== 0) throw new RankError('scan states must have matching shapes', 'DimensionMismatch');
                 }
             }
         }

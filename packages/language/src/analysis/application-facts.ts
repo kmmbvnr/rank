@@ -370,22 +370,28 @@ function namedFold(form: Extract<ApplicationForm, { kind: 'named-scan' | 'named-
     const operation = operationBinding(form.operation.name, lookup);
     if (!operation && lookup.invoke && source.elements?.length
         && source.elements.every(type => ['integer', 'real', 'boolean', 'record', 'tuple', 'symbol'].includes(type))) {
-        const item: ValueFacts = { types: source.elements, rank: 0, shape: [] };
+        const rank = form.rank ? Number(infer(form.rank, lookup).integer) : 0;
+        if (!Number.isSafeInteger(rank) || rank < 0) return undefined;
+        const item: ValueFacts = rank === 0 ? { types: source.elements, rank: 0, shape: [] }
+            : { types: ['array'], elements: source.elements, rank, shape: source.shape?.slice(-rank),
+                eagerScalarCells: source.eagerScalarCells, callbackFreeScalarCells: source.callbackFreeScalarCells };
         const initial = seed ?? item;
         const step = lookup.invoke(form.operation.name, [initial, item], true);
-        if (initial.rank !== 0 || step.rank !== 0 || !step.types.length) return undefined;
+        if (initial.rank === undefined || step.rank !== initial.rank || !step.types.length) return undefined;
         const accumulated = joinValueFacts([initial, step]);
         const next = lookup.invoke(form.operation.name, [accumulated, item], true);
         // Claim a cell domain only when another step stays inside it.
-        if (next.rank !== 0 || !next.types.length || next.types.some(type => !accumulated.types.includes(type))) return undefined;
-        return { source, seed, cells: accumulated.types };
+        if (next.rank !== initial.rank || !next.types.length || next.types.some(type => !accumulated.types.includes(type))) return undefined;
+        if (accumulated.types.join() === 'array' && (!next.elements?.length
+            || next.elements.some(type => !accumulated.elements?.includes(type)))) return undefined;
+        return { source, seed, cells: accumulated.types.join() === 'array' ? accumulated.elements : accumulated.types };
     }
     // Integer-only scalar operations, or ones that return one of their numeric operands.
     const realCells = !!operation && operation.selectsNumericCell === true;
     if (!operation || !(operation.scalarNoCallback === 'integer' || realCells) || operation.effects?.length
         || !operation.arities.includes(2) || operation.dyadicRanks?.[0] !== 0
         || operation.dyadicRanks[1] !== 0) return undefined;
-    const cells = foldedCells(source, seed, type => type === 'integer' || realCells && type === 'real');
+    const cells = foldedCells(source, seed, type => type === 'integer' || realCells && type === 'real', form.kind === 'named-scan' && !!(form.rank || form.axis));
     return cells ? { source, seed, cells } : undefined;
 }
 

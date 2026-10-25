@@ -24,7 +24,7 @@ describe('mod', () => {
         expect(run(source + 'M reduce mod axis 1')).toBe('2 0');
         expect(run(source + 'M reduce mod axis 0')).toBe('3 1 1');
         expect(run(source + 'M scan mod axis 1')).toBe('20 2 2 17 2 0');
-        expect(run(source + 'M scan mod rank 1 with 43 shape')).toBe('2 4');
+        expect(run(source + 'M scan mod axis 1 with 43 shape')).toBe('2 4');
         expect(numbers('(array 20 6 3) scan mod sum')).toBe('24');
     });
 

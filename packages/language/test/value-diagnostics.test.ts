@@ -907,10 +907,10 @@ it('keeps loop contracts in functions and after loops while discarding mutation 
         .toEqual(['A has type integer and cannot receive boolean']);
 });
 
-it('checks reductions against the actual runtime rule, allowing full rank', () => {
+it('checks reductions against the input-cell traversal rule', () => {
     expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 3'))
         .toEqual(['rank 3 exceeds value rank 2']);
-    expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 2')).toEqual([]);
+    expect(messages('A = array shape 2 3 fill 0\nA reduce + rank 2')[0]).toContain('requires an explicit axis');
 });
 
 it('checks axis bounds and selector counts', () => {
@@ -928,7 +928,7 @@ it('does not reuse shapes after a call that may change a captured binding', () =
 it('checks nested expressions and respects text rank', () => {
     expect(messages('array (1 + "x")')).toEqual(['operator + does not accept integer and text']);
     expect(messages('"a" + "long"')).toEqual([]);
-    expect(messages('"abc" reduce + rank 1')).toEqual([]);
+    expect(messages('"abc" reduce + rank 0')).toEqual([]);
 });
 
 it('infers a helper result from its body and literal call arguments', () => {

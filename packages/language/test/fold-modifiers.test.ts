@@ -22,11 +22,11 @@ it.each(['+', 'plus', 'min'])('infers ranked and axis fold shapes for %s', opera
         .toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
     expect(facts(matrix, `M reduce ${operation} axis 1 0 with 0`))
         .toMatchObject({ types: ['integer'], rank: 0, shape: [] });
-    expect(facts(matrix, `M scan ${operation} rank 1 with 0`))
+    expect(facts(matrix, `M scan ${operation} axis 1 with 0`))
         .toMatchObject({ types: ['array'], rank: 2, shape: [2, 4], elements: ['integer'] });
     expect(facts(matrix, `M scan ${operation} axis 0 with 0`))
         .toMatchObject({ types: ['array'], rank: 2, shape: [3, 3], elements: ['integer'] });
-    expect(facts(matrix, `M scan ${operation} rank 2`))
+    expect(facts(matrix, `M scan ${operation} axis 0`))
         .toMatchObject({ types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'] });
 });
 
@@ -35,7 +35,7 @@ it.each(['+', 'plus'])('preserves empty axis and empty frame shapes for %s', ope
     expect(facts(empty, `E reduce ${operation} axis 1 with 7`)).toMatchObject({ shape: [2, 3], elements: ['integer'] });
     expect(facts(empty, `E reduce ${operation} axis 2 with 7`)).toMatchObject({ shape: [2, 0] });
     expect(facts(empty, `E scan ${operation} axis 1 with 7`)).toMatchObject({ shape: [2, 1, 3] });
-    expect(facts(empty, `E scan ${operation} rank 1 with 7`)).toMatchObject({ shape: [2, 0, 4] });
+    expect(facts(empty, `E scan ${operation} axis 2 with 7`)).toMatchObject({ shape: [2, 0, 4] });
 });
 
 it('infers boolean and mixed numeric cells without narrowing a one-element fold', () => {
@@ -57,7 +57,7 @@ it('infers symbolic input-cell shapes without treating callback cells as scalars
         .toMatchObject({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
     expect(facts('T = array shape 2 3 4 fill 1\n', 'T reduce + rank 1 axis 1'))
         .toMatchObject({ types: ['array'], rank: 2, shape: [2, 4], elements: ['integer'] });
-    expect(facts(matrix, 'M reduce + rank 0')).toMatchObject({ rank: 0, shape: [] });
+    expect(facts(matrix, 'M reduce +')).toMatchObject({ rank: 0, shape: [] });
 });
 
 it('uses the scalar seed shape for empty input-cell folds and frames', () => {
@@ -65,4 +65,37 @@ it('uses the scalar seed shape for empty input-cell folds and frames', () => {
         .toMatchObject({ rank: 0, shape: [] });
     expect(facts('E = array shape 0 2 3 fill 0\n', 'E reduce + rank 1 axis 1 with 7'))
         .toMatchObject({ rank: 1, shape: [0] });
+});
+
+it.each(['+', 'plus', 'max'])('infers input-cell scan states for %s', operation => {
+    expect(facts(matrix, `M scan ${operation} rank 1 axis 0`))
+        .toMatchObject({ types: ['array'], rank: 2, shape: [2, 3], elements: ['integer'] });
+    expect(facts(matrix, `M scan ${operation} rank 1`))
+        .toMatchObject({ rank: 2, shape: [2, 3] });
+    expect(facts(matrix, `M scan ${operation} axis -2 rank 1 with (array 0 0 0)`))
+        .toMatchObject({ rank: 2, shape: [3, 3], elements: ['integer'] });
+    expect(facts('T = array shape 2 3 4 fill 1\n', `T scan ${operation} rank 1 axis 1`))
+        .toMatchObject({ rank: 3, shape: [2, 3, 4] });
+    expect(facts('T = array shape 2 3 4 fill 1\n', `T scan ${operation} rank 2 with (array shape 3 4 fill 0)`))
+        .toMatchObject({ rank: 3, shape: [3, 3, 4] });
+});
+
+it('uses accumulator shapes independently of input-cell shapes', () => {
+    expect(facts('fun Acc total Row = Acc + (Row sum)\n', '((array 1 2 3 4 5 6) reshape 2 3) scan total rank 1 with 0'))
+        .toMatchObject({ rank: 1, shape: [3], elements: ['integer'] });
+    expect(facts(matrix, 'M scan + rank 0 axis 1 with (array 10 20)'))
+        .toMatchObject({ rank: 3, shape: [2, 4, 2], elements: ['integer'] });
+    expect(facts('E = array shape 0 2 3 fill 0\n', 'E scan + rank 1 axis 1 with (array 7 8)'))
+        .toMatchObject({ shape: [0, 3, 2] });
+    expect(facts('E = array shape 0 3 fill 0\n', 'E scan + rank 1'))
+        .toMatchObject({ shape: [0, 3] });
+});
+
+it.each(['reduce +', 'reduce plus', 'scan +', 'scan plus'])('diagnoses ambiguous traversal for %s', fold => {
+    for (const rank of [0, 2]) {
+        const parsed = parser.parse<Program>(`${plus}${matrix}M ${fold} rank ${rank}\n`);
+        expect(analyzeValues(parsed.value).diagnostics.some(d => d.message.includes('requires an explicit axis'))).toBe(true);
+    }
+    const parsed = parser.parse<Program>(`${plus}${matrix}M ${fold} rank 1 axis -1\n`);
+    expect(analyzeValues(parsed.value).diagnostics.some(d => d.message.includes('outside the trailing input cell'))).toBe(true);
 });

@@ -244,7 +244,7 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
         const numeric = ['+', '-', '*', '/', '//', 'mod', '**'].includes(symbolic.operator);
         const boolean = ['and', 'or', 'xor'].includes(symbolic.operator);
         let cells = foldedCells(source, seed, type => numeric ? type === 'integer' || type === 'real'
-            : boolean && type === 'boolean');
+            : boolean && type === 'boolean', symbolic.kind === 'scan' && !!(symbolic.rank || symbolic.axis));
         if (cells) cells = [...new Set([...cells, ...binaryType(symbolic.operator, cells, cells)])];
         const result = foldShapeFacts(symbolic.kind === 'scan', symbolic, source,
             expression => infer(expression, lookup), cells, true);
@@ -255,11 +255,12 @@ export function symbolicFormFacts(symbolic: ApplicationForm, lookup: FactLookup,
 
 /** The cells a fold over proven scalar cells and its seed can yield. */
 export function foldedCells(source: ValueFacts, seed: ValueFacts | undefined,
-    accepts: (type: string) => boolean): Types | undefined {
-    const cells = [...(source.elements ?? []), ...(seed?.types ?? [])];
+    accepts: (type: string) => boolean, arraySeed = false): Types | undefined {
+    const seedCells = arraySeed && seed?.types.join() === 'array' ? seed.elements : seed?.types;
+    const cells = [...(source.elements ?? []), ...(seedCells ?? [])];
     if (!['array', 'sequence'].includes(source.types.join()) || !source.elements?.length
         || !(source.eagerScalarCells || source.callbackFreeScalarCells)
-        || seed && seed.rank !== 0 || !cells.every(accepts)) return undefined;
+        || seed && seed.rank !== 0 && (!arraySeed || seed.types.join() !== 'array' || !seed.elements?.length) || !cells.every(accepts)) return undefined;
     return [...new Set(cells)];
 }
 

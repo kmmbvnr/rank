@@ -163,7 +163,7 @@ end
         const runtime = new Interpreter();
         runtime.variables.set('A', vector([1n, 2n, 3n, 4n, 5n, 6n], [2, 3]));
         expect(items(runtime.execute('A reduce + axis 1')!)).toEqual([6n, 15n]);
-        expect(runtime.execute('A reduce + rank 0')).toBe(21n);
+        expect(runtime.execute('A reduce +')).toBe(21n);
         runtime.variables.set('Empty', vector([], [2, 0]));
         expect(items(runtime.execute('Empty reduce + axis 1')!)).toEqual([0n, 0n]);
         runtime.dispose();
