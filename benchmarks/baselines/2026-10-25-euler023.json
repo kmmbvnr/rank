@@ -1,0 +1,146 @@
+{
+  "node": "v24.15.0",
+  "baseline": "9c335e1ec0705a8cdf95113c06a0d8e139b31629",
+  "candidate": "working tree",
+  "method": "Serial fresh processes; alternating before/after order; three compiled samples per workload; one reference validation per workload. Unchanged Rank sources, default inputs and assertions.",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "name": "023_abundantsums.ra",
+      "engine": "compiled",
+      "elapsedMs": 4824.498458,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "name": "023_abundantsums.ra",
+      "engine": "compiled",
+      "elapsedMs": 505.75412500000004,
+      "scalarFunctions": 1,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "name": "023_abundantsums.ra",
+      "engine": "compiled",
+      "elapsedMs": 517.9728339999999,
+      "scalarFunctions": 1,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "name": "023_abundantsums.ra",
+      "engine": "compiled",
+      "elapsedMs": 4979.600209,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "name": "023_abundantsums.ra",
+      "engine": "compiled",
+      "elapsedMs": 5004.030667,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "name": "023_abundantsums.ra",
+      "engine": "compiled",
+      "elapsedMs": 510.95225000000005,
+      "scalarFunctions": 1,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "name": "023_abundantsums_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 4932.329624999999,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "name": "023_abundantsums_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 533.4024999999999,
+      "scalarFunctions": 3,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "name": "023_abundantsums_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 538.025667,
+      "scalarFunctions": 3,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "name": "023_abundantsums_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 5017.997584000001,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "name": "023_abundantsums_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 5130.483833,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "name": "023_abundantsums_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 540.521875,
+      "scalarFunctions": 3,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "version": "after",
+      "name": "023_abundantsums.ra",
+      "engine": "reference",
+      "elapsedMs": 2092.744583,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    },
+    {
+      "version": "after",
+      "name": "023_abundantsums_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2161.794917,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0
+    }
+  ]
+}

@@ -697,6 +697,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 } });
                 return { code: `${negate}calls[${index}]([${key.code}])`, type: 'boolean' };
             }
+            if (isRankSet(host.read(name)!)) {
+                const receiver = container(name, 'set');
+                if (!receiver) return undefined;
+                return { code: `${negate}${receiver}.entries.has(setValueKey(${key.code}))`, type: 'boolean' };
+            }
             const receiver = container(name, 'index');
             if (!receiver) return undefined;
             return { code: `${negate}indexHas(${receiver}, key([${key.code}]))`, type: 'boolean' };

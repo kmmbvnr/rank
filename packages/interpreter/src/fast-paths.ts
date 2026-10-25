@@ -387,8 +387,11 @@ export class FastPaths {
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
         // Entry arguments admit scalars, checked arrays and tracked integer indices/deques.
         // Container storage is integer-only, cannot escape through a scalar return,
-        // and needs no resource frame. Argument array writes still need one.
-        return proof && !proof.arrayWrites.size && !proof.planReturn
+        // and needs no resource frame. Only constructor-owned array writes can
+        // enter here; writes through arguments or aliases still need a frame.
+        // Array-only bodies retain the private Number loop tier. Containers
+        // already require exact, publishing loops, so compile that body together.
+        return proof && proof.localArrayWrites && (!proof.arrayWrites.size || proof.containers) && !proof.planReturn
             ? { locals: proof.locals, nonnegative: proof.nonnegative, loops: true } : undefined;
     }
 

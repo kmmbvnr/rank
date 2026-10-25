@@ -12,8 +12,15 @@ import type { CompiledCalleeType } from './compiled-callee-type.js';
 
 const dequeMethods = Object.entries(Object.getOwnPropertyDescriptors(RankDeque.prototype));
 
+export function nativeDequeMethods(): boolean {
+    return dequeMethods.every(([name, descriptor]) => {
+        const current = Object.getOwnPropertyDescriptor(RankDeque.prototype, name);
+        return current?.value === descriptor.value && current?.get === descriptor.get && current?.set === descriptor.set;
+    });
+}
+
 /** Entry proofs must not admit host overrides that can re-enter the interpreter. */
-function integerDeque(value: RankValue): value is RankDeque {
+export function hasIntegerDequeIteration(value: RankValue): value is RankDeque {
     if (typeof value !== 'object' || Object.getPrototypeOf(value) !== RankDeque.prototype) return false;
     for (const [name, descriptor] of dequeMethods) {
         const current = Object.getOwnPropertyDescriptor(RankDeque.prototype, name);
@@ -27,7 +34,7 @@ function integerDeque(value: RankValue): value is RankDeque {
 export function compiledEntryArgumentType(value: RankValue): CompiledCalleeType | undefined {
     if (isRankIndex(value) && value.entries instanceof IndexEntries && value.entries.integers && !valueProtection(value)) return { kind: 'index' };
     if (isRankSet(value) && prepareSetAdd(value) && value.entries instanceof IntegerEntries && value.entries.integers) return { kind: 'set' };
-    if (integerDeque(value) && !valueProtection(value)) return { kind: 'deque', mode: value.mode };
+    if (hasIntegerDequeIteration(value) && !valueProtection(value)) return { kind: 'deque', mode: value.mode };
     return checkedArgumentType(value, true);
 }
 

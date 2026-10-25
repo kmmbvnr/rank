@@ -35,7 +35,7 @@ import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract } from './return-contract.js';
-import { compiledEntryArgumentType, compiledScalarType } from './compiled-argument-type.js';
+import { compiledEntryArgumentType, compiledScalarType, nativeDequeMethods } from './compiled-argument-type.js';
 import { scalarCaptureKey, type ScalarCaptureTypes } from './scalar-function-proof.js';
 import { compileScalarFunction } from './scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
@@ -44,6 +44,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { FunctionPlanDemandError } from './function-plan.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
+import { nativeSetMembership } from './collections.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
 import {
@@ -767,8 +768,10 @@ export class FunctionInvocation {
                 if (!tail) this.depth -= 1;
             }
         };
-        if (kernel.plans || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (kernel.plans || kernel.dequeIteration || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
+            if (kernel.dequeIteration && (!privateLoopPolling() || !nativeDequeMethods())) return false;
+            if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return false;
             if (kernel.plans && (this.options().tensorFusion === false || !privateLoopPolling())) return false;
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
                 || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;

@@ -20,7 +20,7 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power';
     readonly plan?: FunctionPlanConsumer;
     readonly negative?: boolean;
     readonly keyed?: boolean;
@@ -38,6 +38,7 @@ export interface ScalarFunctionProof {
     readonly modules: readonly string[];
     readonly containers: boolean;
     readonly arrayWrites: ReadonlySet<Statement>;
+    readonly localArrayWrites: boolean;
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>;
     readonly planBindings: ReadonlyMap<Statement, FunctionPlan>;
     readonly planReturn: boolean;
@@ -157,11 +158,11 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
             return { type: resultType, input: { name: last.name, operation: 'self-call' as const,
                 indices: arguments_.map(argument => expressions.get(argument)!) } };
         }
-        // Read-only arrays and integer containers keep their proven domains across
-        // linked calls. Array writes still require an ordinary binding frame.
+        // Read-only arguments and integer containers keep their proven domains
+        // across linked calls. Writes to arguments still need a binding frame.
         if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)) return undefined;
         const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement]);
-        if (!proof || proof.arrayWrites.size
+        if (!proof || !proof.localArrayWrites || proof.arrayWrites.size && !proof.containers
             || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
         if (proof.planReturn && (!consumerRoot || unwrap(consumerRoot) !== source)) return undefined;
         if (proof.nonnegative.some(index => !nonnegative(arguments_[index]))) return undefined;
@@ -232,10 +233,10 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         dimensions: source.dimensions.map(item => ({ value: expressions.get(item.value!)!, negative: item.sign === '-' })),
                     } };
                 }
-                if (loops && isNewStructureExpression(source) && ['index', 'stack', 'queue', 'deque'].includes(source.structure)) {
+                if (loops && isNewStructureExpression(source) && ['index', 'set', 'stack', 'queue', 'deque'].includes(source.structure)) {
                     containers = true;
                     modules.add('algo');
-                    return { type: source.structure === 'index' ? { kind: 'index' } : { kind: 'deque', mode: source.structure as 'stack' | 'queue' | 'deque' }, input: { name: source.structure, operation: 'new' } };
+                    return { type: source.structure === 'index' || source.structure === 'set' ? { kind: source.structure } : { kind: 'deque', mode: source.structure as 'stack' | 'queue' | 'deque' }, input: { name: source.structure, operation: 'new' } };
                 }
                 if (loops && isBinaryExpression(source) && source.operator === 'default') {
                     let left = source.left;
@@ -271,6 +272,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     }
                     if (domain && isCompiledContainer(domain) && domain.kind === 'index' && type(source.left, env) === 'integer') {
                         return { type: 'boolean', input: { name: source.right.name, operation: source.operator === 'in' ? 'contains' : 'not-contains', indices: [expressions.get(source.left)!] } };
+                    }
+                    if (domain && isCompiledContainer(domain) && domain.kind === 'set' && type(source.left, env) === 'integer') {
+                        return { type: 'boolean', input: { name: source.right.name, operation: source.operator === 'in' ? 'set-contains' : 'set-not-contains', indices: [expressions.get(source.left)!] } };
                     }
                 }
                 if (loops && isApplicationExpression(source)) {
@@ -451,9 +455,10 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 if (binding) {
                     let range = binding.iterable;
                     while (isParenthesizedExpression(range)) range = range.value;
-                    const text = !(isBinaryExpression(range) && ['to', 'till'].includes(range.operator))
-                        && type(range, env) === 'text';
-                    if ((!text && (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
+                    const iterable = !(isBinaryExpression(range) && ['to', 'till'].includes(range.operator)) ? type(range, env) : undefined;
+                    const text = iterable === 'text';
+                    const deque = iterable && isCompiledContainer(iterable) && iterable.kind === 'deque';
+                    if ((!text && !deque && (!isBinaryExpression(range) || !['to', 'till'].includes(range.operator)
                         || type(range.left, env) !== 'integer' || type(range.right, env) !== 'integer'
                         || range.step && type(range.step, env) !== 'integer'))
                         || binding.names.length > 2 || new Set(binding.names).size !== binding.names.length) return reject(command, 'loop-range');
@@ -492,9 +497,19 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         return env;
     }
     const outcome = flow(statement.statements, new Map(settled));
+    // Only constructor-owned slots can be written without an argument frame.
+    // Reject aliases and every later assignment from a non-constructor source.
+    const localArrays = new Set([...arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
+    for (const name of parameters) localArrays.delete(name);
+    for (const node of AstUtils.streamAst(statement)) {
+        if (!isAssignmentStatement(node) || !localArrays.has(node.name)) continue;
+        const source = unwrap(node.value);
+        if (node.operator !== '=' || !isArrayExpression(source) || !source.dimensions.length || !source.fill) localArrays.delete(node.name);
+    }
+    const localArrayWrites = [...arrayWrites].every(command => isArrayAssignmentStatement(command) && localArrays.has(command.name));
     const result = outcome === null && resultType && !(recursive && (arrayWrites.size || nonnegativeParameters.size))
         && !(planBindings.size && (containers || arrayWrites.size))
-        ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, expressions,
+        ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, localArrayWrites, expressions,
             planBindings, planReturn, planReturns, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.

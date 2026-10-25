@@ -2069,3 +2069,40 @@ precede bulk writes; unsupported forms keep ordinary evaluation.
 The unchanged Euler 521 program meets the 0.2 ms per-prime limit outside array
 work at N = 10^9. [Measurements and focused verification](../../benchmarks/loop-range-values-results.md)
 record both implementation stages and the remaining array cost.
+
+## Integer sets and live queue loops (#447)
+
+Generated scalar functions support local integer sets, `in` / `not in`, and
+live queue, deque and stack traversal. Appended work remains visible to the
+iterator; rebinding its source does not replace the active traversal. Native
+membership and deque methods are checked before function entry.
+
+Functions combining containers with writes to constructor-owned local arrays
+can execute as one compiled body. Writes through array arguments or aliases
+retain the ordinary frame. Array-only functions retain the private Number loop
+tier. Publishing loop entry uses the queue's tracked integer contract when its
+methods are unchanged, rather than scanning all elements again. Set membership
+uses set keys and a set guard instead of declining an index specialization.
+
+`node benchmarks/euler-abundant-sums.mjs` checks the unchanged Euler 023 main
+and all three fixture tests in both engines, with each sample in a fresh process.
+The algorithm, default limit 28123 and answer 4179871 are unchanged.
+
+Serial measurements on Node v24.15.0, medians of three fresh processes per
+workload/version, against `9c335e1e`:
+
+| Workload | Before, s | After, s | Speedup |
+| --- | ---: | ---: | ---: |
+| `023_abundantsums.ra` | 4.980 | 0.511 | 9.7x |
+| `023_abundantsums_test.ra` | 5.018 | 0.538 | 9.3x |
+
+The main enters one compiled function, and the fixture enters three. A separate
+reference validation took 2.093 s for the main and 2.162 s for the fixture.
+[Raw measurements](../../benchmarks/baselines/2026-10-25-euler023.json).
+
+Verification passed the TypeScript build, semantic/application-form checks,
+142 focused tests, and differential execution of both Euler 023 files. The broad
+interpreter run passed 8,126 tests with one existing failure: `tensor-copy.test.ts`
+uses the loop axis/rank modifiers removed in #453. That syntax error also occurs
+with the unchanged baseline runtime. Exhaustive types, the full differential
+corpus and Nurikabe were excluded from this broad run.

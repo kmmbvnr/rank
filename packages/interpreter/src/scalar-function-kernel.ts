@@ -27,10 +27,13 @@ import { textPoints } from './text-storage.js';
 import { integerValue } from './numeric-conversions.js';
 import { formatValue } from './value.js';
 import { broadcastShape } from './tensor.js';
+import { setValueKey } from './set.js';
 
 interface Kernel {
     readonly source: string;
     readonly plans: boolean;
+    readonly dequeIteration: boolean;
+    readonly setMembership: boolean;
     readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[];
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
@@ -69,7 +72,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const memberships: string[] = [];
     const captures: { name: string; rank: number }[] = [];
     const writtenSlots = new Set([...proof.arrayWrites].filter(isArrayAssignmentStatement).map(command => command.name));
-    let serial = 0;
+    let serial = 0, dequeIteration = false, setMembership = false;
     function binary(operation: CompiledOperator, left: string, right: string, lines: string[], resultType?: CompiledCalleeType, inputs?: readonly CompiledCalleeType[]): string {
         const op = operation.name;
         const result = `v${serial++}`;
@@ -164,6 +167,12 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const value = lower(expression.input.indices![0], lines);
                 const result = `v${serial++}`;
                 lines.push(`const ${result} = ${operation === 'array-not-contains' ? '!' : ''}membershipLookup(${receiver})(${value});`);
+                return result;
+            }
+            if (operation === 'set-contains' || operation === 'set-not-contains') {
+                setMembership = true;
+                const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
+                lines.push(`const ${result} = ${operation === 'set-not-contains' ? '!' : ''}${receiver}.entries.has(setValueKey(${value}));`);
                 return result;
             }
             if (operation === 'array') {
@@ -330,11 +339,14 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 if (binding) {
                     let range = binding.iterable;
                     while (isParenthesizedExpression(range)) range = range.value;
-                    if (expressions.get(range)?.type === 'text') {
+                    const iterableType = expressions.get(range)?.type;
+                    const deque = iterableType && isCompiledContainer(iterableType) && iterableType.kind === 'deque';
+                    if (iterableType === 'text' || deque) {
+                        dequeIteration ||= !!deque;
                         const text = emit(range, lines), id = serial++;
                         const indexed = binding.names[1] !== undefined && binding.names[1] !== '#';
                         if (indexed) lines.push(`let ordinal${id} = 0n;`);
-                        lines.push(`for (const point${id} of ${text}) { location = ${location}; checkpoint();`);
+                        lines.push(`for (const point${id} of ${text}${deque ? '.values()' : ''}) { location = ${location}; checkpoint();`);
                         binding.names.forEach((name, index) => {
                             if (name !== '#') lines.push(`${slot(name)} = ${index ? `ordinal${id}++` : `point${id}`};`);
                         });
@@ -431,7 +443,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { source, plans: proof.planBindings.size > 0, locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError) as Kernel['run'] }; }
+    try { kernel = { source, plans: proof.planBindings.size > 0, dequeIteration, setMembership, locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setValueKey', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setValueKey) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

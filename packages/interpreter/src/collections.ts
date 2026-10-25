@@ -17,6 +17,12 @@ const mapMethods = Object.getOwnPropertyDescriptors(ResourceMap.prototype);
 const integerMethods = Object.getOwnPropertyDescriptors(IntegerEntries.prototype);
 const resourceMethods = Object.getOwnPropertyDescriptors(ResourceSummary.prototype);
 const mapSet = Map.prototype.set;
+const mapHas = Map.prototype.has;
+
+export function nativeSetMembership(): boolean {
+    return Map.prototype.has === mapHas && [IntegerEntries.prototype, ResourceMap.prototype]
+        .every(object => !Object.prototype.hasOwnProperty.call(object, 'has'));
+}
 
 export function prepareSetAdd(value: RankValue | undefined): ((values: RankValue[]) => void) | undefined {
     if (!value || typeof value !== 'object') return undefined;
@@ -35,6 +41,7 @@ export function prepareSetAdd(value: RankValue | undefined): ((values: RankValue
             || typeof fields.type?.value !== 'string') return undefined;
     }
     const entries = storage.entries;
+    if (!nativeSetMembership() || Object.prototype.hasOwnProperty.call(entries, 'has')) return undefined;
     if (Map.prototype.set !== mapSet
         || Object.getOwnPropertyDescriptor(entries, 'resources')?.value !== storage.resources
         || Object.getOwnPropertyDescriptor(entries, 'valueOfEntry')?.value !== storage.valueOfEntry) return undefined;
