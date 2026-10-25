@@ -310,6 +310,17 @@ export function prepareScalarArrayReader(
             return typed instanceof Int32Array ? BigInt(typed[position]) : borrowed.items[position];
         };
     }
+    // Owned storage can be read across calls without borrowing it. Follow the
+    // storage record on every load: callbacks may widen, expose or invalidate
+    // its cells. Foreign and lazy arrays retain the ordinary selector path.
+    const owned = ownedStorage.get(array);
+    if (owned?.stable) return index => {
+        if (!owned.stable) return fallback(array, [index]);
+        const position = readPosition(index, owned.shape[0], 0);
+        if (owned.validity !== undefined && !(owned.validity[position >>> 5] >>> (position & 31) & 1)) return MISSING;
+        const typed = owned.typed;
+        return typed instanceof Int32Array ? BigInt(typed[position]) : owned.items[position];
+    };
     const storage = preparedReaderStorage(value, stableReads);
     if (!storage) return index => fallback(array, [index]);
     const { cells, shape: [length] } = storage;

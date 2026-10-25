@@ -1,0 +1,190 @@
+{
+  "node": "v24.15.0",
+  "baseline": "dbc46740813f5a859f68d560a209167755b6f8ab",
+  "candidate": "working tree",
+  "methodology": "Serial fresh processes, three compiled samples per workload and version with alternating order, plus one reference validation per workload. Unchanged demos, defaults and assertions.",
+  "results": [
+    {
+      "version": "before",
+      "sample": 0,
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 488.688875,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 343.384375,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "version": "after",
+      "sample": 1,
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 347.754334,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "version": "before",
+      "sample": 1,
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 507.155834,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "version": "before",
+      "sample": 2,
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 504.71670800000004,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "version": "after",
+      "sample": 2,
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 361.625833,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 3144.265125,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "version": "before",
+      "sample": 0,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 494.81433300000003,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 344.260584,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "version": "after",
+      "sample": 1,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 336.05254199999996,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "version": "before",
+      "sample": 1,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 497.94104200000004,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "version": "before",
+      "sample": 2,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 504.040083,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "version": "after",
+      "sample": 2,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 334.96079199999997,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2811.1253749999996,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    }
+  ]
+}

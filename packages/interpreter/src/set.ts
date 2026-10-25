@@ -15,7 +15,7 @@ import {
 } from './value.js';
 
 export function setValueKey(value: RankValue): string {
-    return nestedValueKey(value, new Set());
+    return typeof value === 'bigint' ? `number:${value}` : nestedValueKey(value, new Set());
 }
 
 function nestedValueKey(value: RankValue, active: Set<object>): string {

@@ -261,6 +261,15 @@ end`);
         } finally { runtime.dispose(); }
     });
 
+    it('compiles unchanged Euler 044 at full size', () => {
+        const source = readFileSync(new URL('../../../demos/euler/044_pentagondiff.ra', import.meta.url), 'utf8');
+        const result = compare(source);
+        expect(result.value).toBeUndefined();
+        expect(result.output).toEqual(['5482660']);
+        expect(result.functions).toBe(4401);
+        expect(Object.keys(result.fallbacks)).toEqual([]);
+    }, 15000);
+
     it('compiles unchanged Euler 023 at full size', () => {
         const source = readFileSync(new URL('../../../demos/euler/023_abundantsums.ra', import.meta.url), 'utf8');
         const result = compare(source);

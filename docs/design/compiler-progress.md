@@ -2106,3 +2106,52 @@ interpreter run passed 8,126 tests with one existing failure: `tensor-copy.test.
 uses the loop axis/rank modifiers removed in #453. That syntax error also occurs
 with the unchanged baseline runtime. Exhaustive types, the full differential
 corpus and Nurikabe were excluded from this broad run.
+
+## Live scalar array reads across calls (#447, Euler 044)
+
+Prepared one-axis readers can use runtime-owned storage even when the compiled
+function also calls helpers. Each read checks the storage record's stability,
+then follows its current cells and validity bitmap. Int32 loads produce exact
+Rank integers directly. Buffer widening, public exposure and later writes remain
+visible; a host override or metadata change invalidates the storage proof and
+restores ordinary selection. Foreign and lazy arrays keep the existing fallback
+without inspecting their cells during preparation. The compiler's restrictions
+on borrowing across calls are unchanged.
+
+Integer set keys also skip the recursion-tracking Set allocation used for
+composite keys. Key strings and numeric equality are unchanged.
+
+The unchanged Euler 044 main still checks 2,383,099 pairs at limit 2200 and
+returns 5482660. No algorithm, default, fixture or execution-lane changes were
+made. Serial measurements on Node v24.15.0 against `dbc46740`, medians of three
+fresh processes per workload/version with alternating before/after order:
+
+| Workload | Before, s | After, s | Speedup |
+| --- | ---: | ---: | ---: |
+| `044_pentagondiff.ra` | 0.505 | 0.348 | 1.45x |
+| `044_pentagondiff_test.ra` | 0.498 | 0.336 | 1.48x |
+
+[Raw measurements](../../benchmarks/baselines/2026-10-25-euler044.json).
+Reproduce after building with `node benchmarks/euler-pentagonal-difference.mjs`;
+it checks the main output and both fixture tests in both engines. Separate
+reference validations took 3.144 s and 2.811 s; these are single checks rather
+than comparative reference medians.
+
+Verification passed the TypeScript build and test typecheck, semantic/application
+form checks, and differential execution of both full Euler 044 files. Reader
+coverage includes exact integers, widening, public writes, missing cells, bounds,
+foreign/lazy readers and host invalidation during linked-call callbacks. The
+broad interpreter run passed 8,145 tests with one existing failure:
+`tensor-copy.test.ts` still uses removed loop axis/rank modifiers; the same syntax
+error occurs with the unchanged baseline runtime. The final focused collection,
+set and reader run passed 77 tests. Exhaustive types, the full differential
+corpus and Nurikabe were excluded from the broad run.
+
+A separate algorithm prototype enumerated pentagonal differences in ascending
+order and reconstructed pairs from divisors using
+`2D = (K - J) * (3(K + J) - 1)`. It used no explicit loops and checked about
+79,000 divisors instead of 2.38 million pairs. It preserved the limit on K and
+passed both-engine checks at limits 1, 2, 10, 50, 100, 2166, 2167 and 2200.
+It was not adopted: a separate three-sample compiled comparison measured
+0.306 s for the retained algorithm versus 0.365 s for the prototype. Further
+compiler support for this pipeline remains an open optimization direction.
