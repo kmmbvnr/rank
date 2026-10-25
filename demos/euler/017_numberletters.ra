@@ -17,9 +17,11 @@ Tens = "twenty thirty forty fifty sixty seventy eighty ninety" split " "
 Tail = concat (array "") Ones
 Dozens = Tens Tail outer + reshape #
 Under = concat Ones Teens Dozens
+
 Rest = concat (array "") ("and" + Under)
 Over = (Ones + "hundred") Rest outer + reshape #
+
 Last = array "onethousand"
+
 Words = concat Under Over Last
-Counts = Words len rank 0 take Limit
-Counts sum print
+Words len rank 0 take Limit sum print

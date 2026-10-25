@@ -4,7 +4,7 @@ test "default input"
   use "017_numberletters"
   run
 
-  Counts sum equal 21124
+  Words len rank 0 take Limit sum equal 21124
 end
 
 test "one through five"
@@ -13,7 +13,7 @@ test "one through five"
   Limit = 5
   run
 
-  Counts sum equal 19
+  Words len rank 0 take Limit sum equal 19
 end
 
 test "British and"
