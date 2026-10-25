@@ -1,0 +1,128 @@
+rem Prime Pair Sets
+rem https://projecteuler.net/problem=60
+rem Minimum sum of five primes whose
+rem pairwise concatenations are prime
+
+use graph
+use sequences
+use io
+
+Seed = 10000 build
+Upper = Seed min_five 50000
+if Upper equal 50000
+  raise "no five-prime set in seed"
+end
+
+rem A better set has every prime
+rem below Upper.
+Full = Upper build
+Answer = Full min_five Upper
+Answer print
+
+
+rem Check each residue group in batches.
+rem Share decimal scales across pairs.
+rem Build every compatible pair, without
+rem a cutoff on the larger primes.
+fun Limit build
+  Vals = primes from 3 till Limit filter not equal 5 array
+  Graph = new graph Vals .undirected
+  Scales = array shape (Vals len) fill 10
+  Scale = 10
+  for P i in Vals
+    for Scale at most P
+      Scale *= 10
+    end
+    Scales i = Scale
+  end
+
+  if 3 in Vals
+    for Q in Vals drop 1
+      if 3 compatible Q
+        Graph add 3 Q
+      end
+    end
+  end
+
+  Id = 0 till (Vals len) array
+  for Residue in 1 to 2
+    Positions = Id (Vals mod 3 equal Residue)
+    Group = Vals Positions
+    Factors = Scales Positions
+    for P i in Group
+      Later = Group drop (i + 1) copy
+      Powers = Factors drop (i + 1) copy
+      Forward' = P * Powers + Later
+      Candidates = Later (Forward in primes) copy
+      Backward' = Candidates * (Factors i) + P
+      Good = Candidates (Backward in primes) copy
+      for Q in Good
+        Graph add P Q
+      end
+    end
+  end
+
+  return record
+    .primes = Vals
+    .graph = Graph
+  end
+end
+
+
+fun P compatible Q
+  PQ = P concat Q
+  if PQ not in primes
+    return false
+  end
+  QP = Q concat P
+  return QP in primes
+end
+
+
+fun A concat B
+  Scale = 10
+  for Scale at most B
+    Scale *= 10
+  end
+  return A * Scale + B
+end
+
+
+rem Keep Best if no cheaper set exists.
+rem Data holds ascending positive values
+rem and their graph. Intersect the short
+rem neighbor list with current candidates
+rem and keep the result sorted.
+fun Data min_five Best
+  Graph = Data .graph
+  Vals = Data .primes
+  Best = Vals 5 0 Best search
+  return Best
+
+  fun Rest Need Sum Best search
+    if Rest len less Need
+      return Best
+    end
+    Small' = Rest take Need
+    if Sum + Small sum at least Best
+      return Best
+    end
+
+    for P in Rest
+      Total = Sum + P
+      if Sum + P * Need at least Best
+        break
+      end
+      Left = Need - 1
+      if Left equal 0
+        Best = Total
+        return Best
+      end
+
+      Neighbors = Graph P
+      Next = Neighbors filter greater P filter in Rest array sort
+      Best = Next Left Total Best search
+    end
+    return Best
+  end
+end

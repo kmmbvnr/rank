@@ -8,14 +8,21 @@ import { Interpreter, RuntimeDiagnostics, parse } from '../packages/interpreter/
 // Run before and after a scope migration with the same runtime build.
 // Parsing, declarations and prime-graph construction are outside the timer.
 const sourceRef = process.argv[2];
-const read = path => sourceRef ? execFileSync('git', ['show', `${sourceRef}:${path}`], { encoding: 'utf8' }) : readFileSync(path, 'utf8');
+const read = (path, legacyPath) => {
+    if (!sourceRef) return readFileSync(path, 'utf8');
+    try { return execFileSync('git', ['show', `${sourceRef}:${path}`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); }
+    catch (error) {
+        if (!legacyPath) throw error;
+        return execFileSync('git', ['show', `${sourceRef}:${legacyPath}`], { encoding: 'utf8' });
+    }
+};
 const cases = [
     { name: 'queens_recursive', path: 'demos/classic/queens_recursive.ra', entry: 'solve', args: [8n] },
-    { name: 'prime_pair_search', path: 'demos/euler/060_primepairs.ra', entry: 'min_five' },
+    { name: 'prime_pair_search', path: 'benchmarks/fixtures/euler060-graph.ra', legacyPath: 'demos/euler/060_primepairs.ra', entry: 'min_five' },
 ];
 const results = [];
 for (const item of cases) {
-    const source = read(item.path);
+    const source = read(item.path, item.legacyPath);
     const program = parse(source);
     for (const compilation of [false, true]) {
         const runtime = new Interpreter(() => {}, { compilation });

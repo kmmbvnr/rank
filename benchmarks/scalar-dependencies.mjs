@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { cpus } from 'node:os';
 import { Interpreter } from '../packages/interpreter/out/index.js';
 
-const demo = readFileSync(new URL('../demos/euler/060_primepairs.ra', import.meta.url), 'utf8');
+const demo = readFileSync(new URL('./fixtures/euler060-graph.ra', import.meta.url), 'utf8');
 const definitions = 'use graph\nuse sequences\n' + demo.slice(demo.indexOf('\nfun '));
 const count = 20000;
 function prime(n) {

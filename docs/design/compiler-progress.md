@@ -1999,6 +1999,13 @@ use the sieve directly. [Cross-demo measurements](../../benchmarks/adaptive-prim
 include the Euler 263 regression from a fixed 32-query warmup and its adaptive
 replacement; no demo algorithm or input was changed.
 
+Euler 060 subsequently switched from generic graph neighbors to upper-triangular
+BigInt adjacency masks and `band` candidate intersections. The full upper-bound
+search and answer remain intact. A [four-way algorithm comparison](../../benchmarks/euler060-algorithms-results.md)
+measures the original graph, demand-driven pairs, bitset neighbors and explicit
+dense primality, including setup time and process/live-heap memory. The bitset
+graph wins in this runtime; the runtime itself is unchanged by that replacement.
+
 Euler 136 excludes 2 at the source, removing its odd-prime mask while retaining
 the array formulation. [Measurements](../../benchmarks/prime-sequences-results.md)
 separate generation, membership, demo execution and cold startup. Segment bounds

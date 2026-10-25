@@ -6,7 +6,7 @@ import { cpus } from 'node:os';
 import { pathToFileURL } from 'node:url';
 
 const flag = name => process.argv.find(argument => argument.startsWith(`--${name}=`))?.slice(name.length + 3);
-const demo = readFileSync(new URL('../demos/euler/060_primepairs.ra', import.meta.url), 'utf8');
+const demo = readFileSync(new URL('./fixtures/euler060-graph.ra', import.meta.url), 'utf8');
 if (process.argv.includes('--worker')) {
     const { Interpreter, RuntimeDiagnostics } = await import(pathToFileURL(flag('runtime')).href);
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();

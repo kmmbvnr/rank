@@ -1,0 +1,85 @@
+rem Prime pair sets: demand-driven compatibility
+use sequences
+use io
+Seed = 10000 build
+Upper = Seed 5 50000 min_sum
+if Upper equal 50000
+  raise "no five-prime set in seed"
+end
+Full = Upper build
+Answer = Full 5 Upper min_sum
+Answer print
+
+fun Limit build
+  Vals = primes from 3 till Limit filter not equal 5 array
+  Scales = array shape (Vals len) fill 10
+  Scale = 10
+  for P i in Vals
+    for Scale at most P
+      Scale *= 10
+    end
+    Scales i = Scale
+  end
+  return record
+    .primes = Vals
+    .scales = Scales
+  end
+end
+
+fun Data Need Best min_sum
+  Vals = Data .primes
+  Scales = Data .scales
+  Id = 0 till (Vals len) array
+  return Id Need 0 Best search
+
+  fun Rest Need Sum Best search
+    if Rest len less Need
+      return Best
+    end
+    Small = Vals (Rest take Need)
+    if Sum + Small sum at least Best
+      return Best
+    end
+    for At i in Rest
+      P = Vals At
+      Total = Sum + P
+      if Sum + P * Need at least Best
+        break
+      end
+      Left = Need - 1
+      if Left equal 0
+        return Total
+      end
+      Later = Rest drop (i + 1) copy
+      if P not equal 3
+        Qs = Vals Later
+        Later = Later (Qs mod 3 equal (P mod 3)) copy
+      end
+      Qs = Vals Later
+      Forward' = P * (Scales Later) + Qs
+      Candidates = Later (Forward in primes) copy
+      Backward' = (Vals Candidates) * (Scales At) + P
+      Next = Candidates (Backward in primes) copy
+      Best = Next Left Total Best search
+    end
+    return Best
+  end
+end
+
+fun P compatible Q
+  PQ = P concat Q
+  if PQ not in primes
+    return false
+  end
+  QP = Q concat P
+  return QP in primes
+end
+
+
+fun A concat B
+  Scale = 10
+  for Scale at most B
+    Scale *= 10
+  end
+  return A * Scale + B
+end

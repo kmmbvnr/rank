@@ -7,7 +7,7 @@ import { Interpreter } from '../packages/interpreter/out/index.js';
 
 const sources = {
     before: new URL('./fixtures/euler060-before-batching.ra', import.meta.url),
-    batched: new URL('../demos/euler/060_primepairs.ra', import.meta.url),
+    batched: new URL('./fixtures/euler060-graph.ra', import.meta.url),
 };
 if (process.argv[2] === '--worker') {
     const mode = process.argv[3];

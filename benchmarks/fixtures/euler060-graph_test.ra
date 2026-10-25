@@ -1,0 +1,130 @@
+use testing
+
+test "official minimum over the complete upper-bound search"
+  use "060_primepairs"
+  run
+
+  Upper equal 26033
+  Answer equal 26033
+
+  use graph
+  Graph = Full .graph
+  Graph 10007 10709 adjacent
+end
+
+test "concatenation and compatibility in both directions"
+  use "060_primepairs"
+
+  (13 concat 7) equal 137
+  (7 concat 13) equal 713
+  (3 concat 10) equal 310
+  3 compatible 7
+  7 compatible 3
+  not 13 compatible 7
+  not 7 compatible 13
+end
+
+test "small graph excludes two and five and keeps prime pairs"
+  use "060_primepairs"
+  use sequences
+
+  Data = 20 build
+  Vals = Data .primes
+  Graph = Data .graph
+  (Vals equal (array 3 7 11 13 17 19)) all
+  Neighbors = Graph 3
+  ((array 7 11 17) in Neighbors) all
+  not 13 in Neighbors
+  not 19 in Neighbors
+  Reverse = Graph 7
+  3 in Reverse
+end
+
+test "known five-prime set forms a complete graph"
+  use "060_primepairs"
+  use sequences
+
+  Vals = array 13 5197 5701 6733 8389
+  for P i in Vals
+    for Q in Vals drop (i + 1)
+      if not P compatible Q
+        return false
+      end
+    end
+  end
+  Vals sum equal 26033
+end
+
+test "search improves an earlier clique and keeps calls independent"
+  use "060_primepairs"
+  use graph
+  use sequences
+
+  Vals = array 1 2 3 4 5 6 7 100
+  Graph = new graph Vals .undirected
+  First = array 1 2 3 4 100
+  Second = array 2 3 4 5 6
+  for Group in array First Second
+    for P i in Group
+      for Q in Group drop (i + 1)
+        Graph add P Q
+      end
+    end
+  end
+  Data = record
+    .primes = Vals
+    .graph = Graph
+  end
+  A = Data min_five 200
+  B = Data min_five 19
+  C = Data min_five 200
+  ((array A B C) equal (array 20 19 20)) all
+end
+
+test "no five-clique leaves the supplied bound unchanged"
+  use "060_primepairs"
+  use graph
+
+  Vals = array 3 7 11 13 17
+  Graph = new graph Vals .undirected
+  Data = record
+    .primes = Vals
+    .graph = Graph
+  end
+  Data min_five 100 equal 100
+end
+
+
+test "concatenation at decimal boundaries"
+  use "060_primepairs"
+
+  (12 concat 0) equal 120
+  (12 concat 9) equal 129
+  (12 concat 10) equal 1210
+  (12 concat 99) equal 1299
+  (12 concat 100) equal 12100
+end
+
+
+test "batched construction matches scalar compatibility across decimal boundaries"
+  use "060_primepairs"
+  use graph
+  use sequences
+
+  for Limit in array 3 4 10 100 120
+    Data = Limit build
+    Vals = Data .primes
+    Graph = Data .graph
+    for P i in Vals
+      for Q in Vals drop (i + 1)
+        if (Graph P Q adjacent) not equal (P compatible Q)
+          return false
+        end
+        if (Graph Q P adjacent) not equal (P compatible Q)
+          return false
+        end
+      end
+    end
+  end
+  true
+end

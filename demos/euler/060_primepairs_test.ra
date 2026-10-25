@@ -7,9 +7,12 @@ test "official minimum over the complete upper-bound search"
   Upper equal 26033
   Answer equal 26033
 
-  use graph
-  Graph = Full .graph
-  Graph 10007 10709 adjacent
+  use sequences
+  use bits
+  Vals = Full .primes
+  Rows = Full .rows
+  Row = Rows (Vals find 10007)
+  Row bit (Vals find 10709)
 end
 
 test "concatenation and compatibility in both directions"
@@ -24,20 +27,19 @@ test "concatenation and compatibility in both directions"
   not 7 compatible 13
 end
 
-test "small graph excludes two and five and keeps prime pairs"
+test "small graph excludes two and five and stores each pair once"
   use "060_primepairs"
   use sequences
 
+  use bits
   Data = 20 build
   Vals = Data .primes
-  Graph = Data .graph
+  Rows = Data .rows
   (Vals equal (array 3 7 11 13 17 19)) all
-  Neighbors = Graph 3
-  ((array 7 11 17) in Neighbors) all
-  not 13 in Neighbors
-  not 19 in Neighbors
-  Reverse = Graph 7
-  3 in Reverse
+  Rows 0 equal 22
+  Rows 1 equal 32
+  Rows popcount sum equal 5
+
 end
 
 test "known five-prime set forms a complete graph"
@@ -57,41 +59,43 @@ end
 
 test "search improves an earlier clique and keeps calls independent"
   use "060_primepairs"
-  use graph
+  use bits
   use sequences
 
   Vals = array 1 2 3 4 5 6 7 100
-  Graph = new graph Vals .undirected
+  Rows = array shape (Vals len) fill 0
   First = array 1 2 3 4 100
   Second = array 2 3 4 5 6
   for Group in array First Second
     for P i in Group
       for Q in Group drop (i + 1)
-        Graph add P Q
+        A = Vals find P
+        B = Vals find Q
+        Rows A = (Rows A) bor (1 shl B)
       end
     end
   end
   Data = record
     .primes = Vals
-    .graph = Graph
+    .rows = Rows
   end
-  A = Data min_five 200
-  B = Data min_five 19
-  C = Data min_five 200
+  A = Data 5 200 min_clique
+  B = Data 5 19 min_clique
+  C = Data 5 200 min_clique
   ((array A B C) equal (array 20 19 20)) all
 end
 
 test "no five-clique leaves the supplied bound unchanged"
   use "060_primepairs"
-  use graph
+  use sequences
 
   Vals = array 3 7 11 13 17
-  Graph = new graph Vals .undirected
+  Rows = array shape (Vals len) fill 0
   Data = record
     .primes = Vals
-    .graph = Graph
+    .rows = Rows
   end
-  Data min_five 100 equal 100
+  Data 5 100 min_clique equal 100
 end
 
 
@@ -108,23 +112,56 @@ end
 
 test "batched construction matches scalar compatibility across decimal boundaries"
   use "060_primepairs"
-  use graph
+  use bits
   use sequences
 
   for Limit in array 3 4 10 100 120
     Data = Limit build
     Vals = Data .primes
-    Graph = Data .graph
+    Rows = Data .rows
     for P i in Vals
-      for Q in Vals drop (i + 1)
-        if (Graph P Q adjacent) not equal (P compatible Q)
-          return false
-        end
-        if (Graph Q P adjacent) not equal (P compatible Q)
+      if ((Rows i) band ((1 shl (i + 1)) - 1)) not equal 0
+        return false
+      end
+      for Q j in Vals drop (i + 1)
+        if ((Rows i) bit (i + j + 1)) not equal (P compatible Q)
           return false
         end
       end
     end
   end
   true
+end
+
+
+test "clique search improves the first triple and supports smaller sizes"
+  use "060_primepairs"
+
+  Data = 1000 build
+  Data 1 1000 min_clique equal 3
+  Data 2 1000 min_clique equal 10
+  Data 3 200 min_clique equal 107
+  Data 3 100 min_clique equal 100
+  Data 3 200 min_clique equal 107
+  Data 4 1000 min_clique equal 792
+end
+
+test "candidate intersections preserve bits above a machine word"
+  use "060_primepairs"
+  use sequences
+  use bits
+
+  Vals = 1 to 70 array
+  Rows = array shape 70 fill 0
+  for A in 65 to 68
+    for B in (A + 1) to 69
+      Rows A = (Rows A) bor (1 shl B)
+    end
+  end
+  Data = record
+    .primes = Vals
+    .rows = Rows
+  end
+  Data 5 400 min_clique equal 340
+  Data 5 339 min_clique equal 339
 end

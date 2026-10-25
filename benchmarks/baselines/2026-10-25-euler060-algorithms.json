@@ -1,0 +1,569 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "runtime": "/private/tmp/rank-prime-delivery/adaptive/index.js",
+  "measurements": "serial fresh processes; process peak RSS through execution; JS heap plus external after forced GC with interpreter variables alive; GC excluded from execution time",
+  "results": [
+    {
+      "sample": 0,
+      "case": "graph",
+      "executeMs": 3829.9387500000003,
+      "peakRssKiB": 606320,
+      "heapUsedAfterGc": 79099632,
+      "externalAfterGc": 2609989,
+      "arrayBuffersAfterGc": 67955,
+      "rssAfterGc": 623738880,
+      "sourceHash": "649dcfa8927081b564ca0477ce947ec64a9e551c72fc6aaba375e9dd66ab918c",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "lazy",
+      "executeMs": 5856.551792,
+      "peakRssKiB": 697168,
+      "heapUsedAfterGc": 88277376,
+      "externalAfterGc": 15349563,
+      "arrayBuffersAfterGc": 55835,
+      "rssAfterGc": 717340672,
+      "sourceHash": "6fa5df4e60e507e8c6c1a16a583805834228901839ee6b6e79d14d28ae054a16",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "bits",
+      "executeMs": 2590.430125,
+      "peakRssKiB": 489936,
+      "heapUsedAfterGc": 57335560,
+      "externalAfterGc": 2344029,
+      "arrayBuffersAfterGc": 67955,
+      "rssAfterGc": 491765760,
+      "sourceHash": "960295bac949c136786a67cd50dd689ebcf1b9c4b60dc19d4011bfbc71905055",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "dense",
+      "executeMs": 7698.981417,
+      "peakRssKiB": 774640,
+      "heapUsedAfterGc": 76911296,
+      "externalAfterGc": 2472315,
+      "arrayBuffersAfterGc": 42003,
+      "rssAfterGc": 621199360,
+      "sourceHash": "549a389237e4663de128ead4f7e1584edd440a4cd5f6f6250858d93ab6e532f3",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "graph-fixture",
+      "executeMs": 4107.686708,
+      "peakRssKiB": 680416,
+      "heapUsedAfterGc": 73533032,
+      "externalAfterGc": 2342285,
+      "arrayBuffersAfterGc": 37695,
+      "rssAfterGc": 694566912,
+      "sourceHash": "799233075fcf3d54526be2320b9cccd8a39ea310306f93b2532e431dec4cfa2c",
+      "tests": [
+        {
+          "name": "official minimum over the complete upper-bound search",
+          "passed": true,
+          "durationMs": 3712.1915
+        },
+        {
+          "name": "concatenation and compatibility in both directions",
+          "passed": true,
+          "durationMs": 17.621500000000196
+        },
+        {
+          "name": "small graph excludes two and five and keeps prime pairs",
+          "passed": true,
+          "durationMs": 16.791791999999987
+        },
+        {
+          "name": "known five-prime set forms a complete graph",
+          "passed": true,
+          "durationMs": 13.363417000000027
+        },
+        {
+          "name": "search improves an earlier clique and keeps calls independent",
+          "passed": true,
+          "durationMs": 21.53991600000063
+        },
+        {
+          "name": "no five-clique leaves the supplied bound unchanged",
+          "passed": true,
+          "durationMs": 80.0737080000008
+        },
+        {
+          "name": "concatenation at decimal boundaries",
+          "passed": true,
+          "durationMs": 10.467666000000463
+        },
+        {
+          "name": "batched construction matches scalar compatibility across decimal boundaries",
+          "passed": true,
+          "durationMs": 33.27075000000059
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "bits-fixture",
+      "executeMs": 2876.534583,
+      "peakRssKiB": 533072,
+      "heapUsedAfterGc": 69898424,
+      "externalAfterGc": 2367671,
+      "arrayBuffersAfterGc": 37695,
+      "rssAfterGc": 536117248,
+      "sourceHash": "558a215f7f913f4823b3590e79d4361e793336cd777aca79cf1e4d88b57c00a7",
+      "tests": [
+        {
+          "name": "official minimum over the complete upper-bound search",
+          "passed": true,
+          "durationMs": 2444.1997499999998
+        },
+        {
+          "name": "concatenation and compatibility in both directions",
+          "passed": true,
+          "durationMs": 17.111875000000055
+        },
+        {
+          "name": "small graph excludes two and five and stores each pair once",
+          "passed": true,
+          "durationMs": 23.20908300000019
+        },
+        {
+          "name": "known five-prime set forms a complete graph",
+          "passed": true,
+          "durationMs": 13.841208000000279
+        },
+        {
+          "name": "search improves an earlier clique and keeps calls independent",
+          "passed": true,
+          "durationMs": 16.144000000000233
+        },
+        {
+          "name": "no five-clique leaves the supplied bound unchanged",
+          "passed": true,
+          "durationMs": 13.83270900000025
+        },
+        {
+          "name": "concatenation at decimal boundaries",
+          "passed": true,
+          "durationMs": 11.259375000000091
+        },
+        {
+          "name": "batched construction matches scalar compatibility across decimal boundaries",
+          "passed": true,
+          "durationMs": 34.182958999999755
+        },
+        {
+          "name": "clique search improves the first triple and supports smaller sizes",
+          "passed": true,
+          "durationMs": 47.43804200000022
+        },
+        {
+          "name": "candidate intersections preserve bits above a machine word",
+          "passed": true,
+          "durationMs": 17.632249999999658
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "bits-fixture",
+      "executeMs": 2874.036459,
+      "peakRssKiB": 521696,
+      "heapUsedAfterGc": 69875416,
+      "externalAfterGc": 2367671,
+      "arrayBuffersAfterGc": 37695,
+      "rssAfterGc": 526221312,
+      "sourceHash": "558a215f7f913f4823b3590e79d4361e793336cd777aca79cf1e4d88b57c00a7",
+      "tests": [
+        {
+          "name": "official minimum over the complete upper-bound search",
+          "passed": true,
+          "durationMs": 2441.29425
+        },
+        {
+          "name": "concatenation and compatibility in both directions",
+          "passed": true,
+          "durationMs": 16.63029200000028
+        },
+        {
+          "name": "small graph excludes two and five and stores each pair once",
+          "passed": true,
+          "durationMs": 23.214833
+        },
+        {
+          "name": "known five-prime set forms a complete graph",
+          "passed": true,
+          "durationMs": 14.375458999999864
+        },
+        {
+          "name": "search improves an earlier clique and keeps calls independent",
+          "passed": true,
+          "durationMs": 16.378999999999905
+        },
+        {
+          "name": "no five-clique leaves the supplied bound unchanged",
+          "passed": true,
+          "durationMs": 13.67987499999981
+        },
+        {
+          "name": "concatenation at decimal boundaries",
+          "passed": true,
+          "durationMs": 11.032416000000012
+        },
+        {
+          "name": "batched construction matches scalar compatibility across decimal boundaries",
+          "passed": true,
+          "durationMs": 33.860417000000325
+        },
+        {
+          "name": "clique search improves the first triple and supports smaller sizes",
+          "passed": true,
+          "durationMs": 46.62429199999997
+        },
+        {
+          "name": "candidate intersections preserve bits above a machine word",
+          "passed": true,
+          "durationMs": 17.52016599999979
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "graph-fixture",
+      "executeMs": 4022.8441250000005,
+      "peakRssKiB": 665744,
+      "heapUsedAfterGc": 73570472,
+      "externalAfterGc": 2656649,
+      "arrayBuffersAfterGc": 37695,
+      "rssAfterGc": 682786816,
+      "sourceHash": "799233075fcf3d54526be2320b9cccd8a39ea310306f93b2532e431dec4cfa2c",
+      "tests": [
+        {
+          "name": "official minimum over the complete upper-bound search",
+          "passed": true,
+          "durationMs": 3697.008917
+        },
+        {
+          "name": "concatenation and compatibility in both directions",
+          "passed": true,
+          "durationMs": 17.568833999999697
+        },
+        {
+          "name": "small graph excludes two and five and keeps prime pairs",
+          "passed": true,
+          "durationMs": 16.16866600000003
+        },
+        {
+          "name": "known five-prime set forms a complete graph",
+          "passed": true,
+          "durationMs": 13.199333000000024
+        },
+        {
+          "name": "search improves an earlier clique and keeps calls independent",
+          "passed": true,
+          "durationMs": 19.768083000000388
+        },
+        {
+          "name": "no five-clique leaves the supplied bound unchanged",
+          "passed": true,
+          "durationMs": 12.593499999999949
+        },
+        {
+          "name": "concatenation at decimal boundaries",
+          "passed": true,
+          "durationMs": 9.474250000000211
+        },
+        {
+          "name": "batched construction matches scalar compatibility across decimal boundaries",
+          "passed": true,
+          "durationMs": 32.82499999999982
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "dense",
+      "executeMs": 7738.694708,
+      "peakRssKiB": 772512,
+      "heapUsedAfterGc": 76477808,
+      "externalAfterGc": 2475179,
+      "arrayBuffersAfterGc": 42003,
+      "rssAfterGc": 784957440,
+      "sourceHash": "549a389237e4663de128ead4f7e1584edd440a4cd5f6f6250858d93ab6e532f3",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "bits",
+      "executeMs": 2566.805625,
+      "peakRssKiB": 475328,
+      "heapUsedAfterGc": 57341184,
+      "externalAfterGc": 2344029,
+      "arrayBuffersAfterGc": 67955,
+      "rssAfterGc": 492945408,
+      "sourceHash": "960295bac949c136786a67cd50dd689ebcf1b9c4b60dc19d4011bfbc71905055",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "lazy",
+      "executeMs": 5864.021624999999,
+      "peakRssKiB": 702384,
+      "heapUsedAfterGc": 88280784,
+      "externalAfterGc": 15443667,
+      "arrayBuffersAfterGc": 55835,
+      "rssAfterGc": 722665472,
+      "sourceHash": "6fa5df4e60e507e8c6c1a16a583805834228901839ee6b6e79d14d28ae054a16",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "graph",
+      "executeMs": 3836.3084169999997,
+      "peakRssKiB": 639376,
+      "heapUsedAfterGc": 79608352,
+      "externalAfterGc": 2621701,
+      "arrayBuffersAfterGc": 67955,
+      "rssAfterGc": 657063936,
+      "sourceHash": "649dcfa8927081b564ca0477ce947ec64a9e551c72fc6aaba375e9dd66ab918c",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "graph",
+      "executeMs": 3851.907541,
+      "peakRssKiB": 641664,
+      "heapUsedAfterGc": 79597144,
+      "externalAfterGc": 2621621,
+      "arrayBuffersAfterGc": 67955,
+      "rssAfterGc": 659505152,
+      "sourceHash": "649dcfa8927081b564ca0477ce947ec64a9e551c72fc6aaba375e9dd66ab918c",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "lazy",
+      "executeMs": 5886.278625,
+      "peakRssKiB": 698688,
+      "heapUsedAfterGc": 88283960,
+      "externalAfterGc": 15300875,
+      "arrayBuffersAfterGc": 55835,
+      "rssAfterGc": 718782464,
+      "sourceHash": "6fa5df4e60e507e8c6c1a16a583805834228901839ee6b6e79d14d28ae054a16",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "bits",
+      "executeMs": 2583.397042,
+      "peakRssKiB": 488496,
+      "heapUsedAfterGc": 57340288,
+      "externalAfterGc": 2344029,
+      "arrayBuffersAfterGc": 67955,
+      "rssAfterGc": 489570304,
+      "sourceHash": "960295bac949c136786a67cd50dd689ebcf1b9c4b60dc19d4011bfbc71905055",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "dense",
+      "executeMs": 7739.792208,
+      "peakRssKiB": 771264,
+      "heapUsedAfterGc": 76479888,
+      "externalAfterGc": 2473891,
+      "arrayBuffersAfterGc": 42003,
+      "rssAfterGc": 783728640,
+      "sourceHash": "549a389237e4663de128ead4f7e1584edd440a4cd5f6f6250858d93ab6e532f3",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "graph-fixture",
+      "executeMs": 4055.458166,
+      "peakRssKiB": 673840,
+      "heapUsedAfterGc": 73553840,
+      "externalAfterGc": 2637973,
+      "arrayBuffersAfterGc": 37695,
+      "rssAfterGc": 691879936,
+      "sourceHash": "799233075fcf3d54526be2320b9cccd8a39ea310306f93b2532e431dec4cfa2c",
+      "tests": [
+        {
+          "name": "official minimum over the complete upper-bound search",
+          "passed": true,
+          "durationMs": 3725.549834
+        },
+        {
+          "name": "concatenation and compatibility in both directions",
+          "passed": true,
+          "durationMs": 17.469416999999794
+        },
+        {
+          "name": "small graph excludes two and five and keeps prime pairs",
+          "passed": true,
+          "durationMs": 16.576000000000022
+        },
+        {
+          "name": "known five-prime set forms a complete graph",
+          "passed": true,
+          "durationMs": 13.018500000000131
+        },
+        {
+          "name": "search improves an earlier clique and keeps calls independent",
+          "passed": true,
+          "durationMs": 20.624125000000276
+        },
+        {
+          "name": "no five-clique leaves the supplied bound unchanged",
+          "passed": true,
+          "durationMs": 14.18041699999958
+        },
+        {
+          "name": "concatenation at decimal boundaries",
+          "passed": true,
+          "durationMs": 10.261750000000575
+        },
+        {
+          "name": "batched construction matches scalar compatibility across decimal boundaries",
+          "passed": true,
+          "durationMs": 33.672333999999864
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "bits-fixture",
+      "executeMs": 2880.561667,
+      "peakRssKiB": 522592,
+      "heapUsedAfterGc": 69863160,
+      "externalAfterGc": 2367671,
+      "arrayBuffersAfterGc": 37695,
+      "rssAfterGc": 526696448,
+      "sourceHash": "558a215f7f913f4823b3590e79d4361e793336cd777aca79cf1e4d88b57c00a7",
+      "tests": [
+        {
+          "name": "official minimum over the complete upper-bound search",
+          "passed": true,
+          "durationMs": 2447.753291
+        },
+        {
+          "name": "concatenation and compatibility in both directions",
+          "passed": true,
+          "durationMs": 16.367083000000093
+        },
+        {
+          "name": "small graph excludes two and five and stores each pair once",
+          "passed": true,
+          "durationMs": 20.2947079999999
+        },
+        {
+          "name": "known five-prime set forms a complete graph",
+          "passed": true,
+          "durationMs": 12.816542000000027
+        },
+        {
+          "name": "search improves an earlier clique and keeps calls independent",
+          "passed": true,
+          "durationMs": 18.242375000000266
+        },
+        {
+          "name": "no five-clique leaves the supplied bound unchanged",
+          "passed": true,
+          "durationMs": 12.885707999999795
+        },
+        {
+          "name": "concatenation at decimal boundaries",
+          "passed": true,
+          "durationMs": 11.383749999999964
+        },
+        {
+          "name": "batched construction matches scalar compatibility across decimal boundaries",
+          "passed": true,
+          "durationMs": 33.27895899999976
+        },
+        {
+          "name": "clique search improves the first triple and supports smaller sizes",
+          "passed": true,
+          "durationMs": 47.36833399999978
+        },
+        {
+          "name": "candidate intersections preserve bits above a machine word",
+          "passed": true,
+          "durationMs": 16.168874999999844
+        }
+      ]
+    }
+  ],
+  "sourceBaseCommit": "67771e85ed5bf2cbbf6b7c2de92a20d4e3dc3f55",
+  "baselineSource": "benchmarks/fixtures/euler060-graph.ra",
+  "selectedSource": "demos/euler/060_primepairs.ra",
+  "runtimeModuleHashes": {
+    "prime-sequence.js": "e03223e81cb8463fa5d9829ea597bc9cef1aff95b0db6eb82b9e26a93c4fe209",
+    "prime-sieve.js": "e16afeec8cd702ff097affc86ba1b3372054069a27505d8f3c88851b507e2a27"
+  },
+  "verification": {
+    "differentialCases": 2,
+    "engines": [
+      "reference",
+      "compiled"
+    ],
+    "embeddedTests": 10,
+    "typeAuditCases": 2,
+    "semanticBoundaryOwners": 65,
+    "applicationForms": "passed",
+    "historicalBenchmarkSmokes": [
+      "euler60-search batched",
+      "collection-loops worker",
+      "scalar-dependencies euler linked",
+      "function-scopes"
+    ]
+  },
+  "summary": [
+    {
+      "case": "graph",
+      "medianExecuteMs": 3836.3084169999997,
+      "medianPeakRssMiB": 624.390625,
+      "medianHeapPlusExternalAfterGcMiB": 78.40992450714111
+    },
+    {
+      "case": "lazy",
+      "medianExecuteMs": 5864.021624999999,
+      "medianPeakRssMiB": 682.3125,
+      "medianHeapPlusExternalAfterGcMiB": 98.82635021209717
+    },
+    {
+      "case": "bits",
+      "medianExecuteMs": 2583.397042,
+      "medianPeakRssMiB": 477.046875,
+      "medianHeapPlusExternalAfterGcMiB": 56.919400215148926
+    },
+    {
+      "case": "dense",
+      "medianExecuteMs": 7738.694708,
+      "medianPeakRssMiB": 754.40625,
+      "medianHeapPlusExternalAfterGcMiB": 75.29619121551514
+    },
+    {
+      "case": "graph-fixture",
+      "medianExecuteMs": 4055.458166,
+      "medianPeakRssMiB": 658.046875,
+      "medianHeapPlusExternalAfterGcMiB": 72.66217517852783
+    },
+    {
+      "case": "bits-fixture",
+      "medianExecuteMs": 2876.534583,
+      "medianPeakRssMiB": 510.34375,
+      "medianHeapPlusExternalAfterGcMiB": 68.89637660980225
+    }
+  ],
+  "selectedMeasuredSource": "rem Prime Pair Sets\nrem https://projecteuler.net/problem=60\nrem Minimum sum of five primes whose\nrem pairwise concatenations are prime\nuse sequences\nuse bits\nuse io\nSeed = 10000 build\nUpper = Seed 5 50000 min_clique\nif Upper equal 50000\n  raise \"no five-prime set in seed\"\nend\nrem Every prime in a cheaper set is\nrem below the discovered upper bound.\nFull = Upper build\nAnswer = Full 5 Upper min_clique\nAnswer print\n\nrem Row i stores only larger neighbors:\nrem bit j means Vals i pairs with Vals j.\nrem Group modulo 3, then test both orders.\nfun Limit build\n  Vals = primes from 3 till Limit filter not equal 5 array\n  Scales = array shape (Vals len) fill 10\n  Scale = 10\n  for P i in Vals\n    for Scale at most P\n      Scale *= 10\n    end\n    Scales i = Scale\n  end\n  Id = 0 till (Vals len) array\n  Bits = 2 ** Id\n  Rows = array shape (Vals len) fill 0\n  if 3 in Vals\n    Row = 0\n    for Q i in Vals drop 1\n      if 3 compatible Q\n        Row += Bits (i + 1)\n      end\n    end\n    Rows 0 = Row\n  end\n  for Residue in 1 to 2\n    Positions = Id (Vals mod 3 equal Residue)\n    Group = Vals Positions\n    Factors = Scales Positions\n    GroupBits = Bits Positions\n    for P i in Group\n      Later = Group drop (i + 1) copy\n      Powers = Factors drop (i + 1) copy\n      LaterBits = GroupBits drop (i + 1) copy\n      Forward' = P * Powers + Later\n      Mask = Forward in primes\n      Candidates = Later Mask copy\n      CandidateBits = LaterBits Mask copy\n      Backward' = Candidates * (Factors i) + P\n      Good = CandidateBits (Backward in primes) copy\n      Rows (Positions i) = Good sum\n    end\n  end\n  return record\n    .primes = Vals\n    .rows = Rows\n  end\nend\n\nrem For positive Size, keep Best unless\nrem a cheaper clique exists. Values are\nrem ascending; band intersects candidates.\nfun Data Size Best min_clique\n  Vals = Data .primes\n  Rows = Data .rows\n  Rest = (2 ** (Vals len)) - 1\n  return Rest Size 0 Best search\n\n  fun Rest Need Sum Best search\n    if Rest popcount less Need\n      return Best\n    end\n    for Rest greater 0\n      Mine = Rest band (0 - Rest)\n      Rest -= Mine\n      At = (Mine - 1) popcount\n      P = Vals At\n      Total = Sum + P\n      if Sum + P * Need at least Best\n        break\n      end\n      Left = Need - 1\n      if Left equal 0\n        return Total\n      end\n      Next = Rest band (Rows At)\n      Best = Next Left Total Best search\n    end\n    return Best\n  end\nend\n\nfun P compatible Q\n  PQ = P concat Q\n  if PQ not in primes\n    return false\n  end\n  QP = Q concat P\n  return QP in primes\nend\n\n\nfun A concat B\n  Scale = 10\n  for Scale at most B\n    Scale *= 10\n  end\n  return A * Scale + B\nend\n\n\n",
+  "selectedFinalSourceSha256": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+  "sourceFormattingNote": "Only trailing blank lines were removed from the selected demo and lazy fixture after timing; executable source is unchanged.",
+  "lazyMeasuredSource": "rem Prime pair sets: demand-driven compatibility\nuse sequences\nuse io\nSeed = 10000 build\nUpper = Seed 5 50000 min_sum\nif Upper equal 50000\n  raise \"no five-prime set in seed\"\nend\nFull = Upper build\nAnswer = Full 5 Upper min_sum\nAnswer print\n\nfun Limit build\n  Vals = primes from 3 till Limit filter not equal 5 array\n  Scales = array shape (Vals len) fill 10\n  Scale = 10\n  for P i in Vals\n    for Scale at most P\n      Scale *= 10\n    end\n    Scales i = Scale\n  end\n  return record\n    .primes = Vals\n    .scales = Scales\n  end\nend\n\nfun Data Need Best min_sum\n  Vals = Data .primes\n  Scales = Data .scales\n  Id = 0 till (Vals len) array\n  return Id Need 0 Best search\n\n  fun Rest Need Sum Best search\n    if Rest len less Need\n      return Best\n    end\n    Small = Vals (Rest take Need)\n    if Sum + Small sum at least Best\n      return Best\n    end\n    for At i in Rest\n      P = Vals At\n      Total = Sum + P\n      if Sum + P * Need at least Best\n        break\n      end\n      Left = Need - 1\n      if Left equal 0\n        return Total\n      end\n      Later = Rest drop (i + 1) copy\n      if P not equal 3\n        Qs = Vals Later\n        Later = Later (Qs mod 3 equal (P mod 3)) copy\n      end\n      Qs = Vals Later\n      Forward' = P * (Scales Later) + Qs\n      Candidates = Later (Forward in primes) copy\n      Backward' = (Vals Candidates) * (Scales At) + P\n      Next = Candidates (Backward in primes) copy\n      Best = Next Left Total Best search\n    end\n    return Best\n  end\nend\n\nfun P compatible Q\n  PQ = P concat Q\n  if PQ not in primes\n    return false\n  end\n  QP = Q concat P\n  return QP in primes\nend\n\n\nfun A concat B\n  Scale = 10\n  for Scale at most B\n    Scale *= 10\n  end\n  return A * Scale + B\nend\n\n\n",
+  "lazyFinalSourceSha256": "99faa68b097a3978df6f16804c68748ad70ccc58daf51c1385526850dcbf1546"
+}
