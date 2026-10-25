@@ -64,6 +64,34 @@ describe('segmented prime source', () => {
         }
     });
 
+    it('preserves answers when sparse queries become dense and reverse direction', () => {
+        const plan = primePlan(), independent = primePlan();
+        const members = new Set(reference(1_000_000));
+        const queries: number[] = [];
+        for (let segment = 1; segment <= 12; segment++) {
+            queries.push(segment * 65536 + 3, segment * 65536 + 5);
+        }
+        for (let n = 65501; n < 65901; n += 2) queries.push(n);
+        queries.push(9, 961, 1369, 65539, 65541);
+        for (const n of [...queries, ...[...queries].reverse()]) {
+            expect(plan.contains!(BigInt(n))).toBe(members.has(BigInt(n)));
+            expect(independent.contains!(BigInt(1_000_000 - n))).toBe(members.has(BigInt(1_000_000 - n)));
+        }
+    });
+
+    it('reads prepared prime and composite cells without preparing another segment', () => {
+        const sieve = new PrimeSieve();
+        expect(withInterrupt(cancel(), () => sieve.cached(65537))).toBeUndefined();
+        expect(sieve.contains(65537)).toBe(true);
+        expect(withInterrupt(cancel(), () => sieve.cached(65537))).toBe(true);
+        expect(withInterrupt(cancel(), () => sieve.cached(65535))).toBe(false);
+        expect(withInterrupt(cancel(), () => sieve.cached(65539))).toBeUndefined();
+        expect(sieve.contains(65539)).toBe(true);
+        expect(withInterrupt(cancel(), () => sieve.cached(65541))).toBe(false);
+        expect(withInterrupt(cancel(), () => sieve.cached(131075))).toBeUndefined();
+        expect(sieve.cached(65537)).toBeUndefined();
+    });
+
     it('rebuilds an interrupted unbounded membership segment', () => {
         const plan = primePlan();
         plan.contains!(200003n);
@@ -130,6 +158,8 @@ Total`);
         sieve.contains(200003);
         expect(() => withInterrupt(cancel(), () => sieve.contains(100003)))
             .toThrow('Interrupted while sieving primes');
+        expect(sieve.cached(100003)).toBeUndefined();
+        expect(sieve.cached(200003)).toBeUndefined();
         expect(sieve.contains(100003)).toBe(true);
         expect(sieve.contains(100001)).toBe(false);
     });

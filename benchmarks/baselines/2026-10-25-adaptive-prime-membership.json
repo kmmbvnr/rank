@@ -1,0 +1,1338 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "measurement": "serial fresh processes, three samples per runtime, alternating order; execute includes parsing",
+  "provenance": {
+    "differingRuntimeFiles": [
+      "prime-sequence.js",
+      "prime-sieve.js"
+    ],
+    "moduleHashes": {
+      "before": {
+        "prime-sequence.js": "b211d95545153ec9a63701078c25596e43dce24ad32b10ee1eb7a4f150956a69",
+        "prime-sieve.js": "664b0de623567f8f46d09b6818663fd93bd73712726bf9fcfeac9b5277def1da"
+      },
+      "adaptive": {
+        "prime-sequence.js": "e03223e81cb8463fa5d9829ea597bc9cef1aff95b0db6eb82b9e26a93c4fe209",
+        "prime-sieve.js": "e16afeec8cd702ff097affc86ba1b3372054069a27505d8f3c88851b507e2a27"
+      }
+    }
+  },
+  "fixed32Euler263SevenPairs": [
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5170.520666,
+      "cpuMs": 5588.345,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5363.028375,
+      "cpuMs": 5785.377,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5558.1,
+      "cpuMs": 5990.431,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5143.704417,
+      "cpuMs": 5564.671,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5192.189875,
+      "cpuMs": 5615.463,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5480.516416,
+      "cpuMs": 5966.796,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5912.026209000001,
+      "cpuMs": 6300.195,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 3
+    },
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5115.882875,
+      "cpuMs": 5538.893,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 3
+    },
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5138.487125,
+      "cpuMs": 5561.907,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 4
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5559.089083,
+      "cpuMs": 5998.528,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 4
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5389.15425,
+      "cpuMs": 5814.808,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 5
+    },
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5107.767125,
+      "cpuMs": 5537.03,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 5
+    },
+    {
+      "variant": "before",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5114.774875,
+      "cpuMs": 5532.467,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 6
+    },
+    {
+      "variant": "after",
+      "name": "263_engineersdream.ra",
+      "engine": "compiled",
+      "ms": 5398.026458,
+      "cpuMs": 5825.87,
+      "output": [
+        "2039506520"
+      ],
+      "tests": [],
+      "sample": 6
+    }
+  ],
+  "finalComparison": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timings": "fresh processes; execute includes parsing; cold includes imports and disposal"
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 123.91875000000002,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 277.691083
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 125.90045900000001,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 277.91375
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 125.48312500000003,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 280.12420800000007
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 131.70737499999998,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 285.59299999999996
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 127.21449999999999,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 280.84508299999993
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 129.943042,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 283.13195800000017
+    },
+    {
+      "case": "direct-membership",
+      "variant": "candidate",
+      "medianExecuteMs": 127.21449999999999,
+      "medianColdMs": 280.84508299999993
+    },
+    {
+      "case": "direct-membership",
+      "variant": "baseline",
+      "medianExecuteMs": 125.90045900000001,
+      "medianColdMs": 280.12420800000007
+    },
+    {
+      "case": "euler058",
+      "executeMs": 260.17116599999997,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 413.2461669999998
+    },
+    {
+      "case": "euler058",
+      "executeMs": 1024.607583,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 1178.6440000000002
+    },
+    {
+      "case": "euler058",
+      "executeMs": 1040.861583,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 1193.2337500000003
+    },
+    {
+      "case": "euler058",
+      "executeMs": 256.603167,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 408.34375
+    },
+    {
+      "case": "euler058",
+      "executeMs": 258.973625,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 412.9827089999999
+    },
+    {
+      "case": "euler058",
+      "executeMs": 1025.0874170000002,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 1179.3270830000001
+    },
+    {
+      "case": "euler058",
+      "variant": "candidate",
+      "medianExecuteMs": 258.973625,
+      "medianColdMs": 412.9827089999999
+    },
+    {
+      "case": "euler058",
+      "variant": "baseline",
+      "medianExecuteMs": 1025.0874170000002,
+      "medianColdMs": 1179.3270830000001
+    },
+    {
+      "case": "euler060",
+      "executeMs": 3837.190958,
+      "result": "26033",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 4051.8211659999997
+    },
+    {
+      "case": "euler060",
+      "executeMs": 5033.986707999999,
+      "result": "26033",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 5246.758916000001
+    },
+    {
+      "case": "euler060",
+      "executeMs": 4985.840749999999,
+      "result": "26033",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 5204.1
+    },
+    {
+      "case": "euler060",
+      "executeMs": 4017.18375,
+      "result": "26033",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 4176.252833999999
+    },
+    {
+      "case": "euler060",
+      "executeMs": 3868.2055,
+      "result": "26033",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 4090.8002909999996
+    },
+    {
+      "case": "euler060",
+      "executeMs": 5039.893583,
+      "result": "26033",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 5264.08525
+    },
+    {
+      "case": "euler060",
+      "variant": "candidate",
+      "medianExecuteMs": 3868.2055,
+      "medianColdMs": 4090.8002909999996
+    },
+    {
+      "case": "euler060",
+      "variant": "baseline",
+      "medianExecuteMs": 5033.986707999999,
+      "medianColdMs": 5246.758916000001
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5727.499207999999,
+      "result": "2039506520",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 5882.9440840000025
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5623.928583999999,
+      "result": "2039506520",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 5784.2955
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5621.964416,
+      "result": "2039506520",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 5779.112666000001
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5627.572,
+      "result": "2039506520",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 5780.574417000003
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5600.096542,
+      "result": "2039506520",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 5751.838582999997
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5511.894208000001,
+      "result": "2039506520",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 5665.010208
+    },
+    {
+      "case": "euler263",
+      "variant": "candidate",
+      "medianExecuteMs": 5627.572,
+      "medianColdMs": 5780.574417000003
+    },
+    {
+      "case": "euler263",
+      "variant": "baseline",
+      "medianExecuteMs": 5621.964416,
+      "medianColdMs": 5779.112666000001
+    },
+    {
+      "case": "euler293",
+      "executeMs": 178.404083,
+      "result": "2209",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 336.2855419999978
+    },
+    {
+      "case": "euler293",
+      "executeMs": 678.313667,
+      "result": "2209",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 835.5643750000017
+    },
+    {
+      "case": "euler293",
+      "executeMs": 670.942792,
+      "result": "2209",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 834.429209000009
+    },
+    {
+      "case": "euler293",
+      "executeMs": 184.37983399999996,
+      "result": "2209",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 340.74295800000255
+    },
+    {
+      "case": "euler293",
+      "executeMs": 177.70154100000002,
+      "result": "2209",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 333.07125000000815
+    },
+    {
+      "case": "euler293",
+      "executeMs": 659.6492499999999,
+      "result": "2209",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 813.7021669999958
+    },
+    {
+      "case": "euler293",
+      "variant": "candidate",
+      "medianExecuteMs": 178.404083,
+      "medianColdMs": 336.2855419999978
+    },
+    {
+      "case": "euler293",
+      "variant": "baseline",
+      "medianExecuteMs": 670.942792,
+      "medianColdMs": 834.429209000009
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 163.250041,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 321.31674999999814
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 153.58683399999998,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 323.41525000000547
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 157.277833,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 312.10570899999584
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 151.51745899999997,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 309.67149999999674
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 161.797583,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 314.54266600000847
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 162.60312499999998,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 322.6757910000015
+    },
+    {
+      "case": "bounded-membership",
+      "variant": "candidate",
+      "medianExecuteMs": 161.797583,
+      "medianColdMs": 314.54266600000847
+    },
+    {
+      "case": "bounded-membership",
+      "variant": "baseline",
+      "medianExecuteMs": 157.277833,
+      "medianColdMs": 322.6757910000015
+    }
+  ],
+  "verification": {
+    "focusedInterpreterTests": 71,
+    "fullPrograms": 26,
+    "reducedPrograms": 9,
+    "fixtureFiles": 11,
+    "fixtureTests": 29,
+    "programResults": [
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "027_quadraticprimes.ra",
+        "engine": "compiled",
+        "ms": 157.18645800000002,
+        "cpuMs": 288.774,
+        "output": [
+          "-59231"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "035_circularprimes.ra",
+        "engine": "compiled",
+        "ms": 976.194292,
+        "cpuMs": 1525.265,
+        "output": [
+          "55"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "037_truncatableprimes.ra",
+        "engine": "compiled",
+        "ms": 942.3795830000001,
+        "cpuMs": 1524.612,
+        "output": [
+          "748317"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "041_pandigitalprime.ra",
+        "engine": "compiled",
+        "ms": 105.749708,
+        "cpuMs": 186.683,
+        "output": [
+          "7652413"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "046_goldbach.ra",
+        "engine": "compiled",
+        "ms": 109.43029099999998,
+        "cpuMs": 190.693,
+        "output": [
+          "5777"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "049_primepermutations.ra",
+        "engine": "compiled",
+        "ms": 268.000042,
+        "cpuMs": 498.373,
+        "output": [
+          "296962999629"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "050_primesum.ra",
+        "engine": "compiled",
+        "ms": 128.8505,
+        "cpuMs": 235.408,
+        "output": [
+          "997651"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "051_primedigits.ra",
+        "engine": "compiled",
+        "ms": 1177.209,
+        "cpuMs": 2171.266,
+        "output": [
+          "121313"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "058_spiral.ra",
+        "engine": "compiled",
+        "ms": 262.087083,
+        "cpuMs": 516.652,
+        "output": [
+          "26241"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "060_primepairs.ra",
+        "engine": "compiled",
+        "ms": 3833.420458,
+        "cpuMs": 5545.299,
+        "output": [
+          "26033"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "111_primerunning.ra",
+        "engine": "compiled",
+        "ms": 5217.682457999999,
+        "cpuMs": 5887.954,
+        "output": [
+          "612407567715"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "118_pandigitalsets.ra",
+        "engine": "compiled",
+        "ms": 1792.192458,
+        "cpuMs": 2519.379,
+        "output": [
+          "44680"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "128_hexagonaltiles.ra",
+        "engine": "compiled",
+        "ms": 338.609959,
+        "cpuMs": 523.343,
+        "output": [
+          "14516824220"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "130_compositerepunits.ra",
+        "engine": "compiled",
+        "ms": 198.429959,
+        "cpuMs": 365.751,
+        "output": [
+          "149253"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "131_primecubes.ra",
+        "engine": "compiled",
+        "ms": 104.97483399999999,
+        "cpuMs": 203.36,
+        "output": [
+          "173"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "146_primepattern.ra",
+        "engine": "compiled",
+        "ms": 1392.0095840000001,
+        "cpuMs": 1740.951,
+        "output": [
+          "676333270"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "200_primeproofsqube.ra",
+        "engine": "compiled",
+        "ms": 1717.435792,
+        "cpuMs": 2626.453,
+        "output": [
+          "229161792008"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "263_engineersdream.ra",
+        "engine": "compiled",
+        "ms": 5494.310625,
+        "cpuMs": 5927.83,
+        "output": [
+          "2039506520"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "291_panaitopolprimes.ra",
+        "engine": "compiled",
+        "ms": 13364.222582999999,
+        "cpuMs": 14019.425,
+        "output": [
+          "4037526"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "293_pseudofortunate.ra",
+        "engine": "compiled",
+        "ms": 181.17870799999997,
+        "cpuMs": 346.1,
+        "output": [
+          "2209"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "358_cyclic.ra",
+        "engine": "compiled",
+        "ms": 131.79783399999997,
+        "cpuMs": 245.139,
+        "output": [
+          "3284144505"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "387_harshad.ra",
+        "engine": "compiled",
+        "ms": 317.529541,
+        "cpuMs": 660.99,
+        "output": [
+          "696067597313468"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "516_5smoothtotients.ra",
+        "engine": "compiled",
+        "ms": 3306.807958,
+        "cpuMs": 3780.123,
+        "output": [
+          "939087315"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "526_largestprime.ra",
+        "engine": "compiled",
+        "ms": 11971.292249999999,
+        "cpuMs": 14973.861,
+        "output": [
+          "49601160286750947"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "533_carmichael.ra",
+        "engine": "compiled",
+        "ms": 2654.598958,
+        "cpuMs": 2878.579,
+        "output": [
+          "789453601"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "548_gozintachains.ra",
+        "engine": "compiled",
+        "ms": 8602.285166000001,
+        "cpuMs": 10103.295,
+        "output": [
+          "12144044603581281"
+        ],
+        "tests": [],
+        "options": null
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "216_primality.ra",
+        "engine": "compiled",
+        "ms": 106.33141599999999,
+        "cpuMs": 200.055,
+        "output": [
+          "2202"
+        ],
+        "tests": [],
+        "options": {
+          "Limit": "10000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "245_coresilience.ra",
+        "engine": "compiled",
+        "ms": 336.082083,
+        "cpuMs": 629.565,
+        "output": [
+          "275069018"
+        ],
+        "tests": [],
+        "options": {
+          "Limit": "10000000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "248_eulertotient.ra",
+        "engine": "compiled",
+        "ms": 282.75125,
+        "cpuMs": 578.817,
+        "output": [
+          "44659"
+        ],
+        "tests": [],
+        "options": {
+          "Target": "40320",
+          "Rank": "10"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "263_engineersdream.ra",
+        "engine": "compiled",
+        "ms": 190.261875,
+        "cpuMs": 319.062,
+        "output": [
+          "219869980"
+        ],
+        "tests": [],
+        "options": {
+          "Count": "1",
+          "Start": "219869900",
+          "Limit": "219869980"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "291_panaitopolprimes.ra",
+        "engine": "compiled",
+        "ms": 236.517792,
+        "cpuMs": 397.082,
+        "output": [
+          "26516"
+        ],
+        "tests": [],
+        "options": {
+          "Limit": "100000000000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "516_5smoothtotients.ra",
+        "engine": "compiled",
+        "ms": 160.295417,
+        "cpuMs": 321.283,
+        "output": [
+          "2236471777"
+        ],
+        "tests": [],
+        "options": {
+          "L": "1000000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "526_largestprime.ra",
+        "engine": "compiled",
+        "ms": 1671.8363339999999,
+        "cpuMs": 2396.553,
+        "output": [
+          "455559334569"
+        ],
+        "tests": [],
+        "options": {
+          "L": "100000000000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "533_carmichael.ra",
+        "engine": "compiled",
+        "ms": 175.187875,
+        "cpuMs": 322.821,
+        "output": [
+          "72225601"
+        ],
+        "tests": [],
+        "options": {
+          "N": "100000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "548_gozintachains.ra",
+        "engine": "compiled",
+        "ms": 632.1577500000001,
+        "cpuMs": 1136.176,
+        "output": [
+          "516961"
+        ],
+        "tests": [],
+        "options": {
+          "L": "1000000"
+        }
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "035_circularprimes_test.ra",
+        "engine": "compiled",
+        "ms": 1004.0964170000001,
+        "cpuMs": 1590.02,
+        "output": [],
+        "tests": [
+          {
+            "name": "below one million",
+            "passed": true,
+            "output": [
+              "55"
+            ],
+            "durationMs": 891.743375
+          },
+          {
+            "name": "below one hundred",
+            "passed": true,
+            "output": [],
+            "durationMs": 7.544540999999981
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "058_spiral_test.ra",
+        "engine": "compiled",
+        "ms": 268.82791699999996,
+        "cpuMs": 526.349,
+        "output": [],
+        "tests": [
+          {
+            "name": "official answer",
+            "passed": true,
+            "output": [
+              "26241"
+            ],
+            "durationMs": 172.485625
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "060_primepairs_test.ra",
+        "engine": "compiled",
+        "ms": 4173.770624999999,
+        "cpuMs": 6151.614,
+        "output": [],
+        "tests": [
+          {
+            "name": "official minimum over the complete upper-bound search",
+            "passed": true,
+            "output": [
+              "26033"
+            ],
+            "durationMs": 3782.3450419999995
+          },
+          {
+            "name": "concatenation and compatibility in both directions",
+            "passed": true,
+            "output": [],
+            "durationMs": 15.394209000000046
+          },
+          {
+            "name": "small graph excludes two and five and keeps prime pairs",
+            "passed": true,
+            "output": [],
+            "durationMs": 18.803541999999652
+          },
+          {
+            "name": "known five-prime set forms a complete graph",
+            "passed": true,
+            "output": [],
+            "durationMs": 11.462832999999591
+          },
+          {
+            "name": "search improves an earlier clique and keeps calls independent",
+            "passed": true,
+            "output": [],
+            "durationMs": 22.300333000000137
+          },
+          {
+            "name": "no five-clique leaves the supplied bound unchanged",
+            "passed": true,
+            "output": [],
+            "durationMs": 12.308791999999812
+          },
+          {
+            "name": "concatenation at decimal boundaries",
+            "passed": true,
+            "output": [],
+            "durationMs": 10.077499999999418
+          },
+          {
+            "name": "batched construction matches scalar compatibility across decimal boundaries",
+            "passed": true,
+            "output": [],
+            "durationMs": 95.61491700000079
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "111_primerunning_test.ra",
+        "engine": "compiled",
+        "ms": 5450.068249999999,
+        "cpuMs": 6176.125,
+        "output": [],
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "612407567715"
+            ],
+            "durationMs": 5292.974458
+          },
+          {
+            "name": "statement four digit primes",
+            "passed": true,
+            "output": [
+              "273700"
+            ],
+            "durationMs": 45.11766699999953
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "128_hexagonaltiles_test.ra",
+        "engine": "compiled",
+        "ms": 358.69508399999995,
+        "cpuMs": 564.318,
+        "output": [],
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "14516824220"
+            ],
+            "durationMs": 249.480459
+          },
+          {
+            "name": "statement value for the tenth",
+            "passed": true,
+            "output": [
+              "271"
+            ],
+            "durationMs": 9.504208000000006
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "130_compositerepunits_test.ra",
+        "engine": "compiled",
+        "ms": 293.844375,
+        "cpuMs": 503.087,
+        "output": [],
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "149253"
+            ],
+            "durationMs": 109.05941599999997
+          },
+          {
+            "name": "first five from the statement",
+            "passed": true,
+            "output": [
+              "1985"
+            ],
+            "durationMs": 85.69150000000002
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "131_primecubes_test.ra",
+        "engine": "compiled",
+        "ms": 113.72537500000001,
+        "cpuMs": 212.5,
+        "output": [],
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "173"
+            ],
+            "durationMs": 16.10291600000002
+          },
+          {
+            "name": "primes below one hundred",
+            "passed": true,
+            "output": [
+              "4"
+            ],
+            "durationMs": 4.108958000000001
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "200_primeproofsqube_test.ra",
+        "engine": "compiled",
+        "ms": 4808.369125,
+        "cpuMs": 6940.639,
+        "output": [],
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "229161792008"
+            ],
+            "durationMs": 1639.165042
+          },
+          {
+            "name": "first prime-proof squbes",
+            "passed": true,
+            "output": [
+              "200",
+              "1992008"
+            ],
+            "durationMs": 3053.4091249999997
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "216_primality_test.ra",
+        "engine": "compiled",
+        "ms": 113.18625,
+        "cpuMs": 219.716,
+        "output": [],
+        "tests": [
+          {
+            "name": "small limits",
+            "passed": true,
+            "output": [
+              "45",
+              "2202"
+            ],
+            "durationMs": 19.317624999999992
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "263_engineersdream_test.ra",
+        "engine": "compiled",
+        "ms": 279.185583,
+        "cpuMs": 544.7,
+        "output": [],
+        "tests": [
+          {
+            "name": "practical numbers",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 33.66999999999996
+          },
+          {
+            "name": "bound just below the first paradise",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 14.709666000000027
+          },
+          {
+            "name": "inclusive lower bound at another paradise",
+            "passed": true,
+            "output": [
+              "360613700"
+            ],
+            "durationMs": 23.544249999999977
+          },
+          {
+            "name": "bounded empty search",
+            "passed": true,
+            "output": [
+              "0"
+            ],
+            "durationMs": 14.392667000000017
+          },
+          {
+            "name": "first paradise within a bound",
+            "passed": true,
+            "output": [
+              "219869980"
+            ],
+            "durationMs": 32.30883399999999
+          }
+        ]
+      },
+      {
+        "variant": "../rank-prime-delivery/adaptive",
+        "name": "293_pseudofortunate_test.ra",
+        "engine": "compiled",
+        "ms": 211.38175,
+        "cpuMs": 407.913,
+        "output": [],
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "2209"
+            ],
+            "durationMs": 77.13049999999998
+          },
+          {
+            "name": "small limits",
+            "passed": true,
+            "output": [
+              "15",
+              "48",
+              "599"
+            ],
+            "durationMs": 22.062333000000024
+          }
+        ]
+      }
+    ]
+  }
+}

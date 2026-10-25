@@ -5,9 +5,13 @@ import { registerSequenceMembership } from './sequence-membership.js';
 import { above, within, strongerLower, strongerUpper, membershipInteger, registerMetadataBounds, type Boundary } from './sequence-bounds.js';
 import type { SequencePlan } from './value.js';
 
+const membershipSieveDemand = 32;
+
 export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     let membershipSieve: PrimeSieve | undefined;
     let previousSegment: number | undefined;
+    let runLength = 0;
+    let penalty = 0;
     const plan: SequencePlan = {
         name: 'primes',
         replay: 'pure',
@@ -20,12 +24,25 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
             }
             if (integer >= 3n && integer <= BigInt(maxSieveInteger) && integer % 2n !== 0n) {
                 const candidate = Number(integer);
+                if (boundary) return (membershipSieve ??= new PrimeSieve()).contains(candidate);
                 const segment = Math.floor((candidate - 3) / primeSegmentSpan);
-                // Repeated local queries amortize marking a segment. Isolated
-                // unbounded queries keep trial division / Miller-Rabin.
-                const local = segment === previousSegment;
-                previousSegment = segment;
-                if (boundary || local) return (membershipSieve ??= new PrimeSieve()).contains(candidate);
+                // Short runs raise the next segment's warmup, up to 32 queries;
+                // long runs pay it back, down to the original two-query entry.
+                // Keep the history local to this observer, without timing probes.
+                if (segment === previousSegment) runLength++;
+                else {
+                    if (previousSegment !== undefined) {
+                        penalty = Math.max(0, Math.min(membershipSieveDemand - 2,
+                            penalty + membershipSieveDemand - runLength));
+                    }
+                    previousSegment = segment;
+                    runLength = 1;
+                }
+                const cached = membershipSieve?.cached(candidate);
+                if (cached !== undefined) return cached;
+                if (runLength >= 2 + penalty) {
+                    return (membershipSieve ??= new PrimeSieve()).contains(candidate);
+                }
             }
             return primeMembership(integer);
         },

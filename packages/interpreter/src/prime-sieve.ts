@@ -16,6 +16,13 @@ export class PrimeSieve {
     private first = 0;
     private last = -1;
 
+    /** Read an already prepared odd candidate without extending the workspace. */
+    cached(value: number): boolean | undefined {
+        if (value < this.first || value > this.last) return undefined;
+        const index = (value - this.first) / 2;
+        return (this.composite[index >>> 3] & (1 << (index & 7))) === 0;
+    }
+
     /** The caller supplies an odd integer in [3, maxSieveInteger]. */
     contains(value: number): boolean {
         if (value < this.first || value > this.last) this.prepare(value);

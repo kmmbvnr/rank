@@ -36,11 +36,15 @@ loop dispatch, bindings and factorization also contributed. Native/inline work
 is attributed by V8, so these samples are not exclusive end-to-end phase costs.
 
 The runtime now shares the Miller–Rabin core after either small-factor screen.
-Unbounded prime membership uses the existing segmented sieve after two odd
+The initial unbounded prime membership used the existing segmented sieve after two odd
 queries land in the same segment. Isolated or distant queries retain the
 arithmetic path, arbitrary-precision inputs retain Miller–Rabin, and sequence
 bounds still apply before primality. No demo names or constants enter runtime
 semantics. Traversal and membership keep separate workspaces.
+
+The later [adaptive membership policy](adaptive-prime-membership-results.md)
+varies this warmup with observed locality and reuses an already prepared segment.
+It replaces a fixed 32-query experiment that slowed the full Euler 263 search.
 
 In the demo, common prime failures leave the inner loop with `continue`.
 Practical-neighbour checks return on the first failure and consume distinct

@@ -1991,6 +1991,14 @@ Bounded membership owns a separate single-segment cache, so interleaved reads,
 indexing and compiled membership cannot mutate an iterator's workspace. Plans
 remain lazy and bounded size metadata stays unknown until consumed.
 
+Unbounded membership adapts its sieve warmup between two and 32 eligible odd
+queries per segment. Short runs increase the warmup; long runs reduce it, and
+already prepared cells are read without rebuilding. Each observer owns the
+history and the same single-segment workspace. Bounded membership continues to
+use the sieve directly. [Cross-demo measurements](../../benchmarks/adaptive-prime-membership-results.md)
+include the Euler 263 regression from a fixed 32-query warmup and its adaptive
+replacement; no demo algorithm or input was changed.
+
 Euler 136 excludes 2 at the source, removing its odd-prime mask while retaining
 the array formulation. [Measurements](../../benchmarks/prime-sequences-results.md)
 separate generation, membership, demo execution and cold startup. Segment bounds

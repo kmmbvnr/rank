@@ -1,5 +1,6 @@
 // Build first. --baseline=/absolute/path/to/out/index.js adds the old runtime.
 // Each timed sample runs in a fresh process; startup and execute are separate.
+// --candidate=/absolute/path/to/out/index.js can freeze the candidate too.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -15,6 +16,10 @@ for N in 0 till 1000000
     Answer += 1
   end
 end`, expected: 78498n },
+    { name: 'euler058', source: load('../demos/euler/058_spiral.ra'), binding: 'Side', expected: 26241n },
+    { name: 'euler060', source: load('../demos/euler/060_primepairs.ra'), expected: 26033n },
+    { name: 'euler263', source: load('../demos/euler/263_engineersdream.ra'), expected: 2039506520n },
+    { name: 'euler293', source: load('../demos/euler/293_pseudofortunate.ra'), expected: 2209n },
     { name: 'count-50M', source: 'use sequences\nAnswer = primes till 50000000 len', expected: 3001134n },
     { name: '136-original', source: load('./fixtures/136-singleton-materialized.ra'), expected: 2544559n },
     { name: '136-simplified', source: load('../demos/euler/136_singleton.ra'), expected: 2544559n },
@@ -31,7 +36,7 @@ if (option('worker')) {
     try {
         runtime.execute(entry.source);
         const executeMs = performance.now() - start;
-        const result = runtime.variables.get('Answer');
+        const result = runtime.variables.get(entry.binding ?? 'Answer');
         assert.equal(typeof entry.expected === 'bigint' ? result : formatValue(result), entry.expected);
         console.log(JSON.stringify({ case: entry.name, executeMs, result: String(entry.expected) }));
     } finally { runtime.dispose(); }
@@ -41,10 +46,10 @@ if (option('worker')) {
     console.log(JSON.stringify({ node: process.version, cpu: cpus()[0]?.model,
         timings: 'fresh processes; execute includes parsing; cold includes imports and disposal' }));
     for (const entry of cases.filter(x => !selected || selected.includes(x.name))) {
-        const variants = [['candidate', undefined], ...(option('baseline') ? [['baseline', option('baseline')]] : [])];
-        for (const [variant, runtime] of variants) {
-            const samples = [];
-            for (let trial = 0; trial < trials; trial++) {
+        const variants = [['candidate', option('candidate')], ...(option('baseline') ? [['baseline', option('baseline')]] : [])];
+        const samples = new Map(variants.map(([variant]) => [variant, []]));
+        for (let trial = 0; trial < trials; trial++) {
+            for (const [variant, runtime] of trial % 2 ? [...variants].reverse() : variants) {
                 const start = performance.now();
                 const result = spawnSync(process.execPath, [fileURLToPath(import.meta.url),
                     `--worker=${entry.name}`, ...(runtime ? [`--runtime=${runtime}`] : [])], { encoding: 'utf8', timeout: 120000 });
@@ -52,9 +57,12 @@ if (option('worker')) {
                 assert.ifError(result.error);
                 assert.equal(result.status, 0, result.stderr);
                 const sample = { ...JSON.parse(result.stdout), variant, trial, coldMs };
-                samples.push(sample); console.log(JSON.stringify(sample));
+                samples.get(variant).push(sample); console.log(JSON.stringify(sample));
             }
-            const median = key => samples.map(x => x[key]).sort((a, b) => a - b)[Math.floor(samples.length / 2)];
+        }
+        for (const [variant] of variants) {
+            const values = samples.get(variant);
+            const median = key => values.map(x => x[key]).sort((a, b) => a - b)[Math.floor(values.length / 2)];
             const summary = { case: entry.name, variant, medianExecuteMs: median('executeMs'), medianColdMs: median('coldMs') };
             console.log(JSON.stringify(summary));
             if (entry.name === 'count-50M' && variant === 'candidate') assert.ok(summary.medianExecuteMs < 1500, '50M acceptance target');
