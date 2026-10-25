@@ -1,95 +1,159 @@
-# mlRank (MVP Specification)
+# mlRank (`.ram` MVP Specification)
 
 **Status:** Draft MVP — 2026-10-25  
-**Target backends:** Apple CoreML (MIL / ANE / Metal GPU), Google LiteRT (TFLite FlatBuffers / StableHLO / GPU & NPU Delegates), ARM TOSA.
+**File extension:** `.ram` (Rank Accelerator Module)  
+**Target backends:** Apple CoreML (MIL / ANE / Metal GPU), Google LiteRT (TFLite FlatBuffers / StableHLO / GPU & NPU Delegates), ARM TOSA, and Rank CPU Interpreter fallback.
 
-`mlRank` is a **strict, statically compilable subset of Rank** designed for hardware neural accelerators (NPUs and GPUs). Every valid `mlRank` program is a valid Rank program that executes deterministically in the standard Rank CPU interpreter without syntax changes to the core language.
+`mlRank` is a **statically compilable subset of Rank** stored in `.ram` files and designed for hardware neural accelerators (NPUs and GPUs). Every `.ram` file is a self-contained Rank module that declares its typed/shaped tensor inputs via `option`, expresses computation using pure tensor dataflow, and returns its outputs via `return`.
 
-By restricting dynamic runtime constructs that cause accelerator fallbacks (such as data-dependent shapes, unbounded loops, and arbitrary-precision integers during kernel execution), `mlRank` guarantees **1-to-1 lowering** into static tensor computation graphs for CoreML and LiteRT.
-
----
-
-## 1. Design Principles
-
-1. **Zero syntax fork:** `mlRank` does not alter Rank grammar. A `.ra` file written in `mlRank` runs as-is in the Rank REPL and CLI (`npx @arrrank/cli`), which serves as the bit-exact / numerical reference oracle.
-2. **Static Shape & Rank Decidability:** The rank ($R$) and concrete dimensions ($[d_1, \dots, d_R]$) of every intermediate value must be statically derivable from the input contract before execution begins.
-3. **Pure Dataflow DAG:** Within compiled regions, arrays follow strict value semantics. Both eager bindings (`A = ...`) and recipe bindings (`A' = ...`) may be fused into on-chip SRAM / register tiles by the target compiler, provided the observable output tensors of the program remain identical.
-4. **Hardware-Native Operator Boundaries:** Using the `use ml` vocabulary (see [Issue #413](https://github.com/kmmbvnr/rank/issues/413)), high-level operations (`softmax`, `layernorm`, `rmsnorm`, `linear`, `conv2d`, `attention`) are preserved as first-class macro-nodes rather than prematurely decomposed into scalar loops.
+Crucially, **no external JSON manifest is needed**, and **`.ram` modules can be imported and executed directly from ordinary `.ra` files** using Rank's standard `use` / `run` module mechanism.
 
 ---
 
-## 2. Program Structure, Inputs & Compilation Contract
+## 1. Core Design Principles
 
-Just as standard Rank scripts use top-level `option` declarations (`use cli`) bindable from the workspace or CLI, an `mlRank` program is a top-level script or pure `fun` whose input tensors, weights, and compile-time constants are bound at the boundary and specialized via an external **Compilation Manifest**.
+1. **Self-Contained `.ram` Modules:** A `.ram` file contains everything the compiler needs inside the source code itself: hardware precision tags (`.f16`, `.f32`, `.bf16`, `.i32`, `.i8`), static or enumerated shapes (`shape ...`), weights, and outputs (`return`).
+2. **Callable `.ram` Functions from `.ra`:** Importing `use "att.ram"` registers `att` as a directly callable function in the `.ra` workspace (`Out = Q K V att`). On devices with CoreML or LiteRT, the runtime compiles `.ram` into an accelerator graph and caches it; on environments without an NPU/GPU (or in the browser/REPL), it executes natively in the Rank CPU interpreter.
+3. **Hardware-Native Precision via Labels:** Hardware numeric types are written as standard Rank label literals (`.f16`, `.bf16`, `.f32`, `.f8`, `.i32`, `.i16`, `.i8`, `.u8`, `.bool`), avoiding new reserved keywords in the parser.
+4. **Static & Enumerated Shapes:** Every intermediate tensor's rank ($R$) and dimensions ($[d_1, \dots, d_R]$) are decidable at compile time for each shape profile.
 
-### Example: Self-Attention Block in `mlRank`
+---
+
+## 2. `.ram` Program Structure: `option`, Shapes & `return`
+
+In `.ram`, `use ml` extends `option` declarations to accept **hardware precision labels** and **`shape` contracts**, while top-level `return` defines the graph's output tensor (or `record` of tensors).
+
+### 2.1 Inputs vs. Constant Weights (`option`)
+
+* **Runtime Input (`option` without `=`):** Declares a positional parameter of the `.ram` function in declaration order.
+* **Baked Weight / Parameter (`option` with `= DefaultExpr`):** Declares a model weight or hyperparameter. When compiling to CoreML / LiteRT, its default value (or workspace override) is baked into the `.mlpackage` / `.tflite` constant buffer (enabling offline NPU weight packing and quantization).
 
 ```rank
-rem attention_block.ra
+rem att.ram
 use linalg
 use ml
 use numbers
 use sequences
 
-rem Inputs bound from workspace or runner
-option Dim integer = 64
+rem Positional runtime inputs (no default '=')
+option Q .f16 shape 16 64
+option K .f16 shape 16 64
+option V .f16 shape 16 64
 
-Q = array shape 16 Dim fill 0.0
-K = array shape 16 Dim fill 0.0
-V = array shape 16 Dim fill 0.0
-Gamma = array shape Dim fill 1.0
+rem Baked weight (has default '=')
+option Gamma .f16 shape 64 = array shape 64 fill 1.0
 
-rem 1. Pre-normalization (rank-1 cell op)
 Qn' = (Q 1e-5 rmsnorm) * Gamma
 Kn' = (K 1e-5 rmsnorm) * Gamma
 
-rem 2. Scaled dot-product attention
 Out = Qn Kn V attention
+return Out
 ```
 
-### External Compilation Manifest (`model.mlrank.json`)
+Multiple outputs use an ordinary Rank `record`:
 
-To keep `.ra` source files clean and compatible with the standard interpreter, hardware target types (`f16`, `f32`, `i32`) and static input shapes are supplied externally when compiling to CoreML or LiteRT:
-
-```json
-{
-  "source": "attention_block.ra",
-  "target": "coreml",
-  "precision": "f16",
-  "inputs": {
-    "Q":     { "dtype": "f16", "shape": [16, 64] },
-    "K":     { "dtype": "f16", "shape": [16, 64] },
-    "V":     { "dtype": "f16", "shape": [16, 64] },
-    "Gamma": { "dtype": "f16", "shape": [64], "role": "weight" }
-  },
-  "outputs": ["Out"]
-}
+```rank
+return record
+  .logits = Logits
+  .hidden = Hidden
+end
 ```
 
-* **Inputs vs. Weights:** Tensors marked with `"role": "weight"` can be baked as constant weights into the `.mlpackage` / `.tflite` FlatBuffer (enabling offline NPU weight packing and INT8/INT4 quantization), while regular inputs become runtime model inputs.
-* **Precision Lowering:** While the Rank interpreter evaluates `real` as IEEE-754 `Float64` and `integer` as exact `BigInt`, the `mlRank` compiler lowers:
-  * `real` $\rightarrow$ `f32` or `f16` (per manifest policy)
-  * `integer` $\rightarrow$ `i32` (for indices/shapes)
-  * `boolean` $\rightarrow$ `bool` / `i8` mask
+### 2.2 Hardware Precision Labels
+
+Because `.f16`, `.f32`, etc. are standard Rank `LabelLiteral` tokens (`.word`), they require zero new reserved words:
+
+| Label | Meaning | CoreML MIL Type | LiteRT / TOSA Type | CPU Interpreter Execution |
+| :--- | :--- | :--- | :--- | :--- |
+| `.f32` | IEEE-754 float32 | `fp32` | `FLOAT32` | `real` (clamped/rounded to f32 at boundary) |
+| `.f16` | IEEE-754 float16 | `fp16` (ANE native) | `FLOAT16` | `real` |
+| `.bf16` | bfloat16 | `bf16` (M2+/A15+ GPU) | `BFLOAT16` | `real` |
+| `.f8` | FP8 (E4M3 / E5M2) | Quantized LUT / `fp8` | `FLOAT8_E4M3FN` | `real` |
+| `.i32` | 32-bit signed int | `int32` | `INT32` | `integer` (checked 32-bit range) |
+| `.i16` | 16-bit signed int | `int16` | `INT16` | `integer` (checked 16-bit range) |
+| `.i8` | 8-bit signed int | `int8` | `INT8` | `integer` (checked `-128..127`) |
+| `.u8` | 8-bit unsigned int | `uint8` | `UINT8` | `integer` (checked `0..255`) |
+| `.bool` | Boolean mask | `bool` | `BOOL` | `boolean` |
+
+### 2.3 Fixed and Enumerated Shapes (`shape ... end`)
+
+Hardware NPUs (both Apple Neural Engine and Qualcomm/MediaTek NPUs via LiteRT) require pre-allocated SRAM tile schedules and static arena layouts. Truly unbounded dynamic shapes often force an NPU fallback to CPU. However, **both CoreML and LiteRT natively support a finite list of enumerated shapes**:
+
+* **CoreML (`ct.EnumeratedShapes`):** Allows up to ~128 predefined shapes per input (e.g. prompt buckets `[1, 64]`, `[1, 128]`, `[1, 256]` or image resolutions). ANE pre-compiles optimized plans for each shape in the set.
+* **LiteRT (Multi-Signature Subgraphs / Shape Buckets):** Allows exporting a `.tflite` model with multiple named signatures (`shape_0`, `shape_1`, `shape_2`) sharing the exact same weight buffers in the FlatBuffer, or dispatching across pre-sized arena buckets with zero weight duplication.
+
+In `.ram`, a single fixed shape is written inline, while **enumerated shapes** use a multi-line `shape ... end` block (one shape profile per line, matching `record ... end` and `array shape ... end`):
+
+```rank
+rem Single fixed shape (inline):
+option Image .f16 shape 1 224 224 3
+
+rem Enumerated shapes (one profile per line, closed by 'end'):
+option Tokens .i32 shape
+  1 64
+  1 128
+  1 256
+end
+```
+
+If several inputs use `shape ... end` blocks, they must declare the same number of rows, and row $k$ across all inputs forms the $k$-th compilation profile.
 
 ---
 
-## 3. Allowed vs. Forbidden Language Constructs (MVP)
+## 3. Calling `.ram` from `.ra` as a Function
 
-To ensure full NPU/GPU compatibility without CPU fallbacks, `mlRank` enforces the following subset rules during static validation:
+Importing a `.ram` file with `use "att.ram"` binds a callable function named after the file stem (`att`) — or the explicit alias in `use "att.ram" as my_att`.
 
-| Category | Allowed in `mlRank` MVP | Forbidden in `mlRank` MVP (Why) |
+Its positional parameters correspond to the `.ram` file's runtime `option` declarations (those without a `=` default), in top-to-bottom declaration order:
+
+```rank
+rem main.ra — ordinary Rank script (tables, I/O, text, loops allowed)
+use sequences
+use "att.ram"
+
+rem Prepare inputs in full Rank
+Q = array 1 to 1024 reshape 16 64 real
+K = array 1 to 1024 reshape 16 64 real
+V = array 1 to 1024 reshape 16 64 real
+
+rem Call att.ram directly like a regular Rank function!
+Out = Q K V att
+Out shape print
+```
+
+To override baked weights or inspect module fields before compiling, use an alias:
+
+```rank
+use "att.ram" as M
+M.Gamma = NewGamma
+Out = Q K V M.att
+```
+
+### What happens when `Q K V att` is called:
+1. **Static Validation:** The compiler verifies that `att.ram` obeys all `mlRank` subset rules and that the arguments `Q`, `K`, `V` match one of the declared `shape` profiles.
+2. **Accelerator Compilation & Caching:**
+   * **macOS / iOS:** Lowers `att.ram` to CoreML MIL, compiles `.mlmodelc` in cache (keyed by `.ram` source + weight hashes), and executes on ANE / Metal.
+   * **Android / Linux (`@arrrank/mobile`):** Lowers `att.ram` to a LiteRT FlatBuffer (`.tflite`), initializes the GPU / NPU delegate, and runs inference.
+   * **Fallback / Reference Mode:** Executes the `.ram` body directly in the Rank CPU interpreter, validating input/output precision and shape contracts.
+
+---
+
+## 4. Allowed vs. Forbidden Language Constructs (MVP)
+
+To guarantee zero CPU fallbacks inside a `.ram` file, the validator enforces:
+
+| Category | Allowed in `.ram` MVP | Forbidden in `.ram` MVP (Why) |
 | :--- | :--- | :--- |
-| **Data Types** | `real`, `integer`, `boolean`, homogeneous dense `array` (Rank $0..5$), closed `record` and `tuple` (staticaly unrolled structs of tensors). | `text`, `bytes`, `table`, `map`, `set`, `heap`, `deque`, `dsu`, `graph`, heterogeneous arrays. |
+| **Data Types** | `.f32`, `.f16`, `.bf16`, `.f8`, `.i32`, `.i16`, `.i8`, `.u8`, `.bool`, homogeneous dense `array` (Rank $0..5$), closed `record` and `tuple`. | `text`, `bytes`, `table`, `map`, `set`, `heap`, `deque`, `dsu`, `graph`, heterogeneous arrays. |
 | **Control Flow** | Straight-line statements; `for i in Start to/till End [by Step]` where bounds are compile-time constants (statically unrolled by compiler). | `while` loops, recursion, `for` over dynamic tensor values, `if` / `else` branching on tensor elements. |
 | **Conditionals** | Elementwise `Mask choose TrueVal FalseVal` (lowers to `mb.select` / `tosa.select` with static shape). | Boolean mask filtering `Data Mask` or `filter` (produces data-dependent shapes, breaking NPU memory planners). |
 | **Addressing** | Static slices (`0 till 16`), `#` whole-axis selectors, `transpose`, `reshape` (with static target shape), integer tensor indexing along leading axes (`Embeddings Tokens` $\rightarrow$ `gather`). | Out-of-bounds dynamic slicing, scatter updates with overlapping runtime indices. |
 | **Functions** | Non-recursive user `fun` definitions (inlined as subgraph blocks during lowering). | First-class dynamic function closures or runtime callback dispatch. |
-| **Side Effects** | None inside the compiled graph (pure value transformations). | File I/O (`use io`), `stdin`, random generation (`use random`) inside inference graph, throwing dynamic exceptions. |
+| **Side Effects** | None inside `.ram` (pure value transformations). | File I/O (`use io`), `stdin`, random generation (`use random`) inside inference graph, throwing dynamic exceptions. |
 
-### Loop Unrolling for Multi-Layer Models
+### Static Loop Unrolling Example in `.ram`
 
-Because transformer and CNN architectures repeat identical blocks $L$ times, `mlRank` allows `for` loops over static integer ranges. When `Layers` is a constant array/tuple of records (or indexed weight slices), the compiler unrolls the loop into a static sequence of graph layers:
+Transformer and CNN stacks use compile-time `for` loops over layer indices:
 
 ```rank
 Hidden = Input
@@ -99,15 +163,16 @@ for i in 0 till 12
   Mid' = (Hidden W1 linear) gelu
   Hidden = Hidden + (Mid W2 linear)
 end
+return Hidden
 ```
 
 ---
 
-## 4. Operator Catalogue & Hardware Lowering
+## 5. Operator Catalogue & Hardware Lowering
 
 `mlRank` combines core Rank tensor operations with the stateless `use ml` vocabulary ([Issue #413](https://github.com/kmmbvnr/rank/issues/413)). Every operation has a fixed intrinsic cell rank so Rank's frame-broadcasting model eliminates manual `unsqueeze` and `transpose` boilerplate.
 
-### 4.1 Core Math, Reductions & Structural Ops
+### 5.1 Core Math, Reductions & Structural Ops
 
 Already built into Rank (`core`, `use numbers`, `use linalg`, `use sequences`, `use stats`):
 
@@ -124,7 +189,7 @@ Already built into Rank (`core`, `use numbers`, `use linalg`, `use sequences`, `
 | `A transpose [axis ...]` | `all` | Permutes axes | `mb.transpose` | `TRANSPOSE` |
 | `Emb Indices` (array addressing) | special | Replaces leading axis with index shape | `mb.gather` | `GATHER` / `tosa.gather` |
 
-### 4.2 Elementwise Activations & Clamping (`use ml`, Default Cell Rank: `0`)
+### 5.2 Elementwise Activations & Clamping (`use ml`, Default Cell Rank: `0`)
 
 Map scalars `s -> s` across any tensor shape and fuse directly into preceding `conv2d` / `linear` / `matmul` operations on NPU and GPU:
 
@@ -139,7 +204,7 @@ Map scalars `s -> s` across any tensor shape and fuse directly into preceding `c
 | `X softplus` | `0` | $\ln(1 + e^x)$ | `mb.softplus` | `LOG(ADD(1, EXP(x)))` |
 | `X Low High clip` | `0 0 0` | $\min(\max(x, \text{low}), \text{high})$ | `mb.clip` | `tosa.clamp` |
 
-### 4.3 Vector Normalizations (`use ml`, Default Cell Rank: `1`)
+### 5.3 Vector Normalizations (`use ml`, Default Cell Rank: `1`)
 
 Because these operations declare intrinsic cell rank `1` (`['d'] -> ['d']`), applying them to a 2D `[Batch, Dim]` or 3D `[Batch, Seq, Dim]` tensor automatically normalizes the trailing feature dimension without requiring `transpose` or `rank` modifiers:
 
@@ -153,7 +218,7 @@ Because these operations declare intrinsic cell rank `1` (`['d'] -> ['d']`), app
 
 *(Note: Explicit `axis A` overrides the default trailing axis and lowers to the `axis=A` attribute in CoreML MIL or an axis-specialized reduction in LiteRT).*
 
-### 4.4 Linear, Spatial & Attention Macro-Kernels (`use ml`)
+### 5.4 Linear, Spatial & Attention Macro-Kernels (`use ml`)
 
 Providing explicit high-level operators allows the compiler to emit dedicated hardware macro-instructions (such as ANE convolution engines and Metal FlashAttention) instead of materializing intermediate `window` tensors:
 
@@ -169,17 +234,16 @@ Providing explicit high-level operators allows the compiler to emit dedicated ha
 
 ---
 
-## 5. Compiler Lowering Pipeline
+## 6. Compiler Lowering Pipeline
 
 ```mermaid
 flowchart TD
-  SRC["mlRank Source (.ra)"] --> PARSE["Langium Parser & Scope Pass"]
-  MANIFEST["Compilation Manifest (.mlrank.json)"] --> SHAPE["Static Shape, Rank & Subset Validator"]
-  PARSE --> SHAPE
+  RA["Host Script (.ra)"] -- "use 'att.ram' / Q K V att" --> PARSE["Langium Parser (.ram)"]
+  PARSE --> SHAPE["Static Shape, Enumerated Profile & Subset Validator"]
   SHAPE --> IR["mlRank Static Tensor DAG (SSA, Unrolled Loops, Explicit Broadcasts)"]
-  IR --> COREML["CoreML MIL Emitter (.mlpackage)"]
-  IR --> LITERT["LiteRT / StableHLO Emitter (.tflite)"]
-  SRC --> ORACLE["Rank Reference Interpreter (CPU Oracle)"]
+  IR --> COREML["CoreML MIL Emitter (.mlpackage / ANE & Metal)"]
+  IR --> LITERT["LiteRT Emitter (.tflite Multi-Signature / NPU & GPU)"]
+  PARSE --> ORACLE["Rank Reference Interpreter (CPU Fallback & Oracle)"]
   COREML -. "Verify Numerical Parity (atol/rtol)" .-> ORACLE
   LITERT -. "Verify Numerical Parity (atol/rtol)" .-> ORACLE
 ```
@@ -188,9 +252,11 @@ flowchart TD
 
 1. **Rank-Modifier Broadcast Insertion (`rank L R`):**
    In Rank, `Scores - Tops rank 1 0` subtracts a rank-0 scalar cell `Tops[b]` from each rank-1 row `Scores[b, :]`. CoreML MIL and LiteRT expect trailing-axis numpy-style broadcasting. The `mlRank` compiler automatically inserts a static `reshape` / `expand_dims` (`[B] -> [B, 1]`) on the lower-cell-rank operand.
-2. **Window + Reduce Idiom Lifting:**
+2. **Enumerated Shapes Lowering (`shape ... end`):**
+   When `option` declares a `shape ... end` block, the compiler propagates each row's shape profile through the DAG:
+   * For **CoreML**, it emits `ct.EnumeratedShapes(shapes=[[1, 64], [1, 128], [1, 256]])` on the MIL function input.
+   * For **LiteRT**, it emits multi-signature subgraphs (`shape_0`, `shape_1`, `shape_2`) sharing the constant weight buffers in a single `.tflite` file, selecting the matching signature when `Q K V att` is called based on the runtime input's actual shape.
+3. **Window + Reduce Idiom Lifting:**
    Even if a user writes `B' = A window W stride S padding P` followed by `B max axis 2 3` (instead of `maxpool2d`), the `mlRank` IR recognizer fuses the lazy window view and reduction into a native `max_pool2d` operator without materializing the 4D windowed tensor.
-3. **Layout Adaptation (`NHWC` vs `NCHW`):**
+4. **Layout Adaptation (`NHWC` vs `NCHW`):**
    Apple Neural Engine (CoreML) executes convolutions in `NCHW` (channels-first), whereas LiteRT GPU/NPU delegates require `NHWC` (channels-last). The `mlRank` compiler can insert layout transpositions at graph boundaries or fold weight transpositions at compile time.
-4. **Automated Oracle Verification (like `@arrrank/compile verify`):**
-   Just as the Rust compiler workflow compares stdout byte-for-byte against the Rank interpreter, the `mlRank` verifier runs the `.ra` file on the CPU interpreter and compares output tensors against the compiled CoreML / LiteRT model within precision tolerances (`rtol=1e-3, atol=1e-3` for `f16`; `rtol=1e-5, atol=1e-6` for `f32`).
