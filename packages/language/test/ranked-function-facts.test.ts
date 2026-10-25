@@ -40,7 +40,7 @@ it('uses explicit cell axes and declines incompatible frames', () => {
         expect(inputs[0].shape).toEqual([2]);
         return integer;
     }, [0])).toEqual({ types: ['array'], rank: 1, shape: [3], elements: ['integer'] });
-    for (const axes of [[0, 0], [2], [-1]]) {
+    for (const axes of [[0, 0], [2], [-3]]) {
         expect(rankedFunctionFacts([matrix], [1], () => integer, axes)).toEqual({ types: [] });
     }
     expect(rankedFunctionFacts([matrix, { ...matrix, shape: [4, 3] }], [1, 1], () => integer))

@@ -1,3 +1,4 @@
+import { resolveAxis } from '../tensor-index.js';
 import { prepareStoredScalarView } from '../integer-view.js';
 import { copyArrayStorage } from '../array-copy.js';
 import { tensorSource } from '../tensor-source.js';
@@ -452,8 +453,8 @@ export function matmulValues(
         throw new RankError('matmul expects rank-1 or higher arrays');
     }
 
-    const leftAxis = axes?.[0] ?? left.shape.length - 1;
-    const rightAxis = axes?.[1] ?? 0;
+    const leftAxis = resolveAxis(axes?.[0] ?? left.shape.length - 1, left.shape.length, axis => new RankError(`matmul left axis out of bounds: ${axis}`));
+    const rightAxis = resolveAxis(axes?.[1] ?? 0, right.shape.length, axis => new RankError(`matmul right axis out of bounds: ${axis}`));
     validateAxis(left.shape, leftAxis, 'left');
     validateAxis(right.shape, rightAxis, 'right');
     if (left.shape[leftAxis] !== right.shape[rightAxis]) {

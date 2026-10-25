@@ -114,9 +114,10 @@ export function compileSequenceApplication(context: ApplicationContext, applicat
                     }
                 }
                 const axisValue = constructor.axis && (yield* resume(context.evaluate(constructor.axis)));
-                if (axisValue !== undefined && (typeof axisValue !== 'bigint' || axisValue < 0n
+                if (axisValue !== undefined && (typeof axisValue !== 'bigint' || constructor.operation !== 'concat' && axisValue < 0n
+                    || axisValue < -BigInt(Number.MAX_SAFE_INTEGER)
                     || axisValue > BigInt(Number.MAX_SAFE_INTEGER))) {
-                    throw new RankError(`${constructor.operation} axis expects a nonnegative integer`, 'TypeError');
+                    throw new RankError(`${constructor.operation} axis expects ${constructor.operation === 'concat' ? 'an integer' : 'a nonnegative integer'}`, 'TypeError');
                 }
                 const axis = axisValue === undefined ? 0 : Number(axisValue);
                 const combined = constructor.operation === 'stack'

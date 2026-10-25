@@ -611,6 +611,8 @@ export function assertNever(value: never): never {
 class ApplicationSyntaxError extends Error {}
 
 function integerLiteral(expression: Expression, name: string): bigint {
+    if (name.includes('axis') && isUnaryExpression(expression) && expression.operator === '-'
+        && isNumberLiteral(expression.operand) && typeof expression.operand.value === 'bigint') return -expression.operand.value;
     if (!isNumberLiteral(expression) || typeof expression.value !== 'bigint') {
         throw new ApplicationSyntaxError(name + ' expects nonnegative integer literals');
     }
@@ -618,7 +620,7 @@ function integerLiteral(expression: Expression, name: string): bigint {
 }
 
 function literalDimension(value: bigint, name: string): number {
-    if (value > BigInt(Number.MAX_SAFE_INTEGER)) throw new ApplicationSyntaxError(name + ' is too large: ' + value);
+    if (value > BigInt(Number.MAX_SAFE_INTEGER) || value < -BigInt(Number.MAX_SAFE_INTEGER)) throw new ApplicationSyntaxError(name + ' is too large: ' + value);
     return Number(value);
 }
 
@@ -627,10 +629,10 @@ function explicitAxisSelection(
     parts: Expression[], nameOf: NameOf,
 ): { source: Expression; axis: number; selector: Expression } | undefined {
     if (parts.length !== 4 || !isNamed(parts[1], 'axis', nameOf)
-        || !isNumberLiteral(parts[2]) || typeof parts[2].value !== 'bigint') return undefined;
+        || rankLiteral(parts[2]) === undefined) return undefined;
     return {
         source: parts[0],
-        axis: literalDimension(parts[2].value, 'axis'),
+        axis: literalDimension(integerLiteral(parts[2], 'axis'), 'axis'),
         selector: parts[3],
     };
 }

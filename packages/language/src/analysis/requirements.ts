@@ -1,3 +1,4 @@
+import { normalizeAxis } from '../axis-index.js';
 import { arrayBindingContract, refineArrayContract } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
@@ -172,7 +173,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
             if (shape.rank === undefined) return undefined;
             const cell = rank < 0 ? Math.max(0, shape.rank + rank) : Math.min(rank, shape.rank);
             const frame = shape.rank - cell;
-            return frame === 0 ? [] : axes ? Array.from({ length: shape.rank }, (_, axis) => axis).filter(axis => !axes.includes(axis)).map(axis => shape.shape?.[axis]) : shape.shape?.slice(0, frame);
+            const normalized = axes?.map(axis => normalizeAxis(axis, shape.rank!));
+            return frame === 0 ? [] : normalized ? Array.from({ length: shape.rank }, (_, axis) => axis).filter(axis => !normalized.includes(axis)).map(axis => shape.shape?.[axis]) : shape.shape?.slice(0, frame);
         };
         const entersCells = (arg: Value, rank: number, axes?: readonly number[]): boolean =>
             frameLengths(arg, rank, axes)?.every(n => n !== null && n !== undefined && n > 0) === true;
@@ -253,7 +255,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const count = graph.shape(arg).rank;
                 const cellCount = count === undefined ? undefined : rank < 0 ? Math.max(0, count + rank) : Math.min(rank, count);
                 if (count !== undefined && cellCount !== undefined) {
-                    const cellAxes = axes ? [...axes].sort((a, b) => a - b) : Array.from({ length: cellCount }, (_, n) => count - cellCount + n);
+                    const cellAxes = axes ? axes.map(axis => normalizeAxis(axis, count)).sort((a, b) => a - b) : Array.from({ length: cellCount }, (_, n) => count - cellCount + n);
                     for (const [axis, sourceAxis] of cellAxes.entries()) cell.dimensions.set(axis, graph.dimension(arg, sourceAxis));
                 }
                 frames.push(frame);
@@ -292,7 +294,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 graph.solver.frame(args[0].rank, frame.rank, cells[0], site(node, `${definition.name} frame`));
                 graph.solver.sum(args[0].rank, frame.rank, instance.params[0].rank, site(node, `${definition.name} cell`));
                 graph.solver.sum(output.rank, frame.rank, instance.result.rank, site(node, `${definition.name} result`));
-                if (axes && cells[0] >= 0) requireRank(args[0], Math.max(...axes) + 1, Infinity, node, 'selected cell axes');
+                if (axes && cells[0] >= 0) requireRank(args[0], Math.max(...axes.map(axis => axis < 0 ? -axis : axis + 1)), Infinity, node, 'selected cell axes');
             }
         };
         function expression(node: Expression): Value {
@@ -408,7 +410,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     if (operation) { signature(operation, args, output, node, ranks, form.axes); builtinEffects(operation, args); }
                 }
                 if (form.axes && args.length === 1 && ranks[0] >= 0) {
-                    requireRank(args[0], Math.max(...form.axes) + 1, Infinity, node, 'selected cell axes');
+                    requireRank(args[0], Math.max(...form.axes.map(axis => axis < 0 ? -axis : axis + 1)), Infinity, node, 'selected cell axes');
                 }
                 return output;
             }
@@ -417,7 +419,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 const axes = form.kind === 'axis-length' ? [form.axis] : form.axes;
                 for (const axis of axes) {
                     const index = typeof axis === 'number' ? axis : literal(axis);
-                    if (index !== undefined && index >= 0) requireRank(source, index + 1, Infinity, typeof axis === 'number' ? node : axis, `axis ${index} needs rank >= ${index + 1}`);
+                    if (index !== undefined) requireRank(source, index < 0 ? -index : index + 1, Infinity, typeof axis === 'number' ? node : axis, `axis ${index} needs rank >= ${index < 0 ? -index : index + 1}`);
                 }
                 return output;
             }

@@ -728,6 +728,8 @@ export class ApplicationEvaluator {
 }
 
 export function integerLiteral(expression: Expression, name: string): bigint {
+    if (name.includes('axis') && isUnaryExpression(expression) && expression.operator === '-'
+        && isNumberLiteral(expression.operand) && typeof expression.operand.value === 'bigint') return -expression.operand.value;
     if (!isNumberLiteral(expression) || typeof expression.value !== 'bigint') {
         throw new RankError(`${name} expects nonnegative integer literals`);
     }

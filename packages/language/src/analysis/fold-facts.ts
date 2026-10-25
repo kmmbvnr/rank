@@ -1,3 +1,4 @@
+import { normalizeAxis } from '../axis-index.js';
 import type { FoldModifiers } from '../application-forms.js';
 import type { Expression } from '../generated/ast.js';
 import type { Types } from './types.js';
@@ -11,15 +12,15 @@ export function foldShapeFacts(
     if (source.rank === undefined) return undefined;
     const sourceRank = source.rank;
     if ((form.axis || form.axes) && source.types.join() !== 'array') return undefined;
-    const integer = (expression: Expression): number | undefined => {
+    const integer = (expression: Expression, axis = false): number | undefined => {
         const value = infer(expression).integer;
-        const number = value === undefined ? NaN : Number(value);
+        const number = value === undefined ? NaN : axis ? normalizeAxis(Number(value), sourceRank) : Number(value);
         return Number.isSafeInteger(number) && number >= 0 ? number : undefined;
     };
     const rank = form.rank && integer(form.rank);
     if (form.rank && (rank === undefined || rank > source.rank)) return undefined;
-    const axes = form.axes?.map(integer);
-    const axis = form.axis ? integer(form.axis) : rank === undefined ? undefined : source.rank - rank;
+    const axes = form.axes?.map(part => integer(part, true));
+    const axis = form.axis ? integer(form.axis, true) : rank === undefined ? undefined : source.rank - rank;
     const shape = source.shape ?? Array(source.rank).fill(null) as null[];
     if (scan) {
         if (rank === 0 || form.axis && axis === undefined || axis !== undefined && axis >= sourceRank) return undefined;

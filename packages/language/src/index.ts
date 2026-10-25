@@ -52,3 +52,5 @@ export * from './analysis/function-mutations.js';
 export * from './analysis/function-scope-diagnostics.js';
 
 export * from './analysis/deferred-bindings.js';
+
+export { normalizeAxis } from './axis-index.js';

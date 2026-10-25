@@ -1,3 +1,4 @@
+import { resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
 import { elementSource } from './element-source.js';
@@ -46,6 +47,7 @@ export class ReductionEvaluator {
         seed?: RankValue,
         axes?: readonly number[],
     ): RankValue {
+        if (axes && isRankArray(value)) axes = resolveAxes(axes, value.shape.length, 'reduce');
         if (cellRank !== undefined && cellRank > 0 || axes && seed !== undefined && isRankArray(seed)) {
             return this.reduceInputCells(value, cellRank ?? 0, axes, seed,
                 (left, right) => this.binary(operator, left, right), () => {
@@ -139,8 +141,7 @@ export class ReductionEvaluator {
         if (!isRankArray(value)) throw new RankError('reduce with input cell rank or axis expects an array');
         const boundary = value.shape.length - rank;
         if (boundary < 0) throw new RankError(`rank ${rank} exceeds tensor rank ${value.shape.length}`);
-        const traversal = axes ?? Array.from({ length: boundary }, (_, i) => i);
-        if (new Set(traversal).size !== traversal.length) throw new RankError('reduce axes must be unique');
+        const traversal = axes ? resolveAxes(axes, value.shape.length, 'reduce') : Array.from({ length: boundary }, (_, i) => i);
         if (traversal.some(axis => axis < 0 || axis >= boundary)) {
             throw new RankError('reduce axis must be outside the trailing input cell');
         }
@@ -191,7 +192,7 @@ export class ReductionEvaluator {
     private scanAxis(operator: string, value: RankValue, axis: number,
         operation: (left: RankValue, right: RankValue) => RankValue, seed?: RankValue, nativeOperator?: string): RankValue {
         if (!isRankArray(value)) throw new RankError(`scan ${operator} axis expects an array`);
-        if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
+        axis = resolveAxis(axis, value.shape.length, axis => new RankError(`array has no axis ${axis}`));
         const shape = value.shape;
         const size = arraySize(shape);
         const length = shape[axis];
@@ -288,12 +289,7 @@ export class ReductionEvaluator {
         axes: readonly number[],
     ): RankValue {
         if (!isRankArray(value)) throw new RankError(`${operation} axis expects an array`);
-        for (const axis of axes) {
-            if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
-        }
-        if (new Set(axes).size !== axes.length) {
-            throw new RankError(`${operation} axes must be unique`);
-        }
+        axes = resolveAxes(axes, value.shape.length, operation);
 
         const selected = new Set(axes);
         const reducedAxes = value.shape.map((_, axis) => axis).filter(axis => selected.has(axis));

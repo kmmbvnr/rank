@@ -195,7 +195,7 @@ describe('orthogonal fold modifiers', () => {
         'M reduce + axis 1 axis 0', 'M reduce plus axis 0 axis 1',
         'M scan + rank 1 axis 0', 'M scan plus axis 0 1', 'M scan + axis 0 1',
         'M reduce plus axis 0 0', 'M reduce + axis 2', 'M reduce plus rank 3',
-        'M scan + rank 0', 'M scan plus rank 3', 'M scan + axis -1',
+        'M scan + rank 0', 'M scan plus rank 3', 'M scan + axis -3',
         'M scan plus axis 0 with (array 1 2)',
     ])('rejects invalid modifiers: %s', expression => {
         expect(() => run(matrix + plus + expression)).toThrow();

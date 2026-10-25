@@ -151,6 +151,15 @@ callbacks receive individual elements rather than entire slices.
 
 ## Axis reductions
 
+Axis literals count from either end of the source shape: `0` is the first
+axis, `-1` is the last, and `-2` is the second-to-last. A negative axis `A`
+resolves to `source rank + A`. Bounds and uniqueness checks use these normalized
+indices: `axis -3` is invalid for a rank-2 matrix, and `axis 1 -1` repeats an
+axis. Reduction input-cell boundaries are checked after normalization too.
+This also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
+`concat`, `window`, `transpose`, `for ... in ... axis ...`, and axis selection
+such as `M axis -1 0`. Array element indices themselves remain nonnegative.
+
 `reduce <op|fn> rank R axis N` folds trailing rank-R input cells along
 source axis N. The axis must be outside the input cell; other axes form
 independent folds. Rank defaults to 0. Without `axis`, all axes outside the
@@ -352,7 +361,8 @@ BatchCov = T covariance axis 2 0
 ```
 
 The first number selects the feature axis and the second selects the
-observation axis. Both are zero-based, valid, and distinct. All remaining axes
+observation axis. Nonnegative axes are zero-based; negative axes count from the end.
+The normalized axes must be valid and distinct. All remaining axes
 become batch axes in their original order. This operation-specific `axis` form
 already defines the cells and is not combined with `rank`.
 
@@ -371,7 +381,7 @@ copying them:
 ```rank
 WindowShape = array 2 3
 Blocks = M window WindowShape
-Scores = Blocks reduce + axis 2 3 with 0
+Scores = Blocks reduce + axis -2 -1 with 0
 ```
 
 For source shape `4 5`, `Blocks` has shape `3 3 2 3`. The trimmed source axes

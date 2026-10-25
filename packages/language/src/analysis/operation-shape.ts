@@ -1,3 +1,4 @@
+import { normalizeAxis } from '../axis-index.js';
 import type { IntrinsicRank, Operation } from '../operations.js';
 import { diagonalResultShape, matmulResultShape, instantiateShapeSignature, type KnownShape } from '../shape-signature.js';
 import { resultTypes } from './types.js';
@@ -47,6 +48,7 @@ function rankedOperandPart(value: ValueFacts, rank: IntrinsicRank, axes?: readon
     // Only tensors expose leading frames here. Text and sequences have their
     // own mapping/boxing rules and keep their specialized transfers.
     if (value.types.join() !== 'array') return shape.length > cellRank ? undefined : { cell: shape, frame: [] };
+    axes = axes?.map(axis => normalizeAxis(axis, shape.length));
     const selected = axes ? shape.map((_, axis) => axis).filter(axis => !axes.includes(axis)) : Array.from({ length: Math.max(0, shape.length - cellRank) }, (_, n) => n);
     if (selected.some(n => !Number.isSafeInteger(n) || n < 0 || n >= shape.length)
         || new Set(selected).size !== selected.length
@@ -85,6 +87,7 @@ export function rankedOperandShapes(operands: readonly ValueFacts[], ranks: read
 /** Restore same-rank explicit cell results to their source-axis positions. */
 export function axisResultShape(frame: KnownShape, cell: KnownShape, axes?: readonly number[]): KnownShape {
     if (!axes || cell.length !== axes.length) return [...frame, ...cell];
+    axes = axes.map(axis => normalizeAxis(axis, frame.length + cell.length));
     let f = 0, c = 0;
     return Array.from({ length: frame.length + cell.length }, (_, axis) => axes.includes(axis) ? cell[c++] : frame[f++]);
 }

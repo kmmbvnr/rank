@@ -1,3 +1,4 @@
+import { resolveAxis, resolveAxes } from '../tensor-index.js';
 import { tensorSource } from '../tensor-source.js';
 import { elementSource } from '../element-source.js';
 import { checkpoint, interruptibleCallback } from '../interrupt.js';
@@ -91,6 +92,7 @@ function metricByAxes(
     axes: readonly number[],
     metric: 'mse' | 'mae',
 ): RankValue {
+    axes = resolveAxes(axes, losses.shape.length, metric);
     for (const axis of axes) {
         checkpoint('computing statistics');
         if (axis >= losses.shape.length) {
@@ -332,6 +334,7 @@ function quantileByAxes(
     axes: readonly number[],
     isPercentile: boolean,
 ): RankValue {
+    axes = resolveAxes(axes, value.shape.length, isPercentile ? 'percentile' : 'quantile');
     for (const axis of axes) {
         checkpoint('computing statistics');
         if (axis >= value.shape.length) {
@@ -390,8 +393,8 @@ export function covarianceValue(
         throw new RankError('covariance expects a rank-2 or higher array', 'DimensionMismatch');
     }
 
-    const featureAxis = axes?.[0] ?? value.shape.length - 2;
-    const observationAxis = axes?.[1] ?? value.shape.length - 1;
+    const featureAxis = resolveAxis(axes?.[0] ?? value.shape.length - 2, value.shape.length, axis => new RankError(`covariance axis out of bounds: ${axis}`));
+    const observationAxis = resolveAxis(axes?.[1] ?? value.shape.length - 1, value.shape.length, axis => new RankError(`covariance axis out of bounds: ${axis}`));
     validateCovarianceAxis(value.shape, featureAxis);
     validateCovarianceAxis(value.shape, observationAxis);
     if (featureAxis === observationAxis) {

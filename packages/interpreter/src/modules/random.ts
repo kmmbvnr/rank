@@ -1,3 +1,4 @@
+import { resolveAxis } from '../tensor-index.js';
 import { eagerOperandItems, ownedArray, typedArray } from '../array-storage.js';
 import { RankError } from '../errors.js';
 import { sequenceValues } from '../sequence.js';
@@ -163,9 +164,7 @@ export function shuffleValue(
     defaultRandom: () => number = Math.random,
 ): RankArray {
     const source = randomSource(value, 'shuffle');
-    if (axis < 0 || axis >= source.shape.length) {
-        throw new RankError(`shuffle axis out of bounds: ${axis}`, 'DimensionMismatch');
-    }
+    axis = resolveAxis(axis, source.shape.length, axis => new RankError(`shuffle axis out of bounds: ${axis}`, 'DimensionMismatch'));
 
     const random = seed === undefined ? defaultRandom : randomFromSeed(expectSeed(seed));
     const order = Array.from({ length: source.shape[axis] }, (_, index) => index);

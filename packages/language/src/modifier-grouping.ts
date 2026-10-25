@@ -89,7 +89,7 @@ function boundary(parts: Expression[], standard: StandardName): number | undefin
     const axis = parts.findIndex((part, index) => index >= 2 && named(part, 'axis'));
     if (axis >= 0) {
         let end = axis + 1;
-        while (end < parts.length && isNumberLiteral(parts[end])) end++;
+        while (end < parts.length && isRankNumber(parts[end])) end++;
         if (end > axis + 1 && end < parts.length && !named(parts[end], 'rank')) return end;
     }
     if (parts.length > 4 && named(parts[3], 'outer')) return 4;
@@ -133,7 +133,7 @@ export function groupModifiers(expression: Expression, standard: StandardName = 
         if (!supported) return expression;
         const rankPosition = comparison ? parts.findIndex(part => named(part, 'rank')) : -1;
         let axisEnd = 1;
-        if (comparison && rankPosition < 0) while (isNumberLiteral(parts[axisEnd])) axisEnd++;
+        if (comparison && rankPosition < 0) while (isRankNumber(parts[axisEnd])) axisEnd++;
         const end = comparison ? rankPosition < 0 ? axisEnd : rankPosition + 2 : reduce || scan ? foldModifierEnd(parts, 1) : 1;
         if (parts.length <= end) return expression;
         prefix = { ...expression, right: applicationExpression(parts.slice(0, end)) } as Expression;

@@ -1,3 +1,4 @@
+import { resolveAxes } from './tensor-index.js';
 import { permutedArray } from './array-permutation.js';
 import { demand, demandValue, isRankPlan } from './plan.js';
 import { scalarBuiltinArray } from './scalar-builtin.js';
@@ -70,6 +71,7 @@ export class RankApplication {
                 [new Map<string, RankValue>([['source', value], ['callback', fn]])]));
         }
         if (isRankArray(value)) {
+            if (cellAxes) cellAxes = resolveAxes(cellAxes, value.shape.length);
             if (cellAxes === undefined && cellRank >= value.shape.length) return this.invoke(fn, [value]);
             const axes = tensorFrameAxes(value.shape, cellAxes, cellRank);
             if (axes.length === 0) return this.invoke(fn, [value]);
@@ -86,7 +88,7 @@ export class RankApplication {
             // Explicit cell axes retain their positions when the callback returns
             // the same cell rank. Rank-only application still stacks frame + cell.
             if (cellAxes && isRankArray(result) && result.shape.length === value.shape.length) {
-                const order = [...axes, ...value.shape.map((_, axis) => axis).filter(axis => cellAxes.includes(axis))];
+                const order = [...axes, ...value.shape.map((_, axis) => axis).filter(axis => cellAxes!.includes(axis))];
                 const permutation = value.shape.map((_, axis) => order.indexOf(axis));
                 if (permutation.every((axis, index) => axis === index)) return completed(result);
                 const restored = permutedArray(result, permutation);
@@ -423,10 +425,7 @@ export function tensorFrameAxes(
         throw new RankError(`rank ${cellRank} exceeds tensor rank ${shape.length}`);
     }
     if (specifiedAxes === undefined) return Array.from({ length: shape.length - cellRank }, (_, index) => index);
-    if (new Set(specifiedAxes).size !== specifiedAxes.length) throw new RankError('axis numbers must be unique');
-    for (const axis of specifiedAxes) {
-        if (!Number.isSafeInteger(axis) || axis < 0 || axis >= shape.length) throw new RankError(`axis out of bounds: ${axis}`);
-    }
+    specifiedAxes = resolveAxes(specifiedAxes, shape.length);
     if (specifiedAxes.length !== cellRank) {
         throw new RankError(`axis count ${specifiedAxes.length} must equal cell rank ${cellRank}`);
     }

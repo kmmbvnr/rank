@@ -1,3 +1,4 @@
+import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
 import { materializeMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
@@ -638,9 +639,7 @@ export function shiftValue(
         throw new RankError('shift fill must be a single value');
     }
     if (!isRankArray(source)) throw new RankError('shift expects an array');
-    if (!Number.isSafeInteger(axis) || axis < 0 || axis >= source.shape.length) {
-        throw new RankError(`shift axis out of bounds: ${axis}`);
-    }
+    axis = resolveAxis(axis, source.shape.length, axis => new RankError(`shift axis out of bounds: ${axis}`));
     const amount = Number(amountValue);
     if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
     const shape = source.shape;
@@ -699,7 +698,7 @@ function validateWindowAxes(
     widths: readonly number[],
     axes: readonly number[] | undefined,
 ): readonly number[] {
-    const selected = axes ?? (rank === 1 && widths.length === 1
+    const selected = axes ? axes.map(axis => resolveAxis(axis, rank, axis => new RankError(`window axis out of bounds: ${axis}`))) : (rank === 1 && widths.length === 1
         ? [0]
         : Array.from({ length: rank }, (_, index) => index));
     if (selected.length !== widths.length) {
@@ -709,11 +708,6 @@ function validateWindowAxes(
     }
     if (new Set(selected).size !== selected.length) {
         throw new RankError('window axis numbers must be unique');
-    }
-    for (const axis of selected) {
-        if (!Number.isSafeInteger(axis) || axis < 0 || axis >= rank) {
-            throw new RankError(`window axis out of bounds: ${axis}`);
-        }
     }
     return selected;
 }

@@ -1,3 +1,4 @@
+import { resolveAxis, resolveAxes } from '../tensor-index.js';
 import { copyArrayStorage } from '../array-copy.js';
 import { materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
 import { permutedArray } from '../array-permutation.js';
@@ -399,7 +400,8 @@ function* concatItems(sources: readonly (RankArray | RankSequence)[]): Generator
 /** Join equal-rank arrays on an existing axis. Rank-one sequences retain their plans. */
 export function concatValues(values: readonly RankValue[], axis = 0): RankArray | RankSequence {
     const mismatch = (message: string) => new RankError(message, 'DimensionMismatch');
-    if (!Number.isSafeInteger(axis) || axis < 0) throw mismatch('concat axis must be a nonnegative integer');
+    const sourceRank = values.find(isRankArray)?.shape.length ?? 1;
+    axis = resolveAxis(axis, sourceRank, axis => mismatch(`concat axis ${axis} exceeds input rank ${sourceRank}`));
     if (values.length === 0) {
         if (axis !== 0) throw mismatch(`concat axis ${axis} exceeds input rank 1`);
         return ownedArray([], [0]);
@@ -453,18 +455,12 @@ export function transposeValue(value: RankValue, axes?: readonly number[]): Rank
     }
     if (!isRankArray(value)) throw new RankError('transpose expects an array');
     const permutation = axes
-        ? [...axes]
+        ? [...resolveAxes(axes, value.shape.length, 'transpose')]
         : value.shape.map((_, axis) => axis).reverse();
     if (permutation.length !== value.shape.length) {
         throw new RankError(
             `transpose expects ${value.shape.length} axes, got ${permutation.length}`,
         );
-    }
-    for (const axis of permutation) {
-        if (axis >= value.shape.length) throw new RankError(`array has no axis ${axis}`);
-    }
-    if (new Set(permutation).size !== permutation.length) {
-        throw new RankError('transpose axes must be unique');
     }
 
     return permutedArray(value, permutation);
@@ -494,9 +490,7 @@ export function sortByItems(value: RankValue, operation = 'sort by'): RankValue[
 /** Return stable indices that order a tensor along one axis. */
 export function argsortAxis(value: RankValue, axis: number, descending = false): RankArray {
     if (!isRankArray(value)) throw new RankError('argsort axis expects an array');
-    if (axis < 0 || axis >= value.shape.length) {
-        throw new RankError(`argsort axis out of bounds: ${axis}`, 'DimensionMismatch');
-    }
+    axis = resolveAxis(axis, value.shape.length, axis => new RankError(`argsort axis out of bounds: ${axis}`, 'DimensionMismatch'));
     const shape = [...value.shape];
     const result = Array<RankValue>(arraySize(shape));
     const vectorShape = shape.filter((_, current) => current !== axis);
@@ -533,6 +527,8 @@ function coordinatesAt(shape: readonly number[], index: number): number[] {
 }
 
 export function lengthOfAxis(value: RankValue, axis: number): bigint {
+    axis = resolveAxis(axis, isRankArray(value) ? value.shape.length : 1,
+        axis => new RankError(`${isRankArray(value) ? 'array' : 'value'} has no axis ${axis}`));
     const source = collectionSize(value);
     if (source?.axisLength) return source.axisLength(axis);
     if (axis !== 0) throw new RankError(`value has no axis ${axis}`);

@@ -1,3 +1,5 @@
+import { axisDiagnostics } from './axis-diagnostics.js';
+import { normalizeAxis } from '../axis-index.js';
 import { functionBindingPlan } from '../function-binding.js';
 import { functionCallSignature } from '../function-call-signature.js';
 import { expressionFreeReads } from './bindings.js';
@@ -823,16 +825,17 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 const cells = form.items.map(item => expressionFacts(isUnpackExpression(item) ? item.value : item, lookup));
                 const operation = form.operation;
                 const axis = form.axis && expressionFacts(form.axis, lookup);
-                const axisNumber = axis?.integer === undefined ? form.axis ? undefined : 0 : Number(axis.integer);
+                let axisNumber = axis?.integer === undefined ? form.axis ? undefined : 0 : Number(axis.integer);
                 if (axis?.types.length && axis.types.join() !== 'integer') diagnostics.push({
                     node: form.axis!, kind: 'TypeError', message: `${operation} axis must be an integer`,
                 });
                 const rank = cells[0]?.rank;
                 const maximum = rank === undefined ? undefined : rank + (operation === 'stack' ? 1 : 0);
-                if (axis?.integer !== undefined && (BigInt(axis.integer) < 0n
-                    || maximum !== undefined && BigInt(axis.integer) >= BigInt(maximum))) diagnostics.push({
+                if (axisNumber !== undefined && maximum !== undefined && operation === 'concat') axisNumber = normalizeAxis(axisNumber, maximum);
+                if (axisNumber !== undefined && (operation === 'stack' && axisNumber < 0
+                    || maximum !== undefined && (axisNumber < 0 || axisNumber >= maximum))) diagnostics.push({
                     node: form.axis!, kind: 'DimensionMismatch',
-                    message: `${operation} axis ${axis.integer} exceeds result rank ${maximum ?? 'unknown'}`,
+                    message: `${operation} axis ${axis?.integer} exceeds result rank ${maximum ?? 'unknown'}`,
                 });
                 const invalid = cells.some(cell => cell.types.length && !cell.types.every(type =>
                     type === 'array' || type === 'sequence'));
@@ -926,19 +929,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     && source.elements.every(type => ['integer', 'real', 'boolean', 'symbol'].includes(type)))
                 && selectors.length > source.rank) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                     message: `${selectors.length} selectors exceed array rank ${source.rank}` });
-            for (let index = 1; index < parts.length - 1; index++) {
-                const part = parts[index];
-                // Ordinary rank clamps to the operand rank (negative ranks count
-                // back from it). Only an explicit axis is an index here.
-                if (!isNameExpression(part) || part.name !== 'axis' || lookup(part.name)) continue;
-                const integer = expressionFacts(parts[index + 1], lookup).integer;
-                if (integer === undefined || source.rank === undefined) continue;
-                const value = BigInt(integer);
-                if (value < 0n || value >= BigInt(source.rank)) {
-                    diagnostics.push({ node: parts[index + 1], kind: 'DimensionMismatch',
-                        message: `${part.name} ${integer} is invalid for rank ${source.rank}` });
-                }
-            }
         }
         if (isApplicationExpression(expression)) raggedLiftWarning(expression, lookup);
         if (isBinaryExpression(expression)) {
@@ -969,6 +959,11 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                         message: `operator ${expression.operator} does not accept ${leftTypes.join(' or ')} and ${rightTypes.join(' or ')}` });
                 }
             }
+        }
+        if (isApplicationExpression(expression) || isBinaryExpression(expression)) {
+            const form = applicationForm(expression, name => env.has(name) ? false : findOperation(name), false,
+                name => env.get(name)?.types.includes('function') ?? /^[a-z]/.test(name));
+            diagnostics.push(...axisDiagnostics(form, expression, part => expressionFacts(part, lookup)));
         }
         let result = expressionFacts(expression, lookup);
         if (isApplicationExpression(expression) && !AstUtils.getContainerOfType(expression, isFunctionStatement)) {
@@ -1055,7 +1050,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         const sourceRank = source.shape?.length ?? source.acceptedArrayRank;
         if (rank < 0n || sourceRank === undefined
             || source.types.length && source.types.join() !== 'array') return;
-        const axes = form.axes;
+        const axes = form.axes?.map(axis => normalizeAxis(axis, sourceRank));
         if (axes && (axes.length !== Number(rank)
             || new Set(axes).size !== axes.length || axes.some(axis => axis < 0 || axis >= sourceRank))) return;
         const frame = axes ? Array.from({ length: sourceRank }, (_, axis) => axis)

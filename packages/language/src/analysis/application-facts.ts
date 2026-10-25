@@ -1,3 +1,4 @@
+import { normalizeAxis } from '../axis-index.js';
 import { foldShapeFacts } from './fold-facts.js';
 import { inferSignatureResultTypes } from '../signature-matching.js';
 import type { SignatureAtom } from '../type-signature.js';
@@ -103,8 +104,8 @@ function windowFacts(form: Extract<ApplicationForm, { kind: 'window' }>, lookup:
         : form.dimensions.flatMap((part, index) => isUnpackExpression(part)
             ? sizes[index].integers ?? Array(sizes[index].shape?.[0] ?? 0).fill(null)
             : [sizes[index].integer === undefined ? null : Number(sizes[index].integer)]);
-    const axes = form.axes ?? (source.rank === undefined ? undefined
-        : Array.from({ length: source.rank }, (_, axis) => axis));
+    const axes = source.rank === undefined ? undefined : form.axes?.map(axis => normalizeAxis(axis, source.rank!))
+        ?? Array.from({ length: source.rank }, (_, axis) => axis);
     if (!axes || source.rank === undefined || axes.some(axis => axis < 0 || axis >= source.rank!))
         return UNKNOWN_VALUE;
     const geometry = (value: Expression | undefined, fallback: number): (number | null)[] => {
@@ -184,8 +185,8 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             const operands = [infer(form.left, lookup), infer(form.right, lookup)];
             const reordered = operands.map((value, side) => {
                 const shape = value.shape ?? (value.rank === undefined ? undefined : Array(value.rank).fill(null));
-                const axis = form.axes[side];
-                if (value.types.join() !== 'array' || !shape || axis < 0 || axis >= shape.length) return undefined;
+                const axis = shape && normalizeAxis(form.axes[side], shape.length);
+                if (value.types.join() !== 'array' || !shape || axis === undefined || axis < 0 || axis >= shape.length) return undefined;
                 const rest = shape.filter((_, index) => index !== axis);
                 return { ...value, shape: side === 0 ? [...rest, shape[axis]] : [shape[axis], ...rest] };
             });
@@ -224,9 +225,10 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
             const inputRank = spread || first.rank === undefined || cells.some(cell => cell.rank !== first.rank)
                 ? undefined : first.rank;
             const axisFact = form.axis && infer(form.axis, lookup);
-            const axis = axisFact?.integer === undefined ? form.axis ? undefined : 0 : Number(axisFact.integer);
+            let axis = axisFact?.integer === undefined ? form.axis ? undefined : 0 : Number(axisFact.integer);
             const rank = inputRank === undefined ? undefined
                 : form.operation === 'stack' ? inputRank + 1 : inputRank;
+            if (axis !== undefined && rank !== undefined && form.operation === 'concat') axis = normalizeAxis(axis, rank);
             const validAxis = axis !== undefined && rank !== undefined && axis >= 0
                 && axis < rank;
             const shape = !validAxis || inputRank === undefined ? undefined
@@ -704,7 +706,7 @@ function transferApplicationFacts(
         && source.types.join() === 'array' && source.shape && source.shape.length >= 2
         && (source.eagerScalarCells || source.callbackFreeScalarCells)
         && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
-        const axes = covariance?.axes ?? [source.shape.length - 2, source.shape.length - 1];
+        const axes = covariance?.axes.map(axis => normalizeAxis(axis, source.shape!.length)) ?? [source.shape.length - 2, source.shape.length - 1];
         if (axes.every(axis => Number.isSafeInteger(axis) && axis >= 0 && axis < source.shape!.length)
             && axes[0] !== axes[1]) {
             const shape = [...source.shape.filter((_, axis) => !axes.includes(axis)),
@@ -743,7 +745,7 @@ function transferApplicationFacts(
     const axisLength = form.kind === 'axis-length' ? form : undefined;
     if (axisLength
         && source.types.join() === 'array' && source.rank !== undefined) {
-        const axis = axisLength.axis;
+        const axis = normalizeAxis(axisLength.axis, source.rank);
         if (Number.isSafeInteger(axis) && axis >= 0 && axis < source.rank) {
             const dimension = source.shape?.[axis];
             return { types: ['integer'], rank: 0, shape: [],
@@ -1145,11 +1147,14 @@ function transferApplicationFacts(
     }
     const axisReduction = form.kind === 'axis-reduction' ? form : undefined;
     if (source.types.join() === 'array' && source.shape && axisReduction?.operation.name === 'sum') {
-        const axes = axisReduction.axes.map(part => infer(part, lookup).integer);
+        const axes = axisReduction.axes.map(part => {
+            const value = infer(part, lookup).integer;
+            return value === undefined ? undefined : normalizeAxis(Number(value), source.shape!.length);
+        });
         if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
             && Number(axis) >= 0 && Number(axis) < source.shape!.length)
             && new Set(axes).size === axes.length) {
-            const shape = source.shape.filter((_, axis) => !axes.includes(String(axis)));
+            const shape = source.shape.filter((_, axis) => !axes.includes(axis));
             const elements = source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')
                 ? source.elements : ['integer', 'real'];
             return shape.length ? { types: ['array'], rank: shape.length, shape, elements }
@@ -1160,11 +1165,14 @@ function transferApplicationFacts(
         && axisReduction?.operation.module === 'stats' && axisReduction.operation.result === 'real'
         && (source.eagerScalarCells || source.callbackFreeScalarCells)
         && source.elements?.length && source.elements.every(type => type === 'integer' || type === 'real')) {
-        const axes = axisReduction.axes.map(part => infer(part, lookup).integer);
+        const axes = axisReduction.axes.map(part => {
+            const value = infer(part, lookup).integer;
+            return value === undefined ? undefined : normalizeAxis(Number(value), source.shape!.length);
+        });
         if (axes.length && axes.every(axis => axis !== undefined && Number.isSafeInteger(Number(axis))
             && Number(axis) >= 0 && Number(axis) < source.shape!.length)
             && new Set(axes).size === axes.length) {
-            const shape = source.shape.filter((_, axis) => !axes.includes(String(axis)));
+            const shape = source.shape.filter((_, axis) => !axes.includes(axis));
             return shape.length ? { types: ['array'], rank: shape.length, shape,
                 elements: ['real'], callbackFreeScalarCells: true }
                 : { types: ['real'], rank: 0, shape: [] };

@@ -486,9 +486,10 @@ WindowShape = array 2 3
 Blocks = T window WindowShape axis 0 2
 ```
 
-There must be one size for each selected axis. Axis numbers are zero-based and
-unique. Source axes retain their original order in the position frame; appended
-window axes follow the stated `axis` order. A scalar size without `axis` is
+There must be one size for each selected axis. Nonnegative axis numbers are
+zero-based; negative numbers count from the right (`-1` is last). After
+normalization, axes are unique. Source axes retain their original order in the
+position frame; appended window axes follow the stated `axis` order. A scalar size without `axis` is
 valid only for a rank-1 value.
 
 `stride` moves by more than one position and `padding` adds symmetric zero
@@ -1361,9 +1362,10 @@ A declaration may use `all` for a whole operand; call-site overrides use integer
 
 An explicit `axis` list names the cell axes passed to a unary function. The
 remaining axes form the frame. Both sets keep their natural source order;
-`axis 2 0` means the same as `axis 0 2`. Axes are zero-based, distinct and in
-bounds. `rank` is optional alongside `axis`; if supplied, it must equal the
-number of selected cell axes:
+`axis 2 0` means the same as `axis 0 2`. Nonnegative axes count from zero on
+the left; negative axes count from the right (`-1` is last). Normalized axes
+must be distinct and in bounds. `rank` is optional alongside `axis`; if supplied,
+it must equal the number of selected cell axes:
 
 ```rank
 rem T has shape 2 64 128
@@ -1675,7 +1677,12 @@ distinct source axes outside those cells. Remaining axes form independent
 folds. Without `axis`, all axes outside the input cell are folded in row-major
 order. The order of an explicit axis list does not change traversal order.
 `rank` and `axis` may appear together, in either order, before optional `with`.
-Ranks and axes are nonnegative integer literals.
+Reduction ranks are nonnegative integer literals. Axis literals may be negative:
+`-1` selects the last source axis and `-2` the second-to-last. A negative axis
+is normalized by adding the source rank before checking bounds, uniqueness,
+and the trailing input-cell boundary. For a rank-2 matrix, `axis 1 -1` is a
+duplicate and `axis -3` is out of bounds. Write a space after the minus for
+subtraction after a modifier: `M reduce + axis 1 - 1`.
 
 ```rank
 RowTotals = M reduce + axis 1
@@ -1711,7 +1718,8 @@ support rank-0 reduction; an unbounded sequence cannot be reduced.
 
 This replaces the earlier meaning of `reduce rank R`, which reduced atoms
 inside each rank-R region. To sum each matrix row, use `reduce + axis 1`.
-To reduce each trailing block in a rank-4 tensor, use `reduce + axis 2 3`.
+To reduce each trailing two-dimensional block, use `reduce + axis -2 -1`,
+regardless of the number of leading frame axes.
 `scan` retains its separately documented rank and axis contract.
 
 Named reductions use the same data-first style:

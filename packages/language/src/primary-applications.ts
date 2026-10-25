@@ -1,5 +1,7 @@
-import { AstUtils, type AstNode } from 'langium';
+import { applicationExpression, flattenApplication } from './expressions.js';
+import { AstUtils, GrammarUtils, type AstNode } from 'langium';
 import {
+    isBinaryExpression, isNumberLiteral, isUnaryExpression, type Expression,
     isPrimaryTailExpression, isArrayAssignmentStatement, isNameExpression, type Program, type ApplicationExpression,
     type KeyedRollingExpression, type KeyedReachExpression, type KeyedJoinExpression,
     type KeyedMergeExpression,
@@ -55,6 +57,28 @@ export function normalizePrimaryApplications(program: Program): void {
             if (!key.startsWith('$')) Reflect.deleteProperty(node, key);
         }
         Object.assign(node, properties);
+        AstUtils.linkContentToContainer(node);
+    }
+    // A glued minus after axis belongs to its literal, including symbolic folds
+    // and implicit pipelines. Spaced subtraction keeps its arithmetic meaning.
+    for (const node of AstUtils.streamAst(program).toArray().reverse()) {
+        if (!isBinaryExpression(node) || node.operator !== '-') continue;
+        const operator = GrammarUtils.findNodeForProperty(node.$cstNode, 'operator');
+        if (!operator || !/\s/.test(operator.root.fullText[operator.offset - 1] ?? '')
+            || /\s/.test(operator.root.fullText[operator.end] ?? ' ')) continue;
+        const left = isBinaryExpression(node.left) ? node.left.right : node.left;
+        const parts = flattenApplication(left);
+        const marker = parts.map(part => isNameExpression(part) && part.name === 'axis').lastIndexOf(true);
+        if (marker < 0 || !parts.slice(marker + 1).every(part => isNumberLiteral(part)
+            || isUnaryExpression(part) && part.operator === '-' && isNumberLiteral(part.operand))) continue;
+        const right = flattenApplication(node.right);
+        if (!isNumberLiteral(right[0])) continue;
+        const signed = { $type: 'UnaryExpression', operator: '-', operand: right[0],
+            $cstNode: node.right.$cstNode } as Expression;
+        const call = applicationExpression([...parts, signed, ...right.slice(1)], node);
+        const replacement = isBinaryExpression(node.left) ? { ...node.left, right: call, $cstNode: node.$cstNode } : call;
+        for (const key of Object.keys(node)) if (!key.startsWith('$')) Reflect.deleteProperty(node, key);
+        Object.assign(node, replacement);
         AstUtils.linkContentToContainer(node);
     }
 }

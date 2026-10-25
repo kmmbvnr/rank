@@ -67,7 +67,7 @@ describe('axis-aware stack and concat', () => {
     it('checks axes and non-concatenated dimensions', () => {
         expect(() => run(`${matrices}concat A B axis 2`)).toThrow(/axis 2/);
         expect(() => run(`${matrices}stack A B axis 3`)).toThrow(/axis 3/);
-        expect(() => run(`${matrices}concat A B axis true`)).toThrow(/axis expects a nonnegative integer/);
+        expect(() => run(`${matrices}concat A B axis true`)).toThrow(/axis expects an integer/);
         expect(() => run('concat (array 1 2 shape 1 2) (array 1 2 3 shape 1 3)'))
             .toThrow(/non-concatenated axes/);
         expect(run('concat (array shape 0 2 fill 1) (array 3 4 shape 1 2) shape')).toBe('1 2');
@@ -79,8 +79,8 @@ describe('axis-aware stack and concat', () => {
         expect(run('concat (array 1 2 3 4 shape 2 2) (array 5 6 shape 1 2) shape')).toBe('3 2');
         expect(run('concat (array 1 2 3 4 shape 2 2) (array 5 6 shape 2 1) axis 1')).toBe('1 2 5 3 4 6');
         expect(() => run('concat (array 1 2) (array 3 4 shape 1 2)')).toThrow(/non-concatenated axes/);
-        expect(() => run('concat (array 1 2) (array 3 4) axis -1')).toThrow(/nonnegative integer/);
-        expect(() => run('concat (array 1 2) (array 3 4) axis 0.5')).toThrow(/nonnegative integer/);
+        expect(run('concat (array 1 2) (array 3 4) axis -1')).toBe('1 2 3 4');
+        expect(() => run('concat (array 1 2) (array 3 4) axis 0.5')).toThrow(/integer/);
         expect((concatValues([]) as RankArray).shape).toEqual([0]);
         expect(() => concatValues([], 1)).toThrow(/axis 1/);
         expect(run('concat (array shape 0 2 fill 0) (array shape 0 2 fill 0) shape')).toBe('0 2');

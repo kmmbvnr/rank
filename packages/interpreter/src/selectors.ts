@@ -1,3 +1,4 @@
+import { resolveAxis } from './tensor-index.js';
 import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
 import { registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
@@ -450,6 +451,7 @@ function gather(
 }
 
 export function selectAxis(source: RankValue, axis: number, selector: RankValue): RankValue {
+    axis = resolveAxis(axis, isRankArray(source) ? source.shape.length : 1);
     const access = indexedSource(source);
     if (!access) throw new RankError(`selection does not accept ${typeName(source)}`);
     const open = isRankSequence(selector) ? selector.plan.openRange : undefined;
