@@ -9,7 +9,15 @@ export interface IterationBinding {
     readonly names: readonly string[];
     readonly iterable: Expression;
 }
+/** The remaining traversal of a loop already running in the interpreter. */
+export type LoopContinuation = {
+    readonly result: RankValue | undefined;
+} & ({
+    readonly values: Iterable<RankValue>;
+    readonly ordinal: bigint;
+} | { readonly condition: true });
 export interface LoopHost {
+    readonly continuation?: LoopContinuation;
     readonly observableEntry?: boolean;
     canDeferWrites?(bindings: readonly [string, 'integer' | 'real' | 'boolean' | 'array'][]): boolean;
     readonly tensorReadHoisting: boolean;

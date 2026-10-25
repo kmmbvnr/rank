@@ -105,7 +105,7 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if (!statement.statements.length) return reject(statement, 'statement-budget');
     const expressions = createLoopExpressions(state);
     const loopParts = createLoopHeader(state, expressions);
-    const root = loopParts(statement, iteration, -1);
+    const root = loopParts(statement, iteration, -1, host.continuation);
     if (!root) return undefined;
     const statements = createLoopStatements(state, expressions, loopParts);
     const body: string[] = [];

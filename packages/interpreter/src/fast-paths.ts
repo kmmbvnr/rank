@@ -1,4 +1,5 @@
 import { selectValues } from './value-selection.js';
+import type { LoopContinuation } from './integer-loop-plan.js';
 import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
@@ -202,8 +203,9 @@ export class FastPaths {
     }
 
     /** A numeric loop compiled to straight-line code over local registers. */
-    compileLoop(statement: ForStatement, binding: ForBinding | undefined): CompiledLoop | undefined {
+    compileLoop(statement: ForStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined {
         const compiled = this.context.options().integerLoopCompilation !== false ? compileIntegerLoop(statement, {
+            continuation,
             observableEntry: this.context.options().onIntegerLoopExecuted !== undefined,
             canDeferWrites: bindings => this.context.options().numberLoopCompilation !== false && this.context.bindings.canDeferWrites(bindings),
             tensorReadHoisting: this.context.options().tensorReadHoisting !== false,

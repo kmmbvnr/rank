@@ -9,6 +9,7 @@ import { RankDeque, RankHeap } from '../containers.js';
 import { RankError } from '../errors.js';
 import { resume, type Evaluation } from '../execution.js';
 import type { CompiledLoop } from '../fast-paths.js';
+import type { LoopContinuation } from '../integer-loop-plan.js';
 import type { InterpreterOptions } from '../interpreter-options.js';
 import { checkpoint, inspectionEnabled } from '../interrupt.js';
 import { hasIntegerIteration } from '../integer-entries.js';
@@ -41,12 +42,33 @@ export interface LoopContext {
     point(statement: Statement, iteration: boolean): void;
     options(): InterpreterOptions;
     /** The compiled loop the fast-path owner selects, if any. */
-    compileLoop(statement: ForStatement, binding: ForBinding | undefined): CompiledLoop | undefined;
+    compileLoop(statement: ForStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined;
     prepareStatement(statements: Statement[], index: number): PreparedStatement;
     locate(error: unknown, statement: Statement): unknown;
 }
 
 const NO_INDICES: readonly RankValue[] = [];
+
+/** Transfer a traversal between backends without closing its iterator twice. */
+function continuableIterator<T>(values: Iterable<T>): IterableIterator<T> {
+    const iterator = values[Symbol.iterator]();
+    let done = false;
+    return {
+        [Symbol.iterator]() { return this; },
+        next() {
+            try {
+                const next = iterator.next();
+                done = !!next.done;
+                return next;
+            } catch (error) { done = true; throw error; }
+        },
+        return() {
+            if (done) return { done: true, value: undefined };
+            done = true;
+            return iterator.return?.() ?? { done: true, value: undefined };
+        },
+    };
+}
 
 /** A `for` loop: over a condition, or binding names to the cells of a value. */
 export function prepareForStatement(statement: ForStatement, loop: LoopContext): PreparedStatement {
@@ -72,6 +94,7 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
             executed: loop.options().onGeneratorLoopExecuted,
         }) : undefined;
     const reference: PreparedStatement = { stream: function* (context) {
+        let awaitingTurbo = inspectionEnabled();
         // Each loop owns its jumps. Branches share this carrier, while
         // protected try/catch/finally blocks retain exception unwinding.
         const loopControl: LoopControl | undefined = loop.options().directLoopControl !== false ? {} : undefined;
@@ -90,9 +113,21 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
                     bindIndex[0]?.(ordinal);
                 }, context));
             }
+            // Both backends share one cursor. Its close operation is idempotent
+            // because a compiled break/error also unwinds this reference loop.
+            const cursor = awaitingTurbo && flat ? continuableIterator(entries as Iterable<RankValue>) : undefined;
             let ordinal = 0n;
-            for (const entry of entries) {
+            for (const entry of cursor ?? entries) {
                 checkpoint();
+                if (awaitingTurbo && !inspectionEnabled()) {
+                    awaitingTurbo = false;
+                    if (cursor) {
+                        const values = (function* () { yield entry as RankValue; yield* cursor; })();
+                        const compiled = loop.compileLoop(statement, binding, { values, ordinal, result });
+                        const task = compiled?.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false);
+                        if (task) return yield* resume(task);
+                    }
+                }
                 if (flat) {
                     if (bindValue) bindValue(entry as RankValue);
                     if (bindIndex[0]) bindIndex[0](ordinal++);
@@ -141,6 +176,14 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
                         test = 'done' in task ? task.value : (yield { task }) as RankValue;
                     }
                     if (!expectBoolean(test)) break;
+                }
+                if (awaitingTurbo && !inspectionEnabled()) {
+                    awaitingTurbo = false;
+                    // The reference path has already checked this iteration's
+                    // condition. Start at its body without testing it twice.
+                    const compiled = loop.compileLoop(statement, undefined, { condition: true, result });
+                    const task = compiled?.run(context.insideFinally, context.insideGenerator, context.tailCallsAllowed !== false);
+                    if (task) return yield* resume(task);
                 }
                 try {
                     const body = loop.options().loopPreparation !== false

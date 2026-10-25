@@ -248,7 +248,7 @@ export class Interpreter {
             execute: (statements, context) => this.blocks.executeIn(statements, context),
             point: (statement, iteration) => this.inspection.point(statement, iteration),
             options: () => this.options,
-            compileLoop: (statement, binding) => this.fastPaths.compileLoop(statement, binding),
+            compileLoop: (statement, binding, continuation) => this.fastPaths.compileLoop(statement, binding, continuation),
             prepareStatement: (statements, index) => this.blocks.preparedStatement(statements, index),
             locate: (error, statement) => this.locateError(error, statement),
         };

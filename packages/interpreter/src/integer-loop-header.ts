@@ -1,5 +1,5 @@
 import { loopTraversal } from './loop-traversal.js';
-import { type IterationBinding } from './integer-loop-plan.js';
+import { type IterationBinding, type LoopContinuation } from './integer-loop-plan.js';
 import { isBinaryExpression, isBoundClauseExpression, isNameExpression, isParenthesizedExpression, type Expression, type ForStatement } from '@arrrank/language';
 import { RankDeque } from './containers.js';
 import { orderedSource } from './ordered-source.js';
@@ -15,10 +15,13 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
     } = state;
     const {container, slot, knownType, emit} = expressions;
 
-    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number): { setup: string; header: string; bindings: string } | undefined {
-        return compileLoopParts(node, iteration, location) ?? reject(node, 'loop-header');
+    function loopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation): { setup: string; header: string; bindings: string } | undefined {
+        return compileLoopParts(node, iteration, location, continuation) ?? reject(node, 'loop-header');
     }
-    function compileLoopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number) {
+    function compileLoopParts(node: ForStatement, iteration: IterationBinding | undefined, location: number, continuation?: LoopContinuation) {
+        // A continuation owns a live cursor or an already checked condition;
+        // use the publishing backend rather than speculatively replaying it.
+        if (continuation && numberMode) return undefined;
         const tests: string[] = [];
         let setup = '', header: string, bindings = '';
         if (iteration) {
@@ -112,6 +115,14 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
                     stride > ${zero} ? cursor ${range.operator === 'to' ? '<=' : '<'} end : cursor ${range.operator === 'to' ? '>=' : '>'} end;
                     cursor = ${safe('cursor + stride')}${indexed ? `, ordinal = ${safe(`ordinal + ${one}`)}` : ''}) { location = ${location}; checkpoint();`;
             }
+            if (continuation && 'values' in continuation) {
+                // Use the live iterator, including its captured bounds and current
+                // position. Re-evaluating the source could repeat effects or reads.
+                setup = `const iterable = iterators[${iterators.length}](); ${indexed ? `let ordinal = ${continuation.ordinal}n;` : ''}`;
+                iterators.push(() => continuation.values);
+                header = `for (const cursor of iterable) { location = ${location}; checkpoint();`;
+                collection = true;
+            }
             for (const [index, name] of iteration.names.entries()) {
                 if (name === '#') continue;
                 const type = index === 0 ? elementType : 'integer';
@@ -127,7 +138,10 @@ export function createLoopHeader(state: LoopCompilationState, expressions: LoopE
         } else {
             const test = node.condition ? emit(node.condition, tests, 'boolean') : { code: 'true', type: 'boolean' };
             if (!test || test.type !== 'boolean') return undefined;
-            header = `for (;;) { location = ${location}; checkpoint(); ${tests.join('\n')} if (!(${test.code})) break;`;
+            header = continuation && 'condition' in continuation
+                ? `for (let first = true;; first = false) { location = ${location}; checkpoint();
+                    if (!first) { ${tests.join('\n')} if (!(${test.code})) break; }`
+                : `for (;;) { location = ${location}; checkpoint(); ${tests.join('\n')} if (!(${test.code})) break;`;
         }
         return { setup, header, bindings };
     }
