@@ -6,54 +6,18 @@ rem from one through Limit
 use io
 use cli
 use sequences
+use text
 
 option Limit integer = 1000
 
-Ones = array shape 9
-  "one"
-  "two"
-  "three"
-  "four"
-  "five"
-  "six"
-  "seven"
-  "eight"
-  "nine"
-end
+Ones = "one two three four five six seven eight nine" split " "
+Teens = "ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen" split " "
+Tens = "twenty thirty forty fifty sixty seventy eighty ninety" split " "
 
-Teens = array shape 10
-  "ten"
-  "eleven"
-  "twelve"
-  "thirteen"
-  "fourteen"
-  "fifteen"
-  "sixteen"
-  "seventeen"
-  "eighteen"
-  "nineteen"
-end
-
-Tens = array shape 8
-  "twenty"
-  "thirty"
-  "forty"
-  "fifty"
-  "sixty"
-  "seventy"
-  "eighty"
-  "ninety"
-end
-
-rem Every name, in order: 1-99, then
-rem 100-999 as hundreds with an optional
-rem "and" tail, then 1000.
-Nil = array ""
-Tail = concat Nil Ones
+Tail = concat (array "") Ones
 Dozens = Tens Tail outer + reshape #
 Under = concat Ones Teens Dozens
-And = "and" + Under
-Rest = concat Nil And
+Rest = concat (array "") ("and" + Under)
 Hund = (Ones + "hundred") Rest outer +
 Over = Hund reshape #
 Last = array "onethousand"
