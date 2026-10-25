@@ -546,11 +546,24 @@ export class FunctionInvocation {
 
     /** Capture only scalar domains; cached proofs never retain their values. */
     scalarCaptureTypes(statement: FunctionStatement, context?: LocalFrame): ScalarCaptureTypes {
-        const types = new Map<string, NonNullable<ReturnType<typeof compiledScalarType>>>();
-        for (const capture of functionScope(statement)?.captures ?? []) {
-            const type = compiledScalarType(context?.lookup(capture.name) ?? this.bindings.globals.get(capture.name));
-            if (type) types.set(capture.name, type);
-        }
+        const types = new Map<string, NonNullable<ReturnType<typeof compiledScalarType>>>(), ambiguous = new Set<string>();
+        const visited = new Set<FunctionStatement>();
+        const collect = (owner: FunctionInvocation, body: FunctionStatement, frame?: LocalFrame) => {
+            if (visited.has(body)) return;
+            visited.add(body);
+            for (const capture of functionScope(body)?.captures ?? []) {
+                const value = frame?.lookup(capture.name) ?? owner.bindings.globals.get(capture.name);
+                const type = compiledScalarType(value);
+                if (type && !ambiguous.has(capture.name)) {
+                    if (types.has(capture.name) && types.get(capture.name) !== type) {
+                        types.delete(capture.name); ambiguous.add(capture.name);
+                    } else types.set(capture.name, type);
+                }
+                const callee = value && isNativeFunction(value) ? functionDeclarations.get(value) : undefined;
+                if (callee) collect(callee.owner, callee.statement, callee.context);
+            }
+        };
+        collect(this, statement, context);
         return types;
     }
 
@@ -703,7 +716,7 @@ export class FunctionInvocation {
                     return run(arguments_);
                 };
             }
-            const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true);
+            const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures);
             if (!compiled || compiled.available && !compiled.available()) return undefined;
             const checked: PreparedScalarCall = (arguments_, tail = false) => {
                 const contract = definition.specialization(arguments_);
@@ -718,6 +731,25 @@ export class FunctionInvocation {
             return (arguments_: RankValue[], tail = false) => {
                 if (tail && definition.owner === this) throw new TailCallSignal(definition, arguments_, checked);
                 return checked(arguments_);
+            };
+        });
+        const rankedCalls = kernel.rankedCalls.map(call => () => {
+            const value = resolve(call.name);
+            if (!value || !isNativeFunction(value)) throw new RankError(`${call.name} is not a function`, 'TypeError');
+            // A ranked recipe captures a frozen helper when the recipe is made,
+            // including a fresh return contract for a captured closure.
+            const frozen = this.snapshot(value), definition = this.definitionOf(frozen);
+            const compiled = definition?.statement === call.statement
+                ? definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures) : undefined;
+            if (!definition || !compiled || compiled.available && !compiled.available()) return (arguments_: RankValue[]) => frozen.call(arguments_);
+            return (arguments_: RankValue[]) => {
+                const contract = definition.specialization(arguments_);
+                const result = compiled(arguments_);
+                try { return contract.check(result); }
+                catch (error) {
+                    if (error instanceof RankError) definition.owner.frames.addCall(error, call.statement, arguments_);
+                    throw definition.owner.host.locate(error, call.statement);
+                }
             };
         });
         const users: ((arguments_: RankValue[], tail?: boolean) => RankValue)[] = [];
@@ -747,7 +779,7 @@ export class FunctionInvocation {
                 for (;;) {
                     try {
                         this.options().onScalarFunctionExecuted?.();
-                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars, planConsumed);
+                        return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
                     } catch (error) {
                         if (error instanceof FunctionPlanDemandError) throw error.error;
                         // A self tail transfer replaces this frame without growing
@@ -768,7 +800,7 @@ export class FunctionInvocation {
                 if (!tail) this.depth -= 1;
             }
         };
-        if (kernel.plans || kernel.dequeIteration || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
+        if (kernel.rankedCalls.length || kernel.plans || kernel.dequeIteration || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
             if (kernel.dequeIteration && (!privateLoopPolling() || !nativeDequeMethods())) return false;
             if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return false;
@@ -776,6 +808,14 @@ export class FunctionInvocation {
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
                 || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
+            for (const call of kernel.rankedCalls) {
+                const value = resolve(call.name);
+                const definition = value && isNativeFunction(value) ? this.definitionOf(value) : undefined;
+                if (!definition || definition.statement !== call.statement
+                    || call.proof.locals.some(name => definition.context?.find(name))) return false;
+                const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures);
+                if (!compiled || compiled.available && !compiled.available()) return false;
+            }
             for (let index = 0; index < userBinders.length; index++) {
                 const bound = userBinders[index]();
                 if (!bound) return false;

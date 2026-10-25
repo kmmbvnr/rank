@@ -24,7 +24,7 @@ describe.each([false, true])('tensor binding boundaries (block compilation=%s)',
     it('completes the prior assignment before compiling the next expression', () => {
         const input = ownedArray([1n, 2n, 3n]);
         let compilations = 0, entries = 0;
-        const runtime = new Interpreter(undefined, { blockCompilation,
+        const runtime = new Interpreter(undefined, { blockCompilation, scalarFunctionCompilation: false,
             onTensorKernelCompiled() {
                 compilations++;
                 // Host reentry happens at the next expression, after Doubled
@@ -48,7 +48,7 @@ Input calculate`)).toBe(15n);
 
     it('retains each ordinary stage instead of emitting a grouped reduction', () => {
         let entries = 0;
-        const runtime = new Interpreter(undefined, { blockCompilation,
+        const runtime = new Interpreter(undefined, { blockCompilation, scalarFunctionCompilation: false,
             onTensorKernelExecuted: () => entries++,
         });
         try {

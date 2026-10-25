@@ -43,14 +43,15 @@ describe('shared scalar extrema', () => {
         expect(errors[1]).toBe(errors[0]);
     });
 
-    it('preserves chains and keeps mixed or collection inputs on the reference path', () => {
+    it('preserves chains and mixed inputs while compiling integer-array reductions', () => {
         const source = 'return (X max Y) min 10';
         expect(call(source, [4n, 20n], true)).toEqual({ value: 10n, calls: 1 });
         for (const args of [[2n ** 60n + 1n, 2 ** 60], [2n, 0.5], ['a', 'b']] as RankValue[][]) {
             expect(call('return X max Y', args, true)).toEqual(call('return X max Y', args, false));
         }
         const array: RankValue = { kind: 'array', shape: [2], items: [3n, 7n] };
-        expect(call('return X min', [array, 0n], true)).toEqual(call('return X min', [array, 0n], false));
+        expect(call('return X min', [array, 0n], false)).toEqual({ value: 3n, calls: 0 });
+        expect(call('return X min', [array, 0n], true)).toEqual({ value: 3n, calls: 1 });
     });
 
     it('evaluates both operands once, in source order, including errors', () => {

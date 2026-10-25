@@ -39,6 +39,16 @@ function compare(body: string, values: RankValue[], read?: Parameters<typeof sce
 }
 
 describe('compiled ranked callbacks', () => {
+    it('compiles text selectors and find while rechecking native bindings between cells', () => {
+        const result = compare('return "a𝄞b" find (X 0)', ['a!', '𝄞x', 'b'], (index, runtime) => {
+            if (index === 2) runtime.variables.set('find', native('replacement', 2, () => 42n));
+        });
+        expect(result.value).toEqual([0n, 1n, 42n]);
+        expect(result.before).toEqual([]);
+        expect(result.reads).toEqual([0, 0, 1, 2]);
+        expect(result.kernels).toBe(3);
+    });
+
     it('recomputes partial and whole reads independently', () => {
         const result = compare('return X * 2', [1n, 2n, 3n, 4n], undefined, runtime => {
             expect(runtime.execute('Mapped 2')).toBe(6n);

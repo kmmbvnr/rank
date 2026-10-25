@@ -18,6 +18,53 @@ function evaluate(compiled: boolean, source: string) {
 
 describe('scalar function argument domains', () => {
     it.each([
+        ['"a𝄞é"', '1', '𝄞'],
+        ['"a𝄞é"', '3', '́'],
+        ['"\uD800x"', '0', '\uD800'],
+    ])('compiles text addressing for %s at %s', (text, index, expected) => {
+        const source = `fun Text pick Position\nreturn Text Position\nend\n${text} pick ${index}`;
+        expect(evaluate(false, source)).toEqual({ value: expected, kernels: 0 });
+        expect(evaluate(true, source)).toEqual({ value: expected, kernels: 1 });
+    });
+
+    it.each(['-1', '2', '1000000000000000000000000000000'])('preserves text address errors at %s', index => {
+        const source = `fun Text pick Position\nreturn Text Position\nend\n"a𝄞" pick ${index}`;
+        const reference = evaluate(false, source), compiled = evaluate(true, source);
+        expect(compiled.error).toEqual(reference.error);
+        expect(compiled.kernels).toBe(1);
+    });
+
+    it('keeps text find Unicode positions, captures, missing errors and native overrides', () => {
+        for (const compiled of [false, true]) {
+            let kernels = 0;
+            const runtime = new Interpreter(undefined, { compilation: compiled, onScalarFunctionExecuted: () => kernels++ });
+            try {
+                runtime.execute(`use sequences
+Alphabet = "a𝄞bc"
+fun Text locate
+ Point = Text 0
+ return Alphabet find Point
+end`);
+                expect(runtime.execute('"𝄞!" locate')).toBe(1n);
+                expect(kernels).toBe(compiled ? 1 : 0);
+                runtime.execute('Alphabet = "𝄞abc"');
+                expect(runtime.execute('"𝄞!" locate')).toBe(0n);
+                expect(() => runtime.execute('"z" locate')).toThrow('find found no matching value');
+                runtime.variables.set('find', native('replacement', 2, () => 42n));
+                expect(runtime.execute('"z" locate')).toBe(42n);
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it.each(['"z"', '""'])('preserves compiled find errors for target %s', target => {
+        const source = `use sequences\nfun Text locate Target\nreturn Text find Target\nend\n"a𝄞" locate ${target}`;
+        const reference = evaluate(false, source), compiled = evaluate(true, source);
+        expect(compiled.error).toEqual(reference.error);
+        expect(compiled.error).toContain('find found no matching value');
+        expect(compiled.kernels).toBe(1);
+    });
+
+    it.each([
         ['fun X combine Y\nreturn X + Y\nend\n"𝄞" combine "é"', '𝄞é'],
         ['fun X both Y\nreturn X and Y\nend\ntrue both false', 'false'],
         ['fun Flag picktext Text\nif Flag\nreturn Text reverse\nelse\nreturn Text\nend\nend\ntrue picktext "𝄞é"', '́e𝄞'],

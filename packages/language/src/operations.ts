@@ -1113,6 +1113,7 @@ export const operations: readonly Operation[] = [
         scalarCellArrayNoCallback: 'boolean',
         summary: 'Number of true cells, or of source items a lazy mask selects.' },
     { name: 'find', grouping: { optionalRightOperand: true }, module: 'sequences', arities: [2], form: 'Values find Target', result: 'integer',
+        compiledCall: { inputs: ['text', 'text'], result: 'integer', callbacks: 'none', cost: 'input-dependent' },
         signatures: [{ inputs: [{ union: ['text', 'array'] }, 'unknown'], result: 'integer', ranks: ['all', 0] }],
         shape: [{ args: [null, []], result: [] }],
         dyadicRanks: ['all', 0],

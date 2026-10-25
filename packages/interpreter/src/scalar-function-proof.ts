@@ -4,7 +4,7 @@ import {
     scalarOperatorSignature, compiledScalarTypes, matchCompiledCallSignature, inferCompiledExpression, matchCompiledOperatorSignature,
     type CompiledExpression, type CompiledScalarType, type CompiledFunctionType, flattenApplication, isApplicationExpression,
     isNameExpression, isExpressionStatement, isReturnStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isNewStructureExpression, isPushStatement, isArrayAssignmentStatement, isArrayExpression, isBreakStatement, isContinueStatement, isMaterializeExpression,
-    isCountClauseExpression, type Expression, type FunctionStatement, type Statement,
+    isCountClauseExpression, isUnpackStatement, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { describeCompilerRejection, recordCompilerRejection, type CompilerRejection } from './compiler-rejection.js';
 import { recordFallback } from './diagnostics.js';
@@ -20,11 +20,11 @@ const noCaptures: ScalarCaptureTypes = new Map();
 
 export interface ScalarFunctionInput {
     readonly name: string;
-    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power';
+    readonly operation?: 'new' | 'pop' | 'len' | 'contains' | 'not-contains' | 'set-contains' | 'set-not-contains' | 'array' | 'vector' | 'materialize-deque' | 'sequence-contains' | 'sequence-not-contains' | 'array-contains' | 'array-not-contains' | 'user-call' | 'self-call' | 'index-default' | 'captured-read' | 'captured-scalar' | 'take' | 'drop' | 'copy' | 'plan' | 'integer-power' | 'text-at' | 'gather' | 'compare-array';
     readonly plan?: FunctionPlanConsumer;
     readonly negative?: boolean;
     readonly keyed?: boolean;
-    readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof };
+    readonly callee?: { readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes };
     readonly dimensions?: readonly { readonly value: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>; readonly negative: boolean }[];
     readonly indices?: readonly CompiledExpression<CompiledCalleeType, ScalarFunctionInput>[];
 }
@@ -40,6 +40,7 @@ export interface ScalarFunctionProof {
     readonly arrayWrites: ReadonlySet<Statement>;
     readonly localArrayWrites: boolean;
     readonly expressions: ReadonlyMap<Expression, CompiledExpression<CompiledCalleeType, ScalarFunctionInput>>;
+    readonly planCalls: readonly { readonly name: string; readonly statement: FunctionStatement; readonly types: readonly CompiledCalleeType[]; readonly proof: ScalarFunctionProof; readonly captures: ScalarCaptureTypes }[];
     readonly planBindings: ReadonlyMap<Statement, FunctionPlan>;
     readonly planReturn: boolean;
     readonly planReturns: ReadonlySet<Statement>;
@@ -96,12 +97,14 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const budget = { remaining: blocks ? 256 : 129 };
     let resultType: CompiledFunctionType | undefined;
     const stages = new Map<string, FunctionPlan>();
+    const planCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; proof: ScalarFunctionProof; captures: ScalarCaptureTypes }[] = [];
     const planBindings = new Map<Statement, FunctionPlan>();
     const protectedNames = new Set<string>();
     const nonnegativeParameters = new Set<number>();
     const modified = new Set<string>();
     for (const node of AstUtils.streamAst(statement)) {
         if (isAssignmentStatement(node)) modified.add(node.name);
+        if (isUnpackStatement(node)) for (const name of node.names) modified.add(name);
         if (isForStatement(node)) for (const name of forIteration(node.condition)?.names ?? []) modified.add(name);
     }
     let planReturn = false;
@@ -118,13 +121,13 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         nonnegativeParameters.add(index);
         return true;
     }
-    function plan(source: Expression, env: ReadonlyMap<string, CompiledCalleeType>): FunctionPlan | undefined {
+    function plan(source: Expression, env: ReadonlyMap<string, CompiledCalleeType>, protect = true): FunctionPlan | undefined {
         return proveFunctionPlan(source, {
             budget, nonnegative,
             input: name => {
                 const domain = env.get(name);
                 if (typeof domain === 'string') return { element: domain, rank: 0 };
-                if (domain && !isCompiledContainer(domain) && domain.rank === 1) return { element: domain.element, rank: 1 };
+                if (domain && !isCompiledContainer(domain) && (domain.rank === 1 || domain.rank === 2)) return { element: domain.element, rank: domain.rank };
                 return undefined;
             },
             stage: name => stages.get(name),
@@ -133,7 +136,24 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 nativeReads.add(name);
                 return true;
             },
-            capture: name => protectedNames.add(name),
+            capture: name => { if (protect) protectedNames.add(name); },
+            operator: name => !env.has(name) && !lexicalBinding(scope, name),
+            callback: (name, element) => {
+                const callee = lexicalBinding(scope, name)?.function;
+                if (env.has(name) || !callee || callee.memo || callee.parameters.length !== 1
+                    || callee.ranks.some(rank => rank !== 'all')) return undefined;
+                const signature = functionCallSignature(callee);
+                if (signature.words.length || signature.parameters.some(parameter => parameter.kind === 'function' || parameter.deferred)) return undefined;
+                const proof = scalarFunctionResult(callee, true, [element], true, [...path, statement], captures);
+                if (!proof || typeof proof.type !== 'string' || proof.planReturn || proof.containers || proof.arrayWrites.size
+                    || proof.nonnegative.length || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
+                callDepth = Math.max(callDepth, proof.callDepth + 1);
+                callCount += proof.callCount + 1;
+                dependencies.add(name);
+                for (const dependency of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(dependency);
+                const key = planCalls.push({ name, statement: callee, types: [element], proof, captures }) - 1;
+                return { key, element: proof.type };
+            },
         });
     }
     function userCall(parts: readonly Expression[], env: ReadonlyMap<string, CompiledCalleeType>, source?: Expression) {
@@ -161,7 +181,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         // Read-only arguments and integer containers keep their proven domains
         // across linked calls. Writes to arguments still need a binding frame.
         if (!inputs.every((input): input is CompiledCalleeType => input !== undefined)) return undefined;
-        const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement]);
+        const proof = scalarFunctionResult(callee, true, inputs, true, [...path, statement], captures);
         if (!proof || !proof.localArrayWrites || proof.arrayWrites.size && !proof.containers
             || proof.callDepth >= 16 || callCount + proof.callCount + 1 > 64) return undefined;
         if (proof.planReturn && (!consumerRoot || unwrap(consumerRoot) !== source)) return undefined;
@@ -171,9 +191,21 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         dependencies.add(last.name);
         for (const name of [...proof.dependencies, ...proof.nativeReads, ...proof.locals]) dependencies.add(name);
         return { type: proof.type, input: { name: last.name, operation: 'user-call' as const,
-            callee: { statement: callee, types: inputs, proof }, indices: arguments_.map(argument => expressions.get(argument)!) } };
+            callee: { statement: callee, types: inputs, proof, captures }, indices: arguments_.map(argument => expressions.get(argument)!) } };
     }
     function type(expression: Expression, env: ReadonlyMap<string, CompiledCalleeType>): CompiledCalleeType | undefined {
+        const sumParts = flattenApplication(unwrap(expression));
+        const stageSum = stages.size > 0 && sumParts.length === 2 && isNameExpression(sumParts[1]) && sumParts[1].name === 'sum';
+        if (loops && !stageSum && !isNameExpression(expression) && AstUtils.streamAst(expression).some(node => isNameExpression(node)
+            && (stages.has(node.name) || typeof env.get(node.name) === 'object' && !isCompiledContainer(env.get(node.name)!)))) {
+            const stage = plan(expression, env, false);
+            if (stage) {
+                const domain = functionPlanType(stage);
+                expressions.set(expression, { kind: 'input', source: expression, type: domain,
+                    input: { name: '', operation: 'plan', plan: { stage, terminal: 'copy' } } });
+                return domain;
+            }
+        }
         const inferred = inferCompiledExpression<CompiledCalleeType, ScalarFunctionInput>(expression, {
             atom: type => compiledScalarTypes.find(candidate => candidate === type),
             read: source => {
@@ -193,7 +225,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     const parts = flattenApplication(source);
                     if (parts.length === 2 && isNameExpression(parts[1]) && parts[1].name === 'sum'
                         && !env.has('sum') && !lexicalBinding(scope, 'sum')) {
-                        const stage = plan(parts[0], env);
+                        const stage = plan(parts[0], env, false);
                         if (stage?.type.rank === 1 && ['integer', 'real'].includes(stage.type.element)) {
                             nativeReads.add('sum');
                             return { type: stage.type.element, input: { name: '', operation: 'plan', plan: { stage, terminal: 'sum' } } };
@@ -308,9 +340,16 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                     }
                     return userCall([source], env, source);
                 }
-                if (!isApplicationExpression(source)) return undefined;
                 const lookup = (name: string) => env.has(name) || lexicalBinding(scope, name) ? false : findOperation(name);
-                if (applicationForm(source, lookup).kind !== 'plain') return undefined;
+                const form = applicationForm(source, lookup);
+                if (form.kind === 'comparison-rank' && form.rank === 1 && form.axes === undefined) {
+                    const left = type(form.left, env), right = type(form.right, env);
+                    if (left && right && typeof left !== 'string' && typeof right !== 'string'
+                        && !isCompiledContainer(left) && !isCompiledContainer(right) && left.rank === 1 && right.rank === 1
+                        && left.element === right.element) return { type: 'boolean', input: { name: form.operator, operation: 'compare-array',
+                            indices: [expressions.get(form.left)!, expressions.get(form.right)!] } };
+                }
+                if (form.kind !== 'plain' || !isApplicationExpression(source)) return undefined;
                 const unary = unaryApplicationHead(source, name => {
                     const fn = lexicalBinding(scope, name)?.function;
                     return fn ? [fn.parameters.length] : undefined;
@@ -320,6 +359,9 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 const [head, ...indices] = flattenApplication(source);
                 if (!isNameExpression(head)) return undefined;
                 const array = env.get(head.name);
+                if (array === 'text' && indices.length === 1 && type(indices[0], env) === 'integer') {
+                    return { type: 'text', input: { name: head.name, operation: 'text-at', indices: [expressions.get(indices[0])!] } };
+                }
                 // A captured array is guarded as integer cells at call entry.
                 if (!array && loops && lexical && lexical.reads.get(head)?.scope.owner !== statement
                     && !lexicalBinding(scope, head.name)?.function && !findOperation(head.name) && !head.name.includes('.')
@@ -329,6 +371,12 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                         indices: indices.map(index => expressions.get(index)!) } };
                 }
                 if (!array || typeof array === 'string' || (isCompiledContainer(array) ? indices.length !== 1 : indices.length !== array.rank)) return undefined;
+                if (!isCompiledContainer(array) && array.rank === 1 && indices.length === 1) {
+                    const selector = type(indices[0], env);
+                    if (selector && typeof selector !== 'string' && !isCompiledContainer(selector)
+                        && selector.rank === 1 && selector.element === 'integer') return { type: array,
+                            input: { name: head.name, operation: 'gather', indices: [expressions.get(indices[0])!] } };
+                }
                 if (!indices.every(index => type(index, env) === 'integer')) return undefined;
                 return { type: isCompiledContainer(array) ? 'integer' : array.element, input: { name: head.name, keyed: isCompiledContainer(array), indices: indices.map(index => expressions.get(index)!) } };
             },
@@ -411,6 +459,18 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
                 settled.set(command.name, value);
                 env.set(command.name, value);
                 if (!parameters.has(command.name)) locals.add(command.name);
+                continue;
+            }
+            if (loops && isUnpackStatement(command)) {
+                const array = type(command.value, env);
+                if (!array || typeof array === 'string' || isCompiledContainer(array) || array.rank !== 1) return reject(command, 'unpack-domain');
+                for (const name of command.names) {
+                    if (name === '#') continue;
+                    if (name.includes('.') || protectedNames.has(name) || stages.has(name)
+                        || settled.has(name) && settled.get(name) !== array.element) return reject(command, 'unpack-binding');
+                    settled.set(name, array.element); env.set(name, array.element);
+                    if (!parameters.has(name)) locals.add(name);
+                }
                 continue;
             }
             if (loops && isExpressionStatement(command)) {
@@ -510,7 +570,7 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
     const result = outcome === null && resultType && !(recursive && (arrayWrites.size || nonnegativeParameters.size))
         && !(planBindings.size && (containers || arrayWrites.size))
         ? { type: resultType, dependencies: [...dependencies], callDepth, callCount, locals: [...locals], nativeReads: [...nativeReads], modules: [...modules], containers, arrayWrites, localArrayWrites, expressions,
-            planBindings, planReturn, planReturns, nonnegative: [...nonnegativeParameters] } : undefined;
+            planCalls, planBindings, planReturn, planReturns, nonnegative: [...nonnegativeParameters] } : undefined;
     const failure = rejection ?? { ...describeCompilerRejection('scalar-function', statement), reason: 'scalar-function:missing-return' };
     // A path-depth limit must not poison a helper that is shallow on its own.
     if (result || !path.length) proofs.set(key, result ?? failure);

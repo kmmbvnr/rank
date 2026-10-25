@@ -2155,3 +2155,112 @@ passed both-engine checks at limits 1, 2, 10, 50, 100, 2166, 2167 and 2200.
 It was not adopted: a separate three-sample compiled comparison measured
 0.306 s for the retained algorithm versus 0.365 s for the prototype. Further
 compiler support for this pipeline remains an open optimization direction.
+
+## Euler 054: compiled text helpers and smaller independent fixtures
+
+Scalar functions now compile a named text slot selected by one integer index.
+The generated body uses the ordinary `textAt` reader, preserving Unicode code
+points, lone surrogates, bounds errors and exact integer addresses. Text/text
+`find` is admitted through the existing guarded builtin-call protocol; it keeps
+Unicode positions, missing-match errors (including an empty target), native
+identity/module guards and current scalar captures. These are general compiler
+capabilities, with no poker-specific runtime path.
+
+The text-helper stage executes `card_value` and `card_suit` through compiled
+entries. At that stage the surrounding deal loop and `hand_score` still used
+ordinary execution. The function array-stage lowering below extends that
+coverage without changing deferred-plan semantics.
+
+The five fixture tests previously each ran all 1,000 official deals. The first
+test retains that full input and answer 376. The other four initialize the
+program with an empty temporary input, then evaluate their existing explicit
+hands. All category, tie-break, ace-low straight and suit-independent equality
+assertions remain. The main source, algorithm, default and execution lanes are
+unchanged.
+
+Serial measurements on Node v24.15.0 against `3228f458`, medians of three fresh
+processes per compiled workload/version with alternating before/after order:
+
+| Workload | Before, s | After, s | Speedup |
+| --- | ---: | ---: | ---: |
+| `054_poker.ra` (runtime change only) | 1.172 | 1.019 | 1.15x |
+| `054_poker_test.ra` (runtime and fixture changes) | 4.598 | 1.114 | 4.13x |
+
+The smaller fixture on the baseline runtime takes 1.280 s (three-sample median),
+isolating the reduction in repeated work from the compiler improvement.
+Separate reference validations took 1.003/0.999 s for the unchanged main before/
+after and 3.784/1.118 s for the old/new fixture. These are single reference checks,
+not comparative medians.
+
+[Raw measurements](../../benchmarks/baselines/2026-10-25-euler054.json).
+Reproduce after building with `node benchmarks/euler-poker.mjs`; it checks answer
+376 and all five fixture tests in both engines. Its filesystem adapter keeps
+fixture writes in memory.
+
+Verification: TypeScript build/test typecheck, semantic/application-form checks,
+201 focused interpreter tests and differential execution of both Euler 054 files
+passed. The broad interpreter run passed 8,200 tests with four existing failures
+in producer composition (`log rank 2`, both engines), shape-signature coverage,
+and the removed tensor-loop modifier syntax; all four were reproduced from the
+unchanged baseline sources. The language suite passed 1,435 tests with three existing failures in
+K-means effects/diagnostics and a missing-value signature expectation; all three
+were reproduced from the unchanged baseline sources. Exhaustive types, the full
+differential corpus and Nurikabe were excluded from the broad interpreter run.
+
+## Euler 054: array stages inside a compiled function
+
+The unchanged `hand_score` body now compiles as one function. General supported
+constructs include unary `rank 0` calls to proven scalar helpers, rectangular
+outer operations, integer row reductions, boolean row counts, vector `sort`,
+`unique`, `argsort` with direction, distinct length, gathers by integer vectors,
+whole-vector comparisons at rank 1, and scalar vector `unpack` (including `#`).
+Existing typed builtin guards and native ordering/distinct implementations are
+reused; the runtime has no poker-specific scoring path.
+
+Function proofs retain these stages and their callback domains. A consumed
+`outer equal` followed by `count rank 1` emits nested loops without an
+intermediate matrix. Ordinary `=` still completes its result before the next
+statement. Already stored native results can cross that boundary directly;
+there is no need to copy their cells again. Broader layouts and escaping plans
+continue through ordinary execution.
+
+Mapped recipes snapshot their helper at construction, including transitive
+captures and its return contract. Snapshotting does not evaluate mapped cells.
+Unused recipes remain unused, and repeated consumers recompute their cells
+against the captured environment. Native replacements, changed capture domains,
+missing values, exact integers, empty reductions, and error locations retain
+their existing guards or reference path. The outer `poker_wins` loop remains
+interpreted; the algorithm, default input, golden answer and execution lanes
+are unchanged.
+
+Controlled serial measurements on Node v24.15.0, medians of three fresh processes
+per compiled workload/version, alternating before/after. The baseline includes
+the preceding text-helper and smaller-fixture changes; both versions use the
+same main and fixture sources and the runtime surrounding `2d863eb0`.
+
+| Workload | Before function stages, s | After, s | Speedup |
+| --- | ---: | ---: | ---: |
+| `054_poker.ra` | 1.006 | 0.311 | 3.23x |
+| `054_poker_test.ra` | 1.111 | 0.410 | 2.71x |
+
+[Raw measurements](../../benchmarks/baselines/2026-10-25-euler054-function-stages.json)
+include baseline-artifact provenance, counters and rejection snapshots. Reproduce
+the current version with `node benchmarks/euler-poker.mjs`. Separate reference
+validations took 0.958/0.958 s for the main and 1.085/1.079 s for the fixture;
+these are single checks, not reference medians. The earlier fixture-size gain is
+reported separately above. No peak-memory reduction is claimed by these timings.
+
+Verification passed the build, test typecheck, semantic/application-form checks,
+370 focused tests and differential execution of both poker files. The broad run
+passed 8,245 tests with five existing failures: manual line width, producer
+composition with `log rank 2` in both engines, shape-signature coverage, and the
+removed tensor-loop modifier syntax. All five were reproduced from unchanged
+baseline sources. Exhaustive types, the full differential corpus and Nurikabe
+were excluded from that broad run.
+
+Tensor-specific tests explicitly disable whole-function compilation so they
+continue to exercise the older tier. Array-stage tests separately cover ordinary
+completion boundaries, unused and repeated deferred maps, frozen helper captures,
+native replacements, exact mixed numeric comparisons, rectangular and empty
+matrices, gather/unpack errors, and matching error locations. Existing Euler
+023, 030 and 044 compilation regressions pass in the focused run.

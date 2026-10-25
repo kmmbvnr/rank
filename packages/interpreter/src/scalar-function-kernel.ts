@@ -7,7 +7,7 @@ import { newStructure, addToCollection, expectAddCollection } from './collection
 import { indexGet, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
 import {
     findCompiledOperator, applicationForm, findOperation,
-    isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement,
+    isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement, isUnpackStatement,
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
@@ -22,8 +22,12 @@ import { takeDropValue } from './sequence.js';
 import { copyArray, materializeCollection } from './modules/sequences.js';
 import { hasDeferredSelectionCopy } from './integer-view.js';
 import { scalarFunctionResult, type ScalarFunctionProof, type ScalarFunctionInput, type ScalarCaptureTypes } from './scalar-function-proof.js';
-import { emitFunctionPlan, functionPlanArrays, FunctionPlanDemandError } from './function-plan.js';
-import { textPoints } from './text-storage.js';
+import { emitFunctionPlan, functionPlanArrays, functionPlanCallbacks, FunctionPlanDemandError } from './function-plan.js';
+import { textAt, textPoints } from './text-storage.js';
+import { sortValue, argsortValue } from './modules/sequence-order.js';
+import { uniqueValue } from './modules/sequence-distinct.js';
+import { compareCells } from './value-comparison.js';
+import { applySelectors, unpackApplicationItems } from './value-selection.js';
 import { integerValue } from './numeric-conversions.js';
 import { formatValue } from './value.js';
 import { broadcastShape } from './tensor.js';
@@ -34,7 +38,8 @@ interface Kernel {
     readonly plans: boolean;
     readonly dequeIteration: boolean;
     readonly setMembership: boolean;
-    readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[];
+    readonly userCalls: readonly { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[];
+    readonly rankedCalls: ScalarFunctionProof['planCalls'];
     readonly scalarCaptures: readonly { name: string; type: CompiledScalarType }[];
     readonly memberships: readonly string[];
     readonly captures: readonly { name: string; rank: number }[];
@@ -45,7 +50,7 @@ interface Kernel {
     run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[],
         userCalls?: readonly ((arguments_: RankValue[], tail?: boolean) => RankValue)[],
         memberships?: readonly ((value: bigint) => boolean)[],
-        captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[], planConsumed?: () => void): RankValue;
+        captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[], planConsumed?: () => void, rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[]): RankValue;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
@@ -67,7 +72,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     statement.parameters.forEach(slot);
     const locations: (Statement | Expression)[] = [];
     const calls: { operation: Operation; inputs: readonly string[] }[] = [];
-    const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean }[] = [];
+    const userCalls: { name: string; statement: FunctionStatement; types: readonly CompiledCalleeType[]; locals: readonly string[]; tail: boolean; recursive?: boolean; captures?: ScalarCaptureTypes }[] = [];
     const scalarCaptures: { name: string; type: CompiledScalarType }[] = [];
     const memberships: string[] = [];
     const captures: { name: string; rank: number }[] = [];
@@ -103,6 +108,17 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 ? Object.is(expression.value, -0) ? '-0' : String(expression.value) : JSON.stringify(expression.value);
         if (expression.kind === 'input') {
             const operation = expression.input.operation;
+            if (operation === 'gather' || operation === 'compare-array') {
+                const values = expression.input.indices!.map(input => lower(input, lines)), result = `v${serial++}`;
+                lines.push(`const ${result} = ${operation === 'gather' ? `applySelectors([${slot(expression.input.name)}, ${values[0]}])`
+                    : `compareCells(${JSON.stringify(expression.input.name)}, ${values[0]}, ${values[1]})`};`);
+                return result;
+            }
+            if (operation === 'text-at') {
+                const index = lower(expression.input.indices![0], lines), result = `v${serial++}`;
+                lines.push(`const ${result} = textAt(${slot(expression.input.name)}, ${index});`);
+                return result;
+            }
             if (operation === 'integer-power') {
                 const [left, right] = expression.input.indices!.map(input => lower(input, lines));
                 const result = `v${serial++}`;
@@ -111,7 +127,17 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             }
             if (operation === 'plan') return emitFunctionPlan(expression.input.plan!, lines, {
                 variable: () => `v${serial++}`, slot, binary,
-                locate: (source, body) => body.push(`location = ${locations.push(source) - 1};`),
+                locate: (source, body, demandLocation) => {
+                    let owner = source.$container;
+                    while (owner && !isAssignmentStatement(owner)) owner = owner.$container;
+                    body.push(`location = ${owner && isAssignmentStatement(owner) && owner.deferred ? locations.push(source) - 1 : demandLocation};`);
+                },
+                capture: (key, body) => body.push(`mappedCalls[${key}] = rankedCalls[${key}]();`),
+                callback: (key, value, body) => {
+                    const result = `v${serial++}`;
+                    body.push(`const ${result} = mappedCalls[${key}]([${value}]);`);
+                    return result;
+                },
             });
             if (operation === 'materialize-deque') {
                 const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
@@ -136,7 +162,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 const arguments_ = expression.input.indices!.map(argument => lower(argument, lines));
                 const index = userCalls.push({ name: expression.input.name, statement: callee?.statement ?? statement,
                     types: callee?.types ?? expression.input.indices!.map(argument => argument.type),
-                    locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call' }) - 1;
+                    locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call', captures: callee?.captures }) - 1;
                 const result = `v${serial++}`;
                 lines.push(`const ${result} = userCalls[${index}]([${arguments_.join(',')}], ${tail});`);
                 return result;
@@ -282,6 +308,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 // Their captured slots cannot be rebound in an accepted proof.
                 const stage = proof!.planBindings.get(command);
                 if (stage) {
+                    for (const key of functionPlanCallbacks(stage)) lines.push(`mappedCalls[${key}] = rankedCalls[${key}]();`);
                     for (const name of functionPlanArrays(stage)) lines.push(`noteArrayBinding(${slot(name)});`);
                     continue;
                 }
@@ -294,6 +321,13 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                 lines.push(`reader${slots.get(command.name)} = undefined;`);
                 if (writtenSlots.has(command.name)) lines.push(`write${slots.get(command.name)} = undefined;`);
                 if (proof!.arrayWrites.size && typeof expressions.get(command.value)!.type !== 'string') lines.push(`noteArrayBinding(${slot(command.name)});`);
+            } else if (isUnpackStatement(command)) {
+                const value = emit(command.value, lines), unpacked = `v${serial++}`;
+                lines.push(`const ${unpacked} = unpackApplicationItems(${value});`);
+                lines.push(`if (${unpacked}.length !== ${command.names.length}) throw new RankError('unpack expects ${command.names.length} values, got ' + ${unpacked}.length);`);
+                command.names.forEach((name, index) => {
+                    if (name !== '#') lines.push(`${slot(name)} = ${unpacked}[${index}]; reader${slots.get(name)} = undefined;`);
+                });
             } else if (isBreakStatement(command)) lines.push('break;');
             else if (isContinueStatement(command)) lines.push('continue;');
             else if (isPushStatement(command) && isNameExpression(command.receiver)) {
@@ -415,7 +449,8 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         const parameter = statement.parameters.lastIndexOf(name);
         return `r${index}${parameter >= 0 ? ` = args[${parameter}]` : ''}`;
     });
-    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars, planConsumed) {
+    const source = `"use strict"; return function(args, locate, calls, userCalls, memberships, captures, scalars, planConsumed, rankedCalls) {
+        ${proof.planCalls.length ? 'const mappedCalls = [];' : ''}
         ${stableCaptures && scalarCaptures.length ? 'const scalarValues = scalars.map(read => read());' : ''}
         ${declarations.length ? `let ${declarations.join(',')};` : ''}
         ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
@@ -426,9 +461,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     };`;
     let kernel: Kernel | undefined;
     const prepareWriter = (value: RankValue) => prepareScalarArrayWriter(
-        !calls.length && !userCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value);
+        !calls.length && !userCalls.length && !proof.planCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value);
     const prepareReader = (value: RankValue, rank: number) => {
-        const storage = !calls.length && !userCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value;
+        const storage = !calls.length && !userCalls.length && !proof.planCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value;
         if (rank === 1) return prepareScalarArrayReader(storage, scalarSelection);
         // Multiaxis negative reads retain the ordinary selector's detailed error.
         if (rank === 2) {
@@ -443,7 +478,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { source, plans: proof.planBindings.size > 0, dequeIteration, setMembership, locations, calls, userCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setValueKey', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setValueKey) as Kernel['run'] }; }
+    try { kernel = { source, plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'), dequeIteration, setMembership, locations, calls, userCalls, rankedCalls: proof.planCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setValueKey', 'textAt', 'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setValueKey, textAt, sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

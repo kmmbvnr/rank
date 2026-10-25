@@ -300,6 +300,7 @@ describe('the operation catalogue', () => {
             lowerindex: ['(array 1 3 3 7) 3', '(array shape 0 fill 0) 3'],
             upperindex: ['(array 1 3 3 7) 3', '(array shape 0 fill 0) 3'],
             join: ['(array "ёж" "😀") ":"'],
+            find: ['"a😀é" "😀"', '"a😀é" "é"'],
             gcd: ['0 0', '(-12) 18', '1267650600228229401496703205376 2'],
             isqrt: ['0', '1', '1267650600228229401496703205376'],
             lcm: ['0 0', '(-12) 18'], powmod: ['(-2) 3 7', '2 0 1'],

@@ -8,7 +8,7 @@ function run(body: string, fused: boolean, setup = 'A = array 1 2 3', before = '
     let kernels = 0;
     const output: string[] = [];
     const runtime = new Interpreter(line => output.push(line), {
-        tensorFusion: fused, onTensorKernelExecuted: () => kernels++,
+        scalarFunctionCompilation: false, tensorFusion: fused, onTensorKernelExecuted: () => kernels++,
     });
     try {
         const result = runtime.execute(`use sequences
@@ -87,7 +87,7 @@ describe('copy kernel host values', () => {
         let kernels = 0;
         const sources: string[] = [];
         const runtime = new Interpreter(undefined, {
-            tensorFusion: fused,
+            scalarFunctionCompilation: false, tensorFusion: fused,
             onTensorKernelExecuted: () => kernels++,
             onTensorKernelCompiled: source => sources.push(source),
         });

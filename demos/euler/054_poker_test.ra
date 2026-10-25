@@ -11,6 +11,10 @@ end
 
 test "five examples from the problem"
   use "054_poker"
+  use io
+  rem Initialize captured globals without replaying the thousand official deals.
+  Input = "/tmp/euler054.txt"
+  "" write Input
   run
   Deals = array shape 5
     "5H 5C 6S 7S KD 2C 3S 8S 8D TD"
@@ -25,6 +29,9 @@ end
 
 test "all categories in ascending order"
   use "054_poker"
+  use io
+  Input = "/tmp/euler054.txt"
+  "" write Input
   run
   Examples = array shape 10
     "2H 4C 6S 8D TH"
@@ -48,6 +55,9 @@ end
 
 test "tie breaks use the combination before every kicker"
   use "054_poker"
+  use io
+  Input = "/tmp/euler054.txt"
+  "" write Input
   run
   Deals = array shape 9
     "AH AD 2C 3S 4H KH KD QC JS TH"
@@ -66,6 +76,9 @@ end
 
 test "ace-low straights and suit-independent ties"
   use "054_poker"
+  use io
+  Input = "/tmp/euler054.txt"
+  "" write Input
   run
   Wheel = ("AH 2C 3S 4D 5H" split " ") hand_score
   Six = ("2H 3C 4S 5D 6H" split " ") hand_score

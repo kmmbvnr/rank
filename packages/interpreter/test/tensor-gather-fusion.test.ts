@@ -23,7 +23,7 @@ function run(source: string, tensorFusion: boolean) {
     let kernels = 0;
     const compiled: string[] = [], output: string[] = [];
     const runtime = new Interpreter(line => output.push(line), {
-        tensorFusion, onTensorKernelExecuted: () => kernels++, onTensorKernelCompiled: code => compiled.push(code),
+        scalarFunctionCompilation: false, tensorFusion, onTensorKernelExecuted: () => kernels++, onTensorKernelCompiled: code => compiled.push(code),
     });
     try { return { value: formatValue(runtime.execute(source)!), output, kernels, compiled }; }
     catch (error) { return { error: String(error), output, kernels, compiled }; }

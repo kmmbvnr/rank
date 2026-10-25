@@ -87,7 +87,7 @@ end`, [[2n, 3n], [1.5, 2.5], ['x', 'y'], [true, false],
         compare(`fun A helper
   Value = A + 1
   return Value * 2
-end`, [[{ kind: 'array', shape: [2], items: [1n, 2n] }], [3n]], 1);
+end`, [[{ kind: 'array', shape: [2], items: [1n, 2n] }], [3n]], 2);
     });
 
     it('keeps memo cache hits outside the generated body', () => {

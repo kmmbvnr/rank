@@ -12,8 +12,8 @@ function proof(expression: string) {
     return statement;
 }
 
-function execute(source: string, diagnostics?: RuntimeDiagnostics) {
-    const runtime = new Interpreter();
+function execute(source: string, diagnostics?: RuntimeDiagnostics, scalarFunctionCompilation = true) {
+    const runtime = new Interpreter(undefined, { scalarFunctionCompilation });
     try {
         const run = () => formatValue(runtime.execute(source)!);
         return diagnostics ? diagnostics.run(run) : run();
@@ -120,7 +120,7 @@ A = array true false
 B = array true false
 A same B`;
         const diagnostics = new RuntimeDiagnostics();
-        expect(execute(source, diagnostics)).toBe(execute(source));
+        expect(execute(source, diagnostics, false)).toBe(execute(source, undefined, false));
         expect(diagnostics.fallbacks['tensor:operator-guard:equal']).toBeGreaterThan(0);
         expect(diagnostics.fallbacks).not.toHaveProperty('tensor:unsupported');
         expect(diagnostics.fallbacks).not.toHaveProperty('tensor:entry-guard');

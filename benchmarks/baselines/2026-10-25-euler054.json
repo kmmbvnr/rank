@@ -1,0 +1,585 @@
+{
+  "node": "v24.15.0",
+  "baseline": "3228f458bd2c46f64ce1806129b31500b2e9cfe5",
+  "candidate": "working tree",
+  "method": "Serial fresh processes; three compiled samples alternating before/after; one reference validation per version/workload. Before uses the original fixture and isolated baseline interpreter/language outputs. Test-only uses the smaller fixture with the baseline runtime.",
+  "results": [
+    {
+      "version": "before",
+      "sample": 0,
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "elapsedMs": 1140.522791,
+      "scalarFunctions": 0,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "elapsedMs": 978.324,
+      "scalarFunctions": 22000,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000
+    },
+    {
+      "version": "after",
+      "sample": 1,
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "elapsedMs": 1020.8036249999999,
+      "scalarFunctions": 22000,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000
+    },
+    {
+      "version": "before",
+      "sample": 1,
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "elapsedMs": 1204.376542,
+      "scalarFunctions": 0,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000
+    },
+    {
+      "version": "before",
+      "sample": 2,
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "elapsedMs": 1171.875292,
+      "scalarFunctions": 0,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000
+    },
+    {
+      "version": "after",
+      "sample": 2,
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "elapsedMs": 1018.8395419999999,
+      "scalarFunctions": 22000,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000
+    },
+    {
+      "version": "before",
+      "sample": 0,
+      "name": "054_poker.ra",
+      "engine": "reference",
+      "elapsedMs": 1003.240458,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 155000
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "054_poker.ra",
+      "engine": "reference",
+      "elapsedMs": 999.0097089999999,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 155000
+    },
+    {
+      "version": "before",
+      "sample": 0,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 4554.492042,
+      "scalarFunctions": 0,
+      "compiledTensors": 60264,
+      "cellsComputed": 225870
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 1111.2028329999998,
+      "scalarFunctions": 22484,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870
+    },
+    {
+      "version": "after",
+      "sample": 1,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 1153.7472089999999,
+      "scalarFunctions": 22484,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870
+    },
+    {
+      "version": "before",
+      "sample": 1,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 4606.272999999999,
+      "scalarFunctions": 0,
+      "compiledTensors": 60264,
+      "cellsComputed": 225870
+    },
+    {
+      "version": "before",
+      "sample": 2,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 4598.141084,
+      "scalarFunctions": 0,
+      "compiledTensors": 60264,
+      "cellsComputed": 225870
+    },
+    {
+      "version": "after",
+      "sample": 2,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 1113.7320840000002,
+      "scalarFunctions": 22484,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870
+    },
+    {
+      "version": "before",
+      "sample": 0,
+      "name": "054_poker_test.ra",
+      "engine": "reference",
+      "elapsedMs": 3783.743666,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 778290
+    },
+    {
+      "version": "after",
+      "sample": 0,
+      "name": "054_poker_test.ra",
+      "engine": "reference",
+      "elapsedMs": 1117.8975409999998,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 158290
+    },
+    {
+      "version": "test-only",
+      "sample": 0,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 1280.18075,
+      "scalarFunctions": 0,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870
+    },
+    {
+      "version": "test-only",
+      "sample": 1,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 1304.391,
+      "scalarFunctions": 0,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870
+    },
+    {
+      "version": "test-only",
+      "sample": 2,
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 1275.335208,
+      "scalarFunctions": 0,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870
+    }
+  ],
+  "baselineArtifacts": "Baseline interpreter output uses current main outputs except the two scalar-function modules, which were saved before edits and whose committed sources are unchanged between 0e9149cd and 3228f458. Isolated baseline language output removes only the newly added find.compiledCall profile.",
+  "diagnostics": [
+    {
+      "version": "before",
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "scalarFunctions": 0,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 4002,
+        "scalar-function:loop-range:ForStatement": 2,
+        "loop:unsupported-op:split": 2,
+        "scalar-expression:unsupported-op:len": 4,
+        "scalar-expression:unsupported-op:equal": 7,
+        "scalar-expression:too-small": 10,
+        "scalar-function:application-form:ApplicationExpression": 2,
+        "tensor:deferred-binding:AssignmentStatement": 3,
+        "scalar-expression:unsupported-op:Sorted": 4,
+        "scalar-expression:unsupported-op:-": 2,
+        "tensor:unsupported-type:array": 3,
+        "scalar-expression:unsupported-op:and": 2,
+        "tensor:unsupported-node:LabelLiteral": 1,
+        "scalar-expression:operator-guard:*": 2000,
+        "scalar-expression:operator-guard:+": 2000,
+        "scalar-expression:unsupported-op:greater": 2,
+        "tensor:output-shape": 376
+      },
+      "rejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_suit",
+          "expression": "Card 1",
+          "line": 113,
+          "column": 10
+        },
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "poker_wins",
+          "expression": "for Line in Hands\n    if Line len equal 0\n      continue\n    end\n    Cards = Line split \" \"\n    P1 = Cards take 5\n    P2 = Cards drop 5 take 5\n    S1 = P1 hand_",
+          "line": 22,
+          "column": 3
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hand_score",
+          "expression": "Cards card_value rank 0",
+          "line": 41,
+          "column": 12
+        },
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_value",
+          "expression": "Card 0",
+          "line": 106,
+          "column": 10
+        }
+      ],
+      "tests": []
+    },
+    {
+      "version": "after",
+      "name": "054_poker.ra",
+      "engine": "compiled",
+      "scalarFunctions": 22000,
+      "compiledTensors": 12000,
+      "cellsComputed": 45000,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 2001,
+        "scalar-function:loop-range:ForStatement": 2,
+        "loop:unsupported-op:split": 2,
+        "scalar-expression:unsupported-op:len": 4,
+        "scalar-expression:unsupported-op:equal": 7,
+        "scalar-expression:too-small": 10,
+        "scalar-function:application-form:ApplicationExpression": 2,
+        "tensor:deferred-binding:AssignmentStatement": 3,
+        "scalar-expression:unsupported-op:Sorted": 4,
+        "scalar-expression:unsupported-op:-": 2,
+        "tensor:unsupported-type:array": 3,
+        "scalar-expression:unsupported-op:and": 2,
+        "tensor:unsupported-node:LabelLiteral": 1,
+        "scalar-expression:operator-guard:*": 2000,
+        "scalar-expression:operator-guard:+": 2000,
+        "scalar-expression:unsupported-op:greater": 2,
+        "tensor:output-shape": 376
+      },
+      "rejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_suit",
+          "expression": "Card 1",
+          "line": 113,
+          "column": 10
+        },
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "poker_wins",
+          "expression": "for Line in Hands\n    if Line len equal 0\n      continue\n    end\n    Cards = Line split \" \"\n    P1 = Cards take 5\n    P2 = Cards drop 5 take 5\n    S1 = P1 hand_",
+          "line": 22,
+          "column": 3
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hand_score",
+          "expression": "Cards card_value rank 0",
+          "line": 41,
+          "column": 12
+        },
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_value",
+          "expression": "Card 0",
+          "line": 106,
+          "column": 10
+        }
+      ],
+      "tests": []
+    },
+    {
+      "version": "before",
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "scalarFunctions": 0,
+      "compiledTensors": 60264,
+      "cellsComputed": 225870,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 20103,
+        "scalar-function:loop-range:ForStatement": 10,
+        "loop:unsupported-op:split": 12,
+        "scalar-expression:unsupported-op:len": 22,
+        "scalar-expression:unsupported-op:equal": 45,
+        "scalar-expression:too-small": 55,
+        "scalar-function:application-form:ApplicationExpression": 10,
+        "tensor:deferred-binding:AssignmentStatement": 15,
+        "scalar-expression:unsupported-op:Sorted": 20,
+        "scalar-expression:unsupported-op:-": 10,
+        "tensor:unsupported-type:array": 19,
+        "scalar-expression:unsupported-op:and": 10,
+        "tensor:unsupported-node:LabelLiteral": 5,
+        "scalar-expression:operator-guard:*": 10044,
+        "scalar-expression:operator-guard:+": 10044,
+        "scalar-expression:unsupported-op:greater": 14,
+        "tensor:output-shape": 1892,
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:Score": 2,
+        "scalar-expression:unsupported-op:I": 2
+      },
+      "rejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_suit",
+          "expression": "Card 1",
+          "line": 113,
+          "column": 10
+        },
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "poker_wins",
+          "expression": "for Line in Hands\n    if Line len equal 0\n      continue\n    end\n    Cards = Line split \" \"\n    P1 = Cards take 5\n    P2 = Cards drop 5 take 5\n    S1 = P1 hand_",
+          "line": 22,
+          "column": 3
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hand_score",
+          "expression": "Cards card_value rank 0",
+          "line": 41,
+          "column": 12
+        },
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_value",
+          "expression": "Card 0",
+          "line": 106,
+          "column": 10
+        }
+      ],
+      "tests": [
+        {
+          "name": "official thousand deals",
+          "durationMs": 1058.835375
+        },
+        {
+          "name": "five examples from the problem",
+          "durationMs": 911.9876250000002
+        },
+        {
+          "name": "all categories in ascending order",
+          "durationMs": 814.6764169999997
+        },
+        {
+          "name": "tie breaks use the combination before every kicker",
+          "durationMs": 839.547834
+        },
+        {
+          "name": "ace-low straights and suit-independent ties",
+          "durationMs": 780.9869999999996
+        }
+      ]
+    },
+    {
+      "version": "after",
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "scalarFunctions": 22484,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 2054,
+        "scalar-function:loop-range:ForStatement": 8,
+        "loop:unsupported-op:split": 10,
+        "scalar-expression:unsupported-op:len": 18,
+        "scalar-expression:unsupported-op:equal": 41,
+        "scalar-expression:too-small": 53,
+        "scalar-function:application-form:ApplicationExpression": 10,
+        "tensor:deferred-binding:AssignmentStatement": 15,
+        "scalar-expression:unsupported-op:Sorted": 20,
+        "scalar-expression:unsupported-op:-": 10,
+        "tensor:unsupported-type:array": 17,
+        "scalar-expression:unsupported-op:and": 10,
+        "tensor:unsupported-node:LabelLiteral": 5,
+        "scalar-expression:operator-guard:*": 2044,
+        "scalar-expression:operator-guard:+": 2044,
+        "scalar-expression:unsupported-op:greater": 10,
+        "tensor:output-shape": 388,
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "loop:no-text-specialization": 4,
+        "scalar-expression:unsupported-op:Score": 2,
+        "scalar-expression:unsupported-op:I": 2
+      },
+      "rejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_suit",
+          "expression": "Card 1",
+          "line": 113,
+          "column": 10
+        },
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "poker_wins",
+          "expression": "for Line in Hands\n    if Line len equal 0\n      continue\n    end\n    Cards = Line split \" \"\n    P1 = Cards take 5\n    P2 = Cards drop 5 take 5\n    S1 = P1 hand_",
+          "line": 22,
+          "column": 3
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hand_score",
+          "expression": "Cards card_value rank 0",
+          "line": 41,
+          "column": 12
+        },
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_value",
+          "expression": "Card 0",
+          "line": 106,
+          "column": 10
+        }
+      ],
+      "tests": [
+        {
+          "name": "official thousand deals",
+          "durationMs": 885.859833
+        },
+        {
+          "name": "five examples from the problem",
+          "durationMs": 21.873125000000073
+        },
+        {
+          "name": "all categories in ascending order",
+          "durationMs": 17.167208000000073
+        },
+        {
+          "name": "tie breaks use the combination before every kicker",
+          "durationMs": 20.542416000000003
+        },
+        {
+          "name": "ace-low straights and suit-independent ties",
+          "durationMs": 15.486165999999912
+        }
+      ]
+    },
+    {
+      "version": "test-only",
+      "name": "054_poker_test.ra",
+      "engine": "compiled",
+      "scalarFunctions": 0,
+      "compiledTensors": 12264,
+      "cellsComputed": 45870,
+      "fallbacks": {
+        "scalar-function:callee-binding:ApplicationExpression": 4103,
+        "scalar-function:loop-range:ForStatement": 8,
+        "loop:unsupported-op:split": 10,
+        "scalar-expression:unsupported-op:len": 18,
+        "scalar-expression:unsupported-op:equal": 41,
+        "scalar-expression:too-small": 53,
+        "scalar-function:application-form:ApplicationExpression": 10,
+        "tensor:deferred-binding:AssignmentStatement": 15,
+        "scalar-expression:unsupported-op:Sorted": 20,
+        "scalar-expression:unsupported-op:-": 10,
+        "tensor:unsupported-type:array": 17,
+        "scalar-expression:unsupported-op:and": 10,
+        "tensor:unsupported-node:LabelLiteral": 5,
+        "scalar-expression:operator-guard:*": 2044,
+        "scalar-expression:operator-guard:+": 2044,
+        "scalar-expression:unsupported-op:greater": 10,
+        "tensor:output-shape": 388,
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "loop:no-text-specialization": 4,
+        "scalar-expression:unsupported-op:Score": 2,
+        "scalar-expression:unsupported-op:I": 2
+      },
+      "rejections": [
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_suit",
+          "expression": "Card 1",
+          "line": 113,
+          "column": 10
+        },
+        {
+          "reason": "scalar-function:loop-range:ForStatement",
+          "node": "ForStatement",
+          "function": "poker_wins",
+          "expression": "for Line in Hands\n    if Line len equal 0\n      continue\n    end\n    Cards = Line split \" \"\n    P1 = Cards take 5\n    P2 = Cards drop 5 take 5\n    S1 = P1 hand_",
+          "line": 22,
+          "column": 3
+        },
+        {
+          "reason": "scalar-function:application-form:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "hand_score",
+          "expression": "Cards card_value rank 0",
+          "line": 41,
+          "column": 12
+        },
+        {
+          "reason": "scalar-function:callee-binding:ApplicationExpression",
+          "node": "ApplicationExpression",
+          "function": "card_value",
+          "expression": "Card 0",
+          "line": 106,
+          "column": 10
+        }
+      ],
+      "tests": [
+        {
+          "name": "official thousand deals",
+          "durationMs": 1050.4671250000001
+        },
+        {
+          "name": "five examples from the problem",
+          "durationMs": 20.983541999999943
+        },
+        {
+          "name": "all categories in ascending order",
+          "durationMs": 20.324458999999933
+        },
+        {
+          "name": "tie breaks use the combination before every kicker",
+          "durationMs": 23.396458000000166
+        },
+        {
+          "name": "ace-low straights and suit-independent ties",
+          "durationMs": 16.208624999999984
+        }
+      ]
+    }
+  ]
+}
