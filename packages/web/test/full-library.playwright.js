@@ -35,6 +35,7 @@ async original => {
         };
         await enter();
         await page.waitForFunction(() => document.querySelector('.library-view [role=status]').textContent === 'No examples in this folder.');
+        await library.getByRole('button', { name: 'Back', exact: true }).click();
         await panel.getByRole('button', { name: 'Close notebook history' }).click();
         await enter();
         await library.getByRole('button', { name: 'Classic Problems ›', exact: true }).click();

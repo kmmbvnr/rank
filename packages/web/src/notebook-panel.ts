@@ -15,7 +15,6 @@ export class NotebookPanel {
     private readonly renameDialog = document.createElement('dialog');
     private readonly deleteDialog = document.createElement('dialog');
     private selected?: NotebookMeta;
-    private readonly library: LibraryBrowser;
     constructor(private readonly history: NotebookHistory,
         private readonly open: (id?: string) => Promise<void>,
         importFile: () => Promise<void>,
@@ -95,7 +94,7 @@ export class NotebookPanel {
             this.actions.hidePopover();
             void this.action(() => exportFile(id), false);
         };
-        this.library = new LibraryBrowser(this.dialog, openLibrary, () => { this.close(); }, restrictedLibrary);
+        new LibraryBrowser(this.dialog, openLibrary, () => { this.close(); }, restrictedLibrary);
         this.more.onclick = () => void this.load();
         this.dialog.querySelector('.library-home')!.addEventListener('scroll', event => {
             const element = event.currentTarget as HTMLElement;
@@ -119,7 +118,6 @@ export class NotebookPanel {
         if (this.deleteDialog.open) { this.deleteDialog.close(); return true; }
         if (this.actions.matches(':popover-open')) { this.actions.hidePopover(); return true; }
         if (!this.dialog.open) return false;
-        this.library.reset();
         this.dialog.close();
         this.afterClose();
         return true;

@@ -131,7 +131,11 @@ export class LibraryBrowser {
                     this.opening = true;
                     this.back.disabled = true;
                     this.status.textContent = 'Opening example…';
-                    try { await this.open(entry.path, () => this.library.source(entry.path)); this.close(); }
+                    try {
+                        await this.open(entry.path, () => this.library.source(entry.path));
+                        this.status.textContent = '';
+                        this.close();
+                    }
                     catch (error) { if (generation === this.generation) this.status.textContent = String(error instanceof Error ? error.message : error); }
                     finally { this.opening = false; this.back.disabled = false; }
                 };

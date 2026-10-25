@@ -69,6 +69,8 @@ async page => {
     await input.fill('rem My local changes');
     const editedId = await page.evaluate(() => localStorage.getItem('rank-active-notebook-v1'));
     await page.getByRole('button', { name: 'Open notebook history' }).click();
+    check(await library.getByRole('button', { name: 'example.ra', exact: true }).isVisible(), 'menu lost nested Library folder');
+    for (let index = 0; index < 3; index++) await library.getByRole('button', { name: 'Back', exact: true }).click();
     await page.getByRole('dialog', { name: 'Notebook history' }).getByRole('button', { name: 'Original draft', exact: true }).click();
     await page.getByRole('dialog', { name: 'Notebook history' }).waitFor({ state: 'hidden' });
     check(await input.inputValue() === 'rem Original draft', 'opening example lost previous draft');
