@@ -96,6 +96,32 @@ it.each(['reduce +', 'reduce plus', 'scan +', 'scan plus'])('diagnoses ambiguous
         const parsed = parser.parse<Program>(`${plus}${matrix}M ${fold} rank ${rank}\n`);
         expect(analyzeValues(parsed.value).diagnostics.some(d => d.message.includes('requires an explicit axis'))).toBe(true);
     }
-    const parsed = parser.parse<Program>(`${plus}${matrix}M ${fold} rank 1 axis -1\n`);
-    expect(analyzeValues(parsed.value).diagnostics.some(d => d.message.includes('outside the trailing input cell'))).toBe(true);
+    const parsed = parser.parse<Program>(`${plus}${matrix}M ${fold} rank 2 axis -1\n`);
+    expect(analyzeValues(parsed.value).diagnostics.some(d => d.message.includes('axis count exceeds'))).toBe(true);
+});
+
+it('infers cells from remaining axes for reduce and scan (#454)', () => {
+    expect(facts(matrix, 'M reduce + rank 1 axis 1')).toMatchObject({ shape: [2], rank: 1 });
+    const tensor = 'T = array shape 2 3 4 fill 1\n';
+    expect(facts(tensor, 'T reduce + rank 1 axis 2')).toMatchObject({ shape: [2, 3], rank: 2 });
+    expect(facts(tensor, 'T reduce + rank 2 axis 1')).toMatchObject({ shape: [2, 4], rank: 2 });
+    expect(facts(tensor, 'T reduce + rank 1 axis 2 0')).toMatchObject({ shape: [3], rank: 1 });
+    for (const operation of ['+', 'plus', 'max']) {
+        expect(facts(matrix, `M scan ${operation} rank 1 axis 1`)).toMatchObject({ shape: [3, 2], rank: 2 });
+        expect(facts(tensor, `T scan ${operation} rank 1 axis 2`)).toMatchObject({ shape: [2, 4, 3], rank: 3 });
+        expect(facts(tensor, `T scan ${operation} rank 2 axis 1`)).toMatchObject({ shape: [3, 2, 4], rank: 3 });
+    }
+    for (const expression of ['M reduce plus rank 1 axis 1', 'T reduce plus rank 1 axis 2', 'T reduce plus rank 2 axis 1']) {
+        facts(matrix + tensor, expression); // Unknown callback result shapes stay conservative.
+    }
+});
+
+it('infers empty selected cells and seeded states on nonleading traversal axes', () => {
+    expect(facts('E = array shape 2 0 fill 0\n', 'E reduce + rank 1 axis 1')).toMatchObject({ shape: [2] });
+    expect(facts('E = array shape 2 0 fill 0\n', 'E scan + rank 1 axis 1')).toMatchObject({ shape: [0, 2] });
+    expect(facts('E = array shape 0 2 3 fill 0\n', 'E reduce + rank 1 axis 2')).toMatchObject({ shape: [0, 2] });
+    expect(facts('E = array shape 0 2 3 fill 0\n', 'E scan + rank 1 axis 2')).toMatchObject({ shape: [0, 3, 2] });
+    expect(facts(matrix, 'M scan + rank 1 axis 1 with (array 10 20)')).toMatchObject({ shape: [4, 2] });
+    expect(facts('fun Acc total Col = Acc + (Col sum)\n' + matrix, '((array 1 2 3 4 5 6) reshape 2 3) scan total rank 1 axis 1 with 0'))
+        .toMatchObject({ shape: [4] });
 });

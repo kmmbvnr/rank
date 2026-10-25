@@ -4198,18 +4198,19 @@ Total = A reduce + with 0
 Best = M reduce pick rank 1 axis 0
 ```
 
-`rank R` selects trailing rank-`R` input cells. The default is `rank 0`, so
-ordinary reduction consumes individual elements. `axis` selects one or more
-distinct source axes outside those cells. Remaining axes form independent
-folds. With neither modifier, all scalar elements are folded in row-major
-order. With explicit `rank R`, `axis` may be omitted only when exactly one axis
+`axis` selects one or more distinct source axes to traverse. Remove those axes
+first, then `rank R` selects the trailing `R` remaining axes as the input cell,
+in source order. The earlier remaining axes form independent folds. The default
+is `rank 0`, so ordinary reduction consumes individual elements. The input cell
+rank plus the number of traversal axes must not exceed the source rank. With
+neither modifier, all scalar elements are folded in row-major order. With explicit `rank R`, `axis` may be omitted only when exactly one axis
 remains outside the input cell; that axis is 0. Otherwise, write `axis` explicitly.
 The order of an explicit axis list does not change traversal order.
 `rank` and `axis` may appear together, in either order, before optional `with`.
 Reduction ranks are nonnegative integer literals. Axis literals may be negative:
 `-1` selects the last source axis and `-2` the second-to-last. A negative axis
 is normalized by adding the source rank before checking bounds, uniqueness,
-and the trailing input-cell boundary. For a rank-2 matrix, `axis 1 -1` is a
+and selecting input-cell axes. For a rank-2 matrix, `axis 1 -1` is a
 duplicate and `axis -3` is out of bounds. Write a space after the minus for
 subtraction after a modifier: `M reduce + axis 1 - 1`.
 
@@ -4217,13 +4218,19 @@ subtraction after a modifier: `M reduce + axis 1 - 1`.
 RowTotals = M reduce + axis 1
 ColumnTotals = M reduce + axis 0
 CombinedRow = M reduce add rank 1 axis 0
+CombinedColumn = M reduce add rank 1 axis 1
 BatchRows = T reduce add rank 1 axis 1
+BatchColumns = T reduce add rank 1 axis 2
+CombinedPlane = T reduce add rank 2 axis 1
 
 fun Acc add Cell = Acc + Cell
 ```
 
-For a matrix, `rank 1 axis 0` passes whole rows to the function. For shape
-`Batch Rows Columns`, `rank 1 axis 1` folds rows independently in each batch.
+For a matrix, `rank 1 axis 0` passes whole rows to the function, while
+`rank 1 axis 1` passes whole columns. For shape `Batch Rows Columns`,
+`rank 1 axis 1` folds rows independently in each batch and `rank 1 axis 2`
+folds columns independently in each batch. `rank 2 axis 1` folds
+`Batch × Columns` planes along the rows axis.
 The result stacks each independent fold's result beneath the remaining frame;
 those results must have matching shapes. The accumulator can have a different
 type or rank from the input cells. A rank equal to the source rank leaves no
@@ -4383,23 +4390,26 @@ Rows = M scan add axis 1 with 0
 RowStates = M scan add rank 1 axis 0
 ```
 
-`rank R` selects trailing rank-`R` input cells passed to the combining function,
-just as in `reduce`. The default is rank 0 (individual elements). `axis N`
-selects one source axis outside the input cell; the remaining outer axes form
-independent scans. With explicit `rank`, `axis` may be omitted only when exactly
+`axis N` selects the source axis to traverse. Remove it first, then `rank R`
+selects the trailing `R` remaining axes as the input cell, just as in `reduce`.
+The earlier remaining axes form independent scans. The default is rank 0
+(individual elements). The input cell rank plus one must not exceed the source
+rank. With explicit `rank`, `axis` may be omitted only when exactly
 one outer axis remains. Thus `M scan add rank 1` combines whole rows along axis 0.
 For shape `Batch Rows Columns`, `rank 1` requires an explicit axis; use
 `rank 1 axis 1` to scan rows independently in each batch. A rank equal to the
 source rank leaves no traversal axis and is rejected.
 
-Without a seed, the first input cell initializes each scan and the shape stays
-unchanged. With a seed, the traversal axis grows from `D` to `D + 1`, with the
-seed prepended to each scan. The seed expression is evaluated once. All states,
+Without a seed, the first input cell initializes each scan and the traversal
+length stays unchanged. With a seed, the traversal axis grows from `D` to `D + 1`,
+with the seed prepended to each scan. The seed expression is evaluated once. All states,
 including the seed, must have matching shapes; a mismatch raises
 `.DimensionMismatch`. The accumulator may have a different shape from the
-input cell. The output keeps the outer source axes in their original order,
-with the accumulator shape appended. For example, a scalar accumulator over
-rows of a matrix produces a vector of states.
+input cell. The output keeps the frame and traversal axes in their original
+source order, with the accumulator shape appended. For a matrix of shape
+`Rows Columns`, `scan add rank 1 axis 1` scans columns and produces shape
+`Columns Rows`; a seed grows this to `(Columns + 1) Rows`. For example, a
+scalar accumulator over rows of a matrix produces a vector of states.
 
 An empty traversal has length 1 with a seed and remains empty without one.
 Empty frames stay empty. The result uses the seed shape when supplied,

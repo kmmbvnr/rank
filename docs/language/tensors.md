@@ -144,11 +144,16 @@ axis by one. All states, including the seed, must have matching shapes. The seed
 expression is evaluated once. Empty traversal axes have length 1 with a seed;
 empty frames stay empty.
 
-`rank R` selects trailing input cells passed to the callback. Rank defaults to
-0, so `scan axis N` consumes individual elements. `M scan add rank 1 axis 0`
-consumes whole rows. Other outer axes form independent scans; for a tensor
-`Batch Rows Columns`, use `scan add rank 1 axis 1` to scan rows in each batch.
-The output preserves outer-axis order and appends the accumulator shape.
+`scan` removes the traversal axis first, then `rank R` selects the trailing
+`R` remaining axes as the input cell passed to the callback. Earlier remaining
+axes form independent scans. Rank defaults to 0, so `scan axis N` consumes
+individual elements. `M scan add rank 1 axis 0` consumes whole rows;
+`M scan add rank 1 axis 1` consumes whole columns. For a tensor
+`Batch Rows Columns`, use `rank 1 axis 1` to scan rows in each batch or
+`rank 1 axis 2` to scan columns in each batch. The input rank plus one must not
+exceed the source rank. The output preserves frame and traversal axis order
+and appends the accumulator shape. Scanning columns of shape `Rows Columns`
+therefore produces shape `Columns Rows` without a seed.
 An empty result uses the seed shape, or the input-cell shape without a seed.
 
 An explicit `rank R` may omit `axis` only when exactly one outer axis remains:
@@ -163,19 +168,24 @@ Axis literals count from either end of the source shape: `0` is the first
 axis, `-1` is the last, and `-2` is the second-to-last. A negative axis `A`
 resolves to `source rank + A`. Bounds and uniqueness checks use these normalized
 indices: `axis -3` is invalid for a rank-2 matrix, and `axis 1 -1` repeats an
-axis. Reduction input-cell boundaries are checked after normalization too.
+axis. Reduction input-cell axes are selected after normalization too.
 This also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
 `concat`, `window`, `transpose`, and
 `unpack ... = ... axis ...`. Array element indices themselves remain nonnegative.
 
-`reduce <op|fn> rank R axis N` folds trailing rank-R input cells along
-source axis N. The axis must be outside the input cell; other axes form
-independent folds. Rank defaults to 0. Without either modifier, all scalar
+`reduce <op|fn> rank R axis N` removes source axis N, then selects the trailing
+R remaining axes as the input cell, in source order. Earlier remaining axes
+form independent folds. Rank defaults to 0. Without either modifier, all scalar
 elements are folded in row-major order. With explicit `rank`, `axis` may be
 omitted only when exactly one outer axis remains, as in `scan`. Multiple
-distinct traversal axes are supported by `reduce`.
-For a matrix, `M reduce add rank 1 axis 0` combines whole rows, while
+distinct traversal axes are supported by `reduce`; remove all of them before
+selecting the input cell. The input rank plus traversal axis count must not
+exceed the source rank.
+For a matrix, `M reduce add rank 1 axis 0` combines whole rows,
+`M reduce add rank 1 axis 1` combines whole columns, and
 `M reduce add axis 1` combines scalars independently within each row.
+For shape `Batch Rows Columns`, `rank 2 axis 1` passes `Batch × Columns`
+planes to the callback.
 `with Seed` remains optional and follows the modifiers. Without it, the first
 cell starts the accumulator. See [Reduce](sequences-arrays.md#reduce) for empty
 inputs and result assembly.

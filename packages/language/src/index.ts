@@ -54,3 +54,4 @@ export * from './analysis/function-scope-diagnostics.js';
 export * from './analysis/deferred-bindings.js';
 
 export { normalizeAxis } from './axis-index.js';
+export { foldAxisPartition } from './fold-axes.js';

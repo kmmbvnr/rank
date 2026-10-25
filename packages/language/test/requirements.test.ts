@@ -45,7 +45,7 @@ it('carries a downstream requirement through a function result to its argument',
 it('does not impose a lower bound for clamped or negative ordinary ranks', () => {
     expect(infer('A = array 1 2\nA sum rank 5').conflicts).toEqual([]);
     expect(infer('A = array 1 2\nA sum rank -1').conflicts).toEqual([]);
-    expect(binding('A = Input decode\nA + reduce rank 3', 'A').rank.min).toBe(3);
+    expect(binding('A = Input decode\nA + reduce rank 3', 'A').rank.min).toBe(4);
     expect(binding('A = Input decode\nA sum axis 0 2', 'A').rank).toMatchObject({ min: 3, max: Infinity });
 });
 it('propagates lifted-result requirements without merging separate calls', () => {
@@ -211,7 +211,6 @@ it('links checked CSV row lengths when a later dot product needs equal columns',
     expect(b.fields?.get('value')?.domains).toEqual(['integer', 'real']);
 });
 
-
 it('infers scalar integer count parameters after an unknown lazy reduction without assuming input values', () => {
     const program = parse('fun Numbers prefix Digits\n Total = Numbers sum\n Text = Total text\n return Text take Digits\nend');
     const definition = program.statements.find(isFunctionStatement)!;
@@ -221,4 +220,13 @@ it('infers scalar integer count parameters after an unknown lazy reduction witho
     expect(params[1].domains).toEqual(['integer']);
     const rebound = parse('fun Digits prefix\n Digits = Other\n return "abc" take Digits\nend');
     expect(inferRequirements(rebound).functions.get(rebound.statements.find(isFunctionStatement)!)!.params[0].domains).toBeUndefined();
+});
+
+it.each(['reduce +', 'reduce min', 'scan +', 'scan min'])('requires room for traversal and input cells in %s', fold => {
+    expect(binding(`A = Input decode\nA ${fold} rank 2 axis 1`, 'A').rank.min).toBe(3);
+    expect(binding(`A = Input decode\nA ${fold} rank 2`, 'A').rank.min).toBe(3);
+    expect(binding(`A = Input decode\nA ${fold} rank 1 axis -4`, 'A').rank.min).toBe(4);
+});
+it('counts every traversal axis in multi-axis reduction requirements', () => {
+    expect(binding('A = Input decode\nA reduce + rank 2 axis 0 2', 'A').rank.min).toBe(4);
 });

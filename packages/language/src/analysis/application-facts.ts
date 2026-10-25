@@ -1,3 +1,4 @@
+import { foldAxisPartition } from '../fold-axes.js';
 import { normalizeAxis } from '../axis-index.js';
 import { foldShapeFacts } from './fold-facts.js';
 import { inferSignatureResultTypes } from '../signature-matching.js';
@@ -372,8 +373,16 @@ function namedFold(form: Extract<ApplicationForm, { kind: 'named-scan' | 'named-
         && source.elements.every(type => ['integer', 'real', 'boolean', 'record', 'tuple', 'symbol'].includes(type))) {
         const rank = form.rank ? Number(infer(form.rank, lookup).integer) : 0;
         if (!Number.isSafeInteger(rank) || rank < 0) return undefined;
+        const axes = form.axes ?? (form.axis ? [form.axis] : undefined);
+        const traversal = axes?.map(axis => {
+            const integer = infer(axis, lookup).integer;
+            return integer === undefined || source.rank === undefined ? NaN : normalizeAxis(Number(integer), source.rank);
+        }) ?? [0];
+        const cellShape = source.rank !== undefined && source.shape && rank + traversal.length <= source.rank
+            && traversal.every(axis => Number.isSafeInteger(axis) && axis >= 0 && axis < source.rank!)
+            ? foldAxisPartition(source.rank, rank, traversal).cellAxes.map(axis => source.shape![axis]) : undefined;
         const item: ValueFacts = rank === 0 ? { types: source.elements, rank: 0, shape: [] }
-            : { types: ['array'], elements: source.elements, rank, shape: source.shape?.slice(-rank),
+            : { types: ['array'], elements: source.elements, rank, shape: cellShape,
                 eagerScalarCells: source.eagerScalarCells, callbackFreeScalarCells: source.callbackFreeScalarCells };
         const initial = seed ?? item;
         const step = lookup.invoke(form.operation.name, [initial, item], true);

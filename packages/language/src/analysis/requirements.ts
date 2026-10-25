@@ -8,7 +8,7 @@ import {
     isOptionStatement, isParenthesizedExpression, isReturnStatement, isTestStatement, isTryStatement,
     isUseStatement, type Expression, type FunctionStatement, type Program, type Statement,
 } from '../generated/ast.js';
-import { applicationForm, symbolicApplicationForm } from '../application-forms.js';
+import { applicationForm, symbolicApplicationForm, type FoldModifiers } from '../application-forms.js';
 import { applicationExpression, flattenApplication, unaryApplicationHead } from '../expressions.js';
 import { declaredRanks } from '../function-ranks.js';
 import { findOperation, type IntrinsicRank, type Operation } from '../operations.js';
@@ -297,6 +297,21 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 if (axes && cells[0] >= 0) requireRank(args[0], Math.max(...axes.map(axis => axis < 0 ? -axis : axis + 1)), Infinity, node, 'selected cell axes');
             }
         };
+        function foldRequirements(form: FoldModifiers & { source: Expression }, node: Expression): void {
+            const value = expression(form.source);
+            const rank = form.rank ? literal(form.rank) : 0;
+            const axes = form.axes ?? (form.axis ? [form.axis] : undefined);
+            if (rank !== undefined && rank >= 0) {
+                const minimum = rank + (axes?.length ?? (form.rank ? 1 : 0));
+                requireRank(value, minimum, Infinity, form.rank ?? node, `fold needs rank >= ${minimum}`);
+            }
+            for (const axis of axes ?? []) {
+                const index = literal(axis);
+                if (index !== undefined) requireRank(value, index < 0 ? -index : index + 1, Infinity, axis,
+                    `axis ${index} needs rank >= ${index < 0 ? -index : index + 1}`);
+            }
+            if (form.seed) expression(form.seed);
+        }
         function expression(node: Expression): Value {
             if (isParenthesizedExpression(node)) {
                 const value = expression(node.value); graph.expressions.set(node, value); return value;
@@ -322,12 +337,8 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                     forget(); return output;
                 }
                 const form = symbolicApplicationForm(node, name => !bound(name));
-                if (form?.kind === 'reduce') {
-                    const value = expression(form.source), rank = form.rank && literal(form.rank);
-                    if (rank !== undefined && typeof rank === 'number' && rank >= 0) {
-                        requireRank(value, rank, Infinity, form.rank!, `reduce needs rank >= ${rank}`);
-                        // Callback result rank is independent of the input cell rank.
-                    }
+                if (form?.kind === 'reduce' || form?.kind === 'scan') {
+                    foldRequirements(form, node);
                     return output;
                 }
                 const left = expression(node.left), right = expression(node.right);
@@ -412,6 +423,12 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 if (form.axes && args.length === 1 && ranks[0] >= 0) {
                     requireRank(args[0], Math.max(...form.axes.map(axis => axis < 0 ? -axis : axis + 1)), Infinity, node, 'selected cell axes');
                 }
+                return output;
+            }
+            if (form.kind === 'named-reduce' || form.kind === 'named-scan' || form.kind === 'reduce' || form.kind === 'scan') {
+                foldRequirements(form, node);
+                // Callback results have their own rank and may invalidate facts.
+                forget();
                 return output;
             }
             if (form.kind === 'axis-length' || form.kind === 'axis-reduction') {

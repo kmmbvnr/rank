@@ -11,6 +11,10 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
         const rank = infer(source).rank;
         if (rank === undefined) return;
         const cell = cellRank && infer(cellRank).integer;
+        if (cell !== undefined && (Number(cell) < 0 || Number(cell) > rank)) {
+            diagnostics.push({ node: cellRank!, kind: 'DimensionMismatch', message: `rank ${cell} exceeds value rank ${rank}` });
+            return;
+        }
         if (!axes) {
             if (cell !== undefined && Number(cell) <= rank && Number(cell) >= 0 && rank - Number(cell) !== 1)
                 diagnostics.push({ node: cellRank!, kind: 'DimensionMismatch', message:
@@ -26,12 +30,12 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
             let message: string | undefined;
             if (!Number.isSafeInteger(Number(literal)) || index < 0 || index >= rank) message = `axis ${literal} is invalid for rank ${rank}`;
             else if (seen.has(index)) message = 'axis numbers must be unique';
-            else if (cellRank) {
-                const cell = infer(cellRank).integer;
-                if (cell !== undefined && index >= rank - Number(cell)) message = `${operation} axis must be outside the trailing input cell`;
-            }
             if (message) diagnostics.push({ node, kind: 'DimensionMismatch', message });
             seen.add(index);
+        }
+        if (cell !== undefined && Number(cell) + axes.length > rank) {
+            diagnostics.push({ node: cellRank!, kind: 'DimensionMismatch',
+                message: `${operation} input cell rank plus traversal axis count exceeds tensor rank` });
         }
     };
     switch (form.kind) {

@@ -934,16 +934,6 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
         if (isBinaryExpression(expression)) {
             const left = inspect(expression.left, env);
             const right = inspect(expression.right, env);
-            const modifiers = flattenApplication(expression.right);
-            if (isNameExpression(modifiers[0]) && modifiers[0].name === 'reduce'
-                && isNameExpression(modifiers[1]) && modifiers[1].name === 'rank' && modifiers[2]) {
-                const integer = expressionFacts(modifiers[2], lookup).integer;
-                if (integer !== undefined && left.rank !== undefined
-                    && (BigInt(integer) < 0n || BigInt(integer) > BigInt(left.rank))) {
-                    diagnostics.push({ node: modifiers[2], kind: 'DimensionMismatch',
-                        message: `rank ${integer} exceeds value rank ${left.rank}` });
-                }
-            }
             if (['+', '-', '*', '/', '//', 'mod', 'divmod', '**'].includes(expression.operator)) {
                 if (incompatibleShapes(left, right)) diagnostics.push({ node: expression, kind: 'DimensionMismatch',
                     message: `shape mismatch: [${left.shape!.join(', ')}] and [${right.shape!.join(', ')}]` });

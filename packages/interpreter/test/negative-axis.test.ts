@@ -41,7 +41,9 @@ describe.each([false, true])('negative tensor axes (compilation=%s)', compilatio
     });
     it('normalizes relative to the whole tensor before checking input cells', () => {
         expect(run(prefix + 'M reduce + rank 1 axis -2')).toBe('5 7 9');
-        expect(() => run(prefix + 'M reduce + rank 1 axis -1')).toThrow('outside the trailing input cell');
+        expect(run(prefix + 'M reduce + rank 1 axis -1')).toBe('6 15');
+        expect(run(prefix + 'M scan + rank 1 axis -1')).toBe('1 4 3 9 6 15');
+        expect(() => run(prefix + 'M reduce + rank 1 axis -2 -1')).toThrow('axis count exceeds');
     });
     it.each(['M reduce + axis AX', 'M sum axis AX', 'M reverse axis AX', 'M window 1 1 axis AX',
         'M transpose axis AX', 'M M equal axis AX'])('rejects normalized duplicate axes: %s', form => {

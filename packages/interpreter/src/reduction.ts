@@ -1,3 +1,4 @@
+import { foldAxisPartition } from '@arrrank/language';
 import { arrayOffset, coordinatesAt, sameShape, resolveAxis, resolveAxes } from './tensor-index.js';
 import { framedArray } from './framed-array.js';
 import { countPackedBooleanRange } from './packed-booleans.js';
@@ -53,7 +54,8 @@ export class ReductionEvaluator {
             return this.reduceInputCells(value, cellRank ?? 0, axes, seed,
                 (left, right) => this.binary(operator, left, right), () => {
                     const identity = reductionIdentity(operator);
-                    const shape = isRankArray(value) && cellRank ? value.shape.slice(-cellRank) : [];
+                    const shape = isRankArray(value) && cellRank
+                        ? foldAxisPartition(value.shape.length, cellRank, axes ?? []).cellAxes.map(axis => value.shape[axis]) : [];
                     return ownedArray(Array(arraySize(shape)).fill(identity), shape);
                 });
         }
@@ -142,37 +144,38 @@ export class ReductionEvaluator {
         return result;
     }
 
-    /** Fold trailing input cells; axes outside those cells form traversal or independent frames. */
+    /** Fold input cells selected after removing traversal axes. */
     private reduceInputCells(value: RankValue, rank: number, axes: readonly number[] | undefined,
         seed: RankValue | undefined, combine: (left: RankValue, right: RankValue) => RankValue,
         empty: () => RankValue, captures: readonly RankValue[] = []): RankValue {
         if (!isRankArray(value)) throw new RankError('reduce with input cell rank or axis expects an array');
         const boundary = value.shape.length - rank;
         if (boundary < 0) throw new RankError(`rank ${rank} exceeds tensor rank ${value.shape.length}`);
-        const traversal = axes ? resolveAxes(axes, value.shape.length, 'reduce') : Array.from({ length: boundary }, (_, i) => i);
-        if (traversal.some(axis => axis < 0 || axis >= boundary)) {
-            throw new RankError('reduce axis must be outside the trailing input cell');
+        const traversal = axes ? [...resolveAxes(axes, value.shape.length, 'reduce')].sort((a, b) => a - b) : Array.from({ length: boundary }, (_, i) => i);
+        if (rank + traversal.length > value.shape.length) {
+            throw new RankError('reduce input cell rank plus traversal axis count exceeds tensor rank');
         }
-        const frameAxes = Array.from({ length: boundary }, (_, i) => i).filter(axis => !traversal.includes(axis));
-        const frames = tensorCells(value, frameAxes);
+        const { frameAxes, cellAxes } = foldAxisPartition(value.shape.length, rank, traversal);
+        const frameShape = frameAxes.map(axis => value.shape[axis]);
+        // Put traversal coordinates after batch coordinates, keeping source order
+        // within each group. tensorCells leaves the selected cell axes intact.
+        const cells = tensorCells(value, [...frameAxes, ...traversal]);
+        const length = arraySize(traversal.map(axis => value.shape[axis]));
         const fold = (index: number): RankValue => {
-            const region = frames.cellAt(index);
-            if (!isRankArray(region)) throw new RankError('reduce cell region must be an array');
-            const cells = dyadicCells(region, rank);
             let accumulator = seed;
-            for (let i = 0; i < arraySize(cells.frameShape); i++) {
+            for (let i = 0; i < length; i++) {
                 checkpoint('reducing input cells');
-                const cell = cells.cellAt(i);
+                const cell = cells.cellAt(index * length + i);
                 accumulator = accumulator === undefined ? cell : combine(accumulator, cell);
             }
             return accumulator === undefined ? empty() : accumulator;
         };
         if (!frameAxes.length) return fold(0);
-        if (arraySize(frames.frameShape) === 0) {
-            const resultShape = seed === undefined ? rank === 0 ? [] : value.shape.slice(-rank) : isRankArray(seed) ? seed.shape : [];
-            return ownedArray([], [...frames.frameShape, ...resultShape]);
+        if (arraySize(frameShape) === 0) {
+            const resultShape = seed === undefined ? cellAxes.map(axis => value.shape[axis]) : isRankArray(seed) ? seed.shape : [];
+            return ownedArray([], [...frameShape, ...resultShape]);
         }
-        return registerArrayDependencies(framedArray(frames.frameShape, fold, {
+        return registerArrayDependencies(framedArray(frameShape, fold, {
             ownFiles: this.ownFiles,
             mismatch: () => new RankError('reduce results must have matching shapes', 'DimensionMismatch'),
         }), [value, ...captures, ...(seed === undefined ? [] : [seed])]);
@@ -198,26 +201,29 @@ export class ReductionEvaluator {
         combine: (left: RankValue, right: RankValue) => RankValue): RankValue {
         if (!isRankArray(value)) throw new RankError('scan with input cell rank or axis expects an array');
         axis = resolveAxis(axis, value.shape.length);
-        const boundary = value.shape.length - rank;
-        if (axis >= boundary) throw new RankError('scan axis must be outside the trailing input cell');
-        const frameAxes = Array.from({ length: boundary }, (_, i) => i).filter(i => i !== axis);
-        const frames = tensorCells(value, frameAxes);
-        const prefix = [...value.shape.slice(0, boundary)];
-        const length = prefix[axis];
-        if (seed !== undefined) prefix[axis]++;
+        if (rank + 1 > value.shape.length) {
+            throw new RankError('scan input cell rank plus traversal axis count exceeds tensor rank');
+        }
+        const { frameAxes, cellAxes } = foldAxisPartition(value.shape.length, rank, [axis]);
+        const frameShape = frameAxes.map(i => value.shape[i]);
+        const cells = tensorCells(value, [...frameAxes, axis]);
+        const prefixAxes = [...frameAxes, axis].sort((a, b) => a - b);
+        const along = prefixAxes.indexOf(axis);
+        const prefix = prefixAxes.map(i => value.shape[i]);
+        const length = prefix[along];
+        if (seed !== undefined) prefix[along]++;
         let stateShape: readonly number[] | undefined = seed === undefined ? undefined : isRankArray(seed) ? seed.shape : [];
         const states: RankValue[] = new Array(arraySize(prefix));
-        for (let frame = 0; frame < arraySize(frames.frameShape); frame++) {
-            const cells = dyadicCells(frames.cellAt(frame), rank);
-            const coordinates = coordinatesAt(frames.frameShape, frame);
-            coordinates.splice(axis, 0, 0);
+        for (let frame = 0; frame < arraySize(frameShape); frame++) {
+            const coordinates = coordinatesAt(frameShape, frame);
+            coordinates.splice(along, 0, 0);
             let accumulator = seed;
             const store = (step: number, state: RankValue) => {
                 const shape = isRankArray(state) ? state.shape : [];
                 if (stateShape === undefined) stateShape = [...shape];
                 else if (!sameShape(stateShape, shape)) throw new RankError('scan states must have matching shapes', 'DimensionMismatch');
                 this.ownFiles(state);
-                coordinates[axis] = step;
+                coordinates[along] = step;
                 // Realize each state once: later steps must not replay its lazy callback reads.
                 const stored = isRankArray(state) ? ownedArray(Array.from(arrayValues(state)), shape) : state;
                 states[arrayOffset(prefix, coordinates)] = stored;
@@ -226,12 +232,12 @@ export class ReductionEvaluator {
             if (seed !== undefined) accumulator = store(0, seed);
             for (let step = 0; step < length; step++) {
                 checkpoint('scanning input cells');
-                const cell = cells.cellAt(step);
+                const cell = cells.cellAt(frame * length + step);
                 accumulator = accumulator === undefined ? cell : combine(accumulator, cell);
                 accumulator = store(step + (seed === undefined ? 0 : 1), accumulator);
             }
         }
-        stateShape ??= rank === 0 ? [] : value.shape.slice(-rank);
+        stateShape ??= cellAxes.map(i => value.shape[i]);
         const items: RankValue[] = [];
         for (const state of states) {
             if (isRankArray(state)) for (const item of arrayValues(state)) items.push(item);

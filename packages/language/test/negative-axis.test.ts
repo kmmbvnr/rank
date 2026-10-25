@@ -23,6 +23,7 @@ it.each([
     ['M window 2 axis -1', [2, 2, 2]],
     ['M M equal axis -1', [2]], ['M len axis -1', []],
     ['M reduce + rank 1 axis -2', [3]],
+    ['M reduce + rank 1 axis -1', [2]], ['M scan + rank 1 axis -1', [3, 2]],
 ] as const)('infers normalized result shapes: %s', (expression, shape) => {
     const result = analyze('Result = ' + expression);
     expect(result.diagnostics).toEqual([]);
@@ -36,8 +37,8 @@ it.each(['M reduce + axis -3', 'M sum axis -3', 'M reverse axis -3',
     'M scan + axis -3', 'M transpose axis 0 -3', 'M window 1 axis -3'])('diagnoses out-of-range axes: %s', expression => {
     expect(analyze('Result = ' + expression).diagnostics.some(d => d.message.includes('invalid for rank 2'))).toBe(true);
 });
-it('checks trailing input cells after normalization', () => {
-    expect(analyze('Result = M reduce + rank 1 axis -1').diagnostics.some(d => d.message.includes('outside the trailing input cell'))).toBe(true);
+it('checks remaining axis count after normalization', () => {
+    expect(analyze('Result = M reduce + rank 1 axis -2 -1').diagnostics.some(d => d.message.includes('axis count exceeds'))).toBe(true);
 });
 it('accepts implicit pipelines and a source whose rank is not known yet', () => {
     expect(analyze('products = reduce * axis -1 max\nResult = M products').diagnostics).toEqual([]);
