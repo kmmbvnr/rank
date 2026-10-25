@@ -2314,8 +2314,8 @@ Deferred bindings also keep the reference path. In the separate experiment,
 changing `K` and `Next` to deferred bindings slowed this scalar workload to
 6.627 s; the deferred-binding rejection was not removed. An independent `k`
 bound cuts DFS frames from 421978 to 204620 and measured 0.955 s, while flattening
-frames into four scalar stack entries measured 0.201 s. These source variants
-remain benchmark experiments.
+frames into four scalar stack entries measured 0.201 s. At this compiler stage,
+these source variants remained benchmark experiments.
 
 [Measurements, limitations and reproduction](../../benchmarks/euler088-stack-results.md)
 include source hashes, baseline artifact hashes, three-sample timing/RSS data,
@@ -2332,3 +2332,15 @@ fallbacks and unused deferred expressions. Existing receiver-rebinding/Turbo
 tests now check compilation and retained traversal snapshots. The stale
 Euler 060 helper test was repaired to check its existing 3-to-7 edge in the
 current bitset representation instead of the removed `.graph` field.
+
+The follow-up adopts the exact next-factor `k` bound in Euler 088, retaining
+array frames and nondecreasing DFS order. The root retains its product bound;
+other frames intersect it with `(Limit + Sum - Cnt - 1) // (Prod - 1)`.
+Factor extension cannot decrease `k`, so excluded children cannot later produce
+an eligible size. Frame count falls from 421978 to 204620. On the same runtime,
+three-sample medians improve from 1.708 to 0.963 s for the main and 1.736 to
+0.804 s for the fixture, which also gains assertions for every minimum at limits
+6 and 12. Both files pass differential and name/type audits. Every benchmark
+main checks the complete `Best` vector against an independent unpruned DFS.
+The benchmark archives the old main/fixture to preserve historical comparisons;
+the linked report records both optimization stages and their separate samples.

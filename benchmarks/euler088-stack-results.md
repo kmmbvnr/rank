@@ -18,7 +18,7 @@ the ordinary collection type and ownership checks. Unpack checks arity and
 snapshots cells before committing target bindings, retaining placeholder,
 duplicate-target, partial-store and error-location behavior.
 
-The complete original DFS now executes as one exact integer loop. No demo,
+At the compiler stage, the complete original DFS executes as one exact integer loop. No demo,
 algorithm, default input, assertion, execution lane or timeout was changed.
 Loops that write arrays retained by a deque, including their aliases, keep the
 reference path: they need per-statement copy-on-write beyond the existing
@@ -52,7 +52,9 @@ to the total.
 
 ## Separate experiments
 
-These variants exist only in the benchmark; none replaces the shipped demo.
+These variants were compared separately from the compiler change. The `k` bound
+was subsequently adopted in the demo, as recorded below; scalar frames and
+deferred bindings remain benchmark experiments.
 Every main run checks all 12001 `Best` entries against an independent numeric
 DFS, in addition to checking the answer. All variants retain exact integer
 arithmetic in Rank.
@@ -100,3 +102,33 @@ tests cover stack/queue/deque growth, scalar domains, signed literal cells,
 unpack placeholders and duplicate targets, arity errors, earlier completed
 stores, empty pops, host overrides, copy-on-write fallbacks and unused deferred
 expressions. Broader validation is recorded in the compiler progress log.
+
+## Adopted algorithm bound
+
+After preserving the compiler work separately in `42d3f103`, the demo adopts
+the `k` bound described above. Its nondecreasing-factor DFS and array frames
+remain intact. No factor list that could produce `k <= Limit` is discarded:
+appending a factor changes `k` by `(Prod - 1) * (F - 1)`, which is nonnegative.
+The `Prod = 1` root keeps the original product bound.
+
+Three new serial fresh-process samples per case on the same compiled runtime,
+reversing case order between samples:
+
+| Workload | Original bound, s | Selected bound, s | Speedup | Original peak RSS, MiB | Selected peak RSS, MiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Main | 1.708 | 0.963 | 1.77x | 605.7 | 615.4 |
+| Fixture, three tests | 1.736 | 0.804 | 2.16x | 618.4 | 513.4 |
+
+The selected fixture also checks every minimum at limits 6 and 12. Both files
+pass reference/compiled differential execution and the name/type audit; all
+default and small assertions remain. Every timed main run compares the complete
+`Best` vector to the independent unpruned numeric DFS. The bound reduces frame
+allocation count, but does not shrink the initial stack peak; main-process peak
+RSS did not improve in this comparison.
+
+[Raw algorithm-stage samples](baselines/2026-10-26-euler088-pruning.json).
+The benchmark retains the original main and fixture under `benchmarks/fixtures`
+so the compiler-stage comparison continues to use its original sources. Run
+`node benchmarks/euler-product-sums.mjs --samples=3 --cases=stack,pruned,fixture,pruned-fixture`
+to compare the bounds on one runtime. The historical compiler-stage raw samples
+remain unchanged.

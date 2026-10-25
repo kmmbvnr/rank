@@ -1,0 +1,32 @@
+use testing
+
+test "default input"
+  use "088_productsum_stack"
+  run
+
+  Answer equal 7587457
+end
+
+test "statement sizes up to 6 and 12"
+  use "088_productsum_stack"
+  Limit = 6
+  run
+
+  Answer equal 30
+  Limit = 12
+  run
+
+  Answer equal 61
+end
+
+test "smallest sizes"
+  use "088_productsum_stack"
+  Limit = 2
+  run
+
+  Answer equal 4
+  Limit = 3
+  run
+
+  Answer equal 10
+end

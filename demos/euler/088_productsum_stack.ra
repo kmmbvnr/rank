@@ -23,7 +23,13 @@ for Todo len greater 0
       Best K = Prod
     end
   end
-  for F in Low to Big // Prod
+  High = Big // Prod
+  rem The next k is (Prod - 1) * F - Sum + Cnt + 1.
+  rem Larger k cannot decrease by adding more factors.
+  if Prod greater 1
+    High = High min ((Limit + Sum - Cnt - 1) // (Prod - 1))
+  end
+  for F in Low to High
     Next = Prod * F
     Todo push array Next (Sum + F) (Cnt + 1) F
   end

@@ -1,0 +1,221 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "runtime": "current checkout",
+  "diagnostics": false,
+  "frames": {
+    "original": 421978,
+    "pruned": 204620
+  },
+  "measurements": "serial fresh processes; complete execution including parsing; process peak RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "current",
+      "case": "stack",
+      "executeMs": 1733.584125,
+      "peakRssKiB": 622416,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "current",
+      "case": "fixture",
+      "executeMs": 1732.525584,
+      "peakRssKiB": 633520,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1611.439042
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 7.226542000000109
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.3990839999999025
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "current",
+      "case": "pruned",
+      "executeMs": 963.3148750000001,
+      "peakRssKiB": 630176,
+      "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "current",
+      "case": "pruned-fixture",
+      "executeMs": 798.762625,
+      "peakRssKiB": 525680,
+      "sourceHash": "10fdf936c810f205de659695e7bda74d8844b4763c0b21648b051fd1f2aedd22",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 661.830834
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 9.07016699999997
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.441416000000004
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "current",
+      "case": "pruned-fixture",
+      "executeMs": 803.911417,
+      "peakRssKiB": 524496,
+      "sourceHash": "10fdf936c810f205de659695e7bda74d8844b4763c0b21648b051fd1f2aedd22",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 664.585375
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 9.252042000000074
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.329916999999909
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "current",
+      "case": "pruned",
+      "executeMs": 959.7270420000001,
+      "peakRssKiB": 628320,
+      "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "current",
+      "case": "fixture",
+      "executeMs": 1735.824708,
+      "peakRssKiB": 631040,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1612.908208
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 7.341333000000077
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.571915999999874
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "current",
+      "case": "stack",
+      "executeMs": 1707.5157920000001,
+      "peakRssKiB": 619808,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "current",
+      "case": "stack",
+      "executeMs": 1703.4475,
+      "peakRssKiB": 620272,
+      "sourceHash": "071c9dda323e4073b81c54f50a56ef00fb6ceae78b9df4d629bcad2c8d394403",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "current",
+      "case": "fixture",
+      "executeMs": 1746.248458,
+      "peakRssKiB": 633248,
+      "sourceHash": "ace85000e5dcc677154c3d971c882b01295c3c01660031e1a941f9493cb54fe1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1621.1374580000002
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 7.418667000000141
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.25545800000009
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "current",
+      "case": "pruned",
+      "executeMs": 971.9667079999999,
+      "peakRssKiB": 642576,
+      "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "current",
+      "case": "pruned-fixture",
+      "executeMs": 816.719167,
+      "peakRssKiB": 531264,
+      "sourceHash": "10fdf936c810f205de659695e7bda74d8844b4763c0b21648b051fd1f2aedd22",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 675.4033750000001
+        },
+        {
+          "name": "statement sizes up to 6 and 12",
+          "passed": true,
+          "durationMs": 8.972582999999986
+        },
+        {
+          "name": "smallest sizes",
+          "passed": true,
+          "durationMs": 5.689333000000033
+        }
+      ]
+    }
+  ],
+  "runtimeRevision": "42d3f1039ef75af032c1a656e8d88deae2842dde",
+  "comparison": "Same compiled runtime for archived unpruned source and selected pruned source; archived fixture has original three tests, selected fixture adds assertions for every minimum at limits 6 and 12."
+}

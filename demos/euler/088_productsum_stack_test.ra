@@ -13,10 +13,12 @@ test "statement sizes up to 6 and 12"
   run
 
   Answer equal 30
+  ((Best drop 2) equal (array 4 6 8 8 12)) all
   Limit = 12
   run
 
   Answer equal 61
+  ((Best drop 2) equal (array 4 6 8 8 12 12 12 15 16 16 16)) all
 end
 
 test "smallest sizes"

@@ -12,22 +12,19 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const file = resolve(root, 'demos/euler/088_productsum_stack.ra');
-const original = readFileSync(file, 'utf8');
+const original = readFileSync(resolve(root, 'benchmarks/fixtures/euler088-stack.ra'), 'utf8');
 const scalar = original.replace('Todo push array 1 0 0 2', 'Todo push 1\nTodo push 0\nTodo push 0\nTodo push 2')
     .replace('  Frame = Todo pop\n  unpack Prod Sum Cnt Low = Frame', '  Low = Todo pop\n  Cnt = Todo pop\n  Sum = Todo pop\n  Prod = Todo pop')
     .replace('    Todo push array Next (Sum + F) (Cnt + 1) F', '    Todo push Next\n    Todo push (Sum + F)\n    Todo push (Cnt + 1)\n    Todo push F');
-const pruned = original.replace('  for F in Low to Big // Prod', `  High = Big // Prod
-  if Prod greater 1
-    High = High min ((Limit + Sum - Cnt - 1) // (Prod - 1))
-  end
-  for F in Low to High`);
+const pruned = readFileSync(file, 'utf8');
 const lazy = original.replace('  K = Prod - Sum + Cnt', "  K' = Prod - Sum + Cnt")
     .replace('    Next = Prod * F', "    Next' = Prod * F");
 const cases = [
     { name: 'stack', source: original },
-    { name: 'fixture', source: readFileSync(file.replace('.ra', '_test.ra'), 'utf8'), tests: 3 },
+    { name: 'fixture', source: readFileSync(resolve(root, 'benchmarks/fixtures/euler088-stack_test.ra'), 'utf8'), tests: 3, module: original },
     { name: 'scalar', source: scalar },
     { name: 'pruned', source: pruned },
+    { name: 'pruned-fixture', source: readFileSync(file.replace('.ra', '_test.ra'), 'utf8'), tests: 3 },
     { name: 'lazy', source: lazy },
 ];
 
@@ -60,7 +57,7 @@ if (option('worker')) {
         compilation: option('engine') !== 'reference', testing: true, sourceId,
         loadModule(specifier, from) {
             const id = resolve(dirname(from ?? sourceId), specifier.endsWith('.ra') ? specifier : specifier + '.ra');
-            return { id, source: readFileSync(id, 'utf8') };
+            return { id, source: id === file && entry.module ? entry.module : readFileSync(id, 'utf8') };
         },
     });
     try {
