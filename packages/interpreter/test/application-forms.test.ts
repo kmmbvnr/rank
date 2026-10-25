@@ -106,3 +106,18 @@ Result = 6 source State window 3`);
         expect(runtime.execute('State .calls')).toBe(1n);
     } finally { runtime.dispose(); }
 });
+
+it.each([false, true])('rejects standalone axis addressing (compilation=%s)', compilation => {
+    const runtime = new Interpreter(undefined, { compilation, tensorFusion: compilation });
+    try {
+        runtime.execute('use sequences\nA = (1 to 6) reshape 2 3\nJ = 1\nRows = array 1 0');
+        for (const expression of [
+            'A axis 1 J', 'A axis -1 0', 'A axis 0 Rows',
+            'A axis 1 (array 0 2) sum', 'A axis 1 J less 3',
+        ]) {
+            expect(() => runtime.execute(expression)).toThrow('unknown name: axis');
+        }
+        expect(formatValue(runtime.execute('A # J')!)).toBe('2 5');
+        expect(formatValue(runtime.execute('A Rows #')!)).toBe('4 5 6 1 2 3');
+    } finally { runtime.dispose(); }
+});

@@ -1623,16 +1623,14 @@ chain fails if that value is not addressable. Invalid indices and masks whose
 length differs from their axis are errors. Outside tensor addressing, `#` is
 valid only as a discarded `for` binding.
 
-`axis` remains the explicit form when an operation consumes or selects a named
-axis:
+`axis` modifies an operation; positional selectors address tensor axes:
 
 ```rank
 Means = A mean axis 0
-Column = A axis 1 j
+Column = A # j
 ```
 
-The first expression reduces axis 0. The second selects position `j` on axis 1
-and is equivalent to `A # j`.
+The first expression reduces axis 0. The second selects position `j` on axis 1.
 
 ## Boolean addressing
 
@@ -1809,20 +1807,20 @@ consumes the rest of the expression:
 
 ```rank
 Letters = Text array 0 2 6
-Rows = M axis 0 array 2 0 2
+Rows = M (array 2 0 2) #
 ```
 
 A selector can also be named and reused:
 
 ```rank
 Order = array 2 0 2
-Rows = M axis 0 Order
+Rows = M Order #
 ```
 
 Positions are returned in selector order and may repeat. A scalar integer
 removes its axis. A range or rank-1 boolean mask retains one axis; an integer
 array replaces that axis with its full shape, including empty dimensions.
-Without an explicit `axis`, an integer-array selector applies to the leading
+An integer-array selector in the first position applies to the leading
 axis: `A Ix` has shape `shape(Ix)` followed by the trailing axes of `A`.
 
 ```rank
@@ -6622,11 +6620,11 @@ yields atoms; a rank equal to the tensor rank yields the whole tensor once.
 Iteration produces cells in row-major frame order.
 
 A range selects a slice and an integer array selects arbitrary positions;
-`#` keeps a whole axis, and `axis` names the axis for an index array:
+`#` keeps a whole axis, so positional selectors can address any axis:
 
 ```rank
 Rows = M (1 till 4)
-Columns = M axis 1 array 0 2 5
+Columns = M # array 0 2 5
 ```
 
 A range preserves one axis with the selected length. An integer index array

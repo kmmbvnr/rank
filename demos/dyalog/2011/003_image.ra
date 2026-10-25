@@ -26,8 +26,7 @@ fun Factors scale Image
   end
   RowIdx' = ((0 till (Rows * V)) // V) array
   ColIdx' = ((0 till (Cols * H)) // H) array
-  Out' = Image axis 0 RowIdx
-  return Out axis 1 ColIdx
+  return Image RowIdx ColIdx
 end
 
 rem Odd positive kernel dimensions; center at (shape - 1) // 2.

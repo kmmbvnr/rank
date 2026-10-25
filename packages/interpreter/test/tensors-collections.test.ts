@@ -246,9 +246,8 @@ describe('Rank tensors and collections', () => {
             '  4 5 6',
             'end',
             'Column = M # 1',
-            'Explicit = M axis 1 1',
-            'tuple (Column shape) Column (M # 1 sum) Explicit',
-        ].join('\n'))).toBe('2 2 5 7 2 5');
+            'tuple (Column shape) Column (M # 1 sum)',
+        ].join('\n'))).toBe('2 2 5 7');
         expect(run([
             'use sequences',
             'T = array shape 2 3 4',

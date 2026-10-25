@@ -165,8 +165,8 @@ resolves to `source rank + A`. Bounds and uniqueness checks use these normalized
 indices: `axis -3` is invalid for a rank-2 matrix, and `axis 1 -1` repeats an
 axis. Reduction input-cell boundaries are checked after normalization too.
 This also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
-`concat`, `window`, `transpose`, `for ... in ... axis ...`, and axis selection
-such as `M axis -1 0`. Array element indices themselves remain nonnegative.
+`concat`, `window`, `transpose`, `for ... in ... axis ...`, and
+`unpack ... = ... axis ...`. Array element indices themselves remain nonnegative.
 
 `reduce <op|fn> rank R axis N` folds trailing rank-R input cells along
 source axis N. The axis must be outside the input cell; other axes form
@@ -543,11 +543,11 @@ yields atoms; a rank equal to the tensor rank yields the whole tensor once.
 Iteration produces cells in row-major frame order.
 
 A range selects a slice and an integer array selects arbitrary positions;
-`#` keeps a whole axis, and `axis` names the axis for an index array:
+`#` keeps a whole axis, so positional selectors can address any axis:
 
 ```rank
 Rows = M (1 till 4)
-Columns = M axis 1 array 0 2 5
+Columns = M # array 0 2 5
 ```
 
 A range preserves one axis with the selected length. An integer index array

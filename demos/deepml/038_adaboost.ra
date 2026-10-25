@@ -9,7 +9,7 @@ rem Predict with one decision stump.
 fun X Feature Limit Sign stump
   N = X len
   Pred = array shape N fill 1
-  Negative' = X axis 1 Feature less Limit
+  Negative' = X # Feature less Limit
 
   if Sign equal -1
     Negative' = not Negative
@@ -45,7 +45,7 @@ fun X Y Classifiers adaboost_fit
     MinError = infinity
 
     for Feature in 0 till Features
-      Column' = X axis 1 Feature
+      Column' = X # Feature
       Limits = Column unique sort
 
       for Limit in Limits

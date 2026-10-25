@@ -3,10 +3,10 @@ rem https://www.deep-ml.com/problems/31
 
 rem Split rows by one feature threshold.
 fun X Feature Limit divide_on_feature
-  Values' = X axis 1 Feature
+  Values' = X # Feature
   Above = Values at least Limit
 
-  High' = X axis 0 Above
-  Low' = X axis 0 (not Above)
+  High' = X Above #
+  Low' = X (not Above) #
   return tuple High Low
 end

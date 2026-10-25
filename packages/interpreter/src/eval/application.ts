@@ -33,7 +33,7 @@ import { type Operators } from '../operators.js';
 import { type RankApplication } from '../rank-application.js';
 import type { ReductionEvaluator } from '../reduction.js';
 import type { ResourceOwnership } from '../resource-ownership.js';
-import { ALL_AXIS, selectAxis } from '../selectors.js';
+import { ALL_AXIS } from '../selectors.js';
 import { safeDimension } from '../tensor-index.js';
 import { broadcastShape, rankedBroadcastShapes } from '../tensor-layout.js';
 import { denseScalarItems, reshapeStoredArray } from '../owned-array.js';
@@ -421,16 +421,6 @@ export class ApplicationEvaluator {
                         return context.reductions.evaluateNamedReduction(operation, source, seed, rank, axes);
                     }
                     return context.reductions.evaluateNamedScan(operation, source, seed, namedAxis, rank);
-                };
-            }
-            case 'axis-selection': {
-                const axisSelection = form;
-                return function* (): Execution<RankValue> {
-                    return selectAxis(
-                        (yield* resume(context.evaluate(axisSelection.source))),
-                        axisSelection.axis,
-                        (yield* resume(context.evaluate(axisSelection.selector))),
-                    );
                 };
             }
             case 'plain': {

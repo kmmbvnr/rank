@@ -43,7 +43,7 @@ fun Titles seek Query
   rem Positive overlap also excludes tokenless titles before cosine.
   Hits = (TitleVecs matmul QueryVec) greater 0
   HitTitles = Titles Hits array
-  HitVecs' = TitleVecs axis 0 Hits
+  HitVecs' = TitleVecs Hits #
   HitScores' = HitVecs cosine QueryVec rank 1 1
   Order' = HitScores argsort .descending
   Best = Order take 10

@@ -379,16 +379,14 @@ shape `B K`, `Probabilities Rows Candidates rank 0 1` retrieves K candidate
 class scores per sample. These gathers do not compute the class indices or
 the loss themselves.
 
-`axis` remains the explicit form when an operation consumes or selects a named
-axis:
+`axis` modifies an operation; positional selectors address tensor axes:
 
 ```rank
 Means = A mean axis 0
-Column = A axis 1 j
+Column = A # j
 ```
 
-The first expression reduces axis 0. The second selects position `j` on axis 1
-and is equivalent to `A # j`.
+The first expression reduces axis 0. The second selects position `j` on axis 1.
 
 ## Boolean addressing
 
@@ -551,20 +549,20 @@ consumes the rest of the expression:
 
 ```rank
 Letters = Text array 0 2 6
-Rows = M axis 0 array 2 0 2
+Rows = M (array 2 0 2) #
 ```
 
 A selector can also be named and reused:
 
 ```rank
 Order = array 2 0 2
-Rows = M axis 0 Order
+Rows = M Order #
 ```
 
 Positions are returned in selector order and may repeat. A scalar integer
 removes its axis. A range or rank-1 boolean mask retains one axis; an integer
 array replaces that axis with its full shape, including empty dimensions.
-Without an explicit `axis`, an integer-array selector applies to the leading
+An integer-array selector in the first position applies to the leading
 axis: `A Ix` has shape `shape(Ix)` followed by the trailing axes of `A`.
 
 ```rank

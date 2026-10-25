@@ -896,7 +896,7 @@ Result`)).toBe('itb');
 
         const rows = new Interpreter().execute([
             ...matrix,
-            'M axis 0 array 1 0 1',
+            'M (array 1 0 1) #',
         ].join('\n'));
         expect(rows).toMatchObject({
             kind: 'array',
@@ -906,7 +906,7 @@ Result`)).toBe('itb');
 
         const reorderedColumns = new Interpreter().execute([
             ...matrix,
-            'M axis 1 array 2 0',
+            'M # array 2 0',
         ].join('\n'));
         expect(reorderedColumns).toMatchObject({
             kind: 'array',

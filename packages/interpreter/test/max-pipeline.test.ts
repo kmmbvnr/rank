@@ -22,8 +22,8 @@ ${expression}`)!);
     it.each([
         ['A max', '8'], ['A max B', '3 8'], ['A 0 max', '1'],
         ['M # 0 max', '4'], ['M 1 # max', '6'],
-        ['M axis 1 (array 0 2) max', '6'], ['M # 0 max axis 0', '4'],
-        ['M # 0 sum axis 0', '5'], ['M axis 1 (array 0 2) sum', '14'],
+        ['M # (array 0 2) max', '6'], ['M # 0 max axis 0', '4'],
+        ['M # 0 sum axis 0', '5'], ['M # (array 0 2) sum', '14'],
         ['A max B sum', '11'], ['A max B 0', '3 8'],
         ['A 0 max B 1', '5'], ['2 max 3 max 4', '4'],
         ['2 + 3 max 4', '5'], ['A max + 1', '9'], ['2 max -3', '2'],

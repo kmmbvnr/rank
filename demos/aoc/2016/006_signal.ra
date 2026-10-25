@@ -26,7 +26,7 @@ fun Lines solve
   Least = ""
 
   for J in 0 till Width
-    Column = Grid axis 1 J
+    Column = Grid # J
     Letters = Column unique
     Matches' = Column Letters outer equal
     Counts = Matches count axis 0

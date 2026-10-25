@@ -24,12 +24,12 @@ describe.each([false, true])('ranked integer gathers (compilation=%s)', compilat
         });
     });
 
-    it('supports rank-3 selectors and explicit non-leading axes', () => {
+    it('supports rank-3 selectors and non-leading axes with #', () => {
         run('A = array 10 20 30\nIx = ((0 till 8) mod 3) reshape 2 2 2\nA Ix', value => {
             expect(value.shape).toEqual([2, 2, 2]);
             expect(value.items).toEqual([10n, 20n, 30n, 10n, 20n, 30n, 10n, 20n]);
         });
-        run('A = (0 till 6) reshape 2 3\nIx = (array 2 0 1 2) reshape 2 2\nA axis 1 Ix', value => {
+        run('A = (0 till 6) reshape 2 3\nIx = (array 2 0 1 2) reshape 2 2\nA # Ix', value => {
             expect(value.shape).toEqual([2, 2, 2]);
             expect(value.items).toEqual([2n, 0n, 1n, 2n, 5n, 3n, 4n, 5n]);
         });

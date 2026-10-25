@@ -32,7 +32,7 @@ it.each(['M reduce + axis 1 -1', 'M sum axis 1 -1', 'M reverse axis 1 -1',
     'M transpose axis 1 -1', 'M window 1 1 axis 1 -1', 'M M equal axis 1 -1'])('diagnoses normalized duplicates: %s', expression => {
     expect(analyze('Result = ' + expression).diagnostics.some(d => d.message.includes('unique'))).toBe(true);
 });
-it.each(['M reduce + axis -3', 'M sum axis -3', 'M reverse axis -3', 'M axis -3 0',
+it.each(['M reduce + axis -3', 'M sum axis -3', 'M reverse axis -3',
     'M scan + axis -3', 'M transpose axis 0 -3', 'M window 1 axis -3'])('diagnoses out-of-range axes: %s', expression => {
     expect(analyze('Result = ' + expression).diagnostics.some(d => d.message.includes('invalid for rank 2'))).toBe(true);
 });

@@ -406,13 +406,6 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                     parts.push(part);
                 }
             }
-            // Explicit axis selection has a fixed receiver/axis/selector boundary.
-            if (parts.length > 4 && isNameExpression(parts[1]) && parts[1].name === 'axis'
-                && !(isNameExpression(parts[0]) && symbolic.has(parts[0].name))
-                && standard(parts[1]) && ![parts[3], parts[4]].some(part =>
-                    isNameExpression(part) && (modifiers.has(part.name) || higherOrderParameters.has(part.name)))) {
-                parts.splice(0, 4, grouped(application(parts.slice(0, 4), expression)));
-            }
             const first = parts.findIndex((part, index) => index > 0 && callable(part));
             const operation = first > 0 && isNameExpression(parts[first]) ? parts[first] as NameExpression : undefined;
             const arities = operation && (metadata(operation).arities ?? operationArities(operation.name));

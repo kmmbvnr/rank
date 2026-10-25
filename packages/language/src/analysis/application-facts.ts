@@ -339,7 +339,7 @@ export function applicationFormFacts(expression: Expression, form: ApplicationFo
         // These forms have runtime implementations but no abstract transfer yet.
         case 'collection-mutation': case 'unpack': case 'invalid': case 'axis-quantile':
         case 'axis-shift': case 'axis-shuffle': case 'axis-argsort': case 'axis-metric':
-        case 'axis-transpose': case 'axis-selection':
+        case 'axis-transpose':
             return UNKNOWN_VALUE;
         case 'comparison-rank':
             return symbolicFormFacts(form, lookup, infer) ?? UNKNOWN_VALUE;

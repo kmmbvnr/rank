@@ -15,7 +15,7 @@ describe.each([false, true])('negative tensor axes (compilation=%s)', compilatio
         ...['all', 'any', 'count'].map(op => `B = M greater 3\nB ${op} axis AX`),
         'M mse M axis AX', 'M mae M axis AX', 'M reverse axis AX',
         'M shift 1 axis AX', 'concat M M axis AX', 'M window 2 axis AX',
-        'M M equal axis AX', 'M axis AX 0',
+        'M M equal axis AX',
         'M len axis AX', 'M argsort axis AX', 'M shuffle 42 axis AX',
         'M quantile 0.5 axis AX',
         'fun X flip\n return X reverse\nend\nM flip axis AX',
@@ -48,7 +48,7 @@ describe.each([false, true])('negative tensor axes (compilation=%s)', compilatio
         expect(() => run(prefix + form.replace('AX', '1 -1'))).toThrow('unique');
     });
     it.each(['M reduce + axis -3', 'M sum axis -3', 'M reverse axis -3', 'M scan + axis -3',
-        'M axis -3 0', 'M window 1 axis -3', 'concat M M axis -3'])('rejects out-of-range axes: %s', form => {
+        'M window 1 axis -3', 'concat M M axis -3'])('rejects out-of-range axes: %s', form => {
         expect(() => run(prefix + form)).toThrow(/(axis.*(bounds|invalid|rank)|has no axis)/);
     });
     it('rejects scalar and unsafe axes without clamping', () => {

@@ -408,7 +408,6 @@ export type ApplicationForm =
     | Recognized<'named-segment', typeof explicitNamedSegmentApplication>
     | Recognized<'named-scan', typeof explicitNamedScanApplication>
     | Recognized<'named-reduce', typeof explicitNamedReduceApplication>
-    | Recognized<'axis-selection', typeof explicitAxisSelection>
     | Recognized<'graph-edges', typeof explicitGraphEdges>
     | Recognized<'dsu-method', typeof explicitDsuMethod>
     | Recognized<'functional-method', typeof explicitFunctionalMethod>
@@ -589,8 +588,6 @@ function classifyParts(parts: Expression[], lookup: ApplicationLookup, nameOf: N
     if (form13) return { ...form13, kind: 'axis-transpose' };
     const form14 = explicitNamedSegmentApplication(parts, nameOf);
     if (form14) return { ...form14, kind: 'named-segment' };
-    const form16 = explicitAxisSelection(parts, nameOf);
-    if (form16) return { ...form16, kind: 'axis-selection' };
     const form17 = explicitGraphEdges(parts, nameOf);
     if (form17) return { ...form17, kind: 'graph-edges' };
     const form18 = explicitDsuMethod(parts, nameOf);
@@ -625,18 +622,6 @@ function literalDimension(value: bigint, name: string): number {
 }
 
 const COMPARISON_OPERATORS = new Set(['equal', 'notequal', 'less', 'greater', 'atleast', 'atmost']);
-function explicitAxisSelection(
-    parts: Expression[], nameOf: NameOf,
-): { source: Expression; axis: number; selector: Expression } | undefined {
-    if (parts.length !== 4 || !isNamed(parts[1], 'axis', nameOf)
-        || rankLiteral(parts[2]) === undefined) return undefined;
-    return {
-        source: parts[0],
-        axis: literalDimension(integerLiteral(parts[2], 'axis'), 'axis'),
-        selector: parts[3],
-    };
-}
-
 function explicitAxisLength(
     parts: Expression[], nameOf: NameOf,
 ): { source: Expression; axis: number } | undefined {

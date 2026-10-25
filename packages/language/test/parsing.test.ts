@@ -834,7 +834,7 @@ describe('Rank grammar', () => {
             'Part = Text (L till R)',
             'Letters = Text array 0 2 6',
             'Rows = M (First to Last)',
-            'Columns = M axis 1 array 0 2',
+            'Columns = M # array 0 2',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);

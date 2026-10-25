@@ -22,7 +22,7 @@ it.each([
     ['A quantile 0.5 axis 1', 'axis-quantile'], ['A mse B axis 1', 'axis-metric'],
     ['A transpose axis 1 0', 'axis-transpose'], ['A matmul B axis 1 0', 'axis-matmul'],
     ['A covariance axis 0 1', 'axis-covariance'], ['A corr axis 0 1', 'axis-correlation'],
-    ['A sum rank 1', 'rank'], ['A axis 1 0', 'axis-selection'],
+    ['A sum rank 1', 'rank'],
     ['A window 2 3', 'window'], ['A window unpack Sizes', 'window'],
     ['A window 2 3 shape', 'plain'], ['A window 2 3 axis 0 1 shape', 'plain'],
     ['A window 2 axis 0', 'window'], ['A shift 1 with 9', 'axis-shift'],
@@ -44,6 +44,14 @@ it.each([
     const statement = parsed.value.statements[0];
     if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
     expect(applicationForm(statement.value).kind).toBe(kind);
+});
+
+it.each(['A axis 1 j', 'A axis -1 0', 'A axis 0 Rows'])('does not recognize standalone axis addressing: %s', source => {
+    const parsed = parser.parse<Program>(`Result = ${source}\n`);
+    expect(parsed.parserErrors).toEqual([]);
+    const statement = parsed.value.statements[0];
+    if (!isAssignmentStatement(statement)) throw new Error('expected assignment');
+    expect(applicationForm(statement.value).kind).toBe('plain');
 });
 
 it('uses operation identity for aliases and does not confuse a user function with a builtin', () => {
