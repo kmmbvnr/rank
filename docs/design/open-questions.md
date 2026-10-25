@@ -580,6 +580,16 @@ Independent cell-axis selection for the two arguments of an arbitrary binary
 function remains open. The existing `matmul` contraction pair, covariance's
 feature/observation pair, and `transpose` permutation keep their own contracts.
 
+`reduce` and `scan` have a related gap. After `axis` removes the traversal
+axes, `rank R` always takes the trailing `R` remaining axes as the input cell.
+For shape `A B C`, `T reduce + rank 1 axis 0` therefore folds cells along `C`
+with `B` as a frame; there is no spelling for cells along `B` with `C` as the
+frame, so a `transpose` is needed first. The same limit applies to `outer` and
+to user binary functions that need non-trailing cell axes for each operand.
+No demo or task needs this yet. Revisit it when a real program does, and
+compare with how APL, J, K and BQN handle it (they use axis reordering or
+`transpose` rather than a general cell-axis selector).
+
 ## Smoothing the "modern BASIC" learning curve (follow-up directions)
 
 To keep the entry threshold true to the *"modern BASIC"* promise while retaining

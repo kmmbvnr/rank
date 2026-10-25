@@ -21,6 +21,23 @@ M = A reshape 2 3
 `A` stays a vector; `M` is a matrix. Assigning `M` back to `A` is an error.
 Function parameters and local variables establish their rank per call.
 
+## How `axis` and `rank` read
+
+The same two words serve three kinds of operation. `rank R` always selects the
+trailing `R` axes as a cell; `axis` names axes explicitly.
+
+| Kind | Examples | `axis` means | `rank` means |
+| --- | --- | --- | --- |
+| One input | `sum`, `sort`, `inverse`, `normalize` | The cell axes the function works inside; the other axes form the frame (a batch that repeats the function). | The trailing `R` axes form the cell. |
+| Fold | `reduce`, `scan` | The traversal axes the accumulator steps along; they are removed first. | After removal, the trailing `R` remaining axes form the input cell passed to each step. |
+| Two inputs | `matmul`, `equal`, `less` | `axis L R`: axis `L` of the left operand is paired with axis `R` of the right one (contracted by `matmul`, compared as a vector cell by `equal`). | `rank L R`: one cell rank per operand. |
+
+For example, `M sum axis 0` consumes axis 0 and leaves one total per column;
+`M reduce + axis 0` steps down axis 0 and gives the same result;
+`Q matmul K axis 1 1` contracts axis 1 of both matrices. See the
+[canonical rank rules](sequences-arrays.md#rank) for frame broadcasting and
+result assembly.
+
 ## Core operations
 
 The current implementation includes dense construction through `array shape`

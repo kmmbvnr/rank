@@ -87,6 +87,24 @@ all elements, while `scan` requires a
 rank-1 input. Omit `rank` for scalar
 folds over lazy sequences and text.
 
+### What axis means
+
+`axis` always names axes, but its job
+depends on the operation.
+
+One input, as in `sum`, `sort` or
+`inverse`: `axis` names the axes the
+function works inside. The other axes
+repeat it, like a batch.
+
+`reduce` and `scan`: `axis` is the axis
+the running value steps along, and
+`rank` is the size of each step.
+
+Two inputs, as in `matmul` or `equal`:
+`axis L R` joins axis L of the left
+input with axis R of the right one.
+
 ### See also
 
 use, array, for, fun
