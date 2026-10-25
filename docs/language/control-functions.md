@@ -89,7 +89,7 @@ rem 10
 
 Each named loop item is recursively completed when bound. The iterable is
 consumed directly without retaining its whole source. Loop names have no
-apostrophe form. Index and coordinate names bind ready integers.
+apostrophe form. The optional index name binds a ready integer (a text key for an object).
 
 A condition after `for` is evaluated before every iteration:
 

@@ -183,7 +183,7 @@ end`);
     } finally { runtime.dispose(); }
 });
 
-it.each([false, true])('demands a selected empty ranked loop cell before breaking (compilation=%s)', compilation => {
+it.each([false, true])('demands a selected empty leading-axis loop cell before breaking (compilation=%s)', compilation => {
     const output: string[] = [];
     const runtime = new Interpreter(line => output.push(line), { compilation });
     try {
@@ -193,7 +193,7 @@ fun X empty
  return array shape 0 fill 0
 end
 Rows' = (array 1 2 3) empty rank 0
-for Row in Rows rank 1
+for Row in Rows
  break
 end`);
         expect(output).toEqual(['1']);

@@ -165,7 +165,7 @@ resolves to `source rank + A`. Bounds and uniqueness checks use these normalized
 indices: `axis -3` is invalid for a rank-2 matrix, and `axis 1 -1` repeats an
 axis. Reduction input-cell boundaries are checked after normalization too.
 This also applies to scans, ranked calls, comparisons, `reverse`, `shift`,
-`concat`, `window`, `transpose`, `for ... in ... axis ...`, and
+`concat`, `window`, `transpose`, and
 `unpack ... = ... axis ...`. Array element indices themselves remain nonnegative.
 
 `reduce <op|fn> rank R axis N` folds trailing rank-R input cells along
@@ -496,10 +496,9 @@ rem one position for every code
 `M find Targets rank 1 0` pairs each row of `M` with its own target. Each cell
 result here is a scalar position; other functions may return array cells.
 
-## Iteration by axis and cell rank
+## Iteration along the leading axis
 
-Ordinary `for` over a rank-N tensor yields its rank-(N-1) cells along the
-leading axis:
+`for` over a rank-N tensor yields its rank-(N-1) cells along axis 0:
 
 ```rank
 for Row i in M
@@ -507,40 +506,22 @@ for Row i in M
 end
 ```
 
-A bare `rank` in the iterable position selects trailing cells. The leading
-frame supplies the coordinate bindings:
+The first binding receives the cell. The optional second binding receives its
+zero-based leading-axis index. Either binding may use `#` as a placeholder.
+`for` does not accept `axis` or `rank` modifiers or multiple coordinate bindings.
+
+To visit columns, iterate a range and select each column with `#` addressing:
 
 ```rank
-for Value i j in M rank 0
-  Value print
-end
-```
-
-`axis` explicitly lists the axes of each cell. The remaining axes are iterated. It is core contextual
-vocabulary, not a reserved grammar keyword, and it comes before its numeric
-arguments so they cannot be confused with addressing:
-
-```rank
-for Column j in M axis 0
+for j in 0 till (M len axis 1)
+  Column = M # j
   Column print
 end
-
-for Line i j in T axis 2
-  Line print
-end
 ```
 
-The first binding receives the cell. Subsequent bindings receive coordinates
-for the remaining frame axes in natural source order. Index bindings may be omitted.
-Axis numbers are zero-based and unique, and this invariant must hold:
-
-```text
-number of frame axes + cell rank = tensor rank
-```
-
-Without `axis`, the frame axes are the leading axes in natural order. `rank 0`
-yields atoms; a rank equal to the tensor rank yields the whole tensor once.
-Iteration produces cells in row-major frame order.
+Use nested index ranges for individual tensor coordinates. Ordinary operations
+in the source expression retain their modifiers, for example
+`for Mean in (M mean axis 0)`.
 
 A range selects a slice and an integer array selects arbitrary positions;
 `#` keeps a whole axis, so positional selectors can address any axis:

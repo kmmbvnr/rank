@@ -134,18 +134,17 @@ Total`);
         expect(result.value).toBe('4');
     });
 
-    it('keeps ranked tensor iteration on its established path', () => {
+    it('keeps leading-axis tensor iteration on its established path', () => {
         const result = compare(`use io
 M = array shape 2 2
   1 2
   3 4
 end
-for V i j in M rank 0
+for V i in M
   V print
   i print
-  j print
 end`);
-        expect(result.output).toEqual(['1', '0', '0', '2', '0', '1', '3', '1', '0', '4', '1', '1']);
+        expect(result.output).toEqual(['1 2', '0', '3 4', '1']);
     });
 });
 

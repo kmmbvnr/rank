@@ -63,8 +63,10 @@ M sum axis 0
 `M reverse axis 1` reverses each row
 and keeps the matrix layout. A function
 can receive a whole column with
-`M F axis 0`; a loop can use
-`for Column j in M axis 0`.
+`M F axis 0`. Loops visit rows along
+axis 0. To visit columns, use
+`for j in 0 till (M len axis 1)` and
+select `Column = M # j` in the body.
 
 `rank 1` chooses the last axis instead
 of naming it. On a matrix this means

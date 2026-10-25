@@ -33,7 +33,7 @@ fun Values collecting_updates Swaps
     end
   end
 
-  for Swap in Swaps rank 1
+  for Swap in Swaps
     I = Swap 0 - 1
     J = Swap 1 - 1
     X = A I

@@ -55,8 +55,8 @@ it('normalizes concat and callback axes with known source facts', () => {
     expect(rankedFunctionFacts([source], [1], cells => ({ ...cells[0], shape: [4] }), [-2])).toMatchObject({ rank: 2, shape: [4, 3] });
 });
 
-it('checks all loop cell axes rather than treating the last one as an index', () => {
-    expect(analyze('for Cell in M axis -1\n Cell sum\nend').diagnostics).toEqual([]);
-    expect(analyze('for Cell in M axis 1 -1\n Cell sum\nend').diagnostics.some(d => d.message.includes('unique'))).toBe(true);
-    expect(analyze('for Cell in M axis -3\n Cell sum\nend').diagnostics.some(d => d.message.includes('invalid for rank 2'))).toBe(true);
+it('checks ordinary axis operations in a loop source', () => {
+    expect(analyze('for Cell in (M reverse axis -1)\n Cell sum\nend').diagnostics).toEqual([]);
+    expect(analyze('for Cell in (M reverse axis 1 -1)\n Cell sum\nend').diagnostics.some(d => d.message.includes('unique'))).toBe(true);
+    expect(analyze('for Cell in (M reverse axis -3)\n Cell sum\nend').diagnostics.some(d => d.message.includes('invalid for rank 2'))).toBe(true);
 });

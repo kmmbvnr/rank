@@ -31,20 +31,20 @@ function execute(source: string, compiled: boolean) {
 }
 
 it.each([
-    ['tensor indices', `use sequences
+    ['tensor rows', `use sequences
 M = ((1 to 8) array) reshape 2 2 2
 Total = 0
-for Value Row Column Depth in M rank 0
-  Total += Value + Row + Column + Depth
+for Value Row in M
+  Total += Value sum + Row
 end
-Total`, '48'],
+Total`, '37'],
     ['tensor placeholders', `use sequences
 M = ((1 to 4) array) reshape 2 2
 Total = 0
-for # Row Column in M rank 0
-  Total += Row + Column
+for # Row in M
+  Total += Row
 end
-Total`, '4'],
+Total`, '1'],
     ['effects and continue', `use io
 Total = 0
 for Value in 1 to 4
@@ -75,8 +75,8 @@ end`, undefined],
     expect(reference.loops).toBe(0);
     if (name === 'conditional loop') expect(compiled.loops).toBeGreaterThan(0);
     if (name === 'arity error') {
-        expect(compiled.result.error).toContain('value/index names');
-        expect(compiled.result.output).toEqual(['before']);
+        expect(compiled.result.error).toContain('at most one index name');
+        expect(compiled.result.output).toEqual([]);
     } else expect(compiled.result.error).toBeUndefined();
     if (name === 'effects and continue') expect(compiled.result.output).toEqual(['1', '4', '8']);
 });

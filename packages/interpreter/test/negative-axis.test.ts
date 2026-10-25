@@ -19,7 +19,7 @@ describe.each([false, true])('negative tensor axes (compilation=%s)', compilatio
         'M len axis AX', 'M argsort axis AX', 'M shuffle 42 axis AX',
         'M quantile 0.5 axis AX',
         'fun X flip\n return X reverse\nend\nM flip axis AX',
-        'Total = 0\nfor Col j in M axis AX\n Total += Col sum * (j + 1)\nend\nTotal',
+        'Total = 0\nfor Col j in (M reverse axis AX)\n Total += Col sum * (j + 1)\nend\nTotal',
     ];
     it.each(forms)('%s agrees with the normalized axis', form => {
         for (const [negative, positive] of [['-1', '1'], ['-2', '0']]) {

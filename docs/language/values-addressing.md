@@ -243,16 +243,18 @@ The first name binds the current value and the optional second name binds its
 zero-based index. The names are separate tokens: the whitespace is required.
 With one name, `for Value in A` binds only the value.
 
-Tensor iteration may bind one coordinate name for every frame axis:
+Tensor iteration always walks the leading axis. A matrix yields rows, with
+one optional row index. To visit columns, iterate their indices and use `#`:
 
 ```rank
-for Line i j in T axis 2
-  Line print
+for j in 0 till (M len axis 1)
+  Column = M # j
+  Column print
 end
 ```
 
-`axis` precedes its numbers, so `T axis 0` cannot be mistaken for the ordinary
-addressing expression `T 0`.
+`for` has no `axis` or `rank` modifiers and accepts at most one index binding.
+Use nested ranges and ordinary addressing to visit tensor coordinates.
 
 ## Whole-axis tensor addressing
 

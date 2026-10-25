@@ -8,8 +8,8 @@ const parser = createRankServices(EmptyFileSystem).Rank.parser.LangiumParser;
 it.each([
     ['Value in Items', ['Value']],
     ['Value Index in Items', ['Value', 'Index']],
-    ['Value Row Column Depth in Items', ['Value', 'Row', 'Column', 'Depth']],
-    ['# Row # Depth in Items', ['#', 'Row', '#', 'Depth']],
+    ['Value # in Items', ['Value', '#']],
+    ['# Row in Items', ['#', 'Row']],
     ['# in Items', ['#']],
     ['Count less 10', undefined],
     ['1 in Items', undefined],

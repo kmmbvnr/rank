@@ -585,14 +585,12 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
         const symbolicRight = isNameExpression(rightHead) && symbolic.has(rightHead.name);
         for (const [property, value] of Object.entries(node)) {
             if (property.startsWith('$')) continue;
-            // Symbolic modifiers belong to the binary operation, including its
-            // left operand. Do not group their suffix as a standalone call.
             if (isForStatement(node) && property === 'condition' && isBinaryExpression(value) && value.operator === 'in') {
+                const names = flatten(value.left);
+                if (names.length > 2 && names.every(name => isNameExpression(name) || isAllAxisExpression(name))) report(value.left, 'for expects one value name and at most one index name.');
                 const parts = flatten(value.right);
-                if (parts.some(part => isNameExpression(part) && part.name === 'axis')) {
-                    value.left = visit(value.left) as Expression;
-                    value.right = application(parts.map(part => visit(part) as Expression), value.right);
-                    continue;
+                if (isNameExpression(parts[1]) && ['axis', 'rank'].includes(parts[1].name)) {
+                    report(value.right, 'for does not accept axis or rank modifiers; use ranges and # addressing.');
                 }
             }
             if (isAstNode(value)) record[property] = visit(value, !(symbolicRight && property === 'right'));

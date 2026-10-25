@@ -659,9 +659,9 @@ describe('Rank grammar', () => {
         expect(document.parseResult.value.statements).toHaveLength(2);
     });
 
-    it('parses tensor for bindings with axis and cell rank', async () => {
+    it('parses tensor for bindings with a leading-axis index', async () => {
         const document = await parse([
-            'for Line i j in T axis 2',
+            'for Line i in T',
             '  Total += Line 0',
             'end',
         ].join('\n'));

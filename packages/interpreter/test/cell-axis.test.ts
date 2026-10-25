@@ -22,8 +22,8 @@ describe.each([false, true])('explicit operation cell axes (compilation=%s)', co
         const source = 'use sequences\nT = (1 to 24) reshape 2 3 4\nfun X total\n return X sum\nend\n';
         expect(run(source + 'T total axis 0 2')).toBe(run(source + 'T sum axis 0 2'));
     });
-    it('iterates columns with indices in the complementary frame', () => {
-        expect(run(matrix + 'Total = 0\nfor Col j in M axis 0\n Total += Col sum * (j + 1)\nend\nTotal')).toBe('46');
+    it('iterates columns using explicit addressing', () => {
+        expect(run(matrix + 'Total = 0\nfor j in 0 till (M len axis 1)\n Col = M # j\n Total += Col sum * (j + 1)\nend\nTotal')).toBe('46');
     });
     it('compares selected cells', () => {
         expect(run(matrix + 'M M equal axis 0')).toBe('true true true');

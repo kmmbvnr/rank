@@ -1568,16 +1568,18 @@ The first name binds the current value and the optional second name binds its
 zero-based index. The names are separate tokens: the whitespace is required.
 With one name, `for Value in A` binds only the value.
 
-Tensor iteration may bind one coordinate name for every frame axis:
+Tensor iteration always walks the leading axis. A matrix yields rows, with
+one optional row index. To visit columns, iterate their indices and use `#`:
 
 ```rank
-for Line i j in T axis 2
-  Line print
+for j in 0 till (M len axis 1)
+  Column = M # j
+  Column print
 end
 ```
 
-`axis` precedes its numbers, so `T axis 0` cannot be mistaken for the ordinary
-addressing expression `T 0`.
+`for` has no `axis` or `rank` modifiers and accepts at most one index binding.
+Use nested ranges and ordinary addressing to visit tensor coordinates.
 
 ## Whole-axis tensor addressing
 
@@ -1955,7 +1957,7 @@ rem 10
 
 Each named loop item is recursively completed when bound. The iterable is
 consumed directly without retaining its whole source. Loop names have no
-apostrophe form. Index and coordinate names bind ready integers.
+apostrophe form. The optional index name binds a ready integer (a text key for an object).
 
 A condition after `for` is evaluated before every iteration:
 
@@ -6573,10 +6575,9 @@ runtime error names the function and the two cell shapes. Reduce inside the
 function you lift (`fun Distinct Row` returning `Row unique sum`), pad to a
 fixed width, or iterate rows with `for` to keep ragged results.
 
-## Iteration by axis and cell rank
+## Iteration along the leading axis
 
-Ordinary `for` over a rank-N tensor yields its rank-(N-1) cells along the
-leading axis:
+`for` over a rank-N tensor yields its rank-(N-1) cells along axis 0:
 
 ```rank
 for Row i in M
@@ -6584,40 +6585,22 @@ for Row i in M
 end
 ```
 
-A bare `rank` in the iterable position selects trailing cells. The leading
-frame supplies the coordinate bindings:
+The first binding receives the cell. The optional second binding receives its
+zero-based leading-axis index. Either binding may use `#` as a placeholder.
+`for` does not accept `axis` or `rank` modifiers or multiple coordinate bindings.
+
+To visit columns, iterate a range and select each column with `#` addressing:
 
 ```rank
-for Value i j in M rank 0
-  Value print
-end
-```
-
-`axis` explicitly lists the axes of each cell. The remaining axes are iterated. It is core contextual
-vocabulary, not a reserved grammar keyword, and it comes before its numeric
-arguments so they cannot be confused with addressing:
-
-```rank
-for Column j in M axis 0
+for j in 0 till (M len axis 1)
+  Column = M # j
   Column print
 end
-
-for Line i j in T axis 2
-  Line print
-end
 ```
 
-The first binding receives the cell. Subsequent bindings receive coordinates
-for the remaining frame axes in natural source order. Index bindings may be omitted.
-Axis numbers are zero-based and unique, and this invariant must hold:
-
-```text
-number of frame axes + cell rank = tensor rank
-```
-
-Without `axis`, the frame axes are the leading axes in natural order. `rank 0`
-yields atoms; a rank equal to the tensor rank yields the whole tensor once.
-Iteration produces cells in row-major frame order.
+Use nested index ranges for individual tensor coordinates. Ordinary operations
+in the source expression retain their modifiers, for example
+`for Mean in (M mean axis 0)`.
 
 A range selects a slice and an integer array selects arbitrary positions;
 `#` keeps a whole axis, so positional selectors can address any axis:

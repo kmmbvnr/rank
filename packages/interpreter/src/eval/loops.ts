@@ -1,5 +1,5 @@
 import {
-    flattenApplication, forIteration, isNameExpression,
+    forIteration,
     type Expression, type ForBinding, type ForStatement, type Statement,
 } from '@arrrank/language';
 import { arrayCells, arrayValues, materializedArrayItems, ownedArray, storedScalarKinds } from '../array-storage.js';
@@ -16,16 +16,15 @@ import { hasIntegerIteration } from '../integer-entries.js';
 import { materializeValue } from '../materialize.js';
 import { isRankPlan } from '../plan.js';
 import { compileGeneratorLoop } from '../generator-loop.js';
-import { tensorCells, tensorFrameAxes } from '../rank-application.js';
+import { tensorCells } from '../rank-application.js';
 import { sequenceValues } from '../sequence.js';
 import type { ExecutionContext, LoopControl, PreparedStatement } from '../statement-control.js';
 import { compileTensorCellCopy } from '../tensor-cell-compiler.js';
-import { arrayOffset, coordinatesAt, safeDimension } from '../tensor-index.js';
+import { arrayOffset, coordinatesAt } from '../tensor-index.js';
 import {
     expectBoolean, isRankArray, isRankCounter, isRankMultiset, isRankObject, isRankQueue, isRankSequence, isRankSet,
     typeName, type RankArray, type RankValue,
 } from '../value.js';
-import { integerLiteral } from './application.js';
 
 /** What a loop needs from statement execution. */
 export interface LoopContext {
@@ -101,9 +100,8 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
         let result: RankValue | undefined;
         let preparedBody: (() => Evaluation<RankValue | undefined>) | undefined;
         if (binding) {
-            const spec = tensorIterationSpec(binding.iterable);
-            const iterable = (yield* resume(loop.evaluate(spec?.source ?? binding.iterable)));
-            const flat = loop.options().directIteration !== false && !spec
+            const iterable = (yield* resume(loop.evaluate(binding.iterable)));
+            const flat = loop.options().directIteration !== false
                 && !isRankObject(iterable) && !(isRankArray(iterable) && iterable.shape.length > 1);
             const entries = flat ? iterationAtoms(loop.bindings, binding, iterable)
                 : forEntries(loop.bindings, binding, iterable, loop.options().tensorCellCompilation !== false);
@@ -214,21 +212,8 @@ export function prepareForStatement(statement: ForStatement, loop: LoopContext):
 function* forEntries(
     bindings: BindingEnvironment, binding: ForBinding, value: RankValue, tensorCells: boolean,
 ): IterableIterator<ForEntry> {
-    const spec = tensorIterationSpec(binding.iterable);
-    if (spec) {
-        if (!isRankArray(value)) throw new RankError('ranked for iteration expects an array');
-        const frameAxes = tensorFrameAxes(value.shape, spec.axes, spec.cellRank);
-        validateForBindings(binding.names, frameAxes.length);
-        bindings.declareTypes(binding.names, [
-            spec.cellRank === 0 ? arrayIterationTypes(value) : new Set(['array']),
-            ...frameAxes.map(() => new Set(['integer'])),
-        ]);
-        yield* tensorEntries(value, frameAxes, tensorCells);
-        return;
-    }
-
     if (isRankObject(value)) {
-        validateForBindings(binding.names, 1);
+        validateForBindings(binding.names);
         bindings.declareTypes(binding.names, [
             typesOf(value.entries.values()),
             new Set(['text']),
@@ -239,7 +224,7 @@ function* forEntries(
         return;
     }
     if (isRankArray(value) && value.shape.length > 1) {
-        validateForBindings(binding.names, 1);
+        validateForBindings(binding.names);
         bindings.declareTypes(binding.names, [new Set(['array']), new Set(['integer'])]);
         yield* tensorEntries(value, [0], tensorCells);
         return;
@@ -274,7 +259,7 @@ export function declareIterationTypes(
     bindings: BindingEnvironment, binding: ForBinding, value: RankValue,
     provenType?: 'integer' | 'text',
 ): void {
-    validateForBindings(binding.names, 1);
+    validateForBindings(binding.names);
     if (isRankArray(value)) {
         const types = provenType
             ? new Set(value.shape.every(n => n !== 0) ? [provenType] : [])
@@ -308,34 +293,10 @@ interface ForEntry {
     readonly indices: readonly RankValue[];
 }
 
-interface TensorIterationSpec {
-    readonly source: Expression;
-    readonly axes?: readonly number[];
-    readonly cellRank: number;
-}
-
-function tensorIterationSpec(expression: Expression): TensorIterationSpec | undefined {
-    const parts = flattenApplication(expression);
-    const axisPosition = parts.findIndex(part => isNameExpression(part) && part.name === 'axis');
-    const rankPosition = parts.findIndex(part => isNameExpression(part) && part.name === 'rank');
-    if (axisPosition < 0 && rankPosition < 0) return undefined;
-    const cellRank = rankPosition < 0 ? undefined : safeDimension(integerLiteral(parts[rankPosition + 1], 'rank'), 'rank');
-    if (rankPosition >= 0 && rankPosition !== parts.length - 2) throw new RankError('rank expects one integer');
-    if (axisPosition < 0) {
-        if (rankPosition !== 1) return undefined;
-        return { source: parts[0], cellRank: cellRank! };
-    }
-    if (axisPosition !== 1) throw new RankError('axis expects an array followed by one or more cell axes');
-    const axisParts = parts.slice(2, rankPosition < 0 ? undefined : rankPosition);
-    if (!axisParts.length) throw new RankError('axis expects one or more cell axes');
-    const axes = axisParts.map(axis => safeDimension(integerLiteral(axis, 'axis'), 'axis'));
-    return { source: parts[0], axes, cellRank: cellRank ?? axes.length };
-}
-
-function validateForBindings(names: readonly string[], frameRank: number): void {
-    if (names.length !== 1 && names.length !== frameRank + 1) {
+function validateForBindings(names: readonly string[]): void {
+    if (names.length !== 1 && names.length !== 2) {
         throw new RankError(
-            `for expects one value name or ${frameRank + 1} value/index names, got ${names.length}`,
+            `for expects one value name and at most one index name, got ${names.length}`,
         );
     }
 }

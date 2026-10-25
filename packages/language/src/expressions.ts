@@ -27,13 +27,13 @@ export function flattenApplication(expression: Expression): Expression[] {
     return parts;
 }
 
-/** Syntactic iteration bindings; rank-dependent arity validation belongs to the runtime. */
+/** Syntactic iteration bindings; arity validation also applies to empty sources. */
 export interface ForBinding {
     readonly names: readonly string[];
     readonly iterable: Expression;
 }
 
-/** Preserve every tensor index and placeholder, without treating arbitrary membership as a binding. */
+/** Preserve value/index placeholders, without treating arbitrary membership as a binding. */
 export function forIteration(condition: Expression | undefined): ForBinding | undefined {
     if (!isBinaryExpression(condition) || condition.operator !== 'in') return undefined;
     const parts = flattenApplication(condition.left);

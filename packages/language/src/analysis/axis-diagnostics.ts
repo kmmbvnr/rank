@@ -1,7 +1,6 @@
 import { normalizeAxis } from '../axis-index.js';
 import type { ApplicationForm } from '../application-forms.js';
-import { flattenApplication } from '../expressions.js';
-import { isNameExpression, isBinaryExpression, isForStatement, type Expression } from '../generated/ast.js';
+import type { Expression } from '../generated/ast.js';
 import type { ValueFacts } from './value-domain.js';
 
 /** Validate axes only when the source rank is known, without executing callbacks. */
@@ -35,16 +34,6 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
             seen.add(index);
         }
     };
-    const parent = expression.$container;
-    if (isBinaryExpression(parent) && parent.operator === 'in' && parent.right === expression
-        && isForStatement(parent.$container)) {
-        const parts = flattenApplication(expression);
-        if (isNameExpression(parts[1]) && parts[1].name === 'axis') {
-            const end = parts.findIndex(part => isNameExpression(part) && part.name === 'rank');
-            check(parts[0], parts.slice(2, end < 0 ? undefined : end));
-            return diagnostics;
-        }
-    }
     switch (form.kind) {
         case 'reduce': case 'named-reduce': check(form.source, form.axes, form.rank); break;
         case 'scan': case 'named-scan': check(form.source, form.axis === undefined ? undefined : [form.axis], form.rank, 'scan'); break;
@@ -60,15 +49,6 @@ export function axisDiagnostics(form: ApplicationForm, expression: Expression,
         case 'axis-covariance': case 'axis-correlation': check(form.source, form.axes); break;
         case 'axis-length': case 'axis-shift': case 'axis-shuffle': case 'axis-argsort':
             check(form.source, form.axis === undefined ? undefined : [form.axis]); break;
-        case 'plain': {
-            // Loop iterables have a source and cell axes, without a called function.
-            const parts = flattenApplication(expression);
-            if (isNameExpression(parts[1]) && parts[1].name === 'axis') {
-                const end = parts.findIndex(part => isNameExpression(part) && part.name === 'rank');
-                check(parts[0], parts.slice(2, end < 0 ? undefined : end));
-            }
-            break;
-        }
     }
     return diagnostics;
 }

@@ -10,7 +10,8 @@ fun A matrix_mean Mode
       Queue push Row sum / (Row len)
     end
   else
-    for Col in A axis 0
+    for j in 0 till (A len axis 1)
+      Col = A # j
       Queue push Col sum / (Col len)
     end
   end
