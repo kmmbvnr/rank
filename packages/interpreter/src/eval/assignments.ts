@@ -4,11 +4,12 @@ import { unpackApplicationItems } from '../value-selection.js';
 import {
     deferredBindingReferences, rankedAddressAssignmentForm, type AddressItem, type ApplicationForm, type ArrayAssignmentStatement, type AssignmentStatement,
     applicationExpression, flattenApplication, isApplicationExpression, isLabelLiteral, isNameExpression, isNumberLiteral,
-    isUnpackExpression, type Expression, type PushStatement, type UnpackStatement,
+    isUnpackExpression, numericUpdateExpression, statementResultDiscarded, type Expression, type PushStatement, type UnpackStatement,
 } from '@arrrank/language';
 import { hasDeferredSelectionCopy, prepareStoredScalarView } from '../integer-view.js';
 import { materializeValue, materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
+import { computedArrayUpdate } from '../computed-array-update.js';
 import { materializeTensorMap } from '../tensor-map.js';
 import { numericSortInPlace } from '../numeric-collections.js';
 import { materializeSequence } from '../sequence.js';
@@ -107,6 +108,8 @@ export function prepareUnpackStatement(statement: UnpackStatement, host: Assignm
 
 /** `Name Selectors = Value` and `op=`: a write into what a name holds. */
 export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host: AssignmentContext): PreparedStatement {
+    const recipe = !statement.accumulate && statementResultDiscarded(statement) ? numericUpdateExpression(statement.value) : undefined;
+    const fused = recipe && computedArrayUpdate(recipe, statement.operator);
     let ranks: readonly (number | '#')[] | undefined;
     try { ranks = rankedAddressAssignmentForm(statement)?.ranks; }
     catch (error) { throw new RankError(error instanceof Error ? error.message : String(error), 'Syntax'); }
@@ -173,6 +176,13 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             throw new RankError('cannot assign to a lazy array');
         }
         const selection = ranks ? rankedAddressSelection(target, selectors, ranks) : tensorSelection(target, selectors);
+        if (fused && evaluated === undefined && host.options().compilation !== false) {
+            const update = fused(target, selection, host);
+            if (update) {
+                host.checkArrayWrite(statement.name, target, [update.representative]);
+                if (update.write(owned(target) as typeof target)) return undefined;
+            }
+        }
         // The compiled single-cell form hands its value over when the
         // shape rules have to decide what happens to it.
         let result = demandValue(evaluated

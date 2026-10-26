@@ -316,6 +316,39 @@ export function writeIntegerSelection(
     }
 }
 
+/** A guarded, total numeric expression reads only disjoint cells or the current
+ * destination cell. Its caller proves unique offsets and validates the binding.
+ * The kernel publishes its prefix before exact arithmetic handles widening. */
+export function writeComputedSelection(value: RankArray, count: number, offset: number, stride: number,
+    kernel: (cells: Int32Array | Float64Array, start: number, end: number) => number,
+    exact: (index: number, old: bigint | number) => bigint | number): boolean {
+    const state = ownedStorage.get(value);
+    const cells = state?.stable && !state.readOnlyCells && !state.validity ? state.typed : undefined;
+    if (!(cells instanceof Int32Array || cells instanceof Float64Array)) return false;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) {
+        diagnostics.fusedArrayUpdates++; diagnostics.fusedArrayUpdateCells += count;
+        diagnostics.bulkArrayWrites++; diagnostics.bulkArrayWriteCells += count;
+    }
+    state!.revision = noteMutation(state!.birth);
+    for (let start = 0; start < count; start += 4096) {
+        const end = Math.min(count, start + 4096);
+        checkpoint('writing computed array', end - start);
+        const stopped = kernel(cells, start, end);
+        if (stopped === end) continue;
+        if (diagnostics) diagnostics.fusedArrayUpdateWidenings++;
+        // Nonfinite real results use the exact tail and may change kind counts.
+        if (cells instanceof Float64Array) state!.elementKinds = undefined;
+        for (let i = stopped; i < count; i++) {
+            checkpoint('writing computed array');
+            const position = offset + i * stride;
+            storeCell(state!, position, exact(i, state!.items[position] as bigint | number));
+        }
+        return true;
+    }
+    return true;
+}
+
 /** Reduce trusted integer updates without retaining a boxed RHS cell per input.
  * Safe integer partials use Number exactly; a bucket promotes to BigInt before
  * any addition/product can round. No destination is written while reading. */

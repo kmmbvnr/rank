@@ -233,7 +233,8 @@ function selectionFromAxes(sourceShape: readonly number[], axes: readonly Select
         };
     }
     return {
-        shape, axes, sourceShape, linear: linearSelection(axes, sourceShape),
+        shape, axes, sourceShape, unique: axes.every(axis => !axis.preserve || axis.unique === true),
+        linear: linearSelection(axes, sourceShape),
         offsetAt(index) {
             const output = coordinatesAt(indexShape, index);
             let outputAxis = 0;

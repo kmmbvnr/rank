@@ -38,6 +38,9 @@ export class RuntimeDiagnostics {
     maskMaterializedCells = 0;
     bulkArrayWrites = 0;
     bulkArrayWriteCells = 0;
+    fusedArrayUpdates = 0;
+    fusedArrayUpdateCells = 0;
+    fusedArrayUpdateWidenings = 0;
     cowCopies = 0;
     cowCopiedCells = 0;
     elementTypeScans = 0;
