@@ -7,19 +7,14 @@ use cli
 
 option N integer = 100
 
-Answer = N factorial_digit_sum
-Answer print
-
-
 rem Form the factorial with exact integers,
 rem then reduce its decimal digits.
-fun N factorial_digit_sum
-  Factorial = 1
-  if N greater 0
-    Factorial = (1 to N) reduce *
-  end
-
-  Digits = Factorial text
-  Values' = Digits integer rank 0
-  return Values sum
+Factorial = 1
+if N greater 0
+  Factorial = (1 to N) reduce *
 end
+
+Digits = Factorial text
+Values' = Digits integer rank 0
+Answer = Values sum
+Answer print

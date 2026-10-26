@@ -9,12 +9,16 @@ end
 
 test "ten factorial"
   use "020_factorialdigits"
+  N = 10
+  run
 
-  10 factorial_digit_sum equal 27
+  Answer equal 27
 end
 
 test "zero factorial"
   use "020_factorialdigits"
+  N = 0
+  run
 
-  0 factorial_digit_sum equal 1
+  Answer equal 1
 end
