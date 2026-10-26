@@ -1,4 +1,4 @@
-import { booleanCells, IntegerCells, typedArray } from './array-storage.js';
+import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from './array-storage.js';
 import { greatestCommonDivisor } from './integer-gcd.js';
 import { RankError } from './errors.js';
 import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
@@ -21,6 +21,15 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         : name === 'gcd' ? greatestCommonDivisor
         : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    if (name === '+' || name === '-' || name === '*') {
+        try {
+            const compact = mapStoredInt32Binary(left, right, name);
+            if (compact) return compact;
+        } catch (error) {
+            if (error instanceof InterruptedError) throw error;
+            if (!(error instanceof RankError)) throw error;
+        }
+    }
     const a = isRankArray(left) ? prepareIntegerView(left, true) : undefined;
     const b = isRankArray(right) ? prepareIntegerView(right, true) : undefined;
     if (isRankArray(left) ? !a?.regular : typeof left !== 'bigint') return undefined;
@@ -47,6 +56,45 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         throw error;
     }
     return cells.array(shape);
+}
+
+/** Completed integer operands can produce a compact result without BigInt arithmetic.
+ * A result that widens discards the temporary buffer and uses exact arithmetic. */
+function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*'): RankArray | undefined {
+    const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
+    const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
+    const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
+        ? view?.kinds?.length === 1 && view.kinds[0] === 'integer' && view.linear !== undefined
+            && (!view.validate || view.validateUniform !== undefined)
+        : typeof value === 'bigint' && value >= -2147483648n && value <= 2147483647n;
+    if (!eligible(left, a) || !eligible(right, b) || !a && !b) return undefined;
+    const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
+    const size = shape.reduce((n, dimension) => n * dimension, 1);
+    if (size) {
+        if (a) a.validateUniform?.(a.compact ? BigInt(a.compact[a.linear!.offset]) : a.items[a.linear!.offset]);
+        if (b) b.validateUniform?.(b.compact ? BigInt(b.compact[b.linear!.offset]) : b.items[b.linear!.offset]);
+    }
+    const ai = broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
+    const bi = broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
+    const x = a ? 0 : Number(left), y = b ? 0 : Number(right);
+    const operation = name === '+' ? (a: number, b: number) => a + b
+        : name === '-' ? (a: number, b: number) => a - b : (a: number, b: number) => a * b;
+    const cells = new Int32Array(size);
+    for (let start = 0; start < size; start += 4096) {
+        const end = Math.min(size, start + 4096);
+        checkpoint('computing integer array', end - start);
+        for (let i = start; i < end; i++) {
+            const ap = a ? a.linear!.offset + ai(i) * a.linear!.stride : 0;
+            const bp = b ? b.linear!.offset + bi(i) * b.linear!.stride : 0;
+            const av = a ? a.compact ? a.compact[ap] : Number(a.items[ap]) : x;
+            const bv = b ? b.compact ? b.compact[bp] : Number(b.items[bp]) : y;
+            const result = operation(av, bv);
+            if (!Number.isSafeInteger(av) || !Number.isSafeInteger(bv) || result !== (result | 0)) return undefined;
+            cells[i] = result;
+        }
+    }
+    return a?.compact || b?.compact ? typedArray(cells, shape)
+        : ownedScalarArray(Array.from(cells, BigInt), 'integer', shape);
 }
 
 /** Select stored integer branches without boxing the output or mask cells.

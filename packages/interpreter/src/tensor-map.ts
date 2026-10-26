@@ -5,6 +5,7 @@ import { checkpoint } from './interrupt.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
+import { registerMappedArrayRange } from './range-plan.js';
 import { compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
@@ -70,6 +71,7 @@ export function registerTensorResult(value: RankValue): RankValue {
 export function registerTensorMap<T extends RankValue>(value: T, operator: string, operands: readonly RankValue[],
     layout: 'broadcast' | 'outer' = 'broadcast'): T {
     if (!isRankArray(value) || !mapOperators.has(operator)) return value;
+    if (layout === 'broadcast' && operands.length === 2) registerMappedArrayRange(value, operator, operands[0], operands[1]);
     if (layout === 'broadcast') registerPackedBooleanMap(value, operator, operands);
     let scope = active;
     if (!scope) for (const operand of operands) {

@@ -4,11 +4,12 @@ import { registerPackedBooleanSelection } from './packed-booleans.js';
 import type { ArrayCellRead } from './array-cell-read.js';
 import { framedArray } from './framed-array.js';
 import { permutedArray } from './array-permutation.js';
-import { arithmeticRange, arrayRange } from './range-plan.js';
+import { arithmeticRange } from './range-plan.js';
 import { indexedSource } from './indexed-source.js';
 import { inheritSemanticArrayType, semanticArrayType } from './semantic-array-type.js';
-import { registerScalarView, deferSelectionCopy, type LinearView } from './integer-view.js';
+import { registerScalarView, deferSelectionCopy, prepareIntegerRange, type LinearView } from './integer-view.js';
 import { positionalValue } from './positional-value.js';
+import { materializeTensorMap } from './tensor-map.js';
 import { arrayCells, arrayFrameAxes, registerArrayDependencies, denseScalarItems, derivedArray, integer32Cells, ownedArray, readArrayItem, readCellOrMissing, realCells, retainSelectionSnapshot, sliceStoredArray, storedScalarKinds, typedArray, typedElementKind } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { MissingValueError, RankError } from './errors.js';
@@ -114,7 +115,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
         throw new RankError(`array expects at most ${source.shape.length} selectors`);
     }
     const axes = source.shape.map((size, axis) => {
-        const selector = selectors[axis] ?? ALL_AXIS;
+        let selector = selectors[axis] ?? ALL_AXIS;
         if (isAllAxisSelector(selector)) {
             return { preserve: true, size, unique: true, linear: { offset: 0, stride: 1 }, indexAt: (coordinate: number) => coordinate };
         }
@@ -141,7 +142,7 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
                 indexAt: (coordinate: number) => offset + coordinate * stride };
         }
         const range = isRankSequence(selector) ? arithmeticRange(selector.plan)
-            : isRankArray(selector) ? arrayRange(selector) : undefined;
+            : isRankArray(selector) ? prepareIntegerRange(selector) : undefined;
         if (range) {
             const { start, step, count } = range;
             if (count > 0n) {
@@ -155,7 +156,13 @@ export function tensorSelection(source: RankArray, selectors: readonly RankValue
                 }
             }
             const linear = { start: count ? Number(start) : 0, step: count > 1n ? Number(step) : 1 };
-            return { preserve: true, size: Number(count), unique: true, linear: { offset: linear.start, stride: linear.step }, indexAt: (coordinate: number) => linear.start + coordinate * linear.step };
+            return { preserve: true, size: Number(count), unique: count <= 1n || step !== 0n, linear: { offset: linear.start, stride: linear.step }, indexAt: (coordinate: number) => linear.start + coordinate * linear.step };
+        }
+        // Addressing consumes the whole selector before the RHS or any write.
+        // Native arithmetic can complete that demand as one numeric kernel;
+        // opaque readers and failing recipes retain the ordinary cell path.
+        if (isRankArray(selector) && selector.itemAt !== undefined) {
+            selector = materializeTensorMap(selector) ?? selector;
         }
         // Trusted dense integer selectors can be checked into one compact
         // offset buffer. No getters, lazy cells or semantic contracts are read.

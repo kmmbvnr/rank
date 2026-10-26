@@ -1,5 +1,6 @@
 import { arrayCellValidator, arrayRevision, integer32Cells, denseScalarItems, materializedArrayItems, storedOperandItems, storedScalarKinds } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
+import { arrayRange } from './range-plan.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 export interface LinearView { readonly offset: number; readonly stride: number }
@@ -23,6 +24,30 @@ const checked = new WeakMap<RankArray, { revision: number; integer: boolean }>()
 const integerPlans = new WeakMap<RankArray, {
     reader: RankArray['itemAt']; prepare(): ((index: number) => bigint) | undefined;
 }>();
+
+/** Native scalar-kind checks can validate a proved integer progression once,
+ * just as a uniform stored view does. No index cell is computed to prove it. */
+export function prepareIntegerRange(value: RankArray, depth = 0): ReturnType<typeof arrayRange> {
+    const range = arrayRange(value);
+    if (range || depth >= 128) return range;
+    const view = views.get(value);
+    if (!view || value.itemAt !== view.reader || view.check && !view.scalarCheck || !view.linear
+        || value.shape.length !== 1) return undefined;
+    const source = typeof view.source === 'function' ? view.source() : view.source;
+    const input = prepareIntegerRange(source, depth + 1);
+    if (!input) return undefined;
+    const { offset, stride } = view.linear();
+    const count = BigInt(value.shape[0]);
+    if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(stride)) return undefined;
+    const first = BigInt(offset), step = BigInt(stride), last = first + (count - 1n) * step;
+    if (count && (first < 0n || first >= input.count || last < 0n || last >= input.count)) return undefined;
+    const result = { start: input.start + first * input.step, step: input.step * step, count };
+    if (count) {
+        arrayCellValidator(value)?.(result.start, 0);
+        view.check?.(result.start);
+    }
+    return result;
+}
 
 /** Internal segmented storage may publish a checked integer reader. Unlike a
  * general array read plan, this must never evaluate lazy cells or host code. */

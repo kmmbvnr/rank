@@ -1,0 +1,33 @@
+rem Amicable Numbers: Array Sieve
+rem https://projecteuler.net/problem=21
+rem Sum pairs entirely below Limit.
+rem The direct 021_amicable variant also
+rem checks partners outside the limit.
+
+use sequences
+use numbers
+use io
+use cli
+
+option Limit integer = 10000
+
+rem Add both divisors of each product.
+rem A square contributes its root once.
+Sums = array shape Limit fill 1
+for D in 2 to ((Limit - 1) isqrt)
+  K = D to (Limit - 1) // D array
+  At' = D * K
+  Sums At += D + K
+  Sums (D * D) -= D
+end
+
+rem Keep the smaller member of each pair
+rem and check its partner by array lookup.
+Candidates = 2 till Limit array
+Partners = Sums Candidates
+Mask = Partners greater Candidates
+Mask and= Partners less Limit
+A = Candidates Mask
+B = Partners Mask
+Answer = ((A + B) ((Sums B) equal A)) sum
+Answer print

@@ -229,7 +229,7 @@ export function fillBooleanSelection(
  * the proven equivalent of offsetAt, not an inferred range of addresses. */
 export function writeIntegerSelection(
     value: RankArray, count: number, offsetAt: (index: number) => number,
-    operand: bigint | readonly bigint[], operator: '=' | '+=' | '-=' | '*=',
+    operand: bigint | readonly bigint[] | Int32Array, operator: '=' | '+=' | '-=' | '*=',
     linear?: { offset: number; stride: number },
 ): void {
     const state = ownedStorage.get(value)!;
@@ -275,18 +275,44 @@ export function writeIntegerSelection(
             return;
         }
     }
+    // Compact integer writes can stay in Number while every result fits int32.
+    // Fall back at the first widening cell, keeping the already committed prefix.
+    // Host polling may mutate storage, so it retains the per-cell reload path.
+    let first = 0;
+    if (state.typed instanceof Int32Array && !state.validity && privateLoopPolling()) {
+        const cells = state.typed;
+        const scalar = typeof operand === 'bigint' ? Number(operand) : undefined;
+        const numeric = operator === '=' ? (_: number, next: number) => next
+            : operator === '+=' ? (old: number, next: number) => old + next
+            : operator === '-=' ? (old: number, next: number) => old - next
+            : (old: number, next: number) => old * next;
+        outer: for (let start = 0; start < count; start += 1024) {
+            const end = Math.min(count, start + 1024);
+            checkpoint('writing array', end - start);
+            for (let i = start; i < end; i++) {
+                const next = scalar ?? Number((operand as readonly bigint[] | Int32Array)[i]);
+                const offset = linear ? linear.offset + i * linear.stride : offsetAt(i);
+                const result = numeric(cells[offset], next);
+                if (!Number.isSafeInteger(next) || result !== (result | 0)) { first = i; break outer; }
+                cells[offset] = result;
+                first = i + 1;
+            }
+        }
+        if (first === count) return;
+    }
     // Choose the operator once: no operator dispatch, broadcasting allocation,
     // scalar-kind changes or user code during the commit.
     const combine = operator === '=' ? (_: bigint, next: bigint) => next
         : operator === '+=' ? (old: bigint, next: bigint) => old + next
         : operator === '-=' ? (old: bigint, next: bigint) => old - next
         : (old: bigint, next: bigint) => old * next;
-    for (let i = 0; i < count; i++) {
+    for (let i = first; i < count; i++) {
         checkpoint('writing array');
         const offset = offsetAt(i);
         // Read through state.items: a write that does not fit replaces the buffer.
         const old = state.items[offset] as bigint;
-        storeCell(state, offset, combine(old, typeof operand === 'bigint' ? operand : operand[i]));
+        storeCell(state, offset, combine(old, typeof operand === 'bigint' ? operand
+            : operand instanceof Int32Array ? BigInt(operand[i]) : operand[i]));
     }
 }
 

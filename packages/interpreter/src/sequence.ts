@@ -6,7 +6,7 @@ import { sliceSource } from './slice-source.js';
 import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
 import { checkpoint, interruptibleValues, passOver } from './interrupt.js';
-import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem } from './array-storage.js';
+import { derivedArray, IntegerCells, MAX_HELD_CELLS, ownedArray, readArrayItem, typedArray } from './array-storage.js';
 import { arithmeticRange, registerArrayRange } from './range-plan.js';
 import { booleanReductionHint } from '@arrrank/language';
 import { MissingValueError, RankError } from './errors.js';
@@ -457,6 +457,18 @@ export function materializeSequence(source: RankSequence): RankArray {
     if (range && range.count <= MAX_HELD_CELLS) {
         // A range is computed rather than iterated, straight into packed cells.
         const size = Number(range.count);
+        const last = range.start + (range.count - 1n) * range.step;
+        if (size >= 64 && range.start >= -2147483648n && range.start <= 2147483647n
+            && last >= -2147483648n && last <= 2147483647n) {
+            const cells = new Int32Array(size), first = Number(range.start), step = Number(range.step);
+            for (let start = 0; start < size; start += 4096) {
+                const end = Math.min(size, start + 4096);
+                checkpoint('materializing sequence', end - start);
+                let value = first + start * step;
+                for (let i = start; i < end; i++, value += step) cells[i] = value;
+            }
+            return registerArrayRange(typedArray(cells), range);
+        }
         const cells = new IntegerCells(size);
         for (let start = 0; start < size; start += 4096) {
             const end = Math.min(size, start + 4096);

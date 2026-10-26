@@ -9,6 +9,7 @@ import {
 import { hasDeferredSelectionCopy, prepareStoredScalarView } from '../integer-view.js';
 import { materializeValue, materializeValues } from '../materialize.js';
 import { demandValue } from '../plan.js';
+import { materializeTensorMap } from '../tensor-map.js';
 import { numericSortInPlace } from '../numeric-collections.js';
 import { materializeSequence } from '../sequence.js';
 import { arrayForWrite, privateArrayCopy, readArrayItem, writableIntegerCells, writeIntegerSelection, accumulateIntegerSelection, reduceIntegerUpdates,
@@ -180,6 +181,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
         let operands: RankValue[] | undefined;
+        let compactOperands: Int32Array | undefined;
         const count = arraySize(selection.shape);
         if (isRankArray(result)) {
             if (!sameShape(selection.shape, result.shape)) {
@@ -188,8 +190,12 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     'DimensionMismatch',
                 );
             }
-            const view = statement.accumulate && privateLoopPolling()
-                ? prepareStoredScalarView(result, true) : undefined;
+            // The complete RHS is demanded before any replacement is written.
+            // Consume native arithmetic as a batch instead of reading its lazy
+            // cells individually; aliases still observe the pre-write storage.
+            const completed = materializeTensorMap(result) ?? result;
+            const view = privateLoopPolling()
+                ? prepareStoredScalarView(completed, true) : undefined;
             if (count > 0 && statement.accumulate && host.options().compilation !== false
                 && !inspectionEnabled() && privateLoopPolling()
                 && view?.linear && view.validateUniform && view.kinds?.join() === 'integer'
@@ -204,33 +210,39 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     index => updates.offsets[index], updates.operands, statement.operator as '+=' | '-=' | '*=');
                 return result;
             }
-            if (count > 0 && view?.linear && view.validateUniform
+            if (count > 0 && view?.linear && (!view.validate || view.validateUniform)
                 && view.kinds?.length === 1 && ['integer', 'real'].includes(view.kinds[0])) {
                 // Uniform stored numeric cells establish a binding's scalar
                 // contract once. Still snapshot the RHS before any mutation.
                 const { offset, stride } = view.linear;
-                view.validateUniform(view.items[offset]);
-                operands = new Array<RankValue>(count);
+                view.validateUniform?.(view.compact ? BigInt(view.compact[offset]) : view.items[offset]);
+                if (view.compact && !statement.accumulate) compactOperands = new Int32Array(count);
+                else operands = new Array<RankValue>(count);
                 for (let start = 0; start < count; start += 4096) {
                     const end = Math.min(count, start + 4096);
                     checkpoint('preparing accumulated array updates', end - start);
-                    for (let index = start; index < end; index++) operands[index] = view.items[offset + index * stride];
+                    for (let index = start; index < end; index++) {
+                        if (compactOperands) compactOperands[index] = view.compact![offset + index * stride];
+                        else operands![index] = view.compact
+                            ? BigInt(view.compact[offset + index * stride]) : view.items[offset + index * stride];
+                    }
                 }
             } else operands = Array.from(
                 { length: count },
-                (_, index) => readArrayItem(result, index),
+                (_, index) => readArrayItem(completed, index),
             );
         }
         if (count > 0 && host.options().compilation !== false && !inspectionEnabled()
             && (target.shape.length === 1 || statement.accumulate || ranks !== undefined)
             && (statement.operator === '=' || statement.operator === '+=' || statement.operator === '-=' || statement.operator === '*=')
-            && (typeof result === 'bigint' || operands?.every(value => typeof value === 'bigint'))) {
+            && (typeof result === 'bigint' || compactOperands || operands?.every(value => typeof value === 'bigint'))) {
             const cells = writableIntegerCells(target);
             if (cells) {
                 // Every replacement is an integer; the binding owns validation,
                 // independently of the physical storage proof above.
-                host.checkArrayWrite(statement.name, target, [typeof result === 'bigint' ? result : operands![0]]);
-                let values: bigint | readonly bigint[] = typeof result === 'bigint' ? result : operands as bigint[];
+                host.checkArrayWrite(statement.name, target, [typeof result === 'bigint' ? result
+                    : compactOperands ? BigInt(compactOperands[0]) : operands![0]]);
+                let values: bigint | readonly bigint[] | Int32Array = typeof result === 'bigint' ? result : compactOperands ?? operands as bigint[];
                 let operation = statement.operator;
                 if (!statement.accumulate && !selection.unique && operation !== '=') {
                     // Gather before scatter: repeated addresses all read the
@@ -239,7 +251,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     for (let i = 0; i < count; i++) {
                         checkpoint('preparing array write');
                         const old = cells[selection.offsetAt(i)];
-                        const rhs = typeof values === 'bigint' ? values : values[i];
+                        const rhs = typeof values === 'bigint' ? values : values instanceof Int32Array ? BigInt(values[i]) : values[i];
                         replacements.push(operation === '+=' ? old + rhs : operation === '-=' ? old - rhs : old * rhs);
                     }
                     values = replacements;
@@ -247,11 +259,12 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 }
                 const destination = owned(target) as typeof target;
                 if (statement.accumulate) {
-                    accumulateIntegerSelection(destination, count, selection.offsetAt, values, operation as '+=' | '-=' | '*=');
+                    accumulateIntegerSelection(destination, count, selection.offsetAt, values as bigint | readonly bigint[], operation as '+=' | '-=' | '*=');
                 } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation as '=' | '+=' | '-=' | '*=', selection.linear);
                 return result;
             }
         }
+        if (compactOperands) operands = Array.from(compactOperands, BigInt);
         if (count > 0 && host.options().compilation !== false && host.options().booleanSelectionCompilation !== false
             && privateLoopPolling()
             && target.shape.length === 1 && statement.operator === '='

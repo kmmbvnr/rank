@@ -1,0 +1,28 @@
+use testing
+
+test "default input"
+  use "021_amicable_sieve"
+  run
+
+  Answer equal 31626
+end
+
+test "first pair and square divisor sums"
+  use "021_amicable_sieve"
+  Limit = 300
+  run
+
+  Answer equal 504
+  Sums 9 equal 4
+  Sums 16 equal 15
+  Sums 220 equal 284
+  Sums 284 equal 220
+end
+
+test "only pairs entirely below the limit"
+  use "021_amicable_sieve"
+  Limit = 250
+  run
+
+  Answer equal 0
+end
