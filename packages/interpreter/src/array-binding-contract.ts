@@ -115,7 +115,23 @@ export class ArrayBindingContract {
             this.commit({ ...this.contract, positions });
             return prepared.map(cell => cell.value);
         }
-        const prepared = values.map(value => this.prepare(value, { key: this.key(value) }, new Set()));
+        const expected = this.contract;
+        const element = !expected?.positions && expected?.elements?.length === 1 ? expected.elements[0] : undefined;
+        const scalarKind = element?.type === 'integer' ? 'bigint' : element?.type === 'real' ? 'number'
+            : element?.type === 'boolean' ? 'boolean' : element?.type === 'text' ? 'string' : undefined;
+        let unchanged = scalarKind !== undefined;
+        const prepared = values.map(value => {
+            // Matching scalars cannot refine an established element contract.
+            // Keep one snapshot and one cancellation check per replacement.
+            if (scalarKind && typeof value === scalarKind
+                && (typeof value !== 'number' || Number.isFinite(value) || Number.isNaN(value))) {
+                checkpoint();
+                return { value, contract: element! };
+            }
+            unchanged = false;
+            return this.prepare(value, { key: this.key(value) }, new Set());
+        });
+        if (unchanged && this.contract === expected) return prepared.map(cell => cell.value);
         const received = { ...this.contract!, elements: union(prepared.map(cell => cell.contract)) };
         const next = this.merge(this.contract, received);
         this.commit(next);

@@ -1,0 +1,47 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before assertions; diagnostics separate",
+  "runtimeHashes": {
+    "candidate": {
+      "mutation-guards.js": "b385aa93bda527ca32d676ce838078ab5b02496404154e11669b2cde74d16f40",
+      "array-binding-contract.js": "49cd34eb325d8a27c004844779215f7c574821b429aa841a5e8b4c87c9500fe6"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "main",
+      "engine": "reference",
+      "executeMs": 7391.279666,
+      "peakRssMiB": 464.078125,
+      "sourceHash": "7976fa8a16e4ee087617c473091ee52793904bfd119e22920bae4cee93d1373f",
+      "mainHash": "7976fa8a16e4ee087617c473091ee52793904bfd119e22920bae4cee93d1373f",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "main",
+      "engine": "reference",
+      "executeMs": 7547.412,
+      "peakRssMiB": 468.046875,
+      "sourceHash": "7976fa8a16e4ee087617c473091ee52793904bfd119e22920bae4cee93d1373f",
+      "mainHash": "7976fa8a16e4ee087617c473091ee52793904bfd119e22920bae4cee93d1373f",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "main",
+      "engine": "reference",
+      "executeMs": 7692.748209,
+      "peakRssMiB": 463.21875,
+      "sourceHash": "7976fa8a16e4ee087617c473091ee52793904bfd119e22920bae4cee93d1373f",
+      "mainHash": "7976fa8a16e4ee087617c473091ee52793904bfd119e22920bae4cee93d1373f",
+      "tests": []
+    }
+  ]
+}

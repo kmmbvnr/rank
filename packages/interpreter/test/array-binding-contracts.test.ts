@@ -5,6 +5,7 @@ import { LocalFrame } from '../src/frame.js';
 import { ownedArray, readArrayItem, typedArray } from '../src/array-storage.js';
 import { demandValue } from '../src/plan.js';
 import { ArrayBindingContract } from '../src/array-binding-contract.js';
+import { DemandBudgetExhausted, withDemandBudget } from '../src/interrupt.js';
 
 for (const compiled of [true, false]) describe(`array binding contracts (compiled ${compiled})`, () => {
     const runtime = () => new Interpreter(() => {}, { integerLoopCompilation: compiled, scalarCompilation: compiled,
@@ -256,4 +257,25 @@ it('leaves empty typed storage unresolved just like other empty arrays', () => {
         expect(() => frame.set('A', ownedArray(['x']))).not.toThrow();
         expect(() => frame.set('A', ownedArray([1n]))).toThrow(/array elements/);
     }
+});
+
+it.each([1n, 1.5, NaN, true, 'text'])('snapshots matching scalar replacements once: %s', initial => {
+    const contract = new ArrayBindingContract('A');
+    contract.check(ownedArray([initial]));
+    let reads = 0;
+    const replacements = [initial];
+    Object.defineProperty(replacements, '0', { get: () => { reads++; return reads === 1 ? initial : 'changed'; } });
+    const checked = contract.write(replacements);
+    expect(checked).toEqual([initial]);
+    expect(reads).toBe(1);
+    expect(() => contract.write([typeof initial === 'string' ? 1n : 'wrong'])).toThrow(/array elements/);
+});
+
+it('retains per-cell demand checks on matching scalar writes', () => {
+    const contract = new ArrayBindingContract('A');
+    contract.check(ownedArray([1n, 2n]));
+    expect(withDemandBudget(2, () => contract.write([3n, 4n]))).toEqual([3n, 4n]);
+    expect(() => withDemandBudget(1, () => contract.write([3n, 4n]))).toThrow(DemandBudgetExhausted);
+    expect(() => contract.write([3n, 'wrong'])).toThrow(/one element type/);
+    expect(contract.write([5n])).toEqual([5n]);
 });

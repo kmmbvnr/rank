@@ -5,7 +5,7 @@ import {
 } from '@arrrank/language';
 import type { PreparedStatement } from './statement-control.js';
 
-interface MutationTarget { readonly binding: LexicalBinding; readonly node: AstNode }
+interface MutationTarget { readonly name: string; readonly local: boolean; readonly node: AstNode }
 
 /** Syntax-only mutation targets, shared by ordinary, resumed and compiled entry.
  * The check reads current scope protection; no value identity or result is cached. */
@@ -24,27 +24,37 @@ export class MutationGuards {
         const analysis = analyzeFunctionScopes(program);
         for (const [node, bindings] of bindingMutationSites(analysis)) {
             if (analysis.scopes.get(node)?.owner !== program) continue;
-            for (const binding of bindings) this.checkTarget({ binding, node }, false);
+            for (const binding of bindings) this.checkTarget({ name: binding.name, local: false, node });
         }
     }
 
     statement(statement: Statement): void {
-        this.index(statement);
-        for (const target of this.targets.get(statement) ?? []) {
-            this.checkTarget(target, isFunctionStatement(target.binding.scope.owner));
-        }
+        for (const target of this.statementTargets(statement)) this.checkTarget(target);
     }
 
     wrap(statement: Statement, prepared: PreparedStatement): PreparedStatement {
-        this.index(statement);
-        if (!this.targets.get(statement)?.length) return prepared;
+        const targets = this.statementTargets(statement);
+        if (!targets.length) return prepared;
+        // The syntax and binding scopes are fixed, but protection can change
+        // between calls or while a statement is suspended. Check it every time.
+        const check = (): void => { for (const target of targets) this.checkTarget(target); };
         return 'run' in prepared
-            ? { ...prepared, run: context => { this.statement(statement); return prepared.run(context); } }
-            : { ...prepared, stream: context => { this.statement(statement); return prepared.stream(context); } };
+            ? { ...prepared, run: context => { check(); return prepared.run(context); } }
+            : { ...prepared, stream: context => { check(); return prepared.stream(context); } };
     }
 
-    private checkTarget(target: MutationTarget, local: boolean): void {
-        try { this.check(target.binding.name, local); }
+    private statementTargets(statement: Statement): readonly MutationTarget[] {
+        let targets = this.targets.get(statement);
+        if (!targets) {
+            this.index(statement);
+            targets = this.targets.get(statement) ?? [];
+            this.targets.set(statement, targets);
+        }
+        return targets;
+    }
+
+    private checkTarget(target: MutationTarget): void {
+        try { this.check(target.name, target.local); }
         catch (error) { throw this.locate(error, target.node); }
     }
 
@@ -70,6 +80,8 @@ export class MutationGuards {
                 if (isForStatement(parent)) add(parent);
             }
         }
-        for (const [statement, bindings] of targets) this.targets.set(statement, [...bindings].map(([binding, node]) => ({ binding, node })));
+        for (const [statement, bindings] of targets) this.targets.set(statement, [...bindings].map(([binding, node]) => ({
+            name: binding.name, local: isFunctionStatement(binding.scope.owner), node,
+        })));
     }
 }
