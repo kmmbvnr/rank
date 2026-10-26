@@ -1,0 +1,55 @@
+rem Criss Cross
+rem https://projecteuler.net/problem=166
+rem Count the 4 by 4 grids of digits
+rem whose rows, columns and both
+rem diagonals have the same sum
+
+use algo
+use linalg
+use numbers
+use sequences
+use io
+use cli
+
+option Base integer = 10
+
+rem Join two row pairs for each sum S.
+rem Rows (r1, r2) give the four column
+rem sums and two diagonal parts as one
+rem number in base Wid; it is a sum of
+rem one term per row. Rows (r3, r4)
+rem must supply the rest, S in every
+rem place, found with a counter.
+Wid = 4 * (Base - 1) + 1
+N = Base ** 4
+Dig = array shape 4 fill Base
+Ids = 0 till N array
+Rows = Ids digits Dig transpose
+Sums = Rows sum axis 1
+Pw = Wid ** (0 till 6 array)
+Bp = Rows matmul (Pw take 4)
+R0 = Rows # 0
+R1 = Rows # 1
+R2 = Rows # 2
+R3 = Rows # 3
+KA = Bp + R0 * Pw 4 + R3 * Pw 5
+KB = Bp + R1 * Pw 4 + R2 * Pw 5
+KC = Bp + R2 * Pw 4 + R1 * Pw 5
+KD = Bp + R3 * Pw 4 + R0 * Pw 5
+Whole = Pw sum
+Answer = 0
+for S in 0 to 4 * (Base - 1)
+  Pick = Sums equal S
+  Ka = KA filter Pick array
+  Kb = KB filter Pick array
+  Kc = KC filter Pick array
+  Kd = KD filter Pick array
+  Cnt = Ka len
+  Up' = (Ka reshape Cnt 1) + Kb
+  Dn' = (Kc reshape Cnt 1) + Kd
+  Flat = Cnt * Cnt
+  Seen = new counter (Dn reshape Flat)
+  Need' = S * Whole - (Up reshape Flat)
+  Answer += Seen Need sum
+end
+Answer print

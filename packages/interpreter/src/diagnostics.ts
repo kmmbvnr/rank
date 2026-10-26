@@ -31,6 +31,9 @@ export class RuntimeDiagnostics {
     numberLoopReadBufferCells = 0;
     numberLoopReadBufferHits = 0;
     compiledTensors = 0;
+    compiledCounterBuilds = 0;
+    compiledCounterSums = 0;
+    compiledCounterKeys = 0;
     /** Native recipe graphs lowered for a consumer, including reusable axis folds. */
     tensorMapPreparations = 0;
     compiledArrayFunctions = 0;

@@ -22,6 +22,7 @@ import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, emptyFrameArray, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
+import { counterHas } from './collections.js';
 import {
     arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
@@ -672,7 +673,8 @@ function presentMembershipTest(right: RankValue, indexed: boolean): (value: Rank
         return typeof right === 'string' ? right.includes(value) : right.entries.has(value);
     };
     if (isRankIndex(right)) return value => indexHas(right, indexKey([value]));
-    if (isRankSet(right) || isRankCounter(right)) return value => right.entries.has(setValueKey(value));
+    if (isRankCounter(right)) return value => counterHas(right, value);
+    if (isRankSet(right)) return value => right.entries.has(setValueKey(value));
     if (isRankMultiset(right)) return value => right.has(value);
     const source = asRankArray(right);
     if (source) return shouldStream(source)

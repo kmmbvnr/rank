@@ -28,7 +28,8 @@ function cloneValue(value: RankValue): RankValue {
     if (isRankSet(value)) return { kind: 'set', entries: new Map([...value.entries]
         .map(([key, item]) => [key, clonePreviewValue(item)])) };
     if (isRankCounter(value)) return { kind: 'counter', entries: new Map([...value.entries]
-        .map(([key, item]) => [key, { value: clonePreviewValue(item.value), count: item.count }])) };
+        .map(([key, item]) => [typeof key === 'string' ? key : `number:${key}`,
+            { value: clonePreviewValue(item.value), count: item.count }])) };
     if (isRankObject(value)) return { kind: 'object', entries: new Map([...value.entries]
         .map(([key, item]) => [key, clonePreviewValue(item)])) };
     if (isRankRecord(value)) {

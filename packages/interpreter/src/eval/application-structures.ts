@@ -7,7 +7,7 @@ import {
 import { RankError } from '../errors.js';
 import { runExecution, mapExecution, resume, type Evaluation, type Execution } from '../execution.js';
 import { graphConstructor, PredicateGraph, SuccessorGraph } from '../graph.js';
-import { addToCollection, newStructure } from '../collections.js';
+import { addToCollection, newStructure, counterFromTensor } from '../collections.js';
 import { pushCollection, RankHeap } from '../containers.js';
 import { materializeValue } from '../materialize.js';
 import { dsuFrom } from '../dsu.js';
@@ -78,6 +78,10 @@ export function compileStructureApplication(context: ApplicationContext, applica
                 context.requireModule('algo', 'new');
                 const filled = newStructure(structure);
                 const items = yield* resume(context.evaluate(parts[1]));
+                if (structure === 'counter') {
+                    const compiled = counterFromTensor(items);
+                    if (compiled) return compiled;
+                }
                 for (const item of finiteValues(items)) {
                     const value = materializeValue(item);
                     if (['queue', 'stack', 'deque', 'heap'].includes(structure)) pushCollection(filled, value);

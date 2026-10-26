@@ -209,7 +209,7 @@ export interface RankCounterEntry {
 
 export interface RankCounter {
     readonly kind: 'counter';
-    readonly entries: Map<string, RankCounterEntry>;
+    readonly entries: Map<IndexKey, RankCounterEntry>;
     elementType?: CollectionElementType;
 }
 

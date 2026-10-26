@@ -3,12 +3,15 @@ import { IntegerEntries } from './integer-entries.js';
 import { IndexEntries } from './index-storage.js';
 import { MissingValueError, RankError } from './errors.js';
 import { ResourceMap, ResourceSummary } from './resource-summary.js';
+import { StoredValueSummary } from './stored-value.js';
 import { RankDeque, RankHeap } from './containers.js';
 import { RankMultiset } from './multiset.js';
 import { dsuFrom } from './dsu.js';
 import { setValueKey } from './set.js';
-import { checkpoint, trackKeyedCollection } from './interrupt.js';
-import { checkCollectionElementType, isRankCounter, isRankMultiset, isRankSet, type RankCounter, type RankCounterEntry, type RankSet, type RankValue } from './value.js';
+import { constructingTensorPlan, visitIntegerTensorMap } from './tensor-map.js';
+import { currentDiagnostics } from './diagnostics.js';
+import { checkpoint, privateLoopPolling, trackKeyedCollection } from './interrupt.js';
+import { checkCollectionElementType, isRankArray, isRankCounter, isRankMultiset, isRankSet, type RankCounter, type RankCounterEntry, type RankSet, type RankValue } from './value.js';
 
 // Only sets constructed here have a known storage callback. Host-provided maps
 // and replacements must keep ordinary dispatch, where callbacks can re-enter Rank.
@@ -18,6 +21,49 @@ const integerMethods = Object.getOwnPropertyDescriptors(IntegerEntries.prototype
 const resourceMethods = Object.getOwnPropertyDescriptors(ResourceSummary.prototype);
 const mapSet = Map.prototype.set;
 const mapHas = Map.prototype.has;
+const mapGet = Map.prototype.get;
+const mapValues = Map.prototype.values;
+const mapSize = Object.getOwnPropertyDescriptor(Map.prototype, 'size')!.get!;
+const numericCounters = new WeakSet<object>();
+const counterEntries = new WeakSet<object>();
+const ownedCounters = new WeakMap<RankCounter, ResourceMap<RankCounterEntry, string | number | bigint>>();
+const counterBuildMethods = [ResourceMap.prototype, ResourceSummary.prototype, StoredValueSummary.prototype]
+    .map(prototype => ({ prototype, descriptors: Object.getOwnPropertyDescriptors(prototype) }));
+
+function nativeCounterBuild(): boolean {
+    return Map.prototype.get === mapGet && Map.prototype.set === mapSet && counterBuildMethods.every(({ prototype, descriptors }) =>
+        Reflect.ownKeys(prototype).length === Reflect.ownKeys(descriptors).length
+        && Reflect.ownKeys(descriptors).every(name => {
+            const expected = Object.getOwnPropertyDescriptor(prototype, name);
+            const original = descriptors[name as string];
+            return expected?.value === original.value && expected?.get === original.get && expected?.set === original.set;
+        }));
+}
+
+function counterKey(value: RankValue): string | number | bigint {
+    if (typeof value === 'bigint') {
+        const number = Number(value);
+        return Number.isSafeInteger(number) ? number : value;
+    }
+    if (typeof value === 'number' && Number.isFinite(value) && Number.isInteger(value)) {
+        return Number.isSafeInteger(value) ? value : BigInt(value);
+    }
+    return setValueKey(value);
+}
+
+function counterStorageKey(entries: RankCounter['entries'], key: string | number | bigint): string | number | bigint {
+    return numericCounters.has(entries) || typeof key === 'string' ? key : `number:${key}`;
+}
+
+/** Runtime counters use exact numeric keys; foreign maps retain their string codec. */
+export function counterValueKey(entries: RankCounter['entries'], value: RankValue): string | number | bigint {
+    return counterStorageKey(entries, counterKey(value));
+}
+
+export function counterHas(counter: RankCounter, key: RankValue): boolean {
+    const entries = counter.entries;
+    return entries.has(counterValueKey(entries, key));
+}
 
 export function nativeSetMembership(): boolean {
     return Map.prototype.has === mapHas && [IntegerEntries.prototype, ResourceMap.prototype]
@@ -69,7 +115,44 @@ export function prepareSetAdd(value: RankValue | undefined): ((values: RankValue
 }
 
 export function counterFrequency(counter: RankCounter, key: RankValue): bigint {
-    return counter.entries.get(setValueKey(key))?.count ?? 0n;
+    const entries = counter.entries;
+    return entries.get(counterValueKey(entries, key))?.count ?? 0n;
+}
+
+export function counterFromTensor(value: RankValue): RankCounter | undefined {
+    if (!isRankArray(value) || value.shape.length !== 1 || !constructingTensorPlan(value) || !nativeCounterBuild()) return undefined;
+    const result = newStructure('counter') as RankCounter;
+    if (!visitIntegerTensorMap(value, cell => { addToCollection(result, cell); })) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.compiledCounterBuilds++; diagnostics.compiledCounterKeys += value.shape[0]; }
+    return result;
+}
+
+/** Native key graphs contain no callbacks, so gathering exact integer counts
+ * can fold directly. Foreign readers retain ordinary eager gather ordering. */
+export function sumCounterTensor(counter: RankCounter, keys: RankValue): bigint | undefined {
+    if (!isRankArray(keys) || !privateLoopPolling() || !constructingTensorPlan(keys)) return undefined;
+    // A host Map override can re-enter Rank and mutate key inputs. Never borrow
+    // tensor storage across such a call, or replace the public lookup dispatch.
+    const entries = ownedCounters.get(counter);
+    if (!entries || Object.getOwnPropertyDescriptor(counter, 'entries')?.value !== entries
+        || Object.getPrototypeOf(counter) !== Object.prototype || Object.getPrototypeOf(entries) !== ResourceMap.prototype
+        || Map.prototype.get !== mapGet || Object.prototype.hasOwnProperty.call(entries, 'get')
+        || Object.prototype.hasOwnProperty.call(ResourceMap.prototype, 'get')) return undefined;
+    const keyCount = keys.shape.reduce((n, dimension) => n * dimension, 1);
+    if (mapSize.call(entries) > keyCount) return undefined;
+    // Public entries/counts may have been replaced by the host since creation.
+    // Borrow key storage only while every lookup is an ordinary data read.
+    for (const entry of mapValues.call(entries)) {
+        checkpoint('preparing counter frequencies');
+        if (!counterEntries.has(entry)
+            || typeof Object.getOwnPropertyDescriptor(entry, 'count')?.value !== 'bigint') return undefined;
+    }
+    let answer = 0n;
+    if (!visitIntegerTensorMap(keys, key => { answer += counterFrequency(counter, key); })) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.compiledCounterSums++; diagnostics.compiledCounterKeys += keyCount; }
+    return answer;
 }
 
 export function newStructure(name: string): RankValue {
@@ -90,8 +173,11 @@ export function newStructure(name: string): RankValue {
             return result;
         }
         case 'counter': {
-            const entries = new ResourceMap<RankCounterEntry>(entry => entry.value);
-            return entries.resources.track({ kind: 'counter', entries });
+            const entries = new ResourceMap<RankCounterEntry, string | number | bigint>(entry => entry.value);
+            numericCounters.add(entries);
+            const result = entries.resources.track({ kind: 'counter', entries });
+            ownedCounters.set(result, entries);
+            return result;
         }
         case 'multiset': return new RankMultiset();
         case 'orderedset': return new RankMultiset(true);
@@ -110,15 +196,21 @@ export function expectAddCollection(value: RankValue) {
 export function addToCollection(target: RankValue, value: RankValue): RankValue {
     const receiver = expectAddCollection(target);
     if (isRankMultiset(receiver)) return receiver.add(value);
-    const key = setValueKey(value);
+    const key = isRankCounter(receiver) ? counterKey(value) : setValueKey(value);
     const elementType = checkCollectionElementType(receiver.kind, () => receiver.elementType, value);
     receiver.elementType = elementType;
     trackKeyedCollection(receiver);
-    if (isRankSet(receiver)) receiver.entries.set(key, value);
+    if (isRankSet(receiver)) receiver.entries.set(key as string, value);
     else {
-        const existing = receiver.entries.get(key);
+        const entries = receiver.entries;
+        const existing = entries.get(counterStorageKey(entries, key));
         if (existing) existing.count += 1n;
-        else receiver.entries.set(key, { value, count: 1n });
+        else {
+            const entry = { value, count: 1n };
+            counterEntries.add(entry);
+            const destination = receiver.entries;
+            destination.set(counterStorageKey(destination, key), entry);
+        }
     }
     return receiver;
 }
@@ -127,11 +219,12 @@ export function removeFromCollection(target: RankValue, value: RankValue): RankV
     checkValueMutable(target);
     if (isRankMultiset(target)) return target.remove(value);
     if (isRankCounter(target)) {
-        const key = setValueKey(value);
-        const existing = target.entries.get(key);
+        const key = counterKey(value), entries = target.entries;
+        const existing = entries.get(counterStorageKey(entries, key));
         if (!existing) throw new MissingValueError('counter does not contain the value');
         if (existing.count <= 1n) {
-            target.entries.delete(key);
+            const destination = target.entries;
+            destination.delete(counterStorageKey(destination, key));
         } else {
             existing.count -= 1n;
         }

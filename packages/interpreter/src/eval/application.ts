@@ -437,6 +437,10 @@ export class ApplicationEvaluator {
                             // Each operation consumes its arguments and leaves its result
                             // available to the remainder of the postfix chain.
                             if (isNamed(part, 'sum')) {
+                                if (pending.length === 2) {
+                                    const result = context.fastPaths.counterSum(pending[0], pending[1]);
+                                    if (result !== undefined) { pending = [result]; continue; }
+                                }
                                 const receiver = pending.length === 1 ? pending[0]
                                     : canApplySelectors(pending) ? context.select(pending) : undefined;
                                 if (receiver !== undefined && isRankFenwick(receiver)) {
@@ -447,6 +451,10 @@ export class ApplicationEvaluator {
                                     pending = [fenwickSum(receiver, position)];
                                     continue;
                                 }
+                                // The selector probe already gathered this value.
+                                // Reuse it instead of observing lazy keys again
+                                // when the ordinary reducer is invoked below.
+                                if (receiver !== undefined) pending = [receiver];
                             }
                             const value = isAllAxisExpression(part)
                                 ? ALL_AXIS : yield* resume(context.evaluate(part));

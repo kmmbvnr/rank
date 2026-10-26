@@ -46,7 +46,8 @@ export interface TensorKernelHost {
 }
 type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | BooleanCells | undefined;
 type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
-    checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[], start?: number) => KernelResult;
+    checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[], start?: number,
+    visit?: (cell: RankValue, index: number) => void) => KernelResult;
 export interface TensorRange { readonly start: number; readonly size: number }
 export type TensorCodeCache = Map<string, KernelRun>;
 
@@ -60,6 +61,12 @@ export function compileNativeTensorReduction(root: TensorNode, operation: Tensor
 export function compileNativeTensorCopy(root: TensorNode,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, 'copy', host, domains, true, code, true);
+}
+/** A private consumer receives each computed integer directly, with no output buffer. */
+export function compileNativeTensorVisit(root: TensorNode,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache,
+    visit: (cell: RankValue, index: number) => void) {
+    return build(root, 'copy', host, domains, true, code, true, undefined, visit);
 }
 /** Integer prefix sums consume the native source directly into final storage. */
 export function compileNativeIntegerScan(root: TensorNode, seed: bigint | undefined,
@@ -282,7 +289,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
 
 function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false,
-    scan?: bigint | null) {
+    scan?: bigint | null, visit?: (cell: RankValue, index: number) => void) {
     const scanning = scan !== undefined;
     const seeded = typeof scan === 'bigint';
     const outputDomain = domains.get(root);
@@ -374,8 +381,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     layout = selected;
                     generated = selected.source;
                     if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-                    const result = selected.execute(data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, range?.start);
-                    return terminal === 'copy' && result !== undefined
+                    const result = selected.execute(data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, range?.start, visit);
+                    return terminal === 'copy' && !visit && result !== undefined
                         ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape) : result as RankValue | undefined;
                 }
             }
@@ -824,6 +831,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (scanning) lines.push(`if (typeof ${value} !== 'bigint') return decline('tensor:scan-type');`,
                 seeded ? `accumulated += ${value};` : `accumulated = i === 0 ? ${value} : accumulated + ${value};`,
                 `answer.set(i + ${seeded ? 1 : 0}, accumulated);`);
+            else if (visit) lines.push(`visit(${value}, i);`);
             else if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.set(i, ${value});`
                 : compact ? `answer.push(${value});` : `answer[i] = ${value};`);
             if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
@@ -834,12 +842,12 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 : `answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
-            const initial = scanning ? `new IntegerCells(size + ${seeded ? 1 : 0})`
+            const initial = visit ? 'true' : scanning ? `new IntegerCells(size + ${seeded ? 1 : 0})`
                 : terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
             const prefix = scanning ? `let accumulated = ${seeded ? `${scan}n` : '0n'}; ${seeded ? 'answer.set(0, accumulated);' : ''}` : '';
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0) { let answer = ${initial}, length = 0; ${prefix} for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit) { let answer = ${initial}, length = 0; ${prefix} for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -874,8 +882,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-        const result = execute!(data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start);
-        if (terminal === 'copy' && result !== undefined) {
+        const result = execute!(data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start, visit);
+        if (terminal === 'copy' && !visit && result !== undefined) {
             return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells,
                 scanning ? [size + (seeded ? 1 : 0)] : compact ? [(result as RankValue[]).length] : output.shape);
         }

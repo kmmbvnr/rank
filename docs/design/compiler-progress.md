@@ -2501,3 +2501,19 @@ share one Number region. A stronger binomial-valuation bound removes impossible
 outer candidates using array expressions. The original deferred source remains a
 benchmark fixture, separating runtime preparation, candidate completion and
 algorithmic pruning in the [report](../../benchmarks/euler154-pascal-pyramid-results.md).
+
+## Native integer counter consumers (Euler 166, #447)
+
+The native tensor kernel can visit computed integer cells directly into a
+private consumer. Counter construction consumes native map/view key graphs
+without an intermediate key buffer; a postfix counter gather followed by `sum`
+can accumulate exact frequencies without a gathered frequency array. Completed
+bindings remain boundaries, and plans are neither forced early nor cached.
+
+Runtime counters canonicalize integer keys numerically while preserving exact
+BigInt keys, integer-real lookup equality and element-type contracts. Foreign
+maps and effectful readers retain ordinary dispatch. Consumer entry checks
+native storage/methods and data counts before borrowing key inputs; large-counter
+small-query cases retain ordinary lookup. Inspection and demand budgets remain
+active. The [Euler 166 report](../../benchmarks/euler166-criss-cross-results.md)
+separates numeric storage, consumer compilation and demo symmetry.

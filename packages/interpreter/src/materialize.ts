@@ -10,10 +10,9 @@ import { materializeSequence } from './sequence.js';
 import { MissingValueError, RankError } from './errors.js';
 import { RankDeque, RankHeap, pushCollection } from './containers.js';
 import { RankMultiset } from './multiset.js';
-import { newStructure, addToCollection } from './collections.js';
+import { newStructure, addToCollection, counterValueKey } from './collections.js';
 import { ResourceMap } from './resource-summary.js';
 import { recordContract } from './record-contract.js';
-import { setValueKey } from './set.js';
 import { isStoredValue } from './stored-value.js';
 import { RankArrowTable, checkColumnValues, columnFromValues } from './arrow-table.js';
 import { groupedTableValues, ownedGroupedTable, groupTable, rollingTable } from './grouped-table.js';
@@ -276,7 +275,7 @@ function aggregateValue(value: RankValue): Aggregate | undefined {
                 const counter = shell as RankCounter;
                 values.forEach((value, index) => {
                     counter.elementType = checkCollectionElementType('counter', counter.elementType, value);
-                    const key = setValueKey(value);
+                    const key = counterValueKey(counter.entries, value);
                     const previous = counter.entries.get(key);
                     if (previous) previous.count += entries[index].count;
                     else counter.entries.set(key, { value, count: entries[index].count });

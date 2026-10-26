@@ -6,7 +6,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
 import { registerMappedArrayRange } from './range-plan.js';
-import { compileNativeIntegerScan, compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
+import { compileNativeIntegerScan, compileNativeTensorCopy, compileNativeTensorVisit, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface MapRecipe {
@@ -106,6 +106,12 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
     return consumeTensorMap(value, operation);
 }
 
+/** Only native integer graphs may feed a private collection consumer. A decline
+ * discards its private state before ordinary traversal starts. */
+export function visitIntegerTensorMap(value: RankArray, visit: (cell: bigint) => void): boolean {
+    return prepareTensorMap(value, 'copy', undefined, cell => visit(cell as bigint))?.() !== undefined;
+}
+
 /** The scan owns its output; reshapes and other native views keep no buffers. */
 export function scanTensorMap(value: RankArray, seed: RankValue | undefined): RankArray | undefined {
     if (seed !== undefined && typeof seed !== 'bigint') return undefined;
@@ -128,7 +134,8 @@ export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | '
     return run && ((start, size) => run({ start, size }));
 }
 
-function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined }):
+function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined },
+    visit?: (cell: RankValue) => void):
     ((range?: TensorRange) => RankValue | undefined) | undefined {
     if (!consumerCompilation || operation !== 'copy' && !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
@@ -235,11 +242,13 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
     }
     const root = lower(value);
     if (!root || !transformed) return undefined;
+    if (visit && domains.get(root)?.join() !== 'integer') return undefined;
     if (scan && (value.shape.length !== 1 || domains.get(root)?.join() !== 'integer')) return undefined;
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.tensorMapPreparations++;
     const host = { ...scope.host, valid: () => scope.host.valid?.() !== false && guards.every(guard => guard()) };
-    const kernel = scan ? compileNativeIntegerScan(root, scan.seed, domains, host, scope.code)
+    const kernel = visit ? compileNativeTensorVisit(root, domains, host, scope.code, visit)
+        : scan ? compileNativeIntegerScan(root, scan.seed, domains, host, scope.code)
         : operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
         : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code);
     return range => {

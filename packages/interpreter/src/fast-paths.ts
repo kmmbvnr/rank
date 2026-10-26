@@ -1,4 +1,5 @@
 import { selectValues } from './value-selection.js';
+import { sumCounterTensor } from './collections.js';
 import type { LoopContinuation } from './integer-loop-plan.js';
 import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
@@ -36,7 +37,7 @@ import { copyArray } from './modules/sequences.js';
 import { ALL_AXIS, atArray, sliceArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
 import { prepareCompiledBuiltin } from './typed-native.js';
 import { textAt } from './text-storage.js';
-import { isRankArray, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
+import { isRankArray, isRankCounter, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
 export type CompiledLoop = NonNullable<ReturnType<typeof compileIntegerLoop>>;
 
@@ -162,6 +163,18 @@ export class FastPaths {
         this.context.options().onTensorKernelExecuted?.();
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.compiledTensors++;
+    }
+
+    /** Called at the ordinary postfix gather, before resolving its consumer.
+     * Unsupported readers must finish gathering before user reducer dispatch. */
+    counterSum(receiver: RankValue, keys: RankValue): bigint | undefined {
+        if (this.context.options().tensorFusion === false || !isRankCounter(receiver)) return undefined;
+        const identity = this.context.operationOf('sum');
+        if (!identity || identity.module !== 'core' || identity.name !== 'sum') return undefined;
+        const fn = this.context.resolve('sum');
+        if (!isNativeFunction(fn) || !this.context.builtins.is('core', 'sum', fn)
+            || !Object.getOwnPropertyDescriptor(fn, 'call')?.value || !hasNativeImplementation(fn)) return undefined;
+        return sumCounterTensor(receiver, keys);
     }
 
     planReduction(expression: Expression): (() => RankValue | undefined) | undefined {

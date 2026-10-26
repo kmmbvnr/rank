@@ -1,0 +1,432 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "before": {
+      "collections.js": "a8171946875b8b54b16708a4fade3eccf834ef95e7faaf6b7fc74fb3547dea68",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "fast-paths.js": "6531349343eac8f7a64ec1d8725b863b89863f249394cb3247af6ad1953b91a1",
+      "operators.js": "6ad330849cbfba169623c933e49897a9888607ad84819424007d4f971480f208",
+      "value-selection.js": "b96a8bcfa9b69ff4bc214b97301b0b5d4f483ed666ac7999b80ee9660c18566c",
+      "eval/application-structures.js": "13ea651694ff3f5e2d6c9553df8270373bd8b595671bdcc68d49e8c83c8c752c",
+      "eval/application.js": "1c96f37480d9999e586676bf926ce960e07a6e0bd78e2caa48e72495fbd28661",
+      "materialize.js": "2ca2a0f4a2df940cab95f09b0a32377edd690bf10c19939953149f9ccfbba356",
+      "preview-values.js": "735a0b00784df3e914d7587873d9ac3ab0033876cf2dd5836fae7ba21d17edb4"
+    },
+    "numeric": {
+      "collections.js": "77aef596b31a16a17f69e57fbde9a144a0acf03a2375e79805bdbc598ccf3ee4",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "fast-paths.js": "6531349343eac8f7a64ec1d8725b863b89863f249394cb3247af6ad1953b91a1",
+      "operators.js": "d64b462b67271729d92a745b5476482deeab7bf3480f7fd5808bdca1d1b6f488",
+      "value-selection.js": "b96a8bcfa9b69ff4bc214b97301b0b5d4f483ed666ac7999b80ee9660c18566c",
+      "eval/application-structures.js": "13ea651694ff3f5e2d6c9553df8270373bd8b595671bdcc68d49e8c83c8c752c",
+      "eval/application.js": "1c96f37480d9999e586676bf926ce960e07a6e0bd78e2caa48e72495fbd28661",
+      "materialize.js": "333f73fe5e2be4685307436371f4e2147565308d8798e1ace575b9707db7e61b",
+      "preview-values.js": "76639e2798e739fccf9e691ad51be46913c694aff4ea1a9b5eee97f1189c87a2"
+    },
+    "compiler": {
+      "collections.js": "f505f6fdddb5b06f99868c40977b26cff90933261b8d829f52c416fa8f637602",
+      "tensor-kernel.js": "22b3c1c0603dc2e4e63b7f320edd9a34d35f8423626d493b494606ebafa40710",
+      "tensor-map.js": "dea100d03d9276b01b295dff171bab21bef5f7454a1479cb5946fd2e78dcd00a",
+      "fast-paths.js": "fb93ac8efd51ff7b579b0d49ac38eccb5f34f089102f941fe99ad30019ae31f2",
+      "operators.js": "d64b462b67271729d92a745b5476482deeab7bf3480f7fd5808bdca1d1b6f488",
+      "value-selection.js": "b96a8bcfa9b69ff4bc214b97301b0b5d4f483ed666ac7999b80ee9660c18566c",
+      "eval/application-structures.js": "a3d04be8823202d2d7314737c740340ad22f2af6f3d303f0f5b99c96ae2bf990",
+      "eval/application.js": "1a942317d1cbb2572967364e0ba178ac41eef684fcc2db1cb0785aaf57509fd4",
+      "materialize.js": "05db2e36f83cc5e8181ca6c8c0b0299ac2d1d7badb79e2dd6bd13758af4dc993",
+      "preview-values.js": "5bee82c9d74bac27f54b3c7349e23188f0a7c23685d5f7048f77d6f2ee54da17"
+    },
+    "final": {
+      "collections.js": "f505f6fdddb5b06f99868c40977b26cff90933261b8d829f52c416fa8f637602",
+      "tensor-kernel.js": "22b3c1c0603dc2e4e63b7f320edd9a34d35f8423626d493b494606ebafa40710",
+      "tensor-map.js": "dea100d03d9276b01b295dff171bab21bef5f7454a1479cb5946fd2e78dcd00a",
+      "fast-paths.js": "fb93ac8efd51ff7b579b0d49ac38eccb5f34f089102f941fe99ad30019ae31f2",
+      "operators.js": "d64b462b67271729d92a745b5476482deeab7bf3480f7fd5808bdca1d1b6f488",
+      "value-selection.js": "b96a8bcfa9b69ff4bc214b97301b0b5d4f483ed666ac7999b80ee9660c18566c",
+      "eval/application-structures.js": "a3d04be8823202d2d7314737c740340ad22f2af6f3d303f0f5b99c96ae2bf990",
+      "eval/application.js": "1a942317d1cbb2572967364e0ba178ac41eef684fcc2db1cb0785aaf57509fd4",
+      "materialize.js": "05db2e36f83cc5e8181ca6c8c0b0299ac2d1d7badb79e2dd6bd13758af4dc993",
+      "preview-values.js": "5bee82c9d74bac27f54b3c7349e23188f0a7c23685d5f7048f77d6f2ee54da17"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "before",
+      "executeMs": 5704.849542,
+      "peakRssMiB": 665.125,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 5800.140417,
+      "peakRssMiB": 557.125,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 5674.064916
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 13.830416000000696
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "numeric",
+      "executeMs": 4179.306625,
+      "peakRssMiB": 626.46875,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "numeric",
+      "executeMs": 4270.544416,
+      "peakRssMiB": 622.90625,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4142.419333
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 13.869125000000167
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 1779.631834,
+      "peakRssMiB": 536.0625,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 1837.0050420000002,
+      "peakRssMiB": 530.84375,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1705.041916
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 16.399208999999928
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "final",
+      "executeMs": 1026.098542,
+      "peakRssMiB": 464.546875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "mainHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 1136.304125,
+      "peakRssMiB": 463.53125,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1004.6533330000001
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 14.80291699999998
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 1123.360541,
+      "peakRssMiB": 463.6875,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 990.0471249999999
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 14.95112499999982
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "final",
+      "executeMs": 1025.206042,
+      "peakRssMiB": 464.421875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "mainHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 1831.8158329999999,
+      "peakRssMiB": 527.25,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1700.850708
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 16.40800000000013
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 1779.942916,
+      "peakRssMiB": 530.0625,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "numeric",
+      "executeMs": 4262.503584,
+      "peakRssMiB": 543.40625,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4128.861
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 13.801916999999776
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "numeric",
+      "executeMs": 4274.897042,
+      "peakRssMiB": 622.28125,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 5768.522167,
+      "peakRssMiB": 558.4375,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 5638.590459
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 13.987208000000464
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "before",
+      "executeMs": 5764.502791000001,
+      "peakRssMiB": 660.828125,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "before",
+      "executeMs": 5771.188333,
+      "peakRssMiB": 633.46875,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 5798.029,
+      "peakRssMiB": 558.40625,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 5666.548000000001
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 13.923375000000306
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "numeric",
+      "executeMs": 4267.974834,
+      "peakRssMiB": 622.5,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "numeric",
+      "executeMs": 4366.444667,
+      "peakRssMiB": 622.484375,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4236.138292
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 14.132499999999709
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 1798.04775,
+      "peakRssMiB": 530.125,
+      "sourceHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 1827.848833,
+      "peakRssMiB": 533.4375,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "133ce35b506a2ce95cdc957501bc7109a7b7a5590a50a324f417f944922042b4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1695.6975830000001
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 16.534833000000162
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "final",
+      "executeMs": 1124.07475,
+      "peakRssMiB": 469.484375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "mainHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 1063.1223750000001,
+      "peakRssMiB": 471.171875,
+      "sourceHash": "07aa49c229fa1847c3232e36f0f9c015784bd05a2e9e74acf61b58c0d2ba524b",
+      "mainHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 899.8135829999999
+        },
+        {
+          "name": "binary digits",
+          "passed": true,
+          "durationMs": 47.42170800000008
+        }
+      ]
+    }
+  ]
+}
