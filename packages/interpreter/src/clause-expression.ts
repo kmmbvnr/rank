@@ -4,7 +4,7 @@ import {
     isSubjectComparisonExpression, isTakeWhileExpression, isUnaryExpression, type Expression,
 } from '@arrrank/language';
 import { resume, type Evaluation, type Execution } from './execution.js';
-import { ownedArray } from './array-storage.js';
+import { ownedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
 import { LocalFrame } from './frame.js';
 import { TABLE_INPUT, collectionExpression } from './table-expression.js';
@@ -202,7 +202,7 @@ function isMask(value: RankValue): boolean {
     if (isRankSequenceMask(value) || isPositionalMask(value)) return true;
     if (isRankArray(value)) {
         if (value.shape.some(axis => axis === 0)) return true;
-        return typeof (value.itemAt?.(0) ?? value.items[0]) === 'boolean';
+        return typeof readArrayItem(value, 0) === 'boolean';
     }
     return false;
 }

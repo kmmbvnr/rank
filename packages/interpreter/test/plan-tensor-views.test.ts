@@ -82,9 +82,11 @@ describe.each([false, true])('checked tensor view composition (compilation=%s)',
             const shaped = demandValue(host.variables.get('Shaped')!);
             if (!isRankArray(shaped)) throw Error('expected reshaped array');
             expect(materializedArrayItems(shaped)).toEqual([2n, 4n, 6n, 8n, 10n, 12n]);
-            expect(execute('View sum')).toBe(42n);
             expect(entries()).toBe(compilation ? 1 : 0);
-            if (compilation) expect(sources[0]).not.toContain('tensor:operator-guard:*');
+            expect(execute('View sum')).toBe(42n);
+            // The view demands reshape again; its reduction reads completed cells.
+            expect(entries()).toBe(compilation ? 3 : 0);
+            if (compilation) expect(sources.at(-1)!).not.toContain('tensor:operator-guard:*');
         } finally { host.dispose(); }
     });
 

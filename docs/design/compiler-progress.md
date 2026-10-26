@@ -2344,3 +2344,35 @@ three-sample medians improve from 1.708 to 0.963 s for the main and 1.736 to
 main checks the complete `Best` vector against an independent unpruned DFS.
 The benchmark archives the old main/fixture to preserve historical comparisons;
 the linked report records both optimization stages and their separate samples.
+
+### Native tensor completion at ordinary bindings (Euler 093)
+
+Checked native tensor recipes now share the existing copy emitter as well as
+its reduction emitter. Ordinary binding completion and reshape completion can
+produce typed output directly; reshape then changes only its shape metadata.
+This compiles deferred real outer arithmetic without traversing generic
+per-cell readers or first collecting a boxed result. It preserves ordinary `=`
+boundaries, demand timing, host-reader fallback, checked input domains,
+interruption and unused deferred plans. Packed boolean completion keeps priority.
+The main index-building loop remains interpreted.
+
+Mask classification and rank-one clause traversal also read storage through
+`readArrayItem`, so peeking at one bit no longer exposes and unpacks the entire
+`.items` buffer. In unchanged Euler 093, separate diagnostic runs fall from
+2940000 unpacked cells to zero and from 3528481 generic derived-cell computations
+to 652626; 11121 native tensor demands compile. Type-proof scanning increases,
+so these counts alone do not imply a large speedup.
+
+Five serial fresh-process samples on Apple M5 / Node v24.15.0 improve the main
+median from 1.302 to 1.139 s and the complete three-test fixture from 3.549 to
+2.877 s. Median peak process RSS increases from 454.6 to 491.1 MiB and 544.1 to
+686.3 MiB respectively. The algorithm, default inputs and assertions are
+unchanged. Every main sample checks all 385 reachable-value sets against an
+independent scalar subset DP. See the [report and raw measurements](../../benchmarks/euler093-arithmetic-expressions-results.md).
+
+Verification passes the build/test typecheck, semantic/application-form checks,
+8384 ordinary interpreter tests and scoped type/differential audits of both
+Euler 093 files in both engines. Fourteen added tests check completion, unused
+plans, snapshot independence, reshape errors, host read order and packed
+boolean prefix searches. Existing completion tests now count their new copy
+kernels while still checking that later reductions do not reuse old producers.

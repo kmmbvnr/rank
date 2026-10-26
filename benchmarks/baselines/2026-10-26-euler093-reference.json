@@ -1,0 +1,239 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "reference",
+  "runtime": "current checkout",
+  "baselineRuntime": "/private/tmp/rank093/before/index.js",
+  "runtimeHashes": {
+    "before": {
+      "clause-expression.js": "58d5b67ff7e4eacd1e5bb56a80b06fa369d41c85bd6a736e066bd87aa3cfa5ef",
+      "sequence.js": "4d4a45b2921a7428415afc7e968b08dab2eb6713489226e3f3627d9a36707ef2",
+      "materialize.js": "4b361b5f6cd31c709a1d4993bd3c36abe6184d7edc16c178a0aeaa6ee219e134",
+      "modules/sequences.js": "0d37324e9bdf3267888360d7bf5b308e60b1535998bd5bbbaacd450201029873",
+      "tensor-map.js": "5a2b26e17edaede93b8e7f1cdd71bfbe8065d55bb02826fa4e477feb58dc19a3",
+      "tensor-kernel.js": "faaa080fc09d483ac7a662350d8fe69c9aca969321578f68f7adbf8761e3e155"
+    },
+    "after": {
+      "clause-expression.js": "0ed89e67e3318cbe483706b041920f606ae6f336b0a91701e8775e04d5ebe705",
+      "sequence.js": "2d723368934aa4141f88d277304821da0968f494b9f0e4cb267a5873ba9f994c",
+      "materialize.js": "2ca2a0f4a2df940cab95f09b0a32377edd690bf10c19939953149f9ccfbba356",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc",
+      "tensor-map.js": "91cd2596a80560e12d6b533f922156a66e43e88e072249e5fa966d5aace03a4c",
+      "tensor-kernel.js": "f41b5f7a99afc3443ba790aaeea37e9f492dfb8e9dbe332f0efa813508d26358"
+    }
+  },
+  "diagnostics": false,
+  "work": {
+    "candidates": 131592,
+    "partitions": 1875,
+    "cells": 324578
+  },
+  "measurements": "serial fresh processes; complete execution including parsing; process peak RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1234.2325409999999,
+      "peakRssMiB": 452.71875,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1226.313875,
+      "peakRssMiB": 452.8125,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3428.406916,
+      "peakRssMiB": 507.9375,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1140.053208
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1088.7369999999999
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1056.150166
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 3372.713333,
+      "peakRssMiB": 519.625,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1108.823833
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1077.6560830000003
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1041.5767500000002
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 3358.369333,
+      "peakRssMiB": 726.3125,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1116.27725
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1084.8172499999998
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1017.788
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3493.167667,
+      "peakRssMiB": 511,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1160.8557079999998
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1108.032
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1084.4105
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1246.9085,
+      "peakRssMiB": 447.546875,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1295.034042,
+      "peakRssMiB": 446.65625,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1301.959333,
+      "peakRssMiB": 447.453125,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1248.254042,
+      "peakRssMiB": 453.546875,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3488.508875,
+      "peakRssMiB": 505.96875,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1155.879125
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1106.3099999999997
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1084.750333
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 3409.340542,
+      "peakRssMiB": 514.25,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1127.038459
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1072.264792
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1065.7525
+        }
+      ]
+    }
+  ]
+}

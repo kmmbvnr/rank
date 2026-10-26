@@ -125,9 +125,10 @@ Other = array 4 5`);
         try {
             execute(stages);
             execute("Saved = Squared\nAfter' = Saved + 1");
-            expect(execute('After sum')).toBe(17n);
             expect(entries()).toBe(compilation ? 1 : 0);
-            if (compilation) expect(sources[0]).not.toContain('tensor:operator-guard:*');
+            expect(execute('After sum')).toBe(17n);
+            expect(entries()).toBe(compilation ? 2 : 0);
+            if (compilation) expect(sources.at(-1)!).not.toContain('tensor:operator-guard:*');
         } finally { host.dispose(); }
     });
 

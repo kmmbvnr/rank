@@ -1,3 +1,4 @@
+import { materializeTensorMap } from '../tensor-map.js';
 import { resolveAxis, resolveAxes } from '../tensor-index.js';
 import { copyArrayStorage } from '../array-copy.js';
 import { materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
@@ -572,6 +573,14 @@ export function reshapeWithDimensions(value: RankValue, dimensions: readonly (Ra
     const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
     if (stored && stored.length === expected) {
         const result = reshapeStoredArray(value as RankArray, shape);
+        if (result) return type ? setSemanticArrayType(result, type) : result;
+    }
+    // Reshape completes its input here in the reference path as well. Native
+    // recipes can produce typed storage directly at this same boundary.
+    const compiled = isRankArray(value) && value.shape.reduce((n, size) => n * size, 1) === expected
+        ? materializeTensorMap(value) : undefined;
+    if (compiled) {
+        const result = reshapeStoredArray(compiled, shape);
         if (result) return type ? setSemanticArrayType(result, type) : result;
     }
     const items = collected ?? reshapeItems(value);

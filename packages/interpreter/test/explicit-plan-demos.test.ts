@@ -703,7 +703,8 @@ end`);
             expect(formatValue(runtime.variables.get('Hc')!)).toBe('0 1 1 1 1 1 1');
             expect(isRankPlan(runtime.variables.get('Pair')!)).toBe(true);
             expect(isRankPlan(runtime.variables.get('Won')!)).toBe(true);
-            expect(entries).toBe(compilation ? 14 : 0);
+            // Native completion also compiles the two histogram masks.
+            expect(entries).toBe(compilation ? 16 : 0);
         } finally { runtime.dispose(); }
     });
 

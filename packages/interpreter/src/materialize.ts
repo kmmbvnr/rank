@@ -1,3 +1,4 @@
+import { materializeTensorMap } from './tensor-map.js';
 import { copyArrayStorage, materializeArrayView } from './array-copy.js';
 import { materializePackedBooleans } from './packed-booleans.js';
 import type { CallParameter } from '@arrrank/language';
@@ -71,6 +72,8 @@ export function materializeValue(value: RankValue): RankValue {
             if (copied) return { value: copied };
             const packed = materializePackedBooleans(computed);
             if (packed) return { value: inheritSemanticArrayType(computed, packed) };
+            const compiled = materializeTensorMap(computed);
+            if (compiled) return { value: inheritSemanticArrayType(computed, compiled) };
         }
         const previous = known.get(computed);
         if (previous) return { value: computed, node: previous };

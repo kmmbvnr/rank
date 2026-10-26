@@ -188,7 +188,8 @@ D = array 10 20`);
             expect(materializedArrayItems(saved)).toEqual([99n, 21n, 12n, 22n, 13n, 23n]);
             expect(execute('Saved sum')).toBe(190n);
             expect(execute('Product sum')).toBe(102n);
-            expect(entries()).toBe(compilation ? 1 : 0);
+            // One kernel completes Saved; another reduces the original plan.
+            expect(entries()).toBe(compilation ? 2 : 0);
         } finally { host.dispose(); }
     });
 

@@ -4,7 +4,7 @@ import { arrayCellValidator } from './derived-array.js';
 import { checkpoint } from './interrupt.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
-import { compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction } from './tensor-kernel.js';
+import { compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface MapRecipe {
@@ -84,12 +84,21 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
 
 /** Lower actual, checked native arrays after normal plan demand. Never inspect
  * RankPlan.expression or evaluate a producer to make a speculative guard pass. */
+export function materializeTensorMap(value: RankArray): RankArray | undefined {
+    const result = consumeTensorMap(value, 'copy');
+    return result !== undefined && isRankArray(result) ? result : undefined;
+}
+
 export function reduceTensorMap(value: RankArray, operation: string): RankValue | undefined {
+    return consumeTensorMap(value, operation);
+}
+
+function consumeTensorMap(value: RankArray, operation: string): RankValue | undefined {
     if (operation === 'count') {
         const packed = countPackedBooleans(value);
         if (packed !== undefined) return packed;
     }
-    if (!consumerCompilation || !reductions.has(operation)) return undefined;
+    if (!consumerCompilation || operation !== 'copy' && !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
     const textDigits = scope.host.textDigits;
@@ -173,7 +182,8 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
     const root = lower(value);
     if (!root || !transformed) return undefined;
     const host = { ...scope.host, valid: () => scope.host.valid?.() !== false && guards.every(guard => guard()) };
-    const result = compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code).run();
+    const result = (operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
+        : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code)).run();
     if (result !== undefined) scope.executed();
     return result;
 }

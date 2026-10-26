@@ -330,7 +330,7 @@ function* rankOneValues(value: RankValue, operation: string): IterableIterator<R
     if (isRankArray(value)) {
         if (value.shape.length !== 1) throw new RankError(`${operation} expects a rank-1 source`);
         for (let index = 0; index < value.shape[0]; index += 1) {
-            yield value.itemAt?.(index) ?? value.items[index];
+            yield readArrayItem(value, index);
         }
         return;
     }

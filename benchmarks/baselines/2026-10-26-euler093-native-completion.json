@@ -1,0 +1,541 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 5,
+  "engine": "compiled",
+  "runtime": "current checkout",
+  "baselineRuntime": "/private/tmp/rank093/before/index.js",
+  "runtimeHashes": {
+    "before": {
+      "clause-expression.js": "58d5b67ff7e4eacd1e5bb56a80b06fa369d41c85bd6a736e066bd87aa3cfa5ef",
+      "sequence.js": "4d4a45b2921a7428415afc7e968b08dab2eb6713489226e3f3627d9a36707ef2",
+      "materialize.js": "4b361b5f6cd31c709a1d4993bd3c36abe6184d7edc16c178a0aeaa6ee219e134",
+      "modules/sequences.js": "0d37324e9bdf3267888360d7bf5b308e60b1535998bd5bbbaacd450201029873",
+      "tensor-map.js": "5a2b26e17edaede93b8e7f1cdd71bfbe8065d55bb02826fa4e477feb58dc19a3",
+      "tensor-kernel.js": "faaa080fc09d483ac7a662350d8fe69c9aca969321578f68f7adbf8761e3e155"
+    },
+    "after": {
+      "clause-expression.js": "0ed89e67e3318cbe483706b041920f606ae6f336b0a91701e8775e04d5ebe705",
+      "sequence.js": "2d723368934aa4141f88d277304821da0968f494b9f0e4cb267a5873ba9f994c",
+      "materialize.js": "2ca2a0f4a2df940cab95f09b0a32377edd690bf10c19939953149f9ccfbba356",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc",
+      "tensor-map.js": "91cd2596a80560e12d6b533f922156a66e43e88e072249e5fa966d5aace03a4c",
+      "tensor-kernel.js": "f41b5f7a99afc3443ba790aaeea37e9f492dfb8e9dbe332f0efa813508d26358"
+    }
+  },
+  "diagnostics": false,
+  "work": {
+    "candidates": 131592,
+    "partitions": 1875,
+    "cells": 324578
+  },
+  "measurements": "serial fresh processes; complete execution including parsing; process peak RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1240.609542,
+      "peakRssMiB": 454.078125,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1101.15525,
+      "peakRssMiB": 485.375,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3435.6884999999997,
+      "peakRssMiB": 542.6875,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1141.622792
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1094.7589999999998
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1056.308083
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 2837.454292,
+      "peakRssMiB": 544.515625,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 991.8160829999999
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 874.9253749999998
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 826.6854170000001
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 2841.053,
+      "peakRssMiB": 757.484375,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 994.38275
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 865.5021670000001
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 836.5242090000002
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3509.272542,
+      "peakRssMiB": 544.0625,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1170.1531670000002
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1115.1995000000002
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1080.358459
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1124.693,
+      "peakRssMiB": 491.140625,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1297.3577910000001,
+      "peakRssMiB": 454.734375,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1311.47875,
+      "peakRssMiB": 453.90625,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1149.546666,
+      "peakRssMiB": 503.546875,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3548.626375,
+      "peakRssMiB": 544.546875,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1184.241875
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1122.9052500000003
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1099.834292
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 2913.664625,
+      "peakRssMiB": 721.984375,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1021.300084
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 899.9524999999999
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 848.4384580000001
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 2876.507125,
+      "peakRssMiB": 686.265625,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1008.033042
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 894.587417
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 828.4516659999999
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3606.908625,
+      "peakRssMiB": 526.75,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1184.7909169999998
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1138.4758750000003
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1139.4335409999999
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1177.5563750000001,
+      "peakRssMiB": 491.890625,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 3,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1368.458834,
+      "peakRssMiB": 460.328125,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 4,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1302.243375,
+      "peakRssMiB": 454.578125,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 4,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1139.014209,
+      "peakRssMiB": 480.125,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 4,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3602.413375,
+      "peakRssMiB": 549.640625,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1208.5907499999998
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 1141.0492500000003
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 1109.8801250000001
+        }
+      ]
+    },
+    {
+      "sample": 4,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 2921.932166,
+      "peakRssMiB": 567.421875,
+      "sourceHash": "b372daa78725ec7e97314ae7f95b2989bb79886ee6516c833b1e8753ad8efc45",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1017.8818749999998
+        },
+        {
+          "name": "statement digits 1 2 3 4 reach 28",
+          "passed": true,
+          "durationMs": 904.5462080000002
+        },
+        {
+          "name": "two digit sets",
+          "passed": true,
+          "durationMs": 856.073625
+        }
+      ]
+    }
+  ],
+  "baselineRevision": "56c97fa2fd6bf9aeb557effde8231d6a4cdc56b3",
+  "implementation": "working tree based on baselineRevision; runtime hashes recorded above",
+  "diagnosticRuns": {
+    "before": {
+      "case": "main",
+      "executeMs": 1244.2265830000001,
+      "peakRssMiB": 453.625,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 3750,
+        "indexReadHits": 3750,
+        "indexReadMisses": 0,
+        "indexWrites": 385,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 3528481,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 375,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 3759,
+        "maskMaterializedCells": 45781,
+        "bulkArrayWrites": 210,
+        "bulkArrayWriteCells": 12785,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 380,
+        "elementTypeScannedCells": 100320,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 420,
+        "typedUnpackedCells": 2940000,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "loop:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 3767,
+          "tensor:unsupported-node:MaterializeExpression": 7,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:**": 3,
+          "scalar-expression:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op:-": 10,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "loop:no-text-specialization": 1,
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:unsupported-op:band": 2,
+          "scalar-expression:unsupported-op:equal": 4,
+          "scalar-expression:unsupported-op:or": 1,
+          "scalar-expression:unsupported-node:NameExpression": 3750,
+          "scalar-expression:unsupported-op:notequal": 3750,
+          "tensor:deferred-binding:AssignmentStatement": 6,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:unsupported-op:/": 4,
+          "scalar-expression:unsupported-op:popcount": 2,
+          "scalar-expression:unsupported-op:round": 2,
+          "scalar-expression:unsupported-op:abs": 2,
+          "scalar-expression:unsupported-op:less": 2,
+          "tensor:unsupported-node:FirstIndexWhereExpression": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    },
+    "after": {
+      "case": "main",
+      "executeMs": 1108.115917,
+      "peakRssMiB": 477.609375,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 3750,
+        "indexReadHits": 3750,
+        "indexReadMisses": 0,
+        "indexWrites": 385,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 652626,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 375,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 11121,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 3759,
+        "maskMaterializedCells": 45781,
+        "bulkArrayWrites": 210,
+        "bulkArrayWriteCells": 12785,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 11501,
+        "elementTypeScannedCells": 424898,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "loop:unsupported-type:array": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 3767,
+          "tensor:unsupported-node:MaterializeExpression": 7,
+          "scalar-expression:unsupported-op:till": 3,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:**": 3,
+          "scalar-expression:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 6,
+          "scalar-expression:unsupported-op:-": 10,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "loop:no-text-specialization": 1,
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:unsupported-op:band": 2,
+          "scalar-expression:unsupported-op:equal": 4,
+          "scalar-expression:unsupported-op:or": 1,
+          "scalar-expression:unsupported-node:NameExpression": 3750,
+          "scalar-expression:unsupported-op:notequal": 3750,
+          "tensor:deferred-binding:AssignmentStatement": 6,
+          "scalar-expression:unsupported-op:+": 2,
+          "scalar-expression:unsupported-op:*": 2,
+          "scalar-expression:unsupported-op:/": 4,
+          "scalar-expression:unsupported-op:popcount": 2,
+          "scalar-expression:unsupported-op:round": 2,
+          "scalar-expression:unsupported-op:abs": 2,
+          "scalar-expression:unsupported-op:less": 2,
+          "tensor:unsupported-node:FirstIndexWhereExpression": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    }
+  }
+}

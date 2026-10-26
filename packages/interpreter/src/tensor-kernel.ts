@@ -55,6 +55,11 @@ export function compileNativeTensorReduction(root: TensorNode, operation: Tensor
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, operation, host, domains, false, code, true);
 }
+/** Completion consumes native recipes at the existing binding boundary. */
+export function compileNativeTensorCopy(root: TensorNode,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
+    return build(root, 'copy', host, domains, true, code, true);
+}
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
 function pair(value: Expression): Expression[] | undefined {
     const atom = unwrap(value);
