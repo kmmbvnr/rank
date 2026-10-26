@@ -116,6 +116,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower);
     } catch { return undefined; }
     host.compiled?.(source);
+    // Re-entered regions often read the same factorial/search tables. These
+    // buffers are private snapshots, never destinations. Tracked revisions
+    // invalidate them after a store; weak keys do not retain earlier inputs.
+    const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Float64Array }>();
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
@@ -147,7 +151,9 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         }
         for (const [name, info] of storage) {
             const value = host.read(name);
-            if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank || arrayRevision(value) === undefined) return undefined;
+            if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
+            const revision = arrayRevision(value);
+            if (revision === undefined) return undefined;
             if (plan.destinations.has(name) && (hasPendingSelections(value) || !value.shape.includes(0)
                 && !(info.type === 'real' ? writableRealCells(value)
                     : info.type === 'boolean' ? hasWritableBooleanCells(value) : writableIntegerCells(value)))) return undefined;
@@ -165,6 +171,17 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             } else if (indexedPass && plan.indexedReads.get(name) === cursor && !plan.destinations.size && info.type === 'integer' && typedElementKind(value) === 'integer') {
                 buffers[info.slot] = items as ArrayLike<bigint>;
             } else {
+                const readOnly = !plan.destinations.has(name);
+                const type = info.type ?? 'integer';
+                const cached = readOnly ? readBuffers.get(value) : undefined;
+                if (cached?.revision === revision && cached.type === type) {
+                    buffers[info.slot] = cached.cells;
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) diagnostics.numberLoopReadBufferHits++;
+                    sources[info.slot] = value;
+                    input[info.slot] = value;
+                    continue;
+                }
                 // Mutating/vector regions use an invocation-private numeric copy.
                 const cells = new Float64Array(items.length);
                 for (let index = 0; index < items.length; index++) {
@@ -176,6 +193,14 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                     cells[index] = Number(item);
                 }
                 buffers[info.slot] = cells;
+                if (readOnly) {
+                    readBuffers.set(value, { revision, type, cells });
+                    const diagnostics = currentDiagnostics();
+                    if (diagnostics) {
+                        diagnostics.numberLoopReadBuffers++;
+                        diagnostics.numberLoopReadBufferCells += cells.length;
+                    }
+                }
             }
             sources[info.slot] = value;
             input[info.slot] = value;

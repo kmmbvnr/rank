@@ -1,0 +1,57 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 1,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "before": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "ready": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "compiler": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "pruned": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    }
+  },
+  "oracles": [
+    {
+      "n": 200000,
+      "power": 12,
+      "answer": 479742450,
+      "pairs": 3333433334,
+      "pass5": 80576864
+    }
+  ],
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "before",
+      "timedOut": true,
+      "deadlineMs": 60000,
+      "signal": "SIGTERM"
+    }
+  ]
+}

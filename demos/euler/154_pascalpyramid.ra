@@ -19,8 +19,9 @@ rem Legendre's sums. Walk the triples
 rem i <= j <= k, weighing each by its
 rem arrangements. The exponent of 5 in
 rem C(N, i) must be at least Power minus
-rem the base 5 digits of N, so most i
-rem are skipped.
+rem the largest exponent in row N-i
+rem of Pascal's triangle. That maximum
+rem is floor(log5(M+1)) - v5(M+1).
 Rows = N + 1
 Col = (0 to N array) reshape Rows 1
 Up5 = 5 ** (1 to 12 array)
@@ -31,14 +32,17 @@ F5 = F5 copy
 F2 = F2 copy
 Lim5 = F5 N - Power
 Lim2 = F2 N - Power
-Up' = 5 ** (0 to 30 array)
-Digits = (Up at most N) count
 Mid = N // 3
 Ids = 0 to Mid array
+Next = (N - Ids + 1) reshape (Mid + 1) 1
+Log5 = (Next at least Up5) count axis 1
+Tail5 = (Next mod Up5 equal 0) count axis 1
+Max5 = Log5 - Tail5
 Back' = F5 N - F5 Ids - (F5 reverse) Ids
-Floor = Power - Digits
-Keep' = Back at least Floor
-Is' = Ids filter Keep array
+Keep' = Back + Max5 at least Power
+rem Keep the candidate vector ready so
+rem both loops share one compiled region.
+Is = Ids filter Keep array
 Answer = 0
 for I in Is
   M = N - I

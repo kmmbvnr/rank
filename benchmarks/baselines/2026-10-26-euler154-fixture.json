@@ -1,0 +1,185 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "before": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "ready": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "compiler": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "pruned": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    }
+  },
+  "oracles": [],
+  "results": [
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 170.708792,
+      "peakRssMiB": 177.71875,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 53.296291999999994
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 164.76920799999996,
+      "peakRssMiB": 177.65625,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 47.188084
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 162.96608400000002,
+      "peakRssMiB": 181.296875,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 41.16762499999999
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 162.295833,
+      "peakRssMiB": 181.6875,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 41.345708
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 164.06237499999997,
+      "peakRssMiB": 177.4375,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 46.64916699999998
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 164.38429200000002,
+      "peakRssMiB": 178.859375,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 50.882542
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 166.58037500000003,
+      "peakRssMiB": 179.46875,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 50.733041000000014
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 165.642375,
+      "peakRssMiB": 177.5625,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 48.07804200000004
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 158.96249999999998,
+      "peakRssMiB": 177.078125,
+      "sourceHash": "53866c39db771d5a0336b9504d40f6f9a96024b4a195955b6bbdb5a13f42ae49",
+      "mainHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "tests": [
+        {
+          "name": "smaller rows",
+          "passed": true,
+          "durationMs": 41.20183300000002
+        }
+      ]
+    }
+  ]
+}

@@ -27,6 +27,9 @@ export class RuntimeDiagnostics {
     numberLoops = 0;
     mixedIntegerLoops = 0;
     numberLoopOverflows = 0;
+    numberLoopReadBuffers = 0;
+    numberLoopReadBufferCells = 0;
+    numberLoopReadBufferHits = 0;
     compiledTensors = 0;
     /** Native recipe graphs lowered for a consumer, including reusable axis folds. */
     tensorMapPreparations = 0;

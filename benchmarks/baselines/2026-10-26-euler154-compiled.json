@@ -1,0 +1,157 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "before": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "ready": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "compiler": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "pruned": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    }
+  },
+  "oracles": [
+    {
+      "n": 200000,
+      "power": 12,
+      "answer": 479742450,
+      "pairs": 3333433334,
+      "pass5": 80576864
+    }
+  ],
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "ready",
+      "executeMs": 12676.812667,
+      "peakRssMiB": 591.34375,
+      "candidates": 64973,
+      "pairs": 3226902876,
+      "sourceHash": "a99843a14557db15c5fb251172e20c7deb403e4fdbf78400ff80ab091f9ca833",
+      "mainHash": "a99843a14557db15c5fb251172e20c7deb403e4fdbf78400ff80ab091f9ca833",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 12656.20475,
+      "peakRssMiB": 591.625,
+      "candidates": 64973,
+      "pairs": 3226902876,
+      "sourceHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "pruned",
+      "executeMs": 9911.067708,
+      "peakRssMiB": 609.109375,
+      "candidates": 49733,
+      "pairs": 2268541659,
+      "sourceHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "mainHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "pruned",
+      "executeMs": 9871.564333,
+      "peakRssMiB": 605.390625,
+      "candidates": 49733,
+      "pairs": 2268541659,
+      "sourceHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "mainHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 12734.258084,
+      "peakRssMiB": 597.453125,
+      "candidates": 64973,
+      "pairs": 3226902876,
+      "sourceHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "ready",
+      "executeMs": 12709.129625,
+      "peakRssMiB": 592.09375,
+      "candidates": 64973,
+      "pairs": 3226902876,
+      "sourceHash": "a99843a14557db15c5fb251172e20c7deb403e4fdbf78400ff80ab091f9ca833",
+      "mainHash": "a99843a14557db15c5fb251172e20c7deb403e4fdbf78400ff80ab091f9ca833",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "ready",
+      "executeMs": 12749.367708,
+      "peakRssMiB": 596.21875,
+      "candidates": 64973,
+      "pairs": 3226902876,
+      "sourceHash": "a99843a14557db15c5fb251172e20c7deb403e4fdbf78400ff80ab091f9ca833",
+      "mainHash": "a99843a14557db15c5fb251172e20c7deb403e4fdbf78400ff80ab091f9ca833",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 12822.96925,
+      "peakRssMiB": 591.125,
+      "candidates": 64973,
+      "pairs": 3226902876,
+      "sourceHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "mainHash": "bf1ab4dd670ba0d2a0c50b0539acbee858cbfe48f5ace3a62611703727e1d575",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "pruned",
+      "executeMs": 9865.323,
+      "peakRssMiB": 607.796875,
+      "candidates": 49733,
+      "pairs": 2268541659,
+      "sourceHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "mainHash": "48e839a0d4cf6bc22ee83069eb3200aabca594343efc01d9fc5a925877fb17c6",
+      "tests": []
+    }
+  ]
+}

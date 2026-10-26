@@ -2485,3 +2485,19 @@ named callbacks, observable execution and unavailable dynamic code generation
 use ordinary execution. No separate input buffer or persistent result cache is
 introduced. The [benchmark report](../../benchmarks/euler149-max-subsequence-results.md)
 separates concat, reshape-view and prefix-consumer changes.
+
+## Reused Number loop read buffers (Euler 154, #447)
+
+Repeated entries into a Number region can reuse its prepared read-only numeric
+buffers. Each entry still checks owned eager storage, rank, tracked revision and
+cell domain. A store invalidates the cached snapshot; rebinding selects another
+weakly keyed entry. Writable buffers remain invocation-private, including when a
+destination aliases a read input. Unsafe values retain the existing exact replay
+and errors retain preceding observable progress. This reuses a storage conversion,
+not a deferred plan result, and does not change ordinary completion boundaries.
+
+Euler 154 completes its candidate vector before traversal so both search loops
+share one Number region. A stronger binomial-valuation bound removes impossible
+outer candidates using array expressions. The original deferred source remains a
+benchmark fixture, separating runtime preparation, candidate completion and
+algorithmic pruning in the [report](../../benchmarks/euler154-pascal-pyramid-results.md).

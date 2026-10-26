@@ -1,0 +1,193 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "before": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "ready": {
+      "number-loop-runtime.js": "ee260a282038115962b0fcc6ac6cbf7f019ae62dab8889dd7f3ea47139cb777d",
+      "diagnostics.js": "a7ae211ab4f9d838d6d8caf6b3c88876f57bd32b6eed6273a66be4d20bcc042a",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "compiler": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    },
+    "pruned": {
+      "number-loop-runtime.js": "dd5bcf8f3e0c4eb163449a0f0c08f4c6881e76615c55d0aed3610f6c8c93ae23",
+      "diagnostics.js": "ec099973bc9d8d1fbe50bcaa3f49ed258a63fad89bc113ce1496fbe5b43b7bad",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9"
+    }
+  },
+  "oracles": [
+    {
+      "n": 10000,
+      "power": 6,
+      "answer": 40876875,
+      "pairs": 8338334,
+      "pass5": 6830680
+    }
+  ],
+  "results": [
+    {
+      "sample": 0,
+      "case": "medium",
+      "version": "before",
+      "executeMs": 1263.764542,
+      "peakRssMiB": 289.234375,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "mainHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "medium",
+      "version": "ready",
+      "executeMs": 310.50975000000005,
+      "peakRssMiB": 224.21875,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "e2457d6168279914cd40e8246dd291c5fb7a99a27039cb86681a7e494d7aab95",
+      "mainHash": "e2457d6168279914cd40e8246dd291c5fb7a99a27039cb86681a7e494d7aab95",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "medium",
+      "version": "compiler",
+      "executeMs": 321.718583,
+      "peakRssMiB": 250.625,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "mainHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "medium",
+      "version": "pruned",
+      "executeMs": 325.34375,
+      "peakRssMiB": 229.640625,
+      "candidates": 3328,
+      "pairs": 8319584,
+      "sourceHash": "9e4cd9dac3aef99db2cc12f3cb70850d6aa8158ba5ccdb11a688416f0a58614a",
+      "mainHash": "9e4cd9dac3aef99db2cc12f3cb70850d6aa8158ba5ccdb11a688416f0a58614a",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "medium",
+      "version": "pruned",
+      "executeMs": 325.115375,
+      "peakRssMiB": 228.828125,
+      "candidates": 3328,
+      "pairs": 8319584,
+      "sourceHash": "9e4cd9dac3aef99db2cc12f3cb70850d6aa8158ba5ccdb11a688416f0a58614a",
+      "mainHash": "9e4cd9dac3aef99db2cc12f3cb70850d6aa8158ba5ccdb11a688416f0a58614a",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "medium",
+      "version": "compiler",
+      "executeMs": 326.543333,
+      "peakRssMiB": 252.515625,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "mainHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "medium",
+      "version": "ready",
+      "executeMs": 308.148917,
+      "peakRssMiB": 221.09375,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "e2457d6168279914cd40e8246dd291c5fb7a99a27039cb86681a7e494d7aab95",
+      "mainHash": "e2457d6168279914cd40e8246dd291c5fb7a99a27039cb86681a7e494d7aab95",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "medium",
+      "version": "before",
+      "executeMs": 1263.208542,
+      "peakRssMiB": 290.65625,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "mainHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "medium",
+      "version": "before",
+      "executeMs": 1266.330833,
+      "peakRssMiB": 290.359375,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "mainHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "medium",
+      "version": "ready",
+      "executeMs": 307.48345900000004,
+      "peakRssMiB": 220.59375,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "e2457d6168279914cd40e8246dd291c5fb7a99a27039cb86681a7e494d7aab95",
+      "mainHash": "e2457d6168279914cd40e8246dd291c5fb7a99a27039cb86681a7e494d7aab95",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "medium",
+      "version": "compiler",
+      "executeMs": 325.901291,
+      "peakRssMiB": 249.640625,
+      "candidates": 3334,
+      "pairs": 8338334,
+      "sourceHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "mainHash": "91dcfd55fe769ef022b10b310d1f0ecdd5c23fc82219a8bc590d757a7dcdb7bb",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "medium",
+      "version": "pruned",
+      "executeMs": 326.15862500000003,
+      "peakRssMiB": 228.8125,
+      "candidates": 3328,
+      "pairs": 8319584,
+      "sourceHash": "9e4cd9dac3aef99db2cc12f3cb70850d6aa8158ba5ccdb11a688416f0a58614a",
+      "mainHash": "9e4cd9dac3aef99db2cc12f3cb70850d6aa8158ba5ccdb11a688416f0a58614a",
+      "tests": []
+    }
+  ]
+}

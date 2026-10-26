@@ -1,0 +1,63 @@
+rem Exploring Pascal's Pyramid
+rem https://projecteuler.net/problem=154
+rem Count the entries of row N of
+rem Pascal's pyramid, the multinomial
+rem coefficients N! / (i! j! k!), that
+rem are multiples of 10^Power
+
+use sequences
+use io
+use cli
+
+option N integer = 200000
+option Power integer = 12
+
+rem The exponent of p in N! / (i! j! k!)
+rem is v(N) - v(i) - v(j) - v(k), with
+rem v(m) the exponent of p in m!, from
+rem Legendre's sums. Walk the triples
+rem i <= j <= k, weighing each by its
+rem arrangements. The exponent of 5 in
+rem C(N, i) must be at least Power minus
+rem the base 5 digits of N, so most i
+rem are skipped.
+Rows = N + 1
+Col = (0 to N array) reshape Rows 1
+Up5 = 5 ** (1 to 12 array)
+Up2 = 2 ** (1 to 40 array)
+F5 = (Col // Up5) sum axis 1
+F2 = (Col // Up2) sum axis 1
+F5 = F5 copy
+F2 = F2 copy
+Lim5 = F5 N - Power
+Lim2 = F2 N - Power
+Up' = 5 ** (0 to 30 array)
+Digits = (Up at most N) count
+Mid = N // 3
+Ids = 0 to Mid array
+Back' = F5 N - F5 Ids - (F5 reverse) Ids
+Floor = Power - Digits
+Keep' = Back at least Floor
+Is' = Ids filter Keep array
+Answer = 0
+for I in Is
+  M = N - I
+  L5 = Lim5 - F5 I
+  L2 = Lim2 - F2 I
+  for J in I to M // 2
+    K = M - J
+    if F5 J + F5 K at most L5
+      if F2 J + F2 K at most L2
+        W = 6
+        if I equal J or J equal K
+          W = 3
+        end
+        if I equal J and J equal K
+          W = 1
+        end
+        Answer += W
+      end
+    end
+  end
+end
+Answer print
