@@ -16,14 +16,13 @@ rem A square contributes its root once.
 Sums = array shape Limit fill 1
 for D in 2 to ((Limit - 1) isqrt)
   K = D to (Limit - 1) // D array
-  At' = D * K
-  Sums At += D + K
+  Sums (D * K) += D + K
   Sums (D * D) -= D
 end
 
 rem Keep the smaller member of each pair
 rem and check its partner by array lookup.
-Candidates = 2 till Limit array
+Candidates = 2 till Limit
 Partners = Sums Candidates
 Mask = Partners greater Candidates
 Mask and= Partners less Limit

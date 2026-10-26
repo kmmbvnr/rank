@@ -13,27 +13,28 @@ rem divisor sum of its partner.
 Candidates = (2 till Limit) array
 Partners = Candidates proper_divisor_sum rank 0
 Reverse' = Partners proper_divisor_sum rank 0
+
 Amicable = Partners not equal Candidates
 Amicable and= Reverse equal Candidates
 Values' = Candidates Amicable
+
 Answer = Values sum
 Answer print
 
 rem Pair divisors up to the square root and
 rem exclude the number itself.
 fun N proper_divisor_sum
-  if N at most 1
-    return 0
-  end
-
   Root = N isqrt
+
   Divisors' = 2 to Root
   Factors = Divisors (N mod Divisors equal 0)
-  Pairs' = N // Factors
+
   Total = 1 + (Factors sum)
-  Total += Pairs sum
+  Total += N // Factors sum
+
   if Root ** 2 equal N
     Total -= Root
   end
+
   return Total
 end
