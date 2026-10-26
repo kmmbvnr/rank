@@ -1,0 +1,88 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "before": {
+      "modules/sequences.js": "72e162a2fcc20e9f083193c94d5821d0ed5dce9ff9ee84e6a268871620cfeb4d",
+      "tensor-map.js": "269cf8aff6b7eda3a719d9a196d23c37ce1724b7aaaf083880223b351a46e1ea",
+      "tensor-kernel.js": "801ee58162bc2a570deb1ac2b14a833de3c3f95107268b5331f435dcdb54e4e0"
+    },
+    "concat": {
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4",
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "n": 2000,
+      "workload": "main",
+      "executeMs": 9331.294875,
+      "peakRssMiB": 1216.421875,
+      "sourceHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "concat",
+      "n": 2000,
+      "workload": "main",
+      "executeMs": 8555.883125,
+      "peakRssMiB": 1066.3125,
+      "sourceHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "concat",
+      "n": 2000,
+      "workload": "main",
+      "executeMs": 8470.25325,
+      "peakRssMiB": 1063.8125,
+      "sourceHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "n": 2000,
+      "workload": "main",
+      "executeMs": 9239.019917,
+      "peakRssMiB": 1129.421875,
+      "sourceHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "n": 2000,
+      "workload": "main",
+      "executeMs": 9561.839375,
+      "peakRssMiB": 1216.796875,
+      "sourceHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "concat",
+      "n": 2000,
+      "workload": "main",
+      "executeMs": 8816.462167,
+      "peakRssMiB": 1059.375,
+      "sourceHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": []
+    }
+  ]
+}

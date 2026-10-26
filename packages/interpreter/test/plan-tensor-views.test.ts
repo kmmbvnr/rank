@@ -75,18 +75,17 @@ describe.each([false, true])('checked tensor view composition (compilation=%s)',
         } finally { host.dispose(); }
     });
 
-    it('preserves the current reshape completion boundary rather than inlining its old recipe', () => {
+    it('composes reshape addressing without completing its source', () => {
         const { host, execute, entries, sources } = runtime();
         try {
             execute("use sequences\nScaled' = Input * 2\nShaped' = Scaled reshape 3 2\nView' = Shaped transpose");
             const shaped = demandValue(host.variables.get('Shaped')!);
             if (!isRankArray(shaped)) throw Error('expected reshaped array');
-            expect(materializedArrayItems(shaped)).toEqual([2n, 4n, 6n, 8n, 10n, 12n]);
-            expect(entries()).toBe(compilation ? 1 : 0);
+            expect(materializedArrayItems(shaped)).toBeUndefined();
+            expect(entries()).toBe(0);
             expect(execute('View sum')).toBe(42n);
-            // The view demands reshape again; its reduction reads completed cells.
-            expect(entries()).toBe(compilation ? 3 : 0);
-            if (compilation) expect(sources.at(-1)!).not.toContain('tensor:operator-guard:*');
+            expect(entries()).toBe(compilation ? 1 : 0);
+            if (compilation) expect(sources.at(-1)!).toContain('tensor:operator-guard:*');
         } finally { host.dispose(); }
     });
 

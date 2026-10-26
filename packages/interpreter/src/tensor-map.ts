@@ -6,7 +6,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
 import { registerMappedArrayRange } from './range-plan.js';
-import { compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
+import { compileNativeIntegerScan, compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface MapRecipe {
@@ -106,6 +106,13 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
     return consumeTensorMap(value, operation);
 }
 
+/** The scan owns its output; reshapes and other native views keep no buffers. */
+export function scanTensorMap(value: RankArray, seed: RankValue | undefined): RankArray | undefined {
+    if (seed !== undefined && typeof seed !== 'bigint') return undefined;
+    const result = prepareTensorMap(value, 'copy', { seed })?.();
+    return result !== undefined && isRankArray(result) ? result : undefined;
+}
+
 function consumeTensorMap(value: RankArray, operation: string): RankValue | undefined {
     if (operation === 'count') {
         const packed = countPackedBooleans(value);
@@ -121,7 +128,7 @@ export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | '
     return run && ((start, size) => run({ start, size }));
 }
 
-function prepareTensorMap(value: RankArray, operation: string):
+function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined }):
     ((range?: TensorRange) => RankValue | undefined) | undefined {
     if (!consumerCompilation || operation !== 'copy' && !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
@@ -228,10 +235,12 @@ function prepareTensorMap(value: RankArray, operation: string):
     }
     const root = lower(value);
     if (!root || !transformed) return undefined;
+    if (scan && (value.shape.length !== 1 || domains.get(root)?.join() !== 'integer')) return undefined;
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.tensorMapPreparations++;
     const host = { ...scope.host, valid: () => scope.host.valid?.() !== false && guards.every(guard => guard()) };
-    const kernel = operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
+    const kernel = scan ? compileNativeIntegerScan(root, scan.seed, domains, host, scope.code)
+        : operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
         : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code);
     return range => {
         if (!consumerCompilation || !scope.enabled()) return undefined;

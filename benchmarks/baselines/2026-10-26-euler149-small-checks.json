@@ -1,0 +1,145 @@
+{
+  "note": "Correctness probes only; timing may overlap verification jobs and is not benchmark evidence",
+  "results": [
+    {
+      "engine": "compiled",
+      "n": 1,
+      "workload": "main",
+      "executeMs": 166.99208399999998,
+      "peakRssMiB": 173.578125,
+      "sourceHash": "1a5612675c8e82cf5d6dc169fcd9661d906a1fa6378a363b86de8a47e2e7088f",
+      "mainHash": "1a5612675c8e82cf5d6dc169fcd9661d906a1fa6378a363b86de8a47e2e7088f",
+      "tests": []
+    },
+    {
+      "engine": "compiled",
+      "n": 2,
+      "workload": "main",
+      "executeMs": 177.76250000000002,
+      "peakRssMiB": 175.671875,
+      "sourceHash": "7b8620e74b909b4885f39a3460662d1cd187b0512988e04dc7b4f3e75baed934",
+      "mainHash": "7b8620e74b909b4885f39a3460662d1cd187b0512988e04dc7b4f3e75baed934",
+      "tests": []
+    },
+    {
+      "engine": "compiled",
+      "n": 3,
+      "workload": "main",
+      "executeMs": 162.896958,
+      "peakRssMiB": 172.109375,
+      "sourceHash": "06e84f3acbcc8150196631e1cf2ca160a6b77a3d6b158932ebf84c879c546eb6",
+      "mainHash": "06e84f3acbcc8150196631e1cf2ca160a6b77a3d6b158932ebf84c879c546eb6",
+      "tests": []
+    },
+    {
+      "engine": "compiled",
+      "n": 4,
+      "workload": "main",
+      "executeMs": 158.71787500000002,
+      "peakRssMiB": 174.046875,
+      "sourceHash": "8c22f230dd70150b703ea8b73e200a0a602c6487f01474c4daabf364a3314fcf",
+      "mainHash": "8c22f230dd70150b703ea8b73e200a0a602c6487f01474c4daabf364a3314fcf",
+      "tests": []
+    },
+    {
+      "engine": "compiled",
+      "n": 10,
+      "workload": "main",
+      "executeMs": 160.59066700000002,
+      "peakRssMiB": 173.890625,
+      "sourceHash": "f843bbee0c4bb55e9006c448df48c359027a519925d942d35bc23b122bdda9e0",
+      "mainHash": "f843bbee0c4bb55e9006c448df48c359027a519925d942d35bc23b122bdda9e0",
+      "tests": []
+    },
+    {
+      "engine": "compiled",
+      "n": 50,
+      "workload": "main",
+      "executeMs": 168.113333,
+      "peakRssMiB": 175.1875,
+      "sourceHash": "be5d644a040fb76cb83b2f0fba51670271b0b7dc28befa8afb86890dd17fea5c",
+      "mainHash": "be5d644a040fb76cb83b2f0fba51670271b0b7dc28befa8afb86890dd17fea5c",
+      "tests": []
+    },
+    {
+      "engine": "compiled",
+      "n": 100,
+      "workload": "main",
+      "executeMs": 183.33354199999997,
+      "peakRssMiB": 178.15625,
+      "sourceHash": "039f4f86b3fb8c6e13afe0b398b047f9ce1378e8a541eab2d41fa0f08f07cd32",
+      "mainHash": "039f4f86b3fb8c6e13afe0b398b047f9ce1378e8a541eab2d41fa0f08f07cd32",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 1,
+      "workload": "main",
+      "executeMs": 149.90125,
+      "peakRssMiB": 172.953125,
+      "sourceHash": "1a5612675c8e82cf5d6dc169fcd9661d906a1fa6378a363b86de8a47e2e7088f",
+      "mainHash": "1a5612675c8e82cf5d6dc169fcd9661d906a1fa6378a363b86de8a47e2e7088f",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 2,
+      "workload": "main",
+      "executeMs": 140.23904100000001,
+      "peakRssMiB": 173.125,
+      "sourceHash": "7b8620e74b909b4885f39a3460662d1cd187b0512988e04dc7b4f3e75baed934",
+      "mainHash": "7b8620e74b909b4885f39a3460662d1cd187b0512988e04dc7b4f3e75baed934",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 3,
+      "workload": "main",
+      "executeMs": 145.48229199999997,
+      "peakRssMiB": 172.96875,
+      "sourceHash": "06e84f3acbcc8150196631e1cf2ca160a6b77a3d6b158932ebf84c879c546eb6",
+      "mainHash": "06e84f3acbcc8150196631e1cf2ca160a6b77a3d6b158932ebf84c879c546eb6",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 4,
+      "workload": "main",
+      "executeMs": 142.2125,
+      "peakRssMiB": 172.53125,
+      "sourceHash": "8c22f230dd70150b703ea8b73e200a0a602c6487f01474c4daabf364a3314fcf",
+      "mainHash": "8c22f230dd70150b703ea8b73e200a0a602c6487f01474c4daabf364a3314fcf",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 10,
+      "workload": "main",
+      "executeMs": 144.717042,
+      "peakRssMiB": 165.671875,
+      "sourceHash": "f843bbee0c4bb55e9006c448df48c359027a519925d942d35bc23b122bdda9e0",
+      "mainHash": "f843bbee0c4bb55e9006c448df48c359027a519925d942d35bc23b122bdda9e0",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 50,
+      "workload": "main",
+      "executeMs": 169.14112500000002,
+      "peakRssMiB": 183.359375,
+      "sourceHash": "be5d644a040fb76cb83b2f0fba51670271b0b7dc28befa8afb86890dd17fea5c",
+      "mainHash": "be5d644a040fb76cb83b2f0fba51670271b0b7dc28befa8afb86890dd17fea5c",
+      "tests": []
+    },
+    {
+      "engine": "reference",
+      "n": 100,
+      "workload": "main",
+      "executeMs": 209.753584,
+      "peakRssMiB": 184.765625,
+      "sourceHash": "039f4f86b3fb8c6e13afe0b398b047f9ce1378e8a541eab2d41fa0f08f07cd32",
+      "mainHash": "039f4f86b3fb8c6e13afe0b398b047f9ce1378e8a541eab2d41fa0f08f07cd32",
+      "tests": []
+    }
+  ]
+}

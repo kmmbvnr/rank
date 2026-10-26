@@ -22,9 +22,9 @@ import { elementSource } from '../element-source.js';
 import { inheritArrayDeclaration } from '../array-declaration.js';
 import { semanticArrayType, setSemanticArrayType } from '../semantic-array-type.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from '../interrupt.js';
-import { prepareIntegerView } from '../integer-view.js';
+import { prepareIntegerView, registerScalarView } from '../integer-view.js';
 import { FlatRecords, flatRecords } from '../flat.js';
-import { ownedArray, derivedArray, denseScalarItems, copyStoredNumericArray, copyMaterializedArrayItems, arrayValueTraversal, collectArrayCells, prepareArrayRead, readArrayItem, reshapeStoredArray } from '../array-storage.js';
+import { ownedArray, derivedArray, copyStoredNumericArray, copyMaterializedArrayItems, arrayValueTraversal, arrayValues, collectArrayCells, prepareArrayRead, readArrayItem, evaluateArrayItem, reshapeStoredArray } from '../array-storage.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { RankDeque, RankHeap } from '../containers.js';
 import { atSequence, materializeSequence, sequenceArrayOperand, sequence, shiftValue, stackItems, windowValue } from '../sequence.js';
@@ -573,19 +573,22 @@ export function reshapeWithDimensions(value: RankValue, dimensions: readonly (Ra
     const expected = dimensions.includes(undefined)
         ? Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n))
         : shape.reduce((product, dimension) => product * dimension, 1);
-    // Stored scalar cells keep their order; only shape metadata changes.
-    const stored = isRankArray(value) ? denseScalarItems(value) : undefined;
-    if (stored && stored.length === expected) {
-        const result = reshapeStoredArray(value as RankArray, shape);
+    if (isRankArray(value)) {
+        const count = value.shape.reduce((total, size) => total * BigInt(size), 1n);
+        if (count !== BigInt(expected)) {
+            throw new RankError(`reshape shape ${shape.join(' ')} expects ${expected} elements, got ${count}`);
+        }
+        // Reshape preserves flat addressing. Stored scalars share copy-on-write
+        // storage; computed cells remain a view until an explicit consumer.
+        const result = reshapeStoredArray(value, shape);
         if (result) return type ? setSemanticArrayType(result, type) : result;
-    }
-    // Reshape completes its input here in the reference path as well. Native
-    // recipes can produce typed storage directly at this same boundary.
-    const compiled = isRankArray(value) && value.shape.reduce((n, size) => n * size, 1) === expected
-        ? materializeTensorMap(value) : undefined;
-    if (compiled) {
-        const result = reshapeStoredArray(compiled, shape);
-        if (result) return type ? setSemanticArrayType(result, type) : result;
+        const view = registerScalarView(derivedArray(shape, [value],
+            index => readArrayItem(value, index), isKnownFileFree(value),
+            index => evaluateArrayItem(value, index),
+            () => arrayValues(value),
+            () => prepareArrayRead(value)), value, index => index,
+        { linear: () => ({ offset: 0, stride: 1 }) });
+        return type ? setSemanticArrayType(view, type) : view;
     }
     const items = collected ?? reshapeItems(value);
     if (items.length !== expected) {

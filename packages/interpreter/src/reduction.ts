@@ -15,7 +15,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
-import { prepareTensorBooleanRange, reduceTensorMap } from './tensor-map.js';
+import { prepareTensorBooleanRange, reduceTensorMap, scanTensorMap } from './tensor-map.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
@@ -86,6 +86,10 @@ export class ReductionEvaluator {
             return this.scanInputCells(value, rank ?? 0, axis, seed, (left, right) => this.binary(operator, left, right));
         }
         if (axis !== undefined) return this.evaluateScanAxis(operator, value, axis, seed);
+        if (operator === '+' && isRankArray(value) && this.isTensorFusion()) {
+            const scanned = scanTensorMap(value, seed);
+            if (scanned) return scanned;
+        }
         return this.scanValues(value, operator, seed,
             numericKernel(operator, (a, b) => this.binary(operator, a, b)));
     }

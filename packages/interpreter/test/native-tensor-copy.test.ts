@@ -13,7 +13,7 @@ function execute(source: string, compilation: boolean) {
 }
 
 describe('native tensor completion', () => {
-    it.each(['+', '-', '*', '/'])('compiles a deferred real outer %s at reshape completion', operator => {
+    it.each(['+', '-', '*', '/'])('compiles a deferred real outer %s at ordinary completion of its reshaped view', operator => {
         const source = `use sequences
 A = array 1.0 2.0
 B = array 2.0 4.0

@@ -664,7 +664,7 @@ Dist = array shape Rows Columns fill -1
 The dimensions follow the same nonnegative-integer rule. A zero dimension
 creates an empty material array with the declared shape.
 
-`reshape` constructs a dense array dynamically from existing values:
+`reshape` changes an array's shape while preserving flat row-major indices:
 
 ```rank
 Shape = array Rows Columns
@@ -672,11 +672,17 @@ M = Values reshape unpack Shape
 ```
 
 It is provided by `use sequences`. Dimensions must be nonnegative integers;
-`unpack` expands a rank-1 shape array. Values are consumed in row-major order, and their count
+`unpack` expands a rank-1 shape array. Values follow row-major order, and their count
 must exactly equal the product of the dimensions. Arrays, queues, finite
 sequences and Unicode text can be reshaped. An unbounded sequence is an error.
 An empty shape describes a scalar and therefore requires one value; a zero
 dimension describes an empty array.
+
+For arrays, reshape checks known geometry without reading cells. Stored scalar
+arrays share copy-on-write storage; computed arrays retain a view until demand.
+Ordinary assignment and ordinary parameters complete that view. See
+[tensor operations](tensors.md#core-operations) for inferred dimensions and
+completion rules.
 
 Array addressing uses one zero-based index per axis:
 

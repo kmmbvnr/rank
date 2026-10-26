@@ -3484,7 +3484,7 @@ Dims = A shape
 Dist = array shape Dims fill -1
 ```
 
-`reshape` constructs a dense array dynamically from existing values:
+`reshape` changes an array's shape while preserving flat row-major indices:
 
 ```rank
 Shape = array Rows Columns
@@ -3492,7 +3492,7 @@ M = Values reshape unpack Shape
 ```
 
 It is provided by `use sequences`. Dimensions must be nonnegative integers;
-`unpack` expands a rank-1 shape array. Values are consumed in row-major order, and their count
+`unpack` expands a rank-1 shape array. Values follow row-major order, and their count
 must exactly equal the product of the dimensions. Arrays, queues, finite
 sequences and Unicode text can be reshaped. An unbounded sequence is an error.
 An empty shape describes a scalar and therefore requires one value; a zero
@@ -6212,8 +6212,16 @@ The other dimensions must have a positive product that divides the element
 count exactly. An empty source can reshape to `# 1` (shape `0 1`), but `# 0`
 is ambiguous and raises `DimensionMismatch`. Only one `#` is allowed, written
 directly among the reshape dimensions; it is not a value to store in a shape
-array. Negative dimensions, including `-1`, remain invalid. Finite sequences
-are consumed once. Transpose keeps its existing axis-permutation behavior.
+array. Negative dimensions, including `-1`, remain invalid.
+
+For an array, `reshape` checks its shape and preserves flat row-major indices
+without reading its cells. Stored scalar arrays share copy-on-write storage;
+computed arrays remain views. Ordinary assignment, ordinary parameters, writes
+and explicit `copy` complete the value. Plans compute again on separate
+observations; cell errors occur when the affected cells are read.
+
+Text, queues and finite sequences are read once to build indexable storage.
+Transpose keeps its existing axis-permutation behavior.
 
 Inside a function, private integer expressions using `outer +`, `outer -` or
 `outer *` can fuse with reshape, a bit-mask filter and a following reduction.
@@ -7836,7 +7844,7 @@ surrogate code points.
 leading-axis length of an array, the size of a queue or set, or the length of a
 finite sequence. It rejects an infinite sequence.
 
-`reshape` from `sequences` constructs a dense array in row-major order:
+`reshape` from `sequences` changes an array's shape in row-major order:
 
 ```rank
 M = Values reshape Rows Columns
@@ -7855,8 +7863,16 @@ The other dimensions must have a positive product that divides the element
 count exactly. An empty source can reshape to `# 1` (shape `0 1`), but `# 0`
 is ambiguous and raises `DimensionMismatch`. Only one `#` is allowed, written
 directly among the reshape dimensions; it is not a value to store in a shape
-array. Negative dimensions, including `-1`, remain invalid. Finite sequences
-are consumed once. Transpose keeps its existing axis-permutation behavior.
+array. Negative dimensions, including `-1`, remain invalid.
+
+For an array, `reshape` checks its shape and preserves flat row-major indices
+without reading its cells. Stored scalar arrays share copy-on-write storage;
+computed arrays remain views. Ordinary assignment, ordinary parameters, writes
+and explicit `copy` complete the value. Plans compute again on separate
+observations; cell errors occur when the affected cells are read.
+
+Text, queues and finite sequences are read once to build indexable storage.
+Transpose keeps its existing axis-permutation behavior.
 
 
 Dimensions are nonnegative integers; `unpack` expands a rank-1 shape array. The source may be an

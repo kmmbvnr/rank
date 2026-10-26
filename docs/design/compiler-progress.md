@@ -2348,8 +2348,8 @@ the linked report records both optimization stages and their separate samples.
 ### Native tensor completion at ordinary bindings (Euler 093)
 
 Checked native tensor recipes now share the existing copy emitter as well as
-its reduction emitter. Ordinary binding completion and reshape completion can
-produce typed output directly; reshape then changes only its shape metadata.
+its reduction emitter. Ordinary binding completion can produce typed output
+directly, including from reshaped views. Reshape itself preserves flat indices.
 This compiles deferred real outer arithmetic without traversing generic
 per-cell readers or first collecting a boxed result. It preserves ordinary `=`
 boundaries, demand timing, host-reader fallback, checked input domains,
@@ -2466,3 +2466,22 @@ The final demo instead tests repunit remainders per candidate, exposing a lazy
 ranked mask to `first where` and preserving the bounded `Window` option.
 See the [benchmark report](../../benchmarks/euler129-repunit-divisibility-results.md)
 for separate compiler, copy-removal and algorithm measurements.
+
+## Reshape views and integer prefix consumers (Euler 149, #447)
+
+Array reshape validates its element count from known geometry and preserves
+flat indices without completing source cells. Stored scalar arrays retain
+copy-on-write storage sharing; other arrays publish a checked scalar view.
+Repeated reshapes, permutations and concat recipes compose through the same
+native view lowering. Ordinary bindings, ordinary parameters, writes and
+explicit copy still complete values. Unread cell errors remain deferred, and
+each plan observation computes again. Sequential sources retain their existing
+one-pass construction of indexable storage.
+
+Integer `scan +`, with an optional integer seed, can consume a native view
+directly into its final prefix buffer. The emitter retains arbitrary-precision
+integers when packed storage overflows. Host readers, unsupported domains,
+named callbacks, observable execution and unavailable dynamic code generation
+use ordinary execution. No separate input buffer or persistent result cache is
+introduced. The [benchmark report](../../benchmarks/euler149-max-subsequence-results.md)
+separates concat, reshape-view and prefix-consumer changes.

@@ -61,6 +61,11 @@ export function compileNativeTensorCopy(root: TensorNode,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, 'copy', host, domains, true, code, true);
 }
+/** Integer prefix sums consume the native source directly into final storage. */
+export function compileNativeIntegerScan(root: TensorNode, seed: bigint | undefined,
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
+    return build(root, 'copy', host, domains, true, code, true, seed ?? null);
+}
 const unwrap = (value: Expression): Expression => isParenthesizedExpression(value) ? unwrap(value.value) : value;
 function pair(value: Expression): Expression[] | undefined {
     const atom = unwrap(value);
@@ -276,7 +281,10 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
 }
 
 function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
-    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false) {
+    domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false,
+    scan?: bigint | null) {
+    const scanning = scan !== undefined;
+    const seeded = typeof scan === 'bigint';
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     // Typed results are already complete. Boxed fallback retains its scalar proof.
@@ -813,7 +821,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             const value = emit(root);
             const isBoolean = terminal === 'copy' ? output.boolean : ['any', 'all', 'count'].includes(terminal);
             lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return decline('tensor:terminal-type:${terminal}');`);
-            if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.set(i, ${value});`
+            if (scanning) lines.push(`if (typeof ${value} !== 'bigint') return decline('tensor:scan-type');`,
+                seeded ? `accumulated += ${value};` : `accumulated = i === 0 ? ${value} : accumulated + ${value};`,
+                `answer.set(i + ${seeded ? 1 : 0}, accumulated);`);
+            else if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.set(i, ${value});`
                 : compact ? `answer.push(${value});` : `answer[i] = ${value};`);
             if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
             if (terminal === 'mean') lines.push(`answer += Number(${value});`);
@@ -823,10 +834,12 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 : `answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
             if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
             lines.push('length++;');
-            const initial = terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
+            const initial = scanning ? `new IntegerCells(size + ${seeded ? 1 : 0})`
+                : terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0) { let answer = ${initial}, length = 0; for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            const prefix = scanning ? `let accumulated = ${seeded ? `${scan}n` : '0n'}; ${seeded ? 'answer.set(0, accumulated);' : ''}` : '';
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0) { let answer = ${initial}, length = 0; ${prefix} for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -845,7 +858,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 variants.set(key, { run: execute!, source: generated });
             }
         }
-        if (!structural.length && [...bound.keys()].every(node => node.kind !== 'select' && node.kind !== 'slice'
+        if (!scanning && !structural.length && [...bound.keys()].every(node => node.kind !== 'select' && node.kind !== 'slice'
             && !(node.kind === 'unary' && (node.op === 'text' || node.op === 'integer0')))
             && [...bound].every(([node, info]) => node.kind === 'input' || info.scalar === undefined)
             && [...bound.values()].every(info => !info.progression && (info.scalar === undefined || numeric(info.scalar) || typeof info.scalar === 'boolean'))) {
@@ -863,7 +876,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         const result = execute!(data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start);
         if (terminal === 'copy' && result !== undefined) {
-            return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, compact ? [(result as RankValue[]).length] : output.shape);
+            return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells,
+                scanning ? [size + (seeded ? 1 : 0)] : compact ? [(result as RankValue[]).length] : output.shape);
         }
         return result as RankValue | undefined;
     }

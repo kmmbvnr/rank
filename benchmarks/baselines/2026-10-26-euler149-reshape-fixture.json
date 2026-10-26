@@ -1,0 +1,186 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "concat": {
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4",
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "reduction.js": "e9d3f626cd57ade4d674afdf11822dabd12949c6473548597dd40fd07bf426bf"
+    },
+    "after": {
+      "modules/sequences.js": "86b79f12414ac6e57aaf1b60167a4abc43a8e78c05fb188a4c67f492320189b9",
+      "tensor-map.js": "c9d2dae2afdf5daf25f26bcb850d65f56f8cde1bce6b7d449220d5066c60be60",
+      "tensor-kernel.js": "0316cad14a8ae6ab0b2fe839687dbd5b88f214f7bbafa35bae484026794ddf16",
+      "reduction.js": "cf5a3fe54b603c5d8363fb04df43de2d400b1425c00e122a1349c4587cb23436"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "concat",
+      "n": 2000,
+      "workload": "fixture",
+      "executeMs": 8892.246291,
+      "peakRssMiB": 1066.90625,
+      "sourceHash": "fc7d1878a64242d720885c9c410c1b0d79bf954f19d54442522d99670511b081",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 8668.191917
+        },
+        {
+          "name": "statement table values",
+          "passed": true,
+          "durationMs": 60.483374999999796
+        },
+        {
+          "name": "smaller tables",
+          "passed": true,
+          "durationMs": 33.909458000000086
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "n": 2000,
+      "workload": "fixture",
+      "executeMs": 5952.668792,
+      "peakRssMiB": 926.078125,
+      "sourceHash": "fc7d1878a64242d720885c9c410c1b0d79bf954f19d54442522d99670511b081",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 5740.364958
+        },
+        {
+          "name": "statement table values",
+          "passed": true,
+          "durationMs": 53.56883299999936
+        },
+        {
+          "name": "smaller tables",
+          "passed": true,
+          "durationMs": 33.6675409999998
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "n": 2000,
+      "workload": "fixture",
+      "executeMs": 5909.591709,
+      "peakRssMiB": 915.1875,
+      "sourceHash": "fc7d1878a64242d720885c9c410c1b0d79bf954f19d54442522d99670511b081",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 5694.1509590000005
+        },
+        {
+          "name": "statement table values",
+          "passed": true,
+          "durationMs": 55.361791999999696
+        },
+        {
+          "name": "smaller tables",
+          "passed": true,
+          "durationMs": 32.42362500000036
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "concat",
+      "n": 2000,
+      "workload": "fixture",
+      "executeMs": 8886.756416,
+      "peakRssMiB": 1065.953125,
+      "sourceHash": "fc7d1878a64242d720885c9c410c1b0d79bf954f19d54442522d99670511b081",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 8661.826084
+        },
+        {
+          "name": "statement table values",
+          "passed": true,
+          "durationMs": 60.832249999999476
+        },
+        {
+          "name": "smaller tables",
+          "passed": true,
+          "durationMs": 34.103165999998964
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "concat",
+      "n": 2000,
+      "workload": "fixture",
+      "executeMs": 9038.849875,
+      "peakRssMiB": 1066.234375,
+      "sourceHash": "fc7d1878a64242d720885c9c410c1b0d79bf954f19d54442522d99670511b081",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 8816.941125000001
+        },
+        {
+          "name": "statement table values",
+          "passed": true,
+          "durationMs": 61.17491599999994
+        },
+        {
+          "name": "smaller tables",
+          "passed": true,
+          "durationMs": 34.33783299999959
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "n": 2000,
+      "workload": "fixture",
+      "executeMs": 5994.549667,
+      "peakRssMiB": 946.984375,
+      "sourceHash": "fc7d1878a64242d720885c9c410c1b0d79bf954f19d54442522d99670511b081",
+      "mainHash": "281671e3909124efb76c7d3324d91a56d72b82b4419a4521622bdbb1e70dc45d",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 5769.4566669999995
+        },
+        {
+          "name": "statement table values",
+          "passed": true,
+          "durationMs": 55.234375
+        },
+        {
+          "name": "smaller tables",
+          "passed": true,
+          "durationMs": 33.08104100000037
+        }
+      ]
+    }
+  ]
+}

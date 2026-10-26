@@ -83,8 +83,19 @@ The other dimensions must have a positive product that divides the element
 count exactly. An empty source can reshape to `# 1` (shape `0 1`), but `# 0`
 is ambiguous and raises `DimensionMismatch`. Only one `#` is allowed, written
 directly among the reshape dimensions; it is not a value to store in a shape
-array. Negative dimensions, including `-1`, remain invalid. Finite sequences
-are consumed once. Transpose keeps its existing axis-permutation behavior.
+array. Negative dimensions, including `-1`, remain invalid.
+
+For an array, `reshape` checks the element count from its shape and preserves
+flat row-major indices without reading its cells. Stored scalar arrays share
+copy-on-write storage; computed arrays keep a view of their source. For example,
+`M' = Values reshape 2 3` retains that computation, and `M len` can inspect the
+new leading dimension without computing the cells. Cell errors occur when the
+cells are read. An ordinary assignment such as `M = Values reshape 2 3`, an
+ordinary function parameter, a write, or explicit `copy` completes the value.
+Separate observations of a plan compute again; `reshape` does not cache cells.
+
+Text, queues and finite sequences are read once to build indexable storage.
+Transpose keeps its existing axis-permutation behavior.
 
 Inside a function, private integer expressions using `outer +`, `outer -` or
 `outer *` can fuse with reshape, a bit-mask filter and a following reduction.

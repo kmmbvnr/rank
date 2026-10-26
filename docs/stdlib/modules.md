@@ -1186,7 +1186,7 @@ surrogate code points.
 leading-axis length of an array, the size of a queue or set, or the length of a
 finite sequence. It rejects an infinite sequence.
 
-`reshape` from `sequences` constructs a dense array in row-major order:
+`reshape` from `sequences` changes an array's shape in row-major order:
 
 ```rank
 M = Values reshape Rows Columns
@@ -1202,6 +1202,13 @@ An empty source supports `# 1`, but `# 0` is ambiguous. Negative dimensions
 Dimensions are nonnegative integers; `unpack` expands a rank-1 shape array. The source may be an
 array, queue, finite sequence or text, and its element count must exactly match
 the requested shape. An infinite source is an error.
+
+Array shapes are checked without reading cells. Stored scalars share
+copy-on-write storage; computed arrays remain views until a consumer reads them.
+Ordinary assignment, ordinary parameters, writes and explicit `copy` complete
+the value. A planned reshape does not cache results, and cell errors remain
+deferred until the affected cells are read. Text, queues and finite sequences
+are read once to build indexable storage.
 
 `window` returns overlapping fixed-size cells lazily:
 
