@@ -46,7 +46,8 @@ export interface TensorKernelHost {
 }
 type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | BooleanCells | undefined;
 type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
-    checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[]) => KernelResult;
+    checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[], start?: number) => KernelResult;
+export interface TensorRange { readonly start: number; readonly size: number }
 export type TensorCodeCache = Map<string, KernelRun>;
 
 /** Native producers use the same IR, guards and emitter as source expressions.
@@ -311,7 +312,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         `${shape === undefined ? 's' : shape.join(',')}:${kind ?? ''}:${boolean}:${slot}:${storage ?? ''}:${scalarType ?? ''}`;
     let generated = '';
     let unavailable = false;
-    return { get source() { return generated; }, run(): RankValue | undefined {
+    return { get source() { return generated; }, run(range?: TensorRange): RankValue | undefined {
+        if (range && (!nativeGraph || terminal !== 'all' && terminal !== 'any')) return undefined;
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         if (implicit && !privateLoopPolling()) return recordFallback('tensor:observable-expression');
         if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
@@ -364,16 +366,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     layout = selected;
                     generated = selected.source;
                     if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-                    const result = selected.execute(data, offsets, scalars, selected.size, checks, routes);
+                    const result = selected.execute(data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, range?.start);
                     return terminal === 'copy' && result !== undefined
                         ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape) : result as RankValue | undefined;
                 }
             }
         }
-        return bindRun();
+        return bindRun(range);
     } };
 
-    function bindRun(): RankValue | undefined {
+    function bindRun(range?: TensorRange): RankValue | undefined {
         layout = undefined;
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
@@ -782,7 +784,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             const initial = terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes) { let answer = ${initial}, length = 0; for (let i = 0; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0) { let answer = ${initial}, length = 0; for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -817,7 +819,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-        const result = execute!(data, offsets, scalars, size, checks, routes);
+        const result = execute!(data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start);
         if (terminal === 'copy' && result !== undefined) {
             return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, compact ? [(result as RankValue[]).length] : output.shape);
         }

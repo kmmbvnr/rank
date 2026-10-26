@@ -15,7 +15,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
-import { reduceTensorMap } from './tensor-map.js';
+import { prepareTensorBooleanRange, reduceTensorMap } from './tensor-map.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
@@ -406,7 +406,19 @@ export class ReductionEvaluator {
         }
         const packedCount = builtin && operation === 'count' && reducedAxes.length > 0
             && reducedAxes.every((axis, i) => axis === value.shape.length - reducedAxes.length + i);
+        const contiguousBoolean = booleanFold && !producer && reducedAxes.length > 0
+            && reducedAxes.every((axis, i) => axis === value.shape.length - reducedAxes.length + i);
+        let rangePrepared = false;
+        let booleanRange: ReturnType<typeof prepareTensorBooleanRange>;
         const reduceAt = (frameIndex: number): RankValue => {
+            if (contiguousBoolean && this.isTensorFusion() && privateLoopPolling()) {
+                if (!rangePrepared) {
+                    rangePrepared = true;
+                    booleanRange = prepareTensorBooleanRange(value, operation as 'all' | 'any');
+                }
+                const folded = booleanRange?.(frameIndex * reducedSize, reducedSize);
+                if (folded !== undefined) return folded;
+            }
             if (!producer && packedCount) {
                 const packed = countPackedBooleanRange(value, offsetAt(frameIndex, frameAxes), reducedSize);
                 if (packed !== undefined) return packed;

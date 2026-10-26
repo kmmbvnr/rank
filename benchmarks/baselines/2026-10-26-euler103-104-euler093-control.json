@@ -1,0 +1,89 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "runtime": "current checkout",
+  "baselineRuntime": "/private/tmp/rank103104/before/index.js",
+  "runtimeHashes": {
+    "before": {
+      "clause-expression.js": "0ed89e67e3318cbe483706b041920f606ae6f336b0a91701e8775e04d5ebe705",
+      "sequence.js": "2d723368934aa4141f88d277304821da0968f494b9f0e4cb267a5873ba9f994c",
+      "materialize.js": "2ca2a0f4a2df940cab95f09b0a32377edd690bf10c19939953149f9ccfbba356",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc",
+      "tensor-map.js": "91cd2596a80560e12d6b533f922156a66e43e88e072249e5fa966d5aace03a4c",
+      "tensor-kernel.js": "f41b5f7a99afc3443ba790aaeea37e9f492dfb8e9dbe332f0efa813508d26358"
+    },
+    "after": {
+      "clause-expression.js": "0ed89e67e3318cbe483706b041920f606ae6f336b0a91701e8775e04d5ebe705",
+      "sequence.js": "2d723368934aa4141f88d277304821da0968f494b9f0e4cb267a5873ba9f994c",
+      "materialize.js": "2ca2a0f4a2df940cab95f09b0a32377edd690bf10c19939953149f9ccfbba356",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc",
+      "tensor-map.js": "51621e533ccd9c663b1dd4fd7a5ba35ea8d01195eea9a59aec79d5167c6625ea",
+      "tensor-kernel.js": "ddbe7852a1fc86c8c69253543bc1518dcd9b4874f59e868c8d07eaa286a3fd6c"
+    }
+  },
+  "diagnostics": false,
+  "work": {
+    "candidates": 131592,
+    "partitions": 1875,
+    "cells": 324578
+  },
+  "measurements": "serial fresh processes; complete execution including parsing; process peak RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1108.056792,
+      "peakRssMiB": 481.390625,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1119.251042,
+      "peakRssMiB": 485.875,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1124.067916,
+      "peakRssMiB": 482.34375,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1107.8008750000001,
+      "peakRssMiB": 480.859375,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1111.240209,
+      "peakRssMiB": 487.25,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 1115.73825,
+      "peakRssMiB": 481.734375,
+      "sourceHash": "0223d96bba04d66df8a3d7dfc68d8f79373fe8da91ebeb9c2b108aaba53fd45b",
+      "tests": []
+    }
+  ]
+}

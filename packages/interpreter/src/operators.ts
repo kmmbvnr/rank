@@ -15,7 +15,7 @@ import { applyBound, valueBound } from './clause-expression.js';
 import { MissingValueError, RankError } from './errors.js';
 import { indexHas, indexKey } from './index-storage.js';
 import { ALL_AXIS } from './selectors.js';
-import { checkpoint } from './interrupt.js';
+import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { missingBinary } from './missing.js';
 import { mapMaskedArrays, mapMaskedIntegers } from './masked-kernels.js';
 import { binarySqlite, inSqlite } from './modules/sqlite.js';
@@ -28,7 +28,7 @@ import {
 import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
 import { REAL_CODES, mapBooleanArrays, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
-import { compareCells, equalMembershipValues, equalValues } from './value-comparison.js';
+import { compareCells, compareStoredArrayCells, equalMembershipValues, equalValues } from './value-comparison.js';
 import {
     addDateTimeDuration, expectBoolean, isRankArray, isRankCounter, isRankDate, isRankDuration, isRankIndex,
     isRankLabel, isRankMultiset, isRankObject, isRankQueue, isRankSequence, isRankSequenceMask, isRankSet,
@@ -87,6 +87,12 @@ export class Operators {
         const a = cells(left, 0), b = cells(right, 1);
         if (a.frameShape.length === 0 && b.frameShape.length === 0) {
             return compareCells(spec.operator, a.cellAt(0), b.cellAt(0));
+        }
+        if (spec.axes === undefined && spec.rank > 0 && privateLoopPolling()
+            && (spec.operator === 'equal' || spec.operator === 'notequal')
+            && isRankArray(left) && isRankArray(right) && left.shape.length > 0 && right.shape.length > 0) {
+            const compared = compareStoredArrayCells(left, right, spec.rank, spec.operator === 'notequal');
+            if (compared) return compared;
         }
         return mapBroadcastArrays(
             derivedArray(a.frameShape, [left], a.cellAt),

@@ -2,9 +2,10 @@ import { registerPackedBooleanMap, countPackedBooleans } from './packed-booleans
 import { matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType } from '@arrrank/language';
 import { arrayCellValidator } from './derived-array.js';
 import { checkpoint } from './interrupt.js';
+import { currentDiagnostics } from './diagnostics.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
-import { compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction } from './tensor-kernel.js';
+import { compileNativeTensorCopy, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface MapRecipe {
@@ -98,6 +99,18 @@ function consumeTensorMap(value: RankArray, operation: string): RankValue | unde
         const packed = countPackedBooleans(value);
         if (packed !== undefined) return packed;
     }
+    return prepareTensorMap(value, operation)?.();
+}
+
+/** One native graph serves contiguous boolean cells, without completing later cells. */
+export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | 'any'):
+    ((start: number, size: number) => RankValue | undefined) | undefined {
+    const run = prepareTensorMap(value, operation);
+    return run && ((start, size) => run({ start, size }));
+}
+
+function prepareTensorMap(value: RankArray, operation: string):
+    ((range?: TensorRange) => RankValue | undefined) | undefined {
     if (!consumerCompilation || operation !== 'copy' && !reductions.has(operation)) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
@@ -181,11 +194,17 @@ function consumeTensorMap(value: RankArray, operation: string): RankValue | unde
     }
     const root = lower(value);
     if (!root || !transformed) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.tensorMapPreparations++;
     const host = { ...scope.host, valid: () => scope.host.valid?.() !== false && guards.every(guard => guard()) };
-    const result = (operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
-        : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code)).run();
-    if (result !== undefined) scope.executed();
-    return result;
+    const kernel = operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)
+        : compileNativeTensorReduction(root, operation as TensorReduction, domains, host, scope.code);
+    return range => {
+        if (!consumerCompilation || !scope.enabled()) return undefined;
+        const result = kernel.run(range);
+        if (result !== undefined) scope.executed();
+        return result;
+    };
 }
 
 function mapScope(value: RankArray): PlanScope | undefined {

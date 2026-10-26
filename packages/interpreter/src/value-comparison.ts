@@ -1,16 +1,42 @@
-import { readArrayItem } from './array-storage.js';
+import { derivedArray } from './derived-array.js';
+import { arrayStrides, broadcastOffset, broadcastShape } from './tensor-layout.js';
+import { denseScalarItems, readArrayItem } from './array-storage.js';
 import { checkpoint } from './interrupt.js';
 import { RankError } from './errors.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import {
     formatValue, isRankTuple, isRankArray, isRankDate, isRankDuration, isRankRecord,
-    type RankValue,
+    type RankArray, type RankValue,
 } from './value.js';
 
 const arrayItem = readArrayItem;
 const arraySize = (shape: readonly number[]): number => shape.reduce((size, axis) => size * axis, 1);
 const sameShape = (left: readonly number[], right: readonly number[]): boolean =>
     left.length === right.length && left.every((axis, index) => axis === right[index]);
+
+/** Compare completed scalar cells in place instead of allocating a view per frame.
+ * Lazy/host arrays retain their readers and nested arrays retain recursive equality. */
+export function compareStoredArrayCells(left: RankArray, right: RankArray, rank: number, negate: boolean): RankArray | undefined {
+    // Admission consults owned storage only, never host properties or readers.
+    if (!denseScalarItems(left) || !denseScalarItems(right)) return undefined;
+    const leftRank = Math.min(rank, left.shape.length), rightRank = Math.min(rank, right.shape.length);
+    const leftCell = left.shape.slice(-leftRank), rightCell = right.shape.slice(-rightRank);
+    const leftFrame = left.shape.slice(0, -leftRank), rightFrame = right.shape.slice(0, -rightRank);
+    const shape = broadcastShape(leftFrame, rightFrame);
+    const matching = sameShape(leftCell, rightCell);
+    const width = arraySize(leftCell);
+    const leftStrides = arrayStrides(leftFrame), rightStrides = arrayStrides(rightFrame);
+    return derivedArray(shape, [left, right], index => {
+        if (!matching) return negate;
+        const ai = broadcastOffset(index, shape, leftFrame, leftStrides) * width;
+        const bi = broadcastOffset(index, shape, rightFrame, rightStrides) * width;
+        for (let offset = 0; offset < width; offset++) {
+            checkpoint('comparing cells');
+            if (!equalValues(arrayItem(left, ai + offset), arrayItem(right, bi + offset))) return negate;
+        }
+        return !negate;
+    }, true);
+}
 
 export function compareCells(operator: string, left: RankValue, right: RankValue): boolean {
     if (operator === 'equal' || operator === 'notequal') {

@@ -1,46 +1,32 @@
 use testing
 
-test "default input"
+test "default input, statement indices and candidates"
   use "104_pandigitalfib"
   use numbers
   use sequences
   run
 
   Answer equal 329468
-end
-
-test "statement indices"
-  use "104_pandigitalfib"
-  use numbers
-  use sequences
-  run
-
   Cands 0 equal 541
   Tail 541 equal 839725641
   Tail 2749 equal 2250249
+  Good any equal true
+  Heads 0 equal false
 end
 
 test "leading digits by logarithm"
-  use "104_pandigitalfib"
   use numbers
   use sequences
-  run
 
+  Ten = 10 log
+  Root = 5 sqrt
+  Phi = (1 + Root) / 2
+  PhiLog = Phi log / Ten
+  Half = 5 log / Ten / 2
   Spin = (array 2749 541) * PhiLog - Half
   Frac = Spin mod 1
   Pow = 10 ** (Frac + 8)
   Lead = Pow floor
   Lead 0 equal 143726895
   Lead 1 equal 516212329
-end
-
-test "pandigital candidates"
-  use "104_pandigitalfib"
-  use numbers
-  use sequences
-  run
-
-  Cands 0 equal 541
-  Good any equal true
-  Heads 0 equal false
 end

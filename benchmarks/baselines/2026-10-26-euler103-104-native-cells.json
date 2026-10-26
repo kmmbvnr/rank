@@ -1,0 +1,844 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "runtimeHashes": {
+    "current": {
+      "reduction.js": "e9d3f626cd57ade4d674afdf11822dabd12949c6473548597dd40fd07bf426bf",
+      "tensor-map.js": "51621e533ccd9c663b1dd4fd7a5ba35ea8d01195eea9a59aec79d5167c6625ea",
+      "tensor-kernel.js": "ddbe7852a1fc86c8c69253543bc1518dcd9b4874f59e868c8d07eaa286a3fd6c",
+      "diagnostics.js": "ab322bab55df0682148c52b68260d9caab1b2b525bfee7d9f4ec281608040d48",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "value-comparison.js": "422cdc458329dcf94399f629f58f208b4e65c030b767bcef285ea6d05abd133e"
+    },
+    "before": {
+      "reduction.js": "17075dd7580ec9b23a3172741ebdfd0795f5f8b96e278cce0cc552e186424330",
+      "tensor-map.js": "91cd2596a80560e12d6b533f922156a66e43e88e072249e5fa966d5aace03a4c",
+      "tensor-kernel.js": "f41b5f7a99afc3443ba790aaeea37e9f492dfb8e9dbe332f0efa813508d26358",
+      "diagnostics.js": "c6a96018e9034464f76d30deaa26ad01cd4fa0a63283f340e4cc464dcd3ca1ff",
+      "operators.js": "15362c2212f09436f3954ce597278b66aa755c10b516643d6d218266e68aafbf",
+      "value-comparison.js": "31205421d2d143250b0f0e6f11405d3d139cbe7b09099a9884461ac15b058a10"
+    }
+  },
+  "baselineRuntime": "/private/tmp/rank103104/before/index.js",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before independent oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "id": "103",
+      "version": "before",
+      "kind": "main",
+      "executeMs": 246.72733300000002,
+      "peakRssMiB": 176.40625,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "103",
+      "version": "before",
+      "kind": "fixture",
+      "executeMs": 375.542542,
+      "peakRssMiB": 187.71875,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "fe446b4588615b81010e5ae8b3ad7ee54c0673d1e89655fdcb76e42b77bfcfb3",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 128.416875
+        },
+        {
+          "name": "found set is special",
+          "passed": true,
+          "durationMs": 115.14133299999997
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "id": "103",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 241.80404199999998,
+      "peakRssMiB": 175.203125,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "103",
+      "version": "after",
+      "kind": "fixture",
+      "executeMs": 259.46108300000003,
+      "peakRssMiB": 177.15625,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "be3211ab05d7223ebd9302cda94bfa9f5104e28bff2c7faa6e5a780182f2d2b8",
+      "tests": [
+        {
+          "name": "default input and optimum set",
+          "passed": true,
+          "durationMs": 129.151167
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "before",
+      "kind": "main",
+      "executeMs": 2595.499625,
+      "peakRssMiB": 539,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "before",
+      "kind": "fixture",
+      "executeMs": 10722.701083,
+      "peakRssMiB": 739.671875,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 2538.006042
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 2632.3232080000002
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 2676.537625
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 2755.7690839999996
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "compiler",
+      "kind": "main",
+      "executeMs": 1011.982833,
+      "peakRssMiB": 405.859375,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "compiler",
+      "kind": "fixture",
+      "executeMs": 3887.582208,
+      "peakRssMiB": 581.828125,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 922.5698750000001
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 971.4711670000002
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 895.0998750000003
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 978.9140000000002
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "rank",
+      "kind": "main",
+      "executeMs": 899.4792909999999,
+      "peakRssMiB": 400.546875,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "rank",
+      "kind": "fixture",
+      "executeMs": 3367.8899170000004,
+      "peakRssMiB": 576.375,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 783.678917
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 824.600709
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 794.59475
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 845.97125
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 877.215416,
+      "peakRssMiB": 405.40625,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "after",
+      "kind": "fixture",
+      "executeMs": 907.2576250000001,
+      "peakRssMiB": 412.25,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "750cbfbcea562ae778e9f778718576414b7aa14be8d1fda5ffb87008c820dbc8",
+      "tests": [
+        {
+          "name": "default input, statement indices and candidates",
+          "passed": true,
+          "durationMs": 783.825708
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 2.708084000000099
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "after",
+      "kind": "fixture",
+      "executeMs": 920.1077500000001,
+      "peakRssMiB": 416.484375,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "750cbfbcea562ae778e9f778718576414b7aa14be8d1fda5ffb87008c820dbc8",
+      "tests": [
+        {
+          "name": "default input, statement indices and candidates",
+          "passed": true,
+          "durationMs": 795.1822910000001
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 3.1106250000000273
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 875.111375,
+      "peakRssMiB": 397.625,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "rank",
+      "kind": "fixture",
+      "executeMs": 3375.293459,
+      "peakRssMiB": 574.109375,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 793.2034590000001
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 829.5710829999998
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 785.5580419999999
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 846.3492090000004
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "rank",
+      "kind": "main",
+      "executeMs": 867.687083,
+      "peakRssMiB": 400.75,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "compiler",
+      "kind": "fixture",
+      "executeMs": 3966.986917,
+      "peakRssMiB": 582.078125,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 905.18975
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 979.494833
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 941.4724999999999
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 1022.9877500000002
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "compiler",
+      "kind": "main",
+      "executeMs": 1018.712584,
+      "peakRssMiB": 398.890625,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "before",
+      "kind": "fixture",
+      "executeMs": 10814.540167,
+      "peakRssMiB": 595.9375,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 2572.4354160000003
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 2682.176292
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 2688.2444160000005
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 2745.4455
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "104",
+      "version": "before",
+      "kind": "main",
+      "executeMs": 2696.5640000000003,
+      "peakRssMiB": 545.140625,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "id": "103",
+      "version": "after",
+      "kind": "fixture",
+      "executeMs": 280.548,
+      "peakRssMiB": 182.546875,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "be3211ab05d7223ebd9302cda94bfa9f5104e28bff2c7faa6e5a780182f2d2b8",
+      "tests": [
+        {
+          "name": "default input and optimum set",
+          "passed": true,
+          "durationMs": 144.567541
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "103",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 257.215083,
+      "peakRssMiB": 175.140625,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "id": "103",
+      "version": "before",
+      "kind": "fixture",
+      "executeMs": 395.64266599999996,
+      "peakRssMiB": 181.375,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "fe446b4588615b81010e5ae8b3ad7ee54c0673d1e89655fdcb76e42b77bfcfb3",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 138.190334
+        },
+        {
+          "name": "found set is special",
+          "passed": true,
+          "durationMs": 123.71712499999995
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "id": "103",
+      "version": "before",
+      "kind": "main",
+      "executeMs": 251.52433299999998,
+      "peakRssMiB": 177.390625,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "103",
+      "version": "before",
+      "kind": "main",
+      "executeMs": 249.84949999999998,
+      "peakRssMiB": 177.265625,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "103",
+      "version": "before",
+      "kind": "fixture",
+      "executeMs": 394.337625,
+      "peakRssMiB": 180.859375,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "fe446b4588615b81010e5ae8b3ad7ee54c0673d1e89655fdcb76e42b77bfcfb3",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 137.95804099999998
+        },
+        {
+          "name": "found set is special",
+          "passed": true,
+          "durationMs": 123.42100000000005
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "id": "103",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 252.92049999999998,
+      "peakRssMiB": 175.203125,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "103",
+      "version": "after",
+      "kind": "fixture",
+      "executeMs": 267.331959,
+      "peakRssMiB": 177.515625,
+      "mainHash": "ec866158bc0720086b39741b55f3d10d35dd7a338896694c9aa64c805e721316",
+      "workloadHash": "be3211ab05d7223ebd9302cda94bfa9f5104e28bff2c7faa6e5a780182f2d2b8",
+      "tests": [
+        {
+          "name": "default input and optimum set",
+          "passed": true,
+          "durationMs": 136.06525
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "before",
+      "kind": "main",
+      "executeMs": 2664.2726669999997,
+      "peakRssMiB": 545.328125,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "before",
+      "kind": "fixture",
+      "executeMs": 10791.434583,
+      "peakRssMiB": 602.0625,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 2588.080333
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 2685.879417
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 2665.1815829999996
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 2733.1668339999997
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "compiler",
+      "kind": "main",
+      "executeMs": 1025.5937079999999,
+      "peakRssMiB": 405.640625,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "compiler",
+      "kind": "fixture",
+      "executeMs": 4021.9474999999998,
+      "peakRssMiB": 584.28125,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 934.334417
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 1017.886291
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 932.8611249999999
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 1018.6745420000002
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "rank",
+      "kind": "main",
+      "executeMs": 874.890542,
+      "peakRssMiB": 406.9375,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "rank",
+      "kind": "fixture",
+      "executeMs": 3344.648334,
+      "peakRssMiB": 578.375,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "3321b0b1a7a70109388020476d16198995d58780bc54b5c0b66e436928d64e88",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 773.9407080000001
+        },
+        {
+          "name": "statement indices",
+          "passed": true,
+          "durationMs": 816.233917
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 775.0488340000002
+        },
+        {
+          "name": "pandigital candidates",
+          "passed": true,
+          "durationMs": 860.5077499999998
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 872.933625,
+      "peakRssMiB": 406.53125,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "id": "104",
+      "version": "after",
+      "kind": "fixture",
+      "executeMs": 912.3092909999999,
+      "peakRssMiB": 413.71875,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "750cbfbcea562ae778e9f778718576414b7aa14be8d1fda5ffb87008c820dbc8",
+      "tests": [
+        {
+          "name": "default input, statement indices and candidates",
+          "passed": true,
+          "durationMs": 788.2772910000001
+        },
+        {
+          "name": "leading digits by logarithm",
+          "passed": true,
+          "durationMs": 2.7029589999999644
+        }
+      ]
+    }
+  ],
+  "baselineCommit": "eb3c46ba",
+  "separateDiagnostics": [
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "compiler",
+      "kind": "main",
+      "executeMs": 1025.3931670000002,
+      "peakRssMiB": 413.71875,
+      "mainHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "workloadHash": "e099a963adac011d4be46abd6999aaaa71c2567c7e6c9a770f6c363c09d30f5b",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 5780585,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 178160,
+        "tensorMapPreparations": 2,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 2,
+        "maskMaterializedCells": 44540,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 2,
+        "typedUnpackedCells": 443990,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:too-small": 6,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:deferred-binding:AssignmentStatement": 11,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:/": 11,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:binding:log": 1,
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:-": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "id": "104",
+      "version": "after",
+      "kind": "main",
+      "executeMs": 886.233792,
+      "peakRssMiB": 414.28125,
+      "mainHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "workloadHash": "7cff27df1675330e65ca0b16f535c909e9666e64eda19f83f22194b36d447c35",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 5780585,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 1,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 2,
+        "maskMaterializedCells": 44540,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 2,
+        "typedUnpackedCells": 443990,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 2,
+          "scalar-expression:too-small": 4,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:deferred-binding:AssignmentStatement": 11,
+          "scalar-expression:operator-guard:mod": 1,
+          "scalar-expression:operator-guard:equal": 1,
+          "scalar-expression:unsupported-op:equal": 2,
+          "scalar-expression:unsupported-op:/": 11,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:binding:log": 1,
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:-": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    }
+  ]
+}

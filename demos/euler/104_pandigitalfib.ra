@@ -29,7 +29,7 @@ Bases = array shape 9 fill 10
 Want = 1 to 9 array
 EDs' = Ends digits Bases
 ESort = EDs transpose sort
-Good' = (ESort equal Want) all axis 1
+Good' = ESort Want equal rank 1
 Cands = Near Good array
 
 rem Leading digits come from the
@@ -46,6 +46,6 @@ Pow' = 10 ** (Frac + 8)
 Lead' = Pow floor
 LDs' = Lead digits Bases
 LSort = LDs transpose sort
-Heads' = (LSort equal Want) all axis 1
+Heads' = LSort Want equal rank 1
 Answer = (Cands Heads) first
 Answer print

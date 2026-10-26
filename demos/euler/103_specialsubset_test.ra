@@ -1,17 +1,11 @@
 use testing
 
-test "default input"
+test "default input and optimum set"
   use "103_specialsubset"
   run
 
   Answer equal "20313839404245"
   Found sum equal 255
-end
-
-test "found set is special"
-  use "103_specialsubset"
-  run
-
   Found (array 20 31 38 39 40 42 45) equal rank 1
   Best equal 255
 end

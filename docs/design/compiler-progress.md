@@ -2376,3 +2376,22 @@ Euler 093 files in both engines. Fourteen added tests check completion, unused
 plans, snapshot independence, reshape errors, host read order and packed
 boolean prefix searches. Existing completion tests now count their new copy
 kernels while still checking that later reductions do not reuse old producers.
+
+## Reusable native boolean axis cells (Euler 103/104, #447)
+
+Trailing `any`/`all` axis cells share one native tensor graph per demand. The
+existing emitter accepts a contiguous input range and retains short circuiting;
+it does not complete unread rows. Revision, shape, implementation and inspection
+guards remain on execution. Unsupported readers and noncontiguous axes keep the
+ordinary path. The diagnostic `tensorMapPreparations` counts graph preparation
+separately from kernel execution, since repeated observations still recompute.
+
+Ranked equality of completed scalar arrays compares checked storage directly,
+including broadcast frames and higher cell ranks, without constructing a view
+for each row. Lazy, host and nested values retain ordinary comparison. Euler 104
+uses `ESort Want equal rank 1` and the equivalent leading-digit comparison.
+
+The Euler 103 search algorithm remains unchanged. Its fixture now runs it once;
+Euler 104 likewise has one full default run and a separate small logarithm test.
+All distinct assertions, default inputs and golden answers are preserved.
+[Measurements, reproduction and verification](../../benchmarks/euler103-104-results.md).
