@@ -2431,3 +2431,20 @@ three and improves from 5.039 to 0.686 s. Median peak RSS falls from about 582 t
 The prime-policy tradeoff is explicit: Euler 058's five-pair repeat slows by
 3.7% (242 → 251 ms); other controls and prototype choices are recorded in the
 [measurements and verification report](../../benchmarks/euler118-pandigital-prime-sets-results.md).
+
+## Native scalar extrema in tensor plans (Euler 127, #447)
+
+Standard dyadic `min` and `max` now retain native map provenance between deferred
+arithmetic stages. A numeric consumer can emit clipping and its surrounding
+arithmetic in one tensor loop. Registration checks native implementation identity
+and scalar ranks; emission checks the current builtin and matching numeric cell
+types. The existing scalar extreme emitter keeps the first operand on ties,
+including signed zero. Mixed numeric domains, nonfinite values, host readers and
+unsupported layouts retain ordinary execution. Ordinary `=` remains a completion
+boundary, and separate plan observations recompute their values.
+
+The unchanged batched Euler 127 source is measured separately from its algorithm
+rewrite. The final demo generates sorted radical candidates incrementally,
+checks order and radical products before gcd, and accumulates only the answer.
+See the [benchmark report](../../benchmarks/euler127-abc-hits-results.md) for
+runtime-only and algorithm measurements, correctness checks and limitations.

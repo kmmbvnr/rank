@@ -10,42 +10,38 @@ use cli
 
 option Limit integer = 120000
 
-rem The three are pairwise coprime, so
-rem rad(abc) = rad(a) rad(b) rad(c).
-rem For each c only a with 2 rad(a) <=
-rem (c - 1) / rad(c) can work: they are
-rem a prefix of the numbers sorted by
-rem radical. Pair every c with its
-rem prefix and test the pairs at once.
+rem Coprime hits satisfy rad(abc) =
+rem rad(a) rad(b) rad(c). Sort by rad(a)
+rem and stop when even rad(b) = 2 would
+rem make the product too large.
 Rad = array shape Limit fill 1
 for P in primes till Limit
   Rad (P till Limit by P) *= P
 end
-Ord = Rad drop 1 argsort
-Rs = (Rad drop 1) Ord
-Gap = 0 - 1
-Last = array shape (Limit + 1) fill Gap
-Last Rs = 0 till (Limit - 1) array
-Cum = (Last scan max) + 1
-C = 3 to Limit - 1 array
-Q = (C - 1) // (Rad C)
-Half' = (Q // 2) min Limit
-Many = Cum Half
-Keep' = Many greater 0
-Cs = C filter Keep array
-Ms = Many filter Keep array
-Tot = Ms sum
-Head = Ms scan + with 0
-Mark = array shape Tot fill 0
-Mark (Head take (Ms len)) += 1
-Own = (Mark scan +) - 1
-Pos' = (0 till Tot array) - (Head Own)
-A = (Ord Pos) + 1
-Cc = Cs Own
-B' = (Cc - A) max 1
-Hit = A * 2 less Cc
-Prod = (Rad A) * (Rad B) * (Rad Cc)
-Hit and= Prod less Cc
-Hit and= (A gcd Cc) equal 1
-Answer = (Cc filter Hit array) sum
+Ord = (Rad drop 1) argsort
+
+rem Test pairs as they are generated.
+rem Compute gcd only after the cheap
+rem order and radical-product checks.
+Answer = 0
+for C in 3 till Limit
+  Quota = (C - 1) // (Rad C)
+  Bound = Quota // 2
+  for Index in Ord
+    A = Index + 1
+    if Rad A greater Bound
+      break
+    end
+    if A * 2 at least C
+      continue
+    end
+    B = C - A
+    if (Rad A) * (Rad B) greater Quota
+      continue
+    end
+    if (A gcd C) equal 1
+      Answer += C
+    end
+  end
+end
 Answer print

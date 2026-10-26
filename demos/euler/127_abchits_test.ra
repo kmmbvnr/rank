@@ -14,3 +14,20 @@ test "statement value for 1000"
 
   Answer equal 12523
 end
+
+
+test "exclude a hit at the limit"
+  use "127_abchits"
+  Limit = 9
+  run
+
+  Answer equal 0
+end
+
+test "include the first hit"
+  use "127_abchits"
+  Limit = 10
+  run
+
+  Answer equal 9
+end

@@ -924,8 +924,18 @@ end`);
         } finally { runtime.dispose(); }
     });
 
+    it('runs the actual Euler 021 top-level search on a bounded input', () => {
+        const source = readFileSync(new URL('../../../demos/euler/021_amicable.ra', import.meta.url), 'utf8');
+        const output: string[] = [];
+        const runtime = new Interpreter(text => output.push(text), { compilation });
+        try {
+            runtime.execute(source.replace('option Limit integer = 10000', 'option Limit integer = 300'));
+            expect(runtime.variables.get('Answer')).toBe(504n);
+            expect(output).toEqual(['504']);
+        } finally { runtime.dispose(); }
+    });
+
     it.each([
-        ['021_amicable', '300 amicable_sum', 504n],
         ['021_amicable', '220 proper_divisor_sum', 284n],
         ['021_amicable', '284 proper_divisor_sum', 220n],
         ['021_amicable', '16 proper_divisor_sum', 15n],

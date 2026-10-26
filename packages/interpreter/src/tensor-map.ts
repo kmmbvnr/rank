@@ -19,7 +19,7 @@ interface MapRecipe {
 const maps = new WeakMap<RankArray, MapRecipe>();
 const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
-    'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0']);
+    'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0', 'min', 'max']);
 const reductions: ReadonlySet<string> = new Set<TensorReduction>(['sum', 'mean', 'min', 'max', 'count', 'any', 'all']);
 interface PlanScope {
     readonly host: TensorKernelHost;
@@ -182,13 +182,19 @@ function prepareTensorMap(value: RankArray, operation: string):
                 operands.push(node);
             }
             if (map.operator === 'integer0') guards.push(() => scope!.host.builtin('integer'));
-            const matched = map.operator === 'integer0' && operands.length === 1 && textDigits
+            const extreme = map.operator === 'min' || map.operator === 'max';
+            if (extreme && map.layout !== 'broadcast') return undefined;
+            const matched = extreme
+                ? operands.length === 2 && operands.every(node => domains.get(node)!.every(type => type === 'integer' || type === 'real'))
+                    ? { result: [...new Set(operands.flatMap(node => domains.get(node)!))] } : undefined
+                : map.operator === 'integer0' && operands.length === 1 && textDigits
                 ? { result: ['integer'] as const }
                 : matchCompiledOperatorDomains(tensorOperatorSignatures(map.operator, operands.length),
                     operands.map(node => domains.get(node)!));
             if (!matched) return undefined;
             transformed = true;
             const node = typed(operands.length === 1 ? { kind: 'unary', op: map.operator, operand: operands[0]! }
+                : extreme ? { kind: 'binary', op: map.operator, native: map.operator as 'min' | 'max', left: operands[0]!, right: operands[1]! }
                 : { kind: map.layout === 'outer' ? 'outer' : 'binary', op: map.operator, left: operands[0]!, right: operands[1]! }, matched.result);
             const validate = arrayCellValidator(value);
             return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));

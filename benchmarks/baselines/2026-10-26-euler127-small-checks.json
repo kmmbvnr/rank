@@ -1,0 +1,178 @@
+{
+  "node": "v24.15.0",
+  "sourceHashes": {
+    "batched": "d38752df86bf66c09dfc537f2297e9b583048a4b771b2be1d0083d897f19dbaa",
+    "pruned": "2aa58a0ad1ecc0c27e58e706bbb70ca47e9679391ee78da81295840d64a11cdb"
+  },
+  "checks": 24,
+  "results": [
+    {
+      "version": "batched",
+      "compilation": false,
+      "limit": 3,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "batched",
+      "compilation": true,
+      "limit": 3,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "pruned",
+      "compilation": false,
+      "limit": 3,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "pruned",
+      "compilation": true,
+      "limit": 3,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "batched",
+      "compilation": false,
+      "limit": 4,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "batched",
+      "compilation": true,
+      "limit": 4,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "pruned",
+      "compilation": false,
+      "limit": 4,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "pruned",
+      "compilation": true,
+      "limit": 4,
+      "hits": 0,
+      "sum": 0
+    },
+    {
+      "version": "batched",
+      "compilation": false,
+      "limit": 10,
+      "hits": 1,
+      "sum": 9
+    },
+    {
+      "version": "batched",
+      "compilation": true,
+      "limit": 10,
+      "hits": 1,
+      "sum": 9
+    },
+    {
+      "version": "pruned",
+      "compilation": false,
+      "limit": 10,
+      "hits": 1,
+      "sum": 9
+    },
+    {
+      "version": "pruned",
+      "compilation": true,
+      "limit": 10,
+      "hits": 1,
+      "sum": 9
+    },
+    {
+      "version": "batched",
+      "compilation": false,
+      "limit": 50,
+      "hits": 3,
+      "sum": 90
+    },
+    {
+      "version": "batched",
+      "compilation": true,
+      "limit": 50,
+      "hits": 3,
+      "sum": 90
+    },
+    {
+      "version": "pruned",
+      "compilation": false,
+      "limit": 50,
+      "hits": 3,
+      "sum": 90
+    },
+    {
+      "version": "pruned",
+      "compilation": true,
+      "limit": 50,
+      "hits": 3,
+      "sum": 90
+    },
+    {
+      "version": "batched",
+      "compilation": false,
+      "limit": 100,
+      "hits": 6,
+      "sum": 316
+    },
+    {
+      "version": "batched",
+      "compilation": true,
+      "limit": 100,
+      "hits": 6,
+      "sum": 316
+    },
+    {
+      "version": "pruned",
+      "compilation": false,
+      "limit": 100,
+      "hits": 6,
+      "sum": 316
+    },
+    {
+      "version": "pruned",
+      "compilation": true,
+      "limit": 100,
+      "hits": 6,
+      "sum": 316
+    },
+    {
+      "version": "batched",
+      "compilation": false,
+      "limit": 1000,
+      "hits": 31,
+      "sum": 12523
+    },
+    {
+      "version": "batched",
+      "compilation": true,
+      "limit": 1000,
+      "hits": 31,
+      "sum": 12523
+    },
+    {
+      "version": "pruned",
+      "compilation": false,
+      "limit": 1000,
+      "hits": 31,
+      "sum": 12523
+    },
+    {
+      "version": "pruned",
+      "compilation": true,
+      "limit": 1000,
+      "hits": 31,
+      "sum": 12523
+    }
+  ]
+}

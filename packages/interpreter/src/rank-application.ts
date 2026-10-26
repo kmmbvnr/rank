@@ -172,11 +172,13 @@ export class RankApplication {
                     { value: right, axes: b.frameShape.map((_, axis) => axis) },
                 ]));
         }
-        if (leftRank === 0 && rightRank === 0 && hasNativeImplementation(fn)) {
-            const operation = fn === this.standardFunctions.get(standardModules.numbers.gcd) ? 'gcd'
+        const operation = leftRank === 0 && rightRank === 0 && hasNativeImplementation(fn)
+            ? fn === this.standardFunctions.get(standardModules.numbers.gcd) ? 'gcd'
                 : fn === this.standardFunctions.get(standardModules.core.min) ? 'min'
-                : fn === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined;
-            const integers = operation && mapStoredIntegers(left, right, operation);
+                : fn === this.standardFunctions.get(standardModules.core.max) ? 'max' : undefined
+            : undefined;
+        if (operation) {
+            const integers = mapStoredIntegers(left, right, operation);
             if (integers) return completed(integers);
         }
         // The standard find holds the complete left vector and maps scalar
@@ -244,25 +246,27 @@ export class RankApplication {
         }
         // Each native read evaluates its operands; ordinary binding retains the result.
         const sources = [left, right, fn];
+        const publish = (result: RankArray) => operation === 'min' || operation === 'max'
+            ? registerTensorMap(result, operation, [left, right]) : result;
         if (a.frameShape.length === 0) {
-            return completed(derivedArray(frameShape, sources, index =>
-                applyCell(a.cellAt(0), b.cellAt(index)), true));
+            return completed(publish(derivedArray(frameShape, sources, index =>
+                applyCell(a.cellAt(0), b.cellAt(index)), true)));
         }
         if (b.frameShape.length === 0) {
-            return completed(derivedArray(frameShape, sources, index =>
-                applyCell(a.cellAt(index), b.cellAt(0)), true));
+            return completed(publish(derivedArray(frameShape, sources, index =>
+                applyCell(a.cellAt(index), b.cellAt(0)), true)));
         }
         if (sameShape(a.frameShape, b.frameShape)) {
-            return completed(derivedArray(frameShape, sources, index =>
-                applyCell(a.cellAt(index), b.cellAt(index)), true));
+            return completed(publish(derivedArray(frameShape, sources, index =>
+                applyCell(a.cellAt(index), b.cellAt(index)), true)));
         }
         const leftCells = derivedArray(a.frameShape, [left], a.cellAt);
         const rightCells = derivedArray(b.frameShape, [right], b.cellAt);
-        return completed(registerArrayDependencies(mapBroadcastArrays(
+        return completed(publish(registerArrayDependencies(mapBroadcastArrays(
             leftCells,
             rightCells,
             applyCell,
-        ), [leftCells, rightCells, fn]));
+        ), [leftCells, rightCells, fn])));
     }
 
     /**

@@ -1,0 +1,123 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "compiler": {
+      "rank-application.js": "9b0eb9ab3e861bbced5a46e1851ab8dd0d6be895021d1d05ba06509f7c24ca8e",
+      "tensor-map.js": "2b079196f39d8d4568cf1d1a40360fabb0eb5d6a796afe714cb25281714a1d56",
+      "tensor-kernel.js": "d779888f8d8ed64b6906614520c99036e3cffd3093d2f063f63fd28253da7eb5",
+      "integer-array-kernel.js": "140afd0227e4a2fa998643c6724d87615523219c6becdde4d755e86e8c72caa0",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "selectors.js": "dd4a1bbb385a90156a8074eaa01cccff46fc3531fac23fd1c7153362bfc4c03a"
+    },
+    "pruned": {
+      "rank-application.js": "9b0eb9ab3e861bbced5a46e1851ab8dd0d6be895021d1d05ba06509f7c24ca8e",
+      "tensor-map.js": "2b079196f39d8d4568cf1d1a40360fabb0eb5d6a796afe714cb25281714a1d56",
+      "tensor-kernel.js": "d779888f8d8ed64b6906614520c99036e3cffd3093d2f063f63fd28253da7eb5",
+      "integer-array-kernel.js": "140afd0227e4a2fa998643c6724d87615523219c6becdde4d755e86e8c72caa0",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "selectors.js": "dd4a1bbb385a90156a8074eaa01cccff46fc3531fac23fd1c7153362bfc4c03a"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak RSS before oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 227.24325,
+      "peakRssMiB": 188.234375,
+      "sourceHash": "ed0826fdb1232bcbc95bc2b221c8c787cb1e44fe676a66409a9001478c4da562",
+      "mainHash": "2aa58a0ad1ecc0c27e58e706bbb70ca47e9679391ee78da81295840d64a11cdb",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 96.777917
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 9.035500000000013
+        },
+        {
+          "name": "exclude a hit at the limit",
+          "passed": true,
+          "durationMs": 5.319166999999993
+        },
+        {
+          "name": "include the first hit",
+          "passed": true,
+          "durationMs": 4.0038339999999835
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 227.075791,
+      "peakRssMiB": 191.5,
+      "sourceHash": "ed0826fdb1232bcbc95bc2b221c8c787cb1e44fe676a66409a9001478c4da562",
+      "mainHash": "2aa58a0ad1ecc0c27e58e706bbb70ca47e9679391ee78da81295840d64a11cdb",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 94.575333
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 10.261791000000017
+        },
+        {
+          "name": "exclude a hit at the limit",
+          "passed": true,
+          "durationMs": 4.653541000000018
+        },
+        {
+          "name": "include the first hit",
+          "passed": true,
+          "durationMs": 3.6642499999999814
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 230.978083,
+      "peakRssMiB": 192.40625,
+      "sourceHash": "ed0826fdb1232bcbc95bc2b221c8c787cb1e44fe676a66409a9001478c4da562",
+      "mainHash": "2aa58a0ad1ecc0c27e58e706bbb70ca47e9679391ee78da81295840d64a11cdb",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 95.67670899999996
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 10.67591699999997
+        },
+        {
+          "name": "exclude a hit at the limit",
+          "passed": true,
+          "durationMs": 4.996082999999999
+        },
+        {
+          "name": "include the first hit",
+          "passed": true,
+          "durationMs": 4.087792000000036
+        }
+      ]
+    }
+  ],
+  "baselineRevision": "0ff58e36",
+  "runtimePair": "Identical JS modules except rank-application.js, tensor-map.js and tensor-kernel.js; the before versions of those three modules precede native extrema lowering."
+}

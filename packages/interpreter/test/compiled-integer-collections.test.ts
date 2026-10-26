@@ -270,12 +270,13 @@ end`);
         expect(Object.keys(result.fallbacks)).toEqual([]);
     }, 15000);
 
-    it('compiles unchanged Euler 023 at full size', () => {
+    it('compiles the Euler 023 top-level search at full size', () => {
         const source = readFileSync(new URL('../../../demos/euler/023_abundantsums.ra', import.meta.url), 'utf8');
         const result = compare(source);
-        expect(result.value).toBeUndefined();
+        expect(result.value).toBe(4179871n);
         expect(result.output).toEqual(['4179871']);
-        expect(result.functions).toBe(1);
-        expect(Object.keys(result.fallbacks)).toEqual([]);
+        expect(result.functions).toBe(0);
+        expect(result.loops).toBe(3);
+        expect(Object.keys(result.fallbacks).filter(key => key.startsWith('loop:'))).toEqual([]);
     }, 15000);
 });

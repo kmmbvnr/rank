@@ -1,7 +1,7 @@
 import { BooleanCells } from './boolean-cells.js';
 import { ownedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
-import { binaryOperatorSource, zeroTestSource } from './operator-codegen.js';
+import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
 import { applicationForm } from '@arrrank/language';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
@@ -30,7 +30,7 @@ export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
-    | { kind: 'binary'; op: string; native?: Bitwise; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
+    | { kind: 'binary'; op: string; native?: Bitwise | 'min' | 'max'; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
     | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }
     | { kind: 'unary'; op: string; operand: TensorNode }
@@ -719,7 +719,12 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         ? emit(node.right, `((${at}) % ${rightSize})`, bound.get(node.right)!.shape!)
                         : info.operands ? rankedChild(node.right, info.operands[1]) : child(node.right);
                     const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
-                    if (node.kind === 'binary' && node.native) {
+                    if (node.kind === 'binary' && (node.native === 'min' || node.native === 'max')) {
+                        lines.push(`if (!${num(a)} || !${num(b)} || typeof ${a} !== typeof ${b}) ${decline}`);
+                        lines.push(`const ${name} = ${scalarExtremeSource(node.native, a, b)};`);
+                        return name;
+                    }
+                    if (node.kind === 'binary' && node.native && bitwise(node.native)) {
                         lines.push(`if (typeof ${a} !== 'bigint' || typeof ${b} !== 'bigint') ${decline}`);
                         lines.push(`const ${name} = ${a} ${bitwiseTokens[node.native]} ${b};`);
                         return name;
