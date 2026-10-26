@@ -1,0 +1,567 @@
+{
+  "baselineRevision": "2bd5b15700d7cead2d2ca270cacd0fadd13463aa",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "policy": "adaptive warmup 2..64 instead of 2..32; bounds and workspace unchanged",
+  "measurements": "serial fresh processes, alternating version order; complete execution including parsing; exact answer on every sample",
+  "results": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timings": "fresh processes; execute includes parsing; cold includes imports and disposal"
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 124.877917,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 284.22695899999997
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 124.26083300000002,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 303.61675
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 128.51345899999998,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 281.121167
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 126.39924999999997,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 285.0127910000001
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 125.35008300000004,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 281.65650000000005
+    },
+    {
+      "case": "direct-membership",
+      "executeMs": 125.92450000000002,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 278.865458
+    },
+    {
+      "case": "direct-membership",
+      "variant": "candidate",
+      "medianExecuteMs": 125.35008300000004,
+      "medianColdMs": 284.22695899999997
+    },
+    {
+      "case": "direct-membership",
+      "variant": "baseline",
+      "medianExecuteMs": 125.92450000000002,
+      "medianColdMs": 281.121167
+    },
+    {
+      "case": "euler058",
+      "executeMs": 250.58358399999997,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 405.7012920000002
+    },
+    {
+      "case": "euler058",
+      "executeMs": 242.20016700000002,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 414.5150829999998
+    },
+    {
+      "case": "euler058",
+      "executeMs": 238.13395899999998,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 407.93416700000034
+    },
+    {
+      "case": "euler058",
+      "executeMs": 254.37641699999998,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 411.7155419999999
+    },
+    {
+      "case": "euler058",
+      "executeMs": 251.48987499999998,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 406.1171250000002
+    },
+    {
+      "case": "euler058",
+      "executeMs": 236.98991600000002,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 404.51291700000047
+    },
+    {
+      "case": "euler058",
+      "variant": "candidate",
+      "medianExecuteMs": 251.48987499999998,
+      "medianColdMs": 406.1171250000002
+    },
+    {
+      "case": "euler058",
+      "variant": "baseline",
+      "medianExecuteMs": 238.13395899999998,
+      "medianColdMs": 407.93416700000034
+    },
+    {
+      "case": "euler060",
+      "executeMs": 2543.115,
+      "result": "26033",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 2750.1252919999997
+    },
+    {
+      "case": "euler060",
+      "executeMs": 2565.329916,
+      "result": "26033",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 2764.903042000001
+    },
+    {
+      "case": "euler060",
+      "executeMs": 2553.5185,
+      "result": "26033",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 2761.0610830000005
+    },
+    {
+      "case": "euler060",
+      "executeMs": 2541.448791,
+      "result": "26033",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 2748.185834
+    },
+    {
+      "case": "euler060",
+      "executeMs": 2541.767542,
+      "result": "26033",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 2745.7051249999986
+    },
+    {
+      "case": "euler060",
+      "executeMs": 2584.964875,
+      "result": "26033",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 2786.1626670000005
+    },
+    {
+      "case": "euler060",
+      "variant": "candidate",
+      "medianExecuteMs": 2541.767542,
+      "medianColdMs": 2748.185834
+    },
+    {
+      "case": "euler060",
+      "variant": "baseline",
+      "medianExecuteMs": 2565.329916,
+      "medianColdMs": 2764.903042000001
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5450.788791999999,
+      "result": "2039506520",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 5604.842999999997
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5424.354875,
+      "result": "2039506520",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 5578.272707999997
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5417.4261670000005,
+      "result": "2039506520",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 5578.2019169999985
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5400.070917,
+      "result": "2039506520",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 5554.006666000001
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5628.664958,
+      "result": "2039506520",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 5782.0171249999985
+    },
+    {
+      "case": "euler263",
+      "executeMs": 5488.228333999999,
+      "result": "2039506520",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 5650.406292
+    },
+    {
+      "case": "euler263",
+      "variant": "candidate",
+      "medianExecuteMs": 5450.788791999999,
+      "medianColdMs": 5604.842999999997
+    },
+    {
+      "case": "euler263",
+      "variant": "baseline",
+      "medianExecuteMs": 5424.354875,
+      "medianColdMs": 5578.272707999997
+    },
+    {
+      "case": "euler293",
+      "executeMs": 165.461166,
+      "result": "2209",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 322.92425000000367
+    },
+    {
+      "case": "euler293",
+      "executeMs": 185.71004200000002,
+      "result": "2209",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 345.9440409999952
+    },
+    {
+      "case": "euler293",
+      "executeMs": 176.209625,
+      "result": "2209",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 338.726665999995
+    },
+    {
+      "case": "euler293",
+      "executeMs": 163.10387500000002,
+      "result": "2209",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 321.14783299999544
+    },
+    {
+      "case": "euler293",
+      "executeMs": 166.4205,
+      "result": "2209",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 324.5873750000028
+    },
+    {
+      "case": "euler293",
+      "executeMs": 174.69924999999998,
+      "result": "2209",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 336.5884159999987
+    },
+    {
+      "case": "euler293",
+      "variant": "candidate",
+      "medianExecuteMs": 165.461166,
+      "medianColdMs": 322.92425000000367
+    },
+    {
+      "case": "euler293",
+      "variant": "baseline",
+      "medianExecuteMs": 176.209625,
+      "medianColdMs": 338.726665999995
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 156.26454200000003,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 312.33741700000246
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 152.650875,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 304.4514580000032
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 152.609625,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 310.296583000003
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 161.472292,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 316.734540999998
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 153.23749999999998,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 313.14354099999764
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 149.119791,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 301.4234159999978
+    },
+    {
+      "case": "bounded-membership",
+      "variant": "candidate",
+      "medianExecuteMs": 156.26454200000003,
+      "medianColdMs": 313.14354099999764
+    },
+    {
+      "case": "bounded-membership",
+      "variant": "baseline",
+      "medianExecuteMs": 152.609625,
+      "medianColdMs": 304.4514580000032
+    }
+  ],
+  "repeatSamples": 5,
+  "repeatResults": [
+    {
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "timings": "fresh processes; execute includes parsing; cold includes imports and disposal"
+    },
+    {
+      "case": "euler058",
+      "executeMs": 248.307833,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 405.853791
+    },
+    {
+      "case": "euler058",
+      "executeMs": 238.00470800000002,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 409.01874999999995
+    },
+    {
+      "case": "euler058",
+      "executeMs": 239.321,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 408.70562499999994
+    },
+    {
+      "case": "euler058",
+      "executeMs": 252.244417,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 409.0324170000001
+    },
+    {
+      "case": "euler058",
+      "executeMs": 251.19812499999998,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 408.62416599999983
+    },
+    {
+      "case": "euler058",
+      "executeMs": 242.189084,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 411.7092499999999
+    },
+    {
+      "case": "euler058",
+      "executeMs": 244.326333,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 3,
+      "coldMs": 412.75387500000033
+    },
+    {
+      "case": "euler058",
+      "executeMs": 256.31658400000003,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 3,
+      "coldMs": 413.74291700000003
+    },
+    {
+      "case": "euler058",
+      "executeMs": 246.162,
+      "result": "26241",
+      "variant": "candidate",
+      "trial": 4,
+      "coldMs": 403.80016700000033
+    },
+    {
+      "case": "euler058",
+      "executeMs": 243.94895799999998,
+      "result": "26241",
+      "variant": "baseline",
+      "trial": 4,
+      "coldMs": 411.5207499999997
+    },
+    {
+      "case": "euler058",
+      "variant": "candidate",
+      "medianExecuteMs": 251.19812499999998,
+      "medianColdMs": 408.62416599999983
+    },
+    {
+      "case": "euler058",
+      "variant": "baseline",
+      "medianExecuteMs": 242.189084,
+      "medianColdMs": 411.5207499999997
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 149.95137500000004,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 0,
+      "coldMs": 305.8272079999997
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 151.27816699999997,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 0,
+      "coldMs": 303.8292500000007
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 153.876292,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 1,
+      "coldMs": 306.2552919999998
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 146.56933300000003,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 1,
+      "coldMs": 301.06945799999994
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 154.52691700000003,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 2,
+      "coldMs": 309.85129099999995
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 146.40704200000002,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 2,
+      "coldMs": 299.25674999999956
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 150.269292,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 3,
+      "coldMs": 302.5557920000001
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 160.18437500000002,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 3,
+      "coldMs": 315.20808300000044
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 154.941959,
+      "result": "78498",
+      "variant": "candidate",
+      "trial": 4,
+      "coldMs": 309.50745800000004
+    },
+    {
+      "case": "bounded-membership",
+      "executeMs": 150.83445799999998,
+      "result": "78498",
+      "variant": "baseline",
+      "trial": 4,
+      "coldMs": 303.0652920000002
+    },
+    {
+      "case": "bounded-membership",
+      "variant": "candidate",
+      "medianExecuteMs": 154.52691700000003,
+      "medianColdMs": 309.50745800000004
+    },
+    {
+      "case": "bounded-membership",
+      "variant": "baseline",
+      "medianExecuteMs": 150.83445799999998,
+      "medianColdMs": 303.0652920000002
+    }
+  ]
+}

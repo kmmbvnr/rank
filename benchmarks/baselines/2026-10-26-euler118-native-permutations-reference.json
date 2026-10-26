@@ -1,0 +1,213 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "reference",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "before": {
+      "modules/algo.js": "7ff48b923c2ece13ca36d02f1df556d47a04764f7013e7c78d02679d243fca2a",
+      "sequence.js": "2d723368934aa4141f88d277304821da0968f494b9f0e4cb267a5873ba9f994c",
+      "prime-sequence.js": "e03223e81cb8463fa5d9829ea597bc9cef1aff95b0db6eb82b9e26a93c4fe209",
+      "diagnostics.js": "ab322bab55df0682148c52b68260d9caab1b2b525bfee7d9f4ec281608040d48",
+      "sequence-completion.js": null
+    },
+    "after": {
+      "modules/algo.js": "87db8ce89a52ceae0829590c632d391a92b650e7e089eddc7c8bfcee4e9f0f77",
+      "sequence.js": "0780d21f8cacac46a7eac898ca951c4cbecb31993283864e3cecbb64d8548b63",
+      "prime-sequence.js": "4872dd3adad896e3f09ef136154a6b7e3110d44e147eb5970d68f88bff2b52fb",
+      "diagnostics.js": "547254ea4431032cd8e2501a4b3a86199bc93539d1a7a53b39da7b00ecbe8b64",
+      "sequence-completion.js": "77110186b23231fcfe713610b4879c269f538b40656eab0ff25dc681b46bcd19"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before independent oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1810.4637500000001,
+      "peakRssMiB": 583.40625,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 4970.489958,
+      "peakRssMiB": 578.828125,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1681.751
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 1596.5955000000001
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 1571.4818340000002
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 688.0342499999999,
+      "peakRssMiB": 302.890625,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 686.731458,
+      "peakRssMiB": 300.484375,
+      "sourceHash": "0853089fc33fcabc164aa96168fe54f410f1d728c8bfe76279f2c423d81bf6aa",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input, prime counts and statement set parts",
+          "passed": true,
+          "durationMs": 570.539334
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 693.1017919999999,
+      "peakRssMiB": 301.03125,
+      "sourceHash": "0853089fc33fcabc164aa96168fe54f410f1d728c8bfe76279f2c423d81bf6aa",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input, prime counts and statement set parts",
+          "passed": true,
+          "durationMs": 572.1702500000001
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 680.6950420000001,
+      "peakRssMiB": 298.84375,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5035.123166,
+      "peakRssMiB": 597.921875,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1723.8050830000002
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 1616.1431250000003
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 1574.4623340000003
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1842.247584,
+      "peakRssMiB": 560.671875,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1835.6359579999998,
+      "peakRssMiB": 581.40625,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5019.211333,
+      "peakRssMiB": 597.03125,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1718.7618750000001
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 1598.62375
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 1580.2917499999999
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 689.680375,
+      "peakRssMiB": 298.0625,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 701.708125,
+      "peakRssMiB": 300.765625,
+      "sourceHash": "0853089fc33fcabc164aa96168fe54f410f1d728c8bfe76279f2c423d81bf6aa",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input, prime counts and statement set parts",
+          "passed": true,
+          "durationMs": 580.19775
+        }
+      ]
+    }
+  ],
+  "baselineRevision": "2bd5b15700d7cead2d2ca270cacd0fadd13463aa"
+}

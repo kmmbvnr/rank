@@ -2412,3 +2412,22 @@ from 5.083 to 0.206 s and the unchanged two-test fixture from 5.109 to 0.233 s;
 peak RSS falls from 327.2/334.4 to 183.5/180.9 MiB. The surrounding loop remains
 interpreted. The algorithm, lazy bindings, input sizes and answers are unchanged.
 [Measurements, reproduction and verification](../../benchmarks/euler111-prime-runs-results.md).
+
+## Native integer permutation completion (Euler 118, #447)
+
+Constructor-owned integer permutation sources can complete directly into final
+integer storage, avoiding an owned array for each intermediate row. A private
+registry checks iterator identity and exact size evidence before using this path.
+Normal iteration, partial consumers, noninteger inputs and overridden sources
+retain ordinary behavior. Copies remain independent and failures publish no
+partial result; the diagnostic `nativeSequenceCopies` counts successful demands.
+
+The unchanged Euler 118 main improves from 1.829 to 0.955 s with direct completion
+alone. Extending adaptive prime-membership warmup from 2–32 to 2–64 reduces it to
+0.685 s. The fixture retains all nine assertions in one default run instead of
+three and improves from 5.039 to 0.686 s. Median peak RSS falls from about 582 to
+300 MiB. This remains runtime execution; the surrounding loops do not compile.
+
+The prime-policy tradeoff is explicit: Euler 058's five-pair repeat slows by
+3.7% (242 → 251 ms); other controls and prototype choices are recorded in the
+[measurements and verification report](../../benchmarks/euler118-pandigital-prime-sets-results.md).

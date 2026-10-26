@@ -5,7 +5,7 @@ import { registerSequenceMembership } from './sequence-membership.js';
 import { above, within, strongerLower, strongerUpper, membershipInteger, registerMetadataBounds, type Boundary } from './sequence-bounds.js';
 import type { SequencePlan } from './value.js';
 
-const membershipSieveDemand = 32;
+const membershipSieveDemand = 64;
 
 export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
     let membershipSieve: PrimeSieve | undefined;
@@ -26,7 +26,7 @@ export function primePlan(boundary?: Boundary, lower?: Boundary): SequencePlan {
                 const candidate = Number(integer);
                 if (boundary) return (membershipSieve ??= new PrimeSieve()).contains(candidate);
                 const segment = Math.floor((candidate - 3) / primeSegmentSpan);
-                // Short runs raise the next segment's warmup, up to 32 queries;
+                // Short runs raise the next segment's warmup, up to 64 queries;
                 // long runs pay it back, down to the original two-query entry.
                 // Keep the history local to this observer, without timing probes.
                 if (segment === previousSegment) runLength++;

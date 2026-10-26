@@ -1,26 +1,14 @@
 use testing
 
-test "default input"
+test "default input, prime counts and statement set parts"
   use "118_pandigitalsets"
   run
 
   Answer equal 44680
-end
-
-test "prime counts by digit set"
-  use "118_pandigitalsets"
-  run
-
   Cnt 1 equal 0
   Cnt 2 equal 1
   Cnt 4 equal 1
   Cnt 511 equal 0
-end
-
-test "statement set parts"
-  use "118_pandigitalsets"
-  run
-
   Cnt 72 equal 1
   Cnt 384 equal 1
   Cnt 37 equal 3

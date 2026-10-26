@@ -1,0 +1,487 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "before": {
+      "modules/algo.js": "7ff48b923c2ece13ca36d02f1df556d47a04764f7013e7c78d02679d243fca2a",
+      "sequence.js": "2d723368934aa4141f88d277304821da0968f494b9f0e4cb267a5873ba9f994c",
+      "prime-sequence.js": "e03223e81cb8463fa5d9829ea597bc9cef1aff95b0db6eb82b9e26a93c4fe209",
+      "diagnostics.js": "ab322bab55df0682148c52b68260d9caab1b2b525bfee7d9f4ec281608040d48",
+      "sequence-completion.js": null
+    },
+    "bulk": {
+      "modules/algo.js": "87db8ce89a52ceae0829590c632d391a92b650e7e089eddc7c8bfcee4e9f0f77",
+      "sequence.js": "0780d21f8cacac46a7eac898ca951c4cbecb31993283864e3cecbb64d8548b63",
+      "prime-sequence.js": "e03223e81cb8463fa5d9829ea597bc9cef1aff95b0db6eb82b9e26a93c4fe209",
+      "diagnostics.js": "547254ea4431032cd8e2501a4b3a86199bc93539d1a7a53b39da7b00ecbe8b64",
+      "sequence-completion.js": "77110186b23231fcfe713610b4879c269f538b40656eab0ff25dc681b46bcd19"
+    },
+    "after": {
+      "modules/algo.js": "87db8ce89a52ceae0829590c632d391a92b650e7e089eddc7c8bfcee4e9f0f77",
+      "sequence.js": "0780d21f8cacac46a7eac898ca951c4cbecb31993283864e3cecbb64d8548b63",
+      "prime-sequence.js": "4872dd3adad896e3f09ef136154a6b7e3110d44e147eb5970d68f88bff2b52fb",
+      "diagnostics.js": "547254ea4431032cd8e2501a4b3a86199bc93539d1a7a53b39da7b00ecbe8b64",
+      "sequence-completion.js": "77110186b23231fcfe713610b4879c269f538b40656eab0ff25dc681b46bcd19"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before independent oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1805.7891670000001,
+      "peakRssMiB": 581.453125,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5038.987167,
+      "peakRssMiB": 580.75,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1716.0717909999998
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 1602.8474580000002
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 1594.5457920000003
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "bulk",
+      "case": "main",
+      "executeMs": 962.6646670000001,
+      "peakRssMiB": 293.59375,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "bulk",
+      "case": "fixture",
+      "executeMs": 2463.618459,
+      "peakRssMiB": 438.796875,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 831.3185840000001
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 753.8985
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 760.097542
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 684.84375,
+      "peakRssMiB": 299.390625,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 685.954166,
+      "peakRssMiB": 301.859375,
+      "sourceHash": "0853089fc33fcabc164aa96168fe54f410f1d728c8bfe76279f2c423d81bf6aa",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input, prime counts and statement set parts",
+          "passed": true,
+          "durationMs": 565.587875
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 686.3235,
+      "peakRssMiB": 305.609375,
+      "sourceHash": "0853089fc33fcabc164aa96168fe54f410f1d728c8bfe76279f2c423d81bf6aa",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input, prime counts and statement set parts",
+          "passed": true,
+          "durationMs": 565.679042
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 692.75875,
+      "peakRssMiB": 298.859375,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "bulk",
+      "case": "fixture",
+      "executeMs": 2474.6498330000004,
+      "peakRssMiB": 440.375,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 832.349459
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 754.1723750000001
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 768.151959
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "bulk",
+      "case": "main",
+      "executeMs": 954.7075420000001,
+      "peakRssMiB": 293.875,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5039.67775,
+      "peakRssMiB": 583.390625,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1704.9809169999999
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 1599.336375
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 1610.9217500000004
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1841.681375,
+      "peakRssMiB": 581.21875,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1828.617791,
+      "peakRssMiB": 583.46875,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5002.523125,
+      "peakRssMiB": 586.078125,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1686.2595000000001
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 1595.7527910000001
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 1597.262292
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "bulk",
+      "case": "main",
+      "executeMs": 953.3285000000001,
+      "peakRssMiB": 298.625,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "bulk",
+      "case": "fixture",
+      "executeMs": 2484.843208,
+      "peakRssMiB": 441.890625,
+      "sourceHash": "455961af7cf785d00878d4c485b8cc791ac187bff5ebc71c480838f97ac5c3db",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 832.4061669999999
+        },
+        {
+          "name": "prime counts by digit set",
+          "passed": true,
+          "durationMs": 762.3957909999999
+        },
+        {
+          "name": "statement set parts",
+          "passed": true,
+          "durationMs": 771.259834
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 679.607,
+      "peakRssMiB": 299.9375,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 697.812959,
+      "peakRssMiB": 302.1875,
+      "sourceHash": "0853089fc33fcabc164aa96168fe54f410f1d728c8bfe76279f2c423d81bf6aa",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "tests": [
+        {
+          "name": "default input, prime counts and statement set parts",
+          "passed": true,
+          "durationMs": 581.636292
+        }
+      ]
+    }
+  ],
+  "baselineRevision": "2bd5b15700d7cead2d2ca270cacd0fadd13463aa",
+  "diagnosticSamples": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 1834.50775,
+      "peakRssMiB": 591.21875,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 1605114,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1361,
+        "maskMaterializedCells": 243733,
+        "bulkArrayWrites": 850,
+        "bulkArrayWriteCells": 850,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 5,
+          "scalar-expression:unsupported-op:to": 4,
+          "tensor:unsupported-type:array": 2,
+          "loop:deferred-binding:AssignmentStatement": 2,
+          "tensor:deferred-binding:AssignmentStatement": 8,
+          "scalar-expression:too-small": 7,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "scalar-expression:operator-guard:-": 339,
+          "scalar-expression:unsupported-op:or": 1,
+          "scalar-expression:operator-guard:mod": 339,
+          "scalar-expression:operator-guard:equal": 339,
+          "scalar-expression:unsupported-op:in": 1,
+          "scalar-expression:unsupported-op:band": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:equal": 1,
+          "scalar-expression:unsupported-op:notequal": 1,
+          "scalar-expression:unsupported-op:Subs": 2,
+          "scalar-expression:unsupported-op:Rest": 2,
+          "scalar-expression:unsupported-op:*": 2
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 693.3689159999999,
+      "peakRssMiB": 299.1875,
+      "sourceHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "mainHash": "b171c2ddf0e9588c7a6d04f6ee623536c904d62885db32aeac6781f0172ef5f9",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 1605114,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 339,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 1361,
+        "maskMaterializedCells": 243733,
+        "bulkArrayWrites": 850,
+        "bulkArrayWriteCells": 850,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 5,
+          "scalar-expression:unsupported-op:to": 4,
+          "tensor:unsupported-type:array": 2,
+          "loop:deferred-binding:AssignmentStatement": 2,
+          "tensor:deferred-binding:AssignmentStatement": 8,
+          "scalar-expression:too-small": 7,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:**": 1,
+          "scalar-expression:unsupported-op:till": 1,
+          "scalar-expression:operator-guard:-": 339,
+          "scalar-expression:unsupported-op:or": 1,
+          "scalar-expression:operator-guard:mod": 339,
+          "scalar-expression:operator-guard:equal": 339,
+          "scalar-expression:unsupported-op:in": 1,
+          "scalar-expression:unsupported-op:band": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op:equal": 1,
+          "scalar-expression:unsupported-op:notequal": 1,
+          "scalar-expression:unsupported-op:Subs": 2,
+          "scalar-expression:unsupported-op:Rest": 2,
+          "scalar-expression:unsupported-op:*": 2
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    }
+  ]
+}

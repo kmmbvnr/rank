@@ -1,3 +1,4 @@
+import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
 import { materializeMaskSelection } from './array-mask-selection.js';
@@ -465,7 +466,8 @@ export function materializeSequence(source: RankSequence): RankArray {
         }
         return registerArrayRange(cells.array([size]), range);
     }
-    return stackItems(interruptibleValues(source.plan.iterate(), 'materializing sequence'), undefined, 'sequence');
+    return completeNativeSequence(source.plan)
+        ?? stackItems(interruptibleValues(source.plan.iterate(), 'materializing sequence'), undefined, 'sequence');
 }
 
 /**

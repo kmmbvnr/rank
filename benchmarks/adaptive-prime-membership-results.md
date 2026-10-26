@@ -57,3 +57,11 @@ Run without concurrent builds, tests or profilers. The benchmark checks exact
 answers on every sample.
 
 [Raw samples and validation](baselines/2026-10-25-adaptive-prime-membership.json).
+
+## Update: 2026-10-26
+
+The current warmup ceiling is 64 rather than the 32 measured above. The historical
+samples remain unchanged. Euler 118 gains from delaying premature sieve work;
+Euler 058's five-pair repeat costs 3.7% (about 9 ms). See the
+[Euler 118 report](euler118-pandigital-prime-sets-results.md) for current controls,
+prototype comparisons and the separate direct-permutation improvement.

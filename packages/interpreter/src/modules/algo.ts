@@ -4,7 +4,8 @@ import { checkpoint } from '../interrupt.js';
 import { checkValueMutable } from '../value-protection.js';
 import { materializeValue } from '../materialize.js';
 import { demandValue } from '../plan.js';
-import { ownedArray } from '../array-storage.js';
+import { ownedArray, IntegerCells, MAX_HELD_CELLS } from '../array-storage.js';
+import { registerSequenceCompletion } from '../sequence-completion.js';
 import { MissingValueError, RankError } from '../errors.js';
 import { expectDeque, expectHeap, expectPushCollection, peekCollection, pushCollection } from '../containers.js';
 import { addToCollection, expectAddCollection, removeFromCollection } from '../collections.js';
@@ -30,6 +31,7 @@ import {
     isRankSegment,
     isRankSequence,
     isRankSet,
+    type SequencePlan,
     type NativeFunction,
     type RankArray,
     type RankValue,
@@ -118,14 +120,16 @@ export const algoModule: RuntimeModule = {
         expectMultiset(arguments_[0]).ceiling(arguments_[1])),
     permutations: () => native('permutations', 1, arguments_ => {
         const input = permutationInput(arguments_[0]);
-        return sequence({
+        const plan: SequencePlan = {
             name: 'permutations',
             replay: input.items.every(item => typeof item !== 'object') ? 'pure' : undefined,
             size: { kind: 'exact', value: permutationCount(input.items) },
             *iterate() {
                 yield* permute(input);
             },
-        });
+        };
+        if (input.integers) registerSequenceCompletion(plan, () => completeIntegerPermutations(input, plan.size));
+        return sequence(plan);
     }),
     combinations: () => native('combinations', 2, arguments_ => {
         const input = combinationInput(arguments_[0]);
@@ -327,6 +331,42 @@ function* buildPermutation(
         result.pop();
         used[index] = false;
     }
+}
+
+/** Integer rows have no deferred cells or resources. Only the final tensor is
+ * published; iterating the sequence still yields independent ordinary rows. */
+function completeIntegerPermutations(input: PermutationInput, size: SequencePlan['size']): RankArray {
+    if (size.kind !== 'exact') throw new RankError('permutation size must be exact');
+    const width = input.items.length;
+    const total = size.value * BigInt(width);
+    if (total > BigInt(MAX_HELD_CELLS) || size.value > BigInt(MAX_HELD_CELLS)) {
+        throw new RankError(`array is too large to hold in memory: ${total} cells (at most ${MAX_HELD_CELLS})`);
+    }
+    const values = input.items as readonly bigint[];
+    const unique = new Set(values).size === width;
+    const cells = new IntegerCells(Number(total));
+    const used = new Uint8Array(width);
+    const row = new Array<bigint>(width);
+    let offset = 0;
+    const visit = (depth: number): void => {
+        if (depth === width) {
+            checkpoint('materializing sequence');
+            for (const value of row) cells.set(offset++, value);
+            return;
+        }
+        const seen = unique ? undefined : new Set<bigint>();
+        for (let index = 0; index < width; index++) {
+            checkpoint('computing combinations');
+            if (used[index] || seen?.has(values[index])) continue;
+            seen?.add(values[index]);
+            used[index] = 1;
+            row[depth] = values[index];
+            visit(depth + 1);
+            used[index] = 0;
+        }
+    };
+    visit(0);
+    return cells.array([Number(size.value), width]);
 }
 
 function permutationCount(items: readonly RankValue[]): bigint {

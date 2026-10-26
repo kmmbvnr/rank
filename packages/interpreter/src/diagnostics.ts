@@ -12,6 +12,7 @@ export class RuntimeDiagnostics {
     cellsComputed = 0;
     hoistedReaders = 0;
     loopElementScans = 0;
+    nativeSequenceCopies = 0;
     compiledLoops = 0;
     compiledGeneratorLoops = 0;
     integerMembershipFilters = 0;
