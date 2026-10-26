@@ -10,40 +10,27 @@ use cli
 option Position integer = 1000000
 
 Digits = 0 to 9 array
-Answer = Digits lexicographic Position
-Answer print
-
 
 rem Select each digit directly from its
 rem factorial-sized permutation block.
-fun Digits lexicographic Position
-  Available = Digits multiset
-  Remaining = Position - 1
-  Size = Available len
-  Block = Size - 1 factorial
-  Result = ""
+Available = Digits multiset
+Remaining = Position - 1
+Size = Available len
+Block = (1 till Size) reduce *
+Result = ""
 
-  for Size greater 0
-    Choice = Remaining // Block
-    Digit = Available Choice
-    Piece = Digit text
-    Result += Piece
-    Available remove Digit
-    Remaining mod= Block
-    Size -= 1
-    if Size greater 0
-      Block = Block // Size
-    end
+for Size greater 0
+  Choice = Remaining // Block
+  Digit = Available Choice
+  Piece = Digit text
+  Result += Piece
+  Available remove Digit
+  Remaining mod= Block
+  Size -= 1
+  if Size greater 0
+    Block = Block // Size
   end
-
-  return Result
 end
 
-
-rem Multiply the inclusive range from one to N.
-fun N factorial
-  if N equal 0
-    return 1
-  end
-  return (1 to N) reduce *
-end
+Answer = Result
+Answer print

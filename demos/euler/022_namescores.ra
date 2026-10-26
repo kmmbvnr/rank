@@ -11,31 +11,22 @@ use cli
 argument Input path
 
 Text = Input read
-Names = Text names_from_text
-Answer = Names names_score
-Answer print
-
 
 rem Remove the surrounding quotes and split
 rem the quoted comma-separated input.
-fun Text names_from_text
-  Last = Text len - 1
-  Body = Text (1 till Last)
-  return Body split "\",\""
-end
-
+Last = Text len - 1
+Body = Text (1 till Last)
+Names = Body split "\",\""
 
 rem Sort names and multiply each letter sum
 rem by its one-based position.
-fun Names names_score
-  Sorted = Names sort
-  Values' = Sorted name_value rank 0
-  Count = Sorted len
-  Positions' = 1 to Count
-  Scores' = Values * Positions
-  return Scores sum
-end
-
+Sorted = Names sort
+Values' = Sorted name_value rank 0
+Count = Sorted len
+Positions' = 1 to Count
+Scores' = Values * Positions
+Answer = Scores sum
+Answer print
 
 rem Convert A through Z to values 1 through
 rem 26 using Unicode code points.

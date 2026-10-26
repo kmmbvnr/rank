@@ -7,16 +7,18 @@ test "default input"
   Answer equal "2783915460"
 end
 
-test "fourth permutation of three digits"
+test "fourth permutation"
   use "024_lexicographic"
-  Digits = array 0 1 2
+  Position = 4
+  run
 
-  Digits lexicographic 4 equal "120"
+  Answer equal "0123456897"
 end
 
 test "first permutation keeps leading zero"
   use "024_lexicographic"
-  Digits = array 0 1 2
+  Position = 1
+  run
 
-  Digits lexicographic 1 equal "012"
+  Answer equal "0123456789"
 end

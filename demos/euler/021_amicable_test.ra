@@ -12,5 +12,8 @@ test "first amicable pair"
 
   220 proper_divisor_sum equal 284
   284 proper_divisor_sum equal 220
-  300 amicable_sum equal 504
+  Limit = 300
+  run
+
+  Answer equal 504
 end
