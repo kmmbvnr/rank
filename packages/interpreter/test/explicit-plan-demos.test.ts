@@ -790,8 +790,8 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('completes repunit tables before deferred searches read the final version', () => {
-        const source = readFileSync(new URL('../../../demos/euler/129_repunitdiv.ra', import.meta.url), 'utf8');
+    it('completes the archived repunit tables before deferred searches read the final version', () => {
+        const source = readFileSync(new URL('../../../benchmarks/fixtures/euler129-batched.ra', import.meta.url), 'utf8');
         const runtime = new Interpreter(() => {}, { compilation, args: ['--limit=10'] });
         try {
             runtime.execute(source);

@@ -14,3 +14,20 @@ test "statement value for ten"
 
   Answer equal 17
 end
+
+test "strict threshold"
+  use "129_repunitdiv"
+  Limit = 3
+  run
+
+  Answer equal 7
+end
+
+test "answer at the window boundary"
+  use "129_repunitdiv"
+  Limit = 10
+  Window = 7
+  run
+
+  Answer equal 17
+end

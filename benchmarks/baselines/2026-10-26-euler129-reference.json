@@ -1,0 +1,415 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "reference",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before oracle validation",
+  "runtimeHashes": {
+    "before": {
+      "tensor-map.js": "2b079196f39d8d4568cf1d1a40360fabb0eb5d6a796afe714cb25281714a1d56",
+      "tensor-kernel.js": "d779888f8d8ed64b6906614520c99036e3cffd3093d2f063f63fd28253da7eb5",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc"
+    },
+    "before-nocopy": {
+      "tensor-map.js": "2b079196f39d8d4568cf1d1a40360fabb0eb5d6a796afe714cb25281714a1d56",
+      "tensor-kernel.js": "d779888f8d8ed64b6906614520c99036e3cffd3093d2f063f63fd28253da7eb5",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc"
+    },
+    "compiler": {
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4"
+    },
+    "nocopy": {
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4"
+    },
+    "pruned": {
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "before",
+      "executeMs": 6732.264958,
+      "peakRssMiB": 817.671875,
+      "sourceHash": "6243b946bdf50ced15f729857264cf8ce27e0dff759ed92e3b0c6ef9f6574db4",
+      "mainHash": "6243b946bdf50ced15f729857264cf8ce27e0dff759ed92e3b0c6ef9f6574db4",
+      "oracle": {
+        "answer": 1000023,
+        "orders": [
+          {
+            "n": 1000001,
+            "k": 12
+          },
+          {
+            "n": 1000003,
+            "k": 166667
+          },
+          {
+            "n": 1000007,
+            "k": 68964
+          },
+          {
+            "n": 1000009,
+            "k": 124538
+          },
+          {
+            "n": 1000011,
+            "k": 333336
+          },
+          {
+            "n": 1000013,
+            "k": 35526
+          },
+          {
+            "n": 1000017,
+            "k": 159390
+          },
+          {
+            "n": 1000019,
+            "k": 27186
+          },
+          {
+            "n": 1000021,
+            "k": 90910
+          },
+          {
+            "n": 1000023,
+            "k": 1000020
+          },
+          {
+            "n": 1000027,
+            "k": 1224
+          },
+          {
+            "n": 1000029,
+            "k": 7680
+          }
+        ]
+      },
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "pruned",
+      "executeMs": 736.859916,
+      "peakRssMiB": 172.125,
+      "sourceHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "mainHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "oracle": {
+        "answer": 1000023,
+        "orders": [
+          {
+            "n": 1000001,
+            "k": 12
+          },
+          {
+            "n": 1000003,
+            "k": 166667
+          },
+          {
+            "n": 1000007,
+            "k": 68964
+          },
+          {
+            "n": 1000009,
+            "k": 124538
+          },
+          {
+            "n": 1000011,
+            "k": 333336
+          },
+          {
+            "n": 1000013,
+            "k": 35526
+          },
+          {
+            "n": 1000017,
+            "k": 159390
+          },
+          {
+            "n": 1000019,
+            "k": 27186
+          },
+          {
+            "n": 1000021,
+            "k": 90910
+          },
+          {
+            "n": 1000023,
+            "k": 1000020
+          },
+          {
+            "n": 1000027,
+            "k": 1224
+          },
+          {
+            "n": 1000029,
+            "k": 7680
+          }
+        ]
+      },
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "pruned",
+      "executeMs": 715.6036670000001,
+      "peakRssMiB": 177.671875,
+      "sourceHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "mainHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "oracle": {
+        "answer": 1000023,
+        "orders": [
+          {
+            "n": 1000001,
+            "k": 12
+          },
+          {
+            "n": 1000003,
+            "k": 166667
+          },
+          {
+            "n": 1000007,
+            "k": 68964
+          },
+          {
+            "n": 1000009,
+            "k": 124538
+          },
+          {
+            "n": 1000011,
+            "k": 333336
+          },
+          {
+            "n": 1000013,
+            "k": 35526
+          },
+          {
+            "n": 1000017,
+            "k": 159390
+          },
+          {
+            "n": 1000019,
+            "k": 27186
+          },
+          {
+            "n": 1000021,
+            "k": 90910
+          },
+          {
+            "n": 1000023,
+            "k": 1000020
+          },
+          {
+            "n": 1000027,
+            "k": 1224
+          },
+          {
+            "n": 1000029,
+            "k": 7680
+          }
+        ]
+      },
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "before",
+      "executeMs": 6614.418208,
+      "peakRssMiB": 820.75,
+      "sourceHash": "6243b946bdf50ced15f729857264cf8ce27e0dff759ed92e3b0c6ef9f6574db4",
+      "mainHash": "6243b946bdf50ced15f729857264cf8ce27e0dff759ed92e3b0c6ef9f6574db4",
+      "oracle": {
+        "answer": 1000023,
+        "orders": [
+          {
+            "n": 1000001,
+            "k": 12
+          },
+          {
+            "n": 1000003,
+            "k": 166667
+          },
+          {
+            "n": 1000007,
+            "k": 68964
+          },
+          {
+            "n": 1000009,
+            "k": 124538
+          },
+          {
+            "n": 1000011,
+            "k": 333336
+          },
+          {
+            "n": 1000013,
+            "k": 35526
+          },
+          {
+            "n": 1000017,
+            "k": 159390
+          },
+          {
+            "n": 1000019,
+            "k": 27186
+          },
+          {
+            "n": 1000021,
+            "k": 90910
+          },
+          {
+            "n": 1000023,
+            "k": 1000020
+          },
+          {
+            "n": 1000027,
+            "k": 1224
+          },
+          {
+            "n": 1000029,
+            "k": 7680
+          }
+        ]
+      },
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "before",
+      "executeMs": 6686.897042,
+      "peakRssMiB": 816.46875,
+      "sourceHash": "6243b946bdf50ced15f729857264cf8ce27e0dff759ed92e3b0c6ef9f6574db4",
+      "mainHash": "6243b946bdf50ced15f729857264cf8ce27e0dff759ed92e3b0c6ef9f6574db4",
+      "oracle": {
+        "answer": 1000023,
+        "orders": [
+          {
+            "n": 1000001,
+            "k": 12
+          },
+          {
+            "n": 1000003,
+            "k": 166667
+          },
+          {
+            "n": 1000007,
+            "k": 68964
+          },
+          {
+            "n": 1000009,
+            "k": 124538
+          },
+          {
+            "n": 1000011,
+            "k": 333336
+          },
+          {
+            "n": 1000013,
+            "k": 35526
+          },
+          {
+            "n": 1000017,
+            "k": 159390
+          },
+          {
+            "n": 1000019,
+            "k": 27186
+          },
+          {
+            "n": 1000021,
+            "k": 90910
+          },
+          {
+            "n": 1000023,
+            "k": 1000020
+          },
+          {
+            "n": 1000027,
+            "k": 1224
+          },
+          {
+            "n": 1000029,
+            "k": 7680
+          }
+        ]
+      },
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "pruned",
+      "executeMs": 733.853583,
+      "peakRssMiB": 178.59375,
+      "sourceHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "mainHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "oracle": {
+        "answer": 1000023,
+        "orders": [
+          {
+            "n": 1000001,
+            "k": 12
+          },
+          {
+            "n": 1000003,
+            "k": 166667
+          },
+          {
+            "n": 1000007,
+            "k": 68964
+          },
+          {
+            "n": 1000009,
+            "k": 124538
+          },
+          {
+            "n": 1000011,
+            "k": 333336
+          },
+          {
+            "n": 1000013,
+            "k": 35526
+          },
+          {
+            "n": 1000017,
+            "k": 159390
+          },
+          {
+            "n": 1000019,
+            "k": 27186
+          },
+          {
+            "n": 1000021,
+            "k": 90910
+          },
+          {
+            "n": 1000023,
+            "k": 1000020
+          },
+          {
+            "n": 1000027,
+            "k": 1224
+          },
+          {
+            "n": 1000029,
+            "k": 7680
+          }
+        ]
+      },
+      "tests": []
+    }
+  ]
+}

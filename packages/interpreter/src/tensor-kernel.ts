@@ -34,7 +34,7 @@ export type TensorNode =
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
     | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }
     | { kind: 'unary'; op: string; operand: TensorNode }
-    | { kind: 'concat'; sources: TensorNode[] }
+    | { kind: 'concat'; sources: TensorNode[]; axis?: number }
     | { kind: 'slice'; source: TensorNode; count: TensorNode; drop: boolean }
     | { kind: 'select'; source: TensorNode; selector: TensorNode };
 export interface TensorKernelHost {
@@ -436,14 +436,26 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             } else if (node.kind === 'concat') {
                 const segments = node.sources.map(source => bind(source));
                 const first = segments[0];
-                const kind = segments.find(segment => segment?.shape?.every(n => n > 0))?.view?.kind;
-                if (!first?.view || !first.shape?.length || segments.some(segment => !segment?.view
-                    || segment.shape?.every(n => n > 0) && (!kind || segment.view.kind !== kind)
-                    || segment.shape?.length !== first.shape!.length
-                    || segment.shape.some((n, i) => i > 0 && n !== first.shape![i]))) return undefined;
-                result = { segments: segments as Bound[], boolean: first.boolean,
-                    shape: [segments.reduce((n, segment) => n + segment!.shape![0], 0), ...first.shape.slice(1)] };
-                if (!Number.isSafeInteger(result.shape![0])) return undefined;
+                if (nativeGraph) {
+                    const axis = node.axis ?? 0;
+                    if (!first?.shape?.length || axis < 0 || axis >= first.shape.length
+                        || segments.some(segment => !segment?.shape || segment.filter || segment.progression || segment.digits
+                            || segment.shape.length !== first.shape!.length
+                            || segment.shape.some((n, i) => i !== axis && n !== first.shape![i]))) return undefined;
+                    const shape = [...first.shape];
+                    shape[axis] = segments.reduce((n, segment) => n + segment!.shape![axis], 0);
+                    if (!Number.isSafeInteger(shape.reduce((n, size) => n * size, 1))) return undefined;
+                    result = { shape, boolean: first.boolean };
+                } else {
+                    const kind = segments.find(segment => segment?.shape?.every(n => n > 0))?.view?.kind;
+                    if (!first?.view || !first.shape?.length || segments.some(segment => !segment?.view
+                        || segment.shape?.every(n => n > 0) && (!kind || segment.view.kind !== kind)
+                        || segment.shape?.length !== first.shape!.length
+                        || segment.shape.some((n, i) => i > 0 && n !== first.shape![i]))) return undefined;
+                    result = { segments: segments as Bound[], boolean: first.boolean,
+                        shape: [segments.reduce((n, segment) => n + segment!.shape![0], 0), ...first.shape.slice(1)] };
+                    if (!Number.isSafeInteger(result.shape![0])) return undefined;
+                }
             } else if (node.kind === 'outer') {
                 const a = bind(node.left), b = bind(node.right);
                 if (!a?.shape || !b?.shape || a.filter || b.filter || a.progression || b.progression) return undefined;
@@ -593,6 +605,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (node.kind === 'outer') {
                 if (domain(node.left) || domain(node.right)) throw false;
             }
+            if (node.kind === 'concat' && node.sources.some(domain)) throw false;
             if (node.kind === 'select') value ||= domain(node.selector);
             if (node.kind === 'binary') {
                 const a = domain(node.left), b = domain(node.right);
@@ -632,7 +645,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (variant) { execute = variant.run; generated = variant.source; cachedKey = key; cachedRun = execute; }
         if (cachedKey !== key) {
             const lines: string[] = [];
-            const emitted = new Map<TensorNode, Map<string, string>>();
+            let emitted = new Map<TensorNode, Map<string, string>>();
             let serial = 0;
             const num = (x: string) => `(typeof ${x} === 'bigint' || typeof ${x} === 'number' && Number.isFinite(${x}))`;
             function address(shape: readonly number[], target: readonly number[], index: string): string {
@@ -689,6 +702,30 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         return position === info.segments!.length - 1 ? read : `${index} < ${end} ? ${read} : `;
                     });
                     lines.push(`const ${name} = ${parts.join('')};`);
+                }
+                else if (node.kind === 'concat') {
+                    const axis = node.axis ?? 0;
+                    const shape = info.shape!;
+                    const inner = shape.slice(axis + 1).reduce((n, size) => n * size, 1);
+                    const width = shape[axis];
+                    const position = `p${serial++}`;
+                    lines.push(`const ${position} = Math.floor((${at}) / ${inner}) % ${width};`, `let ${name};`);
+                    let start = 0;
+                    for (const source of node.sources) {
+                        const sourceShape = bound.get(source)!.shape!;
+                        const length = sourceShape[axis];
+                        if (!length) continue;
+                        lines.push(`if (${position} >= ${start} && ${position} < ${start + length}) {`);
+                        // A later segment must not compute or fail before it is
+                        // visited. Branch-local temporaries cannot escape here.
+                        const saved = emitted;
+                        emitted = new Map();
+                        const index = `(Math.floor((${at}) / ${width * inner}) * ${length} + ${position} - ${start}) * ${inner} + ((${at}) % ${inner})`;
+                        const cell = emit(source, index, sourceShape);
+                        emitted = saved;
+                        lines.push(`${name} = ${cell};`, '}');
+                        start += length;
+                    }
                 }
                 else if (node.kind === 'check') {
                     const source = child(node.source);

@@ -1,0 +1,120 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before oracle validation",
+  "runtimeHashes": {
+    "compiler": {
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4"
+    },
+    "nocopy": {
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4"
+    },
+    "pruned": {
+      "tensor-map.js": "afbcbed7d3b679220b8ef59d803b5e521a12c389a8f0f6b0a04c035be86a705a",
+      "tensor-kernel.js": "aa664050007a882eb1e39db4b4ce4882192f6406af763ad5aa31f4ac0e53b301",
+      "modules/sequences.js": "54091c9b2768e6f54bd6dba0044ac1d1bcc3ad4935ee22f6dc91e1e637bbaae4"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 153.487041,
+      "peakRssMiB": 172.984375,
+      "sourceHash": "729fd9a375c8e4b13a37293ea5cbf630ed44b2189b63e911718ace91cb36157e",
+      "mainHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 35.28958299999999
+        },
+        {
+          "name": "statement value for ten",
+          "passed": true,
+          "durationMs": 4.927041999999972
+        },
+        {
+          "name": "strict threshold",
+          "passed": true,
+          "durationMs": 3.920665999999983
+        },
+        {
+          "name": "answer at the window boundary",
+          "passed": true,
+          "durationMs": 3.4280410000000074
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 148.32070799999997,
+      "peakRssMiB": 172.5,
+      "sourceHash": "729fd9a375c8e4b13a37293ea5cbf630ed44b2189b63e911718ace91cb36157e",
+      "mainHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 34.03199999999998
+        },
+        {
+          "name": "statement value for ten",
+          "passed": true,
+          "durationMs": 4.87783300000001
+        },
+        {
+          "name": "strict threshold",
+          "passed": true,
+          "durationMs": 4.100582999999972
+        },
+        {
+          "name": "answer at the window boundary",
+          "passed": true,
+          "durationMs": 3.3590000000000373
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "pruned",
+      "executeMs": 158.490458,
+      "peakRssMiB": 178.375,
+      "sourceHash": "729fd9a375c8e4b13a37293ea5cbf630ed44b2189b63e911718ace91cb36157e",
+      "mainHash": "8e9a7bd382dfb6987ea19f882ef56f98ad207bbe279a947bfe9d854529c1bb65",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 35.140833999999984
+        },
+        {
+          "name": "statement value for ten",
+          "passed": true,
+          "durationMs": 4.887417000000028
+        },
+        {
+          "name": "strict threshold",
+          "passed": true,
+          "durationMs": 3.9864579999999705
+        },
+        {
+          "name": "answer at the window boundary",
+          "passed": true,
+          "durationMs": 3.473082999999974
+        }
+      ]
+    }
+  ]
+}

@@ -2448,3 +2448,21 @@ rewrite. The final demo generates sorted radical candidates incrementally,
 checks order and radical products before gcd, and accumulates only the answer.
 See the [benchmark report](../../benchmarks/euler127-abc-hits-results.md) for
 runtime-only and algorithm measurements, correctness checks and limitations.
+
+## Native concatenation consumers (Euler 129, #447)
+
+Native array concatenations now retain their checked operands and resolved axis
+for a later tensor consumer. Deferred scalar maps in each segment can feed
+completion or reduction directly, including concatenation along trailing axes.
+The emitter selects a segment before computing its cells, preserving traversal
+and short-circuit order. Native readers, shapes and revisions remain guarded;
+host readers, stale views and unsupported domains use ordinary execution.
+Explicit `copy` can consume the same native recipes as ordinary `=` completion.
+Neither operation bypasses an existing completed binding or caches a plan demand.
+
+Euler 129's original table construction is retained as a benchmark fixture.
+Its explicit `copy` is redundant because `Tab = ...` already completes the array.
+The final demo instead tests repunit remainders per candidate, exposing a lazy
+ranked mask to `first where` and preserving the bounded `Window` option.
+See the [benchmark report](../../benchmarks/euler129-repunit-divisibility-results.md)
+for separate compiler, copy-removal and algorithm measurements.

@@ -11,27 +11,28 @@ use cli
 option Limit integer = 1000000
 option Window integer = 30
 
-rem A(n) is the order of 10 mod 9 n and
-rem is at most n, so look just above
-rem Limit. Build the powers 10^1 to 10^k
-rem of every candidate at once, doubling
-rem the table: 10^(w+i) = 10^w 10^i.
-N = Limit + 1 to Limit + Window array
-Free' = N mod 2 equal 1 and N mod 5 not equal 0
-N = N filter Free array
-Rows = N len
-M = (9 * N) reshape Rows 1
-Tab = 10 mod M
-Width = 1
-for Width at most Limit
-  Col' = Tab # (Width - 1)
-  Last' = Col reshape Rows 1
-  Next' = Tab * Last mod M
-  Tab = (concat Tab Next axis 1) copy
-  Width = Width * 2
-end
-Cut' = Tab # (0 till Limit)
-Short' = (Cut equal 1) any axis 1
-Long' = N filter (not Short) array
-Answer = Long first
+rem A(n) is at most n, so start above
+rem Limit. The mask is deferred: first
+rem stops checking candidates at the hit.
+Candidates = Limit + 1 to Limit + Window array
+Long' = Candidates exceeds_limit rank 0
+Answer = Candidates first where Long
 Answer print
+
+fun N exceeds_limit
+  if N mod 2 equal 0 or N mod 5 equal 0
+    return false
+  end
+
+  rem Append a digit without constructing
+  rem the repunit itself. A zero remainder
+  rem ends the search; Limit steps suffice
+  rem to establish that A(n) is larger.
+  R = 1
+  K = 1
+  for R not equal 0 and K at most Limit
+    R = (10 * R + 1) mod N
+    K += 1
+  end
+  return K greater Limit
+end

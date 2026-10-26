@@ -17,6 +17,7 @@ interface MapRecipe {
     readonly operands: readonly RankValue[];
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
+const concats = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; operands: readonly RankArray[]; axis: number }>();
 const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
     'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0', 'min', 'max']);
@@ -83,6 +84,15 @@ export function registerTensorMap<T extends RankValue>(value: T, operator: strin
         owners.set(value, scope);
     }
     return value;
+}
+
+/** Concat has already checked shapes and the axis. Preserve only its native
+ * recipe; lowering must still prove every leaf at the consumer's demand. */
+export function registerTensorConcat(value: RankArray, operands: readonly RankArray[], axis: number): void {
+    const scope = active ?? operands.map(mapScope).find(scope => scope?.enabled());
+    if (!scope?.enabled()) return;
+    concats.set(value, { reader: value.itemAt, shape: [...value.shape], operands, axis });
+    owners.set(value, scope);
 }
 
 /** Lower actual, checked native arrays after normal plan demand. Never inspect
@@ -168,6 +178,22 @@ function prepareTensorMap(value: RankArray, operation: string):
                 && stored.kinds.every((kind): kind is CompiledAtomType => kind === 'integer' || kind === 'real' || kind === 'boolean')) {
                 guardArray(value);
                 return typed({ kind: 'input', value }, stored.kinds);
+            }
+            const concat = concats.get(value);
+            if (concat && concat.reader === value.itemAt && concat.shape.length === value.shape.length
+                && concat.shape.every((n, axis) => n === value.shape[axis])) {
+                const sources: TensorNode[] = [];
+                for (const operand of concat.operands) {
+                    const source = lower(operand);
+                    if (!source) return undefined;
+                    sources.push(source);
+                }
+                guardArray(value);
+                transformed = true;
+                const source = typed({ kind: 'concat', sources, axis: concat.axis },
+                    [...new Set(sources.flatMap(node => domains.get(node)!))]);
+                const validate = arrayCellValidator(value);
+                return check(source, validate && ((cell, index) => { validate(cell, index); return cell; }));
             }
             if (prepareIntegerView(value)) { guardArray(value); return typed({ kind: 'input', value }, ['integer']); }
             const map = maps.get(value);

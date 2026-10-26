@@ -1,4 +1,4 @@
-import { materializeTensorMap } from '../tensor-map.js';
+import { materializeTensorMap, registerTensorConcat } from '../tensor-map.js';
 import { resolveAxis, resolveAxes } from '../tensor-index.js';
 import { copyArrayStorage } from '../array-copy.js';
 import { materializePackedBooleans, packedTruePositions } from '../packed-booleans.js';
@@ -288,6 +288,8 @@ export function copyArray(value: RankValue, shareStorage = true): RankArray {
     if (numeric) { inheritArrayDeclaration(value, numeric); return setSemanticArrayType(numeric, type); }
     const packed = materializePackedBooleans(value);
     if (packed) { inheritArrayDeclaration(value, packed); return setSemanticArrayType(packed, type); }
+    const compiled = privateLoopPolling() && !inspectionEnabled() ? materializeTensorMap(value) : undefined;
+    if (compiled) { inheritArrayDeclaration(value, compiled); return setSemanticArrayType(compiled, type); }
     const size = value.shape.reduce((product, dimension) => product * dimension, 1);
     const copied = inspectionEnabled() ? undefined : copyMaterializedArrayItems(value, size);
     const integers = copied || inspectionEnabled() ? undefined : prepareIntegerView(value, true);
@@ -447,7 +449,9 @@ export function concatValues(values: readonly RankValue[], axis = 0): RankArray 
         if (!Number.isSafeInteger(total)) throw mismatch('concat axis is too long');
     }
     shape[axis] = total;
-    return concatArrays(arrays, shape, axis);
+    const result = concatArrays(arrays, shape, axis);
+    registerTensorConcat(result, arrays, axis);
+    return result;
 }
 
 export function transposeValue(value: RankValue, axes?: readonly number[]): RankValue {
