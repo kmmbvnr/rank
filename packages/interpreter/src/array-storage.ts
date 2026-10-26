@@ -8,7 +8,7 @@ export {
 } from './owned-array.js';
 export {
     eagerArrayStorage, materializedArrayItems, storedArrayValues, copyMaterializedArrayItems,
-    registerArrayReadPlan, prepareArrayRead, arrayCells, arrayCellValues, arrayFrameAxes, arrayValueTraversal, arrayValues, collectArrayValues, collectArrayCells, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
+    registerArrayReadPlan, prepareArrayRead, prepareArrayEvaluation, arrayCells, arrayCellValues, arrayFrameAxes, arrayValueTraversal, arrayValues, collectArrayValues, collectArrayCells, MAX_HELD_CELLS, STREAM_CELLS, shouldStream, streamCells,
     materializeCells, readCellOrMissing, borrowArrayStorage, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader,
     readArrayItem, readArrayShape, registerArrayCellEvaluation, evaluateArrayItem,
 } from './array-read.js';

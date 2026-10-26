@@ -104,6 +104,18 @@ export function prepareArrayRead(value: RankArray): ((index: number) => RankValu
     return arrayReadPlans.get(value)?.prepare?.();
 }
 
+/** One operand cursor per traversal, with the ordinary execution-stack fallback.
+ * Preparing does not demand cells; separate operands never share a cursor. */
+export function prepareArrayEvaluation(value: RankArray): (index: number) => Evaluation<RankValue> {
+    const read = prepareArrayRead(value);
+    if (!read) return index => evaluateArrayItem(value, index);
+    return index => {
+        checkpoint('reading array');
+        try { return completed(read(index)); }
+        catch (error) { throw normalizeStackError(error); }
+    };
+}
+
 /** Observe empty producer cells, owning cursors through their nested demands. */
 export function* arrayCellValues(cells: ArrayCells, start = 0): IterableIterator<RankValue> {
     const observation = new ArrayCellRead();

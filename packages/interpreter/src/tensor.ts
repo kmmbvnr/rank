@@ -7,7 +7,7 @@ import { arrayStrides, broadcastOffset, broadcastShape, trailingCells } from './
 export { broadcastShape } from './tensor-layout.js';
 import { prepareStoredScalarView, type LinearView } from './integer-view.js';
 import { mapPair, runExecution } from './execution.js';
-import { evaluateArrayItem, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
+import { evaluateArrayItem, prepareArrayEvaluation, derivedArray, denseScalarItems, storedOperandItems, float64Cells, ownedArray, realCells, typedArray } from './array-storage.js';
 import { RankError } from './errors.js';
 import { checkpoint, InterruptedError } from './interrupt.js';
 import type { RankArray, RankValue } from './value.js';
@@ -27,7 +27,18 @@ export function mapBroadcastArrays(
         () => evaluateArrayItem(right, sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)),
         operation,
     );
-    return mapArrayCells(derivedArray(shape, [left, right], index => runExecution(evaluate(index)), true, evaluate),
+    return mapArrayCells(derivedArray(shape, [left, right], index => runExecution(evaluate(index)), true, evaluate,
+        undefined, () => {
+            // Expanded operands retain ordinary reads: broadcasting may revisit
+            // the same producer frame as a new logical observation.
+            const a = shape.length === left.shape.length && shape.every((n, i) => n === left.shape[i])
+                ? prepareArrayEvaluation(left) : (index: number) => evaluateArrayItem(left, index);
+            const b = shape.length === right.shape.length && shape.every((n, i) => n === right.shape[i])
+                ? prepareArrayEvaluation(right) : (index: number) => evaluateArrayItem(right, index);
+            return index => runExecution(mapPair(
+                a(sameShape ? index : broadcastOffset(index, shape, left.shape, leftStrides)),
+                () => b(sameShape ? index : broadcastOffset(index, shape, right.shape, rightStrides)), operation));
+        }),
         [left, right], cells => mapScalarArrays(cells, ([a, b]) => operation(a, b)));
 }
 

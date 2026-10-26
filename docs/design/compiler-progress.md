@@ -2395,3 +2395,20 @@ The Euler 103 search algorithm remains unchanged. Its fixture now runs it once;
 Euler 104 likewise has one full default run and a separate small logarithm test.
 All distinct assertions, default inputs and golden answers are preserved.
 [Measurements, reproduction and verification](../../benchmarks/euler103-104-results.md).
+
+## Ranked producer traversal through arithmetic (Euler 111, #447)
+
+Binary broadcast maps and scalar callback maps propagate prepared readers for
+operands whose shape matches the output. A consumer keeps only each operand's
+current ranked result cell, rather than invoking a whole matrix contraction
+again for each scalar. Preparation does not read cells. Independent operands and
+observations own independent cursors; point reads still recompute. Output cell
+validation and stack-driven execution for deep maps are retained. Expanded
+operands keep ordinary reads, preserving their separate producer observations.
+
+Euler 111's unchanged lazy program now performs ten contractions per replacement
+stage instead of 900 and 36,450. Three fresh-process medians improve the main
+from 5.083 to 0.206 s and the unchanged two-test fixture from 5.109 to 0.233 s;
+peak RSS falls from 327.2/334.4 to 183.5/180.9 MiB. The surrounding loop remains
+interpreted. The algorithm, lazy bindings, input sizes and answers are unchanged.
+[Measurements, reproduction and verification](../../benchmarks/euler111-prime-runs-results.md).

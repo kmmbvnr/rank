@@ -20,6 +20,7 @@ export function derivedArray(
     read: (index: number) => RankValue, fileFree = false,
     evaluate?: (index: number) => Evaluation<RankValue>,
     values?: () => IterableIterator<RankValue>,
+    prepare?: () => ((index: number) => RankValue) | undefined,
 ): RankArray {
     const sources = dependencies.filter(isRankArray);
     const depth = arrayReaderDepth(sources, 1);
@@ -82,6 +83,10 @@ export function derivedArray(
             }
             yield result;
         }
+    } });
+    if (prepare && depth <= 128) registerArrayReadPlan(value, { prepare() {
+        const read = prepare();
+        return read && (index => finishRead(index, read(index)));
     } });
     return value;
 }

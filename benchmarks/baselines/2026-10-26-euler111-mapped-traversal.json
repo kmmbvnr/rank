@@ -1,0 +1,407 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "before": {
+      "array-read.js": "ccad0ee821c1749a88af4311da7d90c37b7eed5b3b1e4b04eeef9b604803edeb",
+      "derived-array.js": "79c19f8e385cc389e2d1e8f80cb520665b141ba4ac6b649fc5b3bed60d3eec33",
+      "tensor.js": "8078f4743038def64f874d9af7001db0c86d13a73cc06515e0ae9d436a7548bd",
+      "scalar-array-map.js": "cb11d1ca3d3dc691f4761b10049e3f390e4a8a2f8b74041e3fb2482b25d668b1"
+    },
+    "after": {
+      "array-read.js": "e5d4bc81ad09ba929ed93e21f1898259e056a7d430377c8013aab756c003d8c6",
+      "derived-array.js": "0dd5c6a43e5630eda0d8c8d5239aebc924af96f483868fac8b43c07c83b2036e",
+      "tensor.js": "09201adc0fd0a7a9610feeaa5f522f21273860b5fd8e587435d3b00745221211",
+      "scalar-array-map.js": "ae8e9d982ded2b2584a1024be99c3560868895f2b828967b753642f3e644814d"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before independent oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 5083.316708,
+      "peakRssMiB": 324.171875,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5084.889,
+      "peakRssMiB": 341.0625,
+      "sourceHash": "70df09d65f725d0ee3ce7120c580b61ceb639eda526120f4214c24abc5775934",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4922.282834
+        },
+        {
+          "name": "statement four digit primes",
+          "passed": true,
+          "durationMs": 44.37408300000061
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 205.57475,
+      "peakRssMiB": 183.453125,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 233.88162499999999,
+      "peakRssMiB": 184.75,
+      "sourceHash": "70df09d65f725d0ee3ce7120c580b61ceb639eda526120f4214c24abc5775934",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 92.606
+        },
+        {
+          "name": "statement four digit primes",
+          "passed": true,
+          "durationMs": 22.38779199999999
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 232.19675,
+      "peakRssMiB": 180.9375,
+      "sourceHash": "70df09d65f725d0ee3ce7120c580b61ceb639eda526120f4214c24abc5775934",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 98.19954199999998
+        },
+        {
+          "name": "statement four digit primes",
+          "passed": true,
+          "durationMs": 21.762749999999983
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 200.18129100000002,
+      "peakRssMiB": 183.578125,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5114.710875,
+      "peakRssMiB": 334.421875,
+      "sourceHash": "70df09d65f725d0ee3ce7120c580b61ceb639eda526120f4214c24abc5775934",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4954.957541
+        },
+        {
+          "name": "statement four digit primes",
+          "passed": true,
+          "durationMs": 44.171040999999605
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 5045.912249999999,
+      "peakRssMiB": 327.25,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 5096.647542,
+      "peakRssMiB": 330.59375,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 5108.964792000001,
+      "peakRssMiB": 333.296875,
+      "sourceHash": "70df09d65f725d0ee3ce7120c580b61ceb639eda526120f4214c24abc5775934",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4948.554042
+        },
+        {
+          "name": "statement four digit primes",
+          "passed": true,
+          "durationMs": 43.927458999999544
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 207.23058299999997,
+      "peakRssMiB": 177.984375,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 232.904417,
+      "peakRssMiB": 180.796875,
+      "sourceHash": "70df09d65f725d0ee3ce7120c580b61ceb639eda526120f4214c24abc5775934",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 94.02300000000002
+        },
+        {
+          "name": "statement four digit primes",
+          "passed": true,
+          "durationMs": 22.056708000000015
+        }
+      ]
+    }
+  ],
+  "baselineRevision": "56ae8c8ded8302254541cca02757f96d4f922ed3",
+  "diagnosticSamples": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 5118.619458,
+      "peakRssMiB": 323.328125,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 26617490,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 1,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 2,
+        "elementTypeScannedCells": 910,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 3,
+          "scalar-expression:too-small": 8,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:unsupported-op:**": 1,
+          "tensor:binding:combinations": 2,
+          "tensor:deferred-binding:AssignmentStatement": 9,
+          "tensor:binding:Shift": 2,
+          "scalar-expression:operator-guard:*": 2,
+          "scalar-expression:unsupported-op:choose": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:operator-guard:+": 2,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:in": 1,
+          "tensor:unsupported-op:in": 1,
+          "scalar-expression:unsupported-op:+": 1,
+          "scalar-expression:unsupported-op:or": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 203.573209,
+      "peakRssMiB": 177.953125,
+      "sourceHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "mainHash": "c4ce8302981b2a4f3d96fc30b17835048c3f75ecdb8d816e1c40a335dece6dbd",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 52730,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 1,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 2,
+        "elementTypeScannedCells": 910,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 3,
+          "scalar-expression:too-small": 8,
+          "tensor:scalar-evaluation-timing": 1,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:till": 2,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:unsupported-type:array": 2,
+          "loop:unsupported-op:**": 1,
+          "tensor:binding:combinations": 2,
+          "tensor:deferred-binding:AssignmentStatement": 9,
+          "tensor:binding:Shift": 2,
+          "scalar-expression:operator-guard:*": 2,
+          "scalar-expression:unsupported-op:choose": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:operator-guard:+": 2,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:in": 1,
+          "tensor:unsupported-op:in": 1,
+          "scalar-expression:unsupported-op:+": 1,
+          "scalar-expression:unsupported-op:or": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    }
+  ],
+  "rankedMatmulCalls": {
+    "before": [
+      {
+        "shape": [
+          10,
+          9
+        ],
+        "contracted": 1,
+        "calls": 900
+      },
+      {
+        "shape": [
+          45,
+          81
+        ],
+        "contracted": 2,
+        "calls": 36450
+      }
+    ],
+    "after": [
+      {
+        "shape": [
+          10,
+          9
+        ],
+        "contracted": 1,
+        "calls": 10
+      },
+      {
+        "shape": [
+          45,
+          81
+        ],
+        "contracted": 2,
+        "calls": 10
+      }
+    ]
+  }
+}
