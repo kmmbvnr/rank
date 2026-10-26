@@ -1,0 +1,272 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "reference",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "before": {
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "scalar-function-proof.js": "1ce47edfbcdc83337cc54cf0e61d0678e31e6fe03441b28f1d67e6c02602d1e2",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc"
+    },
+    "after": {
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "scalar-function-proof.js": "1ce47edfbcdc83337cc54cf0e61d0678e31e6fe03441b28f1d67e6c02602d1e2",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before independent oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3876.792792,
+      "peakRssMiB": 563.765625,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 4207.565833,
+      "peakRssMiB": 653.078125,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 4081.9364170000003
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 9.628999999999905
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 7.2028330000002825
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 5.913209000000279
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 959.8195000000001,
+      "peakRssMiB": 176.15625,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 975.4758750000001,
+      "peakRssMiB": 178.078125,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 856.805333
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 5.783042000000023
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 3.9507089999999607
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 3.208167000000003
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 970.3737910000001,
+      "peakRssMiB": 178.328125,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 852.8228749999998
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 5.867750000000115
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 3.8465000000001055
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 3.236499999999978
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 977.4446670000001,
+      "peakRssMiB": 175.828125,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3928.531416,
+      "peakRssMiB": 679.28125,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3799.903
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 9.648083000000042
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 7.470999999999549
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 6.254250000000411
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3818.049458,
+      "peakRssMiB": 624.5625,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3774.611041,
+      "peakRssMiB": 569.109375,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3953.3710419999998,
+      "peakRssMiB": 662.734375,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3827.0580840000002
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 10.05645800000002
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 7.7447910000000775
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 6.0930419999999685
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 957.157584,
+      "peakRssMiB": 177.34375,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 1001.6945,
+      "peakRssMiB": 183.6875,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 879.2821669999998
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 5.762749999999869
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 3.7242499999999836
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 3.2802079999999023
+        }
+      ]
+    }
+  ],
+  "baselineProgram": "benchmarks/fixtures/euler125-completed-end.ra: previous array algorithm with completed End binding",
+  "sameRuntimeForBothVersions": true
+}

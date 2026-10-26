@@ -4,6 +4,7 @@ rem Sum the palindromes below a limit
 rem that are sums of two or more
 rem consecutive squares
 
+use algo
 use numbers
 use sequences
 use io
@@ -11,28 +12,32 @@ use cli
 
 option Limit integer = 100000000
 
-rem Prefix sums P of the squares give a
-rem run of L squares from i as
-rem P[i + L] - P[i]. Take every start
-rem and every length at once.
+rem Positive squares only increase a run.
+rem Stop once its sum reaches Limit and
+rem keep distinct palindromes by value.
 Top = Limit isqrt
-N = 1 to Top array
-Pre = N * N scan + with 0 copy
-Most = (Pre less Limit) count
-Cols = Most - 1
-Cells = Top * Cols
-St = (0 till Top array) reshape Top 1
-Ln = (2 to Most array) reshape 1 Cols
-End' = St + Ln
-Fit' = End at most Top
-At' = (End min Top) reshape Cells
-Hi' = (Pre At) reshape Top Cols
-Sv' = 0 till Top array
-Lo' = (Pre Sv) reshape Top 1
-Run' = Hi - Lo
-Ok' = Fit and Run less Limit
-Cand = Run filter Ok array unique
-Txt = Cand text rank 0
-Pal' = Txt equal (Txt reverse rank 0)
-Answer = Cand filter Pal sum
+Seen = new set
+for Start in 1 to Top
+  Next = Start + 1
+  Total = Start * Start
+  if Total + Next * Next at least Limit
+    break
+  end
+  for Stop in Next to Top
+    Total += Stop * Stop
+    if Total at least Limit
+      break
+    end
+    Rest = Total
+    Reversed = 0
+    for Rest greater 0
+      Reversed = Reversed * 10 + Rest mod 10
+      Rest = Rest // 10
+    end
+    if Reversed equal Total
+      Seen add Total
+    end
+  end
+end
+Answer = Seen sum
 Answer print

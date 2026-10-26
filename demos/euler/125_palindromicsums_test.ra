@@ -14,3 +14,19 @@ test "statement value for 1000"
 
   Answer equal 4164
 end
+
+test "exclude a sum equal to the limit"
+  use "125_palindromicsums"
+  Limit = 5
+  run
+
+  Answer equal 0
+end
+
+test "include the first sum of two squares"
+  use "125_palindromicsums"
+  Limit = 6
+  run
+
+  Answer equal 5
+end

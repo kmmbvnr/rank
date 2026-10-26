@@ -1,0 +1,403 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "runtimeHashes": {
+    "before": {
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "scalar-function-proof.js": "1ce47edfbcdc83337cc54cf0e61d0678e31e6fe03441b28f1d67e6c02602d1e2",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc"
+    },
+    "after": {
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "scalar-function-proof.js": "1ce47edfbcdc83337cc54cf0e61d0678e31e6fe03441b28f1d67e6c02602d1e2",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "modules/sequences.js": "330a18f637500db9a4334c5ec64a8251d67f0b2d3c1499939e2a3ab48f3f2fbc"
+    }
+  },
+  "measurements": "serial fresh processes; parsing and complete execution; peak process RSS before independent oracle validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3783.050834,
+      "peakRssMiB": 658.1875,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3841.692333,
+      "peakRssMiB": 651.625,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3715.678167
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 10.33620800000017
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 7.828207999999904
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 6.593166999999994
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 191.85137500000002,
+      "peakRssMiB": 169.828125,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 207.997,
+      "peakRssMiB": 171.375,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 91.66149999999999
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 4.727458000000013
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 3.934167000000002
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 3.3722080000000005
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 210.162,
+      "peakRssMiB": 171.875,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 92.91804200000001
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 4.5201660000000174
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 3.9707500000000095
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 3.3790839999999776
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "case": "main",
+      "executeMs": 190.25854099999998,
+      "peakRssMiB": 169.28125,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3729.0422080000003,
+      "peakRssMiB": 589.640625,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3603.205167
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 10.472833000000264
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 8.683207999999922
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 6.447708000000148
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3763.8630829999997,
+      "peakRssMiB": 609.921875,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3870.294042,
+      "peakRssMiB": 659.40625,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "executeMs": 3835.166584,
+      "peakRssMiB": 680.34375,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3707.035542
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 10.613082999999733
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 8.436709000000064
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 6.205167000000074
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "main",
+      "executeMs": 190.44850000000002,
+      "peakRssMiB": 169.328125,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "case": "fixture",
+      "executeMs": 212.17649999999998,
+      "peakRssMiB": 171.671875,
+      "sourceHash": "b53109e04e949ab454832af33e2b125cff6c5d84493124117257ebc50acee059",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 92.74812500000002
+        },
+        {
+          "name": "statement value for 1000",
+          "passed": true,
+          "durationMs": 4.655708000000004
+        },
+        {
+          "name": "exclude a sum equal to the limit",
+          "passed": true,
+          "durationMs": 4.0132919999999785
+        },
+        {
+          "name": "include the first sum of two squares",
+          "passed": true,
+          "durationMs": 3.68508300000002
+        }
+      ]
+    }
+  ],
+  "baselineProgram": "benchmarks/fixtures/euler125-completed-end.ra: previous array algorithm with completed End binding",
+  "sameRuntimeForBothVersions": true,
+  "diagnosticSamples": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "executeMs": 3776.089708,
+      "peakRssMiB": 649.578125,
+      "sourceHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "mainHash": "4d53e6f493c21f19cc6959e5a3975ded905e28aab231d6a00a67322e6b4aeec4",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 27460213,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 1,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 3,
+        "tensorMapPreparations": 2,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 1,
+        "elementTypeScannedCells": 668,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-op:to": 2,
+          "tensor:application-form:BinaryExpression": 1,
+          "scalar-expression:unsupported-op:+": 3,
+          "scalar-expression:too-small": 11,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:deferred-binding:AssignmentStatement": 8,
+          "scalar-expression:unsupported-op:and": 1,
+          "tensor:unsupported-node:TableFilterExpression": 1,
+          "scalar-expression:unsupported-op:rank": 1,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 1,
+          "scalar-expression:unsupported-op:equal": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "case": "main",
+      "executeMs": 189.414583,
+      "peakRssMiB": 170.4375,
+      "sourceHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "mainHash": "12c56c2240649fefc8f67173b696290873ef4bf78dc66366c13d2614e67fd790",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 168,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:NewStructureExpression": 1
+        },
+        "compilerRejections": []
+      },
+      "tests": []
+    }
+  ]
+}
