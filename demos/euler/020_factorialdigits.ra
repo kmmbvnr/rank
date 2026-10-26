@@ -9,10 +9,7 @@ option N integer = 100
 
 rem Form the factorial with exact integers,
 rem then reduce its decimal digits.
-Factorial = 1
-if N greater 0
-  Factorial = (1 to N) reduce *
-end
+Factorial = (1 to N) reduce *
 
 Digits = Factorial text
 Values' = Digits integer rank 0

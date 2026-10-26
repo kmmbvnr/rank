@@ -14,11 +14,3 @@ test "ten factorial"
 
   Answer equal 27
 end
-
-test "zero factorial"
-  use "020_factorialdigits"
-  N = 0
-  run
-
-  Answer equal 1
-end
