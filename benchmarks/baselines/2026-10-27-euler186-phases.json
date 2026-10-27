@@ -1,0 +1,38 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+  "measurements": "serial fresh processes; worker time includes interpreter construction, parsing and validation",
+  "results": [
+    {
+      "sample": 0,
+      "case": "phases",
+      "engine": "compiled",
+      "ms": 256.89141700000005,
+      "peakRssMiB": 226.59375,
+      "generationMs": 160.22812499999998,
+      "networkMs": 96.24158300000005,
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "phases",
+      "engine": "compiled",
+      "ms": 254.937292,
+      "peakRssMiB": 221.375,
+      "generationMs": 157.10191700000001,
+      "networkMs": 97.41924999999998,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "phases",
+      "engine": "compiled",
+      "ms": 253.605208,
+      "peakRssMiB": 221.78125,
+      "generationMs": 156.472833,
+      "networkMs": 96.662917,
+      "tests": []
+    }
+  ]
+}

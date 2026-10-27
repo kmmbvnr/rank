@@ -1,0 +1,116 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+  "measurements": "serial fresh processes; worker time includes interpreter construction, parsing and validation",
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "engine": "compiled",
+      "ms": 251.89016599999997,
+      "peakRssMiB": 239.4375,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 284.489166,
+      "peakRssMiB": 257.890625,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "native",
+      "engine": "compiled",
+      "ms": 46.69300000000001,
+      "peakRssMiB": 131.734375,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 6.844708999999995,
+      "networkMs": 39.792708000000005
+    },
+    {
+      "sample": 1,
+      "case": "native",
+      "engine": "compiled",
+      "ms": 46.601583000000005,
+      "peakRssMiB": 132.234375,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 6.7254999999999825,
+      "networkMs": 39.814458
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 278.86474999999996,
+      "peakRssMiB": 257.71875,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "engine": "compiled",
+      "ms": 251.58487499999998,
+      "peakRssMiB": 239.109375,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "engine": "compiled",
+      "ms": 252.374333,
+      "peakRssMiB": 239.109375,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 284.168291,
+      "peakRssMiB": 257.8125,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "native",
+      "engine": "compiled",
+      "ms": 46.97104200000001,
+      "peakRssMiB": 131.890625,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 6.740624999999994,
+      "networkMs": 40.166458000000006
+    }
+  ]
+}

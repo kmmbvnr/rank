@@ -1,0 +1,307 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+  "ringSourceHash": "29db64827572dd6b204d724ef587abac9bda9047faad928a2551c839d04d8a9c",
+  "versions": {
+    "before": {
+      "path": "/Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js",
+      "arrayReadHash": "b226a4ce4e25950d8ec3ef37eb7c1e24328c306c4eb9dee661f0b2e35d898700"
+    },
+    "final": {
+      "path": "/private/tmp/rank-euler186/packages/interpreter/out/index.js",
+      "arrayReadHash": "dcfaf209c7313e46980e214ee084d1130aa40b1c10edfa96cb62394586bb9159"
+    }
+  },
+  "measurements": "serial fresh processes; worker time includes interpreter construction, parsing and validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "ms": 256.416416,
+      "peakRssMiB": 244.140625,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "main",
+      "engine": "compiled",
+      "ms": 256.164125,
+      "peakRssMiB": 240.203125,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 286.27941699999997,
+      "peakRssMiB": 258.015625,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 281.32008399999995,
+      "peakRssMiB": 259.140625,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "ring",
+      "engine": "compiled",
+      "ms": 311.139333,
+      "peakRssMiB": 188.375,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "ring",
+      "engine": "compiled",
+      "ms": 304.377667,
+      "peakRssMiB": 189.796875,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "native",
+      "engine": "compiled",
+      "ms": 46.625125,
+      "peakRssMiB": 131.125,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 6.911082999999991,
+      "networkMs": 39.64933400000001
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "native-ring",
+      "engine": "compiled",
+      "ms": 49.200625,
+      "peakRssMiB": 108.578125,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 0.023333000000008042,
+      "networkMs": 49.11779199999998
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "native-ring",
+      "engine": "compiled",
+      "ms": 49.610625,
+      "peakRssMiB": 108.234375,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 0.02041700000000901,
+      "networkMs": 49.52808299999998
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "native",
+      "engine": "compiled",
+      "ms": 48.45950000000002,
+      "peakRssMiB": 131.21875,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 7.699083000000002,
+      "networkMs": 40.69716700000001
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "ring",
+      "engine": "compiled",
+      "ms": 305.18575,
+      "peakRssMiB": 189.234375,
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "ring",
+      "engine": "compiled",
+      "ms": 317.92175000000003,
+      "peakRssMiB": 194.796875,
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 303.978625,
+      "peakRssMiB": 261.515625,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 297.932167,
+      "peakRssMiB": 257.96875,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "main",
+      "engine": "compiled",
+      "ms": 256.129708,
+      "peakRssMiB": 240.21875,
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "ms": 263.314041,
+      "peakRssMiB": 239.28125,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "ms": 289.91645800000003,
+      "peakRssMiB": 238.328125,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "main",
+      "engine": "compiled",
+      "ms": 261.40270799999996,
+      "peakRssMiB": 239.1875,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 287.918583,
+      "peakRssMiB": 257.421875,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "fixture",
+      "engine": "compiled",
+      "ms": 286.728125,
+      "peakRssMiB": 257.453125,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "ring",
+      "engine": "compiled",
+      "ms": 319.81,
+      "peakRssMiB": 194.46875,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "ring",
+      "engine": "compiled",
+      "ms": 323.14770799999997,
+      "peakRssMiB": 194.34375,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "native",
+      "engine": "compiled",
+      "ms": 49.746707999999984,
+      "peakRssMiB": 130.90625,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 8.790124999999989,
+      "networkMs": 40.885166999999996
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "native-ring",
+      "engine": "compiled",
+      "ms": 53.13620800000001,
+      "peakRssMiB": 107.828125,
+      "answer": 2325629,
+      "processed": 2325632,
+      "generationMs": 0.020875000000017963,
+      "networkMs": 53.05374999999998
+    }
+  ]
+}

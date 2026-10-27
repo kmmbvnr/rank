@@ -1,0 +1,112 @@
+{
+  "checks": [
+    {
+      "users": 80,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "users": 80,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "users": 80,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 59
+    },
+    {
+      "users": 80,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 59
+    },
+    {
+      "users": 80,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 173
+    },
+    {
+      "users": 80,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 173
+    },
+    {
+      "users": 100,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "users": 100,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "users": 100,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 69
+    },
+    {
+      "users": 100,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 69
+    },
+    {
+      "users": 100,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 242
+    },
+    {
+      "users": 100,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 242
+    },
+    {
+      "users": 127,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "users": 127,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "users": 127,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 113
+    },
+    {
+      "users": 127,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 113
+    },
+    {
+      "users": 127,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 226
+    },
+    {
+      "users": 127,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 226
+    }
+  ]
+}

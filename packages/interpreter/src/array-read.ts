@@ -362,6 +362,13 @@ export function readArrayItem(value: RankArray, index: number): RankValue {
     const state = ownedStorage.get(value);
     if (state?.stable) {
         if (state.validity !== undefined && !(state.validity[index >>> 5] >>> (index & 31) & 1)) return MISSING;
+        // Packed integer items expose a Proxy for generic array consumers.
+        // Internal scalar reads already have a numeric index and can avoid
+        // its property-key conversion while retaining exact Rank integers.
+        if (state.typed instanceof Int32Array) {
+            const cell = state.typed[index];
+            if (cell !== undefined) return BigInt(cell);
+        }
         return state.items[index];
     }
     return value.itemAt?.(index) ?? value.items[index];

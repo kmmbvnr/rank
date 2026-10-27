@@ -1,0 +1,25 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+  "ringSourceHash": "29db64827572dd6b204d724ef587abac9bda9047faad928a2551c839d04d8a9c",
+  "cursorSourceHash": "6d97592b8c44f67abc8006bb49c74fffa73f5d2c41d2d782178a9619fe7757a6",
+  "versions": {
+    "final": {
+      "path": "/private/tmp/rank-euler186/packages/interpreter/out/index.js",
+      "arrayReadHash": "dcfaf209c7313e46980e214ee084d1130aa40b1c10edfa96cb62394586bb9159"
+    }
+  },
+  "measurements": "serial fresh processes; worker time includes interpreter construction, parsing and validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "ring-cursors",
+      "engine": "reference",
+      "ms": 34199.96575,
+      "peakRssMiB": 183.96875,
+      "tests": []
+    }
+  ]
+}

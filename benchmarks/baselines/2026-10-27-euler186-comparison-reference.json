@@ -1,0 +1,182 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "sourceHash": "5c487ad2a89d274a04a84c1cb05de04069022ff22a2b8b299f4e7e990f39b736",
+  "ringSourceHash": "29db64827572dd6b204d724ef587abac9bda9047faad928a2551c839d04d8a9c",
+  "cursorSourceHash": "77c87e4189740a4f049dae94b559118da2d4dc2f44c8f5ffe438e22bfd6597b1",
+  "versions": {
+    "before": {
+      "path": "/Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js",
+      "arrayReadHash": "b226a4ce4e25950d8ec3ef37eb7c1e24328c306c4eb9dee661f0b2e35d898700"
+    },
+    "final": {
+      "path": "/private/tmp/rank-euler186/packages/interpreter/out/index.js",
+      "arrayReadHash": "dcfaf209c7313e46980e214ee084d1130aa40b1c10edfa96cb62394586bb9159"
+    }
+  },
+  "measurements": "serial fresh processes; worker time includes interpreter construction, parsing and validation",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "engine": "reference",
+      "ms": 31941.018540999998,
+      "peakRssMiB": 348.625,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "main",
+      "engine": "reference",
+      "ms": 28955.178167000002,
+      "peakRssMiB": 206.75,
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 37368.484,
+      "peakRssMiB": 472.171875,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 29282.958167,
+      "peakRssMiB": 217.8125,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 30009.399209,
+      "peakRssMiB": 218.640625,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 37553.291207999995,
+      "peakRssMiB": 476.375,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "final",
+      "case": "main",
+      "engine": "reference",
+      "ms": 30007.402166,
+      "peakRssMiB": 207.875,
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "engine": "reference",
+      "ms": 36624.785875,
+      "peakRssMiB": 461.78125,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "engine": "reference",
+      "ms": 37500.850542,
+      "peakRssMiB": 460.40625,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "main",
+      "engine": "reference",
+      "ms": 29650.055375,
+      "peakRssMiB": 208.515625,
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 38986.632041,
+      "peakRssMiB": 479.125,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "final",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 30045.188916000003,
+      "peakRssMiB": 217.328125,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true
+        },
+        {
+          "name": "generator terms",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

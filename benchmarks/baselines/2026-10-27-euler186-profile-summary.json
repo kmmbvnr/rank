@@ -1,0 +1,271 @@
+{
+  "note": "Separate profiled probes, not timing baselines. Self sample counts include module loading. Compiled interval 100us; reference interval 1000us; counts are not comparable across engines.",
+  "runs": {
+    "compiled": {
+      "worker": {
+        "case": "phases",
+        "engine": "compiled",
+        "ms": 278.500583,
+        "peakRssMiB": 238.703125,
+        "generationMs": 174.71966600000002,
+        "networkMs": 103.25462499999998,
+        "tests": []
+      },
+      "topSelfSamples": [
+        [
+          "(anonymous) :3",
+          679
+        ],
+        [
+          "compileSourceTextModule node:internal/modules/esm/utils:316",
+          375
+        ],
+        [
+          "writeInteger32Cells file://packages/interpreter/out/owned-array.js:898",
+          130
+        ],
+        [
+          "getAlternativesForProd file://node_modules/chevrotain/lib/src/parse/grammar/interpreter.js:172",
+          108
+        ],
+        [
+          "remainingPathWith file://node_modules/chevrotain/lib/src/parse/grammar/interpreter.js:168",
+          93
+        ],
+        [
+          "(garbage collector) :0",
+          83
+        ],
+        [
+          "add file://node_modules/chevrotain-allstar/lib/dfa.js:20",
+          73
+        ],
+        [
+          "wrapSafe node:internal/modules/cjs/loader:1721",
+          69
+        ],
+        [
+          "internalModuleStat :0",
+          68
+        ],
+        [
+          "checkpoint file://packages/interpreter/out/interrupt.js:121",
+          58
+        ],
+        [
+          "parse :0",
+          49
+        ],
+        [
+          "run file://packages/interpreter/out/number-loop-runtime.js:119",
+          49
+        ],
+        [
+          "open :0",
+          46
+        ],
+        [
+          "possiblePathsFrom file://node_modules/chevrotain/lib/src/parse/grammar/interpreter.js:162",
+          40
+        ],
+        [
+          "getConflictingAltSets file://node_modules/chevrotain-allstar/lib/all-star-lookahead.js:623",
+          39
+        ],
+        [
+          "(program) :0",
+          34
+        ],
+        [
+          "addDFAState file://node_modules/chevrotain-allstar/lib/all-star-lookahead.js:520",
+          33
+        ],
+        [
+          "realpathSync node:fs:2700",
+          32
+        ],
+        [
+          "compileForInternalLoader node:internal/bootstrap/realm:383",
+          27
+        ],
+        [
+          "getPackageScopeConfig node:internal/modules/package_json_reader:192",
+          26
+        ],
+        [
+          "closure file://node_modules/chevrotain-allstar/lib/all-star-lookahead.js:549",
+          21
+        ],
+        [
+          "lstat :0",
+          20
+        ],
+        [
+          "getPackageScopeConfig :0",
+          20
+        ],
+        [
+          "partialMatches file://node_modules/langium/lib/utils/regexp-utils.js:149",
+          18
+        ],
+        [
+          "firstSet file://node_modules/chevrotain-allstar/lib/all-star-lookahead.js:243",
+          18
+        ],
+        [
+          "#getOrCreateModuleJobAfterResolve node:internal/modules/esm/loader:527",
+          17
+        ],
+        [
+          "get node:internal/modules/package_json_reader:79",
+          17
+        ],
+        [
+          "pathToFileURL :0",
+          16
+        ],
+        [
+          "URL node:internal/url:803",
+          15
+        ],
+        [
+          "isOptionalProd file://node_modules/@chevrotain/gast/lib/src/helpers.js:12",
+          15
+        ]
+      ]
+    },
+    "reference": {
+      "worker": {
+        "case": "phases",
+        "engine": "reference",
+        "ms": 32109.992124999997,
+        "peakRssMiB": 352.390625,
+        "generationMs": 6443.30775,
+        "networkMs": 25666.180125,
+        "tests": []
+      },
+      "topSelfSamples": [
+        [
+          "readArrayItem file://packages/interpreter/out/array-read.js:355",
+          2687
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/expressions.js:267",
+          2279
+        ],
+        [
+          "get file://packages/interpreter/out/frame.js:63",
+          1245
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/expressions.js:182",
+          1092
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/expressions.js:253",
+          1083
+        ],
+        [
+          "isNativeFunction file://packages/interpreter/out/value.js:242",
+          885
+        ],
+        [
+          "general file://packages/interpreter/out/eval/assignments.js:94",
+          826
+        ],
+        [
+          "continueStatementStream file://packages/interpreter/out/eval/blocks.js:163",
+          825
+        ],
+        [
+          "(program) :0",
+          823
+        ],
+        [
+          "splitQualified file://packages/interpreter/out/interpreter.js:33",
+          666
+        ],
+        [
+          "selectValues file://packages/interpreter/out/value-selection.js:30",
+          633
+        ],
+        [
+          "advance file://packages/interpreter/out/execution.js:92",
+          586
+        ],
+        [
+          "operationOf file://packages/interpreter/out/eval/expressions.js:621",
+          492
+        ],
+        [
+          "evaluate file://packages/interpreter/out/eval/expressions.js:55",
+          449
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/assignments.js:348",
+          436
+        ],
+        [
+          "prepare file://packages/interpreter/out/eval/expressions.js:101",
+          382
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/expressions.js:606",
+          377
+        ],
+        [
+          "assign file://packages/interpreter/out/binding-environment.js:57",
+          374
+        ],
+        [
+          "apply file://packages/interpreter/out/eval/application.js:546",
+          370
+        ],
+        [
+          "execute file://packages/interpreter/out/eval/blocks.js:31",
+          350
+        ],
+        [
+          "stream file://packages/interpreter/out/mutation-guards.js:36",
+          349
+        ],
+        [
+          "stream file://packages/interpreter/out/eval/loops.js:66",
+          349
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/application.js:413",
+          301
+        ],
+        [
+          "vectorItem file://packages/interpreter/out/value-selection.js:345",
+          295
+        ],
+        [
+          "checkMutable file://packages/interpreter/out/binding-environment.js:158",
+          290
+        ],
+        [
+          "demand file://packages/interpreter/out/plan.js:8",
+          284
+        ],
+        [
+          "findVariable file://packages/interpreter/out/interpreter.js:165",
+          270
+        ],
+        [
+          "(anonymous) file://packages/interpreter/out/eval/application.js:530",
+          267
+        ],
+        [
+          "preparedStatement file://packages/interpreter/out/eval/blocks.js:97",
+          265
+        ],
+        [
+          "stream file://packages/interpreter/out/eval/assignments.js:376",
+          240
+        ]
+      ]
+    }
+  }
+}

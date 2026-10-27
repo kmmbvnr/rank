@@ -1,0 +1,72 @@
+rem Experimental streaming variant; T stores only the last 55 terms.
+rem Connectedness of a Network
+rem https://projecteuler.net/problem=186
+rem Count the successful calls until the
+rem Prime Minister's number is connected
+rem to at least Percent percent of users
+
+use sequences
+use io
+use cli
+
+option Percent integer = 99
+option Calls integer = 3000000
+
+rem Lagged Fibonacci numbers pair into
+rem calls. A union-find forest, joining
+rem the smaller tree to the larger,
+rem tracks the Prime Minister's group.
+Users = 1000000
+Pm = 524287
+Want = Users * Percent // 100
+T = array shape 55 fill 0
+Ks = 1 to 55 array
+Seed = 100003 - 200003 * Ks
+Seed += 300007 * Ks * Ks * Ks
+T (0 till 55) = Seed mod Users
+Up = 0 till Users array
+Size = array shape Users fill 1
+Made = 0
+Answer = 0
+for N in 0 to Calls - 1
+  for X in 0 to 1
+    K = 2 * N + X
+    if K at least 55
+      At = K mod 55
+      Sum = T ((K - 24) mod 55) + T At
+      T At = Sum mod Users
+    end
+  end
+  A = T ((2 * N) mod 55)
+  B = T ((2 * N + 1) mod 55)
+  if A not equal B
+    Made += 1
+    for Up A not equal A
+      Up A = Up (Up A)
+      A = Up A
+    end
+    for Up B not equal B
+      Up B = Up (Up B)
+      B = Up B
+    end
+    if A not equal B
+      if Size A less Size B
+        Up A = B
+        Size B += Size A
+      else
+        Up B = A
+        Size A += Size B
+      end
+    end
+    R = Pm
+    for Up R not equal R
+      Up R = Up (Up R)
+      R = Up R
+    end
+    if Size R at least Want
+      Answer = Made
+      break
+    end
+  end
+end
+Answer print

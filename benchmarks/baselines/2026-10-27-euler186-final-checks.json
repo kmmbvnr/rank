@@ -1,0 +1,398 @@
+{
+  "checks": [
+    {
+      "variant": "original",
+      "users": 80,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "original",
+      "users": 80,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "ring",
+      "users": 80,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "ring",
+      "users": 80,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 80,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 80,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "original",
+      "users": 80,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 59
+    },
+    {
+      "variant": "original",
+      "users": 80,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 59
+    },
+    {
+      "variant": "ring",
+      "users": 80,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 59
+    },
+    {
+      "variant": "ring",
+      "users": 80,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 59
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 80,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 59
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 80,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 59
+    },
+    {
+      "variant": "original",
+      "users": 80,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 173
+    },
+    {
+      "variant": "original",
+      "users": 80,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 173
+    },
+    {
+      "variant": "ring",
+      "users": 80,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 173
+    },
+    {
+      "variant": "ring",
+      "users": 80,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 173
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 80,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 173
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 80,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 173
+    },
+    {
+      "variant": "original",
+      "users": 100,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "original",
+      "users": 100,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "ring",
+      "users": 100,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "ring",
+      "users": 100,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 100,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 100,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "original",
+      "users": 100,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 69
+    },
+    {
+      "variant": "original",
+      "users": 100,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 69
+    },
+    {
+      "variant": "ring",
+      "users": 100,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 69
+    },
+    {
+      "variant": "ring",
+      "users": 100,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 69
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 100,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 69
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 100,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 69
+    },
+    {
+      "variant": "original",
+      "users": 100,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 242
+    },
+    {
+      "variant": "original",
+      "users": 100,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 242
+    },
+    {
+      "variant": "ring",
+      "users": 100,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 242
+    },
+    {
+      "variant": "ring",
+      "users": 100,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 242
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 100,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 242
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 100,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 242
+    },
+    {
+      "variant": "original",
+      "users": 127,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "original",
+      "users": 127,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "ring",
+      "users": 127,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "ring",
+      "users": 127,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 127,
+      "percent": 1,
+      "engine": "compiled",
+      "answer": 1
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 127,
+      "percent": 1,
+      "engine": "reference",
+      "answer": 1
+    },
+    {
+      "variant": "original",
+      "users": 127,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 113
+    },
+    {
+      "variant": "original",
+      "users": 127,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 113
+    },
+    {
+      "variant": "ring",
+      "users": 127,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 113
+    },
+    {
+      "variant": "ring",
+      "users": 127,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 113
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 127,
+      "percent": 50,
+      "engine": "compiled",
+      "answer": 113
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 127,
+      "percent": 50,
+      "engine": "reference",
+      "answer": 113
+    },
+    {
+      "variant": "original",
+      "users": 127,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 226
+    },
+    {
+      "variant": "original",
+      "users": 127,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 226
+    },
+    {
+      "variant": "ring",
+      "users": 127,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 226
+    },
+    {
+      "variant": "ring",
+      "users": 127,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 226
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 127,
+      "percent": 99,
+      "engine": "compiled",
+      "answer": 226
+    },
+    {
+      "variant": "ring-cursors",
+      "users": 127,
+      "percent": 99,
+      "engine": "reference",
+      "answer": 226
+    },
+    {
+      "engine": "compiled",
+      "generatorTerms": 2000
+    },
+    {
+      "engine": "reference",
+      "generatorTerms": 2000
+    },
+    {
+      "engine": "compiled",
+      "generatorTerms": 2000
+    },
+    {
+      "engine": "reference",
+      "generatorTerms": 2000
+    }
+  ]
+}
