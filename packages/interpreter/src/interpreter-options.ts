@@ -6,6 +6,7 @@ import type { RamGpu } from './mlrank.js';
 export interface LoadedModule {
     readonly id: string;
     readonly source: string;
+    readonly readBinary?: (name: string) => Uint8Array;
 }
 
 export interface InterpreterOptions {

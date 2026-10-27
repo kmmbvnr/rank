@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { Interpreter, compileRam, isRankArray } from '../packages/interpreter/out/index.js';
-import { runRamGpu, closeRamGpu } from '../packages/cli/out/ram-gpu.js';
+import { Interpreter, compileRam, isRankArray, decodeRamWeights, encodeRamWeights, createRamClient } from '../packages/interpreter/out/index.js';
+import { sendRamGpu, closeRamGpu } from '../packages/cli/out/ram-gpu.js';
 
 const source = readFileSync('demos/mlrank/classifier.ram', 'utf8');
+const weights = Object.fromEntries(['w1','b1','w2','b2'].map(name =>
+    [name+'.rwt', readFileSync('demos/mlrank/'+name+'.rwt').toString('base64')]));
+const readWeight = (name, files = weights) => Buffer.from(files[name], 'base64');
 const fixtures = [];
 // Independent scalar reference: s = x+y, d = max(y-x,0).
 for (const input of [[0,0,0,1,1,0,1,1], [-1,0,0.25,0.75,0.5,0.5,2,-1]]) {
@@ -20,7 +23,10 @@ for (const input of [[0,0,0,1,1,0,1,1], [-1,0,0.25,0.75,0.5,0.5,2,-1]]) {
     const cpu = new Interpreter(() => {});
     cpu.execute('use linalg\nuse ml');
     cpu.variables.set('X', {kind:'array',shape:[4,2],items:input});
-    const cpuSource = source.replace('use ml\noption X .f32 shape 4 2\n','')
+    const cpuSource = source.replace(/option (\w+) \.f32 shape ([\d ]+) = "([^"]+)"/g, (_, name, dimensions, file) => {
+        const shape = dimensions.trim().split(/ +/).map(Number);
+        return `option ${name} .f32 shape ${dimensions} = array shape ${dimensions}\n${decodeRamWeights(readWeight(file), shape).map(x => x.toFixed(1)).join(' ')}\nend`;
+    }).replace('use ml\noption X .f32 shape 4 2\n','')
         .replace(/option (\w+) \.f32 shape [\d ]+ = /g, '$1 = ')
         .replace('X W1 linear','X matmul W1').replace('Hidden W2 linear','Hidden matmul W2')
         .replace('return Logits softmax','Logits');
@@ -30,19 +36,20 @@ for (const input of [[0,0,0,1,1,0,1,1], [-1,0,0.25,0.75,0.5,0.5,2,-1]]) {
     cpu.dispose();
     for (const [stage, expected, width] of [['Logits softmax',probabilities,2],['Hidden',hidden,3],['Logits',logits,2]]) {
         const ram = source.replace('return Logits softmax', `return ${stage}`);
-        const graph = compileRam(ram, 'classifier.ram').graph;
-        fixtures.push({ stage, source: ram, input, expected, shape: [4,2], outputShape: [4,width],
+        const graph = compileRam(ram, 'classifier.ram', name => readWeight(name)).graph;
+        fixtures.push({ stage, source: ram, weights, input, expected, shape: [4,2], outputShape: [4,width],
             model: Buffer.from(graph.model).toString('base64') });
     }
 }
 // Same graph with changed weights must invalidate the native model cache.
 const last = fixtures.findLast(f => f.stage === 'Logits softmax');
-const changed = last.source.replace('array 2.0 -2.0', 'array -2.0 2.0');
+const changed = last.source;
+const changedWeights = {...weights, 'b2.rwt': Buffer.from(encodeRamWeights([2],[-2,2])).toString('base64')};
 const changedExpected = last.expected.flatMap((_,i) => i%2 ? [] : (() => {
     const p = last.expected[i]; const q = 1/(1+Math.exp(Math.log((1-p)/p)+8)); return [q,1-q];
 })());
-fixtures.push({...last, source: changed, expected: changedExpected,
-    model: Buffer.from(compileRam(changed,'classifier.ram').graph.model).toString('base64')});
+fixtures.push({...last, source: changed, weights: changedWeights, expected: changedExpected,
+    model: Buffer.from(compileRam(changed,'classifier.ram', name => readWeight(name, changedWeights)).graph.model).toString('base64')});
 if (process.argv.includes('--android')) {
     mkdirSync('output/playwright', {recursive:true});
     writeFileSync('output/playwright/ram-mlp.js', readFileSync('packages/web/test/ram-mlp.playwright.js','utf8')
@@ -50,6 +57,8 @@ if (process.argv.includes('--android')) {
 } else {
     closeRamGpu();
     const checks = []; let previousModel;
+    let sent = [];
+    const client = createRamClient(request => { sent.push(request); return sendRamGpu(request); });
     const memoryBefore = process.memoryUsage();
     const nativeMemory = () => execFileSync('ps', ['-axo','pid,ppid,rss,comm'], {encoding:'utf8'})
         .split('\n').map(line => line.trim().split(/\s+/)).filter(parts => Number(parts[1]) === process.pid && parts.slice(3).join(' ').includes('python'))
@@ -57,15 +66,17 @@ if (process.argv.includes('--android')) {
     let helperMemory;
     for (const f of fixtures) {
         let measurement;
-        const interpreter = new Interpreter(() => {}, { loadModule: name => ({id:name,source:f.source}),
+        const interpreter = new Interpreter(() => {}, { loadModule: name => ({id:name,source:f.source,readBinary:name=>readWeight(name,f.weights)}),
             ramGpu: (graph,input) => {
                 const request = {model:Buffer.from(graph.model).toString('base64'),input,outputSize:f.expected.length};
-                const start = performance.now(); const result = runRamGpu(request); const wallMs = performance.now()-start;
+                sent = [];
+                const start = performance.now(); const result = client.invoke(request.model,()=>request.model,input,f.expected.length); const wallMs = performance.now()-start;
                 assert.equal(result.fullyAccelerated,true);
                 assert.equal(result.cached,previousModel===f.model); previousModel=f.model;
                 measurement = {wallMs, prepareMs:result.prepareMs, executeMs:result.executeMs,
                     transportAndSchedulingMs:wallMs-result.prepareMs-result.executeMs,
-                    requestBytes:Buffer.byteLength(JSON.stringify(request)), modelBytes:Buffer.from(f.model,'base64').length};
+                    requestBytes:sent.reduce((sum,r)=>sum+Buffer.byteLength(JSON.stringify(r)),0),
+                    actions:sent.map(r=>r.action), modelTransmissions:sent.filter(r=>r.model).length, modelBytes:Buffer.from(f.model,'base64').length};
                 return result.output;
             }});
         if (f !== fixtures[0]) interpreter.execute('use "classifier.ram"');

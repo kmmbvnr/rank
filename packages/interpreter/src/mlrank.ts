@@ -1,7 +1,8 @@
+import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.js';
 import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
     isUseStatement, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
-    isNumberLiteral, isUnaryExpression, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
+    isNumberLiteral, isStringLiteral, isUnaryExpression, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
 import { RankError } from './errors.js';
 import { native } from './modules/shared.js';
@@ -18,11 +19,12 @@ export interface RamGraph {
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
 export type RamGpu = (graph: RamGraph, input: readonly number[]) => readonly number[];
-export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string }
+export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string; readonly weights: Readonly<Record<string, string>> }
 
 /** Static tensor expressions with baked constants. */
-export function compileRam(source: string, id: string): RamModule {
+export function compileRam(source: string, id: string, readBinary?: (name: string) => Uint8Array): RamModule {
     const ast = parse(source, id);
+    const weights: Record<string, string> = {};
     const fail = (message: string, node?: Statement): never => {
         const error = new RankError(message, 'RamCompile');
         const start = node?.$cstNode?.range.start;
@@ -78,6 +80,18 @@ export function compileRam(source: string, id: string): RamModule {
         if (constantSize > 8_388_608) fail('RAM constant storage exceeds 32 MiB', weight);
         let value = weight.defaultValue;
         while (isParenthesizedExpression(value)) value = value.value;
+        if (isStringLiteral(value)) {
+            if (!ramWeightName.test(value.value)) fail('Binary weights require a simple .rwt attachment name', weight);
+            if (!readBinary) fail('Binary weights are unavailable on this host', weight);
+            try {
+                const bytes = readBinary!(value.value);
+                const values = decodeRamWeights(bytes, shape);
+                weights[value.value] = ramWeightDigest(bytes);
+                names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values, shape });
+            } catch (error) { fail(String(error), weight); }
+            if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
+            return;
+        }
         if (!isArrayExpression(value)) fail('Baked weights require an array literal or array shape ... fill', weight);
         if (!isArrayExpression(value)) throw new Error('unreachable');
         let values: number[];
@@ -192,7 +206,7 @@ export function compileRam(source: string, id: string): RamModule {
     // Ordinary import discovery sees a standard one-argument function. Its runtime
     // implementation is installed by useFile, rather than evaluating this stub.
     const program = parse(`fun ${input.name} ${name}\nreturn ${input.name}\nend\n`, id);
-    return { name, graph, program, source };
+    return { name, graph, program, source, weights };
 }
 
 export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamModule): NativeFunction {

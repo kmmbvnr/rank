@@ -1,3 +1,4 @@
+import { ramWeightDigest } from './ram-weights.js';
 import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
 import {
@@ -624,7 +625,9 @@ export class Interpreter {
             child.bindings.forget([accelerator.name]);
             child.assign(accelerator.name, ramFunction(accelerator, this.options.ramGpu, () => {
                 const source = this.options.loadModule!(specifier, this.options.sourceId);
-                if (source.source !== current.source) current = compileRam(source.source, source.id);
+                if (source.source !== current.source || Object.entries(current.weights).some(([name, digest]) =>
+                    !source.readBinary || ramWeightDigest(source.readBinary(name)) !== digest))
+                    current = compileRam(source.source, source.id, source.readBinary);
                 return current;
             }));
         }
@@ -688,7 +691,7 @@ export class Interpreter {
         if (this.parsingPrograms.has(source.id)) throw new RankError(`cyclic module import: ${source.id}`);
         this.parsingPrograms.add(source.id);
         try {
-            const accelerator = /\.ram$/i.test(source.id) ? compileRam(source.source, source.id) : undefined;
+            const accelerator = /\.ram$/i.test(source.id) ? compileRam(source.source, source.id, source.readBinary) : undefined;
             const loaded = { id: source.id, accelerator, program: accelerator?.program ?? parse(source.source, source.id, {
                 loadModule: path => this.load(path, source.id).program,
             }) };

@@ -30,15 +30,30 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
         weights.set(node.right, tensorsToWrite.length);
         tensorsToWrite.push({ kind: 'constant', shape: [n, k], values });
     }
+    // Only serialize constants consumed by operators. In particular linear's
+    // original [K,N] data is unnecessary unless another operation uses it.
+    const consumed = new Set<number>([output]);
+    nodes.forEach(node => {
+        if (node.kind === 'relu' || node.kind === 'softmax' || node.kind === 'reshape') consumed.add(node.input);
+        else if (node.kind === 'add' || node.kind === 'mul' || node.kind === 'linear') {
+            consumed.add(node.left); consumed.add(node.kind === 'linear' ? weights.get(node.right)! : node.right);
+        }
+    });
+    const constantBuffers = new Map<readonly number[], number>();
     const tensors = tensorsToWrite.map((node, index) => {
         let buffer = 0;
-        if (node.kind === 'constant') {
+        if (node.kind === 'constant' && consumed.has(index)) {
+            const existing = constantBuffers.get(node.values);
+            if (existing !== undefined) buffer = existing;
+            else {
             const bytes = new Uint8Array(node.values.length * 4);
             const view = new DataView(bytes.buffer);
             node.values.forEach((value, i) => view.setFloat32(i * 4, value, true));
             const data = b.createByteVector(bytes);
             b.startObject(3); b.addFieldOffset(0, data, 0);
             buffer = buffers.length; buffers.push(b.endObject());
+            constantBuffers.set(node.values, buffer);
+            }
         }
         const label = b.createString(`t${index}`), dimensions = vector(node.shape);
         b.startObject(10); b.addFieldOffset(0, dimensions, 0);
