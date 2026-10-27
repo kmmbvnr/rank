@@ -32,7 +32,10 @@ warm preparation, execution and host round-trip time separately.
 
 The Android app includes LiteRT. Open **GPU Hello World** in the command menu,
 then **Run program**. The upper tabs contain the main program and its attached
-`hello.ram`. **+** creates another RAM module. Switching tabs keeps the main
+`hello.ram`. **+** creates another RAM module, inserts its `use "name.ram"` at the start
+of Program and appends `X name` at the end. Prepare `X` with the declared
+shape before running. Creating a module edits source without executing it.
+Switching tabs keeps the main
 REPL state and unfinished text; it does not execute code. Sources are saved
 together in the notebook. Exporting a program with modules produces a ZIP
 containing `main.ra`, the `.ram` sources and a notebook snapshot. The ZIP can
@@ -61,8 +64,8 @@ outside ±65504 are rejected.
 
 The desktop runtime checks `is_fully_accelerated()` and rejects partial
 delegation. Android requests only the GPU accelerator. Kotlin LiteRT 2.3.0
-does not expose the corresponding placement query; verify its single ReLU
-node using native delegate logs. The response reports `gpuOnlyRequested`,
+does not expose the corresponding placement query; verify all graph nodes
+using native delegate logs. The response reports `gpuOnlyRequested`,
 not an invented placement result. There is no interpreter fallback when
 the GPU runtime is unavailable.
 

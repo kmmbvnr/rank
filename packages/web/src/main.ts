@@ -1,3 +1,4 @@
+import { attachRamCall } from './ram-program.js';
 import './styles.css';
 import { MobileGuidance } from './mobile-guidance.js';
 import { Feedback } from './feedback.js';
@@ -164,7 +165,8 @@ const ramTabs = new RamTabs(() => {
     }
 }, () => historyReady && !changingNotebook && !busy && !repl.running && !repl.evaluating,
 () => { resize(); input.focus({ preventScroll: true }); render(); },
-{ open: openRamDialogKeyboard, close: closeRamDialogKeyboard });
+{ open: openRamDialogKeyboard, close: closeRamDialogKeyboard },
+name => { repl.editSource(); attachRamCall(repl.notebook, name); });
 function syncRamModules(): void {
     const modules = Object.fromEntries((ramTabs.snapshot().modules ?? []).map(module => [module.name, module.source]));
     attachedRamSources = modules;

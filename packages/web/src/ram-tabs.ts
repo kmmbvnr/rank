@@ -17,7 +17,8 @@ export class RamTabs {
     private borrowedKeyboard = false;
     constructor(private readonly changed: () => void, private readonly canSwitch: () => boolean,
         private readonly main: () => void,
-        private readonly dialogKeyboard?: { open(): void | Promise<void>; close(created: boolean): void }) {
+        private readonly dialogKeyboard?: { open(): void | Promise<void>; close(created: boolean): void },
+        private readonly created?: (name: string) => void) {
         this.tabs.id = 'source-tabs'; this.tabs.setAttribute('aria-label', 'Program sources');
         this.panel.id = 'ram-editor'; this.panel.hidden = true;
         this.text.setAttribute('aria-label', 'RAM module source');
@@ -49,7 +50,8 @@ export class RamTabs {
             const name = stem + '.ram';
             if (this.modules.some(module => module.name === name)) { this.error.textContent = 'That module already exists.'; return; }
             if (this.modules.length >= 64) { this.error.textContent = 'A program can contain at most 64 modules.'; return; }
-            this.modules.push({ name, source: template }); this.closeCreate(true); this.select(name);
+            this.modules.push({ name, source: template });
+            this.created?.(name); this.closeCreate(true); this.select(name);
         };
         document.body.append(this.tabs, this.panel, this.create); this.render();
     }

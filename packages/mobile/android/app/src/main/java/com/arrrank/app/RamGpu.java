@@ -87,7 +87,7 @@ final class RamGpu {
         for (float value : output) values.put((double) value);
         JSONObject result = new JSONObject(); result.put("output", values);
         // Kotlin 2.3.0 exposes no isFullyAccelerated query. Do not invent one:
-        // the single ReLU graph is verified with delegate logs in the device check.
+        // full graph placement is verified with delegate logs in the device check.
         result.put("backend", "LiteRT GPU"); result.put("gpuOnlyRequested", true);
         result.put("cached", cached); result.put("prepareMs", (prepared - started) / 1e6);
         result.put("executeMs", (System.nanoTime() - prepared) / 1e6);
