@@ -2,14 +2,14 @@ import { Builder } from 'flatbuffers';
 
 /** Topologically ordered, statically shaped FP32 tensors. Node IDs are tensor IDs. */
 export type RamNode = { readonly shape: readonly number[] } & ({ readonly kind: 'input' }
-    | { readonly kind: 'constant'; readonly values: readonly number[] }
-    | { readonly kind: 'relu'; readonly input: number }
+    | { readonly kind: 'constant'; readonly dtype?: 'i32'; readonly values: readonly number[] }
+    | { readonly kind: 'relu' | 'tanh' | 'rsqrt'; readonly input: number }
     | { readonly kind: 'softmax'; readonly input: number }
     | { readonly kind: 'reshape'; readonly input: number }
-    | { readonly kind: 'add' | 'mul' | 'linear'; readonly left: number; readonly right: number });
+    | { readonly kind: 'add' | 'mul' | 'sub' | 'div' | 'sum' | 'linear'; readonly left: number; readonly right: number });
 
 /** TFLite Model/SubGraph/Tensor/Operator/Buffer fields follow schema.fbs.
- * ADD=0, FULLY_CONNECTED=9, MUL=18, RELU=19, RESHAPE=22, SOFTMAX=25; options=11/8/21/17/9. */
+ * Includes internal SUM/SUB/DIV/RSQRT/TANH nodes for normalization and GELU. */
 export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array {
     const b = new Builder(1024);
     const vector = (items: readonly number[], offsets = false): number => {
@@ -34,8 +34,8 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
     // original [K,N] data is unnecessary unless another operation uses it.
     const consumed = new Set<number>([output]);
     nodes.forEach(node => {
-        if (node.kind === 'relu' || node.kind === 'softmax' || node.kind === 'reshape') consumed.add(node.input);
-        else if (node.kind === 'add' || node.kind === 'mul' || node.kind === 'linear') {
+        if ('input' in node) consumed.add(node.input);
+        else if ('left' in node) {
             consumed.add(node.left); consumed.add(node.kind === 'linear' ? weights.get(node.right)! : node.right);
         }
     });
@@ -48,7 +48,7 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
             else {
             const bytes = new Uint8Array(node.values.length * 4);
             const view = new DataView(bytes.buffer);
-            node.values.forEach((value, i) => view.setFloat32(i * 4, value, true));
+            node.values.forEach((value, i) => node.dtype === 'i32' ? view.setInt32(i * 4, value, true) : view.setFloat32(i * 4, value, true));
             const data = b.createByteVector(bytes);
             b.startObject(3); b.addFieldOffset(0, data, 0);
             buffer = buffers.length; buffers.push(b.endObject());
@@ -57,14 +57,16 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
         }
         const label = b.createString(`t${index}`), dimensions = vector(node.shape);
         b.startObject(10); b.addFieldOffset(0, dimensions, 0);
+        if (node.kind === 'constant' && node.dtype === 'i32') b.addFieldInt8(1, 2, 0);
         b.addFieldInt32(2, buffer, 0); b.addFieldOffset(3, label, 0);
         return b.endObject(); // FLOAT32 is the schema default.
     });
-    const builtins = [0, 18, 19, 9, 22, 25];
+    const kinds = ['add', 'mul', 'relu', 'linear', 'reshape', 'softmax', 'sub', 'sum', 'rsqrt', 'tanh', 'div'];
+    const builtins = [0, 18, 19, 9, 22, 25, 41, 74, 76, 28, 42];
     const operators: number[] = [];
     nodes.forEach((node, index) => {
         if (node.kind === 'input' || node.kind === 'constant') return;
-        const inputs = vector(node.kind === 'relu' || node.kind === 'softmax' || node.kind === 'reshape' ? [node.input] : node.kind === 'linear' ? [node.left, weights.get(node.right)!, -1] : [node.left, node.right]);
+        const inputs = vector('input' in node ? [node.input] : node.kind === 'linear' ? [node.left, weights.get(node.right)!, -1] : [node.left, node.right]);
         const outputs = vector([index]);
         let options = 0;
         if (node.kind === 'softmax') {
@@ -72,12 +74,14 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
         } else if (node.kind === 'reshape') {
             const dimensions = vector(node.shape);
             b.startObject(1); b.addFieldOffset(0, dimensions, 0); options = b.endObject();
-        } else if (node.kind !== 'relu') { b.startObject(node.kind === 'linear' ? 5 : node.kind === 'add' ? 2 : 1); options = b.endObject(); }
+        } else if (node.kind === 'sum') {
+            b.startObject(1); b.addFieldInt8(0, 1, 0); options = b.endObject();
+        } else if (['add', 'mul', 'sub', 'div', 'linear'].includes(node.kind)) { b.startObject(node.kind === 'linear' ? 5 : node.kind === 'add' ? 2 : 1); options = b.endObject(); }
         b.startObject(13);
-        b.addFieldInt32(0, node.kind === 'add' ? 0 : node.kind === 'mul' ? 1 : node.kind === 'linear' ? 3 : node.kind === 'reshape' ? 4 : node.kind === 'softmax' ? 5 : 2, 0);
+        b.addFieldInt32(0, kinds.indexOf(node.kind), 0);
         b.addFieldOffset(1, inputs, 0); b.addFieldOffset(2, outputs, 0);
         if (options) {
-            b.addFieldInt8(3, node.kind === 'add' ? 11 : node.kind === 'linear' ? 8 : node.kind === 'reshape' ? 17 : node.kind === 'softmax' ? 9 : 21, 0);
+            b.addFieldInt8(3, node.kind === 'div' ? 29 : node.kind === 'sum' ? 27 : node.kind === 'sub' ? 28 : node.kind === 'add' ? 11 : node.kind === 'linear' ? 8 : node.kind === 'reshape' ? 17 : node.kind === 'softmax' ? 9 : 21, 0);
             b.addFieldOffset(4, options, 0);
         }
         operators.push(b.endObject());

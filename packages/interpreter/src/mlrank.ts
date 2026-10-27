@@ -121,6 +121,53 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             if (index === undefined) return fail('Unknown RAM tensor: ' + expression.name, current);
             return index;
         }
+        // Normalization is centered before squaring, avoiding E[X²] - E[X]² cancellation.
+        const append = (node: RamNode): number => {
+            if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
+            nodes.push(node); return nodes.length - 1;
+        };
+        const activation = isApplicationExpression(expression) && expression.arguments.length === 1
+            && isNameExpression(expression.arguments[0]) ? expression.arguments[0].name : undefined;
+        if (activation === 'gelu_new' || activation === 'layernorm') {
+            if (precision !== 'f32') return fail('RAM normalization and GELU require .f32', current);
+            if (!isApplicationExpression(expression)) throw new Error('unreachable');
+            let operand = expression.head, epsilon = 1e-5;
+            if (activation === 'layernorm' && isApplicationExpression(operand) && operand.arguments.length === 1) {
+                const eps = nodes[lower(operand.arguments[0])];
+                if (eps.kind !== 'constant' || eps.values.length !== 1 || !(eps.values[0] > 0))
+                    return fail('RAM layernorm epsilon must be a positive baked one-element tensor', current);
+                epsilon = eps.values[0]; operand = operand.head;
+            }
+            const input = lower(operand), logicalShape = nodes[input].shape;
+            const shape = [...Array(Math.max(0, 3 - logicalShape.length)).fill(1), ...logicalShape];
+            const x = logicalShape.length < 3 ? append({kind:'reshape', input, shape}) : input;
+            const constant = (value: number) => append({kind:'constant', shape:shape.map(()=>1), values:[Math.fround(value)]});
+            const binary = (kind: 'add' | 'sub' | 'mul' | 'div', left: number, right: number, out = shape) =>
+                append({kind,left,right,shape:out});
+            let result: number;
+            if (activation === 'gelu_new') {
+                const cube = binary('mul', binary('mul', x, x), x);
+                const inner = binary('mul', binary('add', x, binary('mul', cube, constant(0.044715))), constant(Math.sqrt(2 / Math.PI)));
+                const tanh = append({kind:'tanh',input:inner,shape});
+                result = binary('mul', binary('mul', x, constant(0.5)), binary('add', tanh, constant(1)));
+            } else {
+                const reduced = [...shape.slice(0,-1),1];
+                const axis = append({kind:'constant',dtype:'i32',shape:[1],values:[shape.length-1]});
+                // The MEAN pattern loses variance in the full graph on Metal.
+                // SUM / width keeps the centered variance accurate on all tested GPUs.
+                const width = constant(shape.at(-1)!);
+                const mean = (left: number) => binary('div',
+                    append({kind:'sum',left,right:axis,shape:reduced}), width, reduced);
+                // Recenter the small residual to remove reduction rounding at large offsets.
+                // In exact arithmetic its mean is zero.
+                const residual = binary('sub',x,mean(x));
+                const centered = binary('sub',residual,mean(residual));
+                const variance = mean(binary('mul',centered,centered));
+                const inverse = append({kind:'rsqrt',input:binary('add',variance,constant(epsilon),reduced),shape:reduced});
+                result = binary('mul',centered,inverse);
+            }
+            return logicalShape.length < 3 ? append({kind:'reshape',input:result,shape:logicalShape}) : result;
+        }
         let node: RamNode;
         if (isApplicationExpression(expression) && expression.arguments.length === 1
             && isNameExpression(expression.arguments[0]) && ['relu', 'softmax'].includes(expression.arguments[0].name)) {
@@ -183,7 +230,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                 nodes.push(node);
                 node = { kind: 'reshape', input: nodes.length - 1, shape };
             }
-        } else return fail('RAM supports tensor names, +, *, relu, softmax, and linear', current);
+        } else return fail('RAM supports tensor names, +, *, relu, softmax, gelu_new, layernorm, and linear', current);
         if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
         nodes.push(node); return nodes.length - 1;
     };

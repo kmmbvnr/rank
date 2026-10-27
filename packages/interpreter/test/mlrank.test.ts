@@ -151,3 +151,34 @@ describe('RAM ReLU MVP', () => {
         expect(() => ramRound(65505, 'f16')).toThrow('outside .f16');
     });
 });
+
+describe('RAM normalization and GELU', () => {
+    it('preserves every supported input rank and permits affine LayerNorm', () => {
+        for (const shape of ['7', '2 7', '2 3 7', '2 2 3 7']) {
+            for (const op of ['layernorm', 'gelu_new']) {
+                const graph = compileRam(`use ml\noption X .f32 shape ${shape}\nreturn X ${op}`, 'norm.ram').graph;
+                expect(graph.outputShape).toEqual(shape.split(' ').map(Number));
+            }
+            const source = `use ml\noption X .f32 shape ${shape}\n`
+                + 'option E .f32 shape 1 = array 0.01\n'
+                + 'option Scale .f32 shape 7 = array shape 7 fill 0.5\n'
+                + 'option Bias .f32 shape 7 = array shape 7 fill -0.1\n'
+                + 'return (X E layernorm) * Scale + Bias';
+            expect(compileRam(source, 'norm.ram').graph.outputShape).toEqual(shape.split(' ').map(Number));
+        }
+    });
+    it('validates epsilon, precision, and expanded graph limits', () => {
+        const source = 'use ml\noption X .f32 shape 3\noption E .f32 shape 1 = array 0.01\nreturn X E layernorm';
+        for (const invalid of [source.replace('0.01', '0.0'), source.replace('0.01', '-0.01'),
+            source.replace('X E layernorm', 'X X layernorm'),
+            source.replace('shape 1 = array 0.01', 'shape 2 = array 0.01 0.02')])
+            expect(() => compileRam(invalid, 'norm.ram')).toThrow('positive baked one-element');
+        for (const op of ['layernorm', 'gelu_new']) {
+            expect(() => compileRam(`use ml\noption X .f16 shape 3\nreturn X ${op}`, 'norm.ram')).toThrow('require .f32');
+            expect(() => compileRam('use ml\noption X .f32 shape 3\n'
+                + `X = X ${op}\n`.repeat(30) + 'return X', 'norm.ram')).toThrow('128 tensors');
+        }
+        expect(compileRam(source, 'norm.ram').graph.model)
+            .not.toEqual(compileRam(source.replace('0.01', '0.02'), 'norm.ram').graph.model);
+    });
+});
