@@ -1,4 +1,5 @@
 import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.js';
+import { lowerRamStructure } from './ram-structure.js';
 import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
     isUseStatement, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
@@ -12,6 +13,7 @@ import { isRankArray, type NativeFunction } from './value.js';
 export interface RamGraph {
     readonly precision: 'f16' | 'f32';
     readonly shape: readonly number[];
+    readonly inputs: readonly { name: string; shape: readonly number[] }[];
     readonly nodes: readonly RamNode[];
     readonly outputShape: readonly number[];
     readonly output: number;
@@ -59,6 +61,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             fail('RAM tensor requires 1–4 positive dimensions and at most 1048576 elements', statement);
         return count;
     };
+    const inputs = [{ name: input.name, shape }];
     const names = new Map<string, number>([[input.name, 0]]);
     const scalar = (expression: Expression): number => {
         if (isParenthesizedExpression(expression)) return scalar(expression.value);
@@ -168,6 +171,9 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             }
             return logicalShape.length < 3 ? append({kind:'reshape',input:result,shape:logicalShape}) : result;
         }
+        const structural = lowerRamStructure(expression, nodes, lower, append,
+            message => fail(message, current), dimensions => validShape(dimensions, current), precision!);
+        if (structural !== undefined) return structural;
         let node: RamNode;
         if (isApplicationExpression(expression) && expression.arguments.length === 1
             && isNameExpression(expression.arguments[0]) && ['relu', 'softmax'].includes(expression.arguments[0].name)) {
@@ -191,11 +197,17 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             if (precision !== 'f32') return fail('RAM linear currently requires .f32', current);
             const left = lower(expression.head.head), right = lower(expression.head.arguments[0]);
             const x = nodes[left], w = nodes[right];
-            if (x.shape.length !== 2 || w.shape.length !== 2 || x.shape[1] !== w.shape[0])
-                return fail('RAM linear expects X[M,K] and W[K,N]', current);
+            if (x.shape.length < 2 || w.shape.length !== 2 || x.shape.at(-1) !== w.shape[0])
+                return fail('RAM linear expects X[...,M,K] and W[K,N]', current);
             if (w.kind !== 'constant') return fail('RAM linear requires baked weights', current);
-            const shape = [x.shape[0], w.shape[1]];
+            const shape = [...x.shape.slice(0, -1), w.shape[1]];
             validShape(shape, current);
+            if (x.shape.length > 2) {
+                const rows = x.shape.slice(0, -1).reduce((a,b) => a*b, 1);
+                const flat = append({kind:'reshape',input:left,shape:[rows,x.shape.at(-1)!]});
+                const projected = append({kind:'linear',left:flat,right,shape:[rows,w.shape[1]]});
+                return append({kind:'reshape',input:projected,shape});
+            }
             node = { kind: 'linear', left, right, shape };
         } else if (isBinaryExpression(expression) && (expression.operator === '+' || expression.operator === '*')) {
             if (precision !== 'f32') return fail('RAM arithmetic currently requires .f32', current);
@@ -237,7 +249,17 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     for (const statement of body.slice(1, -1)) {
         current = statement;
         if (isOptionStatement(statement)) {
-            declareWeight(statement);
+            if (statement.defaultValue) declareWeight(statement);
+            else {
+                if (precision !== 'f32' || statement.precision?.name !== 'f32')
+                    fail('Multiple RAM inputs require .f32', statement);
+                if (names.has(statement.name)) fail('Duplicate RAM option: ' + statement.name, statement);
+                const shape = statement.dimensions.map(d => Number(d.value));
+                validShape(shape, statement);
+                inputs.push({name:statement.name,shape});
+                names.set(statement.name, nodes.length); nodes.push({kind:'input',shape});
+                if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', statement);
+            }
         } else if (isAssignmentStatement(statement) && statement.operator === '='
             && !statement.deferred && !statement.accumulate) {
             names.set(statement.name, lower(statement.value));
@@ -249,23 +271,28 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     if (nodes[result].kind === 'input' || nodes[result].kind === 'constant') fail('RAM output must contain a GPU operation', output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
-    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, nodes, outputShape: nodes[result].shape, output: result, model: ramModel(nodes, result) };
-    // Ordinary import discovery sees a standard one-argument function. Its runtime
+    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, inputs, nodes, outputShape: nodes[result].shape, output: result, model: ramModel(nodes, result) };
+    // Ordinary import discovery sees a standard function with the declared inputs. Its runtime
     // implementation is installed by useFile, rather than evaluating this stub.
-    const program = parse(`fun ${input.name} ${name}\nreturn ${input.name}\nend\n`, id);
+    const program = parse(`fun ${inputs[0].name} ${name} ${inputs.slice(1).map(input => input.name).join(' ')}\nreturn ${input.name}\nend\n`, id);
     return { name, graph, program, source, weights };
 }
 
 export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamModule): NativeFunction {
-    return native(module.name, 1, ([value]) => {
+    return native(module.name, module.graph.inputs.length, (values) => {
         if (reload) module = reload();
-        if (!isRankArray(value) || value.shape.length !== module.graph.shape.length
-            || value.shape.some((n, i) => n !== module.graph.shape[i]))
-            throw new RankError(`${module.name} expects shape ${module.graph.shape.join(' ')}`, 'DimensionMismatch');
-        const input = value.items.map(cell => {
-            if (typeof cell !== 'number' || !Number.isFinite(cell))
-                throw new RankError('RAM input requires finite real values', 'TypeError');
-            return ramRound(cell, module.graph.precision);
+        if (values.length !== module.graph.inputs.length)
+            throw new RankError('RAM input count changed; import the module again', 'DimensionMismatch');
+        const input = module.graph.inputs.flatMap((spec, i) => {
+            const value = values[i];
+            if (!isRankArray(value) || value.shape.length !== spec.shape.length
+                || value.shape.some((n, j) => n !== spec.shape[j]))
+                throw new RankError(`${module.name} expects shape ${spec.shape.join(' ')} for ${spec.name}`, 'DimensionMismatch');
+            return value.items.map(cell => {
+                if (typeof cell !== 'number' || !Number.isFinite(cell))
+                    throw new RankError('RAM input requires finite real values', 'TypeError');
+                return ramRound(cell, module.graph.precision);
+            });
         });
         if (!gpu) throw new RankError('RAM GPU runtime is unavailable on this host', 'GpuUnavailable');
         const output = gpu(module.graph, input);

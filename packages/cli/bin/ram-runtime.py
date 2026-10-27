@@ -55,9 +55,13 @@ def run(request):
                 "prepareMs": (time.perf_counter() - started) * 1000}
     prepared = time.perf_counter()
     data = np.asarray(request["input"], dtype=np.float32)
-    if data.size != int(np.prod(inputs[0].get_tensor_details()["shape"])) or not np.isfinite(data).all():
+    sizes = [int(np.prod(buffer.get_tensor_details()["shape"])) for buffer in inputs]
+    if data.ndim != 1 or data.size != sum(sizes) or not np.isfinite(data).all():
         raise ValueError("Invalid RAM input shape or values")
-    inputs[0].write(data)
+    offset = 0
+    for buffer, size in zip(inputs, sizes):
+        buffer.write(data[offset:offset + size])
+        offset += size
     written = time.perf_counter()
     model.run_by_index(0, inputs, outputs)
     dispatched = time.perf_counter()

@@ -6,6 +6,10 @@ export type RamNode = { readonly shape: readonly number[] } & ({ readonly kind: 
     | { readonly kind: 'relu' | 'tanh' | 'rsqrt'; readonly input: number }
     | { readonly kind: 'softmax'; readonly input: number }
     | { readonly kind: 'reshape'; readonly input: number }
+    | { readonly kind: 'transpose'; readonly input: number; readonly permutation: number }
+    | { readonly kind: 'slice'; readonly input: number; readonly begin: number; readonly size: number }
+    | { readonly kind: 'concat'; readonly operands: readonly number[]; readonly axis: number }
+    | { readonly kind: 'matmul'; readonly left: number; readonly right: number }
     | { readonly kind: 'add' | 'mul' | 'sub' | 'div' | 'sum' | 'linear'; readonly left: number; readonly right: number });
 
 /** TFLite Model/SubGraph/Tensor/Operator/Buffer fields follow schema.fbs.
@@ -35,7 +39,10 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
     const consumed = new Set<number>([output]);
     nodes.forEach(node => {
         if ('input' in node) consumed.add(node.input);
-        else if ('left' in node) {
+        if (node.kind === 'transpose') consumed.add(node.permutation);
+        if (node.kind === 'slice') { consumed.add(node.begin); consumed.add(node.size); }
+        if (node.kind === 'concat') node.operands.forEach(id => consumed.add(id));
+        if ('left' in node) {
             consumed.add(node.left); consumed.add(node.kind === 'linear' ? weights.get(node.right)! : node.right);
         }
     });
@@ -61,15 +68,19 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
         b.addFieldInt32(2, buffer, 0); b.addFieldOffset(3, label, 0);
         return b.endObject(); // FLOAT32 is the schema default.
     });
-    const kinds = ['add', 'mul', 'relu', 'linear', 'reshape', 'softmax', 'sub', 'sum', 'rsqrt', 'tanh', 'div'];
-    const builtins = [0, 18, 19, 9, 22, 25, 41, 74, 76, 28, 42];
+    const kinds = ['add', 'mul', 'relu', 'linear', 'reshape', 'softmax', 'sub', 'sum', 'rsqrt', 'tanh', 'div', 'transpose', 'slice', 'concat', 'matmul'];
+    const builtins = [0, 18, 19, 9, 22, 25, 41, 74, 76, 28, 42, 39, 65, 2, 126];
     const operators: number[] = [];
     nodes.forEach((node, index) => {
         if (node.kind === 'input' || node.kind === 'constant') return;
-        const inputs = vector('input' in node ? [node.input] : node.kind === 'linear' ? [node.left, weights.get(node.right)!, -1] : [node.left, node.right]);
+        const inputs = vector(node.kind === 'concat' ? node.operands : node.kind === 'transpose' ? [node.input, node.permutation] : node.kind === 'slice' ? [node.input, node.begin, node.size] : 'input' in node ? [node.input] : node.kind === 'linear' ? [node.left, weights.get(node.right)!, -1] : [node.left, node.right]);
         const outputs = vector([index]);
         let options = 0;
-        if (node.kind === 'softmax') {
+        if (node.kind === 'concat') {
+            b.startObject(2); b.addFieldInt32(0, node.axis, 0); options = b.endObject();
+        } else if (node.kind === 'transpose' || node.kind === 'slice' || node.kind === 'matmul') {
+            b.startObject(node.kind === 'matmul' ? 3 : 0); options = b.endObject();
+        } else if (node.kind === 'softmax') {
             b.startObject(1); b.addFieldFloat32(0, 1, 0); options = b.endObject();
         } else if (node.kind === 'reshape') {
             const dimensions = vector(node.shape);
@@ -81,13 +92,13 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
         b.addFieldInt32(0, kinds.indexOf(node.kind), 0);
         b.addFieldOffset(1, inputs, 0); b.addFieldOffset(2, outputs, 0);
         if (options) {
-            b.addFieldInt8(3, node.kind === 'div' ? 29 : node.kind === 'sum' ? 27 : node.kind === 'sub' ? 28 : node.kind === 'add' ? 11 : node.kind === 'linear' ? 8 : node.kind === 'reshape' ? 17 : node.kind === 'softmax' ? 9 : 21, 0);
+            b.addFieldInt8(3, node.kind === 'transpose' ? 26 : node.kind === 'slice' ? 48 : node.kind === 'concat' ? 10 : node.kind === 'matmul' ? 101 : node.kind === 'div' ? 29 : node.kind === 'sum' ? 27 : node.kind === 'sub' ? 28 : node.kind === 'add' ? 11 : node.kind === 'linear' ? 8 : node.kind === 'reshape' ? 17 : node.kind === 'softmax' ? 9 : 21, 0);
             b.addFieldOffset(4, options, 0);
         }
         operators.push(b.endObject());
     });
     const tensorVector = vector(tensors, true), ops = vector(operators, true);
-    const inputs = vector([0]), outputs = vector([output]);
+    const inputs = vector(nodes.flatMap((node, i) => node.kind === 'input' ? [i] : [])), outputs = vector([output]);
     b.startObject(6); b.addFieldOffset(0, tensorVector, 0); b.addFieldOffset(1, inputs, 0);
     b.addFieldOffset(2, outputs, 0); b.addFieldOffset(3, ops, 0);
     const subgraph = b.endObject();

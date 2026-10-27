@@ -2,14 +2,14 @@
 
 ## Implemented Hello World subset
 
-The prototype supports one fixed-shape real tensor input, ReLU, and broadcast
+The prototype supports fixed-shape real tensor inputs, ReLU, and broadcast
 `.f32` expressions using `+`, `*`, `softmax`, `linear`, `layernorm`, and `gelu_new` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
 See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
 [the linear example](../../demos/mlrank/linear.ra).
 Baked constants accept real-valued `array shape ... fill` expressions or
 array literals with explicit shapes (or one-dimensional literals), or binary `.rwt` attachments (see below).
-`X W linear` accepts `X[M,K]` and baked `W[K,N]`, producing `[M,N]`.
+`X W linear` accepts `X[...,M,K]` and baked `W[K,N]`, producing `[...,M,N]`.
 Each tensor has its own statically checked shape. `+` and `*` align trailing axes;
 matching dimensions or dimensions of size 1 broadcast, as in ordinary Rank arithmetic.
 For example, `[M,N] + [N]` adds a bias to each row. Explicit `rank L R`, scalar
@@ -89,7 +89,7 @@ Arithmetic currently requires `.f32`; `.f16` supports ReLU only. The arithmetic
 check compares against ordinary Rank execution with `atol=1e-5, rtol=1e-6`,
 allowing FP32 intermediate rounding and fusion. This is a workload acceptance
 tolerance, not a universal error bound for arbitrarily long expressions.
-The linear subset accepts rank-2 matrices, including dimensions not divisible
+The linear subset accepts rank-2–4 inputs and rank-2 weights, including dimensions not divisible
 by 16 or 32. It emits LiteRT `FULLY_CONNECTED` with weights transposed once
 to `[N,K]` during compilation; no host multiplication or explicit padding is used.
 This is GPU execution, not a claim of AMX or Hexagon NPU execution.
@@ -708,3 +708,45 @@ flowchart TD
    Even if a user writes `B' = A window W stride S padding P` followed by `B max axis 2 3` (instead of `maxpool2d`), the `mlRank` IR recognizer fuses the lazy window view and reduction into a native `max_pool2d` operator without materializing the 4D windowed tensor.
 4. **Layout Adaptation (`NHWC` vs `NCHW`):**
    Apple Neural Engine (CoreML) executes convolutions in `NCHW` (channels-first), whereas LiteRT GPU/NPU delegates require `NHWC` (channels-last). The `mlRank` compiler can insert layout transpositions at graph boundaries or fold weight transpositions at compile time.
+
+## Structural operations and multiple inputs (stage 10)
+
+FP32 RAM modules support these static forms using Rank syntax:
+
+- `X reshape 2 3`: positive literal dimensions, unchanged element count.
+- `X transpose` reverses axes; `X transpose axis 0 2 1` gives a full permutation.
+- `X # (1 till 3)` selects columns 1 and 2; `to` includes its upper endpoint.
+  Ranges must be nonempty and in bounds. `#` and omitted trailing selectors keep whole axes.
+- `concat X Y axis 1`: at least two tensors, matching other dimensions; default axis 0.
+- `X matmul Y`: two matrices. `X matmul Y rank 2 2` also broadcasts leading batch dimensions.
+- `X W linear`: baked 2-D weights, with leading input dimensions preserved.
+
+Negative indices/axes, inferred reshape dimensions, gathers, scalar selectors,
+empty tensors and dynamic structural arguments are outside this subset.
+General `rank` modifiers remain unsupported; `matmul rank 2 2` is the specific matrix-cell form.
+The tensor size and 128-node graph limits still apply, including internal expansion.
+
+Declare additional runtime inputs with `option` without a default:
+
+```rank
+use ml
+option X .f32 shape 2 3
+option Y .f32 shape 3 2
+return X matmul Y
+```
+
+In `product.ram`, this exports the ordinary Rank function `X product Y`.
+Inputs follow declaration order and are checked separately before dispatch.
+All multiple-input modules require FP32. Reloading changed source still checks
+new shapes; changing the function arity requires importing again.
+
+The existing JSON body contains flattened inputs in declaration order. Input
+sizes accompany model loading, not every invocation. Each native input gets its
+own buffer; model reuse and stale-handle recovery follow the existing lifecycle.
+No input data is carried in a URL.
+
+Batched linear uses reshape → FULLY_CONNECTED → reshape. Matmul uses
+BATCH_MATMUL. On Metal, implicit expansion of crossed singleton batch axes gave
+incorrect values for `[2,1,3,5] × [1,3,5,7]`. The compiler explicitly expands batch
+axes with GPU concat nodes before matmul. This is a correctness workaround;
+copy elimination and performance improvements are not claimed.

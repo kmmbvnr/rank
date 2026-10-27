@@ -23,6 +23,7 @@ final class RamGpu {
     private String key;
     private CompiledModel model;
     private List<TensorBuffer> inputs;
+    private int[] inputSizes;
     private List<TensorBuffer> outputs;
 
     RamGpu(Context context) { this.context = context.getApplicationContext(); }
@@ -81,6 +82,16 @@ final class RamGpu {
                     null, null, null, null, null, null, null));
                 model = CompiledModel.create(file.getAbsolutePath(), options);
                 inputs = model.createInputBuffers(); outputs = model.createOutputBuffers();
+                JSONArray sizes = request.optJSONArray("inputSizes");
+                if (sizes != null) {
+                    if (sizes.length() != inputs.size()) throw new IllegalArgumentException("Wrong RAM input count");
+                    inputSizes = new int[sizes.length()];
+                    for (int i = 0; i < inputSizes.length; i++) {
+                        inputSizes[i] = sizes.getInt(i);
+                        if (inputSizes[i] < 1 || inputSizes[i] > 1048576)
+                            throw new IllegalArgumentException("Invalid RAM input size");
+                    }
+                } else if (inputs.size() != 1) throw new IllegalArgumentException("Multiple RAM inputs require sizes");
                 key = java.util.UUID.randomUUID().toString();
             } catch (Exception error) { closeModel(); throw error; } finally { file.delete(); }
         }
@@ -88,12 +99,19 @@ final class RamGpu {
             .put("gpuOnlyRequested", true).put("prepareMs", (System.nanoTime() - started) / 1e6);
         long prepared = System.nanoTime();
         JSONArray data = request.getJSONArray("input");
-        float[] input = new float[data.length()];
-        for (int i = 0; i < input.length; i++) {
-            input[i] = (float) data.getDouble(i);
-            if (!Float.isFinite(input[i])) throw new IllegalArgumentException("RAM input requires finite f32 values");
+        int[] sizes = inputSizes == null ? new int[] {data.length()} : inputSizes;
+        long total = 0;
+        for (int size : sizes) total += size;
+        if (total != data.length()) throw new IllegalArgumentException("Wrong RAM input length");
+        int offset = 0;
+        for (int index = 0; index < sizes.length; index++) {
+            float[] input = new float[sizes[index]];
+            for (int i = 0; i < input.length; i++) {
+                input[i] = (float) data.getDouble(offset++);
+                if (!Float.isFinite(input[i])) throw new IllegalArgumentException("RAM input requires finite f32 values");
+            }
+            inputs.get(index).writeFloat(input);
         }
-        inputs.get(0).writeFloat(input);
         long written = System.nanoTime();
         model.run(inputs, outputs);
         long dispatched = System.nanoTime();
@@ -121,7 +139,7 @@ final class RamGpu {
         if (inputs != null) for (TensorBuffer buffer : inputs) buffer.close();
         if (outputs != null) for (TensorBuffer buffer : outputs) buffer.close();
         if (model != null) model.close();
-        inputs = null; outputs = null; model = null; key = null;
+        inputs = null; inputSizes = null; outputs = null; model = null; key = null;
     }
     void close() { executor.submit(this::closeModel); executor.shutdown(); }
 }

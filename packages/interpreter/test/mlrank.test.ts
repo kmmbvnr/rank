@@ -182,3 +182,41 @@ describe('RAM normalization and GELU', () => {
             .not.toEqual(compileRam(source.replace('0.01', '0.02'), 'norm.ram').graph.model);
     });
 });
+
+describe('RAM structural graphs', () => {
+    const head = 'use ml\noption X .f32 shape 2 3\n';
+    it('preserves Rank structural shapes and rejects invalid static arguments', () => {
+        for (const [body, shape] of [
+            ['X reshape 3 2', [3,2]], ['X transpose', [3,2]],
+            ['X transpose axis 1 0', [3,2]], ['X # (1 till 3)', [2,2]],
+            ['concat X X axis 1', [2,6]],
+        ] as const) expect(compileRam(head+'return '+body,'s.ram').graph.outputShape).toEqual(shape);
+        for (const body of ['X reshape 7','X reshape 0 3','X transpose axis 1 1',
+            'X transpose axis 2 0','X # (1 till 4)','X # (1 till 1)', 'X # 1',
+            'concat X (X transpose) axis 0','concat X X axis 2'])
+            expect(()=>compileRam(head+'return '+body,'s.ram')).toThrow();
+    });
+    it('passes multiple validated arguments in declaration order and reloads changed shapes', () => {
+        let source = head+'option W .f32 shape 1 = array 1.0\noption Y .f32 shape 3 2\nreturn X matmul Y';
+        let calls=0;
+        const r=new Interpreter(()=>{}, {loadModule:name=>({id:name,source}), ramGpu:(g,x)=>{
+            calls++; expect(g.inputs.map(i=>i.name)).toEqual(['X','Y']);
+            expect(x).toEqual([1,2,3,4,5,6,7,8,9,10,11,12]); return [58,64,139,154];
+        }});
+        r.execute('use "s.ram"');
+        r.variables.set('X',{kind:'array',shape:[2,3],items:[1,2,3,4,5,6]});
+        r.variables.set('Y',{kind:'array',shape:[3,2],items:[7,8,9,10,11,12]});
+        expect(r.execute('X s Y')).toMatchObject({shape:[2,2],items:[58,64,139,154]});
+        expect(()=>r.execute('Y s X')).toThrow('expects shape');
+        source=source.replace('shape 3 2','shape 3 1');
+        expect(()=>r.execute('X s Y')).toThrow('expects shape 3 1 for Y');
+        expect(calls).toBe(1);
+    });
+    it('checks matrix contraction, batch broadcasting and batched linear shapes', () => {
+        const source='use ml\noption X .f32 shape 2 1 3 5\noption Y .f32 shape 1 4 5 7\nreturn X matmul Y rank 2 2';
+        expect(compileRam(source,'s.ram').graph.outputShape).toEqual([2,4,3,7]);
+        for(const invalid of [source.replace('1 4 5 7','1 4 6 7'),source.replace('1 4 5 7','3 4 5 7'),source.replace(' rank 2 2','')])
+            expect(()=>compileRam(invalid,'s.ram')).toThrow();
+        expect(compileRam('use ml\noption X .f32 shape 2 3 5\noption W .f32 shape 5 7 = array shape 5 7 fill 0.5\nreturn X W linear','s.ram').graph.outputShape).toEqual([2,3,7]);
+    });
+});
