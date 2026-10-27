@@ -1,0 +1,29 @@
+use numbers
+use io
+use cli
+option Limit integer = 40000000
+option Len integer = 25
+Answer = Limit totientchain_sum
+Answer print
+
+fun Bound totientchain_sum
+  Total = 0
+  Phi = array shape Bound fill 0
+  for N in 1 till Bound
+    Phi N = N
+  end
+  for N in 2 till Bound
+    Isprime = Phi N equal N
+    if Isprime
+      for K in N till Bound by N
+        Phi K -= Phi K // N
+      end
+    end
+    Steps = 1 + Phi (Phi N)
+    Phi N = Steps
+    if Isprime and Steps equal Len
+      Total += N
+    end
+  end
+  return Total
+end

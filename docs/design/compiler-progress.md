@@ -2769,3 +2769,31 @@ with four zero-padded array shifts. Even boards retain quarter symmetry; odd
 boards use all starting fleas to include their central rows and columns. A
 single-square board stays occupied. See the
 [measurements and verification](../../benchmarks/euler213-investigation.md).
+
+## Fresh-array function prefixes (Euler 214, #447)
+
+A numeric function prefix with at least two top-level loops can now use one
+Number region, including its fresh local array allocation. The terminal return
+retains ordinary function dispatch, contracts and tail calls. This reuses loop
+lowering, guarded native operations, binding checks, private storage, exact
+replay on overflow and error/cancellation publication. Only fresh-array write
+regions qualify; external destinations, local aliases, deferred bindings,
+early returns and unsupported operations retain ordinary execution. No copy-cost
+or precision threshold changed.
+
+Euler 214 uses an in-place totient sieve: processed cells become chain lengths,
+so no residual-factor or separate length table is needed. The helper has two
+ordinary loops and no artificial wrapper. Prime 2 and empty exclusive ranges
+are covered. See [measurements and limits](../../benchmarks/euler214-investigation.md).
+
+
+## Scalar writes with interpreted RHS (Euler 214, #447)
+
+The reference single-cell writer also handles a right-hand expression that needs
+ordinary suspendable evaluation, including a function call or another array
+read. Destination bounds are checked before the RHS; its result is consumed
+once, with general shape validation for object values. Scalar validation,
+copy-on-write and exact integer stores remain unchanged. This prepares syntax
+without generating code and applies with compilation disabled. The controlled
+million-element Euler 214 reference run is 27.8% faster, with a higher measured
+RSS peak; see the [time and memory results](../../benchmarks/euler214-investigation.md).

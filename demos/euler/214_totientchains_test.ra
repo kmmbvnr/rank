@@ -1,9 +1,8 @@
 use testing
 
-rem The default input takes minutes.
+rem Small independent chain sums.
 test "short chains"
   use "214_totientchains"
-  Block = 5000
   Limit = 10
   Len = 3
   run
@@ -23,4 +22,21 @@ test "short chains"
   run
 
   Answer equal 162726509
+end
+
+test "two is prime and the upper bound is exclusive"
+  use "214_totientchains"
+  Limit = 3
+  Len = 2
+  run
+
+  Answer equal 2
+  Limit = 2
+  run
+
+  Answer equal 0
+  Limit = 0
+  run
+
+  Answer equal 0
 end

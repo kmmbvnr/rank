@@ -642,16 +642,21 @@ end`);
         } finally { runtime.dispose(); }
     });
 
-    it('retains flea transition lookups and state while deferring the empty-square product', () => {
+    it('retains flea degrees and state while deferring the empty-square product', () => {
         const source = readFileSync(new URL('../../../demos/euler/213_fleacircus.ra', import.meta.url), 'utf8');
-        const runtime = new Interpreter(() => {}, { compilation, args: ['--n=4', '--rings=2'] });
+        const runtime = new Interpreter(() => {}, { compilation });
         try {
-            runtime.execute(source);
+            // N=4 takes the outer branch. Lift that branch for this binding
+            // audit: its local names are intentionally absent from globals.
+            const program = parse(source);
+            runtime.executeProgram({ ...program, statements: program.statements.flatMap(statement =>
+                statement.$type === 'IfStatement' ? statement.thenStatements : [statement]) }, ['--n=4', '--rings=2']);
             expect(runtime.variables.get('Answer')).toBe(5.215096);
-            for (const name of ['Nb', 'Wt', 'Src', 'D', 'M', 'Mv']) {
+            for (const name of ['Deg', 'Inv', 'Wt', 'D']) {
+                expect(runtime.variables.has(name), name).toBe(true);
                 expect(isStoredValue(runtime.variables.get(name)!)).toBe(true);
             }
-            for (const name of ['Hit', 'Wc', 'Dm', 'Pq', 'Mh', 'Mb', 'Empty']) {
+            for (const name of ['Hit', 'Dm', 'Pq', 'Empty']) {
                 expect(isRankPlan(runtime.variables.get(name)!)).toBe(true);
             }
         } finally { runtime.dispose(); }

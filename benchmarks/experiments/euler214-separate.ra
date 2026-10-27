@@ -1,0 +1,25 @@
+use numbers
+use io
+use cli
+option Limit integer = 40000000
+option Len integer = 25
+Total = 0
+  Phi = array shape Limit fill 0
+  for N in 1 till Limit
+    Phi N = N
+  end
+  for N in 2 till Limit
+    Isprime = Phi N equal N
+    if Isprime
+      for K in N till Limit by N
+        Phi K -= Phi K // N
+      end
+    end
+    Steps = 1 + Phi (Phi N)
+    Phi N = Steps
+    if Isprime and Steps equal Len
+      Total += N
+    end
+  end
+Answer = Total
+Answer print

@@ -1,12 +1,12 @@
 import { selectValues } from './value-selection.js';
 import { sumCounterTensor } from './collections.js';
-import type { LoopContinuation } from './integer-loop-plan.js';
+import type { LoopHost, LoopContinuation } from './integer-loop-plan.js';
 import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
-    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression,
+    findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement,
     type ApplicationForm, type Operation, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
@@ -30,7 +30,7 @@ import { checkedArrayDimension } from './eval/expressions.js';
 import { forIteration, iterationAtoms, declareIterationTypes, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
 import { ReturnSignal } from './control-signals.js';
-import { compileIntegerLoop } from './integer-loop.js';
+import { compileIntegerLoop, compileIntegerFunctionPrefix } from './integer-loop.js';
 import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { copyArray } from './modules/sequences.js';
@@ -139,6 +139,19 @@ export class FastPaths {
                 compiled: this.context.options().onFunctionBodyCompiled,
                 executed: this.context.options().onFunctionBodyExecuted,
             }) ?? null : null;
+            if (body && commands.slice(0, -1).filter(isForStatement).length >= 2) {
+                const prefix = this.compileLoop(statement, undefined);
+                if (prefix) {
+                    const ordinary = body;
+                    body = (context, index = 0, previous) => {
+                        if (index === 0 && !context.insideFinally && !context.insideGenerator) {
+                            const result = prefix.run();
+                            if (result) return ordinary(context, commands.length - 1, runExecution(result));
+                        }
+                        return ordinary(context, index, previous);
+                    };
+                }
+            }
             instances.set(arguments_, body);
         }
         return body ?? undefined;
@@ -216,8 +229,10 @@ export class FastPaths {
     }
 
     /** A numeric loop compiled to straight-line code over local registers. */
-    compileLoop(statement: ForStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined {
-        const compiled = this.context.options().integerLoopCompilation !== false ? compileIntegerLoop(statement, {
+    compileLoop(statement: ForStatement | FunctionStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined {
+        const compile = (host: LoopHost) => isFunctionStatement(statement)
+            ? compileIntegerFunctionPrefix(statement, host) : compileIntegerLoop(statement, host, binding);
+        const compiled = this.context.options().integerLoopCompilation !== false ? compile({
             continuation,
             observableEntry: this.context.options().onIntegerLoopExecuted !== undefined,
             canDeferWrites: bindings => this.context.options().numberLoopCompilation !== false && this.context.bindings.canDeferWrites(bindings),
@@ -307,7 +322,7 @@ export class FastPaths {
             locate: (error, command) => this.context.locate(error, command),
             compiled: this.context.options().onIntegerLoopCompiled,
             executed: this.context.options().onIntegerLoopExecuted,
-        }, binding) : undefined;
+        }) : undefined;
         if (this.context.options().integerLoopCompilation === false) recordFallback('loop:disabled');
         return compiled && { run: (...context) => {
             this.context.checkMutation(statement);

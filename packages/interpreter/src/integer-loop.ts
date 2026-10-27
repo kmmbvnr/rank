@@ -10,7 +10,7 @@ import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
     isIfStatement, isForStatement, isParenthesizedExpression, isNameExpression, type ForStatement,
-    type Statement,
+    type Statement, type FunctionStatement, isFunctionStatement,
 } from '@arrrank/language';
 import { isRankArray } from './value.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision } from './array-storage.js';
@@ -62,6 +62,18 @@ export function compileIntegerLoop(statement: ForStatement, host: LoopHost, iter
     } };
 }
 
+/** A function's numeric prefix uses the loop backend without an artificial loop.
+ * Return dispatch remains in the ordinary function body. Failed guards/overflow
+ * leave the frame untouched, so the original statements can execute instead. */
+export function compileIntegerFunctionPrefix(statement: FunctionStatement, host: LoopHost): CompiledLoop | undefined {
+    const plan = lowerTypedLoop(statement, host, undefined, new Set(), new Set(), () => {}, true);
+    // Only fresh-array regions justify joining independent loops. External
+    // stores retain their ordinary per-loop transactions and copy-cost feedback.
+    if (!plan?.arrayDefinitions.size || plan.destinations.size === 0
+        || [...plan.destinations.keys()].some(name => !plan.arrayDefinitions.has(name))) return undefined;
+    return prepareNumberLoop(plan, host);
+}
+
 function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined, textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, numberVariant = false): CompiledLoop | undefined {
     let failure: string | undefined;
     const failed = (reason: string) => { failure ??= reason; };
@@ -95,7 +107,7 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
 }
 
 /** Shared region checks and lowering; runtime preparation consumes only the plan. */
-function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: IterationBinding | undefined,
+function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopHost, iteration: IterationBinding | undefined,
     textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false,
     wideScalars: ReadonlySet<string> = new Set()): IntegerLoopPlan | undefined {
     const state = createLoopState(host, textSources, textArrays, failed, numberMode, wideScalars);
@@ -107,11 +119,13 @@ function lowerTypedLoop(statement: ForStatement, host: LoopHost, iteration: Iter
     if (!statement.statements.length) return reject(statement, 'statement-budget');
     const expressions = createLoopExpressions(state);
     const loopParts = createLoopHeader(state, expressions);
-    const root = loopParts(statement, iteration, -1, host.continuation);
+    const region = isFunctionStatement(statement);
+    const root = region ? { setup: '', header: '{', bindings: '', breakLabel: undefined }
+        : loopParts(statement, iteration, -1, host.continuation);
     if (!root) return undefined;
     const statements = createLoopStatements(state, expressions, loopParts);
     const body: string[] = [];
-    if (!statements(statement.statements, body, !iteration, root.breakLabel)) return undefined;
+    if (!statements(region ? statement.statements.slice(0, -1) : statement.statements, body, !region && !iteration, root.breakLabel)) return undefined;
     // Index aliases can be written under another name. All writes in a region
     // with typed container arguments must preserve their integer cell domain.
     if ([...containers.values()].some(info => info.kind === 'index' && info.integers)

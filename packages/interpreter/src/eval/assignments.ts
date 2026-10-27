@@ -35,7 +35,7 @@ import { writeTable } from '../table-access.js';
 import { sameShape } from '../tensor-index.js';
 import {
     isRankArray, isRankGraph, isRankLabel, isRankRecord, isRankSequence, isRankTable,
-    type RankValue,
+    type RankArray, type RankValue,
 } from '../value.js';
 
 /** What preparing a write needs from evaluation and the binding environment. */
@@ -344,30 +344,36 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
     const directIndex = address && !address.all && !address.sign && !address.spread && address.value
         ? host.compileDirect(address.value) : undefined;
     const directValue = host.compileDirect(statement.value);
-    if (directIndex && directValue && !statement.accumulate) {
+    if (directIndex && !statement.accumulate) {
         // One integer index into a stored vector is the shape dynamic
-        // programming writes in its inner loop. It needs no suspendable
-        // task, no selector list and no tensor selection; anything that
-        // does falls through to the general form with the selector it
-        // already evaluated.
+        // programming writes in its inner loop. Its address needs no
+        // selector list or tensor selection; broader shapes fall through
+        // with their already evaluated selector. The RHS can still suspend.
         const operator = statement.operator === '='
             ? undefined : assignmentOperator(statement.operator);
+        const store = (target: RankArray, selector: bigint, offset: number, value: RankValue): Evaluation<RankValue | undefined> => {
+            if (typeof value === 'object') return general(target, [selector], value);
+            const replacement = materializeValue(operator === undefined ? value
+                : host.operators.evaluateBinary(operator, demandValue(readArrayItem(target, offset)), value));
+            const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
+            const destination = owned(target, offset);
+            writeArrayCell(destination as RankArray, offset, checked);
+            return completed(value);
+        };
         return { stream: (): Evaluation<RankValue | undefined> => {
-            let target = host.resolveVariable(statement.name);
+            const target = host.resolveVariable(statement.name);
             const selector = directIndex();
             if (typeof selector === 'bigint' && typeof target === 'object'
                 && target.kind === 'array' && target.shape.length === 1
                 && target.itemAt === undefined) {
                 const offset = Number(selector);
                 if (offset >= 0 && offset < target.shape[0]) {
-                    const value = directValue();
-                    if (typeof value === 'object') return general(target, [selector], value);
-                    const replacement = materializeValue(operator === undefined ? value
-                        : host.operators.evaluateBinary(operator, demandValue(readArrayItem(target, offset)), value));
-                    const [checked] = host.checkArrayWrite(statement.name, target, [replacement]);
-                    target = owned(target, offset) as typeof target;
-                    writeArrayCell(target, offset, checked);
-                    return completed(value);
+                    // The selector is scalar even when its RHS needs ordinary
+                    // suspendable interpretation (a call or another array read).
+                    if (directValue) return store(target, selector, offset, directValue());
+                    const value = host.evaluate(statement.value);
+                    return 'done' in value ? store(target, selector, offset, value.value)
+                        : flatMapResult(value, result => store(target, selector, offset, result));
                 }
             }
             return general(target, [selector]);

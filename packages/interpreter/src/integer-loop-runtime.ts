@@ -3,7 +3,7 @@ import { integerSquareRoot } from './integer-square-root.js';
 import { materializeValue } from './materialize.js';
 import { textLength } from './text-storage.js';
 import { takeDropValue } from './sequence.js';
-import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
+import { expressionFacts, findOperation, isForStatement, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
 import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop, type LoopWorkFeedback } from './integer-loop-plan.js';
 import { ResourceMap } from './resource-summary.js';
 import { prepareIntegerView } from './integer-view.js';
@@ -106,7 +106,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         return true;
     }
     function noFirstIteration(): boolean {
-        if (!iteration) return isBooleanLiteral(statement.condition) && !statement.condition.value;
+        if (!iteration) return isForStatement(statement) && isBooleanLiteral(statement.condition) && !statement.condition.value;
         let source = iteration.iterable;
         while (isParenthesizedExpression(source)) source = source.value;
         if (isNameExpression(source)) {
