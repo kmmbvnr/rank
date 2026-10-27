@@ -3,7 +3,7 @@
 import { createReplSession } from '@arrrank/common/repl-session';
 import { withInterrupt, DebugSession, type PauseSnapshot, type InterruptSignal } from '@arrrank/interpreter';
 import { nativeDebugSignal } from './debug-signal.js';
-import { browserRamGpu } from './ram-gpu.js';
+import { browserRamGpu, configureRamGpu } from './ram-gpu.js';
 import type { WorkerInit, WorkerRequest, WorkerResponse } from './protocol.js';
 
 let debuggerSession = new DebugSession();
@@ -23,6 +23,7 @@ const createSession = () => createReplSession({ options: {
 } });
 self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit>) => {
     if (!('method' in event.data)) {
+        configureRamGpu(event.data.nativeRam ?? false);
         signalUrl = event.data.signalUrl;
         signal = event.data.signal ? new Int32Array(event.data.signal)
             : event.data.signalUrl ? nativeDebugSignal(event.data.signalUrl) : undefined;

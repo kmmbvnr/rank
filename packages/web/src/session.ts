@@ -1,3 +1,5 @@
+import { registerPlugin } from '@capacitor/core';
+const ramNative = registerPlugin<{ submit(request: { id: string; payload: string }): Promise<void> }>('RamGpu');
 import { sessionEditor, type Execution, type SessionSnapshot } from '@arrrank/common/repl-session';
 import type { ReplSession } from '@arrrank/common/repl-types';
 import type { Inspection } from '@arrrank/common/value-inspection';
@@ -53,9 +55,13 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
             ? new URL('/__rank_debug?token=' + crypto.randomUUID(), location.href).href : undefined;
         controls = Promise.resolve();
         ready = signalUrl ? control('reset') : Promise.resolve();
-        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules }))
+        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules, nativeRam: capacitor?.getPlatform() === 'android' }))
             .catch(error => onFailure(String(error)));
-        next.onmessage = (event: MessageEvent<WorkerResponse>) => {
+        next.onmessage = (event: MessageEvent<WorkerResponse | { ram: { id: string; payload: string } }>) => {
+            if ('ram' in event.data) {
+                void ramNative.submit(event.data.ram).catch(error => onFailure(String(error)));
+                return;
+            }
             snapshot = event.data.snapshot;
             if (event.data.pause) {
                 if (active) { pauseState = event.data.pause; requested = true; stepToMain = false; onChange(); }

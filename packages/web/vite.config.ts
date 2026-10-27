@@ -26,12 +26,19 @@ export default defineConfig(({ mode }) => ({
     plugins: [{
         name: 'rank-local-gpu',
         configureServer(server) {
-            server.middlewares.use('/__rank_ml', (request, response) => {
+            server.middlewares.use('/__rank_ml', async (request, response) => {
                 response.setHeader('Content-Type', 'application/json');
                 response.setHeader('Cache-Control', 'no-store');
                 try {
-                    const query = new URL(request.url ?? '', 'http://localhost');
-                    response.end(JSON.stringify(runRamGpu(JSON.parse(query.searchParams.get('request') ?? '{}'))));
+                    if (request.method !== 'POST') { response.statusCode = 405; response.end(); return; }
+                    const chunks: Buffer[] = [];
+                    let size = 0;
+                    for await (const chunk of request) {
+                        size += chunk.length;
+                        if (size > 32 * 1024 * 1024) throw new Error('RAM request is too large');
+                        chunks.push(Buffer.from(chunk));
+                    }
+                    response.end(JSON.stringify(runRamGpu(JSON.parse(Buffer.concat(chunks).toString('utf8')))));
                 } catch (error) { response.end(JSON.stringify({ error: String(error) })); }
             });
         },

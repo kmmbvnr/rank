@@ -33,7 +33,9 @@ also be imported. Programs without modules keep their existing `.ra` export.
 
 For a local Mac browser session, run `npm run dev --workspace @arrrank/web`
 and open `/console.html`. The Vite development server supplies the native GPU
-bridge. Static hosting does not supply this bridge.
+bridge. Static hosting does not supply this bridge. Desktop requests use POST bodies.
+Android sends request bodies through Capacitor; the worker waits for the result
+using an opaque request ID. Tensor data and model bytes never travel in URLs.
 
 The prototype emits a TFLite graph and uses LiteRT GPU on every platform:
 Metal on macOS, OpenCL on the tested Android devices, and WebGPU/Vulkan on

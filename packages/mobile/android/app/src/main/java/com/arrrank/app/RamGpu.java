@@ -8,6 +8,9 @@ import com.google.ai.edge.litert.TensorBuffer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.json.JSONArray;
@@ -24,16 +27,34 @@ final class RamGpu {
 
     RamGpu(Context context) { this.context = context.getApplicationContext(); }
 
-    String run(String payload) {
-        try {
-            if (payload == null || payload.length() > 16 * 1024 * 1024) throw new IllegalArgumentException("Invalid RAM request");
-            return executor.submit(() -> execute(new JSONObject(payload)).toString()).get();
-        } catch (Exception error) {
-            JSONObject result = new JSONObject();
-            try { result.put("error", "RAM GPU: " + (error.getCause() != null ? error.getCause().toString() : error.toString())); }
-            catch (Exception ignored) { }
-            return result.toString();
-        }
+    private final ConcurrentHashMap<String, CompletableFuture<String>> replies = new ConcurrentHashMap<>();
+
+    private CompletableFuture<String> reply(String id) {
+        if (id == null || !id.matches("[a-f0-9-]{36}")) throw new IllegalArgumentException("Invalid RAM request id");
+        return replies.computeIfAbsent(id, ignored -> new CompletableFuture<>());
+    }
+
+    void submit(String id, String payload) {
+        CompletableFuture<String> result = reply(id);
+        executor.submit(() -> {
+            try {
+                if (payload == null || payload.length() > 32 * 1024 * 1024) throw new IllegalArgumentException("Invalid RAM request");
+                result.complete(execute(new JSONObject(payload)).toString());
+            } catch (Exception error) { result.complete(failure(error)); }
+        });
+    }
+
+    String await(String id) {
+        try { return reply(id).get(60, TimeUnit.SECONDS); }
+        catch (Exception error) { return failure(error); }
+        finally { if (id != null) replies.remove(id); }
+    }
+
+    private static String failure(Exception error) {
+        JSONObject result = new JSONObject();
+        try { result.put("error", "RAM GPU: " + error.toString()); }
+        catch (Exception ignored) { }
+        return result.toString();
     }
 
     private JSONObject execute(JSONObject request) throws Exception {

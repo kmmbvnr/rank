@@ -4,7 +4,7 @@ import type { PauseSnapshot } from '@arrrank/interpreter';
 export interface BrowserFile { readonly name: string; readonly data: ArrayBuffer }
 export type SessionMethod = 'execute' | 'preview' | 'prepareFunctions' | 'rewind' | 'resetExecution' | 'debugExecute' | 'turboExecute' | 'setDebugBreakpoints' | 'inspect' | 'extend' | 'setModules';
 export interface WorkerRequest { id: number; method: SessionMethod; args: unknown[] }
-export interface WorkerInit { signal?: SharedArrayBuffer; signalUrl?: string; modules?: Record<string, string> }
+export interface WorkerInit { nativeRam?: boolean; signal?: SharedArrayBuffer; signalUrl?: string; modules?: Record<string, string> }
 export interface WorkerResponse {
     id: number;
     result?: unknown;

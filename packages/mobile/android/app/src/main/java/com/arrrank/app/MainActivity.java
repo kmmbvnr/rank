@@ -23,6 +23,8 @@ public class MainActivity extends BridgeActivity {
     private int navigationHeight;
     private DebugSignalClient debugSignalClient;
 
+    RamGpu ramGpu() { return debugSignalClient.ramGpu; }
+
     public static MainActivity getCurrentActivity() {
         return currentActivity != null ? currentActivity.get() : null;
     }
@@ -92,6 +94,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(NotebooksPlugin.class);
+        registerPlugin(RamGpuPlugin.class);
         super.onCreate(savedInstanceState);
         currentActivity = new WeakReference<>(this);
         // Back closes an open notebook drawer or value viewer first; the page answers true when it took the press,
