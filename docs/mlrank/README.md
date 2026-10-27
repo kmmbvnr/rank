@@ -2,9 +2,14 @@
 
 ## Implemented Hello World subset
 
-The first prototype supports one fixed-shape real tensor input and
-`return Input relu`. Import it with `use "hello.ram"` and call `X hello`.
-See [the runnable example](../../demos/mlrank/main.ra).
+The prototype supports one fixed-shape real tensor input, ReLU, and same-shape
+`.f32` expressions using `+` and `*` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
+See [the ReLU example](../../demos/mlrank/main.ra) and
+[the affine example](../../demos/mlrank/affine.ra).
+Baked constants accept real-valued `array shape ... fill` expressions or
+one-dimensional array literals. All declared shapes must match; broadcasting,
+weight overrides, assignments and multiple runtime inputs remain unsupported.
+Changing source constants recompiles the model on the next call.
 The rest of this document describes proposed extensions.
 
 From the repository root, with Node.js 22.12+ and `uv` installed:
@@ -14,6 +19,7 @@ npm run mlrank:setup
 npm run build
 npm run rank -- demos/mlrank/main.ra
 node scripts/mlrank-check.mjs
+node scripts/mlrank-affine-check.mjs
 ```
 
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
@@ -40,6 +46,10 @@ using an opaque request ID. Tensor data and model bytes never travel in URLs.
 The prototype emits a TFLite graph and uses LiteRT GPU on every platform:
 Metal on macOS, OpenCL on the tested Android devices, and WebGPU/Vulkan on
 the tested Intel Linux host. CoreML and NPU execution remain proposals.
+Arithmetic currently requires `.f32`; `.f16` supports ReLU only. The arithmetic
+check compares against ordinary Rank execution with `atol=1e-5, rtol=1e-6`,
+allowing FP32 intermediate rounding and fusion. This is a workload acceptance
+tolerance, not a universal error bound for arbitrarily long expressions.
 The shape has 1–4 positive dimensions, with at most 1,048,576 elements.
 Inputs must contain finite Rank `real` values; integers are not narrowed.
 `.f16` and `.f32` round at the input/output boundary. LiteRT transport and computation use float32 tensors; both native bridges
@@ -61,6 +71,14 @@ The standalone LiteRT probe delegated 1 of 1 nodes on Adreno 810 and Adreno 619.
 The Android APK also ran the `.ra` example on OnePlus BE2029 (Android 11,
 Adreno 619); its native log confirmed 1 of 1 delegated nodes. Three cached
 calls matched the CPU reference with a maximum absolute error of 5.96e-8.
+The affine graph (`Mul + Add + Relu`, 4096 elements) also passed on all three
+hosts, including changing baked weights and repeated calls. Maximum absolute
+error versus Rank was 3.06e-5; Android delegated all 3 nodes. Generate the
+Android check with `node scripts/mlrank-android-fixtures.mjs`, then run
+`output/playwright/ram-affine.js` through Playwright attached to the WebView.
+Afterwards, `node scripts/mlrank-android-placement.mjs SERIAL APP_PID` checks
+native delegation logs for that app process. A successful API response alone
+is not proof of full Android placement.
 The notebook and its selected RAM tab survived a WebView reload.
 These checks establish correctness and placement for this workload, not a
 speedup. Linux WebGPU profiling in the standalone tool is unsupported; run

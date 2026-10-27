@@ -1,6 +1,7 @@
-import { Builder } from 'flatbuffers';
+import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
-    isUseStatement, type Program, type Statement } from '@arrrank/language';
+    isUseStatement, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
+    isNumberLiteral, isUnaryExpression, type Expression, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
 import { RankError } from './errors.js';
 import { native } from './modules/shared.js';
@@ -10,14 +11,15 @@ import { isRankArray, type NativeFunction } from './value.js';
 export interface RamGraph {
     readonly precision: 'f16' | 'f32';
     readonly shape: readonly number[];
-    readonly operation: 'relu';
+    readonly nodes: readonly RamNode[];
+    readonly output: number;
     readonly model: Uint8Array;
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
 export type RamGpu = (graph: RamGraph, input: readonly number[]) => readonly number[];
 export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string }
 
-/** The first compiler subset: a fixed tensor input and a single ReLU output. */
+/** Static, same-shape tensor expressions with baked constants. */
 export function compileRam(source: string, id: string): RamModule {
     const ast = parse(source, id);
     const fail = (message: string, node?: Statement): never => {
@@ -34,27 +36,79 @@ export function compileRam(source: string, id: string): RamModule {
         if (isUseStatement(statement) && (statement.module !== 'ml' || statement.path))
             fail('RAM MVP permits only use ml', statement);
     }
-    const [input, output] = body;
-    if (body.length !== 2 || !isOptionStatement(input) || !isReturnStatement(output))
-        fail('RAM MVP expects one option input followed by return Input relu', body[0]);
-    // Narrowing is repeated because fail also attaches a source location.
+    const input = body[0], output = body.at(-1);
+    if (!isOptionStatement(input) || input.defaultValue || !isReturnStatement(output))
+        fail('RAM expects one runtime option, optional baked weights, and a final return', body[0]);
     if (!isOptionStatement(input) || !isReturnStatement(output)) throw new Error('unreachable');
     const precision = input.precision?.name;
     if (precision !== 'f16' && precision !== 'f32') fail('RAM input requires .f16 or .f32', input);
-    if (input.defaultValue) fail('Baked weights are outside the RAM MVP', input);
     const shape = input.dimensions.map(dimension => Number(dimension.value));
     const size = shape.reduce((a, b) => a * b, 1);
     if (!shape.length || shape.length > 4 || shape.some(n => !Number.isSafeInteger(n) || n < 1)
         || !Number.isSafeInteger(size) || size > 1_048_576)
         fail('RAM shape requires 1–4 positive dimensions and at most 1048576 elements', input);
-    const expression = output.value;
-    if (!expression || !isApplicationExpression(expression) || !isNameExpression(expression.head)
-        || expression.head.name !== input.name || expression.arguments.length !== 1
-        || !isNameExpression(expression.arguments[0]) || expression.arguments[0].name !== 'relu')
-        fail('RAM MVP supports only return Input relu', output);
+    const nodes: RamNode[] = [{ kind: 'input' }];
+    const names = new Map<string, number>([[input.name, 0]]);
+    const scalar = (expression: Expression): number => {
+        if (isParenthesizedExpression(expression)) return scalar(expression.value);
+        if (isNumberLiteral(expression) && typeof expression.value === 'number') return expression.value;
+        if (isUnaryExpression(expression) && (expression.operator === '-' || expression.operator === '+'))
+            return (expression.operator === '-' ? -1 : 1) * scalar(expression.operand);
+        return fail('Baked values must be real literals', input);
+    };
+    for (const weight of body.slice(1, -1)) {
+        if (!isOptionStatement(weight) || !weight.defaultValue)
+            fail('RAM permits only baked option declarations before return', weight);
+        if (!isOptionStatement(weight) || !weight.defaultValue) throw new Error('unreachable');
+        if (precision !== 'f32' || weight.precision?.name !== 'f32')
+            fail('Baked arithmetic currently requires .f32 inputs and weights', weight);
+        if (names.has(weight.name)) fail('Duplicate RAM option: ' + weight.name, weight);
+        if (weight.dimensions.length !== shape.length || weight.dimensions.some((d, i) => Number(d.value) !== shape[i]))
+            fail('Baked weights must have the same shape as the input; broadcasting is not supported', weight);
+        let value = weight.defaultValue;
+        while (isParenthesizedExpression(value)) value = value.value;
+        if (!isArrayExpression(value)) fail('Baked weights require an array literal or array shape ... fill', weight);
+        if (!isArrayExpression(value)) throw new Error('unreachable');
+        let values: number[];
+        if (value.fill) {
+            if (value.dimensions.length !== shape.length || value.dimensions.some((d, i) =>
+                !isNumberLiteral(d.value) || Number(d.value.value) * (d.sign === '-' ? -1 : 1) !== shape[i]))
+                fail('Baked array shape does not match its option', weight);
+            values = Array(size).fill(scalar(value.fill));
+        } else {
+            if (shape.length !== 1 || value.range || value.rows.length || value.dimensions.length)
+                fail('Baked array literals currently require a one-dimensional shape', weight);
+            values = value.items.map(item => (item.sign === '-' ? -1 : 1) * scalar(item.value));
+            if (values.length !== size) fail('Baked array length does not match its option', weight);
+        }
+        values = values.map(value => ramRound(value, 'f32'));
+        names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values });
+        if (nodes.length * size > 8_388_608) fail('RAM constant storage exceeds 32 MiB', weight);
+    }
+    const lower = (expression: Expression): number => {
+        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', output);
+        if (isParenthesizedExpression(expression)) return lower(expression.value);
+        if (isNameExpression(expression)) {
+            const index = names.get(expression.name);
+            if (index === undefined) return fail('Unknown RAM tensor: ' + expression.name, output);
+            return index;
+        }
+        let node: RamNode;
+        if (isApplicationExpression(expression) && expression.arguments.length === 1
+            && isNameExpression(expression.arguments[0]) && expression.arguments[0].name === 'relu') {
+            node = { kind: 'relu', input: lower(expression.head) };
+        } else if (isBinaryExpression(expression) && (expression.operator === '+' || expression.operator === '*')) {
+            if (precision !== 'f32') return fail('RAM arithmetic currently requires .f32', output);
+            node = { kind: expression.operator === '+' ? 'add' : 'mul', left: lower(expression.left), right: lower(expression.right) };
+        } else return fail('RAM supports tensor names, +, *, and relu', output);
+        nodes.push(node); return nodes.length - 1;
+    };
+    if (!output.value) fail('RAM requires an output tensor', output);
+    const result = lower(output.value!);
+    if (nodes[result].kind === 'input' || nodes[result].kind === 'constant') fail('RAM output must contain a GPU operation', output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
-    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, operation: 'relu', model: reluModel(shape) };
+    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, nodes, output: result, model: ramModel(shape, nodes, result) };
     // Ordinary import discovery sees a standard one-argument function. Its runtime
     // implementation is installed by useFile, rather than evaluating this stub.
     const program = parse(`fun ${input.name} ${name}\nreturn ${input.name}\nend\n`, id);
@@ -98,33 +152,7 @@ export function ramRound(value: number, precision: 'f16' | 'f32'): number {
     return Math.sign(value) * rounded * step;
 }
 
-/** Minimal TFLite schema emitter: Model/SubGraph/Tensor/Operator/Buffer.
- * Field numbers follow tensorflow/compiler/mlir/lite/schema/schema.fbs. */
+/** Compatibility helper for the standalone ReLU probe. */
 export function reluModel(shape: readonly number[]): Uint8Array {
-    const b = new Builder(512);
-    const vector = (items: readonly number[], offsets = false): number => {
-        b.startVector(4, items.length, 4);
-        for (let i = items.length - 1; i >= 0; i--) offsets ? b.addOffset(items[i]) : b.addInt32(items[i]);
-        return b.endVector();
-    };
-    const tensors = ['X', 'Y'].map(name => {
-        const label = b.createString(name), dimensions = vector(shape);
-        b.startObject(10); b.addFieldOffset(0, dimensions, 0); b.addFieldOffset(3, label, 0);
-        return b.endObject(); // FLOAT32 and buffer 0 are schema defaults.
-    });
-    const inputs = vector([0]), outputs = vector([1]);
-    b.startObject(13); b.addFieldOffset(1, inputs, 0); b.addFieldOffset(2, outputs, 0);
-    const op = b.endObject();
-    const tensorVector = vector(tensors, true), ops = vector([op], true);
-    b.startObject(6); b.addFieldOffset(0, tensorVector, 0); b.addFieldOffset(1, inputs, 0);
-    b.addFieldOffset(2, outputs, 0); b.addFieldOffset(3, ops, 0);
-    const subgraph = b.endObject();
-    b.startObject(4); b.addFieldInt8(0, 19, 0); b.addFieldInt32(3, 19, 0); // RELU = 19
-    const code = b.endObject();
-    b.startObject(3); const buffer = b.endObject();
-    const graphs = vector([subgraph], true), codes = vector([code], true), buffers = vector([buffer], true);
-    b.startObject(8); b.addFieldInt32(0, 3, 0); b.addFieldOffset(1, codes, 0);
-    b.addFieldOffset(2, graphs, 0); b.addFieldOffset(4, buffers, 0);
-    b.finish(b.endObject(), 'TFL3');
-    return b.asUint8Array();
+    return ramModel(shape, [{ kind: 'input' }, { kind: 'relu', input: 0 }], 1);
 }

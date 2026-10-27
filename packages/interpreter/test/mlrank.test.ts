@@ -54,6 +54,23 @@ describe('RAM ReLU MVP', () => {
         expect(ramRound(1 + 2 ** -24, 'f32')).toBe(1);
         expect(() => ramRound(1e39, 'f32')).toThrow('outside .f32');
     });
+    it('compiles same-shape constants and nested operations, invalidating model bytes when weights change', () => {
+        const source = 'use ml\noption X .f32 shape 1 4\n'
+            + 'option Scale .f32 shape 1 4 = array shape 1 4 fill 2.0\n'
+            + 'option Bias .f32 shape 1 4 = array shape 1 4 fill 0.5\nreturn ((X * Scale) + Bias) relu';
+        const module = compileRam(source, 'affine.ram');
+        expect(module.graph.nodes.map(node => node.kind)).toEqual(['input', 'constant', 'constant', 'mul', 'add', 'relu']);
+        expect(module.graph.model).not.toEqual(compileRam(source.replace('fill 2.0', 'fill 3.0'), 'affine.ram').graph.model);
+        for (const invalid of [source.replace('option Bias .f32 shape 1 4', 'option Bias .f32 shape 4'),
+            source.replace('fill 0.5', 'fill 1'), source.replace('fill 0.5', 'fill 1e39'),
+            source.replace('X * Scale', 'X / Scale'), source.replace('X * Scale', 'X * Unknown'),
+            source.replace(/\.f32/g, '.f16'), source.replace('option Bias', 'option Scale')])
+            expect(() => compileRam(invalid, 'affine.ram')).toThrow();
+    });
+    it('bakes explicit vector constants', () => {
+        const source = 'use ml\noption X .f32 shape 4\noption W .f32 shape 4 = array -2.0 0.0 1.0 3.0\nreturn X * W';
+        expect(compileRam(source, 'scale.ram').graph.nodes[1]).toEqual({ kind: 'constant', values: [-2, 0, 1, 3] });
+    });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
         expect(ramRound(1 + 2 ** -11, 'f16')).toBe(1);
         expect(ramRound(1 + 3 * 2 ** -11, 'f16')).toBe(1 + 2 ** -9);

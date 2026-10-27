@@ -1,0 +1,7 @@
+use sequences
+use io
+use "affine.ram"
+
+X = array -32 to 31 reshape 1 64 real
+Y = X affine
+Y print

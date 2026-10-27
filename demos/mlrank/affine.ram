@@ -1,0 +1,5 @@
+use ml
+option X .f32 shape 1 64
+option Scale .f32 shape 1 64 = array shape 1 64 fill 2.0
+option Bias .f32 shape 1 64 = array shape 1 64 fill 0.5
+return (X * Scale) + Bias

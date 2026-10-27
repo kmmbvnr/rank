@@ -1,6 +1,6 @@
 # mlRank: Прототипирование компилятора и дорожная карта до GPT-2
 
-Текущий прототип задачи 1, команды запуска и ограничения описаны в
+Текущий прототип задач 1–2 (ReLU и константы одинаковой формы), команды запуска и ограничения описаны в
 [Implemented Hello World subset](README.md#implemented-hello-world-subset).
 Последующие задачи и отдельные CoreML/NPU-бэкенды остаются планом.
 
@@ -67,9 +67,9 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
-  option Scale .f16 shape 64 = array shape 64 fill 2.0
-  option Bias  .f16 shape 64 = array shape 64 fill 0.5
+  option X .f32 shape 1 64
+  option Scale .f32 shape 1 64 = array shape 1 64 fill 2.0
+  option Bias  .f32 shape 1 64 = array shape 1 64 fill 0.5
   return (X * Scale) + Bias
   ```
 * **Цель:** Разделение runtime-входов (динамические тензоры параметров) и запекаемых весов (Initializers в ONNX, FlatBuffer Buffer в LiteRT, `mb.const` в MIL). Оффлайн-упаковка весов в память модели.
