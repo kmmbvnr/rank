@@ -2638,3 +2638,18 @@ promotion takes effect between calls. Euler 185 improves about fourfold on both
 Apple M5 and Intel i7-10750H without a demo rewrite. See the
 [Mac/Intel report](../../benchmarks/condition-loop-feedback-results.md) for full
 measurements, tests, retained controls and the non-exhaustive prototype comparison.
+
+## Compact integer distinct values (Euler 155, #447)
+
+Native `unique` and distinct-length consumers read admitted owned Int32 buffers
+without per-input BigInt boxing or integer-item Proxy access. Results preserve
+first-appearance order and exact Rank integers. The existing integer builder
+keeps large results compact when possible and widens when a value requires it;
+real NaNs/signed zero, booleans, wider integers and unsupported readers retain
+their existing paths. Input and result buffers remain independent, with polling
+in the input scan and output construction.
+
+Euler 155 completes its reciprocal array before concat/unique, enumerates only
+one ordering of equal-level pairs, and uses the existing `unique len` terminal.
+Its default Count 18 answer remains 3857447. Runtime and source improvements are
+measured separately in the [report](../../benchmarks/euler155-capacitors-results.md).

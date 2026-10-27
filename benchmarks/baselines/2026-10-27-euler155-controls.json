@@ -1,0 +1,189 @@
+{
+  "node": "v24.15.0",
+  "versions": {
+    "before": "/private/tmp/rank155-baseline-runtime/out/index.js",
+    "final": "/private/tmp/rank-euler155/packages/interpreter/out/index.js"
+  },
+  "results": [
+    {
+      "sample": 0,
+      "control": "060",
+      "version": "before",
+      "measurement": {
+        "case": "bits",
+        "executeMs": 5154.096041,
+        "peakRssKiB": 492176,
+        "heapUsedAfterGc": 57892072,
+        "externalAfterGc": 2399685,
+        "arrayBuffersAfterGc": 100667,
+        "rssAfterGc": 494452736,
+        "sourceHash": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+        "tests": []
+      }
+    },
+    {
+      "sample": 0,
+      "control": "060",
+      "version": "final",
+      "measurement": {
+        "case": "bits",
+        "executeMs": 5070.653166,
+        "peakRssKiB": 491136,
+        "heapUsedAfterGc": 57974736,
+        "externalAfterGc": 2388189,
+        "arrayBuffersAfterGc": 100667,
+        "rssAfterGc": 493092864,
+        "sourceHash": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+        "tests": []
+      }
+    },
+    {
+      "sample": 0,
+      "control": "177",
+      "version": "before",
+      "measurement": {
+        "case": "main",
+        "version": "final",
+        "executeMs": 2648.704083,
+        "peakRssMiB": 445.984375,
+        "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "tests": []
+      }
+    },
+    {
+      "sample": 0,
+      "control": "177",
+      "version": "final",
+      "measurement": {
+        "case": "main",
+        "version": "final",
+        "executeMs": 2470.998375,
+        "peakRssMiB": 450.0625,
+        "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "tests": []
+      }
+    },
+    {
+      "sample": 1,
+      "control": "177",
+      "version": "final",
+      "measurement": {
+        "case": "main",
+        "version": "final",
+        "executeMs": 2541.5029999999997,
+        "peakRssMiB": 450.125,
+        "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "tests": []
+      }
+    },
+    {
+      "sample": 1,
+      "control": "177",
+      "version": "before",
+      "measurement": {
+        "case": "main",
+        "version": "final",
+        "executeMs": 2417.829084,
+        "peakRssMiB": 445.328125,
+        "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "tests": []
+      }
+    },
+    {
+      "sample": 1,
+      "control": "060",
+      "version": "final",
+      "measurement": {
+        "case": "bits",
+        "executeMs": 5159.899792,
+        "peakRssKiB": 488576,
+        "heapUsedAfterGc": 57917800,
+        "externalAfterGc": 2388189,
+        "arrayBuffersAfterGc": 100667,
+        "rssAfterGc": 490094592,
+        "sourceHash": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+        "tests": []
+      }
+    },
+    {
+      "sample": 1,
+      "control": "060",
+      "version": "before",
+      "measurement": {
+        "case": "bits",
+        "executeMs": 5153.583707999999,
+        "peakRssKiB": 495392,
+        "heapUsedAfterGc": 57996560,
+        "externalAfterGc": 2388189,
+        "arrayBuffersAfterGc": 100667,
+        "rssAfterGc": 498319360,
+        "sourceHash": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+        "tests": []
+      }
+    },
+    {
+      "sample": 2,
+      "control": "060",
+      "version": "before",
+      "measurement": {
+        "case": "bits",
+        "executeMs": 5158.813125000001,
+        "peakRssKiB": 492224,
+        "heapUsedAfterGc": 57892488,
+        "externalAfterGc": 2388189,
+        "arrayBuffersAfterGc": 100667,
+        "rssAfterGc": 494551040,
+        "sourceHash": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+        "tests": []
+      }
+    },
+    {
+      "sample": 2,
+      "control": "060",
+      "version": "final",
+      "measurement": {
+        "case": "bits",
+        "executeMs": 5309.914167,
+        "peakRssKiB": 487664,
+        "heapUsedAfterGc": 57921648,
+        "externalAfterGc": 2388189,
+        "arrayBuffersAfterGc": 100667,
+        "rssAfterGc": 488505344,
+        "sourceHash": "1a0208cde2312b3a817bd10200fa2b119e1e575d25087456f06aa0fb3a614722",
+        "tests": []
+      }
+    },
+    {
+      "sample": 2,
+      "control": "177",
+      "version": "before",
+      "measurement": {
+        "case": "main",
+        "version": "final",
+        "executeMs": 2708.939167,
+        "peakRssMiB": 448.78125,
+        "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "tests": []
+      }
+    },
+    {
+      "sample": 2,
+      "control": "177",
+      "version": "final",
+      "measurement": {
+        "case": "main",
+        "version": "final",
+        "executeMs": 2427.060667,
+        "peakRssMiB": 444.40625,
+        "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+        "tests": []
+      }
+    }
+  ]
+}

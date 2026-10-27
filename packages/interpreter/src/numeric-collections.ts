@@ -1,4 +1,4 @@
-import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray } from './array-storage.js';
+import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, IntegerCells } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { integerConcatCells } from './concat-array.js';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
@@ -220,6 +220,29 @@ export function numericDistinct(value: RankValue, countOnly = false): RankArray 
     if (!length) return undefined;
     const kind = cells ? typeof cells[0] : 'bigint';
     if (!['bigint', 'number', 'boolean'].includes(kind)) return undefined;
+    // Trusted Int32 cells have exact Number keys. Avoid boxing every input
+    // through the integer items Proxy; the result still exposes Rank integers.
+    const compact = cells && isRankArray(value) ? integer32Cells(value) : undefined;
+    if (compact) {
+        const seen = new Set<number>();
+        const result: number[] = [];
+        for (let index = 0; index < compact.length; index++) {
+            if ((index & 4095) === 0) checkpoint('counting distinct values', 4096);
+            const cell = compact[index];
+            if (seen.has(cell)) continue;
+            seen.add(cell);
+            if (!countOnly) result.push(cell);
+        }
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.numericDistincts++;
+        if (countOnly) return BigInt(seen.size);
+        const out = new Int32Array(result.length);
+        for (let index = 0; index < result.length; index++) {
+            if ((index & 4095) === 0) checkpoint('building distinct values', 4096);
+            out[index] = result[index];
+        }
+        return typedArray(out);
+    }
     const seen = new Set<bigint | number | boolean>();
     const result: RankValue[] = [];
 
@@ -238,12 +261,19 @@ export function numericDistinct(value: RankValue, countOnly = false): RankArray 
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.numericDistincts++;
     if (countOnly) return BigInt(seen.size);
-    if (kind === 'bigint' || kind === 'number') {
-        const out = kind === 'bigint' ? new BigInt64Array(result.length) : new Float64Array(result.length);
+    if (kind === 'bigint') {
+        const out = new IntegerCells(result.length);
         for (let index = 0; index < result.length; index++) {
             if ((index & 4095) === 0) checkpoint('building distinct values', 4096);
-            if (out instanceof BigInt64Array) out[index] = result[index] as bigint;
-            else out[index] = result[index] as number;
+            out.set(index, result[index] as bigint);
+        }
+        return out.array([result.length]);
+    }
+    if (kind === 'number') {
+        const out = new Float64Array(result.length);
+        for (let index = 0; index < result.length; index++) {
+            if ((index & 4095) === 0) checkpoint('building distinct values', 4096);
+            out[index] = result[index] as number;
         }
         return typedArray(out);
     }

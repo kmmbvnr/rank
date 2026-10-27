@@ -1,0 +1,125 @@
+{
+  "note": "Separate CPU-profiled diagnostic run of the unchanged program, without stage prints; not a timing baseline. Self samples include imports. Full CPU profile is a temporary local artifact.",
+  "selfSamples": [
+    [
+      "distinct file:///private/tmp/rank155-baseline-runtime/out/modules/sequence-distinct.js:54",
+      3164
+    ],
+    [
+      "uniqueValue file:///private/tmp/rank155-baseline-runtime/out/modules/sequence-distinct.js:43",
+      2363
+    ],
+    [
+      "numericDistinct file:///private/tmp/rank155-baseline-runtime/out/numeric-collections.js:247",
+      2157
+    ],
+    [
+      "(garbage collector) :0",
+      919
+    ],
+    [
+      "integer,integer file:///private/tmp/rank155-baseline-runtime/out/modules/numbers.js:87",
+      598
+    ],
+    [
+      " :3",
+      495
+    ],
+    [
+      "itemAt file:///private/tmp/rank155-baseline-runtime/out/derived-array.js:56",
+      292
+    ],
+    [
+      "readArrayItem file:///private/tmp/rank155-baseline-runtime/out/array-read.js:355",
+      291
+    ],
+    [
+      "build file:///private/tmp/rank155-baseline-runtime/out/ordered-source.js:60",
+      276
+    ],
+    [
+      "coordinatesAt file:///private/tmp/rank155-baseline-runtime/out/tensor-index.js:9",
+      243
+    ],
+    [
+      "vector file:///private/tmp/rank155-baseline-runtime/out/ordered-source.js:52",
+      232
+    ],
+    [
+      " file:///private/tmp/rank155-baseline-runtime/out/operators.js:763",
+      221
+    ],
+    [
+      " file:///private/tmp/rank155-baseline-runtime/out/concat-array.js:92",
+      212
+    ],
+    [
+      "(program) :0",
+      209
+    ],
+    [
+      "evaluateArrayItem file:///private/tmp/rank155-baseline-runtime/out/array-read.js:382",
+      159
+    ],
+    [
+      "setValueKey file:///private/tmp/rank155-baseline-runtime/out/set.js:4",
+      155
+    ],
+    [
+      "run file:///private/tmp/rank155-baseline-runtime/out/number-loop-runtime.js:119",
+      129
+    ],
+    [
+      "numericKey file:///private/tmp/rank155-baseline-runtime/out/numeric-collections.js:198",
+      107
+    ],
+    [
+      "get file:///private/tmp/rank155-baseline-runtime/out/owned-array.js:879",
+      99
+    ],
+    [
+      " file:///private/tmp/rank155-baseline-runtime/out/tensor.js:20",
+      79
+    ],
+    [
+      "compileSourceTextModule node:internal/modules/esm/utils:316",
+      76
+    ],
+    [
+      "mapPair file:///private/tmp/rank155-baseline-runtime/out/execution.js:33",
+      57
+    ],
+    [
+      "checkCell file:///private/tmp/rank155-baseline-runtime/out/derived-array.js:23",
+      52
+    ],
+    [
+      "ownedArray file:///private/tmp/rank155-baseline-runtime/out/owned-array.js:544",
+      49
+    ],
+    [
+      " file:///private/tmp/rank155-baseline-runtime/out/ordered-source.js:56",
+      48
+    ],
+    [
+      "mapResult file:///private/tmp/rank155-baseline-runtime/out/execution.js:15",
+      40
+    ],
+    [
+      "writeInteger32Cells file:///private/tmp/rank155-baseline-runtime/out/owned-array.js:898",
+      38
+    ],
+    [
+      "read file:///private/tmp/rank155-baseline-runtime/out/array-binding-contract.js:324",
+      38
+    ],
+    [
+      " file:///private/tmp/rank155-baseline-runtime/out/numeric-kernels.js:5",
+      35
+    ],
+    [
+      " file:///private/tmp/rank155-baseline-runtime/out/operators.js:762",
+      30
+    ]
+  ]
+}

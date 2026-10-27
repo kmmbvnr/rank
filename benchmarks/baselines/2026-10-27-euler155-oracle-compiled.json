@@ -1,0 +1,55 @@
+{
+  "engine": "compiled",
+  "checks": [
+    {
+      "count": 1,
+      "answer": 1,
+      "level": 1
+    },
+    {
+      "count": 2,
+      "answer": 3,
+      "level": 2
+    },
+    {
+      "count": 3,
+      "answer": 7,
+      "level": 4
+    },
+    {
+      "count": 4,
+      "answer": 15,
+      "level": 9
+    },
+    {
+      "count": 5,
+      "answer": 35,
+      "level": 22
+    },
+    {
+      "count": 6,
+      "answer": 77,
+      "level": 53
+    },
+    {
+      "count": 7,
+      "answer": 179,
+      "level": 131
+    },
+    {
+      "count": 8,
+      "answer": 429,
+      "level": 337
+    },
+    {
+      "count": 9,
+      "answer": 1039,
+      "level": 869
+    },
+    {
+      "count": 10,
+      "answer": 2525,
+      "level": 2213
+    }
+  ]
+}

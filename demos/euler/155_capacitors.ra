@@ -17,6 +17,10 @@ rem of m capacitors. Joining a level
 rem pair in parallel gives half of it,
 rem and the series joins are the
 rem reciprocals of those values.
+rem Equal levels need each unordered
+rem pair only once. Complete Rec before
+rem unique so both concat inputs have
+rem ready compact integer storage.
 K = 8192
 Store = array 8193
 Off = array 0 0 1
@@ -25,7 +29,11 @@ for M in 2 to Count
   for I in 1 to M // 2
     Lo = Off (I + 1) - Off I
     Hi = Off (M - I + 1) - Off (M - I)
-    Pairs += Lo * Hi
+    if I equal M - I
+      Pairs += Lo * (Lo + 1) // 2
+    else
+      Pairs += Lo * Hi
+    end
   end
   Out = array shape Pairs fill 0
   Used = 0
@@ -34,7 +42,11 @@ for M in 2 to Count
     for P in Off I to Off (I + 1) - 1
       A = Store P // K
       B = Store P mod K
-      for Q in Off J to Off (J + 1) - 1
+      First = Off J
+      if I equal J
+        First = P
+      end
+      for Q in First to Off (J + 1) - 1
         C = Store Q // K
         D = Store Q mod K
         Num = A * D + B * C
@@ -47,12 +59,11 @@ for M in 2 to Count
     end
   end
   Par = Out unique
-  Rec' = Par mod K * K + Par // K
+  Rec = Par mod K * K + Par // K
   Lev' = concat Par Rec unique
   Store = concat Store Lev copy
   End = array (Store len)
   Off = concat Off End copy
 end
-All' = Store unique
-Answer = All len
+Answer = Store unique len
 Answer print

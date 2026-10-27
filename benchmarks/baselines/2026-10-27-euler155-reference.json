@@ -1,0 +1,87 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "measurements": "serial fresh processes; parsing and complete execution; validation after timing/RSS; diagnostics separate",
+  "versions": {
+    "before": {
+      "source": "/private/tmp/rank-euler155/benchmarks/fixtures/euler155-original.ra",
+      "runtime": "/private/tmp/rank155-baseline-runtime/out/index.js",
+      "sourceHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b",
+      "numericCollectionsHash": "55001f98826184d8bc5cdb0f7f132125a644b78e78c72e7620c4daa14a37a2a4"
+    },
+    "final": {
+      "source": "/private/tmp/rank-euler155/demos/euler/155_capacitors.ra",
+      "runtime": "/private/tmp/rank-euler155/packages/interpreter/out/index.js",
+      "sourceHash": "9ad2ffe8acccb29efa47d1bd0d96cec7f590e2b94353af1ab31094762dc45559",
+      "numericCollectionsHash": "0ca19eb3f01714c8dad45305296e19071ea481adbd30c3cdebb11138e5c19826"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "engine": "reference",
+      "ms": 77574.21762499999,
+      "peakRssMiB": 998.390625,
+      "answer": "3857447",
+      "sourceHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b",
+      "programHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 4648.7600410000005,
+      "peakRssMiB": 324.90625,
+      "answer": "undefined",
+      "sourceHash": "0a6d367ea9170a81d9db051480f5b9b06ff834f8c604cdea302f10b755986d73",
+      "programHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b",
+      "tests": [
+        {
+          "name": "statement value for three",
+          "passed": true
+        },
+        {
+          "name": "smaller counts",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "main",
+      "engine": "reference",
+      "ms": 64547.572167,
+      "peakRssMiB": 753.640625,
+      "answer": "3857447",
+      "sourceHash": "9ad2ffe8acccb29efa47d1bd0d96cec7f590e2b94353af1ab31094762dc45559",
+      "programHash": "9ad2ffe8acccb29efa47d1bd0d96cec7f590e2b94353af1ab31094762dc45559",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "final",
+      "case": "fixture",
+      "engine": "reference",
+      "ms": 4251.6767500000005,
+      "peakRssMiB": 216.9375,
+      "answer": "undefined",
+      "sourceHash": "0a6d367ea9170a81d9db051480f5b9b06ff834f8c604cdea302f10b755986d73",
+      "programHash": "9ad2ffe8acccb29efa47d1bd0d96cec7f590e2b94353af1ab31094762dc45559",
+      "tests": [
+        {
+          "name": "statement value for three",
+          "passed": true
+        },
+        {
+          "name": "smaller counts",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

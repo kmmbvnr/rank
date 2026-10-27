@@ -1,0 +1,65 @@
+{
+  "note": "Single exploratory observations; different intermediate runtime builds. Not controlled before/after estimates. Minimal-level variant was rejected.",
+  "results": {
+    "original": {
+      "case": "main",
+      "engine": "compiled",
+      "ms": 7656.804125000001,
+      "peakRssMiB": 1116.078125,
+      "answer": "3857447",
+      "sourceHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b",
+      "programHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b",
+      "tests": []
+    },
+    "ready": {
+      "case": "main",
+      "engine": "compiled",
+      "ms": 5102.8065830000005,
+      "peakRssMiB": 1008.984375,
+      "answer": "3857447",
+      "sourceHash": "b734ba04cbe61e487118ce234c46b07a8d5b3c203f9e8513bb15b92a6e21d00c",
+      "programHash": "b734ba04cbe61e487118ce234c46b07a8d5b3c203f9e8513bb15b92a6e21d00c",
+      "tests": []
+    },
+    "ready-triangle": {
+      "case": "main",
+      "engine": "compiled",
+      "ms": 4324.033083,
+      "peakRssMiB": 999.859375,
+      "answer": "3857447",
+      "sourceHash": "bc32ec32bb108893f16542e45cbc0577d6ae9898c8112f519e2a22df1d55edc2",
+      "programHash": "bc32ec32bb108893f16542e45cbc0577d6ae9898c8112f519e2a22df1d55edc2",
+      "tests": []
+    },
+    "compact-ready-triangle": {
+      "case": "main",
+      "engine": "compiled",
+      "ms": 2539.9842919999996,
+      "peakRssMiB": 922.953125,
+      "answer": "3857447",
+      "sourceHash": "bc32ec32bb108893f16542e45cbc0577d6ae9898c8112f519e2a22df1d55edc2",
+      "programHash": "bc32ec32bb108893f16542e45cbc0577d6ae9898c8112f519e2a22df1d55edc2",
+      "tests": []
+    },
+    "minimal": {
+      "case": "main",
+      "engine": "compiled",
+      "ms": 251172.051042,
+      "peakRssMiB": 996.953125,
+      "answer": "3857447",
+      "sourceHash": "8b3270848883e5939e282c3c44186aa5e86733c3aa55b05833a23d3d33cb9acb",
+      "programHash": "8b3270848883e5939e282c3c44186aa5e86733c3aa55b05833a23d3d33cb9acb",
+      "tests": []
+    },
+    "final-count": {
+      "case": "main",
+      "engine": "compiled",
+      "ms": 4696.674459,
+      "peakRssMiB": 836.203125,
+      "answer": "3857447",
+      "sourceHash": "9ad2ffe8acccb29efa47d1bd0d96cec7f590e2b94353af1ab31094762dc45559",
+      "programHash": "9ad2ffe8acccb29efa47d1bd0d96cec7f590e2b94353af1ab31094762dc45559",
+      "tests": []
+    }
+  }
+}
