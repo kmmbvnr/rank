@@ -25,9 +25,10 @@ node scripts/mlrank-affine-check.mjs
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
 `node_modules/.cache/mlrank`. `RANK_ML_PYTHON` can select another Python
 environment containing `ai-edge-litert==2.3.0` and NumPy.
-The desktop bridge starts a Python process for each call; model preparation
-and process startup are part of its cost. It does not yet retain a loaded
-desktop model between calls.
+The desktop bridge retains one Python process and one compiled model.
+Repeated calls reuse its buffers; changed model bytes replace the cached model.
+The helper exits with the host process. GPU checks report cold preparation,
+warm preparation, execution and host round-trip time separately.
 
 The Android app includes LiteRT. Open **GPU Hello World** in the command menu,
 then **Run program**. The upper tabs contain the main program and its attached

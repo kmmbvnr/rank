@@ -4,10 +4,14 @@ import { runRamGpu } from '../packages/cli/out/ram-gpu.js';
 
 let source;
 const checks = [];
+let lastModel;
 const runtime = new Interpreter(() => {}, {
     loadModule: name => ({ id: name, source }),
     ramGpu: (graph, input) => {
-        const result = runRamGpu({ model: Buffer.from(graph.model).toString('base64'), input });
+        const model = Buffer.from(graph.model).toString('base64');
+        const result = runRamGpu({ model, input });
+        assert.equal(result.cached, lastModel === model);
+        lastModel = model;
         assert.equal(result.fullyAccelerated, true);
         return result.output;
     },

@@ -38,6 +38,8 @@ for (const precision of ['f16', 'f32']) for (const shape of [[8], [1, 64], [16, 
             assert.ok(error <= 1e-4, `${precision} ${shape} cell ${i}: ${result.items[i]} != ${expected.items[i]}`);
         }
     }
+    assert.equal(timings[0].cached, false);
+    assert.equal(timings[1].cached, true);
     checks.push({ precision, shape, maxError, timings });
     runtime.dispose(); reference.dispose();
 }
