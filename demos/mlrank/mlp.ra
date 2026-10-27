@@ -1,0 +1,9 @@
+rem GPU MLP: XOR
+use "classifier.ram"
+X = array shape 4 2
+    0.0 0.0
+    0.0 1.0
+    1.0 0.0
+    1.0 1.0
+end
+X classifier

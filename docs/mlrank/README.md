@@ -42,8 +42,6 @@ after reload. Generate it with `node scripts/mlrank-softmax-check.mjs --android`
 and run `output/playwright/ram-softmax.js` in the WebView; verify native placement
 with `scripts/mlrank-android-placement.mjs`.
 
-The rest of this document describes proposed extensions.
-
 From the repository root, with Node.js 22.12+ and `uv` installed:
 
 ```sh
@@ -55,6 +53,7 @@ node scripts/mlrank-affine-check.mjs
 node scripts/mlrank-linear-check.mjs
 node scripts/mlrank-broadcast-check.mjs
 node scripts/mlrank-softmax-check.mjs
+node scripts/mlrank-mlp-check.mjs
 ```
 
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
@@ -133,6 +132,73 @@ The notebook and its selected RAM tab survived a WebView reload.
 These checks establish correctness and placement for this workload, not a
 speedup. Linux WebGPU profiling in the standalone tool is unsupported; run
 that probe without `--use_profiler=true`.
+
+## Complete small MLP
+
+Open **GPU MLP** → **Run program**, or run `npm run rank -- demos/mlrank/mlp.ra`.
+[The program](../../demos/mlrank/mlp.ra) calls [classifier.ram](../../demos/mlrank/classifier.ram):
+a batch of four inputs passes through two linear layers with bias, ReLU and softmax.
+The shapes are `[4,2] → [4,3] → [4,2]`. Output columns are classes 0 (equal bits)
+and 1 (different bits); selecting the larger probability gives XOR.
+
+These are analytically constructed weights, authored for this example on 2026-10-27,
+not a trained checkpoint. For input `(x,y)`, the hidden vector is
+`[max(x+y,0), max(x+y-1,0), max(y-x,0)]`. The third feature adds the same offset
+to both logits, exercising a width of three without changing the probabilities.
+The logits are `[2-4*h0+8*h1+h2, -2+4*h0-8*h1+h2]`.
+This model demonstrates inference mechanics; it does not establish accuracy on a real dataset.
+
+| Input | Hidden | Logits | Probabilities [0, 1] | Class |
+| --- | --- | --- | --- | --- |
+| 0, 0 | 0, 0, 0 | 2, -2 | 0.98201379, 0.01798621 | 0 |
+| 0, 1 | 1, 0, 1 | -1, 3 | 0.01798621, 0.98201379 | 1 |
+| 1, 0 | 1, 0, 0 | -2, 2 | 0.01798621, 0.98201379 | 1 |
+| 1, 1 | 2, 1, 0 | 2, -2 | 0.98201379, 0.01798621 | 0 |
+
+`node scripts/mlrank-mlp-check.mjs` compares hidden values and logits with CPU Rank
+and independent scalar equations, then checks probabilities and classes. It also
+covers negative and fractional inputs, five repeat calls per graph and changed weights.
+The changed weights must replace the cached model. Mac, Intel and OnePlus each passed
+42 calls with maximum absolute error `5.48e-8` or less (`atol=rtol=1e-5`).
+Desktop placement was checked through LiteRT; Android delegated all 12 nodes of the
+full MLP. Its menu example ran, survived reload and ran again. Archive round-trip
+coverage verifies the main source and attached weights together.
+
+For Android, generate `output/playwright/ram-mlp.js` using
+`node scripts/mlrank-mlp-check.mjs --android`; run it through Playwright attached to
+the app WebView, then run `node scripts/mlrank-android-placement.mjs SERIAL APP_PID`.
+Restart the app before timing a first call. Capture `adb -s SERIAL shell dumpsys
+meminfo com.arrrank.app` before and after for app memory snapshots.
+
+### Initial measurements (2026-10-27)
+
+Milliseconds, batch of four, first full MLP call followed by five cached calls.
+Cold means a fresh native runtime; OS and driver caches were not cleared.
+Warm columns are medians, not throughput benchmarks.
+
+| Host | Cold round trip | Cold prepare | Warm round trip | Warm execute + I/O | Warm transport + scheduling |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Mac | 67.58 | 15.36 | 0.51 | 0.42 | 0.08 |
+| Intel | 165.19 | 44.92 | 0.92 | 0.64 | 0.28 |
+| OnePlus | 556.90 | 494.61 | 24.20 | 2.67 | 21.64 |
+
+The serialized model is 2,072 bytes, including original and transposed weights.
+It is still sent on every call: request bodies are 2,817 bytes on desktop and
+2,802 bytes on Android for the truth-table input. Input and output tensors are
+32 bytes each. Transport time above is a residual that includes JSON, IPC and
+scheduling; native execution includes buffer writes and reads. These are not
+separate measurements of GPU kernel time or device transfer bandwidth.
+
+After the checks, Python helper RSS was 50,912 KiB on Mac
+and 113,876 KiB on Intel. OnePlus app PSS changed from
+135,242 to 183,004 KiB; app RSS changed from 244,688 to 296,068 KiB across the checks
+and UI reload. These snapshots include runtime/UI overhead and are not peak memory
+or tensor allocation measurements; Android excludes separate WebView renderer
+processes. No speedup or memory saving is claimed.
+
+[Recorded samples](../../benchmarks/baselines/2026-10-27-mlrank-mlp.json) retain all
+calls and measurement boundaries. Stage 7 will stop resending the model and add
+binary weights; stage 8 will compare CPU timing and isolate costs more precisely.
 
 ## Proposed full MVP
 

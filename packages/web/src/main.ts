@@ -32,6 +32,8 @@ import gpuMain from '../../../demos/mlrank/main.ra?raw';
 import gpuHello from '../../../demos/mlrank/hello.ram?raw';
 import gpuLinear from '../../../demos/mlrank/dense.ram?raw';
 import gpuLinearMain from '../../../demos/mlrank/linear.ra?raw';
+import gpuMlp from '../../../demos/mlrank/classifier.ram?raw';
+import gpuMlpMain from '../../../demos/mlrank/mlp.ra?raw';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
 const screen = document.querySelector<HTMLElement>('#screen')!;
@@ -1133,6 +1135,11 @@ commands.onclick = event => {
     if ((event.target as HTMLElement).closest('[data-action=walkthrough]')) {
         closeMenu(); void switchBeginnerPreview(true).catch(error => { failure = String(error); render(); }); return;
     }
+    if ((event.target as HTMLElement).closest('[data-action=gpu-mlp]')) {
+        closeMenu();
+        void openGpuExample('mlp').catch(error => { failure = String(error); render(); });
+        return;
+    }
     if ((event.target as HTMLElement).closest('[data-action=gpu-linear]')) {
         closeMenu();
         void openGpuExample('linear').catch(error => { failure = String(error); render(); });
@@ -1966,12 +1973,12 @@ async function importNotebook(): Promise<void> {
     await notebookHistory!.flush();
     render();
 }
-async function openGpuExample(example: 'hello' | 'linear' = 'hello'): Promise<void> {
+async function openGpuExample(example: 'hello' | 'linear' | 'mlp' = 'hello'): Promise<void> {
     if (!historyReady || changingNotebook || busy || repl.running || repl.evaluating) return;
     await changeNotebook();
-    ramTabs.restore({ cells: [], draft: '', modules: [example === 'linear' ? { name: 'dense.ram', source: gpuLinear } : { name: 'hello.ram', source: gpuHello }] });
+    ramTabs.restore({ cells: [], draft: '', modules: [example === 'mlp' ? { name: 'classifier.ram', source: gpuMlp } : example === 'linear' ? { name: 'dense.ram', source: gpuLinear } : { name: 'hello.ram', source: gpuHello }] });
     syncRamModules();
-    await repl.restoreNotebook(splitSource(example === 'linear' ? gpuLinearMain : gpuMain), '');
+    await repl.restoreNotebook(splitSource(example === 'mlp' ? gpuMlpMain : example === 'linear' ? gpuLinearMain : gpuMain), '');
     resize();
     notebookHistory!.schedule(notebookSnapshot());
     await notebookHistory!.flush();

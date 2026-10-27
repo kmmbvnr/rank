@@ -1,0 +1,16 @@
+use ml
+option X .f32 shape 4 2
+option W1 .f32 shape 2 3 = array shape 2 3
+    1.0 1.0 -1.0
+    1.0 1.0 1.0
+end
+option B1 .f32 shape 3 = array 0.0 -1.0 0.0
+option W2 .f32 shape 3 2 = array shape 3 2
+    -4.0 4.0
+    8.0 -8.0
+    1.0 1.0
+end
+option B2 .f32 shape 2 = array 2.0 -2.0
+Hidden = ((X W1 linear) + B1) relu
+Logits = (Hidden W2 linear) + B2
+return Logits softmax
