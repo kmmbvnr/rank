@@ -1,0 +1,283 @@
+{
+  "baseline": "724ccc0e",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "method": "three serial fresh processes per case/version; alternating forward/reverse job order; current runtime on both sides; max-old-space-size=2048; includes interpreter construction, parsing, execution and output callbacks; excludes imports and assertions; no tests/builds/benchmarks were run concurrently by this task",
+  "samples": [
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 5502.592833,
+      "rss": 537.125,
+      "answer": "9350130049860600",
+      "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+      "sample": 0,
+      "engine": "compiled",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 784.9598330000001,
+      "rss": 199.03125,
+      "answer": "9350130049860600",
+      "sourceHash": "b5b631856d1edf0b5fe12e7bc48013787a4b8b0e481e9d88b001891790973607",
+      "sample": 0,
+      "engine": "compiled",
+      "version": "after"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 6877.254666000001,
+      "rss": 630.6875,
+      "answer": "9350130049860600",
+      "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+      "sample": 0,
+      "engine": "reference",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 1103.52575,
+      "rss": 203.34375,
+      "answer": "9350130049860600",
+      "sourceHash": "b5b631856d1edf0b5fe12e7bc48013787a4b8b0e481e9d88b001891790973607",
+      "sample": 0,
+      "engine": "reference",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 389.706334,
+      "rss": 186.5,
+      "answer": "180180",
+      "sourceHash": "6976c378aa8d41945e12e14bbed306f9d48372ed4f5e7758c424e936259815ad",
+      "sample": 0,
+      "engine": "compiled",
+      "version": "before"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 289.37725,
+      "rss": 180.453125,
+      "answer": "180180",
+      "sourceHash": "396189edfb5d42d0d695ed24d190eb55432280a6511c36bde52e445e77ad2294",
+      "sample": 0,
+      "engine": "compiled",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 411.80470800000006,
+      "rss": 186.515625,
+      "answer": "180180",
+      "sourceHash": "6976c378aa8d41945e12e14bbed306f9d48372ed4f5e7758c424e936259815ad",
+      "sample": 0,
+      "engine": "reference",
+      "version": "before"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 300.236584,
+      "rss": 174.71875,
+      "answer": "180180",
+      "sourceHash": "396189edfb5d42d0d695ed24d190eb55432280a6511c36bde52e445e77ad2294",
+      "sample": 0,
+      "engine": "reference",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 303.774625,
+      "rss": 178.59375,
+      "answer": "180180",
+      "sourceHash": "396189edfb5d42d0d695ed24d190eb55432280a6511c36bde52e445e77ad2294",
+      "sample": 1,
+      "engine": "reference",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 411.473917,
+      "rss": 187.015625,
+      "answer": "180180",
+      "sourceHash": "6976c378aa8d41945e12e14bbed306f9d48372ed4f5e7758c424e936259815ad",
+      "sample": 1,
+      "engine": "reference",
+      "version": "before"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 287.702292,
+      "rss": 177.984375,
+      "answer": "180180",
+      "sourceHash": "396189edfb5d42d0d695ed24d190eb55432280a6511c36bde52e445e77ad2294",
+      "sample": 1,
+      "engine": "compiled",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 388.95962499999996,
+      "rss": 186.625,
+      "answer": "180180",
+      "sourceHash": "6976c378aa8d41945e12e14bbed306f9d48372ed4f5e7758c424e936259815ad",
+      "sample": 1,
+      "engine": "compiled",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 1098.478583,
+      "rss": 203.53125,
+      "answer": "9350130049860600",
+      "sourceHash": "b5b631856d1edf0b5fe12e7bc48013787a4b8b0e481e9d88b001891790973607",
+      "sample": 1,
+      "engine": "reference",
+      "version": "after"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 6918.843999999999,
+      "rss": 630.921875,
+      "answer": "9350130049860600",
+      "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+      "sample": 1,
+      "engine": "reference",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 794.6394579999999,
+      "rss": 203.875,
+      "answer": "9350130049860600",
+      "sourceHash": "b5b631856d1edf0b5fe12e7bc48013787a4b8b0e481e9d88b001891790973607",
+      "sample": 1,
+      "engine": "compiled",
+      "version": "after"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 5459.512917,
+      "rss": 533.796875,
+      "answer": "9350130049860600",
+      "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+      "sample": 1,
+      "engine": "compiled",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 5463.447333,
+      "rss": 534.5625,
+      "answer": "9350130049860600",
+      "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+      "sample": 2,
+      "engine": "compiled",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 784.8247500000001,
+      "rss": 198,
+      "answer": "9350130049860600",
+      "sourceHash": "b5b631856d1edf0b5fe12e7bc48013787a4b8b0e481e9d88b001891790973607",
+      "sample": 2,
+      "engine": "compiled",
+      "version": "after"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 6935.5499580000005,
+      "rss": 625.296875,
+      "answer": "9350130049860600",
+      "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+      "sample": 2,
+      "engine": "reference",
+      "version": "before"
+    },
+    {
+      "demo": "110_reciprocals2",
+      "target": "4000000",
+      "ms": 1109.004792,
+      "rss": 199.1875,
+      "answer": "9350130049860600",
+      "sourceHash": "b5b631856d1edf0b5fe12e7bc48013787a4b8b0e481e9d88b001891790973607",
+      "sample": 2,
+      "engine": "reference",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 401.956542,
+      "rss": 185.4375,
+      "answer": "180180",
+      "sourceHash": "6976c378aa8d41945e12e14bbed306f9d48372ed4f5e7758c424e936259815ad",
+      "sample": 2,
+      "engine": "compiled",
+      "version": "before"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 289.374375,
+      "rss": 172.625,
+      "answer": "180180",
+      "sourceHash": "396189edfb5d42d0d695ed24d190eb55432280a6511c36bde52e445e77ad2294",
+      "sample": 2,
+      "engine": "compiled",
+      "version": "after"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 424.277875,
+      "rss": 186.25,
+      "answer": "180180",
+      "sourceHash": "6976c378aa8d41945e12e14bbed306f9d48372ed4f5e7758c424e936259815ad",
+      "sample": 2,
+      "engine": "reference",
+      "version": "before"
+    },
+    {
+      "demo": "108_reciprocals",
+      "target": "1000",
+      "ms": 306.646875,
+      "rss": 175.4375,
+      "answer": "180180",
+      "sourceHash": "396189edfb5d42d0d695ed24d190eb55432280a6511c36bde52e445e77ad2294",
+      "sample": 2,
+      "engine": "reference",
+      "version": "after"
+    }
+  ],
+  "verification": {
+    "focusedTests": 46,
+    "scopedTypesAndDifferential": 6,
+    "semanticOwners": 65,
+    "build": "passed",
+    "testTypecheck": "passed",
+    "applicationForms": "passed",
+    "fullOrdinarySuite": "not rerun; demo-only change; no production interpreter changes"
+  },
+  "harnessSource": "// Build: npx tsc -b tsconfig.build.json\n// Run: node benchmarks/euler110-reciprocals.mjs 4000000\n// --source=PATH selects an archived demo; --trim/--lazy reproduce research variants.\n// --reference disables compilation. Keep --diag/--trace separate from timings.\nimport assert from 'node:assert/strict';\nimport { createHash } from 'node:crypto';\nimport { readFileSync } from 'node:fs';\nimport { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/index.js';\n\nconst option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);\nconst demo = option('demo') ?? '110_reciprocals2';\nconst target = process.argv[2] ?? '4000000';\nconst diagnostic = process.argv.includes('--diag');\nconst original = readFileSync(option('source') ?? new URL(`../demos/euler/${demo}.ra`, import.meta.url), 'utf8');\nlet source = original.replace(/Target integer = \\d+/, `Target integer = ${target}`);\nif (process.argv.includes('--trim') && !source.includes('Top max')) {\n    source = source.replace('Cols = Exp reshape 1 60\\n', '').replace('  Rows = N len',\n        '  if N len equal 0\\n    break\\n  end\\n  Exp = 1 to (Top max) array\\n'\n        + '  Cols = Exp reshape 1 (Exp len)\\n  Rows = N len');\n}\nif (process.argv.includes('--lazy')) {\n    source = source.replace('  Big =', \"  Big' =\").replace('  Next =', \"  Next' =\");\n}\nif (process.argv.includes('--trace')) {\n    source = source.replace('  Rows = N len', '  P print\\n  Rows = N len\\n  Rows print')\n        .replace('  Cnt = Next filter Keep array', '  Cnt = Next filter Keep array\\n  Best print');\n}\nconst diagnostics = new RuntimeDiagnostics();\nconst start = performance.now();\nconst runtime = new Interpreter(line => {\n    process.stderr.write(JSON.stringify({ ms: performance.now() - start, out: line }) + '\\n');\n}, { compilation: !process.argv.includes('--reference') });\ntry {\n    if (diagnostic) diagnostics.run(() => runtime.execute(source));\n    else runtime.execute(source);\n    const ms = performance.now() - start;\n    const rss = process.resourceUsage().maxRSS / 1024;\n    const answer = String(runtime.variables.get('Answer'));\n    const golden = { 4000000: '9350130049860600', 1000: '180180', 3: '6' }[target];\n    if (golden) assert.equal(answer, golden);\n    console.log(JSON.stringify({ demo, target, ms, rss, answer,\n        sourceHash: createHash('sha256').update(source).digest('hex'),\n        ...(diagnostic ? { diagnostics } : {}) }));\n} finally { runtime.dispose(); }\n",
+  "testSource": "import { readFileSync } from 'node:fs';\nimport { dirname, resolve } from 'node:path';\nimport { fileURLToPath } from 'node:url';\nimport { describe, expect, it } from 'vitest';\nimport { Interpreter } from '../src/index.js';\n\nconst demos = fileURLToPath(new URL('../../../demos/euler/', import.meta.url));\nconst targets = [1, 2, 3, 4, 5, 10, 20, 50, 100, 1000];\n\n// Enumerate every integer, without the demo's ordered prime-exponent search.\n// For n = product(p^e), unordered solutions number (product(2e + 1) + 1) / 2.\nconst expected = new Map<number, bigint>();\nfor (let n = 1; expected.size < targets.length; n++) {\n    let rest = n, divisors = 1;\n    for (let p = 2; p * p <= rest; p++) {\n        let exponent = 0;\n        while (rest % p === 0) { rest /= p; exponent++; }\n        divisors *= 2 * exponent + 1;\n    }\n    if (rest > 1) divisors *= 3;\n    for (const target of targets) {\n        if (!expected.has(target) && (divisors + 1) / 2 > target) expected.set(target, BigInt(n));\n    }\n}\n\ndescribe.each([false, true])('reciprocal exponent tables (compilation=%s)', compilation => {\n    describe.each(['108_reciprocals', '110_reciprocals2'])('%s', name => {\n        it.each(targets)('matches exhaustive integers for target %i', target => {\n            const runtime = new Interpreter(() => {}, { compilation, args: [`--target=${target}`] });\n            try {\n                runtime.execute(readFileSync(resolve(demos, `${name}.ra`), 'utf8'));\n                expect(runtime.variables.get('Answer')).toBe(expected.get(target));\n            } finally { runtime.dispose(); }\n        });\n    });\n\n    it.each(['108_reciprocals_test', '110_reciprocals2_test', '110_reciprocals2_default_test'])(\n        'retains every assertion in %s', name => {\n            const file = resolve(demos, `${name}.ra`);\n            const runtime = new Interpreter(() => {}, { compilation, testing: true, sourceId: file,\n                loadModule(specifier, from) {\n                    const id = resolve(dirname(from ?? file), `${specifier}.ra`);\n                    return { id, source: readFileSync(id, 'utf8') };\n                },\n            });\n            try {\n                runtime.execute(readFileSync(file, 'utf8'));\n                expect(runtime.testResults.length).toBeGreaterThan(0);\n                expect(runtime.testResults.every(test => test.passed)).toBe(true);\n            } finally { runtime.dispose(); }\n        },\n    );\n});\n"
+}

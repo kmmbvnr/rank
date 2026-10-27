@@ -1,0 +1,935 @@
+{
+  "commit": "724ccc0e0c992b89755bf44904a65ee5843ecefc",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "method": "three serial fresh processes per variant; reversed order on sample 1; no concurrent benchmarks/builds/tests; time includes parsing/execution and output callback, excludes imports; max-old-space-size=2048",
+  "sourceHash": "a182d89b3b3bcfebcb2ece53ba6840b3d137e669b97ed52d2f58cfca7cb82d06",
+  "workerSource": "// Research variants only: the demo and production interpreter are unchanged.\n// Build: npx tsc -b tsconfig.build.json\n// Run: node benchmarks/euler110-reciprocals.mjs 4000000 --trim --lazy --diag\n// Other controls: --reference, --trace. Omit --diag/--trace for timings.\nimport {readFileSync} from 'node:fs';\nimport {Interpreter,RuntimeDiagnostics} from '../packages/interpreter/out/index.js';\nconst target=process.argv[2]??'4000000',diag=process.argv.includes('--diag'),trace=process.argv.includes('--trace');\nlet source=readFileSync(new URL('../demos/euler/110_reciprocals2.ra', import.meta.url),'utf8').replace('Target integer = 4000000',`Target integer = ${target}`);\nif(process.argv.includes('--trim')) source=source.replace('Cols = Exp reshape 1 60\\n','').replace('  Rows = N len','  if N len equal 0\\n    break\\n  end\\n  Exp = 1 to (Top max) array\\n  Cols = Exp reshape 1 (Exp len)\\n  Rows = N len');\nif(process.argv.includes('--lazy')) source=source.replace('  Big =','  Big\\' =').replace('  Next =','  Next\\' =');\nif(trace) source=source.replace('  Rows = N len','  P print\\n  Rows = N len\\n  Rows print').replace('  Cnt = Next filter Keep array','  Cnt = Next filter Keep array\\n  Best print');\nconst d=new RuntimeDiagnostics(),start=performance.now();\nconst r=new Interpreter(line=>{process.stderr.write(JSON.stringify({ms:performance.now()-start,out:line})+'\\n')},{compilation:!process.argv.includes('--reference')});\ntry{\n if(diag)d.run(()=>r.execute(source));else r.execute(source);\n console.log(JSON.stringify({target,ms:performance.now()-start,rss:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),diagnostics:diag?d:undefined}));\n}finally{r.dispose()}\n",
+  "samples": [
+    {
+      "target": "4000000",
+      "ms": 2827.477542,
+      "rss": 637.5,
+      "answer": "9350130049860600",
+      "version": "compiled",
+      "sample": 0
+    },
+    {
+      "target": "4000000",
+      "ms": 3532.06475,
+      "rss": 623.5625,
+      "answer": "9350130049860600",
+      "version": "reference",
+      "sample": 0
+    },
+    {
+      "target": "4000000",
+      "ms": 420.02087499999993,
+      "rss": 200.96875,
+      "answer": "9350130049860600",
+      "version": "trim",
+      "sample": 0
+    },
+    {
+      "target": "4000000",
+      "ms": 2736.9492920000002,
+      "rss": 306.203125,
+      "answer": "9350130049860600",
+      "version": "lazy",
+      "sample": 0
+    },
+    {
+      "target": "4000000",
+      "ms": 408.5515,
+      "rss": 195.609375,
+      "answer": "9350130049860600",
+      "version": "trim-lazy",
+      "sample": 0
+    },
+    {
+      "target": "4000000",
+      "ms": 406.90420800000004,
+      "rss": 195.40625,
+      "answer": "9350130049860600",
+      "version": "trim-lazy",
+      "sample": 1
+    },
+    {
+      "target": "4000000",
+      "ms": 2735.5765840000004,
+      "rss": 306.5,
+      "answer": "9350130049860600",
+      "version": "lazy",
+      "sample": 1
+    },
+    {
+      "target": "4000000",
+      "ms": 419.39541599999995,
+      "rss": 214.515625,
+      "answer": "9350130049860600",
+      "version": "trim",
+      "sample": 1
+    },
+    {
+      "target": "4000000",
+      "ms": 3544.8748339999997,
+      "rss": 622.9375,
+      "answer": "9350130049860600",
+      "version": "reference",
+      "sample": 1
+    },
+    {
+      "target": "4000000",
+      "ms": 2826.149375,
+      "rss": 640.171875,
+      "answer": "9350130049860600",
+      "version": "compiled",
+      "sample": 1
+    },
+    {
+      "target": "4000000",
+      "ms": 2806.329459,
+      "rss": 642.25,
+      "answer": "9350130049860600",
+      "version": "compiled",
+      "sample": 2
+    },
+    {
+      "target": "4000000",
+      "ms": 3519.197583,
+      "rss": 622.78125,
+      "answer": "9350130049860600",
+      "version": "reference",
+      "sample": 2
+    },
+    {
+      "target": "4000000",
+      "ms": 414.076208,
+      "rss": 209.265625,
+      "answer": "9350130049860600",
+      "version": "trim",
+      "sample": 2
+    },
+    {
+      "target": "4000000",
+      "ms": 2754.454292,
+      "rss": 310.1875,
+      "answer": "9350130049860600",
+      "version": "lazy",
+      "sample": 2
+    },
+    {
+      "target": "4000000",
+      "ms": 416.2525,
+      "rss": 196.671875,
+      "answer": "9350130049860600",
+      "version": "trim-lazy",
+      "sample": 2
+    }
+  ],
+  "diagnostics": {
+    "target": "4000000",
+    "ms": 2788.350208,
+    "rss": 641.515625,
+    "answer": "9350130049860600",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 11764924,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 12,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 12,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 34,
+      "maskMaterializedCells": 97204,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 12,
+      "elementTypeScannedCells": 8237,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:output-shape": 1,
+        "tensor:unsupported-node:MaterializeExpression": 5,
+        "scalar-expression:unsupported-op:*": 6,
+        "tensor:application-form:BinaryExpression": 1,
+        "scalar-expression:unsupported-op:to": 1,
+        "tensor:unsupported-type:array": 3,
+        "loop:application-form:BinaryExpression": 1,
+        "loop:no-text-specialization": 1,
+        "scalar-expression:unsupported-op:**": 1,
+        "tensor:deferred-binding:AssignmentStatement": 5,
+        "scalar-expression:unsupported-op:and": 3,
+        "scalar-expression:too-small": 5,
+        "scalar-expression:unsupported-op:Rows": 1,
+        "scalar-expression:unsupported-op:atleast": 1,
+        "scalar-expression:operator-guard:*": 16,
+        "scalar-expression:operator-guard:+": 16,
+        "scalar-expression:unsupported-op:+": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "trimLazyDiagnostics": {
+    "target": "4000000",
+    "ms": 414.16304099999996,
+    "rss": 196.078125,
+    "answer": "9350130049860600",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 1638319,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 28,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 28,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 23,
+      "elementTypeScannedCells": 8363,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:output-shape": 1,
+        "tensor:unsupported-node:MaterializeExpression": 6,
+        "scalar-expression:unsupported-op:*": 4,
+        "tensor:application-form:BinaryExpression": 1,
+        "scalar-expression:unsupported-op:to": 3,
+        "tensor:unsupported-type:array": 3,
+        "loop:unsupported-node:MaterializeExpression": 1,
+        "loop:no-text-specialization": 1,
+        "scalar-expression:unsupported-op:len": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 6,
+        "tensor:deferred-binding:AssignmentStatement": 7,
+        "scalar-expression:unsupported-op:and": 3,
+        "scalar-expression:unsupported-op:Rows": 1,
+        "scalar-expression:unsupported-op:atleast": 1,
+        "scalar-expression:unsupported-op:**": 1,
+        "scalar-expression:operator-guard:*": 42,
+        "scalar-expression:operator-guard:+": 42,
+        "scalar-expression:unsupported-op:+": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "stageTrace": [
+    {
+      "ms": 109.63900000000004,
+      "out": "2"
+    },
+    {
+      "ms": 110.01108300000001,
+      "out": "1"
+    },
+    {
+      "ms": 117.43558300000004,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 117.46754100000001,
+      "out": "3"
+    },
+    {
+      "ms": 117.49283299999999,
+      "out": "60"
+    },
+    {
+      "ms": 125.31841600000004,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 125.36520800000002,
+      "out": "5"
+    },
+    {
+      "ms": 126.47604100000004,
+      "out": "789"
+    },
+    {
+      "ms": 182.51195800000002,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 182.60070800000003,
+      "out": "7"
+    },
+    {
+      "ms": 182.639375,
+      "out": "3464"
+    },
+    {
+      "ms": 384.63645800000006,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 384.695333,
+      "out": "11"
+    },
+    {
+      "ms": 384.720958,
+      "out": "7620"
+    },
+    {
+      "ms": 797.2039580000001,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 797.262375,
+      "out": "13"
+    },
+    {
+      "ms": 797.2866660000001,
+      "out": "10136"
+    },
+    {
+      "ms": 1349.2919160000001,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 1349.3400410000002,
+      "out": "17"
+    },
+    {
+      "ms": 1349.366875,
+      "out": "9849"
+    },
+    {
+      "ms": 1879.300833,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 1879.3577910000001,
+      "out": "19"
+    },
+    {
+      "ms": 1879.383583,
+      "out": "7642"
+    },
+    {
+      "ms": 2282.056333,
+      "out": "32589158477190044730"
+    },
+    {
+      "ms": 2282.116083,
+      "out": "23"
+    },
+    {
+      "ms": 2282.1445,
+      "out": "5179"
+    },
+    {
+      "ms": 2565.42725,
+      "out": "1968038917580736000"
+    },
+    {
+      "ms": 2565.482208,
+      "out": "29"
+    },
+    {
+      "ms": 2565.507083,
+      "out": "2773"
+    },
+    {
+      "ms": 2709.349875,
+      "out": "139885119141768000"
+    },
+    {
+      "ms": 2709.405583,
+      "out": "31"
+    },
+    {
+      "ms": 2709.425541,
+      "out": "824"
+    },
+    {
+      "ms": 2752.7144160000003,
+      "out": "20216497405104000"
+    },
+    {
+      "ms": 2752.77,
+      "out": "37"
+    },
+    {
+      "ms": 2752.787291,
+      "out": "209"
+    },
+    {
+      "ms": 2763.607583,
+      "out": "9350130049860600"
+    },
+    {
+      "ms": 2763.637,
+      "out": "41"
+    },
+    {
+      "ms": 2763.654375,
+      "out": "48"
+    },
+    {
+      "ms": 2766.776166,
+      "out": "9350130049860600"
+    },
+    {
+      "ms": 2766.794416,
+      "out": "43"
+    },
+    {
+      "ms": 2766.805541,
+      "out": "9"
+    },
+    {
+      "ms": 2768.134083,
+      "out": "9350130049860600"
+    },
+    {
+      "ms": 2768.14975,
+      "out": "47"
+    },
+    {
+      "ms": 2768.160375,
+      "out": "0"
+    },
+    {
+      "ms": 2768.902416,
+      "out": "9350130049860600"
+    },
+    {
+      "ms": 2768.921166,
+      "out": "53"
+    },
+    {
+      "ms": 2768.934,
+      "out": "0"
+    },
+    {
+      "ms": 2769.381541,
+      "out": "9350130049860600"
+    },
+    {
+      "ms": 2769.515125,
+      "out": "9350130049860600"
+    }
+  ],
+  "profileSelfSamples": [
+    {
+      "function": "maskSelection",
+      "module": "array-mask-selection.js",
+      "samples": 415,
+      "percent": 16.185647425897034
+    },
+    {
+      "function": "readArrayItem",
+      "module": "array-read.js",
+      "samples": 165,
+      "percent": 6.435257410296412
+    },
+    {
+      "function": "(garbage collector)",
+      "module": "",
+      "samples": 146,
+      "percent": 5.694227769110764
+    },
+    {
+      "function": "outerValues",
+      "module": "operators.js",
+      "samples": 113,
+      "percent": 4.407176287051482
+    },
+    {
+      "function": "values",
+      "module": "derived-array.js",
+      "samples": 85,
+      "percent": 3.3151326053042123
+    },
+    {
+      "function": "mapDenseArrays",
+      "module": "tensor.js",
+      "samples": 70,
+      "percent": 2.730109204368175
+    },
+    {
+      "function": "(program)",
+      "module": "",
+      "samples": 59,
+      "percent": 2.3010920436817472
+    },
+    {
+      "function": "arrayValues",
+      "module": "array-read.js",
+      "samples": 43,
+      "percent": 1.6770670826833074
+    },
+    {
+      "function": "evaluateBinaryValue",
+      "module": "operators.js",
+      "samples": 42,
+      "percent": 1.6380655226209049
+    },
+    {
+      "function": "collectArrayValues",
+      "module": "array-read.js",
+      "samples": 41,
+      "percent": 1.5990639625585024
+    },
+    {
+      "function": "materializeValue",
+      "module": "materialize.js",
+      "samples": 41,
+      "percent": 1.5990639625585024
+    },
+    {
+      "function": "",
+      "module": "",
+      "samples": 37,
+      "percent": 1.4430577223088923
+    },
+    {
+      "function": "",
+      "module": "tensor.js",
+      "samples": 36,
+      "percent": 1.4040561622464898
+    },
+    {
+      "function": "constructor",
+      "module": "operators.js",
+      "samples": 35,
+      "percent": 1.3650546021840875
+    },
+    {
+      "function": "",
+      "module": "operators.js",
+      "samples": 34,
+      "percent": 1.326053042121685
+    },
+    {
+      "function": "",
+      "module": "",
+      "samples": 34,
+      "percent": 1.326053042121685
+    },
+    {
+      "function": "ownedArray",
+      "module": "owned-array.js",
+      "samples": 32,
+      "percent": 1.24804992199688
+    },
+    {
+      "function": "evaluateBinaryValue",
+      "module": "operators.js",
+      "samples": 32,
+      "percent": 1.24804992199688
+    },
+    {
+      "function": "arrayValues",
+      "module": "array-read.js",
+      "samples": 30,
+      "percent": 1.1700468018720749
+    },
+    {
+      "function": "itemAt",
+      "module": "derived-array.js",
+      "samples": 28,
+      "percent": 1.0920436817472698
+    }
+  ],
+  "verification": [
+    {
+      "target": 1,
+      "args": [
+        "--trim"
+      ],
+      "answer": "2",
+      "visits": 1
+    },
+    {
+      "target": 1,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "2",
+      "visits": 1
+    },
+    {
+      "target": 1,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "2",
+      "visits": 1
+    },
+    {
+      "target": 2,
+      "args": [
+        "--trim"
+      ],
+      "answer": "4",
+      "visits": 3
+    },
+    {
+      "target": 2,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "4",
+      "visits": 3
+    },
+    {
+      "target": 2,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "4",
+      "visits": 3
+    },
+    {
+      "target": 3,
+      "args": [
+        "--trim"
+      ],
+      "answer": "6",
+      "visits": 3
+    },
+    {
+      "target": 3,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "6",
+      "visits": 3
+    },
+    {
+      "target": 3,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "6",
+      "visits": 3
+    },
+    {
+      "target": 4,
+      "args": [
+        "--trim"
+      ],
+      "answer": "6",
+      "visits": 3
+    },
+    {
+      "target": 4,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "6",
+      "visits": 3
+    },
+    {
+      "target": 4,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "6",
+      "visits": 3
+    },
+    {
+      "target": 5,
+      "args": [
+        "--trim"
+      ],
+      "answer": "12",
+      "visits": 6
+    },
+    {
+      "target": 5,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "12",
+      "visits": 6
+    },
+    {
+      "target": 5,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "12",
+      "visits": 6
+    },
+    {
+      "target": 10,
+      "args": [
+        "--trim"
+      ],
+      "answer": "24",
+      "visits": 8
+    },
+    {
+      "target": 10,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "24",
+      "visits": 8
+    },
+    {
+      "target": 10,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "24",
+      "visits": 8
+    },
+    {
+      "target": 20,
+      "args": [
+        "--trim"
+      ],
+      "answer": "60",
+      "visits": 13
+    },
+    {
+      "target": 20,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "60",
+      "visits": 13
+    },
+    {
+      "target": 20,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "60",
+      "visits": 13
+    },
+    {
+      "target": 50,
+      "args": [
+        "--trim"
+      ],
+      "answer": "360",
+      "visits": 28
+    },
+    {
+      "target": 50,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "360",
+      "visits": 28
+    },
+    {
+      "target": 50,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "360",
+      "visits": 28
+    },
+    {
+      "target": 100,
+      "args": [
+        "--trim"
+      ],
+      "answer": "1260",
+      "visits": 43
+    },
+    {
+      "target": 100,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "1260",
+      "visits": 43
+    },
+    {
+      "target": 100,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "1260",
+      "visits": 43
+    },
+    {
+      "target": 1000,
+      "args": [
+        "--trim"
+      ],
+      "answer": "180180",
+      "visits": 186
+    },
+    {
+      "target": 1000,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "180180",
+      "visits": 186
+    },
+    {
+      "target": 1000,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "180180",
+      "visits": 186
+    },
+    {
+      "target": 10000,
+      "args": [
+        "--trim"
+      ],
+      "answer": "116396280",
+      "visits": 834
+    },
+    {
+      "target": 10000,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "116396280",
+      "visits": 834
+    },
+    {
+      "target": 10000,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "116396280",
+      "visits": 834
+    },
+    {
+      "target": 4000000,
+      "args": [
+        "--trim"
+      ],
+      "answer": "9350130049860600",
+      "visits": 17410
+    },
+    {
+      "target": 4000000,
+      "args": [
+        "--trim",
+        "--lazy"
+      ],
+      "answer": "9350130049860600",
+      "visits": 17410
+    },
+    {
+      "target": 4000000,
+      "args": [
+        "--trim",
+        "--reference"
+      ],
+      "answer": "9350130049860600",
+      "visits": 17410
+    }
+  ],
+  "oracleSource": "import {spawnSync} from 'node:child_process';\nimport {writeFileSync} from 'node:fs';\nconst primes=[2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n,41n,43n,47n,53n];\nfunction oracle(target){\n const need=2n*BigInt(target)-1n;let best=1n,d=1n,k=0,visits=0;\n while(d<=need){best*=primes[k++];d*=3n;}\n function visit(i,n,count,cap){visits++;if(count>need){if(n<best)best=n;return;}if(i>=primes.length)return;\n  let next=n;for(let e=1;e<=cap;e++){next*=primes[i];if(next>=best)break;visit(i+1,next,count*BigInt(2*e+1),e);}\n }\n visit(0,1n,1n,64);return {answer:String(best),visits};\n}\nconst results=[];\nfor(const target of [1,2,3,4,5,10,20,50,100,1000,10000,4000000]){\n const expected=oracle(target);\n for(const args of [['--trim'],['--trim','--lazy'],['--trim','--reference']]){\n  const r=spawnSync(process.execPath,['/tmp/rank110-investigate.mjs',String(target),...args],{encoding:'utf8',timeout:20000});if(r.status!==0)throw Error(r.stderr);\n  const x=JSON.parse(r.stdout);if(x.answer!==expected.answer)throw Error(JSON.stringify({x,expected}));results.push({target,args,...expected});\n }\n}\nwriteFileSync('/tmp/rank110-verification.json',JSON.stringify(results,null,2));console.log(`${results.length} oracle comparisons passed`);\n"
+}
