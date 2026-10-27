@@ -2,20 +2,23 @@ import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
 
 export function notebookArchive(snapshot: NotebookDraft): Uint8Array {
+    if (!validDraft(snapshot)) throw new Error('Invalid program snapshot');
     const files: Record<string, Uint8Array> = { 'main.ra': strToU8(notebookSource(snapshot)),
-        'rank-notebook.json': strToU8(JSON.stringify(snapshot)) };
+        'rank-notebook.json': strToU8(JSON.stringify({ ...snapshot, attachments: undefined })) };
     for (const module of snapshot.modules ?? []) files[module.name] = strToU8(module.source);
+    for (const [name, data] of Object.entries(snapshot.attachments ?? {})) files[name] = fromBase64(data);
     return zipSync(files);
 }
 export function readNotebookArchive(data: Uint8Array): NotebookDraft {
     let total = 0, count = 0;
     const files = unzipSync(data, { filter: entry => {
         total += entry.originalSize; count++;
-        if (total > 16 * 1024 * 1024 || count > 66) throw new Error('Program archive is too large');
-        if (!/^(main\.ra|rank-notebook\.json|[a-z][a-z0-9_]*\.ram)$/.test(entry.name))
+        if (total > 16 * 1024 * 1024 || count > 130) throw new Error('Program archive is too large');
+        if (!/^(main\.ra|rank-notebook\.json|[a-z][a-z0-9_]*\.(?:ram|rwt))$/.test(entry.name))
             throw new Error('Unexpected program archive entry: ' + entry.name);
         return true;
     } });
+    const attachments = Object.fromEntries(Object.entries(files).filter(([name]) => name.endsWith('.rwt')).map(([name, bytes]) => [name, toBase64(bytes)]));
     if (!files['main.ra']) throw new Error('Program archive requires main.ra');
     const saved = files['rank-notebook.json'] ? JSON.parse(strFromU8(files['rank-notebook.json'])) as unknown : undefined;
     if (saved !== undefined && !validDraft(saved)) throw new Error('Invalid program snapshot');
@@ -24,6 +27,8 @@ export function readNotebookArchive(data: Uint8Array): NotebookDraft {
     if (notebookSource(snapshot) !== strFromU8(files['main.ra'])) {
         snapshot.cells = []; snapshot.draft = strFromU8(files['main.ra']);
     }
+    if (Object.keys(attachments).length) snapshot.attachments = attachments;
+    else delete snapshot.attachments;
     const positions = new Map((snapshot.modules ?? []).map(module => [module.name, module]));
     snapshot.modules = Object.entries(files).filter(([name]) => name.endsWith('.ram'))
         .map(([name, data]) => ({ name, source: strFromU8(data), cursor: Math.min(positions.get(name)?.cursor ?? 0, strFromU8(data).length) }));

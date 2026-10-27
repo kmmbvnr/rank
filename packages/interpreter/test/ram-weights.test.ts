@@ -15,6 +15,11 @@ describe('binary RAM weights', () => {
         expect(() => compileRam(source.replace('weights.rwt', '../weights.rwt'), 'model.ram', () => bytes)).toThrow('attachment name');
         expect(() => compileRam(source, 'model.ram')).toThrow('unavailable');
     });
+    it('does not serialize unused original linear weights', () => {
+        const module = compileRam('use ml\noption X .f32 shape 1 100\n'
+            + 'option W .f32 shape 100 100 = array shape 100 100 fill 1.0\nreturn X W linear', 'dense.ram');
+        expect(module.graph.model.length).toBeLessThan(40_000 + 4096);
+    });
     it('reuses the graph until source or attachment content changes', () => {
         let bytes = encodeRamWeights([2, 1], [1, -2]); const graphs: unknown[] = [];
         const interpreter = new Interpreter(() => {}, {

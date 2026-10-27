@@ -59,7 +59,9 @@ final class RamGpu {
 
     private JSONObject execute(JSONObject request) throws Exception {
         long started = System.nanoTime();
-        String action = request.optString("action", "run");
+        String action = request.getString("action");
+        if (!action.equals("load") && !action.equals("invoke") && !action.equals("release"))
+            throw new IllegalArgumentException("Unknown RAM action");
         if (action.equals("release")) {
             if (request.optString("modelId").equals(key)) closeModel();
             return new JSONObject().put("released", true);
@@ -87,7 +89,10 @@ final class RamGpu {
         long prepared = System.nanoTime();
         JSONArray data = request.getJSONArray("input");
         float[] input = new float[data.length()];
-        for (int i = 0; i < input.length; i++) input[i] = (float) data.getDouble(i);
+        for (int i = 0; i < input.length; i++) {
+            input[i] = (float) data.getDouble(i);
+            if (!Float.isFinite(input[i])) throw new IllegalArgumentException("RAM input requires finite f32 values");
+        }
         inputs.get(0).writeFloat(input);
         model.run(inputs, outputs);
         float[] output = outputs.get(0).readFloat();

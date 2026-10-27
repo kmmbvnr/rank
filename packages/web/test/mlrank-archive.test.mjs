@@ -14,7 +14,12 @@ it('preserves the runnable MLP program and weights through archive export/import
         const {notebookArchive,readNotebookArchive} = await import(pathToFileURL(join(directory,'archive.mjs')).href);
         const main = await readFile(new URL('../../../demos/mlrank/mlp.ra',import.meta.url),'utf8');
         const source = await readFile(new URL('../../../demos/mlrank/classifier.ram',import.meta.url),'utf8');
-        const snapshot = {cells:[],draft:main,modules:[{name:'classifier.ram',source,cursor:0}],activeModule:'classifier.ram'};
+        const attachments = Object.fromEntries(await Promise.all(['w1','b1','w2','b2'].map(async name=>[name+'.rwt',(await readFile(new URL('../../../demos/mlrank/'+name+'.rwt',import.meta.url))).toString('base64')])));
+        const snapshot = {attachments,cells:[],draft:main,modules:[{name:'classifier.ram',source,cursor:0}],activeModule:'classifier.ram'};
         assert.deepEqual(readNotebookArchive(notebookArchive(snapshot)),snapshot);
+        const invalid = {...snapshot,attachments:{'../bad.rwt':'AA=='}};
+        assert.throws(()=>notebookArchive(invalid),/Invalid/);
+        const oversized = {...snapshot,attachments:{'big.rwt':'AAAA'.repeat(2_800_000)}};
+        assert.throws(()=>notebookArchive(oversized),/Invalid/);
     } finally { await rm(directory,{recursive:true,force:true}); }
 });

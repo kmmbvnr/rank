@@ -2,11 +2,22 @@
 async page => {
     const fixtures = __RAM_FIXTURES__;
     const checks = await page.evaluate(async fixtures => {
+        let resident, modelId;
+        const send = async request => {
+            const id = crypto.randomUUID();
+            await window.Capacitor.nativePromise('RamGpu','submit',{id,payload:JSON.stringify(request)});
+            const result = await fetch('/__rank_ml_result?id='+id).then(r=>r.json());
+            if(result.error) throw Error(result.error);
+            return result;
+        };
+        const invoke = async (model,input) => {
+            const cached = resident === model;
+            if(!cached) { modelId=(await send({action:'load',model})).modelId; resident=model; }
+            return {...await send({action:'invoke',modelId,input}),cached};
+        };
         const checks = [];
         for (const { shape, biasShape, op, input, expected, model } of fixtures) for (let repeat = 0; repeat < 2; repeat++) {
-            const id = crypto.randomUUID();
-            await window.Capacitor.nativePromise('RamGpu', 'submit', { id, payload: JSON.stringify({ model, input }) });
-            const result = await fetch('/__rank_ml_result?id=' + id).then(response => response.json());
+            const result = await invoke(model, input);
             if (result.error) throw Error(result.error);
             if (result.output.length !== expected.length) throw Error('Wrong output size');
             let maxError = 0;

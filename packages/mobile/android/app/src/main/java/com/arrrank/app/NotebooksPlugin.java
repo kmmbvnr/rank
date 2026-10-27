@@ -123,11 +123,24 @@ public class NotebooksPlugin extends Plugin {
 
     private synchronized JSObject read(String key, PluginCall call) throws Exception {
         try (Cursor cursor = catalog(call).getReadableDatabase().query("notebooks",
-            new String[]{"id", "title", "manual", "created", "updated", "snapshot"},
+            new String[]{"id", "title", "manual", "created", "updated"},
             "id = ?", new String[]{id(key)}, null, null, null)) {
             if (!cursor.moveToFirst()) return null;
             JSObject book = metadata(cursor);
-            book.put("snapshot", new JSONObject(cursor.getString(5)));
+            // SQLite CursorWindow cannot hold a large snapshot row. Read the
+            // JSON in bounded chunks, including base64 source attachments.
+            StringBuilder snapshot = new StringBuilder();
+            for (int offset = 1; ; offset += 262144) {
+                try (Cursor chunk = catalog(call).getReadableDatabase().rawQuery(
+                    "SELECT substr(snapshot, ?, 262144) FROM notebooks WHERE id = ?",
+                    new String[]{String.valueOf(offset), id(key)})) {
+                    if (!chunk.moveToFirst()) throw new IllegalStateException("Notebook disappeared");
+                    String text = chunk.getString(0);
+                    snapshot.append(text);
+                    if (text.length() < 262144) break;
+                }
+            }
+            book.put("snapshot", new JSONObject(snapshot.toString()));
             return book;
         }
     }

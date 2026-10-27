@@ -6,6 +6,7 @@ export function configureRamGpu(android: boolean): void { native = android; }
 const client = createRamClient((message: RamRequest) => {
     const request = new XMLHttpRequest();
     const payload = JSON.stringify(message);
+    if (new TextEncoder().encode(payload).length > 32 * 1024 * 1024) throw new Error('RAM request exceeds 32 MiB');
     if (native) {
         const id = crypto.randomUUID();
         self.postMessage({ ram: { id, payload } });

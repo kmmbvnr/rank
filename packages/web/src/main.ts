@@ -174,10 +174,11 @@ name => { repl.editSource(); attachRamCall(repl.notebook, name); });
 function syncRamModules(): void {
     const modules = Object.fromEntries((ramTabs.snapshot().modules ?? []).map(module => [module.name, module.source]));
     attachedRamSources = modules;
-    const serialized = JSON.stringify(modules);
+    const attachments = ramTabs.snapshot().attachments ?? {};
+    const serialized = JSON.stringify([modules, attachments]);
     if (serialized === moduleSources) return;
     moduleSources = serialized;
-    void session.setModules(modules).catch(error => { failure = String(error); render(); });
+    void session.setModules(modules, attachments).catch(error => { failure = String(error); render(); });
 }
 
 try {
@@ -1976,7 +1977,19 @@ async function importNotebook(): Promise<void> {
 async function openGpuExample(example: 'hello' | 'linear' | 'mlp' = 'hello'): Promise<void> {
     if (!historyReady || changingNotebook || busy || repl.running || repl.evaluating) return;
     await changeNotebook();
-    ramTabs.restore({ cells: [], draft: '', modules: [example === 'mlp' ? { name: 'classifier.ram', source: gpuMlp } : example === 'linear' ? { name: 'dense.ram', source: gpuLinear } : { name: 'hello.ram', source: gpuHello }] });
+    const attachments: Record<string, string> = {};
+    if (example === 'mlp') {
+        const urls = [new URL('../../../demos/mlrank/w1.rwt', import.meta.url),
+            new URL('../../../demos/mlrank/b1.rwt', import.meta.url),
+            new URL('../../../demos/mlrank/w2.rwt', import.meta.url),
+            new URL('../../../demos/mlrank/b2.rwt', import.meta.url)];
+        await Promise.all(['w1', 'b1', 'w2', 'b2'].map(async (name, i) => {
+            const response = await fetch(urls[i]);
+            if (!response.ok) throw new Error('Cannot load example weights');
+            attachments[name + '.rwt'] = toBase64(new Uint8Array(await response.arrayBuffer()));
+        }));
+    }
+    ramTabs.restore({ cells: [], draft: '', ...(example === 'mlp' ? { attachments } : {}), modules: [example === 'mlp' ? { name: 'classifier.ram', source: gpuMlp } : example === 'linear' ? { name: 'dense.ram', source: gpuLinear } : { name: 'hello.ram', source: gpuHello }] });
     syncRamModules();
     await repl.restoreNotebook(splitSource(example === 'mlp' ? gpuMlpMain : example === 'linear' ? gpuLinearMain : gpuMain), '');
     resize();

@@ -24,7 +24,9 @@ model = inputs = outputs = None
 def run(request):
     global cached_key, model, inputs, outputs
     started = time.perf_counter()
-    action = request.get("action", "run")
+    action = request.get("action")
+    if action not in ("load", "invoke", "release"):
+        raise ValueError("Unknown RAM action")
     if action == "release":
         if request.get("modelId") == cached_key:
             inputs = outputs = model = cached_key = None

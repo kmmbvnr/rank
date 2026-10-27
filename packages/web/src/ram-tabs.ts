@@ -6,6 +6,7 @@ const template = 'use ml\noption X .f16 shape 1 64\nreturn X relu\n';
 export class RamTabs {
     private modules: RamDocument[] = [];
     private active?: string;
+    private attachments?: Record<string, string>;
     private readonly tabs = document.createElement('nav');
     private readonly panel = document.createElement('section');
     private readonly text = document.createElement('textarea');
@@ -69,14 +70,15 @@ export class RamTabs {
         const current = this.modules.find(module => module.name === this.active);
         if (current) Object.assign(current, { source: this.text.value, cursor: this.text.selectionStart, scroll: this.text.scrollTop });
     }
-    snapshot(): Pick<NotebookDraft, 'modules' | 'activeModule'> {
+    snapshot(): Pick<NotebookDraft, 'modules' | 'activeModule' | 'attachments'> {
         this.capture();
-        return { ...(this.modules.length ? { modules: this.modules.map(module => ({ ...module })) } : {}),
+        return { ...(this.attachments ? { attachments: { ...this.attachments } } : {}), ...(this.modules.length ? { modules: this.modules.map(module => ({ ...module })) } : {}),
             ...(this.active ? { activeModule: this.active } : {}) };
     }
     report(message: string): void { this.status.textContent = message; this.status.hidden = !message; }
     restore(snapshot: NotebookDraft): void {
         this.modules = (snapshot.modules ?? []).map(module => ({ ...module }));
+        this.attachments = snapshot.attachments ? { ...snapshot.attachments } : undefined;
         this.active = snapshot.activeModule; this.render();
     }
     private select(name?: string): void {

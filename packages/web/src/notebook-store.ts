@@ -1,7 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
 export interface RamDocument { name: string; source: string; cursor?: number; scroll?: number }
-export interface NotebookDraft { cells: string[]; draft: string; modules?: RamDocument[]; activeModule?: string }
+export interface NotebookDraft { cells: string[]; draft: string; modules?: RamDocument[]; attachments?: Record<string, string>; activeModule?: string }
 export interface NotebookMeta {
     id: string;
     title: string;
@@ -23,9 +23,21 @@ export const HISTORY_PAGE_SIZE = 25;
 export function validDraft(value: unknown): value is NotebookDraft {
     const draft = value as NotebookDraft | undefined;
     return !!draft && Array.isArray(draft.cells) && draft.cells.every(cell => typeof cell === 'string')
+        && (draft.attachments === undefined || validAttachments(draft.attachments))
         && typeof draft.draft === 'string' && (draft.modules === undefined || validRamDocuments(draft.modules))
         && (draft.activeModule === undefined || typeof draft.activeModule === 'string'
             && draft.modules?.some(module => module.name === draft.activeModule) === true);
+}
+/** Base64 is used only in persisted snapshots/worker messages, not each invocation. */
+export function validAttachments(value: unknown): value is Record<string, string> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+    const entries = Object.entries(value); let bytes = 0;
+    return entries.length <= 64 && entries.every(([name, data]) => {
+        if (!/^[a-z][a-z0-9_]*\.rwt$/.test(name) || typeof data !== 'string'
+            || data.length > 5_594_000 || data.length % 4 || !/^[A-Za-z0-9+/]*={0,2}$/.test(data)) return false;
+        bytes += data.length / 4 * 3 - (data.endsWith('==') ? 2 : data.endsWith('=') ? 1 : 0);
+        return bytes <= 8 * 1024 * 1024;
+    });
 }
 export function validRamDocuments(value: unknown): value is RamDocument[] {
     return Array.isArray(value) && value.length <= 64 && value.every(module => module
