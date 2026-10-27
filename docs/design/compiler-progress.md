@@ -2733,3 +2733,18 @@ retain their existing fallback. Number admission/copy thresholds are unchanged.
 Euler 211 keeps its original divisor-pair algorithm, block size and ordinary
 allocation inside the outer loop. See the
 [measurements and verification](../../benchmarks/euler211-divisor-square-results.md).
+
+## Generated-name budget and bounded sweeps (Euler 212, #447)
+
+Loop expression lowering retains a 1024-ID code-generation budget. Generated
+coordinate checks count toward that budget, so the previous 256-ID ceiling
+could decline a moderate array region even though its arithmetic was safe.
+Budget declines now include an explicit compiler diagnostic; statement limits,
+precision checks, overflow replay and array copy admission remain unchanged.
+The measured ceiling is a compromise: larger failed preparation attempts cost
+more, while unbounded generation can be slower still. See the
+[budget experiment](../../benchmarks/euler212-compiler-budget-results.md).
+
+Euler 212 scans only the active Y bounding interval, including its last closing
+event to empty the cover tree. The two boundary-to-root walks advance together
+and update common ancestors once. Input sizes and exact answers are unchanged.

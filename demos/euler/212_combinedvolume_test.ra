@@ -1,7 +1,6 @@
 use testing
 
-rem The default input takes about 5 min,
-rem so only fewer cuboids are tested.
+rem Small prefixes keep reference checks fast.
 test "few cuboids"
   use "212_combinedvolume"
   N = 1

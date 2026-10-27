@@ -22,6 +22,30 @@ function compare(source: string) {
 }
 
 describe('private safe-integer loop registers', () => {
+    it.each(['normal', 'overflow', 'bounds'])('compiles a larger guarded array region with %s semantics', mode => {
+        const writes = Array.from({ length: 64 }, () => ' A 0 = A 0 + A 1 + I').join('\n');
+        const source = `A = array 0 1
+Alias = A
+for I in 0 to 1
+${writes}
+${mode === 'overflow' ? ' A 0 += 9007199254740991' : mode === 'bounds' ? ' A 2 = 3' : ''}
+end`;
+        const diagnostics = compare(source);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(mode === 'overflow' ? 1 : 0);
+    });
+
+    it('reports the temporary budget when a large region retains exact execution', () => {
+        const rhs = ['A 0', ...Array(15).fill('A 1'), 'I'].join(' + ');
+        const writes = Array.from({ length: 100 }, () => ' A 0 = ' + rhs).join('\n');
+        const diagnostics = compare(`A = array 0 1
+for I in 0 to 1
+${writes}
+end`);
+        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.compilerRejections.some(failure => failure.reason.startsWith('number-loop:temporary-budget:'))).toBe(true);
+    });
+
     it.each(['continue', 'break'])('retains a nested real result type across %s', control => {
         const diagnostics = new RuntimeDiagnostics();
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });

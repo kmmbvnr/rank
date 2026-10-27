@@ -97,8 +97,18 @@ for X in 0 to (Xm - 1)
   if Na equal 0
     continue
   end
+  Ymin = Xm
+  Ymax = 0
   for T in 0 till Na
     I = Al T
+    Y1 = Cy I
+    Y2 = Cy I + Dy I
+    if Y1 less Ymin
+      Ymin = Y1
+    end
+    if Y2 greater Ymax
+      Ymax = Y2
+    end
     E1 = 2 * T
     E2 = 2 * T + 1
     En E1 = Hy (Cy I)
@@ -107,7 +117,9 @@ for X in 0 to (Xm - 1)
     Hy (Cy I + Dy I) = E2
   end
   Area = 0
-  for Y in 0 to (Xm - 1)
+  rem Include the last closing event so
+  rem the cover tree is empty for the next X.
+  for Y in Ymin to Ymax
     Ce = Hy Y
     for
       if Ce less 0
@@ -158,7 +170,10 @@ for X in 0 to (Xm - 1)
         L = L // 2
         R = R // 2
       end
+      rem Walk both boundaries together;
+      rem their shared ancestors need one update.
       P = L0 // 2
+      Q = R0 // 2
       for
         if P equal 0
           break
@@ -169,20 +184,16 @@ for X in 0 to (Xm - 1)
           Ch = 2 * P
           Ln P = Ln Ch + Ln (Ch + 1)
         end
-        P = P // 2
-      end
-      P = R0 // 2
-      for
-        if P equal 0
-          break
-        end
-        if Cn P greater 0
-          Ln P = Sz P
-        else
-          Ch = 2 * P
-          Ln P = Ln Ch + Ln (Ch + 1)
+        if Q not equal P
+          if Cn Q greater 0
+            Ln Q = Sz Q
+          else
+            Ch = 2 * Q
+            Ln Q = Ln Ch + Ln (Ch + 1)
+          end
         end
         P = P // 2
+        Q = Q // 2
       end
       Ce = En Ce
     end
