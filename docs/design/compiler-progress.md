@@ -2748,3 +2748,24 @@ more, while unbounded generation can be slower still. See the
 Euler 212 scans only the active Y bounding interval, including its last closing
 event to empty the cover tree. The two boundary-to-root walks advance together
 and update common ancestors once. Input sizes and exact answers are unchanged.
+
+## Reusable numeric axis folds (Euler 213, #447)
+
+Native `sum`, `mean`, `min`, `max` and `count` axis reductions prepare one
+checked source graph per demand and reuse its kernel across output cells. A
+runtime frame index selects the group; generated addressing visits reduced axes
+in natural source order, including noncontiguous and reordered axis lists.
+No per-cell graph or intermediate reduction array is needed. Each invocation
+still validates the source and native implementation, and polls cancellation.
+Lazy contract refinement permits one guarded graph refresh; unsupported inputs
+retain ordinary traversal. Existing boolean short-circuit paths are unchanged.
+
+This is independent of cell length and introduces no short-reduction threshold.
+Ordinary `=` remains a completion boundary, deferred stages retain their demand
+semantics, and arbitrary-precision integer sums keep exact accumulators.
+
+Euler 213 completes its board degrees once and gathers neighbour probabilities
+with four zero-padded array shifts. Even boards retain quarter symmetry; odd
+boards use all starting fleas to include their central rows and columns. A
+single-square board stays occupied. See the
+[measurements and verification](../../benchmarks/euler213-investigation.md).

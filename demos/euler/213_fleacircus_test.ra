@@ -1,7 +1,6 @@
 use testing
 
-rem The default input needs about 40 s;
-rem the tests use small boards.
+rem Small boards keep reference checks fast.
 test "small boards"
   use "213_fleacircus"
   N = 4
@@ -14,4 +13,23 @@ test "small boards"
   run
 
   Answer equal 12.689647
+end
+
+test "odd boards and a lone flea"
+  use "213_fleacircus"
+  N = 3
+  Rings = 1
+  run
+
+  Answer equal 2.725309
+  N = 5
+  Rings = 2
+  run
+
+  Answer equal 8.198453
+  N = 1
+  Rings = 50
+  run
+
+  Answer equal 0.0
 end
