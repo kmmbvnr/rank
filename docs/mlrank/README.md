@@ -3,7 +3,7 @@
 ## Implemented Hello World subset
 
 The prototype supports one fixed-shape real tensor input, ReLU, and broadcast
-`.f32` expressions using `+`, `*`, and `linear` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
+`.f32` expressions using `+`, `*`, `softmax`, and `linear` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
 See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
 [the linear example](../../demos/mlrank/linear.ra).
@@ -13,12 +13,35 @@ array literals with explicit shapes (or one-dimensional literals).
 Each tensor has its own statically checked shape. `+` and `*` align trailing axes;
 matching dimensions or dimensions of size 1 broadcast, as in ordinary Rank arithmetic.
 For example, `[M,N] + [N]` adds a bias to each row. Explicit `rank L R`, scalar
-literals, weight overrides, assignments and multiple runtime inputs remain unsupported.
+literals, weight overrides and multiple runtime inputs remain unsupported.
 Baked arithmetic constants with rank 4 must have batch dimension 1; other batch
 sizes are rejected because the GPU backend does not preserve those constants correctly.
 The compiler aligns operands using static reshapes (constant reshapes are baked),
 with explicit spatial axes for matrices to keep LiteRT tensor layouts consistent.
+Softmax uses the last axis and requires `.f32`. Simple `Name = expression`
+assignments bind names to graph nodes in source order. Rebinding a name leaves
+earlier tensors unchanged; using a computed name twice reuses its node.
+Deferred, compound and indexed assignments remain unsupported.
+
+```rank
+use ml
+option X .f32 shape 2 3
+Old = X
+X = X relu
+H = Old softmax
+return H
+```
+
 Changing source constants recompiles the model on the next call.
+The softmax check runs 60 calls per host across ranks 1–4, large positive and
+negative logits, equal logits, singleton rows, aliases and reused results.
+Mac, Intel UHD and OnePlus Adreno 619 passed with full GPU delegation and maximum
+absolute errors below 8e-8. Checks include output shapes, row sums and model caching.
+The Android check also edits a RAM tab, runs the source, and verifies persistence
+after reload. Generate it with `node scripts/mlrank-softmax-check.mjs --android`
+and run `output/playwright/ram-softmax.js` in the WebView; verify native placement
+with `scripts/mlrank-android-placement.mjs`.
+
 The rest of this document describes proposed extensions.
 
 From the repository root, with Node.js 22.12+ and `uv` installed:
@@ -31,6 +54,7 @@ node scripts/mlrank-check.mjs
 node scripts/mlrank-affine-check.mjs
 node scripts/mlrank-linear-check.mjs
 node scripts/mlrank-broadcast-check.mjs
+node scripts/mlrank-softmax-check.mjs
 ```
 
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in

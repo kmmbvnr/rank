@@ -4,11 +4,12 @@ import { Builder } from 'flatbuffers';
 export type RamNode = { readonly shape: readonly number[] } & ({ readonly kind: 'input' }
     | { readonly kind: 'constant'; readonly values: readonly number[] }
     | { readonly kind: 'relu'; readonly input: number }
+    | { readonly kind: 'softmax'; readonly input: number }
     | { readonly kind: 'reshape'; readonly input: number }
     | { readonly kind: 'add' | 'mul' | 'linear'; readonly left: number; readonly right: number });
 
 /** TFLite Model/SubGraph/Tensor/Operator/Buffer fields follow schema.fbs.
- * ADD=0, FULLY_CONNECTED=9, MUL=18, RELU=19, RESHAPE=22; options=11/8/21/17. */
+ * ADD=0, FULLY_CONNECTED=9, MUL=18, RELU=19, RESHAPE=22, SOFTMAX=25; options=11/8/21/17/9. */
 export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array {
     const b = new Builder(1024);
     const vector = (items: readonly number[], offsets = false): number => {
@@ -44,22 +45,24 @@ export function ramModel(nodes: readonly RamNode[], output: number): Uint8Array 
         b.addFieldInt32(2, buffer, 0); b.addFieldOffset(3, label, 0);
         return b.endObject(); // FLOAT32 is the schema default.
     });
-    const builtins = [0, 18, 19, 9, 22];
+    const builtins = [0, 18, 19, 9, 22, 25];
     const operators: number[] = [];
     nodes.forEach((node, index) => {
         if (node.kind === 'input' || node.kind === 'constant') return;
-        const inputs = vector(node.kind === 'relu' || node.kind === 'reshape' ? [node.input] : node.kind === 'linear' ? [node.left, weights.get(node.right)!, -1] : [node.left, node.right]);
+        const inputs = vector(node.kind === 'relu' || node.kind === 'softmax' || node.kind === 'reshape' ? [node.input] : node.kind === 'linear' ? [node.left, weights.get(node.right)!, -1] : [node.left, node.right]);
         const outputs = vector([index]);
         let options = 0;
-        if (node.kind === 'reshape') {
+        if (node.kind === 'softmax') {
+            b.startObject(1); b.addFieldFloat32(0, 1, 0); options = b.endObject();
+        } else if (node.kind === 'reshape') {
             const dimensions = vector(node.shape);
             b.startObject(1); b.addFieldOffset(0, dimensions, 0); options = b.endObject();
         } else if (node.kind !== 'relu') { b.startObject(node.kind === 'linear' ? 5 : node.kind === 'add' ? 2 : 1); options = b.endObject(); }
         b.startObject(13);
-        b.addFieldInt32(0, node.kind === 'add' ? 0 : node.kind === 'mul' ? 1 : node.kind === 'linear' ? 3 : node.kind === 'reshape' ? 4 : 2, 0);
+        b.addFieldInt32(0, node.kind === 'add' ? 0 : node.kind === 'mul' ? 1 : node.kind === 'linear' ? 3 : node.kind === 'reshape' ? 4 : node.kind === 'softmax' ? 5 : 2, 0);
         b.addFieldOffset(1, inputs, 0); b.addFieldOffset(2, outputs, 0);
         if (options) {
-            b.addFieldInt8(3, node.kind === 'add' ? 11 : node.kind === 'linear' ? 8 : node.kind === 'reshape' ? 17 : 21, 0);
+            b.addFieldInt8(3, node.kind === 'add' ? 11 : node.kind === 'linear' ? 8 : node.kind === 'reshape' ? 17 : node.kind === 'softmax' ? 9 : 21, 0);
             b.addFieldOffset(4, options, 0);
         }
         operators.push(b.endObject());

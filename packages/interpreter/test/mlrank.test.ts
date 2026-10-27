@@ -118,6 +118,31 @@ describe('RAM ReLU MVP', () => {
             expect(() => compileRam(source, 'broadcast.ram')).toThrow();
         }
     });
+    it('binds assignments to immutable graph nodes and reuses computed tensors', () => {
+        const graph = compileRam('use ml\noption X .f32 shape 2 3\nH = X relu\nOld = H\nH = H softmax\nreturn Old + H', 'steps.ram').graph;
+        expect(graph.nodes.filter(n => n.kind === 'relu')).toHaveLength(1);
+        expect(graph.nodes.filter(n => n.kind === 'softmax')).toEqual([{ kind: 'softmax', input: 2, shape: [1, 2, 3] }]);
+        expect(graph.outputShape).toEqual([2, 3]);
+        expect(compileRam('use ml\noption X .f32 shape 3\nX = X softmax\nreturn X', 'steps.ram').graph.output).toBe(3);
+    });
+    it('rejects unsupported assignments and forward references at the offending statement', () => {
+        for (const statement of ['H = Missing relu', 'H += X', "H' = X", 'H = X / X']) {
+            try {
+                compileRam('use ml\noption X .f32 shape 3\n' + statement + '\nreturn X relu', 'steps.ram');
+                expect.fail('Expected a compile error');
+            } catch (error) {
+                expect(error).toMatchObject({ location: { sourceId: 'steps.ram', line: 3 } });
+            }
+        }
+        expect(() => compileRam(hello.replace('relu', 'softmax'), 'hello.ram')).toThrow('requires .f32');
+    });
+    it('invalidates models after assignment edits and bounds assignment graphs', () => {
+        const source = 'use ml\noption X .f32 shape 3\nH = X relu\nreturn H softmax';
+        expect(compileRam(source, 'steps.ram').graph.model)
+            .not.toEqual(compileRam(source.replace('H = X relu', 'H = X softmax'), 'steps.ram').graph.model);
+        expect(() => compileRam('use ml\noption X .f32 shape 3\n' + 'X = X relu\n'.repeat(128) + 'return X', 'steps.ram'))
+            .toThrow('128 tensors');
+    });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
         expect(ramRound(1 + 2 ** -11, 'f16')).toBe(1);
         expect(ramRound(1 + 3 * 2 ** -11, 'f16')).toBe(1 + 2 ** -9);

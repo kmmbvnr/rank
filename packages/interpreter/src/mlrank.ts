@@ -1,7 +1,7 @@
 import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
     isUseStatement, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
-    isNumberLiteral, isUnaryExpression, type Expression, type Program, type Statement } from '@arrrank/language';
+    isNumberLiteral, isUnaryExpression, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
 import { RankError } from './errors.js';
 import { native } from './modules/shared.js';
@@ -65,7 +65,7 @@ export function compileRam(source: string, id: string): RamModule {
             return (expression.operator === '-' ? -1 : 1) * scalar(expression.operand);
         return fail('Baked values must be real literals', input);
     };
-    for (const weight of body.slice(1, -1)) {
+    const declareWeight = (weight: Statement): void => {
         if (!isOptionStatement(weight) || !weight.defaultValue)
             fail('RAM permits only baked option declarations before return', weight);
         if (!isOptionStatement(weight) || !weight.defaultValue) throw new Error('unreachable');
@@ -96,34 +96,48 @@ export function compileRam(source: string, id: string): RamModule {
         }
         values = values.map(value => ramRound(value, 'f32'));
         names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values, shape });
-    }
+        if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
+    };
+    let current: Statement = output;
     const lower = (expression: Expression): number => {
-        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', output);
+        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
         if (isParenthesizedExpression(expression)) return lower(expression.value);
         if (isNameExpression(expression)) {
             const index = names.get(expression.name);
-            if (index === undefined) return fail('Unknown RAM tensor: ' + expression.name, output);
+            if (index === undefined) return fail('Unknown RAM tensor: ' + expression.name, current);
             return index;
         }
         let node: RamNode;
         if (isApplicationExpression(expression) && expression.arguments.length === 1
-            && isNameExpression(expression.arguments[0]) && expression.arguments[0].name === 'relu') {
+            && isNameExpression(expression.arguments[0]) && ['relu', 'softmax'].includes(expression.arguments[0].name)) {
             const input = lower(expression.head);
-            node = { kind: 'relu', input, shape: nodes[input].shape };
+            const kind = expression.arguments[0].name as 'relu' | 'softmax';
+            if (kind === 'softmax' && precision !== 'f32') return fail('RAM softmax currently requires .f32', current);
+            const shape = nodes[input].shape;
+            if (kind === 'softmax' && shape.length < 3) {
+                // Explicit HWC keeps the last logical axis in GPU channels, including vectors.
+                const aligned = [...Array(3 - shape.length).fill(1), ...shape];
+                const operand = nodes[input];
+                nodes.push(operand.kind === 'constant'
+                    ? { kind: 'constant', values: operand.values, shape: aligned }
+                    : { kind: 'reshape', input, shape: aligned });
+                nodes.push({ kind, input: nodes.length - 1, shape: aligned });
+                node = { kind: 'reshape', input: nodes.length - 1, shape };
+            } else node = { kind, input, shape };
         } else if (isApplicationExpression(expression) && expression.arguments.length === 1
             && isNameExpression(expression.arguments[0]) && expression.arguments[0].name === 'linear'
             && isApplicationExpression(expression.head) && expression.head.arguments.length === 1) {
-            if (precision !== 'f32') return fail('RAM linear currently requires .f32', output);
+            if (precision !== 'f32') return fail('RAM linear currently requires .f32', current);
             const left = lower(expression.head.head), right = lower(expression.head.arguments[0]);
             const x = nodes[left], w = nodes[right];
             if (x.shape.length !== 2 || w.shape.length !== 2 || x.shape[1] !== w.shape[0])
-                return fail('RAM linear expects X[M,K] and W[K,N]', output);
-            if (w.kind !== 'constant') return fail('RAM linear requires baked weights', output);
+                return fail('RAM linear expects X[M,K] and W[K,N]', current);
+            if (w.kind !== 'constant') return fail('RAM linear requires baked weights', current);
             const shape = [x.shape[0], w.shape[1]];
-            validShape(shape, output);
+            validShape(shape, current);
             node = { kind: 'linear', left, right, shape };
         } else if (isBinaryExpression(expression) && (expression.operator === '+' || expression.operator === '*')) {
-            if (precision !== 'f32') return fail('RAM arithmetic currently requires .f32', output);
+            if (precision !== 'f32') return fail('RAM arithmetic currently requires .f32', current);
             const left = lower(expression.left), right = lower(expression.right);
             const a = nodes[left].shape, b = nodes[right].shape;
             const rank = Math.max(a.length, b.length);
@@ -131,16 +145,16 @@ export function compileRam(source: string, id: string): RamModule {
                 const x = a[i - (rank - a.length)] ?? 1;
                 const y = b[i - (rank - b.length)] ?? 1;
                 if (x !== y && x !== 1 && y !== 1)
-                    fail('RAM arithmetic requires compatible trailing dimensions', output);
+                    fail('RAM arithmetic requires compatible trailing dimensions', current);
                 return Math.max(x, y);
             });
-            validShape(shape, output);
+            validShape(shape, current);
             // LiteRT maps rank-2 runtime tensors to BC, but matrix constants to WC.
             // Use explicit HWC shapes so both operands agree on spatial axes.
             const storageRank = Math.max(3, rank);
             const align = (input: number): number => {
                 if (nodes[input].kind === 'constant' && nodes[input].shape.length === 4 && nodes[input].shape[0] !== 1)
-                    fail('RAM arithmetic does not support baked constants varying along the batch axis of rank-4 tensors', output);
+                    fail('RAM arithmetic does not support baked constants varying along the batch axis of rank-4 tensors', current);
                 if (nodes[input].shape.length === storageRank) return input;
                 const aligned = [...Array(storageRank - nodes[input].shape.length).fill(1), ...nodes[input].shape];
                 const operand = nodes[input];
@@ -155,10 +169,20 @@ export function compileRam(source: string, id: string): RamModule {
                 nodes.push(node);
                 node = { kind: 'reshape', input: nodes.length - 1, shape };
             }
-        } else return fail('RAM supports tensor names, +, *, relu, and linear', output);
-        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', output);
+        } else return fail('RAM supports tensor names, +, *, relu, softmax, and linear', current);
+        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
         nodes.push(node); return nodes.length - 1;
     };
+    for (const statement of body.slice(1, -1)) {
+        current = statement;
+        if (isOptionStatement(statement)) {
+            declareWeight(statement);
+        } else if (isAssignmentStatement(statement) && statement.operator === '='
+            && !statement.deferred && !statement.accumulate) {
+            names.set(statement.name, lower(statement.value));
+        } else fail('RAM permits baked options and simple tensor assignments before return', statement);
+    }
+    current = output;
     if (!output.value) fail('RAM requires an output tensor', output);
     const result = lower(output.value!);
     if (nodes[result].kind === 'input' || nodes[result].kind === 'constant') fail('RAM output must contain a GPU operation', output);
