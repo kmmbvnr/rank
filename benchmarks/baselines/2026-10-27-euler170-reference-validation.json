@@ -1,0 +1,51 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 1,
+  "engine": "reference",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "compiler": {
+      "integer-loop-expressions.js": "055d88f49c306b16c47a4a6999e0b9e7ab0d3ff072b2339b4fc774ce5246543a",
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+    },
+    "final": {
+      "integer-loop-expressions.js": "055d88f49c306b16c47a4a6999e0b9e7ab0d3ff072b2339b4fc774ce5246543a",
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "final",
+      "executeMs": 72030.064583,
+      "peakRssMiB": 444.625,
+      "sourceHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "mainHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 93568.326,
+      "peakRssMiB": 449.609375,
+      "sourceHash": "d367f635e5ac5904a50f776d290fd6e6716e07fc2f9d8095fe8696e882287b90",
+      "mainHash": "80d199f23fcfeba839ebb6500da1f06e40eb6763c1aa4dd3424025e6d7d0d9d1",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 72277.032584
+        },
+        {
+          "name": "one to nine digits",
+          "passed": true,
+          "durationMs": 21144.85475
+        }
+      ]
+    }
+  ]
+}

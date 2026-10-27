@@ -49,7 +49,9 @@ describe.each([false, true])('Euler 170 (compilation=%s)', compilation => {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
             runtime.execute(source.replace('Digs = 9 to Low by -1 array', `Digs = array ${digits.join(' ')}`));
-            expect(runtime.variables.get('Answer')).toBe(oracle(digits));
+            const expected = oracle(digits);
+            if (['987421', '754321', '976531'].includes(digits.join(''))) expect(expected).toBeGreaterThan(0n);
+            expect(runtime.variables.get('Answer')).toBe(expected);
         } finally { runtime.dispose(); }
     });
 });

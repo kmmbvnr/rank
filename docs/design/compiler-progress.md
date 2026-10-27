@@ -2517,3 +2517,24 @@ native storage/methods and data counts before borrowing key inputs; large-counte
 small-query cases retain ordinary lookup. Inspection and demand budgets remain
 active. The [Euler 166 report](../../benchmarks/euler166-criss-cross-results.md)
 separates numeric storage, consumer compilation and demo symmetry.
+
+## Small conditional-loop scratch buffers (Euler 170, #447)
+
+The private Number backend can now enter a condition loop with array stores when
+its destinations contain at most 64 cells in total. This bounds copying per entry;
+larger destinations retain direct exact stores. Existing ownership, alias,
+inspection, polling, binding and replay guards still apply. Private stores are
+published on success or ordinary error; overflow discards the attempt and replays
+from the original inputs.
+
+Number loops also lower `bor`, `bit` and `shl` directly. Bitwise operands must fit
+signed Int32. `bit` additionally requires a nonnegative value; shift positions
+must be between 0 and 30. Left shifts use checked multiplication, avoiding JS
+Int32 truncation. Unsupported domains replay the ordinary exact implementation,
+including its errors. Each region still checks the current builtin binding.
+
+Euler 170 now computes the common divisor while constructing product blocks and
+stops when it reaches one, when a block is invalid, or when factor digits repeat.
+The default input and both fixture assertions are unchanged. See
+`benchmarks/euler170-pandigital-products-results.md` for separate compiler-only
+and algorithm measurements.
