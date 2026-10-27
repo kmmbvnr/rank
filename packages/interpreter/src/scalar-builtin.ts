@@ -1,3 +1,4 @@
+import { constructingTensorPlan, registerTensorScalarMap } from './tensor-map.js';
 import { arrayValues, derivedArray, readArrayItem } from './array-storage.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { registerArrayCopy } from './array-copy.js';
@@ -9,23 +10,24 @@ import type { NativeFunction, RankArray, RankValue } from './value.js';
 const operations = new WeakMap<NativeFunction, {
     call: NativeFunction['call']; scalar(value: RankValue): RankValue;
     batch?: (source: RankArray) => RankArray | undefined;
+    result?: 'real' | 'integer';
 }>();
 
 export function registerScalarBuiltin(fn: NativeFunction, operation: (value: RankValue) => RankValue,
-    batch?: (source: RankArray) => RankArray | undefined): NativeFunction {
-    operations.set(fn, { call: fn.call, scalar: operation, batch });
+    batch?: (source: RankArray) => RankArray | undefined, result?: 'real' | 'integer'): NativeFunction {
+    operations.set(fn, { call: fn.call, scalar: operation, batch, result });
     return fn;
 }
 
-/** A proved pure scalar body over completed storage. Each observation owns its
- * prepared reader; neither indexed reads nor full traversals retain results. */
+/** A proved pure scalar body over storage or a native numeric recipe. Each
+ * observation owns its readers; indexed reads and traversals retain no results. */
 export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
     frameAxes: readonly number[]): RankArray | undefined {
     const registered = operations.get(fn);
     if (!registered || registered.call !== fn.call || inspectionEnabled()
         || frameAxes.length !== source.shape.length
         || !frameAxes.every((axis, index) => axis === index)
-        || !prepareStoredScalarView(source, true)) return undefined;
+        || !prepareStoredScalarView(source, true) && !(registered.result && constructingTensorPlan(source))) return undefined;
     const operation = registered.scalar;
     const shape = [...source.shape];
     const size = shape.reduce((n, dimension) => n * dimension, 1);
@@ -49,5 +51,6 @@ export function scalarBuiltinArray(source: RankArray, fn: NativeFunction,
         }
     });
     if (registered.batch) registerArrayCopy(result, () => registered.batch!(source));
-    return result;
+    return registered.result ? registerTensorScalarMap(result, source, operation, registered.result,
+        () => registered.call === fn.call) : result;
 }

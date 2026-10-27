@@ -17,6 +17,21 @@ interface MapRecipe {
     readonly operands: readonly RankValue[];
 }
 const maps = new WeakMap<RankArray, MapRecipe>();
+const scalarMaps = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
+    source: RankArray; call(cell: RankValue): RankValue; result: 'real' | 'integer'; valid(): boolean }>();
+
+/** Checked native scalar bodies are captured at construction, like their readers.
+ * This records a recipe only; it neither reads cells nor retains results. */
+export function registerTensorScalarMap(value: RankArray, source: RankArray, call: (cell: RankValue) => RankValue,
+    result: 'real' | 'integer', valid: () => boolean): RankArray {
+    const scope = active ?? mapScope(source);
+    if (scope?.enabled()) {
+        scalarMaps.set(value, { reader: value.itemAt, shape: [...value.shape], source, call, result, valid });
+        owners.set(value, scope);
+    }
+    return value;
+}
+
 const concats = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; operands: readonly RankArray[]; axis: number }>();
 const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
@@ -192,6 +207,18 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
                 && stored.kinds.every((kind): kind is CompiledAtomType => kind === 'integer' || kind === 'real' || kind === 'boolean')) {
                 guardArray(value);
                 return typed({ kind: 'input', value }, stored.kinds);
+            }
+            const scalar = scalarMaps.get(value);
+            if (scalar && scalar.reader === value.itemAt && scalar.shape.length === value.shape.length
+                && scalar.shape.every((n, axis) => n === value.shape[axis]) && scalar.valid()) {
+                const source = lower(scalar.source);
+                if (!source || !domains.get(source)!.every(type => type === 'integer' || type === 'real')) return undefined;
+                guardArray(value);
+                guards.push(scalar.valid);
+                transformed = true;
+                const node = typed({ kind: 'call', source, validate: scalar.call }, [scalar.result]);
+                const validate = arrayCellValidator(value);
+                return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));
             }
             const concat = concats.get(value);
             if (concat && concat.reader === value.itemAt && concat.shape.length === value.shape.length

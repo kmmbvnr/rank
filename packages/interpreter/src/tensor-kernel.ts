@@ -1,10 +1,11 @@
+import { RankError } from './errors.js';
 import { BooleanCells } from './boolean-cells.js';
 import { ownedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
 import { applicationForm } from '@arrrank/language';
-import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
+import { checkpoint, interruptsEnabled, privateLoopPolling, InterruptedError } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { compilerRejection } from './compiler-rejection.js';
 import {
@@ -29,6 +30,7 @@ const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 
 export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
+    | { kind: 'call'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
     | { kind: 'binary'; op: string; native?: Bitwise | 'min' | 'max'; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
@@ -303,9 +305,17 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
         node.kind === 'select' && node.selector.kind === 'input' ? [node.selector] : []));
     let cachedKey: string | undefined;
-    const checkedNodes = [...domains.keys()].filter(node => node.kind === 'check');
+    const checkedNodes = [...domains.keys()].filter(node => node.kind === 'check' || node.kind === 'call');
     const checks = checkedNodes.map(node => node.validate);
     const checkSlots = new Map<TensorNode, number>(checkedNodes.map((node, index) => [node, index]));
+    const hasCalls = checkedNodes.some(node => node.kind === 'call');
+    function invoke(run: KernelRun, ...args: Parameters<KernelRun>): KernelResult {
+        try { return run(...args); }
+        catch (error) {
+            if (hasCalls && error instanceof RankError && !(error instanceof InterruptedError)) return recordFallback('tensor:scalar-domain');
+            throw error;
+        }
+    }
     const viewNodes = [...domains.keys()].filter(node => node.kind === 'view');
     const routes = viewNodes.map(node => node.offset);
     const routeSlots = new Map<TensorNode, number>(viewNodes.map((node, index) => [node, index]));
@@ -381,7 +391,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     layout = selected;
                     generated = selected.source;
                     if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-                    const result = selected.execute(data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, range?.start, visit);
+                    const result = invoke(selected.execute, data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, range?.start, visit);
                     return terminal === 'copy' && !visit && result !== undefined
                         ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape) : result as RankValue | undefined;
                 }
@@ -434,14 +444,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     if (view.validate) (validations ??= []).push(view.validate);
                     result = { shape: view.shape, view, boolean: typeof view.items[view.offset] === 'boolean' };
                 }
-            } else if (node.kind === 'check' || node.kind === 'view') {
+            } else if (node.kind === 'check' || node.kind === 'call' || node.kind === 'view') {
                 const source = bind(node.source);
                 if (!source?.shape || source.filter || source.progression) return undefined;
                 if (node.kind === 'view' && !Number.isSafeInteger(source.shape.reduce((size, n) => size * n, 1))) return undefined;
                 const shape = node.kind === 'view' ? node.shape : source.shape;
                 if (!shape.every(n => Number.isSafeInteger(n) && n >= 0)
                     || !Number.isSafeInteger(shape.reduce((size, n) => size * n, 1))) return undefined;
-                result = { shape, boolean: source.boolean };
+                result = { shape, boolean: node.kind === 'call' ? false : source.boolean };
             } else if (node.kind === 'slice') {
                 const a = bind(node.source), b = bind(node.count);
                 if (!a?.view || !a.shape?.length || typeof b?.scalar !== 'bigint' || b.scalar < 0n) return undefined;
@@ -613,7 +623,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (filtered.has(node)) return filtered.get(node)!;
             let value = bound.get(node)?.filter ?? false;
             if (node.kind === 'unary') value ||= domain(node.operand);
-            if (node.kind === 'check' || node.kind === 'view') value ||= domain(node.source);
+            if (node.kind === 'check' || node.kind === 'call' || node.kind === 'view') value ||= domain(node.source);
             if (node.kind === 'reshape') {
                 if (domain(node.source)) throw false;
             }
@@ -742,7 +752,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         start += length;
                     }
                 }
-                else if (node.kind === 'check') {
+                else if (node.kind === 'check' || node.kind === 'call') {
                     const source = child(node.source);
                     lines.push(`const ${name} = checks[${checkSlots.get(node)}](${source}, ${at});`);
                 }
@@ -882,7 +892,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-        const result = execute!(data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start, visit);
+        const result = invoke(execute!, data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start, visit);
         if (terminal === 'copy' && !visit && result !== undefined) {
             return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells,
                 scanning ? [size + (seeded ? 1 : 0)] : compact ? [(result as RankValue[]).length] : output.shape);

@@ -198,7 +198,7 @@ function unaryMath(
         return operation(value);
     };
     return scalarNative(name, item => item === MISSING ? MISSING : checked(numericReal(item, name)),
-        source => mapStoredUnary(source, 'number', checked));
+        source => mapStoredUnary(source, 'number', checked), 'real');
 }
 
 function mapBinaryValue(
@@ -713,7 +713,7 @@ function integerBound(name: 'floor' | 'ceil', operation: (value: number) => numb
     };
     return registerScalarBuiltin(native(name, name === 'floor' ? [1, 2] : 1, args => args.length === 2
         ? expectMultiset(args[0]).floor(args[1]) : apply(args[0])), apply,
-        source => mapStoredUnary(source, 'number', checked, 'integer'));
+        source => mapStoredUnary(source, 'number', checked, 'integer'), 'integer');
 }
 
 function radixBases(value: RankValue): bigint[] {

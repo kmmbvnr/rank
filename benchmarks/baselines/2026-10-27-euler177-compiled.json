@@ -1,0 +1,267 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "engine": "compiled",
+  "diagnostics": false,
+  "measurements": "serial fresh processes; parse and complete execution; peak RSS before validation",
+  "runtimeHashes": {
+    "before": {
+      "tensor-map.js": "dea100d03d9276b01b295dff171bab21bef5f7454a1479cb5946fd2e78dcd00a",
+      "tensor-kernel.js": "22b3c1c0603dc2e4e63b7f320edd9a34d35f8423626d493b494606ebafa40710",
+      "scalar-builtin.js": "98f857616c4aaf471f70ebdfbf9e62ffafdaca8e83f0155df230a14a15565d7b",
+      "modules/numbers.js": "4ecde281ee45c5715273ee2311130dafb146a83f7629848b180af7d2e8f2df20",
+      "modules/shared.js": "0954879f0d06a9e342b9c82c22febf1691f092d6bed10ff146425340d2e76e4f"
+    },
+    "compiler": {
+      "tensor-map.js": "eb6f338bcbd2af714aa5253d6fb8d829174ca11bf943c0c4ac397a48fb8d12df",
+      "tensor-kernel.js": "1296fc619db6114d3ab57dbe9c0056979aed796d6f1250efde58ba89a16f15b6",
+      "scalar-builtin.js": "cf849428258e313d39e6a5ecae8021870954518227a1d19556726d977b2ddcba",
+      "modules/numbers.js": "90d23dfa3691279389dbcbb45f1d7e82d0ab5184cf53ec050ae56953d494324b",
+      "modules/shared.js": "bd1a9699df182b5eee80048a39ad3faeec03d3e1edf0a0e6b4af8220b032920b"
+    },
+    "final": {
+      "tensor-map.js": "eb6f338bcbd2af714aa5253d6fb8d829174ca11bf943c0c4ac397a48fb8d12df",
+      "tensor-kernel.js": "1296fc619db6114d3ab57dbe9c0056979aed796d6f1250efde58ba89a16f15b6",
+      "scalar-builtin.js": "cf849428258e313d39e6a5ecae8021870954518227a1d19556726d977b2ddcba",
+      "modules/numbers.js": "90d23dfa3691279389dbcbb45f1d7e82d0ab5184cf53ec050ae56953d494324b",
+      "modules/shared.js": "bd1a9699df182b5eee80048a39ad3faeec03d3e1edf0a0e6b4af8220b032920b"
+    }
+  },
+  "results": [
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "before",
+      "executeMs": 3212.525042,
+      "peakRssMiB": 495.390625,
+      "sourceHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 3287.14375,
+      "peakRssMiB": 507.03125,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3136.316625
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 2698.684958,
+      "peakRssMiB": 666.4375,
+      "sourceHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 2765.107292,
+      "peakRssMiB": 649.578125,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 2613.140209
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "case": "main",
+      "version": "final",
+      "executeMs": 1357.1631670000002,
+      "peakRssMiB": 457.296875,
+      "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 1369.416834,
+      "peakRssMiB": 436.6875,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1222.8593329999999
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 1369.446709,
+      "peakRssMiB": 436.78125,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1226.0711250000002
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "final",
+      "executeMs": 1366.235291,
+      "peakRssMiB": 456.328125,
+      "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 2812.206041,
+      "peakRssMiB": 671.609375,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 2654.694208
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 2844.489667,
+      "peakRssMiB": 667.390625,
+      "sourceHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 3341.064917,
+      "peakRssMiB": 499.921875,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3187.007125
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "case": "main",
+      "version": "before",
+      "executeMs": 3332.2726660000003,
+      "peakRssMiB": 503.8125,
+      "sourceHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "before",
+      "executeMs": 3340.299875,
+      "peakRssMiB": 497.96875,
+      "sourceHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "before",
+      "executeMs": 3311.23675,
+      "peakRssMiB": 483.140625,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 3157.380083
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "compiler",
+      "executeMs": 2813.651875,
+      "peakRssMiB": 675.90625,
+      "sourceHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "compiler",
+      "executeMs": 2864.2313329999997,
+      "peakRssMiB": 642.796875,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "28ed73f730d349fa63a8377e073a1edd93909f449ad6d1470a40e266af736421",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 2708.914583
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "case": "main",
+      "version": "final",
+      "executeMs": 1392.031541,
+      "peakRssMiB": 432.921875,
+      "sourceHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "case": "fixture",
+      "version": "final",
+      "executeMs": 1398.912417,
+      "peakRssMiB": 437.265625,
+      "sourceHash": "26c6a7cc40349c338819de0a06b4dd3d9720554fde0184e04a4f8aab025cbb47",
+      "mainHash": "81ebd99a6de13857714f6df3932effb76011eecca08cf0dfb5a94e7c211baf59",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "durationMs": 1248.766042
+        }
+      ]
+    }
+  ]
+}

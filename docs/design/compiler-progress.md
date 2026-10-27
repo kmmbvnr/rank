@@ -2586,3 +2586,20 @@ stops when it reaches one, when a block is invalid, or when factor digits repeat
 The default input and both fixture assertions are unchanged. See
 `benchmarks/euler170-pandigital-products-results.md` for separate compiler-only
 and algorithm measurements.
+
+## Checked native numeric tensor calls (Euler 177, #447)
+
+Native tensor recipes can now contain checked unary numeric builtin bodies,
+including `log`, trigonometric functions, `exp`, `floor` and `ceil`. Native object
+and implementation identity supply the capability; user result annotations do
+not. Calls compose with native arithmetic and views at an existing completion or
+slice-write consumer. The emitter invokes the captured scalar body per cell,
+without ranked-result frames or completed buffers for each intermediate stage.
+
+Ordinary `=` remains a completion boundary. Slice writes still complete the RHS
+privately before changing the target, and every observation computes again.
+Unsupported readers/domains, changed implementations and observable execution
+retain ordinary evaluation. Numeric failures replay for ordinary source locations;
+interruptions propagate. Euler 177 also uses one mirrored key table and one sort.
+The [benchmark report](../../benchmarks/euler177-quadrilaterals-results.md)
+separates runtime and algorithm gains and records the runtime-only RSS increase.
