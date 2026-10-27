@@ -59,7 +59,8 @@ describe('RAM ReLU MVP', () => {
             + 'option Scale .f32 shape 1 4 = array shape 1 4 fill 2.0\n'
             + 'option Bias .f32 shape 1 4 = array shape 1 4 fill 0.5\nreturn ((X * Scale) + Bias) relu';
         const module = compileRam(source, 'affine.ram');
-        expect(module.graph.nodes.map(node => node.kind)).toEqual(['input', 'constant', 'constant', 'mul', 'add', 'relu']);
+        expect(module.graph.nodes.filter(node => ['mul', 'add', 'relu'].includes(node.kind)).map(node => node.kind)).toEqual(['mul', 'add', 'relu']);
+        expect(module.graph.outputShape).toEqual([1, 4]);
         expect(module.graph.model).not.toEqual(compileRam(source.replace('fill 2.0', 'fill 3.0'), 'affine.ram').graph.model);
         for (const invalid of [source.replace('option Bias .f32 shape 1 4', 'option Bias .f32 shape 4'),
             source.replace('fill 0.5', 'fill 1'), source.replace('fill 0.5', 'fill 1e39'),
@@ -99,6 +100,23 @@ describe('RAM ReLU MVP', () => {
         expect(graph.outputShape).toEqual([2, 4]);
         expect(graph.nodes[1]).toMatchObject({ values: [1, 2, 3, 4, 5, 6] });
         expect(() => compileRam(source.replace('shape 2 4 fill 1.0', 'shape 2 3 fill 1.0'), 'dense.ram')).toThrow();
+    });
+    it('broadcasts trailing axes and singleton dimensions in either operand order', () => {
+        for (const [a, b, expected] of [
+            [[2, 3], [3], [2, 3]], [[3], [2, 3], [2, 3]],
+            [[2, 1, 3], [1, 4, 1], [2, 4, 3]], [[2, 3, 4, 5], [5], [2, 3, 4, 5]],
+        ]) for (const op of ['+', '*']) {
+            const source = `use ml\noption X .f32 shape ${a.join(' ')}\n`
+                + `option B .f32 shape ${b.join(' ')} = array shape ${b.join(' ')} fill 0.5\nreturn X ${op} B`;
+            expect(compileRam(source, 'broadcast.ram').graph.outputShape).toEqual(expected);
+        }
+    });
+    it('rejects incompatible broadcasting and oversized broadcast results', () => {
+        for (const [a, b] of [['2 3', '2'], ['1024 1', '1 1025'], ['2 3 4 5', '2 1 1 5']]) {
+            const source = `use ml\noption X .f32 shape ${a}\n`
+                + `option B .f32 shape ${b} = array shape ${b} fill 0.5\nreturn X + B`;
+            expect(() => compileRam(source, 'broadcast.ram')).toThrow();
+        }
     });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
         expect(ramRound(1 + 2 ** -11, 'f16')).toBe(1);

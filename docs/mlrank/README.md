@@ -2,7 +2,7 @@
 
 ## Implemented Hello World subset
 
-The prototype supports one fixed-shape real tensor input, ReLU, and same-shape
+The prototype supports one fixed-shape real tensor input, ReLU, and broadcast
 `.f32` expressions using `+`, `*`, and `linear` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
 See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
@@ -10,8 +10,14 @@ See [the ReLU example](../../demos/mlrank/main.ra) and
 Baked constants accept real-valued `array shape ... fill` expressions or
 array literals with explicit shapes (or one-dimensional literals).
 `X W linear` accepts `X[M,K]` and baked `W[K,N]`, producing `[M,N]`.
-Each tensor has its own statically checked shape; `+` and `*` require equal operand shapes. Broadcasting,
-weight overrides, assignments and multiple runtime inputs remain unsupported.
+Each tensor has its own statically checked shape. `+` and `*` align trailing axes;
+matching dimensions or dimensions of size 1 broadcast, as in ordinary Rank arithmetic.
+For example, `[M,N] + [N]` adds a bias to each row. Explicit `rank L R`, scalar
+literals, weight overrides, assignments and multiple runtime inputs remain unsupported.
+Baked arithmetic constants with rank 4 must have batch dimension 1; other batch
+sizes are rejected because the GPU backend does not preserve those constants correctly.
+The compiler aligns operands using static reshapes (constant reshapes are baked),
+with explicit spatial axes for matrices to keep LiteRT tensor layouts consistent.
 Changing source constants recompiles the model on the next call.
 The rest of this document describes proposed extensions.
 
@@ -24,6 +30,7 @@ npm run rank -- demos/mlrank/main.ra
 node scripts/mlrank-check.mjs
 node scripts/mlrank-affine-check.mjs
 node scripts/mlrank-linear-check.mjs
+node scripts/mlrank-broadcast-check.mjs
 ```
 
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
@@ -35,7 +42,7 @@ The helper exits with the host process. GPU checks report cold preparation,
 warm preparation, execution and host round-trip time separately.
 
 The Android app includes LiteRT. Open **GPU Hello World** in the command menu,
-then **Run program**. **GPU Linear** opens the matrix multiplication example. The upper tabs contain the main program and its attached
+then **Run program**. **GPU Linear** opens the matrix multiplication and bias example. The upper tabs contain the main program and its attached
 `hello.ram`. **+** creates another RAM module, inserts its `use "name.ram"` at the start
 of Program and appends `X name` at the end. Prepare `X` with the declared
 shape before running. Creating a module edits source without executing it.

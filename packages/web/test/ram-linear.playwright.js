@@ -26,6 +26,6 @@ async page => {
     await page.getByRole('button', { name: 'GPU Linear', exact: true }).click();
     await page.getByRole('button', { name: 'Terminal commands' }).click();
     await page.getByRole('button', { name: 'Run program', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('#screen').textContent.replace(/\s/g, '').includes('38445056'));
+    await page.waitForFunction(() => document.querySelector('#screen').textContent.replace(/\s/g, '').includes('38.54351.554'));
     return checks;
 }

@@ -125,11 +125,38 @@ export function compileRam(source: string, id: string): RamModule {
         } else if (isBinaryExpression(expression) && (expression.operator === '+' || expression.operator === '*')) {
             if (precision !== 'f32') return fail('RAM arithmetic currently requires .f32', output);
             const left = lower(expression.left), right = lower(expression.right);
-            const shape = nodes[left].shape;
-            if (shape.length !== nodes[right].shape.length || shape.some((n, i) => n !== nodes[right].shape[i]))
-                return fail('RAM arithmetic requires equal shapes; broadcasting is not supported', output);
-            node = { kind: expression.operator === '+' ? 'add' : 'mul', left, right, shape };
+            const a = nodes[left].shape, b = nodes[right].shape;
+            const rank = Math.max(a.length, b.length);
+            const shape = Array.from({ length: rank }, (_, i) => {
+                const x = a[i - (rank - a.length)] ?? 1;
+                const y = b[i - (rank - b.length)] ?? 1;
+                if (x !== y && x !== 1 && y !== 1)
+                    fail('RAM arithmetic requires compatible trailing dimensions', output);
+                return Math.max(x, y);
+            });
+            validShape(shape, output);
+            // LiteRT maps rank-2 runtime tensors to BC, but matrix constants to WC.
+            // Use explicit HWC shapes so both operands agree on spatial axes.
+            const storageRank = Math.max(3, rank);
+            const align = (input: number): number => {
+                if (nodes[input].kind === 'constant' && nodes[input].shape.length === 4 && nodes[input].shape[0] !== 1)
+                    fail('RAM arithmetic does not support baked constants varying along the batch axis of rank-4 tensors', output);
+                if (nodes[input].shape.length === storageRank) return input;
+                const aligned = [...Array(storageRank - nodes[input].shape.length).fill(1), ...nodes[input].shape];
+                const operand = nodes[input];
+                nodes.push(operand.kind === 'constant'
+                    ? { kind: 'constant', values: operand.values, shape: aligned }
+                    : { kind: 'reshape', input, shape: aligned });
+                return nodes.length - 1;
+            };
+            node = { kind: expression.operator === '+' ? 'add' : 'mul', left: align(left), right: align(right),
+                shape: [...Array(storageRank - rank).fill(1), ...shape] };
+            if (storageRank !== rank) {
+                nodes.push(node);
+                node = { kind: 'reshape', input: nodes.length - 1, shape };
+            }
         } else return fail('RAM supports tensor names, +, *, relu, and linear', output);
+        if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', output);
         nodes.push(node); return nodes.length - 1;
     };
     if (!output.value) fail('RAM requires an output tensor', output);
