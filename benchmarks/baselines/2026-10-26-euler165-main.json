@@ -1,0 +1,141 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 5,
+  "runtimeHashes": {
+    "before": {
+      "eval/expressions.js": "12a62dc6d485bd256b29a90ff89eb19b275ff91e85cd189f5356f11881db56c6",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "value-selection.js": "ec1d29dd1877092b19179e842bc74ba293e85837d8b270d592647138f7549aa3",
+      "numeric-collections.js": "0c251361c701a941147e8fd2f608723b31e5c7ed5a9d2cc10d08afaec68a0ef5",
+      "sequence.js": "ab3b4f84965ebc344e30667bdd0de5989c736b1a5c86bd9589041876b4065399"
+    },
+    "fixtureOnly": {
+      "eval/expressions.js": "12a62dc6d485bd256b29a90ff89eb19b275ff91e85cd189f5356f11881db56c6",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "value-selection.js": "ec1d29dd1877092b19179e842bc74ba293e85837d8b270d592647138f7549aa3",
+      "numeric-collections.js": "0c251361c701a941147e8fd2f608723b31e5c7ed5a9d2cc10d08afaec68a0ef5",
+      "sequence.js": "ab3b4f84965ebc344e30667bdd0de5989c736b1a5c86bd9589041876b4065399"
+    },
+    "candidate": {
+      "eval/expressions.js": "6eee1aab31795f16a9f124ec4ec956c80a4b3f44592fc6d3b2a4c3f792f3c5e3",
+      "operators.js": "6ad330849cbfba169623c933e49897a9888607ad84819424007d4f971480f208",
+      "value-selection.js": "9671743519ac9127e8d469152e8a1888fbd890ee000c547de5e8f70af2c38b1c",
+      "numeric-collections.js": "55001f98826184d8bc5cdb0f7f132125a644b78e78c72e7620c4daa14a37a2a4",
+      "sequence.js": "0a66649373fc0930093171eed54eef85d06e9c81b92a06486b82207fe76ad414"
+    }
+  },
+  "measurements": "serial fresh processes; alternating order; parse and execution; RSS before assertions; diagnostics separate",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4094.5669579999994,
+      "peakRssMiB": 845.9375,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3412.895833,
+      "peakRssMiB": 625.671875,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3386.471875,
+      "peakRssMiB": 625.984375,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4276.439832999999,
+      "peakRssMiB": 865.15625,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4138.690125,
+      "peakRssMiB": 846.296875,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3382.054125,
+      "peakRssMiB": 627.46875,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 3,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3303.7242079999996,
+      "peakRssMiB": 626.140625,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 3,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4137.681165999999,
+      "peakRssMiB": 866.03125,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 4,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4095.221792,
+      "peakRssMiB": 846.453125,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 4,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3360.237292,
+      "peakRssMiB": 626.109375,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    }
+  ]
+}

@@ -217,6 +217,7 @@ export class ExpressionEvaluator {
         if (isNameExpression(expression)) {
             if (nameNeedsExecution(expression)) return undefined;
             const name = expression.name;
+            const unqualified = !name.includes('.');
             let layout: Map<string, number> | undefined;
             let slot: number | undefined;
             return () => {
@@ -233,7 +234,11 @@ export class ExpressionEvaluator {
                         }
                     }
                 }
-                return this.directNameValue(this.context.resolve(name));
+                // Ordinary data names need no module-alias or builtin resolution.
+                // Read live bindings: hosts, closures and block scopes can replace
+                // them between evaluations of this prepared syntax node.
+                const value = unqualified ? this.context.bindings.find(name) : undefined;
+                return this.directNameValue(value ?? this.context.resolve(name));
             };
         }
         if (isParenthesizedExpression(expression)) return this.compileDirect(expression.value);
@@ -270,7 +275,12 @@ export class ExpressionEvaluator {
                 };
             }
             if (left && right && (!expression.step || step)) {
-                return () => this.context.operators.evaluateBinary(expression.operator, left(), right(), step?.());
+                const operator = expression.operator;
+                if (!step) {
+                    const binary = this.context.operators.prepareBinary(operator);
+                    return () => binary(left(), right());
+                }
+                return () => this.context.operators.evaluateBinary(operator, left(), right(), step?.());
             }
         }
         return undefined;

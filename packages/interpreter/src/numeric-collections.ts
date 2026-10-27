@@ -86,8 +86,8 @@ export function numericSort(value: RankValue, descending: boolean, mode: 'values
     return { indexes: typedArray(indexes), values: mode === 'indexed' ? resultValues(values, order) : undefined };
 }
 
-/** Stable three-pass radix permutation for signed Int32 keys. The wider exact
- * buffers keep the native comparator fallback; keys never truncate to fit. */
+/** Stable three-pass radix permutation for signed Int32 keys. Wider integers
+ * continue through the Int64 path; keys never truncate to fit this one. */
 function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
     const keys = new Uint32Array(values.length);
     for (let index = 0; index < keys.length; index++) {
@@ -116,13 +116,46 @@ function radixOrder(values: NumericBuffer, descending: boolean): Uint32Array | u
 }
 
 function numericOrder(values: NumericBuffer, descending: boolean): Uint32Array {
-    const radix = radixOrder(values, descending);
+    const radix = radixOrder(values, descending) ?? wideIntegerOrder(values, descending);
     if (radix) return radix;
     const order = Uint32Array.from({ length: values.length }, (_, index) => index);
     order.sort((a, b) => {
         const x = values[a], y = values[b];
         return (x < y ? (descending ? 1 : -1) : x > y ? (descending ? -1 : 1) : 0) || a - b;
     });
+    return order;
+}
+
+const lowWord = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1 ? 0 : 1;
+
+/** Stable signed Int64 permutation, including values beyond Number precision.
+ * Read the two words directly; conversion through Number would merge nearby
+ * large integers. Each word takes three stable 11-bit counting passes. */
+function wideIntegerOrder(values: NumericBuffer, descending: boolean): Uint32Array | undefined {
+    if (!(values instanceof BigInt64Array)) return undefined;
+    const words = new Uint32Array(values.buffer, values.byteOffset, values.length * 2);
+    let order = new Uint32Array(values.length), scratch = new Uint32Array(values.length);
+    for (let index = 0; index < order.length; index++) order[index] = index;
+    const counts = new Uint32Array(2048);
+    for (const word of [lowWord, 1 - lowWord]) {
+        const sign = word === lowWord ? 0 : 0x80000000;
+        const flip = descending ? ~sign : sign;
+        for (let shift = 0; shift < 32; shift += 11) {
+            counts.fill(0);
+            for (let index = 0; index < order.length; index++) {
+                counts[((words[2 * order[index] + word] ^ flip) >>> shift) & 2047]++;
+            }
+            let offset = 0;
+            for (let bucket = 0; bucket < counts.length; bucket++) {
+                const count = counts[bucket]; counts[bucket] = offset; offset += count;
+            }
+            for (let index = 0; index < order.length; index++) {
+                const position = order[index];
+                scratch[counts[((words[2 * position + word] ^ flip) >>> shift) & 2047]++] = position;
+            }
+            [order, scratch] = [scratch, order];
+        }
+    }
     return order;
 }
 

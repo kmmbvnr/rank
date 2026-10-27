@@ -1,0 +1,883 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "samples": 3,
+  "runtimeHashes": {
+    "before": {
+      "eval/expressions.js": "12a62dc6d485bd256b29a90ff89eb19b275ff91e85cd189f5356f11881db56c6",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "value-selection.js": "ec1d29dd1877092b19179e842bc74ba293e85837d8b270d592647138f7549aa3",
+      "numeric-collections.js": "0c251361c701a941147e8fd2f608723b31e5c7ed5a9d2cc10d08afaec68a0ef5",
+      "sequence.js": "ab3b4f84965ebc344e30667bdd0de5989c736b1a5c86bd9589041876b4065399"
+    },
+    "fixtureOnly": {
+      "eval/expressions.js": "12a62dc6d485bd256b29a90ff89eb19b275ff91e85cd189f5356f11881db56c6",
+      "operators.js": "f7002da2a6908fb47e48973265d4208b93c70e13ad0b307f3b081d4e300de343",
+      "value-selection.js": "ec1d29dd1877092b19179e842bc74ba293e85837d8b270d592647138f7549aa3",
+      "numeric-collections.js": "0c251361c701a941147e8fd2f608723b31e5c7ed5a9d2cc10d08afaec68a0ef5",
+      "sequence.js": "ab3b4f84965ebc344e30667bdd0de5989c736b1a5c86bd9589041876b4065399"
+    },
+    "candidate": {
+      "eval/expressions.js": "6eee1aab31795f16a9f124ec4ec956c80a4b3f44592fc6d3b2a4c3f792f3c5e3",
+      "operators.js": "6ad330849cbfba169623c933e49897a9888607ad84819424007d4f971480f208",
+      "value-selection.js": "9671743519ac9127e8d469152e8a1888fbd890ee000c547de5e8f70af2c38b1c",
+      "numeric-collections.js": "55001f98826184d8bc5cdb0f7f132125a644b78e78c72e7620c4daa14a37a2a4",
+      "sequence.js": "0a66649373fc0930093171eed54eef85d06e9c81b92a06486b82207fe76ad414"
+    }
+  },
+  "measurements": "serial fresh processes; alternating order; parse and execution; RSS before assertions; diagnostics separate",
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 5146.403958,
+      "peakRssMiB": 458.015625,
+      "sourceHash": "847285bcedd3d314384c734959c757e58b822b842e94071d7be027cb846413da",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "11064"
+          ],
+          "durationMs": 502.076375
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 4514.860584
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "fixtureOnly",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 4411.564166,
+      "peakRssMiB": 271.90625,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 25.66816700000004
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 4249.758625
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 3873.4259589999997,
+      "peakRssMiB": 211.25,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 25.745290999999952
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 3686.914666
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 3799.4420840000002,
+      "peakRssMiB": 209.640625,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 25.21104200000002
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 3635.0867080000003
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "fixtureOnly",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 4377.630333,
+      "peakRssMiB": 272.328125,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 25.38233299999996
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 4212.547875
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 5146.080209,
+      "peakRssMiB": 469.3125,
+      "sourceHash": "847285bcedd3d314384c734959c757e58b822b842e94071d7be027cb846413da",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "11064"
+          ],
+          "durationMs": 510.95258299999995
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 4496.73375
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 5128.610041999999,
+      "peakRssMiB": 465.25,
+      "sourceHash": "847285bcedd3d314384c734959c757e58b822b842e94071d7be027cb846413da",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "11064"
+          ],
+          "durationMs": 503.57450000000006
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 4490.888125
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "fixtureOnly",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 4353.20125,
+      "peakRssMiB": 275.625,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 25.261541999999963
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 4185.798334
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "fixture",
+      "engine": "reference",
+      "executeMs": 3879.6815,
+      "peakRssMiB": 208.328125,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 25.374250000000018
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 3715.442792
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 1226.0235,
+      "peakRssMiB": 559.328125,
+      "sourceHash": "847285bcedd3d314384c734959c757e58b822b842e94071d7be027cb846413da",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "11064"
+          ],
+          "durationMs": 399.89970800000003
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 617.6501250000001
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "fixtureOnly",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 460.14533300000005,
+      "peakRssMiB": 306.984375,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 34.652375000000006
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 278.56229199999996
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 440.65975000000003,
+      "peakRssMiB": 270.453125,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 31.960666000000003
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 268.89541699999995
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 508.80787499999997,
+      "peakRssMiB": 267.859375,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 36.953209000000015
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 297.661333
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "fixtureOnly",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 447.121084,
+      "peakRssMiB": 329.546875,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 32.013417000000004
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 278.21804199999997
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 834.097083,
+      "peakRssMiB": 534.046875,
+      "sourceHash": "847285bcedd3d314384c734959c757e58b822b842e94071d7be027cb846413da",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "11064"
+          ],
+          "durationMs": 205.31691700000005
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 491.28737500000005
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 852.2643750000001,
+      "peakRssMiB": 499.75,
+      "sourceHash": "847285bcedd3d314384c734959c757e58b822b842e94071d7be027cb846413da",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "11064"
+          ],
+          "durationMs": 220.809417
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 493.40108299999997
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "fixtureOnly",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 446.11370800000003,
+      "peakRssMiB": 329.515625,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 32.9135
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 275.283042
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "fixture",
+      "engine": "compiled",
+      "executeMs": 444.059292,
+      "peakRssMiB": 270.734375,
+      "sourceHash": "af0a1fb33acf29bc7fffc4b9f20d10e5f33dfa99429689af5d065022bb3807f5",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": [
+        {
+          "name": "first segment from the statement",
+          "passed": true,
+          "output": [
+            "0"
+          ],
+          "durationMs": 32.56491699999998
+        },
+        {
+          "name": "smaller sets of segments",
+          "passed": true,
+          "output": [
+            "11064",
+            "113849"
+          ],
+          "durationMs": 275.78804199999996
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4198.701875,
+      "peakRssMiB": 867.625,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 6370.092375,
+      "peakRssMiB": 617.046875,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3352.107958,
+      "peakRssMiB": 625.5625,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4100.148542000001,
+      "peakRssMiB": 868.890625,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 4075.3666670000002,
+      "peakRssMiB": 868.3125,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "main",
+      "engine": "compiled",
+      "executeMs": 3300.145667,
+      "peakRssMiB": 625.78125,
+      "sourceHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "scalar",
+      "engine": "reference",
+      "executeMs": 143.139083,
+      "peakRssMiB": 168.65625,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "scalar",
+      "engine": "reference",
+      "executeMs": 139.81600000000003,
+      "peakRssMiB": 169.234375,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "scalar",
+      "engine": "reference",
+      "executeMs": 141.93508300000002,
+      "peakRssMiB": 176.078125,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "scalar",
+      "engine": "reference",
+      "executeMs": 144.8495,
+      "peakRssMiB": 168.78125,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "scalar",
+      "engine": "reference",
+      "executeMs": 141.119458,
+      "peakRssMiB": 168.453125,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "scalar",
+      "engine": "reference",
+      "executeMs": 142.77574999999996,
+      "peakRssMiB": 177.453125,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "scalar",
+      "engine": "compiled",
+      "executeMs": 98.354334,
+      "peakRssMiB": 169.5625,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "scalar",
+      "engine": "compiled",
+      "executeMs": 97.31787500000002,
+      "peakRssMiB": 166.28125,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "scalar",
+      "engine": "compiled",
+      "executeMs": 96.70124999999999,
+      "peakRssMiB": 165.890625,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "scalar",
+      "engine": "compiled",
+      "executeMs": 97.41258400000001,
+      "peakRssMiB": 166.640625,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "scalar",
+      "engine": "compiled",
+      "executeMs": 98.308708,
+      "peakRssMiB": 165.859375,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "scalar",
+      "engine": "compiled",
+      "executeMs": 95.52016600000002,
+      "peakRssMiB": 166.703125,
+      "sourceHash": "69de55caac26217273f4630b58c13ebced8abcad67371a0c6919ce68e67720e8",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "indexed",
+      "engine": "reference",
+      "executeMs": 190.88712499999997,
+      "peakRssMiB": 174.609375,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "indexed",
+      "engine": "reference",
+      "executeMs": 176.35600000000002,
+      "peakRssMiB": 170.484375,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "indexed",
+      "engine": "reference",
+      "executeMs": 176.58624999999998,
+      "peakRssMiB": 176.875,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "indexed",
+      "engine": "reference",
+      "executeMs": 183.37754099999998,
+      "peakRssMiB": 170.1875,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "indexed",
+      "engine": "reference",
+      "executeMs": 184.736833,
+      "peakRssMiB": 170.171875,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "indexed",
+      "engine": "reference",
+      "executeMs": 171.080167,
+      "peakRssMiB": 170.46875,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "case": "indexed",
+      "engine": "compiled",
+      "executeMs": 104.07679099999999,
+      "peakRssMiB": 173.984375,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 0,
+      "version": "candidate",
+      "case": "indexed",
+      "engine": "compiled",
+      "executeMs": 104.26654199999999,
+      "peakRssMiB": 170.109375,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "candidate",
+      "case": "indexed",
+      "engine": "compiled",
+      "executeMs": 101.140625,
+      "peakRssMiB": 166.515625,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "case": "indexed",
+      "engine": "compiled",
+      "executeMs": 101.78445900000003,
+      "peakRssMiB": 172.96875,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "case": "indexed",
+      "engine": "compiled",
+      "executeMs": 101.022708,
+      "peakRssMiB": 166.53125,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    },
+    {
+      "sample": 2,
+      "version": "candidate",
+      "case": "indexed",
+      "engine": "compiled",
+      "executeMs": 102.388709,
+      "peakRssMiB": 171.9375,
+      "sourceHash": "7096c9b9f0b42d21decc05d54b50f5d9093cacc9675ba712cb1c06f1a4dcb678",
+      "mainHash": "789e3cb32ca9c2e41c3f14a40c0b067fc26fc46bfc26bc8ecfb4aad5ee63da7e",
+      "tests": []
+    }
+  ]
+}

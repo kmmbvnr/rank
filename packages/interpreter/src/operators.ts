@@ -37,6 +37,22 @@ import {
     type IntrinsicRank, type NativeFunction, type RankArray, type RankSequence, type RankValue, type SequencePredicate,
 } from './value.js';
 
+const integerBinaryOperators = new Map<string, (left: bigint, right: bigint) => RankValue>([
+    ['+', (a, b) => a + b], ['-', (a, b) => a - b], ['*', (a, b) => a * b],
+    ['less', (a, b) => a < b], ['greater', (a, b) => a > b],
+    ['atleast', (a, b) => a >= b], ['atmost', (a, b) => a <= b],
+    ['equal', (a, b) => a === b], ['notequal', (a, b) => a !== b],
+    ['min', (a, b) => a < b ? a : b], ['max', (a, b) => a > b ? a : b],
+    ['mod', (a, b) => {
+        if (b === 0n) throw new RankError('division by zero');
+        return floorRemainder(a, b);
+    }],
+    ['//', (a, b) => {
+        if (b === 0n) throw new RankError('division by zero');
+        return floorDivide(a, b);
+    }],
+]);
+
 /**
  * What the operator words mean on concrete values: arithmetic, comparison,
  * logic, ranges, membership and the outer products. Operators never call a
@@ -190,6 +206,22 @@ export class Operators {
         throw new RankError(`operator ${operator} does not accept ${typeName(value)}`);
     }
 
+    /** Resolve the scalar operation once per syntax node. Live non-integer
+     * operands still take the full array/sequence/operator semantics. */
+    prepareBinary(operator: string): (left: RankValue, right: RankValue) => RankValue {
+        switch (operator) {
+            case '+': return (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a + b : this.evaluateBinary(operator, a, b);
+            case '-': return (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a - b : this.evaluateBinary(operator, a, b);
+            case '*': return (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a * b : this.evaluateBinary(operator, a, b);
+            case 'less': return (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a < b : this.evaluateBinary(operator, a, b);
+            case 'notequal': return (a, b) => typeof a === 'bigint' && typeof b === 'bigint' ? a !== b : this.evaluateBinary(operator, a, b);
+        }
+        const integer = integerBinaryOperators.get(operator);
+        return integer ? (left, right) => typeof left === 'bigint' && typeof right === 'bigint'
+            ? integer(left, right) : this.evaluateBinary(operator, left, right)
+            : (left, right) => this.evaluateBinary(operator, left, right);
+    }
+
     evaluateBinary(
         operator: string,
         left: RankValue,
@@ -245,28 +277,8 @@ export class Operators {
         // tests, a numeric coercion and a three-way ordering helper to reach
         // an answer the operands already determine.
         if (typeof left === 'bigint' && typeof right === 'bigint') {
-            switch (operator) {
-                case '+': return left + right;
-                case '-': return left - right;
-                case '*': return left * right;
-                case 'less': return left < right;
-                case 'greater': return left > right;
-                case 'atleast': return left >= right;
-                case 'atmost': return left <= right;
-                case 'equal': return left === right;
-                case 'notequal': return left !== right;
-                case 'min': return left < right ? left : right;
-                case 'max': return left > right ? left : right;
-                case 'mod': {
-                    if (right === 0n) throw new RankError('division by zero');
-                    return floorRemainder(left, right);
-                }
-                case '//': {
-                    if (right === 0n) throw new RankError('division by zero');
-                    return floorDivide(left, right);
-                }
-                default: break;
-            }
+            const integer = integerBinaryOperators.get(operator);
+            if (integer) return integer(left, right);
         }
         if (operator === 'is') {
             if (!isRankLabel(right)) {

@@ -42,6 +42,10 @@ import {
  * ordinary selection.
  */
 export function selectValues(modules: ReadonlySet<string>, values: RankValue[], missing?: () => RankValue): RankValue {
+    if (values.length === 2 && typeof values[1] === 'bigint' && values[1] >= 0n
+        && typeof values[0] === 'object' && values[0].kind === 'array' && values[0].shape.length === 1) {
+        return vectorItem(values[0], values[1]);
+    }
     if (isRankTuple(values[0]) && values.length > 1) {
         if (typeof values[1] !== 'bigint') throw new RankError('tuple positions require an integer index', 'TypeError');
         const items = values[0].items;
@@ -135,12 +139,7 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
         if (typeof receiver === 'object' && receiver.kind === 'array') {
             const size = receiver.shape.length === 1 ? receiver.shape[0] : -1;
             if (size >= 0) {
-                if (values[1] < 0n) throw new MissingValueError('array index out of bounds on axis 0');
-                const position = Number(values[1]);
-                if (position >= size) {
-                    throw new MissingValueError(`array index out of bounds on axis 0: ${values[1]}`);
-                }
-                return readArrayItem(receiver, position);
+                return vectorItem(receiver, values[1]);
             }
         }
     }
@@ -340,6 +339,16 @@ export function applySelectors(values: RankValue[], missing?: () => RankValue): 
     }
 
     return maskSelection(values[0], values[1]);
+}
+
+/** The same bounds and live read for both public and internal selection. */
+function vectorItem(source: RankArray, index: bigint): RankValue {
+    if (index < 0n) throw new MissingValueError('array index out of bounds on axis 0');
+    const position = Number(index);
+    if (position >= source.shape[0]) {
+        throw new MissingValueError(`array index out of bounds on axis 0: ${index}`);
+    }
+    return readArrayItem(source, position);
 }
 
 /** A boolean array mask over a finite sequence of exactly its length. */

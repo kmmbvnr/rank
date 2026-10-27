@@ -657,12 +657,11 @@ export function shiftValue(
     const amount = Number(amountValue);
     if (!Number.isSafeInteger(amount)) throw new RankError('shift amount is too large');
     const shape = source.shape;
+    const stride = shape.slice(axis + 1).reduce((size, dimension) => size * dimension, 1);
     const result = derivedArray(shape, [source, fillValue], linear => {
-        const coordinates = arrayCoordinates(shape, linear);
-        coordinates[axis] -= amount;
-        if (coordinates[axis] < 0 || coordinates[axis] >= shape[axis]) return fillValue;
-        const offset = arrayOffset(shape, coordinates);
-        return source.itemAt?.(offset) ?? source.items[offset];
+        const coordinate = Math.floor(linear / stride) % shape[axis] - amount;
+        if (coordinate < 0 || coordinate >= shape[axis]) return fillValue;
+        return readArrayItem(source, linear - amount * stride);
     });
     registerPackedBooleanShift(result, source, amount, fillValue, axis);
     return result;

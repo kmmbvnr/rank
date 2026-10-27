@@ -466,6 +466,14 @@ ownership. `scalarCompilation: false` selects the old expression path, independe
 of `tensorFusion`. `onScalarCompiled` reports generated code and `onScalarExecuted`
 counts entries into compiled expressions, including entries that delegate operators.
 
+The prepared reference path also resolves common integer operators once per
+syntax node, without generating code. Each evaluation reads live operands and
+checks their types; other values use the full operator dispatcher with those
+already evaluated operands. Ordinary names read current bindings before falling
+back to module or builtin resolution. Values, binding identities and parent
+frames are never cached by this preparation. Scalar vector indexing shares the
+same bounds checks and live cell reader with general selection.
+
 See [compiler progress](compiler-progress.md) for measurements and current limits.
 
 ## Compiled command blocks
