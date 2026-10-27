@@ -22,3 +22,35 @@ test "checkpoints"
 
   Answer equal 509763
 end
+
+test "strict midpoint and odd limits"
+  use "198_ambiguous"
+  Limit = -1
+  run
+
+  Answer equal 0
+  Limit = 0
+  run
+
+  Answer equal 0
+  Limit = 100
+  run
+
+  Answer equal 0
+  Limit = 101
+  run
+
+  Answer equal 0
+  Limit = 102
+  run
+
+  Answer equal 1
+  Limit = 103
+  run
+
+  Answer equal 1
+  Limit = 4095
+  run
+
+  Answer equal 1997
+end

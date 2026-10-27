@@ -151,6 +151,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (!value || !isRankArray(value) || value.kind !== 'array') return undefined;
             conditionWriteCells += value.shape.reduce((a, b) => a * b, 1);
         }
+        // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
+        // the small-store fast path; larger stores get a bounded first probe.
+        // Mac M5 / Intel i7-10750H controls (Node 24.15.0) gave Euler 185 ~4x
+        // while work feedback cut 5000 short-call probes from 78 to 1. Repeated
+        // copying and overflow replay can still waste work, so retain the
+        // conservative 262144-cell cap; it is not a measured universal optimum.
+        // Measurements/tradeoffs: benchmarks/condition-loop-feedback-results.md.
         const probe = conditionWriteCells > 64;
         if (probe) {
             if (conditionWriteCells > 262144 || !feedback) return recordFallback('number-loop:condition-write-budget');
