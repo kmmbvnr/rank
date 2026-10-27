@@ -2716,3 +2716,20 @@ Euler 210 keeps its geometric algorithm and array formulation, completes each
 input block with ordinary `Xs =`, and defers the square-root sum as `Part'` for
 its consumer. A smaller measured block lowers process peak memory. See the
 [measurements and verification](../../benchmarks/euler210-obtuse-results.md).
+
+## Fresh integer arrays in Number loops (Euler 211, #447)
+
+Number regions can create fresh `array shape ... fill ...` integer buffers and
+use their scalar cells directly, including changing multidimensional shapes.
+Allocations remain private until success or publication of completed work on
+ordinary errors/cancellation. Overflow discards the attempt and replays exact
+execution; old snapshots and skipped allocations retain their ordinary behavior.
+Array dimensions and fill dependencies stay in checked numeric registers even
+when unrelated scalar results use the mixed BigInt backend.
+
+This lowering covers definitely assigned fresh integer arrays. Local aliases,
+entry-dependent array reads, local array traversal and other array constructors
+retain their existing fallback. Number admission/copy thresholds are unchanged.
+Euler 211 keeps its original divisor-pair algorithm, block size and ordinary
+allocation inside the outer loop. See the
+[measurements and verification](../../benchmarks/euler211-divisor-square-results.md).
