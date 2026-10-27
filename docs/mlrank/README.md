@@ -197,7 +197,7 @@ or tensor allocation measurements; Android excludes separate WebView renderer
 processes. No speedup or memory saving is claimed.
 
 [Recorded samples](../../benchmarks/baselines/2026-10-27-mlrank-mlp.json) retain all
-calls and measurement boundaries. These measurements describe stage 6; stage 7 below changes the transport. Stage 8 will compare CPU timing and isolate costs more precisely.
+calls and measurement boundaries. These measurements describe stage 6; stage 7 below changes the transport. Stage 8 below compares CPU timing and separates native costs.
 
 ## Binary weights and model lifecycle
 
@@ -243,8 +243,7 @@ expansion: the constant limit alone does not guarantee a model fits. Notebook bi
 attachments are capped at 8 MiB total and 64 files; archives at 16 MiB uncompressed.
 The current native JSON store reads large snapshots in chunks to avoid SQLite's
 single-row CursorWindow limit. A 2,800,116-byte attachment (3,733,559-byte snapshot)
-passed native save/read checks. Raising model limits remains dependent on memory
-and transfer measurements in stage 8.
+passed native save/read checks. The stage 8 measurements below do not justify raising these limits; larger models need further memory and transfer checks.
 
 Verification commands:
 
@@ -265,6 +264,115 @@ result. The saved binary MLP also ran after restarting the final APK.
 [Stage 7 samples](../../benchmarks/baselines/2026-10-27-mlrank-weights.json) record request
 sizes and lifecycle events. Android timings were collected with the lock screen
 active and must not be compared as performance measurements.
+
+## MLP cost measurements (stage 8)
+
+Two runs per host, five fixed shapes, three warm-up calls and 15 interleaved CPU/GPU
+samples per shape. Call order and two deterministic inputs alternate. Another 15 GPU
+calls with profiling disabled follow each case. Every result is checked against
+independent scalar equations, including the softmax, at `atol=rtol=1e-5`.
+All 340 GPU calls per host passed; maximum absolute error was below `1.38e-7`.
+Desktop runtimes reported full delegation. A live Android log captured 12/12 delegated
+nodes for each of the five models in the second run.
+
+The table shows the range of the **two run medians**, in milliseconds, as **CPU / GPU**.
+Dimensions mean batch x input width x hidden width x output width. These are application
+call costs, not isolated matrix multiplication throughput.
+
+| Dimensions | Mac M5 | Intel i7-10750H / UHD | OnePlus / Adreno 619 |
+| --- | ---: | ---: | ---: |
+| 4 x 2 x 3 x 2 | 0.99-1.30 / 0.55-0.77 | 3.63-4.01 / 1.25-1.27 | 9.30-12.60 / 11.60-12.50 |
+| 256 x 2 x 3 x 2 | 19.38-26.66 / 0.99-1.29 | 78.77-78.91 / 1.97-2.13 | 191.50-196.50 / 21.00-23.60 |
+| 1 x 64 x 128 x 32 | 1.48-2.07 / 0.63-1.07 | 4.11-4.20 / 1.20-1.40 | 9.20-10.70 / 13.60-14.90 |
+| 16 x 64 x 128 x 32 | 8.88-11.99 / 1.01-1.61 | 21.23-21.45 / 2.42-2.46 | 38.50-39.10 / 17.50-17.80 |
+| 16 x 128 x 256 x 64 | 38.76-57.10 / 1.90-2.71 | 91.98-92.01 / 4.22-4.35 | 140.80-144.10 / 44.80-48.10 |
+
+On desktop, GPU calls beat this CPU Rank program for all tested shapes after preparation.
+On OnePlus, the small XOR case is near the crossover: the winner changes between runs.
+For one `64 -> 128 -> 32` input, CPU is faster in both runs. Batches of 16 and 256 favor
+GPU in both runs. This does not compare GPU with optimized native CPU BLAS: CPU Rank
+uses float64 arithmetic and its current interpreter/array operations; GPU uses float32.
+The error checks establish numerical agreement within the stated tolerance.
+
+The first native call also loads and prepares the model. It takes roughly 0.3-0.6 seconds
+on OnePlus in this workload. Only the first case starts a fresh native runtime; the other
+cases load new models into the existing process. Driver caches are not cleared. RAM
+compilation and interpreter import are measured separately, before timed calls. The
+first standalone compile includes parser/JIT startup; later compiles share that startup.
+Do not add standalone compile time to import time: import already compiles the module.
+
+### Where time goes
+
+For the largest case `[16,128,256,64]`, ranges below are the two run medians in ms:
+
+| Host | Input conversion + write | Runtime dispatch | Readback / wait | Output packing | JSON + IPC + scheduling residual | Rank host work |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| mac | 0.05-0.09 | 0.45-0.53 | 0.01-0.01 | 0.01-0.01 | 0.69-1.01 | 0.70-1.03 |
+| intel | 0.15-0.15 | 0.38-0.42 | 0.89-0.96 | 0.01-0.01 | 1.46-1.54 | 1.23-1.23 |
+| android | 0.71-1.21 | 0.62-0.67 | 1.44-1.70 | 0.14-0.14 | 28.56-31.42 | 6.00-6.00 |
+
+Dispatch and readback must be considered together: LiteRT can wait for GPU completion
+in either call. Neither number alone is GPU kernel time. Input timing includes native
+array conversion/validation and buffer write. Output packing means conversion into
+an array for JSON; encoding itself remains in the residual. The residual subtracts
+native preparation/execution from host bridge wall time and includes JSON codecs,
+worker/pipe or Capacitor transport and scheduling. It is not device bandwidth.
+Rank host work includes checking weight contents, boundary conversion and result
+materialization. Weight lookup is in-memory here; desktop filesystem I/O is excluded.
+
+The non-profiled control preserves the same conclusions for wide single-input and
+batched Android cases, but its timings differ from the interleaved samples. It runs
+later, so JIT, GC and scheduling also differ; the delta is not a pure profiling-overhead
+measurement. Raw samples retain both paths.
+
+### Memory and scope
+
+Serialized models range from 1,924 to 199,744 bytes. Source weight attachments range
+from small XOR constants to about 194 KiB; input/output tensors are tracked separately.
+The measured desktop processes reached 455-461 MiB host RSS high-water marks on Mac and 428-442 MiB on Intel,
+including CPU computations, compiler, libraries and the benchmark. Native helper peaks
+were about 54 MiB on Mac and 114 MiB on Intel. These are process measurements, not model
+arenas or incremental weight allocation.
+
+On Android, app PSS snapshots were about 132-165 MiB. The largest observed `/proc`
+VmHWM was about 238 MiB, but that field decreased between later snapshots; it cannot
+establish a reliable lifetime peak in this run. The separate WebView renderer, where
+Rank and the CPU benchmark execute, is excluded. A complete Android memory peak remains
+unmeasured. No memory saving is claimed from these numbers.
+
+The measured workspace includes existing uncommitted integer-comparison changes. The
+same compiled interpreter was used on the three hosts; its content hash and affected
+source paths are recorded with the samples. Node versions differ between desktop hosts,
+and WebView has its own engine. Compare CPU and GPU within a host, not host rankings.
+
+### Decision and reproduction
+
+Use batches when latency requirements permit. Keep the single-input path for correctness
+and interactive use, but do not promise GPU acceleration for tiny Android calls. There
+is no evidence here for adding fusion, custom kernels, an arena allocator or a binary
+tensor protocol now. Android bridge/host work costs more than dispatch plus readback;
+optimizing kernels alone cannot remove it. If mobile latency becomes the next target,
+measure batching and transport/serialization changes first. Attachment versioning could
+remove repeated content hashing, but belongs with the deferred weight-editing workflow.
+The next roadmap step remains LayerNorm and GELU.
+
+```sh
+npx tsc -b tsconfig.build.json
+node benchmarks/mlrank/run-costs.mjs > costs.json
+node benchmarks/mlrank/build-android.mjs
+# Attach playwright-cli to the foreground app WebView, then:
+playwright-cli -s=costs run-code --filename output/playwright/ram-costs.js
+```
+
+For Android, use a build containing the native profiling fields, keep the screen unlocked
+and Rank in the foreground, and capture native `tflite` logs live: logcat's ring buffer
+can overwrite earlier placements. The generated benchmark runs in a dedicated worker
+using the same synchronous XHR/Capacitor route as the application. It creates no notebooks
+and releases each native model. Capture `dumpsys meminfo com.arrrank.app` and the app's
+`/proc/PID/status` before and after; retain the raw accounting fields separately.
+
+[Source and samples](../../benchmarks/baselines/2026-10-27-mlrank-costs.json) record all
+calls, compiler/import times, model/tensor sizes, memory observations and placement.
 
 ## Proposed full MVP
 
