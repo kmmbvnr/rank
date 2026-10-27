@@ -1,0 +1,827 @@
+{
+  "samples": [
+    {
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 1284.76075,
+      "rssMiB": 586.578125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "optimized",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 413.3375,
+      "rssMiB": 379.015625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": true,
+      "ms": 2670.47325,
+      "rssMiB": 609.671875,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1174.6946249999999
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1372.62925
+        }
+      ]
+    },
+    {
+      "variant": "optimized-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": false,
+      "ms": 449.03745799999996,
+      "rssMiB": 304.234375,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 311.39320899999996
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.16141700000003
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "originalTests": false,
+      "ms": 637.390416,
+      "rssMiB": 493.609375,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 498.48916699999995
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 17.989958
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "originalTests": false,
+      "ms": 652.122792,
+      "rssMiB": 486.84375,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 479.600875
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 51.62475000000006
+        }
+      ]
+    },
+    {
+      "variant": "optimized-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": false,
+      "ms": 444.67037500000004,
+      "rssMiB": 304.640625,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 308.01108300000004
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.52283299999999
+        }
+      ]
+    },
+    {
+      "variant": "original-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": true,
+      "ms": 2687.093292,
+      "rssMiB": 590.359375,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1194.119
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1372.84475
+        }
+      ]
+    },
+    {
+      "variant": "optimized",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 413.98408400000005,
+      "rssMiB": 383.4375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 1274.259875,
+      "rssMiB": 584.0625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 1285.3225419999999,
+      "rssMiB": 585.90625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "optimized",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 417.406791,
+      "rssMiB": 383.140625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": true,
+      "ms": 2680.937958,
+      "rssMiB": 591.15625,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1183.9302910000001
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1377.282
+        }
+      ]
+    },
+    {
+      "variant": "optimized-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": false,
+      "ms": 451.362,
+      "rssMiB": 303.875,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 312.747834
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.290750000000003
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "originalTests": false,
+      "ms": 651.444375,
+      "rssMiB": 486.59375,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 513.7788330000001
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 17.560749999999985
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "originalTests": false,
+      "ms": 646.356833,
+      "rssMiB": 490.578125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 507.628125
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 17.62412500000005
+        }
+      ]
+    },
+    {
+      "variant": "optimized-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": false,
+      "ms": 447.417875,
+      "rssMiB": 301.328125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 310.66049999999996
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.236458000000084
+        }
+      ]
+    },
+    {
+      "variant": "original-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": true,
+      "ms": 2717.569583,
+      "rssMiB": 588.796875,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1186.117958
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1413.1923330000002
+        }
+      ]
+    },
+    {
+      "variant": "optimized",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 418.56220800000006,
+      "rssMiB": 379.359375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 1288.401042,
+      "rssMiB": 586.375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 1297.934291,
+      "rssMiB": 585.5625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "optimized",
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 425.04099999999994,
+      "rssMiB": 383.109375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "original-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": true,
+      "ms": 2721.4797909999998,
+      "rssMiB": 592.234375,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1195.629709
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1406.8060420000002
+        }
+      ]
+    },
+    {
+      "variant": "optimized-fixture",
+      "fixture": true,
+      "reference": false,
+      "originalTests": false,
+      "ms": 448.8905000000001,
+      "rssMiB": 300.015625,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 311.70725000000004
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.448041999999987
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "originalTests": false,
+      "ms": 660.272667,
+      "rssMiB": 487.1875,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 521.5622500000001
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 17.90812500000004
+        }
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "before",
+      "fixture": false,
+      "reference": false,
+      "ms": 1149.912709,
+      "rssMiB": 540.078125,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1149.86875,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5",
+      "task": "196-prime-triplets"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "after",
+      "fixture": false,
+      "reference": false,
+      "ms": 1154.002625,
+      "rssMiB": 540.53125,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1153.95775,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5",
+      "task": "196-prime-triplets"
+    },
+    {
+      "limit": 100000000,
+      "variant": "before",
+      "fixture": false,
+      "reference": false,
+      "ms": 181.648,
+      "rssMiB": 175.453125,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+      "task": "198-ambiguous"
+    },
+    {
+      "limit": 100000000,
+      "variant": "after",
+      "fixture": false,
+      "reference": false,
+      "ms": 183.451958,
+      "rssMiB": 173.34375,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+      "task": "198-ambiguous"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "after",
+      "fixture": false,
+      "reference": false,
+      "ms": 1180.245167,
+      "rssMiB": 536.078125,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1180.201917,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5",
+      "task": "196-prime-triplets"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "before",
+      "fixture": false,
+      "reference": false,
+      "ms": 1203.290834,
+      "rssMiB": 540.90625,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1203.2485,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5",
+      "task": "196-prime-triplets"
+    },
+    {
+      "limit": 100000000,
+      "variant": "after",
+      "fixture": false,
+      "reference": false,
+      "ms": 186.314791,
+      "rssMiB": 178.203125,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+      "task": "198-ambiguous"
+    },
+    {
+      "limit": 100000000,
+      "variant": "before",
+      "fixture": false,
+      "reference": false,
+      "ms": 177.59358300000002,
+      "rssMiB": 176.046875,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+      "task": "198-ambiguous"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "before",
+      "fixture": false,
+      "reference": false,
+      "ms": 1225.641583,
+      "rssMiB": 535.6875,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1225.596333,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5",
+      "task": "196-prime-triplets"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "after",
+      "fixture": false,
+      "reference": false,
+      "ms": 1144.810792,
+      "rssMiB": 536.203125,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1144.763417,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5",
+      "task": "196-prime-triplets"
+    },
+    {
+      "limit": 100000000,
+      "variant": "before",
+      "fixture": false,
+      "reference": false,
+      "ms": 186.726334,
+      "rssMiB": 176.328125,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+      "task": "198-ambiguous"
+    },
+    {
+      "limit": 100000000,
+      "variant": "after",
+      "fixture": false,
+      "reference": false,
+      "ms": 186.189083,
+      "rssMiB": 173.53125,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+      "task": "198-ambiguous"
+    }
+  ],
+  "diagnostics": {
+    "fixture": false,
+    "reference": false,
+    "originalTests": false,
+    "ms": 411.9217080000001,
+    "rssMiB": 380.140625,
+    "answer": "229161792008",
+    "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+    "tests": [],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 442751,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 50042,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 4,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 579,
+      "maskMaterializedCells": 50263,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 5,
+      "elementTypeScannedCells": 636,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-op:floor": 2,
+        "scalar-expression:unsupported-op:+": 2,
+        "tensor:scalar-evaluation-timing": 1,
+        "scalar-expression:too-small": 9,
+        "scalar-expression:unsupported-op:**": 2,
+        "scalar-expression:unsupported-op:/": 2,
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:to": 4,
+        "tensor:output-shape": 577,
+        "tensor:unsupported-node:MaterializeExpression": 5,
+        "scalar-expression:operator-guard:*": 1156,
+        "tensor:deferred-binding:AssignmentStatement": 11,
+        "scalar-expression:operator-guard://": 2,
+        "scalar-expression:operator-guard:mod": 2,
+        "tensor:stale-input": 2,
+        "scalar-expression:unsupported-op:reshape": 5,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 7,
+        "scalar-expression:unsupported-op://": 4,
+        "scalar-expression:unsupported-op:mod": 2,
+        "scalar-expression:unsupported-op:axis": 1,
+        "scalar-expression:unsupported-op:not": 1,
+        "scalar-expression:unsupported-op:and": 2,
+        "scalar-expression:unsupported-op:in": 2,
+        "scalar-expression:operator-guard:-": 1,
+        "scalar-expression:operator-guard:+": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "verification": {
+    "ordinarySuite": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\n \u2713 test/recursion.test.ts (21 tests) 6453ms\n   \u2713 stack-safe Rank calls > returns through 100,000 non-tail recursive calls, including the host API  3305ms\n   \u2713 stack-safe Rank calls > visits a chain of 100,000 vertices and accumulates subtree sizes after returning  1741ms\n \u2713 test/compiled-integer-collections.test.ts (17 tests) 9520ms\n   \u2713 compiled integer collections > compiles unchanged Euler 044 at full size  4873ms\n   \u2713 compiled integer collections > compiles the Euler 023 top-level search at full size  4367ms\n \u2713 test/euler397.test.ts (8 tests) 10949ms\n   \u2713 finishes the default bound with exact wide accumulation  10340ms\n \u2713 test/concat-depth.test.ts (17 tests) 11682ms\n   \u2713 deep concat (compiled=false) > appends 10000 distinct cells through a binding and reads every value  943ms\n   \u2713 deep concat (compiled=false) > keeps deep sequence concatenation lazy and ordered  4446ms\n   \u2713 deep concat (compiled=true) > appends 10000 distinct cells through a binding and reads every value  884ms\n   \u2713 deep concat (compiled=true) > keeps deep sequence concatenation lazy and ordered  4479ms\n \u2713 test/search-loops.test.ts (11 tests) 6680ms\n   \u2713 executes the complete depth-array search as one loop and preserves the output snapshot  6558ms\n \u2713 test/explicit-plan-demos.test.ts (198 tests) 6509ms\n   \u2713 explicit-plan demo migration (compilation=false) > matches interval minimax costs beyond the unrestricted prefix  548ms\n   \u2713 explicit-plan demo migration (compilation=false) > rebuilds amnesia states before deferred column weights on repeated runs  1386ms\n   \u2713 explicit-plan demo migration (compilation=true) > rebuilds amnesia states before deferred column weights on repeated runs  417ms\n \u2713 test/full-scale-demos.test.ts (3 tests) 5616ms\n   \u2713 checks the full compiled answer for 299_threesimilar.ra  1950ms\n   \u2713 checks the full compiled answer for 426_boxball.ra  1695ms\n   \u2713 cross-checks the full box-ball answer with a per-ball reference  1969ms\n \u2713 test/indices.test.ts (16 tests) 5303ms\n   \u2713 tensor indices (compiled=false) > runs the queens demo with small boards and empty solution sets  1345ms\n   \u2713 tensor indices (compiled=false) > grows queens placements by one column per placed queen  1207ms\n   \u2713 tensor indices (compiled=true) > runs the queens demo with small boards and empty solution sets  1441ms\n   \u2713 tensor indices (compiled=true) > grows queens placements by one column per placed queen  1115ms\n \u2713 test/euler342.test.ts (3 tests) 4931ms\n   \u2713 Euler 342 factor-residue search (compilation=false) > matches every small prefix and prime-power/product boundaries  1307ms\n   \u2713 Euler 342 factor-residue search (compilation=true) > matches every small prefix and prime-power/product boundaries  511ms\n   \u2713 Euler 342 matches an independent million-bound sieve and the full search in compiled execution  3112ms\n \u2713 test/euler155.test.ts (22 tests) 4952ms\n   \u2713 capacitor circuits (compilation=false) > retains all existing fixture assertions  4237ms\n \u2713 test/euler154.test.ts (31 tests) 4594ms\n   \u2713 Euler 154 (compilation=false) > agrees with exact coefficients for N=624, Power=6  533ms\n   \u2713 Euler 154 (compilation=false) > agrees with exact coefficients for N=625, Power=6  637ms\n   \u2713 Euler 154 (compilation=false) > agrees with exact coefficients for N=626, Power=6  652ms\n   \u2713 Euler 154 (compilation=true) > agrees with exact coefficients for N=624, Power=6  541ms\n   \u2713 Euler 154 (compilation=true) > agrees with exact coefficients for N=625, Power=6  547ms\n   \u2713 Euler 154 (compilation=true) > agrees with exact coefficients for N=626, Power=6  526ms\n \u2713 test/loop-functions.test.ts (22 tests) 5905ms\n   \u2713 functions in loops (compiled=false) > preserves all queens placements and their order  2555ms\n   \u2713 functions in loops (compiled=true) > preserves all queens placements and their order  3101ms\n \u2713 test/memo.test.ts (13 tests) 4104ms\n   \u2713 memo functions and explicit index caches > runs deep memo JavaScript recursion without using the call stack  3863ms\n \u2713 test/outer-lazy-operands.test.ts (12 tests) 3745ms\n   \u2713 reductions stream over a lazy table > sums, finds the extremes and averages a large table one cell at a time  1966ms\n   \u2713 reductions stream over a lazy table > sums the whole table through `sum rank 2` without collecting it  479ms\n   \u2713 reductions stream over a lazy table > counts a streamed comparison  714ms\n   \u2713 reductions stream over a lazy table > streams a named-function outer table too  422ms\n \u2713 test/repeat.test.ts (36 tests) 3704ms\n   \u2713 repeat (compiled=false) > runs the Queens transition from an empty placement  1541ms\n   \u2713 repeat (compiled=true) > runs the Queens transition from an empty placement  1591ms\n \u2713 test/euler110.test.ts (46 tests) 3441ms\n   \u2713 reciprocal exponent tables (compilation=false) > retains every assertion in 110_reciprocals2_default_test  1188ms\n   \u2713 reciprocal exponent tables (compilation=true) > retains every assertion in 110_reciprocals2_default_test  650ms\n \u2713 test/euler361.test.ts (4 tests) 3013ms\n   \u2713 Euler 361 scalar memoization (compilation=true) > completes the published Power=18 input  618ms\n   \u2713 Euler 361 scalar memoization (compilation=true) > matches enumerated factor counts, length boundaries and word values  1048ms\n   \u2713 Euler 361 scalar memoization (compilation=false) > completes the published Power=18 input  481ms\n   \u2713 Euler 361 scalar memoization (compilation=false) > matches enumerated factor counts, length boundaries and word values  865ms\n \u2713 test/array-block-copy.test.ts (23 tests) 2518ms\n   \u2713 stored block copies (compilation=true) > copies row windows directly from int32 storage  370ms\n   \u2713 stored block copies (compilation=true) > copies row windows directly from int64 storage  361ms\n   \u2713 stored block copies (compilation=true) > copies row windows directly from real storage  366ms\n   \u2713 stored block copies (compilation=false) > copies row windows directly from int32 storage  378ms\n   \u2713 stored block copies (compilation=false) > copies row windows directly from int64 storage  395ms\n   \u2713 stored block copies (compilation=false) > copies row windows directly from real storage  391ms\n \u2713 test/tail-calls.test.ts (11 tests) 2835ms\n   \u2713 tail calls > runs a million tail calls with a one-frame call budget  606ms\n   \u2713 tail calls > replaces frames for mutual recursion and parenthesized returns  1901ms\n \u2713 test/euler170.test.ts (16 tests) 2931ms\n   \u2713 Euler 170 (compilation=false) > matches an input-partition oracle for digits 987654  810ms\n   \u2713 Euler 170 (compilation=false) > matches an input-partition oracle for digits 543210  667ms\n   \u2713 Euler 170 (compilation=false) > matches an input-partition oracle for digits 983210  683ms\n \u2713 test/sparse-profile.test.ts (28 tests) 2312ms\n   \u2713 sparse integer profile compilation > retains the exact unchanged Euler 393 answer for N=10  1380ms\nstderr | test/integer-loop.test.ts > compiled loop branches > preserves empty branch results\nAmbiguous Alternatives Detected: <0, 1> in <AT_LEAST_ONE1> inside <IfStatement\u200b> Rule,\n<NL, end, NL> may appears as a prefix path in all these alternatives.\nSee: https://chevrotain.io/docs/guide/resolving_grammar_errors.html#AMBIGUOUS_ALTERNATIVES\nFor Further details.\n\n \u2713 test/extreme-direct.test.ts (18 tests) 1687ms\n   \u2713 direct binary extrema > keeps effectful operands on the resumable path without replay  585ms\n   \u2713 direct binary extrema > supports deep recursive calls to mincustom  463ms\n   \u2713 direct binary extrema > supports deep recursive calls to maxcustom  395ms\n \u2713 test/local-automaton.test.ts (4 tests) 1667ms\n   \u2713 Euler 305 local automaton (compiled=false) > keeps filtered callback captures independent after the enclosing calls return  576ms\n   \u2713 Euler 305 local automaton (compiled=false) > matches known positions and keeps engine state separate between parent calls  444ms\n   \u2713 Euler 305 local automaton (compiled=true) > matches known positions and keeps engine state separate between parent calls  398ms\n \u2713 test/factorization.test.ts (12 tests) 1574ms\n   \u2713 bounded factorization > matches all prime-minus-one inputs in the Euler 302 table range  552ms\n   \u2713 Euler 302 using builtin factors > preserves the published reduced counts in both execution modes  578ms\n \u2713 test/integer-loop.test.ts (299 tests) 2116ms\n \u2713 test/scalar-compiler.test.ts (47 tests) 1506ms\n   \u2713 resumes compiled arithmetic through 20000 non-tail recursive children  1051ms\n \u2713 test/slice-write-snapshots.test.ts (29 tests) 1568ms\n \u2713 test/demo-numerical.test.ts (6 tests) 1330ms\n   \u2713 numerical demo host oracles > runs Euler 337 at limit 10000 on both numeric backends and the interpreter  974ms\n \u2713 test/scalar-mapping.test.ts (44 tests) 1656ms\n \u2713 test/euler177.test.ts (8 tests) 1051ms\n   \u2713 Euler 177 (compilation=false) > matches a direct angle-tuple oracle for pi/24  319ms\n \u2713 test/prime-membership.test.ts (7 tests) 1136ms\n   \u2713 prime membership > decides large primes without a divisor table growing toward their root  379ms\n   \u2713 prime membership > rejects huge small-factor composites quickly  366ms\n \u2713 test/mask-reductions.test.ts (30 tests) 1206ms\n \u2713 test/euler375.test.ts (5 tests) 1015ms\n   \u2713 matches enumerated periodic subsequence minima ({})  435ms\n \u2713 test/queens-recursive.test.ts (2 tests) 895ms\n   \u2713 recursive queens demo (compiled=false) > runs the queens demo with small boards and empty solution sets  657ms\n \u2713 test/contiguous-slice.test.ts (47 tests) 1004ms\n   \u2713 preserves Euler 552_chineseleftovers2 answers  431ms\n \u2713 test/tensor-kernel.test.ts (63 tests) 1031ms\n \u2713 test/generator-loop.test.ts (33 tests) 894ms\n   \u2713 generator loops (reference) > sieves with lazy yields and uses the selected execution path  478ms\n \u2713 test/segmented-integer-kernels.test.ts (13 tests) 822ms\n   \u2713 stored segmented integer arithmetic > bounds the recurrence without copy (compiled=true)  438ms\n   \u2713 stored segmented integer arithmetic > bounds the recurrence without copy (compiled=false)  334ms\n \u2713 test/scalar-extrema.test.ts (7 tests) 817ms\n   \u2713 shared scalar extrema > compiles the unchanged Euler 320 factor walk and preserves the official sample  601ms\n \u2713 test/number-loop.test.ts (164 tests) 1107ms\n \u2713 test/euler153.test.ts (40 tests) 844ms\n \u2713 test/euler166.test.ts (9 tests) 795ms\n \u2713 test/nullary-functions.test.ts (20 tests) 835ms\n   \u2713 nullary calls (compiled: true) > keeps nullary calls stack-safe and honors the depth limit  321ms\n \u2713 test/quadratic-factors.test.ts (6 tests) 818ms\n   \u2713 Euler 343 bulk factorization (compilation=false) > passes the companion Rank tests  310ms\n   \u2713 Euler 343 bulk factorization (compilation=false) > matches every quadratic largest factor against independent trial division  314ms\n \u2713 test/rank-shape-parity.test.ts (15 tests) 782ms\n \u2713 test/array-length-loops.test.ts (16 tests) 714ms\n   \u2713 array lengths in compiled loop bounds > recognizes stored integers even without a semantic array type  462ms\n \u2713 test/function-body.test.ts (15 tests) 680ms\n   \u2713 compiled function body completion > retains tail calls and lexical captures  388ms\n \u2713 test/euler-319.test.ts (22 tests) 687ms\n \u2713 test/manual.test.ts (299 tests) 704ms\n \u2713 test/euler165.test.ts (16 tests) 610ms\n \u2713 test/euler399.test.ts (6 tests) 644ms\n \u2713 test/title-search.test.ts (8 tests) 620ms\n \u2713 test/expressions.test.ts (58 tests) 691ms\n \u2713 test/diagnostics.test.ts (33 tests) 577ms\n   \u2713 runtime diagnostics > prints CLI diagnostics without a Node stack and exits unsuccessfully  374ms\n \u2713 test/column-tables-memory.test.ts (2 tests) 551ms\n   \u2713 column table memory > keeps a 100 000-row CSV table far below the row-object footprint  313ms\n \u2713 test/function-plan.test.ts (22 tests) 553ms\n \u2713 test/dense-prime-sieve.test.ts (15 tests) 590ms\n   \u2713 dense bounded prime sieve > uses one bit per odd value at the requested Euler bound  306ms\n \u2713 test/decimal-waiting.test.ts (5 tests) 517ms\n \u2713 test/fold-modifiers.test.ts (66 tests) 603ms\n \u2713 test/prime-sequence.test.ts (15 tests) 538ms\n \u2713 test/requirements.test.ts (3 tests) 609ms\n   \u2713 accepts runtime-valid rank applications across scalar, text, tensor and empty inputs  583ms\n \u2713 test/image-processing.test.ts (12 tests) 524ms\n \u2713 test/euler557.test.ts (10 tests) 546ms\n \u2713 test/dense-envelope.test.ts (8 tests) 520ms\n \u2713 test/euler370.test.ts (3 tests) 570ms\n   \u2713 matches exhaustive geometric triangles around row and quotient boundaries (compilation=false)  398ms\n \u2713 test/recursive-search.test.ts (18 tests) 527ms\n \u2713 test/predicate-graph.test.ts (31 tests) 500ms\n \u2713 test/scalar-recursion.test.ts (14 tests) 484ms\n \u2713 test/digit-product-fusion.test.ts (35 tests) 488ms\n \u2713 test/numbers-math.test.ts (16 tests) 490ms\n \u2713 test/containers.test.ts (18 tests) 466ms\n \u2713 test/compiled-array-operations.test.ts (23 tests) 473ms\n \u2713 test/negative-axis.test.ts (86 tests) 535ms\n \u2713 test/operations.test.ts (69 tests) 476ms\nstdout | test/intrinsic-matrix-ranks.test.ts > intrinsic matrix cells > executes the documented Euler 8 and 11 programs\n23514624000\n70600674\n\n \u2713 test/intrinsic-matrix-ranks.test.ts (11 tests) 458ms\n \u2713 test/tensor-gather-fusion.test.ts (42 tests) 482ms\n \u2713 test/fibonacci-tree.test.ts (2 tests) 454ms\n   \u2713 Fibonacci tree sparse DP > matches actual game play for every small Fibonacci tree in both execution modes  381ms\n \u2713 test/euler353.test.ts (3 tests) 438ms\n   \u2713 Euler 353 reduced geometric search > generates exactly the full sphere orbits, including zero and equal coordinates  316ms\n \u2713 test/open-ranges.test.ts (56 tests) 445ms\n \u2713 test/tensors-collections.test.ts (31 tests) 423ms\n \u2713 test/result-inference.test.ts (78 tests) 443ms\n \u2713 test/tensor-operator-catalogue.test.ts (49 tests) 419ms\n \u2713 test/packed-booleans.test.ts (51 tests) 452ms\n \u2713 test/collection-compilation.test.ts (42 tests) 406ms\n \u2713 test/array-chain-demos.test.ts (4 tests) 412ms\n \u2713 test/numbers-loop.test.ts (39 tests) 402ms\n \u2713 test/array-last-use.test.ts (76 tests) 430ms\n \u2713 test/readonly-state.test.ts (57 tests) 308ms\n \u2713 test/empty-rank-composition.test.ts (46 tests) 390ms\n \u2713 test/native-loop.test.ts (42 tests) 422ms\n \u2713 test/plan-composition.test.ts (78 tests) 429ms\n \u2713 test/genes.test.ts (6 tests) 399ms\n \u2713 test/mixed-numeric-types.test.ts (30 tests) 392ms\n \u2713 test/integer-square-root.test.ts (21 tests) 360ms\n \u2713 test/number-matrix-loop.test.ts (21 tests) 386ms\n \u2713 test/accumulate-writes.test.ts (92 tests) 417ms\n \u2713 test/graph.test.ts (60 tests) 376ms\n \u2713 test/ranked-gather.test.ts (30 tests) 391ms\n \u2713 test/euler338.test.ts (2 tests) 385ms\n \u2713 test/plan-clause-capture.test.ts (58 tests) 400ms\n \u2713 test/ranked-address.test.ts (56 tests) 385ms\n \u2713 test/argument-signature.test.ts (38 tests) 364ms\n \u2713 test/choose.test.ts (30 tests) 379ms\n \u2713 test/text-storage.test.ts (11 tests) 368ms\n \u2713 test/sequence-reuse.test.ts (58 tests) 350ms\nstderr | test/for-axis.test.ts > traversal-axis loops (compilation=false) > rejects invalid axes even for empty sources: axis 2\nAmbiguous Alternatives Detected: <0, 1> in <AT_LEAST_ONE1> inside <ForStatement\u200b> Rule,\n<NL, end, EOF> may appears as a prefix path in all these alternatives.\nSee: https://chevrotain.io/docs/guide/resolving_grammar_errors.html#AMBIGUOUS_ALTERNATIVES\nFor Further details.\n\n \u2713 test/flat-combine.test.ts (9 tests) 354ms\n \u2713 test/scalar-dependencies.test.ts (22 tests) 372ms\n \u2713 test/for-axis.test.ts (85 tests) 406ms\n \u2713 test/scalar-function-ranges.test.ts (51 tests) 353ms\n \u2713 test/real-loop.test.ts (39 tests) 365ms\n \u2713 test/slice-arithmetic.test.ts (35 tests) 346ms\n \u2713 test/successor-graph.test.ts (26 tests) 381ms\n \u2713 test/lazy-array-depth.test.ts (15 tests) 341ms\n \u2713 test/compiled-array-stages.test.ts (30 tests) 398ms\n \u2713 test/tensor-shift.test.ts (25 tests) 355ms\n \u2713 test/cell-axis.test.ts (26 tests) 374ms\n \u2713 test/loop-range-values.test.ts (28 tests) 349ms\n \u2713 test/number-builtin.test.ts (27 tests) 370ms\n \u2713 test/number-loop-adaptive.test.ts (9 tests) 435ms\n \u2713 test/window-dimensions.test.ts (31 tests) 379ms\n \u2713 test/resource-summary.test.ts (19 tests) 357ms\n \u2713 test/producer-composition.test.ts (38 tests) 380ms\n \u2713 test/euler129.test.ts (26 tests) 371ms\n \u2713 test/outer-empty-composition.test.ts (31 tests) 384ms\n \u2713 test/euler333.test.ts (4 tests) 357ms\n \u2713 test/linalg.test.ts (27 tests) 417ms\n \u2713 test/reshape-view.test.ts (34 tests) 442ms\n \u2713 test/array-storage.test.ts (43 tests) 430ms\n \u2713 test/comparison-rank.test.ts (19 tests) 332ms\n \u2713 test/distinct-function.test.ts (20 tests) 313ms\n \u2713 test/dense-sum-squares.test.ts (5 tests) 319ms\n \u2713 test/plan-tensor-composition.test.ts (40 tests) 304ms\n \u2713 test/tensor-compound.test.ts (8 tests) 291ms\n \u2713 test/plan-tensor-reduction.test.ts (52 tests) 330ms\n \u2713 test/infix-rank.test.ts (24 tests) 307ms\n \u2713 test/compiled-operators.test.ts (82 tests) 325ms\n \u2713 test/stats.test.ts (24 tests) 302ms\n \u2713 test/counter-tensor-consumers.test.ts (38 tests) 307ms\n \u2713 test/collection-filter.test.ts (20 tests) 330ms\n \u2713 test/control-functions.test.ts (26 tests) 313ms\n \u2713 test/io-programs.test.ts (36 tests) 291ms\n \u2713 test/expression-grouping.test.ts (24 tests) 334ms\n \u2713 test/plan-tensor-outer.test.ts (49 tests) 317ms\n \u2713 test/slice-writes.test.ts (71 tests) 300ms\n \u2713 test/membership-function.test.ts (15 tests) 301ms\n \u2713 test/unique-tensor-consumers.test.ts (38 tests) 302ms\n \u2713 test/demo-borrow.test.ts (14 tests) 293ms\n \u2713 test/scalar-function-real.test.ts (15 tests) 299ms\n \u2713 test/max-pipeline.test.ts (50 tests) 294ms\n \u2713 test/integer-matmul.test.ts (20 tests) 285ms\n \u2713 test/array-binding-contracts.test.ts (54 tests) 302ms\n \u2713 test/loop-slice-copy.test.ts (14 tests) 299ms\n \u2713 test/missing-cells.test.ts (27 tests) 285ms\n \u2713 test/scalar-function-kernel.test.ts (22 tests) 305ms\n \u2713 test/tensor-numeric-calls.test.ts (23 tests) 303ms\n \u2713 test/euler-326.test.ts (4 tests) 272ms\n \u2713 test/lazy-array-limit.test.ts (3 tests) 264ms\n \u2713 test/tensor-concat.test.ts (15 tests) 267ms\n \u2713 test/euler179.test.ts (30 tests) 306ms\n \u2713 test/loop-control.test.ts (64 tests) 289ms\n \u2713 test/value-semantics.test.ts (20 tests) 281ms\n \u2713 test/compiler-rejection.test.ts (17 tests) 263ms\n \u2713 test/min-pipeline.test.ts (50 tests) 298ms\n \u2713 test/trigonometric-compilation.test.ts (27 tests) 283ms\n \u2713 test/plan-tensor-views.test.ts (29 tests) 271ms\n \u2713 test/checked-input.test.ts (34 tests) 276ms\n \u2713 test/typed-bits.test.ts (8 tests) 287ms\n \u2713 test/function-scope-helpers.test.ts (40 tests) 270ms\n \u2713 test/tensor-copy-fusion.test.ts (24 tests) 280ms\n \u2713 test/divmod.test.ts (5 tests) 262ms\n \u2713 test/plan-tensor-terminals.test.ts (55 tests) 304ms\n \u2713 test/runtime-diagnostics.test.ts (30 tests) 264ms\n \u2713 test/dense-division.test.ts (17 tests) 270ms\n \u2713 test/sequence-cells.test.ts (19 tests) 266ms\n \u2713 test/scalar-entry.test.ts (26 tests) 289ms\n \u2713 test/dense-arithmetic.test.ts (22 tests) 256ms\n \u2713 test/integer-axis-reduction.test.ts (16 tests) 270ms\n \u2713 test/array-construction.test.ts (18 tests) 303ms\n \u2713 test/tables.test.ts (38 tests) 267ms\n \u2713 test/scalar-plans.test.ts (42 tests) 247ms\n \u2713 test/producer-cell-demand.test.ts (35 tests) 243ms\n \u2713 test/loop-array-frames.test.ts (21 tests) 264ms\n \u2713 test/function-snapshots.test.ts (30 tests) 256ms\n \u2713 test/compiled-array-arguments.test.ts (14 tests) 248ms\n \u2713 test/integer-comparison-mask.test.ts (21 tests) 274ms\n \u2713 test/application-forms.test.ts (17 tests) 263ms\n \u2713 test/unary-array-kernel.test.ts (15 tests) 254ms\n \u2713 test/counter-gather.test.ts (30 tests) 258ms\nstderr | test/block-scope.test.ts > block scope > lexical block frames (compilation true) > rejects header capture before executing a cell: I = 99 / for I in 1 to 3\nend\nAmbiguous Alternatives Detected: <0, 1> in <AT_LEAST_ONE1> inside <ForStatement\u200b> Rule,\n<NL, end, EOF> may appears as a prefix path in all these alternatives.\nSee: https://chevrotain.io/docs/guide/resolving_grammar_errors.html#AMBIGUOUS_ALTERNATIVES\nFor Further details.\n\n \u2713 test/block-scope.test.ts (37 tests) 248ms\n \u2713 test/graph-trips.test.ts (9 tests) 238ms\n \u2713 test/factor-sieve.test.ts (4 tests) 251ms\n \u2713 test/column-table-ops.test.ts (23 tests) 252ms\n \u2713 test/readonly-aliases.test.ts (42 tests) 248ms\n \u2713 test/scan.test.ts (20 tests) 232ms\n \u2713 test/conversions.test.ts (18 tests) 252ms\n \u2713 test/sort-memory.test.ts (22 tests) 245ms\n \u2713 test/tensor-copy-storage.test.ts (10 tests) 236ms\n \u2713 test/named-structures.test.ts (14 tests) 276ms\n \u2713 test/floor-division.test.ts (93 tests) 287ms\n \u2713 test/array-returning-loop-calls.test.ts (12 tests) 238ms\n \u2713 test/mixed-sequence-arithmetic.test.ts (17 tests) 237ms\n \u2713 test/plan-escape.test.ts (30 tests) 251ms\nstderr | test/direct-iteration.test.ts > direct scalar iteration > retains validation for empty sources and incompatible bindings\nAmbiguous Alternatives Detected: <0, 1> in <AT_LEAST_ONE1> inside <ForStatement\u200b> Rule,\n<NL, end, EOF> may appears as a prefix path in all these alternatives.\nSee: https://chevrotain.io/docs/guide/resolving_grammar_errors.html#AMBIGUOUS_ALTERNATIVES\nFor Further details.\n\n \u2713 test/direct-iteration.test.ts (15 tests) 232ms\n \u2713 test/tensor-copy.test.ts (1 test) 238ms\n \u2713 test/text-rank.test.ts (8 tests) 236ms\n \u2713 test/rank-assignment.test.ts (29 tests) 239ms\n \u2713 test/merge.test.ts (12 tests) 237ms\n \u2713 test/turbo-loop.test.ts (22 tests) 244ms\n \u2713 test/number-loop-read-buffers.test.ts (11 tests) 261ms\n \u2713 test/stack.test.ts (13 tests) 242ms\n \u2713 test/tensor-expression-fusion.test.ts (22 tests) 226ms\n \u2713 test/geometric-loop.test.ts (19 tests) 236ms\n \u2713 test/collection-contracts.test.ts (26 tests) 229ms\n \u2713 test/sorting.test.ts (16 tests) 252ms\n \u2713 test/plan-callbacks.test.ts (16 tests) 231ms\n \u2713 test/function-control.test.ts (16 tests) 234ms\n \u2713 test/compiled-binding-storage.test.ts (22 tests) 233ms\n \u2713 test/modulo.test.ts (8 tests) 247ms\n \u2713 test/native-boolean-axis.test.ts (20 tests) 360ms\n \u2713 test/sqlite-plan.test.ts (25 tests) 237ms\n \u2713 test/parameter-bindings.test.ts (32 tests) 221ms\n \u2713 test/dates.test.ts (14 tests) 238ms\n \u2713 test/compiled-ranked-callback.test.ts (17 tests) 236ms\n \u2713 test/plan-tensor-concat.test.ts (26 tests) 232ms\n \u2713 test/captured-scalar-reads.test.ts (8 tests) 223ms\n \u2713 test/tuples.test.ts (32 tests) 233ms\n \u2713 test/declared-call.test.ts (23 tests) 239ms\n \u2713 test/tensor-broadcast-fusion.test.ts (13 tests) 241ms\n \u2713 test/mask-selection.test.ts (36 tests) 242ms\n \u2713 test/stored-selection-writes.test.ts (46 tests) 210ms\n \u2713 test/flat.test.ts (9 tests) 226ms\n \u2713 test/plan-effects.test.ts (22 tests) 267ms\n \u2713 test/plan-tensor-axis.test.ts (50 tests) 265ms\n \u2713 test/interrupt.test.ts (16 tests) 217ms\n \u2713 test/packed-integers.test.ts (9 tests) 220ms\n \u2713 test/take-drop.test.ts (9 tests) 215ms\n \u2713 test/nested-materialization.test.ts (30 tests) 200ms\n \u2713 test/reshape-inferred.test.ts (27 tests) 214ms\n \u2713 test/core-vocabulary.test.ts (14 tests) 215ms\n \u2713 test/return-contract.test.ts (13 tests) 207ms\n \u2713 test/number-tensor-selection.test.ts (20 tests) 257ms\n \u2713 test/integer32-storage.test.ts (15 tests) 224ms\n \u2713 test/small-array-kernels.test.ts (25 tests) 210ms\n \u2713 test/boolean-equality.test.ts (11 tests) 228ms\n \u2713 test/record-contracts.test.ts (16 tests) 208ms\n \u2713 test/bitmask-dp.test.ts (1 test) 203ms\n \u2713 test/cuboid-layers.test.ts (2 tests) 213ms\n \u2713 test/single-pass-bindings.test.ts (19 tests) 216ms\n \u2713 test/record-binding-contracts.test.ts (30 tests) 233ms\n \u2713 test/mod-operator.test.ts (21 tests) 222ms\n \u2713 test/ranked-broadcast-fusion.test.ts (14 tests) 217ms\n \u2713 test/aoc-chess.test.ts (2 tests) 213ms\n \u2713 test/environment.test.ts (14 tests) 213ms\n \u2713 test/binary-operands.test.ts (46 tests) 218ms\n \u2713 test/segment.test.ts (16 tests) 219ms\n \u2713 test/numeric-kernels.test.ts (19 tests) 229ms\n \u2713 test/table-context.test.ts (9 tests) 217ms\n \u2713 test/typed-arrays.test.ts (12 tests) 215ms\n \u2713 test/reference-mode.test.ts (9 tests) 206ms\n \u2713 test/column-tables.test.ts (13 tests) 201ms\n \u2713 test/axis-statistics-fusion.test.ts (8 tests) 213ms\n \u2713 test/prepared-function.test.ts (3 tests) 202ms\n \u2713 test/fused-reduction.test.ts (10 tests) 204ms\n \u2713 test/deferred-bindings.test.ts (26 tests) 202ms\n \u2713 test/binomialmod-array.test.ts (21 tests) 216ms\n \u2713 test/integer-groups.test.ts (13 tests) 207ms\n \u2713 test/function-binding.test.ts (18 tests) 212ms\n \u2713 test/compiled-scalar-captures.test.ts (12 tests) 203ms\n \u2713 test/logical-guards.test.ts (7 tests) 208ms\n \u2713 test/block-compiler.test.ts (10 tests) 213ms\n \u2713 test/computed-array-update.test.ts (22 tests) 212ms\n \u2713 test/plan-tensor-extrema.test.ts (26 tests) 207ms\n \u2713 test/ranked-cells.test.ts (8 tests) 197ms\n \u2713 test/scalar-function-domains.test.ts (18 tests) 230ms\n \u2713 test/continue.test.ts (10 tests) 245ms\n \u2713 test/powmod-array.test.ts (17 tests) 260ms\n \u2713 test/dense-slice.test.ts (7 tests) 255ms\n \u2713 test/unique-length.test.ts (19 tests) 244ms\n \u2713 test/membership.test.ts (17 tests) 217ms\n \u2713 test/records.test.ts (13 tests) 207ms\n \u2713 test/typed-native.test.ts (13 tests) 208ms\n \u2713 test/builtin-bindings.test.ts (22 tests) 194ms\n \u2713 test/fill-contract.test.ts (17 tests) 196ms\n \u2713 test/address-composition.test.ts (6 tests) 210ms\n \u2713 test/ends.test.ts (14 tests) 197ms\n \u2713 test/multiset.test.ts (10 tests) 190ms\n \u2713 test/documents.test.ts (10 tests) 193ms\n \u2713 test/qualified-plans.test.ts (12 tests) 184ms\n \u2713 test/fenwick.test.ts (10 tests) 202ms\n \u2713 test/fused-sum.test.ts (8 tests) 192ms\n \u2713 test/rank-demand.test.ts (14 tests) 206ms\n \u2713 test/for-leading-axis.test.ts (20 tests) 219ms\n \u2713 test/radix-rounding.test.ts (18 tests) 226ms\n \u2713 test/random.test.ts (12 tests) 213ms\n \u2713 test/function-ranks.test.ts (10 tests) 233ms\n \u2713 test/eager-binding-sites.test.ts (22 tests) 236ms\n \u2713 test/unique-sort.test.ts (17 tests) 222ms\n \u2713 test/mask-materialization.test.ts (17 tests) 205ms\n \u2713 test/scalar-function-proof.test.ts (57 tests) 234ms\n \u2713 test/prime-loops.test.ts (10 tests) 206ms\n \u2713 test/sorted-search.test.ts (8 tests) 215ms\n \u2713 test/callback-references.test.ts (18 tests) 214ms\n \u2713 test/compiled-sequence-callback.test.ts (8 tests) 227ms\n \u2713 test/bytes.test.ts (21 tests) 253ms\n \u2713 test/wavelet.test.ts (8 tests) 184ms\n \u2713 test/new-filled-structures.test.ts (10 tests) 201ms\n \u2713 test/derived-revisions.test.ts (19 tests) 211ms\n \u2713 test/stored-integer-selection.test.ts (17 tests) 226ms\n \u2713 test/strided-scalar-writes.test.ts (36 tests) 202ms\n \u2713 test/native-tensor-copy.test.ts (14 tests) 211ms\n \u2713 test/text-search.test.ts (10 tests) 195ms\n \u2713 test/affine-integer-updates.test.ts (14 tests) 185ms\n \u2713 test/empty-frame-rank.test.ts (8 tests) 206ms\n \u2713 test/sequence-short-circuit.test.ts (7 tests) 204ms\n \u2713 test/index-modifiers.test.ts (10 tests) 202ms\n \u2713 test/stored-writes.test.ts (34 tests) 205ms\n \u2713 test/plan-binding-location.test.ts (14 tests) 187ms\n \u2713 test/ranges.test.ts (23 tests) 209ms\n \u2713 test/eager-bindings.test.ts (22 tests) 210ms\n \u2713 test/permutation-completion.test.ts (15 tests) 193ms\nstderr | test/loop-bindings.test.ts > arity error agrees across compilation modes\nAmbiguous Alternatives Detected: <0, 1> in <AT_LEAST_ONE1> inside <ForStatement\u200b> Rule,\n<NL, end, EOF> may appears as a prefix path in all these alternatives.\nSee: https://chevrotain.io/docs/guide/resolving_grammar_errors.html#AMBIGUOUS_ALTERNATIVES\nFor Further details.\n\n \u2713 test/loop-bindings.test.ts (5 tests) 199ms\n \u2713 test/native-array-demand.test.ts (12 tests) 203ms\n \u2713 test/dense-builtins.test.ts (4 tests) 206ms\n \u2713 test/bag-query-ranks.test.ts (5 tests) 201ms\n \u2713 test/numeric-search.test.ts (15 tests) 195ms\n \u2713 test/scalar-array-reader.test.ts (13 tests) 158ms\n \u2713 test/split-rank.test.ts (5 tests) 204ms\n \u2713 test/index-storage.test.ts (4 tests) 205ms\n \u2713 test/named-reduce.test.ts (9 tests) 204ms\n \u2713 test/table-materialization.test.ts (21 tests) 171ms\n \u2713 test/stored-scalar-kinds.test.ts (12 tests) 196ms\n \u2713 test/ranked-text-demand.test.ts (12 tests) 190ms\n \u2713 test/scalar-function-text-iteration.test.ts (5 tests) 195ms\n \u2713 test/execution-composition.test.ts (12 tests) 188ms\n \u2713 test/demand-work-budget.test.ts (8 tests) 182ms\n \u2713 test/builtin-sequence-membership.test.ts (7 tests) 195ms\n \u2713 test/modifier-pipelines.test.ts (8 tests) 192ms\n \u2713 test/runtime-fast-paths.test.ts (8 tests) 192ms\n \u2713 test/text-format.test.ts (6 tests) 185ms\n \u2713 test/boolean-masks.test.ts (8 tests) 187ms\n \u2713 test/set-key-integrity.test.ts (8 tests) 177ms\n \u2713 test/dense-integer-kernels.test.ts (5 tests) 156ms\n \u2713 test/outer-sequence-demand.test.ts (20 tests) 168ms\n \u2713 test/grouped-materialization.test.ts (18 tests) 184ms\n \u2713 test/function-identity.test.ts (4 tests) 186ms\n \u2713 test/operator-signatures.test.ts (3 tests) 174ms\n \u2713 test/window-fold.test.ts (15 tests) 179ms\n \u2713 test/numeric-collections.test.ts (21 tests) 182ms\n \u2713 test/integer-copy.test.ts (16 tests) 174ms\n \u2713 test/graph-traversal.test.ts (14 tests) 176ms\n \u2713 test/runtime-scope.test.ts (4 tests) 162ms\n \u2713 test/unpack-axis.test.ts (5 tests) 173ms\n \u2713 test/popcount.test.ts (5 tests) 181ms\n \u2713 test/transpose-plan.test.ts (4 tests) 174ms\n \u2713 test/wide-argsort.test.ts (8 tests) 162ms\n \u2713 test/window-demand.test.ts (15 tests) 174ms\n \u2713 test/text-words.test.ts (3 tests) 148ms\n \u2713 test/extrema-text.test.ts (3 tests) 149ms\n \u2713 test/stats-demand.test.ts (5 tests) 128ms\n \u2713 test/tensor-cell-compiler.test.ts (11 tests) 146ms\n \u2713 test/lookup.test.ts (4 tests) 151ms\n \u2713 test/query-default.test.ts (5 tests) 137ms\n \u2713 test/condition-composition.test.ts (1 test) 135ms\n \u2713 test/text-string-ops.test.ts (4 tests) 143ms\n \u2713 test/shift-storage.test.ts (5 tests) 150ms\n \u2713 test/binary-scalar-ranks.test.ts (4 tests) 135ms\n \u2713 test/collection-capabilities.test.ts (5 tests) 123ms\n \u2713 test/tensor-binding-boundaries.test.ts (12 tests) 164ms\n \u2713 test/grids.test.ts (4 tests) 138ms\n \u2713 test/rolling-calendar.test.ts (2 tests) 141ms\n \u2713 test/array-shape-vector.test.ts (4 tests) 144ms\n \u2713 test/ranked-bulk-demand.test.ts (10 tests) 148ms\n \u2713 test/text-block.test.ts (6 tests) 134ms\n \u2713 test/images.test.ts (2 tests) 137ms\n \u2713 test/named-sum.test.ts (14 tests) 136ms\n \u2713 test/builtin-grouping.test.ts (5 tests) 137ms\n \u2713 test/lowercase-variable.test.ts (3 tests) 122ms\n \u2713 test/direct-scalar-live.test.ts (6 tests) 143ms\n \u2713 test/modular-power.test.ts (3 tests) 28ms\n \u2713 test/packed-distinct.test.ts (10 tests) 79ms\n \u2713 test/mutation-guards.test.ts (4 tests) 126ms\n \u2713 test/shape-contracts.test.ts (120 tests) 26ms\n \u2713 test/arrow-table.test.ts (36 tests) 19ms\n \u2713 test/plan.test.ts (4 tests) 9ms\n \u2713 test/selector-type-checks.test.ts (22 tests) 10ms\n \u2713 test/capture-protection.test.ts (9 tests) 7ms\n \u2713 test/mapped-array-traversal.test.ts (14 tests) 8ms\n \u2713 test/tensor-cache.test.ts (4 tests) 5ms\n \u2713 test/numeric-set.test.ts (14 tests) 5ms\n \u2713 test/sequence-retention.test.ts (8 tests) 5ms\n \u2713 test/native-callback-demand.test.ts (5 tests) 5ms\n \u2713 test/array-packed-read.test.ts (6 tests) 4ms\n \u2713 test/element-source.test.ts (5 tests) 4ms\n \u2713 test/membership-keys.test.ts (4 tests) 3ms\n \u2713 test/type-audit-runner.test.ts (2 tests) 3ms\n \u2713 test/transpose-reader.test.ts (4 tests) 4ms\n \u2713 test/debug-session.test.ts (3 tests) 3ms\n \u2713 test/table-revisions.test.ts (3 tests) 3ms\n \u2713 test/array-revisions.test.ts (5 tests) 3ms\n \u2713 test/array-traversal.test.ts (3 tests) 2ms\n \u2713 test/native-array-storage.test.ts (2 tests) 2ms\n\n Test Files  401 passed (401)\n      Tests  9080 passed (9080)\n   Start at  19:05:21\n   Duration  101.97s (transform 2.03s, setup 0ms, collect 132.27s, tests 234.44s, environment 31ms, prepare 10.08s)\n\n",
+    "axisSuite": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\n \u2713 test/native-boolean-axis.test.ts (20 tests) 418ms\n\n Test Files  1 passed (1)\n      Tests  20 passed (20)\n   Start at  19:06:17\n   Duration  2.39s (transform 1.22s, setup 0ms, collect 1.85s, tests 418ms, environment 0ms, prepare 35ms)\n\n",
+    "demoAudits": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/200_primeproofsqube.ra\ncomparing euler/200_primeproofsqube.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/200_primeproofsqube_test.ra\ncomparing euler/200_primeproofsqube_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 2/1777 compared, 2 completed, 2 test blocks, 106342 compiled entries, 0 Number loop entries\n\n \u2713 test/differential.test.ts (1778 tests | 1776 skipped) 3550ms\n   \u2713 compiled and reference demo execution > euler/200_primeproofsqube.ra  1796ms\n   \u2713 compiled and reference demo execution > euler/200_primeproofsqube_test.ra  1749ms\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/200_primeproofsqube.ra\nauditing euler/200_primeproofsqube.ra\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/200_primeproofsqube_test.ra\nauditing euler/200_primeproofsqube_test.ra\n\n \u2713 test/types.test.ts (1777 tests | 1775 skipped) 971ms\n   \u2713 inferred types against the values a run produced > euler/200_primeproofsqube.ra  954ms\n",
+    "note": "The initial combined scoped run included two incorrectly written source-write assertions; the demo audits passed. The assertions were corrected to require the existing read-only error; the final 20-axis-test run and ordinary suite both pass."
+  },
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "macOS arm64",
+    "baseline": "ae5b940f",
+    "cohort": "serial fresh processes, 5 task/fixture samples, 3 control samples, no diagnostic/build/test overlap"
+  },
+  "sourceHashes": {
+    "packages/interpreter/src/tensor-map.ts": "07c21fe383758e7ce361557813401df2e0d7504addb3f871e66ed2202e8d9fac",
+    "packages/interpreter/test/native-boolean-axis.test.ts": "b090f59a24bfde5abd14d2b573731c344987678cdcbc89b2650589bd097394b4",
+    "demos/euler/200_primeproofsqube_test.ra": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+    "benchmarks/euler200-primeproof-squbes.mjs": "819dd21d3a1b3a1d6dbaff83e6ad80c304575771b19211047eaed9416d4ad0a6"
+  }
+}

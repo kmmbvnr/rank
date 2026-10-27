@@ -10,10 +10,12 @@ end
 test "first prime-proof squbes"
   use "200_primeproofsqube"
   N = 1
+  Bound = 200
   run
 
   Answer equal 200
   N = 2
+  Bound = 2000000
   run
 
   Answer equal 1992008

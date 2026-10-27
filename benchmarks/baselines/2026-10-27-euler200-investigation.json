@@ -1,0 +1,1488 @@
+{
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "node": "v24.15.0",
+    "sourceCommit": "ae5b940f92bccf065feb5b8586dea559ec208c2f",
+    "runtime": "isolated baseline33d plus Euler196 runtime changes; Euler198 was demo/comment only"
+  },
+  "samples": [
+    {
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 1385.779291,
+      "rssMiB": 664.59375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "reference",
+      "fixture": false,
+      "reference": true,
+      "smallTests": false,
+      "ms": 680.786708,
+      "rssMiB": 568.703125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "retry",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 511.1580839999999,
+      "rssMiB": 407.328125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 2666.3104999999996,
+      "rssMiB": 782.4375,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1189.0579169999999
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1361.4771250000001
+        }
+      ]
+    },
+    {
+      "variant": "retry-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 938.316792,
+      "rssMiB": 381.359375,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 305.48808399999996
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 511.7791659999999
+        }
+      ]
+    },
+    {
+      "variant": "retry-small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 443.644125,
+      "rssMiB": 307.703125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 303.918625
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.89737500000001
+        }
+      ]
+    },
+    {
+      "variant": "retry-small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 445.643542,
+      "rssMiB": 316.8125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 306.090708
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.18570800000009
+        }
+      ]
+    },
+    {
+      "variant": "retry-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 936.836958,
+      "rssMiB": 375.875,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 305.723333
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 510.09470899999997
+        }
+      ]
+    },
+    {
+      "variant": "fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 2657.156042,
+      "rssMiB": 589.6875,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1172.021834
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1362.271625
+        }
+      ]
+    },
+    {
+      "variant": "retry",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 411.270208,
+      "rssMiB": 309.78125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "reference",
+      "fixture": false,
+      "reference": true,
+      "smallTests": false,
+      "ms": 623.0026250000001,
+      "rssMiB": 558.265625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 1308.265291,
+      "rssMiB": 779.515625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 1305.848916,
+      "rssMiB": 780.8125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "reference",
+      "fixture": false,
+      "reference": true,
+      "smallTests": false,
+      "ms": 618.6325830000001,
+      "rssMiB": 555.046875,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "retry",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 409.599292,
+      "rssMiB": 308.890625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 2684.6037499999998,
+      "rssMiB": 785.609375,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1194.8246669999999
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1367.788458
+        }
+      ]
+    },
+    {
+      "variant": "retry-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 949.3224999999999,
+      "rssMiB": 375.5625,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 303.89645900000005
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 526.278667
+        }
+      ]
+    },
+    {
+      "variant": "retry-small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 454.81954200000007,
+      "rssMiB": 315.734375,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 313.671416
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.075333
+        }
+      ]
+    },
+    {
+      "variant": "retry-small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 443.949917,
+      "rssMiB": 312.390625,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 306.9390000000001
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.321500000000015
+        }
+      ]
+    },
+    {
+      "variant": "retry-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 948.8011250000001,
+      "rssMiB": 380.578125,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 308.642625
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 519.7356669999999
+        }
+      ]
+    },
+    {
+      "variant": "fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 2700.3108749999997,
+      "rssMiB": 770.125,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1199.5633750000002
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1380.252792
+        }
+      ]
+    },
+    {
+      "variant": "retry",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 412.08362500000004,
+      "rssMiB": 309.578125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "reference",
+      "fixture": false,
+      "reference": true,
+      "smallTests": false,
+      "ms": 616.539333,
+      "rssMiB": 559.875,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 1299.0559580000001,
+      "rssMiB": 762.609375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 1308.616792,
+      "rssMiB": 775.859375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "reference",
+      "fixture": false,
+      "reference": true,
+      "smallTests": false,
+      "ms": 616.122708,
+      "rssMiB": 555.265625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "retry",
+      "fixture": false,
+      "reference": false,
+      "smallTests": false,
+      "ms": 410.101,
+      "rssMiB": 306.9375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": []
+    },
+    {
+      "variant": "fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 2697.743791,
+      "rssMiB": 593.9375,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1197.90375
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 1379.1336669999998
+        }
+      ]
+    },
+    {
+      "variant": "retry-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": false,
+      "ms": 955.0360000000001,
+      "rssMiB": 377.765625,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 310.15475000000004
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 525.9641660000001
+        }
+      ]
+    },
+    {
+      "variant": "retry-small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 448.721542,
+      "rssMiB": 309.078125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 309.119917
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 18.69170799999995
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "smallTests": false,
+      "ms": 1500.081583,
+      "rssMiB": 482.875,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 500.684916
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 877.628708
+        }
+      ]
+    },
+    {
+      "variant": "small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 1332.558458,
+      "rssMiB": 778.375,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1192.3975
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 19.742999999999938
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "smallTests": false,
+      "ms": 1489.225333,
+      "rssMiB": 480.265625,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 496.97987500000005
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 871.8505830000001
+        }
+      ]
+    },
+    {
+      "variant": "small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 1340.728333,
+      "rssMiB": 769.328125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1200.987208
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 19.051165999999967
+        }
+      ]
+    },
+    {
+      "variant": "reference-fixture",
+      "fixture": true,
+      "reference": true,
+      "smallTests": false,
+      "ms": 1495.26575,
+      "rssMiB": 485.078125,
+      "sourceHash": "635977086c20f0f523d54ae2df6fc7858f175e2057287d6898f438cb2e1a2c6a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 503.02025000000003
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 870.226458
+        }
+      ]
+    },
+    {
+      "variant": "small-fixture",
+      "fixture": true,
+      "reference": false,
+      "smallTests": true,
+      "ms": 1342.377083,
+      "rssMiB": 577.078125,
+      "sourceHash": "40974deea411968af8bc5e29e932fd285ccf4e1dcba25dfe17fadf00fa57556a",
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "229161792008"
+          ],
+          "durationMs": 1197.956792
+        },
+        {
+          "name": "first prime-proof squbes",
+          "passed": true,
+          "output": [
+            "200",
+            "1992008"
+          ],
+          "durationMs": 24.433084000000008
+        }
+      ]
+    }
+  ],
+  "initialSamples": [
+    {
+      "fixture": false,
+      "ref": false,
+      "ms": 1290.042375,
+      "rssMiB": 540.296875,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "ms": 618.406208,
+      "rssMiB": 437.546875,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "ms": 635.0011670000001,
+      "rssMiB": 524.90625,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "ms": 1305.337834,
+      "rssMiB": 543.390625,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "ms": 1308.104584,
+      "rssMiB": 626.578125,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "ms": 634.690625,
+      "rssMiB": 521.40625,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "ms": 631.050292,
+      "rssMiB": 527.65625,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "ms": 1301.512291,
+      "rssMiB": 779.328125,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "ms": 1301.7695,
+      "rssMiB": 539.8125,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "ms": 646.6565410000001,
+      "rssMiB": 526.75,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    }
+  ],
+  "stageControls": [
+    {
+      "fixture": false,
+      "ref": false,
+      "cut": "Sorted =",
+      "ms": 194.63616700000003,
+      "rssMiB": 295.9375,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "undefined",
+        "Cnt": "undefined",
+        "Cells": "undefined"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "cut": "Sorted =",
+      "ms": 189.55375,
+      "rssMiB": 291.65625,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "undefined",
+        "Cnt": "undefined",
+        "Cells": "undefined"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "cut": "Cand =",
+      "ms": 203.94387500000002,
+      "rssMiB": 289.9375,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "undefined",
+        "Cells": "undefined"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "cut": "Cand =",
+      "ms": 198.84341700000002,
+      "rssMiB": 289.265625,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "undefined",
+        "Cells": "undefined"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "cut": "Cnt =",
+      "ms": 1166.0725,
+      "rssMiB": 668.296875,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "undefined",
+        "Cells": "undefined"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "cut": "Cnt =",
+      "ms": 488.44279199999994,
+      "rssMiB": 467.921875,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "undefined",
+        "Cells": "undefined"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "cut": "Prime' =",
+      "ms": 1169.550792,
+      "rssMiB": 670.09375,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "cut": "Prime' =",
+      "ms": 469.73245799999995,
+      "rssMiB": 464.28125,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": false,
+      "cut": "Answer =",
+      "ms": 1194.558375,
+      "rssMiB": 634.40625,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "fixture": false,
+      "ref": true,
+      "cut": "Answer =",
+      "ms": 479.836333,
+      "rssMiB": 462.453125,
+      "vars": {
+        "Answer": "undefined",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    }
+  ],
+  "optionControls": [
+    {
+      "option": "tensorFusion",
+      "fixture": false,
+      "ref": false,
+      "ms": 625.689583,
+      "rssMiB": 526.34375,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "option": "tensorCellCompilation",
+      "fixture": false,
+      "ref": false,
+      "ms": 1303.002041,
+      "rssMiB": 540.125,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "option": "scalarCompilation",
+      "fixture": false,
+      "ref": false,
+      "ms": 1305.636208,
+      "rssMiB": 633.03125,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "option": "tensorReadHoisting",
+      "fixture": false,
+      "ref": false,
+      "ms": 1298.831459,
+      "rssMiB": 764.046875,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    },
+    {
+      "option": "sequenceMembershipCompilation",
+      "fixture": false,
+      "ref": false,
+      "ms": 1312.01725,
+      "rssMiB": 542.78125,
+      "vars": {
+        "Answer": "229161792008",
+        "Top": "4218",
+        "Rows": "49455",
+        "Cnt": "587",
+        "Cells": "76310"
+      },
+      "tests": []
+    }
+  ],
+  "baselineDiagnostics": {
+    "fixture": false,
+    "ref": false,
+    "ms": 1298.441583,
+    "rssMiB": 757.5,
+    "vars": {
+      "Answer": "229161792008",
+      "Top": "4218",
+      "Rows": "49455",
+      "Cnt": "587",
+      "Cells": "76310"
+    },
+    "tests": [],
+    "diag": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 442751,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 50042,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 50042,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 579,
+      "maskMaterializedCells": 50263,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 5,
+      "elementTypeScannedCells": 636,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-op:floor": 2,
+        "scalar-expression:unsupported-op:+": 2,
+        "tensor:scalar-evaluation-timing": 1,
+        "scalar-expression:too-small": 9,
+        "scalar-expression:unsupported-op:**": 2,
+        "scalar-expression:unsupported-op:/": 2,
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:to": 4,
+        "tensor:output-shape": 577,
+        "tensor:unsupported-node:MaterializeExpression": 5,
+        "scalar-expression:operator-guard:*": 1156,
+        "tensor:deferred-binding:AssignmentStatement": 11,
+        "scalar-expression:operator-guard://": 2,
+        "scalar-expression:operator-guard:mod": 2,
+        "tensor:stale-input": 50040,
+        "scalar-expression:unsupported-op:reshape": 5,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 7,
+        "scalar-expression:unsupported-op://": 4,
+        "scalar-expression:unsupported-op:mod": 2,
+        "scalar-expression:unsupported-op:axis": 1,
+        "scalar-expression:unsupported-op:not": 1,
+        "scalar-expression:unsupported-op:and": 2,
+        "scalar-expression:unsupported-op:in": 2,
+        "scalar-expression:operator-guard:-": 1,
+        "scalar-expression:operator-guard:+": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "prototypeDiagnostics": {
+    "fixture": false,
+    "ref": false,
+    "ms": 408.227125,
+    "rssMiB": 308.953125,
+    "vars": {
+      "Answer": "229161792008",
+      "Top": "4218",
+      "Rows": "49455",
+      "Cnt": "587",
+      "Cells": "76310"
+    },
+    "tests": [],
+    "diag": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 442751,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 50042,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 4,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 579,
+      "maskMaterializedCells": 50263,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 5,
+      "elementTypeScannedCells": 636,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-op:floor": 2,
+        "scalar-expression:unsupported-op:+": 2,
+        "tensor:scalar-evaluation-timing": 1,
+        "scalar-expression:too-small": 9,
+        "scalar-expression:unsupported-op:**": 2,
+        "scalar-expression:unsupported-op:/": 2,
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:to": 4,
+        "tensor:output-shape": 577,
+        "tensor:unsupported-node:MaterializeExpression": 5,
+        "scalar-expression:operator-guard:*": 1156,
+        "tensor:deferred-binding:AssignmentStatement": 11,
+        "scalar-expression:operator-guard://": 2,
+        "scalar-expression:operator-guard:mod": 2,
+        "tensor:stale-input": 2,
+        "scalar-expression:unsupported-op:reshape": 5,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 7,
+        "scalar-expression:unsupported-op://": 4,
+        "scalar-expression:unsupported-op:mod": 2,
+        "scalar-expression:unsupported-op:axis": 1,
+        "scalar-expression:unsupported-op:not": 1,
+        "scalar-expression:unsupported-op:and": 2,
+        "scalar-expression:unsupported-op:in": 2,
+        "scalar-expression:operator-guard:-": 1,
+        "scalar-expression:operator-guard:+": 1
+      },
+      "compilerRejections": []
+    }
+  },
+  "minimalDiagnostics": {
+    "memoHits": 0,
+    "memoMisses": 0,
+    "indexReads": 0,
+    "indexReadHits": 0,
+    "indexReadMisses": 0,
+    "indexWrites": 0,
+    "sequencePredicateCalls": 0,
+    "cellsComputed": 1000,
+    "hoistedReaders": 0,
+    "loopElementScans": 0,
+    "nativeSequenceCopies": 0,
+    "compiledLoops": 0,
+    "compiledGeneratorLoops": 0,
+    "integerMembershipFilters": 0,
+    "compiledGraphAdds": 0,
+    "compiledEffectCalls": 0,
+    "numericSorts": 0,
+    "numericInPlaceSorts": 0,
+    "numericDistincts": 0,
+    "compiledDistincts": 0,
+    "numericUniqueSorts": 0,
+    "numericSearches": 0,
+    "numericSearchIndexes": 0,
+    "numberLoops": 0,
+    "exactLoopWorkSamples": 0,
+    "exactLoopWorkPromotions": 0,
+    "numberLoopCopyProbes": 0,
+    "numberLoopCopyAmortized": 0,
+    "mixedIntegerLoops": 0,
+    "numberLoopOverflows": 0,
+    "numberLoopReadBuffers": 0,
+    "numberLoopReadBufferCells": 0,
+    "numberLoopReadBufferHits": 0,
+    "compiledTensors": 1000,
+    "numberTensors": 0,
+    "compiledCounterBuilds": 0,
+    "compiledCounterSums": 0,
+    "compiledCounterKeys": 0,
+    "tensorMapPreparations": 1000,
+    "compiledArrayFunctions": 0,
+    "rankedArrayBatches": 0,
+    "rankedBatches": 0,
+    "maskMaterializations": 0,
+    "maskMaterializedCells": 0,
+    "bulkArrayWrites": 0,
+    "bulkArrayWriteCells": 0,
+    "fusedArrayUpdates": 0,
+    "fusedArrayUpdateCells": 0,
+    "fusedArrayUpdateWidenings": 0,
+    "cowCopies": 0,
+    "cowCopiedCells": 0,
+    "elementTypeScans": 1,
+    "elementTypeScannedCells": 13,
+    "rangeSelectorViews": 0,
+    "selectionSnapshots": 0,
+    "selectionSnapshotCells": 0,
+    "typedUnpacks": 0,
+    "typedUnpackedCells": 0,
+    "fallbacks": {
+      "tensor:unsupported-node:MaterializeExpression": 2,
+      "scalar-expression:unsupported-op:to": 2,
+      "scalar-expression:unsupported-op:**": 1,
+      "tensor:deferred-binding:AssignmentStatement": 3,
+      "scalar-expression:too-small": 1,
+      "scalar-expression:operator-guard://": 1,
+      "scalar-expression:operator-guard:mod": 1,
+      "tensor:stale-input": 999
+    },
+    "compilerRejections": []
+  },
+  "minimalPrototypeDiagnostics": {
+    "memoHits": 0,
+    "memoMisses": 0,
+    "indexReads": 0,
+    "indexReadHits": 0,
+    "indexReadMisses": 0,
+    "indexWrites": 0,
+    "sequencePredicateCalls": 0,
+    "cellsComputed": 1000,
+    "hoistedReaders": 0,
+    "loopElementScans": 0,
+    "nativeSequenceCopies": 0,
+    "compiledLoops": 0,
+    "compiledGeneratorLoops": 0,
+    "integerMembershipFilters": 0,
+    "compiledGraphAdds": 0,
+    "compiledEffectCalls": 0,
+    "numericSorts": 0,
+    "numericInPlaceSorts": 0,
+    "numericDistincts": 0,
+    "compiledDistincts": 0,
+    "numericUniqueSorts": 0,
+    "numericSearches": 0,
+    "numericSearchIndexes": 0,
+    "numberLoops": 0,
+    "exactLoopWorkSamples": 0,
+    "exactLoopWorkPromotions": 0,
+    "numberLoopCopyProbes": 0,
+    "numberLoopCopyAmortized": 0,
+    "mixedIntegerLoops": 0,
+    "numberLoopOverflows": 0,
+    "numberLoopReadBuffers": 0,
+    "numberLoopReadBufferCells": 0,
+    "numberLoopReadBufferHits": 0,
+    "compiledTensors": 1000,
+    "numberTensors": 0,
+    "compiledCounterBuilds": 0,
+    "compiledCounterSums": 0,
+    "compiledCounterKeys": 0,
+    "tensorMapPreparations": 2,
+    "compiledArrayFunctions": 0,
+    "rankedArrayBatches": 0,
+    "rankedBatches": 0,
+    "maskMaterializations": 0,
+    "maskMaterializedCells": 0,
+    "bulkArrayWrites": 0,
+    "bulkArrayWriteCells": 0,
+    "fusedArrayUpdates": 0,
+    "fusedArrayUpdateCells": 0,
+    "fusedArrayUpdateWidenings": 0,
+    "cowCopies": 0,
+    "cowCopiedCells": 0,
+    "elementTypeScans": 1,
+    "elementTypeScannedCells": 13,
+    "rangeSelectorViews": 0,
+    "selectionSnapshots": 0,
+    "selectionSnapshotCells": 0,
+    "typedUnpacks": 0,
+    "typedUnpackedCells": 0,
+    "fallbacks": {
+      "tensor:unsupported-node:MaterializeExpression": 2,
+      "scalar-expression:unsupported-op:to": 2,
+      "scalar-expression:unsupported-op:**": 1,
+      "tensor:deferred-binding:AssignmentStatement": 3,
+      "scalar-expression:too-small": 1,
+      "scalar-expression:operator-guard://": 1,
+      "scalar-expression:operator-guard:mod": 1,
+      "tensor:stale-input": 1
+    },
+    "compilerRejections": []
+  },
+  "prototype": {
+    "file": "tensor-map.js",
+    "scope": "temporary built runtime only, not a production fix",
+    "replacement": "let run = prepareTensorMap(value, operation); let retried = false;\nreturn run && ((start, size) => { let result = run({start,size}); if (result === undefined && !retried) { retried = true; run = prepareTensorMap(value, operation); result = run?.({start,size}); } return result; });",
+    "notes": "All original graph validity guards retained. Only one retry per axis consumer; unsupported graphs fall back. Needs production safety tests before adoption."
+  }
+}

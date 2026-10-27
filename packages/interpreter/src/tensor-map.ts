@@ -157,8 +157,19 @@ function consumeTensorMap(value: RankArray, operation: string): RankValue | unde
 /** One native graph serves contiguous boolean cells, without completing later cells. */
 export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | 'any'):
     ((start: number, size: number) => RankValue | undefined) | undefined {
-    const run = prepareTensorMap(value, operation);
-    return run && ((start, size) => run({ start, size }));
+    let run = prepareTensorMap(value, operation);
+    if (!run) return undefined;
+    let refreshed = false;
+    return (start, size) => {
+        const result = run?.({ start, size });
+        if (result !== undefined || refreshed) return result;
+        // The first demand may refine a lazy binding contract and invalidate
+        // this graph's revision guards. Refresh once, retaining every guard;
+        // unsupported graphs still fall back without a retry on every row.
+        refreshed = true;
+        run = prepareTensorMap(value, operation);
+        return run?.({ start, size });
+    };
 }
 
 function prepareTensorGraph(value: RankArray) {

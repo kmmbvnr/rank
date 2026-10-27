@@ -2689,3 +2689,17 @@ exact, while native sorting keeps its interruptible fallback. The Euler 155 demo
 retains ordinary `Rec =`: controlled comparison found it faster than deferring
 that stage, even with the new consumer. See the
 [plan-consumer follow-up](../../benchmarks/euler155-plan-consumers-results.md).
+
+## Recover reusable boolean-axis graphs after contract refinement (Euler 200, #447)
+
+Contiguous native `all axis` / `any axis` consumers may refresh their prepared
+recipe once after a declined range. A first lazy read can refine an array binding
+contract and invalidate the graph's revision snapshot; refreshing retains all
+existing guards and avoids preparing another graph for every subsequent row.
+Unsupported recipes still use ordinary traversal, and refresh attempts remain
+bounded per consumer. Native short circuit order, deferred errors, captured
+source protection and ordinary binding completion remain unchanged.
+
+Euler 200 retains its array algorithm. Its two small first-answer tests now use
+bounds 200 and 2000000; the default-answer test retains the full bound. See the
+[measurements and verification](../../benchmarks/euler200-primeproof-squbes-results.md).
