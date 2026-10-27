@@ -1,3 +1,4 @@
+import { prepareNumberTensor } from './tensor-number.js';
 import { registerPackedBooleanMap, countPackedBooleans } from './packed-booleans.js';
 import { matchCompiledOperatorDomains, tensorOperatorSignatures, type CompiledAtomType } from '@arrrank/language';
 import { arrayCellValidator } from './derived-array.js';
@@ -160,10 +161,8 @@ export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | '
     return run && ((start, size) => run({ start, size }));
 }
 
-function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined },
-    visit?: (cell: RankValue) => void):
-    ((range?: TensorRange) => RankValue | undefined) | undefined {
-    if (!consumerCompilation || operation !== 'copy' && !reductions.has(operation)) return undefined;
+function prepareTensorGraph(value: RankArray) {
+    if (!consumerCompilation) return undefined;
     const scope = active ?? mapScope(value);
     if (!scope?.enabled()) return undefined;
     const textDigits = scope.host.textDigits;
@@ -173,8 +172,8 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
     let remaining = 1024;
     let transformed = false;
     const typed = <T extends TensorNode>(node: T, domain: readonly CompiledAtomType[]): T => { domains.set(node, domain); return node; };
-    function check(source: TensorNode, validate: ((cell: RankValue, index: number) => RankValue) | undefined): TensorNode {
-        return validate ? typed({ kind: 'check', source, validate }, domains.get(source)!) : source;
+    function check(source: TensorNode, validate: ((cell: RankValue, index: number) => RankValue) | undefined, uniform = false): TensorNode {
+        return validate ? typed({ kind: 'check', source, validate, uniform }, domains.get(source)!) : source;
     }
     function guardArray(value: RankArray): void {
         const reader = value.itemAt, shape = [...value.shape], revision = arrayRevision(value);
@@ -202,7 +201,7 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
                     && view.shape.every((n, axis) => n === view.source.shape[axis]);
                 transformed ||= !identity;
                 return check(identity ? source : typed({ kind: 'view', source, shape: view.shape, offset: view.offset },
-                    domains.get(source)!), view.validate);
+                    domains.get(source)!), view.validate, view.uniform);
             }
             // Stored arrays are completion boundaries, even if their creation
             // had a recipe. Only their present storage may feed this demand.
@@ -287,16 +286,54 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
                 : extreme ? { kind: 'binary', op: map.operator, native: map.operator as 'min' | 'max', left: operands[0]!, right: operands[1]! }
                 : { kind: map.layout === 'outer' ? 'outer' : 'binary', op: map.operator, left: operands[0]!, right: operands[1]! }, matched.result);
             const validate = arrayCellValidator(value);
-            return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));
+            return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }),
+                value.shape.length === 1 && !value.columnNames);
         } finally { visiting.delete(value); }
     }
     const root = lower(value);
-    if (!root || !transformed) return undefined;
+    if (!root) return undefined;
+    const host = { ...scope.host, valid: () => consumerCompilation && scope.enabled()
+        && scope.host.valid?.() !== false && guards.every(guard => guard()) };
+    return { root, domains, host, scope, transformed };
+}
+
+/** Mask construction still precedes reading any selected source values. */
+export function tensorMaskPositions(value: RankArray): number[] | undefined {
+    const graph = prepareTensorGraph(value);
+    if (!graph) return undefined;
+    const { root, domains, host, scope } = graph;
+    const result = prepareNumberTensor(root, domains, 'positions', scope.code, host.valid)?.();
+    if (!Array.isArray(result)) return undefined;
+    scope.executed();
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numberTensors++;
+    return result;
+}
+
+/** Consume only the positions already validated by ordinary mask selection. */
+export function sumTensorPositions(value: RankArray, positions: readonly number[]): bigint | undefined {
+    const graph = prepareTensorGraph(value);
+    if (!graph) return undefined;
+    const { root, domains, host, scope } = graph;
+    const result = prepareNumberTensor(root, domains, 'sum', scope.code, host.valid, positions)?.();
+    if (typeof result !== 'bigint') return undefined;
+    scope.executed();
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numberTensors++;
+    return result;
+}
+
+function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bigint | undefined },
+    visit?: (cell: RankValue) => void):
+    ((range?: TensorRange) => RankValue | undefined) | undefined {
+    if (operation !== 'copy' && !reductions.has(operation)) return undefined;
+    const graph = prepareTensorGraph(value);
+    if (!graph?.transformed) return undefined;
+    const { root, domains, host, scope } = graph;
     if (visit && domains.get(root)?.join() !== 'integer') return undefined;
     if (scan && (value.shape.length !== 1 || domains.get(root)?.join() !== 'integer')) return undefined;
     const diagnostics = currentDiagnostics();
     if (diagnostics) diagnostics.tensorMapPreparations++;
-    const host = { ...scope.host, valid: () => scope.host.valid?.() !== false && guards.every(guard => guard()) };
     const kernel = visit ? compileNativeTensorVisit(root, domains, host, scope.code, visit)
         : scan ? compileNativeIntegerScan(root, scan.seed, domains, host, scope.code)
         : operation === 'copy' ? compileNativeTensorCopy(root, domains, host, scope.code)

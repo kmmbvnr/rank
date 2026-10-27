@@ -36,6 +36,7 @@ export class RuntimeDiagnostics {
     numberLoopReadBufferCells = 0;
     numberLoopReadBufferHits = 0;
     compiledTensors = 0;
+    numberTensors = 0;
     compiledCounterBuilds = 0;
     compiledCounterSums = 0;
     compiledCounterKeys = 0;

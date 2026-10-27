@@ -1,5 +1,19 @@
 # Compiler progress
 
+## Checked integer plan consumers (Euler 195)
+
+Native rank-one integer/boolean graphs now feed mask-position construction and
+selected-value sums through private checked Number registers. Mask validation
+still precedes source reads; sums visit only selected cells. Unsafe intermediates
+or sums discard private state before ordinary exact replay. Uniform scalar-kind
+checks run at their first actual cell; opaque readers, callbacks, broader layouts
+and index-dependent validation retain ordinary demand. Stored gcd maps also keep
+safe compact integer results without per-cell BigInt conversion. Ordinary `=`
+completion, frozen captures and repeated uncached plan demands remain unchanged.
+Euler 195 retains its array source and replaces two tables with the exact `Q // q`
+formula. The surrounding loops are still interpreted; their consumers accelerate.
+See [measurements and limits](../../benchmarks/euler195-inscribed-circles-results.md).
+
 ## Exact numeric self recursion (#372)
 
 Scalar function kernels can call their own guarded definition when an earlier

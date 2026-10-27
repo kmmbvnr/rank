@@ -20,19 +20,13 @@ rem (x, x + y, z) have inradii
 rem sqrt(3) / 2 n (n + t) and
 rem sqrt(3) / 6 t (3 n + t). With bound
 rem C, the multiples k fit when
-rem 3 q^2 k^2 <= C^2, so a table of
-rem isqrt(C^2 / (3 q^2)) gives the count
-rem for every q at once.
+rem 3 q^2 k^2 <= C^2. With
+rem Q = isqrt(C^2 // 3), their count is
+rem exactly Q // q, without a table.
 Cb = 2 * Limit
 Ca = 6 * Limit
 Qb = (Cb * Cb // 3) isqrt
 Qa = (Ca * Ca // 3) isqrt
-Qs = 1 to Qb array
-Rb' = Cb * Cb // (3 * Qs * Qs)
-Tb = Rb isqrt copy
-Qs = 1 to Qa array
-Ra' = Ca * Ca // (3 * Qs * Qs)
-Ta = Ra isqrt copy
 Total = 0
 for N in 1 to Qb
   if N * (N + 1) greater Qb
@@ -41,7 +35,7 @@ for N in 1 to Qb
   Ts = 1 to (Qb // N - N) array
   Ok' = Ts mod 3 not equal 0 and (N gcd Ts) equal 1
   Qv' = N * (N + Ts)
-  Hit' = Tb (Qv - 1) filter Ok
+  Hit' = (Qb // Qv) filter Ok
   Total += Hit sum
 end
 for T in 1 to Qa
@@ -52,7 +46,7 @@ for T in 1 to Qa
     Ns = 1 to ((Qa // T - T) // 3) array
     Ok' = (Ns gcd T) equal 1
     Qv' = T * (3 * Ns + T)
-    Hit' = Ta (Qv - 1) filter Ok
+    Hit' = (Qa // Qv) filter Ok
     Total += Hit sum
   end
 end

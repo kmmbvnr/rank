@@ -363,7 +363,8 @@ A f`);
             for (let i = 1; i <= n; i++) wins[i] = moves.some(move => move <= i && !wins[i - move]);
             const result = compare(source, `${n} ${moves.length} ${moves.join(' ')}`);
             expect(result.output).toEqual([wins.slice(1).map(win => win ? 'W' : 'L').join('')]);
-            expect(result.kernels).toBe(n);
+            // A mask consumer can compile separately from the existing DP kernel.
+            expect(result.kernels).toBeGreaterThanOrEqual(n);
         }
     });
 });

@@ -29,7 +29,7 @@ const bitwise = (name: string): name is Bitwise => Object.prototype.hasOwnProper
 const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
 export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
-    | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
+    | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue; uniform?: boolean }
     | { kind: 'call'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'shift'; source: TensorNode; fill: TensorNode; amount: number; axis: number }
     | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }

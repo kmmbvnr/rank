@@ -1,5 +1,5 @@
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from './array-storage.js';
-import { greatestCommonDivisor } from './integer-gcd.js';
+import { greatestCommonDivisor, safeIntegerGcd } from './integer-gcd.js';
 import { RankError } from './errors.js';
 import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { checkpoint, inspectionEnabled, InterruptedError, privateLoopPolling } from './interrupt.js';
@@ -21,7 +21,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
         : name === 'gcd' ? greatestCommonDivisor
         : name === 'abs' ? (a: bigint) => a < 0n ? -a : a : undefined;
     if (!operation || inspectionEnabled() || !privateLoopPolling()) return undefined;
-    if (name === '+' || name === '-' || name === '*') {
+    if (name === '+' || name === '-' || name === '*' || name === 'gcd') {
         try {
             const compact = mapStoredInt32Binary(left, right, name);
             if (compact) return compact;
@@ -60,7 +60,7 @@ export function mapStoredIntegers(left: RankValue, right: RankValue, name?: stri
 
 /** Completed integer operands can produce a compact result without BigInt arithmetic.
  * A result that widens discards the temporary buffer and uses exact arithmetic. */
-function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*'): RankArray | undefined {
+function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-' | '*' | 'gcd'): RankArray | undefined {
     const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
     const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
     const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
@@ -78,7 +78,8 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     const bi = broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
     const x = a ? 0 : Number(left), y = b ? 0 : Number(right);
     const operation = name === '+' ? (a: number, b: number) => a + b
-        : name === '-' ? (a: number, b: number) => a - b : (a: number, b: number) => a * b;
+        : name === '-' ? (a: number, b: number) => a - b
+        : name === 'gcd' ? safeIntegerGcd : (a: number, b: number) => a * b;
     const cells = new Int32Array(size);
     for (let start = 0; start < size; start += 4096) {
         const end = Math.min(size, start + 4096);
@@ -88,8 +89,9 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
             const bp = b ? b.linear!.offset + bi(i) * b.linear!.stride : 0;
             const av = a ? a.compact ? a.compact[ap] : Number(a.items[ap]) : x;
             const bv = b ? b.compact ? b.compact[bp] : Number(b.items[bp]) : y;
+            if (!Number.isSafeInteger(av) || !Number.isSafeInteger(bv)) return undefined;
             const result = operation(av, bv);
-            if (!Number.isSafeInteger(av) || !Number.isSafeInteger(bv) || result !== (result | 0)) return undefined;
+            if (result !== (result | 0)) return undefined;
             cells[i] = result;
         }
     }

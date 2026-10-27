@@ -3,6 +3,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { checkpoint } from './interrupt.js';
+import { tensorMaskPositions, sumTensorPositions } from './tensor-map.js';
 import { sameShape } from './tensor-index.js';
 import { MISSING, type RankArray, type RankSequence, type RankValue } from './value.js';
 
@@ -12,7 +13,8 @@ const selections = new WeakMap<RankSequence['plan'], Selection>();
 /** Snapshot mask positions without demanding source cells. */
 export function maskSelection(source: RankArray, selector: RankArray): RankSequence {
     const size = selector.shape.reduce((n, axis) => n * axis, 1);
-    const positions: number[] = [];
+    const native = tensorMaskPositions(selector);
+    const positions: number[] = native ?? [];
     const view = prepareStoredScalarView(selector, true);
     const linear = view?.linear;
     // Completed storage can be scanned directly, but each selection constructs
@@ -20,14 +22,14 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
     const direct = view?.kinds?.length === 1 && view.kinds[0] === 'boolean'
         && linear && (!view.validate || view.validateUniform);
     if (direct && size) view.validateUniform?.(view.items[linear.offset]);
-    if (view) {
+    if (!native && view) {
         for (let index = 0; index < size; index++) {
             if ((index & 4095) === 0) checkpoint('selecting array positions', Math.min(4096, size - index));
             const item = direct ? view.items[linear.offset + linear.stride * index] : view.read(index);
             if (item === true) positions.push(index);
             else if (item !== false && item !== MISSING) invalidMaskElement(item);
         }
-    } else {
+    } else if (!native) {
         for (let index = 0; index < size; index++) {
             checkpoint('selecting array positions');
             const item = readArrayItem(selector, index);
@@ -55,6 +57,12 @@ export function maskSelection(source: RankArray, selector: RankArray): RankSeque
     } };
     selections.set(selected.plan, { source, positions, iterate: selected.plan.iterate });
     return selected;
+}
+
+export function sumMaskSelection(selected: RankSequence): bigint | undefined {
+    const selection = selections.get(selected.plan);
+    if (!selection || selected.plan.iterate !== selection.iterate) return undefined;
+    return sumTensorPositions(selection.source, selection.positions);
 }
 
 function invalidMaskElement(item: RankValue): never {

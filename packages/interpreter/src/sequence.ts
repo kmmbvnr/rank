@@ -2,7 +2,7 @@ import { registerTensorShift } from './tensor-map.js';
 import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
-import { materializeMaskSelection } from './array-mask-selection.js';
+import { materializeMaskSelection, sumMaskSelection } from './array-mask-selection.js';
 import { sliceSource } from './slice-source.js';
 import { safeDimension } from './tensor-index.js';
 import { arrayElementTypes } from './array-element-types.js';
@@ -525,6 +525,10 @@ export function stackItems(
 export function reduceSequence(value: RankSequence, operation: string): RankValue | undefined {
     const planned = value.plan.reduce?.(operation);
     if (planned !== undefined) return planned;
+    if (operation === 'sum') {
+        const selected = sumMaskSelection(value);
+        if (selected !== undefined) return selected;
+    }
     // Counting true mask items is counting the source items selected by the
     // same predicate. Preserve native reductions such as tree distance bounds.
     if (operation === 'count' && isRankSequenceMask(value)) {

@@ -1,0 +1,2748 @@
+{
+  "revision": "f9e7fe91d025d5dff05fe8e1a8daae82b6ee1260",
+  "node": "v24.15.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "samples": [
+    {
+      "args": [
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 12845.343417,
+      "rssMiB": 809.890625,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 12845.305417,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "720ea01464819fb2d49911db5c8092ae53eb4b6c3b47dd92f84f2cfb5f180a86"
+    },
+    {
+      "args": [
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 5420.278875,
+      "rssMiB": 454.796875,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 5420.2392500000005,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "b1b59fb12ac38c3107df4f91d0309e79ec8dea890e5ae67073fc305fa0a3d8de"
+    },
+    {
+      "args": [
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 294.102084,
+      "rssMiB": 174.203125,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 294.061334,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "8a0c8979f7288675f836be450dfcd41d6959f348729af18c891d1e7a48cc9609"
+    },
+    {
+      "args": [
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 290.835125,
+      "rssMiB": 173.515625,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 290.795208,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "8a0c8979f7288675f836be450dfcd41d6959f348729af18c891d1e7a48cc9609"
+    },
+    {
+      "args": [
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 5576.767334,
+      "rssMiB": 451.59375,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 5576.724875,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "b1b59fb12ac38c3107df4f91d0309e79ec8dea890e5ae67073fc305fa0a3d8de"
+    },
+    {
+      "args": [
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 13482.506333000001,
+      "rssMiB": 751.53125,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 13482.465750000001,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "720ea01464819fb2d49911db5c8092ae53eb4b6c3b47dd92f84f2cfb5f180a86"
+    },
+    {
+      "args": [
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 12932.615209,
+      "rssMiB": 877.984375,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 12932.576959,
+          "line": "75085391"
+        }
+      ],
+      "sourceHash": "720ea01464819fb2d49911db5c8092ae53eb4b6c3b47dd92f84f2cfb5f180a86"
+    },
+    {
+      "args": [
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 5361.074458,
+      "rssMiB": 445.984375,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 5361.036083,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "b1b59fb12ac38c3107df4f91d0309e79ec8dea890e5ae67073fc305fa0a3d8de"
+    },
+    {
+      "args": [
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 293.430333,
+      "rssMiB": 174.515625,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 293.38979100000006,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "8a0c8979f7288675f836be450dfcd41d6959f348729af18c891d1e7a48cc9609"
+    },
+    {
+      "args": [
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 14283.298375,
+      "rssMiB": 648.671875,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 14283.256292,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "720ea01464819fb2d49911db5c8092ae53eb4b6c3b47dd92f84f2cfb5f180a86"
+    },
+    {
+      "args": [
+        "--fixture"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": true,
+      "reference": false,
+      "ms": 13110.69975,
+      "rssMiB": 795.578125,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "100bdfc60c58f8c63493b78230920ee1c4f18d9f77f170b7b7e09d6afddcc742"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": true,
+      "reference": true,
+      "ms": 15144.154042,
+      "rssMiB": 642.171875,
+      "output": [],
+      "oracle": false,
+      "sourceHash": "100bdfc60c58f8c63493b78230920ee1c4f18d9f77f170b7b7e09d6afddcc742"
+    },
+    {
+      "args": [
+        "--variant=base",
+        "--diag",
+        "--phases"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 13012.689666,
+      "rssMiB": 715.953125,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 1662.1370000000002,
+          "line": "tables"
+        },
+        {
+          "ms": 8112.846458,
+          "line": "first-search"
+        },
+        {
+          "ms": 13012.571666,
+          "line": "second-search"
+        },
+        {
+          "ms": 13012.633458,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "9a08c13b9b8139102c64073d0773e5d0b5083c6aeb75ee326ddd9c497c90c5cb",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 169461099,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 2375,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 2375,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 6,
+          "tensor:scalar-evaluation-timing": 2,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "scalar-expression:unsupported-op:to": 6,
+          "tensor:deferred-binding:AssignmentStatement": 8,
+          "tensor:binding:Rb": 1,
+          "scalar-expression:operator-guard:*": 3652,
+          "scalar-expression:operator-guard://": 2,
+          "tensor:binding:Ra": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:operator-guard:+": 2375,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:mod": 1102,
+          "scalar-expression:operator-guard:notequal": 1102
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "args": [
+        "--variant=quotient",
+        "--diag",
+        "--phases"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 5634.691375,
+      "rssMiB": 447.53125,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 127.19650000000001,
+          "line": "tables"
+        },
+        {
+          "ms": 3611.021,
+          "line": "first-search"
+        },
+        {
+          "ms": 5634.538667,
+          "line": "second-search"
+        },
+        {
+          "ms": 5634.6247920000005,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "37ffb5a1b1d481e7bf2dbc0b15b956d4c0aac502b4cad2417bf008b8ad61bc01",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 72742983,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 6,
+          "tensor:scalar-evaluation-timing": 2,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 4,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "tensor:deferred-binding:AssignmentStatement": 6,
+          "scalar-expression:operator-guard:+": 2375,
+          "scalar-expression:operator-guard:*": 3648,
+          "scalar-expression:unsupported-op:and": 2,
+          "scalar-expression:unsupported-op:gcd": 3,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+          "scalar-expression:unsupported-op:equal": 3,
+          "scalar-expression:operator-guard:mod": 1102,
+          "scalar-expression:operator-guard:notequal": 1102
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "args": [
+        "--variant=scalar",
+        "--diag",
+        "--phases"
+      ],
+      "flags": [],
+      "limit": 1053779,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 301.54262500000004,
+      "rssMiB": 173.4375,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 127.05358400000003,
+          "line": "tables"
+        },
+        {
+          "ms": 216.26895900000002,
+          "line": "first-search"
+        },
+        {
+          "ms": 301.40137500000003,
+          "line": "second-search"
+        },
+        {
+          "ms": 301.498792,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "729d5bc52603590b4b6f1d1405d358edad0b6ec2477720c4c1ea2479b22ac90e",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 2,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 2,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "args": [],
+      "flags": [
+        "--cpu-prof",
+        "--cpu-prof-dir=/tmp",
+        "--cpu-prof-name=rank195-base.cpuprofile"
+      ],
+      "limit": 1053779,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 13240.482624999999,
+      "rssMiB": 837.203125,
+      "answer": "75085391",
+      "output": [
+        {
+          "ms": 13240.442165999999,
+          "line": "75085391"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "720ea01464819fb2d49911db5c8092ae53eb4b6c3b47dd92f84f2cfb5f180a86"
+    },
+    {
+      "args": [
+        "--limit=1",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 1,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 139.848375,
+      "rssMiB": 171.640625,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 139.817333,
+          "line": "0"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "995f25c50ec56f74f0182e4589db111cf5681fb3348ac12f85de380b51a0444b"
+    },
+    {
+      "args": [
+        "--limit=1",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 133.55208399999998,
+      "rssMiB": 176.21875,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 133.52187499999997,
+          "line": "0"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "995f25c50ec56f74f0182e4589db111cf5681fb3348ac12f85de380b51a0444b"
+    },
+    {
+      "args": [
+        "--limit=1",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 1,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 130.150125,
+      "rssMiB": 173.96875,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 130.121875,
+          "line": "0"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "4c7158a9a1e662ddc2661bd47d0838e6ebd99ebb1af2009987122447532b453f"
+    },
+    {
+      "args": [
+        "--limit=1",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 121.46812500000001,
+      "rssMiB": 167.5,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 121.43870799999999,
+          "line": "0"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "4c7158a9a1e662ddc2661bd47d0838e6ebd99ebb1af2009987122447532b453f"
+    },
+    {
+      "args": [
+        "--limit=1",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 1,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 127.7695,
+      "rssMiB": 168.375,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 127.71266700000001,
+          "line": "0"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "94380152a448d2826001f428f2eb30a177f1f06f52f15532b4577b69dc50f220"
+    },
+    {
+      "args": [
+        "--limit=1",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 124.96716600000002,
+      "rssMiB": 167.40625,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 124.93566600000003,
+          "line": "0"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "94380152a448d2826001f428f2eb30a177f1f06f52f15532b4577b69dc50f220"
+    },
+    {
+      "args": [
+        "--limit=2",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 2,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 144.160125,
+      "rssMiB": 178.03125,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 144.13049999999998,
+          "line": "2"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "e6b1e6bc7be1552afeebd60f6dbc540204c9cead7fc5fdb510ce816b4fb24c9a"
+    },
+    {
+      "args": [
+        "--limit=2",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 2,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 135.566458,
+      "rssMiB": 172.171875,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 135.539916,
+          "line": "2"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "e6b1e6bc7be1552afeebd60f6dbc540204c9cead7fc5fdb510ce816b4fb24c9a"
+    },
+    {
+      "args": [
+        "--limit=2",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 2,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 137.0125,
+      "rssMiB": 171.640625,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 136.98125,
+          "line": "2"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "367f2fc0c41972943517cf81b3be3d1436b8b1330a7e28dad52894c56371f162"
+    },
+    {
+      "args": [
+        "--limit=2",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 2,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 134.153833,
+      "rssMiB": 171.203125,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 134.12141600000004,
+          "line": "2"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "367f2fc0c41972943517cf81b3be3d1436b8b1330a7e28dad52894c56371f162"
+    },
+    {
+      "args": [
+        "--limit=2",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 2,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 129.329667,
+      "rssMiB": 172.4375,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 129.293917,
+          "line": "2"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "2459ee1cbb9842a3f9408e162c0953107ac7a14d7df30c5f82042308868bfdac"
+    },
+    {
+      "args": [
+        "--limit=2",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 2,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 131.72674999999998,
+      "rssMiB": 173.625,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 131.68937499999998,
+          "line": "2"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "2459ee1cbb9842a3f9408e162c0953107ac7a14d7df30c5f82042308868bfdac"
+    },
+    {
+      "args": [
+        "--limit=3",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 3,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 142.00991599999998,
+      "rssMiB": 172.53125,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 141.977375,
+          "line": "7"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "1e187f1342c25479e65377bd6ab80c309218a040ff2640956b6a30b828093f00"
+    },
+    {
+      "args": [
+        "--limit=3",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 3,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 140.35962500000002,
+      "rssMiB": 176.734375,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 140.33116700000002,
+          "line": "7"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "1e187f1342c25479e65377bd6ab80c309218a040ff2640956b6a30b828093f00"
+    },
+    {
+      "args": [
+        "--limit=3",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 3,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 139.95454199999998,
+      "rssMiB": 171.921875,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 139.91937499999997,
+          "line": "7"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "dcb4f69af46f60072c31ca1b084827be3ac31aba742ffa8c148c9dd6f7a8aa17"
+    },
+    {
+      "args": [
+        "--limit=3",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 3,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 130.339375,
+      "rssMiB": 171.59375,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 130.31079100000002,
+          "line": "7"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "dcb4f69af46f60072c31ca1b084827be3ac31aba742ffa8c148c9dd6f7a8aa17"
+    },
+    {
+      "args": [
+        "--limit=3",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 3,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 129.89516600000002,
+      "rssMiB": 168.75,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 129.85566599999999,
+          "line": "7"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "6c83514f2761dac63a6a1e7281ce6b81d73054bf9ff32b93fca80fa153ac8fd7"
+    },
+    {
+      "args": [
+        "--limit=3",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 3,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 126.62508399999996,
+      "rssMiB": 168.015625,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 126.58625,
+          "line": "7"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "6c83514f2761dac63a6a1e7281ce6b81d73054bf9ff32b93fca80fa153ac8fd7"
+    },
+    {
+      "args": [
+        "--limit=5",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 5,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 143.60958300000001,
+      "rssMiB": 172.9375,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 143.57787499999998,
+          "line": "14"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "d0a1badb873ff7e2b257648b31e484c8f26f94a7e97ce40da8c6e8ab6eda92b9"
+    },
+    {
+      "args": [
+        "--limit=5",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 5,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.841125,
+      "rssMiB": 171.9375,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 136.81395899999998,
+          "line": "14"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "d0a1badb873ff7e2b257648b31e484c8f26f94a7e97ce40da8c6e8ab6eda92b9"
+    },
+    {
+      "args": [
+        "--limit=5",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 5,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 142.70641600000002,
+      "rssMiB": 172.8125,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 142.67045800000002,
+          "line": "14"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "39332767bf844cdcc1c463e181b5d28f59f251f223ea3825b99631527c0ccf33"
+    },
+    {
+      "args": [
+        "--limit=5",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 5,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 138.29770800000003,
+      "rssMiB": 171.609375,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 138.26283300000003,
+          "line": "14"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "39332767bf844cdcc1c463e181b5d28f59f251f223ea3825b99631527c0ccf33"
+    },
+    {
+      "args": [
+        "--limit=5",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 5,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 129.44570900000002,
+      "rssMiB": 168.765625,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 129.414959,
+          "line": "14"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "dd0133e0321da8d5c41f566af7b37d86b605c29d65de5739424a3818c591146f"
+    },
+    {
+      "args": [
+        "--limit=5",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 5,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 123.096541,
+      "rssMiB": 168.609375,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 123.06829099999999,
+          "line": "14"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "dd0133e0321da8d5c41f566af7b37d86b605c29d65de5739424a3818c591146f"
+    },
+    {
+      "args": [
+        "--limit=10",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 10,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 146.863125,
+      "rssMiB": 178.5625,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 146.81950000000003,
+          "line": "46"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "29f1f0fbcd023046a69e3ea56e1e23e1a94e453108ee54864d0c8502eef6e4db"
+    },
+    {
+      "args": [
+        "--limit=10",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 10,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 138.831,
+      "rssMiB": 172.078125,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 138.796792,
+          "line": "46"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "29f1f0fbcd023046a69e3ea56e1e23e1a94e453108ee54864d0c8502eef6e4db"
+    },
+    {
+      "args": [
+        "--limit=10",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 10,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 140.96945899999997,
+      "rssMiB": 172.84375,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 140.937459,
+          "line": "46"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "4e0a020b9625c0439c8e5b2c223bbb5e08fbdd692c43f6335a830a7905af7bad"
+    },
+    {
+      "args": [
+        "--limit=10",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 10,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 139.416375,
+      "rssMiB": 176.78125,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 139.384292,
+          "line": "46"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "4e0a020b9625c0439c8e5b2c223bbb5e08fbdd692c43f6335a830a7905af7bad"
+    },
+    {
+      "args": [
+        "--limit=10",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 10,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 137.59529100000003,
+      "rssMiB": 174.5,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 137.561416,
+          "line": "46"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "27391de9e334831c713dce5e54490ab76fd8e45acfa7d964fdd0be1489c42ccc"
+    },
+    {
+      "args": [
+        "--limit=10",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 10,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 126.42624999999998,
+      "rssMiB": 168.84375,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 126.39716700000002,
+          "line": "46"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "27391de9e334831c713dce5e54490ab76fd8e45acfa7d964fdd0be1489c42ccc"
+    },
+    {
+      "args": [
+        "--limit=20",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 20,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 144.01570800000002,
+      "rssMiB": 172.90625,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 143.986291,
+          "line": "132"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "5d20d281d25d68b3f502b9a6806b7831ddee93e9be96323103f74f4c4af80488"
+    },
+    {
+      "args": [
+        "--limit=20",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 20,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 140.83050000000003,
+      "rssMiB": 172.859375,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 140.80287500000003,
+          "line": "132"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "5d20d281d25d68b3f502b9a6806b7831ddee93e9be96323103f74f4c4af80488"
+    },
+    {
+      "args": [
+        "--limit=20",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 20,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 146.469042,
+      "rssMiB": 172.203125,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 146.42262500000004,
+          "line": "132"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "ce35a5be5c1ba50d500ba6bd7eb10153625a4f4c8809b9c6877e0998f3da6144"
+    },
+    {
+      "args": [
+        "--limit=20",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 20,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 137.351875,
+      "rssMiB": 171.828125,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 137.32,
+          "line": "132"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "ce35a5be5c1ba50d500ba6bd7eb10153625a4f4c8809b9c6877e0998f3da6144"
+    },
+    {
+      "args": [
+        "--limit=20",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 20,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 134.346208,
+      "rssMiB": 173.828125,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 134.31462499999998,
+          "line": "132"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "bad74f8d817ebf16358fc2bc2387b45fe5d3187ae7e31ad5a0e0b8ae00622551"
+    },
+    {
+      "args": [
+        "--limit=20",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 20,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 122.88941699999998,
+      "rssMiB": 168.515625,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 122.86095899999998,
+          "line": "132"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "bad74f8d817ebf16358fc2bc2387b45fe5d3187ae7e31ad5a0e0b8ae00622551"
+    },
+    {
+      "args": [
+        "--limit=50",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 50,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 146.57512499999999,
+      "rssMiB": 173.9375,
+      "answer": "487",
+      "output": [
+        {
+          "ms": 146.545625,
+          "line": "487"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "f69b86f7038fa5941ded9fd6628b1a1dd291d87f4aa45ff6f573dcf603b4f7ac"
+    },
+    {
+      "args": [
+        "--limit=50",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 50,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 143.31608300000002,
+      "rssMiB": 172.671875,
+      "answer": "487",
+      "output": [
+        {
+          "ms": 143.28241600000004,
+          "line": "487"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "f69b86f7038fa5941ded9fd6628b1a1dd291d87f4aa45ff6f573dcf603b4f7ac"
+    },
+    {
+      "args": [
+        "--limit=50",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 50,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 142.67175000000003,
+      "rssMiB": 178.78125,
+      "answer": "487",
+      "output": [
+        {
+          "ms": 142.64137499999998,
+          "line": "487"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "0682a0dd8727b4d7b326dfe0318777f4720c8db579891aa8193f6a4f4c562482"
+    },
+    {
+      "args": [
+        "--limit=50",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 50,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.841625,
+      "rssMiB": 172,
+      "answer": "487",
+      "output": [
+        {
+          "ms": 136.808417,
+          "line": "487"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "0682a0dd8727b4d7b326dfe0318777f4720c8db579891aa8193f6a4f4c562482"
+    },
+    {
+      "args": [
+        "--limit=50",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 50,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 131.260958,
+      "rssMiB": 168.984375,
+      "answer": "487",
+      "output": [
+        {
+          "ms": 131.229208,
+          "line": "487"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "e4a02b1a458f3d323996a682142b87576f8456339e95084c70e8ba37f7d31f8b"
+    },
+    {
+      "args": [
+        "--limit=50",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 50,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 127.60750000000002,
+      "rssMiB": 170.78125,
+      "answer": "487",
+      "output": [
+        {
+          "ms": 127.57162499999998,
+          "line": "487"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "e4a02b1a458f3d323996a682142b87576f8456339e95084c70e8ba37f7d31f8b"
+    },
+    {
+      "args": [
+        "--limit=100",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 100,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 154.135084,
+      "rssMiB": 174.03125,
+      "answer": "1234",
+      "output": [
+        {
+          "ms": 154.10004200000003,
+          "line": "1234"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "0cddb877f1552a16a4b6299d2a266b8b7799c06b0a07f1b1cba100e01aa6953e"
+    },
+    {
+      "args": [
+        "--limit=100",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 100,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 145.72650000000002,
+      "rssMiB": 177.25,
+      "answer": "1234",
+      "output": [
+        {
+          "ms": 145.69504199999997,
+          "line": "1234"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "0cddb877f1552a16a4b6299d2a266b8b7799c06b0a07f1b1cba100e01aa6953e"
+    },
+    {
+      "args": [
+        "--limit=100",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 100,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 146.00745799999999,
+      "rssMiB": 178.734375,
+      "answer": "1234",
+      "output": [
+        {
+          "ms": 145.97787499999998,
+          "line": "1234"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "4fd87fb1b2f55e07841d4f61931242040cb6bfa3adbfe49264cd0e6684e4089f"
+    },
+    {
+      "args": [
+        "--limit=100",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 100,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 142.38824999999997,
+      "rssMiB": 172.515625,
+      "answer": "1234",
+      "output": [
+        {
+          "ms": 142.352333,
+          "line": "1234"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "4fd87fb1b2f55e07841d4f61931242040cb6bfa3adbfe49264cd0e6684e4089f"
+    },
+    {
+      "args": [
+        "--limit=100",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 100,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 126.340542,
+      "rssMiB": 168.96875,
+      "answer": "1234",
+      "output": [
+        {
+          "ms": 126.310375,
+          "line": "1234"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "2c78fcb3a9e2d12a0410f0751c8a45e7c64bd251ca82b7df826517042dc35c70"
+    },
+    {
+      "args": [
+        "--limit=100",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 100,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 129.554666,
+      "rssMiB": 171.296875,
+      "answer": "1234",
+      "output": [
+        {
+          "ms": 129.51654100000002,
+          "line": "1234"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "2c78fcb3a9e2d12a0410f0751c8a45e7c64bd251ca82b7df826517042dc35c70"
+    },
+    {
+      "args": [
+        "--limit=1000",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 1000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 182.93616699999998,
+      "rssMiB": 179.8125,
+      "answer": "22767",
+      "output": [
+        {
+          "ms": 182.900458,
+          "line": "22767"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "7659f6307d72969b0181fd266b02124639f228de275b526a8ed0f19fa9d204ce"
+    },
+    {
+      "args": [
+        "--limit=1000",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1000,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 170.047917,
+      "rssMiB": 177.0625,
+      "answer": "22767",
+      "output": [
+        {
+          "ms": 170.006792,
+          "line": "22767"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "7659f6307d72969b0181fd266b02124639f228de275b526a8ed0f19fa9d204ce"
+    },
+    {
+      "args": [
+        "--limit=1000",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 1000,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 160.02804200000003,
+      "rssMiB": 176.53125,
+      "answer": "22767",
+      "output": [
+        {
+          "ms": 159.989083,
+          "line": "22767"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "34d640188026ec2483873e8e6a30396db8182cc9a8b993e2734b8cfd2299fd2a"
+    },
+    {
+      "args": [
+        "--limit=1000",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1000,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 152.165166,
+      "rssMiB": 175.59375,
+      "answer": "22767",
+      "output": [
+        {
+          "ms": 152.12975,
+          "line": "22767"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "34d640188026ec2483873e8e6a30396db8182cc9a8b993e2734b8cfd2299fd2a"
+    },
+    {
+      "args": [
+        "--limit=1000",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 1000,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 132.59904199999997,
+      "rssMiB": 177.015625,
+      "answer": "22767",
+      "output": [
+        {
+          "ms": 132.56220799999997,
+          "line": "22767"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "a23b6612a0e61d056f1a257f6972022f0b757c94c4565138f7b4e81f7583a889"
+    },
+    {
+      "args": [
+        "--limit=1000",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 1000,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 138.83166699999998,
+      "rssMiB": 172.53125,
+      "answer": "22767",
+      "output": [
+        {
+          "ms": 138.79308400000002,
+          "line": "22767"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "a23b6612a0e61d056f1a257f6972022f0b757c94c4565138f7b4e81f7583a889"
+    },
+    {
+      "args": [
+        "--limit=10000",
+        "--variant=base"
+      ],
+      "flags": [],
+      "limit": 10000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 316.74370799999997,
+      "rssMiB": 200.34375,
+      "answer": "359912",
+      "output": [
+        {
+          "ms": 316.705916,
+          "line": "359912"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "d7e4ec6ed545b9e1d9eacb009521f2350a52174d0d5c0efc88d1309028b35718"
+    },
+    {
+      "args": [
+        "--limit=10000",
+        "--variant=base",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 10000,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 313.021792,
+      "rssMiB": 189.078125,
+      "answer": "359912",
+      "output": [
+        {
+          "ms": 312.981667,
+          "line": "359912"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "d7e4ec6ed545b9e1d9eacb009521f2350a52174d0d5c0efc88d1309028b35718"
+    },
+    {
+      "args": [
+        "--limit=10000",
+        "--variant=quotient"
+      ],
+      "flags": [],
+      "limit": 10000,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 230.81750000000002,
+      "rssMiB": 186.453125,
+      "answer": "359912",
+      "output": [
+        {
+          "ms": 230.77925000000002,
+          "line": "359912"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "df42e01aea12b3bb9a79f5753ca41a7c8ea76aedcea68941981c2548bb430116"
+    },
+    {
+      "args": [
+        "--limit=10000",
+        "--variant=quotient",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 10000,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 227.76333300000002,
+      "rssMiB": 185.453125,
+      "answer": "359912",
+      "output": [
+        {
+          "ms": 227.72316700000002,
+          "line": "359912"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "df42e01aea12b3bb9a79f5753ca41a7c8ea76aedcea68941981c2548bb430116"
+    },
+    {
+      "args": [
+        "--limit=10000",
+        "--variant=scalar"
+      ],
+      "flags": [],
+      "limit": 10000,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 136.99824999999998,
+      "rssMiB": 171.578125,
+      "answer": "359912",
+      "output": [
+        {
+          "ms": 136.962291,
+          "line": "359912"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "710868302f9ee3247fd9c321c1c77793ffaa1bc99debae3ad9bc45bc21f635be"
+    },
+    {
+      "args": [
+        "--limit=10000",
+        "--variant=scalar",
+        "--reference"
+      ],
+      "flags": [],
+      "limit": 10000,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 215.93770800000001,
+      "rssMiB": 175.25,
+      "answer": "359912",
+      "output": [
+        {
+          "ms": 215.893,
+          "line": "359912"
+        }
+      ],
+      "oracle": false,
+      "sourceHash": "710868302f9ee3247fd9c321c1c77793ffaa1bc99debae3ad9bc45bc21f635be"
+    }
+  ],
+  "source": "rem Inscribed Circles of Triangles with\nrem One Angle of 60 Degrees\nrem https://projecteuler.net/problem=195\nrem Count the integer sided triangles\nrem with a 60 degree angle whose\nrem inradius is at most Limit\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 1053779\n\nrem Primitive triples z^2 = x^2 + x y +\nrem y^2 come from m > n, with t = m - n\nrem prime to n and not a multiple of 3.\nrem The triangles (y, x + y, z) and\nrem (x, x + y, z) have inradii\nrem sqrt(3) / 2 n (n + t) and\nrem sqrt(3) / 6 t (3 n + t). With bound\nrem C, the multiples k fit when\nrem 3 q^2 k^2 <= C^2, so a table of\nrem isqrt(C^2 / (3 q^2)) gives the count\nrem for every q at once.\nCb = 2 * Limit\nCa = 6 * Limit\nQb = (Cb * Cb // 3) isqrt\nQa = (Ca * Ca // 3) isqrt\nQs = 1 to Qb array\nRb' = Cb * Cb // (3 * Qs * Qs)\nTb = Rb isqrt copy\nQs = 1 to Qa array\nRa' = Ca * Ca // (3 * Qs * Qs)\nTa = Ra isqrt copy\nTotal = 0\nfor N in 1 to Qb\n  if N * (N + 1) greater Qb\n    break\n  end\n  Ts = 1 to (Qb // N - N) array\n  Ok' = Ts mod 3 not equal 0 and (N gcd Ts) equal 1\n  Qv' = N * (N + Ts)\n  Hit' = Tb (Qv - 1) filter Ok\n  Total += Hit sum\nend\nfor T in 1 to Qa\n  if T * (T + 3) greater Qa\n    break\n  end\n  if T mod 3 not equal 0\n    Ns = 1 to ((Qa // T - T) // 3) array\n    Ok' = (Ns gcd T) equal 1\n    Qv' = T * (3 * Ns + T)\n    Hit' = Ta (Qv - 1) filter Ok\n    Total += Hit sum\n  end\nend\nAnswer = Total\nAnswer print\n",
+  "completed": true,
+  "oracles": [
+    {
+      "limit": 1,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 134.46325,
+      "rssMiB": 170.78125,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 134.43579200000002,
+          "line": "0"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "995f25c50ec56f74f0182e4589db111cf5681fb3348ac12f85de380b51a0444b"
+    },
+    {
+      "limit": 1,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 132.721959,
+      "rssMiB": 176.578125,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 132.68808400000003,
+          "line": "0"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "995f25c50ec56f74f0182e4589db111cf5681fb3348ac12f85de380b51a0444b"
+    },
+    {
+      "limit": 1,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 128.86179199999998,
+      "rssMiB": 173.640625,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 128.8345,
+          "line": "0"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "4c7158a9a1e662ddc2661bd47d0838e6ebd99ebb1af2009987122447532b453f"
+    },
+    {
+      "limit": 1,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 126.84370799999999,
+      "rssMiB": 172.53125,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 126.813333,
+          "line": "0"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "4c7158a9a1e662ddc2661bd47d0838e6ebd99ebb1af2009987122447532b453f"
+    },
+    {
+      "limit": 1,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 125.69775000000001,
+      "rssMiB": 168.953125,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 125.666458,
+          "line": "0"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "94380152a448d2826001f428f2eb30a177f1f06f52f15532b4577b69dc50f220"
+    },
+    {
+      "limit": 1,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 119.20774999999998,
+      "rssMiB": 166.953125,
+      "answer": "0",
+      "output": [
+        {
+          "ms": 119.17529200000001,
+          "line": "0"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "94380152a448d2826001f428f2eb30a177f1f06f52f15532b4577b69dc50f220"
+    },
+    {
+      "limit": 2,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 139.82737500000002,
+      "rssMiB": 172.546875,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 139.79791699999998,
+          "line": "2"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "e6b1e6bc7be1552afeebd60f6dbc540204c9cead7fc5fdb510ce816b4fb24c9a"
+    },
+    {
+      "limit": 2,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 141.47975000000002,
+      "rssMiB": 176.6875,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 141.45212500000002,
+          "line": "2"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "e6b1e6bc7be1552afeebd60f6dbc540204c9cead7fc5fdb510ce816b4fb24c9a"
+    },
+    {
+      "limit": 2,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 136.740292,
+      "rssMiB": 172.03125,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 136.699167,
+          "line": "2"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "367f2fc0c41972943517cf81b3be3d1436b8b1330a7e28dad52894c56371f162"
+    },
+    {
+      "limit": 2,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 131.11437500000002,
+      "rssMiB": 171.328125,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 131.08537500000003,
+          "line": "2"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "367f2fc0c41972943517cf81b3be3d1436b8b1330a7e28dad52894c56371f162"
+    },
+    {
+      "limit": 2,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 125.42170899999996,
+      "rssMiB": 169.046875,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 125.39020899999997,
+          "line": "2"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "2459ee1cbb9842a3f9408e162c0953107ac7a14d7df30c5f82042308868bfdac"
+    },
+    {
+      "limit": 2,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 121.45554200000001,
+      "rssMiB": 168.109375,
+      "answer": "2",
+      "output": [
+        {
+          "ms": 121.42670899999999,
+          "line": "2"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "2459ee1cbb9842a3f9408e162c0953107ac7a14d7df30c5f82042308868bfdac"
+    },
+    {
+      "limit": 3,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 141.306125,
+      "rssMiB": 173.078125,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 141.276792,
+          "line": "7"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "1e187f1342c25479e65377bd6ab80c309218a040ff2640956b6a30b828093f00"
+    },
+    {
+      "limit": 3,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.29604100000003,
+      "rssMiB": 172.1875,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 136.269166,
+          "line": "7"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "1e187f1342c25479e65377bd6ab80c309218a040ff2640956b6a30b828093f00"
+    },
+    {
+      "limit": 3,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 138.934459,
+      "rssMiB": 179.578125,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 138.903959,
+          "line": "7"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "dcb4f69af46f60072c31ca1b084827be3ac31aba742ffa8c148c9dd6f7a8aa17"
+    },
+    {
+      "limit": 3,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 132.33833399999997,
+      "rssMiB": 171.75,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 132.306875,
+          "line": "7"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "dcb4f69af46f60072c31ca1b084827be3ac31aba742ffa8c148c9dd6f7a8aa17"
+    },
+    {
+      "limit": 3,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 127.64679100000001,
+      "rssMiB": 168.53125,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 127.60874999999999,
+          "line": "7"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "6c83514f2761dac63a6a1e7281ce6b81d73054bf9ff32b93fca80fa153ac8fd7"
+    },
+    {
+      "limit": 3,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 123.19325,
+      "rssMiB": 168.453125,
+      "answer": "7",
+      "output": [
+        {
+          "ms": 123.16179100000002,
+          "line": "7"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "6c83514f2761dac63a6a1e7281ce6b81d73054bf9ff32b93fca80fa153ac8fd7"
+    },
+    {
+      "limit": 5,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 143.49012500000003,
+      "rssMiB": 172.796875,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 143.46020800000002,
+          "line": "14"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "d0a1badb873ff7e2b257648b31e484c8f26f94a7e97ce40da8c6e8ab6eda92b9"
+    },
+    {
+      "limit": 5,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 137.10070800000003,
+      "rssMiB": 172.078125,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 137.073541,
+          "line": "14"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "d0a1badb873ff7e2b257648b31e484c8f26f94a7e97ce40da8c6e8ab6eda92b9"
+    },
+    {
+      "limit": 5,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 135.92366599999997,
+      "rssMiB": 172.296875,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 135.888916,
+          "line": "14"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "39332767bf844cdcc1c463e181b5d28f59f251f223ea3825b99631527c0ccf33"
+    },
+    {
+      "limit": 5,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 132.096583,
+      "rssMiB": 171.4375,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 132.0655,
+          "line": "14"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "39332767bf844cdcc1c463e181b5d28f59f251f223ea3825b99631527c0ccf33"
+    },
+    {
+      "limit": 5,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 128.049666,
+      "rssMiB": 168.28125,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 128.019791,
+          "line": "14"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "dd0133e0321da8d5c41f566af7b37d86b605c29d65de5739424a3818c591146f"
+    },
+    {
+      "limit": 5,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 123.93949999999998,
+      "rssMiB": 168.609375,
+      "answer": "14",
+      "output": [
+        {
+          "ms": 123.90933300000003,
+          "line": "14"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "dd0133e0321da8d5c41f566af7b37d86b605c29d65de5739424a3818c591146f"
+    },
+    {
+      "limit": 10,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 142.297541,
+      "rssMiB": 173.625,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 142.260416,
+          "line": "46"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "29f1f0fbcd023046a69e3ea56e1e23e1a94e453108ee54864d0c8502eef6e4db"
+    },
+    {
+      "limit": 10,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 140.144209,
+      "rssMiB": 177.6875,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 140.106875,
+          "line": "46"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "29f1f0fbcd023046a69e3ea56e1e23e1a94e453108ee54864d0c8502eef6e4db"
+    },
+    {
+      "limit": 10,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 141.931583,
+      "rssMiB": 177.234375,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 141.90004199999998,
+          "line": "46"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "4e0a020b9625c0439c8e5b2c223bbb5e08fbdd692c43f6335a830a7905af7bad"
+    },
+    {
+      "limit": 10,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 135.13404200000002,
+      "rssMiB": 171.609375,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 135.10325,
+          "line": "46"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "4e0a020b9625c0439c8e5b2c223bbb5e08fbdd692c43f6335a830a7905af7bad"
+    },
+    {
+      "limit": 10,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 128.936125,
+      "rssMiB": 169.015625,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 128.90529200000003,
+          "line": "46"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "27391de9e334831c713dce5e54490ab76fd8e45acfa7d964fdd0be1489c42ccc"
+    },
+    {
+      "limit": 10,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 126.06083299999997,
+      "rssMiB": 168.015625,
+      "answer": "46",
+      "output": [
+        {
+          "ms": 126.031958,
+          "line": "46"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "27391de9e334831c713dce5e54490ab76fd8e45acfa7d964fdd0be1489c42ccc"
+    },
+    {
+      "limit": 20,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 148.801125,
+      "rssMiB": 173.453125,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 148.769584,
+          "line": "132"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "5d20d281d25d68b3f502b9a6806b7831ddee93e9be96323103f74f4c4af80488"
+    },
+    {
+      "limit": 20,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 143.17116700000003,
+      "rssMiB": 172.859375,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 143.14300000000003,
+          "line": "132"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "5d20d281d25d68b3f502b9a6806b7831ddee93e9be96323103f74f4c4af80488"
+    },
+    {
+      "limit": 20,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": false,
+      "ms": 141.10916600000002,
+      "rssMiB": 177.84375,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 141.078166,
+          "line": "132"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "ce35a5be5c1ba50d500ba6bd7eb10153625a4f4c8809b9c6877e0998f3da6144"
+    },
+    {
+      "limit": 20,
+      "variant": "quotient",
+      "fixture": false,
+      "reference": true,
+      "ms": 135.570333,
+      "rssMiB": 171.828125,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 135.536833,
+          "line": "132"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "ce35a5be5c1ba50d500ba6bd7eb10153625a4f4c8809b9c6877e0998f3da6144"
+    },
+    {
+      "limit": 20,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": false,
+      "ms": 129.50029199999997,
+      "rssMiB": 168.4375,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 129.469167,
+          "line": "132"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "bad74f8d817ebf16358fc2bc2387b45fe5d3187ae7e31ad5a0e0b8ae00622551"
+    },
+    {
+      "limit": 20,
+      "variant": "scalar",
+      "fixture": false,
+      "reference": true,
+      "ms": 130.322958,
+      "rssMiB": 173.609375,
+      "answer": "132",
+      "output": [
+        {
+          "ms": 130.294167,
+          "line": "132"
+        }
+      ],
+      "oracle": true,
+      "sourceHash": "bad74f8d817ebf16358fc2bc2387b45fe5d3187ae7e31ad5a0e0b8ae00622551"
+    }
+  ],
+  "provenance": {
+    "cpu": "Apple M5",
+    "timings": "Serial fresh processes, three alternating rounds base/quotient/scalar then scalar/quotient/base then base/quotient/scalar. Other engine, fixtures, diagnostics, profiles and small validation are separate.",
+    "measurement": "Interpreter construction/parse/compile/execute/output callback; excludes imports, assertions/oracle and disposal. Whole-process peak RSS captured before oracle.",
+    "oracle": "Direct unequal adjacent-side triangle enumeration with exact squared inradius; six bounds, three source variants, two engines: 36 checks. See benchmark source and report for finite side bounds."
+  },
+  "controller": "import { readFileSync, writeFileSync } from 'node:fs';\nimport { spawnSync } from 'node:child_process';\nconst target='benchmarks/baselines/2026-10-27-euler195-investigation.json';\nconst report={revision:'f9e7fe91d025d5dff05fe8e1a8daae82b6ee1260',node:process.version,platform:process.platform,arch:process.arch,samples:[],source:readFileSync('demos/euler/195_inscribedcircles.ra','utf8')};\nfunction run(args, flags=[]){\n const r=spawnSync(process.execPath,[...flags,'benchmarks/euler195-inscribed-circles.mjs',...args],{encoding:'utf8',timeout:300_000});\n if(r.status!==0)throw new Error(JSON.stringify({args,status:r.status,stderr:r.stderr,error:r.error?.message}));\n const sample={args,flags,...JSON.parse(r.stdout)};\n report.samples.push(sample);writeFileSync(target,JSON.stringify(report,null,2)+'\\n');\n console.log(JSON.stringify({args,ms:sample.ms,answer:sample.answer}));\n}\nfor(let i=0;i<3;i++)for(const variant of i%2?['scalar','quotient','base']:['base','quotient','scalar'])run([`--variant=${variant}`]);\nrun(['--reference']);\nrun(['--fixture']);run(['--fixture','--reference']);\nfor(const variant of ['base','quotient','scalar'])run([`--variant=${variant}`,'--diag','--phases']);\nrun([],['--cpu-prof','--cpu-prof-dir=/tmp','--cpu-prof-name=rank195-base.cpuprofile']);\nfor(const limit of [1,2,3,5,10,20,50,100,1000,10000])for(const variant of ['base','quotient','scalar'])for(const engine of [[],['--reference']])run([`--limit=${limit}`,`--variant=${variant}`,...engine]);\nreport.completed=true;writeFileSync(target,JSON.stringify(report,null,2)+'\\n');\n",
+  "benchmarkSource": "// Build: npx tsc -b tsconfig.build.json. Use one fresh process per sample.\nimport assert from 'node:assert/strict';\nimport { readFileSync } from 'node:fs';\nimport { createHash } from 'node:crypto';\nimport { dirname, resolve } from 'node:path';\nimport { fileURLToPath } from 'node:url';\nimport { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/index.js';\n\nconst option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);\nconst limit = Number(option('limit') ?? 1053779);\nconst fixture = process.argv.includes('--fixture');\nconst file = option('source') ?? fileURLToPath(new URL(`../demos/euler/195_inscribedcircles${fixture ? '_test' : ''}.ra`, import.meta.url));\nlet source = readFileSync(file, 'utf8').replace('Limit integer = 1053779', `Limit integer = ${limit}`);\nconst variant = option('variant') ?? 'base';\nassert(['base', 'quotient', 'scalar'].includes(variant));\nif (!fixture && variant !== 'base') {\n    source = source.replace(/Qs = 1 to Qb array[\\s\\S]*?Ta = Ra isqrt copy\\n/, '')\n        .replace('Tb (Qv - 1)', '(Qb // Qv)').replace('Ta (Qv - 1)', '(Qa // Qv)');\n    if (variant === 'scalar') source = source\n        .replace(/  Ts = [\\s\\S]*?  Total \\+= Hit sum/, `  for T in 1 to (Qb // N - N)\n    if T mod 3 not equal 0 and (N gcd T) equal 1\n      Total += Qb // (N * (N + T))\n    end\n  end`)\n        .replace(/    Ns = [\\s\\S]*?    Total \\+= Hit sum/, `    for N in 1 to ((Qa // T - T) // 3)\n      if (N gcd T) equal 1\n        Total += Qa // (T * (3 * N + T))\n      end\n    end`);\n}\nif (process.argv.includes('--phases')) source = source.replace('Total = 0', '\"tables\" print\\nTotal = 0')\n    .replace('for T in 1 to Qa', '\"first-search\" print\\nfor T in 1 to Qa')\n    .replace('Answer = Total', '\"second-search\" print\\nAnswer = Total');\nconst diagnostics = new RuntimeDiagnostics(), output = [];\nconst start = performance.now();\nconst runtime = new Interpreter(line => output.push({ ms: performance.now() - start, line }), {\n    compilation: !process.argv.includes('--reference'), testing: fixture, sourceId: file,\n    loadModule(specifier, from) {\n        const id = resolve(dirname(from ?? file), `${specifier}.ra`);\n        return { id, source: readFileSync(id, 'utf8') };\n    },\n});\ntry {\n    if (process.argv.includes('--diag')) diagnostics.run(() => runtime.execute(source));\n    else runtime.execute(source);\n    const ms = performance.now() - start, rssMiB = process.resourceUsage().maxRSS / 1024;\n    const answer = fixture ? undefined : String(runtime.variables.get('Answer'));\n    const golden = { 100: '1234', 1000: '22767', 10000: '359912', 1053779: '75085391' }[limit];\n    if (!fixture && golden) assert.equal(answer, golden);\n    if (fixture) {\n        assert.equal(runtime.testResults.length, 2);\n        assert(runtime.testResults.every(test => test.passed));\n    }\n    // Independent small-input oracle: enumerate sides adjacent to the 60-degree\n    // angle, then check the third side and the exact squared inradius.\n    if (!fixture && process.argv.includes('--oracle')) {\n        assert(limit >= 1 && limit <= 20);\n        let count = 0;\n        for (let a = 1; a * a <= 12 * limit * limit; a++) {\n            const maxB = Math.floor((3 * a * a + 2 * a - 1) / 4);\n            for (let b = a + 1; b <= maxB; b++) {\n                const c2 = a * a + b * b - a * b, c = Math.floor(Math.sqrt(c2));\n                if (c * c !== c2) continue;\n                const p = a + b + c;\n                if (3 * a * a * b * b <= 4 * limit * limit * p * p) count++;\n            }\n        }\n        assert.equal(answer, String(count));\n    }\n    console.log(JSON.stringify({ limit, variant, fixture, reference: process.argv.includes('--reference'), ms, rssMiB,\n        answer, output, oracle: process.argv.includes('--oracle'), sourceHash: createHash('sha256').update(source).digest('hex'),\n        ...(process.argv.includes('--diag') ? { diagnostics } : {}) }));\n} finally { runtime.dispose(); }\n",
+  "profileSummary": {
+    "scope": "Full base compiled source; whole process including imports and setup",
+    "totalSamples": 10675,
+    "topSelf": [
+      {
+        "function": "(garbage collector)",
+        "url": "",
+        "line": 0,
+        "percent": 7.259953161592506,
+        "samples": 775
+      },
+      {
+        "function": "(program)",
+        "url": "",
+        "line": 0,
+        "percent": 2.4262295081967213,
+        "samples": 259
+      },
+      {
+        "function": "iterate",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/array-mask-selection.js",
+        "line": 52,
+        "percent": 1.3114754098360655,
+        "samples": 140
+      },
+      {
+        "function": "cellAt",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/rank-application.js",
+        "line": 442,
+        "percent": 1.2177985948477752,
+        "samples": 130
+      },
+      {
+        "function": "greatestCommonDivisor",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/integer-gcd.js",
+        "line": 2,
+        "percent": 1.1147540983606556,
+        "samples": 119
+      },
+      {
+        "function": "greatestCommonDivisor",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/integer-gcd.js",
+        "line": 2,
+        "percent": 1.0023419203747073,
+        "samples": 107
+      },
+      {
+        "function": "iterate",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/array-mask-selection.js",
+        "line": 52,
+        "percent": 0.9461358313817331,
+        "samples": 101
+      },
+      {
+        "function": "values",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/framed-array.js",
+        "line": 46,
+        "percent": 0.7494145199063232,
+        "samples": 80
+      },
+      {
+        "function": "",
+        "url": "",
+        "line": 3,
+        "percent": 0.7400468384074942,
+        "samples": 79
+      },
+      {
+        "function": "checkCell",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/derived-array.js",
+        "line": 23,
+        "percent": 0.6088992974238876,
+        "samples": 65
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.5995316159250585,
+        "samples": 64
+      },
+      {
+        "function": "",
+        "url": "",
+        "line": 3,
+        "percent": 0.5901639344262295,
+        "samples": 63
+      },
+      {
+        "function": "checkCell",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/derived-array.js",
+        "line": 23,
+        "percent": 0.5901639344262295,
+        "samples": 63
+      },
+      {
+        "function": "evaluateBinaryValue",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 229,
+        "percent": 0.5901639344262295,
+        "samples": 63
+      },
+      {
+        "function": "coordinatesAt",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/tensor-index.js",
+        "line": 9,
+        "percent": 0.5807962529274004,
+        "samples": 62
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.5339578454332553,
+        "samples": 57
+      },
+      {
+        "function": "evaluateArrayItem",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/array-read.js",
+        "line": 382,
+        "percent": 0.5245901639344263,
+        "samples": 56
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.5152224824355972,
+        "samples": 55
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.5058548009367682,
+        "samples": 54
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.4964871194379391,
+        "samples": 53
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.48711943793911006,
+        "samples": 52
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.48711943793911006,
+        "samples": 52
+      },
+      {
+        "function": "itemAt",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/derived-array.js",
+        "line": 56,
+        "percent": 0.48711943793911006,
+        "samples": 52
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.48711943793911006,
+        "samples": 52
+      },
+      {
+        "function": "",
+        "url": "file:///Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/operators.js",
+        "line": 763,
+        "percent": 0.48711943793911006,
+        "samples": 52
+      }
+    ]
+  },
+  "verification": {
+    "syntax": "node --check benchmarks/euler195-inscribed-circles.mjs: passed",
+    "scoped": "\n> @arrrank/interpreter@0.0.2 test\n> node scripts/test.mjs test/types.test.ts test/differential.test.ts -t euler/195_inscribedcircles\n\n\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/195_inscribedcircles.ra\nauditing euler/195_inscribedcircles.ra\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/195_inscribedcircles_test.ra\nauditing euler/195_inscribedcircles_test.ra\n\n ✓ test/types.test.ts (1775 tests | 1773 skipped) 26529ms\n   ✓ inferred types against the values a run produced > euler/195_inscribedcircles.ra  26482ms\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/195_inscribedcircles.ra\ncomparing euler/195_inscribedcircles.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/195_inscribedcircles_test.ra\ncomparing euler/195_inscribedcircles_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 2/1775 compared, 2 completed, 2 test blocks, 52530 compiled entries, 0 Number loop entries\n\n ✓ test/differential.test.ts (1776 tests | 1774 skipped) 110715ms\n   ✓ compiled and reference demo execution > euler/195_inscribedcircles.ra  54637ms\n   ✓ compiled and reference demo execution > euler/195_inscribedcircles_test.ra  56074ms\n\n Test Files  2 passed (2)\n      Tests  4 passed | 3547 skipped (3551)\n   Start at  16:56:27\n   Duration  112.04s (transform 703ms, setup 0ms, collect 2.25s, tests 137.24s, environment 0ms, prepare 63ms)\n\n"
+  }
+}

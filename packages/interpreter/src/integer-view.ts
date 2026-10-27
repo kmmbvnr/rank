@@ -71,6 +71,7 @@ export function registerScalarView<T extends RankArray>(value: T, source: RankAr
 export function prepareNativeScalarView(value: RankArray): {
     source: RankArray; shape: readonly number[]; offset(index: number): number;
     linear?: LinearView; valid(): boolean;
+    uniform: boolean;
     validate(cell: RankValue, index: number): RankValue;
 } | false | undefined {
     const view = views.get(value);
@@ -83,7 +84,8 @@ export function prepareNativeScalarView(value: RankArray): {
     const shape = [...value.shape];
     const linear = view.linear?.();
     const validate = arrayCellValidator(value);
-    return { ...snapshot, shape, linear: linear && { ...linear }, valid() {
+    return { ...snapshot, shape, linear: linear && { ...linear },
+        uniform: shape.length === 1 && !value.columnNames && (!view.check || view.scalarCheck === true), valid() {
         const current = capture();
         return value.itemAt === view.reader && current.source === snapshot.source && current.offset === snapshot.offset
             && value.shape.length === shape.length && value.shape.every((n, axis) => n === shape[axis]);
