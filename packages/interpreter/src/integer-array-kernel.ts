@@ -1,3 +1,6 @@
+import { DENSE_MIN_CELLS } from './tensor-operands.js';
+import { BooleanCells } from './boolean-cells.js';
+import { createOwned } from './owned-array.js';
 import { booleanCells, IntegerCells, ownedScalarArray, typedArray } from './array-storage.js';
 import { greatestCommonDivisor, safeIntegerGcd } from './integer-gcd.js';
 import { RankError } from './errors.js';
@@ -97,6 +100,50 @@ function mapStoredInt32Binary(left: RankValue, right: RankValue, name: '+' | '-'
     }
     return a?.compact || b?.compact ? typedArray(cells, shape)
         : ownedScalarArray(Array.from(cells, BigInt), 'integer', shape);
+}
+
+/** Compare completed compact integers directly into a bitmap. Borrowed readers
+ * are used only without host callbacks; all other domains keep exact mapping. */
+export function compareStoredInt32(left: RankValue, right: RankValue, name?: string): RankArray | undefined {
+    const compare = name === 'equal' ? (a: number, b: number) => a === b
+        : name === 'notequal' ? (a: number, b: number) => a !== b
+        : name === 'less' ? (a: number, b: number) => a < b
+        : name === 'greater' ? (a: number, b: number) => a > b
+        : name === 'atmost' ? (a: number, b: number) => a <= b
+        : name === 'atleast' ? (a: number, b: number) => a >= b : undefined;
+    if (!compare || inspectionEnabled() || !privateLoopPolling()) return undefined;
+    const a = isRankArray(left) ? prepareStoredScalarView(left, true) : undefined;
+    const b = isRankArray(right) ? prepareStoredScalarView(right, true) : undefined;
+    const eligible = (value: RankValue, view: typeof a) => isRankArray(value)
+        ? view?.compact && view.regular && view.linear && (!view.validate || view.validateUniform)
+        : typeof value === 'bigint' && value >= -2147483648n && value <= 2147483647n;
+    if (!eligible(left, a) || !eligible(right, b) || !a && !b) return undefined;
+    const shape = broadcastShape(isRankArray(left) ? left.shape : [], isRankArray(right) ? right.shape : []);
+    const size = shape.reduce((n, dimension) => n * dimension, 1);
+    if (size < DENSE_MIN_CELLS) return undefined;
+    try {
+        if (size) {
+            if (a) a.validateUniform?.(BigInt(a.compact![a.linear!.offset]));
+            if (b) b.validateUniform?.(BigInt(b.compact![b.linear!.offset]));
+        }
+        const ai = broadcastIndex(isRankArray(left) ? left.shape : undefined, shape);
+        const bi = broadcastIndex(isRankArray(right) ? right.shape : undefined, shape);
+        const readA = a ? (i: number) => a.compact![a.linear!.offset + ai(i) * a.linear!.stride] : () => Number(left);
+        const readB = b ? (i: number) => b.compact![b.linear!.offset + bi(i) * b.linear!.stride] : () => Number(right);
+        const cells = new BooleanCells(size);
+        for (let start = 0; start < size; start += 4096) {
+            const end = Math.min(size, start + 4096);
+            checkpoint('comparing integer array', end - start);
+            for (let i = start; i < end; i++) {
+                if (compare(readA(i), readB(i))) cells.words[i >>> 5] |= 1 << (i & 31);
+            }
+        }
+        return createOwned(cells, shape, true);
+    } catch (error) {
+        if (error instanceof InterruptedError) throw error;
+        if (error instanceof RankError) return undefined;
+        throw error;
+    }
 }
 
 /** Select stored integer branches without boxing the output or mask cells.

@@ -1,5 +1,18 @@
 # Compiler progress
 
+## Compact integer comparison masks (Euler 196)
+
+Completed compact integer arrays now compare directly into bitmaps, including
+scalar and array broadcasting and regular linear views. Existing packed `indices`
+consumers then scan words without an intermediate boxed boolean array. Only
+Int32 storage and Int32 scalar operands enter this path; wider integers, mixed
+real/integer comparisons, unread or foreign readers and nonuniform checks retain
+the exact mapper. Small comparison masks retain the existing demand path.
+Private work is interruptible and published only on completion; ordinary `=`
+completion and native operation guards are unchanged. The Euler 196 source and
+segmented-sieve algorithm are unchanged. See the
+[measurements and verification](../../benchmarks/euler196-prime-triplets-results.md).
+
 ## Checked integer plan consumers (Euler 195)
 
 Native rank-one integer/boolean graphs now feed mask-position construction and
