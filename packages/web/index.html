@@ -43,12 +43,12 @@
         </section>
         <section id="language" aria-labelledby="language-title">
             <h2 id="language-title">The language</h2>
-            <p>Rank is a modern BASIC with an array-oriented model. Source is designed to stay around 40 characters per line, using words and familiar keyboard symbols rather than punctuation-heavy syntax.</p>
+            <p>Rank is a readable array language — the power of APL's model with words instead of glyphs. Source is designed to stay around 40 characters per line, using words and familiar symbols rather than punctuation-heavy syntax.</p>
             <p>Data flows through functions from left to right. A range can feed directly into a sum:</p>
             <pre><code><span class="prompt">rank&gt; </span>use numbers
 <span class="prompt">rank&gt; </span>1 to 5 sum</code>
 <samp>15</samp></pre>
-            <p>Work with whole arrays and tensors, or select rows from a table. Arithmetic applies to each element without writing a loop:</p>
+            <p>One addressing model for arrays, tensors and tables. Arithmetic and boolean masks apply to whole collections without writing a loop:</p>
             <pre><code><span class="prompt">rank&gt; </span>A = array 1 2 3</code>
 <samp>1 2 3</samp>
 <code><span class="prompt">rank&gt; </span>A * 10 + 1</code>
@@ -58,8 +58,8 @@
         <section id="advanced" aria-labelledby="advanced-title">
             <h2 id="advanced-title">Advanced capabilities</h2>
             <p>Tensor operations include broadcasting, reductions along <code>axis</code>, operations on cells with <code>rank</code>, matrix multiplication and linear-system solvers.</p>
-            <pre><code>M = (1 to 9) (array 3 3) reshape
-Blocks = M (array 2 2) window
+            <pre><code>M = array 1 to 9 shape 3 3
+Blocks = M window 2 2
 Blocks sum rank 2</code>
 <samp>12 16 24 28
 shape 2 2</samp></pre>
