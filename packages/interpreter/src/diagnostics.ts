@@ -25,6 +25,10 @@ export class RuntimeDiagnostics {
     numericSearches = 0;
     numericSearchIndexes = 0;
     numberLoops = 0;
+    exactLoopWorkSamples = 0;
+    exactLoopWorkPromotions = 0;
+    numberLoopCopyProbes = 0;
+    numberLoopCopyAmortized = 0;
     mixedIntegerLoops = 0;
     numberLoopOverflows = 0;
     numberLoopReadBuffers = 0;

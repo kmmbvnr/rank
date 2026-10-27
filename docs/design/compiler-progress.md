@@ -2620,3 +2620,21 @@ short circuit and cancellation are preserved. Packed boolean shift kernels are
 unchanged. Euler 179 retains its sieve and its original `equal`/`shift`/`count`
 expression. See the [benchmark report](../../benchmarks/euler179-consecutive-divisors-results.md)
 for separate runtime, reference-engine, memory and control measurements.
+
+
+## Condition-loop work feedback (Euler 185, #447)
+
+Condition loops may now try the private Number backend with up to 262144 total
+destination cells. Up to 64 cells retain the existing fast path. A larger store
+gets one numeric probe; if its work does not amortize copying, later calls use
+the exact backend with loop-work feedback instead of periodic speculative copies.
+One sufficiently long exact call admits the next numeric invocation. Counters
+are generated only for these large-store regions, including nested iterations;
+feedback retains no Rank values or computed results.
+
+Exact overflow replay, partial error stores, cancellation, ownership and ordinary
+binding semantics are preserved. The first probe still copies storage, and
+promotion takes effect between calls. Euler 185 improves about fourfold on both
+Apple M5 and Intel i7-10750H without a demo rewrite. See the
+[Mac/Intel report](../../benchmarks/condition-loop-feedback-results.md) for full
+measurements, tests, retained controls and the non-exhaustive prototype comparison.

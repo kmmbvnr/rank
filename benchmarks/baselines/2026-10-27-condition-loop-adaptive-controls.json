@@ -1,0 +1,436 @@
+{
+  "initialMixedPlacementEuler166": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "engine": "compiled",
+    "diagnostics": false,
+    "versions": {
+      "before": {
+        "path": "/private/tmp/rank-adaptive/before/index.js",
+        "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+      },
+      "fixed": {
+        "path": "/private/tmp/rank-adaptive/fixed/index.js",
+        "hash": "518886c78ccfbb790d37cf5ffd1b99a90d3b4f26f225c48e894a2def326f20a6"
+      },
+      "adaptive": {
+        "path": "/Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js",
+        "hash": "b2836fd87be66959d03d0af0e2a32cfff3f62089cad2ca4d4324d265471e9131"
+      }
+    },
+    "results": [
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1016.259708,
+        "rssMiB": 466.359375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "fixed",
+        "ms": 993.304,
+        "rssMiB": 469.796875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1079.2106669999998,
+        "rssMiB": 453.8125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1101.4755830000001,
+        "rssMiB": 465.140625,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "fixed",
+        "ms": 1020.2408750000001,
+        "rssMiB": 472.78125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1019.3146250000001,
+        "rssMiB": 469.359375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1011.2204580000001,
+        "rssMiB": 477.125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "fixed",
+        "ms": 1035.988542,
+        "rssMiB": 466.6875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1086.7406250000001,
+        "rssMiB": 452.84375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      }
+    ]
+  },
+  "workspaceAdaptiveEuler166Followup": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "engine": "compiled",
+    "diagnostics": false,
+    "versions": {
+      "before": {
+        "path": "/private/tmp/rank-adaptive/before/index.js",
+        "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+      },
+      "fixed": {
+        "path": "/private/tmp/rank-adaptive/fixed/index.js",
+        "hash": "518886c78ccfbb790d37cf5ffd1b99a90d3b4f26f225c48e894a2def326f20a6"
+      },
+      "adaptive": {
+        "path": "/Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js",
+        "hash": "b2836fd87be66959d03d0af0e2a32cfff3f62089cad2ca4d4324d265471e9131"
+      }
+    },
+    "results": [
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 979.4457080000001,
+        "rssMiB": 469.078125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1072.668208,
+        "rssMiB": 457.5,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1072.884417,
+        "rssMiB": 453.328125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1011.9175000000001,
+        "rssMiB": 466.046875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 991.0325829999999,
+        "rssMiB": 465.953125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1093.323167,
+        "rssMiB": 461.21875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1089.2490409999998,
+        "rssMiB": 465.640625,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 3
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1016.306041,
+        "rssMiB": 468.703125,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 3
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1017.871417,
+        "rssMiB": 467.046875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 4
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1084.0489160000002,
+        "rssMiB": 451.984375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 4
+      }
+    ]
+  },
+  "siblingPlacementEuler166Followup": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "engine": "compiled",
+    "diagnostics": false,
+    "versions": {
+      "before": {
+        "path": "/private/tmp/rank-adaptive/before/index.js",
+        "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+      },
+      "fixed": {
+        "path": "/private/tmp/rank-adaptive/fixed/index.js",
+        "hash": "518886c78ccfbb790d37cf5ffd1b99a90d3b4f26f225c48e894a2def326f20a6"
+      },
+      "adaptive": {
+        "path": "/private/tmp/rank-adaptive/adaptive/index.js",
+        "hash": "b2836fd87be66959d03d0af0e2a32cfff3f62089cad2ca4d4324d265471e9131"
+      }
+    },
+    "results": [
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1004.927625,
+        "rssMiB": 476.421875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1000.488542,
+        "rssMiB": 469.921875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1009.854167,
+        "rssMiB": 476.984375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 985.9305840000001,
+        "rssMiB": 469.609375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1008.757584,
+        "rssMiB": 476.4375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "adaptive",
+        "ms": 1019.6881249999999,
+        "rssMiB": 470.890625,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      }
+    ]
+  },
+  "siblingPlacementEuler88Followup": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "engine": "compiled",
+    "diagnostics": false,
+    "versions": {
+      "before": {
+        "path": "/private/tmp/rank-adaptive/before/index.js",
+        "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+      },
+      "adaptive": {
+        "path": "/private/tmp/rank-adaptive/adaptive/index.js",
+        "hash": "b2836fd87be66959d03d0af0e2a32cfff3f62089cad2ca4d4324d265471e9131"
+      }
+    },
+    "results": [
+      {
+        "case": "88",
+        "version": "before",
+        "ms": 787.5594169999999,
+        "rssMiB": 509.734375,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "88",
+        "version": "adaptive",
+        "ms": 805.774917,
+        "rssMiB": 509.703125,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "88",
+        "version": "adaptive",
+        "ms": 791.7345419999999,
+        "rssMiB": 507.515625,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "88",
+        "version": "before",
+        "ms": 790.793208,
+        "rssMiB": 508.15625,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "88",
+        "version": "before",
+        "ms": 1046.790375,
+        "rssMiB": 622.46875,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "88",
+        "version": "adaptive",
+        "ms": 793.164625,
+        "rssMiB": 509.609375,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "88",
+        "version": "adaptive",
+        "ms": 792.5470829999999,
+        "rssMiB": 514.296875,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 3
+      },
+      {
+        "case": "88",
+        "version": "before",
+        "ms": 788.5221250000001,
+        "rssMiB": 508.140625,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 3
+      },
+      {
+        "case": "88",
+        "version": "before",
+        "ms": 803.414625,
+        "rssMiB": 511.015625,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 4
+      },
+      {
+        "case": "88",
+        "version": "adaptive",
+        "ms": 788.10725,
+        "rssMiB": 509.40625,
+        "sourceHash": "d52b87bfcac40cb5963479647bf206d4623ba201b7250d2b80dbfc118f60eeeb",
+        "answer": "7587457",
+        "tests": [],
+        "sample": 4
+      }
+    ]
+  }
+}

@@ -1,0 +1,417 @@
+{
+  "runtimeHashes": {
+    "before": {
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "diagnostics.js": "c5dde0b2122b0606cc405924da856b8655e09354da39e0be3af8164e5487f59e"
+    },
+    "probe": {
+      "number-loop-runtime.js": "b2836fd87be66959d03d0af0e2a32cfff3f62089cad2ca4d4324d265471e9131",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "diagnostics.js": "69428071f1e3b6cb978874067fd6b4cc4e577cb8068f06ee5587550e6dcbfd4d"
+    },
+    "feedback": {
+      "number-loop-runtime.js": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872",
+      "diagnostics.js": "6b5957e6e33c1bbab7f5c2347dc46322e6672e11121c789ee367945dff4e3a0f"
+    }
+  },
+  "intelRuntimeHashes": {
+    "before": {
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "diagnostics.js": "c5dde0b2122b0606cc405924da856b8655e09354da39e0be3af8164e5487f59e"
+    },
+    "probe": {
+      "number-loop-runtime.js": "b2836fd87be66959d03d0af0e2a32cfff3f62089cad2ca4d4324d265471e9131",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394",
+      "diagnostics.js": "69428071f1e3b6cb978874067fd6b4cc4e577cb8068f06ee5587550e6dcbfd4d"
+    },
+    "feedback": {
+      "number-loop-runtime.js": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872",
+      "diagnostics.js": "6b5957e6e33c1bbab7f5c2347dc46322e6672e11121c789ee367945dff4e3a0f"
+    }
+  },
+  "intelHost": {
+    "node": "v24.15.0",
+    "arch": "x64",
+    "platform": "linux",
+    "cpu": "Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz",
+    "release": "6.12.74+deb13+1-amd64",
+    "totalMemory": 25069617152,
+    "loadAverage": [
+      5.94,
+      2.81,
+      1.12
+    ]
+  },
+  "macEuler166Followup": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "engine": "compiled",
+    "diagnostics": false,
+    "versions": {
+      "before": {
+        "path": "/private/tmp/rank-feedback/before/index.js",
+        "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+      },
+      "feedback": {
+        "path": "/private/tmp/rank-feedback/feedback/index.js",
+        "hash": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0"
+      }
+    },
+    "results": [
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1025.434291,
+        "rssMiB": 464.609375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "feedback",
+        "ms": 1010.8967499999999,
+        "rssMiB": 464.921875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 0
+      },
+      {
+        "case": "166",
+        "version": "feedback",
+        "ms": 1091.644625,
+        "rssMiB": 465.359375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1100.567791,
+        "rssMiB": 464.96875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 1
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1018.5807080000001,
+        "rssMiB": 464.34375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "feedback",
+        "ms": 1092.003292,
+        "rssMiB": 465.40625,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 2
+      },
+      {
+        "case": "166",
+        "version": "feedback",
+        "ms": 1019.5328340000001,
+        "rssMiB": 468.59375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 3
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1022.4477079999999,
+        "rssMiB": 464.1875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 3
+      },
+      {
+        "case": "166",
+        "version": "before",
+        "ms": 1015.13725,
+        "rssMiB": 468.421875,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 4
+      },
+      {
+        "case": "166",
+        "version": "feedback",
+        "ms": 1085.255208,
+        "rssMiB": 465.734375,
+        "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+        "answer": "7130034",
+        "tests": [],
+        "sample": 4
+      }
+    ]
+  },
+  "intelEuler044Direct": {
+    "node": "v24.15.0",
+    "results": [
+      {
+        "version": "before",
+        "engine": "reference",
+        "ms": 6588.165935,
+        "functions": 0,
+        "loops": 0,
+        "passed": true
+      },
+      {
+        "version": "before",
+        "engine": "compiled",
+        "ms": 485.520477,
+        "functions": 4401,
+        "loops": 0,
+        "passed": true
+      },
+      {
+        "version": "feedback",
+        "engine": "reference",
+        "ms": 6398.478733,
+        "functions": 0,
+        "loops": 0,
+        "passed": true
+      },
+      {
+        "version": "feedback",
+        "engine": "compiled",
+        "ms": 493.82739300000003,
+        "functions": 4401,
+        "loops": 0,
+        "passed": true
+      }
+    ]
+  },
+  "macOrdinary": {
+    "sha256": "b6c184df3ffba5e5cbac9fcae53fdcdb9fd3a5b00e16718a98b3fdf57e38bb07",
+    "tail": " \u2713 test/tensor-cache.test.ts (4 tests) 6ms\n \u2713 test/sequence-retention.test.ts (8 tests) 4ms\n \u2713 test/native-callback-demand.test.ts (5 tests) 5ms\n \u2713 test/debug-session.test.ts (3 tests) 2ms\n \u2713 test/membership-keys.test.ts (4 tests) 4ms\n \u2713 test/element-source.test.ts (5 tests) 5ms\n \u2713 test/transpose-reader.test.ts (4 tests) 4ms\n \u2713 test/type-audit-runner.test.ts (2 tests) 3ms\n \u2713 test/table-revisions.test.ts (3 tests) 4ms\n \u2713 test/native-array-storage.test.ts (2 tests) 2ms\n \u2713 test/array-traversal.test.ts (3 tests) 2ms\n \u2713 test/array-revisions.test.ts (5 tests) 2ms\n\n Test Files  394 passed (394)\n      Tests  8911 passed (8911)\n   Start at  11:00:04\n   Duration  98.68s (transform 2.65s, setup 0ms, collect 129.88s, tests 224.49s, environment 30ms, prepare 9.95s)\n"
+  },
+  "macFocused": {
+    "sha256": "13979d203f7056380d66f0fe18b66cb43072c1c95872fc7be9da694293dc3dc6",
+    "tail": "\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\n \u2713 test/number-loop-adaptive.test.ts (9 tests) 326ms\n \u2713 test/number-loop.test.ts (164 tests) 782ms\n\n Test Files  2 passed (2)\n      Tests  173 passed (173)\n   Start at  10:59:36\n   Duration  1.93s (transform 747ms, setup 0ms, collect 2.10s, tests 1.11s, environment 0ms, prepare 52ms)\n"
+  },
+  "intelOrdinary": {
+    "sha256": "5316f2ed3bee7f9c5a3a3167d8af990f0a333d84aa3e064908b38148612deaff",
+    "tail": "   \u2713 array shape with a dimension vector > builds an array from a shape vector  335ms\n \u2713 test/text-words.test.ts (3 tests) 375ms\n   \u2713 text words and vocabulary > splits Unicode words and folds case  334ms\n \u2713 test/lowercase-variable.test.ts (3 tests) 333ms\n   \u2713 a lowercase name before an assignment > says that variable names start with a capital letter  322ms\n \u2713 test/euler179.test.ts (30 tests) 826ms\n   \u2713 Euler 179 (compilation=false) > matches trial division at limit 1  437ms\n \u2713 test/bitmask-dp.test.ts (1 test) 538ms\n   \u2713 compiles the unchanged Euler 345 DP and retains the exact answer  537ms\n \u2713 test/array-chain-demos.test.ts (4 tests) 1250ms\n   \u2713 issue 402 eager array chains (compilation=false) > runs 407_idempotents without intermediate copy calls  674ms\n   \u2713 issue 402 eager array chains (compilation=false) > runs 408_admissiblepaths without intermediate copy calls  320ms\n \u2713 test/extrema-text.test.ts (3 tests) 292ms\n \u2713 test/condition-composition.test.ts (1 test) 286ms\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 2 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  test/compiled-integer-collections.test.ts > compiled integer collections > compiles unchanged Euler 044 at full size\nError: Test timed out in 15000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n \u276f test/compiled-integer-collections.test.ts:264:5\n    262|     });\n    263| \n    264|     it('compiles unchanged Euler 044 at full size', () => {\n       |     ^\n    265|         const source = readFileSync(new URL('../../../demos/euler/044_\u2026\n    266|         const result = compare(source);\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/2]\u23af\n\n FAIL  test/diagnostics.test.ts > runtime diagnostics > prints CLI diagnostics without a Node stack and exits unsuccessfully\nAssertionError: expected 'node:internal/modules/esm/resolve:271\u2026' to contain 'at /tmp/rank-diagnostics-4UICLN/error\u2026'\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- at /tmp/rank-diagnostics-4UICLN/error.ra:1:1\u001b[39m\n\u001b[31m+ node:internal/modules/esm/resolve:271\u001b[39m\n\u001b[31m+     throw new ERR_MODULE_NOT_FOUND(\u001b[39m\n\u001b[31m+           ^\u001b[39m\n\u001b[31m+\u001b[39m\n\u001b[31m+ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/tmp/rank-feedback-20261027/repo/packages/cli/out/main.js' imported from /tmp/rank-feedback-20261027/repo/packages/cli/bin/cli.js\u001b[39m\n\u001b[31m+     at finalizeResolution (node:internal/modules/esm/resolve:271:11)\u001b[39m\n\u001b[31m+     at moduleResolve (node:internal/modules/esm/resolve:861:10)\u001b[39m\n\u001b[31m+     at defaultResolve (node:internal/modules/esm/resolve:988:11)\u001b[39m\n\u001b[31m+     at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)\u001b[39m\n\u001b[31m+     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)\u001b[39m\n\u001b[31m+     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)\u001b[39m\n\u001b[31m+     at #resolve (node:internal/modules/esm/loader:679:17)\u001b[39m\n\u001b[31m+     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)\u001b[39m\n\u001b[31m+     at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33)\u001b[39m\n\u001b[31m+     at ModuleJob.link (node:internal/modules/esm/module_job:252:17) {\u001b[39m\n\u001b[31m+   code: 'ERR_MODULE_NOT_FOUND',\u001b[39m\n\u001b[31m+   url: 'file:///tmp/rank-feedback-20261027/repo/packages/cli/out/main.js'\u001b[39m\n\u001b[31m+ }\u001b[39m\n\u001b[31m+\u001b[39m\n\u001b[31m+ Node.js v24.15.0\u001b[39m\n\u001b[31m+\u001b[39m\n\n \u276f test/diagnostics.test.ts:188:31\n    186|         });\n    187|         expect(result.status).toBe(1);\n    188|         expect(result.stderr).toContain(`at ${file}:1:1`);\n       |                               ^\n    189|         expect(result.stderr).toContain('1 | 1 / 0');\n    190|         expect(result.stderr).not.toContain('interpreter.js');\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[2/2]\u23af\n\n\n Test Files  2 failed | 392 passed (394)\n      Tests  2 failed | 8907 passed (8909)\n   Start at  10:58:16\n   Duration  254.18s (transform 4.49s, setup 0ms, collect 268.93s, tests 667.17s, environment 76ms, prepare 24.14s)\n"
+  },
+  "intelFocused": {
+    "sha256": "33c0f0b1ed0d765e4d0d3296e0e0cd92fef3b3926330e9c8337fd40b86c0976e",
+    "tail": "   \u2713 runtime diagnostics > prints CLI diagnostics without a Node stack and exits unsuccessfully  896ms\n \u2713 test/number-loop.test.ts (164 tests) 2544ms\n   \u2713 private safe-integer loop registers > retains a nested real result type across continue  346ms\n \u276f test/compiled-integer-collections.test.ts (17 tests | 1 failed) 27779ms\n   \u2713 compiled integer collections > uses set keys for membership in mutable nested loops (function entry: false)  447ms\n   \u2713 compiled integer collections > uses set keys for membership in mutable nested loops (function entry: true) 34ms\n   \u2713 compiled integer collections > keeps live queue iteration, aliases and independent ordinals 39ms\n   \u2713 compiled integer collections > keeps live deque iteration, aliases and independent ordinals 18ms\n   \u2713 compiled integer collections > keeps live stack iteration, aliases and independent ordinals 19ms\n   \u2713 compiled integer collections > captures the queue before rebinding its slot 18ms\n   \u2713 compiled integer collections > keeps nested early returns and empty queues 25ms\n   \u2713 compiled integer collections > compiles constructor-owned array writes, including linked calls 57ms\n   \u2713 compiled integer collections > keeps writes through argument aliases on the framed path 17ms\n   \u2713 compiled integer collections > preserves error location and call trace for Total = 1 // (A - 2) 18ms\n   \u2713 compiled integer collections > preserves error location and call trace for Q push \"bad\" 13ms\n   \u2713 compiled integer collections > uses the tracked queue contract only with unchanged methods 2ms\n   \u2713 compiled integer collections > declines function entry after a queue iterator prototype replacement 12ms\n   \u2713 compiled integer collections > declines set entry with a host membership override 8ms\n   \u2713 compiled integer collections > rechecks membership prototypes for sets constructed inside the function 11ms\n   \u00d7 compiled integer collections > compiles unchanged Euler 044 at full size 15542ms\n     \u2192 Test timed out in 15000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n   \u2713 compiled integer collections > compiles the Euler 023 top-level search at full size  11498ms\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af Failed Tests 1 \u23af\u23af\u23af\u23af\u23af\u23af\u23af\n\n FAIL  test/compiled-integer-collections.test.ts > compiled integer collections > compiles unchanged Euler 044 at full size\nError: Test timed out in 15000ms.\nIf this is a long-running test, pass a timeout value as the last argument or configure it globally with \"testTimeout\".\n \u276f test/compiled-integer-collections.test.ts:264:5\n    262|     });\n    263| \n    264|     it('compiles unchanged Euler 044 at full size', () => {\n       |     ^\n    265|         const source = readFileSync(new URL('../../../demos/euler/044_\u2026\n    266|         const result = compare(source);\n\n\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af\u23af[1/1]\u23af\n\n\n Test Files  1 failed | 3 passed (4)\n      Tests  1 failed | 222 passed (223)\n   Start at  11:03:29\n   Duration  30.40s (transform 1.73s, setup 0ms, collect 9.57s, tests 32.96s, environment 1ms, prepare 290ms)\n"
+  },
+  "intelBaseline044": {
+    "sha256": "b2b2827ac4a70c146af7ced9ccafe8acdf3715132e37bc4a17b5b01f3f05a2f4",
+    "tail": "\n RUN  v3.2.7 /tmp/rank-feedback-20261027/baseline-repo/packages/interpreter\n\n \u2713 test/compiled-integer-collections.test.ts (17 tests | 16 skipped) 13889ms\n   \u2713 compiled integer collections > compiles unchanged Euler 044 at full size  13887ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 16 skipped (17)\n   Start at  11:13:53\n   Duration  16.18s (transform 1.49s, setup 0ms, collect 2.11s, tests 13.89s, environment 0ms, prepare 56ms)\n"
+  },
+  "intelFeedback044": {
+    "sha256": "db3630747afa8afd470ea4d53793161bd418bb490ef3c96766a1f07401b15208",
+    "tail": "\n RUN  v3.2.7 /tmp/rank-feedback-20261027/repo/packages/interpreter\n\n \u2713 test/compiled-integer-collections.test.ts (17 tests | 16 skipped) 14615ms\n   \u2713 compiled integer collections > compiles unchanged Euler 044 at full size  14614ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 16 skipped (17)\n   Start at  11:14:09\n   Duration  17.44s (transform 1.84s, setup 0ms, collect 2.65s, tests 14.62s, environment 0ms, prepare 57ms)\n"
+  },
+  "intelVmstatBeforeTiming": "procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------\n r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu\n 0  0 3034172 4322556 415808 9177344    3    7   231    63  468    0  0  0 99  0  0  0\n 0  0 3034172 4360560 415808 9177608    0    0     0   188  815 1006  0  0 99  0  0  0\n",
+  "euler166Diagnostics": {
+    "mac": {
+      "case": "166",
+      "version": "feedback",
+      "ms": 1040.5963749999999,
+      "rssMiB": 465.078125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 90004,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 42,
+        "compiledCounterBuilds": 19,
+        "compiledCounterSums": 19,
+        "compiledCounterKeys": 5264930,
+        "tensorMapPreparations": 38,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 76,
+        "maskMaterializedCells": 21340,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 38,
+        "elementTypeScannedCells": 10670,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 2,
+        "typedUnpackedCells": 50000,
+        "fallbacks": {
+          "tensor:output-shape": 39,
+          "scalar-expression:unsupported-op:**": 4,
+          "tensor:unsupported-type:array": 1,
+          "tensor:unsupported-node:MaterializeExpression": 6,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:unsupported-node:AllAxisExpression": 4,
+          "scalar-expression:unsupported-op:Pw": 20,
+          "scalar-expression:unsupported-op:*": 20,
+          "scalar-expression:unsupported-op:+": 14,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 6,
+          "tensor:deferred-binding:AssignmentStatement": 3,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:Cnt": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+          "tensor:binding:Seen": 19,
+          "scalar-expression:unsupported-op:Flat": 20,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:operator-guard:-": 19
+        },
+        "compilerRejections": []
+      }
+    },
+    "intel": {
+      "case": "166",
+      "version": "feedback",
+      "ms": 2604.2842870000004,
+      "rssMiB": 437.8203125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 90004,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 42,
+        "compiledCounterBuilds": 19,
+        "compiledCounterSums": 19,
+        "compiledCounterKeys": 5264930,
+        "tensorMapPreparations": 38,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 76,
+        "maskMaterializedCells": 21340,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 38,
+        "elementTypeScannedCells": 10670,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 2,
+        "typedUnpackedCells": 50000,
+        "fallbacks": {
+          "tensor:output-shape": 39,
+          "scalar-expression:unsupported-op:**": 4,
+          "tensor:unsupported-type:array": 1,
+          "tensor:unsupported-node:MaterializeExpression": 6,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:unsupported-node:AllAxisExpression": 4,
+          "scalar-expression:unsupported-op:Pw": 20,
+          "scalar-expression:unsupported-op:*": 20,
+          "scalar-expression:unsupported-op:+": 14,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "scalar-expression:too-small": 6,
+          "tensor:deferred-binding:AssignmentStatement": 3,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:Cnt": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 3,
+          "tensor:binding:Seen": 19,
+          "scalar-expression:unsupported-op:Flat": 20,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:operator-guard:-": 19
+        },
+        "compilerRejections": []
+      }
+    }
+  }
+}

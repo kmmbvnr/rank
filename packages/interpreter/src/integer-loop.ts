@@ -3,7 +3,7 @@ import { createLoopExpressions } from './integer-loop-expressions.js';
 import { createLoopHeader } from './integer-loop-header.js';
 import { createLoopStatements } from './integer-loop-statements.js';
 import { prepareNumberLoop } from './number-loop-runtime.js';
-import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan } from './integer-loop-plan.js';
+import { type IterationBinding, type LoopHost, type CompiledLoop, type IntegerLoopPlan, type LoopWorkFeedback } from './integer-loop-plan.js';
 import { prepareIntegerLoop } from './integer-loop-runtime.js';
 import { wideLoopScalars } from './integer-loop-wide.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -66,14 +66,16 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     let failure: string | undefined;
     const failed = (reason: string) => { failure ??= reason; };
     const plan = lowerTypedLoop(statement, host, iteration, textSources, textArrays, failed);
+    const feedback: LoopWorkFeedback | undefined = numberVariant && !iteration && plan?.destinations.size
+        ? { cells: 0, allow: true } : undefined;
     const exact = plan && prepareIntegerLoop(plan, host, () => {
         failed(compilerRejection('loop', statement, 'code-generation'));
         return undefined;
-    });
+    }, feedback);
     // A replay-safe backend can support expressions the publishing backend
     // cannot type statically (integer powers may become real for negative exponents).
     const numberPlan = numberVariant && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true);
-    const fast = numberPlan && prepareNumberLoop(numberPlan, host);
+    const fast = numberPlan && prepareNumberLoop(numberPlan, host, feedback);
     if (!fast) {
         if (!exact && currentDiagnostics()) recordFallback(failure ?? compilerRejection('loop', statement));
         return exact;
@@ -86,7 +88,7 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
             preparedMixed = true;
             const wide = wideLoopScalars(plan ?? numberPlan!);
             const mixedPlan = wide.size && lowerTypedLoop(statement, host, iteration, textSources, textArrays, () => {}, true, wide);
-            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host) : undefined;
+            mixed = mixedPlan ? prepareNumberLoop(mixedPlan, host, feedback) : undefined;
         }
         return mixed?.run(...context) ?? exact?.run(...context);
     } };

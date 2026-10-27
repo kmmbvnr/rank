@@ -4,11 +4,11 @@ import { materializeValue } from './materialize.js';
 import { textLength } from './text-storage.js';
 import { takeDropValue } from './sequence.js';
 import { expressionFacts, findOperation, isBinaryExpression, isBooleanLiteral, isNameExpression, isParenthesizedExpression, type Expression } from '@arrrank/language';
-import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop } from './integer-loop-plan.js';
+import { loopValueType, type IntegerLoopPlan, type LoopHost, type LoopTerm, type CompiledLoop, type LoopWorkFeedback } from './integer-loop-plan.js';
 import { ResourceMap } from './resource-summary.js';
 import { prepareIntegerView } from './integer-view.js';
 import { primeRange } from './prime-sequence.js';
-import { checkpoint, inspectionEnabled } from './interrupt.js';
+import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { completed, type Execution } from './execution.js';
 import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
@@ -22,7 +22,7 @@ import { IndexEntries, indexHas, indexRead, indexSet, indexKey } from './index-s
 import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayItems, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader, ownedArray, arrayRevision, arrayForWrite, isSharedArray, typedElementKind, writableIntegerCells, writeIntegerSelection } from './array-storage.js';
 
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
-export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined): CompiledLoop | undefined {
+export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined, feedback?: LoopWorkFeedback): CompiledLoop | undefined {
     const { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, hasYield, needsAlgo, arrayDefinitions, writable, iteration } = plan;
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
     const source = `"use strict"; return function${hasYield ? '*' : ''}(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
@@ -43,7 +43,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         } return result; } catch (error) { throw locate(error, location); }
     };`;
     let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
-    try { run = new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', source)(
+    const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', code)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
         (index: bigint, axis: number) => index < 0n
@@ -76,8 +76,10 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 const items = unpackApplicationItems(value);
                 if (items.length !== count) throw new RankError(`unpack expects ${count} values, got ${items.length}`);
                 return items;
-            }); }
+            }, observeWork);
+    try { run = compile(source, () => {}); }
     catch { return reject(); }
+    let countedRun: typeof run | undefined;
     host.compiled?.(source);
     const stableReadRegion = host.tensorReadHoisting && arrayInputs.size > 0
         && calls.every(call => call.stableArrayReads) && iterators.length === 0 && containers.size === 0
@@ -256,7 +258,22 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             ? writers.map((checked, index) => host.prepareWriter!(writerNames[index], checked)) : writers;
         const activeBinders = host.prepareWriter
             ? binders.map((checked, index) => host.prepareWriter!(binderNames[index], checked)) : binders;
-        const outcome = run(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads);
+        let runner = run;
+        if (feedback?.cells && privateLoopPolling() && !hasYield) {
+            countedRun ??= compile(source
+                .replace('let result = initialResult, location = -1;', 'let result = initialResult, location = -1, work = 0;')
+                .split('checkpoint();').join('work++; checkpoint();')
+                .replace('} return result; } catch', '} observeWork(work); return result; } catch'), work => {
+                    feedback.allow = work >= feedback.cells;
+                    const d = currentDiagnostics();
+                    if (d) {
+                        d.exactLoopWorkSamples++;
+                        if (feedback.allow) d.exactLoopWorkPromotions++;
+                    }
+                });
+            runner = countedRun;
+        }
+        const outcome = runner(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads);
         // A suspending region returns its own task for the execution driver.
         return hasYield ? outcome as unknown as Execution<RankValue | undefined> : completed(outcome);
     } };

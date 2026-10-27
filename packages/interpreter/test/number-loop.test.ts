@@ -74,15 +74,16 @@ end`);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
-    it.each([65, 4096])('declines condition-loop copying for %i cells', size => {
+    it.each([65, 4096])('probes condition-loop copying for %i cells', size => {
         const diagnostics = compare(`A = array shape ${size} fill 0
 J = 0
 for J less 3
  A 0 += 1
  J += 1
 end`);
-        expect(diagnostics.numberLoops).toBe(0);
-        expect(diagnostics.fallbacks['number-loop:condition-write-budget']).toBe(1);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopCopyProbes).toBe(1);
+        expect(diagnostics.numberLoopCopyAmortized).toBe(0);
     });
 
     it('bounds combined scratch destinations rather than individual arrays', () => {
@@ -94,8 +95,9 @@ for Go
  B 0 = 2
  Go = false
 end`);
-        expect(diagnostics.numberLoops).toBe(0);
-        expect(diagnostics.fallbacks['number-loop:condition-write-budget']).toBe(1);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopCopyProbes).toBe(1);
+        expect(diagnostics.numberLoopCopyAmortized).toBe(0);
     });
 
     it.each(['9007199254740991', '0'])('retains exact replay and partial errors for small scratch storage (%s)', value => {
@@ -149,7 +151,8 @@ for J less 20
  J += 1
  Scratch = tuple J
 end`);
-        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopCopyAmortized).toBe(0);
         expect(diagnostics.compiledLoops).toBe(20);
         expect(diagnostics.cowCopies).toBe(0);
     });

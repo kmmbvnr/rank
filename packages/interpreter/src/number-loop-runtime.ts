@@ -6,7 +6,7 @@ import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
-import type { CompiledLoop, IntegerLoopPlan, LoopHost, LoopTerm } from './integer-loop-plan.js';
+import type { CompiledLoop, IntegerLoopPlan, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
 type NumberCells = ArrayLike<number | bigint>;
@@ -51,7 +51,7 @@ const rankValue = (value: unknown, type: string | undefined): RankValue | undefi
  * published until success, so overflow can discard this attempt and enter the
  * original BigInt loop with its original inputs. Errors publish partial state.
  * Inspection and custom host polling retain the existing publishing backend. */
-export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): CompiledLoop | undefined {
+export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length || plan.containers.size
         || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
@@ -95,10 +95,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         ${publish}
         return { value: result, type: resultType };
     };`;
-    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: ((arguments_: RankValue[]) => RankValue)[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string } | undefined;
+    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: ((arguments_: RankValue[]) => RankValue)[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
-    try {
-        run = new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', source)(
+    let countedRun: Run | undefined;
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -110,7 +110,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             () => new RankError('power result is not real'),
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
                 : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower);
-    } catch { return undefined; }
+    try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
     // buffers are private snapshots, never destinations. Tracked revisions
@@ -146,6 +146,25 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
             }
         }
         let conditionWriteCells = 0;
+        if (!plan.iteration) for (const [name] of plan.destinations) {
+            const value = host.read(name);
+            if (!value || !isRankArray(value) || value.kind !== 'array') return undefined;
+            conditionWriteCells += value.shape.reduce((a, b) => a * b, 1);
+        }
+        const probe = conditionWriteCells > 64;
+        if (probe) {
+            if (conditionWriteCells > 262144 || !feedback) return recordFallback('number-loop:condition-write-budget');
+            feedback.cells = conditionWriteCells;
+            if (!feedback.allow) return recordFallback('number-loop:condition-work');
+            // On failure, learn from exact execution before making another copy.
+            feedback.allow = false;
+            countedRun ??= compile(source
+                .replace('const entered = [];', 'const entered = []; let work = 0;')
+                .split('checkpoint();').join('work++; checkpoint();')
+                .replace('return { value: result, type: resultType };', 'return { value: result, type: resultType, work };'));
+            const diagnostics = currentDiagnostics();
+            if (diagnostics) diagnostics.numberLoopCopyProbes++;
+        }
         for (const [name, info] of storage) {
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
@@ -156,11 +175,6 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                     : info.type === 'boolean' ? hasWritableBooleanCells(value) : writableIntegerCells(value)))) return undefined;
             const items = denseScalarItems(value) ?? materializedArrayItems(value);
             if (!items) return undefined;
-            // Unbounded condition loops may be repeatedly entered for one store.
-            // Permit small scratch buffers, but bound the total private copying
-            // per entry; large destinations retain direct exact stores.
-            if (!plan.iteration && plan.destinations.has(name)
-                && (conditionWriteCells += items.length) > 64) return recordFallback('number-loop:condition-write-budget');
             // A single indexed read-only pass can read packed integers in
             // place. Check safe conversion at each actual load; an unsafe cell
             // discards the private scalar attempt before exact replay.
@@ -211,7 +225,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.numberLoops++;
         if (diagnostics && plan.wideScalars.size) diagnostics.mixedIntegerLoops++;
-        const result = run(input, buffers, changes, calls, (entered, values) => {
+        const result = (probe ? countedRun! : run)(input, buffers, changes, calls, (entered, values) => {
             // Overflow never enters publication. Ordinary errors and cancellation
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.
@@ -247,6 +261,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
         if (!result) {
             if (diagnostics) diagnostics.numberLoopOverflows++;
             return undefined;
+        }
+        if (probe && result.work! >= conditionWriteCells) {
+            feedback!.allow = true;
+            if (diagnostics) diagnostics.numberLoopCopyAmortized++;
         }
         return completed(rankValue(result.value, result.type));
     } };

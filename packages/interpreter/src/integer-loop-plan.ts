@@ -81,6 +81,9 @@ export function loopValueType(value: RankValue | undefined): CompiledLoopType | 
     return undefined;
 }
 
+/** Per-region backend feedback; contains no language values or cached results. */
+export interface LoopWorkFeedback { cells: number; allow: boolean }
+
 /** Whole numeric loop: keep reads in local registers and commit every assignment.
  * Writers retain fixed-type checks and partial state on errors; optional bound
  * writers specialize repeated known-value stores within one invocation. */

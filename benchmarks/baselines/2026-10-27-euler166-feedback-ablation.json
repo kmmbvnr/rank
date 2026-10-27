@@ -1,0 +1,260 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "engine": "compiled",
+  "diagnostics": false,
+  "versions": {
+    "before": {
+      "path": "/private/tmp/rank166-cause/before/index.js",
+      "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+    },
+    "feedback": {
+      "path": "/private/tmp/rank166-cause/feedback/index.js",
+      "hash": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0"
+    },
+    "diag_only": {
+      "path": "/private/tmp/rank166-cause/diagnostics/index.js",
+      "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+    },
+    "exact": {
+      "path": "/private/tmp/rank166-cause/exact/index.js",
+      "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+    },
+    "number": {
+      "path": "/private/tmp/rank166-cause/number/index.js",
+      "hash": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0"
+    },
+    "planner": {
+      "path": "/private/tmp/rank166-cause/planner/index.js",
+      "hash": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e"
+    }
+  },
+  "results": [
+    {
+      "case": "166",
+      "version": "before",
+      "ms": 1100.2855,
+      "rssMiB": 464.5625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "case": "166",
+      "version": "feedback",
+      "ms": 1084.2065,
+      "rssMiB": 464.796875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "case": "166",
+      "version": "diag_only",
+      "ms": 1028.310334,
+      "rssMiB": 464.15625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "case": "166",
+      "version": "exact",
+      "ms": 1009.479625,
+      "rssMiB": 464.71875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "case": "166",
+      "version": "number",
+      "ms": 1084.812666,
+      "rssMiB": 465.578125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "case": "166",
+      "version": "planner",
+      "ms": 1021.3289580000001,
+      "rssMiB": 468.421875,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 0
+    },
+    {
+      "case": "166",
+      "version": "planner",
+      "ms": 1031.47675,
+      "rssMiB": 467.84375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "case": "166",
+      "version": "number",
+      "ms": 1020.57225,
+      "rssMiB": 464.59375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "case": "166",
+      "version": "exact",
+      "ms": 1090.7345,
+      "rssMiB": 460.453125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "case": "166",
+      "version": "diag_only",
+      "ms": 1102.578542,
+      "rssMiB": 465.078125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "case": "166",
+      "version": "feedback",
+      "ms": 1022.058417,
+      "rssMiB": 465.25,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "case": "166",
+      "version": "before",
+      "ms": 1022.836666,
+      "rssMiB": 464.640625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 1
+    },
+    {
+      "case": "166",
+      "version": "before",
+      "ms": 1098.3223329999998,
+      "rssMiB": 465.640625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "case": "166",
+      "version": "feedback",
+      "ms": 1090.354458,
+      "rssMiB": 469.203125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "case": "166",
+      "version": "diag_only",
+      "ms": 1021.821334,
+      "rssMiB": 464.78125,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "case": "166",
+      "version": "exact",
+      "ms": 1026.825417,
+      "rssMiB": 464.734375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "case": "166",
+      "version": "number",
+      "ms": 1108.831209,
+      "rssMiB": 464.609375,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 2
+    },
+    {
+      "case": "166",
+      "version": "planner",
+      "ms": 1025.612917,
+      "rssMiB": 468.5625,
+      "sourceHash": "22f1005e4599887252e8ada751afda9efb10f4f546bfc63bf60a6ac7530deaa0",
+      "answer": "7130034",
+      "tests": [],
+      "sample": 2
+    }
+  ],
+  "variantMeaning": {
+    "before": "baseline",
+    "feedback": "all four feedback runtime modules",
+    "diag_only": "baseline plus diagnostics.js",
+    "exact": "baseline plus integer-loop-runtime.js",
+    "number": "baseline plus number-loop-runtime.js",
+    "planner": "baseline plus integer-loop.js"
+  },
+  "variantModuleHashes": {
+    "before": {
+      "diagnostics.js": "c5dde0b2122b0606cc405924da856b8655e09354da39e0be3af8164e5487f59e",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394"
+    },
+    "feedback": {
+      "diagnostics.js": "6b5957e6e33c1bbab7f5c2347dc46322e6672e11121c789ee367945dff4e3a0f",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "number-loop-runtime.js": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0",
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872"
+    },
+    "diag_only": {
+      "diagnostics.js": "6b5957e6e33c1bbab7f5c2347dc46322e6672e11121c789ee367945dff4e3a0f",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394"
+    },
+    "exact": {
+      "diagnostics.js": "c5dde0b2122b0606cc405924da856b8655e09354da39e0be3af8164e5487f59e",
+      "integer-loop-runtime.js": "f85940c6db08a5a69e32f63a5640240267a66d74ff51d6ffe93b4748fae6715d",
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394"
+    },
+    "number": {
+      "diagnostics.js": "c5dde0b2122b0606cc405924da856b8655e09354da39e0be3af8164e5487f59e",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "number-loop-runtime.js": "24d803978376709e5b834cdf3037297106ca7c6f5836fc25b3ad0c4519b4fae0",
+      "integer-loop.js": "4a1fb3457304bf6ee1f67764f6a8143793e2a96cbe53359fc3080a291100b394"
+    },
+    "planner": {
+      "diagnostics.js": "c5dde0b2122b0606cc405924da856b8655e09354da39e0be3af8164e5487f59e",
+      "integer-loop-runtime.js": "ee0cd725b770d9f17e867c53ab5c0377a86c91052b97dd17fae930cac655b6bd",
+      "number-loop-runtime.js": "2feb5654bb0e5bdc1adc9734e619546d62f8e29a421afb30539b916cef73467e",
+      "integer-loop.js": "047db703860bd1ee429f45e6066e399061faae093729397f30982241e06ce872"
+    }
+  }
+}
