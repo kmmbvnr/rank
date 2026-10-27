@@ -1,0 +1,4350 @@
+{
+  "date": "2026-10-27",
+  "stage": 9,
+  "implementationCommit": "57ec1b60",
+  "tolerance": {
+    "atol": 1e-05,
+    "rtol": 1e-05
+  },
+  "reference": "Independent JS double-precision centered population variance and gelu_new, with FP32 input/weight values. GPU-only; no CPU fallback. Not a performance benchmark.",
+  "hosts": {
+    "mac": {
+      "checks": [
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 0,
+          "maxError": 4.7192145302688004e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 1,
+          "maxError": 4.7192145302688004e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 0,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 1,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 0,
+          "maxError": 1.1465515847852714e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 1,
+          "maxError": 1.1465515847852714e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 0,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 1,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 0,
+          "maxError": 1.1465515847852714e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 1,
+          "maxError": 1.1465515847852714e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 0,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 1,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 0,
+          "maxError": 1.1465515847852714e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 1,
+          "maxError": 1.1465515847852714e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 0,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 1,
+          "maxError": 5.8636653643695524e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 0,
+          "maxError": 1.343479980597806e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 1,
+          "maxError": 1.343479980597806e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 0,
+          "maxError": 5.931926461144599e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 1,
+          "maxError": 5.931926461144599e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 0,
+          "maxError": 1.1099998964425595e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 1,
+          "maxError": 1.1099998964425595e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 0,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 1,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 0,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 1,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 0,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 1,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 0,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 1,
+          "maxError": 1.1036962838106845e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 0,
+          "maxError": 1.1245191711140023e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 1,
+          "maxError": 1.1245191711140023e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 0,
+          "maxError": 1.6390126500454016e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 1,
+          "maxError": 1.6390126500454016e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        }
+      ],
+      "maxAbsoluteError": 1.6390126500454016e-07
+    },
+    "intel": {
+      "checks": [
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 0,
+          "maxError": 4.7192145302688004e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 1,
+          "maxError": 4.7192145302688004e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 0,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 1,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 0,
+          "maxError": 2.246933542005003e-12,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 1,
+          "maxError": 2.246933542005003e-12,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 0,
+          "maxError": 2.1305269171101315e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 1,
+          "maxError": 2.1305269171101315e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 0,
+          "maxError": 2.246933542005003e-12,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 1,
+          "maxError": 2.246933542005003e-12,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 0,
+          "maxError": 2.1305269171101315e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 1,
+          "maxError": 2.1305269171101315e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 0,
+          "maxError": 4.493867084010006e-12,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 1,
+          "maxError": 4.493867084010006e-12,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 0,
+          "maxError": 2.1305269171101315e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 1,
+          "maxError": 2.1305269171101315e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 1.1504299735065615e-09,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 0,
+          "maxError": 1.7975468336040024e-11,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 1,
+          "maxError": 1.7975468336040024e-11,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 0,
+          "maxError": 1.343479980597806e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 1,
+          "maxError": 1.343479980597806e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 0,
+          "maxError": 5.931926461144599e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 1,
+          "maxError": 5.931926461144599e-08,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 0,
+          "maxError": 1.1099998964425595e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 1,
+          "maxError": 1.1099998964425595e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 0,
+          "maxError": 1.1245191711140023e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 1,
+          "maxError": 1.1245191711140023e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 0,
+          "maxError": 1.6410151815193785e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 1,
+          "maxError": 1.6410151815193785e-07,
+          "tolerance": 1e-05,
+          "fullyAccelerated": true
+        }
+      ],
+      "maxAbsoluteError": 2.1305269171101315e-07
+    },
+    "android": {
+      "checks": [
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 0,
+          "maxError": 4.7192145302688004e-08,
+          "wallMs": 464.70000000298023,
+          "prepareMs": 422.008958,
+          "executeMs": 8.016303,
+          "transportAndSchedulingMs": 34.674739002980225,
+          "requestBytes": 2806,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 1,
+          "maxError": 4.7192145302688004e-08,
+          "wallMs": 19.5,
+          "prepareMs": 0.013489,
+          "executeMs": 3.577136,
+          "transportAndSchedulingMs": 15.909375,
+          "requestBytes": 194,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 2,
+          "maxError": 4.7192145302688004e-08,
+          "wallMs": 19.700000002980232,
+          "prepareMs": 0.011406,
+          "executeMs": 2.513594,
+          "transportAndSchedulingMs": 17.17500000298023,
+          "requestBytes": 194,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 3,
+          "maxError": 4.7192145302688004e-08,
+          "wallMs": 18,
+          "prepareMs": 0.011511,
+          "executeMs": 2.672343,
+          "transportAndSchedulingMs": 15.316146000000002,
+          "requestBytes": 194,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 4,
+          "maxError": 4.7192145302688004e-08,
+          "wallMs": 17.100000001490116,
+          "prepareMs": 0.011718,
+          "executeMs": 2.803021,
+          "transportAndSchedulingMs": 14.285261001490117,
+          "requestBytes": 194,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/mixed",
+          "repeat": 5,
+          "maxError": 4.7192145302688004e-08,
+          "wallMs": 18.30000000447035,
+          "prepareMs": 0.011563,
+          "executeMs": 2.990208,
+          "transportAndSchedulingMs": 15.29822900447035,
+          "requestBytes": 194,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 20.299999997019768,
+          "prepareMs": 0.011198,
+          "executeMs": 3.959791,
+          "transportAndSchedulingMs": 16.32901099701977,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 21,
+          "prepareMs": 0.010156,
+          "executeMs": 2.94349,
+          "transportAndSchedulingMs": 18.046354,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 20.100000001490116,
+          "prepareMs": 0.012344,
+          "executeMs": 2.785573,
+          "transportAndSchedulingMs": 17.302083001490118,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 21.19999999552965,
+          "prepareMs": 0.010208,
+          "executeMs": 1.862239,
+          "transportAndSchedulingMs": 19.327552995529654,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 23.299999997019768,
+          "prepareMs": 0.011719,
+          "executeMs": 3.934114,
+          "transportAndSchedulingMs": 19.354166997019767,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant-offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 21.5,
+          "prepareMs": 0.013333,
+          "executeMs": 1.319584,
+          "transportAndSchedulingMs": 20.167083,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 21.69999999552965,
+          "prepareMs": 0.01151,
+          "executeMs": 2.156771,
+          "transportAndSchedulingMs": 19.53171899552965,
+          "requestBytes": 99,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 22.5,
+          "prepareMs": 0.009688,
+          "executeMs": 3.320833,
+          "transportAndSchedulingMs": 19.169479,
+          "requestBytes": 99,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 18.69999999552965,
+          "prepareMs": 0.021302,
+          "executeMs": 2.603229,
+          "transportAndSchedulingMs": 16.075468995529654,
+          "requestBytes": 99,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 17,
+          "prepareMs": 0.022552,
+          "executeMs": 2.584948,
+          "transportAndSchedulingMs": 14.392499999999998,
+          "requestBytes": 99,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 18.100000001490116,
+          "prepareMs": 0.009948,
+          "executeMs": 2.767292,
+          "transportAndSchedulingMs": 15.322760001490115,
+          "requestBytes": 99,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/constant",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 18.899999998509884,
+          "prepareMs": 0.012604,
+          "executeMs": 2.574792,
+          "transportAndSchedulingMs": 16.312603998509886,
+          "requestBytes": 99,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 19.299999997019768,
+          "prepareMs": 0.010573,
+          "executeMs": 2.470885,
+          "transportAndSchedulingMs": 16.818541997019768,
+          "requestBytes": 192,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 21.899999998509884,
+          "prepareMs": 0.01448,
+          "executeMs": 3.059739,
+          "transportAndSchedulingMs": 18.825780998509885,
+          "requestBytes": 192,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 2,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 20.600000001490116,
+          "prepareMs": 0.012136,
+          "executeMs": 2.601719,
+          "transportAndSchedulingMs": 17.986145001490115,
+          "requestBytes": 192,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 3,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 17.5,
+          "prepareMs": 0.011823,
+          "executeMs": 3.122292,
+          "transportAndSchedulingMs": 14.365885,
+          "requestBytes": 192,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 4,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 15.899999998509884,
+          "prepareMs": 0.009479,
+          "executeMs": 1.202813,
+          "transportAndSchedulingMs": 14.687707998509882,
+          "requestBytes": 192,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/small-variance",
+          "repeat": 5,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 18.099999994039536,
+          "prepareMs": 0.023282,
+          "executeMs": 2.762708,
+          "transportAndSchedulingMs": 15.314009994039537,
+          "requestBytes": 192,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 17.399999998509884,
+          "prepareMs": 0.010104,
+          "executeMs": 2.996771,
+          "transportAndSchedulingMs": 14.393124998509887,
+          "requestBytes": 133,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 17.30000000447035,
+          "prepareMs": 0.026459,
+          "executeMs": 3.437083,
+          "transportAndSchedulingMs": 13.83645800447035,
+          "requestBytes": 133,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 2,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 16.299999997019768,
+          "prepareMs": 0.010105,
+          "executeMs": 2.551145,
+          "transportAndSchedulingMs": 13.738749997019768,
+          "requestBytes": 133,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 3,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 17.5,
+          "prepareMs": 0.022708,
+          "executeMs": 3.506615,
+          "transportAndSchedulingMs": 13.970676999999998,
+          "requestBytes": 133,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 4,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 19.600000001490116,
+          "prepareMs": 0.022552,
+          "executeMs": 2.343229,
+          "transportAndSchedulingMs": 17.234219001490114,
+          "requestBytes": 133,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/7/offset",
+          "repeat": 5,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 16.600000001490116,
+          "prepareMs": 0.013542,
+          "executeMs": 4.114166,
+          "transportAndSchedulingMs": 12.472292001490114,
+          "requestBytes": 133,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1936
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 0,
+          "maxError": 1.1542370725869944e-07,
+          "wallMs": 468.79999999701977,
+          "prepareMs": 430.600416,
+          "executeMs": 6.917657,
+          "transportAndSchedulingMs": 31.281926997019774,
+          "requestBytes": 3092,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 1,
+          "maxError": 1.1542370725869944e-07,
+          "wallMs": 17.900000005960464,
+          "prepareMs": 0.012239,
+          "executeMs": 2.232917,
+          "transportAndSchedulingMs": 15.654844005960463,
+          "requestBytes": 464,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 2,
+          "maxError": 1.1542370725869944e-07,
+          "wallMs": 22.399999998509884,
+          "prepareMs": 0.010209,
+          "executeMs": 3.679427,
+          "transportAndSchedulingMs": 18.710363998509884,
+          "requestBytes": 464,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 3,
+          "maxError": 1.1542370725869944e-07,
+          "wallMs": 16.80000000447035,
+          "prepareMs": 0.010833,
+          "executeMs": 3.483594,
+          "transportAndSchedulingMs": 13.305573004470347,
+          "requestBytes": 464,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 4,
+          "maxError": 1.1542370725869944e-07,
+          "wallMs": 18.200000002980232,
+          "prepareMs": 0.012344,
+          "executeMs": 4.081198,
+          "transportAndSchedulingMs": 14.106458002980233,
+          "requestBytes": 464,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/mixed",
+          "repeat": 5,
+          "maxError": 1.1542370725869944e-07,
+          "wallMs": 15.100000001490116,
+          "prepareMs": 0.012656,
+          "executeMs": 3.795886,
+          "transportAndSchedulingMs": 11.291458001490117,
+          "requestBytes": 464,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 15.700000002980232,
+          "prepareMs": 0.01026,
+          "executeMs": 2.484896,
+          "transportAndSchedulingMs": 13.20484400298023,
+          "requestBytes": 246,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 16.200000002980232,
+          "prepareMs": 0.010521,
+          "executeMs": 3.911302,
+          "transportAndSchedulingMs": 12.278177002980232,
+          "requestBytes": 246,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 16.19999999552965,
+          "prepareMs": 0.008907,
+          "executeMs": 1.313802,
+          "transportAndSchedulingMs": 14.877290995529652,
+          "requestBytes": 246,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 20.5,
+          "prepareMs": 0.055938,
+          "executeMs": 2.408229,
+          "transportAndSchedulingMs": 18.035833,
+          "requestBytes": 246,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 18.200000002980232,
+          "prepareMs": 0.010417,
+          "executeMs": 2.05125,
+          "transportAndSchedulingMs": 16.138333002980232,
+          "requestBytes": 246,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant-offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 16.700000002980232,
+          "prepareMs": 0.008333,
+          "executeMs": 2.544375,
+          "transportAndSchedulingMs": 14.147292002980231,
+          "requestBytes": 246,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 16.100000001490116,
+          "prepareMs": 0.006979,
+          "executeMs": 3.772813,
+          "transportAndSchedulingMs": 12.320208001490116,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 16.899999998509884,
+          "prepareMs": 0.007396,
+          "executeMs": 3.075312,
+          "transportAndSchedulingMs": 13.817291998509884,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 19.799999997019768,
+          "prepareMs": 0.008073,
+          "executeMs": 2.487396,
+          "transportAndSchedulingMs": 17.304530997019768,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 19.299999997019768,
+          "prepareMs": 0.008282,
+          "executeMs": 2.36151,
+          "transportAndSchedulingMs": 16.930207997019767,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 20.799999997019768,
+          "prepareMs": 0.008177,
+          "executeMs": 2.678855,
+          "transportAndSchedulingMs": 18.11296799701977,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/constant",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 25.200000002980232,
+          "prepareMs": 0.008542,
+          "executeMs": 3.495781,
+          "transportAndSchedulingMs": 21.695677002980233,
+          "requestBytes": 134,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 21.200000002980232,
+          "prepareMs": 0.011875,
+          "executeMs": 1.277917,
+          "transportAndSchedulingMs": 19.910208002980234,
+          "requestBytes": 420,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 21.19999999552965,
+          "prepareMs": 0.009323,
+          "executeMs": 2.809531,
+          "transportAndSchedulingMs": 18.381145995529653,
+          "requestBytes": 420,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 2,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 21.299999997019768,
+          "prepareMs": 0.009011,
+          "executeMs": 1.686666,
+          "transportAndSchedulingMs": 19.604322997019768,
+          "requestBytes": 420,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 3,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 22.200000002980232,
+          "prepareMs": 0.010833,
+          "executeMs": 3.378646,
+          "transportAndSchedulingMs": 18.81052100298023,
+          "requestBytes": 420,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 4,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 21.299999997019768,
+          "prepareMs": 0.008177,
+          "executeMs": 4.266979,
+          "transportAndSchedulingMs": 17.02484399701977,
+          "requestBytes": 420,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/small-variance",
+          "repeat": 5,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 20.600000001490116,
+          "prepareMs": 0.009792,
+          "executeMs": 1.648958,
+          "transportAndSchedulingMs": 18.941250001490115,
+          "requestBytes": 420,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 22,
+          "prepareMs": 0.008125,
+          "executeMs": 2.820833,
+          "transportAndSchedulingMs": 19.171042,
+          "requestBytes": 243,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 18.80000000447035,
+          "prepareMs": 0.00875,
+          "executeMs": 2.537135,
+          "transportAndSchedulingMs": 16.25411500447035,
+          "requestBytes": 243,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 2,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 18.600000001490116,
+          "prepareMs": 0.009948,
+          "executeMs": 2.734166,
+          "transportAndSchedulingMs": 15.855886001490115,
+          "requestBytes": 243,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 3,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 19.600000001490116,
+          "prepareMs": 0.010312,
+          "executeMs": 2.794896,
+          "transportAndSchedulingMs": 16.794792001490116,
+          "requestBytes": 243,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 4,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 21.399999998509884,
+          "prepareMs": 0.00875,
+          "executeMs": 3.489948,
+          "transportAndSchedulingMs": 17.901301998509886,
+          "requestBytes": 243,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x7/offset",
+          "repeat": 5,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 19.700000002980232,
+          "prepareMs": 0.009011,
+          "executeMs": 2.55651,
+          "transportAndSchedulingMs": 17.134479002980232,
+          "requestBytes": 243,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 0,
+          "maxError": 1.2016779127321797e-07,
+          "wallMs": 369.79999999701977,
+          "prepareMs": 331.65015700000004,
+          "executeMs": 7.078437,
+          "transportAndSchedulingMs": 31.07140599701973,
+          "requestBytes": 3222,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 1,
+          "maxError": 1.2016779127321797e-07,
+          "wallMs": 16.900000005960464,
+          "prepareMs": 0.009323,
+          "executeMs": 2.3025,
+          "transportAndSchedulingMs": 14.588177005960466,
+          "requestBytes": 866,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 2,
+          "maxError": 1.2016779127321797e-07,
+          "wallMs": 18.399999998509884,
+          "prepareMs": 0.008385,
+          "executeMs": 2.50698,
+          "transportAndSchedulingMs": 15.884634998509883,
+          "requestBytes": 866,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 3,
+          "maxError": 1.2016779127321797e-07,
+          "wallMs": 18.200000002980232,
+          "prepareMs": 0.011563,
+          "executeMs": 2.466354,
+          "transportAndSchedulingMs": 15.722083002980234,
+          "requestBytes": 866,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 4,
+          "maxError": 1.2016779127321797e-07,
+          "wallMs": 18.899999998509884,
+          "prepareMs": 0.01,
+          "executeMs": 2.789479,
+          "transportAndSchedulingMs": 16.100520998509882,
+          "requestBytes": 866,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/mixed",
+          "repeat": 5,
+          "maxError": 1.2016779127321797e-07,
+          "wallMs": 20,
+          "prepareMs": 0.01073,
+          "executeMs": 3.105572,
+          "transportAndSchedulingMs": 16.883698000000003,
+          "requestBytes": 866,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 18.299999997019768,
+          "prepareMs": 0.009739,
+          "executeMs": 3.058907,
+          "transportAndSchedulingMs": 15.231353997019768,
+          "requestBytes": 414,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 18.899999998509884,
+          "prepareMs": 0.009687,
+          "executeMs": 2.630834,
+          "transportAndSchedulingMs": 16.259478998509884,
+          "requestBytes": 414,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 17.799999997019768,
+          "prepareMs": 0.009531,
+          "executeMs": 3.06349,
+          "transportAndSchedulingMs": 14.726978997019769,
+          "requestBytes": 414,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 18.200000002980232,
+          "prepareMs": 0.009375,
+          "executeMs": 2.356875,
+          "transportAndSchedulingMs": 15.833750002980233,
+          "requestBytes": 414,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 18.900000005960464,
+          "prepareMs": 0.009791,
+          "executeMs": 3.348386,
+          "transportAndSchedulingMs": 15.541823005960465,
+          "requestBytes": 414,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant-offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 19.100000001490116,
+          "prepareMs": 0.010105,
+          "executeMs": 4.22026,
+          "transportAndSchedulingMs": 14.869635001490117,
+          "requestBytes": 414,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 25.5,
+          "prepareMs": 0.009271,
+          "executeMs": 2.342031,
+          "transportAndSchedulingMs": 23.148698000000003,
+          "requestBytes": 176,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 18.899999998509884,
+          "prepareMs": 0.008281,
+          "executeMs": 2.379948,
+          "transportAndSchedulingMs": 16.511770998509885,
+          "requestBytes": 176,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 19.799999997019768,
+          "prepareMs": 0.010104,
+          "executeMs": 3.236354,
+          "transportAndSchedulingMs": 16.55354199701977,
+          "requestBytes": 176,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 20,
+          "prepareMs": 0.011042,
+          "executeMs": 2.606093,
+          "transportAndSchedulingMs": 17.382865,
+          "requestBytes": 176,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 18.299999997019768,
+          "prepareMs": 0.00974,
+          "executeMs": 3.16724,
+          "transportAndSchedulingMs": 15.123019997019767,
+          "requestBytes": 176,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/constant",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 18.299999997019768,
+          "prepareMs": 0.010052,
+          "executeMs": 2.536771,
+          "transportAndSchedulingMs": 15.753176997019766,
+          "requestBytes": 176,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 16.69999999552965,
+          "prepareMs": 0.009167,
+          "executeMs": 1.555885,
+          "transportAndSchedulingMs": 15.13494799552965,
+          "requestBytes": 762,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 16.5,
+          "prepareMs": 0.009427,
+          "executeMs": 1.599636,
+          "transportAndSchedulingMs": 14.890937000000001,
+          "requestBytes": 762,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 2,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 17.600000001490116,
+          "prepareMs": 0.012031,
+          "executeMs": 3.634531,
+          "transportAndSchedulingMs": 13.953438001490117,
+          "requestBytes": 762,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 3,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 16.700000002980232,
+          "prepareMs": 0.009167,
+          "executeMs": 3.689115,
+          "transportAndSchedulingMs": 13.00171800298023,
+          "requestBytes": 762,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 4,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 16.600000001490116,
+          "prepareMs": 0.009167,
+          "executeMs": 2.594427,
+          "transportAndSchedulingMs": 13.996406001490115,
+          "requestBytes": 762,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/small-variance",
+          "repeat": 5,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 16.5,
+          "prepareMs": 0.009323,
+          "executeMs": 1.758594,
+          "transportAndSchedulingMs": 14.732083000000001,
+          "requestBytes": 762,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 17.899999998509884,
+          "prepareMs": 0.008386,
+          "executeMs": 3.003906,
+          "transportAndSchedulingMs": 14.887707998509882,
+          "requestBytes": 408,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 19.5,
+          "prepareMs": 0.00802,
+          "executeMs": 2.959427,
+          "transportAndSchedulingMs": 16.532553,
+          "requestBytes": 408,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 2,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 18.700000002980232,
+          "prepareMs": 0.009948,
+          "executeMs": 2.434844,
+          "transportAndSchedulingMs": 16.255208002980233,
+          "requestBytes": 408,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 3,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 17.600000001490116,
+          "prepareMs": 0.007865,
+          "executeMs": 2.629791,
+          "transportAndSchedulingMs": 14.962344001490116,
+          "requestBytes": 408,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 4,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 16.600000001490116,
+          "prepareMs": 0.008855,
+          "executeMs": 2.841823,
+          "transportAndSchedulingMs": 13.749322001490116,
+          "requestBytes": 408,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x3x7/offset",
+          "repeat": 5,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 19.700000002980232,
+          "prepareMs": 0.008177,
+          "executeMs": 3.862917,
+          "transportAndSchedulingMs": 15.828906002980233,
+          "requestBytes": 408,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1744
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 0,
+          "maxError": 2.1399718441728055e-07,
+          "wallMs": 374.20000000298023,
+          "prepareMs": 331.419428,
+          "executeMs": 3.590729,
+          "transportAndSchedulingMs": 39.18984300298025,
+          "requestBytes": 4103,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 1,
+          "maxError": 2.1399718441728055e-07,
+          "wallMs": 17.900000005960464,
+          "prepareMs": 0.009896,
+          "executeMs": 2.747969,
+          "transportAndSchedulingMs": 15.142135005960464,
+          "requestBytes": 1667,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 2,
+          "maxError": 2.1399718441728055e-07,
+          "wallMs": 15.700000002980232,
+          "prepareMs": 0.012865,
+          "executeMs": 2.387917,
+          "transportAndSchedulingMs": 13.299218002980233,
+          "requestBytes": 1667,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 3,
+          "maxError": 2.1399718441728055e-07,
+          "wallMs": 12.799999997019768,
+          "prepareMs": 0.012187,
+          "executeMs": 2.313386,
+          "transportAndSchedulingMs": 10.474426997019767,
+          "requestBytes": 1667,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 4,
+          "maxError": 2.1399718441728055e-07,
+          "wallMs": 14,
+          "prepareMs": 0.009427,
+          "executeMs": 1.475105,
+          "transportAndSchedulingMs": 12.515467999999998,
+          "requestBytes": 1667,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/mixed",
+          "repeat": 5,
+          "maxError": 2.1399718441728055e-07,
+          "wallMs": 16.30000000447035,
+          "prepareMs": 0.011094,
+          "executeMs": 2.953645,
+          "transportAndSchedulingMs": 13.335261004470349,
+          "requestBytes": 1667,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 13.299999997019768,
+          "prepareMs": 0.00625,
+          "executeMs": 2.238438,
+          "transportAndSchedulingMs": 11.055311997019768,
+          "requestBytes": 750,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 13.699999995529652,
+          "prepareMs": 0.007865,
+          "executeMs": 2.36651,
+          "transportAndSchedulingMs": 11.325624995529651,
+          "requestBytes": 750,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 11.799999997019768,
+          "prepareMs": 0.006511,
+          "executeMs": 4.868802,
+          "transportAndSchedulingMs": 6.924686997019768,
+          "requestBytes": 750,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 11.200000002980232,
+          "prepareMs": 0.005937,
+          "executeMs": 2.146459,
+          "transportAndSchedulingMs": 9.047604002980233,
+          "requestBytes": 750,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 11.100000001490116,
+          "prepareMs": 0.006354,
+          "executeMs": 2.432291,
+          "transportAndSchedulingMs": 8.661355001490115,
+          "requestBytes": 750,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant-offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 11.100000001490116,
+          "prepareMs": 0.006563,
+          "executeMs": 2.041823,
+          "transportAndSchedulingMs": 9.051614001490115,
+          "requestBytes": 750,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 12.200000002980232,
+          "prepareMs": 0.005677,
+          "executeMs": 3.073021,
+          "transportAndSchedulingMs": 9.121302002980233,
+          "requestBytes": 260,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 12.599999994039536,
+          "prepareMs": 0.006406,
+          "executeMs": 2.871458,
+          "transportAndSchedulingMs": 9.722135994039535,
+          "requestBytes": 260,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 14,
+          "prepareMs": 0.008021,
+          "executeMs": 2.77276,
+          "transportAndSchedulingMs": 11.219219,
+          "requestBytes": 260,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 12.899999998509884,
+          "prepareMs": 0.009323,
+          "executeMs": 4.831979,
+          "transportAndSchedulingMs": 8.058697998509885,
+          "requestBytes": 260,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 13.599999994039536,
+          "prepareMs": 0.007709,
+          "executeMs": 2.574218,
+          "transportAndSchedulingMs": 11.018072994039535,
+          "requestBytes": 260,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/constant",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 14.299999997019768,
+          "prepareMs": 0.010416,
+          "executeMs": 2.500886,
+          "transportAndSchedulingMs": 11.788697997019769,
+          "requestBytes": 260,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 0,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 14.100000001490116,
+          "prepareMs": 0.009115,
+          "executeMs": 2.338073,
+          "transportAndSchedulingMs": 11.752812001490117,
+          "requestBytes": 1446,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 1,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 13.799999997019768,
+          "prepareMs": 0.008594,
+          "executeMs": 2.648021,
+          "transportAndSchedulingMs": 11.143384997019767,
+          "requestBytes": 1446,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 2,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 15.100000001490116,
+          "prepareMs": 0.007969,
+          "executeMs": 2.902136,
+          "transportAndSchedulingMs": 12.189895001490116,
+          "requestBytes": 1446,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 3,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 20.600000001490116,
+          "prepareMs": 0.009896,
+          "executeMs": 2.87849,
+          "transportAndSchedulingMs": 17.711614001490116,
+          "requestBytes": 1446,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 4,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 20.100000001490116,
+          "prepareMs": 0.00875,
+          "executeMs": 4.875052,
+          "transportAndSchedulingMs": 15.216198001490117,
+          "requestBytes": 1446,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/small-variance",
+          "repeat": 5,
+          "maxError": 5.449385083802771e-10,
+          "wallMs": 19.100000001490116,
+          "prepareMs": 0.009375,
+          "executeMs": 2.543907,
+          "transportAndSchedulingMs": 16.546718001490117,
+          "requestBytes": 1446,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 0,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 17.399999998509884,
+          "prepareMs": 0.01,
+          "executeMs": 3.37151,
+          "transportAndSchedulingMs": 14.018489998509882,
+          "requestBytes": 738,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 1,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 18.200000002980232,
+          "prepareMs": 0.009844,
+          "executeMs": 2.327344,
+          "transportAndSchedulingMs": 15.862812002980231,
+          "requestBytes": 738,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 2,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 18,
+          "prepareMs": 0.010365,
+          "executeMs": 2.936458,
+          "transportAndSchedulingMs": 15.053177,
+          "requestBytes": 738,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 3,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 20.600000001490116,
+          "prepareMs": 0.009636,
+          "executeMs": 3.653958,
+          "transportAndSchedulingMs": 16.936406001490116,
+          "requestBytes": 738,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 4,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 18.700000002980232,
+          "prepareMs": 0.011667,
+          "executeMs": 2.749323,
+          "transportAndSchedulingMs": 15.939010002980233,
+          "requestBytes": 738,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/2x2x3x7/offset",
+          "repeat": 5,
+          "maxError": 6.105663152844443e-08,
+          "wallMs": 20.5,
+          "prepareMs": 0.00875,
+          "executeMs": 3.66125,
+          "transportAndSchedulingMs": 16.830000000000002,
+          "requestBytes": 738,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1804
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 431.79999999701977,
+          "prepareMs": 394.579165,
+          "executeMs": 2.211146,
+          "transportAndSchedulingMs": 35.00968899701978,
+          "requestBytes": 2746,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 20.5,
+          "prepareMs": 0.009115,
+          "executeMs": 1.999167,
+          "transportAndSchedulingMs": 18.491718,
+          "requestBytes": 118,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 18,
+          "prepareMs": 0.009219,
+          "executeMs": 2.19125,
+          "transportAndSchedulingMs": 15.799530999999998,
+          "requestBytes": 118,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 18.600000001490116,
+          "prepareMs": 0.009063,
+          "executeMs": 2.286041,
+          "transportAndSchedulingMs": 16.304896001490114,
+          "requestBytes": 118,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 17.299999997019768,
+          "prepareMs": 0.007604,
+          "executeMs": 2.394948,
+          "transportAndSchedulingMs": 14.897447997019768,
+          "requestBytes": 118,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/mixed",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 17.099999994039536,
+          "prepareMs": 0.008698,
+          "executeMs": 1.631979,
+          "transportAndSchedulingMs": 15.459322994039537,
+          "requestBytes": 118,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 18.200000002980232,
+          "prepareMs": 0.020208,
+          "executeMs": 3.328594,
+          "transportAndSchedulingMs": 14.851198002980233,
+          "requestBytes": 102,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 16.399999998509884,
+          "prepareMs": 0.007761,
+          "executeMs": 2.409948,
+          "transportAndSchedulingMs": 13.982290998509885,
+          "requestBytes": 102,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 16.399999998509884,
+          "prepareMs": 0.010261,
+          "executeMs": 2.836198,
+          "transportAndSchedulingMs": 13.553540998509884,
+          "requestBytes": 102,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 18.100000001490116,
+          "prepareMs": 0.006979,
+          "executeMs": 2.897083,
+          "transportAndSchedulingMs": 15.195938001490115,
+          "requestBytes": 102,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 17.700000002980232,
+          "prepareMs": 0.007084,
+          "executeMs": 2.939479,
+          "transportAndSchedulingMs": 14.753437002980233,
+          "requestBytes": 102,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant-offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 17.30000000447035,
+          "prepareMs": 0.008177,
+          "executeMs": 3.333386,
+          "transportAndSchedulingMs": 13.958437004470348,
+          "requestBytes": 102,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 16.5,
+          "prepareMs": 0.010208,
+          "executeMs": 3.081355,
+          "transportAndSchedulingMs": 13.408437000000001,
+          "requestBytes": 86,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 15.900000005960464,
+          "prepareMs": 0.006458,
+          "executeMs": 1.946042,
+          "transportAndSchedulingMs": 13.947500005960464,
+          "requestBytes": 86,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 18.5,
+          "prepareMs": 0.007344,
+          "executeMs": 1.380885,
+          "transportAndSchedulingMs": 17.111771,
+          "requestBytes": 86,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 18.5,
+          "prepareMs": 0.009062,
+          "executeMs": 2.647344,
+          "transportAndSchedulingMs": 15.843594,
+          "requestBytes": 86,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 19.600000001490116,
+          "prepareMs": 0.008281,
+          "executeMs": 2.646511,
+          "transportAndSchedulingMs": 16.945208001490116,
+          "requestBytes": 86,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/constant",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 17.5,
+          "prepareMs": 0.008906,
+          "executeMs": 3.071407,
+          "transportAndSchedulingMs": 14.419687,
+          "requestBytes": 86,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 18.100000001490116,
+          "prepareMs": 0.00875,
+          "executeMs": 2.364218,
+          "transportAndSchedulingMs": 15.727032001490116,
+          "requestBytes": 84,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 17.299999997019768,
+          "prepareMs": 0.007344,
+          "executeMs": 2.573385,
+          "transportAndSchedulingMs": 14.719270997019768,
+          "requestBytes": 84,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 17.399999998509884,
+          "prepareMs": 0.008021,
+          "executeMs": 1.887448,
+          "transportAndSchedulingMs": 15.504530998509885,
+          "requestBytes": 84,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 16.400000005960464,
+          "prepareMs": 0.007969,
+          "executeMs": 2.300052,
+          "transportAndSchedulingMs": 14.091979005960464,
+          "requestBytes": 84,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 17.899999998509884,
+          "prepareMs": 0.010417,
+          "executeMs": 2.392344,
+          "transportAndSchedulingMs": 15.497238998509884,
+          "requestBytes": 84,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/small-variance",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 20.899999998509884,
+          "prepareMs": 0.009323,
+          "executeMs": 1.746354,
+          "transportAndSchedulingMs": 19.144322998509885,
+          "requestBytes": 84,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 16.099999994039536,
+          "prepareMs": 0.006146,
+          "executeMs": 2.264948,
+          "transportAndSchedulingMs": 13.828905994039534,
+          "requestBytes": 93,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 15.399999998509884,
+          "prepareMs": 0.007656,
+          "executeMs": 3.679688,
+          "transportAndSchedulingMs": 11.712655998509883,
+          "requestBytes": 93,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 16.600000001490116,
+          "prepareMs": 0.006823,
+          "executeMs": 2.400052,
+          "transportAndSchedulingMs": 14.193125001490115,
+          "requestBytes": 93,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 19.600000001490116,
+          "prepareMs": 0.018333,
+          "executeMs": 2.881354,
+          "transportAndSchedulingMs": 16.700313001490116,
+          "requestBytes": 93,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 21.700000002980232,
+          "prepareMs": 0.008021,
+          "executeMs": 1.33875,
+          "transportAndSchedulingMs": 20.353229002980232,
+          "requestBytes": 93,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/3x1/offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 19.100000001490116,
+          "prepareMs": 0.007448,
+          "executeMs": 1.488907,
+          "transportAndSchedulingMs": 17.603645001490115,
+          "requestBytes": 93,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 0,
+          "maxError": 1.343479980597806e-07,
+          "wallMs": 489.19999999552965,
+          "prepareMs": 424.19401,
+          "executeMs": 7.996094,
+          "transportAndSchedulingMs": 57.00989599552966,
+          "requestBytes": 32211,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 1,
+          "maxError": 1.343479980597806e-07,
+          "wallMs": 31,
+          "prepareMs": 0.017865,
+          "executeMs": 4.563906,
+          "transportAndSchedulingMs": 26.418229,
+          "requestBytes": 29583,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 2,
+          "maxError": 1.343479980597806e-07,
+          "wallMs": 23.5,
+          "prepareMs": 0.016042,
+          "executeMs": 2.515833,
+          "transportAndSchedulingMs": 20.968125,
+          "requestBytes": 29583,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 3,
+          "maxError": 1.343479980597806e-07,
+          "wallMs": 23.100000001490116,
+          "prepareMs": 0.017084,
+          "executeMs": 2.740937,
+          "transportAndSchedulingMs": 20.341979001490117,
+          "requestBytes": 29583,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 4,
+          "maxError": 1.343479980597806e-07,
+          "wallMs": 26.299999997019768,
+          "prepareMs": 0.018229,
+          "executeMs": 2.142916,
+          "transportAndSchedulingMs": 24.138854997019767,
+          "requestBytes": 29583,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/mixed",
+          "repeat": 5,
+          "maxError": 1.343479980597806e-07,
+          "wallMs": 33.29999999701977,
+          "prepareMs": 0.025157,
+          "executeMs": 7.938437,
+          "transportAndSchedulingMs": 25.336405997019767,
+          "requestBytes": 29583,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 21.299999997019768,
+          "prepareMs": 0.248698,
+          "executeMs": 3.719636,
+          "transportAndSchedulingMs": 17.331665997019766,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 23.69999999552965,
+          "prepareMs": 0.018333,
+          "executeMs": 3.576198,
+          "transportAndSchedulingMs": 20.10546899552965,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 22,
+          "prepareMs": 0.021302,
+          "executeMs": 2.139219,
+          "transportAndSchedulingMs": 19.839479,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 59.600000001490116,
+          "prepareMs": 0.022292,
+          "executeMs": 14.387031,
+          "transportAndSchedulingMs": 45.190677001490116,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 17.100000001490116,
+          "prepareMs": 0.011667,
+          "executeMs": 3.20526,
+          "transportAndSchedulingMs": 13.883073001490118,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant-offset",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 20.5,
+          "prepareMs": 0.0125,
+          "executeMs": 2.402448,
+          "transportAndSchedulingMs": 18.085052,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 0,
+          "maxError": 0,
+          "wallMs": 17.100000001490116,
+          "prepareMs": 0.075781,
+          "executeMs": 3.283958,
+          "transportAndSchedulingMs": 13.740261001490117,
+          "requestBytes": 4686,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 1,
+          "maxError": 0,
+          "wallMs": 17.700000002980232,
+          "prepareMs": 0.015313,
+          "executeMs": 2.955625,
+          "transportAndSchedulingMs": 14.729062002980234,
+          "requestBytes": 4686,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 2,
+          "maxError": 0,
+          "wallMs": 20.299999997019768,
+          "prepareMs": 0.148021,
+          "executeMs": 3.44625,
+          "transportAndSchedulingMs": 16.70572899701977,
+          "requestBytes": 4686,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 3,
+          "maxError": 0,
+          "wallMs": 23.799999997019768,
+          "prepareMs": 0.012761,
+          "executeMs": 3.719687,
+          "transportAndSchedulingMs": 20.067551997019766,
+          "requestBytes": 4686,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 4,
+          "maxError": 0,
+          "wallMs": 22.5,
+          "prepareMs": 0.028229,
+          "executeMs": 2.880313,
+          "transportAndSchedulingMs": 19.591458,
+          "requestBytes": 4686,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/constant",
+          "repeat": 5,
+          "maxError": 0,
+          "wallMs": 18.399999998509884,
+          "prepareMs": 0.013854,
+          "executeMs": 4.055677,
+          "transportAndSchedulingMs": 14.330468998509886,
+          "requestBytes": 4686,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 0,
+          "maxError": 5.931926461144599e-08,
+          "wallMs": 28.69999999552965,
+          "prepareMs": 0.015625,
+          "executeMs": 2.691927,
+          "transportAndSchedulingMs": 25.992447995529652,
+          "requestBytes": 28822,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 1,
+          "maxError": 5.931926461144599e-08,
+          "wallMs": 25.799999997019768,
+          "prepareMs": 0.009687,
+          "executeMs": 2.62849,
+          "transportAndSchedulingMs": 23.16182299701977,
+          "requestBytes": 28822,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 2,
+          "maxError": 5.931926461144599e-08,
+          "wallMs": 31.69999999552965,
+          "prepareMs": 0.058594,
+          "executeMs": 5.907656,
+          "transportAndSchedulingMs": 25.733749995529653,
+          "requestBytes": 28822,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 3,
+          "maxError": 5.931926461144599e-08,
+          "wallMs": 31.5,
+          "prepareMs": 0.014271,
+          "executeMs": 2.560417,
+          "transportAndSchedulingMs": 28.925311999999998,
+          "requestBytes": 28822,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 4,
+          "maxError": 5.931926461144599e-08,
+          "wallMs": 25.80000000447035,
+          "prepareMs": 0.017188,
+          "executeMs": 3.200521,
+          "transportAndSchedulingMs": 22.58229100447035,
+          "requestBytes": 28822,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/small-variance",
+          "repeat": 5,
+          "maxError": 5.931926461144599e-08,
+          "wallMs": 24.69999999552965,
+          "prepareMs": 0.020677,
+          "executeMs": 3.212605,
+          "transportAndSchedulingMs": 21.466717995529653,
+          "requestBytes": 28822,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 0,
+          "maxError": 1.1099998964425595e-07,
+          "wallMs": 23.30000000447035,
+          "prepareMs": 0.013698,
+          "executeMs": 4.147813,
+          "transportAndSchedulingMs": 19.138489004470348,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 1,
+          "maxError": 1.1099998964425595e-07,
+          "wallMs": 22.400000005960464,
+          "prepareMs": 0.116615,
+          "executeMs": 3.083802,
+          "transportAndSchedulingMs": 19.199583005960466,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 2,
+          "maxError": 1.1099998964425595e-07,
+          "wallMs": 22.69999999552965,
+          "prepareMs": 0.018542,
+          "executeMs": 2.384218,
+          "transportAndSchedulingMs": 20.29723999552965,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 3,
+          "maxError": 1.1099998964425595e-07,
+          "wallMs": 23.5,
+          "prepareMs": 0.013125,
+          "executeMs": 3.23,
+          "transportAndSchedulingMs": 20.256875,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 4,
+          "maxError": 1.1099998964425595e-07,
+          "wallMs": 22.200000002980232,
+          "prepareMs": 0.015261,
+          "executeMs": 3.543333,
+          "transportAndSchedulingMs": 18.641406002980233,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "layernorm/2x768/offset",
+          "repeat": 5,
+          "maxError": 1.1099998964425595e-07,
+          "wallMs": 26.19999999552965,
+          "prepareMs": 0.014531,
+          "executeMs": 2.512656,
+          "transportAndSchedulingMs": 23.67281299552965,
+          "requestBytes": 12366,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1948
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 284.1000000014901,
+          "prepareMs": 245.000208,
+          "executeMs": 3.124115,
+          "transportAndSchedulingMs": 35.975677001490126,
+          "requestBytes": 2454,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1676
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 20.700000002980232,
+          "prepareMs": 0.01026,
+          "executeMs": 2.400781,
+          "transportAndSchedulingMs": 18.288959002980235,
+          "requestBytes": 190,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1676
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 2,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 22.700000002980232,
+          "prepareMs": 0.009166,
+          "executeMs": 1.488178,
+          "transportAndSchedulingMs": 21.20265600298023,
+          "requestBytes": 190,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1676
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 3,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 19.200000002980232,
+          "prepareMs": 0.009323,
+          "executeMs": 1.40901,
+          "transportAndSchedulingMs": 17.781667002980235,
+          "requestBytes": 190,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1676
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 4,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 19,
+          "prepareMs": 0.010469,
+          "executeMs": 2.439947,
+          "transportAndSchedulingMs": 16.549584,
+          "requestBytes": 190,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1676
+        },
+        {
+          "stage": "gelu/13",
+          "repeat": 5,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 16.299999997019768,
+          "prepareMs": 0.011666,
+          "executeMs": 2.633282,
+          "transportAndSchedulingMs": 13.655051997019767,
+          "requestBytes": 190,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1676
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 305.69999999552965,
+          "prepareMs": 271.95036500000003,
+          "executeMs": 1.754948,
+          "transportAndSchedulingMs": 31.99468699552962,
+          "requestBytes": 2582,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1688
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 19.700000002980232,
+          "prepareMs": 0.006458,
+          "executeMs": 1.510938,
+          "transportAndSchedulingMs": 18.182604002980234,
+          "requestBytes": 302,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1688
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 2,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 16.100000001490116,
+          "prepareMs": 0.006302,
+          "executeMs": 2.019636,
+          "transportAndSchedulingMs": 14.074062001490114,
+          "requestBytes": 302,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1688
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 3,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 13.700000002980232,
+          "prepareMs": 0.007865,
+          "executeMs": 1.505677,
+          "transportAndSchedulingMs": 12.186458002980231,
+          "requestBytes": 302,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1688
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 4,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 17.100000001490116,
+          "prepareMs": 0.009583,
+          "executeMs": 2.678386,
+          "transportAndSchedulingMs": 14.412031001490117,
+          "requestBytes": 302,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1688
+        },
+        {
+          "stage": "gelu/2x13",
+          "repeat": 5,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 17,
+          "prepareMs": 0.010156,
+          "executeMs": 2.666875,
+          "transportAndSchedulingMs": 14.322969,
+          "requestBytes": 302,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1688
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 281.20000000298023,
+          "prepareMs": 243.50734300000002,
+          "executeMs": 6.438646,
+          "transportAndSchedulingMs": 31.254011002980214,
+          "requestBytes": 2534,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1484
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 23.100000001490116,
+          "prepareMs": 0.01125,
+          "executeMs": 2.847656,
+          "transportAndSchedulingMs": 20.241094001490115,
+          "requestBytes": 526,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1484
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 2,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 21.299999997019768,
+          "prepareMs": 0.009896,
+          "executeMs": 2.13151,
+          "transportAndSchedulingMs": 19.158593997019768,
+          "requestBytes": 526,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1484
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 3,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 22.899999998509884,
+          "prepareMs": 0.009635,
+          "executeMs": 3.106823,
+          "transportAndSchedulingMs": 19.783541998509886,
+          "requestBytes": 526,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1484
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 4,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 17.600000001490116,
+          "prepareMs": 0.010834,
+          "executeMs": 4.877812,
+          "transportAndSchedulingMs": 12.711354001490118,
+          "requestBytes": 526,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1484
+        },
+        {
+          "stage": "gelu/2x2x13",
+          "repeat": 5,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 17,
+          "prepareMs": 0.010625,
+          "executeMs": 4.028281,
+          "transportAndSchedulingMs": 12.961094,
+          "requestBytes": 526,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1484
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 0,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 279.3999999985099,
+          "prepareMs": 243.226458,
+          "executeMs": 7.192708,
+          "transportAndSchedulingMs": 28.980833998509876,
+          "requestBytes": 3058,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 1540
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 1,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 19.100000001490116,
+          "prepareMs": 0.009791,
+          "executeMs": 2.646875,
+          "transportAndSchedulingMs": 16.443334001490115,
+          "requestBytes": 974,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1540
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 2,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 16.30000000447035,
+          "prepareMs": 0.011563,
+          "executeMs": 2.297396,
+          "transportAndSchedulingMs": 13.99104100447035,
+          "requestBytes": 974,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1540
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 3,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 17.19999999552965,
+          "prepareMs": 0.01026,
+          "executeMs": 2.77349,
+          "transportAndSchedulingMs": 14.416249995529654,
+          "requestBytes": 974,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1540
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 4,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 18.80000000447035,
+          "prepareMs": 0.009948,
+          "executeMs": 1.566718,
+          "transportAndSchedulingMs": 17.223334004470345,
+          "requestBytes": 974,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1540
+        },
+        {
+          "stage": "gelu/2x2x2x13",
+          "repeat": 5,
+          "maxError": 1.3784364433222507e-07,
+          "wallMs": 18.700000002980232,
+          "prepareMs": 0.00901,
+          "executeMs": 2.731198,
+          "transportAndSchedulingMs": 15.959792002980233,
+          "requestBytes": 974,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 1540
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 0,
+          "maxError": 2.0220548835325758e-07,
+          "wallMs": 485.3999999985099,
+          "prepareMs": 444.348906,
+          "executeMs": 7.372761,
+          "transportAndSchedulingMs": 33.67833299850989,
+          "requestBytes": 3865,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 2784
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 1,
+          "maxError": 2.0220548835325758e-07,
+          "wallMs": 20.30000000447035,
+          "prepareMs": 0.010521,
+          "executeMs": 2.321198,
+          "transportAndSchedulingMs": 17.96828100447035,
+          "requestBytes": 125,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 2784
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 2,
+          "maxError": 2.0220548835325758e-07,
+          "wallMs": 18.600000001490116,
+          "prepareMs": 0.007917,
+          "executeMs": 1.5125,
+          "transportAndSchedulingMs": 17.079583001490118,
+          "requestBytes": 125,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 2784
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 3,
+          "maxError": 2.0220548835325758e-07,
+          "wallMs": 18.5,
+          "prepareMs": 0.0075,
+          "executeMs": 2.319427,
+          "transportAndSchedulingMs": 16.173073,
+          "requestBytes": 125,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 2784
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 4,
+          "maxError": 2.0220548835325758e-07,
+          "wallMs": 18.799999997019768,
+          "prepareMs": 0.008854,
+          "executeMs": 3.171354,
+          "transportAndSchedulingMs": 15.619791997019767,
+          "requestBytes": 125,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 2784
+        },
+        {
+          "stage": "epsilon-scale-bias",
+          "repeat": 5,
+          "maxError": 2.0220548835325758e-07,
+          "wallMs": 16.69999999552965,
+          "prepareMs": 0.021407,
+          "executeMs": 3.408697,
+          "transportAndSchedulingMs": 13.269895995529652,
+          "requestBytes": 125,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 2784
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 0,
+          "maxError": 2.831105545553214e-07,
+          "wallMs": 780,
+          "prepareMs": 740.5202599999999,
+          "executeMs": 6.676823,
+          "transportAndSchedulingMs": 32.80291700000011,
+          "requestBytes": 5578,
+          "actions": [
+            "load",
+            "invoke"
+          ],
+          "modelTransmissions": 1,
+          "modelBytes": 4068
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 1,
+          "maxError": 2.831105545553214e-07,
+          "wallMs": 20.19999999552965,
+          "prepareMs": 0.007605,
+          "executeMs": 2.085989,
+          "transportAndSchedulingMs": 18.10640599552965,
+          "requestBytes": 126,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 4068
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 2,
+          "maxError": 2.831105545553214e-07,
+          "wallMs": 19.19999999552965,
+          "prepareMs": 0.007968,
+          "executeMs": 1.343021,
+          "transportAndSchedulingMs": 17.84901099552965,
+          "requestBytes": 126,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 4068
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 3,
+          "maxError": 2.831105545553214e-07,
+          "wallMs": 15.899999998509884,
+          "prepareMs": 0.01,
+          "executeMs": 2.590989,
+          "transportAndSchedulingMs": 13.299010998509884,
+          "requestBytes": 126,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 4068
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 4,
+          "maxError": 2.831105545553214e-07,
+          "wallMs": 17.80000000447035,
+          "prepareMs": 0.007812,
+          "executeMs": 2.490104,
+          "transportAndSchedulingMs": 15.302084004470347,
+          "requestBytes": 126,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 4068
+        },
+        {
+          "stage": "normalized-gelu-mlp",
+          "repeat": 5,
+          "maxError": 2.831105545553214e-07,
+          "wallMs": 18.899999998509884,
+          "prepareMs": 0.020313,
+          "executeMs": 3.57776,
+          "transportAndSchedulingMs": 15.301926998509883,
+          "requestBytes": 126,
+          "actions": [
+            "invoke"
+          ],
+          "modelTransmissions": 0,
+          "modelBytes": 4068
+        }
+      ],
+      "maxAbsoluteError": 2.831105545553214e-07
+    }
+  },
+  "androidPlacement": {
+    "serial": "192.168.1.74:38353",
+    "pid": "31110",
+    "placements": [
+      {
+        "delegated": 27,
+        "total": 27
+      },
+      {
+        "delegated": 14,
+        "total": 14
+      },
+      {
+        "delegated": 14,
+        "total": 14
+      },
+      {
+        "delegated": 12,
+        "total": 12
+      },
+      {
+        "delegated": 12,
+        "total": 12
+      },
+      {
+        "delegated": 14,
+        "total": 14
+      },
+      {
+        "delegated": 14,
+        "total": 14
+      },
+      {
+        "delegated": 11,
+        "total": 11
+      },
+      {
+        "delegated": 11,
+        "total": 11
+      },
+      {
+        "delegated": 9,
+        "total": 9
+      },
+      {
+        "delegated": 9,
+        "total": 9
+      },
+      {
+        "delegated": 20,
+        "total": 20
+      },
+      {
+        "delegated": 30,
+        "total": 30
+      }
+    ],
+    "scope": "13 surviving full-placement records; log buffer does not retain one record per fixture."
+  },
+  "androidUi": {
+    "status": "pending",
+    "reason": "Secure lock screen prevents Playwright clicks; APK built and installed."
+  }
+}

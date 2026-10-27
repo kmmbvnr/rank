@@ -3,7 +3,7 @@
 ## Implemented Hello World subset
 
 The prototype supports one fixed-shape real tensor input, ReLU, and broadcast
-`.f32` expressions using `+`, `*`, `softmax`, and `linear` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
+`.f32` expressions using `+`, `*`, `softmax`, `linear`, `layernorm`, and `gelu_new` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
 See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
 [the linear example](../../demos/mlrank/linear.ra).
@@ -54,6 +54,7 @@ node scripts/mlrank-linear-check.mjs
 node scripts/mlrank-broadcast-check.mjs
 node scripts/mlrank-softmax-check.mjs
 node scripts/mlrank-mlp-check.mjs
+node scripts/mlrank-norm-check.mjs
 ```
 
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
@@ -132,6 +133,73 @@ The notebook and its selected RAM tab survived a WebView reload.
 These checks establish correctness and placement for this workload, not a
 speedup. Linux WebGPU profiling in the standalone tool is unsupported; run
 that probe without `--use_profiler=true`.
+
+## LayerNorm and GELU (stage 9)
+
+Both operations accept rank 1–4 `.f32` tensors and preserve shape.
+`X layernorm` normalizes each last-axis row using population variance and
+epsilon `1e-5`. To override epsilon, use `X Epsilon layernorm`, where
+`Epsilon` is a positive baked one-element FP32 tensor. Apply learned scale
+and bias using existing broadcasting:
+
+```rank
+use ml
+option X .f32 shape 2 3
+option Epsilon .f32 shape 1 = array 0.00001
+option Scale .f32 shape 3 = array 1.0 0.5 2.0
+option Bias .f32 shape 3 = array 0.0 0.1 -0.1
+H = (X Epsilon layernorm) * Scale + Bias
+return H gelu_new
+```
+
+Run [normalize.ra](../../demos/mlrank/normalize.ra) for this example.
+Scale and bias may also come from the existing binary attachments.
+`gelu_new` uses the tanh approximation
+`0.5*x*(1+tanh(sqrt(2/pi)*(x+0.044715*x³)))`, matching the
+[Transformers definition](https://github.com/huggingface/transformers/blob/main/src/transformers/activations.py).
+The [GPT-2 configuration](https://huggingface.co/openai-community/gpt2/blob/main/config.json)
+selects this activation and epsilon `1e-5`. This is not the erf GELU variant.
+
+LayerNorm lowers to SUM, division, subtraction, multiplication and reciprocal
+square root; GELU lowers to arithmetic and TANH. All operations must delegate
+to GPU. No dedicated LayerNorm kernel or performance improvement is claimed.
+The first centering pass is followed by a second centering of the residual:
+in exact arithmetic the residual mean is zero; in FP32 this corrects mean
+rounding on constant and almost constant rows with a large offset.
+Variance is then computed from these centered residuals.
+A MEAN-based prototype produced an error around 117 on Metal for a row near
+1000 with a small spread, despite correct intermediate variance when evaluated
+separately. SUM/division avoids that full-graph failure. The precise backend
+rewrite responsible has not been established.
+
+[Recorded checks](../../benchmarks/baselines/2026-10-27-mlrank-normalization.json):
+36 fixtures, including ranks 1–4, singleton channels, width 768, negative and
+saturated GELU inputs, constant rows (including 1000.25), small variance,
+large offsets, custom epsilon, affine scale/bias, and a normalized two-linear
+MLP with GELU. The reference uses independent scalar equations in double
+precision with FP32 input/weight values. Every output passes
+`abs(error) <= 1e-5 + 1e-5*abs(reference)`.
+
+| Host | Calls | Maximum absolute error |
+| --- | ---: | ---: |
+| Mac M5 / Metal | 72 | 1.64e-7 |
+| Intel UHD / jack.lan | 72 | 2.14e-7 |
+| OnePlus Adreno 619 | 216 | 2.84e-7 |
+
+Desktop checks run through the ordinary Rank interpreter and native bridge.
+Android fixtures exercise the native bridge; the separate
+`packages/web/test/ram-norm-ui.playwright.js` checks compilation from the RAM
+tab, execution, and persistence after reload in the installed APK.
+The new APK is installed; this UI check is pending because the OnePlus is locked.
+The captured Android log contains 13 full-placement records; older records were
+evicted from the log buffer, so this is not a per-fixture placement audit.
+Generate native Android fixtures with `node scripts/mlrank-norm-check.mjs --android`
+and run `output/playwright/ram-norm.js`. Placement evidence is captured with
+`scripts/mlrank-android-placement.mjs`.
+These are correctness checks, not latency measurements or guarantees for all
+finite FP32 magnitudes: intermediate arithmetic can still overflow, as in the
+existing arithmetic operators. Expanded subgraphs count toward the 128-tensor
+limit. Weight upload/creation UX remains deferred.
 
 ## Complete small MLP
 
