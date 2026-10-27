@@ -1,0 +1,403 @@
+{
+  "node": "v24.15.0",
+  "samples": 3,
+  "results": [
+    {
+      "sample": 0,
+      "version": "before",
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 2669.0525829999997,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 2499.438125,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 365.59925,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 245.24691599999997,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 240.664584,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 361.62345799999997,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 2619.86275,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 2816.903208,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 2765.286625,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "name": "044_pentagondiff.ra",
+      "engine": "reference",
+      "elapsedMs": 2522.028416,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 377.02025000000003,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "name": "044_pentagondiff.ra",
+      "engine": "compiled",
+      "elapsedMs": 249.55445899999998,
+      "scalarFunctions": 4401,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {}
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2722.309166,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2341.011125,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 0,
+      "version": "before",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 339.305666,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 234.11225000000002,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 236.099,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 338.86412499999994,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2278.9109999999996,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2472.275708,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2399.351666,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "reference",
+      "elapsedMs": 2245.883125,
+      "scalarFunctions": 0,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 342.71558400000004,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "name": "044_pentagondiff_test.ra",
+      "engine": "compiled",
+      "elapsedMs": 226.199833,
+      "scalarFunctions": 4404,
+      "compiledTensors": 0,
+      "cellsComputed": 0,
+      "fallbacks": {
+        "scalar-expression:unsupported-node:NameExpression": 2,
+        "scalar-expression:unsupported-op:equal": 2,
+        "scalar-expression:too-small": 4
+      }
+    }
+  ],
+  "baseline": "9ca81cf3a6ca768ca38e9ca2d463dcd32b2405a8",
+  "candidate": "working tree",
+  "methodology": "Serial fresh processes. Three samples per Euler workload, engine and version; alternating version/engine order. Execution includes parse and compilation, excludes imports and runtime construction. Five fresh-process array-reader samples per version with alternating order; 2,200,000 reads with checked checksum. No algorithm/default/fixture changes.",
+  "arrayReads": [
+    {
+      "sample": 0,
+      "version": "before",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 21.712125,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 0,
+      "version": "after",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 19.666332999999995,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 1,
+      "version": "after",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 19.081916000000007,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 1,
+      "version": "before",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 20.085958000000005,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 2,
+      "version": "before",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 21.349542,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 2,
+      "version": "after",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 18.935834,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 3,
+      "version": "after",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 18.447333,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 3,
+      "version": "before",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 21.052415999999994,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 4,
+      "version": "before",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 20.609042000000002,
+      "checksum": "2418900000"
+    },
+    {
+      "sample": 4,
+      "version": "after",
+      "node": "v24.15.0",
+      "reads": 2200000,
+      "elapsedMs": 20.383042000000003,
+      "checksum": "2418900000"
+    }
+  ]
+}

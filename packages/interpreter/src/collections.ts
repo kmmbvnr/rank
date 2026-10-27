@@ -15,7 +15,7 @@ import { checkCollectionElementType, isRankArray, isRankCounter, isRankMultiset,
 
 // Only sets constructed here have a known storage callback. Host-provided maps
 // and replacements must keep ordinary dispatch, where callbacks can re-enter Rank.
-const ownedSets = new WeakMap<RankSet, { entries: ResourceMap<RankValue>; resources: ResourceSummary; valueOfEntry: (value: RankValue) => RankValue }>();
+const ownedSets = new WeakMap<RankSet, { entries: ResourceMap<RankValue, string | number | bigint>; resources: ResourceSummary; valueOfEntry: (value: RankValue) => RankValue }>();
 const mapMethods = Object.getOwnPropertyDescriptors(ResourceMap.prototype);
 const integerMethods = Object.getOwnPropertyDescriptors(IntegerEntries.prototype);
 const resourceMethods = Object.getOwnPropertyDescriptors(ResourceSummary.prototype);
@@ -25,6 +25,7 @@ const mapGet = Map.prototype.get;
 const mapValues = Map.prototype.values;
 const mapSize = Object.getOwnPropertyDescriptor(Map.prototype, 'size')!.get!;
 const numericCounters = new WeakSet<object>();
+const numericSets = new WeakSet<object>();
 const counterEntries = new WeakSet<object>();
 const ownedCounters = new WeakMap<RankCounter, ResourceMap<RankCounterEntry, string | number | bigint>>();
 const counterBuildMethods = [ResourceMap.prototype, ResourceSummary.prototype, StoredValueSummary.prototype]
@@ -40,7 +41,7 @@ function nativeCounterBuild(): boolean {
         }));
 }
 
-function counterKey(value: RankValue): string | number | bigint {
+function numericCollectionKey(value: RankValue): string | number | bigint {
     if (typeof value === 'bigint') {
         const number = Number(value);
         return Number.isSafeInteger(number) ? number : value;
@@ -57,12 +58,22 @@ function counterStorageKey(entries: RankCounter['entries'], key: string | number
 
 /** Runtime counters use exact numeric keys; foreign maps retain their string codec. */
 export function counterValueKey(entries: RankCounter['entries'], value: RankValue): string | number | bigint {
-    return counterStorageKey(entries, counterKey(value));
+    return counterStorageKey(entries, numericCollectionKey(value));
 }
 
 export function counterHas(counter: RankCounter, key: RankValue): boolean {
     const entries = counter.entries;
     return entries.has(counterValueKey(entries, key));
+}
+
+/** Owned sets share counters' exact numeric keys; host maps keep the string codec. */
+function setValueStorageKey(entries: RankSet['entries'], value: RankValue): string | number | bigint {
+    return numericSets.has(entries) ? numericCollectionKey(value) : setValueKey(value);
+}
+
+export function setHas(set: RankSet, value: RankValue): boolean {
+    const entries = set.entries;
+    return entries.has(setValueStorageKey(entries, value));
 }
 
 export function nativeSetMembership(): boolean {
@@ -167,7 +178,8 @@ export function newStructure(name: string): RankValue {
         case 'heap': return new RankHeap();
         case 'set': {
             const valueOfEntry = (value: RankValue) => value;
-            const entries = new IntegerEntries(valueOfEntry);
+            const entries = new IntegerEntries<string | number | bigint>(valueOfEntry);
+            numericSets.add(entries);
             const result = entries.resources.track({ kind: 'set', entries });
             ownedSets.set(result, { entries, resources: entries.resources, valueOfEntry });
             return result;
@@ -196,12 +208,14 @@ export function expectAddCollection(value: RankValue) {
 export function addToCollection(target: RankValue, value: RankValue): RankValue {
     const receiver = expectAddCollection(target);
     if (isRankMultiset(receiver)) return receiver.add(value);
-    const key = isRankCounter(receiver) ? counterKey(value) : setValueKey(value);
+    const key = numericCollectionKey(value);
     const elementType = checkCollectionElementType(receiver.kind, () => receiver.elementType, value);
     receiver.elementType = elementType;
     trackKeyedCollection(receiver);
-    if (isRankSet(receiver)) receiver.entries.set(key as string, value);
-    else {
+    if (isRankSet(receiver)) {
+        const entries = receiver.entries;
+        entries.set(numericSets.has(entries) || typeof key === 'string' ? key : `number:${key}`, value);
+    } else {
         const entries = receiver.entries;
         const existing = entries.get(counterStorageKey(entries, key));
         if (existing) existing.count += 1n;
@@ -219,7 +233,7 @@ export function removeFromCollection(target: RankValue, value: RankValue): RankV
     checkValueMutable(target);
     if (isRankMultiset(target)) return target.remove(value);
     if (isRankCounter(target)) {
-        const key = counterKey(value), entries = target.entries;
+        const key = numericCollectionKey(value), entries = target.entries;
         const existing = entries.get(counterStorageKey(entries, key));
         if (!existing) throw new MissingValueError('counter does not contain the value');
         if (existing.count <= 1n) {
@@ -231,7 +245,8 @@ export function removeFromCollection(target: RankValue, value: RankValue): RankV
         return target;
     }
     if (!isRankSet(target)) throw new RankError('remove expects a set, counter or multiset');
-    if (!target.entries.delete(setValueKey(value))) {
+    const entries = target.entries;
+    if (!entries.delete(setValueStorageKey(entries, value))) {
         throw new MissingValueError('set does not contain the value');
     }
     return target;

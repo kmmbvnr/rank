@@ -2171,6 +2171,54 @@ It was not adopted: a separate three-sample compiled comparison measured
 0.306 s for the retained algorithm versus 0.365 s for the prototype. Further
 compiler support for this pipeline remains an open optimization direction.
 
+## Numeric set storage and scalar reader bounds (Euler 044)
+
+Runtime-owned sets now use the same exact numeric key convention as counters:
+safe integers use Number keys and wider integers use BigInt keys. Integral real
+queries share the corresponding integer key; composite and nonintegral keys
+keep the existing string codec. Set insertion, removal, reference membership
+and both compiled membership paths use this storage convention. Foreign or
+host-replaced maps retain string keys and ordinary method dispatch. Detached
+preview sets convert numeric keys back to the foreign-map string convention.
+
+Compiled array readers convert an integer address to Number once, then perform
+both bounds comparisons in the dimension's numeric domain. Valid addresses
+convert exactly; large positive and negative BigInts, including those converting
+to infinities, retain the existing bounds errors. Storage stability, validity
+and widening checks are unchanged.
+
+Against `9ca81cf3`, serial Node v24.15.0 measurements with three fresh processes
+per workload, engine and version, alternating version/engine order:
+
+| Workload | Before, ms | After, ms | Speedup |
+| --- | ---: | ---: | ---: |
+| Euler 044 main, compiled | 365.6 | 245.2 | 1.49x |
+| Euler 044 fixture, compiled | 339.3 | 234.1 | 1.45x |
+| Euler 044 main, reference | 2765.3 | 2522.0 | 1.10x |
+| Euler 044 fixture, reference | 2472.3 | 2278.9 | 1.08x |
+
+The main still returns 5482660 with 4401 compiled scalar calls and no fallbacks;
+its algorithm, limit and pair count are unchanged. Execution timing includes
+parsing/compilation, but excludes imports and runtime construction. An isolated
+2,200,000-read owned-array benchmark, with five alternating fresh processes per
+version and a checked checksum, measured median 21.05 ms before and 19.08 ms
+after. This isolates reader overhead from the set-storage improvement; it does
+not measure memory savings.
+
+[Raw results](../../benchmarks/baselines/2026-10-27-euler044-numeric-set.json).
+After building, reproduce the Euler comparison with
+`node benchmarks/euler-pentagonal-difference.mjs packages/interpreter/out/index.js 3 /path/to/baseline/out/index.js`.
+The last argument is optional. Run the reader control separately with
+`node benchmarks/scalar-array-reader.mjs /path/to/interpreter/out/array-storage.js`.
+
+Verification passed the TypeScript build and interpreter test typecheck,
+semantic/application form checks, all 8816 ordinary interpreter tests in 389
+files, and the main plus both Euler fixture tests in both engines for every
+benchmark sample/version. The ordinary run excludes the separate exhaustive
+types, differential corpus and Nurikabe audits. New cases cover exact wide
+integers, integer/real equality, foreign/replaced maps, preview isolation and
+out-of-bounds addresses beyond Number's finite range.
+
 ## Euler 054: compiled text helpers and smaller independent fixtures
 
 Scalar functions now compile a named text slot selected by one integer index.

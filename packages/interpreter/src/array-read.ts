@@ -277,8 +277,10 @@ function preparedReaderStorage(
 }
 
 function readPosition(index: bigint, size: number, axis: number): number {
-    if (index < 0n) throw new MissingValueError(`array index out of bounds on axis ${axis}`);
+    // Dimensions are safe integers. Rounded or infinite oversized addresses
+    // still fail the bounds check; valid addresses convert exactly.
     const position = Number(index);
+    if (position < 0) throw new MissingValueError(`array index out of bounds on axis ${axis}`);
     if (position >= size) throw new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`);
     return position;
 }

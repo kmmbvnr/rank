@@ -22,11 +22,10 @@ import { binarySqlite, inSqlite } from './modules/sqlite.js';
 import { numericKernel } from './numeric-kernels.js';
 import { compareOrderedValues, orderedKind } from './ordered.js';
 import { dyadicCells, emptyFrameArray, tensorCells, tensorFrameAxes, type OuterCells } from './rank-application.js';
-import { counterHas } from './collections.js';
+import { counterHas, setHas } from './collections.js';
 import {
     arraySequenceOperands, isPositionalMask, mapSequence, materializeSequence, positionalMask, sequence, sequenceMask, sequenceValues, zipSequences,
 } from './sequence.js';
-import { setValueKey } from './set.js';
 import { safeDimension } from './tensor-index.js';
 import { REAL_CODES, mapBooleanArrays, mapBroadcastArrays, mapDenseArrays } from './tensor.js';
 import { compareCells, compareStoredArrayCells, equalMembershipValues, equalValues } from './value-comparison.js';
@@ -686,7 +685,7 @@ function presentMembershipTest(right: RankValue, indexed: boolean): (value: Rank
     };
     if (isRankIndex(right)) return value => indexHas(right, indexKey([value]));
     if (isRankCounter(right)) return value => counterHas(right, value);
-    if (isRankSet(right)) return value => right.entries.has(setValueKey(value));
+    if (isRankSet(right)) return value => setHas(right, value);
     if (isRankMultiset(right)) return value => right.has(value);
     const source = asRankArray(right);
     if (source) return shouldStream(source)

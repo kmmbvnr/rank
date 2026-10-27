@@ -198,7 +198,7 @@ export interface RankQueue {
 
 export interface RankSet {
     readonly kind: 'set';
-    readonly entries: Map<string, RankValue>;
+    readonly entries: Map<IndexKey, RankValue>;
     elementType?: CollectionElementType;
 }
 

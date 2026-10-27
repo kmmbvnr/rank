@@ -36,7 +36,7 @@ const valuesMethod = Map.prototype.values;
 const integerGetter = Object.getOwnPropertyDescriptor(IntegerEntries.prototype, 'integers')!.get;
 
 /** A host iterator override must not inherit the stored cells' integer proof. */
-export function hasIntegerIteration(entries: Map<string, RankValue>): entries is IntegerEntries {
+export function hasIntegerIteration<K>(entries: Map<K, RankValue>): entries is IntegerEntries<K> {
     if (Object.getPrototypeOf(entries) !== IntegerEntries.prototype
         || Map.prototype.values !== valuesMethod
         || Object.getOwnPropertyDescriptor(IntegerEntries.prototype, 'integers')?.get !== integerGetter
@@ -44,5 +44,5 @@ export function hasIntegerIteration(entries: Map<string, RankValue>): entries is
     for (const object of [entries, IntegerEntries.prototype, ResourceMap.prototype]) {
         if (Object.prototype.hasOwnProperty.call(object, 'values')) return false;
     }
-    return (entries as IntegerEntries).integers;
+    return (entries as IntegerEntries<K>).integers;
 }

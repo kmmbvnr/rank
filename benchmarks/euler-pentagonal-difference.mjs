@@ -1,5 +1,5 @@
 // Build first. Each sample runs the unchanged main and fixture in a fresh process.
-// node benchmarks/euler-pentagonal-difference.mjs [interpreter/out/index.js] [samples=3]
+// node benchmarks/euler-pentagonal-difference.mjs [interpreter/out/index.js] [samples=3] [baseline-module]
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -36,21 +36,26 @@ if (process.argv[2] === '--sample') {
     } finally { runtime.dispose(); }
 } else {
     const module = resolve(root, process.argv[2] ?? 'packages/interpreter/out/index.js');
+    const baselineModule = process.argv[4] ? resolve(root, process.argv[4]) : undefined;
+    const variants = baselineModule ? [{ version: 'before', module: baselineModule }, { version: 'after', module }]
+        : [{ module }];
     const samples = Number(process.argv[3] ?? 3);
     assert(Number.isSafeInteger(samples) && samples >= 1);
     const results = [];
     for (const name of ['044_pentagondiff.ra', '044_pentagondiff_test.ra']) {
         for (let sample = 0; sample < samples; sample++) {
             for (const engine of sample % 2 ? ['compiled', 'reference'] : ['reference', 'compiled']) {
-                const child = spawnSync(process.execPath, [script, '--sample', module, name, engine], {
-                    cwd: root, encoding: 'utf8', timeout: 120_000,
-                });
-                assert.equal(child.status, 0, child.error?.message ?? child.stderr);
-                const result = { sample, ...JSON.parse(child.stdout) };
-                results.push(result);
-                process.stderr.write(JSON.stringify(result) + '\n');
+                for (const variant of sample % 2 ? [...variants].reverse() : variants) {
+                    const child = spawnSync(process.execPath, [script, '--sample', variant.module, name, engine], {
+                        cwd: root, encoding: 'utf8', timeout: 120_000,
+                    });
+                    assert.equal(child.status, 0, child.error?.message ?? child.stderr);
+                    const result = { sample, ...(variant.version ? { version: variant.version } : {}), ...JSON.parse(child.stdout) };
+                    results.push(result);
+                    process.stderr.write(JSON.stringify(result) + '\n');
+                }
             }
         }
     }
-    console.log(JSON.stringify({ node: process.version, module, samples, results }, null, 2));
+    console.log(JSON.stringify({ node: process.version, module, baselineModule, samples, results }, null, 2));
 }

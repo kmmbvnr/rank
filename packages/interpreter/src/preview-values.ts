@@ -26,7 +26,7 @@ function cloneValue(value: RankValue): RankValue {
         .map(([key, item]) => [key, clonePreviewValue(item)])) };
     if (isRankQueue(value)) return { kind: 'queue', items: value.items.map(clonePreviewValue) };
     if (isRankSet(value)) return { kind: 'set', entries: new Map([...value.entries]
-        .map(([key, item]) => [key, clonePreviewValue(item)])) };
+        .map(([key, item]) => [typeof key === 'string' ? key : `number:${key}`, clonePreviewValue(item)])) };
     if (isRankCounter(value)) return { kind: 'counter', entries: new Map([...value.entries]
         .map(([key, item]) => [typeof key === 'string' ? key : `number:${key}`,
             { value: clonePreviewValue(item.value), count: item.count }])) };

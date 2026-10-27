@@ -52,7 +52,7 @@ describe('live scalar array readers', () => {
         expect(maskedReader.fallback).not.toHaveBeenCalled();
     });
 
-    it.each([-1n, 2n, 1n << 100n])('preserves selector errors for %s', index => {
+    it.each([-1n, 2n, 9007199254740993n, 1n << 100n, 1n << 4096n, -(1n << 4096n)])('preserves selector errors for %s', index => {
         const array = ownedArray([1n, 2n], [2], true);
         const { read } = reader(array);
         let expected: unknown;

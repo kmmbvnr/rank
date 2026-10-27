@@ -743,7 +743,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             if (isRankSet(host.read(name)!)) {
                 const receiver = container(name, 'set');
                 if (!receiver) return undefined;
-                return { code: `${negate}${receiver}.entries.has(setValueKey(${key.code}))`, type: 'boolean' };
+                return { code: `${negate}setHas(${receiver}, ${key.code})`, type: 'boolean' };
             }
             const receiver = container(name, 'index');
             if (!receiver) return undefined;

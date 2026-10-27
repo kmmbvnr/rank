@@ -3,7 +3,7 @@ import { materializeValue } from './materialize.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { membershipLookup } from './membership-lookup.js';
 import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-type.js';
-import { newStructure, addToCollection, expectAddCollection } from './collections.js';
+import { newStructure, addToCollection, expectAddCollection, setHas } from './collections.js';
 import { indexGet, indexHas, indexRead, indexSet, indexKey } from './index-storage.js';
 import {
     findCompiledOperator, applicationForm, findOperation,
@@ -31,7 +31,6 @@ import { applySelectors, unpackApplicationItems } from './value-selection.js';
 import { integerValue } from './numeric-conversions.js';
 import { formatValue } from './value.js';
 import { broadcastShape } from './tensor.js';
-import { setValueKey } from './set.js';
 
 interface Kernel {
     readonly source: string;
@@ -198,7 +197,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             if (operation === 'set-contains' || operation === 'set-not-contains') {
                 setMembership = true;
                 const value = lower(expression.input.indices![0], lines), result = `v${serial++}`;
-                lines.push(`const ${result} = ${operation === 'set-not-contains' ? '!' : ''}${receiver}.entries.has(setValueKey(${value}));`);
+                lines.push(`const ${result} = ${operation === 'set-not-contains' ? '!' : ''}setHas(${receiver}, ${value});`);
                 return result;
             }
             if (operation === 'array') {
@@ -478,7 +477,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { source, plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'), dequeIteration, setMembership, locations, calls, userCalls, rankedCalls: proof.planCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setValueKey', 'textAt', 'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setValueKey, textAt, sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems) as Kernel['run'] }; }
+    try { kernel = { source, plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'), dequeIteration, setMembership, locations, calls, userCalls, rankedCalls: proof.planCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setHas', 'textAt', 'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setHas, textAt, sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems) as Kernel['run'] }; }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');
