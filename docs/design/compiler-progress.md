@@ -2703,3 +2703,16 @@ source protection and ordinary binding completion remain unchanged.
 Euler 200 retains its array algorithm. Its two small first-answer tests now use
 bounds 200 and 2000000; the default-answer test retains the full bound. See the
 [measurements and verification](../../benchmarks/euler200-primeproof-squbes-results.md).
+
+## Exact square-root stages in native reductions (Euler 210, #447)
+
+The pure `numbers.isqrt` registration declares its integer result to the existing
+native scalar recipe machinery. Deferred arithmetic feeding `isqrt` can therefore
+flow directly into a native reduction, retaining exact integer square roots and
+the existing domain, demand, interruption and source guards. Ordinary binding
+completion and Number-loop admission are unchanged.
+
+Euler 210 keeps its geometric algorithm and array formulation, completes each
+input block with ordinary `Xs =`, and defers the square-root sum as `Part'` for
+its consumer. A smaller measured block lowers process peak memory. See the
+[measurements and verification](../../benchmarks/euler210-obtuse-results.md).

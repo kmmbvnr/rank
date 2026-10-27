@@ -1,0 +1,798 @@
+{
+  "baseCommit": "892e19e4904d04eca9f61467771311c70e00ebf5",
+  "environment": {
+    "platform": "macOS arm64",
+    "node": "v24.15.0"
+  },
+  "status": "investigation; prototype only, no source implementation shipped",
+  "prototypePatch": "numbersModule.isqrt: pass fourth argument 'integer' to scalarNative, after the mapStoredUnary callback. No scalar arithmetic changes.",
+  "timingProtocol": "Three serial fresh-process samples per baseline, reference, scalar variant in alternating order; later three per prototype chunk size in alternating order. No heavy work overlapped. Imports and interpreter construction excluded. Diagnostic/profile/verification runs separate.",
+  "hashes": {
+    "demo": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+    "fixture": "f0ab46acde0a43dbaeb6773597e23e423f6f4cd2def47b4d68586b0d3f240006",
+    "baselineNumbersJs": "90d23dfa3691279389dbcbb45f1d7e82d0ab5184cf53ec050ae56953d494324b",
+    "prototypeNumbersJs": "0d3f7efe957f33fff295d96b1e4d2181cca95554256d2b5b81507c72e35dc172"
+  },
+  "probeSource": "import {readFileSync} from 'node:fs';\nconst {Interpreter,RuntimeDiagnostics} = await import(process.argv.includes('metadata') ? '/tmp/rank210-runtime/index.js' : '/tmp/rank195-isolated/packages/interpreter/out/index.js');\nconst args=process.argv.slice(2); const opt=(name,d)=>args.find(x=>x.startsWith(name+'='))?.split('=')[1]??d;\nlet source=readFileSync('/tmp/rank196-delivery/demos/euler/210_obtuse.ra','utf8').replace('option R integer = 1000000000',`option R integer = ${opt('R','1000000000')}`).replace('option Chunk integer = 5000000',`option Chunk integer = ${opt('Chunk','5000000')}`);\nif(args.includes('scalar')) source=source.replace(/for L in A0 \\+ 1 to A by Chunk[\\s\\S]*?\\nend/, 'for X in A0 + 1 to A\\n  Gen += (Q - X * X) isqrt\\nend');\nif(args.includes('deferred')) source=source.replace('  Xs =', \"  Xs' =\");\nif(args.includes('sequence')) source=source.replace('L + Chunk - 1 min A) array', 'L + Chunk - 1 min A)');\nif(args.includes('plan')) source=source.replace('  Gen += (Q - Xs * Xs) isqrt sum', \"  Part' = (Q - Xs * Xs) isqrt sum\\n  Gen += Part\");\nif(args.includes('source')) { console.log(source); process.exit(0); }\nconst runtime=new Interpreter(()=>{}, {compilation:!args.includes('ref')}); const d=new RuntimeDiagnostics();\nconst t=performance.now();\nif(args.includes('diag')) d.run(()=>runtime.execute(source)); else runtime.execute(source);\nconsole.log(JSON.stringify({args,ms:performance.now()-t,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),A:String(runtime.variables.get('A')),A0:String(runtime.variables.get('A0')),...args.includes('diag')?{diagnostics:d}:{}}));\nruntime.dispose();\n",
+  "oracleSource": "import assert from 'node:assert/strict';\nimport { readFileSync } from 'node:fs';\nimport { resolve,dirname } from 'node:path';\nconst original=readFileSync('/tmp/rank196-delivery/demos/euler/210_obtuse.ra','utf8');\nconst optimized=original.replace('  Gen += (Q - Xs * Xs) isqrt sum', \"  Part' = (Q - Xs * Xs) isqrt sum\\n  Gen += Part\");\nfunction oracle(r){let n=0,c=r/4;for(let x=-r;x<=r;x++)for(let y=-r+Math.abs(x);y<=r-Math.abs(x);y++){\n if(x===y)continue;\n if(c*(x+y)<0 || x*x+y*y-c*(x+y)<0 || 2*c*c-c*(x+y)<0)n++;\n}return String(n);}\nconst results=[];\nfor(const prototype of [false,true]){\n const {Interpreter}=await import(prototype?'/tmp/rank210-runtime/index.js':'/tmp/rank195-isolated/packages/interpreter/out/index.js');\n for(const compilation of [false,true]){\n  for(let radius=8;radius<=160;radius+=8){\n   const r=new Interpreter(()=>{}, {compilation});\n   try{\n   const src=(prototype?optimized:original).replace('option R integer = 1000000000',`option R integer = ${radius}`).replace('option Chunk integer = 5000000','option Chunk integer = 3');\n   r.execute(src);const answer=String(r.variables.get('Answer'));assert.equal(answer,oracle(radius));\n   }finally{r.dispose();}\n  }\n  const file='/tmp/rank196-delivery/demos/euler/210_obtuse_test.ra';\n  const fixture=new Interpreter(()=>{}, {compilation,testing:true,sourceId:file,loadModule(specifier,from){const id=resolve(dirname(from??file),specifier+'.ra');return {id,source:specifier==='210_obtuse'?(prototype?optimized:original):readFileSync(id,'utf8')};}});\n  try{fixture.execute(readFileSync(file,'utf8'));assert.equal(fixture.testResults.length,1);assert(fixture.testResults.every(x=>x.passed));results.push({prototype,compilation,smallOracleChecks:20,fixture:fixture.testResults});}finally{fixture.dispose();}\n }\n}\nconsole.log(JSON.stringify(results));\n",
+  "initial": {
+    "args": [],
+    "ms": 8987.934166000001,
+    "rssMiB": 612.03125,
+    "answer": "1598174770174689458",
+    "A": "176776695",
+    "A0": "124999999"
+  },
+  "baselineSamples": [
+    {
+      "args": [],
+      "ms": 9060.428375000001,
+      "rssMiB": 615.28125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "ref"
+      ],
+      "ms": 9142.774792,
+      "rssMiB": 617.875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "scalar"
+      ],
+      "ms": 2415.6927499999997,
+      "rssMiB": 168.765625,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "scalar"
+      ],
+      "ms": 2499.032083,
+      "rssMiB": 169.609375,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "ref"
+      ],
+      "ms": 9113.611541,
+      "rssMiB": 611.828125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [],
+      "ms": 8997.051292,
+      "rssMiB": 617.171875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [],
+      "ms": 9034.494583,
+      "rssMiB": 612.390625,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "ref"
+      ],
+      "ms": 9091.1475,
+      "rssMiB": 611.96875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "scalar"
+      ],
+      "ms": 2409.891208,
+      "rssMiB": 168.1875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    }
+  ],
+  "variants": [
+    {
+      "args": [
+        "deferred"
+      ],
+      "ms": 9162.895666,
+      "rssMiB": 583.109375,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "sequence"
+      ],
+      "ms": 9021.217958000001,
+      "rssMiB": 611.671875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "scalar",
+        "diag"
+      ],
+      "ms": 2457.23175,
+      "rssMiB": 168.234375,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 1,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 7,
+          "tensor:output-shape": 6,
+          "tensor:scalar-evaluation-timing": 3,
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:binding:isqrt": 1,
+          "number-loop:unsafe-input": 1
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "metadataControls": [
+    {
+      "args": [
+        "metadata"
+      ],
+      "ms": 9300.198708,
+      "rssMiB": 612.53125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan"
+      ],
+      "ms": 2824.770167,
+      "rssMiB": 353.6875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "plan"
+      ],
+      "ms": 12123.083458000001,
+      "rssMiB": 316.609375,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "deferred"
+      ],
+      "ms": 2836.788417,
+      "rssMiB": 375.296875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    }
+  ],
+  "chunkControls": [
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "Chunk=50000"
+      ],
+      "ms": 2962.844,
+      "rssMiB": 311.3125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "Chunk=250000"
+      ],
+      "ms": 2859.900625,
+      "rssMiB": 239.171875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "Chunk=50000"
+      ],
+      "ms": 9133.583916,
+      "rssMiB": 331.203125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "Chunk=50000",
+        "diag"
+      ],
+      "ms": 2873.5478329999996,
+      "rssMiB": 307.5625,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 1036,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 1036,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 8,
+          "tensor:output-shape": 6,
+          "tensor:scalar-evaluation-timing": 3,
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:binding:isqrt": 1037,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "tensor:deferred-binding:AssignmentStatement": 1,
+          "tensor:binding:Part": 1036,
+          "scalar-expression:operator-guard:*": 1036,
+          "scalar-expression:operator-guard:-": 1036
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "prototypeSamples": [
+    {
+      "args": [
+        "metadata",
+        "plan"
+      ],
+      "ms": 2840.839625,
+      "rssMiB": 349.796875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "Chunk=250000"
+      ],
+      "ms": 2837.6092919999996,
+      "rssMiB": 237.59375,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "Chunk=250000"
+      ],
+      "ms": 2811.771875,
+      "rssMiB": 239.203125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan"
+      ],
+      "ms": 2837.2760829999997,
+      "rssMiB": 349.90625,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan"
+      ],
+      "ms": 2904.921125,
+      "rssMiB": 356.78125,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    },
+    {
+      "args": [
+        "metadata",
+        "plan",
+        "Chunk=250000"
+      ],
+      "ms": 2850.136333,
+      "rssMiB": 239.71875,
+      "answer": "1598174770174689458",
+      "A": "176776695",
+      "A0": "124999999"
+    }
+  ],
+  "profileRun": {
+    "args": [],
+    "ms": 8987.122582999998,
+    "rssMiB": 621.53125,
+    "answer": "1598174770174689458",
+    "A": "176776695",
+    "A0": "124999999"
+  },
+  "profileSelfSamples": [
+    {
+      "function": "set",
+      "file": "owned-array.js",
+      "line": 660,
+      "samples": 2788,
+      "percent": 36.09
+    },
+    {
+      "function": "mapStoredIntegers",
+      "file": "integer-array-kernel.js",
+      "line": 15,
+      "samples": 661,
+      "percent": 8.56
+    },
+    {
+      "function": "values",
+      "file": "derived-array.js",
+      "line": 73,
+      "samples": 556,
+      "percent": 7.2
+    },
+    {
+      "function": "mapStoredUnary",
+      "file": "unary-array-kernel.js",
+      "line": 7,
+      "samples": 479,
+      "percent": 6.2
+    },
+    {
+      "function": "arrayValues",
+      "file": "array-read.js",
+      "line": 125,
+      "samples": 420,
+      "percent": 5.44
+    },
+    {
+      "function": "",
+      "file": "scalar-builtin.js",
+      "line": 31,
+      "samples": 374,
+      "percent": 4.84
+    },
+    {
+      "function": "integerSquareRoot",
+      "file": "integer-square-root.js",
+      "line": 5,
+      "samples": 346,
+      "percent": 4.48
+    },
+    {
+      "function": "sumStream",
+      "file": "numbers.js",
+      "line": 323,
+      "samples": 332,
+      "percent": 4.3
+    },
+    {
+      "function": "mapDenseArrays",
+      "file": "tensor.js",
+      "line": 60,
+      "samples": 212,
+      "percent": 2.74
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "line": 0,
+      "samples": 194,
+      "percent": 2.51
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "line": 0,
+      "samples": 172,
+      "percent": 2.23
+    },
+    {
+      "function": "arrayValues",
+      "file": "array-read.js",
+      "line": 125,
+      "samples": 164,
+      "percent": 2.12
+    },
+    {
+      "function": "",
+      "file": "array-read.js",
+      "line": 132,
+      "samples": 99,
+      "percent": 1.28
+    },
+    {
+      "function": "operation",
+      "file": "integer-array-kernel.js",
+      "line": 17,
+      "samples": 85,
+      "percent": 1.1
+    },
+    {
+      "function": "checkCell",
+      "file": "derived-array.js",
+      "line": 23,
+      "samples": 73,
+      "percent": 0.94
+    },
+    {
+      "function": "operation",
+      "file": "integer-array-kernel.js",
+      "line": 18,
+      "samples": 62,
+      "percent": 0.8
+    },
+    {
+      "function": "materializeSequence",
+      "file": "sequence.js",
+      "line": 412,
+      "samples": 61,
+      "percent": 0.79
+    },
+    {
+      "function": "",
+      "file": "integer-view.js",
+      "line": 159,
+      "samples": 54,
+      "percent": 0.7
+    },
+    {
+      "function": "",
+      "file": "integer-view.js",
+      "line": 159,
+      "samples": 46,
+      "percent": 0.6
+    },
+    {
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "line": 355,
+      "samples": 35,
+      "percent": 0.45
+    }
+  ],
+  "verification": [
+    {
+      "prototype": false,
+      "compilation": false,
+      "smallOracleChecks": 20,
+      "fixture": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 6.31245899999999
+        }
+      ]
+    },
+    {
+      "prototype": false,
+      "compilation": true,
+      "smallOracleChecks": 20,
+      "fixture": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 5.894042000000013
+        }
+      ]
+    },
+    {
+      "prototype": true,
+      "compilation": false,
+      "smallOracleChecks": 20,
+      "fixture": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 5.564166999999998
+        }
+      ]
+    },
+    {
+      "prototype": true,
+      "compilation": true,
+      "smallOracleChecks": 20,
+      "fixture": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 7.372875000000022
+        }
+      ]
+    }
+  ],
+  "baselineDiagnostics": {
+    "args": [
+      "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+      "--diag"
+    ],
+    "ms": 9137.968292,
+    "rssMiB": 613.296875,
+    "answer": "1598174770174689458",
+    "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+    "tests": [],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 51776696,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:too-small": 8,
+        "tensor:output-shape": 6,
+        "tensor:scalar-evaluation-timing": 3,
+        "scalar-expression:unsupported-op:isqrt": 2,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+        "scalar-expression:unsupported-op://": 2,
+        "tensor:binding:isqrt": 1,
+        "loop:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:to": 3,
+        "tensor:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:operator-guard:*": 11,
+        "scalar-expression:operator-guard:-": 11
+      },
+      "compilerRejections": []
+    }
+  },
+  "harnessCheck": {
+    "args": [
+      "--runtime=/tmp/rank210-runtime/index.js",
+      "--plan",
+      "--Chunk=250000"
+    ],
+    "ms": 3339.5842079999998,
+    "rssMiB": 224.9375,
+    "answer": "1598174770174689458",
+    "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+    "tests": []
+  },
+  "fixtureHarnessCheck": {
+    "args": [
+      "--runtime=/tmp/rank210-runtime/index.js",
+      "--plan",
+      "--fixture"
+    ],
+    "ms": 143.638708,
+    "rssMiB": 172.21875,
+    "sourceHash": "f0ab46acde0a43dbaeb6773597e23e423f6f4cd2def47b4d68586b0d3f240006",
+    "tests": [
+      {
+        "name": "small radii",
+        "passed": true,
+        "output": [
+          "100",
+          "916",
+          "1022626"
+        ],
+        "durationMs": 24.554374999999993
+      }
+    ]
+  }
+}
