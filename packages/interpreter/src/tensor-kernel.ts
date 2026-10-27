@@ -31,6 +31,7 @@ export type TensorNode =
     | { kind: 'input'; name?: string; value?: RankValue }
     | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
     | { kind: 'call'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
+    | { kind: 'shift'; source: TensorNode; fill: TensorNode; amount: number; axis: number }
     | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
     | { kind: 'binary'; op: string; native?: Bitwise | 'min' | 'max'; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
     | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
@@ -42,7 +43,7 @@ export type TensorNode =
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
     lookup(name: string): RankValue | undefined;
-    builtin(name: Terminal | 'text' | 'integer' | 'reshape' | Bitwise): boolean;
+    builtin(name: Terminal | 'text' | 'integer' | 'reshape' | 'shift' | Bitwise): boolean;
     compiled?(source: string): void;
     valid?(): boolean;
 }
@@ -168,6 +169,23 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
             return source && count ? typed({ kind: 'slice', source, count, drop: e.operator === 'drop' }, domains.get(source)!) : undefined;
         }
         const form = applicationForm(e, name => findOperation(name));
+        const shiftParts = flattenApplication(e);
+        const plainShift = shiftParts.length === 3 && isNameExpression(shiftParts[2]) && shiftParts[2].name === 'shift';
+        if (plainShift || form.kind === 'axis-shift') {
+            const sourceExpression = form.kind === 'axis-shift' ? form.source : shiftParts[0];
+            const amountExpression = unwrap(form.kind === 'axis-shift' ? form.amount : shiftParts[1]);
+            const signed = isUnaryExpression(amountExpression) && ['+', '-'].includes(amountExpression.operator)
+                ? unwrap(amountExpression.operand) : amountExpression;
+            if (!isNumberLiteral(signed) || typeof signed.value !== 'bigint') return undefined;
+            const amount = Number(signed.value * (isUnaryExpression(amountExpression) && amountExpression.operator === '-' ? -1n : 1n));
+            // Source syntax must not move a completed argument behind a shift.
+            // Deferred expressions compose separately through their native recipe.
+            const source = parse(sourceExpression);
+            if (source?.kind !== 'input' || !Number.isSafeInteger(amount)) return undefined;
+            const fill = form.kind === 'axis-shift' && form.fill ? parse(form.fill) : typed({ kind: 'input', value: 0n }, ['integer']);
+            if (fill?.kind !== 'input') return undefined;
+            return typed({ kind: 'shift', source, fill, amount, axis: form.kind === 'axis-shift' ? form.axis ?? 0 : 0 }, unknown);
+        }
         if (form.kind === 'rank' && form.parts.length === 3 && form.rightRank !== undefined
             && isFunctionOperator(form.parts[2])) {
             const op = form.parts[2].operator;
@@ -325,6 +343,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     const variants = new Map<string, { run: KernelRun; source: string }>();
     const hasConcat = [...domains.keys()].some(node => node.kind === 'concat');
     const hasSlices = [...domains.keys()].some(node => node.kind === 'slice');
+    const hasShifts = [...domains.keys()].some(node => node.kind === 'shift');
     const structural = [...domains.keys()].filter(node => node.kind === 'outer' || node.kind === 'reshape');
     // Cache layout only: never retain operand storage or a previous result.
     // Selections and text conversions keep the general binder below.
@@ -342,8 +361,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         if (implicit && !privateLoopPolling()) return recordFallback('tensor:observable-expression');
         if (hasSlices && !privateLoopPolling()) return recordFallback('tensor:observable-slices');
+        if (hasShifts && !privateLoopPolling()) return recordFallback('tensor:observable-shift');
         if (structural.length && !privateLoopPolling()) return recordFallback('tensor:observable-structure');
         if (structural.some(node => node.kind === 'reshape') && !host.builtin('reshape')) return recordFallback('tensor:builtin:reshape');
+        if (!nativeGraph && hasShifts && !host.builtin('shift')) return recordFallback('tensor:builtin:shift');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
         // Native boolean recipes have word kernels. A scalar emitter would
@@ -452,6 +473,12 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 if (!shape.every(n => Number.isSafeInteger(n) && n >= 0)
                     || !Number.isSafeInteger(shape.reduce((size, n) => size * n, 1))) return undefined;
                 result = { shape, boolean: node.kind === 'call' ? false : source.boolean };
+            } else if (node.kind === 'shift') {
+                const source = bind(node.source), fill = bind(node.fill);
+                if (!source?.shape?.length || source.filter || source.progression || source.digits
+                    || fill?.scalar === undefined || !Number.isSafeInteger(node.amount)
+                    || node.axis < 0 || node.axis >= source.shape.length) return undefined;
+                result = { shape: source.shape, boolean: source.boolean && fill.boolean };
             } else if (node.kind === 'slice') {
                 const a = bind(node.source), b = bind(node.count);
                 if (!a?.view || !a.shape?.length || typeof b?.scalar !== 'bigint' || b.scalar < 0n) return undefined;
@@ -590,6 +617,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (!info) return false;
             if (node.kind === 'input') return typeof info.scalar === 'bigint' || info.view?.kind === 'integer'
                 || !!info.view?.shape.some(n => n === 0);
+            if (node.kind === 'shift') return totalInteger(node.source) && totalInteger(node.fill);
             if (node.kind === 'reshape') return totalInteger(node.source);
             if (node.kind === 'check' || node.kind === 'view') return totalInteger(node.source);
             if (node.kind === 'unary') return ['+', '-'].includes(node.op) && totalInteger(node.operand);
@@ -630,6 +658,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             if (node.kind === 'outer') {
                 if (domain(node.left) || domain(node.right)) throw false;
             }
+            if (node.kind === 'shift' && domain(node.source)) throw false;
             if (node.kind === 'concat' && node.sources.some(domain)) throw false;
             if (node.kind === 'select') value ||= domain(node.selector);
             if (node.kind === 'binary') {
@@ -657,6 +686,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 tensorOperatorSignatures(node.op, 2), [outputTypes(node.left), outputTypes(node.right)])?.result ?? types;
             else if (node.kind === 'unary') types = matchCompiledOperatorDomains(
                 tensorOperatorSignatures(node.op, 1), [outputTypes(node.operand)])?.result ?? types;
+            else if (node.kind === 'shift') types = [...new Set([...outputTypes(node.source), ...outputTypes(node.fill)])];
             else if (node.kind === 'select' || node.kind === 'reshape' || node.kind === 'slice' || node.kind === 'view') types = outputTypes(node.source);
             resolved.set(node, types);
             return types;
@@ -727,6 +757,25 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         return position === info.segments!.length - 1 ? read : `${index} < ${end} ? ${read} : `;
                     });
                     lines.push(`const ${name} = ${parts.join('')};`);
+                }
+                else if (node.kind === 'shift') {
+                    const shape = info.shape!;
+                    const width = shape[node.axis];
+                    const stride = shape.slice(node.axis + 1).reduce((n, size) => n * size, 1);
+                    // Clamp before multiplying: oversized safe-integer shifts
+                    // only select fill, without overflowing the address math.
+                    const amount = Math.max(-width, Math.min(width, node.amount));
+                    const position = `p${serial++}`;
+                    lines.push(`const ${position} = Math.floor((${at}) / ${stride}) % ${width} - (${amount});`, `let ${name};`);
+                    lines.push(`if (${position} < 0 || ${position} >= ${width}) {`);
+                    const saved = emitted;
+                    emitted = new Map();
+                    const fill = emit(node.fill);
+                    lines.push(`${name} = ${fill};`, '} else {');
+                    emitted = new Map();
+                    const source = emit(node.source, `((${at}) - (${amount * stride}))`, shape);
+                    emitted = saved;
+                    lines.push(`${name} = ${source};`, '}');
                 }
                 else if (node.kind === 'concat') {
                     const axis = node.axis ?? 0;

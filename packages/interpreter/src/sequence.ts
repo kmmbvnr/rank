@@ -1,3 +1,4 @@
+import { registerTensorShift } from './tensor-map.js';
 import { completeNativeSequence } from './sequence-completion.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerPackedBooleanShift } from './packed-booleans.js';
@@ -664,6 +665,7 @@ export function shiftValue(
         return readArrayItem(source, linear - amount * stride);
     });
     registerPackedBooleanShift(result, source, amount, fillValue, axis);
+    registerTensorShift(result, source, amount, fillValue, axis);
     return result;
 }
 

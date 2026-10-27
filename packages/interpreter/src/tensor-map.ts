@@ -33,6 +33,8 @@ export function registerTensorScalarMap(value: RankArray, source: RankArray, cal
 }
 
 const concats = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[]; operands: readonly RankArray[]; axis: number }>();
+const shifts = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: readonly number[];
+    source: RankArray; amount: number; fill: RankValue; axis: number }>();
 const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
     'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0', 'min', 'max']);
@@ -107,6 +109,15 @@ export function registerTensorConcat(value: RankArray, operands: readonly RankAr
     const scope = active ?? operands.map(mapScope).find(scope => scope?.enabled());
     if (!scope?.enabled()) return;
     concats.set(value, { reader: value.itemAt, shape: [...value.shape], operands, axis });
+    owners.set(value, scope);
+}
+
+/** Shift has already checked its scalar amount, fill and axis. Keep addressing
+ * lazy; the consumer lowers only proven native sources and scalar fills. */
+export function registerTensorShift(value: RankArray, source: RankArray, amount: number, fill: RankValue, axis: number): void {
+    const scope = active ?? mapScope(source);
+    if (!scope?.enabled()) return;
+    shifts.set(value, { reader: value.itemAt, shape: [...value.shape], source, amount, fill, axis });
     owners.set(value, scope);
 }
 
@@ -217,6 +228,18 @@ function prepareTensorMap(value: RankArray, operation: string, scan?: { seed: bi
                 guards.push(scalar.valid);
                 transformed = true;
                 const node = typed({ kind: 'call', source, validate: scalar.call }, [scalar.result]);
+                const validate = arrayCellValidator(value);
+                return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));
+            }
+            const shift = shifts.get(value);
+            if (shift && shift.reader === value.itemAt && shift.shape.length === value.shape.length
+                && shift.shape.every((n, axis) => n === value.shape[axis])) {
+                const source = lower(shift.source), fill = lower(shift.fill);
+                if (!source || !fill) return undefined;
+                guardArray(value);
+                transformed = true;
+                const node = typed({ kind: 'shift', source, fill, amount: shift.amount, axis: shift.axis },
+                    [...new Set([...domains.get(source)!, ...domains.get(fill)!])]);
                 const validate = arrayCellValidator(value);
                 return check(node, validate && ((cell, index) => { validate(cell, index); return cell; }));
             }

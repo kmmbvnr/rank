@@ -2603,3 +2603,20 @@ retain ordinary evaluation. Numeric failures replay for ordinary source location
 interruptions propagate. Euler 177 also uses one mirrored key table and one sort.
 The [benchmark report](../../benchmarks/euler177-quadrilaterals-results.md)
 separates runtime and algorithm gains and records the runtime-only RSS increase.
+
+## Native tensor shifts (Euler 179, #447)
+
+Numeric `shift` recipes now compose with native tensor maps and consumers.
+The IR emitter branches between a fill cell and the shifted source address;
+filled positions do not read or compute the source. Axis-aware addressing and
+oversized shifts preserve the ordinary semantics without intermediate buffers.
+The source frontend also accepts literal-integer shifts of ready arrays in
+existing reductions, guarded by builtin identity. Other source forms retain the
+ordinary fallback; deferred native recipes can compose captured amounts and
+computed producers.
+
+Ordinary completion, deferred captures, exact integer values, domain errors,
+short circuit and cancellation are preserved. Packed boolean shift kernels are
+unchanged. Euler 179 retains its sieve and its original `equal`/`shift`/`count`
+expression. See the [benchmark report](../../benchmarks/euler179-consecutive-divisors-results.md)
+for separate runtime, reference-engine, memory and control measurements.
