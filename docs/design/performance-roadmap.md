@@ -73,6 +73,34 @@ See [ADR-0004](../adr/implementation/0004-perceus-borrow-inference-and-compile-t
 for parameter borrow inference and [Open Questions](open-questions.md#copy-on-write-performance-cliff-static-diagnostics-lsp-linting)
 for proposed static performance-cliff diagnostics in loops.
 
+## Streaming recurrences with a ring buffer
+
+Euler 186 generates six million integers before consuming calls. A 55-cell ring
+can generate the lagged Fibonacci stream as calls are consumed and stop with the
+network search. This reduces the generator buffer from 24,000,000 bytes to 220
+bytes. Keep this as a memory-oriented option to revisit, rather than an accepted
+speed optimization.
+
+Two full-input prototypes were measured on Apple M5 / Node v24.15.0. With the
+same final runtime, three fresh-process medians were 258.921 ms / 239.92 MiB peak
+RSS for the full array, 304.730 ms / 189.13 MiB for modular ring indices and
+267.308 ms / 188.42 MiB for wrapping cursors. The cursor variant reduced peak
+RSS by 21.5% but had a 3.2% higher time median. One full reference validation of
+the cursor variant took 34.200 s, compared with the full-array reference median
+of 29.650 s. Neither ring was adopted.
+
+The existing fixture observes the full `T` array, including `T 99`; a ring changes
+that observable state. Revisit this approach for a workload where memory is the
+limit and the full history is unnecessary. Any implementation needs an explicit
+state contract, stream checks across wrap boundaries and complete-input time
+and memory comparisons in both engines. Keep the existing fixture assertions
+until that contract is agreed.
+
+See the [Euler 186 report](../../benchmarks/euler186-connectedness-results.md),
+[modular prototype](../../benchmarks/fixtures/euler186-ring.ra) and
+[cursor prototype](../../benchmarks/fixtures/euler186-ring-cursors.ra) for raw
+measurements, correctness checks and reproduction commands.
+
 ## Acceptance rules
 
 A small speedup does not justify extra complexity unless the change also
