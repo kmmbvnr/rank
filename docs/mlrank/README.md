@@ -750,3 +750,18 @@ BATCH_MATMUL. On Metal, implicit expansion of crossed singleton batch axes gave
 incorrect values for `[2,1,3,5] × [1,3,5,7]`. The compiler explicitly expands batch
 axes with GPU concat nodes before matmul. This is a correctness workaround;
 copy elimination and performance improvements are not claimed.
+
+Validation on 2026-10-27: 25 fixtures, 75 GPU calls each on Mac and Intel,
+150 on OnePlus. All matched ordinary CPU Rank and an independent scalar
+reference at atol=rtol=1e-5; maximum absolute error was below 1.02e-7.
+Native Android logs recorded full delegation for all 25 model loads in the
+second run. The app test edits RAM, runs QKV from Program, reloads and checks
+source persistence, then restores the example.
+
+Run `node scripts/mlrank-structure-check.mjs`; add `--android` to generate
+`output/playwright/ram-structure.js`. The UI check is
+`packages/web/test/ram-structure-ui.playwright.js`. The small source example is
+[`structure.ra`](../../demos/mlrank/structure.ra) with [`qkv.ram`](../../demos/mlrank/qkv.ram).
+Its constant weights demonstrate graph structure, not a trained attention model.
+[Recorded results](../../benchmarks/baselines/2026-10-27-mlrank-structure.json)
+cover correctness, not speed or peak memory. The full test suite was not run.
