@@ -8,7 +8,7 @@ See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
 [the linear example](../../demos/mlrank/linear.ra).
 Baked constants accept real-valued `array shape ... fill` expressions or
-array literals with explicit shapes (or one-dimensional literals).
+array literals with explicit shapes (or one-dimensional literals), or binary `.rwt` attachments (see below).
 `X W linear` accepts `X[M,K]` and baked `W[K,N]`, producing `[M,N]`.
 Each tensor has its own statically checked shape. `+` and `*` align trailing axes;
 matching dimensions or dimensions of size 1 broadcast, as in ordinary Rank arithmetic.
@@ -32,7 +32,7 @@ H = Old softmax
 return H
 ```
 
-Changing source constants recompiles the model on the next call.
+Changing source or referenced binary weights recompiles the model on the next call.
 The softmax check runs 60 calls per host across ranks 1–4, large positive and
 negative logits, equal logits, singleton rows, aliases and reused results.
 Mac, Intel UHD and OnePlus Adreno 619 passed with full GPU delegation and maximum
@@ -60,7 +60,7 @@ node scripts/mlrank-mlp-check.mjs
 `node_modules/.cache/mlrank`. `RANK_ML_PYTHON` can select another Python
 environment containing `ai-edge-litert==2.3.0` and NumPy.
 The desktop bridge retains one Python process and one compiled model.
-Repeated calls reuse its buffers; changed model bytes replace the cached model.
+The host loads a model once and invokes its opaque ID with new inputs. Repeated calls reuse its buffers; a new graph replaces the resident model.
 The helper exits with the host process. GPU checks report cold preparation,
 warm preparation, execution and host round-trip time separately.
 
@@ -72,7 +72,7 @@ shape before running. Creating a module edits source without executing it.
 Switching tabs keeps the main
 REPL state and unfinished text; it does not execute code. Sources are saved
 together in the notebook. Exporting a program with modules produces a ZIP
-containing `main.ra`, the `.ram` sources and a notebook snapshot. The ZIP can
+containing `main.ra`, the `.ram` sources, binary `.rwt` weights and a notebook snapshot. The ZIP can
 also be imported. Programs without modules keep their existing `.ra` export.
 
 For a local Mac browser session, run `npm run dev --workspace @arrrank/web`
@@ -170,7 +170,7 @@ the app WebView, then run `node scripts/mlrank-android-placement.mjs SERIAL APP_
 Restart the app before timing a first call. Capture `adb -s SERIAL shell dumpsys
 meminfo com.arrrank.app` before and after for app memory snapshots.
 
-### Initial measurements (2026-10-27)
+### Stage 6 measurements (2026-10-27, before binary weights)
 
 Milliseconds, batch of four, first full MLP call followed by five cached calls.
 Cold means a fresh native runtime; OS and driver caches were not cleared.
@@ -182,8 +182,8 @@ Warm columns are medians, not throughput benchmarks.
 | Intel | 165.19 | 44.92 | 0.92 | 0.64 | 0.28 |
 | OnePlus | 556.90 | 494.61 | 24.20 | 2.67 | 21.64 |
 
-The serialized model is 2,072 bytes, including original and transposed weights.
-It is still sent on every call: request bodies are 2,817 bytes on desktop and
+At stage 6 the serialized model was 2,072 bytes, including original and transposed weights.
+It was sent on every call: request bodies are 2,817 bytes on desktop and
 2,802 bytes on Android for the truth-table input. Input and output tensors are
 32 bytes each. Transport time above is a residual that includes JSON, IPC and
 scheduling; native execution includes buffer writes and reads. These are not
@@ -197,8 +197,74 @@ or tensor allocation measurements; Android excludes separate WebView renderer
 processes. No speedup or memory saving is claimed.
 
 [Recorded samples](../../benchmarks/baselines/2026-10-27-mlrank-mlp.json) retain all
-calls and measurement boundaries. Stage 7 will stop resending the model and add
-binary weights; stage 8 will compare CPU timing and isolate costs more precisely.
+calls and measurement boundaries. These measurements describe stage 6; stage 7 below changes the transport. Stage 8 will compare CPU timing and isolate costs more precisely.
+
+## Binary weights and model lifecycle
+
+The MLP uses four `.rwt` files beside `classifier.ram`. Ordinary Rank still imports
+only the module; a baked option names its attachment:
+
+```rank
+option W1 .f32 shape 2 3 = "w1.rwt"
+```
+
+Names are lowercase letters, digits and underscores followed by `.rwt`, with no
+system paths. The CLI resolves them beside the module. Android and browser workers
+resolve them from the current notebook. Export the program as ZIP to replace weights
+on desktop, then import the ZIP. The attachment bytes are authoritative; a native
+compiled model is disposable and is never stored in the archive. There is no separate
+attachment editor in this MVP.
+
+RWT1 consists of four magic bytes `RWT1`, a little-endian uint32 JSON-header length,
+a UTF-8 header, and little-endian float32 payload. The header declares `dtype: "f32"`,
+`shape` and the payload's hexadecimal SHA-256. The compiler checks the declared option
+shape, dtype, exact byte length, checksum and finite values before GPU submission.
+`encodeRamWeights(shape, values)` creates the format. Regenerate the analytical example
+with `node scripts/mlrank-weights.mjs` after building the interpreter.
+
+The wire protocol has `load` (model bytes once), `invoke` (model ID and inputs) and
+`release`. One native model is resident per runtime. Loading another model disposes
+the old buffers and model; alternating modules therefore requires reloading. An
+expired or released ID returns `STALE_MODEL`. The host reloads and retries once;
+ordinary execution errors are not retried. Runtime shutdown also releases resources.
+Source or weight changes produce a new graph. Weight bytes are checked on each call,
+so file reads and hashing still contribute to host cost.
+
+Tensor inputs and outputs remain JSON arrays. The small MLP does not justify another
+binary tensor protocol yet: its repeated invoke body is 109 bytes on desktop and
+94 bytes on Android. There are no model bytes in either repeated request. The current
+FlatBuffer is 1,924 bytes instead of 2,072: unused original linear-weight buffers are
+omitted, and reshaped constants sharing the same values reuse their buffer. The host
+compiler still retains decoded weights; this is not a peak-memory saving claim.
+
+Limits remain 1,048,576 elements per tensor, 32 MiB of source constants and 128 graph
+nodes. Transport independently rejects JSON requests above 32 MiB, including base64
+expansion: the constant limit alone does not guarantee a model fits. Notebook binary
+attachments are capped at 8 MiB total and 64 files; archives at 16 MiB uncompressed.
+The current native JSON store reads large snapshots in chunks to avoid SQLite's
+single-row CursorWindow limit. A 2,800,116-byte attachment (3,733,559-byte snapshot)
+passed native save/read checks. Raising model limits remains dependent on memory
+and transfer measurements in stage 8.
+
+Verification commands:
+
+```sh
+node scripts/mlrank-mlp-check.mjs
+node scripts/mlrank-lifecycle-check.mjs
+node scripts/mlrank-mlp-check.mjs --android
+```
+
+Mac, Intel and OnePlus each passed 42 GPU calls with maximum absolute error below
+5.48e-8, including changed binary weights. Android logs confirmed full delegation
+(12/12 nodes for the full MLP, 9/9 for intermediate outputs). Desktop lifecycle checks
+also cover explicit release, a real helper restart and changed attachment bytes in
+an already imported module. Archive tests preserve source and binary bytes exactly.
+The menu example ran and survived reload on Mac and Android. On OnePlus, replacing
+the persisted binary bias changed the output; restoring it recovered the original
+result. The saved binary MLP also ran after restarting the final APK.
+[Stage 7 samples](../../benchmarks/baselines/2026-10-27-mlrank-weights.json) record request
+sizes and lifecycle events. Android timings were collected with the lock screen
+active and must not be compared as performance measurements.
 
 ## Proposed full MVP
 

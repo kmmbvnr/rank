@@ -1,0 +1,2249 @@
+{
+  "date": "2026-10-27",
+  "scope": "Stage 7 correctness, lifecycle and serialized request sizes. Timings are diagnostic, not a controlled speed comparison; Android ran with its lock screen active.",
+  "mac": {
+    "platform": "darwin",
+    "memoryBefore": {
+      "rss": 160071680,
+      "heapTotal": 105119744,
+      "heapUsed": 52950496,
+      "external": 2233079,
+      "arrayBuffers": 126096
+    },
+    "memoryAfter": {
+      "rss": 193314816,
+      "heapTotal": 108003328,
+      "heapUsed": 60149400,
+      "external": 2669911,
+      "arrayBuffers": 2428558
+    },
+    "helperMemory": [
+      {
+        "pid": 5282,
+        "rssKiB": 51088
+      }
+    ],
+    "checks": [
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 100.25495799999999,
+        "prepareMs": 18.535208888351917,
+        "executeMs": 2.147125080227852,
+        "transportAndSchedulingMs": 79.57262403142022,
+        "requestBytes": 2705,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.38820799999996325,
+        "prepareMs": 0.001250067725777626,
+        "executeMs": 0.29566697776317596,
+        "transportAndSchedulingMs": 0.09129095451100966,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.34320900000000165,
+        "prepareMs": 0.000500120222568512,
+        "executeMs": 0.27208286337554455,
+        "transportAndSchedulingMs": 0.07062601640188859,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.35024999999996,
+        "prepareMs": 0.00033294782042503357,
+        "executeMs": 0.28508296236395836,
+        "transportAndSchedulingMs": 0.06483408981557659,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.3290829999999687,
+        "prepareMs": 0.000250060111284256,
+        "executeMs": 0.26541692204773426,
+        "transportAndSchedulingMs": 0.06341601784095019,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.32712500000002365,
+        "prepareMs": 0.0004169996827840805,
+        "executeMs": 0.2620830200612545,
+        "transportAndSchedulingMs": 0.06462498025598507,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 4.621791999999971,
+        "prepareMs": 2.9456671327352524,
+        "executeMs": 1.4360409695655107,
+        "transportAndSchedulingMs": 0.24008389769920768,
+        "requestBytes": 2306,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 0.41874999999998863,
+        "prepareMs": 0.000708969309926033,
+        "executeMs": 0.3060409799218178,
+        "transportAndSchedulingMs": 0.11200005076824482,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 0.370207999999991,
+        "prepareMs": 0.0004169996827840805,
+        "executeMs": 0.2914159558713436,
+        "transportAndSchedulingMs": 0.0783750444458633,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.3440840000000094,
+        "prepareMs": 0.001125037670135498,
+        "executeMs": 0.2743750810623169,
+        "transportAndSchedulingMs": 0.06858388126755699,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.35308400000002393,
+        "prepareMs": 0.0007920898497104645,
+        "executeMs": 0.28483313508331776,
+        "transportAndSchedulingMs": 0.06745877506699571,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.3395840000000021,
+        "prepareMs": 0.00041583552956581116,
+        "executeMs": 0.28279214166104794,
+        "transportAndSchedulingMs": 0.05637602280938836,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 3.974999999999966,
+        "prepareMs": 2.3873760364949703,
+        "executeMs": 1.3626660220324993,
+        "transportAndSchedulingMs": 0.22495794147249626,
+        "requestBytes": 2305,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 0.47512499999999136,
+        "prepareMs": 0.000666128471493721,
+        "executeMs": 0.4070838913321495,
+        "transportAndSchedulingMs": 0.06737498019634813,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 0.5109579999999596,
+        "prepareMs": 0.0007920898497104645,
+        "executeMs": 0.4320419393479824,
+        "transportAndSchedulingMs": 0.07812397080226674,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.46108300000003055,
+        "prepareMs": 0.000500120222568512,
+        "executeMs": 0.40087499655783176,
+        "transportAndSchedulingMs": 0.059707883219630276,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.45874999999995225,
+        "prepareMs": 0.000250060111284256,
+        "executeMs": 0.39895903319120407,
+        "transportAndSchedulingMs": 0.059540906697463925,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.47487499999999727,
+        "prepareMs": 0.0006249174475669861,
+        "executeMs": 0.4063330125063658,
+        "transportAndSchedulingMs": 0.06791707004606451,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 4.035290999999972,
+        "prepareMs": 2.489625010639429,
+        "executeMs": 1.339541980996728,
+        "transportAndSchedulingMs": 0.2061240083638154,
+        "requestBytes": 2717,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.47108300000002146,
+        "prepareMs": 0.000500120222568512,
+        "executeMs": 0.40770904161036015,
+        "transportAndSchedulingMs": 0.0628738381670928,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.4814169999999649,
+        "prepareMs": 0.0014170072972774506,
+        "executeMs": 0.41750003583729267,
+        "transportAndSchedulingMs": 0.06249995686539478,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.47937500000000455,
+        "prepareMs": 0.0004169996827840805,
+        "executeMs": 0.41924999095499516,
+        "transportAndSchedulingMs": 0.05970800936222531,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.4607910000000288,
+        "prepareMs": 0.0002919696271419525,
+        "executeMs": 0.4010000266134739,
+        "transportAndSchedulingMs": 0.05949900375941297,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.48279200000001765,
+        "prepareMs": 0.0005830079317092896,
+        "executeMs": 0.4187501035630703,
+        "transportAndSchedulingMs": 0.06345888850523806,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 4.05920900000001,
+        "prepareMs": 2.543332986533642,
+        "executeMs": 1.322207972407341,
+        "transportAndSchedulingMs": 0.19366804105902702,
+        "requestBytes": 2318,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 0.449374999999975,
+        "prepareMs": 0.00033294782042503357,
+        "executeMs": 0.3944169729948044,
+        "transportAndSchedulingMs": 0.05462507918474557,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 0.4238330000000019,
+        "prepareMs": 0.000250060111284256,
+        "executeMs": 0.37991697899997234,
+        "transportAndSchedulingMs": 0.0436659608887453,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.47150000000004866,
+        "prepareMs": 0.0005420297384262085,
+        "executeMs": 0.40920800529420376,
+        "transportAndSchedulingMs": 0.06174996496741869,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.45249999999998636,
+        "prepareMs": 0.000541098415851593,
+        "executeMs": 0.40237489156425,
+        "transportAndSchedulingMs": 0.04958401001988477,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.4551660000000197,
+        "prepareMs": 0.0006658956408500671,
+        "executeMs": 0.3950840327888727,
+        "transportAndSchedulingMs": 0.059416071570296936,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 3.6983749999999986,
+        "prepareMs": 2.225833013653755,
+        "executeMs": 1.3000420294702053,
+        "transportAndSchedulingMs": 0.17249995687603814,
+        "requestBytes": 2317,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 0.46145899999999074,
+        "prepareMs": 0.00037509016692638397,
+        "executeMs": 0.39662490598857403,
+        "transportAndSchedulingMs": 0.06445900384449033,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 0.4340829999999869,
+        "prepareMs": 0.00029080547392368317,
+        "executeMs": 0.38362503983080387,
+        "transportAndSchedulingMs": 0.05016715469525934,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.45175000000006094,
+        "prepareMs": 0.0006249174475669861,
+        "executeMs": 0.4000421613454819,
+        "transportAndSchedulingMs": 0.05108292120701208,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.46737499999994725,
+        "prepareMs": 0.0004998873919248581,
+        "executeMs": 0.4144159611314535,
+        "transportAndSchedulingMs": 0.05245915147656888,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.4623749999999518,
+        "prepareMs": 0.0004169996827840805,
+        "executeMs": 0.40970812551677227,
+        "transportAndSchedulingMs": 0.052249874800395446,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 3.979832999999985,
+        "prepareMs": 2.4534999392926693,
+        "executeMs": 1.3455839361995459,
+        "transportAndSchedulingMs": 0.18074912450776992,
+        "requestBytes": 2717,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.47737500000005184,
+        "prepareMs": 0.0012919772416353226,
+        "executeMs": 0.4116669297218323,
+        "transportAndSchedulingMs": 0.06441609303658424,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.45195799999999053,
+        "prepareMs": 0.0004169996827840805,
+        "executeMs": 0.39787497371435165,
+        "transportAndSchedulingMs": 0.0536660266028548,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.44337500000006,
+        "prepareMs": 0.0004169996827840805,
+        "executeMs": 0.39125001057982445,
+        "transportAndSchedulingMs": 0.0517079897374515,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.4497910000000047,
+        "prepareMs": 0.0003748573362827301,
+        "executeMs": 0.39958301931619644,
+        "transportAndSchedulingMs": 0.04983312334752554,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.4512920000000804,
+        "prepareMs": 0.0004591420292854309,
+        "executeMs": 0.3966658841818571,
+        "transportAndSchedulingMs": 0.05416697378893787,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      }
+    ]
+  },
+  "intel": {
+    "platform": "linux",
+    "memoryBefore": {
+      "rss": 153436160,
+      "heapTotal": 105402368,
+      "heapUsed": 51495264,
+      "external": 2869266,
+      "arrayBuffers": 624223
+    },
+    "memoryAfter": {
+      "rss": 190922752,
+      "heapTotal": 107499520,
+      "heapUsed": 57228856,
+      "external": 3133319,
+      "arrayBuffers": 2732436
+    },
+    "helperMemory": [
+      {
+        "pid": 3445287,
+        "rssKiB": 114204
+      }
+    ],
+    "checks": [
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 190.16874299999995,
+        "prepareMs": 65.73863700032234,
+        "executeMs": 3.6304425448179245,
+        "transportAndSchedulingMs": 120.79966345485968,
+        "requestBytes": 2705,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 1.171905000000038,
+        "prepareMs": 0.0026281923055648804,
+        "executeMs": 0.8052438497543335,
+        "transportAndSchedulingMs": 0.36403295794013957,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 1.33281199999999,
+        "prepareMs": 0.0011958181858062744,
+        "executeMs": 1.0194052010774612,
+        "transportAndSchedulingMs": 0.3122109807367224,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.9164269999999988,
+        "prepareMs": 0.0012274831533432007,
+        "executeMs": 0.6130356341600418,
+        "transportAndSchedulingMs": 0.30216388268661376,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.9862349999999651,
+        "prepareMs": 0.0018924474716186523,
+        "executeMs": 0.648152083158493,
+        "transportAndSchedulingMs": 0.3361904693698534,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.9597740000000385,
+        "prepareMs": 0.0012777745723724365,
+        "executeMs": 0.5803871899843216,
+        "transportAndSchedulingMs": 0.3781090354433445,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 16.63263399999994,
+        "prepareMs": 12.424333021044731,
+        "executeMs": 3.254462033510208,
+        "transportAndSchedulingMs": 0.9538389454449998,
+        "requestBytes": 2306,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 1.1398799999999483,
+        "prepareMs": 0.0014472752809524536,
+        "executeMs": 0.7651597261428833,
+        "transportAndSchedulingMs": 0.3732729985761125,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 1.221512999999959,
+        "prepareMs": 0.0011604279279708862,
+        "executeMs": 0.8410792797803879,
+        "transportAndSchedulingMs": 0.37927329229160023,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.8162770000000137,
+        "prepareMs": 0.001259148120880127,
+        "executeMs": 0.5618613213300705,
+        "transportAndSchedulingMs": 0.25315653054906306,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.7557170000000042,
+        "prepareMs": 0.0010319054126739502,
+        "executeMs": 0.4848949611186981,
+        "transportAndSchedulingMs": 0.2697901334686321,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.8707829999999603,
+        "prepareMs": 0.0012330710887908936,
+        "executeMs": 0.6246697157621384,
+        "transportAndSchedulingMs": 0.24488021314903108,
+        "requestBytes": 110,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 18.677479999999946,
+        "prepareMs": 14.461064711213112,
+        "executeMs": 3.4508462995290756,
+        "transportAndSchedulingMs": 0.7655689892577584,
+        "requestBytes": 2305,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 1.046748999999977,
+        "prepareMs": 0.0016354024410247803,
+        "executeMs": 0.7620714604854584,
+        "transportAndSchedulingMs": 0.2830421370734939,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 0.9982889999999998,
+        "prepareMs": 0.00112876296043396,
+        "executeMs": 0.7671937346458435,
+        "transportAndSchedulingMs": 0.2299665023937223,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.7017210000000205,
+        "prepareMs": 0.0011399388313293457,
+        "executeMs": 0.48212893307209015,
+        "transportAndSchedulingMs": 0.21845212809660097,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.9109760000000051,
+        "prepareMs": 0.0011157244443893433,
+        "executeMs": 0.6112921983003616,
+        "transportAndSchedulingMs": 0.29856807725525414,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.9973730000000387,
+        "prepareMs": 0.0010635703802108765,
+        "executeMs": 0.6989557296037674,
+        "transportAndSchedulingMs": 0.29735370001606043,
+        "requestBytes": 109,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 20.94311899999991,
+        "prepareMs": 16.51230826973915,
+        "executeMs": 3.5881251096725464,
+        "transportAndSchedulingMs": 0.8426856205882132,
+        "requestBytes": 2717,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.9740560000000187,
+        "prepareMs": 0.0015888363122940063,
+        "executeMs": 0.6626397371292114,
+        "transportAndSchedulingMs": 0.30982742655851325,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.9621190000000297,
+        "prepareMs": 0.0020954757928848267,
+        "executeMs": 0.6639491766691208,
+        "transportAndSchedulingMs": 0.2960743475380241,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.880484000000024,
+        "prepareMs": 0.0015404075384140015,
+        "executeMs": 0.6006713956594467,
+        "transportAndSchedulingMs": 0.2782721968021633,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 1.0710260000000744,
+        "prepareMs": 0.0016149133443832397,
+        "executeMs": 0.8118189871311188,
+        "transportAndSchedulingMs": 0.2575920995245724,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 0.8821080000000165,
+        "prepareMs": 0.001130625605583191,
+        "executeMs": 0.6034709513187408,
+        "transportAndSchedulingMs": 0.2775064230756925,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 18.97201300000006,
+        "prepareMs": 14.731692150235176,
+        "executeMs": 3.4088045358657837,
+        "transportAndSchedulingMs": 0.8315163138991011,
+        "requestBytes": 2318,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 1.115694000000076,
+        "prepareMs": 0.0015720725059509277,
+        "executeMs": 0.807151198387146,
+        "transportAndSchedulingMs": 0.306970729106979,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 1.039466000000175,
+        "prepareMs": 0.0012312084436416626,
+        "executeMs": 0.7698200643062592,
+        "transportAndSchedulingMs": 0.26841472725027415,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.9059660000000349,
+        "prepareMs": 0.0010244548320770264,
+        "executeMs": 0.5954671651124954,
+        "transportAndSchedulingMs": 0.30947438005546246,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.9401520000001256,
+        "prepareMs": 0.0009462237358093262,
+        "executeMs": 0.7198844105005264,
+        "transportAndSchedulingMs": 0.2193213657637898,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 0.8750770000001467,
+        "prepareMs": 0.0008828938007354736,
+        "executeMs": 0.6471239030361176,
+        "transportAndSchedulingMs": 0.22707020316329363,
+        "requestBytes": 122,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 17.78933599999982,
+        "prepareMs": 13.869564980268478,
+        "executeMs": 3.1429044902324677,
+        "transportAndSchedulingMs": 0.776866529498875,
+        "requestBytes": 2317,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 1.1447399999999561,
+        "prepareMs": 0.001957640051841736,
+        "executeMs": 0.840967521071434,
+        "transportAndSchedulingMs": 0.30181483887668037,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 0.8809929999999895,
+        "prepareMs": 0.0010728836059570312,
+        "executeMs": 0.6396397948265076,
+        "transportAndSchedulingMs": 0.24028032156752488,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 0.8042790000001787,
+        "prepareMs": 0.02070702612400055,
+        "executeMs": 0.47284550964832306,
+        "transportAndSchedulingMs": 0.3107264642278551,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 0.8347069999999803,
+        "prepareMs": 0.0008735805749893188,
+        "executeMs": 0.5827154964208603,
+        "transportAndSchedulingMs": 0.2511179230041307,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 1.0248770000000604,
+        "prepareMs": 0.000994652509689331,
+        "executeMs": 0.8117556571960449,
+        "transportAndSchedulingMs": 0.21212669029432618,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 21.202275999999983,
+        "prepareMs": 16.7725570499897,
+        "executeMs": 3.6566201597452164,
+        "transportAndSchedulingMs": 0.7730987902650668,
+        "requestBytes": 2717,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 1.1377410000000054,
+        "prepareMs": 0.0013634562492370605,
+        "executeMs": 0.8194241672754288,
+        "transportAndSchedulingMs": 0.3169533764753396,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 1.1025859999999739,
+        "prepareMs": 0.0012349337339401245,
+        "executeMs": 0.8072890341281891,
+        "transportAndSchedulingMs": 0.29406203213784465,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.8025010000001203,
+        "prepareMs": 0.0012032687664031982,
+        "executeMs": 0.5494579672813416,
+        "transportAndSchedulingMs": 0.2518397639523755,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 1.0012699999999768,
+        "prepareMs": 0.0014416873455047607,
+        "executeMs": 0.697081908583641,
+        "transportAndSchedulingMs": 0.302746404070831,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 0.7895700000001398,
+        "prepareMs": 0.0014491379261016846,
+        "executeMs": 0.5409568548202515,
+        "transportAndSchedulingMs": 0.24716400725378662,
+        "requestBytes": 121,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      }
+    ]
+  },
+  "android": {
+    "checks": [
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 1736.6000000014901,
+        "prepareMs": 1682.9193750000002,
+        "executeMs": 9.223802,
+        "transportAndSchedulingMs": 44.456823001489944,
+        "requestBytes": 2690,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 29.099999994039536,
+        "prepareMs": 0.033021,
+        "executeMs": 12.976667,
+        "transportAndSchedulingMs": 16.09031199403953,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 30.69999999552965,
+        "prepareMs": 0.042448,
+        "executeMs": 10.674687,
+        "transportAndSchedulingMs": 19.982864995529653,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 33.29999999701977,
+        "prepareMs": 0.039896,
+        "executeMs": 13.435781,
+        "transportAndSchedulingMs": 19.82432299701977,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 33.400000005960464,
+        "prepareMs": 0.029583,
+        "executeMs": 12.657188,
+        "transportAndSchedulingMs": 20.713229005960464,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 36.399999998509884,
+        "prepareMs": 0.04198,
+        "executeMs": 13.359531,
+        "transportAndSchedulingMs": 22.99848899850988,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 1722.5,
+        "prepareMs": 1675.7694780000002,
+        "executeMs": 11.750365,
+        "transportAndSchedulingMs": 34.980156999999835,
+        "requestBytes": 2290,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 18.399999998509884,
+        "prepareMs": 0.021615,
+        "executeMs": 2.41125,
+        "transportAndSchedulingMs": 15.967134998509884,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 40.79999999701977,
+        "prepareMs": 0.024896,
+        "executeMs": 8.595677,
+        "transportAndSchedulingMs": 32.17942699701977,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 17.700000002980232,
+        "prepareMs": 0.020469,
+        "executeMs": 3.828125,
+        "transportAndSchedulingMs": 13.851406002980234,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 19.799999997019768,
+        "prepareMs": 0.022344,
+        "executeMs": 2.330208,
+        "transportAndSchedulingMs": 17.44744799701977,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 22.399999998509884,
+        "prepareMs": 0.02724,
+        "executeMs": 6.089219,
+        "transportAndSchedulingMs": 16.283540998509885,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 1550.8999999985099,
+        "prepareMs": 1503.117812,
+        "executeMs": 13.074375,
+        "transportAndSchedulingMs": 34.70781299850992,
+        "requestBytes": 2290,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 23,
+        "prepareMs": 0.032552,
+        "executeMs": 4.902396,
+        "transportAndSchedulingMs": 18.065052,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 21.80000000447035,
+        "prepareMs": 0.133281,
+        "executeMs": 7.832917,
+        "transportAndSchedulingMs": 13.833802004470348,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 22.80000000447035,
+        "prepareMs": 0.025729,
+        "executeMs": 2.791302,
+        "transportAndSchedulingMs": 19.98296900447035,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 29.700000002980232,
+        "prepareMs": 0.024792,
+        "executeMs": 13.308385,
+        "transportAndSchedulingMs": 16.366823002980233,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 34.80000000447035,
+        "prepareMs": 0.039843,
+        "executeMs": 12.181927,
+        "transportAndSchedulingMs": 22.57823000447035,
+        "requestBytes": 94,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 1719.7999999970198,
+        "prepareMs": 1675.8239580000002,
+        "executeMs": 9.648438,
+        "transportAndSchedulingMs": 34.327603997019594,
+        "requestBytes": 2702,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 25.400000005960464,
+        "prepareMs": 0.026459,
+        "executeMs": 9.270729,
+        "transportAndSchedulingMs": 16.102812005960466,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 26.399999998509884,
+        "prepareMs": 0.033958,
+        "executeMs": 6.225365,
+        "transportAndSchedulingMs": 20.140676998509885,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 31.399999998509884,
+        "prepareMs": 0.033646,
+        "executeMs": 9.8225,
+        "transportAndSchedulingMs": 21.54385399850988,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 33.399999998509884,
+        "prepareMs": 0.030938,
+        "executeMs": 15.783333,
+        "transportAndSchedulingMs": 17.585728998509886,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 2.8040685551289357e-08,
+        "wallMs": 25.5,
+        "prepareMs": 0.032344,
+        "executeMs": 9.825886,
+        "transportAndSchedulingMs": 15.641770000000001,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 1657.7999999970198,
+        "prepareMs": 1619.1975519999999,
+        "executeMs": 6.674479,
+        "transportAndSchedulingMs": 31.92796899701991,
+        "requestBytes": 2302,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 17.799999997019768,
+        "prepareMs": 0.025677,
+        "executeMs": 6.485521,
+        "transportAndSchedulingMs": 11.288801997019766,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 21.599999994039536,
+        "prepareMs": 0.028281,
+        "executeMs": 8.084063,
+        "transportAndSchedulingMs": 13.487655994039535,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 29.399999998509884,
+        "prepareMs": 0.031823,
+        "executeMs": 12.001614,
+        "transportAndSchedulingMs": 17.366562998509885,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 28,
+        "prepareMs": 0.034948,
+        "executeMs": 11.686094,
+        "transportAndSchedulingMs": 16.278958,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Hidden",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 31.399999998509884,
+        "prepareMs": 0.030729,
+        "executeMs": 11.802291,
+        "transportAndSchedulingMs": 19.566979998509883,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 2493,
+        "prepareMs": 2447.976614,
+        "executeMs": 10.715208,
+        "transportAndSchedulingMs": 34.30817799999984,
+        "requestBytes": 2302,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 269.3999999985099,
+        "prepareMs": 0.035573,
+        "executeMs": 242.31224,
+        "transportAndSchedulingMs": 27.05218699850988,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 23.5,
+        "prepareMs": 0.029479,
+        "executeMs": 8.985313,
+        "transportAndSchedulingMs": 14.485208000000002,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 23.19999999552965,
+        "prepareMs": 0.029062,
+        "executeMs": 6.894271,
+        "transportAndSchedulingMs": 16.276666995529652,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 22.799999997019768,
+        "prepareMs": 0.029792,
+        "executeMs": 8.40901,
+        "transportAndSchedulingMs": 14.361197997019767,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 25.899999998509884,
+        "prepareMs": 0.033125,
+        "executeMs": 6.158125,
+        "transportAndSchedulingMs": 19.708749998509887,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1624
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 0,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 4334.60000000149,
+        "prepareMs": 4292.191613,
+        "executeMs": 11.249063,
+        "transportAndSchedulingMs": 31.159324001490155,
+        "requestBytes": 2702,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 1,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 30.399999998509884,
+        "prepareMs": 0.02875,
+        "executeMs": 9.645104,
+        "transportAndSchedulingMs": 20.726145998509885,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 2,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 32.30000000447035,
+        "prepareMs": 0.039792,
+        "executeMs": 10.510573,
+        "transportAndSchedulingMs": 21.74963500447035,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 3,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 37.600000001490116,
+        "prepareMs": 0.04448,
+        "executeMs": 13.804843,
+        "transportAndSchedulingMs": 23.750677001490118,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 4,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 43,
+        "prepareMs": 0.053021,
+        "executeMs": 13.285833,
+        "transportAndSchedulingMs": 29.661146,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      },
+      {
+        "stage": "Logits softmax",
+        "repeat": 5,
+        "maxError": 5.4708454433338716e-08,
+        "wallMs": 39.80000000447035,
+        "prepareMs": 0.043386,
+        "executeMs": 13.643646,
+        "transportAndSchedulingMs": 26.11296800447035,
+        "requestBytes": 106,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1924
+      }
+    ],
+    "placement": {
+      "serial": "192.168.1.74:38353",
+      "pid": "7619",
+      "placements": [
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 9,
+          "total": 9
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        }
+      ]
+    },
+    "restart": {
+      "appRestart": true,
+      "restoredBinaryMlp": true
+    },
+    "finalApkPlacement": {
+      "serial": "192.168.1.74:38353",
+      "pid": "31109",
+      "placements": [
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        },
+        {
+          "delegated": 12,
+          "total": 12
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "mac": {
+      "events": [
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0,
+          "code": "STALE_MODEL"
+        },
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0,
+          "code": "STALE_MODEL"
+        },
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "release",
+          "modelBytes": 0
+        }
+      ],
+      "first": [
+        0.9820137619972229,
+        0.01798621192574501,
+        0.01798621192574501,
+        0.9820137619972229,
+        0.01798621192574501,
+        0.9820137619972229,
+        0.9820137619972229,
+        0.01798621192574501
+      ],
+      "changed": [
+        0.01798621192574501,
+        0.9820137619972229,
+        6.144177405076334e-06,
+        0.9999938011169434,
+        6.144177405076334e-06,
+        0.9999938011169434,
+        0.01798621192574501,
+        0.9820137619972229
+      ]
+    },
+    "intel": {
+      "events": [
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0,
+          "code": "STALE_MODEL"
+        },
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0,
+          "code": "STALE_MODEL"
+        },
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "load",
+          "modelBytes": 1924
+        },
+        {
+          "action": "invoke",
+          "modelBytes": 0
+        },
+        {
+          "action": "release",
+          "modelBytes": 0
+        }
+      ],
+      "first": [
+        0.9820137619972229,
+        0.01798621006309986,
+        0.01798621006309986,
+        0.9820137619972229,
+        0.01798621006309986,
+        0.9820137619972229,
+        0.9820137619972229,
+        0.01798621006309986
+      ],
+      "changed": [
+        0.01798621006309986,
+        0.9820137619972229,
+        6.144176950328983e-06,
+        0.9999938011169434,
+        6.144176950328983e-06,
+        0.9999938011169434,
+        0.01798621006309986,
+        0.9820137619972229
+      ]
+    }
+  },
+  "androidStorage": {
+    "binaryBytes": 2800116,
+    "snapshotBytes": 3733559,
+    "roundTrip": true
+  },
+  "ui-mac": {
+    "binaryMlp": true,
+    "reload": true
+  },
+  "ui-android": {
+    "binaryMlp": true,
+    "reload": true
+  },
+  "update-android": {
+    "persistedWeights": 4,
+    "changedBinaryOutput": true,
+    "restoredOriginal": true
+  }
+}

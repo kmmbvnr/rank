@@ -18,6 +18,8 @@ export function closeRamGpu(): void {
 process.once('exit', closeRamGpu);
 
 export function sendRamGpu(request: RamRequest): RamReply {
+    const payload = JSON.stringify(request);
+    if (Buffer.byteLength(payload) > 32 * 1024 * 1024) throw new Error('RAM request exceeds 32 MiB');
     if (!worker) {
         worker = new Worker(new URL('../out/ram-gpu-worker.js', import.meta.url), { workerData: {
             python: process.env.RANK_ML_PYTHON ?? fileURLToPath(new URL('../../../node_modules/.cache/mlrank/bin/python', import.meta.url)),
@@ -29,8 +31,6 @@ export function sendRamGpu(request: RamRequest): RamReply {
     }
     const shared = new SharedArrayBuffer(12 + Math.min(32 * 1024 * 1024, 65536 + (request.outputSize ?? request.input?.length ?? 0) * 32));
     state = new Int32Array(shared, 0, 3);
-    const payload = JSON.stringify(request);
-    if (Buffer.byteLength(payload) > 32 * 1024 * 1024) throw new Error('RAM request exceeds 32 MiB');
     worker.postMessage({ payload, shared });
     if (Atomics.wait(state, 0, 0, 60_000) === 'timed-out') {
         closeRamGpu(); throw new Error('RAM GPU execution timed out');

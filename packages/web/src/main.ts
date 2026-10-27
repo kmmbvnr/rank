@@ -2002,7 +2002,7 @@ async function exportNotebook(id: string): Promise<void> {
     await notebookHistory!.flush();
     const book = await notebookHistory!.store.get(id);
     if (!book) throw new Error('Notebook is no longer available');
-    const bundled = !!book.snapshot.modules?.length;
+    const bundled = !!book.snapshot.modules?.length || !!Object.keys(book.snapshot.attachments ?? {}).length;
     const data = bundled ? notebookArchive(book.snapshot) : undefined;
     const filename = book.title.replace(/[\\/:*?"<>|]/g, '_') + (bundled ? '.zip' : '.ra');
     if (notebookHistory!.store.exportFile) await notebookHistory!.store.exportFile(book.id,
