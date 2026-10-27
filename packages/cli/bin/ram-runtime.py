@@ -5,6 +5,7 @@ import os
 import sys
 import time
 import uuid
+import resource
 
 # Some native GPU drivers write diagnostics directly to fd 1. Keep the wire
 # separate from both Python logging and C stdio, including process teardown.
@@ -57,13 +58,24 @@ def run(request):
     if data.size != int(np.prod(inputs[0].get_tensor_details()["shape"])) or not np.isfinite(data).all():
         raise ValueError("Invalid RAM input shape or values")
     inputs[0].write(data)
+    written = time.perf_counter()
     model.run_by_index(0, inputs, outputs)
+    dispatched = time.perf_counter()
     output_size = int(np.prod(outputs[0].get_tensor_details()["shape"]))
-    result = outputs[0].read(output_size, np.float32).tolist()
+    output = outputs[0].read(output_size, np.float32)
+    read = time.perf_counter()
+    result = output.tolist()
     finished = time.perf_counter()
-    return {"output": result, "backend": "LiteRT GPU", "fullyAccelerated": True,
+    response = {"output": result, "backend": "LiteRT GPU", "fullyAccelerated": True,
             "cached": cached, "prepareMs": (prepared - started) * 1000,
             "executeMs": (finished - prepared) * 1000}
+    if request.get("profile"):
+        response.update(inputMs=(written - prepared) * 1000,
+                        dispatchMs=(dispatched - written) * 1000,
+                        readbackMs=(read - dispatched) * 1000,
+                        outputMs=(finished - read) * 1000,
+                        peakRssBytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * (1 if sys.platform == "darwin" else 1024))
+    return response
 
 
 if __name__ == "__main__":

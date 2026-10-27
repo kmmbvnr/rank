@@ -1,12 +1,13 @@
 /** One resident native model. A stale handle is retried once after a runtime restart
  * or another client loading a model. Execution failures are never retried. */
 export interface RamRequest {
-    action: 'load' | 'invoke' | 'release'; model?: string; modelId?: string;
+    action: 'load' | 'invoke' | 'release'; profile?: boolean; model?: string; modelId?: string;
     input?: readonly number[]; outputSize?: number;
 }
 export interface RamReply {
     error?: string; code?: string; modelId?: string; output?: number[];
     fullyAccelerated?: boolean; gpuOnlyRequested?: boolean;
+    inputMs?: number; dispatchMs?: number; readbackMs?: number; outputMs?: number; peakRssBytes?: number;
     cached?: boolean; prepareMs?: number; executeMs?: number; backend?: string;
 }
 export function createRamClient(send: (request: RamRequest) => RamReply) {

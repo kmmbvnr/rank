@@ -94,16 +94,26 @@ final class RamGpu {
             if (!Float.isFinite(input[i])) throw new IllegalArgumentException("RAM input requires finite f32 values");
         }
         inputs.get(0).writeFloat(input);
+        long written = System.nanoTime();
         model.run(inputs, outputs);
+        long dispatched = System.nanoTime();
         float[] output = outputs.get(0).readFloat();
+        long read = System.nanoTime();
         JSONArray values = new JSONArray();
         for (float value : output) values.put((double) value);
+        long packed = System.nanoTime();
         JSONObject result = new JSONObject(); result.put("output", values);
         // Kotlin 2.3.0 exposes no isFullyAccelerated query. Do not invent one:
         // full graph placement is verified with delegate logs in the device check.
         result.put("backend", "LiteRT GPU"); result.put("gpuOnlyRequested", true);
         result.put("cached", cached); result.put("prepareMs", (prepared - started) / 1e6);
         result.put("executeMs", (System.nanoTime() - prepared) / 1e6);
+        if (request.optBoolean("profile", false)) {
+            result.put("inputMs", (written - prepared) / 1e6);
+            result.put("dispatchMs", (dispatched - written) / 1e6);
+            result.put("readbackMs", (read - dispatched) / 1e6);
+            result.put("outputMs", (packed - read) / 1e6);
+        }
         return result;
     }
 
