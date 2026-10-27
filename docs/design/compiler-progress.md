@@ -2653,3 +2653,12 @@ Euler 155 completes its reciprocal array before concat/unique, enumerates only
 one ordering of equal-level pairs, and uses the existing `unique len` terminal.
 Its default Count 18 answer remains 3857447. Runtime and source improvements are
 measured separately in the [report](../../benchmarks/euler155-capacitors-results.md).
+
+Guarded native integer arithmetic and concat plans can also feed `unique`,
+`unique len` and `unique sort` directly through the existing private tensor
+visitor. Each demand owns fresh consumer state; failed admission discards partial
+results, and ordinary `unique` retains first-appearance order. Wide integers stay
+exact, while native sorting keeps its interruptible fallback. The Euler 155 demo
+retains ordinary `Rec =`: controlled comparison found it faster than deferring
+that stage, even with the new consumer. See the
+[plan-consumer follow-up](../../benchmarks/euler155-plan-consumers-results.md).

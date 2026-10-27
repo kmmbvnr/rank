@@ -1,0 +1,928 @@
+{
+  "revision": "06c134f8e60c741c7acddc7f27b00fe65b49325b",
+  "platform": "macOS arm64 Apple M5",
+  "node": "v24.15.0",
+  "timingMethod": "Three serial fresh processes per variant, base/rec/recsort then reverse then forward. Parsing, interpreter construction and execution included; imports excluded. No concurrent benchmark/build/test jobs during this batch. Peak RSS is whole-process MiB.",
+  "samples": [
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 22965.899,
+      "rss": 1131.15625,
+      "answer": "3857447",
+      "variant": "base",
+      "rep": 0,
+      "sourceHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 14182.325583,
+      "rss": 980.078125,
+      "answer": "3857447",
+      "variant": "rec",
+      "rep": 0,
+      "sourceHash": "b734ba04cbe61e487118ce234c46b07a8d5b3c203f9e8513bb15b92a6e21d00c"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 9253.284417,
+      "rss": 713.5,
+      "answer": "3857447",
+      "variant": "recsort",
+      "rep": 0,
+      "sourceHash": "f2b672834c3a64ab2f7264ea369f7e2682fd66a338cae96c7a04c84a8a37800b"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 9340.136375,
+      "rss": 708.484375,
+      "answer": "3857447",
+      "variant": "recsort",
+      "rep": 1,
+      "sourceHash": "f2b672834c3a64ab2f7264ea369f7e2682fd66a338cae96c7a04c84a8a37800b"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 13673.083374999998,
+      "rss": 977.453125,
+      "answer": "3857447",
+      "variant": "rec",
+      "rep": 1,
+      "sourceHash": "b734ba04cbe61e487118ce234c46b07a8d5b3c203f9e8513bb15b92a6e21d00c"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 21225.965542,
+      "rss": 1121.84375,
+      "answer": "3857447",
+      "variant": "base",
+      "rep": 1,
+      "sourceHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 22690.280375,
+      "rss": 1125.765625,
+      "answer": "3857447",
+      "variant": "base",
+      "rep": 2,
+      "sourceHash": "17cfaf58d74ea38a2d1c9ef2e04bdaa908c0b76eb196fad0a6ba5789b9763a1b"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 13324.49225,
+      "rss": 978.90625,
+      "answer": "3857447",
+      "variant": "rec",
+      "rep": 2,
+      "sourceHash": "b734ba04cbe61e487118ce234c46b07a8d5b3c203f9e8513bb15b92a6e21d00c"
+    },
+    {
+      "count": "18",
+      "reference": false,
+      "ms": 9545.789958000001,
+      "rss": 705.265625,
+      "answer": "3857447",
+      "variant": "recsort",
+      "rep": 2,
+      "sourceHash": "f2b672834c3a64ab2f7264ea369f7e2682fd66a338cae96c7a04c84a8a37800b"
+    }
+  ],
+  "sources": {
+    "base": "rem Counting Capacitor Circuits\nrem https://projecteuler.net/problem=155\nrem Count the distinct capacitances of\nrem circuits of up to Count equal\nrem capacitors\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Count integer = 18\n\nrem A value p / q is stored as the key\nrem p K + q. Level m holds the circuits\nrem of m capacitors. Joining a level\nrem pair in parallel gives half of it,\nrem and the series joins are the\nrem reciprocals of those values.\nK = 8192\nStore = array 8193\nOff = array 0 0 1\nfor M in 2 to Count\n  Pairs = 0\n  for I in 1 to M // 2\n    Lo = Off (I + 1) - Off I\n    Hi = Off (M - I + 1) - Off (M - I)\n    Pairs += Lo * Hi\n  end\n  Out = array shape Pairs fill 0\n  Used = 0\n  for I in 1 to M // 2\n    J = M - I\n    for P in Off I to Off (I + 1) - 1\n      A = Store P // K\n      B = Store P mod K\n      for Q in Off J to Off (J + 1) - 1\n        C = Store Q // K\n        D = Store Q mod K\n        Num = A * D + B * C\n        Den = B * D\n        G = Num gcd Den\n        Key = Num // G * K + Den // G\n        Out Used = Key\n        Used += 1\n      end\n    end\n  end\n  Par = Out unique\n  Rec' = Par mod K * K + Par // K\n  Lev' = concat Par Rec unique\n  Store = concat Store Lev copy\n  End = array (Store len)\n  Off = concat Off End copy\nend\nAll' = Store unique\nAnswer = All len\nAnswer print\n",
+    "rec": "rem Counting Capacitor Circuits\nrem https://projecteuler.net/problem=155\nrem Count the distinct capacitances of\nrem circuits of up to Count equal\nrem capacitors\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Count integer = 18\n\nrem A value p / q is stored as the key\nrem p K + q. Level m holds the circuits\nrem of m capacitors. Joining a level\nrem pair in parallel gives half of it,\nrem and the series joins are the\nrem reciprocals of those values.\nK = 8192\nStore = array 8193\nOff = array 0 0 1\nfor M in 2 to Count\n  Pairs = 0\n  for I in 1 to M // 2\n    Lo = Off (I + 1) - Off I\n    Hi = Off (M - I + 1) - Off (M - I)\n    Pairs += Lo * Hi\n  end\n  Out = array shape Pairs fill 0\n  Used = 0\n  for I in 1 to M // 2\n    J = M - I\n    for P in Off I to Off (I + 1) - 1\n      A = Store P // K\n      B = Store P mod K\n      for Q in Off J to Off (J + 1) - 1\n        C = Store Q // K\n        D = Store Q mod K\n        Num = A * D + B * C\n        Den = B * D\n        G = Num gcd Den\n        Key = Num // G * K + Den // G\n        Out Used = Key\n        Used += 1\n      end\n    end\n  end\n  Par = Out unique\n  Rec = Par mod K * K + Par // K\n  Lev' = concat Par Rec unique\n  Store = concat Store Lev copy\n  End = array (Store len)\n  Off = concat Off End copy\nend\nAll' = Store unique\nAnswer = All len\nAnswer print\n",
+    "recsort": "rem Counting Capacitor Circuits\nrem https://projecteuler.net/problem=155\nrem Count the distinct capacitances of\nrem circuits of up to Count equal\nrem capacitors\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Count integer = 18\n\nrem A value p / q is stored as the key\nrem p K + q. Level m holds the circuits\nrem of m capacitors. Joining a level\nrem pair in parallel gives half of it,\nrem and the series joins are the\nrem reciprocals of those values.\nK = 8192\nStore = array 8193\nOff = array 0 0 1\nfor M in 2 to Count\n  Pairs = 0\n  for I in 1 to M // 2\n    Lo = Off (I + 1) - Off I\n    Hi = Off (M - I + 1) - Off (M - I)\n    Pairs += Lo * Hi\n  end\n  Out = array shape Pairs fill 0\n  Used = 0\n  for I in 1 to M // 2\n    J = M - I\n    for P in Off I to Off (I + 1) - 1\n      A = Store P // K\n      B = Store P mod K\n      for Q in Off J to Off (J + 1) - 1\n        C = Store Q // K\n        D = Store Q mod K\n        Num = A * D + B * C\n        Den = B * D\n        G = Num gcd Den\n        Key = Num // G * K + Den // G\n        Out Used = Key\n        Used += 1\n      end\n    end\n  end\n  Par = Out unique sort\n  Rec = Par mod K * K + Par // K\n  Lev' = concat Par Rec unique sort\n  Store = concat Store Lev copy\n  End = array (Store len)\n  Off = concat Off End copy\nend\nAll' = Store unique sort\nAnswer = All len\nAnswer print\n"
+  },
+  "diagnostics15": [
+    {
+      "count": "15",
+      "reference": false,
+      "ms": 1754.3378749999997,
+      "rss": 301.15625,
+      "answer": "241519",
+      "d": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 1310364,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 28,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 15,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 28,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 42,
+        "numberLoopReadBufferCells": 254916,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 14,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:deferred-binding:AssignmentStatement": 3,
+          "tensor:binding:Lev": 14,
+          "scalar-expression:operator-guard:mod": 14,
+          "scalar-expression:operator-guard:*": 14,
+          "scalar-expression:operator-guard://": 14,
+          "scalar-expression:operator-guard:+": 14
+        },
+        "compilerRejections": []
+      },
+      "variant": "base"
+    },
+    {
+      "count": "15",
+      "reference": false,
+      "ms": 1044.220584,
+      "rss": 230.9375,
+      "answer": "241519",
+      "d": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 28,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 29,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 28,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 42,
+        "numberLoopReadBufferCells": 254916,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 28,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "tensor:binding:Lev": 14
+        },
+        "compilerRejections": []
+      },
+      "variant": "rec"
+    },
+    {
+      "count": "15",
+      "reference": false,
+      "ms": 1626.857958,
+      "rss": 296.109375,
+      "answer": "241519",
+      "d": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 1310364,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 28,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 15,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 28,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 42,
+        "numberLoopReadBufferCells": 254916,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 28,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "scalar-expression:operator-guard:mod": 14,
+          "scalar-expression:operator-guard:*": 14,
+          "scalar-expression:operator-guard://": 14,
+          "scalar-expression:operator-guard:+": 14
+        },
+        "compilerRejections": []
+      },
+      "variant": "lev"
+    },
+    {
+      "count": "15",
+      "reference": false,
+      "ms": 1120.32075,
+      "rss": 240.09375,
+      "answer": "241519",
+      "d": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 28,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 29,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 28,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 42,
+        "numberLoopReadBufferCells": 254916,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 42,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:deferred-binding:AssignmentStatement": 1
+        },
+        "compilerRejections": []
+      },
+      "variant": "eager"
+    },
+    {
+      "count": "15",
+      "reference": false,
+      "ms": 1592.469125,
+      "rss": 287.125,
+      "answer": "241519",
+      "d": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 1310364,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 28,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 14,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 15,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 28,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 42,
+        "numberLoopReadBufferCells": 254916,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 14,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "loop:unsupported-op:sort": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:deferred-binding:AssignmentStatement": 3,
+          "tensor:binding:Lev": 14,
+          "scalar-expression:operator-guard:mod": 14,
+          "scalar-expression:operator-guard:*": 14,
+          "scalar-expression:operator-guard://": 14,
+          "scalar-expression:operator-guard:+": 14
+        },
+        "compilerRejections": []
+      },
+      "variant": "sort"
+    }
+  ],
+  "referenceChecks": [
+    {
+      "count": 12,
+      "variant": "base",
+      "reference": true,
+      "ms": 501.80595800000003,
+      "rss": 186.609375,
+      "answer": "15463",
+      "sourceHash": "9ffc25668ee7e82d6a1ae9f9343a05f44453a94084885b43f78818e39e4bdb93",
+      "status": "complete"
+    },
+    {
+      "count": 15,
+      "variant": "base",
+      "reference": true,
+      "ms": 4083.77175,
+      "rss": 317.671875,
+      "answer": "241519",
+      "sourceHash": "96d36aa82d0f04856ffc67887eede211dc4907055e82f6ecfc503c9b77f3fc57",
+      "status": "complete"
+    },
+    {
+      "count": 18,
+      "reference": true,
+      "status": "external deadline",
+      "deadlineSeconds": 60
+    }
+  ],
+  "oracleChecks": {
+    "checks": 60,
+    "oracle": [
+      1,
+      3,
+      7,
+      15,
+      35,
+      77,
+      179,
+      429,
+      1039,
+      2525
+    ]
+  },
+  "oracleSource": "import json\nfrom fractions import Fraction\nlevels=[set(),{Fraction(1)}];union=set(levels[1]);out=[1]\nfor n in range(2,11):\n v=set()\n for i in range(1,n):\n  for a in levels[i]:\n   for b in levels[n-i]: v.add(a+b);v.add(a*b/(a+b))\n levels.append(v);union|=v;out.append(len(union))\nopen('/tmp/rank155-oracle.json','w').write(json.dumps(out));print(out)\n",
+  "checkSource": "import assert from 'node:assert/strict';\nimport {readFileSync} from 'node:fs';\nimport {Interpreter} from '/Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js';\nconst oracle=JSON.parse(readFileSync('/tmp/rank155-oracle.json','utf8'));\nlet checks=0;\nfor(const compilation of [false,true])for(const v of ['base','rec','recsort'])for(let n=1;n<=10;n++){\n const path=v==='base'?'/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/155_capacitors.ra':`/tmp/rank155-${v}.ra`;\n const r=new Interpreter(()=>{},{compilation});\n try{r.execute(readFileSync(path,'utf8').replace('Count integer = 18',`Count integer = ${n}`));assert.equal(r.variables.get('Answer'),BigInt(oracle[n-1]));checks++;}finally{r.dispose();}\n}\nconsole.log(JSON.stringify({checks,oracle}));\n",
+  "archivedWorker": "import {readFileSync} from 'node:fs';\nimport {Interpreter,RuntimeDiagnostics} from '/Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter/out/index.js';\nlet source=readFileSync(process.env.RANK155_SOURCE??'/Users/kmmbvnr/Workspace/Playground/09-Rank/demos/euler/155_capacitors.ra','utf8').replace('Count integer = 18',`Count integer = ${process.argv[2]??15}`);\nif(process.argv.includes('--trace'))source=source.replace('  Par = Out unique','  M print\\n  Pairs print\\n  Par = Out unique').replace('  End = array','  (Lev len) print\\n  End = array');\nconst d=new RuntimeDiagnostics(), t=performance.now();\nconst r=new Interpreter(x=>process.stderr.write(JSON.stringify({ms:performance.now()-t,out:x})+'\\n'),{compilation:!process.argv.includes('--reference')});\nif(process.argv.includes('--diag'))d.run(()=>r.execute(source));else r.execute(source);\nconsole.log(JSON.stringify({count:process.argv[2],reference:process.argv.includes('--reference'),ms:performance.now()-t,rss:process.resourceUsage().maxRSS/1024,answer:String(r.variables.get('Answer')),...(process.argv.includes('--diag')?{d}: {})}));r.dispose();\n",
+  "trace18": [
+    {
+      "ms": 248.334583,
+      "out": "2"
+    },
+    {
+      "ms": 248.77162500000003,
+      "out": "1"
+    },
+    {
+      "ms": 257.6684159999999,
+      "out": "2"
+    },
+    {
+      "ms": 259.149291,
+      "out": "3"
+    },
+    {
+      "ms": 259.1929579999999,
+      "out": "2"
+    },
+    {
+      "ms": 260.295583,
+      "out": "4"
+    },
+    {
+      "ms": 260.85324999999995,
+      "out": "4"
+    },
+    {
+      "ms": 260.890791,
+      "out": "8"
+    },
+    {
+      "ms": 261.779208,
+      "out": "9"
+    },
+    {
+      "ms": 262.27174999999994,
+      "out": "5"
+    },
+    {
+      "ms": 262.33312499999994,
+      "out": "17"
+    },
+    {
+      "ms": 263.17183299999994,
+      "out": "22"
+    },
+    {
+      "ms": 263.611458,
+      "out": "6"
+    },
+    {
+      "ms": 263.635916,
+      "out": "56"
+    },
+    {
+      "ms": 264.564958,
+      "out": "53"
+    },
+    {
+      "ms": 265.059333,
+      "out": "7"
+    },
+    {
+      "ms": 265.082416,
+      "out": "133"
+    },
+    {
+      "ms": 266.161125,
+      "out": "131"
+    },
+    {
+      "ms": 266.868083,
+      "out": "8"
+    },
+    {
+      "ms": 266.886375,
+      "out": "406"
+    },
+    {
+      "ms": 268.440125,
+      "out": "337"
+    },
+    {
+      "ms": 269.46887499999997,
+      "out": "9"
+    },
+    {
+      "ms": 269.48716599999995,
+      "out": "1009"
+    },
+    {
+      "ms": 271.96762499999994,
+      "out": "869"
+    },
+    {
+      "ms": 274.2045,
+      "out": "10"
+    },
+    {
+      "ms": 274.22258299999993,
+      "out": "3028"
+    },
+    {
+      "ms": 279.32275,
+      "out": "2213"
+    },
+    {
+      "ms": 284.062208,
+      "out": "11"
+    },
+    {
+      "ms": 284.085166,
+      "out": "7644"
+    },
+    {
+      "ms": 297.643708,
+      "out": "5691"
+    },
+    {
+      "ms": 305.18483299999997,
+      "out": "12"
+    },
+    {
+      "ms": 305.21212499999996,
+      "out": "22317"
+    },
+    {
+      "ms": 332.908166,
+      "out": "14517"
+    },
+    {
+      "ms": 343.123125,
+      "out": "13"
+    },
+    {
+      "ms": 343.15775,
+      "out": "56929"
+    },
+    {
+      "ms": 412.15970799999997,
+      "out": "37017"
+    },
+    {
+      "ms": 440.092958,
+      "out": "14"
+    },
+    {
+      "ms": 440.12945799999994,
+      "out": "162872"
+    },
+    {
+      "ms": 625.6160829999999,
+      "out": "93731"
+    },
+    {
+      "ms": 679.277791,
+      "out": "15"
+    },
+    {
+      "ms": 679.3441250000001,
+      "out": "415942"
+    },
+    {
+      "ms": 1154.373916,
+      "out": "237465"
+    },
+    {
+      "ms": 1297.163,
+      "out": "16"
+    },
+    {
+      "ms": 1297.2367909999998,
+      "out": "1173547"
+    },
+    {
+      "ms": 2715.5651660000003,
+      "out": "601093"
+    },
+    {
+      "ms": 3126.242666,
+      "out": "17"
+    },
+    {
+      "ms": 3126.3745000000004,
+      "out": "2987853"
+    },
+    {
+      "ms": 7339.602416,
+      "out": "1519815"
+    },
+    {
+      "ms": 8371.61725,
+      "out": "18"
+    },
+    {
+      "ms": 8371.759833,
+      "out": "8345678"
+    },
+    {
+      "ms": 21749.897708,
+      "out": "3842575"
+    },
+    {
+      "ms": 23038.210666,
+      "out": "3857447"
+    }
+  ],
+  "profileNote": "Separate profiled process overlapped an earlier trace process; use self-sample shares to locate work, not its wall time for a speed comparison.",
+  "verification": {
+    "build": "npx tsc -b tsconfig.build.json passed",
+    "scopedTypesAndDifferential": {
+      "passed": 2,
+      "skipped": 3549,
+      "fixtureBlocks": 2,
+      "log": "\n> @arrrank/interpreter@0.0.2 test\n> node scripts/test.mjs test/types.test.ts test/differential.test.ts -t euler/155_capacitors_test.ra\n\n\n RUN  v3.2.7 /Users/kmmbvnr/Workspace/Playground/09-Rank/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/155_capacitors_test.ra\nauditing euler/155_capacitors_test.ra\n\n \u2713 test/types.test.ts (1775 tests | 1774 skipped) 278ms\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/155_capacitors_test.ra\ncomparing euler/155_capacitors_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 1/1775 compared, 1 completed, 2 test blocks, 336 compiled entries, 72 Number loop entries\n\n \u2713 test/differential.test.ts (1776 tests | 1775 skipped) 8333ms\n   \u2713 compiled and reference demo execution > euler/155_capacitors_test.ra  8326ms\n\n Test Files  2 passed (2)\n      Tests  2 passed | 3549 skipped (3551)\n   Start at  15:30:16\n   Duration  11.09s (transform 1.53s, setup 0ms, collect 4.79s, tests 8.61s, environment 0ms, prepare 97ms)\n\n"
+    },
+    "harnessSmoke": {
+      "count": 3,
+      "variant": "recsort",
+      "reference": false,
+      "ms": 286.27779200000003,
+      "rss": 173.671875,
+      "answer": "7",
+      "sourceHash": "972b27ce3189acb111b8e251f80c00a92044959d8e0b56b5e1605d1c08c5102e",
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 4,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "numericUniqueSorts": 5,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 4,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 6,
+        "numberLoopReadBufferCells": 18,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 4,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 0,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "tensor:unsupported-type:array": 4,
+          "loop:unsupported-op:sort": 1,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "tensor:binding:Lev": 2
+        },
+        "compilerRejections": []
+      }
+    }
+  },
+  "profileTopSelfSamples": [
+    {
+      "function": "distinct",
+      "file": "sequence-distinct.js",
+      "percent": 23.02462685458839
+    },
+    {
+      "function": "uniqueValue",
+      "file": "sequence-distinct.js",
+      "percent": 17.112173822642685
+    },
+    {
+      "function": "numericDistinct",
+      "file": "numeric-collections.js",
+      "percent": 16.851386393001945
+    },
+    {
+      "function": "(garbage collector)",
+      "file": "",
+      "percent": 6.978236525923395
+    },
+    {
+      "function": "integer,integer",
+      "file": "numbers.js",
+      "percent": 4.356134436309091
+    },
+    {
+      "function": "",
+      "file": "",
+      "percent": 3.8807835682354863
+    },
+    {
+      "function": "readArrayItem",
+      "file": "array-read.js",
+      "percent": 2.426756568101822
+    },
+    {
+      "function": "itemAt",
+      "file": "derived-array.js",
+      "percent": 2.3556948301724265
+    },
+    {
+      "function": "",
+      "file": "operators.js",
+      "percent": 1.9606730726389734
+    },
+    {
+      "function": "vector",
+      "file": "ordered-source.js",
+      "percent": 1.8381358323556056
+    },
+    {
+      "function": "",
+      "file": "concat-array.js",
+      "percent": 1.7304620319902573
+    },
+    {
+      "function": "build",
+      "file": "ordered-source.js",
+      "percent": 1.612374318684746
+    },
+    {
+      "function": "coordinatesAt",
+      "file": "tensor-index.js",
+      "percent": 1.4888746973994922
+    },
+    {
+      "function": "(program)",
+      "file": "",
+      "percent": 1.4299615344630419
+    },
+    {
+      "function": "setValueKey",
+      "file": "set.js",
+      "percent": 1.296529190738568
+    },
+    {
+      "function": "evaluateArrayItem",
+      "file": "array-read.js",
+      "percent": 1.0502547042312091
+    },
+    {
+      "function": "run",
+      "file": "number-loop-runtime.js",
+      "percent": 0.9717850088366774
+    },
+    {
+      "function": "get",
+      "file": "owned-array.js",
+      "percent": 0.8584200911885702
+    },
+    {
+      "function": "numericKey",
+      "file": "numeric-collections.js",
+      "percent": 0.7960435447700236
+    },
+    {
+      "function": "",
+      "file": "numeric-kernels.js",
+      "percent": 0.5598918806528745
+    }
+  ]
+}

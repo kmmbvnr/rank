@@ -1,4 +1,5 @@
 import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, IntegerCells } from './array-storage.js';
+import { constructingTensorPlan, visitIntegerTensorMap } from './tensor-map.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { integerConcatCells } from './concat-array.js';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
@@ -180,6 +181,41 @@ export function numericKey(value: RankValue): bigint | number | boolean | undefi
     return typeof value === 'boolean' ? value : undefined;
 }
 
+/** Borrow only checked native integer graphs. Each demand owns its private
+ * consumer state; a declined kernel never publishes a partial result. */
+function integerTensor(value: RankValue): value is RankArray {
+    return privateLoopPolling() && isRankArray(value) && constructingTensorPlan(value)
+        && value.shape.length === 1 && !value.columnNames;
+}
+
+function tensorDistinct(value: RankValue, countOnly: boolean): RankArray | bigint | undefined {
+    if (!integerTensor(value)) return undefined;
+    const seen = new Set<bigint | number | boolean>();
+    const result: RankValue[] = [];
+    if (!visitIntegerTensorMap(value, cell => {
+        const key = numericKey(cell)!;
+        if (seen.has(key)) return;
+        seen.add(key);
+        if (!countOnly) result.push(cell);
+    })) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) { diagnostics.numericDistincts++; diagnostics.compiledDistincts++; }
+    // ownedScalarArray packs only representable cells; wider integers stay exact.
+    return countOnly ? BigInt(seen.size) : ownedScalarArray(result, 'integer');
+}
+
+function tensorOrderingCopy(value: RankValue): BigInt64Array | undefined {
+    if (!integerTensor(value)) return undefined;
+    let buffer: BigInt64Array | undefined, index = 0, wide = false;
+    if (!visitIntegerTensorMap(value, cell => {
+        buffer ??= new BigInt64Array(value.shape[0]);
+        if (cell < MIN_INT64 || cell > MAX_INT64) wide = true;
+        else buffer[index] = cell;
+        index++;
+    }) || wide) return undefined;
+    return buffer ?? new BigInt64Array(0);
+}
+
 /** Fuse distinct + ascending sort only for trusted homogeneous numeric storage.
  * Native sort cannot poll; interactive execution keeps the ordinary path.
  * NaN and signed zero retain unique's first-occurrence semantics via fallback. */
@@ -187,10 +223,10 @@ export function numericUniqueSort(value: RankValue): RankArray | undefined {
     if (interruptsEnabled()) return undefined;
     const cells = numericCells(value);
     const concat = !cells && privateLoopPolling() && isRankArray(value) ? integerConcatCells(value) : undefined;
-    const length = cells?.length ?? concat?.length;
-    if (!length) return undefined;
-    const buffer = cells ? orderingCopy(cells) : new BigInt64Array(length);
+    const buffer = cells ? orderingCopy(cells) : concat ? new BigInt64Array(concat.length) : tensorOrderingCopy(value);
     if (!buffer) return undefined;
+    const length = buffer.length;
+    if (!length) return resultValues(buffer);
     if (concat) {
         for (let index = 0; index < length; index++) {
             const cell = concat.read(index);
@@ -217,7 +253,7 @@ export function numericDistinct(value: RankValue, countOnly = false): RankArray 
     const cells = numericCells(value);
     const concat = !cells && privateLoopPolling() && isRankArray(value) ? integerConcatCells(value) : undefined;
     const length = cells?.length ?? concat?.length;
-    if (!length) return undefined;
+    if (!length) return tensorDistinct(value, countOnly);
     const kind = cells ? typeof cells[0] : 'bigint';
     if (!['bigint', 'number', 'boolean'].includes(kind)) return undefined;
     // Trusted Int32 cells have exact Number keys. Avoid boxing every input
