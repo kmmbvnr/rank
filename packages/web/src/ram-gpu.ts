@@ -8,7 +8,7 @@ export const browserRamGpu: RamGpu = (graph, input) => {
     let binary = '';
     for (const byte of graph.model) binary += String.fromCharCode(byte);
     const request = new XMLHttpRequest();
-    const payload = JSON.stringify({ model: btoa(binary), input });
+    const payload = JSON.stringify({ model: btoa(binary), input, outputSize: graph.outputShape.reduce((a, b) => a * b, 1) });
     if (native) {
         const id = crypto.randomUUID();
         self.postMessage({ ram: { id, payload } });

@@ -12,6 +12,7 @@ export interface RamGraph {
     readonly precision: 'f16' | 'f32';
     readonly shape: readonly number[];
     readonly nodes: readonly RamNode[];
+    readonly outputShape: readonly number[];
     readonly output: number;
     readonly model: Uint8Array;
 }
@@ -19,7 +20,7 @@ export interface RamGraph {
 export type RamGpu = (graph: RamGraph, input: readonly number[]) => readonly number[];
 export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string }
 
-/** Static, same-shape tensor expressions with baked constants. */
+/** Static tensor expressions with baked constants. */
 export function compileRam(source: string, id: string): RamModule {
     const ast = parse(source, id);
     const fail = (message: string, node?: Statement): never => {
@@ -47,7 +48,15 @@ export function compileRam(source: string, id: string): RamModule {
     if (!shape.length || shape.length > 4 || shape.some(n => !Number.isSafeInteger(n) || n < 1)
         || !Number.isSafeInteger(size) || size > 1_048_576)
         fail('RAM shape requires 1–4 positive dimensions and at most 1048576 elements', input);
-    const nodes: RamNode[] = [{ kind: 'input' }];
+    const nodes: RamNode[] = [{ kind: 'input', shape }];
+    let constantSize = 0;
+    const validShape = (dimensions: number[], statement: Statement): number => {
+        const count = dimensions.reduce((a, b) => a * b, 1);
+        if (!dimensions.length || dimensions.length > 4 || dimensions.some(n => !Number.isSafeInteger(n) || n < 1)
+            || !Number.isSafeInteger(count) || count > 1_048_576)
+            fail('RAM tensor requires 1–4 positive dimensions and at most 1048576 elements', statement);
+        return count;
+    };
     const names = new Map<string, number>([[input.name, 0]]);
     const scalar = (expression: Expression): number => {
         if (isParenthesizedExpression(expression)) return scalar(expression.value);
@@ -63,27 +72,30 @@ export function compileRam(source: string, id: string): RamModule {
         if (precision !== 'f32' || weight.precision?.name !== 'f32')
             fail('Baked arithmetic currently requires .f32 inputs and weights', weight);
         if (names.has(weight.name)) fail('Duplicate RAM option: ' + weight.name, weight);
-        if (weight.dimensions.length !== shape.length || weight.dimensions.some((d, i) => Number(d.value) !== shape[i]))
-            fail('Baked weights must have the same shape as the input; broadcasting is not supported', weight);
+        const shape = weight.dimensions.map(d => Number(d.value));
+        const size = validShape(shape, weight);
+        constantSize += size;
+        if (constantSize > 8_388_608) fail('RAM constant storage exceeds 32 MiB', weight);
         let value = weight.defaultValue;
         while (isParenthesizedExpression(value)) value = value.value;
         if (!isArrayExpression(value)) fail('Baked weights require an array literal or array shape ... fill', weight);
         if (!isArrayExpression(value)) throw new Error('unreachable');
         let values: number[];
-        if (value.fill) {
+        if (value.dimensions.length) {
             if (value.dimensions.length !== shape.length || value.dimensions.some((d, i) =>
                 !isNumberLiteral(d.value) || Number(d.value.value) * (d.sign === '-' ? -1 : 1) !== shape[i]))
                 fail('Baked array shape does not match its option', weight);
+        } else if (shape.length !== 1) fail('Baked matrix literals require an explicit shape', weight);
+        if (value.fill) {
             values = Array(size).fill(scalar(value.fill));
         } else {
-            if (shape.length !== 1 || value.range || value.rows.length || value.dimensions.length)
-                fail('Baked array literals currently require a one-dimensional shape', weight);
-            values = value.items.map(item => (item.sign === '-' ? -1 : 1) * scalar(item.value));
+            if (value.range) fail('Baked array ranges are not supported', weight);
+            values = [...value.items, ...value.rows.flatMap(row => row.items)]
+                .map(item => (item.sign === '-' ? -1 : 1) * scalar(item.value));
             if (values.length !== size) fail('Baked array length does not match its option', weight);
         }
         values = values.map(value => ramRound(value, 'f32'));
-        names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values });
-        if (nodes.length * size > 8_388_608) fail('RAM constant storage exceeds 32 MiB', weight);
+        names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values, shape });
     }
     const lower = (expression: Expression): number => {
         if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', output);
@@ -96,11 +108,28 @@ export function compileRam(source: string, id: string): RamModule {
         let node: RamNode;
         if (isApplicationExpression(expression) && expression.arguments.length === 1
             && isNameExpression(expression.arguments[0]) && expression.arguments[0].name === 'relu') {
-            node = { kind: 'relu', input: lower(expression.head) };
+            const input = lower(expression.head);
+            node = { kind: 'relu', input, shape: nodes[input].shape };
+        } else if (isApplicationExpression(expression) && expression.arguments.length === 1
+            && isNameExpression(expression.arguments[0]) && expression.arguments[0].name === 'linear'
+            && isApplicationExpression(expression.head) && expression.head.arguments.length === 1) {
+            if (precision !== 'f32') return fail('RAM linear currently requires .f32', output);
+            const left = lower(expression.head.head), right = lower(expression.head.arguments[0]);
+            const x = nodes[left], w = nodes[right];
+            if (x.shape.length !== 2 || w.shape.length !== 2 || x.shape[1] !== w.shape[0])
+                return fail('RAM linear expects X[M,K] and W[K,N]', output);
+            if (w.kind !== 'constant') return fail('RAM linear requires baked weights', output);
+            const shape = [x.shape[0], w.shape[1]];
+            validShape(shape, output);
+            node = { kind: 'linear', left, right, shape };
         } else if (isBinaryExpression(expression) && (expression.operator === '+' || expression.operator === '*')) {
             if (precision !== 'f32') return fail('RAM arithmetic currently requires .f32', output);
-            node = { kind: expression.operator === '+' ? 'add' : 'mul', left: lower(expression.left), right: lower(expression.right) };
-        } else return fail('RAM supports tensor names, +, *, and relu', output);
+            const left = lower(expression.left), right = lower(expression.right);
+            const shape = nodes[left].shape;
+            if (shape.length !== nodes[right].shape.length || shape.some((n, i) => n !== nodes[right].shape[i]))
+                return fail('RAM arithmetic requires equal shapes; broadcasting is not supported', output);
+            node = { kind: expression.operator === '+' ? 'add' : 'mul', left, right, shape };
+        } else return fail('RAM supports tensor names, +, *, relu, and linear', output);
         nodes.push(node); return nodes.length - 1;
     };
     if (!output.value) fail('RAM requires an output tensor', output);
@@ -108,7 +137,7 @@ export function compileRam(source: string, id: string): RamModule {
     if (nodes[result].kind === 'input' || nodes[result].kind === 'constant') fail('RAM output must contain a GPU operation', output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
-    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, nodes, output: result, model: ramModel(shape, nodes, result) };
+    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, nodes, outputShape: nodes[result].shape, output: result, model: ramModel(nodes, result) };
     // Ordinary import discovery sees a standard one-argument function. Its runtime
     // implementation is installed by useFile, rather than evaluating this stub.
     const program = parse(`fun ${input.name} ${name}\nreturn ${input.name}\nend\n`, id);
@@ -128,9 +157,9 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
         });
         if (!gpu) throw new RankError('RAM GPU runtime is unavailable on this host', 'GpuUnavailable');
         const output = gpu(module.graph, input);
-        if (output.length !== input.length || output.some(n => !Number.isFinite(n)))
+        if (output.length !== module.graph.outputShape.reduce((a, b) => a * b, 1) || output.some(n => !Number.isFinite(n)))
             throw new RankError('Invalid GPU output', 'GpuExecution');
-        return ownedArray(output.map(n => ramRound(n, module.graph.precision)), module.graph.shape);
+        return ownedArray(output.map(n => ramRound(n, module.graph.precision)), module.graph.outputShape);
     });
 }
 
@@ -154,5 +183,5 @@ export function ramRound(value: number, precision: 'f16' | 'f32'): number {
 
 /** Compatibility helper for the standalone ReLU probe. */
 export function reluModel(shape: readonly number[]): Uint8Array {
-    return ramModel(shape, [{ kind: 'input' }, { kind: 'relu', input: 0 }], 1);
+    return ramModel([{ kind: 'input', shape }, { kind: 'relu', input: 0, shape }], 1);
 }

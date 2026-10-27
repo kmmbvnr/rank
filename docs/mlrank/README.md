@@ -3,11 +3,14 @@
 ## Implemented Hello World subset
 
 The prototype supports one fixed-shape real tensor input, ReLU, and same-shape
-`.f32` expressions using `+` and `*` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
+`.f32` expressions using `+`, `*`, and `linear` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
 See [the ReLU example](../../demos/mlrank/main.ra) and
-[the affine example](../../demos/mlrank/affine.ra).
+[the affine example](../../demos/mlrank/affine.ra), and
+[the linear example](../../demos/mlrank/linear.ra).
 Baked constants accept real-valued `array shape ... fill` expressions or
-one-dimensional array literals. All declared shapes must match; broadcasting,
+array literals with explicit shapes (or one-dimensional literals).
+`X W linear` accepts `X[M,K]` and baked `W[K,N]`, producing `[M,N]`.
+Each tensor has its own statically checked shape; `+` and `*` require equal operand shapes. Broadcasting,
 weight overrides, assignments and multiple runtime inputs remain unsupported.
 Changing source constants recompiles the model on the next call.
 The rest of this document describes proposed extensions.
@@ -20,6 +23,7 @@ npm run build
 npm run rank -- demos/mlrank/main.ra
 node scripts/mlrank-check.mjs
 node scripts/mlrank-affine-check.mjs
+node scripts/mlrank-linear-check.mjs
 ```
 
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
@@ -31,7 +35,7 @@ The helper exits with the host process. GPU checks report cold preparation,
 warm preparation, execution and host round-trip time separately.
 
 The Android app includes LiteRT. Open **GPU Hello World** in the command menu,
-then **Run program**. The upper tabs contain the main program and its attached
+then **Run program**. **GPU Linear** opens the matrix multiplication example. The upper tabs contain the main program and its attached
 `hello.ram`. **+** creates another RAM module, inserts its `use "name.ram"` at the start
 of Program and appends `X name` at the end. Prepare `X` with the declared
 shape before running. Creating a module edits source without executing it.
@@ -54,7 +58,11 @@ Arithmetic currently requires `.f32`; `.f16` supports ReLU only. The arithmetic
 check compares against ordinary Rank execution with `atol=1e-5, rtol=1e-6`,
 allowing FP32 intermediate rounding and fusion. This is a workload acceptance
 tolerance, not a universal error bound for arbitrarily long expressions.
-The shape has 1–4 positive dimensions, with at most 1,048,576 elements.
+The linear subset accepts rank-2 matrices, including dimensions not divisible
+by 16 or 32. It emits LiteRT `FULLY_CONNECTED` with weights transposed once
+to `[N,K]` during compilation; no host multiplication or explicit padding is used.
+This is GPU execution, not a claim of AMX or Hexagon NPU execution.
+The shape of each tensor has 1–4 positive dimensions, with at most 1,048,576 elements.
 Inputs must contain finite Rank `real` values; integers are not narrowed.
 `.f16` and `.f32` round at the input/output boundary. LiteRT transport and computation use float32 tensors; both native bridges
 explicitly request FP32 GPU precision. `.f16` describes boundary rounding,
@@ -83,6 +91,13 @@ Android check with `node scripts/mlrank-android-fixtures.mjs`, then run
 Afterwards, `node scripts/mlrank-android-placement.mjs SERIAL APP_PID` checks
 native delegation logs for that app process. A successful API response alone
 is not proof of full Android placement.
+The linear check passed on Mac M5, Intel UHD and OnePlus Adreno 619;
+Android delegated both nodes (`FULLY_CONNECTED` and `RELU`).
+It uses nonuniform weights, rectangular and odd shapes, output
+expansion/contraction, repeated calls and changed weights. It compares against
+Rank `matmul` with `atol=1e-5, rtol=1e-5`. Generate the Android check with
+`node scripts/mlrank-linear-check.mjs --android`, then run
+`output/playwright/ram-linear.js` in the WebView and check native placement logs.
 The notebook and its selected RAM tab survived a WebView reload.
 These checks establish correctness and placement for this workload, not a
 speedup. Linux WebGPU profiling in the standalone tool is unsupported; run

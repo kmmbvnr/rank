@@ -69,7 +69,36 @@ describe('RAM ReLU MVP', () => {
     });
     it('bakes explicit vector constants', () => {
         const source = 'use ml\noption X .f32 shape 4\noption W .f32 shape 4 = array -2.0 0.0 1.0 3.0\nreturn X * W';
-        expect(compileRam(source, 'scale.ram').graph.nodes[1]).toEqual({ kind: 'constant', values: [-2, 0, 1, 3] });
+        expect(compileRam(source, 'scale.ram').graph.nodes[1]).toEqual({ kind: 'constant', shape: [4], values: [-2, 0, 1, 3] });
+    });
+    it('infers linear output shapes and returns a differently sized GPU tensor', () => {
+        const source = 'use ml\noption X .f32 shape 2 3\n'
+            + 'option W .f32 shape 3 2 = array 1.0 2.0 3.0 4.0 5.0 6.0 shape 3 2\n'
+            + 'return (X W linear) relu';
+        const graph = compileRam(source, 'dense.ram').graph;
+        expect(graph.outputShape).toEqual([2, 2]);
+        expect(graph.nodes.map(node => node.shape)).toEqual([[2, 3], [3, 2], [2, 2], [2, 2]]);
+        const runtime = new Interpreter(() => {}, {
+            loadModule: name => ({ id: name, source }), ramGpu: () => [22, 28, 49, 64],
+        });
+        expect(runtime.execute('use sequences\nuse "dense.ram"\n(array 1.0 2.0 3.0 4.0 5.0 6.0 shape 2 3) dense'))
+            .toMatchObject({ shape: [2, 2], items: [22, 28, 49, 64] });
+        for (const invalid of [source.replace('shape 2 3', 'shape 2 4'),
+            source.replace('X W linear', 'X X linear'), source.replace('X W linear', 'X + W'),
+            source.replace('shape 3 2 =', 'shape 0 2 ='), source.replace('shape 3 2 =', 'shape 3 3 ='),
+            source.replace('X W linear', '(X W linear) + X')])
+            expect(() => compileRam(invalid, 'dense.ram')).toThrow();
+    });
+    it('supports explicit matrix rows and chained linear layers', () => {
+        const source = 'use ml\noption X .f32 shape 2 3\n'
+            + 'option W .f32 shape 3 2 = array shape 3 2\n1.0 2.0\n3.0 4.0\n5.0 6.0\nend\n'
+            + 'option V .f32 shape 2 4 = array shape 2 4 fill 0.5\n'
+            + 'option B .f32 shape 2 4 = array shape 2 4 fill 1.0\n'
+            + 'return (((X W linear) relu) V linear) + B';
+        const graph = compileRam(source, 'dense.ram').graph;
+        expect(graph.outputShape).toEqual([2, 4]);
+        expect(graph.nodes[1]).toMatchObject({ values: [1, 2, 3, 4, 5, 6] });
+        expect(() => compileRam(source.replace('shape 2 4 fill 1.0', 'shape 2 3 fill 1.0'), 'dense.ram')).toThrow();
     });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
         expect(ramRound(1 + 2 ** -11, 'f16')).toBe(1);

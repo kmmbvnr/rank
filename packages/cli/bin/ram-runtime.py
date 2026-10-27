@@ -41,7 +41,8 @@ def run(request):
     data = np.asarray(request["input"], dtype=np.float32)
     inputs[0].write(data)
     model.run_by_index(0, inputs, outputs)
-    result = outputs[0].read(len(data), np.float32).tolist()
+    output_size = int(np.prod(outputs[0].get_tensor_details()["shape"]))
+    result = outputs[0].read(output_size, np.float32).tolist()
     finished = time.perf_counter()
     return {"output": result, "backend": "LiteRT GPU", "fullyAccelerated": True,
             "cached": cached, "prepareMs": (prepared - started) * 1000,
