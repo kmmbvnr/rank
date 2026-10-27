@@ -212,6 +212,17 @@ describe('RAM structural graphs', () => {
         expect(()=>r.execute('X s Y')).toThrow('expects shape 3 1 for Y');
         expect(calls).toBe(1);
     });
+    it('preserves the declared call signature for three runtime inputs', () => {
+        const source='use ml\noption X .f32 shape 1\noption Y .f32 shape 1\noption Z .f32 shape 1\nreturn (X + Y) + Z';
+        const r=new Interpreter(()=>{}, {loadModule:id=>({id,source}),ramGpu:(_graph,input)=>{
+            expect(input).toEqual([1,2,3]); return [6];
+        }});
+        r.execute('use "three.ram"');
+        for (const [i,name] of ['X','Y','Z'].entries()) r.variables.set(name,{kind:'array',shape:[1],items:[i+1]});
+        expect(r.execute('X three Y Z')).toMatchObject({shape:[1],items:[6]});
+        r.variables.set('Z',{kind:'array',shape:[1],items:[NaN]});
+        expect(()=>r.execute('X three Y Z')).toThrow('finite real');
+    });
     it('checks matrix contraction, batch broadcasting and batched linear shapes', () => {
         const source='use ml\noption X .f32 shape 2 1 3 5\noption Y .f32 shape 1 4 5 7\nreturn X matmul Y rank 2 2';
         expect(compileRam(source,'s.ram').graph.outputShape).toEqual([2,4,3,7]);

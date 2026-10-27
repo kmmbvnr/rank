@@ -52,6 +52,9 @@ for(const shape of [[7],[3,7],[2,3,7],[2,2,3,7]]){
 for(const [a,b]of [[[3,5],[5,7]],[[2,3,5],[2,5,7]],[[2,2,3,5],[2,2,5,7]],[[2,1,3,5],[1,3,5,7]],[[2,3,5],[5,7]],[[1,1],[1,1]]]){
  const x=tensor(a),y=tensor(b,7);add('matmul/'+a+'-'+b,{X:x,Y:y},'return X matmul Y rank 2 2',matmul(x,y));
 }
+const three=[tensor([2,3],1),tensor([2,3],2),tensor([2,3],3)];
+add('three-runtime-inputs',{X:three[0],Y:three[1],Z:three[2]},'return (X + Y) + Z',
+ {shape:[2,3],items:three[0].items.map((v,i)=>v+three[1].items[i]+three[2].items[i])});
 const x=tensor([2,3,4]),w=tensor([4,12],9);
 const literal='array shape 4 12\n'+w.items.join(' ')+'\nend';
 const weight='option W .f32 shape 4 12 = '+literal;

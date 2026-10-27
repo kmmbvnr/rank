@@ -2,7 +2,7 @@ import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.
 import { lowerRamStructure } from './ram-structure.js';
 import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
-    isUseStatement, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
+    isUseStatement, isFunctionStatement, functionCallSignature, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
     isNumberLiteral, isStringLiteral, isUnaryExpression, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
 import { RankError } from './errors.js';
@@ -43,7 +43,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     }
     const input = body[0], output = body.at(-1);
     if (!isOptionStatement(input) || input.defaultValue || !isReturnStatement(output))
-        fail('RAM expects one runtime option, optional baked weights, and a final return', body[0]);
+        fail('RAM expects runtime options, optional baked weights, and a final return', body[0]);
     if (!isOptionStatement(input) || !isReturnStatement(output)) throw new Error('unreachable');
     const precision = input.precision?.name;
     if (precision !== 'f16' && precision !== 'f32') fail('RAM input requires .f16 or .f32', input);
@@ -279,7 +279,10 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
 }
 
 export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamModule): NativeFunction {
-    return native(module.name, module.graph.inputs.length, (values) => {
+    const declaration = module.program.statements[0];
+    if (!isFunctionStatement(declaration)) throw new Error('Missing RAM function declaration');
+    const callSignature = functionCallSignature(declaration);
+    return { ...native(module.name, module.graph.inputs.length, (values) => {
         if (reload) module = reload();
         if (values.length !== module.graph.inputs.length)
             throw new RankError('RAM input count changed; import the module again', 'DimensionMismatch');
@@ -299,7 +302,7 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
         if (output.length !== module.graph.outputShape.reduce((a, b) => a * b, 1) || output.some(n => !Number.isFinite(n)))
             throw new RankError('Invalid GPU output', 'GpuExecution');
         return ownedArray(output.map(n => ramRound(n, module.graph.precision)), module.graph.outputShape);
-    });
+    }), callSignature };
 }
 
 /** Round at the declared boundary; LiteRT uses float32 transport tensors.

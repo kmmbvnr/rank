@@ -1,7 +1,7 @@
 {
   "date": "2026-10-27",
   "scope": "stage 10 correctness, not a performance benchmark",
-  "fixtures": 25,
+  "fixtures": 26,
   "reference": "ordinary CPU Rank and independent scalar JavaScript",
   "tolerance": {
     "atol": 1e-05,
@@ -9,7 +9,7 @@
   },
   "mac": {
     "platform": "darwin",
-    "fixtureCount": 25,
+    "fixtureCount": 26,
     "cpuRankCompared": true,
     "tolerance": {
       "atol": 1e-05,
@@ -410,6 +410,24 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 2,
         "maxError": 0,
+        "fullyAccelerated": true
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 0,
+        "maxError": 9.685754776000977e-08,
+        "fullyAccelerated": true
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 1,
+        "maxError": 9.685754776000977e-08,
+        "fullyAccelerated": true
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 2,
+        "maxError": 9.685754776000977e-08,
         "fullyAccelerated": true
       },
       {
@@ -470,7 +488,7 @@
   },
   "intel": {
     "platform": "linux",
-    "fixtureCount": 25,
+    "fixtureCount": 26,
     "cpuRankCompared": true,
     "tolerance": {
       "atol": 1e-05,
@@ -871,6 +889,24 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 2,
         "maxError": 0,
+        "fullyAccelerated": true
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 0,
+        "maxError": 9.685754776000977e-08,
+        "fullyAccelerated": true
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 1,
+        "maxError": 9.685754776000977e-08,
+        "fullyAccelerated": true
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 2,
+        "maxError": 9.685754776000977e-08,
         "fullyAccelerated": true
       },
       {
@@ -935,10 +971,10 @@
         "stage": "reshape/7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 221,
-        "prepareMs": 176.959167,
-        "executeMs": 7.598385,
-        "transportAndSchedulingMs": 36.44244799999999,
+        "wallMs": 239.30000000447035,
+        "prepareMs": 203.253073,
+        "executeMs": 5.148489,
+        "transportAndSchedulingMs": 30.89843800447035,
         "requestBytes": 964,
         "actions": [
           "load",
@@ -951,10 +987,10 @@
         "stage": "reshape/7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 17.799999997019768,
-        "prepareMs": 0.009635,
-        "executeMs": 2.142344,
-        "transportAndSchedulingMs": 15.648020997019769,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.007969,
+        "executeMs": 1.85276,
+        "transportAndSchedulingMs": 9.539270998509885,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -966,10 +1002,10 @@
         "stage": "reshape/7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 20.100000001490116,
-        "prepareMs": 0.009323,
-        "executeMs": 3.398489,
-        "transportAndSchedulingMs": 16.692188001490116,
+        "wallMs": 10.699999995529652,
+        "prepareMs": 0.007969,
+        "executeMs": 1.661614,
+        "transportAndSchedulingMs": 9.030416995529652,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -981,10 +1017,10 @@
         "stage": "reshape/7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 16.099999994039536,
-        "prepareMs": 0.01,
-        "executeMs": 2.43177,
-        "transportAndSchedulingMs": 13.658229994039534,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.034687,
+        "executeMs": 1.729323,
+        "transportAndSchedulingMs": 9.635989998509885,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -996,10 +1032,10 @@
         "stage": "reshape/7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 18.19999999552965,
-        "prepareMs": 0.009427,
-        "executeMs": 5.105573,
-        "transportAndSchedulingMs": 13.084999995529653,
+        "wallMs": 10.799999997019768,
+        "prepareMs": 0.007657,
+        "executeMs": 1.85802,
+        "transportAndSchedulingMs": 8.934322997019768,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1011,10 +1047,10 @@
         "stage": "reshape/7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 16.700000002980232,
-        "prepareMs": 0.008646,
-        "executeMs": 2.968281,
-        "transportAndSchedulingMs": 13.723073002980232,
+        "wallMs": 10.899999998509884,
+        "prepareMs": 0.008333,
+        "executeMs": 1.788386,
+        "transportAndSchedulingMs": 9.103280998509884,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1026,10 +1062,10 @@
         "stage": "transpose/7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 207.5,
-        "prepareMs": 172.701875,
-        "executeMs": 6.549062,
-        "transportAndSchedulingMs": 28.249063,
+        "wallMs": 174.5,
+        "prepareMs": 154.93927,
+        "executeMs": 0.915469,
+        "transportAndSchedulingMs": 18.645261000000005,
         "requestBytes": 956,
         "actions": [
           "load",
@@ -1042,10 +1078,10 @@
         "stage": "transpose/7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 21.69999999552965,
-        "prepareMs": 0.010156,
-        "executeMs": 2.820208,
-        "transportAndSchedulingMs": 18.869635995529652,
+        "wallMs": 13.799999997019768,
+        "prepareMs": 0.008594,
+        "executeMs": 1.333229,
+        "transportAndSchedulingMs": 12.458176997019768,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1057,10 +1093,10 @@
         "stage": "transpose/7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 18.600000001490116,
-        "prepareMs": 0.010209,
-        "executeMs": 2.457343,
-        "transportAndSchedulingMs": 16.13244800149012,
+        "wallMs": 11.799999997019768,
+        "prepareMs": 0.00724,
+        "executeMs": 2.279531,
+        "transportAndSchedulingMs": 9.513228997019768,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1072,10 +1108,10 @@
         "stage": "transpose/7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 17.200000002980232,
-        "prepareMs": 0.011511,
-        "executeMs": 3.26875,
-        "transportAndSchedulingMs": 13.919739002980233,
+        "wallMs": 12,
+        "prepareMs": 0.007865,
+        "executeMs": 2.950989,
+        "transportAndSchedulingMs": 9.041146,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1087,10 +1123,10 @@
         "stage": "transpose/7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 18.299999997019768,
-        "prepareMs": 0.008177,
-        "executeMs": 2.232136,
-        "transportAndSchedulingMs": 16.059686997019767,
+        "wallMs": 10.700000002980232,
+        "prepareMs": 0.007448,
+        "executeMs": 1.9425,
+        "transportAndSchedulingMs": 8.750052002980233,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1102,10 +1138,10 @@
         "stage": "transpose/7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 18.5,
-        "prepareMs": 0.009896,
-        "executeMs": 2.042812,
-        "transportAndSchedulingMs": 16.447291999999997,
+        "wallMs": 10.800000004470348,
+        "prepareMs": 0.006823,
+        "executeMs": 2.482552,
+        "transportAndSchedulingMs": 8.310625004470348,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1117,10 +1153,10 @@
         "stage": "slice/7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 206.60000000149012,
-        "prepareMs": 162.159427,
-        "executeMs": 6.329479,
-        "transportAndSchedulingMs": 38.11109400149012,
+        "wallMs": 158.30000000447035,
+        "prepareMs": 133.78724,
+        "executeMs": 4.909896,
+        "transportAndSchedulingMs": 19.60286400447035,
         "requestBytes": 1124,
         "actions": [
           "load",
@@ -1133,10 +1169,10 @@
         "stage": "slice/7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 23.399999998509884,
-        "prepareMs": 0.011562,
-        "executeMs": 2.120677,
-        "transportAndSchedulingMs": 21.267760998509882,
+        "wallMs": 11,
+        "prepareMs": 0.007864,
+        "executeMs": 0.740782,
+        "transportAndSchedulingMs": 10.251354000000001,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1148,10 +1184,10 @@
         "stage": "slice/7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 22.80000000447035,
-        "prepareMs": 0.011302,
-        "executeMs": 3.197657,
-        "transportAndSchedulingMs": 19.59104100447035,
+        "wallMs": 11.699999995529652,
+        "prepareMs": 0.00849,
+        "executeMs": 1.730416,
+        "transportAndSchedulingMs": 9.961093995529652,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1163,10 +1199,10 @@
         "stage": "slice/7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 17.30000000447035,
-        "prepareMs": 0.009011,
-        "executeMs": 1.277343,
-        "transportAndSchedulingMs": 16.01364600447035,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.007291,
+        "executeMs": 1.905261,
+        "transportAndSchedulingMs": 9.487447998509884,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1178,10 +1214,10 @@
         "stage": "slice/7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 18.700000002980232,
-        "prepareMs": 0.011302,
-        "executeMs": 6.837135,
-        "transportAndSchedulingMs": 11.851563002980232,
+        "wallMs": 13.100000001490116,
+        "prepareMs": 0.007709,
+        "executeMs": 3.015989,
+        "transportAndSchedulingMs": 10.076302001490117,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1193,10 +1229,10 @@
         "stage": "slice/7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 20,
-        "prepareMs": 0.010052,
-        "executeMs": 2.995573,
-        "transportAndSchedulingMs": 16.994374999999998,
+        "wallMs": 11.200000002980232,
+        "prepareMs": 0.007291,
+        "executeMs": 2.229636,
+        "transportAndSchedulingMs": 8.96307300298023,
         "requestBytes": 199,
         "actions": [
           "invoke"
@@ -1208,10 +1244,10 @@
         "stage": "concat/7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 193.5,
-        "prepareMs": 159.969584,
-        "executeMs": 6.432239,
-        "transportAndSchedulingMs": 27.098177000000003,
+        "wallMs": 160.90000000596046,
+        "prepareMs": 140.51901,
+        "executeMs": 1.861822,
+        "transportAndSchedulingMs": 18.519168005960456,
         "requestBytes": 1120,
         "actions": [
           "load",
@@ -1224,10 +1260,10 @@
         "stage": "concat/7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 18.799999997019768,
-        "prepareMs": 0.010782,
-        "executeMs": 1.301718,
-        "transportAndSchedulingMs": 17.487499997019768,
+        "wallMs": 11.5,
+        "prepareMs": 0.007812,
+        "executeMs": 1.922865,
+        "transportAndSchedulingMs": 9.569323,
         "requestBytes": 337,
         "actions": [
           "invoke"
@@ -1239,10 +1275,10 @@
         "stage": "concat/7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 18,
-        "prepareMs": 0.010625,
-        "executeMs": 1.745677,
-        "transportAndSchedulingMs": 16.243698,
+        "wallMs": 12.899999998509884,
+        "prepareMs": 0.008229,
+        "executeMs": 1.840729,
+        "transportAndSchedulingMs": 11.051041998509884,
         "requestBytes": 337,
         "actions": [
           "invoke"
@@ -1254,10 +1290,10 @@
         "stage": "concat/7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 21.600000001490116,
-        "prepareMs": 0.010416,
-        "executeMs": 2.454584,
-        "transportAndSchedulingMs": 19.135000001490116,
+        "wallMs": 12,
+        "prepareMs": 0.009166,
+        "executeMs": 2.276459,
+        "transportAndSchedulingMs": 9.714375,
         "requestBytes": 337,
         "actions": [
           "invoke"
@@ -1269,10 +1305,10 @@
         "stage": "concat/7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 19.099999994039536,
-        "prepareMs": 0.011406,
-        "executeMs": 3.809792,
-        "transportAndSchedulingMs": 15.278801994039535,
+        "wallMs": 11.700000002980232,
+        "prepareMs": 0.007813,
+        "executeMs": 2.173177,
+        "transportAndSchedulingMs": 9.519010002980231,
         "requestBytes": 337,
         "actions": [
           "invoke"
@@ -1284,10 +1320,10 @@
         "stage": "concat/7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 18.899999998509884,
-        "prepareMs": 0.010782,
-        "executeMs": 2.346041,
-        "transportAndSchedulingMs": 16.543176998509885,
+        "wallMs": 10.399999998509884,
+        "prepareMs": 0.008229,
+        "executeMs": 1.74948,
+        "transportAndSchedulingMs": 8.642290998509884,
         "requestBytes": 337,
         "actions": [
           "invoke"
@@ -1299,10 +1335,10 @@
         "stage": "reshape/3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 205.30000000447035,
-        "prepareMs": 169.13692700000001,
-        "executeMs": 2.811875,
-        "transportAndSchedulingMs": 33.351198004470334,
+        "wallMs": 180.79999999701977,
+        "prepareMs": 159.801875,
+        "executeMs": 1.94099,
+        "transportAndSchedulingMs": 19.057134997019773,
         "requestBytes": 1246,
         "actions": [
           "load",
@@ -1315,10 +1351,10 @@
         "stage": "reshape/3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 22.899999998509884,
-        "prepareMs": 0.010208,
-        "executeMs": 2.759063,
-        "transportAndSchedulingMs": 20.130728998509884,
+        "wallMs": 11.600000001490116,
+        "prepareMs": 0.008385,
+        "executeMs": 3.012292,
+        "transportAndSchedulingMs": 8.579323001490115,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1330,10 +1366,10 @@
         "stage": "reshape/3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 24.200000002980232,
-        "prepareMs": 0.012396,
-        "executeMs": 2.940625,
-        "transportAndSchedulingMs": 21.246979002980233,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.008021,
+        "executeMs": 2.382916,
+        "transportAndSchedulingMs": 9.009062998509885,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1345,10 +1381,10 @@
         "stage": "reshape/3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 20.200000002980232,
-        "prepareMs": 0.010468,
-        "executeMs": 2.715886,
-        "transportAndSchedulingMs": 17.47364600298023,
+        "wallMs": 10.5,
+        "prepareMs": 0.00776,
+        "executeMs": 1.786302,
+        "transportAndSchedulingMs": 8.705938,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1360,10 +1396,10 @@
         "stage": "reshape/3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 21.399999998509884,
-        "prepareMs": 0.012969,
-        "executeMs": 1.309792,
-        "transportAndSchedulingMs": 20.077238998509884,
+        "wallMs": 10.599999994039536,
+        "prepareMs": 0.008489,
+        "executeMs": 1.758854,
+        "transportAndSchedulingMs": 8.832656994039535,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1375,10 +1411,10 @@
         "stage": "reshape/3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 22.899999998509884,
-        "prepareMs": 0.011563,
-        "executeMs": 2.928541,
-        "transportAndSchedulingMs": 19.959895998509886,
+        "wallMs": 11.799999997019768,
+        "prepareMs": 0.008125,
+        "executeMs": 2.443906,
+        "transportAndSchedulingMs": 9.347968997019768,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1390,10 +1426,10 @@
         "stage": "transpose/3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 194.59999999403954,
-        "prepareMs": 159.87078100000002,
-        "executeMs": 6.642239,
-        "transportAndSchedulingMs": 28.086979994039513,
+        "wallMs": 170.39999999850988,
+        "prepareMs": 145.04,
+        "executeMs": 5.808646,
+        "transportAndSchedulingMs": 19.551353998509892,
         "requestBytes": 1330,
         "actions": [
           "load",
@@ -1406,10 +1442,10 @@
         "stage": "transpose/3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 19.19999999552965,
-        "prepareMs": 0.01099,
-        "executeMs": 2.372135,
-        "transportAndSchedulingMs": 16.816874995529652,
+        "wallMs": 11.600000001490116,
+        "prepareMs": 0.008697,
+        "executeMs": 1.256198,
+        "transportAndSchedulingMs": 10.335105001490117,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1421,10 +1457,10 @@
         "stage": "transpose/3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 18.299999997019768,
-        "prepareMs": 0.011614,
-        "executeMs": 2.599896,
-        "transportAndSchedulingMs": 15.688489997019765,
+        "wallMs": 11.299999997019768,
+        "prepareMs": 0.010104,
+        "executeMs": 2.001927,
+        "transportAndSchedulingMs": 9.287968997019767,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1436,10 +1472,10 @@
         "stage": "transpose/3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 17.5,
-        "prepareMs": 0.01099,
-        "executeMs": 1.681823,
-        "transportAndSchedulingMs": 15.807187,
+        "wallMs": 11.799999997019768,
+        "prepareMs": 0.008177,
+        "executeMs": 2.111979,
+        "transportAndSchedulingMs": 9.679843997019768,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1451,10 +1487,10 @@
         "stage": "transpose/3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 17,
-        "prepareMs": 0.010782,
-        "executeMs": 2.68026,
-        "transportAndSchedulingMs": 14.308958,
+        "wallMs": 11.599999994039536,
+        "prepareMs": 0.00875,
+        "executeMs": 2.028125,
+        "transportAndSchedulingMs": 9.563124994039537,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1466,10 +1502,10 @@
         "stage": "transpose/3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 17.200000002980232,
-        "prepareMs": 0.011042,
-        "executeMs": 2.764166,
-        "transportAndSchedulingMs": 14.424792002980233,
+        "wallMs": 10.800000004470348,
+        "prepareMs": 0.009896,
+        "executeMs": 2.136302,
+        "transportAndSchedulingMs": 8.653802004470348,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1481,10 +1517,10 @@
         "stage": "slice/3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 211.89999999850988,
-        "prepareMs": 171.679583,
-        "executeMs": 2.48026,
-        "transportAndSchedulingMs": 37.740156998509875,
+        "wallMs": 172.39999999850988,
+        "prepareMs": 151.060677,
+        "executeMs": 5.010261,
+        "transportAndSchedulingMs": 16.329061998509886,
         "requestBytes": 1422,
         "actions": [
           "load",
@@ -1497,10 +1533,10 @@
         "stage": "slice/3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 19.5,
-        "prepareMs": 0.010417,
-        "executeMs": 2.9725,
-        "transportAndSchedulingMs": 16.517083,
+        "wallMs": 10.799999997019768,
+        "prepareMs": 0.011458,
+        "executeMs": 2.119271,
+        "transportAndSchedulingMs": 8.669270997019769,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1512,10 +1548,10 @@
         "stage": "slice/3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 22.100000001490116,
-        "prepareMs": 0.011146,
-        "executeMs": 2.740417,
-        "transportAndSchedulingMs": 19.348437001490115,
+        "wallMs": 11.299999997019768,
+        "prepareMs": 0.01026,
+        "executeMs": 2.23224,
+        "transportAndSchedulingMs": 9.057499997019768,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1527,10 +1563,10 @@
         "stage": "slice/3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 18.200000002980232,
-        "prepareMs": 0.011823,
-        "executeMs": 1.623958,
-        "transportAndSchedulingMs": 16.56421900298023,
+        "wallMs": 11.099999994039536,
+        "prepareMs": 0.010469,
+        "executeMs": 1.719166,
+        "transportAndSchedulingMs": 9.370364994039535,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1542,10 +1578,10 @@
         "stage": "slice/3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 17.700000002980232,
-        "prepareMs": 0.010521,
-        "executeMs": 3.115729,
-        "transportAndSchedulingMs": 14.573750002980232,
+        "wallMs": 11.200000002980232,
+        "prepareMs": 0.009271,
+        "executeMs": 2.227916,
+        "transportAndSchedulingMs": 8.962813002980232,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1557,10 +1593,10 @@
         "stage": "slice/3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 17.30000000447035,
-        "prepareMs": 0.012031,
-        "executeMs": 3.082031,
-        "transportAndSchedulingMs": 14.205938004470347,
+        "wallMs": 10.5,
+        "prepareMs": 0.009063,
+        "executeMs": 2.396823,
+        "transportAndSchedulingMs": 8.094114000000001,
         "requestBytes": 472,
         "actions": [
           "invoke"
@@ -1572,10 +1608,10 @@
         "stage": "concat/3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 195.60000000149012,
-        "prepareMs": 160.829218,
-        "executeMs": 7.47948,
-        "transportAndSchedulingMs": 27.29130200149012,
+        "wallMs": 167.19999999552965,
+        "prepareMs": 143.826302,
+        "executeMs": 5.341198,
+        "transportAndSchedulingMs": 18.032499995529655,
         "requestBytes": 1703,
         "actions": [
           "load",
@@ -1588,10 +1624,10 @@
         "stage": "concat/3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 20.5,
-        "prepareMs": 0.012396,
-        "executeMs": 2.768594,
-        "transportAndSchedulingMs": 17.71901,
+        "wallMs": 10.799999997019768,
+        "prepareMs": 0.009687,
+        "executeMs": 1.92875,
+        "transportAndSchedulingMs": 8.861562997019767,
         "requestBytes": 886,
         "actions": [
           "invoke"
@@ -1603,10 +1639,10 @@
         "stage": "concat/3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 18.700000002980232,
-        "prepareMs": 0.01151,
-        "executeMs": 2.044844,
-        "transportAndSchedulingMs": 16.64364600298023,
+        "wallMs": 11,
+        "prepareMs": 0.00875,
+        "executeMs": 1.848698,
+        "transportAndSchedulingMs": 9.142552,
         "requestBytes": 886,
         "actions": [
           "invoke"
@@ -1618,10 +1654,10 @@
         "stage": "concat/3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 17.5,
-        "prepareMs": 0.010729,
-        "executeMs": 2.818802,
-        "transportAndSchedulingMs": 14.670468999999999,
+        "wallMs": 10,
+        "prepareMs": 0.008438,
+        "executeMs": 1.845781,
+        "transportAndSchedulingMs": 8.145781,
         "requestBytes": 886,
         "actions": [
           "invoke"
@@ -1633,10 +1669,10 @@
         "stage": "concat/3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 17.399999998509884,
-        "prepareMs": 0.010416,
-        "executeMs": 3.522969,
-        "transportAndSchedulingMs": 13.866614998509885,
+        "wallMs": 12.5,
+        "prepareMs": 0.011563,
+        "executeMs": 3.198177,
+        "transportAndSchedulingMs": 9.29026,
         "requestBytes": 886,
         "actions": [
           "invoke"
@@ -1648,10 +1684,10 @@
         "stage": "concat/3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 16.5,
-        "prepareMs": 0.009896,
-        "executeMs": 3.978958,
-        "transportAndSchedulingMs": 12.511145999999998,
+        "wallMs": 12.100000001490116,
+        "prepareMs": 0.009844,
+        "executeMs": 2.171927,
+        "transportAndSchedulingMs": 9.918229001490117,
         "requestBytes": 886,
         "actions": [
           "invoke"
@@ -1663,10 +1699,10 @@
         "stage": "reshape/2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 218,
-        "prepareMs": 180.577708,
-        "executeMs": 3.70776,
-        "transportAndSchedulingMs": 33.714532,
+        "wallMs": 179,
+        "prepareMs": 156.970781,
+        "executeMs": 1.351094,
+        "transportAndSchedulingMs": 20.678125000000012,
         "requestBytes": 1666,
         "actions": [
           "load",
@@ -1679,10 +1715,10 @@
         "stage": "reshape/2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 19,
-        "prepareMs": 0.012344,
-        "executeMs": 2.217604,
-        "transportAndSchedulingMs": 16.770052,
+        "wallMs": 14.199999995529652,
+        "prepareMs": 0.006771,
+        "executeMs": 1.012864,
+        "transportAndSchedulingMs": 13.18036499552965,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1694,10 +1730,10 @@
         "stage": "reshape/2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 18.80000000447035,
-        "prepareMs": 0.012188,
-        "executeMs": 2.68526,
-        "transportAndSchedulingMs": 16.10255200447035,
+        "wallMs": 12.100000001490116,
+        "prepareMs": 0.006354,
+        "executeMs": 2.570469,
+        "transportAndSchedulingMs": 9.523177001490115,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1709,10 +1745,10 @@
         "stage": "reshape/2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 19.5,
-        "prepareMs": 0.013125,
-        "executeMs": 2.870782,
-        "transportAndSchedulingMs": 16.616093,
+        "wallMs": 11.299999997019768,
+        "prepareMs": 0.006927,
+        "executeMs": 1.285,
+        "transportAndSchedulingMs": 10.008072997019768,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1724,10 +1760,10 @@
         "stage": "reshape/2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 20.600000001490116,
-        "prepareMs": 0.010677,
-        "executeMs": 5.997031,
-        "transportAndSchedulingMs": 14.592292001490115,
+        "wallMs": 11,
+        "prepareMs": 0.006563,
+        "executeMs": 1.960521,
+        "transportAndSchedulingMs": 9.032916,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1739,10 +1775,10 @@
         "stage": "reshape/2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 16.899999998509884,
-        "prepareMs": 0.010677,
-        "executeMs": 2.015156,
-        "transportAndSchedulingMs": 14.874166998509882,
+        "wallMs": 11.200000002980232,
+        "prepareMs": 0.005209,
+        "executeMs": 2.024687,
+        "transportAndSchedulingMs": 9.170104002980231,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1754,10 +1790,10 @@
         "stage": "transpose/2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 195.10000000149012,
-        "prepareMs": 160.710469,
-        "executeMs": 2.175365,
-        "transportAndSchedulingMs": 32.21416600149013,
+        "wallMs": 168.79999999701977,
+        "prepareMs": 142.70098900000002,
+        "executeMs": 5.615365,
+        "transportAndSchedulingMs": 20.483645997019746,
         "requestBytes": 1762,
         "actions": [
           "load",
@@ -1770,10 +1806,10 @@
         "stage": "transpose/2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 21.19999999552965,
-        "prepareMs": 0.010677,
-        "executeMs": 2.462552,
-        "transportAndSchedulingMs": 18.72677099552965,
+        "wallMs": 10.800000004470348,
+        "prepareMs": 0.00573,
+        "executeMs": 2.076562,
+        "transportAndSchedulingMs": 8.71770800447035,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1785,10 +1821,10 @@
         "stage": "transpose/2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 23.100000001490116,
-        "prepareMs": 0.011719,
-        "executeMs": 2.957187,
-        "transportAndSchedulingMs": 20.131094001490116,
+        "wallMs": 13.5,
+        "prepareMs": 0.007604,
+        "executeMs": 2.094375,
+        "transportAndSchedulingMs": 11.398021,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1800,10 +1836,10 @@
         "stage": "transpose/2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 21.799999997019768,
-        "prepareMs": 0.012864,
-        "executeMs": 3.453542,
-        "transportAndSchedulingMs": 18.33359399701977,
+        "wallMs": 11.799999997019768,
+        "prepareMs": 0.007188,
+        "executeMs": 2.279427,
+        "transportAndSchedulingMs": 9.513384997019768,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1815,10 +1851,10 @@
         "stage": "transpose/2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 18,
-        "prepareMs": 0.011146,
-        "executeMs": 4.261094,
-        "transportAndSchedulingMs": 13.72776,
+        "wallMs": 11,
+        "prepareMs": 0.007917,
+        "executeMs": 1.72901,
+        "transportAndSchedulingMs": 9.263072999999999,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1830,10 +1866,10 @@
         "stage": "transpose/2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 19.400000005960464,
-        "prepareMs": 0.012448,
-        "executeMs": 3.365417,
-        "transportAndSchedulingMs": 16.022135005960465,
+        "wallMs": 11.100000001490116,
+        "prepareMs": 0.006823,
+        "executeMs": 1.496979,
+        "transportAndSchedulingMs": 9.596198001490116,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1845,10 +1881,10 @@
         "stage": "slice/2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 202.10000000149012,
-        "prepareMs": 163.960261,
-        "executeMs": 7.079218,
-        "transportAndSchedulingMs": 31.060521001490113,
+        "wallMs": 172.40000000596046,
+        "prepareMs": 150.18781199999998,
+        "executeMs": 4.485625,
+        "transportAndSchedulingMs": 17.726563005960486,
         "requestBytes": 1858,
         "actions": [
           "load",
@@ -1861,10 +1897,10 @@
         "stage": "slice/2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 18.69999999552965,
-        "prepareMs": 0.011771,
-        "executeMs": 3.164219,
-        "transportAndSchedulingMs": 15.524009995529653,
+        "wallMs": 14.600000001490116,
+        "prepareMs": 0.005364,
+        "executeMs": 1.776667,
+        "transportAndSchedulingMs": 12.817969001490116,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1876,10 +1912,10 @@
         "stage": "slice/2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 16.399999998509884,
-        "prepareMs": 0.010468,
-        "executeMs": 2.46448,
-        "transportAndSchedulingMs": 13.925051998509884,
+        "wallMs": 10.300000004470348,
+        "prepareMs": 0.005313,
+        "executeMs": 1.741719,
+        "transportAndSchedulingMs": 8.55296800447035,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1891,10 +1927,10 @@
         "stage": "slice/2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 18,
-        "prepareMs": 0.010625,
-        "executeMs": 2.668594,
-        "transportAndSchedulingMs": 15.320780999999998,
+        "wallMs": 9.899999998509884,
+        "prepareMs": 0.004583,
+        "executeMs": 1.964219,
+        "transportAndSchedulingMs": 7.931197998509884,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1906,10 +1942,10 @@
         "stage": "slice/2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 15.299999997019768,
-        "prepareMs": 0.013021,
-        "executeMs": 2.496302,
-        "transportAndSchedulingMs": 12.790676997019768,
+        "wallMs": 10.399999998509884,
+        "prepareMs": 0.006823,
+        "executeMs": 1.712396,
+        "transportAndSchedulingMs": 8.680780998509883,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1921,10 +1957,10 @@
         "stage": "slice/2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 17,
-        "prepareMs": 0.010416,
-        "executeMs": 2.428229,
-        "transportAndSchedulingMs": 14.561355,
+        "wallMs": 10.399999998509884,
+        "prepareMs": 0.004843,
+        "executeMs": 1.759844,
+        "transportAndSchedulingMs": 8.635312998509885,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -1936,10 +1972,10 @@
         "stage": "concat/2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 205.20000000298023,
-        "prepareMs": 165.59052000000003,
-        "executeMs": 3.796823,
-        "transportAndSchedulingMs": 35.8126570029802,
+        "wallMs": 168.80000000447035,
+        "prepareMs": 145.438594,
+        "executeMs": 5.27151,
+        "transportAndSchedulingMs": 18.089896004470354,
         "requestBytes": 2550,
         "actions": [
           "load",
@@ -1952,10 +1988,10 @@
         "stage": "concat/2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 20.100000001490116,
-        "prepareMs": 0.011198,
-        "executeMs": 2.670729,
-        "transportAndSchedulingMs": 17.418073001490114,
+        "wallMs": 12.300000004470348,
+        "prepareMs": 0.006302,
+        "executeMs": 1.284687,
+        "transportAndSchedulingMs": 11.009011004470349,
         "requestBytes": 1717,
         "actions": [
           "invoke"
@@ -1967,10 +2003,10 @@
         "stage": "concat/2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 23.299999997019768,
-        "prepareMs": 0.012344,
-        "executeMs": 2.199323,
-        "transportAndSchedulingMs": 21.08833299701977,
+        "wallMs": 12.399999998509884,
+        "prepareMs": 0.006511,
+        "executeMs": 2.147552,
+        "transportAndSchedulingMs": 10.245936998509883,
         "requestBytes": 1717,
         "actions": [
           "invoke"
@@ -1982,10 +2018,10 @@
         "stage": "concat/2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 18.799999997019768,
-        "prepareMs": 0.009947,
-        "executeMs": 2.845782,
-        "transportAndSchedulingMs": 15.944270997019768,
+        "wallMs": 11.5,
+        "prepareMs": 0.007031,
+        "executeMs": 2.096563,
+        "transportAndSchedulingMs": 9.396406,
         "requestBytes": 1717,
         "actions": [
           "invoke"
@@ -1997,10 +2033,10 @@
         "stage": "concat/2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 15.5,
-        "prepareMs": 0.007969,
-        "executeMs": 2.718177,
-        "transportAndSchedulingMs": 12.773854,
+        "wallMs": 11.600000001490116,
+        "prepareMs": 0.007084,
+        "executeMs": 2.444427,
+        "transportAndSchedulingMs": 9.148489001490116,
         "requestBytes": 1717,
         "actions": [
           "invoke"
@@ -2012,10 +2048,10 @@
         "stage": "concat/2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 14.599999994039536,
-        "prepareMs": 0.008854,
-        "executeMs": 4.681615,
-        "transportAndSchedulingMs": 9.909530994039535,
+        "wallMs": 10.799999997019768,
+        "prepareMs": 0.005573,
+        "executeMs": 2.032136,
+        "transportAndSchedulingMs": 8.762290997019768,
         "requestBytes": 1717,
         "actions": [
           "invoke"
@@ -2027,10 +2063,10 @@
         "stage": "reshape/2x2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 209,
-        "prepareMs": 176.448958,
-        "executeMs": 7.012292,
-        "transportAndSchedulingMs": 25.538749999999993,
+        "wallMs": 183.19999999552965,
+        "prepareMs": 162.258021,
+        "executeMs": 1.727656,
+        "transportAndSchedulingMs": 19.21432299552964,
         "requestBytes": 2500,
         "actions": [
           "load",
@@ -2043,10 +2079,10 @@
         "stage": "reshape/2x2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 22.600000001490116,
-        "prepareMs": 0.009687,
-        "executeMs": 2.57875,
-        "transportAndSchedulingMs": 20.011563001490117,
+        "wallMs": 11,
+        "prepareMs": 0.006094,
+        "executeMs": 1.996927,
+        "transportAndSchedulingMs": 8.996979000000001,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2058,10 +2094,10 @@
         "stage": "reshape/2x2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 21,
-        "prepareMs": 0.008281,
-        "executeMs": 2.479583,
-        "transportAndSchedulingMs": 18.512135999999998,
+        "wallMs": 10.5,
+        "prepareMs": 0.005365,
+        "executeMs": 1.856354,
+        "transportAndSchedulingMs": 8.638281000000001,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2073,10 +2109,10 @@
         "stage": "reshape/2x2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 17.80000000447035,
-        "prepareMs": 0.009271,
-        "executeMs": 3.028698,
-        "transportAndSchedulingMs": 14.76203100447035,
+        "wallMs": 10.199999995529652,
+        "prepareMs": 0.005677,
+        "executeMs": 1.98974,
+        "transportAndSchedulingMs": 8.204582995529652,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2088,10 +2124,10 @@
         "stage": "reshape/2x2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 17.899999998509884,
-        "prepareMs": 0.009115,
-        "executeMs": 2.446458,
-        "transportAndSchedulingMs": 15.444426998509883,
+        "wallMs": 10.200000002980232,
+        "prepareMs": 0.006458,
+        "executeMs": 2.053177,
+        "transportAndSchedulingMs": 8.140365002980232,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2103,10 +2139,10 @@
         "stage": "reshape/2x2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 18.599999994039536,
-        "prepareMs": 0.009375,
-        "executeMs": 4.059218,
-        "transportAndSchedulingMs": 14.531406994039536,
+        "wallMs": 10.700000002980232,
+        "prepareMs": 0.005937,
+        "executeMs": 1.284584,
+        "transportAndSchedulingMs": 9.409479002980232,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2118,10 +2154,10 @@
         "stage": "transpose/2x2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 203.70000000298023,
-        "prepareMs": 162.46697899999998,
-        "executeMs": 6.520833,
-        "transportAndSchedulingMs": 34.712188002980255,
+        "wallMs": 173,
+        "prepareMs": 144.81796799999998,
+        "executeMs": 4.804896,
+        "transportAndSchedulingMs": 23.37713600000002,
         "requestBytes": 2608,
         "actions": [
           "load",
@@ -2134,10 +2170,10 @@
         "stage": "transpose/2x2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 19.69999999552965,
-        "prepareMs": 0.009427,
-        "executeMs": 2.678959,
-        "transportAndSchedulingMs": 17.011613995529654,
+        "wallMs": 14.199999995529652,
+        "prepareMs": 0.008281,
+        "executeMs": 2.151823,
+        "transportAndSchedulingMs": 12.039895995529651,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2149,10 +2185,10 @@
         "stage": "transpose/2x2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 16.700000002980232,
-        "prepareMs": 0.011198,
-        "executeMs": 2.136094,
-        "transportAndSchedulingMs": 14.552708002980232,
+        "wallMs": 13.199999995529652,
+        "prepareMs": 0.009115,
+        "executeMs": 2.183594,
+        "transportAndSchedulingMs": 11.007290995529653,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2164,10 +2200,10 @@
         "stage": "transpose/2x2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 19,
-        "prepareMs": 0.008125,
-        "executeMs": 2.757083,
-        "transportAndSchedulingMs": 16.234792,
+        "wallMs": 14,
+        "prepareMs": 0.00776,
+        "executeMs": 2.365417,
+        "transportAndSchedulingMs": 11.626823000000002,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2179,10 +2215,10 @@
         "stage": "transpose/2x2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 18.399999998509884,
-        "prepareMs": 0.009114,
-        "executeMs": 4.759271,
-        "transportAndSchedulingMs": 13.631614998509884,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.008802,
+        "executeMs": 1.053646,
+        "transportAndSchedulingMs": 10.337551998509884,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2194,10 +2230,10 @@
         "stage": "transpose/2x2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 22,
-        "prepareMs": 0.009427,
-        "executeMs": 3.239844,
-        "transportAndSchedulingMs": 18.750729,
+        "wallMs": 10.899999998509884,
+        "prepareMs": 0.006979,
+        "executeMs": 2.343229,
+        "transportAndSchedulingMs": 8.549791998509885,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2209,10 +2245,10 @@
         "stage": "slice/2x2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 212.19999999552965,
-        "prepareMs": 174.591146,
-        "executeMs": 7.009531,
-        "transportAndSchedulingMs": 30.599322995529644,
+        "wallMs": 169.80000000447035,
+        "prepareMs": 152.031094,
+        "executeMs": 1.817865,
+        "transportAndSchedulingMs": 15.951041004470353,
         "requestBytes": 2708,
         "actions": [
           "load",
@@ -2225,10 +2261,10 @@
         "stage": "slice/2x2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 22,
-        "prepareMs": 0.010937,
-        "executeMs": 2.426823,
-        "transportAndSchedulingMs": 19.562240000000003,
+        "wallMs": 10.900000005960464,
+        "prepareMs": 0.006927,
+        "executeMs": 1.895209,
+        "transportAndSchedulingMs": 8.997864005960466,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2240,10 +2276,10 @@
         "stage": "slice/2x2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 18.299999997019768,
-        "prepareMs": 0.010469,
-        "executeMs": 1.58651,
-        "transportAndSchedulingMs": 16.703020997019767,
+        "wallMs": 14.299999997019768,
+        "prepareMs": 0.0075,
+        "executeMs": 1.221198,
+        "transportAndSchedulingMs": 13.071301997019768,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2255,10 +2291,10 @@
         "stage": "slice/2x2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 23.599999994039536,
-        "prepareMs": 0.010156,
-        "executeMs": 4.180365,
-        "transportAndSchedulingMs": 19.40947899403954,
+        "wallMs": 12,
+        "prepareMs": 0.005313,
+        "executeMs": 1.959062,
+        "transportAndSchedulingMs": 10.035625000000001,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2270,10 +2306,10 @@
         "stage": "slice/2x2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 21.19999999552965,
-        "prepareMs": 0.010469,
-        "executeMs": 3.383646,
-        "transportAndSchedulingMs": 17.805884995529652,
+        "wallMs": 10.400000005960464,
+        "prepareMs": 0.006302,
+        "executeMs": 2.171146,
+        "transportAndSchedulingMs": 8.222552005960464,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2285,10 +2321,10 @@
         "stage": "slice/2x2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 18.799999997019768,
-        "prepareMs": 0.01026,
-        "executeMs": 3.954115,
-        "transportAndSchedulingMs": 14.835624997019769,
+        "wallMs": 11,
+        "prepareMs": 0.006146,
+        "executeMs": 2.056666,
+        "transportAndSchedulingMs": 8.937188,
         "requestBytes": 1718,
         "actions": [
           "invoke"
@@ -2300,10 +2336,10 @@
         "stage": "concat/2x2x3x7",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 208.39999999850988,
-        "prepareMs": 161.087135,
-        "executeMs": 9.285313,
-        "transportAndSchedulingMs": 38.02755199850989,
+        "wallMs": 181.20000000298023,
+        "prepareMs": 148.67875,
+        "executeMs": 5.778906,
+        "transportAndSchedulingMs": 26.742344002980225,
         "requestBytes": 4227,
         "actions": [
           "load",
@@ -2316,10 +2352,10 @@
         "stage": "concat/2x2x3x7",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 20.899999998509884,
-        "prepareMs": 0.00901,
-        "executeMs": 3.321928,
-        "transportAndSchedulingMs": 17.569061998509884,
+        "wallMs": 35,
+        "prepareMs": 0.013125,
+        "executeMs": 3.882136,
+        "transportAndSchedulingMs": 31.104739,
         "requestBytes": 3378,
         "actions": [
           "invoke"
@@ -2331,10 +2367,10 @@
         "stage": "concat/2x2x3x7",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 22.69999999552965,
-        "prepareMs": 0.009322,
-        "executeMs": 3.180782,
-        "transportAndSchedulingMs": 19.50989599552965,
+        "wallMs": 22.099999994039536,
+        "prepareMs": 0.015,
+        "executeMs": 6.264844,
+        "transportAndSchedulingMs": 15.820155994039535,
         "requestBytes": 3378,
         "actions": [
           "invoke"
@@ -2346,10 +2382,10 @@
         "stage": "concat/2x2x3x7",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 21.100000001490116,
-        "prepareMs": 0.008906,
-        "executeMs": 3.006406,
-        "transportAndSchedulingMs": 18.084688001490115,
+        "wallMs": 13.799999997019768,
+        "prepareMs": 0.006666,
+        "executeMs": 3.755209,
+        "transportAndSchedulingMs": 10.038124997019768,
         "requestBytes": 3378,
         "actions": [
           "invoke"
@@ -2361,10 +2397,10 @@
         "stage": "concat/2x2x3x7",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 18.600000001490116,
-        "prepareMs": 0.010989,
-        "executeMs": 4.581823,
-        "transportAndSchedulingMs": 14.007188001490118,
+        "wallMs": 18.80000000447035,
+        "prepareMs": 0.008646,
+        "executeMs": 3.05927,
+        "transportAndSchedulingMs": 15.73208400447035,
         "requestBytes": 3378,
         "actions": [
           "invoke"
@@ -2376,10 +2412,10 @@
         "stage": "concat/2x2x3x7",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 18.5,
-        "prepareMs": 0.009739,
-        "executeMs": 3.379375,
-        "transportAndSchedulingMs": 15.110886,
+        "wallMs": 13.700000002980232,
+        "prepareMs": 0.007083,
+        "executeMs": 2.679896,
+        "transportAndSchedulingMs": 11.013021002980233,
         "requestBytes": 3378,
         "actions": [
           "invoke"
@@ -2391,10 +2427,10 @@
         "stage": "matmul/3,5-5,7",
         "repeat": 0,
         "maxError": 6.352918258123452e-08,
-        "wallMs": 357.8999999985099,
-        "prepareMs": 319.414011,
-        "executeMs": 6.731823,
-        "transportAndSchedulingMs": 31.75416599850987,
+        "wallMs": 340.19999999552965,
+        "prepareMs": 315.06541699999997,
+        "executeMs": 1.614688,
+        "transportAndSchedulingMs": 23.519894995529683,
         "requestBytes": 1844,
         "actions": [
           "load",
@@ -2407,10 +2443,10 @@
         "stage": "matmul/3,5-5,7",
         "repeat": 1,
         "maxError": 6.352918258123452e-08,
-        "wallMs": 21.5,
-        "prepareMs": 0.01177,
-        "executeMs": 2.116719,
-        "transportAndSchedulingMs": 19.371511,
+        "wallMs": 10.799999997019768,
+        "prepareMs": 0.005989,
+        "executeMs": 1.926979,
+        "transportAndSchedulingMs": 8.867031997019769,
         "requestBytes": 1043,
         "actions": [
           "invoke"
@@ -2422,10 +2458,10 @@
         "stage": "matmul/3,5-5,7",
         "repeat": 2,
         "maxError": 6.352918258123452e-08,
-        "wallMs": 17.299999997019768,
-        "prepareMs": 0.011927,
-        "executeMs": 1.680677,
-        "transportAndSchedulingMs": 15.607395997019768,
+        "wallMs": 11.699999995529652,
+        "prepareMs": 0.007031,
+        "executeMs": 2.507657,
+        "transportAndSchedulingMs": 9.185311995529652,
         "requestBytes": 1043,
         "actions": [
           "invoke"
@@ -2437,10 +2473,10 @@
         "stage": "matmul/3,5-5,7",
         "repeat": 3,
         "maxError": 6.352918258123452e-08,
-        "wallMs": 18.299999997019768,
-        "prepareMs": 0.012239,
-        "executeMs": 3.60875,
-        "transportAndSchedulingMs": 14.679010997019766,
+        "wallMs": 11.699999995529652,
+        "prepareMs": 0.008281,
+        "executeMs": 1.958906,
+        "transportAndSchedulingMs": 9.73281299552965,
         "requestBytes": 1043,
         "actions": [
           "invoke"
@@ -2452,10 +2488,10 @@
         "stage": "matmul/3,5-5,7",
         "repeat": 4,
         "maxError": 6.352918258123452e-08,
-        "wallMs": 18.80000000447035,
-        "prepareMs": 0.010261,
-        "executeMs": 2.639791,
-        "transportAndSchedulingMs": 16.14994800447035,
+        "wallMs": 11.100000001490116,
+        "prepareMs": 0.005833,
+        "executeMs": 2.209792,
+        "transportAndSchedulingMs": 8.884375001490115,
         "requestBytes": 1043,
         "actions": [
           "invoke"
@@ -2467,10 +2503,10 @@
         "stage": "matmul/3,5-5,7",
         "repeat": 5,
         "maxError": 6.352918258123452e-08,
-        "wallMs": 16.600000001490116,
-        "prepareMs": 0.010729,
-        "executeMs": 3.911823,
-        "transportAndSchedulingMs": 12.677448001490115,
+        "wallMs": 11,
+        "prepareMs": 0.00625,
+        "executeMs": 2.277448,
+        "transportAndSchedulingMs": 8.716302,
         "requestBytes": 1043,
         "actions": [
           "invoke"
@@ -2482,10 +2518,10 @@
         "stage": "matmul/2,3,5-2,5,7",
         "repeat": 0,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 365.20000000298023,
-        "prepareMs": 327.357032,
-        "executeMs": 7.134114,
-        "transportAndSchedulingMs": 30.708854002980228,
+        "wallMs": 335.69999999552965,
+        "prepareMs": 316.567186,
+        "executeMs": 2.125105,
+        "transportAndSchedulingMs": 17.007708995529658,
         "requestBytes": 2848,
         "actions": [
           "load",
@@ -2498,10 +2534,10 @@
         "stage": "matmul/2,3,5-2,5,7",
         "repeat": 1,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 19.30000000447035,
-        "prepareMs": 0.009584,
-        "executeMs": 2.812812,
-        "transportAndSchedulingMs": 16.477604004470347,
+        "wallMs": 11.5,
+        "prepareMs": 0.005833,
+        "executeMs": 1.723386,
+        "transportAndSchedulingMs": 9.770781,
         "requestBytes": 2031,
         "actions": [
           "invoke"
@@ -2513,10 +2549,10 @@
         "stage": "matmul/2,3,5-2,5,7",
         "repeat": 2,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 17.899999998509884,
-        "prepareMs": 0.009635,
-        "executeMs": 2.305209,
-        "transportAndSchedulingMs": 15.585155998509885,
+        "wallMs": 15.799999997019768,
+        "prepareMs": 0.004739,
+        "executeMs": 2.051198,
+        "transportAndSchedulingMs": 13.744062997019768,
         "requestBytes": 2031,
         "actions": [
           "invoke"
@@ -2528,10 +2564,10 @@
         "stage": "matmul/2,3,5-2,5,7",
         "repeat": 3,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 22.799999997019768,
-        "prepareMs": 0.011041,
-        "executeMs": 2.792657,
-        "transportAndSchedulingMs": 19.99630199701977,
+        "wallMs": 13.799999997019768,
+        "prepareMs": 0.006771,
+        "executeMs": 4.908438,
+        "transportAndSchedulingMs": 8.884790997019767,
         "requestBytes": 2031,
         "actions": [
           "invoke"
@@ -2543,10 +2579,10 @@
         "stage": "matmul/2,3,5-2,5,7",
         "repeat": 4,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 18,
-        "prepareMs": 0.00927,
-        "executeMs": 3.208438,
-        "transportAndSchedulingMs": 14.782291999999998,
+        "wallMs": 12.5,
+        "prepareMs": 0.005886,
+        "executeMs": 2.220729,
+        "transportAndSchedulingMs": 10.273385,
         "requestBytes": 2031,
         "actions": [
           "invoke"
@@ -2558,10 +2594,10 @@
         "stage": "matmul/2,3,5-2,5,7",
         "repeat": 5,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 17.399999998509884,
-        "prepareMs": 0.01026,
-        "executeMs": 3.232552,
-        "transportAndSchedulingMs": 14.157187998509885,
+        "wallMs": 11.799999997019768,
+        "prepareMs": 0.007188,
+        "executeMs": 2.391719,
+        "transportAndSchedulingMs": 9.401092997019768,
         "requestBytes": 2031,
         "actions": [
           "invoke"
@@ -2573,10 +2609,10 @@
         "stage": "matmul/2,2,3,5-2,2,5,7",
         "repeat": 0,
         "maxError": 9.023407665509353e-08,
-        "wallMs": 362.1000000014901,
-        "prepareMs": 323.167448,
-        "executeMs": 7.004219,
-        "transportAndSchedulingMs": 31.928333001490138,
+        "wallMs": 338.59999999403954,
+        "prepareMs": 314.581614,
+        "executeMs": 1.640156,
+        "transportAndSchedulingMs": 22.378229994039533,
         "requestBytes": 4833,
         "actions": [
           "load",
@@ -2589,10 +2625,10 @@
         "stage": "matmul/2,2,3,5-2,2,5,7",
         "repeat": 1,
         "maxError": 9.023407665509353e-08,
-        "wallMs": 22,
-        "prepareMs": 0.009479,
-        "executeMs": 5.577708,
-        "transportAndSchedulingMs": 16.412813,
+        "wallMs": 12.400000005960464,
+        "prepareMs": 0.006511,
+        "executeMs": 1.703437,
+        "transportAndSchedulingMs": 10.690052005960464,
         "requestBytes": 3999,
         "actions": [
           "invoke"
@@ -2604,10 +2640,10 @@
         "stage": "matmul/2,2,3,5-2,2,5,7",
         "repeat": 2,
         "maxError": 9.023407665509353e-08,
-        "wallMs": 18.100000001490116,
-        "prepareMs": 0.010781,
-        "executeMs": 2.387084,
-        "transportAndSchedulingMs": 15.702135001490115,
+        "wallMs": 14.299999997019768,
+        "prepareMs": 0.007344,
+        "executeMs": 2.047135,
+        "transportAndSchedulingMs": 12.245520997019767,
         "requestBytes": 3999,
         "actions": [
           "invoke"
@@ -2619,10 +2655,10 @@
         "stage": "matmul/2,2,3,5-2,2,5,7",
         "repeat": 3,
         "maxError": 9.023407665509353e-08,
-        "wallMs": 19.799999997019768,
-        "prepareMs": 0.008646,
-        "executeMs": 2.866927,
-        "transportAndSchedulingMs": 16.92442699701977,
+        "wallMs": 14.100000001490116,
+        "prepareMs": 0.008229,
+        "executeMs": 2.645104,
+        "transportAndSchedulingMs": 11.446667001490116,
         "requestBytes": 3999,
         "actions": [
           "invoke"
@@ -2634,10 +2670,10 @@
         "stage": "matmul/2,2,3,5-2,2,5,7",
         "repeat": 4,
         "maxError": 9.023407665509353e-08,
-        "wallMs": 17.700000002980232,
-        "prepareMs": 0.009063,
-        "executeMs": 2.920312,
-        "transportAndSchedulingMs": 14.770625002980232,
+        "wallMs": 14.299999997019768,
+        "prepareMs": 0.008542,
+        "executeMs": 2.814896,
+        "transportAndSchedulingMs": 11.476561997019768,
         "requestBytes": 3999,
         "actions": [
           "invoke"
@@ -2649,10 +2685,10 @@
         "stage": "matmul/2,2,3,5-2,2,5,7",
         "repeat": 5,
         "maxError": 9.023407665509353e-08,
-        "wallMs": 17.600000001490116,
-        "prepareMs": 0.010053,
-        "executeMs": 2.802291,
-        "transportAndSchedulingMs": 14.787656001490117,
+        "wallMs": 14.099999994039536,
+        "prepareMs": 0.007761,
+        "executeMs": 3.529843,
+        "transportAndSchedulingMs": 10.562395994039536,
         "requestBytes": 3999,
         "actions": [
           "invoke"
@@ -2664,10 +2700,10 @@
         "stage": "matmul/2,1,3,5-1,3,5,7",
         "repeat": 0,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 558,
-        "prepareMs": 518.7321870000001,
-        "executeMs": 6.898333,
-        "transportAndSchedulingMs": 32.36947999999993,
+        "wallMs": 534.2000000029802,
+        "prepareMs": 514.679166,
+        "executeMs": 2.06526,
+        "transportAndSchedulingMs": 17.455574002980224,
         "requestBytes": 3985,
         "actions": [
           "load",
@@ -2680,10 +2716,10 @@
         "stage": "matmul/2,1,3,5-1,3,5,7",
         "repeat": 1,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 18.899999998509884,
-        "prepareMs": 0.009948,
-        "executeMs": 3.320208,
-        "transportAndSchedulingMs": 15.569843998509882,
+        "wallMs": 14.700000002980232,
+        "prepareMs": 0.005625,
+        "executeMs": 2.053542,
+        "transportAndSchedulingMs": 12.640833002980232,
         "requestBytes": 2723,
         "actions": [
           "invoke"
@@ -2695,10 +2731,10 @@
         "stage": "matmul/2,1,3,5-1,3,5,7",
         "repeat": 2,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 19.19999999552965,
-        "prepareMs": 0.010886,
-        "executeMs": 3.860364,
-        "transportAndSchedulingMs": 15.328749995529652,
+        "wallMs": 11.100000001490116,
+        "prepareMs": 0.005521,
+        "executeMs": 1.948698,
+        "transportAndSchedulingMs": 9.145781001490116,
         "requestBytes": 2723,
         "actions": [
           "invoke"
@@ -2710,10 +2746,10 @@
         "stage": "matmul/2,1,3,5-1,3,5,7",
         "repeat": 3,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 17.600000001490116,
-        "prepareMs": 0.01099,
-        "executeMs": 3.275989,
-        "transportAndSchedulingMs": 14.313021001490117,
+        "wallMs": 13.100000001490116,
+        "prepareMs": 0.00625,
+        "executeMs": 1.97651,
+        "transportAndSchedulingMs": 11.117240001490117,
         "requestBytes": 2723,
         "actions": [
           "invoke"
@@ -2725,10 +2761,10 @@
         "stage": "matmul/2,1,3,5-1,3,5,7",
         "repeat": 4,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 18.100000001490116,
-        "prepareMs": 0.0075,
-        "executeMs": 3.00474,
-        "transportAndSchedulingMs": 15.087760001490116,
+        "wallMs": 11.799999997019768,
+        "prepareMs": 0.006042,
+        "executeMs": 2.16125,
+        "transportAndSchedulingMs": 9.632707997019768,
         "requestBytes": 2723,
         "actions": [
           "invoke"
@@ -2740,10 +2776,10 @@
         "stage": "matmul/2,1,3,5-1,3,5,7",
         "repeat": 5,
         "maxError": 8.417174512942438e-08,
-        "wallMs": 17.399999998509884,
-        "prepareMs": 0.009531,
-        "executeMs": 4.486771,
-        "transportAndSchedulingMs": 12.903697998509884,
+        "wallMs": 12.100000001490116,
+        "prepareMs": 0.007187,
+        "executeMs": 1.450417,
+        "transportAndSchedulingMs": 10.642396001490116,
         "requestBytes": 2723,
         "actions": [
           "invoke"
@@ -2755,10 +2791,10 @@
         "stage": "matmul/2,3,5-5,7",
         "repeat": 0,
         "maxError": 8.391331318691186e-08,
-        "wallMs": 442.3999999985099,
-        "prepareMs": 403.457552,
-        "executeMs": 7.007656,
-        "transportAndSchedulingMs": 31.934791998509862,
+        "wallMs": 414,
+        "prepareMs": 395.66760400000004,
+        "executeMs": 1.882917,
+        "transportAndSchedulingMs": 16.44947899999996,
         "requestBytes": 2453,
         "actions": [
           "load",
@@ -2771,10 +2807,10 @@
         "stage": "matmul/2,3,5-5,7",
         "repeat": 1,
         "maxError": 8.391331318691186e-08,
-        "wallMs": 17.100000001490116,
-        "prepareMs": 0.010521,
-        "executeMs": 2.731146,
-        "transportAndSchedulingMs": 14.358333001490116,
+        "wallMs": 14.100000001490116,
+        "prepareMs": 0.004583,
+        "executeMs": 1.805781,
+        "transportAndSchedulingMs": 12.289636001490116,
         "requestBytes": 1340,
         "actions": [
           "invoke"
@@ -2786,10 +2822,10 @@
         "stage": "matmul/2,3,5-5,7",
         "repeat": 2,
         "maxError": 8.391331318691186e-08,
-        "wallMs": 16.30000000447035,
-        "prepareMs": 0.011354,
-        "executeMs": 2.946458,
-        "transportAndSchedulingMs": 13.342188004470348,
+        "wallMs": 10.5,
+        "prepareMs": 0.004792,
+        "executeMs": 2.176042,
+        "transportAndSchedulingMs": 8.319166,
         "requestBytes": 1340,
         "actions": [
           "invoke"
@@ -2801,10 +2837,10 @@
         "stage": "matmul/2,3,5-5,7",
         "repeat": 3,
         "maxError": 8.391331318691186e-08,
-        "wallMs": 17.30000000447035,
-        "prepareMs": 0.010833,
-        "executeMs": 3.767136,
-        "transportAndSchedulingMs": 13.522031004470346,
+        "wallMs": 11.300000004470348,
+        "prepareMs": 0.006875,
+        "executeMs": 2.018281,
+        "transportAndSchedulingMs": 9.274844004470348,
         "requestBytes": 1340,
         "actions": [
           "invoke"
@@ -2816,10 +2852,10 @@
         "stage": "matmul/2,3,5-5,7",
         "repeat": 4,
         "maxError": 8.391331318691186e-08,
-        "wallMs": 16,
-        "prepareMs": 0.01125,
-        "executeMs": 2.496719,
-        "transportAndSchedulingMs": 13.492030999999999,
+        "wallMs": 11,
+        "prepareMs": 0.00599,
+        "executeMs": 2.149635,
+        "transportAndSchedulingMs": 8.844375,
         "requestBytes": 1340,
         "actions": [
           "invoke"
@@ -2831,10 +2867,10 @@
         "stage": "matmul/2,3,5-5,7",
         "repeat": 5,
         "maxError": 8.391331318691186e-08,
-        "wallMs": 18.5,
-        "prepareMs": 0.011094,
-        "executeMs": 6.663125,
-        "transportAndSchedulingMs": 11.825781,
+        "wallMs": 10.600000001490116,
+        "prepareMs": 0.005521,
+        "executeMs": 2.124375,
+        "transportAndSchedulingMs": 8.470104001490116,
         "requestBytes": 1340,
         "actions": [
           "invoke"
@@ -2846,10 +2882,10 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 246.29999999701977,
-        "prepareMs": 213.10849000000002,
-        "executeMs": 6.500364,
-        "transportAndSchedulingMs": 26.69114599701975,
+        "wallMs": 219.70000000298023,
+        "prepareMs": 195.158125,
+        "executeMs": 5.540834,
+        "transportAndSchedulingMs": 19.00104100298022,
         "requestBytes": 898,
         "actions": [
           "load",
@@ -2862,10 +2898,10 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 16.69999999552965,
-        "prepareMs": 0.008125,
-        "executeMs": 2.390312,
-        "transportAndSchedulingMs": 14.301562995529652,
+        "wallMs": 12,
+        "prepareMs": 0.004844,
+        "executeMs": 1.879271,
+        "transportAndSchedulingMs": 10.115885,
         "requestBytes": 99,
         "actions": [
           "invoke"
@@ -2877,10 +2913,10 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 16.299999997019768,
-        "prepareMs": 0.010104,
-        "executeMs": 2.500938,
-        "transportAndSchedulingMs": 13.78895799701977,
+        "wallMs": 11.100000001490116,
+        "prepareMs": 0.005157,
+        "executeMs": 2.33651,
+        "transportAndSchedulingMs": 8.758333001490115,
         "requestBytes": 99,
         "actions": [
           "invoke"
@@ -2892,10 +2928,10 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 16,
-        "prepareMs": 0.010937,
-        "executeMs": 2.649844,
-        "transportAndSchedulingMs": 13.339219,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.006041,
+        "executeMs": 2.001042,
+        "transportAndSchedulingMs": 9.392916998509884,
         "requestBytes": 99,
         "actions": [
           "invoke"
@@ -2907,10 +2943,10 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 15.899999998509884,
-        "prepareMs": 0.008854,
-        "executeMs": 2.543021,
-        "transportAndSchedulingMs": 13.348124998509885,
+        "wallMs": 11.899999998509884,
+        "prepareMs": 0.004948,
+        "executeMs": 2.429427,
+        "transportAndSchedulingMs": 9.465624998509883,
         "requestBytes": 99,
         "actions": [
           "invoke"
@@ -2922,10 +2958,10 @@
         "stage": "matmul/1,1-1,1",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 14.5,
-        "prepareMs": 0.009584,
-        "executeMs": 3.736041,
-        "transportAndSchedulingMs": 10.754375,
+        "wallMs": 12.800000004470348,
+        "prepareMs": 0.005521,
+        "executeMs": 2.085781,
+        "transportAndSchedulingMs": 10.70869800447035,
         "requestBytes": 99,
         "actions": [
           "invoke"
@@ -2934,13 +2970,104 @@
         "modelBytes": 564
       },
       {
+        "stage": "three-runtime-inputs",
+        "repeat": 0,
+        "maxError": 9.685754776000977e-08,
+        "wallMs": 308.5,
+        "prepareMs": 281.23380199999997,
+        "executeMs": 5.029427,
+        "transportAndSchedulingMs": 22.236771000000033,
+        "requestBytes": 2304,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 1364
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 1,
+        "maxError": 9.685754776000977e-08,
+        "wallMs": 13.5,
+        "prepareMs": 0.007552,
+        "executeMs": 3.706979,
+        "transportAndSchedulingMs": 9.785468999999999,
+        "requestBytes": 435,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1364
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 2,
+        "maxError": 9.685754776000977e-08,
+        "wallMs": 11.399999998509884,
+        "prepareMs": 0.00651,
+        "executeMs": 2.370573,
+        "transportAndSchedulingMs": 9.022916998509883,
+        "requestBytes": 435,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1364
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 3,
+        "maxError": 9.685754776000977e-08,
+        "wallMs": 10.899999998509884,
+        "prepareMs": 0.005937,
+        "executeMs": 1.281146,
+        "transportAndSchedulingMs": 9.612916998509885,
+        "requestBytes": 435,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1364
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 4,
+        "maxError": 9.685754776000977e-08,
+        "wallMs": 10.899999998509884,
+        "prepareMs": 0.006354,
+        "executeMs": 2.625417,
+        "transportAndSchedulingMs": 8.268228998509883,
+        "requestBytes": 435,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1364
+      },
+      {
+        "stage": "three-runtime-inputs",
+        "repeat": 5,
+        "maxError": 9.685754776000977e-08,
+        "wallMs": 10.700000002980232,
+        "prepareMs": 0.005573,
+        "executeMs": 2.135677,
+        "transportAndSchedulingMs": 8.558750002980233,
+        "requestBytes": 435,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 1364
+      },
+      {
         "stage": "batched-linear",
         "repeat": 0,
         "maxError": 6.723565881827653e-08,
-        "wallMs": 307.3999999985099,
-        "prepareMs": 274.820782,
-        "executeMs": 6.527812,
-        "transportAndSchedulingMs": 26.051405998509875,
+        "wallMs": 287.8999999985099,
+        "prepareMs": 262.802552,
+        "executeMs": 1.568854,
+        "transportAndSchedulingMs": 23.52859399850989,
         "requestBytes": 1970,
         "actions": [
           "load",
@@ -2953,10 +3080,10 @@
         "stage": "batched-linear",
         "repeat": 1,
         "maxError": 6.723565881827653e-08,
-        "wallMs": 16.700000002980232,
-        "prepareMs": 0.00875,
-        "executeMs": 3.675781,
-        "transportAndSchedulingMs": 13.015469002980232,
+        "wallMs": 11,
+        "prepareMs": 0.00698,
+        "executeMs": 1.984531,
+        "transportAndSchedulingMs": 9.008488999999999,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -2968,10 +3095,10 @@
         "stage": "batched-linear",
         "repeat": 2,
         "maxError": 6.723565881827653e-08,
-        "wallMs": 16.799999997019768,
-        "prepareMs": 0.011198,
-        "executeMs": 2.736146,
-        "transportAndSchedulingMs": 14.052655997019768,
+        "wallMs": 11.200000002980232,
+        "prepareMs": 0.007032,
+        "executeMs": 2.214635,
+        "transportAndSchedulingMs": 8.978333002980232,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -2983,10 +3110,10 @@
         "stage": "batched-linear",
         "repeat": 3,
         "maxError": 6.723565881827653e-08,
-        "wallMs": 15.300000004470348,
-        "prepareMs": 0.011354,
-        "executeMs": 3.874114,
-        "transportAndSchedulingMs": 11.414532004470347,
+        "wallMs": 12.800000004470348,
+        "prepareMs": 0.008229,
+        "executeMs": 1.927968,
+        "transportAndSchedulingMs": 10.863803004470348,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -2998,10 +3125,10 @@
         "stage": "batched-linear",
         "repeat": 4,
         "maxError": 6.723565881827653e-08,
-        "wallMs": 16.399999998509884,
-        "prepareMs": 0.011354,
-        "executeMs": 2.178906,
-        "transportAndSchedulingMs": 14.209739998509884,
+        "wallMs": 11.100000001490116,
+        "prepareMs": 0.00599,
+        "executeMs": 2.017812,
+        "transportAndSchedulingMs": 9.076198001490116,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3013,10 +3140,10 @@
         "stage": "batched-linear",
         "repeat": 5,
         "maxError": 6.723565881827653e-08,
-        "wallMs": 19.100000001490116,
-        "prepareMs": 0.011823,
-        "executeMs": 4.031146,
-        "transportAndSchedulingMs": 15.057031001490117,
+        "wallMs": 11.5,
+        "prepareMs": 0.005885,
+        "executeMs": 2.077292,
+        "transportAndSchedulingMs": 9.416823,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3028,10 +3155,10 @@
         "stage": "qkv-heads-qkt",
         "repeat": 0,
         "maxError": 9.99616320829233e-08,
-        "wallMs": 718.3999999985099,
-        "prepareMs": 687.157448,
-        "executeMs": 3.014375,
-        "transportAndSchedulingMs": 28.228176998509838,
+        "wallMs": 756.2999999970198,
+        "prepareMs": 730.400521,
+        "executeMs": 5.252916,
+        "transportAndSchedulingMs": 20.646562997019743,
         "requestBytes": 3490,
         "actions": [
           "load",
@@ -3044,10 +3171,10 @@
         "stage": "qkv-heads-qkt",
         "repeat": 1,
         "maxError": 9.99616320829233e-08,
-        "wallMs": 19.399999998509884,
-        "prepareMs": 0.008282,
-        "executeMs": 1.37125,
-        "transportAndSchedulingMs": 18.020467998509883,
+        "wallMs": 12.100000001490116,
+        "prepareMs": 0.005677,
+        "executeMs": 1.086198,
+        "transportAndSchedulingMs": 11.008125001490116,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3059,10 +3186,10 @@
         "stage": "qkv-heads-qkt",
         "repeat": 2,
         "maxError": 9.99616320829233e-08,
-        "wallMs": 16.80000000447035,
-        "prepareMs": 0.012448,
-        "executeMs": 1.870781,
-        "transportAndSchedulingMs": 14.916771004470348,
+        "wallMs": 14,
+        "prepareMs": 0.006563,
+        "executeMs": 0.962343,
+        "transportAndSchedulingMs": 13.031094,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3074,10 +3201,10 @@
         "stage": "qkv-heads-qkt",
         "repeat": 3,
         "maxError": 9.99616320829233e-08,
-        "wallMs": 16.600000001490116,
-        "prepareMs": 0.0125,
-        "executeMs": 1.421979,
-        "transportAndSchedulingMs": 15.165521001490117,
+        "wallMs": 13.300000004470348,
+        "prepareMs": 0.006354,
+        "executeMs": 2.039115,
+        "transportAndSchedulingMs": 11.254531004470348,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3089,10 +3216,10 @@
         "stage": "qkv-heads-qkt",
         "repeat": 4,
         "maxError": 9.99616320829233e-08,
-        "wallMs": 17.30000000447035,
-        "prepareMs": 0.010625,
-        "executeMs": 2.780885,
-        "transportAndSchedulingMs": 14.508490004470348,
+        "wallMs": 12.100000001490116,
+        "prepareMs": 0.005573,
+        "executeMs": 1.148438,
+        "transportAndSchedulingMs": 10.945989001490116,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3104,10 +3231,10 @@
         "stage": "qkv-heads-qkt",
         "repeat": 5,
         "maxError": 9.99616320829233e-08,
-        "wallMs": 16.600000001490116,
-        "prepareMs": 0.01323,
-        "executeMs": 1.597031,
-        "transportAndSchedulingMs": 14.989739001490117,
+        "wallMs": 12.299999997019768,
+        "prepareMs": 0.006042,
+        "executeMs": 1.086927,
+        "transportAndSchedulingMs": 11.207030997019768,
         "requestBytes": 532,
         "actions": [
           "invoke"
@@ -3119,10 +3246,10 @@
         "stage": "transpose-slice-concat",
         "repeat": 0,
         "maxError": 0,
-        "wallMs": 307.8999999985099,
-        "prepareMs": 271.94276,
-        "executeMs": 6.522135,
-        "transportAndSchedulingMs": 29.435104998509864,
+        "wallMs": 305.20000000298023,
+        "prepareMs": 278.533281,
+        "executeMs": 5.151823,
+        "transportAndSchedulingMs": 21.514896002980244,
         "requestBytes": 2198,
         "actions": [
           "load",
@@ -3135,10 +3262,10 @@
         "stage": "transpose-slice-concat",
         "repeat": 1,
         "maxError": 0,
-        "wallMs": 19.600000001490116,
-        "prepareMs": 0.011927,
-        "executeMs": 3.538645,
-        "transportAndSchedulingMs": 16.049428001490117,
+        "wallMs": 10.700000002980232,
+        "prepareMs": 0.005468,
+        "executeMs": 1.935886,
+        "transportAndSchedulingMs": 8.758646002980232,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -3150,10 +3277,10 @@
         "stage": "transpose-slice-concat",
         "repeat": 2,
         "maxError": 0,
-        "wallMs": 19.400000005960464,
-        "prepareMs": 0.013177,
-        "executeMs": 2.725573,
-        "transportAndSchedulingMs": 16.661250005960465,
+        "wallMs": 11.5,
+        "prepareMs": 0.00526,
+        "executeMs": 1.582865,
+        "transportAndSchedulingMs": 9.911875,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -3165,10 +3292,10 @@
         "stage": "transpose-slice-concat",
         "repeat": 3,
         "maxError": 0,
-        "wallMs": 18.200000002980232,
-        "prepareMs": 0.013437,
-        "executeMs": 2.604427,
-        "transportAndSchedulingMs": 15.582136002980233,
+        "wallMs": 11.200000002980232,
+        "prepareMs": 0.006666,
+        "executeMs": 2.2075,
+        "transportAndSchedulingMs": 8.985834002980233,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -3180,10 +3307,10 @@
         "stage": "transpose-slice-concat",
         "repeat": 4,
         "maxError": 0,
-        "wallMs": 23.600000001490116,
-        "prepareMs": 0.01349,
-        "executeMs": 3.203541,
-        "transportAndSchedulingMs": 20.382969001490114,
+        "wallMs": 12.200000002980232,
+        "prepareMs": 0.006823,
+        "executeMs": 1.883281,
+        "transportAndSchedulingMs": 10.309896002980231,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -3195,10 +3322,10 @@
         "stage": "transpose-slice-concat",
         "repeat": 5,
         "maxError": 0,
-        "wallMs": 22.700000002980232,
-        "prepareMs": 0.012291,
-        "executeMs": 1.525938,
-        "transportAndSchedulingMs": 21.16177100298023,
+        "wallMs": 11.400000005960464,
+        "prepareMs": 0.005937,
+        "executeMs": 2.297084,
+        "transportAndSchedulingMs": 9.096979005960465,
         "requestBytes": 888,
         "actions": [
           "invoke"
@@ -3208,10 +3335,6 @@
       }
     ],
     "nativePlacement": [
-      {
-        "delegated": 8,
-        "total": 8
-      },
       {
         "delegated": 1,
         "total": 1
@@ -3301,6 +3424,10 @@
         "total": 1
       },
       {
+        "delegated": 8,
+        "total": 8
+      },
+      {
         "delegated": 3,
         "total": 3
       },
@@ -3311,9 +3438,18 @@
       {
         "delegated": 3,
         "total": 3
+      },
+      {
+        "delegated": 8,
+        "total": 8
+      },
+      {
+        "delegated": 5,
+        "total": 5
       }
     ],
-    "gpuOnlyRequested": true
+    "gpuOnlyRequested": true,
+    "placementScope": "26 fixture loads followed by QKV UI load"
   },
   "androidUi": {
     "compiledInApp": true,
