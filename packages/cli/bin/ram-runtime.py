@@ -13,12 +13,14 @@ os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
 import numpy as np
 from ai_edge_litert.compiled_model import CompiledModel
 from ai_edge_litert.hardware_accelerator import HardwareAccelerator
+from ai_edge_litert.options import Options, GpuOptions
 
 
 def run(request):
     started = time.perf_counter()
     model = CompiledModel.from_buffer(
-        base64.b64decode(request["model"]), HardwareAccelerator.GPU
+        base64.b64decode(request["model"]),
+        options=Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
     )
     if not model.is_fully_accelerated():
         raise RuntimeError("RAM graph was not fully delegated to GPU")

@@ -42,8 +42,9 @@ Metal on macOS, OpenCL on the tested Android devices, and WebGPU/Vulkan on
 the tested Intel Linux host. CoreML and NPU execution remain proposals.
 The shape has 1–4 positive dimensions, with at most 1,048,576 elements.
 Inputs must contain finite Rank `real` values; integers are not narrowed.
-`.f16` and `.f32` round at the input/output boundary. LiteRT transport uses
-float32 tensors. This proves the declared ReLU result within the chosen
+`.f16` and `.f32` round at the input/output boundary. LiteRT transport and computation use float32 tensors; both native bridges
+explicitly request FP32 GPU precision. `.f16` describes boundary rounding,
+not FP16 intermediate arithmetic. This proves the declared ReLU result within the chosen
 tolerance; it does not establish hardware FP16 arithmetic. Binary16 values
 outside ±65504 are rejected.
 

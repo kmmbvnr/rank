@@ -67,7 +67,11 @@ final class RamGpu {
             try {
                 try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(Base64.decode(nextKey, Base64.DEFAULT)); }
                 // GPU only: do not request CPU as a secondary accelerator.
-                model = CompiledModel.create(file.getAbsolutePath(), new CompiledModel.Options(Accelerator.GPU));
+                CompiledModel.Options options = new CompiledModel.Options(Accelerator.GPU);
+                options.setGpuOptions(new CompiledModel.GpuOptions(null, null, null,
+                    CompiledModel.GpuOptions.Precision.FP32, null, null, null, null,
+                    null, null, null, null, null, null, null));
+                model = CompiledModel.create(file.getAbsolutePath(), options);
                 inputs = model.createInputBuffers(); outputs = model.createOutputBuffers();
                 key = nextKey;
             } finally { file.delete(); }

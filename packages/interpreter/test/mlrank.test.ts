@@ -43,6 +43,17 @@ describe('RAM ReLU MVP', () => {
         expect(() => runtime.execute('((array 1 2 3 4) reshape 1 4) hello')).toThrow('finite real');
         expect(() => runtime.execute('(array 1.0 2.0) hello')).toThrow('expects shape');
     });
+    it('rejects malformed GPU outputs and f32 overflow', () => {
+        for (const output of [[0], [0, NaN, 1, 3], [0, Infinity, 1, 3]]) {
+            const runtime = new Interpreter(() => {}, {
+                loadModule: name => ({ id: name, source: hello }), ramGpu: () => output,
+            });
+            expect(() => runtime.execute('use sequences\nuse "hello.ram"\n((array -2.0 0.0 1.0 3.0) reshape 1 4) hello'))
+                .toThrow('Invalid GPU output');
+        }
+        expect(ramRound(1 + 2 ** -24, 'f32')).toBe(1);
+        expect(() => ramRound(1e39, 'f32')).toThrow('outside .f32');
+    });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
         expect(ramRound(1 + 2 ** -11, 'f16')).toBe(1);
         expect(ramRound(1 + 3 * 2 ** -11, 'f16')).toBe(1 + 2 ** -9);
