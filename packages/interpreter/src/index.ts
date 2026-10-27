@@ -19,3 +19,5 @@ export { InterruptedError, DemandBudgetExhausted, withDemandBudget, DebugSession
 export { integerValue, realValue } from './numeric-conversions.js';
 
 export { demand, demandValue, isRankPlan, type RankPlan } from './plan.js';
+
+export { createRamClient, type RamRequest, type RamReply } from "./ram-client.js";

@@ -4,6 +4,7 @@ import json
 import os
 import sys
 import time
+import uuid
 
 # Some native GPU drivers write diagnostics directly to fd 1. Keep the wire
 # separate from both Python logging and C stdio, including process teardown.
@@ -23,22 +24,36 @@ model = inputs = outputs = None
 def run(request):
     global cached_key, model, inputs, outputs
     started = time.perf_counter()
-    cached = cached_key == request["model"]
+    action = request.get("action", "run")
+    if action == "release":
+        if request.get("modelId") == cached_key:
+            inputs = outputs = model = cached_key = None
+        return {"released": True}
+    cached = action == "invoke"
+    if cached and (model is None or request.get("modelId") != cached_key):
+        return {"error": "RAM model is no longer loaded", "code": "STALE_MODEL"}
     if not cached:
-        # Release the old buffers before the model; retain only one compiled graph.
-        inputs = outputs = model = None
-        cached_key = None
-        model = CompiledModel.from_buffer(
-            base64.b64decode(request["model"]),
-            options=Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
-        )
-        if not model.is_fully_accelerated():
-            raise RuntimeError("RAM graph was not fully delegated to GPU")
-        inputs = model.create_input_buffers(0)
-        outputs = model.create_output_buffers(0)
-        cached_key = request["model"]
+        inputs = outputs = model = cached_key = None
+        try:
+            model = CompiledModel.from_buffer(
+                base64.b64decode(request["model"], validate=True),
+                options=Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
+            )
+            if not model.is_fully_accelerated():
+                raise RuntimeError("RAM graph was not fully delegated to GPU")
+            inputs = model.create_input_buffers(0)
+            outputs = model.create_output_buffers(0)
+            cached_key = str(uuid.uuid4())
+        except Exception:
+            inputs = outputs = model = cached_key = None
+            raise
+    if action == "load":
+        return {"modelId": cached_key, "fullyAccelerated": True,
+                "prepareMs": (time.perf_counter() - started) * 1000}
     prepared = time.perf_counter()
     data = np.asarray(request["input"], dtype=np.float32)
+    if data.size != int(np.prod(inputs[0].get_tensor_details()["shape"])) or not np.isfinite(data).all():
+        raise ValueError("Invalid RAM input shape or values")
     inputs[0].write(data)
     model.run_by_index(0, inputs, outputs)
     output_size = int(np.prod(outputs[0].get_tensor_details()["shape"]))

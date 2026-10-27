@@ -59,13 +59,19 @@ final class RamGpu {
 
     private JSONObject execute(JSONObject request) throws Exception {
         long started = System.nanoTime();
-        String nextKey = request.getString("model");
-        boolean cached = nextKey.equals(key);
+        String action = request.optString("action", "run");
+        if (action.equals("release")) {
+            if (request.optString("modelId").equals(key)) closeModel();
+            return new JSONObject().put("released", true);
+        }
+        boolean cached = action.equals("invoke");
+        if (cached && (model == null || !request.optString("modelId").equals(key)))
+            return new JSONObject().put("error", "RAM model is no longer loaded").put("code", "STALE_MODEL");
         if (!cached) {
             closeModel();
             File file = File.createTempFile("rank-ram-", ".tflite", context.getCacheDir());
             try {
-                try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(Base64.decode(nextKey, Base64.DEFAULT)); }
+                try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(Base64.decode(request.getString("model"), Base64.DEFAULT)); }
                 // GPU only: do not request CPU as a secondary accelerator.
                 CompiledModel.Options options = new CompiledModel.Options(Accelerator.GPU);
                 options.setGpuOptions(new CompiledModel.GpuOptions(null, null, null,
@@ -73,9 +79,11 @@ final class RamGpu {
                     null, null, null, null, null, null, null));
                 model = CompiledModel.create(file.getAbsolutePath(), options);
                 inputs = model.createInputBuffers(); outputs = model.createOutputBuffers();
-                key = nextKey;
-            } finally { file.delete(); }
+                key = java.util.UUID.randomUUID().toString();
+            } catch (Exception error) { closeModel(); throw error; } finally { file.delete(); }
         }
+        if (action.equals("load")) return new JSONObject().put("modelId", key)
+            .put("gpuOnlyRequested", true).put("prepareMs", (System.nanoTime() - started) / 1e6);
         long prepared = System.nanoTime();
         JSONArray data = request.getJSONArray("input");
         float[] input = new float[data.length()];

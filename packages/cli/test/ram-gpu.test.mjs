@@ -9,12 +9,20 @@ test('persistent GPU bridge reuses a process and recovers after a request error'
     const directory = mkdtempSync(join(tmpdir(), 'rank-gpu-'));
     const runner = join(directory, 'runtime.mjs');
     writeFileSync(runner, `import { createInterface } from 'node:readline';
-let key;
+let key, count=0;
 for await (const line of createInterface({input:process.stdin})) {
  const request=JSON.parse(line);
  if(request.model==='crash') process.exit(7);
- const result=request.model==='bad' ? {error:'invalid model'} : {output:request.input,backend:String(process.pid),fullyAccelerated:true,cached:key===request.model};
- if(request.model!=='bad') key=request.model;
+ let result;
+ if(request.action==='load') {
+   if(request.model==='bad') result={error:'invalid model'};
+   else {key=String(++count); result={modelId:key,fullyAccelerated:true};}
+ } else if(request.action==='release') {key=undefined;result={released:true};}
+ else if(request.modelId!==key) result={code:'STALE_MODEL',error:'expired'};
+ else {
+   if('model' in request) throw Error('Model resent on invoke');
+   result={output:request.input,backend:String(process.pid),fullyAccelerated:true};
+ }
  process.stdout.write(JSON.stringify(result)+'\\n');
 }`);
     const python = process.env.RANK_ML_PYTHON, previousRunner = process.env.RANK_ML_RUNNER;

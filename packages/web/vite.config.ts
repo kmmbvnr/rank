@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { execFileSync } from 'node:child_process';
-import { runRamGpu } from '../cli/src/ram-gpu';
+import { sendRamGpu } from '../cli/src/ram-gpu';
 
 let revision = 'unknown';
 const version = JSON.parse(readFileSync(new URL('../mobile/package.json', import.meta.url), 'utf8')).version;
@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => ({
                         if (size > 32 * 1024 * 1024) throw new Error('RAM request is too large');
                         chunks.push(Buffer.from(chunk));
                     }
-                    response.end(JSON.stringify(runRamGpu(JSON.parse(Buffer.concat(chunks).toString('utf8')))));
+                    response.end(JSON.stringify(sendRamGpu(JSON.parse(Buffer.concat(chunks).toString('utf8')))));
                 } catch (error) { response.end(JSON.stringify({ error: String(error) })); }
             });
         },

@@ -1,6 +1,6 @@
 import { Worker } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
-import type { RamGpu } from '@arrrank/interpreter';
+import { createRamClient, type RamRequest, type RamReply, type RamGpu } from '@arrrank/interpreter';
 
 export interface RamGpuRequest { model: string; input: readonly number[]; outputSize?: number }
 export interface RamGpuResult {
@@ -17,7 +17,7 @@ export function closeRamGpu(): void {
 }
 process.once('exit', closeRamGpu);
 
-export function runRamGpu(request: RamGpuRequest): RamGpuResult {
+export function sendRamGpu(request: RamRequest): RamReply {
     if (!worker) {
         worker = new Worker(new URL('../out/ram-gpu-worker.js', import.meta.url), { workerData: {
             python: process.env.RANK_ML_PYTHON ?? fileURLToPath(new URL('../../../node_modules/.cache/mlrank/bin/python', import.meta.url)),
@@ -27,19 +27,23 @@ export function runRamGpu(request: RamGpuRequest): RamGpuResult {
         // A worker startup error cannot wake the blocked caller; the bounded wait below does.
         worker.on('error', () => {});
     }
-    const shared = new SharedArrayBuffer(12 + Math.min(32 * 1024 * 1024, 65536 + (request.outputSize ?? request.input.length) * 32));
+    const shared = new SharedArrayBuffer(12 + Math.min(32 * 1024 * 1024, 65536 + (request.outputSize ?? request.input?.length ?? 0) * 32));
     state = new Int32Array(shared, 0, 3);
     worker.postMessage({ payload: JSON.stringify(request), shared });
     if (Atomics.wait(state, 0, 0, 60_000) === 'timed-out') {
         closeRamGpu(); throw new Error('RAM GPU execution timed out');
     }
     const bytes = new Uint8Array(shared, 12, Atomics.load(state, 1));
-    const result = JSON.parse(new TextDecoder().decode(bytes)) as RamGpuResult & { error?: string };
-    if (result.error) throw new Error(result.error);
-    return result;
+    return JSON.parse(new TextDecoder().decode(bytes)) as RamReply;
+}
+const client = createRamClient(sendRamGpu);
+export function runRamGpu(request: RamGpuRequest): RamGpuResult {
+    return client.invoke(request.model, () => request.model, request.input,
+        request.outputSize ?? request.input.length) as RamGpuResult;
 }
 export const nodeRamGpu: RamGpu = (graph, input) => {
-    const result = runRamGpu({ model: Buffer.from(graph.model).toString('base64'), input, outputSize: graph.outputShape.reduce((a, b) => a * b, 1) });
+    const result = client.invoke(graph, () => Buffer.from(graph.model).toString('base64'), input,
+        graph.outputShape.reduce((a, b) => a * b, 1));
     if (!result.fullyAccelerated) throw new Error('RAM graph did not execute entirely on GPU');
-    return result.output;
+    return result.output!;
 };
