@@ -4344,7 +4344,28 @@
     "scope": "13 surviving full-placement records; log buffer does not retain one record per fixture."
   },
   "androidUi": {
-    "status": "pending",
-    "reason": "Secure lock screen prevents Playwright clicks; APK built and installed."
+    "status": "passed",
+    "compiledInApp": true,
+    "layernormGelu": true,
+    "persisted": true,
+    "originalExampleRestored": true,
+    "placement": {
+      "serial": "192.168.1.74:38353",
+      "pid": "18677",
+      "placements": [
+        {
+          "delegated": 25,
+          "total": 25
+        },
+        {
+          "delegated": 5,
+          "total": 5
+        },
+        {
+          "delegated": 25,
+          "total": 25
+        }
+      ]
+    }
   }
 }

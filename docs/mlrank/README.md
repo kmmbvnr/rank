@@ -190,7 +190,9 @@ Desktop checks run through the ordinary Rank interpreter and native bridge.
 Android fixtures exercise the native bridge; the separate
 `packages/web/test/ram-norm-ui.playwright.js` checks compilation from the RAM
 tab, execution, and persistence after reload in the installed APK.
-The new APK is installed; this UI check is pending because the OnePlus is locked.
+The new APK is installed and this UI check passed on the unlocked OnePlus:
+RAM-tab compilation, execution, and source persistence after reload. The test
+restores its original example source afterward.
 The captured Android log contains 13 full-placement records; older records were
 evicted from the log buffer, so this is not a per-fixture placement audit.
 Generate native Android fixtures with `node scripts/mlrank-norm-check.mjs --android`

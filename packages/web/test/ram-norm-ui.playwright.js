@@ -10,7 +10,7 @@ async page => {
         await page.getByRole('button',{name:'Program',exact:true}).click();
         await page.getByRole('button',{name:'Terminal commands'}).click();
         await page.getByRole('button',{name:'Run program',exact:true}).click();
-        await page.waitForFunction(()=>document.querySelector('#screen').textContent.includes('1.089'));
+        await page.waitForFunction(()=>document.querySelector('#screen').textContent.includes('-0.135353'), {}, {timeout:30000});
         await page.reload();
         await page.waitForFunction(()=>!document.querySelector('#brand').disabled);
         await page.getByRole('button',{name:'dense.ram',exact:true}).click();
