@@ -765,3 +765,94 @@ Run `node scripts/mlrank-structure-check.mjs`; add `--android` to generate
 Its constant weights demonstrate graph structure, not a trained attention model.
 [Recorded results](../../benchmarks/baselines/2026-10-27-mlrank-structure.json)
 cover correctness, not speed or peak memory. The full test suite was not run.
+
+## Core ML comparison on Mac (2026-10-27)
+
+**Keep LiteRT as the MVP backend for now.** Core ML improves the larger matrix
+case in this sample, but does not remove the need for numerical checks or make
+small GPU graphs the fastest option. Adding an Apple-specific backend remains
+a possible follow-up after measuring the complete attention/block workload.
+The production runtime still requests GPU only; CPU rows below are explicit
+benchmark controls, not a new fallback policy.
+
+Apple M5, macOS 26.6.2; coremltools 9.0, LiteRT 2.3.0, NumPy 2.5.4.
+Nine workloads, two trials in reversed order, 124 case/backend/mode runs.
+Each run uses a new Python process, one first prediction, five warmups and
+30 timed predictions. A final untimed prediction changes the input and checks
+that model reuse observes it. References use NumPy float64 on the exact FP32
+inputs and weights; acceptance is atol=rtol=1e-5.
+
+The table gives the mean of the two warm-run medians in milliseconds. These
+are in-process runtime calls including input/output handling. They exclude
+Rank evaluation, JSON/IPC and Python startup; they are not kernel timings or
+end-to-end app latency. All compared models use FP32, including Core ML
+intermediates ([typed execution](https://apple.github.io/coremltools/docs-guides/source/convert-to-ml-program.html)).
+
+| Workload | LiteRT CPU | LiteRT GPU | Core ML CPU | Core ML CPU+GPU |
+| --- | ---: | ---: | ---: | ---: |
+| LayerNorm offset, 3×7 | 0.002 | 0.554 | fails tolerance | fails tolerance |
+| LayerNorm constant, 3×7 | 0.002 | 0.555 | fails tolerance | fails tolerance |
+| LayerNorm, 16×768 | 0.011 | 0.545 | 0.038 | 0.040 |
+| GELU, 16×768 | 0.017 | 0.522 | 0.102 | 0.101 |
+| Crossed batches | 0.005 | 0.563 | 0.024 | 0.025 |
+| Matmul, 1×4×16×16 | 0.005 | 0.520 | 0.026 | 0.029 |
+| Matmul, 1×4×64×64 | 0.010 | 0.545 | 0.031 | 0.031 |
+| Matmul, 1×8×256×256 | 0.297 | 1.242 | 0.234 | 0.927 |
+| QKV → QKᵀ, 1×16×64 input | 0.006 | 0.548 | 0.030 | 0.027 |
+
+Core ML's compute plan prefers CPU for the eight smaller workloads
+(all rows except the throughput matmul), even with CPU_AND_GPU or ALL allowed.
+For `1×8×256×256` matmul it prefers GPU in those modes. These are anticipated
+placements from [MLComputePlan](https://apple.github.io/coremltools/source/coremltools.models.html#compute-plan),
+not a device trace or a guarantee that CPU_AND_GPU means GPU-only. None of the
+recorded plans preferred ANE. The CPU mode does not establish which CPU
+instructions or matrix units the framework used.
+
+The important controls and numerical results:
+
+- On small QKV, LiteRT CPU takes 0.0059–0.0061 ms, Core ML CPU 0.0283–0.0308 ms,
+  and LiteRT GPU 0.546–0.551 ms. The apparent small-graph Core ML advantage over
+  LiteRT GPU largely reflects device selection; it reverses when compared to LiteRT CPU.
+- On the larger matmul, Core ML CPU_AND_GPU takes 0.922–0.932 ms against
+  LiteRT GPU's 1.237–1.246 ms. Core ML CPU takes 0.2339–0.2342 ms against
+  LiteRT CPU's 0.294–0.299 ms. The CPU modes are faster than the GPU modes
+  for this tested size, including readback and call overhead.
+- The exact same implicit-broadcast TFLite graph is correct on LiteRT CPU
+  but has maximum error 0.768 on LiteRT GPU for crossed batch axes.
+  This isolates the failure to the GPU execution path rather than proving a
+  defect in Metal itself. Explicit GPU concat expansion passes.
+- Core ML's native `layer_norm` fails the strict tolerance near 1000:
+  maximum error 0.000244 on offset rows and 0.0193 on constant 1000.25 rows,
+  where the expected output is zero. This happens in CPU_ONLY, CPU_AND_GPU
+  and ALL, with CPU preferred by the plans. Our twice-centered SUM/division
+  graph passes when translated to Core ML as well as on LiteRT.
+- All current RAM graphs pass on both runtimes, including the changed-input
+  checks. The 14 failing runs are the two diagnostic cases above: six Core ML
+  native-LayerNorm configurations per trial, and one LiteRT implicit-GPU case
+  per trial. No error was hidden by widening tolerance.
+
+Preparation and memory are separate costs. LiteRT native preparation takes
+about 1.8–20.3 ms across the CPU/GPU cases. Core ML conversion takes 24.6–39.7 ms,
+then compilation/loading takes 34.9–52.5 ms. Package writing is outside these
+timers. The OS caches were not cleared, so these are fresh-process observations,
+not guaranteed uncached startup costs. Core ML GPU throughput also has a
+roughly 11 ms first prediction before its sub-millisecond warm calls.
+
+Process peak RSS is roughly 44–177 MiB for LiteRT and 99–226 MiB for Core ML.
+It includes Python, imports, input data and the reference calculation; it is
+not model-arena memory and does not demonstrate lower device memory usage.
+The full samples include RSS after imports and each timing component.
+
+Reproduce in an isolated Python 3.12 environment with the versions above:
+
+```sh
+npx tsc -b tsconfig.build.json
+node benchmarks/mlrank/coreml-fixtures.mjs /tmp/coreml-fixtures.json
+python benchmarks/mlrank/coreml-compare.py /tmp/coreml-fixtures.json /tmp/coreml-results.json
+```
+
+The fixture exporter records the RAM compile time, source hash and model size.
+The Python comparison emits both a literal translation of the lowered RAM graph
+and natural Core ML operations, so the latter can avoid LiteRT-specific batch
+expansion. This is a benchmark adapter, not a Core ML backend integrated into
+Rank or Android. [Recorded results](../../benchmarks/baselines/2026-10-27-mlrank-coreml-comparison.json).
