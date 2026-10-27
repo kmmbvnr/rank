@@ -31,12 +31,15 @@ Blk = array shape 10 fill 0
 Answer = 0
 F = 0
 for P in Digs permutations
-  Mask = 1
-  for Mask at most Top and F equal 0
+  for Mask in 1 to Top
+    if F equal 1
+      break
+    end
     Cnt = 0
     Cur = 0
     Start = 0
     Bad = 0
+    G = 0
     for K in 0 to End
       Cur = Cur * 10 + P K
       Cut = K equal End or (Mask bit K)
@@ -49,18 +52,22 @@ for P in Digs permutations
         if Cur equal 0
           Bad = 1
         end
+        if Bad equal 1
+          break
+        end
+        G = G gcd Cur
+        if G equal 1
+          break
+        end
         Blk Cnt = Cur
         Cnt += 1
         Cur = 0
         Start = K + 1
       end
     end
-    G = 0
-    for J in 0 to Cnt - 1
-      G = G gcd (Blk J)
-      if G equal 1
-        break
-      end
+    rem Later blocks cannot raise gcd 1.
+    if Bad equal 1 or G equal 1
+      continue
     end
     Hi = G min 98
     M = 2
@@ -76,16 +83,21 @@ for P in Digs permutations
           B = 1 shl (N mod 10)
           if (Used band B) not equal 0
             Dup = 1
+            break
           end
           Used = Used bor B
           N = N // 10
         end
         for J in 0 to Cnt - 1
+          if Dup equal 1
+            break
+          end
           N = Blk J // M
           for N greater 0
             B = 1 shl (N mod 10)
             if (Used band B) not equal 0
               Dup = 1
+              break
             end
             Used = Used bor B
             N = N // 10
@@ -102,7 +114,6 @@ for P in Digs permutations
       end
       M += 1
     end
-    Mask += 1
   end
   if F equal 1
     break

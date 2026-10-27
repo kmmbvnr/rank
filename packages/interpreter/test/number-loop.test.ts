@@ -60,6 +60,83 @@ end`);
         expect(diagnostics.numberLoopOverflows).toBe(0);
     });
 
+    it.each([0, 1, 64])('admits condition-loop scratch arrays with %i cells', size => {
+        const diagnostics = compare(`A = array shape ${size} fill 0
+Alias = A
+J = 0
+for J less 3
+ if ${size} greater 0
+  A 0 += 1
+ end
+ J += 1
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it.each([65, 4096])('declines condition-loop copying for %i cells', size => {
+        const diagnostics = compare(`A = array shape ${size} fill 0
+J = 0
+for J less 3
+ A 0 += 1
+ J += 1
+end`);
+        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.fallbacks['number-loop:condition-write-budget']).toBe(1);
+    });
+
+    it('bounds combined scratch destinations rather than individual arrays', () => {
+        const diagnostics = compare(`A = array shape 40 fill 0
+B = array shape 40 fill 0
+Go = true
+for Go
+ A 0 = 1
+ B 0 = 2
+ Go = false
+end`);
+        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.fallbacks['number-loop:condition-write-budget']).toBe(1);
+    });
+
+    it.each(['9007199254740991', '0'])('retains exact replay and partial errors for small scratch storage (%s)', value => {
+        const diagnostics = compare(`A = array 0 0
+Alias = A
+X = ${value}
+J = 0
+for J less 3
+ A J = X + J + 1
+ J += 1
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+    });
+
+    it('keeps zero-iteration scratch buffers and bindings untouched', () => {
+        const diagnostics = compare('A = array 1 2\nAlias = A\nGo = false\nfor Go\n A 0 = 3\n New = 5\nend');
+        expect(diagnostics.numberLoops).toBe(1);
+    });
+
+    it.each([
+        ['bor', '-2147483648', '2147483647'], ['bor', '-1', '0'],
+        ['shl', '1', '30'], ['shl', '-2147483648', '21'],
+        ['bit', '2147483647', '30'], ['bit', '0', '0'],
+    ])('inlines checked Number %s for %s and %s', (operation, left, right) => {
+        const diagnostics = compare(`use bits\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n R = Left ${operation} Right\nend`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it.each([
+        ['bor', '2147483648', '-1'], ['bor', '-2147483649', '0'],
+        ['shl', '1', '31'], ['shl', '1', '32'], ['shl', '1', '53'],
+        ['shl', '2147483647', '23'], ['shl', '1', '-1'],
+        ['bit', '2147483648', '31'], ['bit', '1', '32'],
+        ['bit', '-1', '0'], ['bit', '1', '-1'],
+    ])('replays %s for %s and %s without publishing private writes', (operation, left, right) => {
+        const diagnostics = compare(`use bits\nA = array 0 0 0\nAlias = A\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n A I += 1\n R = Left ${operation} Right\nend`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(1);
+    });
+
     it('uses direct exact stores for repeatedly entered condition loops', () => {
         const diagnostics = compare(`A = array shape 4096 fill 0
 J = 0

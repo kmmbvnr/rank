@@ -260,7 +260,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
-        if (numberMode && operation.module === 'bits' && ['band', 'bxor'].includes(operation.name)) {
+        if (numberMode && operation.module === 'bits' && ['band', 'bor', 'bxor', 'bit', 'shl'].includes(operation.name)) {
             const arguments_: string[] = [];
             for (const operand of operands) {
                 const value = emit(operand, lines, 'integer');
@@ -273,8 +273,17 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             }
             builtins.set(operation.name, operation.module);
             const name = `v${state.serial++}`;
-            lines.push(`const ${name} = ${arguments_[0]} ${operation.name === 'band' ? '&' : '^'} ${arguments_[1]};`);
-            return { code: name, type: 'integer' };
+            const [left, right] = arguments_;
+            if (operation.name === 'bit' || operation.name === 'shl') {
+                // JS masks shift counts modulo 32. Unsupported domains replay
+                // the exact backend, including its ordinary negative errors.
+                lines.push(`if (${right} < 0 || ${right} > 30${operation.name === 'bit' ? ` || ${left} < 0` : ''}) throw overflow;`);
+                lines.push(`const ${name} = ${operation.name === 'bit'
+                    ? `((${left} & (1 << ${right})) !== 0)` : `safe(${left} * (2 ** ${right}))`};`);
+            } else {
+                lines.push(`const ${name} = ${left} ${operation.name === 'band' ? '&' : operation.name === 'bor' ? '|' : '^'} ${right};`);
+            }
+            return { code: name, type: operation.name === 'bit' ? 'boolean' : 'integer' };
         }
         const signature = operation.compiledCall!;
         if (numberMode && (signature.callbacks !== 'none' || signature.hostFunction

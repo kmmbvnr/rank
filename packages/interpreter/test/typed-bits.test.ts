@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter, RankError } from '../src/index.js';
+import { Interpreter, RankError, RuntimeDiagnostics } from '../src/index.js';
 import { native } from '../src/modules/shared.js';
 
 describe('typed integer bit calls', () => {
@@ -40,6 +40,30 @@ describe('typed integer bit calls', () => {
             } finally { runtime.dispose(); }
         });
         expect(results[1]).toEqual(results[0]);
+    });
+
+    it.each(['bit', 'bor', 'shl'])('rechecks %s before entering a private Number loop', operation => {
+        const outcomes = [false, true].map(compilation => {
+            const diagnostics = new RuntimeDiagnostics();
+            const runtime = new Interpreter(undefined, { compilation });
+            let calls = 0;
+            try {
+                runtime.execute('use bits\nA = array 0 0 0');
+                const loop = `for I in 0 to 2\n A I += 1\n R = 1 ${operation} 1\nend`;
+                diagnostics.run(() => runtime.execute(loop));
+                expect(diagnostics.numberLoops).toBe(compilation ? 1 : 0);
+                runtime.variables.set(operation, native('replacement', 2, () => {
+                    calls++;
+                    return operation === 'bit' ? false : 42n;
+                }));
+                diagnostics.run(() => runtime.execute(loop));
+                expect(calls).toBe(3);
+                expect(diagnostics.numberLoops).toBe(compilation ? 1 : 0);
+                return [runtime.execute('A 0'), runtime.variables.get('R')];
+            } finally { runtime.dispose(); }
+        });
+        expect(outcomes[1]).toEqual(outcomes[0]);
+        expect(outcomes[1][0]).toBe(2n);
     });
 
     it('matches checked calls for large integers and retains shift errors', () => {

@@ -55,10 +55,6 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length || plan.containers.size
         || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
-        // A condition loop has no traversal bound to amortize private buffers.
-        // Repeated short invocations would copy the whole destination per entry;
-        // the exact backend writes owned cells directly instead.
-        || !plan.iteration && plan.destinations.size > 0
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1)
         || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1 || info.slice)
@@ -149,6 +145,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                 }
             }
         }
+        let conditionWriteCells = 0;
         for (const [name, info] of storage) {
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
@@ -159,6 +156,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost): Compil
                     : info.type === 'boolean' ? hasWritableBooleanCells(value) : writableIntegerCells(value)))) return undefined;
             const items = denseScalarItems(value) ?? materializedArrayItems(value);
             if (!items) return undefined;
+            // Unbounded condition loops may be repeatedly entered for one store.
+            // Permit small scratch buffers, but bound the total private copying
+            // per entry; large destinations retain direct exact stores.
+            if (!plan.iteration && plan.destinations.has(name)
+                && (conditionWriteCells += items.length) > 64) return recordFallback('number-loop:condition-write-budget');
             // A single indexed read-only pass can read packed integers in
             // place. Check safe conversion at each actual load; an unsafe cell
             // discards the private scalar attempt before exact replay.

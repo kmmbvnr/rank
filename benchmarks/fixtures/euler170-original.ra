@@ -1,0 +1,111 @@
+rem Find the Largest 0 to 9 Pandigital
+rem that Can Be Formed by Concatenating
+rem Products
+rem https://projecteuler.net/problem=170
+rem Find the largest 0 to 9 pandigital P
+rem made of the blocks m x1, m x2, ...
+rem such that m, x1, x2, ... also make
+rem a 0 to 9 pandigital
+
+use algo
+use bits
+use numbers
+use sequences
+use io
+use cli
+
+option Low integer = 0
+
+rem Walk the pandigitals downward and
+rem test each of the 511 splits into
+rem blocks. A product has at least
+rem digits(m) + digits(x) - 1 digits, so
+rem m has two digits at most, and one
+rem with three blocks or more.
+Digs = 9 to Low by -1 array
+W = Digs len
+End = W - 1
+Full = (2 ** Digs) sum
+Top = 2 ** End - 1
+Blk = array shape 10 fill 0
+Answer = 0
+F = 0
+for P in Digs permutations
+  Mask = 1
+  for Mask at most Top and F equal 0
+    Cnt = 0
+    Cur = 0
+    Start = 0
+    Bad = 0
+    for K in 0 to End
+      Cur = Cur * 10 + P K
+      Cut = K equal End or (Mask bit K)
+      if Cut
+        if K greater Start
+          if P Start equal 0
+            Bad = 1
+          end
+        end
+        if Cur equal 0
+          Bad = 1
+        end
+        Blk Cnt = Cur
+        Cnt += 1
+        Cur = 0
+        Start = K + 1
+      end
+    end
+    G = 0
+    for J in 0 to Cnt - 1
+      G = G gcd (Blk J)
+      if G equal 1
+        break
+      end
+    end
+    Hi = G min 98
+    M = 2
+    for M at most Hi and Bad + F equal 0
+      Dup = 0
+      if G mod M not equal 0
+        Dup = 1
+      end
+      Used = 0
+      if Dup equal 0
+        N = M
+        for N greater 0
+          B = 1 shl (N mod 10)
+          if (Used band B) not equal 0
+            Dup = 1
+          end
+          Used = Used bor B
+          N = N // 10
+        end
+        for J in 0 to Cnt - 1
+          N = Blk J // M
+          for N greater 0
+            B = 1 shl (N mod 10)
+            if (Used band B) not equal 0
+              Dup = 1
+            end
+            Used = Used bor B
+            N = N // 10
+          end
+        end
+      end
+      if Dup equal 0 and Used equal Full
+        Num = 0
+        for K in 0 to End
+          Num = Num * 10 + P K
+        end
+        Answer = Num
+        F = 1
+      end
+      M += 1
+    end
+    Mask += 1
+  end
+  if F equal 1
+    break
+  end
+end
+Answer print
