@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import { createReplSession as createSession, sessionEditor as editor, type SessionSnapshot } from '@arrrank/common/repl-session';
 import { nodeEnvironment } from './node-environment.js';
 import { loadModule } from './load-module.js';
+import { nodeRamGpu } from './ram-gpu.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import { nodeMd5 } from './node-crypto.js';
 export type { Execution, OutputLine, ProgramFile, SessionSnapshot } from '@arrrank/common/repl-session';
@@ -41,7 +42,7 @@ function completeLoadPath(typed: string): [string[], string] {
 
 export function createReplSession() {
     return createSession({
-        options: { environment: nodeEnvironment(), input: new NodeInput(), io: nodeIo, md5: nodeMd5, sourceId: path.join(process.cwd(), '<repl>'), loadModule },
+        options: { environment: nodeEnvironment(), input: new NodeInput(), io: nodeIo, md5: nodeMd5, sourceId: path.join(process.cwd(), '<repl>'), loadModule, ramGpu: nodeRamGpu },
         colors: chalk,
         resolvePath: text => text ? path.resolve(fileArgument(text)) : '',
         completePath: completeLoadPath,

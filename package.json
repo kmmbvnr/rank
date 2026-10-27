@@ -10,6 +10,7 @@
         "npm": ">=10.2.3"
     },
     "scripts": {
+        "mlrank:setup": "node scripts/mlrank-setup.mjs",
         "clean": "npm run clean --workspaces",
         "watch": "tsc -b tsconfig.build.json --watch",
         "build": "npm run langium:generate && tsc -b tsconfig.build.json && npm run build --workspaces",

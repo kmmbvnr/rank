@@ -10,6 +10,7 @@ import { imagesModule } from './images.js';
 import { ioModule } from './io.js';
 import { jsonModule } from './json.js';
 import { linalgModule } from './linalg.js';
+import { mlModule } from './ml.js';
 import { numbersModule } from './numbers.js';
 import { randomModule } from './random.js';
 import { sequencesModule } from './sequences.js';
@@ -33,6 +34,7 @@ export const standardModules: Record<string, RuntimeModule> = {
     io: ioModule,
     json: jsonModule,
     linalg: linalgModule,
+    ml: mlModule,
     numbers: numbersModule,
     random: randomModule,
     sequences: sequencesModule,

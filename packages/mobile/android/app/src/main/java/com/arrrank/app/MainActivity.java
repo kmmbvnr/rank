@@ -21,6 +21,7 @@ public class MainActivity extends BridgeActivity {
     private Boolean imeVisible;
     private int imeHeight;
     private int navigationHeight;
+    private DebugSignalClient debugSignalClient;
 
     public static MainActivity getCurrentActivity() {
         return currentActivity != null ? currentActivity.get() : null;
@@ -114,7 +115,8 @@ public class MainActivity extends BridgeActivity {
                 setEnabled(true);
             }
         });
-        bridge.setWebViewClient(new DebugSignalClient(bridge));
+        debugSignalClient = new DebugSignalClient(bridge);
+        bridge.setWebViewClient(debugSignalClient);
         getWindow().getDecorView().setBackgroundColor(Color.BLACK);
         hideSystemBars();
         reportKeyboard();
@@ -204,6 +206,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onDestroy() {
+        if (debugSignalClient != null) debugSignalClient.closeRamGpu();
         if (getCurrentActivity() == this) {
             currentActivity = null;
         }

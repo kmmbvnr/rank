@@ -1,5 +1,9 @@
 # mlRank: Прототипирование компилятора и дорожная карта до GPT-2
 
+Текущий прототип задачи 1, команды запуска и ограничения описаны в
+[Implemented Hello World subset](README.md#implemented-hello-world-subset).
+Последующие задачи и отдельные CoreML/NPU-бэкенды остаются планом.
+
 Документ описывает пошаговый план создания JIT-компилятора `mlRank` (`.ram`) с компиляцией «на лету» в **CoreML** (Apple Neural Engine / Metal), **LiteRT** (Google Android NPU / GPU) и **ONNX**, начиная от базового «Hello World» для NPU и заканчивая запуском полнотекстовой авторегрессионной модели **GPT-2**.
 
 > Подробная архитектура компиляции CoreML на лету прямо на устройствах iPhone/iPad (без Mac) описана в [CoreML JIT на iOS](IOS_COREML.md).  

@@ -8,7 +8,8 @@ import chalk from 'chalk';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as url from 'node:url';
-import { loadModule } from './load-module.js';
+import { loadModule, loadModuleProgram } from './load-module.js';
+import { nodeRamGpu } from './ram-gpu.js';
 import { NodeInput, nodeIo } from './node-io.js';
 import { nodeMd5 } from './node-crypto.js';
 import { nodeEnvironment } from './node-environment.js';
@@ -77,6 +78,7 @@ async function runFile(file: string, args: readonly string[], diagnostic = false
         md5: nodeMd5,
         sourceId,
         loadModule,
+        ramGpu: nodeRamGpu,
     });
     if (!diagnostic) { run(); return; }
     const diagnostics = new RuntimeDiagnostics();
@@ -327,8 +329,7 @@ const REFERENCE_PREAMBLE = [
 /** One source module, parsed, or undefined with a warning when it is missing. */
 function loadProgram(specifier: string, fromId: string): Program | undefined {
     try {
-        const module = loadModule(specifier, fromId);
-        return parse(module.source, specifier);
+        return loadModuleProgram(specifier, fromId);
     } catch {
         console.error(chalk.yellow(`  cannot read ${specifier}`));
         return undefined;

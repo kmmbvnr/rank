@@ -101,7 +101,8 @@ RunStatement:
     'run' path=STRING?;
 
 OptionStatement:
-    'option' name=VARIABLE valueType=(WORD | 'text') (many?='many')?
+    'option' name=VARIABLE (valueType=(WORD | 'text') (many?='many')? |
+        precision=LabelLiteral 'shape' dimensions+=NumberLiteral+)
     ('=' defaultValue=Expression)?;
 
 ArgumentStatement:

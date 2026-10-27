@@ -129,6 +129,14 @@ describe('the type of an imported call in the footer', () => {
 });
 
 describe('createModuleLoader', () => {
+    it('discovers RAM call signatures without running a GPU and keeps file names distinct', () => {
+        let source = 'use ml\noption X .f16 shape 1 64\nreturn X relu\n';
+        const load = createModuleLoader(() => source);
+        expect(load('hello.ram')?.statements[0]).toMatchObject({ name: 'hello', parameters: ['X'] });
+        expect(load('other.ram')?.statements[0]).toMatchObject({ name: 'other', parameters: ['X'] });
+        source = source.replace('return X relu', 'return X');
+        expect(load('hello.ram')).toBeUndefined();
+    });
     it('reads again on every request and reparses only changed text', () => {
         let source = TEXT_MODULE;
         let reads = 0;

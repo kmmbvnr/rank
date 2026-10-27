@@ -419,7 +419,7 @@ class Analyzer {
         if (isOptionStatement(statement) || isArgumentStatement(statement)) {
             if (statement.defaultValue) this.expression(statement.defaultValue);
             this.bind(statement.name, isOptionStatement(statement) ? 'option' : 'argument',
-                statement, declaredType(statement.valueType, statement.many === true));
+                statement, declaredType(statement.valueType ?? '', statement.many === true));
             return;
         }
         if (isFlagStatement(statement)) {

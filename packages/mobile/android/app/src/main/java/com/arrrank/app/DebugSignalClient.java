@@ -18,8 +18,10 @@ import java.util.Map;
 public final class DebugSignalClient extends BridgeWebViewClient {
     private String token;
     private final int[] words = new int[3];
+    private final RamGpu ramGpu;
 
-    public DebugSignalClient(Bridge bridge) { super(bridge); }
+    public DebugSignalClient(Bridge bridge) { super(bridge); ramGpu = new RamGpu(bridge.getContext()); }
+    void closeRamGpu() { ramGpu.close(); }
 
     static Map<String, String> addIsolationHeaders(Map<String, String> existing) {
         Map<String, String> updated = existing == null ? new HashMap<>() : new HashMap<>(existing);
@@ -38,6 +40,7 @@ public final class DebugSignalClient extends BridgeWebViewClient {
         Uri uri = request.getUrl();
         if (!"https".equals(uri.getScheme()) || !"localhost".equals(uri.getHost()))
             return super.shouldInterceptRequest(view, request);
+        if ("/__rank_ml".equals(uri.getPath())) return response(200, "OK", ramGpu.run(uri.getQueryParameter("request")));
         if ("/__rank_keyboard_hide".equals(uri.getPath())) {
             MainActivity activity = MainActivity.getCurrentActivity();
             if (activity != null) view.post(() -> activity.hideKeyboard());

@@ -25,6 +25,10 @@ import { memoryNotebookStore } from './demo-store.js';
 import { NotebookPanel } from './notebook-panel.js';
 import { notebookStore, debugBeginnerStore, debugNotebookMode, appVersion, notebookSource, validDraft, type NotebookDraft } from './notebook-store.js';
 import { splitSource } from '@arrrank/common/notebook';
+import { RamTabs } from './ram-tabs.js';
+import { notebookArchive, readNotebookArchive, toBase64, fromBase64 } from './notebook-archive.js';
+import gpuMain from '../../../demos/mlrank/main.ra?raw';
+import gpuHello from '../../../demos/mlrank/hello.ram?raw';
 
 const terminal = document.querySelector<HTMLElement>('#terminal')!;
 const screen = document.querySelector<HTMLElement>('#screen')!;
@@ -125,8 +129,9 @@ let paintedLines: string[] = [];
 let paintedStatus: string | undefined;
 let typeFooterTop: number | undefined;
 let paintedCaret = '';
+let attachedRamSources: Record<string, string> = {};
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
-const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true);
+const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true, name => attachedRamSources[name]);
 repl.rows = () => rows;
 const keys = new KeyRouter(repl, [], () => columns, {
     read: () => navigator.clipboard.readText(),
@@ -150,6 +155,24 @@ let notebookPanel: NotebookPanel | undefined;
 let beginnerPreview = false;
 let debugPreviewAvailable = false;
 const debugPreferenceKey = (key: string) => beginnerPreview ? key.replace('rank-', 'rank-beginner-') : key;
+let moduleSources = '';
+const ramTabs = new RamTabs(() => {
+    syncRamModules();
+    if (historyReady && !changingNotebook) {
+        notebookHistory?.schedule(notebookSnapshot());
+        void notebookHistory?.flush().catch(error => { failure = 'Cannot save notebook: ' + String(error); render(); });
+    }
+}, () => historyReady && !changingNotebook && !busy && !repl.running && !repl.evaluating,
+() => { resize(); input.focus({ preventScroll: true }); render(); },
+{ open: openRamDialogKeyboard, close: closeRamDialogKeyboard });
+function syncRamModules(): void {
+    const modules = Object.fromEntries((ramTabs.snapshot().modules ?? []).map(module => [module.name, module.source]));
+    attachedRamSources = modules;
+    const serialized = JSON.stringify(modules);
+    if (serialized === moduleSources) return;
+    moduleSources = serialized;
+    void session.setModules(modules).catch(error => { failure = String(error); render(); });
+}
 
 try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
@@ -401,6 +424,9 @@ function paintStatus(content: string | readonly string[]): void {
 function render(statusOnly = false): void {
     // The first frame must contain the restored notebook, not its migration draft or reset state.
     if (!historyReady && !failure) return;
+    // A hidden terminal has zero geometry. Keep its saved viewport and cursor
+    // anchor until Program becomes visible again.
+    if (document.documentElement.classList.contains('ram-editing')) { ramTabs.report(failure); return; }
     showViewer();
     const paused = session.pauseState;
     modes.allowRender();
@@ -556,10 +582,7 @@ function render(statusOnly = false): void {
             input.setSelectionRange(from, to, book.cursor === from ? 'backward' : 'forward');
     }
     try {
-        const savedNotebook = JSON.stringify({
-            cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
-            draft: repl.notebook.cells.at(-1)!.source,
-        });
+        const savedNotebook = JSON.stringify(notebookSnapshot());
         if (historyReady && !changingNotebook && (savedNotebook !== scheduledNotebook
             || notebookHistory?.current?.id !== scheduledNotebookId)) {
             notebookHistory?.schedule(JSON.parse(savedNotebook));
@@ -730,6 +753,8 @@ input.addEventListener('keydown', event => {
     }
 });
 let keyboardEnabled = touchConsole;
+/** A dialog's text field borrows the IME without changing the console's intent. */
+let ramDialogKeyboard: { enabled: boolean; soft: boolean; focus: HTMLElement | null } | undefined;
 let keyboardOpening = touchConsole;
 let keyboardOpeningTimer: ReturnType<typeof setTimeout> | undefined;
 if (touchConsole && !androidKeyboard) {
@@ -779,7 +804,7 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
         softKeyboard = visible;
         if (visible) {
             softKeyboardWantedUntil = 0;
-            if (touchConsole) keyboardEnabled = true;
+            if (touchConsole && !ramDialogKeyboard && document.activeElement === input) keyboardEnabled = true;
             // The symbol keyboard reappears only once the system keyboard has finished arriving.
             if (awaitingSoftKeyboard) {
                 clearTimeout(keyboardOpeningTimer);
@@ -797,7 +822,7 @@ try { softKeyboardHeight = Number(localStorage.getItem(softKeyboardHeightKey)) |
             awaitingSoftKeyboard = false;
             clearTimeout(keyboardOpeningTimer);
             if (busy || repl.running) keyboardEnabled = false;
-            input.blur();
+            if (!ramDialogKeyboard) input.blur();
         }
         if (!changed) render();
     };
@@ -835,6 +860,16 @@ let softKeyboardWantedUntil = 0;
 /** Android requests the IME only after the restored notebook accepts text input. */
 function showSystemKeyboard(): boolean {
     if (!historyReady || input.readOnly || changingNotebook || document.querySelector('dialog[open]')) return false;
+    if (ramDialogKeyboard) {
+        const target = document.documentElement.classList.contains('ram-editing')
+            ? document.querySelector<HTMLTextAreaElement>('#ram-editor textarea')! : input;
+        target.focus({ preventScroll: true });
+        return true;
+    }
+    if (document.documentElement.classList.contains('ram-editing')) {
+        document.querySelector<HTMLTextAreaElement>('#ram-editor textarea')!.focus({ preventScroll: true });
+        return true;
+    }
     if (!keyboardOpening) startKeyboardOpening();
     keyboardEnabled = true;
     softKeyboard = true;
@@ -850,6 +885,10 @@ function showSystemKeyboard(): boolean {
 function symbolKeyboardShown(): boolean { return keyboardEnabled && !softKeyboard; }
 function focusInput(): void {
     if (!historyReady || changingNotebook || notebookPanel?.dialog.open) return;
+    if (document.documentElement.classList.contains('ram-editing')) {
+        document.querySelector<HTMLTextAreaElement>('#ram-editor textarea')!.focus({ preventScroll: true });
+        return;
+    }
     if (touchConsole && !keyboardEnabled) {
         startKeyboardOpening();
         keyboardEnabled = true;
@@ -865,6 +904,7 @@ const hiddenKeyboardModules = import.meta.env.MODE === 'mobile' ? ['cli'] : [];
 const floatingKeyboard = matchMedia('(orientation: landscape) and (min-width: 640px)');
 floatingKeyboard.addEventListener('change', () => render());
 function renderKeyboard(): void {
+    if (ramDialogKeyboard) { keyboard.hidden = true; setKeyboardSize(0, 0); return; }
     const floating = floatingKeyboard.matches;
     const tabs = keyboardTabs(repl.session.modules, hiddenKeyboardModules);
     if (keyboardModule !== '+' && !tabs.some(tab => tab.module === keyboardModule)) keyboardModule = 'core';
@@ -990,6 +1030,66 @@ function setKeyboard(enabled: boolean): void {
     if (!enabled) input.blur();
     render();
 }
+async function openRamDialogKeyboard(): Promise<void> {
+    ramDialogKeyboard = { enabled: keyboardEnabled, soft: softKeyboard,
+        focus: document.activeElement instanceof HTMLElement ? document.activeElement : null };
+    keyboardEnabled = false;
+    keyboardOpening = false;
+    awaitingSoftKeyboard = false;
+    softKeyboardWantedUntil = 0;
+    clearTimeout(keyboardOpeningTimer);
+    render();
+    if (!touchConsole || nativeSoftKeyboard === true && Date.now() >= transitionUntil) return;
+    const before = window.visualViewport?.height ?? innerHeight;
+    const target = document.documentElement.classList.contains('ram-editing')
+        ? document.querySelector<HTMLTextAreaElement>('#ram-editor textarea')! : input;
+    target.focus({ preventScroll: true });
+    if (androidKeyboard) await fetch('/__rank_keyboard_show', { cache: 'no-store' }).catch(() => {});
+    await new Promise<void>(resolve => {
+        const deadline = performance.now() + 1500;
+        let height = before;
+        let settled = performance.now();
+        const check = () => {
+            const current = window.visualViewport?.height ?? innerHeight;
+            const now = performance.now();
+            if (Math.abs(current - height) > 1) { height = current; settled = now; }
+            const visible = nativeSoftKeyboard === true || !androidKeyboard && current < before - 80;
+            if (now >= deadline || visible && now - settled >= 100 && Date.now() >= transitionUntil) resolve();
+            else requestAnimationFrame(check);
+        };
+        requestAnimationFrame(check);
+    });
+}
+function closeRamDialogKeyboard(created: boolean): void {
+    const saved = ramDialogKeyboard;
+    ramDialogKeyboard = undefined;
+    if (!saved) return;
+    keyboardEnabled = saved.enabled;
+    keyboardOpening = false;
+    awaitingSoftKeyboard = false;
+    softKeyboardWantedUntil = 0;
+    clearTimeout(keyboardOpeningTimer);
+    if (!created) {
+        if (saved.enabled && saved.soft) {
+            softKeyboard = true;
+            // Reattach the editor's text connection within the Cancel click.
+            // Waiting for the close event makes WebView dismiss the IME.
+            if (saved.focus) {
+                saved.focus.blur();
+                saved.focus.focus({ preventScroll: true });
+            }
+        } else {
+            input.blur();
+            // Keep the symbols hidden until the borrowed IME has left the screen.
+            if (saved.enabled && softKeyboard) {
+                keyboardOpening = true;
+                if (!androidKeyboard) keyboardOpeningTimer = setTimeout(finishKeyboardOpening, 450);
+            }
+            if (androidKeyboard) void fetch('/__rank_keyboard_hide', { cache: 'no-store' }).catch(() => {});
+        }
+    }
+    render();
+}
 // Tapping a key must not move focus, or the soft keyboard would come back over it.
 // Android follows a touch with a compatibility mousedown, whose default action focuses the button.
 keyboard.addEventListener('pointerdown', event => event.preventDefault());
@@ -1028,6 +1128,11 @@ commands.onclick = event => {
     }
     if ((event.target as HTMLElement).closest('[data-action=walkthrough]')) {
         closeMenu(); void switchBeginnerPreview(true).catch(error => { failure = String(error); render(); }); return;
+    }
+    if ((event.target as HTMLElement).closest('[data-action=gpu-example]')) {
+        closeMenu();
+        void openGpuExample().catch(error => { failure = String(error); render(); });
+        return;
     }
     const turboRun = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-action="turbo-run"]');
     if (turboRun && !turboRun.disabled) {
@@ -1165,7 +1270,7 @@ document.addEventListener('paste', event => {
 });
 input.addEventListener('focus', () => {
     terminal.classList.add('focused');
-    if (touchConsole) {
+    if (touchConsole && !ramDialogKeyboard) {
         if (!keyboardEnabled) startKeyboardOpening();
         keyboardEnabled = true;
         softKeyboard = true;
@@ -1662,7 +1767,7 @@ function resize(): boolean {
     softKeyboard = softKeyboardOpen(height);
     if (wasSoftKeyboard && !softKeyboard) {
         if (busy || repl.running) keyboardEnabled = false;
-        input.blur();
+        if (!ramDialogKeyboard) input.blur();
     }
     if (innerHeight > innerWidth) {
         const state = softKeyboard ? 'open' : 'closed';
@@ -1676,6 +1781,7 @@ function resize(): boolean {
     }
     document.documentElement.style.setProperty('--height', height + 'px');
     document.documentElement.style.setProperty('--top', (viewport?.offsetTop ?? 0) + 'px');
+    if (document.documentElement.classList.contains('ram-editing')) return false;
     cellWidth = measure.getBoundingClientRect().width / 10;
     cellHeight = measure.getBoundingClientRect().height;
     gutterWidth = notebookGutter * cellWidth * (touchConsole ? GUTTER_FONT_SIZE / CODE_FONT_SIZE : 1);
@@ -1768,6 +1874,7 @@ function notebookSnapshot(): NotebookDraft {
     return {
         cells: repl.notebook.cells.slice(0, -1).filter(cell => !cell.command).map(cell => cell.source),
         draft: repl.notebook.cells.at(-1)!.source,
+        ...ramTabs.snapshot(),
     };
 }
 function rememberNotebook(): void {
@@ -1811,25 +1918,52 @@ async function changeNotebook(id?: string): Promise<void> {
         }
         notebookHistory!.schedule(notebookSnapshot());
         valueOverlay.back();
-        await notebookHistory!.open(id, snapshot => repl.restoreNotebook(snapshot.cells, snapshot.draft));
+        await notebookHistory!.open(id, async snapshot => {
+            ramTabs.restore(snapshot); syncRamModules();
+            await repl.restoreNotebook(snapshot.cells, snapshot.draft);
+        });
         failure = ''; needsRestart = false; lastPause = undefined;
         top = 0; scrollFraction = 0; restingCursorRow = undefined; follow = true;
         rememberNotebook();
-    } finally { changingNotebook = false; input.readOnly = false; render(); }
+    } finally { changingNotebook = false; input.readOnly = false; resize(); render(); }
 }
 async function importNotebook(): Promise<void> {
     let source: string | undefined;
-    if (notebookHistory!.store.importFile) source = (await notebookHistory!.store.importFile!()).source;
+    let archive: NotebookDraft | undefined;
+    if (notebookHistory!.store.importFile) {
+        const imported = await notebookHistory!.store.importFile!();
+        source = imported.source;
+        if (imported.archive) archive = readNotebookArchive(fromBase64(imported.archive));
+    }
     else source = await new Promise<string | undefined>((resolve, reject) => {
         const picker = document.createElement('input');
-        picker.type = 'file'; picker.accept = '.ra,text/plain';
+        picker.type = 'file'; picker.accept = '.ra,.zip,text/plain,application/zip';
         picker.oncancel = () => resolve(undefined);
-        picker.onchange = () => { void picker.files?.[0]?.text().then(resolve, reject); };
+        picker.onchange = () => { void (async () => {
+            const file = picker.files?.[0];
+            if (!file) return resolve(undefined);
+            if (file.name.endsWith('.zip')) { archive = readNotebookArchive(new Uint8Array(await file.arrayBuffer())); resolve(undefined); }
+            else resolve(await file.text());
+        })().catch(reject); };
         picker.click();
     });
-    if (source === undefined) return;
+    if (source === undefined && !archive) return;
     await changeNotebook();
-    await repl.restoreNotebook(splitSource(source.replace(/\r\n?/g, '\n')), '');
+    const snapshot = archive ?? { cells: splitSource(source!.replace(/\r\n?/g, '\n')), draft: '' };
+    ramTabs.restore(snapshot); syncRamModules();
+    await repl.restoreNotebook(snapshot.cells, snapshot.draft);
+    resize();
+    notebookHistory!.schedule(notebookSnapshot());
+    await notebookHistory!.flush();
+    render();
+}
+async function openGpuExample(): Promise<void> {
+    if (!historyReady || changingNotebook || busy || repl.running || repl.evaluating) return;
+    await changeNotebook();
+    ramTabs.restore({ cells: [], draft: '', modules: [{ name: 'hello.ram', source: gpuHello }] });
+    syncRamModules();
+    await repl.restoreNotebook(splitSource(gpuMain), '');
+    resize();
     notebookHistory!.schedule(notebookSnapshot());
     await notebookHistory!.flush();
     render();
@@ -1839,11 +1973,16 @@ async function exportNotebook(id: string): Promise<void> {
     await notebookHistory!.flush();
     const book = await notebookHistory!.store.get(id);
     if (!book) throw new Error('Notebook is no longer available');
-    if (notebookHistory!.store.exportFile) await notebookHistory!.store.exportFile(book.id);
+    const bundled = !!book.snapshot.modules?.length;
+    const data = bundled ? notebookArchive(book.snapshot) : undefined;
+    const filename = book.title.replace(/[\\/:*?"<>|]/g, '_') + (bundled ? '.zip' : '.ra');
+    if (notebookHistory!.store.exportFile) await notebookHistory!.store.exportFile(book.id,
+        data ? { name: filename, data: toBase64(data) } : undefined);
     else {
-        const url = URL.createObjectURL(new Blob([notebookSource(book.snapshot)], { type: 'text/plain;charset=utf-8' }));
+        const url = URL.createObjectURL(new Blob([data ? new Uint8Array(data).buffer : notebookSource(book.snapshot)],
+            { type: data ? 'application/zip' : 'text/plain;charset=utf-8' }));
         const link = document.createElement('a');
-        link.href = url; link.download = book.title.replace(/[\\/:*?"<>|]/g, '_') + '.ra'; link.click();
+        link.href = url; link.download = filename; link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 }
@@ -1914,6 +2053,7 @@ if (!example) {
                 await seedStarterNotebooks(notebookHistory!.store);
                 localStorage.setItem(starterKey, 'true');
             }
+            ramTabs.restore(snapshot); syncRamModules();
             await repl.restoreNotebook(snapshot.cells, snapshot.draft);
             rememberNotebook();
             localStorage.setItem(debugPreferenceKey('rank-history-migrated-v1'), 'true');

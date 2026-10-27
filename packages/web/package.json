@@ -16,6 +16,7 @@
         "@arrrank/common": "0.0.2",
         "@arrrank/interpreter": "0.0.2",
         "@capacitor/core": "^8.5.2",
+        "fflate": "^0.8.2",
         "regular-table": "^0.9.1",
         "spcss": "^0.9.0"
     },

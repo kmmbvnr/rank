@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.AtomicFile;
+import android.util.Base64;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -237,8 +238,8 @@ public class NotebooksPlugin extends Plugin {
             JSObject book = read(call.getString("id"), call);
             if (book == null) throw new IllegalArgumentException("Notebook is no longer available");
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType("text/plain");
-            intent.putExtra(Intent.EXTRA_TITLE, book.getString("title").replaceAll("[\\\\/:*?\"<>|]", "_") + ".ra");
+            intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType(call.getString("data") == null ? "text/plain" : "application/zip");
+            intent.putExtra(Intent.EXTRA_TITLE, call.getString("name", book.getString("title").replaceAll("[\\\\/:*?\"<>|]", "_") + ".ra"));
             startActivityForResult(call, intent, "exportResult");
         } catch (Exception error) { call.reject("Cannot export notebook", error); }
     }
@@ -251,7 +252,9 @@ public class NotebooksPlugin extends Plugin {
             if (book == null) throw new IllegalArgumentException("Notebook is no longer available");
             try (OutputStream stream = getContext().getContentResolver().openOutputStream(result.getData().getData(), "wt")) {
                 if (stream == null) throw new IllegalStateException("Cannot open export destination");
-                stream.write(source(book.getJSONObject("snapshot")).getBytes(StandardCharsets.UTF_8));
+                String data = call.getString("data");
+                stream.write(data == null ? source(book.getJSONObject("snapshot")).getBytes(StandardCharsets.UTF_8)
+                    : Base64.decode(data, Base64.DEFAULT));
             }
             call.resolve();
         } catch (Exception error) { call.reject("Cannot export notebook", error); }
@@ -270,8 +273,14 @@ public class NotebooksPlugin extends Plugin {
             if (stream == null) throw new IllegalStateException("Cannot read imported file");
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             byte[] buffer = new byte[8192]; int count;
-            while ((count = stream.read(buffer)) != -1) bytes.write(buffer, 0, count);
-            JSObject response = new JSObject(); response.put("source", new String(bytes.toByteArray(), StandardCharsets.UTF_8));
+            while ((count = stream.read(buffer)) != -1) {
+                if (bytes.size() + count > 16 * 1024 * 1024) throw new IllegalArgumentException("Imported program is too large");
+                bytes.write(buffer, 0, count);
+            }
+            byte[] data = bytes.toByteArray();
+            JSObject response = new JSObject();
+            if (data.length >= 4 && data[0] == 'P' && data[1] == 'K') response.put("archive", Base64.encodeToString(data, Base64.NO_WRAP));
+            else response.put("source", new String(data, StandardCharsets.UTF_8));
             call.resolve(response);
         } catch (Exception error) { call.reject("Cannot import notebook", error); }
     }

@@ -5,6 +5,7 @@ export { pureHostFunction } from './host-effects.js';
 export * from './io.js';
 export { EnvironmentOverlay, type RankEnvironment } from './environment.js';
 export * from './parser.js';
+export { compileRam, reluModel, ramRound, type RamGraph, type RamGpu } from './mlrank.js';
 export * from './segment.js';
 export * from './wavelet.js';
 export * from './value.js';

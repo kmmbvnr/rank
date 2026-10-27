@@ -6,7 +6,9 @@ import type { PauseSnapshot } from '@arrrank/interpreter';
 import type { SessionMethod, WorkerRequest, WorkerResponse } from './protocol.js';
 
 /** Browser transport; evaluation and notebook behavior are shared with the CLI. */
-export function browserSession(onFailure: (message: string) => void, onChange: () => void): ReplSession {
+export function browserSession(onFailure: (message: string) => void, onChange: () => void): ReplSession & {
+    setModules(modules: Record<string, string>): Promise<void>;
+} {
     let snapshot: SessionSnapshot = { names: [], modules: [], aliases: true };
     let id = 0;
     const pending = new Map<number, { resolve(value: unknown): void; reject(reason: unknown): void }>();
@@ -21,6 +23,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
     let pauseState: PauseSnapshot | undefined;
     let debugNext = false;
     let stepToMain = false;
+    let modules: Record<string, string> = {};
     let worker = createWorker();
     function control(command: string): Promise<void> {
         const url = signalUrl;
@@ -50,7 +53,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
             ? new URL('/__rank_debug?token=' + crypto.randomUUID(), location.href).href : undefined;
         controls = Promise.resolve();
         ready = signalUrl ? control('reset') : Promise.resolve();
-        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl }))
+        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules }))
             .catch(error => onFailure(String(error)));
         next.onmessage = (event: MessageEvent<WorkerResponse>) => {
             snapshot = event.data.snapshot;
@@ -80,6 +83,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         });
     }
     return {
+        setModules: next => { modules = next; return call<void>('setModules', modules); },
         get names() { return snapshot.names; },
         get modules() { return snapshot.modules; },
         get diagnosticFacts() { return snapshot.diagnosticFacts ?? []; },

@@ -116,6 +116,7 @@ export function bindInputs(program: Program, args: readonly string[], host: Inpu
     const knownOptions = new Set<string>();
     for (const declaration of declarations) {
         if (isOptionStatement(declaration)) {
+            if (!declaration.valueType) throw new RankError('Precision and shape options are only supported in imported .ram modules', 'RamCompile');
             const optionName = kebabCase(declaration.name);
             knownOptions.add(optionName);
             const supplied = parsed.options.get(optionName);

@@ -529,9 +529,9 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 // Lengths and current cell subsets change; the established contract survives.
                 for (const name of env.keys()) if (name.startsWith(`${item.name}.`)) env.delete(name);
             } else if (isOptionStatement(item) || isArgumentStatement(item)) {
-                const types = declaredType(item.valueType, item.many);
+                const types = declaredType(item.valueType ?? '', item.many);
                 const fact: ValueFacts = { types, rank: item.many || types.join() === 'text' ? 1 : 0,
-                    ...(item.many ? { elements: declaredType(item.valueType, false), shape: [null] } : {}) };
+                    ...(item.many ? { elements: declaredType(item.valueType ?? '', false), shape: [null] } : {}) };
                 const value = graph.value(item, fact);
                 const binding = { name: item.name, node: item, rank: value.rank, value };
                 env.set(item.name, binding); graph.bindings.push(binding);

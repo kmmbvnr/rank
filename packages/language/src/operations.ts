@@ -219,6 +219,7 @@ export const modules: readonly Module[] = [
     { name: 'io', summary: 'Standard input, whole-file text and stateful file handles.' },
     { name: 'json', summary: 'JSON decoding into values or a flat table of nodes.' },
     { name: 'linalg', summary: 'Matrix products, solvers and decompositions.' },
+    { name: 'ml', summary: 'Tensor activations and accelerator modules.' },
     { name: 'numbers', summary: 'Arithmetic, roots, logarithms, trigonometry and number theory.' },
     { name: 'random', summary: 'Seeded pseudorandom sampling.' },
     { name: 'sequences', summary: 'Shapes, orderings, windows and lazy sources.' },
@@ -856,6 +857,10 @@ export const operations: readonly Operation[] = [
         numericArrayNoCallback: true,
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
+    { name: 'relu', module: 'ml', arities: [1], form: 'Value relu', result: 'number', monadicRank: 0,
+        signatures: [{ inputs: ['real'], result: 'real', ranks: [0] }],
+        shape: [{ args: [[]], result: [] }],
+        summary: 'Replaces negative real values with zero.' },
     { name: 'abs', module: 'numbers', arities: [1], form: 'Value abs', result: 'number',
         signatures: [{ inputs: [{ variable: 0, domain: ['integer', 'real'] }],
             result: { variable: 0 }, ranks: [0] }, { inputs: ['missing'], result: 'missing', ranks: [0] }],

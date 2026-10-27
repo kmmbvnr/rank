@@ -366,6 +366,14 @@ Matrix products, solvers and decompositions.
 | `A matmul B` | array, lazy | binary all / all | Contracts the last axis of the left array with the first axis of the right. |
 | `A solve B` | array | binary all / all | Solves A * X = B for a square coefficient matrix. |
 
+## ml
+
+Tensor activations and accelerator modules.
+
+| Form | Result | Default cells | Summary |
+| --- | --- | --- | --- |
+| `Value relu` | number | unary 0 | Replaces negative real values with zero. |
+
 ## numbers
 
 Arithmetic, roots, logarithms, trigonometry and number theory.

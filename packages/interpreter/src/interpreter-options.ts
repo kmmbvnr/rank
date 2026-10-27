@@ -1,6 +1,7 @@
 import type { RankInput, RankIo } from './io.js';
 import type { RankEnvironment } from './environment.js';
 import type { RankSequence } from './value.js';
+import type { RamGpu } from './mlrank.js';
 
 export interface LoadedModule {
     readonly id: string;
@@ -8,6 +9,7 @@ export interface LoadedModule {
 }
 
 export interface InterpreterOptions {
+    readonly ramGpu?: RamGpu;
     /** Disable every generated-code tier, including in child modules and tests. */
     readonly compilation?: boolean;
     readonly environment?: RankEnvironment;

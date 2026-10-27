@@ -1,6 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 
-export interface NotebookDraft { cells: string[]; draft: string }
+export interface RamDocument { name: string; source: string; cursor?: number; scroll?: number }
+export interface NotebookDraft { cells: string[]; draft: string; modules?: RamDocument[]; activeModule?: string }
 export interface NotebookMeta {
     id: string;
     title: string;
@@ -15,14 +16,24 @@ export interface NotebookStore {
     save(book: SavedNotebook): Promise<void>;
     list(before?: HistoryPage['next']): Promise<HistoryPage>;
     remove(id: string): Promise<void>;
-    exportFile?(id: string): Promise<void>;
-    importFile?(): Promise<{ source?: string }>;
+    exportFile?(id: string, archive?: { name: string; data: string }): Promise<void>;
+    importFile?(): Promise<{ source?: string; archive?: string }>;
 }
 export const HISTORY_PAGE_SIZE = 25;
 export function validDraft(value: unknown): value is NotebookDraft {
     const draft = value as NotebookDraft | undefined;
     return !!draft && Array.isArray(draft.cells) && draft.cells.every(cell => typeof cell === 'string')
-        && typeof draft.draft === 'string';
+        && typeof draft.draft === 'string' && (draft.modules === undefined || validRamDocuments(draft.modules))
+        && (draft.activeModule === undefined || typeof draft.activeModule === 'string'
+            && draft.modules?.some(module => module.name === draft.activeModule) === true);
+}
+export function validRamDocuments(value: unknown): value is RamDocument[] {
+    return Array.isArray(value) && value.length <= 64 && value.every(module => module
+        && typeof module.name === 'string' && /^[a-z][a-z0-9_]*\.ram$/.test(module.name)
+        && typeof module.source === 'string' && module.source.length <= 1_048_576
+        && (module.cursor === undefined || Number.isSafeInteger(module.cursor) && module.cursor >= 0 && module.cursor <= module.source.length)
+        && (module.scroll === undefined || Number.isFinite(module.scroll) && module.scroll >= 0))
+        && new Set(value.map(module => module.name)).size === value.length;
 }
 export function notebookSource(snapshot: NotebookDraft): string {
     return [...snapshot.cells, snapshot.draft].join('\n');
@@ -42,8 +53,8 @@ const native = registerPlugin<{
     save(options: { book: SavedNotebook; debugPreview?: boolean }): Promise<void>;
     list(options: { before?: HistoryPage['next']; limit: number; debugPreview?: boolean }): Promise<HistoryPage>;
     remove(options: { id: string; debugPreview?: boolean }): Promise<void>;
-    exportFile(options: { id: string; debugPreview?: boolean }): Promise<void>;
-    importFile(): Promise<{ source?: string }>;
+    exportFile(options: { id: string; debugPreview?: boolean; name?: string; data?: string }): Promise<void>;
+    importFile(): Promise<{ source?: string; archive?: string }>;
 }>('Notebooks');
 
 /** Metadata and source use separate stores so paging never reads notebook bodies. */
@@ -140,7 +151,7 @@ function createNotebookStore(debugPreview = false): NotebookStore {
         save: book => native.save({ book, debugPreview }),
         list: before => native.list({ before, limit: HISTORY_PAGE_SIZE, debugPreview }),
         remove: id => native.remove({ id, debugPreview }),
-        exportFile: id => native.exportFile({ id, debugPreview }),
+        exportFile: (id, archive) => native.exportFile({ id, debugPreview, ...archive }),
         importFile: () => native.importFile(),
     };
 }

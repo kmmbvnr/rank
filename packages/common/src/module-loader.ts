@@ -1,5 +1,5 @@
 import type { Program } from '@arrrank/language';
-import { parse } from '@arrrank/interpreter';
+import { parse, compileRam } from '@arrrank/interpreter';
 
 /** The text of the module an import names, or nothing when it cannot be read. Never throws. */
 export type ModuleSource = (specifier: string) => string | undefined;
@@ -26,10 +26,12 @@ export function createModuleLoader(read: ModuleSource): (specifier: string) => P
         let source: string | undefined;
         try { source = read(specifier); } catch { return undefined; }
         if (source === undefined) return undefined;
-        if (!parsed.has(source)) {
+        const key = `${specifier}\0${source}`;
+        if (!parsed.has(key)) {
             if (parsed.size >= KEPT) parsed.clear();
-            try { parsed.set(source, parse(source)); } catch { parsed.set(source, undefined); }
+            try { parsed.set(key, /\.ram$/i.test(specifier) ? compileRam(source, specifier).program : parse(source)); }
+            catch { parsed.set(key, undefined); }
         }
-        return parsed.get(source);
+        return parsed.get(key);
     };
 }

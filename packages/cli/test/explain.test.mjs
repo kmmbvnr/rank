@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { analyzeWithImports } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
-import { loadModule } from '../out/load-module.js';
+import { loadModuleProgram } from '../out/load-module.js';
 
 const cli = fileURLToPath(new URL('../bin/cli.js', import.meta.url));
 const demos = fileURLToPath(new URL('../../../demos', import.meta.url));
@@ -66,6 +66,12 @@ test('explain borrows the names of a loaded source module', t => {
     assert.doesNotMatch(result.stdout, /unresolved/);
 });
 
+test('explain discovers an imported RAM function without executing a GPU', () => {
+    const result = explain(path.join(demos, 'mlrank', 'main.ra'));
+    assert.equal(result.status, 0, result.stderr + result.stdout);
+    assert.doesNotMatch(result.stdout, /needs a use|cannot read/);
+});
+
 // The corpus is the real test: every demo runs, so every report here is a
 // false positive and the whole suite would be worthless with one in it. The
 // command spawns a process per file, so this runs the same analysis in-process.
@@ -87,7 +93,7 @@ test('explain finds nothing to report across the demos', () => {
         try {
             facts = analyzeWithImports(
                 parse(fs.readFileSync(file, 'utf8')),
-                specifier => parse(loadModule(specifier, file).source));
+                specifier => loadModuleProgram(specifier, file));
         } catch {
             continue; // `rank check` owns parse failures.
         }

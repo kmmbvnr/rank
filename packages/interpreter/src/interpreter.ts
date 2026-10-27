@@ -30,6 +30,7 @@ import { standardModules } from './modules/index.js';
 import { requireModule } from './modules/shared.js';
 import { Operators } from './operators.js';
 import { parse } from './parser.js';
+import { compileRam, ramFunction, type RamModule } from './mlrank.js';
 import { clonePreviewValue } from './preview-values.js';
 import { RankApplication } from './rank-application.js';
 import { ReductionEvaluator } from './reduction.js';
@@ -42,6 +43,7 @@ import { isNativeFunction, type RankValue } from './value.js';
 type Output = (text: string) => void;
 
 interface LoadedProgram {
+    readonly accelerator?: RamModule;
     readonly id: string;
     readonly program: Program;
 }
@@ -616,6 +618,16 @@ export class Interpreter {
         child.loadedProgram = loaded;
         for (const [key, value] of this.openPrograms) child.openPrograms.set(key, value);
         child.prepareModule(loaded.program);
+        const accelerator = loaded.accelerator;
+        if (accelerator) {
+            let current = accelerator;
+            child.bindings.forget([accelerator.name]);
+            child.assign(accelerator.name, ramFunction(accelerator, this.options.ramGpu, () => {
+                const source = this.options.loadModule!(specifier, this.options.sourceId);
+                if (source.source !== current.source) current = compileRam(source.source, source.id);
+                return current;
+            }));
+        }
 
         if (alias) {
             if (this.aliases.has(alias) || this.variables.has(alias)) {
@@ -676,7 +688,8 @@ export class Interpreter {
         if (this.parsingPrograms.has(source.id)) throw new RankError(`cyclic module import: ${source.id}`);
         this.parsingPrograms.add(source.id);
         try {
-            const loaded = { id: source.id, program: parse(source.source, source.id, {
+            const accelerator = /\.ram$/i.test(source.id) ? compileRam(source.source, source.id) : undefined;
+            const loaded = { id: source.id, accelerator, program: accelerator?.program ?? parse(source.source, source.id, {
                 loadModule: path => this.load(path, source.id).program,
             }) };
             registerSource(loaded.program, source.id);

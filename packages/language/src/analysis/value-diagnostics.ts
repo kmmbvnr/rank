@@ -1500,8 +1500,8 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                 if (calls.directNoReturnCall(statement.value, env)) return false;
             } else if (isOptionStatement(statement) || isArgumentStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
-                env.set(statement.name, completedValueFacts(statement.many ? externalArray(statement.valueType)
-                    : externalScalar(statement.valueType, env.get(statement.name))));
+                env.set(statement.name, completedValueFacts(statement.many ? externalArray(statement.valueType ?? '')
+                    : externalScalar(statement.valueType ?? '', env.get(statement.name))));
             } else if (isFlagStatement(statement)) {
                 env.set(statement.name, externalScalar('boolean', env.get(statement.name)));
             } else if (isUseStatement(statement) && statement.path && statement.alias && loadModule) {

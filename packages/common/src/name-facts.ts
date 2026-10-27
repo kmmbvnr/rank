@@ -406,9 +406,9 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
         case 'input': {
             if (isFlagStatement(node)) return { types: ['boolean'], rank: 0, shape: [] };
             if (!isOptionStatement(node) && !isArgumentStatement(node)) return UNKNOWN;
-            const types = declaredType(node.valueType, node.many);
+            const types = declaredType(node.valueType ?? '', node.many);
             if (!types.length) return UNKNOWN;
-            return node.many ? { types, rank: 1, shape: [null], elements: declaredType(node.valueType, false) }
+            return node.many ? { types, rank: 1, shape: [null], elements: declaredType(node.valueType ?? '', false) }
                 : { types, rank: types.join() === 'text' ? 1 : 0, shape: types.join() === 'text' ? [null] : [] };
         }
         case 'function': return FUNCTION;

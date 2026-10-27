@@ -9,7 +9,8 @@
     --height: 100dvh;
     --top: 0px;
     --safe-top: env(safe-area-inset-top, 0px);
-    --chrome-height: max(44px, var(--safe-top));
+    --source-tabs-height: 26px;
+    --chrome-height: calc(max(44px, var(--safe-top)) + var(--source-tabs-height));
     --terminal-inset: 10px;
     --keyboard-height: 0px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -106,7 +107,22 @@ html.web #brand::before { content: ''; flex: none; width: 16px; height: 12px; ma
     linear-gradient(currentColor, currentColor) 0 50% / 100% 2px no-repeat,
     linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat; }
 html.example.web #brand::before { width: 14px; height: 10px; margin-right: 8px; }
-#chrome { position: fixed; top: var(--top); right: 0; left: 0; height: var(--chrome-height); z-index: 2; background: #000; }
+#chrome { position: fixed; top: var(--top); right: 0; left: 0; height: calc(var(--chrome-height) - var(--source-tabs-height)); z-index: 4; background: #000; }
+#source-tabs { position: fixed; z-index: 2; top: calc(var(--top) + var(--chrome-height) - var(--source-tabs-height)); left: 12px; right: 12px; height: var(--source-tabs-height); display: flex; overflow-x: auto; gap: 0; background: #000; }
+#source-tabs button { flex: none; display: flex; align-items: flex-end; padding: 0 8px 2px; line-height: 20px; background: transparent; color: #aaa; border-bottom: 2px solid transparent; }
+#source-tabs button:last-child { padding-inline: 4px; }
+#source-tabs button[aria-pressed="true"] { color: #eee; border-bottom-color: #aeb7e1; }
+#ram-editor { position: fixed; top: calc(var(--top) + var(--chrome-height)); left: 16px; right: 16px; height: calc(var(--height) - var(--chrome-height) - 16px); }
+#ram-editor p { margin: 8px 0; color: #aaa; font-size: 11px; }
+#ram-editor textarea { display: block; width: 100%; height: calc(100% - 36px); padding: 8px 0; resize: none; border: 0; outline: none; border-radius: 0; background: #000; color: #eee; font: inherit; line-height: 1.5; tab-size: 2; }
+.ram-editing #terminal, .ram-editing #keyboard, .ram-editing #run-button, .ram-editing #iteration-controls { display: none !important; }
+.ram-editing #mobile-guidance, .ram-editing #guidance-spotlight { display: none !important; }
+dialog[aria-label="Add RAM module"] { width: min(360px, calc(100% - 32px)); padding: 20px; border: 1px solid #555; border-radius: 12px; background: #252535; color: #eee; }
+dialog[aria-label="Add RAM module"] input { display: block; width: 100%; margin: 12px 0; padding: 10px; box-sizing: border-box; font: inherit; background: #14141d; color: #eee; border: 1px solid #777; }
+dialog[aria-label="Add RAM module"] button { padding: 10px 16px; background: #41465b; margin-right: 8px; border-radius: 6px; }
+dialog[aria-label="Add RAM module"] p { color: #ffb4ab; }
+html.example #source-tabs { display: none; }
+html.example #chrome { height: var(--chrome-height); }
 #brand { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: 0; display: flex; align-items: center; height: 44px; padding: 0; background: transparent; color: #e5e5e5; font-family: system-ui, sans-serif; font-size: 17px; font-weight: 950; font-style: italic; font-synthesis: weight style; letter-spacing: -.06em; }
 #voice-indicator { position: absolute; left: 0; top: 0; width: 14px; height: 1.5em; display: flex; align-items: center; justify-content: center; background: transparent; padding: 0; margin: 0; border: 0; cursor: pointer; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 #voice-indicator::after { content: ''; position: absolute; top: -10px; bottom: -10px; left: -12px; right: -12px; }

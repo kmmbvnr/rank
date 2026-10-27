@@ -1,5 +1,70 @@
 # mlRank (`.ram` MVP Specification)
 
+## Implemented Hello World subset
+
+The first prototype supports one fixed-shape real tensor input and
+`return Input relu`. Import it with `use "hello.ram"` and call `X hello`.
+See [the runnable example](../../demos/mlrank/main.ra).
+The rest of this document describes proposed extensions.
+
+From the repository root, with Node.js 22.12+ and `uv` installed:
+
+```sh
+npm run mlrank:setup
+npm run build
+npm run rank -- demos/mlrank/main.ra
+node scripts/mlrank-check.mjs
+```
+
+`mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
+`node_modules/.cache/mlrank`. `RANK_ML_PYTHON` can select another Python
+environment containing `ai-edge-litert==2.3.0` and NumPy.
+The desktop bridge starts a Python process for each call; model preparation
+and process startup are part of its cost. It does not yet retain a loaded
+desktop model between calls.
+
+The Android app includes LiteRT. Open **GPU Hello World** in the command menu,
+then **Run program**. The upper tabs contain the main program and its attached
+`hello.ram`. **+** creates another RAM module. Switching tabs keeps the main
+REPL state and unfinished text; it does not execute code. Sources are saved
+together in the notebook. Exporting a program with modules produces a ZIP
+containing `main.ra`, the `.ram` sources and a notebook snapshot. The ZIP can
+also be imported. Programs without modules keep their existing `.ra` export.
+
+For a local Mac browser session, run `npm run dev --workspace @arrrank/web`
+and open `/console.html`. The Vite development server supplies the native GPU
+bridge. Static hosting does not supply this bridge.
+
+The prototype emits a TFLite graph and uses LiteRT GPU on every platform:
+Metal on macOS, OpenCL on the tested Android devices, and WebGPU/Vulkan on
+the tested Intel Linux host. CoreML and NPU execution remain proposals.
+The shape has 1–4 positive dimensions, with at most 1,048,576 elements.
+Inputs must contain finite Rank `real` values; integers are not narrowed.
+`.f16` and `.f32` round at the input/output boundary. LiteRT transport uses
+float32 tensors. This proves the declared ReLU result within the chosen
+tolerance; it does not establish hardware FP16 arithmetic. Binary16 values
+outside ±65504 are rejected.
+
+The desktop runtime checks `is_fully_accelerated()` and rejects partial
+delegation. Android requests only the GPU accelerator. Kotlin LiteRT 2.3.0
+does not expose the corresponding placement query; verify its single ReLU
+node using native delegate logs. The response reports `gpuOnlyRequested`,
+not an invented placement result. There is no interpreter fallback when
+the GPU runtime is unavailable.
+
+Mac M5 and Intel UHD (Comet Lake) passed `mlrank-check.mjs`: maximum absolute
+errors were 0 and 5.96e-8 respectively, against an absolute tolerance of 1e-4.
+The standalone LiteRT probe delegated 1 of 1 nodes on Adreno 810 and Adreno 619.
+The Android APK also ran the `.ra` example on OnePlus BE2029 (Android 11,
+Adreno 619); its native log confirmed 1 of 1 delegated nodes. Three cached
+calls matched the CPU reference with a maximum absolute error of 5.96e-8.
+The notebook and its selected RAM tab survived a WebView reload.
+These checks establish correctness and placement for this workload, not a
+speedup. Linux WebGPU profiling in the standalone tool is unsupported; run
+that probe without `--use_profiler=true`.
+
+## Proposed full MVP
+
 **Status:** Draft MVP — 2026-10-25  
 **File extension:** `.ram` (Rank Accelerator Module)  
 **Target backends:** Apple CoreML (MIL / ANE / Metal GPU), Google LiteRT (TFLite FlatBuffers / StableHLO / GPU & NPU Delegates), ARM TOSA, and Rank CPU Interpreter fallback.

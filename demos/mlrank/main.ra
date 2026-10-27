@@ -1,0 +1,8 @@
+rem GPU Hello World
+use sequences
+use io
+use "hello.ram"
+
+X = array -32 to 31 reshape 1 64 real
+Y = X hello
+Y print
