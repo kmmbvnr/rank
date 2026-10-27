@@ -25,9 +25,8 @@ export class RamTabs {
         this.text.spellcheck = false; this.text.autocapitalize = 'off'; this.text.autocomplete = 'off';
         this.text.addEventListener('input', () => { this.capture(); this.changed(); });
         for (const event of ['select', 'scroll', 'blur']) this.text.addEventListener(event, () => { this.capture(); this.changed(); });
-        const hint = document.createElement('p'); hint.textContent = 'Called from Program with use "hello.ram"';
         this.status.setAttribute('role', 'alert'); this.status.hidden = true;
-        this.panel.append(hint, this.status, this.text);
+        this.panel.append(this.status, this.text);
         this.create.setAttribute('aria-label', 'Add RAM module');
         this.create.addEventListener('close', () => this.returnKeyboard(this.create.returnValue === 'created'));
         this.create.addEventListener('cancel', event => { event.preventDefault(); this.closeCreate(); });

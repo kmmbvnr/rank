@@ -113,8 +113,9 @@ html.example.web #brand::before { width: 14px; height: 10px; margin-right: 8px; 
 #source-tabs button:last-child { padding-inline: 4px; }
 #source-tabs button[aria-pressed="true"] { color: #eee; border-bottom-color: #aeb7e1; }
 #ram-editor { position: fixed; top: calc(var(--top) + var(--chrome-height)); left: 16px; right: 16px; height: calc(var(--height) - var(--chrome-height) - 16px); }
+#ram-editor:not([hidden]) { display: flex; flex-direction: column; }
 #ram-editor p { margin: 8px 0; color: #aaa; font-size: 11px; }
-#ram-editor textarea { display: block; width: 100%; height: calc(100% - 36px); padding: 8px 0; resize: none; border: 0; outline: none; border-radius: 0; background: #000; color: #eee; font: inherit; line-height: 1.5; tab-size: 2; }
+#ram-editor textarea { display: block; width: 100%; flex: 1; min-height: 0; padding: 8px 0; resize: none; border: 0; outline: none; border-radius: 0; background: #000; color: #eee; font: inherit; line-height: 1.5; tab-size: 2; }
 .ram-editing #terminal, .ram-editing #keyboard, .ram-editing #run-button, .ram-editing #iteration-controls { display: none !important; }
 .ram-editing #mobile-guidance, .ram-editing #guidance-spotlight { display: none !important; }
 dialog[aria-label="Add RAM module"] { width: min(360px, calc(100% - 32px)); padding: 20px; border: 1px solid #555; border-radius: 12px; background: #252535; color: #eee; }
