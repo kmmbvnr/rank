@@ -1,10 +1,10 @@
 import { applicationExpression, flattenApplication } from './expressions.js';
 import { AstUtils, GrammarUtils, type AstNode } from 'langium';
 import {
-    isBinaryExpression, isNumberLiteral, isUnaryExpression, type Expression,
+    isBinaryExpression, isLabelLiteral, isNumberLiteral, isUnaryExpression, type Expression,
     isPrimaryTailExpression, isArrayAssignmentStatement, isNameExpression, type Program, type ApplicationExpression,
     type KeyedRollingExpression, type KeyedReachExpression, type KeyedJoinExpression,
-    type KeyedMergeExpression,
+    type KeyedMergeExpression, type TableWriteExpression,
 } from './generated/ast.js';
 
 type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
@@ -25,8 +25,25 @@ export function normalizePrimaryApplications(program: Program): void {
         if (!isPrimaryTailExpression(node)) continue;
         const operator = node.operator?.replace(/\s+/g, '');
         let properties: Fields<ApplicationExpression> | Fields<KeyedRollingExpression>
-            | Fields<KeyedReachExpression> | Fields<KeyedJoinExpression> | Fields<KeyedMergeExpression>;
-        if (operator === undefined) {
+            | Fields<KeyedReachExpression> | Fields<KeyedJoinExpression> | Fields<KeyedMergeExpression>
+            | Fields<TableWriteExpression>;
+        if (isNameExpression(node.argument) && node.argument.name === 'insert'
+            && node.arguments.length > 0 && node.arguments.every(isNameExpression) && !node.values.length) {
+            properties = {
+                $type: 'TableWriteExpression', source: node.head,
+                sourceFields: [], values: node.arguments as TableWriteExpression['values'], entries: [],
+            };
+        } else if (isLabelLiteral(node.argument) && (node.values.length > 0 || node.entries.length > 0 || node.deleteWrite)) {
+            properties = {
+                $type: 'TableWriteExpression', source: node.head,
+                sourceFields: [node.argument], values: node.values, entries: node.entries,
+            };
+        } else if (node.values.length > 0 || node.entries.length > 0 || node.deleteWrite) {
+            properties = {
+                $type: 'ApplicationExpression', head: node.head,
+                arguments: [node.argument, ...node.values],
+            };
+        } else if (operator === undefined) {
             properties = {
                 $type: 'ApplicationExpression', head: node.head,
                 arguments: [node.argument, ...node.arguments],

@@ -68,8 +68,8 @@ interface FunctionStatement {
 entry Program:
     NL*
     (statements+=Statement
-        (NL+ statements+=Statement)*)?
-    NL*;
+        (NL+ statements+=Statement)*
+        NL*)?;
 
 Statement:
     UseStatement |
@@ -94,13 +94,13 @@ Statement:
     ExpressionOrPushStatement;
 
 UseStatement:
-    'use' (module=(WORD | 'text') | path=STRING ('as' alias=Identifier)?);
+    'use' (module=TypeName | path=STRING ('as' alias=Identifier)?);
 
 RunStatement:
     'run' path=STRING?;
 
 ArgStatement:
-    'arg' name=VARIABLE valueType=(WORD | 'text') (many?='array')?
+    'arg' name=VARIABLE valueType=TypeName (many?='array')?
     ('=' defaultValue=Expression)?;
 
 FlagStatement:
@@ -111,16 +111,16 @@ ArgsStatement:
 
 TestStatement:
     'test' description=STRING NL+
-    (statements+=Statement (NL+ statements+=Statement)*)?
-    NL* 'end';
+    (statements+=Statement NL+)*
+    'end';
 
 FunctionStatement returns FunctionStatement:
     ('fun' | memo?='memo') leftBindings+=LeftFunctionParameter* name=FunctionName rightBindings+=FunctionParameter*
     groups+=FunctionCallGroup* ('rank' ranks+=RankSpec+)?
     ('=' expressionBody=Expression |
-        (NL+ groups+=FunctionCallGroup+)* NL+
-        (statements+=Statement (NL+ statements+=Statement)*)?
-        NL* 'end');
+        NL+ (groups+=FunctionCallGroup+ NL+)*
+        (statements+=Statement NL+)*
+        'end');
 
 LeftFunctionParameter infers FunctionParameter:
     name=VARIABLE (deferred?="'")?;
@@ -129,7 +129,7 @@ FunctionParameter:
     name=Identifier (deferred?="'")?;
 
 FunctionName returns string:
-    WORD | 'text' | 'first' | 'take' | 'update' | 'ascending' | 'descending';
+    WORD | 'text' | 'first' | 'take' | 'insert' | 'update' | 'ascending' | 'descending';
 
 FunctionCallGroup:
     word=SIGNATURE_WORD parameter=VARIABLE (deferred?="'")? ('=' defaultValue=FunctionDefault)?;
@@ -139,10 +139,10 @@ FunctionDefault returns Expression:
     {infer UnaryExpression} operator='-' operand=NumberLiteral;
 
 FunctionBindingStatement:
-    name=WORD '=' value=Expression;
+    name=FunctionName '=' value=Expression;
 
 OperationAssignmentStatement:
-    name=WORD (
+    name=FunctionName (
         indices+=NamedAddressItem* indices+=NonNameAddressItem indices+=AddressItem* operator=AssignmentOperator |
         indices+=NamedAddressItem+ operator=AssignmentOperator
     ) value=Expression (accumulate?=ACCUMULATE)?;
@@ -173,40 +173,36 @@ ContinueStatement:
 
 TryStatement:
     'try' NL+
-    (statements+=Statement (NL+ statements+=Statement)*)?
-    NL* (
-        (catches+=CatchClause NL*)+
+    (statements+=Statement NL+)*
+    (
+        catches+=CatchClause+
         ('finally' NL+
-            (finallyStatements+=Statement
-                (NL+ finallyStatements+=Statement)*)? NL*)? |
+            (finallyStatements+=Statement NL+)*)? |
         'finally' NL+
-        (finallyStatements+=Statement
-            (NL+ finallyStatements+=Statement)*)? NL*
+        (finallyStatements+=Statement NL+)*
     )
     'end';
 
 CatchClause:
     'catch' errorKind=LabelLiteral? errorName=VARIABLE NL+
-    (statements+=Statement (NL+ statements+=Statement)*)?;
+    (statements+=Statement NL+)*;
 
 IfStatement:
     'if' condition=Expression NL+
-    (thenStatements+=Statement (NL+ thenStatements+=Statement)*)?
-    NL* (elifClauses+=ElifClause)*
+    (thenStatements+=Statement NL+)*
+    (elifClauses+=ElifClause)*
     ('else' NL+
-        (elseStatements+=Statement (NL+ elseStatements+=Statement)*)?
-        NL*)?
+        (elseStatements+=Statement NL+)*)?
     'end';
 
 ElifClause:
     'elif' condition=Expression NL+
-    (statements+=Statement (NL+ statements+=Statement)*)?
-    NL*;
+    (statements+=Statement NL+)*;
 
 ForStatement:
     'for' condition=Expression? NL+
-    (statements+=Statement (NL+ statements+=Statement)*)?
-    NL* 'end';
+    (statements+=Statement NL+)*
+    'end';
 
 UnpackStatement:
     'unpack' names+=UnpackTarget+ '=' value=Expression;
@@ -307,8 +303,9 @@ ArrayItemAtom returns Expression:
 ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
 
+// Inline array values and range bounds stop before `shape` and pipeline clause words.
 ArrayReferenceName returns string:
-    VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'sql' | 'explain' | 'update' | 'with' | 'ascending' | 'descending';
+    VARIABLE | WORD | QUALIFIED_NAME | ContextualWord;
 
 AddressItem:
     spread?='unpack' value=ArrayAtom |
@@ -432,9 +429,8 @@ PrimaryApplicationExpression returns Expression:
     PrimaryExpression (
         {infer FirstIndexWhereExpression.source=current} 'first' 'index' 'where' mask=FilterCondition |
         {infer FirstWhereExpression.source=current} 'first' 'where' mask=FilterCondition |
-        {infer TableWriteExpression.source=current} sourceFields+=LabelLiteral?
-            ('insert' values+=NameExpression+ |
-             'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
+        {infer TableWriteExpression.source=current}
+            ('update' NL+ (entries+=SelectEntry NL+)+ 'end' |
              'delete') |
         {infer TableSelectExpression.source=current} sourceFields+=LabelLiteral?
             'select' (fields+=LabelLiteral+ | columns=NameExpression | columns=ParenthesizedExpression |
@@ -449,6 +445,9 @@ PrimaryApplicationExpression returns Expression:
         // A second primary is shared by ordinary calls and keyed operations.
         // Normalize this temporary node to the public AST after parsing.
         {infer PrimaryTailExpression.head=current} argument=PrimaryExpression (
+            'insert' values+=NameExpression+ |
+            'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
+            deleteWrite?='delete' |
             operator=MERGE_BY (fields+=SortField+ | key=NameExpression direction=SortDirection?) |
             operator=ROLLING_BY field=LabelLiteral |
             operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
@@ -561,7 +560,7 @@ BooleanValue returns boolean:
     'true' | 'false';
 
 LabelLiteral:
-    '.' name=(Identifier | 'array' | 'record' | 'tuple' | 'index');
+    '.' name=LabelName;
 
 NameExpression:
     name=ReferenceName;
@@ -627,8 +626,22 @@ MultilinePowerExpression returns Expression:
     ({infer BinaryExpression.left=current}
         NL* operator='**' NL* right=MultilinePowerExpression)?;
 
+TypeName returns string:
+    WORD | 'text';
+
+// Words that also act as operations or modifiers inside expressions and array items.
+ContextualWord returns string:
+    'rank' | 'text' | 'first' | 'index' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'ascending' | 'descending';
+
+// Pipeline and table clause keywords that cannot appear as bare expression references.
+ClauseKeyword returns string:
+    'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'delete';
+
 Identifier returns string:
-    VARIABLE | WORD | 'rank' | 'text' | 'first' | 'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'delete' | 'ascending' | 'descending';
+    VARIABLE | WORD | ContextualWord | ClauseKeyword | 'shape';
+
+LabelName returns string:
+    Identifier | 'array' | 'record' | 'tuple';
 
 AssignableName returns string:
     VARIABLE | QUALIFIED_NAME;
@@ -637,7 +650,7 @@ UnpackTarget returns string:
     AssignableName | '#';
 
 ReferenceName returns string:
-    VARIABLE | WORD | 'rank' | QUALIFIED_NAME | 'text' | 'first' | 'index' | 'shape' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'ascending' | 'descending';
+     ArrayReferenceName | 'shape';
 
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
