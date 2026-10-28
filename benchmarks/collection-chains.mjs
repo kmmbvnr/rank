@@ -5,6 +5,8 @@ const cases = [
     ['sort unique', 'T = V sort\nT unique'],
     ['sort take 20 sum', 'T = V sort\nU = T take 20\nU sum'],
     ['unique sort take 20 sum', 'T = V unique\nS = T sort\nU = S take 20\nU sum'],
+    ['filter Mask array unique sum', 'T = V filter Mask array\nU = T unique\nU sum'],
+    ['drop 2 unique sum', 'T = V drop 2\nU = T unique\nU sum'],
     ['unique sum', 'T = V unique\nT sum'],
 ];
 for (const [chain, separate] of cases) {
@@ -12,12 +14,17 @@ for (const [chain, separate] of cases) {
     for (const body of [separate, `V ${chain}`]) {
         const runtime = new Interpreter();
         try {
-            runtime.execute('use sequences\nV = (1 to 100000 array) mod 10007 copy');
+            runtime.execute('use sequences\nV = (1 to 100000 array) mod 10007 copy\nMask = V mod 2 equal 0 copy');
             const program = parse(body);
             let answer;
-            const start = performance.now();
-            for (let i = 0; i < 5; i++) answer = runtime.executeProgram(program);
-            const ms = (performance.now() - start) / 5;
+            for (let i = 0; i < 5; i++) runtime.executeProgram(program);
+            const samples = [];
+            for (let i = 0; i < 11; i++) {
+                const start = performance.now();
+                answer = runtime.executeProgram(program);
+                samples.push(performance.now() - start);
+            }
+            const ms = samples.sort((a, b) => a - b)[5];
             results.push({ ms, answer: formatValue(answer) });
         } finally { runtime.dispose(); }
     }

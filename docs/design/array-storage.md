@@ -136,3 +136,23 @@ preserves numeric values without coercion. It is not a reactive embedding API.
 
 Historical boundary experiments and their measurements remain in the
 [optimization log](optimization-lab.md); they do not define the current contract.
+
+### Collection chain consumers
+
+Trusted numeric vectors support fused `sort unique` in addition to
+`unique sort`. Exact integer `unique sum` consumes stored arrays, native
+slices, mask selections and supported integer tensor maps without retaining
+a distinct output array. A native mask followed by `array unique`,
+`array unique len` or `array unique sum` can skip the intermediate materialization.
+Opaque readers, arbitrary predicates and unsupported scalar types retain the
+ordinary execution path.
+
+For an already-bound integer vector, `sort take K` and `unique sort take K`
+use a bounded max heap when K is a literal or an already-bound integer count.
+The selected K values are sorted before returning; a subsequent `sum` consumes
+that small result. The heap uses O(K) storage and O(N log K) work, but can be
+slower than hashing followed by sorting when the source has many duplicates.
+Count expressions with effects keep ordinary evaluation order.
+
+Run `node benchmarks/collection-chains.mjs` after the TypeScript build to compare
+chained and separately materialized execution, including exact result checks.

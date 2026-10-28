@@ -55,7 +55,7 @@ export function compileClauseExpression(
                     && context.isBuiltin?.(last.name, 'sort') && typeof count === 'bigint') {
                     const value = context.findVariable(input.name);
                     if (value !== undefined) {
-                        const result = numericSmallest(value, count, !!distinct, false);
+                        const result = numericSmallest(value, count, !!distinct);
                         if (result !== undefined) return result;
                     }
                 }

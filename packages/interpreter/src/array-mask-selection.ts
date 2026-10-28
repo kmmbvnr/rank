@@ -1,7 +1,7 @@
 import { noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
-import { prepareStoredScalarView } from './integer-view.js';
+import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { checkpoint } from './interrupt.js';
 import { tensorMaskPositions, sumTensorPositions } from './tensor-map.js';
 import { sameShape } from './tensor-index.js';
@@ -94,4 +94,13 @@ export function materializeMaskSelection(selected: RankSequence): RankArray | un
     const diagnostics = currentDiagnostics();
     if (diagnostics) { diagnostics.maskMaterializations++; diagnostics.maskMaterializedCells += items.length; }
     return view.kinds?.length === 1 ? ownedScalarArray(items, view.kinds[0]) : ownedArray(items, [items.length], true);
+}
+
+/** Borrow only a native integer selection; never inspect arbitrary iterators. */
+export function integerMaskSelection(selected: RankSequence): { length: number; read(index: number): bigint } | undefined {
+    const selection = selections.get(selected.plan);
+    if (!selection || selected.plan.iterate !== selection.iterate) return undefined;
+    const view = prepareIntegerView(selection.source, true);
+    if (!view) return undefined;
+    return { length: selection.positions.length, read: index => view.read(selection.positions[index]) };
 }
