@@ -228,9 +228,51 @@ export class SignatureLexer extends DefaultLexer {
         }
         if (contextualWords.size > literalWords.size) return this.contextualTokens(text, options, contextualWords);
         for (const index of [...removed].sort((a, b) => b - a)) tokens.splice(index, 1);
-        result.tokens = tokens.filter(token => token.tokenType.name !== 'REM_COMMENT');
+        result.tokens = hideParenthesizedNewlines(tokens).filter(token => token.tokenType.name !== 'REM_COMMENT');
         return result;
     }
+}
+
+function hideParenthesizedNewlines(tokens: readonly IToken[]): IToken[] {
+    const closingParen = new Map<number, number>();
+    const stack: number[] = [];
+    for (let index = 0; index < tokens.length; index++) {
+        const token = tokens[index];
+        if (token.image === '(') stack.push(index);
+        else if (token.image === ')' && stack.length) closingParen.set(stack.pop()!, index);
+    }
+    const filtered: IToken[] = [];
+    const modes: ('paren' | 'block')[] = [];
+    for (let index = 0; index < tokens.length; index++) {
+        const token = tokens[index];
+        const lineStart = index === 0 || newline(tokens[index - 1])
+            || tokens[index - 1]?.image === '(' && closingParen.has(index - 1);
+        if (token.image === '(' && closingParen.has(index)) {
+            modes.push('paren');
+        } else if (token.image === ')' && modes.length) {
+            while (modes.length && modes.pop() !== 'paren') { /* close unclosed inner blocks */ }
+        } else if (lineStart && token.image === 'end' && modes.at(-1) === 'block') {
+            modes.pop();
+        } else if (tokens[index - 1]?.image !== '.') {
+            let arrayBlock = false;
+            if (token.image === 'array' && tokens[index + 1]?.image === 'shape') {
+                arrayBlock = true;
+                for (let cursor = index + 2; tokens[cursor] && !newline(tokens[cursor]); cursor++) {
+                    if (tokens[cursor].image === 'fill') { arrayBlock = false; break; }
+                }
+            }
+            const blockExpression = ['record', 'select', 'filter', 'update', 'with'].includes(token.image)
+                && newline(tokens[index + 1])
+                || token.image === 'text' && (lineStart || ['=', 'return', '('].includes(tokens[index - 1]?.image))
+                    && (newline(tokens[index + 1])
+                    || ['lines', 'joined'].includes(tokens[index + 1]?.image) && newline(tokens[index + 2]))
+                || arrayBlock;
+            if (blockExpression && modes.length) modes.push('block');
+        }
+        if (token.tokenType.name === 'NL' && modes.at(-1) === 'paren') continue;
+        filtered.push(token);
+    }
+    return filtered;
 }
 
 function atomEnd(tokens: readonly IToken[], start: number): number {

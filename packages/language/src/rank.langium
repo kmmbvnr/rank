@@ -247,9 +247,6 @@ ArrayRangeExpression returns Expression:
     ('by' step=ArrayRangeBound)?;
 
 ArrayRangeBound returns Expression:
-    ArrayRangeAddition;
-
-ArrayRangeAddition returns Expression:
     ArrayRangeMultiplication
     ({infer BinaryExpression.left=current}
         operator=('+' | '-') right=ArrayRangeMultiplication)*;
@@ -582,65 +579,7 @@ NameExpression:
     name=ReferenceName;
 
 ParenthesizedExpression:
-    '(' NL* value=MultilineExpression NL* ')';
-
-MultilineExpression returns Expression:
-    MultilineOrExpression;
-
-MultilineOrExpression returns Expression:
-    MultilineXorExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator='or' NL* right=MultilineXorExpression)*;
-
-MultilineXorExpression returns Expression:
-    MultilineAndExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator='xor' NL* right=MultilineAndExpression)*;
-
-MultilineAndExpression returns Expression:
-    MultilineNotExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator='and' NL* right=MultilineNotExpression)*;
-
-MultilineNotExpression returns Expression:
-    {infer UnaryExpression} operator='not' NL* operand=MultilineNotExpression |
-    MultilineComparisonExpression;
-
-MultilineComparisonExpression returns Expression:
-    MultilineDefaultExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator=ComparisonOperator NL* right=MultilineDefaultExpression)*;
-
-MultilineDefaultExpression returns Expression:
-    MultilineRangeExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator='default' NL* right=MultilineRangeExpression)?;
-
-MultilineRangeExpression returns Expression:
-    MultilineAdditionExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator=('to' | 'till' | 'until') NL* right=MultilineRangeBound
-        (NL* 'by' NL* step=MultilineAdditionExpression)?)?;
-
-MultilineRangeBound returns Expression:
-    SubjectComparisonChain |
-    {infer UnaryExpression} operator='not' operand=NotExpression |
-    MultilineAdditionExpression;
-
-MultilineAdditionExpression returns Expression:
-    MultilineMultiplicationExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator=('+' | '-') NL* right=MultilineMultiplicationExpression)*;
-
-MultilineMultiplicationExpression returns Expression:
-    MultilinePowerExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator=('*' | '/' | '//' | 'mod' | 'divmod') NL* right=MultilinePowerExpression)*;
-
-MultilinePowerExpression returns Expression:
-    ApplicationExpression
-    ({infer BinaryExpression.left=current}
-        NL* operator='**' NL* right=MultilinePowerExpression)?;
+    '(' value=Expression ')';
 
 TypeName returns string:
     WORD | 'text';

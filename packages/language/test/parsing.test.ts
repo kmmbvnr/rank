@@ -491,10 +491,18 @@ describe('Rank grammar', () => {
             '  A greater 0',
             '  and B less 10',
             ')',
+            'Filtered = (',
+            '  Values till greater 0',
+            '  and even',
+            ')',
+            'Copy = (record',
+            '  .x = 1',
+            '  .y = 2',
+            'end)',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(2);
+        expect(document.parseResult.value.statements).toHaveLength(4);
     });
 
     it('parses a named function modified by outer', async () => {
