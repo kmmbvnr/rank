@@ -1,0 +1,193 @@
+{
+  "date": "2026-10-28",
+  "checkpoint": {
+    "repo": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tensor": "h.0.attn.c_attn.weight",
+    "shape": [
+      768,
+      2304
+    ],
+    "scope": "One-token matmul only; no bias or full attention."
+  },
+  "tolerance": {
+    "atol": 0.0001,
+    "rtol": 0.0001
+  },
+  "mac": {
+    "weightBytes": 7077888,
+    "weightSha256": "df332e9d9ae908db358a00423f14af1c0036bc9a2332aca395adf68e3eb08b48",
+    "modelBytes": 564,
+    "jsBytes": 240,
+    "headerBytes": 80,
+    "maxError": 3.177666568987547e-06,
+    "valuesCompared": 11520,
+    "staleRejected": true,
+    "reloadReadsWeights": true,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.001500127837061882,
+        "executeMs": 12.18304201029241,
+        "fileBytesRead": 7077888,
+        "fileInputsReused": 0,
+        "inputMs": 9.85104194842279,
+        "dispatchMs": 2.2937499452382326,
+        "readbackMs": 0.019750092178583145,
+        "outputMs": 0.01850002445280552,
+        "peakRssBytes": 74940416
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0014579854905605316,
+        "executeMs": 0.9630001150071621,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 0.07866695523262024,
+        "dispatchMs": 0.8526251185685396,
+        "readbackMs": 0.012457836419343948,
+        "outputMs": 0.019250204786658287,
+        "peakRssBytes": 74940416
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0006670597940683365,
+        "executeMs": 0.946457963436842,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 0.05137501284480095,
+        "dispatchMs": 0.8758751209825277,
+        "readbackMs": 0.007791910320520401,
+        "outputMs": 0.011415919288992882,
+        "peakRssBytes": 74940416
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0005830079317092896,
+        "executeMs": 0.9411671198904514,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 0.04412513226270676,
+        "dispatchMs": 0.8780830539762974,
+        "readbackMs": 0.0072089023888111115,
+        "outputMs": 0.011750031262636185,
+        "peakRssBytes": 74940416
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0005830079317092896,
+        "executeMs": 3.350374987348914,
+        "fileBytesRead": 7077888,
+        "fileInputsReused": 0,
+        "inputMs": 1.3593749608844519,
+        "dispatchMs": 1.9686671439558268,
+        "readbackMs": 0.009292038157582283,
+        "outputMs": 0.013040844351053238,
+        "peakRssBytes": 83525632
+      }
+    ]
+  },
+  "intel": {
+    "weightBytes": 7077888,
+    "weightSha256": "df332e9d9ae908db358a00423f14af1c0036bc9a2332aca395adf68e3eb08b48",
+    "modelBytes": 564,
+    "jsBytes": 240,
+    "headerBytes": 80,
+    "maxError": 1.07041954109377e-05,
+    "valuesCompared": 11520,
+    "staleRejected": true,
+    "reloadReadsWeights": true,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0020936131477355957,
+        "executeMs": 38.23446109890938,
+        "fileBytesRead": 7077888,
+        "fileInputsReused": 0,
+        "inputMs": 7.321201264858246,
+        "dispatchMs": 15.76663926243782,
+        "readbackMs": 15.104327350854874,
+        "outputMs": 0.04229322075843811,
+        "peakRssBytes": 135667712
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0037923455238342285,
+        "executeMs": 16.522275283932686,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 0.17564557492733002,
+        "dispatchMs": 0.3432389348745346,
+        "readbackMs": 15.961015596985817,
+        "outputMs": 0.04237517714500427,
+        "peakRssBytes": 135667712
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.003686174750328064,
+        "executeMs": 16.09063521027565,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 0.2954751253128052,
+        "dispatchMs": 0.2822335809469223,
+        "readbackMs": 15.472380444407463,
+        "outputMs": 0.04054605960845947,
+        "peakRssBytes": 135667712
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.002738088369369507,
+        "executeMs": 16.210265457630157,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 0.18271058797836304,
+        "dispatchMs": 0.33404864370822906,
+        "readbackMs": 15.626434236764908,
+        "outputMs": 0.06707198917865753,
+        "peakRssBytes": 135667712
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0027082860469818115,
+        "executeMs": 42.271748185157776,
+        "fileBytesRead": 7077888,
+        "fileInputsReused": 0,
+        "inputMs": 9.78623516857624,
+        "dispatchMs": 17.447078600525856,
+        "readbackMs": 15.011414885520935,
+        "outputMs": 0.027019530534744263,
+        "peakRssBytes": 136310784
+      }
+    ]
+  },
+  "android": {
+    "status": "pending",
+    "reason": "OnePlus not discoverable over wireless ADB; APK built."
+  },
+  "tests": {
+    "vitest": 29,
+    "node": 7,
+    "nativeCache": 5
+  },
+  "memoryNote": "Desktop peak RSS is the process lifetime high-water mark, including runtime and previous loads. It is not GPU allocation size. Timings are diagnostic samples."
+}

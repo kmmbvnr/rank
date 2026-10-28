@@ -100,7 +100,9 @@ The linear subset accepts rank-2–4 inputs and rank-2 weights, including dimens
 by 16 or 32. It emits LiteRT `FULLY_CONNECTED` with weights transposed once
 to `[N,K]` during compilation; no host multiplication or explicit padding is used.
 This is GPU execution, not a claim of AMX or Hexagon NPU execution.
-The shape of each tensor has 1–4 positive dimensions, with at most 1,048,576 elements.
+Tensor shapes have 1–4 positive dimensions. Computed tensors and baked constants
+allow at most 1,048,576 elements; file runtime inputs allow up to 4,194,304 elements
+each, with a 64 MiB aggregate input budget (see resident projection below).
 Inputs must contain finite Rank `real` values; integers are not narrowed.
 `.f16` and `.f32` round at the input/output boundary. LiteRT transport and computation use float32 tensors; both native bridges
 explicitly request FP32 GPU precision. `.f16` describes boundary rounding,
@@ -314,8 +316,9 @@ FlatBuffer is 1,924 bytes instead of 2,072: unused original linear-weight buffer
 omitted, and reshaped constants sharing the same values reuse their buffer. The host
 compiler still retains decoded weights; this is not a peak-memory saving claim.
 
-Limits remain 1,048,576 elements per tensor, 32 MiB of source constants and 128 graph
-nodes. Transport independently rejects JSON requests above 32 MiB, including base64
+This small-model path retains 1,048,576 elements per tensor, 32 MiB of source
+constants and 128 graph nodes. Larger file runtime inputs use the separate limits
+described below. Transport independently rejects JSON requests above 32 MiB, including base64
 expansion: the constant limit alone does not guarantee a model fits. Notebook binary
 attachments are capped at 8 MiB total and 64 files; archives at 16 MiB uncompressed.
 The current native JSON store reads large snapshots in chunks to avoid SQLite's
@@ -1056,10 +1059,18 @@ Desktop maps only the selected byte range with NumPy memmap and copies it into
 the LiteRT input buffer; the mapping is closed after the transfer. Android's
 current Kotlin LiteRT API exposes `writeFloat(float[])`, so it uses a bounded
 64 KiB read buffer plus the required native float array. It does not send file
-payloads through the WebView. GPU buffers still need device memory, and each
-invocation fills its runtime inputs again. Persistent weights, file-backed baked
-constants and full-model partitioning remain separate work. Existing RAM shape
-and graph limits are unchanged.
+payloads through the WebView. GPU buffers still need device memory. Unchanged file descriptors reuse their native
+input buffers on subsequent invocations; file size and revision are checked before
+reuse. An ordinary input write invalidates that buffer's file identity. Release,
+model replacement and helper restart discard all resident inputs. Failed writes
+never mark an input resident. This does not prove the driver avoids internal copies.
+File-backed baked constants and full-model partitioning remain separate work.
+
+Runtime inputs allow up to 4,194,304 elements (16 MiB F32) each and 64 MiB in total.
+Inputs above 1,048,576 elements must be file tensors. Computed tensors, outputs and
+individual baked constants retain the 1,048,576-element limit; the 32 MiB constant
+budget and 128-node limit remain. These are bounded graph budgets, not a claim that
+all permitted graphs fit a device's memory.
 
 `node scripts/mlrank-file-input-check.mjs` checks the complete Rank call path
 with an input placed beyond 2 GiB in a sparse Safetensors file. Pass the standalone
@@ -1070,3 +1081,41 @@ with the recorded size and offset, without transferring gigabytes of zeros.
 `packages/web/test/ram-file-input.playwright.js` validates the shipped Android
 worker, native execution, viewer output and WebView file-read ranges. Results:
 `benchmarks/baselines/2026-10-28-mlrank-file-input.json`.
+
+
+### Resident GPT-2 QKV projection
+
+`demos/mlrank/gpt2-qkv.ra` calls `gptqkv.ram` with the real GPT-2
+`h.0.attn.c_attn.weight` matrix, shape `[768,2304]`, as a deferred file input.
+It computes one token's QKV matrix product, without bias, embeddings or attention.
+The 7,077,888-byte weight payload stays outside the 564-byte graph.
+
+Mac and Intel checks compare all 2,304 outputs over five calls, changing activations,
+rejecting a stale file descriptor and releasing/reloading the model. Only the first
+call and the call after reload read weight bytes; intermediate calls report zero.
+The ordinary Rank path reads only the 80-byte Safetensors header per invocation.
+Native profiles report `fileBytesRead` and `fileInputsReused`, as well as timings
+and desktop process peak RSS. These counters measure our file reads and buffer
+writes, not copies inside LiteRT or the GPU driver. The reference uses an independent
+float64 scalar dot product with atol=rtol=1e-4. Timings are diagnostic samples, not
+a speed benchmark. Android verification of this larger projection is pending.
+
+Reproduce with the pinned GPT-2 revision (the range is the QKV weight payload):
+
+```sh
+mkdir -p /tmp/rank-qkv
+curl -fL -H 'Range: bytes=270696403-277774290' \
+  'https://huggingface.co/openai-community/gpt2/resolve/607a30d783dfa663caf39e06633721c8d4cfcd7e/model.safetensors?rank-qkv=1' \
+  -o /tmp/rank-qkv/gpt2-qkv.bin
+node scripts/mlrank-resident-projection-check.mjs /tmp/rank-qkv
+```
+
+The checker verifies the pinned payload SHA-256, writes `qkv.safetensors` and
+`projection-fixture.json`, and rejects any payload read by the Rank JS file API.
+`--compile-only` prepares Android fixtures without invoking the desktop GPU.
+Place `qkv.safetensors` in the app's `files/models` directory, then run
+`packages/web/test/ram-resident-projection.playwright.js` with its fixture placeholder
+substituted. On desktop, the demo expects the same file under `models/`.
+Native cache lifecycle tests run with
+`node_modules/.cache/mlrank/bin/python packages/cli/test/ram-file-cache.test.py`.
+Results: `benchmarks/baselines/2026-10-28-mlrank-resident-projection.json`.

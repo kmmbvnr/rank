@@ -1,0 +1,9 @@
+rem GPT-2 QKV projection
+use io
+use "gptqkv.ram"
+F = "models/qkv.safetensors" open
+W' = F tensor "weight"
+X = array shape 1 768 fill 0.5
+Result = X gptqkv W
+F close
+Result
