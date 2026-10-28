@@ -67,8 +67,8 @@ node scripts/mlrank-norm-check.mjs
 `mlrank:setup` installs Python 3.12 and LiteRT 2.3.0 in
 `node_modules/.cache/mlrank`. `RANK_ML_PYTHON` can select another Python
 environment containing `ai-edge-litert==2.3.0` and NumPy.
-The desktop bridge retains one Python process and one compiled model.
-The host loads a model once and invokes its opaque ID with new inputs. Repeated calls reuse its buffers; a new graph replaces the resident model.
+The desktop bridge retains one Python process and up to four compiled models.
+The host loads each part once and invokes its opaque ID with new inputs. Repeated calls reuse its buffers; cache admission evicts the least recently used parts when necessary.
 The helper exits with the host process. GPU checks report cold preparation,
 warm preparation, execution and host round-trip time separately.
 
@@ -302,8 +302,8 @@ shape, dtype, exact byte length, checksum and finite values before GPU submissio
 with `node scripts/mlrank-weights.mjs` after building the interpreter.
 
 The wire protocol has `load` (model bytes once), `invoke` (model ID and inputs) and
-`release`. One native model is resident per runtime. Loading another model disposes
-the old buffers and model; alternating modules therefore requires reloading. An
+`release`. Up to four native models share a 128 MiB reservation budget per runtime.
+Alternating resident modules reuses their buffers and file inputs. An
 expired or released ID returns `STALE_MODEL`. The host reloads and retries once;
 ordinary execution errors are not retried. Runtime shutdown also releases resources.
 Source or weight changes produce a new graph. Weight bytes are checked on each call,
@@ -1062,7 +1062,7 @@ current Kotlin LiteRT API exposes `writeFloat(float[])`, so it uses a bounded
 payloads through the WebView. GPU buffers still need device memory. Unchanged file descriptors reuse their native
 input buffers on subsequent invocations; file size and revision are checked before
 reuse. An ordinary input write invalidates that buffer's file identity. Release,
-model replacement and helper restart discard all resident inputs. Failed writes
+eviction or release discards that model's resident inputs; helper restart discards all resident inputs. Failed writes
 never mark an input resident. This does not prove the driver avoids internal copies.
 File-backed baked constants and full-model partitioning remain separate work.
 
@@ -1185,3 +1185,40 @@ its zero-filled region. Results are in
 The full model still needs graph partitioning, larger-artifact placement checks and
 embedding/head handling. The importer seals local files; downloading, the Android
 file-picker workflow and automatic packaging of external checkpoints are not added.
+
+### Multiple resident parts (stage 13b, first slice)
+
+`demos/mlrank/gpt2-parts.ra` chains `partscale.ram` and `partqkv.ram` with
+file-backed GPT-2 weights. Both parts remain resident across alternating calls.
+The main Rank program chooses the parts explicitly; automatic partitioning is
+not implemented. Intermediate activations still cross the host as JSON numbers;
+weights do not. The existing checkpoint demo supplies the same model files.
+
+`load.reservationBytes` reserves serialized model bytes, nominal four-byte tensor
+storage for every logical node, and additional transposed constant weights used
+by `linear` (deduplicated by right operand). Admission evicts least recently used
+models before construction until both the four-model cap and 128 MiB total fit.
+Omitting the reservation requests the entire budget, preserving exclusive
+loading for legacy/prepared-model callers. Invalid reservations are rejected
+before eviction. Construction failure may leave admission evictions in effect;
+it does not expose a partial handle or select CPU execution.
+
+Replies expose `residentModels`, `residentBytes` and `memoryBudgetBytes`; load
+also reports `cacheEvictions`. These bytes are reservations, **not measured GPU
+memory**: driver workspaces, packed weights, contexts and temporary native copies
+are excluded. RSS/PSS are reported separately. This is not a physical memory cap
+or proof that a full gigabyte-scale model fits.
+
+`release` removes only its model. A stale handle causes one reload/retry of that
+part, without dropping the other client handles. Android models share one LiteRT
+environment, released after the last model: independent environment teardown
+crashed the tested Adreno driver while another model remained alive.
+
+Verification: `node scripts/mlrank-parts-check.mjs CHECKPOINT_FIXTURE_DIRECTORY`
+uses the previous checkpoint fixture and writes `parts-fixture.json`. Substitute
+that JSON for `__PARTS_FIXTURE__` in
+`packages/web/test/ram-parts.playwright.js` for the Android worker check.
+Evidence is in `benchmarks/baselines/2026-10-28-mlrank-parts.json`: two real parts,
+reuse with zero weight reads, stale recovery, individual release and bounded
+residency. Budget pressure uses a small graph with a full-budget reservation;
+it does not simulate a physical GPU out-of-memory failure.
