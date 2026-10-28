@@ -895,7 +895,7 @@ describe('Rank grammar', () => {
             '  .delete = 3',
             'end',
             'S = R .shape',
-            'Items = array insert update with first index',
+            'Items = array insert update with first index sort group scan reduce',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);

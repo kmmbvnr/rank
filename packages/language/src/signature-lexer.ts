@@ -73,7 +73,7 @@ export class SignatureLexer extends DefaultLexer {
             names: Map<string, Header | { alias: string } | null>;
             inline?: boolean;
         }
-        const root: Scope = { names: new Map([...this.signatures].map(([name, signature]) => [name, {
+        const root: Scope = { names: new Map([...this.signatures].map(([name, signature]): [string, Header] => [name, {
             right: signature.rightParameters.map(parameter => parameter.kind === 'function'),
             words: new Set(signature.words.map(group => group.word)),
         }])) };
@@ -165,6 +165,7 @@ export class SignatureLexer extends DefaultLexer {
                 inline: tokens[cursor]?.image === '=' };
             index = cursor - 1;
         }
+        const higherOrderHeader: Header = { right: [true], words: new Set() };
         const lookup = (name: string, scope: Scope | undefined, seen = new Set<string>()): Header | undefined => {
             if (seen.has(name)) return undefined;
             seen.add(name);
@@ -194,7 +195,9 @@ export class SignatureLexer extends DefaultLexer {
         }
         for (let index = 0; index < tokens.length; index++) {
             if (declarations.has(index) || removed.has(index)) continue;
-            const header = lookup(tokens[index].image, scopes[index]);
+            const lookedUp = lookup(tokens[index].image, scopes[index]);
+            const header = lookedUp?.right.length ? lookedUp
+                : ['scan', 'reduce', 'segment', 'outer'].includes(tokens[index].image) ? higherOrderHeader : lookedUp;
             if (!header) continue;
             let cursor = index + 1;
             for (const functionOperand of header.right) {
@@ -217,7 +220,7 @@ export class SignatureLexer extends DefaultLexer {
                 const token = tokens[cursor];
                 const word = token.image.split(/[\t ]/)[0];
                 if (!header.words.has(word)) break;
-                if (token.tokenType.name === 'REM_COMMENT' || token.tokenType.name === 'HIGHER_ORDER') {
+                if (token.tokenType.name === 'REM_COMMENT') {
                     contextualWords.set(token.startOffset, word);
                     break;
                 }

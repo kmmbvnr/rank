@@ -11,6 +11,20 @@ interface ArrayAssignmentStatement {
     accumulate: boolean
 }
 
+interface KeyedSortExpression extends Expression {
+    source: Expression
+    operator: string
+    fields: SortField[]
+    key?: Expression
+    direction?: string
+}
+
+interface KeyedGroupExpression extends Expression {
+    source: Expression
+    operator: string
+    fields: LabelLiteral[]
+}
+
 interface KeyedRollingExpression extends Expression {
     source: Expression
     width: Expression
@@ -295,7 +309,7 @@ ArrayItem:
 ArrayItemAtom returns Expression:
     NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
     NewStructureExpression | StdinExpression | ArrayNameExpression | ParenthesizedExpression |
-    HigherOrderOperator;
+    FunctionOperator;
 
 ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
@@ -452,22 +466,28 @@ PrimaryApplicationExpression returns Expression:
             'with' NL+ (fields+=RecordUpdateField NL+)+ 'end' |
         {infer AliasedTableExpression.source=current} field=LabelLiteral?
             'alias' name=LabelLiteral |
-        {infer KeyedSortExpression.source=current} operator=(SORT_BY | ARGSORT_BY | MERGE_BY)
-            (fields+=SortField+ | key=SortKeyExpression direction=SortDirection?) |
-        {infer KeyedGroupExpression.source=current} operator=(GROUP_BY | ROLLUP_BY) fields+=LabelLiteral+ |
         // A second primary is shared by ordinary calls and keyed operations.
         // Normalize this temporary node to the public AST after parsing.
         {infer PrimaryTailExpression.head=current} argument=PrimaryExpression (
             'insert' values+=NameExpression+ |
             'update' NL+ (entries+=SelectEntry NL+)+ 'end' |
             deleteWrite?='delete' |
-            operator=MERGE_BY (fields+=SortField+ | key=NameExpression direction=SortDirection?) |
-            operator=ROLLING_BY field=LabelLiteral |
-            operator=(LEFTJOIN_BY | INNERJOIN_BY) fields+=LabelLiteral+ |
-            operator=(LEFTJOIN_ON | INNERJOIN_ON) NL* pairs+=JoinFieldPair+ |
-            operator=REACH_BY from=LabelLiteral to=LabelLiteral |
-            arguments+=ApplicationArgument*
-                ({infer MaterializeExpression.source=current} 'array')?
+            clause='by' (
+                sortFields+=SortField+ |
+                sortKey=SortKeyExpression direction=SortDirection?
+            ) |
+            secondArgument=PrimaryExpression (
+                clause='by' (
+                    sortFields+=SortField+ |
+                    sortKey=NameExpression direction=SortDirection?
+                ) |
+                clause='on' NL* pairs+=JoinFieldPair+ |
+                arguments+=ApplicationArgument*
+                    ({infer MaterializeExpression.source=current} 'array')?
+            ) |
+            arguments+=NonPrimaryArgument arguments+=ApplicationArgument*
+                ({infer MaterializeExpression.source=current} 'array')? |
+            ({infer MaterializeExpression.source=current} 'array')?
         ) |
         {infer ApplicationExpression.head=current} arguments+=NonPrimaryArgument
             arguments+=ApplicationArgument*
@@ -530,13 +550,7 @@ NonPrimaryArgument returns Expression:
     UnpackExpression | ArrayExpression | TupleExpression;
 
 PrimaryExpression returns Expression:
-    ArrayAtom | AllAxisExpression | HigherOrderOperator | FunctionOperator;
-
-// `A scan + with 0`: a higher-order operation followed by a combining symbol.
-// The lexer joins them so the symbol is not read as an infix operator; grouping
-// turns the pair back into the call form the runtime executes.
-HigherOrderOperator:
-    text=HIGHER_ORDER;
+    ArrayAtom | AllAxisExpression | FunctionOperator;
 
 FunctionOperator:
     operator=CALL_OPERATOR;
@@ -614,18 +628,6 @@ terminal ACCUMULATE: /\b\Baccumulate/;
 terminal CALL_OPERATOR: /\b\B/;
 terminal SIGNATURE_WORD: /\b\Bword/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
-terminal ARGSORT_BY: /argsort[\t ]+by/;
-terminal SORT_BY: /sort[\t ]+by/;
-terminal MERGE_BY: /merge[\t ]+by/;
-terminal GROUP_BY: /group[\t ]+by/;
-terminal ROLLUP_BY: /rollup[\t ]+by/;
-terminal ROLLING_BY: /rolling[\t ]+by/;
-terminal REACH_BY: /reach[\t ]+by/;
-terminal LEFTJOIN_BY: /leftjoin[\t ]+by/;
-terminal INNERJOIN_BY: /innerjoin[\t ]+by/;
-terminal LEFTJOIN_ON: /leftjoin[\t ]+on/;
-terminal INNERJOIN_ON: /innerjoin[\t ]+on/;
-terminal HIGHER_ORDER: /(scan|reduce|segment|outer)[\t ]+(\*\*|\/\/|[-+*\/]|(mod|and|or|xor|equal|less|greater)(?![A-Za-z0-9_])|not[\t ]+equal(?![A-Za-z0-9_])|at[\t ]+(least|most)(?![A-Za-z0-9_]))/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
 // Scientific notation: a decimal point or a negative exponent makes a real (1.5e3, 1e-3), anything else an integer (4e6).
