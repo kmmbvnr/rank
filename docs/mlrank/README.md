@@ -1664,3 +1664,67 @@ forward contract is complete for four tokens. Arbitrary context lengths, FP16,
 quantization and faster weight/activation reuse are not established by this check.
 The next task is stage 14: compatible tokenization/decoding and host generation
 without a KV cache, including padding, positions and context limits.
+
+### Greedy text generation without a KV cache (stage 14, four-token MVP)
+
+`demos/mlrank/gpt2-generate.ra` reads a prompt, encodes it, repeatedly runs the
+full forward pass and selects the largest logit on the host. With `Prompt =
+"Hello"` and `MaxNew = 3`, Mac, Intel and OnePlus produce **Hello, I'm** using
+IDs `[15496,11,314,1101]`. This is actual GPT-2 inference with the pinned weights,
+not a canned response or a model-specific tokenizer built into Rank.
+
+The program uses `Text bpeencode Config` and `Tokens bpedecode Config` from
+`use text`. `Config` is the pinned GPT-2 `tokenizer.json`, stored as
+`models/gpt2-tokenizer.json`; the program verifies its SHA-256 before reading it.
+The [text manual](../manual/text.md#bpeencode) defines the supported byte-level
+BPE subset and rejection rules. Its byte mapping and pre-tokenization follow
+the [GPT-2 encoder](https://github.com/openai/gpt-2/blob/master/src/encoder.py).
+A separate conformance check uses Hugging Face `tokenizers` 0.22.1 against the
+same JSON, covering 214 deterministic examples of Unicode, whitespace,
+contractions, special tokens and random mixed text.
+
+The context capacity remains **four tokens total**, including the prompt.
+The demo rejects an empty prompt, a prompt exceeding that capacity, and a
+negative or noninteger `MaxNew`. It pads on the right with EOS, assigns positions
+0..3 and uses the existing causal mask. After each pass it selects logits from
+`Tokens len - 1`, never from a padded row. The loop stops at the requested number
+of new tokens, a full context, or EOS; generated EOS is not appended to the text.
+`StopReason` holds `token limit`, `context limit` or `eos`. A prompt ending in
+EOS produces no new tokens. Decoding retains any special tokens already present
+in the prompt. No prompt truncation or sliding window is implicit.
+
+Each new token recomputes the context: 79 GPU calls and repeated block/head
+weight reads. Tokenization, argmax and the loop run in ordinary Rank/host code;
+all neural-network arithmetic remains on the GPU. This step establishes a
+working generation path, not useful context length or optimized token latency.
+The four-token limit permits one prompt token plus three generated tokens in
+the example. KV caching, larger context shapes, sampling and quantization remain
+separate work.
+
+For the independent reference and hardware check, first prepare the full-forward
+fixture as above. The reference additionally needs `tokenizers==0.22.1` in the
+Python environment; the Rank runtime has no Python tokenizer dependency.
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-gpt2-generation-reference.py /tmp/gpt2-forward
+node scripts/mlrank-gpt2-generation-check.mjs /tmp/gpt2-forward
+```
+
+The reference downloads the pinned tokenizer JSON if absent. The shared NumPy
+block reference was checked against all prior block-0 stage values without any
+changes. The generation check compares all 50,257 logits used for each of three
+next-token choices, then repeats with zero-valued right padding. Logits of the
+real tokens must match exactly between padding variants. Each device passed
+301,542 numeric comparisons and the tokenizer corpus. Maximum absolute errors
+were `1.67e-4` on Mac, `3.35e-4` on Intel and `3.65e-4` on OnePlus, within
+`5e-4 + abs(reference) * 1e-4`. Zero-token budgets, full contexts and prompt EOS
+were checked without GPU calls. Desktop checks also reject invalid prompts and
+budgets before GPU execution and use a simulated EOS-winning output to verify
+stopping before appending a generated EOS.
+
+Android's `packages/web/test/ram-gpt2-generation.playwright.js` records the chosen
+logit rows in a test-only Rank array and inspects all entries; it does not replay
+GPU requests. The 474 worker calls are six real forward passes. The updated
+OnePlus app has **GPT-2 generate** saved with its six RAM modules, and the demo
+was run from the menu and again after reload. Results are recorded in
+`benchmarks/baselines/2026-10-29-mlrank-gpt2-generation.json`.

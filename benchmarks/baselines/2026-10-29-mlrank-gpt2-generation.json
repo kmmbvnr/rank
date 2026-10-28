@@ -1,0 +1,218 @@
+{
+  "date": "2026-10-29",
+  "implementationCommit": "a129861b",
+  "description": "GPT-2 greedy generation with four total context tokens, right padding and no KV cache",
+  "sourceRevision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "tokenizerSha256": "8414cab924d8b9b33013f0d221c5862f365ee9be39c5c2bfae8a5a9e970478a6",
+  "referenceLibrary": "tokenizers 0.22.1 plus independent NumPy float64 forward",
+  "tolerance": {
+    "absolute": 0.0005,
+    "relative": 0.0001
+  },
+  "mac": {
+    "tokenizerCases": 214,
+    "text": "Hello, I'm",
+    "tokens": [
+      15496,
+      11,
+      314,
+      1101
+    ],
+    "generatedTokens": [
+      11,
+      314,
+      1101
+    ],
+    "gpuCalls": 474,
+    "valuesCompared": 301542,
+    "paddingInvariant": true,
+    "boundary": [
+      "token limit",
+      "context limit",
+      "eos"
+    ],
+    "invalidPromptsRejected": true,
+    "generatedEosMockVerified": true,
+    "checks": [
+      {
+        "label": "run-0-step-0",
+        "values": 50257,
+        "maxError": 0.00015014454627504392
+      },
+      {
+        "label": "run-0-step-1",
+        "values": 50257,
+        "maxError": 0.00013016330021287104
+      },
+      {
+        "label": "run-0-step-2",
+        "values": 50257,
+        "maxError": 0.00016680698291793306
+      },
+      {
+        "label": "run-1-step-0",
+        "values": 50257,
+        "maxError": 0.00015014454627504392
+      },
+      {
+        "label": "run-1-step-1",
+        "values": 50257,
+        "maxError": 0.00013016330021287104
+      },
+      {
+        "label": "run-1-step-2",
+        "values": 50257,
+        "maxError": 0.00016680698291793306
+      }
+    ],
+    "native": {
+      "gpuCalls": 474,
+      "modelLoads": 36,
+      "maxResidentModels": 4,
+      "maxReservationBytes": 36451892,
+      "peakRssBytes": 290308096,
+      "weightPayloadBytesRead": 2967810048,
+      "allGpuOnly": true
+    }
+  },
+  "intel": {
+    "tokenizerCases": 214,
+    "text": "Hello, I'm",
+    "tokens": [
+      15496,
+      11,
+      314,
+      1101
+    ],
+    "generatedTokens": [
+      11,
+      314,
+      1101
+    ],
+    "gpuCalls": 474,
+    "valuesCompared": 301542,
+    "paddingInvariant": true,
+    "boundary": [
+      "token limit",
+      "context limit",
+      "eos"
+    ],
+    "invalidPromptsRejected": true,
+    "generatedEosMockVerified": true,
+    "checks": [
+      {
+        "label": "run-0-step-0",
+        "values": 50257,
+        "maxError": 0.00024809549031346023
+      },
+      {
+        "label": "run-0-step-1",
+        "values": 50257,
+        "maxError": 0.00021402014948534998
+      },
+      {
+        "label": "run-0-step-2",
+        "values": 50257,
+        "maxError": 0.0003342378907973398
+      },
+      {
+        "label": "run-1-step-0",
+        "values": 50257,
+        "maxError": 0.00024809549031346023
+      },
+      {
+        "label": "run-1-step-1",
+        "values": 50257,
+        "maxError": 0.00021402014948534998
+      },
+      {
+        "label": "run-1-step-2",
+        "values": 50257,
+        "maxError": 0.0003342378907973398
+      }
+    ],
+    "native": {
+      "gpuCalls": 474,
+      "modelLoads": 36,
+      "maxResidentModels": 4,
+      "maxReservationBytes": 36451892,
+      "peakRssBytes": 196370432,
+      "weightPayloadBytesRead": 2967810048,
+      "allGpuOnly": true
+    }
+  },
+  "android": {
+    "tokenizerCases": 214,
+    "text": "Hello, I'm",
+    "tokens": [
+      15496,
+      11,
+      314,
+      1101
+    ],
+    "generatedTokens": [
+      11,
+      314,
+      1101
+    ],
+    "workerGpuCalls": 474,
+    "modelLoads": 36,
+    "valuesCompared": 301542,
+    "checks": [
+      {
+        "label": "run-0-step-0",
+        "values": 50257,
+        "maxError": 0.00022902200398533523
+      },
+      {
+        "label": "run-0-step-1",
+        "values": 50257,
+        "maxError": 0.0002129602275289244
+      },
+      {
+        "label": "run-0-step-2",
+        "values": 50257,
+        "maxError": 0.0003647554689223398
+      },
+      {
+        "label": "run-1-step-0",
+        "values": 50257,
+        "maxError": 0.00022902200398533523
+      },
+      {
+        "label": "run-1-step-1",
+        "values": 50257,
+        "maxError": 0.0002129602275289244
+      },
+      {
+        "label": "run-1-step-2",
+        "values": 50257,
+        "maxError": 0.0003647554689223398
+      }
+    ],
+    "paddingInvariant": true,
+    "stopConditionsVerified": true
+  },
+  "androidUi": {
+    "id": "b07aa5b7-fb6a-4c85-8c1a-40dc30e262da",
+    "text": "Hello, I'm",
+    "firstScreen": "\u00b7     Result # (50176 till 50257) = Y\u00b7     Logits = Result (Tokens len - 1) #\u00b7     Next = Logits max .index\u00b7     if Next equal 50256\u00b7     StopReason = \"eos\"\u00b7     break\u00b7     end\u00b7     Tokens = concat Tokens (array Next)\u00b7     end\u25cf 20\u203a F close\u25cf 21\u203a Tokens bpedecode Config      Hello, I'mrank> ",
+    "persistedAndRerun": true
+  },
+  "validation": {
+    "typeScriptBuild": "passed",
+    "androidApk": "built and installed with data retained",
+    "focusedVitestTests": 111,
+    "cliTests": 3,
+    "priorBlock0ReferenceUnchanged": true
+  },
+  "limitations": [
+    "Four context tokens total, prompt must contain 1..4 tokens",
+    "Only greedy argmax; no sampling or KV cache",
+    "79 GPU calls and repeated block/head weight reads for every generated token",
+    "Native memory counters exclude the JavaScript host and separate WebView processes",
+    "Generated EOS stopping uses a mock-winning EOS on desktop; the real prompt reaches the context or token budget",
+    "The tokenizer deliberately rejects unsupported JSON processing variants"
+  ],
+  "profileNote": "Desktop per-call counters are aggregated here; the check script emits raw profiles. Android compares the host-selected logits directly without extra GPU replays."
+}
