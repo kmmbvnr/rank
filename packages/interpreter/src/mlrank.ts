@@ -2,12 +2,13 @@ import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.
 import { lowerRamStructure } from './ram-structure.js';
 import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
-    isUseStatement, isFunctionStatement, functionCallSignature, isParenthesizedExpression, isBinaryExpression, isArrayExpression,
-    isNumberLiteral, isStringLiteral, isUnaryExpression, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
+    isUseStatement, isFunctionStatement, functionCallSignature, isParenthesizedExpression, isBinaryExpression,
+    isStringLiteral, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
 import { RankError } from './errors.js';
 import { native } from './modules/shared.js';
-import { ownedArray } from './array-storage.js';
+import { Interpreter } from './interpreter.js';
+import { arrayValues, ownedArray } from './array-storage.js';
 import { isRankArray, type NativeFunction } from './value.js';
 
 export interface RamGraph {
@@ -63,13 +64,6 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     };
     const inputs = [{ name: input.name, shape }];
     const names = new Map<string, number>([[input.name, 0]]);
-    const scalar = (expression: Expression): number => {
-        if (isParenthesizedExpression(expression)) return scalar(expression.value);
-        if (isNumberLiteral(expression) && typeof expression.value === 'number') return expression.value;
-        if (isUnaryExpression(expression) && (expression.operator === '-' || expression.operator === '+'))
-            return (expression.operator === '-' ? -1 : 1) * scalar(expression.operand);
-        return fail('Baked values must be real literals', input);
-    };
     const declareWeight = (weight: Statement): void => {
         if (!isOptionStatement(weight) || !weight.defaultValue)
             fail('RAM permits only baked option declarations before return', weight);
@@ -95,23 +89,30 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
             return;
         }
-        if (!isArrayExpression(value)) fail('Baked weights require an array literal or array shape ... fill', weight);
-        if (!isArrayExpression(value)) throw new Error('unreachable');
-        let values: number[];
-        if (value.dimensions.length) {
-            if (value.dimensions.length !== shape.length || value.dimensions.some((d, i) =>
-                !isNumberLiteral(d.value) || Number(d.value.value) * (d.sign === '-' ? -1 : 1) !== shape[i]))
+        const evaluator = new Interpreter(() => {});
+        let values: number[] = [];
+        try {
+            // Weights use ordinary Rank array semantics in an isolated compile-time scope.
+            // Only earlier baked tensors are available, never runtime inputs or host I/O.
+            evaluator.execute('use sequences\nuse numbers\nuse linalg');
+            for (const [name, index] of names) {
+                const node = nodes[index];
+                if (node.kind === 'constant') evaluator.variables.set(name, ownedArray([...node.values], node.shape));
+            }
+            const result = evaluator.evaluate(value);
+            if (!isRankArray(result)) fail('Baked weights must evaluate to a numeric array', weight);
+            if (!isRankArray(result)) throw new Error('unreachable');
+            if (result.shape.length !== shape.length || result.shape.some((n, i) => n !== shape[i]))
                 fail('Baked array shape does not match its option', weight);
-        } else if (shape.length !== 1) fail('Baked matrix literals require an explicit shape', weight);
-        if (value.fill) {
-            values = Array(size).fill(scalar(value.fill));
-        } else {
-            if (value.range) fail('Baked array ranges are not supported', weight);
-            values = [...value.items, ...value.rows.flatMap(row => row.items)]
-                .map(item => (item.sign === '-' ? -1 : 1) * scalar(item.value));
+            for (const item of arrayValues(result)) {
+                if (typeof item !== 'number' && typeof item !== 'bigint')
+                    fail('Baked weights require finite numeric elements', weight);
+                values.push(ramRound(Number(item), 'f32'));
+                if (values.length > size) fail('Baked array length does not match its option', weight);
+            }
             if (values.length !== size) fail('Baked array length does not match its option', weight);
-        }
-        values = values.map(value => ramRound(value, 'f32'));
+        } catch (error) { fail(String(error), weight); }
+        finally { evaluator.dispose(); }
         names.set(weight.name, nodes.length); nodes.push({ kind: 'constant', values, shape });
         if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
     };

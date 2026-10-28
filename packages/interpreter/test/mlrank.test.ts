@@ -63,10 +63,26 @@ describe('RAM ReLU MVP', () => {
         expect(module.graph.outputShape).toEqual([1, 4]);
         expect(module.graph.model).not.toEqual(compileRam(source.replace('fill 2.0', 'fill 3.0'), 'affine.ram').graph.model);
         for (const invalid of [source.replace('option Bias .f32 shape 1 4', 'option Bias .f32 shape 4'),
-            source.replace('fill 0.5', 'fill 1'), source.replace('fill 0.5', 'fill 1e39'),
+            source.replace('fill 0.5', 'fill 1e39'),
             source.replace('X * Scale', 'X / Scale'), source.replace('X * Scale', 'X * Unknown'),
             source.replace(/\.f32/g, '.f16'), source.replace('option Bias', 'option Scale')])
             expect(() => compileRam(invalid, 'affine.ram')).toThrow();
+    });
+    it('materializes ordinary Rank weight expressions and converts integers to f32', () => {
+        const bake = (expression: string) => compileRam('use ml\noption X .f32 shape 2 3\n'
+            + 'option W .f32 shape 2 3 = ' + expression + '\nreturn X * W', 'weights.ram').graph.nodes[1];
+        for (const expression of ['array shape 2 3 fill 1', 'array shape (1 + 1) 3 fill (2 - 1)',
+            '(array 1 1 1 1 1 1) reshape 2 3'])
+            expect(bake(expression)).toMatchObject({kind:'constant', values:[1,1,1,1,1,1]});
+        expect(bake('(1 to 6) reshape 2 3')).toMatchObject({values:[1,2,3,4,5,6]});
+        expect(bake('(array 1 2 3 4 5 6 shape 3 2) transpose')).toMatchObject({values:[1,3,5,2,4,6]});
+        expect(bake('(array 1 2 3 4 5 6 shape 2 3) * 2')).toMatchObject({values:[2,4,6,8,10,12]});
+        const source = 'use ml\noption X .f32 shape 2 3\noption A .f32 shape 2 3 = (1 to 6) reshape 2 3\n'
+            + 'option B .f32 shape 2 3 = A * 2\nreturn X + B';
+        expect(compileRam(source,'weights.ram').graph.nodes[2]).toMatchObject({values:[2,4,6,8,10,12]});
+        for (const expression of ['X', 'Unknown', 'array shape 2 3 fill "text"', 'array shape 2 3 fill .NA',
+            'array shape 2 3 fill 1e39', 'array shape 3 2 fill 1', 'array shape 2 3 fill (1 = 1)', '1'])
+            expect(() => bake(expression)).toThrow();
     });
     it('bakes explicit vector constants', () => {
         const source = 'use ml\noption X .f32 shape 4\noption W .f32 shape 4 = array -2.0 0.0 1.0 3.0\nreturn X * W';

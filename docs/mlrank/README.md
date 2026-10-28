@@ -7,13 +7,20 @@ The prototype supports fixed-shape real tensor inputs, ReLU, and broadcast
 See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
 [the linear example](../../demos/mlrank/linear.ra).
-Baked constants accept real-valued `array shape ... fill` expressions or
-array literals with explicit shapes (or one-dimensional literals), or binary `.rwt` attachments (see below).
+Baked constants evaluate ordinary Rank array expressions at compile time: literals,
+`array shape ... fill`, ranges, arithmetic, reshape, transpose, and other array
+operations from `core`, `sequences`, `numbers`, and `linalg`. Earlier baked options
+are available; runtime inputs and host I/O are not. The result must be a numeric
+array with exactly the declared shape. Integer and real elements are materialized
+and rounded to finite FP32 values; existing size limits still apply. For example,
+`option W .f32 shape 2 3 = (1 to 6) reshape 2 3` and
+`option W .f32 shape 2 3 = array shape 2 3 fill 1` both work.
+A string default still names a binary `.rwt` attachment (see below).
 `X W linear` accepts `X[...,M,K]` and baked `W[K,N]`, producing `[...,M,N]`.
 Each tensor has its own statically checked shape. `+` and `*` align trailing axes;
 matching dimensions or dimensions of size 1 broadcast, as in ordinary Rank arithmetic.
-For example, `[M,N] + [N]` adds a bias to each row. Explicit `rank L R`, scalar
-literals, weight overrides and multiple runtime inputs remain unsupported.
+For example, `[M,N] + [N]` adds a bias to each row. General `rank L R`, scalar graph literals and weight overrides remain unsupported.
+`matmul rank 2 2` and multiple runtime inputs are supported (see stage 10 below).
 Baked arithmetic constants with rank 4 must have batch dimension 1; other batch
 sizes are rejected because the GPU backend does not preserve those constants correctly.
 The compiler aligns operands using static reshapes (constant reshapes are baked),
@@ -148,7 +155,7 @@ option X .f32 shape 2 3
 option Epsilon .f32 shape 1 = array 0.00001
 option Scale .f32 shape 3 = array 1.0 0.5 2.0
 option Bias .f32 shape 3 = array 0.0 0.1 -0.1
-H = (X Epsilon layernorm) * Scale + Bias
+H = X Epsilon layernorm * Scale + Bias
 return H gelu_new
 ```
 
