@@ -333,15 +333,16 @@ export function integerDistinctConsumer(value: RankValue, terminal: 'array' | 's
     if (!view && !selected && !integerTensor(value)) return undefined;
     const stored = view ? prepareStoredScalarView(value, true) : undefined;
     const compact = stored?.linear && (!stored.validate || stored.validateUniform) ? stored.compact : undefined;
-    if (compact && terminal === 'sum') {
-        const { offset, stride } = stored!.linear!;
-        const length = view!.shape[0];
-        if (length) stored!.validateUniform?.(BigInt(compact[offset]));
+    if ((compact || selected?.numberAt) && terminal === 'sum') {
+        const { offset, stride } = stored?.linear ?? { offset: 0, stride: 1 };
+        const length = selected?.length ?? view!.shape[0];
+        if (compact && length) stored!.validateUniform?.(BigInt(compact[offset]));
+        const read = selected?.numberAt ?? ((index: number) => compact![offset + index * stride]);
         const seen = new Set<number>();
         let partial = 0, sum = 0n;
         for (let i = 0; i < length; i++) {
             if ((i & 4095) === 0) checkpoint('summing distinct integers', 4096);
-            const cell = compact[offset + i * stride];
+            const cell = read(i);
             if (seen.has(cell)) continue;
             seen.add(cell);
             const next = partial + cell;

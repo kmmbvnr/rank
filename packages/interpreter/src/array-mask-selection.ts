@@ -118,10 +118,16 @@ export function materializeMaskSelection(selected: RankSequence): RankArray | un
 }
 
 /** Borrow only a native integer selection; never inspect arbitrary iterators. */
-export function integerMaskSelection(selected: RankSequence): { length: number; read(index: number): bigint } | undefined {
+export function integerMaskSelection(selected: RankSequence): { length: number; read(index: number): bigint; numberAt?: (index: number) => number } | undefined {
     const selection = selections.get(selected.plan);
     if (!selection || selected.plan.iterate !== selection.iterate) return undefined;
     const view = prepareIntegerView(selection.source, true);
     if (!view) return undefined;
-    return { length: selection.positions.length, read: index => view.read(selection.positions[index]) };
+    const stored = prepareStoredScalarView(selection.source, true);
+    const compact = stored?.compact, linear = stored?.linear;
+    const direct = compact && linear && (!stored.validate || stored.validateUniform);
+    if (direct && selection.positions.length) stored.validateUniform?.(BigInt(compact[linear.offset + linear.stride * selection.positions[0]]));
+    return { length: selection.positions.length, read: index => view.read(selection.positions[index]),
+        ...(direct && { numberAt: (index: number) => compact[linear.offset + linear.stride * selection.positions[index]] }) };
+
 }
