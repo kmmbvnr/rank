@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes about 10 s.
+rem Retain the full default and independent small selections.
 test "default input"
   use "221_alexandrian"
   run

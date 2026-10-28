@@ -1,5 +1,5 @@
 import { safeIntegerSquareRoot } from './integer-square-root.js';
-import { isForStatement } from '@arrrank/language';
+import { isForStatement, isNameExpression } from '@arrrank/language';
 import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -180,11 +180,20 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
         }
         let conditionWriteCells = 0;
-        if (!plan.iteration) for (const [name] of plan.destinations) {
+        if (!plan.iteration || plan.vectorIterations.some(vector => vector.binding === plan.iteration)) for (const [name] of plan.destinations) {
             if (plan.arrayDefinitions.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array') return undefined;
             conditionWriteCells += value.shape.reduce((a, b) => a * b, 1);
+        }
+        // A complete, unshortened vector pass has at least one checkpoint per
+        // cell. Keep its existing fast path when that work covers the copies.
+        // Early exits and sliced/derived traversals instead use measured work.
+        const iterable = plan.iteration?.iterable;
+        if (conditionWriteCells && !plan.hasControl && iterable && isNameExpression(iterable)) {
+            const value = host.read(iterable.name);
+            if (value && isRankArray(value)
+                && value.shape.reduce((a, b) => a * b, 1) >= conditionWriteCells) conditionWriteCells = 0;
         }
         // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
         // the small-store fast path; larger stores get a bounded first probe.
@@ -193,6 +202,10 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // copying and overflow replay can still waste work, so retain the
         // conservative 262144-cell cap; it is not a measured universal optimum.
         // Measurements/tradeoffs: benchmarks/condition-loop-feedback-results.md.
+        // Euler 221 exposed short vector loops bypassing this policy: copying
+        // 960000 output cells per handful of divisors exceeded 90 s. Apply the
+        // same budget/feedback to those loops; full amortized passes stay fast.
+        // Controls: benchmarks/euler221-investigation.md.
         const probe = conditionWriteCells > 64;
         if (probe) {
             if (conditionWriteCells > 262144 || !feedback) return recordFallback('number-loop:condition-write-budget');

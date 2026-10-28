@@ -78,7 +78,8 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
     let failure: string | undefined;
     const failed = (reason: string) => { failure ??= reason; };
     const plan = lowerTypedLoop(statement, host, iteration, textSources, textArrays, failed);
-    const feedback: LoopWorkFeedback | undefined = numberVariant && !iteration && plan?.destinations.size
+    const feedback: LoopWorkFeedback | undefined = numberVariant && plan?.destinations.size
+        && (!iteration || plan.vectorIterations.some(vector => vector.binding === iteration))
         ? { cells: 0, allow: true } : undefined;
     const exact = plan && prepareIntegerLoop(plan, host, () => {
         failed(compilerRejection('loop', statement, 'code-generation'));

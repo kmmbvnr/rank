@@ -2813,3 +2813,25 @@ of a needed prime divisor, and integer composite flags for the remaining tail.
 Both complete within one Number function prefix. The reference engine still
 pays for scalar loops, and is slower on the new algorithm at measured reduced
 inputs. See [comparisons and limitations](../../benchmarks/euler216-investigation.md).
+
+## Copy admission for short vector loops (Euler 221, #447)
+
+Root loops over numeric arrays now share the condition-loop copy budget and
+exact-work feedback. Previously, a short vector invocation could copy a large
+external destination on every entry. The 64-cell fast path and 262144-cell
+probe cap are unchanged; fresh local arrays and range-loop admission retain
+their existing behavior.
+
+A complete traversal of a plain named input array retains Number execution
+when its length covers the total copied destination cells and the region has
+no early control transfer. Other vector traversals use the bounded first probe
+and exact-backend work observations. This preserves long full passes while
+avoiding repeated unamortized copies for short vectors. No values are cached,
+iterators are not consumed during admission, and ownership, publication,
+checked arithmetic, overflow replay and error timing retain their contracts.
+
+Euler 221 consumes its ascending divisor sequence directly and writes one
+candidate at a time, removing short mask/tensor pipelines. The native divisor
+iterator still builds its own divisor list. It currently retains ordinary
+execution; ordered sequence-loop lowering is a separate opportunity. See the
+[comparisons and verification](../../benchmarks/euler221-investigation.md).
