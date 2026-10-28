@@ -7,6 +7,8 @@ import com.google.ai.edge.litert.CompiledModel;
 import com.google.ai.edge.litert.TensorBuffer;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,9 +74,27 @@ final class RamGpu {
             return new JSONObject().put("error", "RAM model is no longer loaded").put("code", "STALE_MODEL");
         if (!cached) {
             closeModel();
-            File file = File.createTempFile("rank-ram-", ".tflite", context.getCacheDir());
+            if (request.has("model") == request.has("modelFile")) throw new IllegalArgumentException("Supply exactly one model source");
+            boolean temporary = !request.has("modelFile");
+            File file = temporary ? File.createTempFile("rank-ram-", ".tflite", context.getCacheDir())
+                : ModelFiles.resolve(context, request.getJSONObject("modelFile").getString("path"));
             try {
-                try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(Base64.decode(request.getString("model"), Base64.DEFAULT)); }
+                if (temporary) {
+                    try (FileOutputStream stream = new FileOutputStream(file)) { stream.write(Base64.decode(request.getString("model"), Base64.DEFAULT)); }
+                } else {
+                    JSONObject descriptor = request.getJSONObject("modelFile");
+                    long size = file.length(), modified = file.lastModified();
+                    if (size != descriptor.getLong("size")) throw new IllegalArgumentException("Model file size mismatch");
+                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                    byte[] chunk = new byte[1024 * 1024];
+                    try (FileInputStream stream = new FileInputStream(file)) {
+                        int count; while ((count = stream.read(chunk)) != -1) digest.update(chunk, 0, count);
+                    }
+                    StringBuilder hex = new StringBuilder();
+                    for (byte b : digest.digest()) hex.append(String.format("%02x", b & 255));
+                    if (!hex.toString().equals(descriptor.getString("sha256"))) throw new IllegalArgumentException("Model file checksum mismatch");
+                    if (size != file.length() || modified != file.lastModified()) throw new IllegalArgumentException("Model file changed during verification");
+                }
                 // GPU only: do not request CPU as a secondary accelerator.
                 CompiledModel.Options options = new CompiledModel.Options(Accelerator.GPU);
                 options.setGpuOptions(new CompiledModel.GpuOptions(null, null, null,
@@ -93,7 +113,7 @@ final class RamGpu {
                     }
                 } else if (inputs.size() != 1) throw new IllegalArgumentException("Multiple RAM inputs require sizes");
                 key = java.util.UUID.randomUUID().toString();
-            } catch (Exception error) { closeModel(); throw error; } finally { file.delete(); }
+            } catch (Exception error) { closeModel(); throw error; } finally { if (temporary) file.delete(); }
         }
         if (action.equals("load")) return new JSONObject().put("modelId", key)
             .put("gpuOnlyRequested", true).put("prepareMs", (System.nanoTime() - started) / 1e6);

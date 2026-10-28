@@ -1,4 +1,5 @@
 """GPU-only LiteRT runtime. JSON lines in/out; diagnostics stay on stderr."""
+import hashlib
 import base64
 import json
 import os
@@ -38,10 +39,29 @@ def run(request):
     if not cached:
         inputs = outputs = model = cached_key = None
         try:
-            model = CompiledModel.from_buffer(
-                base64.b64decode(request["model"], validate=True),
-                options=Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
-            )
+            options = Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
+            if ("model" in request) == ("modelFile" in request):
+                raise ValueError("Supply exactly one model source")
+            if "modelFile" in request:
+                descriptor = request["modelFile"]
+                path = descriptor["path"]
+                if not isinstance(path, str) or not os.path.isabs(path):
+                    raise ValueError("Model file requires an absolute path")
+                with open(path, "rb") as source:
+                    stat = os.fstat(source.fileno())
+                    if type(descriptor["size"]) is not int or stat.st_size != descriptor["size"]:
+                        raise ValueError("Model file size mismatch")
+                    digest = hashlib.sha256()
+                    while chunk := source.read(1024 * 1024):
+                        digest.update(chunk)
+                    if digest.hexdigest() != descriptor["sha256"]:
+                        raise ValueError("Model file checksum mismatch")
+                    after = os.fstat(source.fileno())
+                    if (after.st_size, after.st_mtime_ns) != (stat.st_size, stat.st_mtime_ns):
+                        raise ValueError("Model file changed during verification")
+                model = CompiledModel.from_file(path, options=options)
+            else:
+                model = CompiledModel.from_buffer(base64.b64decode(request["model"], validate=True), options=options)
             if not model.is_fully_accelerated():
                 raise RuntimeError("RAM graph was not fully delegated to GPU")
             inputs = model.create_input_buffers(0)

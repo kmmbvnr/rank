@@ -1,6 +1,6 @@
 import { Worker } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
-import { createRamClient, type RamRequest, type RamReply, type RamGpu } from '@arrrank/interpreter';
+import { createRamClient, type RamRequest, type RamReply, type RamModelFile, type RamGpu } from '@arrrank/interpreter';
 
 export interface RamGpuRequest { model: string; input: readonly number[]; outputSize?: number }
 export interface RamGpuResult {
@@ -49,3 +49,8 @@ export const nodeRamGpu: RamGpu = (graph, input) => {
     if (!result.fullyAccelerated) throw new Error('RAM graph did not execute entirely on GPU');
     return result.output!;
 };
+
+/** A prepared native model stays on disk; IPC carries only its verified descriptor. */
+export function runRamGpuFile(modelFile: RamModelFile, input: readonly number[], outputSize: number): RamGpuResult {
+    return client.invoke(JSON.stringify(modelFile), () => modelFile, input, outputSize) as RamGpuResult;
+}

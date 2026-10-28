@@ -949,3 +949,71 @@ Before importing a real checkpoint, review the 128-node limit: this single block
 already uses 115 nodes. Also check tensor, constant, attachment and transport
 limits, then choose graph partitioning or justified limit changes using actual
 checkpoint sizes and device measurements.
+
+## File-backed weights and native models (stage 13a, first slice)
+
+Ordinary Rank can inspect Safetensors without loading the checkpoint into memory:
+
+```rank
+use io
+use sequences
+F = "model.safetensors" open
+F safetensors
+W' = F tensor "wte.weight"
+Preview = W (0 till 3) #
+Preview
+```
+
+The apostrophe uses Rank's existing deferred-binding semantics. An ordinary
+assignment of the entire tensor materializes it. The index contains names, dtypes,
+shapes and byte sizes; payload reads hold one block of at most 64 KiB per view.
+Offsets use safe integers, including offsets beyond 2 GiB. See the
+[IO manual](../manual/io.md#safetensors-and-tensor) for types and resource lifetime.
+
+Desktop opens ordinary paths. Android opens `models/name.safetensors` in the
+app's private `files/models` directory through bounded binary reads. These files
+are separate from notebook attachments and exports. Import/file-picker UI and
+automatic loading of a sharded checkpoint's index are still pending. Individual
+shard files can be opened separately. This is read-only access; do not modify open
+checkpoint files. Revision checks detect changes where the host exposes them,
+but are not a cryptographic checkpoint identity.
+
+The native GPU protocol now also accepts `modelFile: {path, size, sha256}` instead
+of an inline `model`. Desktop requires an absolute path; Android resolves names
+inside `files/models`. Both verify the complete prepared model with a streaming
+SHA-256 pass (1 MiB read buffer) and load it with LiteRT's file API. Invoke/release
+and stale-handle recovery are unchanged. The file must remain available and
+unchanged for the resident model's lifetime. JSON carries the descriptor and
+small runtime inputs/outputs, never the file payload on this path. File access
+and GPU drivers may still allocate/copy memory; this is not a zero-copy claim.
+
+This is a host API for **prepared LiteRT model files**. Existing `.ram` compilation
+still builds a bounded FlatBuffer in JavaScript and uses the small-model bridge.
+Compiling large tensor references into bounded native graph parts, choosing their
+memory budgets and running the full GPT-2 stack remain stage 13b/13c. Safetensors
+files are not passed directly to LiteRT as models. No tensor-size limits were
+silently raised.
+
+Reproduce the host checks:
+
+```sh
+npx tsc -b tsconfig.build.json
+node --test packages/cli/test/safetensors.test.mjs packages/cli/test/ram-gpu.test.mjs
+node scripts/mlrank-file-check.mjs
+# Or select one bounded tensor from a real checkpoint for the multiplication check:
+node scripts/mlrank-file-check.mjs /path/to/model.safetensors h.0.ln_1.weight
+```
+
+The file check saves a prepared model and `fixture.json` in the printed temporary
+directory. `--compile-only` skips GPU execution. The Android native test template
+is `packages/web/test/ram-file.playwright.js`; substitute `__FILE_FIXTURE__` with
+that JSON and place the model at `files/models/filecheck.tflite`. The separate
+`file-tensor-worker.playwright.js` exercises the shipped worker and viewer paging
+API, without changing the user's notebook.
+
+The large-file test uses a sparse 2,147,483,899-byte Safetensors file with a padding
+tensor and six FP32 values past 2 GiB. It checks addressing and bounded reads,
+not the capacity to execute a 2 GiB LLM. Real-weight native checks use the 768
+values of GPT-2's `h.0.ln_1.weight` in a small elementwise multiplication graph,
+not a full LayerNorm or transformer. Results are recorded in
+`benchmarks/baselines/2026-10-28-mlrank-file-weights.json`.

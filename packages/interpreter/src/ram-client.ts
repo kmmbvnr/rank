@@ -1,8 +1,9 @@
+export interface RamModelFile { path: string; size: number; sha256: string }
 /** One resident native model. A stale handle is retried once after a runtime restart
  * or another client loading a model. Execution failures are never retried. */
 export interface RamRequest {
     action: 'load' | 'invoke' | 'release'; profile?: boolean; model?: string; modelId?: string;
-    inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
+    modelFile?: RamModelFile; inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
 }
 export interface RamReply {
     error?: string; code?: string; modelId?: string; output?: number[];
@@ -25,13 +26,14 @@ export function createRamClient(send: (request: RamRequest) => RamReply) {
             }
             current = modelId = undefined;
         },
-        invoke(key: object | string, encode: () => string, input: readonly number[], outputSize: number, inputSizes?: readonly number[]): RamReply {
+        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[]): RamReply {
             let prepareMs = 0, loaded = false;
             for (let attempt = 0; attempt < 2; attempt++) {
                 if (current !== key || !modelId) {
                     // Loading atomically replaces the runtime's single resident model.
                     current = modelId = undefined;
-                    const reply = check(send({ action: 'load', model: encode(), ...(inputSizes ? {inputSizes} : {}) }));
+                    const source = encode();
+                    const reply = check(send({ action: 'load', ...(typeof source === 'string' ? { model: source } : { modelFile: source }), ...(inputSizes ? {inputSizes} : {}) }));
                     if (!reply.modelId) throw new Error('RAM runtime returned no model identifier');
                     modelId = reply.modelId; current = key; loaded = true;
                     prepareMs += reply.prepareMs ?? 0;

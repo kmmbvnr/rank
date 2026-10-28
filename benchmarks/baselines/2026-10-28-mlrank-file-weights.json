@@ -1,0 +1,131 @@
+{
+  "date": "2026-10-28",
+  "scope": "Stage 13a first slice: bounded Safetensors reads and native loading of prepared model files, not a full LLM forward.",
+  "sparseFile": {
+    "bytes": 2147483899,
+    "tensorOffset": 2147483875,
+    "bytesReadDesktop": 65787,
+    "largestReadBytes": 65536,
+    "values": [
+      1,
+      -2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "macTestProcessPeakRssBytes": 160137216,
+    "intelTestProcessPeakRssBytes": 135983104,
+    "memoryNote": "Peak RSS of the complete Node test process, not tensor storage, GPU allocation or an isolated import measurement. Sparse addressing test is not a real 2 GiB model execution."
+  },
+  "realWeights": {
+    "checkpoint": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "tensor": "h.0.ln_1.weight",
+    "elements": 768,
+    "sourceByteRange": [
+      451056595,
+      451059666
+    ],
+    "sourcePayloadSha256": "87c92a5f0409ab2a8f2b92a9ebbb62ab9215590402d38929402c84357d53e4ae",
+    "preparedModelSha256": "d69de61d5535a5534d278f6686bd9d6afd5e9a0bb751012674970ec4b6234d0d",
+    "operation": "Elementwise X * Scale, not a LayerNorm block"
+  },
+  "mac": {
+    "descriptorBytes": 185,
+    "modelBytes": 3920,
+    "elements": 768,
+    "fullyAccelerated": true,
+    "repeated": true,
+    "checksumRejected": true,
+    "sizeMismatchRejected": true,
+    "staleRecovery": true,
+    "maxAbsoluteError": 0
+  },
+  "intel": {
+    "descriptorBytes": 141,
+    "modelBytes": 3920,
+    "elements": 768,
+    "fullyAccelerated": true,
+    "repeated": true,
+    "checksumRejected": true,
+    "sizeMismatchRejected": true,
+    "staleRecovery": true,
+    "maxAbsoluteError": 0
+  },
+  "androidNative": {
+    "gpuCalls": 3,
+    "maxError": 0,
+    "descriptorBytes": 115,
+    "checksumRejected": true,
+    "sizeMismatchRejected": true,
+    "largeFileBytes": 2147483899,
+    "rangeBeyond2GiB": [
+      1,
+      -2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "pathTraversalRejected": true
+  },
+  "androidWorker": {
+    "worker": true,
+    "viewerPaging": true,
+    "shape": [
+      2,
+      3
+    ],
+    "values": [
+      1,
+      -2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "largeShape": [
+      2147483712
+    ],
+    "largeOffset": 2147483648,
+    "sum": "17"
+  },
+  "androidUi": {
+    "ui": true,
+    "viewer": true,
+    "values": [
+      1,
+      -2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "originalNotebookRestored": true,
+    "testNotebookDeleted": true
+  },
+  "androidPlacement": [
+    "10-28 09:41:51.435 30956  2696 I tflite  : Replacing 3 out of 3 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 09:41:51.435 30956  2696 I native  : I0000 00:00:1793162511.435858    2696 delegate_kernel.cc:984] Initializing OpenCL-based API from graph."
+  ],
+  "checks": {
+    "typescriptBuild": true,
+    "androidApkBuildAndInstall": true,
+    "focusedVitest": 94,
+    "nodeTests": 5,
+    "applicationForms": true,
+    "fullSuite": false
+  },
+  "limitations": [
+    "RAM compiler still materializes bounded constants and constructs small FlatBuffers in JavaScript; large graph/file-reference compilation is pending.",
+    "No checkpoint import UI or automatic shard-index resolution yet.",
+    "No full-model memory fit or speedup claim.",
+    "Native prepared-model checksum uses bounded streaming reads; source Safetensors parsing validates structure, not a checkpoint-wide checksum."
+  ],
+  "androidMemorySnapshot": {
+    "pssBytes": 185511936,
+    "rssBytes": 291205120,
+    "note": "One app-process snapshot after native and viewer checks, not a peak and not all WebView processes."
+  }
+}

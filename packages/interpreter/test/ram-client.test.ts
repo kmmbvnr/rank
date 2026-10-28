@@ -2,6 +2,21 @@ import { describe, it, expect } from 'vitest';
 import { createRamClient, type RamRequest } from '../src/ram-client.js';
 
 describe('RAM model lifecycle', () => {
+    it('sends only a file descriptor on load and no source on repeated invoke', () => {
+        const requests: RamRequest[] = [];
+        const descriptor = { path: '/models/block.tflite', size: 3 * 1024 ** 3, sha256: 'a'.repeat(64) };
+        const client = createRamClient(request => {
+            requests.push(request);
+            return request.action === 'load' ? { modelId: 'file', fullyAccelerated: true }
+                : { output: [1], fullyAccelerated: true };
+        });
+        client.invoke('file', () => descriptor, [1], 1);
+        client.invoke('file', () => { throw Error('must not resend'); }, [1], 1);
+        expect(requests[0].modelFile).toEqual(descriptor);
+        expect(requests[0].model).toBeUndefined();
+        expect(JSON.stringify(requests[0]).length).toBeLessThan(256);
+        expect(requests.slice(1).every(r => !r.modelFile && !r.model)).toBe(true);
+    });
     it('loads once, replaces, releases and reloads stale handles without model in invoke', () => {
         const requests: RamRequest[] = []; let resident: string | undefined, sequence = 0;
         const client = createRamClient(request => {
