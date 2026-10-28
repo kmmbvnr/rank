@@ -1474,3 +1474,58 @@ match 12,288 values each, reuse both weight inputs, and retain GPU-only executio
 The Android delegate log places all six lowered nodes on LITERT_CL. Boundary
 checks cover negative/out-of-range IDs, noninteger input, and exact integer
 transport beyond float32's consecutive-integer range.
+
+### Real GPT-2 block 0 (stage 13c, second slice)
+
+`demos/mlrank/gpt2-block0.ra` runs token/position embeddings and the first
+GPT-2 block for token IDs `[0,1,2,3]` at positions `[0,1,2,3]`. Its weights come
+from `openai-community/gpt2`, revision
+`607a30d783dfa663caf39e06633721c8d4cfcd7e`. The fixture contains all 12 tensors
+of block 0 and only the first four rows of each embedding table: 28,376,064
+payload bytes, stored as F32 Safetensors. It is an extracted test fixture,
+not a complete GPT-2 checkpoint or a general vocabulary lookup.
+
+The program explicitly calls three modules:
+
+- `gpt2embed.ram`: integer token and position gather, then addition.
+- `gpt2attn.ram`: pre-LayerNorm with learned scale/bias, QKV projection,
+  12 attention heads of width 64, causal softmax, output projection and residual.
+- `gpt2mlp.ram`: pre-LayerNorm, expansion to 3072, `gelu_new`, projection back
+  to 768 and residual.
+
+The attention and MLP graphs are separate because the combined graph exceeds
+the current 128-tensor limit. No compiler limit was raised. Each boundary returns
+3072 F32 values through Rank/host transport before the next GPU call. Weights use
+file descriptors and remain resident across repeated calls. This step proves
+numerical correctness of one block; it does not measure full-model speed or
+eliminate activation copies.
+
+Reproduce with the existing mlRank Python environment (NumPy and `curl` required).
+The fixture command requires a new output directory and downloads verified byte
+ranges from the pinned checkpoint, not the whole model:
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-gpt2-block-fixture.py /tmp/gpt2-block0
+node scripts/mlrank-gpt2-block-check.mjs /tmp/gpt2-block0
+```
+
+For the demo, place the generated file at `models/gpt2-block0.safetensors`.
+Its SHA-256 is checked explicitly by the program. On the test OnePlus the file
+is installed in the app's private `files/models` directory, and **GPT-2 block 0**
+is saved as a runnable notebook with all three modules.
+
+The independent NumPy float64 reference covers embeddings, both residual outputs,
+LayerNorm, QKV, attention probabilities and GELU. A second input changes each
+component of the last token differently; earlier GPU output tokens must remain
+exactly unchanged. Masked probabilities must be zero and rows must sum to one.
+The per-value comparison uses `abs(error) <= 5e-4 + abs(reference) * 1e-4`.
+Mac and Intel check 43,200 values each; Android also checks worker-returned values
+(46,272 comparisons). Maximum absolute block-output error is `5.34e-5` on Mac
+and `1.99e-4` on Intel and OnePlus. All three Android graphs are fully delegated
+to OpenCL (6/6, 52/52 and 47/47 operations). Native replay reads no weight bytes.
+Results: `benchmarks/baselines/2026-10-28-mlrank-gpt2-block0.json`.
+Android test template: `packages/web/test/ram-gpt2-block.playwright.js`, replacing
+`__GPT2_BLOCK_FIXTURE__` with the generated `block-fixture.json`.
+
+Remaining stage 13c work: the 12-block stack, final LayerNorm, full embedding/LM
+head table and logits comparison. Tokenization and generation remain stage 14.

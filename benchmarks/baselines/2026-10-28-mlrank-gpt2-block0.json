@@ -1,0 +1,1028 @@
+{
+  "date": "2026-10-28",
+  "description": "Pinned GPT-2 block 0, four tokens; extracted embedding rows 0..3; independent float64 NumPy reference",
+  "baseCommit": "b3d5a69f",
+  "sourceRevision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "sourceUrl": "https://huggingface.co/openai-community/gpt2/resolve/607a30d783dfa663caf39e06633721c8d4cfcd7e/model.safetensors",
+  "fixtureSha256": "3c161c0fff4f89dcf9b5c8ad1c2291bdadcaba4e1501e8a5941f94e05145b06d",
+  "payloadBytes": 28376064,
+  "entries": [
+    {
+      "name": "h.0.ln_1.weight",
+      "shape": [
+        768
+      ],
+      "start": 451056595,
+      "length": 3072,
+      "originalShape": [
+        768
+      ],
+      "sha256": "87c92a5f0409ab2a8f2b92a9ebbb62ab9215590402d38929402c84357d53e4ae"
+    },
+    {
+      "name": "h.0.ln_1.bias",
+      "shape": [
+        768
+      ],
+      "start": 242091987,
+      "length": 3072,
+      "originalShape": [
+        768
+      ],
+      "sha256": "5a4a949fb3e7a463e3f1aca6f5285979f5fd330d9432ef9f272adb8d55bfbb2d"
+    },
+    {
+      "name": "h.0.attn.c_attn.weight",
+      "shape": [
+        768,
+        2304
+      ],
+      "start": 270696403,
+      "length": 7077888,
+      "originalShape": [
+        768,
+        2304
+      ],
+      "sha256": "df332e9d9ae908db358a00423f14af1c0036bc9a2332aca395adf68e3eb08b48"
+    },
+    {
+      "name": "h.0.attn.c_attn.bias",
+      "shape": [
+        2304
+      ],
+      "start": 85380051,
+      "length": 9216,
+      "originalShape": [
+        2304
+      ],
+      "sha256": "ef36c6f4fcc7f15fdb5882316834dc7e304ae5f9e8ae32673108c6efa441f787"
+    },
+    {
+      "name": "h.0.attn.c_proj.weight",
+      "shape": [
+        768,
+        768
+      ],
+      "start": 32723,
+      "length": 2359296,
+      "originalShape": [
+        768,
+        768
+      ],
+      "sha256": "e13178678e8c1e591d293bc5a96f081251d734d8a43b7038cc98329742e79952"
+    },
+    {
+      "name": "h.0.attn.c_proj.bias",
+      "shape": [
+        768
+      ],
+      "start": 9485267,
+      "length": 3072,
+      "originalShape": [
+        768
+      ],
+      "sha256": "52c55de1fa9685a50e5bd91c5741fc9ad80c03671c1eec71d92010194140e9a7"
+    },
+    {
+      "name": "h.0.ln_2.weight",
+      "shape": [
+        768
+      ],
+      "start": 67532755,
+      "length": 3072,
+      "originalShape": [
+        768
+      ],
+      "sha256": "b9e28ffbdfcac5b56ba9a9e8ccd9fe0efcc603f4f0d00685615e1c9cc9994960"
+    },
+    {
+      "name": "h.0.ln_2.bias",
+      "shape": [
+        768
+      ],
+      "start": 206641107,
+      "length": 3072,
+      "originalShape": [
+        768
+      ],
+      "sha256": "52af0f6c03edf6298c4819da6d63b831cae48de804a0a23b19aca674efadf3b2"
+    },
+    {
+      "name": "h.0.mlp.c_fc.weight",
+      "shape": [
+        768,
+        3072
+      ],
+      "start": 115560403,
+      "length": 9437184,
+      "originalShape": [
+        768,
+        3072
+      ],
+      "sha256": "534d05221a3d2e0b68a64c7b26e58fb39afcfd20adf1c6bef55bd100adb834a6"
+    },
+    {
+      "name": "h.0.mlp.c_fc.bias",
+      "shape": [
+        3072
+      ],
+      "start": 18956243,
+      "length": 12288,
+      "originalShape": [
+        3072
+      ],
+      "sha256": "d71a74a230d32edd0a3e2562ba65a4cbc8ca1d1ff918a5f53468b0d096ad0086"
+    },
+    {
+      "name": "h.0.mlp.c_proj.weight",
+      "shape": [
+        3072,
+        768
+      ],
+      "start": 531590099,
+      "length": 9437184,
+      "originalShape": [
+        3072,
+        768
+      ],
+      "sha256": "f4c17b36a51b9ae77a93ee6dd767512626076da8295342d8a760cf4aa0880993"
+    },
+    {
+      "name": "h.0.mlp.c_proj.bias",
+      "shape": [
+        768
+      ],
+      "start": 263347155,
+      "length": 3072,
+      "originalShape": [
+        768
+      ],
+      "sha256": "10a0e86f0d29a95ba16fa1a2cf5cca3ccc9b8c5cc21e82ed3169f40101e459be"
+    },
+    {
+      "name": "wte.weight",
+      "shape": [
+        4,
+        768
+      ],
+      "start": 287223763,
+      "length": 12288,
+      "originalShape": [
+        50257,
+        768
+      ],
+      "sha256": "492730a31b2cf6c0ec688cbacf44694243bd0bc8e3ada92cb8bd8211aee20c00"
+    },
+    {
+      "name": "wpe.weight",
+      "shape": [
+        4,
+        768
+      ],
+      "start": 267547603,
+      "length": 12288,
+      "originalShape": [
+        1024,
+        768
+      ],
+      "sha256": "70dd82cbd63d3397e484fc5a0c1b24022f88103d43280bc3c1ed7ae8c7d216d0"
+    }
+  ],
+  "tolerance": {
+    "absolute": 0.0005,
+    "relative": 0.0001
+  },
+  "mac": {
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "graphs": {
+      "gpt2embed.ram": {
+        "nodes": 10,
+        "reservationBytes": 99540,
+        "modelBytes": 1204
+      },
+      "gpt2attn.ram": {
+        "nodes": 75,
+        "reservationBytes": 10037340,
+        "modelBytes": 6936
+      },
+      "gpt2mlp.ram": {
+        "nodes": 61,
+        "reservationBytes": 19918580,
+        "modelBytes": 5720
+      }
+    },
+    "gpuCalls": 9,
+    "valuesCompared": 43200,
+    "checks": [
+      {
+        "label": "embedding",
+        "values": 3072,
+        "maxError": 0
+      },
+      {
+        "label": "attention",
+        "values": 3072,
+        "maxError": 4.09530788214596e-06
+      },
+      {
+        "label": "output",
+        "values": 3072,
+        "maxError": 5.333026487619463e-05
+      },
+      {
+        "label": "changed-attention",
+        "values": 3072,
+        "maxError": 4.09530788214596e-06
+      },
+      {
+        "label": "changed-output",
+        "values": 3072,
+        "maxError": 5.333026487619463e-05
+      },
+      {
+        "label": "returned",
+        "values": 3072,
+        "maxError": 5.333026487619463e-05
+      },
+      {
+        "label": "Norm1",
+        "values": 3072,
+        "maxError": 6.439362365551204e-08
+      },
+      {
+        "label": "Projection",
+        "values": 9216,
+        "maxError": 2.4949261323570227e-06
+      },
+      {
+        "label": "Probabilities",
+        "values": 192,
+        "maxError": 2.0791467619796222e-07
+      },
+      {
+        "label": "Activated",
+        "values": 12288,
+        "maxError": 2.242885356551483e-06
+      }
+    ],
+    "causalityVerified": true,
+    "loads": [
+      {
+        "modelId": "be573167-bc25-4bc1-8ac4-ffc62fbe5aed",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 91.95733303204179,
+        "residentModels": 1,
+        "residentBytes": 99540,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "5b333c03-e7b1-4ef0-b13d-6ce5759c2067",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 205.60745894908905,
+        "residentModels": 2,
+        "residentBytes": 10136880,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "7776b190-fda5-4d9d-bbdf-3826794201f1",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 16.395708080381155,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "c934f7c3-2782-4200-922f-8702cbe35408",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 2.2431251127272844,
+        "residentModels": 4,
+        "residentBytes": 39680312,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "12134ae6-ddd7-4ee1-8548-aee2666b9750",
+        "fullyAccelerated": true,
+        "cacheEvictions": 1,
+        "prepareMs": 3.0157079454511404,
+        "residentModels": 4,
+        "residentBytes": 49362788,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "82a24b55-c380-4ffe-a631-0e958f07d2bf",
+        "fullyAccelerated": true,
+        "cacheEvictions": 1,
+        "prepareMs": 4.414124879986048,
+        "residentModels": 4,
+        "residentBytes": 49223272,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "c4887246-66eb-4728-8d98-08877cd3a518",
+        "fullyAccelerated": true,
+        "cacheEvictions": 1,
+        "prepareMs": 10.46975003555417,
+        "residentModels": 4,
+        "residentBytes": 49121000,
+        "memoryBudgetBytes": 134217728
+      }
+    ],
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 1,
+        "residentBytes": 99540,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.004249857738614082,
+        "executeMs": 10.570916114374995,
+        "fileBytesRead": 24576,
+        "fileInputsReused": 0,
+        "inputMs": 9.071333101019263,
+        "dispatchMs": 1.4550830237567425,
+        "readbackMs": 0.02370891161262989,
+        "outputMs": 0.020791077986359596,
+        "peakRssBytes": 54853632
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 2,
+        "residentBytes": 10136880,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.005041947588324547,
+        "executeMs": 7.65191693790257,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 5.75529201887548,
+        "dispatchMs": 1.8575829453766346,
+        "readbackMs": 0.018666964024305344,
+        "outputMs": 0.02037500962615013,
+        "peakRssBytes": 79249408
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0034170225262641907,
+        "executeMs": 11.412582825869322,
+        "fileBytesRead": 18895872,
+        "fileInputsReused": 0,
+        "inputMs": 8.545916993170977,
+        "dispatchMs": 2.8348329942673445,
+        "readbackMs": 0.014707911759614944,
+        "outputMs": 0.017124926671385765,
+        "peakRssBytes": 125386752
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.004042172804474831,
+        "executeMs": 1.6632499173283577,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 0.20454078912734985,
+        "dispatchMs": 1.4225421473383904,
+        "readbackMs": 0.01095794141292572,
+        "outputMs": 0.025209039449691772,
+        "peakRssBytes": 125386752
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.001916196197271347,
+        "executeMs": 2.2539168130606413,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 0.1408339012414217,
+        "dispatchMs": 2.0916659850627184,
+        "readbackMs": 0.006583984941244125,
+        "outputMs": 0.014832941815257072,
+        "peakRssBytes": 125386752
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 39680312,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0022908207029104233,
+        "executeMs": 2.1571670658886433,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 1.5229170676320791,
+        "dispatchMs": 0.6043750327080488,
+        "readbackMs": 0.013750046491622925,
+        "outputMs": 0.016124919056892395,
+        "peakRssBytes": 130924544
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 49362788,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.00200001522898674,
+        "executeMs": 3.431374905630946,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 1.975625054910779,
+        "dispatchMs": 1.3891670387238264,
+        "readbackMs": 0.013249926269054413,
+        "outputMs": 0.05333288572728634,
+        "peakRssBytes": 147963904
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 49223272,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0017499551177024841,
+        "executeMs": 6.9677080027759075,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 5.499333143234253,
+        "dispatchMs": 1.4521670527756214,
+        "readbackMs": 0.013749813660979271,
+        "outputMs": 0.0024579931050539017,
+        "peakRssBytes": 158187520
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 49121000,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.001708976924419403,
+        "executeMs": 7.701833033934236,
+        "fileBytesRead": 18895872,
+        "fileInputsReused": 0,
+        "inputMs": 5.946124903857708,
+        "dispatchMs": 1.6749999485909939,
+        "readbackMs": 0.01458311453461647,
+        "outputMs": 0.06612506695091724,
+        "peakRssBytes": 181911552
+      }
+    ]
+  },
+  "intel": {
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "graphs": {
+      "gpt2embed.ram": {
+        "nodes": 10,
+        "reservationBytes": 99540,
+        "modelBytes": 1204
+      },
+      "gpt2attn.ram": {
+        "nodes": 75,
+        "reservationBytes": 10037340,
+        "modelBytes": 6936
+      },
+      "gpt2mlp.ram": {
+        "nodes": 61,
+        "reservationBytes": 19918580,
+        "modelBytes": 5720
+      }
+    },
+    "gpuCalls": 9,
+    "valuesCompared": 43200,
+    "checks": [
+      {
+        "label": "embedding",
+        "values": 3072,
+        "maxError": 0
+      },
+      {
+        "label": "attention",
+        "values": 3072,
+        "maxError": 8.343701679791593e-06
+      },
+      {
+        "label": "output",
+        "values": 3072,
+        "maxError": 0.00019828876096994463
+      },
+      {
+        "label": "changed-attention",
+        "values": 3072,
+        "maxError": 8.343701679791593e-06
+      },
+      {
+        "label": "changed-output",
+        "values": 3072,
+        "maxError": 0.00019828876096994463
+      },
+      {
+        "label": "returned",
+        "values": 3072,
+        "maxError": 0.00019828876096994463
+      },
+      {
+        "label": "Norm1",
+        "values": 3072,
+        "maxError": 6.439362365551204e-08
+      },
+      {
+        "label": "Projection",
+        "values": 9216,
+        "maxError": 4.1171577920273705e-06
+      },
+      {
+        "label": "Probabilities",
+        "values": 192,
+        "maxError": 3.415355145364174e-07
+      },
+      {
+        "label": "Activated",
+        "values": 12288,
+        "maxError": 2.525486225479767e-06
+      }
+    ],
+    "causalityVerified": true,
+    "loads": [
+      {
+        "modelId": "0316af7f-ed00-46a7-a39e-e7294db70a7b",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 47.31239564716816,
+        "residentModels": 1,
+        "residentBytes": 99540,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "3bd0147c-0ee8-45c8-94e9-3e0e25955e93",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 72.89414666593075,
+        "residentModels": 2,
+        "residentBytes": 10136880,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "11200ff2-5a6b-4a4f-885e-03bf96cb5a24",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 31.412582844495773,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "0827303c-d8d9-45f5-9b96-f643fdd93aa9",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 15.838542953133583,
+        "residentModels": 4,
+        "residentBytes": 39680312,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "46a61ded-b33c-424c-9e1c-6de90b379e18",
+        "fullyAccelerated": true,
+        "cacheEvictions": 1,
+        "prepareMs": 22.875690832734108,
+        "residentModels": 4,
+        "residentBytes": 49362788,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "603d918f-210f-4442-a751-e52eca7035d8",
+        "fullyAccelerated": true,
+        "cacheEvictions": 1,
+        "prepareMs": 38.13799470663071,
+        "residentModels": 4,
+        "residentBytes": 49223272,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "modelId": "8fd40ef5-968d-432b-83af-7af4d771a860",
+        "fullyAccelerated": true,
+        "cacheEvictions": 1,
+        "prepareMs": 29.324572533369064,
+        "residentModels": 4,
+        "residentBytes": 49121000,
+        "memoryBudgetBytes": 134217728
+      }
+    ],
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 1,
+        "residentBytes": 99540,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.005679205060005188,
+        "executeMs": 4.471868276596069,
+        "fileBytesRead": 24576,
+        "fileInputsReused": 0,
+        "inputMs": 0.7961560040712357,
+        "dispatchMs": 2.797948196530342,
+        "readbackMs": 0.8299313485622406,
+        "outputMs": 0.04783272743225098,
+        "peakRssBytes": 121147392
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 2,
+        "residentBytes": 10136880,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.006381422281265259,
+        "executeMs": 52.38542519509792,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 8.833175525069237,
+        "dispatchMs": 21.74019068479538,
+        "readbackMs": 21.743204444646835,
+        "outputMs": 0.06885454058647156,
+        "peakRssBytes": 140804096
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.004004687070846558,
+        "executeMs": 96.33797034621239,
+        "fileBytesRead": 18895872,
+        "fileInputsReused": 0,
+        "inputMs": 30.20555153489113,
+        "dispatchMs": 27.098173275589943,
+        "readbackMs": 39.005257189273834,
+        "outputMs": 0.028988346457481384,
+        "peakRssBytes": 166920192
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0070463865995407104,
+        "executeMs": 22.496722638607025,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 0.3502964973449707,
+        "dispatchMs": 0.6657056510448456,
+        "readbackMs": 21.426871418952942,
+        "outputMs": 0.05384907126426697,
+        "peakRssBytes": 166920192
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 3,
+        "residentBytes": 30055460,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.006508082151412964,
+        "executeMs": 44.961584731936455,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 0.3367643803358078,
+        "dispatchMs": 0.5109645426273346,
+        "readbackMs": 44.04299333691597,
+        "outputMs": 0.07086247205734253,
+        "peakRssBytes": 166920192
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 39680312,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.004719942808151245,
+        "executeMs": 9.384548291563988,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 5.661163479089737,
+        "dispatchMs": 2.4288371205329895,
+        "readbackMs": 1.2663323432207108,
+        "outputMs": 0.028215348720550537,
+        "peakRssBytes": 173211648
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 49362788,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.003384426236152649,
+        "executeMs": 40.8612247556448,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 8.423706516623497,
+        "dispatchMs": 16.245955601334572,
+        "readbackMs": 16.0928163677454,
+        "outputMs": 0.09874626994132996,
+        "peakRssBytes": 183111680
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 49223272,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0034030526876449585,
+        "executeMs": 41.30081459879875,
+        "fileBytesRead": 9455616,
+        "fileInputsReused": 0,
+        "inputMs": 8.532930165529251,
+        "dispatchMs": 16.302980482578278,
+        "readbackMs": 16.453422605991364,
+        "outputMs": 0.01148134469985962,
+        "peakRssBytes": 184193024
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 4,
+        "residentBytes": 49121000,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0035315752029418945,
+        "executeMs": 56.89246393740177,
+        "fileBytesRead": 18895872,
+        "fileInputsReused": 0,
+        "inputMs": 14.452481642365456,
+        "dispatchMs": 20.132334902882576,
+        "readbackMs": 22.188538685441017,
+        "outputMs": 0.11910870671272278,
+        "peakRssBytes": 189054976
+      }
+    ]
+  },
+  "android": {
+    "workerGpuCalls": 9,
+    "profileGpuCalls": 9,
+    "checks": [
+      {
+        "label": "embedding",
+        "values": 3072,
+        "maxError": 0
+      },
+      {
+        "label": "attention",
+        "values": 3072,
+        "maxError": 8.343701679791593e-06
+      },
+      {
+        "label": "output",
+        "values": 3072,
+        "maxError": 0.00019828876096994463
+      },
+      {
+        "label": "changed-attention",
+        "values": 3072,
+        "maxError": 8.343701679791593e-06
+      },
+      {
+        "label": "changed-output",
+        "values": 3072,
+        "maxError": 0.00019828876096994463
+      },
+      {
+        "label": "worker-return",
+        "values": 3072,
+        "maxError": 0.00019828876096994463
+      },
+      {
+        "label": "Norm1",
+        "values": 3072,
+        "maxError": 6.439362365551204e-08
+      },
+      {
+        "label": "worker-return",
+        "values": 3072,
+        "maxError": 6.439362365551204e-08
+      },
+      {
+        "label": "Projection",
+        "values": 9216,
+        "maxError": 3.6770841154165623e-06
+      },
+      {
+        "label": "Probabilities",
+        "values": 192,
+        "maxError": 2.8193086976102677e-07
+      },
+      {
+        "label": "Activated",
+        "values": 12288,
+        "maxError": 1.9441730128022527e-06
+      }
+    ],
+    "valuesCompared": 46272,
+    "causalityVerified": true,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.018073,
+        "executeMs": 13.008854,
+        "pssBytes": 221112320,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 10.266875,
+        "dispatchMs": 0.859114,
+        "readbackMs": 1.412344,
+        "outputMs": 0.423698,
+        "residentBytes": 30055460,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.016198,
+        "executeMs": 21.227031,
+        "pssBytes": 224176128,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 6.6275,
+        "dispatchMs": 0.792291,
+        "readbackMs": 13.561355,
+        "outputMs": 0.209427,
+        "residentBytes": 30055460,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.02474,
+        "executeMs": 33.729479,
+        "pssBytes": 214358016,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 7.623958,
+        "dispatchMs": 0.979792,
+        "readbackMs": 24.680104,
+        "outputMs": 0.403489,
+        "residentBytes": 30055460,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.020261,
+        "executeMs": 19.135625,
+        "pssBytes": 217212928,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 4.966041,
+        "dispatchMs": 0.956615,
+        "readbackMs": 12.861719,
+        "outputMs": 0.310312,
+        "residentBytes": 30055460,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.022083,
+        "executeMs": 33.406927,
+        "pssBytes": 220104704,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 7.506094,
+        "dispatchMs": 1.360156,
+        "readbackMs": 24.066771,
+        "outputMs": 0.422292,
+        "residentBytes": 30055460,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.016667,
+        "executeMs": 7.725573,
+        "pssBytes": 237029376,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 5.478906,
+        "dispatchMs": 0.668489,
+        "readbackMs": 1.364584,
+        "outputMs": 0.188281,
+        "residentBytes": 39680312,
+        "residentModels": 4,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.023125,
+        "executeMs": 22.611146,
+        "pssBytes": 251727872,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 8.597657,
+        "dispatchMs": 0.640781,
+        "readbackMs": 12.687969,
+        "outputMs": 0.647343,
+        "residentBytes": 49362788,
+        "residentModels": 4,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.015416,
+        "executeMs": 17.330365,
+        "pssBytes": 256727040,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 7.817761,
+        "dispatchMs": 0.59776,
+        "readbackMs": 8.824167,
+        "outputMs": 0.058802,
+        "residentBytes": 49223272,
+        "residentModels": 4,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.023073,
+        "executeMs": 21.745469,
+        "pssBytes": 237479936,
+        "fileBytesRead": 0,
+        "fileInputsReused": 6,
+        "inputMs": 3.382865,
+        "dispatchMs": 0.579687,
+        "readbackMs": 16.943021,
+        "outputMs": 0.808594,
+        "residentBytes": 49121000,
+        "residentModels": 4,
+        "memoryBudgetBytes": 134217728
+      }
+    ]
+  },
+  "androidUi": {
+    "id": "201f6e79-24c3-4ebe-8768-e589ab447b52",
+    "visibleValuesCompared": 6,
+    "firstValues": [
+      -0.870165228843689,
+      -0.009955018758773804,
+      0.7927651405334473,
+      0.758276104927063,
+      1.2644364833831787,
+      1.111725091934204
+    ],
+    "screen": "\u25cf 15\u203a DownB' = F tensor \"h.0.mlp.c_proj.bias\"\u25cf 16\u203a TokenTable' = F tensor \"wte.weight\"\u25cf 17\u203a PositionTable' = F tensor \"wpe.weight\"\u25cf 18\u203a Tokens = array 0 1 2 3\u25cf 19\u203a Positions = array 0 1 2 3\u25cf 20\u203a X = TokenTable gpt2embed Tokens PositionTable Positions\u25cf 21\u203a H = X gpt2attn G1 B1 W QkvBias O OutBias\u25cf 22\u203a Result = H gpt2mlp G2 B2 UpW UpB DownW DownB\u25cf 23\u203a F close\u25cf 24\u203a Result      -0.870165228843689 ...      real [4 768]rank> ",
+    "persistedAndRerun": true
+  },
+  "androidDelegation": {
+    "embedding": "6/6 OpenCL",
+    "attention": "52/52 OpenCL",
+    "mlp": "47/47 OpenCL"
+  },
+  "limitations": [
+    "One block only, no full forward or tokenizer",
+    "Only first four token and position embedding rows",
+    "Activations return through host between modules",
+    "No full-model performance or memory claim"
+  ]
+}
