@@ -7,8 +7,9 @@ import {safetensor} from '../packages/interpreter/out/safetensors.js';
 import {fileTensorInput} from '../packages/interpreter/out/file-tensor.js';
 import {compileRam} from '../packages/interpreter/out/index.js';
 
-export function planProjection(input,name,output,{chunkBytes=4*1024*1024}={}){
+export function planProjection(input,name,output,{chunkBytes=4*1024*1024,tokens=1}={}){
  if(!Number.isSafeInteger(chunkBytes)||chunkBytes<4||chunkBytes>16*1024*1024)throw Error('Chunk budget must be an integer from 4 bytes through 16 MiB');
+ if(!Number.isSafeInteger(tokens)||tokens<1)throw Error('Token count must be a positive safe integer');
  const path=resolve(input),destination=resolve(output);
  if(existsSync(destination))throw Error('Output directory already exists');
  const handle=nodeIo.open(path,'read');let temporary;
@@ -16,24 +17,25 @@ export function planProjection(input,name,output,{chunkBytes=4*1024*1024}={}){
   const revision=handle.revision(),d=fileTensorInput(safetensor({kind:'file',closed:false,handle},name));
   if(!d||d.dtype!=='F32'||d.shape.length!==2||d.shape.some(n=>n<1))throw Error('Projection requires a nonempty F32 matrix [outputs, inputs]; prepare the weight first');
   const [outputs,inputs]=d.shape;
-  if(outputs>1048576)throw Error('Projection host output exceeds 1048576 elements');
+  if(outputs*tokens>1048576)throw Error('Projection host output exceeds 1048576 elements');
+  if(inputs*tokens>1048576)throw Error('Projection host input exceeds 1048576 elements');
   // Transpose is a computed tensor, so its existing 1M-cell limit also applies.
-  const rows=Math.min(outputs,Math.floor(chunkBytes/(inputs*4)),Math.floor(1048576/inputs));
+  const rows=Math.min(outputs,Math.floor(chunkBytes/(inputs*4)),Math.floor(1048576/inputs),Math.floor(1048576/tokens));
   if(rows<1)throw Error('One weight row exceeds the chunk budget or computed-tensor limit');
   const full=Math.floor(outputs/rows),tail=outputs%rows;
   const modules={},reservations={};
   const module=(name,n)=>{
-   const source=`use ml\narg X .f32 shape 1 ${inputs}\narg W .f32 shape ${n} ${inputs}\nreturn X matmul (W transpose)\n`;
+   const source=`use ml\narg X .f32 shape ${tokens} ${inputs}\narg W .f32 shape ${n} ${inputs}\nreturn X matmul (W transpose)\n`;
    const graph=compileRam(source,name).graph;
    modules[name]=source;reservations[name]=graph.reservationBytes;
   };
   module('projectpart.ram',rows);if(tail)module('projecttail.ram',tail);
   const sha256=handle.sha256();if(handle.revision()!==revision)throw Error('Weight file changed during planning');
-  const lines=['use io',...Object.keys(modules).map(n=>`use ${JSON.stringify(n)}`),`F = ${JSON.stringify(path)} open`,`F verify "${sha256}"`,`W' = F tensor ${JSON.stringify(name)}`,`X = array shape 1 ${inputs} fill 0.5`,`Result = array shape 1 ${outputs} fill 0.0`,
+  const lines=['use io',...Object.keys(modules).map(n=>`use ${JSON.stringify(n)}`),`F = ${JSON.stringify(path)} open`,`F verify "${sha256}"`,`W' = F tensor ${JSON.stringify(name)}`,`X = array shape ${tokens} ${inputs} fill 0.5`,`Result = array shape ${tokens} ${outputs} fill 0.0`,
    `for Start in 0 till ${full*rows} by ${rows}`,`Part' = W (Start till (Start + ${rows})) #`,'Y = X projectpart Part',`Result # (Start till (Start + ${rows})) = Y`,'end'];
   if(tail)lines.push(`Part' = W (${full*rows} till ${outputs}) #`,'Y = X projecttail Part',`Result # (${full*rows} till ${outputs}) = Y`);
   lines.push('F close','Result');const source=lines.join('\n')+'\n';
-  const plan={version:1,operation:'X @ W.T',source:{path,tensor:name,sha256,shape:d.shape},inputShape:[1,inputs],outputShape:[1,outputs],chunkBudgetBytes:chunkBytes,rowsPerPart:rows,fullParts:full,tailRows:tail,gpuCalls:full+(tail?1:0),maxWeightBytes:rows*inputs*4,reservations};
+  const plan={version:1,operation:'X @ W.T',source:{path,tensor:name,sha256,shape:d.shape},inputShape:[tokens,inputs],outputShape:[tokens,outputs],chunkBudgetBytes:chunkBytes,rowsPerPart:rows,fullParts:full,tailRows:tail,gpuCalls:full+(tail?1:0),maxWeightBytes:rows*inputs*4,reservations};
   mkdirSync(dirname(destination),{recursive:true});temporary=mkdtempSync(join(dirname(destination),'.'+basename(destination)+'-'));
   writeFileSync(join(temporary,'main.ra'),source);for(const [n,s]of Object.entries(modules))writeFileSync(join(temporary,n),s);
   writeFileSync(join(temporary,'plan.json'),JSON.stringify(plan,null,2)+'\n');renameSync(temporary,destination);temporary=undefined;
@@ -41,7 +43,7 @@ export function planProjection(input,name,output,{chunkBytes=4*1024*1024}={}){
  }finally{if(temporary)rmSync(temporary,{recursive:true,force:true});handle.close();}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
- const [input,name,output,budget,...extra]=process.argv.slice(2);
- if(!input||!name||!output||extra.length)throw Error('Usage: node scripts/mlrank-plan-projection.mjs WEIGHTS.safetensors TENSOR NEW_DIRECTORY [CHUNK_BYTES]');
- console.log(JSON.stringify(planProjection(input,name,output,budget===undefined?{}:{chunkBytes:Number(budget)}),null,2));
+ const [input,name,output,budget,tokens,...extra]=process.argv.slice(2);
+ if(!input||!name||!output||extra.length)throw Error('Usage: node scripts/mlrank-plan-projection.mjs WEIGHTS.safetensors TENSOR NEW_DIRECTORY [CHUNK_BYTES] [TOKENS]');
+ console.log(JSON.stringify(planProjection(input,name,output,{...(budget===undefined?{}:{chunkBytes:Number(budget)}),...(tokens===undefined?{}:{tokens:Number(tokens)})}),null,2));
 }

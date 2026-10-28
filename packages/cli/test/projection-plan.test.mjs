@@ -49,3 +49,21 @@ test('unsupported dtypes are rejected before publishing source',()=>{
   assert.throws(()=>planProjection(f.input,'w',f.out),/F32/);assert.equal(existsSync(f.out),false);
  }finally{f.close();}
 });
+test('batched output placement keeps token rows distinct across full and tail parts',()=>{
+ const f=fixture(5,3);let r;try{
+  const p=planProjection(f.input,'w',f.out,{chunkBytes:24,tokens:3});assert.deepEqual(p.inputShape,[3,3]);assert.deepEqual(p.outputShape,[3,5]);
+  r=new Interpreter(undefined,{io:nodeIo,loadModule:n=>({id:n,source:readFileSync(join(f.out,n),'utf8')}),ramGpu:(g,x,files)=>{
+   const d=files[1],b=readFileSync(d.path);assert.equal(x.length,9);
+   return Array.from({length:3},(_,t)=>Array.from({length:d.shape[0]},(_,i)=>x.slice(t*3,t*3+3).reduce((sum,v,j)=>sum+v*b.readFloatLE(d.offset+(i*3+j)*4),0))).flat();
+  }});
+  r.variables.set('X',{kind:'array',shape:[3,3],items:[1,2,3,4,5,6,-1,-2,-3]});
+  const result=r.execute(readFileSync(join(f.out,'main.ra'),'utf8').replace('X = array shape 3 3 fill 0.5\n',''));
+  assert.deepEqual(result.items,[14,32,50,68,86,32,77,122,167,212,-14,-32,-50,-68,-86]);
+ }finally{r?.dispose();f.close();}
+});
+test('invalid token counts and oversized host activations fail before publication',()=>{
+ const f=fixture();try{
+  for(const tokens of [0,-1,1.5,NaN,Infinity,Number.MAX_SAFE_INTEGER]){assert.throws(()=>planProjection(f.input,'w',f.out,{tokens}),/Token count|host output/);assert.equal(existsSync(f.out),false);}
+ }finally{f.close();}
+ const wide=fixture(1,1024);try{assert.throws(()=>planProjection(wide.input,'w',wide.out,{tokens:1025}),/host input/);assert.equal(existsSync(wide.out),false);}finally{wide.close();}
+});
