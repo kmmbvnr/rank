@@ -1222,3 +1222,61 @@ Evidence is in `benchmarks/baselines/2026-10-28-mlrank-parts.json`: two real par
 reuse with zero weight reads, stale recovery, individual release and bounded
 residency. Budget pressure uses a small graph with a full-budget reservation;
 it does not simulate a physical GPU out-of-memory failure.
+
+### Prepare file-backed weights (stage 13b, second slice)
+
+Prepare one tensor explicitly on desktop before copying it to the phone:
+
+```sh
+node scripts/mlrank-prepare-weight.mjs checkpoint.safetensors TENSOR cache/weights
+node scripts/mlrank-prepare-weight.mjs checkpoint.safetensors MATRIX cache/weights --transpose
+```
+
+The command accepts F32, F16 and BF16 and writes a single-tensor F32 Safetensors
+file, retaining the tensor name. `--transpose` swaps the two axes of a matrix;
+it is never inferred from its name. F16/BF16 expansion preserves the source
+values; it does not recover precision previously lost to quantization. Nonfinite
+values are rejected. Other dtypes, scalars and non-matrix transposes are rejected.
+
+The JSON report includes the output `path`, `sha256`, `shape`, `cached`, elapsed
+time and process peak RSS. The file is usable through ordinary `F tensor "name"`
+and through a deferred binding passed to RAM. No runtime syntax or automatic
+conversion has been added. Native GPU input limits still apply to the prepared
+file; preparing a 1 GiB tensor does not make it an admissible single GPU input.
+
+Conversion uses a 256 KiB output buffer and input chunks of at most 256 KiB.
+Transpose uses 256-by-256 tiles, reading at most 1 KiB per source row. Header
+parsing retains the existing 16 MiB cap; checksum buffers and Node/Rank overhead
+are additional memory. There is no tensor-sized JS array or FlatBuffer constant.
+The source is never overwritten. A temporary directory is published atomically
+only after conversion and integrity checks complete. Failed attempts remove their
+temporary files; a process kill may leave a `.prepare-*` directory to remove.
+
+Cache identity includes the source file SHA-256, tensor name, transpose flag and
+conversion version. Source changes select a new entry. Reuse verifies both source
+and output checksums, so it still reads the files; it skips conversion and output
+writes. Corrupt entries report an error and can be removed explicitly. Cache
+entries have no automatic disk eviction; the caller owns the cache directory.
+Source revision changes abort publication. After conversion the source SHA-256
+is checked again, including on filesystems whose timestamps miss a rapid write.
+
+`demos/mlrank/gpt2-prepared.ra` uses the existing two RAM modules and a prepared
+checkpoint under `models/prepared/`. Reproduce its fixture and desktop GPU check:
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-prepare-check.py EXISTING_CHECKPOINT_FIXTURE NEW_DIRECTORY
+node --test packages/cli/test/prepare-weight.test.mjs
+```
+
+The check fixture stores real GPT-2 QKV weights as transposed F16, prepares them
+back to F32, and computes an independent NumPy reference from those rounded
+weights. Copy `qkv.safetensors`, `gpt2-ln1.safetensors` and
+`locked.safetensors.index.json` from the new directory into `models/prepared/` on
+Android. For the existing Android parts check, use the generated
+`parts-fixture.json` and change its source path to `models/prepared/`.
+Start with an empty native model cache for that admission test.
+
+Evidence: `benchmarks/baselines/2026-10-28-mlrank-prepared-weights.json`.
+GPU checks pass on Mac, Intel and OnePlus. A separate sparse F16 zero tensor
+produces a real 1 GiB F32 output at about 185 MiB process peak RSS on Mac;
+this tests bounded preparation, not full-model inference or quantization quality.

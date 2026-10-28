@@ -1,0 +1,16 @@
+use io
+use "partscale.ram"
+use "partqkv.ram"
+X = array shape 1 768 fill 0.5
+F = "models/prepared/locked.safetensors.index.json" open
+F verify "db00db586fb73867d419cccdde64114731c60dd77826368b8f90574bd82443a5"
+W' = F tensor "weight"
+S' = F tensor "h.0.ln_1.weight"
+Y = X partscale S
+A = Y partqkv W
+Y = (X * 0.5) partscale S
+B = Y partqkv W
+Y = X partscale S
+C = Y partqkv W
+F close
+C

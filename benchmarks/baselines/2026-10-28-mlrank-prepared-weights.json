@@ -1,0 +1,648 @@
+{
+  "stage": "13b: explicit bounded weight preparation",
+  "implementation": "Desktop Node command, F32/F16/BF16 to F32, optional tiled matrix transpose, verified on-disk cache",
+  "tests": {
+    "mac": 7,
+    "intel": 7,
+    "includes": [
+      "finite half/bfloat extremes and signed zero",
+      "partial transpose tile edges",
+      "ordinary Rank reading and native file descriptor",
+      "cache corruption and source changes",
+      "failed conversion cleanup",
+      "source tensor beyond 2 GiB",
+      "source mutation during conversion"
+    ]
+  },
+  "mac": {
+    "preparation": {
+      "key": "7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "3e0e471aef25c821ab2c94703cb10281575790bd487d5f985c7c14e9cb8f2f6d",
+        "name": "weight",
+        "transpose": true,
+        "dtype": "F32"
+      },
+      "sha256": "44ef03aa524530929a83058142e581fee8ad99b7ae890fed4bce984c26223ff0",
+      "shape": [
+        768,
+        2304
+      ],
+      "dtype": "F32",
+      "payloadBytes": 7077888,
+      "maxReadBytes": 512,
+      "transformBufferBytes": 262144,
+      "path": "/private/tmp/rank-prepared-final/cache/7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571/weight.safetensors",
+      "cached": false,
+      "elapsedMs": 53.87020899999999,
+      "peakRssBytes": 127123456
+    },
+    "reuse": {
+      "key": "7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "3e0e471aef25c821ab2c94703cb10281575790bd487d5f985c7c14e9cb8f2f6d",
+        "name": "weight",
+        "transpose": true,
+        "dtype": "F32"
+      },
+      "sha256": "44ef03aa524530929a83058142e581fee8ad99b7ae890fed4bce984c26223ff0",
+      "shape": [
+        768,
+        2304
+      ],
+      "dtype": "F32",
+      "payloadBytes": 7077888,
+      "maxReadBytes": 512,
+      "transformBufferBytes": 262144,
+      "path": "/private/tmp/rank-prepared-final/cache/7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571/weight.safetensors",
+      "cached": true,
+      "elapsedMs": 4.4211659999999995,
+      "peakRssBytes": 108806144
+    },
+    "gpu": {
+      "parts": 2,
+      "gpuCalls": 6,
+      "valuesCompared": 9216,
+      "maxError": 8.25088845690658e-07,
+      "staleRecoveries": 2,
+      "loads": [
+        {
+          "modelId": "a23adb91-7ae0-4123-9168-8c6773d83113",
+          "fullyAccelerated": true,
+          "cacheEvictions": 0,
+          "prepareMs": 15.869499882683158,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728
+        },
+        {
+          "modelId": "9c544446-7ac2-4047-87d9-6556a079d6bf",
+          "fullyAccelerated": true,
+          "cacheEvictions": 0,
+          "prepareMs": 1.3365407940000296,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728
+        },
+        {
+          "modelId": "ef14525a-ebf4-4758-bfee-606e8cf0a889",
+          "fullyAccelerated": true,
+          "cacheEvictions": 1,
+          "prepareMs": 1.2907080817967653,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728
+        },
+        {
+          "modelId": "f0dbfe79-ff9c-4296-9ce1-7b1d963fd8a5",
+          "fullyAccelerated": true,
+          "cacheEvictions": 0,
+          "prepareMs": 1.031000167131424,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728
+        }
+      ],
+      "pressure": {
+        "modelId": "ecfa3917-335e-4a8a-b137-f335baddd6bc",
+        "fullyAccelerated": true,
+        "cacheEvictions": 2,
+        "prepareMs": 2.2365839686244726,
+        "residentModels": 1,
+        "residentBytes": 134217728,
+        "memoryBudgetBytes": 134217728
+      },
+      "profiles": [
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.004583969712257385,
+          "executeMs": 7.602916099131107,
+          "fileBytesRead": 3072,
+          "fileInputsReused": 0,
+          "inputMs": 6.28049997612834,
+          "dispatchMs": 1.3027910608798265,
+          "readbackMs": 0.013208948075771332,
+          "outputMs": 0.006416114047169685,
+          "peakRssBytes": 54116352
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.0024579931050539017,
+          "executeMs": 2.586500020697713,
+          "fileBytesRead": 7077888,
+          "fileInputsReused": 0,
+          "inputMs": 1.3818328734487295,
+          "dispatchMs": 1.1732089333236217,
+          "readbackMs": 0.014208024367690086,
+          "outputMs": 0.017250189557671547,
+          "peakRssBytes": 76382208
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.0014998950064182281,
+          "executeMs": 0.4515000618994236,
+          "fileBytesRead": 0,
+          "fileInputsReused": 1,
+          "inputMs": 0.052584102377295494,
+          "dispatchMs": 0.3891249652951956,
+          "readbackMs": 0.005499925464391708,
+          "outputMs": 0.004291068762540817,
+          "peakRssBytes": 76382208
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.0009159557521343231,
+          "executeMs": 0.8519589900970459,
+          "fileBytesRead": 0,
+          "fileInputsReused": 1,
+          "inputMs": 0.0378340482711792,
+          "dispatchMs": 0.7942081429064274,
+          "readbackMs": 0.0062498729676008224,
+          "outputMs": 0.013666925951838493,
+          "peakRssBytes": 76382208
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.001959037035703659,
+          "executeMs": 5.45499986037612,
+          "fileBytesRead": 3072,
+          "fileInputsReused": 0,
+          "inputMs": 4.244290990754962,
+          "dispatchMs": 1.196624943986535,
+          "readbackMs": 0.009417068213224411,
+          "outputMs": 0.004666857421398163,
+          "peakRssBytes": 76382208
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.001875218003988266,
+          "executeMs": 2.407374791800976,
+          "fileBytesRead": 7077888,
+          "fileInputsReused": 0,
+          "inputMs": 1.2095419224351645,
+          "dispatchMs": 1.1755828745663166,
+          "readbackMs": 0.009624985978007317,
+          "outputMs": 0.012625008821487427,
+          "peakRssBytes": 84312064
+        }
+      ],
+      "releasedAll": true
+    }
+  },
+  "intel": {
+    "preparation": {
+      "key": "7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "3e0e471aef25c821ab2c94703cb10281575790bd487d5f985c7c14e9cb8f2f6d",
+        "name": "weight",
+        "transpose": true,
+        "dtype": "F32"
+      },
+      "sha256": "44ef03aa524530929a83058142e581fee8ad99b7ae890fed4bce984c26223ff0",
+      "shape": [
+        768,
+        2304
+      ],
+      "dtype": "F32",
+      "payloadBytes": 7077888,
+      "maxReadBytes": 512,
+      "transformBufferBytes": 262144,
+      "path": "/tmp/rank-prepared-final/cache/7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571/weight.safetensors",
+      "cached": false,
+      "elapsedMs": 128.59335799999997,
+      "peakRssBytes": 125276160
+    },
+    "reuse": {
+      "key": "7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "3e0e471aef25c821ab2c94703cb10281575790bd487d5f985c7c14e9cb8f2f6d",
+        "name": "weight",
+        "transpose": true,
+        "dtype": "F32"
+      },
+      "sha256": "44ef03aa524530929a83058142e581fee8ad99b7ae890fed4bce984c26223ff0",
+      "shape": [
+        768,
+        2304
+      ],
+      "dtype": "F32",
+      "payloadBytes": 7077888,
+      "maxReadBytes": 512,
+      "transformBufferBytes": 262144,
+      "path": "/tmp/rank-prepared-final/cache/7d7c636cd9185c0eeb61cdd760278eef8e3f610dfe41302b9216202a1a49a571/weight.safetensors",
+      "cached": true,
+      "elapsedMs": 21.50734200000005,
+      "peakRssBytes": 107253760
+    },
+    "gpu": {
+      "parts": 2,
+      "gpuCalls": 6,
+      "valuesCompared": 9216,
+      "maxError": 1.2120332704146364e-06,
+      "staleRecoveries": 2,
+      "loads": [
+        {
+          "modelId": "1b0f91c4-a7d5-4849-82ed-91c5ed564fd5",
+          "fullyAccelerated": true,
+          "cacheEvictions": 0,
+          "prepareMs": 40.89356027543545,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728
+        },
+        {
+          "modelId": "7002bd42-0562-408f-a7e3-7b1e34110a09",
+          "fullyAccelerated": true,
+          "cacheEvictions": 0,
+          "prepareMs": 11.02595217525959,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728
+        },
+        {
+          "modelId": "acb4a72d-56d8-4223-891d-23c6ec22ff83",
+          "fullyAccelerated": true,
+          "cacheEvictions": 1,
+          "prepareMs": 10.266119614243507,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728
+        },
+        {
+          "modelId": "1a22dcb8-e8e6-4a1e-8055-c2984d8abbc0",
+          "fullyAccelerated": true,
+          "cacheEvictions": 0,
+          "prepareMs": 10.106949135661125,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728
+        }
+      ],
+      "pressure": {
+        "modelId": "d62fc67f-b66e-405a-ab3e-4b097af44ed3",
+        "fullyAccelerated": true,
+        "cacheEvictions": 2,
+        "prepareMs": 11.313343420624733,
+        "residentModels": 1,
+        "residentBytes": 134217728,
+        "memoryBudgetBytes": 134217728
+      },
+      "profiles": [
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.006791204214096069,
+          "executeMs": 4.6629514545202255,
+          "fileBytesRead": 3072,
+          "fileInputsReused": 0,
+          "inputMs": 0.6553512066602707,
+          "dispatchMs": 3.303730860352516,
+          "readbackMs": 0.6874334067106247,
+          "outputMs": 0.016435980796813965,
+          "peakRssBytes": 116051968
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.005153939127922058,
+          "executeMs": 38.30854222178459,
+          "fileBytesRead": 7077888,
+          "fileInputsReused": 0,
+          "inputMs": 7.067997008562088,
+          "dispatchMs": 16.58109948039055,
+          "readbackMs": 14.61905986070633,
+          "outputMs": 0.04038587212562561,
+          "peakRssBytes": 132911104
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.00605359673500061,
+          "executeMs": 0.6967112421989441,
+          "fileBytesRead": 0,
+          "fileInputsReused": 1,
+          "inputMs": 0.1837126910686493,
+          "dispatchMs": 0.25724805891513824,
+          "readbackMs": 0.2468116581439972,
+          "outputMs": 0.008938834071159363,
+          "peakRssBytes": 132911104
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.004548579454421997,
+          "executeMs": 16.202395781874657,
+          "fileBytesRead": 0,
+          "fileInputsReused": 1,
+          "inputMs": 0.116739422082901,
+          "dispatchMs": 0.28150901198387146,
+          "readbackMs": 15.768403187394142,
+          "outputMs": 0.035744160413742065,
+          "peakRssBytes": 132911104
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 1,
+          "residentBytes": 19336,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.00546872615814209,
+          "executeMs": 3.636891022324562,
+          "fileBytesRead": 3072,
+          "fileInputsReused": 0,
+          "inputMs": 0.2933777868747711,
+          "dispatchMs": 2.591365948319435,
+          "readbackMs": 0.7366910576820374,
+          "outputMs": 0.015456229448318481,
+          "peakRssBytes": 132911104
+        },
+        {
+          "backend": "LiteRT GPU",
+          "fullyAccelerated": true,
+          "cached": true,
+          "residentModels": 2,
+          "residentBytes": 7110076,
+          "memoryBudgetBytes": 134217728,
+          "prepareMs": 0.0037159770727157593,
+          "executeMs": 38.11830095946789,
+          "fileBytesRead": 7077888,
+          "fileInputsReused": 0,
+          "inputMs": 6.900602951645851,
+          "dispatchMs": 15.78981988132,
+          "readbackMs": 15.370596200227737,
+          "outputMs": 0.05728192627429962,
+          "peakRssBytes": 133902336
+        }
+      ],
+      "releasedAll": true
+    }
+  },
+  "oneplus": {
+    "parts": 2,
+    "workerGpuCalls": 12,
+    "workerLoads": 4,
+    "staleRecoveries": 2,
+    "maxError": 1.2635570287855558e-06,
+    "valuesCompared": 13056,
+    "pressure": {
+      "modelId": "677f0ef8-6e97-423a-83d3-2ef65351928d",
+      "cacheEvictions": 2,
+      "gpuOnlyRequested": true,
+      "prepareMs": 16.780781,
+      "residentBytes": 134217728,
+      "residentModels": 1,
+      "memoryBudgetBytes": 134217728
+    },
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.024583,
+        "executeMs": 9.755573,
+        "pssBytes": 168287232,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 3.950781,
+        "dispatchMs": 4.370886,
+        "readbackMs": 1.255885,
+        "outputMs": 0.116354,
+        "residentBytes": 7110076,
+        "residentModels": 2,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.026041,
+        "executeMs": 14.061667,
+        "pssBytes": 169069568,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 3.364271,
+        "dispatchMs": 0.761771,
+        "readbackMs": 9.514844,
+        "outputMs": 0.356979,
+        "residentBytes": 7110076,
+        "residentModels": 2,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.021927,
+        "executeMs": 8.989063,
+        "pssBytes": 163783680,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 2.951719,
+        "dispatchMs": 0.503958,
+        "readbackMs": 5.386667,
+        "outputMs": 0.104427,
+        "residentBytes": 7110076,
+        "residentModels": 2,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.018021,
+        "executeMs": 14.207552,
+        "pssBytes": 164545536,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 3.135,
+        "dispatchMs": 1.041198,
+        "readbackMs": 9.726615,
+        "outputMs": 0.268073,
+        "residentBytes": 7110076,
+        "residentModels": 2,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.022031,
+        "executeMs": 15.495104,
+        "pssBytes": 165991424,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 4.583646,
+        "dispatchMs": 0.88901,
+        "readbackMs": 9.5975,
+        "outputMs": 0.36349,
+        "residentBytes": 7090740,
+        "residentModels": 1,
+        "memoryBudgetBytes": 134217728
+      }
+    ],
+    "countLimitVerified": true,
+    "releasedAll": true
+  },
+  "oneplusDemo": {
+    "id": "d31b9bed-1261-4a7c-a756-0b615e9777d4",
+    "visibleValuesCompared": 4,
+    "firstValues": [
+      -1.2207804918289185,
+      0.986761212348938,
+      1.166695475578308,
+      0.36423182487487793
+    ],
+    "screen": "\u25cf  1\u203a use io\u00b7     use \"partscale.ram\"\u00b7     use \"partqkv.ram\"\u25cf  2\u203a X = array shape 1 768 fill 0.5\u25cf  3\u203a F = \"models/prepared/locked.safetenso\u2026\u25cf  4\u203a F verify \"db00db586fb73867d419cccdde6\u2026\u25cf  5\u203a W' = F tensor \"weight\"\u25cf  6\u203a S' = F tensor \"h.0.ln_1.weight\"\u25cf  7\u203a Y = X partscale S\u25cf  8\u203a A = Y partqkv W\u25cf  9\u203a Y = (X * 0.5) partscale S\u25cf 10\u203a B = Y partqkv W\u25cf 11\u203a Y = X partscale S\u25cf 12\u203a C = Y partqkv W\u25cf 13\u203a F close\u25cf 14\u203a C      -1.2207804918289185 ...      real [1 2304]rank> ",
+    "persistedAndRerun": true
+  },
+  "androidPlacement": "PID 12722 logcat: all 4/4 and 1/1 nodes delegated to LITERT_CL",
+  "memory": {
+    "small": {
+      "key": "e53868d0166914ff87ae88d7f473901bb488352398c2c9239427a9d8b13f48a4",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "19534ad173b1e38b88be87a67849607bbb757134810a2262a1c7953da35dfcab",
+        "name": "w",
+        "transpose": false,
+        "dtype": "F32"
+      },
+      "sha256": "9473c23a6b8ba2e2315f0b984e79a138d8def5399c95ac0b7846433ebe8c1aa5",
+      "shape": [
+        262144
+      ],
+      "dtype": "F32",
+      "payloadBytes": 1048576,
+      "maxReadBytes": 131072,
+      "transformBufferBytes": 262144,
+      "path": "/tmp/rank-prepare-memory-final/e53868d0166914ff87ae88d7f473901bb488352398c2c9239427a9d8b13f48a4/weight.safetensors",
+      "cached": false,
+      "elapsedMs": 8.891957999999988,
+      "peakRssBytes": 110034944
+    },
+    "large": {
+      "key": "682a165c948366f9efefc01961cdb8817eea5baf388dcf10928876c5f5583f2d",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "7dc604a8efc891afddd268e8191b02ca305c0d662abf054cac04410946c32c4f",
+        "name": "w",
+        "transpose": false,
+        "dtype": "F32"
+      },
+      "sha256": "3ca09e3cec70038157da71cbe26e01c46be85a836370b0c1c11d6fb53bf423ef",
+      "shape": [
+        67108864
+      ],
+      "dtype": "F32",
+      "payloadBytes": 268435456,
+      "maxReadBytes": 131072,
+      "transformBufferBytes": 262144,
+      "path": "/tmp/rank-prepare-memory-final/682a165c948366f9efefc01961cdb8817eea5baf388dcf10928876c5f5583f2d/weight.safetensors",
+      "cached": false,
+      "elapsedMs": 585.320875,
+      "peakRssBytes": 183435264
+    },
+    "gib": {
+      "key": "8498b5e1989069a4989d00c889fba6743586ad95b2768d691c9486d1c532b899",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "8d8f7749f698c2b896448d42329a1a16ae3db964d9fb5e2d2f81b0f89a4b15f9",
+        "name": "w",
+        "transpose": false,
+        "dtype": "F32"
+      },
+      "sha256": "a6a5b1dfc80a7720a41cf9bd554cc5da5558cb7f635f54d3ae35f5f497bdbc64",
+      "shape": [
+        268435456
+      ],
+      "dtype": "F32",
+      "payloadBytes": 1073741824,
+      "maxReadBytes": 131072,
+      "transformBufferBytes": 262144,
+      "path": "/tmp/rank-prepare-memory-final/8498b5e1989069a4989d00c889fba6743586ad95b2768d691c9486d1c532b899/weight.safetensors",
+      "cached": false,
+      "elapsedMs": 2333.11425,
+      "peakRssBytes": 193789952
+    },
+    "large-reuse": {
+      "key": "682a165c948366f9efefc01961cdb8817eea5baf388dcf10928876c5f5583f2d",
+      "operation": {
+        "version": 1,
+        "sourceSha256": "7dc604a8efc891afddd268e8191b02ca305c0d662abf054cac04410946c32c4f",
+        "name": "w",
+        "transpose": false,
+        "dtype": "F32"
+      },
+      "sha256": "3ca09e3cec70038157da71cbe26e01c46be85a836370b0c1c11d6fb53bf423ef",
+      "shape": [
+        67108864
+      ],
+      "dtype": "F32",
+      "payloadBytes": 268435456,
+      "maxReadBytes": 131072,
+      "transformBufferBytes": 262144,
+      "path": "/tmp/rank-prepare-memory-final/682a165c948366f9efefc01961cdb8817eea5baf388dcf10928876c5f5583f2d/weight.safetensors",
+      "cached": true,
+      "elapsedMs": 135.818875,
+      "peakRssBytes": 109559808
+    }
+  },
+  "memoryFixture": "Sparse zero F16 source tensors: 262144, 67108864, 268435456 cells; sequential conversion to real 1 MiB, 256 MiB, 1 GiB F32 payloads. Each measurement runs in a fresh Node process. Source and output checksums are streamed. Peak RSS includes runtime overhead; no physical GPU memory claim.",
+  "limitations": [
+    "Preparation is explicit desktop work, not an Android UI action or automatic runtime conversion.",
+    "GPU tests use a real 768x2304 projection, not the 1 GiB synthetic tensor.",
+    "F16 test fixture is deliberately rounded from real F32 QKV; reference uses those rounded weights, not original F32 weights.",
+    "Native per-input and resident cache limits are unchanged.",
+    "Cache reuse reads and hashes files; it skips conversion and writes. Disk cache is caller-managed."
+  ]
+}
