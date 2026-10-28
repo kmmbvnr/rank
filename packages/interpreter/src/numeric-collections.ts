@@ -328,5 +328,50 @@ export function numericUniqueSum(value: RankValue): bigint | undefined {
         const cell = cells[i] as bigint;
         if (!seen.has(cell)) { seen.add(cell); sum += cell; }
     }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numericUniqueSums++;
     return sum;
+}
+
+/** Bounded max heap: retain only the K smallest exact integers. */
+export function numericSmallest(value: RankValue, count: RankValue, distinct: boolean, sumOnly: boolean): RankValue | undefined {
+    const cells = numericCells(value);
+    if (!cells || typeof count !== 'bigint' || count < 0n || count > BigInt(Number.MAX_SAFE_INTEGER)) return undefined;
+    const compact = isRankArray(value) ? integer32Cells(value) : undefined;
+    if (!compact) for (let i = 0; i < cells.length; i++) if (typeof cells[i] !== 'bigint') return undefined;
+    const limit = Math.min(Number(count), cells.length);
+    const heap: (bigint | number)[] = [], seen = distinct ? new Set<bigint | number>() : undefined;
+    for (let i = 0; i < cells.length; i++) {
+        if ((i & 4095) === 0) checkpoint('selecting smallest integers', 4096);
+        const cell = compact ? compact[i] : cells[i] as bigint;
+        if (!limit || seen?.has(cell)) continue;
+        if (heap.length < limit) {
+            let at = heap.length;
+            heap.push(cell);
+            while (at > 0) {
+                const parent = (at - 1) >> 1;
+                if (heap[parent] >= cell) break;
+                heap[at] = heap[parent]; at = parent;
+            }
+            heap[at] = cell;
+        } else {
+            if (cell >= heap[0]) continue;
+            seen?.delete(heap[0]);
+            let at = 0;
+            while (at * 2 + 1 < heap.length) {
+                let child = at * 2 + 1;
+                if (child + 1 < heap.length && heap[child + 1] > heap[child]) child++;
+                if (heap[child] <= cell) break;
+                heap[at] = heap[child]; at = child;
+            }
+            heap[at] = cell;
+        }
+        seen?.add(cell);
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numericSmallestSelections++;
+    if (sumOnly) return heap.reduce<bigint>((sum, cell) => sum + BigInt(cell), 0n);
+    // Poll inside comparisons; unlike native typed sorting this also works interactively.
+    heap.sort((a, b) => { checkpoint('ordering smallest integers'); return a < b ? -1 : a > b ? 1 : 0; });
+    return ownedScalarArray(heap.map(BigInt), 'integer');
 }

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { Interpreter, parse, formatValue } from '../packages/interpreter/out/index.js';
 const cases = [
     ['sort unique', 'T = V sort\nT unique'],
+    ['sort take 20 sum', 'T = V sort\nU = T take 20\nU sum'],
+    ['unique sort take 20 sum', 'T = V unique\nS = T sort\nU = S take 20\nU sum'],
     ['unique sum', 'T = V unique\nT sum'],
 ];
 for (const [chain, separate] of cases) {

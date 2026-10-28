@@ -1,8 +1,9 @@
 import {
     flattenApplication, isApplicationExpression, isBinaryExpression, isBoundClauseExpression,
-    isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression, isNameExpression,
+    isCountClauseExpression, isNumberLiteral, isFirstIndexWhereExpression, isFirstWhereExpression, isNameExpression,
     isSubjectComparisonExpression, isTakeWhileExpression, isUnaryExpression, type Expression,
 } from '@arrrank/language';
+import { numericSmallest } from './numeric-collections.js';
 import { resume, type Evaluation, type Execution } from './execution.js';
 import { ownedArray, readArrayItem } from './array-storage.js';
 import { RankError } from './errors.js';
@@ -14,6 +15,7 @@ import { isNativeFunction, isRankArray, isRankSequence, isRankSequenceMask, type
 
 export interface ClauseExpressionContext {
     localFrame: LocalFrame | undefined;
+    isBuiltin?(name: string, operation: string): boolean;
     evaluate(expression: Expression): Evaluation<RankValue>;
     binary(operator: string, left: RankValue, right: RankValue): RankValue;
     findVariable(name: string): RankValue | undefined;
@@ -41,6 +43,23 @@ export function compileClauseExpression(
     if (isCountClauseExpression(expression)) {
         const context = makeContext();
         return function* (): Execution<RankValue> {
+            if (expression.operator === 'take') {
+                const parts = isApplicationExpression(expression.source) ? flattenApplication(expression.source) : [];
+                const last = parts[parts.length - 1], previous = parts[parts.length - 2];
+                const distinct = previous && isNameExpression(previous) && context.isBuiltin?.(previous.name, 'unique');
+                const input = parts.length === (distinct ? 3 : 2) ? parts[0] : undefined;
+                // Read only already-bound values: do not move count effects before sorting.
+                const count = isNameExpression(expression.count) ? context.findVariable(expression.count.name)
+                    : isNumberLiteral(expression.count) ? expression.count.value : undefined;
+                if (input && isNameExpression(input) && last && isNameExpression(last)
+                    && context.isBuiltin?.(last.name, 'sort') && typeof count === 'bigint') {
+                    const value = context.findVariable(input.name);
+                    if (value !== undefined) {
+                        const result = numericSmallest(value, count, !!distinct, false);
+                        if (result !== undefined) return result;
+                    }
+                }
+            }
             const source = yield* resume(context.evaluate(expression.source));
             const count = yield* resume(context.evaluate(expression.count));
             return takeDropValue(source, count, expression.operator === 'drop');
