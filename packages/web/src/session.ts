@@ -5,10 +5,11 @@ import type { ReplSession } from '@arrrank/common/repl-types';
 import type { Inspection } from '@arrrank/common/value-inspection';
 import type { Extension } from '@arrrank/common/repl-session';
 import type { PauseSnapshot } from '@arrrank/interpreter';
-import type { SessionMethod, WorkerRequest, WorkerResponse } from './protocol.js';
+import type { BrowserFile, ProgramInputValue, SessionMethod, WorkerRequest, WorkerResponse } from './protocol.js';
 
 /** Browser transport; evaluation and notebook behavior are shared with the CLI. */
 export function browserSession(onFailure: (message: string) => void, onChange: () => void): ReplSession & {
+    configureInputs(inputs: ProgramInputValue[], files: BrowserFile[]): Promise<void>;
     setModules(modules: Record<string, string>, attachments?: Record<string, string>): Promise<void>;
 } {
     let snapshot: SessionSnapshot = { names: [], modules: [], aliases: true };
@@ -27,6 +28,8 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
     let stepToMain = false;
     let modules: Record<string, string> = {};
     let attachments: Record<string, string> = {};
+    let inputs: ProgramInputValue[] = [];
+    let files: BrowserFile[] = [];
     let worker = createWorker();
     function control(command: string): Promise<void> {
         const url = signalUrl;
@@ -56,7 +59,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
             ? new URL('/__rank_debug?token=' + crypto.randomUUID(), location.href).href : undefined;
         controls = Promise.resolve();
         ready = signalUrl ? control('reset') : Promise.resolve();
-        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules, attachments, nativeRam: capacitor?.getPlatform() === 'android' }))
+        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules, attachments, inputs, files, nativeRam: capacitor?.getPlatform() === 'android' }))
             .catch(error => onFailure(String(error)));
         next.onmessage = (event: MessageEvent<WorkerResponse | { ram: { id: string; payload: string } }>) => {
             if ('ram' in event.data) {
@@ -90,6 +93,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
         });
     }
     return {
+        configureInputs: (next, nextFiles) => { inputs = next; files = nextFiles; return call<void>('setInputs', inputs, files); },
         setModules: (next, weights = {}) => { modules = next; attachments = weights; return call<void>('setModules', modules, attachments); },
         get names() { return snapshot.names; },
         get modules() { return snapshot.modules; },

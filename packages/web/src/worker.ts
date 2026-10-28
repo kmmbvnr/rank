@@ -3,10 +3,10 @@
 import { BrowserIo, configureNativeFiles } from './browser-io.js';
 
 import { createReplSession } from '@arrrank/common/repl-session';
-import { withInterrupt, DebugSession, type PauseSnapshot, type InterruptSignal } from '@arrrank/interpreter';
+import { withInterrupt, inputValues, DebugSession, type PauseSnapshot, type InterruptSignal } from '@arrrank/interpreter';
 import { nativeDebugSignal } from './debug-signal.js';
 import { browserRamGpu, configureRamGpu } from './ram-gpu.js';
-import type { WorkerInit, WorkerRequest, WorkerResponse } from './protocol.js';
+import type { BrowserFile, ProgramInputValue, WorkerInit, WorkerRequest, WorkerResponse } from './protocol.js';
 
 let debuggerSession = new DebugSession();
 let session: ReturnType<typeof createReplSession>;
@@ -16,6 +16,9 @@ let breakpoints: { source: string; line: number }[] = [];
 const onPause = (pause: PauseSnapshot) => self.postMessage({ id: 0, pause, snapshot: session.snapshot() } satisfies WorkerResponse);
 let queue = Promise.resolve();
 let androidFiles = false;
+let io = new BrowserIo([]);
+const setInputs = (inputs: ProgramInputValue[]) => session.setInputs(new Map(inputs.map(input =>
+    [input.name, inputValues(input.values, input.valueType, input.many)])));
 let modules: Record<string, string> = {};
 let attachments: Record<string, Uint8Array> = {};
 const setAttachments = (files: Record<string, string>) => {
@@ -23,7 +26,7 @@ const setAttachments = (files: Record<string, string>) => {
         [name, Uint8Array.from(atob(data), c => c.charCodeAt(0))]));
 };
 const createSession = () => createReplSession({ options: {
-    sourceId: 'main.ra', ramGpu: browserRamGpu, io: androidFiles ? new BrowserIo([]) : undefined,
+    sourceId: 'main.ra', ramGpu: browserRamGpu, io,
     loadModule: name => {
         if (!Object.hasOwn(modules, name)) throw new Error('Module is not attached to this program: ' + name);
         return { id: name, source: modules[name], readBinary: file => {
@@ -43,7 +46,9 @@ self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit
         debuggerSession = new DebugSession();
         modules = event.data.modules ?? {};
         setAttachments(event.data.attachments ?? {});
+        io = new BrowserIo(event.data.files ?? []);
         session = signal ? withInterrupt(signal, createSession, onPause, debuggerSession) : createSession();
+        setInputs(event.data.inputs ?? []);
         self.postMessage({ id: 0, snapshot: session.snapshot() } satisfies WorkerResponse);
         return;
     }
@@ -54,6 +59,7 @@ self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit
             if (signalUrl) signal = nativeDebugSignal(signalUrl);
             debuggerSession.setBreakpoints(method === 'execute' || method === 'debugExecute' ? breakpoints : []);
             const run = () => {
+                if (method === 'setInputs') { io.setFiles(args[1] as BrowserFile[]); setInputs(args[0] as ProgramInputValue[]); return; }
                 if (method === 'setModules') { modules = args[0] as Record<string, string>; setAttachments(args[1] as Record<string, string> ?? {}); return; }
                 if (method === 'setDebugBreakpoints') { breakpoints = args[0] as typeof breakpoints; return; }
                 if (method === 'debugExecute' && signal) {

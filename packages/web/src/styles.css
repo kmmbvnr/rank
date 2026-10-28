@@ -382,3 +382,26 @@ button { font: inherit; color: #ddd; border: 0; cursor: pointer; -webkit-tap-hig
 
 #notebook-panel .library-back { display: flex; align-items: center; gap: 12px; }
 .library-back svg { flex: none; width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Program arguments share the notebook's system file picker and survive runs. */
+.terminal-row:has(.path-file-picker) { position: relative; }
+.terminal-row .path-file-picker {
+    position: absolute; right: 0; height: 100%; min-width: 32px; padding: 0 6px;
+    border: 0; border-radius: 4px; background: #000; color: #aaa;
+    font: inherit; cursor: pointer; pointer-events: auto;
+}
+#program-inputs { border: 1px solid #555; border-radius: 16px; padding: 20px; background: #252535; color: #eee; font: 15px/1.5 sans-serif; width: 440px; box-sizing: border-box; max-width: min(480px, calc(100vw - 32px)); max-height: 80dvh; overflow: auto; }
+#program-inputs form { display: grid; gap: 12px; }
+#program-inputs h2 { margin: 0; font-size: 1.15rem; }
+#program-inputs fieldset { min-width: 0; display: grid; gap: 8px; padding: 12px; }
+#program-inputs input:not([type=checkbox]), #program-inputs textarea { width: 100%; box-sizing: border-box; font: inherit; }
+#program-inputs textarea { min-height: 80px; }
+#program-inputs .input-default, #program-inputs small { color: #888; overflow-wrap: anywhere; }
+#program-inputs button { min-height: 40px; }
+
+#program-inputs::backdrop { background: #0009; }
+#program-inputs input:not([type=checkbox]), #program-inputs textarea { color: #eee; background: #14141d; border: 1px solid #777; border-radius: 6px; padding: 8px; }
+#program-inputs button { border: 0; border-radius: 8px; background: #414968; color: #fff; font: inherit; padding: 8px 16px; }
+
+#program-inputs .program-input-actions { display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: -20px; margin: 0 -1px -20px; padding: 12px 0 20px; background: #252535; }
+#program-inputs .program-input-actions button { min-width: 90px; }

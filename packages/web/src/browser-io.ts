@@ -22,27 +22,32 @@ export class BrowserIo implements RankIo {
     private readonly files = new Map<string, Uint8Array>();
 
     constructor(files: readonly BrowserFile[]) {
+        this.setFiles(files);
+    }
+
+    setFiles(files: readonly BrowserFile[]): void {
+        this.files.clear();
         for (const file of files) this.files.set(file.name, new Uint8Array(file.data));
     }
 
     read(path: string): Uint8Array {
-        if (nativeFiles && path.startsWith('models/')) {
-            const file = new NativeModelFile(path);
+        if (nativeFiles && (path.startsWith('models/') || path.startsWith('inputs/'))) {
+            const file = path.startsWith('models/') ? new NativeModelFile(path) : new NativeInputFile(path);
             try { return file.read(file.size()); } finally { file.close(); }
         }
         return this.file(path).slice();
     }
 
     readRange(path: string, offset: number, count: number): Uint8Array {
-        if (nativeFiles && path.startsWith('models/')) {
-            const file = new NativeModelFile(path);
+        if (nativeFiles && (path.startsWith('models/') || path.startsWith('inputs/'))) {
+            const file = path.startsWith('models/') ? new NativeModelFile(path) : new NativeInputFile(path);
             try { file.seek(offset); return file.read(count); } finally { file.close(); }
         }
         return this.file(path).slice(offset, offset + count);
     }
 
     write(path: string, data: Uint8Array, append: boolean): void {
-        if (nativeFiles && path.startsWith('models/')) throw new Error('Model files are read-only');
+        if (nativeFiles && (path.startsWith('models/') || path.startsWith('inputs/'))) throw new Error('Selected files are read-only');
         const previous = append ? this.files.get(path) : undefined;
         if (!previous) {
             this.files.set(path, data.slice());
@@ -55,9 +60,9 @@ export class BrowserIo implements RankIo {
     }
 
     open(path: string, mode: RankFileMode): RankFileHandle {
-        if (nativeFiles && path.startsWith('models/')) {
+        if (nativeFiles && (path.startsWith('models/') || path.startsWith('inputs/'))) {
             if (mode !== 'read') throw new Error('Model files are read-only');
-            return new NativeModelFile(path);
+            return path.startsWith('models/') ? new NativeModelFile(path) : new NativeInputFile(path);
         }
         if (mode === 'write') this.files.set(path, new Uint8Array());
         else if (!this.files.has(path) && mode !== 'append') this.file(path);
@@ -139,12 +144,14 @@ class BrowserFileHandle implements RankFileHandle {
 }
 
 /** Only bounded byte ranges cross the WebView boundary; files remain in app storage. */
-class NativeModelFile implements RankFileHandle {
+class NativeInputFile implements RankFileHandle {
     private cursor = 0;
-    private closed = false;
+    protected closed = false;
     private readonly url: string;
     constructor(readonly name: string) {
-        this.url = '/__rank_model_file?name=' + encodeURIComponent(name.slice('models/'.length));
+        const model = name.startsWith('models/');
+        this.url = (model ? '/__rank_model_file?name=' : '/__rank_input_file?name=')
+            + encodeURIComponent(name.slice(model ? 'models/'.length : 'inputs/'.length));
         this.size();
     }
     private request(query: string, binary = false): XMLHttpRequest {
@@ -174,9 +181,12 @@ class NativeModelFile implements RankFileHandle {
     }
     position(): number { return this.cursor; }
     size(): number { return JSON.parse(this.request('&action=stat').responseText).size; }
-    nativePath(): string { if (this.closed) throw new Error('file is closed'); return this.name.slice('models/'.length); }
     revision(): string { return JSON.parse(this.request('&action=stat').responseText).revision; }
     write(): void { throw new Error('Model files are read-only'); }
     flush(): void { if (this.closed) throw new Error('file is closed'); }
     close(): void { this.closed = true; }
+}
+
+class NativeModelFile extends NativeInputFile {
+    nativePath(): string { if (this.closed) throw new Error('file is closed'); return this.name.slice('models/'.length); }
 }

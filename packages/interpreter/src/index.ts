@@ -24,3 +24,5 @@ export { createRamClient, type RamRequest, type RamReply, type RamModelFile } fr
 export { encodeRamWeights, decodeRamWeights, ramWeightName } from './ram-weights.js';
 
 export type { FileTensorInput } from './file-tensor.js';
+
+export { inputValues } from './cli-args.js';

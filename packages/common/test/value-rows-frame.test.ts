@@ -42,4 +42,22 @@ describe('result rows in a frame', () => {
             expect(frame.resultRows?.length).toBeGreaterThan(0);
         } finally { session.dispose(); }
     });
+    it('shows a selected file below an inactive declaration without changing source targets', () => {
+        const session = createReplSession();
+        const repl = new NotebookRepl(session, () => {}, () => 80);
+        try {
+            repl.notebook.restore('arg File path');
+            repl.notebook.toPrompt();
+            const frame = notebookFrame(repl.notebook, 80, 24, 0, '', false, true, '', '',
+                undefined, 'rank> ', undefined, undefined, undefined, false, undefined, true,
+                0, undefined, undefined, undefined, undefined, 6, false,
+                new Map([[0, new Map([[1, 'chosen.txt']])]]));
+            const lines = frame.lines.map(plain);
+            const sourceRow = lines.findIndex(line => line.includes('arg File path'));
+            expect(lines[sourceRow + 1].trim()).toBe('chosen.txt');
+            expect(frame.resultRows).toContain(sourceRow + 1);
+            expect(frame.targets?.[sourceRow]).toMatchObject({ kind: 'source', cell: 0, line: 1 });
+        } finally { session.dispose(); }
+    });
+
 });

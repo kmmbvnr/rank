@@ -40,6 +40,7 @@ public final class DebugSignalClient extends BridgeWebViewClient {
         Uri uri = request.getUrl();
         if (!"https".equals(uri.getScheme()) || !"localhost".equals(uri.getHost()))
             return super.shouldInterceptRequest(view, request);
+        if ("/__rank_input_file".equals(uri.getPath())) return InputFiles.serve(view.getContext(), uri);
         if ("/__rank_model_file".equals(uri.getPath())) return ModelFiles.serve(view.getContext(), uri);
         if ("/__rank_ml_result".equals(uri.getPath())) return response(200, "OK", ramGpu.await(uri.getQueryParameter("id")));
         if ("/__rank_keyboard_hide".equals(uri.getPath())) {

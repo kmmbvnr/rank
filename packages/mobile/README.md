@@ -75,7 +75,21 @@ The system keyboard opens as soon as the restored notebook accepts input, includ
 after entering Release preview. Editor-wide messages sit in the center of the space above Play,
 without a frame around the editor. Later steps highlight individual controls.
 Each step uses one sentence without a heading or Skip button;
-The ⋮ menu contains Run program, plus Release preview in debug APKs for testing first use. It saves the current
+The ⋮ menu contains Run program. Scripts with `arg` or `flag` declarations open a
+parameter form before running. Use the declared defaults or enter overrides; the
+last submitted values are saved separately for each notebook. Array values use
+one item per line. A folder button beside `arg File path` opens Android's system
+file chooser, and the selected filename appears in gray below the declaration.
+Selected files are copied into private app storage for use after restarting the app.
+The form also provides a file chooser for path parameters. A path can also be an
+HTTP or HTTPS URL, either entered in the form or written as a literal default:
+`arg File path = "https://example.org/data.txt"`. The file downloads before the
+program runs; gray text below the declaration and in the form shows the download
+percentage (or received MiB when the server omits the size). Completed downloads
+are cached by URL in private storage and reused offline. Failed downloads are
+not cached. The browser version requires the server to allow cross-origin requests.
+
+Debug APKs also contain Release preview for testing first use. It saves the current
 notebook, then opens a disposable sandbox with its own history and walkthrough.
 Each entry clears only the sandbox. After the walkthrough, hold RANK for two seconds to return to the
 original notebook and history. Release APKs have no sandbox switch and keep the

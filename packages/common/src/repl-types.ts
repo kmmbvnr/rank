@@ -4,7 +4,7 @@ import type { InspectRequest, Inspection } from './value-inspection.js';
 
 type FunctionPreparation = Awaited<ReturnType<ReturnType<typeof createReplSession>['prepareFunctions']>>;
 
-export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'snapshot' | 'prepareFunctions' | 'preview' | 'resetExecution' | 'inspect' | 'extend'> & {
+export type ReplSession = Omit<ReturnType<typeof createReplSession>, 'setInputs' | 'snapshot' | 'prepareFunctions' | 'preview' | 'resetExecution' | 'inspect' | 'extend'> & {
     resetExecution: (resetEnvironment?: boolean) => void | Promise<void>;
     inspect: (ref: number, request?: InspectRequest) => Inspection | Promise<Inspection>;
     extend: (ref: number, count?: number) => Extension | Promise<Extension>;

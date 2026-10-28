@@ -273,6 +273,107 @@ public class NotebooksPlugin extends Plugin {
         } catch (Exception error) { call.reject("Cannot export notebook", error); }
     }
 
+    @PluginMethod public void downloadInputFile(PluginCall call) {
+        String source = call.getString("url"), id = call.getString("id");
+        getBridge().execute(() -> {
+            File partial = null;
+            java.net.HttpURLConnection connection = null;
+            try {
+                java.net.URI uri = new java.net.URI(source);
+                if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) || uri.getHost() == null)
+                    throw new IllegalArgumentException("Expected an HTTP or HTTPS URL");
+                byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(source.getBytes(StandardCharsets.UTF_8));
+                StringBuilder hash = new StringBuilder();
+                for (byte b : digest) hash.append(String.format("%02x", b & 255));
+                String key = "url-" + hash;
+                File target = new File(InputFiles.directory(getContext()), key);
+                String name = android.net.Uri.parse(source).getLastPathSegment();
+                if (name == null || name.isEmpty()) name = "download";
+                if (!target.isFile()) {
+                    java.net.URL url = uri.toURL();
+                    for (int redirects = 0; ; redirects++) {
+                        if (!("http".equalsIgnoreCase(url.getProtocol()) || "https".equalsIgnoreCase(url.getProtocol())))
+                            throw new IllegalArgumentException("Unsupported redirect URL");
+                        connection = (java.net.HttpURLConnection)url.openConnection();
+                        connection.setConnectTimeout(15000); connection.setReadTimeout(30000);
+                        connection.setInstanceFollowRedirects(false);
+                        connection.setRequestProperty("Accept-Encoding", "identity");
+                        int status = connection.getResponseCode();
+                        if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
+                            String location = connection.getHeaderField("Location");
+                            if (redirects >= 5 || location == null) throw new IllegalStateException("Too many redirects or missing redirect location");
+                            url = new java.net.URL(url, location); connection.disconnect(); connection = null; continue;
+                        }
+                        if (status < 200 || status >= 300) throw new IllegalStateException("Download failed: HTTP " + status);
+                        break;
+                    }
+                    long total = connection.getContentLengthLong(), received = 0, last = 0;
+                    partial = File.createTempFile("download-", ".partial", InputFiles.directory(getContext()));
+                    try (InputStream input = connection.getInputStream(); OutputStream output = new FileOutputStream(partial)) {
+                        byte[] buffer = new byte[65536]; int count;
+                        while ((count = input.read(buffer)) != -1) {
+                            output.write(buffer, 0, count); received += count;
+                            long now = android.os.SystemClock.elapsedRealtime();
+                            if (now - last >= 100) { downloadProgress(id, received, total); last = now; }
+                        }
+                    }
+                    if (total >= 0 && total != received) throw new IllegalStateException("Incomplete download");
+                    if (!partial.renameTo(target)) throw new IllegalStateException("Cannot store downloaded file");
+                    partial = null;
+                }
+                downloadProgress(id, target.length(), target.length());
+                JSObject response = new JSObject(); response.put("path", "inputs/" + key); response.put("name", name);
+                call.resolve(response);
+            } catch (Exception error) { call.reject("Cannot download input: " + error.getMessage(), error); }
+            finally { if (connection != null) connection.disconnect(); if (partial != null) partial.delete(); }
+        });
+    }
+
+    private void downloadProgress(String id, long received, long total) {
+        JSObject event = new JSObject(); event.put("id", id); event.put("received", received); event.put("total", total);
+        notifyListeners("inputDownloadProgress", event);
+    }
+
+    @PluginMethod public void pickInputFile(PluginCall call) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        startActivityForResult(call, intent, "inputFileResult");
+    }
+
+    @ActivityCallback private void inputFileResult(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) { call.resolve(new JSObject()); return; }
+        android.net.Uri uri = result.getData().getData();
+        // Copy off the UI thread. The app's private copy survives restarts and revoked provider grants.
+        getBridge().execute(() -> {
+            File target = null;
+            try {
+                String name = "Selected file";
+                try (Cursor cursor = getContext().getContentResolver().query(uri,
+                        new String[] { android.provider.OpenableColumns.DISPLAY_NAME }, null, null, null)) {
+                    if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) name = cursor.getString(0);
+                }
+                String path = java.util.UUID.randomUUID().toString();
+                target = new File(InputFiles.directory(getContext()), path);
+                File parent = target.getParentFile();
+                if (!parent.isDirectory() && !parent.mkdirs()) throw new IllegalStateException("Cannot create input storage");
+                try (InputStream stream = getContext().getContentResolver().openInputStream(uri);
+                        OutputStream output = new FileOutputStream(target)) {
+                    if (stream == null) throw new IllegalStateException("Cannot open selected file");
+                    byte[] buffer = new byte[65536]; int count;
+                    while ((count = stream.read(buffer)) != -1) output.write(buffer, 0, count);
+                }
+                JSObject response = new JSObject();
+                response.put("path", "inputs/" + path); response.put("name", name);
+                call.resolve(response);
+            } catch (Exception error) {
+                if (target != null) target.delete();
+                call.reject("Cannot read selected file", error);
+            }
+        });
+    }
+
     @PluginMethod public void importFile(PluginCall call) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE); intent.setType("*/*");
