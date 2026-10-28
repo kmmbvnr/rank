@@ -1,0 +1,18 @@
+use io
+use "projectpart.ram"
+use "projecttail.ram"
+F = "models/chunks.safetensors" open
+F verify "98bd71b247c5060cb0e10743745d886ea75219c473ae46ac2c8225e2c6c0eb96"
+W' = F tensor "weight"
+X = array shape 1 1024 fill 0.5
+Result = array shape 1 8192 fill 0.0
+for Start in 0 till 7680 by 768
+Part' = W (Start till (Start + 768)) #
+Y = X projectpart Part
+Result # (Start till (Start + 768)) = Y
+end
+Part' = W (7680 till 8192) #
+Y = X projecttail Part
+Result # (7680 till 8192) = Y
+F close
+Result

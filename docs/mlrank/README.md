@@ -1333,3 +1333,56 @@ also verifies offsets, weight traffic and same-slice reuse. Unit checks cover
 nested slices, ordinary noncontiguous behavior and byte ranges beyond 2 GiB.
 This demonstrates execution above the single-input size limit, not a full LLM
 forward pass or execution of a gigabyte-scale model.
+
+### Plan a large output projection (stage 13b, fourth slice)
+
+Generate a reviewable program for `X @ W.T` from an F32 file tensor whose shape
+is `[outputs, inputs]`:
+
+```sh
+node scripts/mlrank-plan-projection.mjs WEIGHTS.safetensors TENSOR NEW_DIRECTORY 3145728
+```
+
+The optional last argument is the maximum weight bytes per part (default 4 MiB,
+accepted range 4 bytes through 16 MiB). The planner reads metadata and streams a
+source checksum; it does not read weight values into JS arrays or copy weights.
+It creates `main.ra`, `projectpart.ram`, an optional `projecttail.ram`, and
+`plan.json`. Existing output directories are rejected. Failed planning does not
+publish a partial program.
+
+Rows per part are constrained by both the requested byte budget and the existing
+1,048,576-element computed-tensor limit: the RAM transpose of each weight block
+must also fit. A row that cannot fit is rejected. The current generated input is
+one row (`[1, inputs]`), initialized to 0.5 for a runnable example; replace that
+assignment with the desired activation. The assembled host output is limited to
+1,048,576 elements. There is no bias, activation or batched-input planner yet.
+
+The generated program pins the source SHA-256, iterates over full row blocks,
+handles a smaller final block with its own compiled shape, and writes each GPU
+result to its corresponding output range. All multiplication and transpose
+operations run on GPU; assembly happens explicitly in Rank on the host. File
+paths, slicing, module calls and output placement are visible in the generated
+source. This plans one projection, not an arbitrary RAM graph or a full model.
+The byte budget bounds a weight part, not physical GPU memory; `plan.json` also
+reports the compiler's logical per-model reservations.
+
+`demos/mlrank/planned-projection.ra` is the generated 32 MiB example, with its
+file path changed to Android's `models/chunks.safetensors`. A 3 MiB budget selects
+ten 768-row parts and a 512-row final part, two RAM modules and 11 GPU calls.
+The file is the same deterministic fixture used by `file-chunks.ra`.
+
+Reproduce the independent reference and native checks after generating a plan:
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-projection-reference.py WEIGHTS.safetensors TENSOR reference.json
+node scripts/mlrank-projection-check.mjs NEW_DIRECTORY reference.json
+node --test packages/cli/test/projection-plan.test.mjs
+```
+
+For Android, substitute the resulting `projection-fixture.json` into
+`packages/web/test/ram-projection.playwright.js` and change the fixture source's
+file path to the installed model path. Evidence is recorded in
+`benchmarks/baselines/2026-10-28-mlrank-projection-plan.json`: 16,384 numerical
+comparisons per device on Mac, Intel and OnePlus. The Android process measurements
+include previously resident demo models. No speedup or full-LLM execution is
+claimed by this check.
