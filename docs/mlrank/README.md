@@ -1029,10 +1029,11 @@ zero-copy GPU access or large-model compilation.
 
 The test OnePlus has the checkpoint sample and a saved **GPT-2 weights on GPU**
 notebook. Use **Terminal commands → Run program** and open `real [768]` to inspect
-the result. The earlier, materialized-input version was verified twice, including
-after reload, with all 4 graph nodes delegated. Updating the saved notebook and
-verifying the deferred-input version on OnePlus is pending reconnection of wireless
-debugging. On desktop, provide the sample file at that relative path or edit the path.
+the result. The deferred-input version was verified twice, including after reload;
+16 visible values matched the reference and all 4 graph nodes were delegated.
+A separate worker/native test compared all 768 results and observed only 163 bytes
+of file-header reads in the WebView, with no input values serialized. On desktop,
+provide the sample file at that relative path or edit the path.
 
 
 ### File tensor inputs to RAM

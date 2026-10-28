@@ -1,7 +1,7 @@
 async page => {
     const fixture=__FILE_INPUT_FIXTURE__;
     const reads=[];
-    const onRequest=request=>{const u=new URL(request.url());if(u.pathname==='/__rank_model_file'&&u.searchParams.has('offset')) reads.push({offset:Number(u.searchParams.get('offset')),count:Number(u.searchParams.get('count'))});};
+    const onRequest=request=>{const url=request.url(),offset=url.match(/[?&]offset=(\d+)/),count=url.match(/[?&]count=(\d+)/);if(url.includes('/__rank_model_file?')&&offset&&count) reads.push({offset:Number(offset[1]),count:Number(count[1])});};
     page.on('request',onRequest);
     try {
         const result=await page.evaluate(async fixture=>{

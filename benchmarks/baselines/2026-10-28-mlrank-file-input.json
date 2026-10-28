@@ -32,9 +32,45 @@
     "dtypeRejected": true
   },
   "android": {
-    "status": "pending",
+    "gpuCalls": 3,
+    "valuesCompared": 768,
+    "maxError": 0,
+    "inputValuesSerialized": 0,
+    "descriptorBytes": 151,
+    "fileSize": 2147486947,
+    "offset": 2147483875,
+    "staleRangeDtypeRejected": true,
+    "viewer": true,
+    "webViewFileReads": [
+      {
+        "offset": 0,
+        "count": 8
+      },
+      {
+        "offset": 8,
+        "count": 155
+      }
+    ],
+    "webViewBytes": 163,
+    "status": "passed",
     "apkBuiltAndInstalled": true,
-    "reason": "OnePlus wireless debugging disconnected before worker and updated demo validation."
+    "device": "OnePlus N10 BE2029",
+    "delegate": "LITERT_CL",
+    "delegatedNodes": 4,
+    "totalNodes": 4,
+    "demo": {
+      "id": "a09fc7e5-cf3f-491d-8651-6128a53ea7d9",
+      "visibleValuesCompared": 16,
+      "firstValues": [
+        0.4464406669139862,
+        0.3639173209667206,
+        0.3068649172782898,
+        0.38336512446403503,
+        0.40723690390586853,
+        0.3896233141422272
+      ],
+      "persistedAndRerun": true
+    }
   },
   "tests": {
     "vitestPassed": 48,
