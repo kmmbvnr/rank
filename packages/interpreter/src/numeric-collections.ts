@@ -364,7 +364,6 @@ export function integerDistinctConsumer(value: RankValue, terminal: 'array' | 's
     };
 
     if (compact) {
-        let partial = 0;
         for (let i = 0; i < view!.shape[0]; i++) {
             if ((i & 4095) === 0) checkpoint('consuming distinct integers', 4096);
             const key = compact[stored!.linear!.offset + i * stored!.linear!.stride];
@@ -372,13 +371,7 @@ export function integerDistinctConsumer(value: RankValue, terminal: 'array' | 's
             if (seen.has(key)) continue;
             seen.add(key);
             if (terminal === 'array') items.push(BigInt(key));
-            else if (terminal === 'sum') {
-                const next = partial + key;
-                if (Number.isSafeInteger(next)) partial = next;
-                else { sum += BigInt(partial); partial = key; }
-            }
         }
-        sum += BigInt(partial);
     } else if (view || selected) {
         const read = selected?.read ?? view!.read;
         const length = selected?.length ?? view!.shape[0];
