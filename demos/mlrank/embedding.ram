@@ -1,0 +1,6 @@
+use ml
+arg W .f32 shape 2048 1024
+arg Tokens .i32 shape 4
+arg P .f32 shape 128 1024
+arg Positions .i32 shape 4
+return W Tokens + P Positions

@@ -1419,3 +1419,58 @@ Evidence: `benchmarks/baselines/2026-10-28-mlrank-batch-projection.json`.
 This prepares the projection path for a short context; it does not implement
 embedding lookup, attention across tokens, the full transformer forward or KV
 cache. Activations and assembled outputs remain host values.
+
+### Integer token IDs and GPU gather (stage 13c, first slice)
+
+RAM now accepts `.i32` runtime inputs as indices into a real tensor's leading
+axis, using ordinary Rank addressing:
+
+```rank
+use ml
+arg W .f32 shape 2048 1024
+arg Tokens .i32 shape 4
+arg P .f32 shape 128 1024
+arg Positions .i32 shape 4
+return W Tokens + P Positions
+```
+
+The result is `[4, 1024]`. Repeated IDs preserve duplicates and input order.
+An index input may be declared first. `.i32` values must be Rank integers in the
+signed 32-bit range, and every gather ID must be nonnegative and below the table's
+leading dimension. A shared ID input used with multiple tables obeys the smallest
+bound. Invalid values fail before native invocation. Fractional real values,
+even `2.0`, are not accepted as integer IDs.
+
+This initial integer support is for directly declared gather indices. Integer
+arithmetic, reshaping/aliasing index inputs inside RAM, integer outputs and
+file-backed integer inputs are not implemented. Gather output shape combines the
+index shape and the table's trailing axes, subject to existing rank and element
+limits. Float computations in mixed-input modules use `.f32`.
+
+The load protocol optionally carries `inputDtypes` (`f32` or `i32`) in input
+order. Android writes int arrays for i32 inputs; desktop obtains the actual
+native input dtype and writes NumPy int32. IDs are never rounded through float32.
+Legacy loads without dtype metadata retain the Android float input behavior.
+Native integer writers also reject fractions and values outside signed int32.
+Bounds checking belongs to the compiled Rank call, before native dispatch.
+
+`demos/mlrank/file-embedding.ra` uses two contiguous regions of the existing
+synthetic `chunks.safetensors` fixture as token and positional tables. Both stay
+native and are reused while the IDs change; JSON carries only eight integer IDs.
+This proves the embedding path, not compatibility with a real model checkpoint.
+Full vocabulary tables still need to fit the native per-input limit or be
+explicitly divided; this step does not raise that limit.
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-embedding-reference.py /path/to/chunks.safetensors reference.json
+node scripts/mlrank-embedding-check.mjs /path/to/chunks.safetensors reference.json
+node --test packages/cli/test/ram-gather.test.mjs
+```
+
+The Android check is `packages/web/test/ram-embedding.playwright.js`, using
+`reference.json.fixture.json` emitted above. Evidence is in
+`benchmarks/baselines/2026-10-28-mlrank-embedding.json`: Mac, Intel and OnePlus
+match 12,288 values each, reuse both weight inputs, and retain GPU-only execution.
+The Android delegate log places all six lowered nodes on LITERT_CL. Boundary
+checks cover negative/out-of-range IDs, noninteger input, and exact integer
+transport beyond float32's consecutive-integer range.

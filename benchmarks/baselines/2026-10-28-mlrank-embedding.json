@@ -1,0 +1,180 @@
+{
+  "stage": "13c: i32 token IDs and GPU gather",
+  "mac": {
+    "gpuCalls": 2,
+    "valuesCompared": 12288,
+    "maxError": 1.862645149230957e-09,
+    "loads": [
+      {
+        "modelId": "52a19946-996c-46ad-b01b-ba53b501622c",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 57.064250111579895,
+        "residentModels": 1,
+        "residentBytes": 9012436,
+        "memoryBudgetBytes": 134217728
+      }
+    ],
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 1,
+        "residentBytes": 9012436,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.004041939973831177,
+        "executeMs": 10.86066709831357,
+        "fileBytesRead": 8912896,
+        "fileInputsReused": 0,
+        "inputMs": 8.883458096534014,
+        "dispatchMs": 1.9374170806258917,
+        "readbackMs": 0.014166813343763351,
+        "outputMs": 0.025625107809901237,
+        "peakRssBytes": 78823424
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 1,
+        "residentBytes": 9012436,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.0027918722480535507,
+        "executeMs": 0.7400410249829292,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 0.0913331750780344,
+        "dispatchMs": 0.6082078907638788,
+        "readbackMs": 0.009417068213224411,
+        "outputMs": 0.031082890927791595,
+        "peakRssBytes": 78823424
+      }
+    ]
+  },
+  "intel": {
+    "gpuCalls": 2,
+    "valuesCompared": 12288,
+    "maxError": 1.862645149230957e-09,
+    "loads": [
+      {
+        "modelId": "8d92f266-837a-499e-9a8c-50aedbb6e374",
+        "fullyAccelerated": true,
+        "cacheEvictions": 0,
+        "prepareMs": 56.050993502140045,
+        "residentModels": 1,
+        "residentBytes": 9012436,
+        "memoryBudgetBytes": 134217728
+      }
+    ],
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 1,
+        "residentBytes": 9012436,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.005217269062995911,
+        "executeMs": 27.300545945763588,
+        "fileBytesRead": 8912896,
+        "fileInputsReused": 0,
+        "inputMs": 9.55965369939804,
+        "dispatchMs": 7.962338626384735,
+        "readbackMs": 9.713249281048775,
+        "outputMs": 0.06530433893203735,
+        "peakRssBytes": 137252864
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "residentModels": 1,
+        "residentBytes": 9012436,
+        "memoryBudgetBytes": 134217728,
+        "prepareMs": 0.007575377821922302,
+        "executeMs": 5.320115014910698,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 0.2382192760705948,
+        "dispatchMs": 0.431843101978302,
+        "readbackMs": 4.575049504637718,
+        "outputMs": 0.07500313222408295,
+        "peakRssBytes": 137252864
+      }
+    ]
+  },
+  "oneplus": {
+    "workerGpuCalls": 2,
+    "profileGpuCalls": 2,
+    "modelLoads": 1,
+    "valuesCompared": 12288,
+    "maxError": 1.862645149230957e-09,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.016615,
+        "executeMs": 10.468593,
+        "pssBytes": 198884352,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 4.713437,
+        "dispatchMs": 1.472604,
+        "readbackMs": 3.705,
+        "outputMs": 0.504948,
+        "residentBytes": 27037308,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.03901,
+        "executeMs": 9.295052,
+        "pssBytes": 180509696,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 3.935886,
+        "dispatchMs": 0.510416,
+        "readbackMs": 3.976823,
+        "outputMs": 0.817917,
+        "residentBytes": 27037308,
+        "residentModels": 3,
+        "memoryBudgetBytes": 134217728
+      }
+    ],
+    "invalidIndicesRejected": true
+  },
+  "oneplusDemo": {
+    "id": "d5ffcc5d-4dcf-4b0d-aec0-bc0b7c4e8825",
+    "visibleValuesCompared": 6,
+    "firstValues": [
+      -0.0009905211627483368,
+      -0.028325635939836502,
+      0.006505625322461128,
+      0.002957749180495739,
+      0.0031775690149515867,
+      -0.00624927319586277
+    ],
+    "screen": "\u00b7     use \"embedding.ram\"\u25cf  2\u203a F = \"models/chunks.safetensors\" open\u25cf  3\u203a W' = F tensor \"weight\"\u25cf  4\u203a Table' = W (0 till 2048) #\u25cf  5\u203a Positional' = W (2048 till 2176) #\u25cf  6\u203a Tokens = array 7 2047 7 0\u25cf  7\u203a Positions = array 0 3 1 127\u25cf  8\u203a Result = Table embedding Tokens Positional Positions\u25cf  9\u203a F close\u25cf 10\u203a Result      -0.0009905211627483368 ...      real [4 1024]rank> ",
+    "persistedAndRerun": true
+  },
+  "tests": {
+    "node": 12,
+    "vitest": 32,
+    "python": 9,
+    "typescriptBuild": true,
+    "androidApkBuild": true
+  },
+  "androidPlacement": "PID 27813: Replacing 6 out of 6 nodes with LITERT_CL.",
+  "limitations": [
+    "Synthetic token and positional tables, not an actual model embedding checkpoint.",
+    "Existing per-input limits remain: full vocabulary may require partitioning.",
+    "Only direct i32 runtime IDs for leading-axis gather; no integer arithmetic or integer output.",
+    "Host checks index bounds before native invocation; native int writers separately check signed int32 domain.",
+    "Android PSS includes previous test models."
+  ]
+}

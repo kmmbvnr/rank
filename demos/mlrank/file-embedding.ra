@@ -1,0 +1,11 @@
+use io
+use "embedding.ram"
+F = "models/chunks.safetensors" open
+W' = F tensor "weight"
+Table' = W (0 till 2048) #
+Positional' = W (2048 till 2176) #
+Tokens = array 7 2047 7 0
+Positions = array 0 3 1 127
+Result = Table embedding Tokens Positional Positions
+F close
+Result
