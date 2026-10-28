@@ -27,7 +27,7 @@ import type { FunctionInvocation } from '../function-invocation.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
 import { fenwickSum } from '../modules/algo.js';
 import { materializeArray, uniqueLength } from '../modules/sequences.js';
-import { numericUniqueSort } from '../numeric-collections.js';
+import { numericUniqueSort, numericUniqueSum } from '../numeric-collections.js';
 import { formattedText } from '../modules/text.js';
 import { type Operators } from '../operators.js';
 import { type RankApplication } from '../rank-application.js';
@@ -647,6 +647,18 @@ export class ApplicationEvaluator {
                 if (result !== undefined && result !== false) return completed(result);
             }
             const next = values[index + 1];
+            if (arguments_.length === 1 && isNativeFunction(next)
+                && context.builtins.is('sequences', 'sort', value)
+                && context.builtins.is('sequences', 'unique', next)) {
+                const sorted = numericUniqueSort(arguments_[0]);
+                if (sorted !== undefined) { pending = [sorted]; index += 1; continue; }
+            }
+            if (arguments_.length === 1 && isNativeFunction(next)
+                && context.builtins.is('sequences', 'unique', value)
+                && context.builtins.is('core', 'sum', next)) {
+                const sum = numericUniqueSum(arguments_[0]);
+                if (sum !== undefined) { pending = [sum]; index += 1; continue; }
+            }
             if (arguments_.length === 1 && isNativeFunction(next)
                 && context.builtins.is('sequences', 'unique', value)
                 && context.builtins.is('sequences', 'sort', next)) {

@@ -315,3 +315,18 @@ export function numericDistinct(value: RankValue, countOnly = false): RankArray 
     }
     return ownedScalarArray(result, 'boolean');
 }
+
+/** Exact integer distinct sum, retaining ordinary floating-point fallback. */
+export function numericUniqueSum(value: RankValue): bigint | undefined {
+    const cells = numericCells(value);
+    if (!cells) return undefined;
+    for (let i = 0; i < cells.length; i++) if (typeof cells[i] !== 'bigint') return undefined;
+    const seen = new Set<bigint>();
+    let sum = 0n;
+    for (let i = 0; i < cells.length; i++) {
+        if ((i & 4095) === 0) checkpoint('summing distinct integers', 4096);
+        const cell = cells[i] as bigint;
+        if (!seen.has(cell)) { seen.add(cell); sum += cell; }
+    }
+    return sum;
+}
