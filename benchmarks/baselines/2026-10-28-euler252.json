@@ -1,0 +1,705 @@
+{
+  "base": "5a6a2152b5e64d5413fe140909773e74c381db5e",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "method": "Three alternating sequential fresh-process samples per reference workload. Imports excluded; parsing/preparation/evaluation and diagnostics included. Host load uncontrolled.",
+  "referenceControls": [
+    {
+      "case": "252-N100",
+      "variant": "original",
+      "sample": 0,
+      "ms": 2038.8974999999998,
+      "answer": "356711",
+      "rssMiB": 417.40625,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N100",
+      "variant": "classification",
+      "sample": 0,
+      "ms": 1810.556208,
+      "answer": "356711",
+      "rssMiB": 410.21875,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N100",
+      "variant": "classification",
+      "sample": 1,
+      "ms": 1811.8234160000002,
+      "answer": "356711",
+      "rssMiB": 416.71875,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N100",
+      "variant": "original",
+      "sample": 1,
+      "ms": 2022.3872909999998,
+      "answer": "356711",
+      "rssMiB": 417.34375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N100",
+      "variant": "original",
+      "sample": 2,
+      "ms": 2068.008792,
+      "answer": "356711",
+      "rssMiB": 416.828125,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N100",
+      "variant": "classification",
+      "sample": 2,
+      "ms": 1801.0759580000001,
+      "answer": "356711",
+      "rssMiB": 418.015625,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N200",
+      "variant": "original",
+      "sample": 0,
+      "ms": 13613.240375000001,
+      "answer": "239104",
+      "rssMiB": 467.828125,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N200",
+      "variant": "classification",
+      "sample": 0,
+      "ms": 12897.341792000001,
+      "answer": "239104",
+      "rssMiB": 467.390625,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N200",
+      "variant": "classification",
+      "sample": 1,
+      "ms": 11987.661125,
+      "answer": "239104",
+      "rssMiB": 464.96875,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N200",
+      "variant": "original",
+      "sample": 1,
+      "ms": 13722.089708,
+      "answer": "239104",
+      "rssMiB": 468.8125,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N200",
+      "variant": "original",
+      "sample": 2,
+      "ms": 13636.017125,
+      "answer": "239104",
+      "rssMiB": 472.1875,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "252-N200",
+      "variant": "classification",
+      "sample": 2,
+      "ms": 11984.704541,
+      "answer": "239104",
+      "rssMiB": 465.59375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "250-default",
+      "variant": "original",
+      "sample": 0,
+      "ms": 1454.685209,
+      "answer": "1425480602091519",
+      "rssMiB": 186.875,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "250-default",
+      "variant": "classification",
+      "sample": 0,
+      "ms": 1160.437042,
+      "answer": "1425480602091519",
+      "rssMiB": 186.75,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "250-default",
+      "variant": "classification",
+      "sample": 1,
+      "ms": 1209.739041,
+      "answer": "1425480602091519",
+      "rssMiB": 186.609375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "250-default",
+      "variant": "original",
+      "sample": 1,
+      "ms": 1459.3252499999999,
+      "answer": "1425480602091519",
+      "rssMiB": 186.90625,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "250-default",
+      "variant": "original",
+      "sample": 2,
+      "ms": 1485.838833,
+      "answer": "1425480602091519",
+      "rssMiB": 186.796875,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "250-default",
+      "variant": "classification",
+      "sample": 2,
+      "ms": 1163.7855,
+      "answer": "1425480602091519",
+      "rssMiB": 185.09375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "251-Limit1m",
+      "variant": "original",
+      "sample": 0,
+      "ms": 620.169292,
+      "answer": "171128",
+      "rssMiB": 262.125,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "251-Limit1m",
+      "variant": "classification",
+      "sample": 0,
+      "ms": 600.160958,
+      "answer": "171128",
+      "rssMiB": 263.9375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "251-Limit1m",
+      "variant": "classification",
+      "sample": 1,
+      "ms": 594.953583,
+      "answer": "171128",
+      "rssMiB": 262.625,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "251-Limit1m",
+      "variant": "original",
+      "sample": 1,
+      "ms": 617.647917,
+      "answer": "171128",
+      "rssMiB": 264.4375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "251-Limit1m",
+      "variant": "original",
+      "sample": 2,
+      "ms": 614.1448330000001,
+      "answer": "171128",
+      "rssMiB": 264.109375,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    },
+    {
+      "case": "251-Limit1m",
+      "variant": "classification",
+      "sample": 2,
+      "ms": 592.695292,
+      "answer": "171128",
+      "rssMiB": 263.828125,
+      "compiledLoops": 0,
+      "numberLoops": 0
+    }
+  ],
+  "originalFullReference": {
+    "args": [
+      "--runtime=/tmp/rank251-validation/packages/interpreter/out/index.js",
+      "--reference"
+    ],
+    "ms": 198498.328917,
+    "answer": "104924",
+    "rssMiB": 473.625,
+    "tests": [],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 1997490,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 996,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 1000,
+      "maskMaterializedCells": 249500,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "loop:disabled": 10
+      },
+      "compilerRejections": []
+    }
+  },
+  "shippingReferenceFixture": {
+    "args": [
+      "--runtime=/tmp/rank252-validation/packages/interpreter/out/index.js",
+      "--fixture",
+      "--reference"
+    ],
+    "ms": 172109.59675,
+    "rssMiB": 482.953125,
+    "tests": [
+      {
+        "name": "default input",
+        "passed": true,
+        "output": [
+          "104924"
+        ],
+        "durationMs": 171909.24966600002
+      },
+      {
+        "name": "fewer points",
+        "passed": true,
+        "output": [
+          "1076657.5",
+          "871952",
+          "1049694.5"
+        ],
+        "durationMs": 55.943499999993946
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 2001207,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 0,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1050,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 0,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 1066,
+      "maskMaterializedCells": 249956,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "loop:disabled": 20
+      },
+      "compilerRejections": []
+    }
+  },
+  "oracle": {
+    "3": 842096.5,
+    "4": 1186789.0,
+    "5": 1076657.5,
+    "6": 1024008.0,
+    "7": 871952.0,
+    "8": 871952.0,
+    "9": 1574977.0,
+    "10": 1574977.0,
+    "11": 1574977.0,
+    "12": 1465186.0
+  },
+  "shippingExpressionSourceSha256": "e52279ddd406610d87f6e8e01a2312adbcaae8154abf531c3c45f9cb3aab8084",
+  "caveats": [
+    "Full reference observations use different main/fixture envelopes, so repeated N=200 controls are the relative-speed evidence.",
+    "Controls precede the error-retry invalidation guard; the complete reference fixture uses that guard.",
+    "No memory reduction is claimed.",
+    "Compiled publication and per-anchor capacity experiments were not shipped."
+  ],
+  "shippingCompiledFixture": {
+    "args": [
+      "--runtime=/tmp/rank252-validation/packages/interpreter/out/index.js",
+      "--fixture"
+    ],
+    "ms": 2988.308375,
+    "rssMiB": 372.671875,
+    "tests": [
+      {
+        "name": "default input",
+        "passed": true,
+        "output": [
+          "104924"
+        ],
+        "durationMs": 2627.7145
+      },
+      {
+        "name": "fewer points",
+        "passed": true,
+        "output": [
+          "1076657.5",
+          "871952",
+          "1049694.5"
+        ],
+        "durationMs": 91.8150840000003
+      }
+    ],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 1249740,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1583,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 1050,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSmallestSelections": 0,
+      "numericUniqueSums": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1583,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 4204,
+      "numberLoopReadBufferCells": 1249756,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 1583,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 533,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 1066,
+      "maskMaterializedCells": 249956,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 18,
+        "scalar-expression:too-small": 22,
+        "loop:deferred-binding:AssignmentStatement": 2,
+        "scalar-expression:unsupported-op:till": 2,
+        "tensor:deferred-binding:AssignmentStatement": 10,
+        "scalar-expression:operator-guard:*": 1583,
+        "scalar-expression:operator-guard:+": 1058,
+        "tensor:unsupported-node:MaterializeExpression": 4,
+        "tensor:dyadic-terminal:ReturnStatement": 2,
+        "scalar-expression:unsupported-op:/": 6,
+        "scalar-expression:unsupported-op:-": 4,
+        "scalar-expression:unsupported-op:min": 2,
+        "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+        "scalar-expression:unsupported-node:NameExpression": 8,
+        "scalar-expression:unsupported-op:equal": 8
+      },
+      "compilerRejections": []
+    }
+  },
+  "shippingOracleChecks": [
+    {
+      "n": 3,
+      "reference": false,
+      "answer": "842096.5"
+    },
+    {
+      "n": 4,
+      "reference": false,
+      "answer": "1186789"
+    },
+    {
+      "n": 5,
+      "reference": false,
+      "answer": "1076657.5"
+    },
+    {
+      "n": 6,
+      "reference": false,
+      "answer": "1024008"
+    },
+    {
+      "n": 7,
+      "reference": false,
+      "answer": "871952"
+    },
+    {
+      "n": 8,
+      "reference": false,
+      "answer": "871952"
+    },
+    {
+      "n": 9,
+      "reference": false,
+      "answer": "1574977"
+    },
+    {
+      "n": 10,
+      "reference": false,
+      "answer": "1574977"
+    },
+    {
+      "n": 11,
+      "reference": false,
+      "answer": "1574977"
+    },
+    {
+      "n": 12,
+      "reference": false,
+      "answer": "1465186"
+    },
+    {
+      "n": 3,
+      "reference": true,
+      "answer": "842096.5"
+    },
+    {
+      "n": 4,
+      "reference": true,
+      "answer": "1186789"
+    },
+    {
+      "n": 5,
+      "reference": true,
+      "answer": "1076657.5"
+    },
+    {
+      "n": 6,
+      "reference": true,
+      "answer": "1024008"
+    },
+    {
+      "n": 7,
+      "reference": true,
+      "answer": "871952"
+    },
+    {
+      "n": 8,
+      "reference": true,
+      "answer": "871952"
+    },
+    {
+      "n": 9,
+      "reference": true,
+      "answer": "1574977"
+    },
+    {
+      "n": 10,
+      "reference": true,
+      "answer": "1574977"
+    },
+    {
+      "n": 11,
+      "reference": true,
+      "answer": "1574977"
+    },
+    {
+      "n": 12,
+      "reference": true,
+      "answer": "1465186"
+    }
+  ],
+  "verification": {
+    "typescriptBuild": "passed, forced rebuild",
+    "language": {
+      "files": 65,
+      "passed": 1482
+    },
+    "ordinaryInterpreter": {
+      "files": 407,
+      "passed": 9207,
+      "failed": 28,
+      "parentReproduction": "The same 28 test names fail on the unchanged parent source in all 8 affected suites.",
+      "parentAffectedSuitesPassed": 477,
+      "failures": [
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for *=",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for +=",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for -=",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted addition",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted multiplication",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted subtraction",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for *=",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for +=",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for -=",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted addition",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted multiplication",
+        "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted subtraction",
+        "test/array-construction.test.ts > array construction (compiled false) > runs the Euler 11 solution with separate directional products",
+        "test/array-construction.test.ts > array construction (compiled true) > runs the Euler 11 solution with separate directional products",
+        "test/diagnostics.test.ts > syntax error wording > reports \"fun N inc\\n\" in one readable line",
+        "test/explicit-plan-demos.test.ts > explicit-plan demo migration (compilation=false) > packs ready digit words through the actual infinite-string merge stage",
+        "test/explicit-plan-demos.test.ts > explicit-plan demo migration (compilation=true) > packs ready digit words through the actual infinite-string merge stage",
+        "test/intrinsic-matrix-ranks.test.ts > intrinsic matrix cells > executes the documented Euler 8 and 11 programs",
+        "test/io-programs.test.ts > Rank IO, modules and programs > binds argument text from defaults, args and the workspace",
+        "test/io-programs.test.ts > Rank IO, modules and programs > binds option text from defaults, args and the workspace",
+        "test/negative-axis.test.ts > negative tensor axes (compilation=false) > keeps trailing-axis helpers independent of the frame rank",
+        "test/negative-axis.test.ts > negative tensor axes (compilation=true) > keeps trailing-axis helpers independent of the frame rank",
+        "test/window-dimensions.test.ts > window dimensions (compiled false) > continues builtin and user function pipelines and preserves source pipelines",
+        "test/window-dimensions.test.ts > window dimensions (compiled true) > continues builtin and user function pipelines and preserves source pipelines"
+      ],
+      "excludedSuites": [
+        "types.test.ts",
+        "differential.test.ts",
+        "nurikabe.test.ts"
+      ]
+    },
+    "semanticBoundaries": "11 tests and 65 owners passed",
+    "applicationForms": "passed",
+    "cliMain": "1 file, 0 failed",
+    "cliFixture": "1 file, 0 failed",
+    "oracleComparisons": 20
+  }
+}

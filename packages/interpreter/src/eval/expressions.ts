@@ -312,22 +312,36 @@ export class ExpressionEvaluator {
         if (classify && (isApplicationExpression(expression) || isBinaryExpression(expression))) {
             const syntax = isBinaryExpression(expression) ? flattenApplication(expression.right) : flattenApplication(expression);
             const names = syntax.filter(isNameExpression).map(part => part.name);
-            let signature: string | undefined;
+            const bindings = new Map<string, ReturnType<typeof findOperation> | false>();
+            const signatures: string[] = [];
             let compiled: (() => Evaluation<RankValue>) | undefined;
             return () => {
-                const bindings = new Map(names.map(name => [name, this.operationOf(name)]));
-                const next = names.map(name => {
-                    const identity = bindings.get(name);
-                    return identity === false ? (isNativeFunction(this.context.findVariable(name) ?? MISSING) ? '\0function' : '\0') : identity?.name ?? name;
-                }).join(' ');
-                if (!compiled || signature !== next) {
+                // Check live roles on every evaluation, but allocate classification
+                // data only once. Values may change without changing syntax roles.
+                let changed = !compiled;
+                for (let index = 0; index < names.length; index++) {
+                    const name = names[index];
+                    const value = this.context.findVariable(name);
+                    const identity = value === undefined ? findOperation(name)
+                        : isNativeFunction(value) ? BuiltinRegistry.operationOf(value) ?? false : false;
+                    const signature = identity === false
+                        ? (isNativeFunction(value ?? MISSING) ? '\0function' : '\0')
+                        : identity?.name ?? name;
+                    if (signatures[index] !== signature) {
+                        bindings.set(name, identity);
+                        signatures[index] = signature;
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    // A failed reclassification must be retried on the next read.
+                    compiled = undefined;
                     const form = applicationForm(expression, name => bindings.has(name)
                         ? bindings.get(name) : this.operationOf(name), false,
                         name => isNativeFunction(this.context.findVariable(name) ?? MISSING));
                     compiled = this.context.application.compileForm(expression, form, missing, tail);
-                    signature = next;
                 }
-                return compiled();
+                return compiled!();
             };
         }
         const scalar = allowScalar && this.context.fastPaths.scalarEvaluation(expression, source => () => this.evaluate(source));
