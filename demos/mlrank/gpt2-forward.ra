@@ -1,0 +1,53 @@
+use io
+use "gpt2row.ram"
+use "gpt2attn.ram"
+use "gpt2mlp.ram"
+use "gpt2norm.ram"
+use "gpt2head.ram"
+use "gpt2tail.ram"
+F = "models/gpt2-forward.safetensors" open
+F verify "c53f03ec73ec33687f2edfd4abc0eedd514bb40f8b330798e9d950a7e7ac2268"
+TokenTable' = F tensor "wte.weight"
+PositionTable' = F tensor "wpe.weight"
+Tokens = array 0 127 8192 50256
+Positions = array 0 1 2 3
+X = array shape 4 768 fill 0.0
+for I in 0 till 4
+Token = Tokens I
+Position = Positions I
+Row' = TokenTable (Token till (Token + 1)) #
+Pos' = PositionTable (Position till (Position + 1)) #
+Y = Row gpt2row Pos
+X (I till (I + 1)) # = Y
+end
+for Layer in 0 till 12
+Prefix = "h." + (Layer text) + "."
+G1' = F tensor (Prefix + "ln_1.weight")
+B1' = F tensor (Prefix + "ln_1.bias")
+W' = F tensor (Prefix + "attn.c_attn.weight")
+QkvBias' = F tensor (Prefix + "attn.c_attn.bias")
+O' = F tensor (Prefix + "attn.c_proj.weight")
+OutBias' = F tensor (Prefix + "attn.c_proj.bias")
+G2' = F tensor (Prefix + "ln_2.weight")
+B2' = F tensor (Prefix + "ln_2.bias")
+UpW' = F tensor (Prefix + "mlp.c_fc.weight")
+UpB' = F tensor (Prefix + "mlp.c_fc.bias")
+DownW' = F tensor (Prefix + "mlp.c_proj.weight")
+DownB' = F tensor (Prefix + "mlp.c_proj.bias")
+H = X gpt2attn G1 B1 W QkvBias O OutBias
+X = H gpt2mlp G2 B2 UpW UpB DownW DownB
+end
+G' = F tensor "ln_f.weight"
+B' = F tensor "ln_f.bias"
+Hidden = X gpt2norm G B
+Result = array shape 4 50257 fill 0.0
+for Start in 0 till 50176 by 1024
+Part' = TokenTable (Start till (Start + 1024)) #
+Y = Hidden gpt2head Part
+Result # (Start till (Start + 1024)) = Y
+end
+Part' = TokenTable (50176 till 50257) #
+Y = Hidden gpt2tail Part
+Result # (50176 till 50257) = Y
+F close
+Result

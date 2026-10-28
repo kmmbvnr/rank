@@ -1,0 +1,4 @@
+use ml
+arg W .f32 shape 1 768
+arg P .f32 shape 1 768
+return W + P
