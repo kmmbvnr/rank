@@ -463,8 +463,8 @@ export class ApplicationEvaluator {
                                 if (isNativeFunction(unique) && isNativeFunction(sum)
                                     && context.builtins.is('sequences', 'unique', unique)
                                     && context.builtins.is('core', 'sum', sum)) {
-                                    pending = [yield* resume(application.apply([pending[0], unique, sum]))];
-                                    index++; continue;
+                                    const result = numericUniqueSum(pending[0]);
+                                    if (result !== undefined) { pending = [result]; index++; continue; }
                                 }
                             }
                             const value = isAllAxisExpression(part)

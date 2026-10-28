@@ -76,3 +76,16 @@ it('keeps integer sums exact above the safe Number range', () => {
     expect(run('use sequences\nV = array 9007199254740993 1 2\nV sort take 3 sum'))
         .toBe('9007199254740996');
 });
+
+it('resolves the sum after an opaque unique traversal when fusion declines', () => {
+    const runtime = new Interpreter();
+    try {
+        runtime.execute('use sequences\nfun X replacement = 99');
+        const replacement = runtime.variables.get('replacement')!;
+        runtime.variables.set('V', { kind: 'array', shape: [3], items: [], itemAt(index: number) {
+            runtime.variables.set('sum', replacement);
+            return [3n, 1n, 3n][index];
+        } });
+        expect(runtime.execute('V unique sum')).toBe(99n);
+    } finally { runtime.dispose(); }
+});
