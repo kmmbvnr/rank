@@ -101,7 +101,6 @@
   "euler/300_proteinfolding.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/212_combinedvolume_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/229_foursquares_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
-  "euler/245_coresilience_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/250_subsets_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/251_cardanotriplets_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/252_convexholes_test.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",

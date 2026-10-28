@@ -37,7 +37,9 @@ for I in 0 till Np
   Pi (Pr I) = 1
 end
 Pi = Pi scan + with 0
-Kk = Rt
+rem Composite solutions are odd, hence k
+rem is even. For n = pq, n > (2k-1)^2.
+Kk = (Rt + 1) // 2
 Rs = array shape (Kk + 1) fill 0
 for K in 2 to Kk
   Rs K = K * K - K + 1
@@ -101,7 +103,7 @@ for R in Pr
 end
 Dv = array shape 5000 fill 0
 Total = 0
-for K in 2 to Kk
+for K in 2 to Kk by 2
   Nd = 1
   Dv 0 = 1
   Cf = Nf K
@@ -153,7 +155,7 @@ for
   end
   Kc += 1
 end
-for K in 2 to Kc
+for K in 2 to Kc by 2
   D = 0
   Ms 0 = 1
   As 0 = 1
@@ -171,7 +173,10 @@ for K in 2 to Kc
         if (Kb + 1) mod Dd equal 0
           P = (Kb + 1) // Dd
           if P greater Lp D
-            if M * P at most Limit
+            rem Compare before multiplying so
+            rem rejected candidates stay exact
+            rem in the fast integer Number loop.
+            if P at most Limit // M
               if D at least 2
                 Cm Nc = M
                 Cp Nc = P
@@ -199,7 +204,7 @@ for K in 2 to Kc
     else
       Q = Pr (Ci D)
       Ci D += 1
-      if M * Q * Q greater Limit
+      if Q greater (Limit // M) // Q
         Up = 1
       end
     end
@@ -214,7 +219,7 @@ for K in 2 to Kc
       Lhs = (K - 1) * M
       Rhs = K * A
       for
-        if Mm * Q greater Limit
+        if Mm greater Limit // Q
           break
         end
         Mm = Mm * Q
