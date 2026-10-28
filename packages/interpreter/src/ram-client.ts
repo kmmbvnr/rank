@@ -3,6 +3,7 @@ export interface RamModelFile { path: string; size: number; sha256: string }
 /** Bounded client handles for the native LRU. Retry stale handles once after
  * eviction/restart; ordinary execution errors are never retried. */
 export interface RamRequest {
+    inputDtypes?: readonly ('f32'|'i32')[];
     action: 'load' | 'invoke' | 'release'; profile?: boolean; reservationBytes?: number; model?: string; modelId?: string;
     inputFiles?: readonly (FileTensorInput | null)[]; modelFile?: RamModelFile; inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
 }
@@ -29,13 +30,13 @@ export function createRamClient(send: (request: RamRequest) => RamReply) {
                 handles.delete(key);
             }
         },
-        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[], inputFiles?: readonly (FileTensorInput | null)[], reservationBytes?: number): RamReply {
+        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[], inputFiles?: readonly (FileTensorInput | null)[], reservationBytes?: number, inputDtypes?: readonly ('f32'|'i32')[]): RamReply {
             let prepareMs = 0, loaded = false;
             let modelId = handles.get(key);
             for (let attempt = 0; attempt < 2; attempt++) {
                 if (!modelId) {
                     const source = encode();
-                    const reply = check(send({ action: 'load', ...(typeof source === 'string' ? { model: source } : { modelFile: source }), ...(inputSizes ? {inputSizes} : {}), ...(reservationBytes !== undefined ? {reservationBytes} : {}) }));
+                    const reply = check(send({ action: 'load', ...(typeof source === 'string' ? { model: source } : { modelFile: source }), ...(inputSizes ? {inputSizes} : {}), ...(inputDtypes ? {inputDtypes} : {}), ...(reservationBytes !== undefined ? {reservationBytes} : {}) }));
                     if (!reply.modelId) throw new Error('RAM runtime returned no model identifier');
                     modelId = reply.modelId; loaded = true;
                     handles.set(key, modelId);

@@ -16,7 +16,7 @@ import { isRankArray, type NativeFunction } from './value.js';
 export interface RamGraph {
     readonly precision: 'f16' | 'f32';
     readonly shape: readonly number[];
-    readonly inputs: readonly { name: string; shape: readonly number[] }[];
+    readonly inputs: readonly { name: string; shape: readonly number[]; dtype?: 'i32'; indexLimit?: number }[];
     readonly nodes: readonly RamNode[];
     readonly outputShape: readonly number[];
     readonly output: number;
@@ -50,14 +50,15 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     if (!isArgStatement(input) || input.defaultValue || !isReturnStatement(output))
         fail('RAM expects runtime options, optional baked weights, and a final return', body[0]);
     if (!isArgStatement(input) || !isReturnStatement(output)) throw new Error('unreachable');
-    const precision = input.precision?.name;
+    const firstType = input.precision?.name;
+    const precision = firstType === 'i32' ? 'f32' : firstType;
     if (precision !== 'f16' && precision !== 'f32') fail('RAM input requires .f16 or .f32', input);
     const shape = input.dimensions.map(dimension => Number(dimension.value));
     const size = shape.reduce((a, b) => a * b, 1);
     if (!shape.length || shape.length > 4 || shape.some(n => !Number.isSafeInteger(n) || n < 1)
         || !Number.isSafeInteger(size) || size > 4_194_304)
         fail('RAM input shape requires 1–4 positive dimensions and at most 4194304 elements', input);
-    const nodes: RamNode[] = [{ kind: 'input', shape }];
+    const nodes: RamNode[] = [{ kind: 'input', shape, ...(firstType === 'i32' ? {dtype:'i32' as const} : {}) }];
     let constantSize = 0;
     const validShape = (dimensions: readonly number[], statement: Statement, limit = 1_048_576): number => {
         const count = dimensions.reduce((a, b) => a * b, 1);
@@ -66,7 +67,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             fail(`RAM tensor requires 1–4 positive dimensions and at most ${limit} elements`, statement);
         return count;
     };
-    const inputs = [{ name: input.name, shape }];
+    const inputs: {name:string;shape:number[];dtype?:'i32';indexLimit?:number}[] = [{ name: input.name, shape, ...(firstType === 'i32' ? {dtype:'i32' as const} : {}) }];
     const names = new Map<string, number>([[input.name, 0]]);
     const declareWeight = (weight: Statement): void => {
         if (!isArgStatement(weight) || !weight.defaultValue)
@@ -127,6 +128,8 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         if (isNameExpression(expression)) {
             const index = names.get(expression.name);
             if (index === undefined) return fail('Unknown RAM tensor: ' + expression.name, current);
+            if (nodes[index].kind === 'input' && 'dtype' in nodes[index] && nodes[index].dtype === 'i32')
+                return fail('Integer RAM inputs are only supported as gather indices', current);
             return index;
         }
         // Normalization is centered before squaring, avoiding E[X²] - E[X]² cancellation.
@@ -134,6 +137,19 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
             nodes.push(node); return nodes.length - 1;
         };
+        if (isApplicationExpression(expression) && expression.arguments.length === 1
+            && isNameExpression(expression.arguments[0])) {
+            const name = expression.arguments[0].name;
+            const spec = inputs.find(input => input.name === name && input.dtype === 'i32');
+            const right = names.get(name), indexNode = right === undefined ? undefined : nodes[right];
+            if (spec && indexNode?.kind === 'input' && indexNode.dtype === 'i32' && right !== undefined) {
+                const left = lower(expression.head);
+                const shape = [...spec.shape, ...nodes[left].shape.slice(1)];
+                validShape(shape, current);
+                spec.indexLimit = Math.min(spec.indexLimit ?? Infinity, nodes[left].shape[0]);
+                return append({kind:'gather',left,right,shape});
+            }
+        }
         const activation = isApplicationExpression(expression) && expression.arguments.length === 1
             && isNameExpression(expression.arguments[0]) ? expression.arguments[0].name : undefined;
         if (activation === 'gelu_new' || activation === 'layernorm') {
@@ -256,13 +272,14 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         if (isArgStatement(statement)) {
             if (statement.defaultValue) declareWeight(statement);
             else {
-                if (precision !== 'f32' || statement.precision?.name !== 'f32')
-                    fail('Multiple RAM inputs require .f32', statement);
+                if (precision !== 'f32' || !['f32','i32'].includes(statement.precision?.name ?? ''))
+                    fail('Multiple RAM inputs require .f32 or .i32', statement);
                 if (names.has(statement.name)) fail('Duplicate RAM option: ' + statement.name, statement);
                 const shape = statement.dimensions.map(d => Number(d.value));
                 validShape(shape, statement, 4_194_304);
-                inputs.push({name:statement.name,shape});
-                names.set(statement.name, nodes.length); nodes.push({kind:'input',shape});
+                const dtype = statement.precision?.name === 'i32' ? {dtype:'i32' as const} : {};
+                inputs.push({name:statement.name,shape,...dtype});
+                names.set(statement.name, nodes.length); nodes.push({kind:'input',shape,...dtype});
                 if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', statement);
             }
         } else if (isAssignmentStatement(statement) && statement.operator === '='
@@ -308,13 +325,20 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
             const descriptor = fileTensorInput(value);
             inputFiles.push(descriptor ?? null);
             if (descriptor) {
-                if (descriptor.dtype !== 'F32' || module.graph.precision !== 'f32')
+                if (spec.dtype === 'i32' || descriptor.dtype !== 'F32' || module.graph.precision !== 'f32')
                     throw new RankError('File tensor GPU inputs currently require F32 data and .f32 options', 'TypeError');
                 return [];
             }
             if (value.shape.reduce((a,b) => a*b, 1) > 1_048_576)
                 throw new RankError('RAM inputs above 1048576 elements require a file tensor', 'TypeError');
             return value.items.map(cell => {
+                if (spec.dtype === 'i32') {
+                    if (typeof cell !== 'bigint' || cell < -2147483648n || cell > 2147483647n)
+                        throw new RankError('RAM .i32 input requires signed 32-bit integers', 'TypeError');
+                    if (spec.indexLimit !== undefined && (cell < 0n || cell >= BigInt(spec.indexLimit)))
+                        throw new RankError(`RAM gather index must be between 0 and ${spec.indexLimit - 1}`, 'IndexError');
+                    return Number(cell);
+                }
                 if (typeof cell !== 'number' || !Number.isFinite(cell))
                     throw new RankError('RAM input requires finite real values', 'TypeError');
                 return ramRound(cell, module.graph.precision);

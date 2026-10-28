@@ -50,6 +50,15 @@ class FileCacheTest(unittest.TestCase):
     def load(self): self.key = runtime.run({'action':'load','model':'AA=='})['modelId']
     def invoke(self, descriptor=None, inline=None):
         return runtime.run(dict(action='invoke',modelId=self.key,input=[] if inline is None else inline,inputFiles=[self.descriptor() if descriptor is None and inline is None else descriptor],profile=True))
+    def test_integer_input_keeps_bits_and_rejects_invalid_values(self):
+        self.model.input.values = np.zeros(2, dtype=np.int32)
+        self.model.input.get_tensor_details = lambda: {'shape': [2], 'dtype': 'int32'}
+        self.invoke(inline=[16777217, -2147483648])
+        self.assertEqual(self.model.input.values.tolist(), [16777217, -2147483648])
+        for values in [[1.5, 0], [2147483648, 0], [-2147483649, 0]]:
+            with self.assertRaisesRegex(ValueError, '32-bit'): self.invoke(inline=values)
+        with self.assertRaisesRegex(ValueError, 'F32'): self.invoke()
+
     def test_reuse_and_inline_overwrite(self):
         self.assertEqual(self.invoke()['fileBytesRead'], 8)
         self.assertEqual(self.invoke()['fileInputsReused'], 1)

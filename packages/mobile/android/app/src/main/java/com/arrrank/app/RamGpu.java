@@ -32,6 +32,7 @@ final class RamGpu {
         CompiledModel model;
         List<TensorBuffer> inputs, outputs;
         int[] inputSizes;
+        boolean[] integerInputs;
         String[] fileInputs;
         long reservation;
     }
@@ -130,6 +131,16 @@ final class RamGpu {
                 entry.model = CompiledModel.create(file.getAbsolutePath(), options, environment);
                 entry.inputs = entry.model.createInputBuffers(); entry.outputs = entry.model.createOutputBuffers();
                 entry.fileInputs = new String[entry.inputs.size()];
+                entry.integerInputs = new boolean[entry.inputs.size()];
+                JSONArray dtypes = request.optJSONArray("inputDtypes");
+                if (dtypes != null) {
+                    if (dtypes.length() != entry.inputs.size()) throw new IllegalArgumentException("Wrong RAM input dtype count");
+                    for (int i = 0; i < dtypes.length(); i++) {
+                        String dtype = dtypes.getString(i);
+                        if (!dtype.equals("f32") && !dtype.equals("i32")) throw new IllegalArgumentException("Invalid RAM input dtype");
+                        entry.integerInputs[i] = dtype.equals("i32");
+                    }
+                }
                 JSONArray sizes = request.optJSONArray("inputSizes");
                 if (sizes != null) {
                     if (sizes.length() != entry.inputs.size()) throw new IllegalArgumentException("Wrong RAM input count");
@@ -163,6 +174,7 @@ final class RamGpu {
         long fileBytesRead = 0;
         for (int index = 0; index < sizes.length; index++) {
             if (files != null && !files.isNull(index)) {
+                if (entry.integerInputs[index]) throw new IllegalArgumentException("File inputs require F32 tensors");
                 JSONObject descriptor = files.getJSONObject(index);
                 ModelFiles.tensorFile(context, descriptor, sizes[index]);
                 String identity = descriptor.toString();
@@ -174,6 +186,17 @@ final class RamGpu {
                 continue;
             }
             fileInputs[index] = null;
+            if (entry.integerInputs[index]) {
+                int[] input = new int[sizes[index]];
+                for (int i = 0; i < input.length; i++) {
+                    double value = data.getDouble(offset++);
+                    if (!Double.isFinite(value) || value != Math.rint(value) || value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)
+                        throw new IllegalArgumentException("RAM i32 input requires signed 32-bit integers");
+                    input[i] = (int) value;
+                }
+                inputs.get(index).writeInt(input);
+                continue;
+            }
             float[] input = new float[sizes[index]];
             for (int i = 0; i < input.length; i++) {
                 input[i] = (float) data.getDouble(offset++);

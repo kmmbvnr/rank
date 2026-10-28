@@ -91,7 +91,7 @@ def run(request):
     models.move_to_end(key)
     model, inputs, outputs, file_inputs = (entry[name] for name in ("model", "inputs", "outputs", "file_inputs"))
     prepared = time.perf_counter()
-    data = np.asarray(request["input"], dtype=np.float32)
+    data = np.asarray(request["input"], dtype=np.float64)
     sizes = [int(np.prod(buffer.get_tensor_details()["shape"])) for buffer in inputs]
     files = request.get("inputFiles", [None] * len(inputs))
     if not isinstance(files, list) or len(files) != len(inputs):
@@ -103,9 +103,21 @@ def run(request):
     for index, (buffer, size, descriptor) in enumerate(zip(inputs, sizes, files)):
         if descriptor is None:
             file_inputs[index] = None
-            buffer.write(data[offset:offset + size])
+            values = data[offset:offset + size]
+            dtype = buffer.get_tensor_details().get("dtype", "float32")
+            if dtype == "int32":
+                if np.any(values != np.floor(values)) or np.any(values < -2147483648) or np.any(values > 2147483647):
+                    raise ValueError("RAM i32 input requires signed 32-bit integers")
+                buffer.write(values.astype(np.int32))
+            else:
+                values = values.astype(np.float32)
+                if not np.isfinite(values).all():
+                    raise ValueError("RAM input requires finite f32 values")
+                buffer.write(values)
             offset += size
             continue
+        if buffer.get_tensor_details().get("dtype", "float32") != "float32":
+            raise ValueError("File inputs require F32 tensors")
         shape = list(buffer.get_tensor_details()["shape"])
         if (descriptor.get("dtype") != "F32" or descriptor.get("shape") != shape
                 or type(descriptor.get("offset")) is not int or type(descriptor.get("length")) is not int
