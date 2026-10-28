@@ -2835,3 +2835,30 @@ candidate at a time, removing short mask/tensor pipelines. The native divisor
 iterator still builds its own divisor list. It currently retains ordinary
 execution; ordered sequence-loop lowering is a separate opportunity. See the
 [comparisons and verification](../../benchmarks/euler221-investigation.md).
+
+### Stored mask consumers (Euler 223, #447)
+
+Boolean mask selection now uses the existing packed-word positions consumer
+before trying tensor recipes or scalar reads. Each selection still snapshots
+its own positions; this does not cache masks across demands or change lazy/host
+reader behavior. Packed storage is used only while its reader and shape remain
+valid.
+
+Materializing a selection from homogeneous stored integer cells can gather
+straight into Int32 or BigInt64 storage, preserving linear view offsets,
+strides and uniform binding checks. Empty results retain ordinary empty-array
+construction. Missing, nested and opaque sources keep the ordinary path. These
+native consumers benefit reference execution as well as compiled programs; they
+do not add whole-loop compiler coverage for filters and materialization.
+
+Euler 223 also avoids mirrored subtrees, explicitly completes intermediate
+arithmetic, and bounds side-branch seeds while counting the long root chains
+algebraically. Measurements and independent checks are recorded in
+[`euler223-investigation.md`](../../benchmarks/euler223-investigation.md).
+
+The source tensor compiler also leaves a plain `concat ... copy` of completed,
+compatible numeric blocks to the existing block-copy kernel at the existing
+1024-cell dense-kernel minimum; smaller results retain cached tensor execution. The decision is
+checked against the live operands on every execution. Concat expressions that
+still compute arithmetic or read lazy producers retain tensor lowering. This
+avoids turning an existing bulk copy into BigInt scalar loads and stores.

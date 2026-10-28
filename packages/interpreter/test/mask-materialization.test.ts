@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Interpreter, RuntimeDiagnostics, formatValue, MISSING, type RankArray } from '../src/index.js';
-import { allPresent, maskedArray, ownedArray, readArrayItem, typedArray } from '../src/array-storage.js';
+import { allPresent, maskedArray, ownedArray, readArrayItem, typedArray, writeArrayCell } from '../src/array-storage.js';
 import { maskSelection, materializeMaskSelection } from '../src/array-mask-selection.js';
 import { materializeSequence } from '../src/sequence.js';
 import { registerScalarView } from '../src/integer-view.js';
@@ -20,6 +20,29 @@ describe('stored mask materialization', () => {
             : new Float64Array([1.25, Infinity]));
         expect(cells(materializeSequence(maskSelection(source, ownedArray([true, true])))))
             .toEqual(kind === 'integer' ? [-9223372036854775808n, 9223372036854775807n] : [1.25, Infinity]);
+    });
+
+    it.each(['int32', 'int64', 'real'] as const)('gathers strided %s storage without aliasing', kind => {
+        const source = typedArray(kind === 'int32' ? new Int32Array([-2147483648, 7, 0, 9, 2147483647])
+            : kind === 'int64' ? new BigInt64Array([-(1n << 63n), 7n, 0n, 9n, (1n << 63n) - 1n])
+            : new Float64Array([-1.25, 7, -0, 9, 1.75]));
+        const view: RankArray = { kind: 'array', shape: [3], items: [], itemAt: i => readArrayItem(source, 4 - 2 * i) };
+        registerScalarView(view, source, i => 4 - 2 * i, { linear: () => ({ offset: 4, stride: -2 }) });
+        const result = materializeSequence(maskSelection(view, ownedArray([true, true, true])));
+        expect(cells(result)).toEqual([readArrayItem(source, 4), readArrayItem(source, 2), readArrayItem(source, 0)]);
+        writeArrayCell(result, 0, kind === 'real' ? 1.5 : 42n);
+        expect(readArrayItem(source, 4)).toEqual(kind === 'real' ? 1.75 : kind === 'int64' ? (1n << 63n) - 1n : 2147483647n);
+        writeArrayCell(source, 0, kind === 'real' ? 2.5 : 43n);
+        expect(readArrayItem(result, 2)).toEqual(kind === 'real' ? -1.25 : kind === 'int64' ? -(1n << 63n) : -2147483648n);
+    });
+
+    it('keeps empty typed selections free of binding checks', () => {
+        const source = typedArray(new Int32Array([1, 2]));
+        const view: RankArray = { kind: 'array', shape: [2], items: [], itemAt: () => { throw Error('binding'); } };
+        registerScalarView(view, source, i => i, { linear: () => ({ offset: 0, stride: 1 }), scalarCheck: true,
+            check: () => { throw Error('binding'); } });
+        expect(cells(materializeSequence(maskSelection(view, ownedArray([false, false]))))).toEqual([]);
+        expect(() => materializeSequence(maskSelection(view, ownedArray([false, true])))).toThrow('binding');
     });
 
     it('constructs independent selection snapshots from the current mask', () => {
