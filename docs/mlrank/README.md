@@ -1017,3 +1017,18 @@ not the capacity to execute a 2 GiB LLM. Real-weight native checks use the 768
 values of GPT-2's `h.0.ln_1.weight` in a small elementwise multiplication graph,
 not a full LayerNorm or transformer. Results are recorded in
 `benchmarks/baselines/2026-10-28-mlrank-file-weights.json`.
+
+### Runnable file-to-GPU demo
+
+`demos/mlrank/fileweights.ra` and `doubleweights.ram` read the 768 real GPT-2
+`h.0.ln_1.weight` values from `models/gpt2-ln1.safetensors`, materialize that small
+input in ordinary Rank, and pass it to the GPU module. The module computes
+`X + X`; `Result` is the output and `Error` is the maximum absolute difference
+from ordinary Rank's `Weights * 2.0`. This exercises file → Rank array → GPU,
+not direct GPU mapping of the Safetensors file or large-model compilation.
+
+The test OnePlus has the checkpoint sample and a saved **GPT-2 weights on GPU**
+notebook. Use **Terminal commands → Run program** and open `real [768]` to inspect
+the result. The demo was run twice, including after reload; the first 38 displayed
+values matched the reference and native logs confirmed delegation of all 4 graph
+nodes. On desktop, provide the sample file at that relative path or edit the path.

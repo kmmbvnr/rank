@@ -1,0 +1,14 @@
+rem GPT-2 weights on GPU
+use io
+use numbers
+use sequences
+use "doubleweights.ram"
+
+F = "models/gpt2-ln1.safetensors" open
+Weights = F tensor "h.0.ln_1.weight"
+F close
+
+Result = Weights doubleweights
+Error = (Result - Weights * 2.0) abs max
+Error
+Result
