@@ -2797,3 +2797,19 @@ copy-on-write and exact integer stores remain unchanged. This prepares syntax
 without generating code and applies with compilation disabled. The controlled
 million-element Euler 214 reference run is 27.8% faster, with a higher measured
 RSS peak; see the [time and memory results](../../benchmarks/euler214-investigation.md).
+
+## Bounded publication memory for private integer buffers (Euler 216, #447)
+
+Number regions now publish widened private integer arrays by filling a
+preallocated BigInt64Array with indexed exact conversions. TypedArray.from uses
+its iterable path for a typed-array source, collecting a temporary list before
+allocating its destination; large publications paid that allocation cost too.
+Int32 buffers still publish without conversion. Memoized publication, array
+ownership, exact replay, and uninterrupted error/cancellation publication are
+unchanged. No arithmetic, copy-admission, or code-size threshold changed.
+
+Euler 216 uses residual factors only up to the largest possible smaller root
+of a needed prime divisor, and integer composite flags for the remaining tail.
+Both complete within one Number function prefix. The reference engine still
+pays for scalar loops, and is slower on the new algorithm at measured reduced
+inputs. See [comparisons and limitations](../../benchmarks/euler216-investigation.md).

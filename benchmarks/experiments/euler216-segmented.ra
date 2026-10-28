@@ -1,0 +1,77 @@
+rem Research: pre-sieve blocks, then test only survivors for primality.
+use numbers
+use sequences
+use io
+use cli
+option Limit integer = 50000000
+option Seed integer = 10000
+option Block integer = 1000000
+Bound = Seed min Limit
+R = array shape (Bound + 1) fill 0
+Roots = array shape Bound fill 0
+Factors = array shape Bound fill 0
+Used = 0
+for N in 2 to Bound
+  R N = 2 * N * N - 1
+end
+for N in 2 to Bound
+  P = R N
+  if P greater 1
+    Roots Used = N
+    Factors Used = P
+    Used += 1
+    for K in N + P to Bound by P
+      for (R K) mod P equal 0
+        R K = R K // P
+      end
+    end
+    Other = P - N
+    if Other greater N
+      for K in Other to Bound by P
+        for (R K) mod P equal 0
+          R K = R K // P
+        end
+      end
+    end
+  end
+end
+Count = 0
+for Lo in 2 to Limit by Block
+  Hi = (Lo + Block - 1) min Limit
+  Flags = Lo Hi Roots Factors Used sieve
+  for N in Lo to Hi
+    if Flags (N - Lo) equal 1 and 2 * N * N - 1 in primes
+      Count += 1
+    end
+  end
+end
+Answer = Count
+Answer print
+
+fun Lo Hi Roots Factors Used sieve
+  Flags = array shape (Hi - Lo + 1) fill 0
+  for K in 0 to (Hi - Lo)
+    Flags K = 1
+  end
+  for I in 0 till Used
+    P = Factors I
+    N = Roots I
+    Start = N + P
+    if Start less Lo
+      Start += (Lo - Start + P - 1) // P * P
+    end
+    for K in Start to Hi by P
+      Flags (K - Lo) = 0
+    end
+    Start = P - N
+    if Start greater N
+      if Start less Lo
+        Start += (Lo - Start + P - 1) // P * P
+      end
+      for K in Start to Hi by P
+        Flags (K - Lo) = 0
+      end
+    end
+  end
+  return Flags
+end

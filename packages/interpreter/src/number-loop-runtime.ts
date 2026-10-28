@@ -26,8 +26,17 @@ class PrivateIntegerArray {
     value(): RankArray {
         // No polling during publication: errors/cancellation publish all the
         // completed stores and scalar bindings as one uninterrupted operation.
+        // TypedArray.from takes the iterable path for typed-array inputs and
+        // collects their values first. Index the numeric buffer directly so a
+        // large publication needs only its destination, not that temporary list.
         return this.published ??= typedArray(this.cells instanceof Int32Array
-            ? this.cells : BigInt64Array.from(this.cells, BigInt), this.shape);
+            ? this.cells : (() => {
+                const result = new BigInt64Array(this.cells.length);
+                for (let index = 0; index < result.length; index++) {
+                    result[index] = BigInt(this.cells[index]);
+                }
+                return result;
+            })(), this.shape);
     }
 }
 function safe(value: number): number {
