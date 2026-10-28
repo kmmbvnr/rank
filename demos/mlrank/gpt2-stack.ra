@@ -1,0 +1,34 @@
+use io
+use "gpt2embed.ram"
+use "gpt2attn.ram"
+use "gpt2mlp.ram"
+use "gpt2norm.ram"
+F = "models/gpt2-stack.safetensors" open
+F verify "fb08561f274751146ed06edce44dc57e33cf33536f3dc4d4b7bcc882950045ef"
+TokenTable' = F tensor "wte.weight"
+PositionTable' = F tensor "wpe.weight"
+Tokens = array 0 1 2 3
+Positions = array 0 1 2 3
+X = TokenTable gpt2embed Tokens PositionTable Positions
+for Layer in 0 till 12
+Prefix = "h." + (Layer text) + "."
+G1' = F tensor (Prefix + "ln_1.weight")
+B1' = F tensor (Prefix + "ln_1.bias")
+W' = F tensor (Prefix + "attn.c_attn.weight")
+QkvBias' = F tensor (Prefix + "attn.c_attn.bias")
+O' = F tensor (Prefix + "attn.c_proj.weight")
+OutBias' = F tensor (Prefix + "attn.c_proj.bias")
+G2' = F tensor (Prefix + "ln_2.weight")
+B2' = F tensor (Prefix + "ln_2.bias")
+UpW' = F tensor (Prefix + "mlp.c_fc.weight")
+UpB' = F tensor (Prefix + "mlp.c_fc.bias")
+DownW' = F tensor (Prefix + "mlp.c_proj.weight")
+DownB' = F tensor (Prefix + "mlp.c_proj.bias")
+H = X gpt2attn G1 B1 W QkvBias O OutBias
+X = H gpt2mlp G2 B2 UpW UpB DownW DownB
+end
+G' = F tensor "ln_f.weight"
+B' = F tensor "ln_f.bias"
+Result = X gpt2norm G B
+F close
+Result

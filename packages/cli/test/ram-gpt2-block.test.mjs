@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {compileRam} from '@arrrank/interpreter';
 
 test('real GPT-2 block modules fit existing limits and keep large weights as runtime inputs',()=>{
- const expected={gpt2embed:4,gpt2attn:7,gpt2mlp:7};
+ const expected={gpt2embed:4,gpt2attn:7,gpt2mlp:7,gpt2norm:3};
  for(const [name,inputs] of Object.entries(expected)){
   const source=readFileSync(new URL(`../../../demos/mlrank/${name}.ram`,import.meta.url),'utf8');
   const graph=compileRam(source,name+'.ram').graph;
