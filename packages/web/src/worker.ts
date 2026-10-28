@@ -38,7 +38,7 @@ const createSession = () => createReplSession({ options: {
 self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit>) => {
     if (!('method' in event.data)) {
         configureRamGpu(event.data.nativeRam ?? false);
-        androidFiles = event.data.nativeRam ?? false;
+        androidFiles = event.data.nativeFiles ?? event.data.nativeRam ?? false;
         configureNativeFiles(androidFiles);
         signalUrl = event.data.signalUrl;
         signal = event.data.signal ? new Int32Array(event.data.signal)

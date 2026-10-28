@@ -1,7 +1,7 @@
 use testing
 
-rem The default input takes 30 min, so
-rem only smaller limits are tested.
+rem Small limits keep reference-mode
+rem corpus checks within their budget.
 test "small limits"
   use "245_coresilience"
   Limit = 100000
@@ -16,4 +16,24 @@ test "small limits"
   run
 
   Answer equal 145645009845
+end
+
+test "semiprime boundaries"
+  use "245_coresilience"
+  Limit = 14
+  run
+
+  Answer equal 0
+  Limit = 15
+  run
+
+  Answer equal 15
+  Limit = 84
+  run
+
+  Answer equal 15
+  Limit = 85
+  run
+
+  Answer equal 100
 end

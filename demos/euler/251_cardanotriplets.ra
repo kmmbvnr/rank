@@ -22,13 +22,13 @@ rem g^2 | 8 k - 3 and h = (8 k - 3) /
 rem g^2, which has no square factor.
 rem Then b = k g / e and c = e^2 h for
 rem each divisor e of k g, as b^2 | k^2
-rem g^2 h forces b | k g. The sum a + b
-rem + c is at least 6.78 k, and e goes
-rem up to sqrt(Limit / h). The g of each
-rem k comes from a sieve over blocks of
+rem g^2 h forces b | k g. Since
+rem 4 (b + c)^3 >= 27 b^2 c, the sum
+rem a + b + c is at least (27 k - 7) / 4.
+rem Each g comes from a sieve over blocks of
 rem k, with p^2 | 8 k - 3 when k is a
 rem fixed residue mod p^2.
-Top = Limit // 6 + 1
+Top = (4 * Limit + 7) // 27
 Ps = primes till (8 * Top isqrt + 2)
 Blk = 1000000
 Count = 0
@@ -68,8 +68,16 @@ for Lo in 1 to Top by Blk
     Gk = G (K - Lo)
     H = (8 * K - 3) // (Gk * Gk)
     S = K * Gk
+    rem E = 1 always divides S.
+    if S + H at most Rm
+      Count += 1
+    end
+    rem Every remaining E has E^2 >= 4.
+    if 4 * H greater Rm
+      continue
+    end
     Ee = Rm // H isqrt
-    for E in 1 to Ee
+    for E in 2 to Ee
       if S mod E equal 0
         Bb = S // E
         Cc = E * E * H

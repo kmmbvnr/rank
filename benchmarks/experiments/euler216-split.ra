@@ -1,0 +1,65 @@
+rem Research: residual factors only below the largest needed first root.
+use numbers
+use io
+use cli
+arg Limit integer = 50000000
+fun Bound count_primes
+  Root = (2 * Bound * Bound - 1) isqrt
+  Cut = (Root - 1) // 2
+  R = array shape (Cut + 1) fill 0
+  Tail = array shape (Bound - Cut) fill 1
+  Count = 0
+  for N in 2 to Cut
+    R N = 2 * N * N - 1
+  end
+  for N in 2 to Cut
+    P = R N
+    if P greater 1
+      if P equal 2 * N * N - 1
+        Count += 1
+      end
+      if N + P at most Cut
+        for K in N + P to Cut by P
+          for (R K) mod P equal 0
+            R K = R K // P
+          end
+        end
+      end
+      Other = P - N
+      if Other greater N and Other at most Cut
+        for K in Other to Cut by P
+          for (R K) mod P equal 0
+            R K = R K // P
+          end
+        end
+      end
+      if P at most Root
+        Start = N + P
+        if Start at most Cut
+          Start += (Cut - Start + P) // P * P
+        end
+        for K in Start to Bound by P
+          Tail (K - Cut - 1) = 0
+        end
+        if Other greater N
+          Start = Other
+          if Start at most Cut
+            Start += (Cut - Start + P) // P * P
+          end
+          for K in Start to Bound by P
+            Tail (K - Cut - 1) = 0
+          end
+        end
+      end
+    end
+  end
+  for N in ((Cut + 1) max 2) to Bound
+    Count += Tail (N - Cut - 1)
+  end
+  return Count
+end
+Answer = 0
+if Limit at least 2
+  Answer = Limit count_primes
+end
+Answer print

@@ -1,0 +1,6 @@
+{"chain":"sort unique","separate":12.414291999999989,"fused":11.097375000000056}
+{"chain":"sort take 20 sum","separate":11.304041999999981,"fused":0.2592500000000655}
+{"chain":"unique sort take 20 sum","separate":1.6352090000000317,"fused":0.4774170000000595}
+{"chain":"filter Mask array unique sum","separate":0.571083999999928,"fused":0.48041699999998855}
+{"chain":"drop 2 unique sum","separate":0.649167000000034,"fused":0.6939579999999523}
+{"chain":"unique sum","separate":0.5937079999999924,"fused":0.6832909999999401}

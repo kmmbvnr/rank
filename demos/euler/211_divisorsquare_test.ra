@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes minutes.
+rem Small limits keep reference audits fast.
 test "small limits"
   use "211_divisorsquare"
   Limit = 1000

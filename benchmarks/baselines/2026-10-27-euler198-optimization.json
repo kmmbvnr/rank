@@ -1,0 +1,1130 @@
+{
+  "baselineCommit": "48e9248dfef3ca2e9263ad025c1217d0a3004a3b",
+  "environment": {
+    "node": "v24.15.0",
+    "arch": "arm64",
+    "platform": "darwin"
+  },
+  "runtimePolicy": "Unchanged. The only runtime source edit is a documentation comment beside the copy-cost thresholds. Final results use the unmodified existing runtime.",
+  "method": "Five serial fresh processes per variant; forward/reverse order alternates. No tests/builds/diagnostics/oracles overlapped controlled samples. Imports and interpreter construction excluded; parse/compile/execute included. Each main result golden-checked. maxRSS is whole-process peak.",
+  "samples": [
+    {
+      "limit": 100000000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 3898.2385,
+      "rssMiB": 172.25,
+      "answer": "52374425",
+      "sourceHash": "ead869a85cd6768589d4bb5dd328ebbeec6f1c6e42c338734e7828a0f748bd62"
+    },
+    {
+      "limit": 100000000,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 504.720958,
+      "rssMiB": 177.59375,
+      "answer": "52374425",
+      "sourceHash": "7613205d22541ef8e06f9f108afbb449f5c77520467377973800fb69f1730362"
+    },
+    {
+      "limit": 100000000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 536.341792,
+      "rssMiB": 163.8125,
+      "answer": "52374425",
+      "sourceHash": "f8cbedc86cb0cf7fdad36a2c34ce953cfb49f6b6c9a53e9c2704e22ec11ae1fa"
+    },
+    {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 180.52670799999999,
+      "rssMiB": 173.515625,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1"
+    },
+    {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 179.28220799999997,
+      "rssMiB": 173,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1"
+    },
+    {
+      "limit": 100000000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 533.248875,
+      "rssMiB": 164.703125,
+      "answer": "52374425",
+      "sourceHash": "f8cbedc86cb0cf7fdad36a2c34ce953cfb49f6b6c9a53e9c2704e22ec11ae1fa"
+    },
+    {
+      "limit": 100000000,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 505.23725,
+      "rssMiB": 177.609375,
+      "answer": "52374425",
+      "sourceHash": "7613205d22541ef8e06f9f108afbb449f5c77520467377973800fb69f1730362"
+    },
+    {
+      "limit": 100000000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 3963.8524589999997,
+      "rssMiB": 172.140625,
+      "answer": "52374425",
+      "sourceHash": "ead869a85cd6768589d4bb5dd328ebbeec6f1c6e42c338734e7828a0f748bd62"
+    },
+    {
+      "limit": 100000000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 3960.3499580000002,
+      "rssMiB": 172.25,
+      "answer": "52374425",
+      "sourceHash": "ead869a85cd6768589d4bb5dd328ebbeec6f1c6e42c338734e7828a0f748bd62"
+    },
+    {
+      "limit": 100000000,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 528.296208,
+      "rssMiB": 177.1875,
+      "answer": "52374425",
+      "sourceHash": "7613205d22541ef8e06f9f108afbb449f5c77520467377973800fb69f1730362"
+    },
+    {
+      "limit": 100000000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 545.212084,
+      "rssMiB": 164.515625,
+      "answer": "52374425",
+      "sourceHash": "f8cbedc86cb0cf7fdad36a2c34ce953cfb49f6b6c9a53e9c2704e22ec11ae1fa"
+    },
+    {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 176.92270800000003,
+      "rssMiB": 173.546875,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1"
+    },
+    {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 184.78975,
+      "rssMiB": 173.28125,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1"
+    },
+    {
+      "limit": 100000000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 544.493375,
+      "rssMiB": 164.546875,
+      "answer": "52374425",
+      "sourceHash": "f8cbedc86cb0cf7fdad36a2c34ce953cfb49f6b6c9a53e9c2704e22ec11ae1fa"
+    },
+    {
+      "limit": 100000000,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 504.60641599999997,
+      "rssMiB": 177.65625,
+      "answer": "52374425",
+      "sourceHash": "7613205d22541ef8e06f9f108afbb449f5c77520467377973800fb69f1730362"
+    },
+    {
+      "limit": 100000000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 3948.9165000000003,
+      "rssMiB": 172.359375,
+      "answer": "52374425",
+      "sourceHash": "ead869a85cd6768589d4bb5dd328ebbeec6f1c6e42c338734e7828a0f748bd62"
+    },
+    {
+      "limit": 100000000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 4061.7871669999995,
+      "rssMiB": 171.90625,
+      "answer": "52374425",
+      "sourceHash": "ead869a85cd6768589d4bb5dd328ebbeec6f1c6e42c338734e7828a0f748bd62"
+    },
+    {
+      "limit": 100000000,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 504.23383299999995,
+      "rssMiB": 177.78125,
+      "answer": "52374425",
+      "sourceHash": "7613205d22541ef8e06f9f108afbb449f5c77520467377973800fb69f1730362"
+    },
+    {
+      "limit": 100000000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 526.182875,
+      "rssMiB": 164.46875,
+      "answer": "52374425",
+      "sourceHash": "f8cbedc86cb0cf7fdad36a2c34ce953cfb49f6b6c9a53e9c2704e22ec11ae1fa"
+    },
+    {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 183.10666600000002,
+      "rssMiB": 173.59375,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1"
+    }
+  ],
+  "oracles": [
+    {
+      "limit": 0,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 117.18729200000001,
+      "rssMiB": 153.25,
+      "answer": "0",
+      "sourceHash": "3635586594daa03913763f2a8ce2e0d9573a7794602749fc0362307b5daf00c6"
+    },
+    {
+      "limit": 0,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.621916,
+      "rssMiB": 153.78125,
+      "answer": "0",
+      "sourceHash": "bf9c0a3a69690b1d772eb512e8a0ed35d511e650059948ecd98442c62210ec25"
+    },
+    {
+      "limit": 0,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 139.02975,
+      "rssMiB": 172.484375,
+      "answer": "0",
+      "sourceHash": "0de7ed8db829cf68bd846974db7e2d70bc145da163e6343888b219a0515b33a3"
+    },
+    {
+      "limit": 0,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 137.384792,
+      "rssMiB": 171.953125,
+      "answer": "0",
+      "sourceHash": "0de7ed8db829cf68bd846974db7e2d70bc145da163e6343888b219a0515b33a3"
+    },
+    {
+      "limit": 1,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 118.22566699999999,
+      "rssMiB": 153.21875,
+      "answer": "0",
+      "sourceHash": "c89ab056f387d0b57e111bf43e395c50efb895991e894f22cba0117d92289440"
+    },
+    {
+      "limit": 1,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.350708,
+      "rssMiB": 153.84375,
+      "answer": "0",
+      "sourceHash": "f1e18968e97bef7dd27ef6b1e9dbdb6dc22492e825ade105e2262a2c46dce6ff"
+    },
+    {
+      "limit": 1,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 138.93712499999998,
+      "rssMiB": 177.984375,
+      "answer": "0",
+      "sourceHash": "a3263d93ec99a0b881ac0396ec382d8dba19faee73b8ff62d421013f1192968b"
+    },
+    {
+      "limit": 1,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 134.01279200000002,
+      "rssMiB": 172.203125,
+      "answer": "0",
+      "sourceHash": "a3263d93ec99a0b881ac0396ec382d8dba19faee73b8ff62d421013f1192968b"
+    },
+    {
+      "limit": 2,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 114.437625,
+      "rssMiB": 153.90625,
+      "answer": "0",
+      "sourceHash": "aa7ccbce7fa412639536e6c6c5e968678b09dd76229659132b2152bebafb00eb"
+    },
+    {
+      "limit": 2,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 116.52116699999999,
+      "rssMiB": 154.046875,
+      "answer": "0",
+      "sourceHash": "a5b0c3f48fc32474cadedc1672492a1497dc87d59088242151e3ebd39b2214df"
+    },
+    {
+      "limit": 2,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 142.23275000000004,
+      "rssMiB": 177.515625,
+      "answer": "0",
+      "sourceHash": "bf4c2e93d67b5d3881d8a14b2946063a2feec3cdcc82e378cc55464c50163097"
+    },
+    {
+      "limit": 2,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 130.373291,
+      "rssMiB": 171.875,
+      "answer": "0",
+      "sourceHash": "bf4c2e93d67b5d3881d8a14b2946063a2feec3cdcc82e378cc55464c50163097"
+    },
+    {
+      "limit": 98,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 117.92441699999998,
+      "rssMiB": 153.234375,
+      "answer": "0",
+      "sourceHash": "047fb49db6a9e11be541331ceb0620499f35da181e0e9453063fc5a6eabc5c87"
+    },
+    {
+      "limit": 98,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 122.31174999999999,
+      "rssMiB": 154.640625,
+      "answer": "0",
+      "sourceHash": "46c16e7ff89235428c5833ba0726b913e28634ccb4b2a9cd9499c0c58664a4d3"
+    },
+    {
+      "limit": 98,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 134.626708,
+      "rssMiB": 172.765625,
+      "answer": "0",
+      "sourceHash": "d72b70998d841415833b4f8135e27c1480cd7f3c488da45775a5d5356296aaec"
+    },
+    {
+      "limit": 98,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 132.054458,
+      "rssMiB": 172.09375,
+      "answer": "0",
+      "sourceHash": "d72b70998d841415833b4f8135e27c1480cd7f3c488da45775a5d5356296aaec"
+    },
+    {
+      "limit": 99,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 116.16116600000001,
+      "rssMiB": 153.625,
+      "answer": "0",
+      "sourceHash": "6e206b480008564ef610f1b188c979856d78dc46b8f2d1193e25bd21cbf795a1"
+    },
+    {
+      "limit": 99,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.41487499999997,
+      "rssMiB": 154.34375,
+      "answer": "0",
+      "sourceHash": "e11a8707e0c6e19ef0b4ab8603c808a9c57e99e5b11d15fe7f0582e6588ec78a"
+    },
+    {
+      "limit": 99,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 140.5465,
+      "rssMiB": 172.4375,
+      "answer": "0",
+      "sourceHash": "b9bc5c10ed28a0af8edec60099aff5d0e490c36652886fbbd8211f9e16e6b770"
+    },
+    {
+      "limit": 99,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 130.56674999999998,
+      "rssMiB": 172.59375,
+      "answer": "0",
+      "sourceHash": "b9bc5c10ed28a0af8edec60099aff5d0e490c36652886fbbd8211f9e16e6b770"
+    },
+    {
+      "limit": 100,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 122.667,
+      "rssMiB": 158.21875,
+      "answer": "0",
+      "sourceHash": "de3495869ff793bf902f570278ae0677e637884c404e9d10eeb9a57a86dd2191"
+    },
+    {
+      "limit": 100,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 117.0095,
+      "rssMiB": 153.71875,
+      "answer": "0",
+      "sourceHash": "8050d3e09b76189fd824dc380544e35040dfe6e0ddd1e6a73790afd6e9871b04"
+    },
+    {
+      "limit": 100,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 145.13133299999998,
+      "rssMiB": 177.890625,
+      "answer": "0",
+      "sourceHash": "ec0f74d9d67812c0529c2ef173f661c0eb86c1b9f479232c7e898e40cdff54ad"
+    },
+    {
+      "limit": 100,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.51341700000003,
+      "rssMiB": 178.359375,
+      "answer": "0",
+      "sourceHash": "ec0f74d9d67812c0529c2ef173f661c0eb86c1b9f479232c7e898e40cdff54ad"
+    },
+    {
+      "limit": 101,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 116.994292,
+      "rssMiB": 153.4375,
+      "answer": "0",
+      "sourceHash": "e4bedffb649efef9ac96404d2e46d5af8791c8400b044818bbf3714a0cf5534c"
+    },
+    {
+      "limit": 101,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 118.776792,
+      "rssMiB": 153.828125,
+      "answer": "0",
+      "sourceHash": "07b573b93ad02b48b7188ea651e518c978ae5184e327735ba99ac1839f0c7e95"
+    },
+    {
+      "limit": 101,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 140.231583,
+      "rssMiB": 172.734375,
+      "answer": "0",
+      "sourceHash": "1fcd6f01e074db28ca929c0fb8e44a69d54b5b202cec0f417124640b7732adb5"
+    },
+    {
+      "limit": 101,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 138.24158300000002,
+      "rssMiB": 176.734375,
+      "answer": "0",
+      "sourceHash": "1fcd6f01e074db28ca929c0fb8e44a69d54b5b202cec0f417124640b7732adb5"
+    },
+    {
+      "limit": 102,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 118.46112500000001,
+      "rssMiB": 153.703125,
+      "answer": "1",
+      "sourceHash": "0c2ab54117ebe085d8630fd0e5d0a432b6bf9ca8524b9fc3a9567ed6802a5b4c"
+    },
+    {
+      "limit": 102,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.16441700000001,
+      "rssMiB": 154.4375,
+      "answer": "1",
+      "sourceHash": "0119867e553b65972521dfe9cabb18ba6ea3f96346bf302ad814322ae267f662"
+    },
+    {
+      "limit": 102,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 134.38258299999998,
+      "rssMiB": 172.859375,
+      "answer": "1",
+      "sourceHash": "32714157b550743ecdc733995004ef7f2e2116c05734246304786469d52f50f3"
+    },
+    {
+      "limit": 102,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.39316699999998,
+      "rssMiB": 176.6875,
+      "answer": "1",
+      "sourceHash": "32714157b550743ecdc733995004ef7f2e2116c05734246304786469d52f50f3"
+    },
+    {
+      "limit": 103,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 122.07049999999998,
+      "rssMiB": 157.78125,
+      "answer": "1",
+      "sourceHash": "5e1e7c4a580720043f3768d82ed72f2d50dbe9d26123fa72c8e0c494c0a8a172"
+    },
+    {
+      "limit": 103,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 122.342375,
+      "rssMiB": 158.78125,
+      "answer": "1",
+      "sourceHash": "01a910397bab4fdb13ee6f6d36c00daf4c99f6c19727f1d8fb88461f51d97e04"
+    },
+    {
+      "limit": 103,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 141.03716700000004,
+      "rssMiB": 173.34375,
+      "answer": "1",
+      "sourceHash": "7f6b7bbb87583c1f7c01ad9e668e75430404ade6da68e37dd93e498fb215e920"
+    },
+    {
+      "limit": 103,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 130.730291,
+      "rssMiB": 172.28125,
+      "answer": "1",
+      "sourceHash": "7f6b7bbb87583c1f7c01ad9e668e75430404ade6da68e37dd93e498fb215e920"
+    },
+    {
+      "limit": 119,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 116.499,
+      "rssMiB": 153.0625,
+      "answer": "9",
+      "sourceHash": "2406964962c1edf052b0210cda652d5d9029243436ca2449711ea269ed3cf00d"
+    },
+    {
+      "limit": 119,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 117.279334,
+      "rssMiB": 154.046875,
+      "answer": "9",
+      "sourceHash": "6b491461575dbde25d591081c5b4bee0af5c88e2430eba5060e1338576e143af"
+    },
+    {
+      "limit": 119,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 143.253375,
+      "rssMiB": 179.21875,
+      "answer": "9",
+      "sourceHash": "0637930e1f589029414ab1d0544c24085518951ddddea414616cdda99633d134"
+    },
+    {
+      "limit": 119,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.247583,
+      "rssMiB": 172.359375,
+      "answer": "9",
+      "sourceHash": "0637930e1f589029414ab1d0544c24085518951ddddea414616cdda99633d134"
+    },
+    {
+      "limit": 120,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 114.5085,
+      "rssMiB": 153.734375,
+      "answer": "10",
+      "sourceHash": "99fba65b674259d2c653f2b625bfbc8af2d44ca2be36b99510026a03ab6afe36"
+    },
+    {
+      "limit": 120,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.479333,
+      "rssMiB": 154.3125,
+      "answer": "10",
+      "sourceHash": "915e20533699ceacda706a7f96cd5358bf1f5790785d8831af4c01d5fe7cf5f6"
+    },
+    {
+      "limit": 120,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 140.067083,
+      "rssMiB": 172.8125,
+      "answer": "10",
+      "sourceHash": "bd91d2fb87308da581b9bb0ddb6f66bcf99f7186c44dd8e69cb275f02e673cdb"
+    },
+    {
+      "limit": 120,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 131.194,
+      "rssMiB": 172.4375,
+      "answer": "10",
+      "sourceHash": "bd91d2fb87308da581b9bb0ddb6f66bcf99f7186c44dd8e69cb275f02e673cdb"
+    },
+    {
+      "limit": 121,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 118.62175000000002,
+      "rssMiB": 153.59375,
+      "answer": "10",
+      "sourceHash": "d6dabe2da49e4cc44804d4f22185e4b73458e00fa37146c766c1fafe533d8676"
+    },
+    {
+      "limit": 121,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 116.784209,
+      "rssMiB": 154.421875,
+      "answer": "10",
+      "sourceHash": "89feaad720d6a2d0a0e6bd1226096ea098c0ec403d7916ba5e974301b46257e9"
+    },
+    {
+      "limit": 121,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 138.09008299999996,
+      "rssMiB": 173.09375,
+      "answer": "10",
+      "sourceHash": "813ff935f5578c93618977d52906edaf8860e966aa301537f790fb30ae183dfc"
+    },
+    {
+      "limit": 121,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 132.83666699999998,
+      "rssMiB": 172.359375,
+      "answer": "10",
+      "sourceHash": "813ff935f5578c93618977d52906edaf8860e966aa301537f790fb30ae183dfc"
+    },
+    {
+      "limit": 198,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 119.30908300000002,
+      "rssMiB": 158.125,
+      "answer": "49",
+      "sourceHash": "3b95aedea3da423468577465dfbdca3dee6d96cef1151d3165c7846accf03147"
+    },
+    {
+      "limit": 198,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 122.46662500000002,
+      "rssMiB": 154.6875,
+      "answer": "49",
+      "sourceHash": "4c3b74fc7a342f8670a9440af4c320495a9a0d01366fd01b992ba1f8a22ee8b4"
+    },
+    {
+      "limit": 198,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 135.104958,
+      "rssMiB": 173.046875,
+      "answer": "49",
+      "sourceHash": "920491f3726eb13d5fe49d027ed897b5c587c39c7dab65f28e59ac3b099a838e"
+    },
+    {
+      "limit": 198,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 131.615333,
+      "rssMiB": 172.25,
+      "answer": "49",
+      "sourceHash": "920491f3726eb13d5fe49d027ed897b5c587c39c7dab65f28e59ac3b099a838e"
+    },
+    {
+      "limit": 199,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 119.35075000000003,
+      "rssMiB": 153.703125,
+      "answer": "49",
+      "sourceHash": "4de4e4aefad5258e0afdd7c8e75b31bf63d374aa14f1fc1fd1f2d76baa393911"
+    },
+    {
+      "limit": 199,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 117.94454199999998,
+      "rssMiB": 153.953125,
+      "answer": "49",
+      "sourceHash": "489330f682ff20ea6b8ed70b8ea58f4a10ba9144c1b76eb8efe597eee6e02ec5"
+    },
+    {
+      "limit": 199,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 143.741666,
+      "rssMiB": 179.09375,
+      "answer": "49",
+      "sourceHash": "d5377d308404375d89cce0ec657b0527c84063e018a671367089bfc1a98160f1"
+    },
+    {
+      "limit": 199,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 129.31595799999997,
+      "rssMiB": 172.5,
+      "answer": "49",
+      "sourceHash": "d5377d308404375d89cce0ec657b0527c84063e018a671367089bfc1a98160f1"
+    },
+    {
+      "limit": 200,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.81679199999999,
+      "rssMiB": 158.1875,
+      "answer": "50",
+      "sourceHash": "0c86f9719e721ac307faef3176a68fb1f977f152bcce6fa10e6d7794d2f92ea6"
+    },
+    {
+      "limit": 200,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 119.54037500000001,
+      "rssMiB": 154.390625,
+      "answer": "50",
+      "sourceHash": "db4d6a3513c624c1ac9c9e29975443e71fd8c3699f88908adc154006d5b72bdb"
+    },
+    {
+      "limit": 200,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 144.93858300000002,
+      "rssMiB": 177.5625,
+      "answer": "50",
+      "sourceHash": "c206a2938d8c9a9a62bbd5f51d7bd021819b1871b6ad71a247a3fd67c0809c53"
+    },
+    {
+      "limit": 200,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 130.99591700000002,
+      "rssMiB": 172.390625,
+      "answer": "50",
+      "sourceHash": "c206a2938d8c9a9a62bbd5f51d7bd021819b1871b6ad71a247a3fd67c0809c53"
+    },
+    {
+      "limit": 201,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 117.52337499999999,
+      "rssMiB": 153.0625,
+      "answer": "50",
+      "sourceHash": "4d06860ae8123b7e2669ddf9e9ecd33e0629450323c2f724bab7268bb69bcc0d"
+    },
+    {
+      "limit": 201,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 116.04575,
+      "rssMiB": 154.234375,
+      "answer": "50",
+      "sourceHash": "cd74e1ab8830d8b52eef92cb6ec39d1adaf49cffe87e0617cf6a9f871fb1c8c1"
+    },
+    {
+      "limit": 201,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 137.61337500000002,
+      "rssMiB": 172.84375,
+      "answer": "50",
+      "sourceHash": "577822c1be829fc0fb28c1ba16812ee68a045a4ed2fef1bd4e2b0e136ec6ca40"
+    },
+    {
+      "limit": 201,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 139.04020800000004,
+      "rssMiB": 177.03125,
+      "answer": "50",
+      "sourceHash": "577822c1be829fc0fb28c1ba16812ee68a045a4ed2fef1bd4e2b0e136ec6ca40"
+    },
+    {
+      "limit": 999,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 115.69345899999999,
+      "rssMiB": 153.390625,
+      "answer": "449",
+      "sourceHash": "56cce3c2002175949ce1faf032cad2303e76a605cc2c7d3304893b77c5526f12"
+    },
+    {
+      "limit": 999,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.92695800000001,
+      "rssMiB": 154.5,
+      "answer": "449",
+      "sourceHash": "2b74d0545d07aa3f4c380f943851dc7e876a4f210128808a0cda69c04c0af54d"
+    },
+    {
+      "limit": 999,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 142.30970800000003,
+      "rssMiB": 172.78125,
+      "answer": "449",
+      "sourceHash": "eb75cc76ae1de8ce35e69eaa1b188894289543b3c64a7d5806c23e3c82e57fb2"
+    },
+    {
+      "limit": 999,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 131.784917,
+      "rssMiB": 172.484375,
+      "answer": "449",
+      "sourceHash": "eb75cc76ae1de8ce35e69eaa1b188894289543b3c64a7d5806c23e3c82e57fb2"
+    },
+    {
+      "limit": 1000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 119.487833,
+      "rssMiB": 153.1875,
+      "answer": "450",
+      "sourceHash": "04029beaf47c47e10994a3f7191d671dfcb2f04f5bad863bf6c2010f456e6f65"
+    },
+    {
+      "limit": 1000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 119.24308400000001,
+      "rssMiB": 154.109375,
+      "answer": "450",
+      "sourceHash": "f246b68c50e3cf454c68bab80e892dad5edf54cb6b591e50205f6628a137554a"
+    },
+    {
+      "limit": 1000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 140.31266699999998,
+      "rssMiB": 172.625,
+      "answer": "450",
+      "sourceHash": "552d54fab3ea9cc4f75a38458fbc9e8b4f12e4e6e4c264bde1adb0b682cb31dc"
+    },
+    {
+      "limit": 1000,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 138.103292,
+      "rssMiB": 177.171875,
+      "answer": "450",
+      "sourceHash": "552d54fab3ea9cc4f75a38458fbc9e8b4f12e4e6e4c264bde1adb0b682cb31dc"
+    },
+    {
+      "limit": 4095,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.19345899999999,
+      "rssMiB": 153.78125,
+      "answer": "1997",
+      "sourceHash": "ee8e556fba0ef9fe876919bb30f48b96615217918c9b0f482ffe2914fba6baee"
+    },
+    {
+      "limit": 4095,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 125.16262500000002,
+      "rssMiB": 159.359375,
+      "answer": "1997",
+      "sourceHash": "8c7e7043d80e96ddad34209a5accfe00d04bc956436680edd16e24156c467e52"
+    },
+    {
+      "limit": 4095,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 139.79308400000002,
+      "rssMiB": 173.296875,
+      "answer": "1997",
+      "sourceHash": "e18839346fcd90bae7c9193c31a66d9ee1743ab0e95b317ec92aaf9c3978a7ff"
+    },
+    {
+      "limit": 4095,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 140.22691700000001,
+      "rssMiB": 172.84375,
+      "answer": "1997",
+      "sourceHash": "e18839346fcd90bae7c9193c31a66d9ee1743ab0e95b317ec92aaf9c3978a7ff"
+    },
+    {
+      "limit": 10000,
+      "variant": "original",
+      "fixture": false,
+      "reference": false,
+      "ms": 120.06087499999998,
+      "rssMiB": 154.046875,
+      "answer": "4950",
+      "sourceHash": "042734ca2a7d86b2e374e3fd0b4f43e48b9d0d66fa685b5b36f4312980e0d917"
+    },
+    {
+      "limit": 10000,
+      "variant": "stack",
+      "fixture": false,
+      "reference": false,
+      "ms": 122.31937500000001,
+      "rssMiB": 155.34375,
+      "answer": "4950",
+      "sourceHash": "505e27b4fc220e1bb300d6bbb8ffe18b9db53e10c703b2295c3e712558126ec3"
+    },
+    {
+      "limit": 10000,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 138.72937500000003,
+      "rssMiB": 172.765625,
+      "answer": "4950",
+      "sourceHash": "2ced5937822822c62de48a424ce14a74f1ae479adab8b7d3e4ac454b08f4d780"
+    },
+    {
+      "limit": 10000,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 136.84145800000002,
+      "rssMiB": 172.6875,
+      "answer": "4950",
+      "sourceHash": "2ced5937822822c62de48a424ce14a74f1ae479adab8b7d3e4ac454b08f4d780"
+    }
+  ],
+  "diagnostics": {
+    "limit": 100000000,
+    "variant": "base",
+    "fixture": false,
+    "reference": false,
+    "ms": 189.19174999999998,
+    "rssMiB": 173.515625,
+    "answer": "52374425",
+    "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 1,
+      "numberLoopCopyAmortized": 1,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "scalar-expression:too-small": 2,
+        "tensor:unsupported-type:array": 4
+      },
+      "compilerRejections": []
+    }
+  },
+  "validation": {
+    "reference": {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 6670.553166999999,
+      "rssMiB": 176.203125,
+      "answer": "52374425",
+      "sourceHash": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1"
+    },
+    "fixture": {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": true,
+      "reference": false,
+      "ms": 226.135583,
+      "rssMiB": 180.828125,
+      "sourceHash": "7e698dfc7ed5566b2bb8e229e51aea99077227f1761f2492b744eb6c5b5cd8af"
+    },
+    "reference-fixture": {
+      "limit": 100000000,
+      "variant": "base",
+      "fixture": true,
+      "reference": true,
+      "ms": 7018.707541000001,
+      "rssMiB": 181.90625,
+      "sourceHash": "7e698dfc7ed5566b2bb8e229e51aea99077227f1761f2492b744eb6c5b5cd8af"
+    }
+  },
+  "logs": {
+    "adaptive": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\n \u2713 test/number-loop.test.ts (164 tests) 691ms\n \u2713 test/number-loop-adaptive.test.ts (9 tests) 277ms\n\n Test Files  2 passed (2)\n      Tests  173 passed (173)\n   Start at  18:37:57\n   Duration  2.33s (transform 704ms, setup 0ms, collect 1.19s, tests 967ms, environment 0ms, prepare 46ms)\n\n",
+    "scoped-final": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/198_ambiguous.ra\ncomparing euler/198_ambiguous.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/198_ambiguous_test.ra\ncomparing euler/198_ambiguous_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 2/1777 compared, 2 completed, 3 test blocks, 142 compiled entries, 12 Number loop entries\n\n \u2713 test/differential.test.ts (1778 tests | 1776 skipped) 22574ms\n   \u2713 compiled and reference demo execution > euler/198_ambiguous.ra  11220ms\n   \u2713 compiled and reference demo execution > euler/198_ambiguous_test.ra  11351ms\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/198_ambiguous.ra\nauditing euler/198_ambiguous.ra\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/198_ambiguous_test.ra\nauditing euler/198_ambiguous_test.ra\n\n \u2713 test/types.test.ts (1777 tests | 1775 skipped) 229ms\n\n Test Files  2 passed (2)\n      Tests  4 passed | 3551 skipped (3555)\n   Start at  18:43:06\n   Duration  24.22s (transform 644ms, setup 0ms, collect 1.23s, tests 22.80s, environment 0ms, prepare 40ms)\n\n"
+  },
+  "hashes": {
+    "demos/euler/198_ambiguous.ra": "a4244413f56e8ecd3652ae0ebadf27e0fa201baecf02ac5996f1248dd316feb1",
+    "demos/euler/198_ambiguous_test.ra": "7e698dfc7ed5566b2bb8e229e51aea99077227f1761f2492b744eb6c5b5cd8af",
+    "packages/interpreter/src/number-loop-runtime.ts": "7d5800e7184b8a956214b2f599c564afef42cfc1edb00c4a10ebe23cee67f2a3",
+    "benchmarks/euler198-ambiguous.mjs": "9c05f6d8c4d0f78f3654d79015458b32447621aa02e9b0d55bd6dd3d38f2f04c"
+  },
+  "validationMethod": "Separate correctness-only runs; some overlapped scoped test execution. Their elapsed times are not performance estimates. Controlled performance samples above ran without concurrent validation work."
+}

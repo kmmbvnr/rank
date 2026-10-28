@@ -1,7 +1,7 @@
 use testing
 
-rem The default input takes about 70 s,
-rem so only smaller limits are tested.
+rem Keep routine checks on smaller limits;
+rem benchmark the full input separately.
 test "small limits"
   use "224_almostright"
   Limit = 50

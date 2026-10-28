@@ -46,7 +46,9 @@ Flag Ones = 1
 Seen = Flag scan +
 Total = 0
 for A in As
-  Rest' = Bs not equal A
+  rem Even the smallest C is at least 5.
+  Bound = (Limit // (A ** 3 * 5)) isqrt
+  Rest' = (Bs not equal A) and (Bs at most Bound)
   Others' = Bs filter Rest
   for B in Others
     Base = A ** 3 * B ** 2
@@ -64,10 +66,15 @@ Eb = array 3 2
 for I in 0 to 1
   X = Ea I
   Y = Eb I
-  for A in As
-    Cs = A ** X * Ones ** Y
-    Big' = Cs at most Limit
-    Fit' = Big and (Ones not equal A)
+  Aa = As filter (As ** X * 5 ** Y at most Limit)
+  for A in Aa
+    Base = A ** X
+    rem Y is at least 2; this exact bound
+    rem keeps a safe prefix for both cases.
+    Bound = (Limit // Base) isqrt
+    Pool = Ones take (Seen Bound)
+    Cs = Base * Pool ** Y
+    Fit' = (Cs at most Limit) and (Pool not equal A)
     Cs = Cs filter Fit array
     Share' = Cum (Limit // Cs)
     Total += (Cs * Share) sum

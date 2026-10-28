@@ -11,47 +11,48 @@ use cli
 
 arg Limit integer = 25000000
 
-rem All solutions hang from (1, 1, 1)
-rem and (1, 2, 2) in two ternary trees
-rem whose three maps keep a^2 + b^2 -
-rem c^2. The tree of (1, 1, 1) is its
-rem own mirror image (a <-> b), so it
-rem has two triangles for each pair a !=
-rem b and one for a = b. The other tree
-rem has one for each pair. The first map
-rem takes (1, b, b) to (1, b + 2, b +
-rem 2), a chain too long for the levels,
-rem so its triangles are counted and the
-rem other two children are the start of
-rem the levels, taken at once with the
-rem triangles that are too long dropped.
+rem The two ternary trees start at
+rem (1, 1, 1) and (1, 2, 2). Count their
+rem long (1, b, b) chains directly and
+rem generate only side branches whose
+rem first perimeter can fit the limit.
+rem In the odd tree, equal legs have
+rem mirrored first and third subtrees.
+rem Keep only the first, including at
+rem the root, then count each node once.
 Answer = 0
 Cb = (Limit - 1) // 2
 Wd = 2000000
 for Root in 1 to 2
-  Cnt = 0
-  Same = 0
-  if Root equal 1
-    Same = 1
+  Cnt = (Cb - Root) // 2 + 1
+  if Cnt less 0
+    Cnt = 0
   end
-  for Lo in Root to Cb by Wd
+  rem Side-branch perimeters are 12 * b +/- 5.
+  SeedMax = (Limit + 5) // 12
+  for Lo in Root to SeedMax by Wd
     Hi = Lo + Wd - 2
-    if Hi greater Cb
-      Hi = Cb
+    if Hi greater SeedMax
+      Hi = SeedMax
     end
     B1 = Lo to Hi by 2 array
-    Cnt += B1 len
-    A2' = 4 * B1 + 1
-    B2' = 3 * B1 + 2
-    C2' = 5 * B1 + 2
-    A3' = 4 * B1 - 1
-    B3' = 3 * B1 - 2
-    C3' = 5 * B1 - 2
+    A2 = 4 * B1 + 1
+    B2 = 3 * B1 + 2
+    C2 = 5 * B1 + 2
+    A3 = 4 * B1 - 1
+    B3 = 3 * B1 - 2
+    C3 = 5 * B1 - 2
+    if Root equal 1
+      Seed3 = B1 greater 1
+      A3 = A3 filter Seed3 array
+      B3 = B3 filter Seed3 array
+      C3 = C3 filter Seed3 array
+    end
     A = concat A2 A3 copy
     B = concat B2 B3 copy
     C = concat C2 C3 copy
     for
-      Per' = A + B + C
+      Per = A + B + C
       Fit = Per at most Limit
       A = A filter Fit array
       B = B filter Fit array
@@ -60,35 +61,36 @@ for Root in 1 to 2
         break
       end
       Cnt += A len
-      Same += (A equal B) count
       Ta = 2 * A
       Tb = 2 * B
       Tc = 2 * C
       Tc3 = Tc + C
       Up = A + Tc
-      Dn' = Tc - A
+      Dn = Tc - A
       Wp = B + Tc
-      Wm' = Tc - B
+      Wm = Tc - B
       Df = Ta - Tb
-      Sm' = Ta + Tb
-      A1' = Up - Tb
-      A2' = Up + Tb
-      A3' = Dn + Tb
-      B1' = Ta + Wm
-      B2' = Ta + Wp
-      B3' = Wp - Ta
-      C1' = Tc3 + Df
-      C2' = Tc3 + Sm
-      C3' = Tc3 - Df
+      Sm = Ta + Tb
+      A1 = Up - Tb
+      A2 = Up + Tb
+      A3 = Dn + Tb
+      B1 = Ta + Wm
+      B2 = Ta + Wp
+      B3 = Wp - Ta
+      C1 = Tc3 + Df
+      C2 = Tc3 + Sm
+      C3 = Tc3 - Df
+      if Root equal 1
+        Keep3 = A not equal B
+        A3 = A3 filter Keep3 array
+        B3 = B3 filter Keep3 array
+        C3 = C3 filter Keep3 array
+      end
       A = concat A1 A2 A3 copy
       B = concat B1 B2 B3 copy
       C = concat C1 C2 C3 copy
     end
   end
-  if Root equal 1
-    Answer += (Cnt + Same) // 2
-  else
-    Answer += Cnt
-  end
+  Answer += Cnt
 end
 Answer print

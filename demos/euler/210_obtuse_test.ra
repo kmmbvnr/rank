@@ -1,7 +1,7 @@
 use testing
 
-rem The default input needs about 70 s
-rem (issue #333): small radii only.
+rem Small radii check the geometry and
+rem cross chunk boundaries cheaply.
 test "small radii"
   use "210_obtuse"
   R = 8

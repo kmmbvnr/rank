@@ -16,6 +16,7 @@ const newline = (token: IToken | undefined) => token?.tokenType.name === 'NL' ||
 /** Retain keyword/operator tokens everywhere except a position declared by a call signature. */
 export class SignatureLexer extends DefaultLexer {
     signatures: ReadonlyMap<string, FunctionCallSignature> = new Map();
+    readonly operatorOffsets = new Set<number>();
 
     imports(text: string): { path: string; alias?: string }[] {
         const tokens = super.tokenize(text).tokens;
@@ -48,32 +49,22 @@ export class SignatureLexer extends DefaultLexer {
         const comments = result.hidden.filter(token => token.tokenType.name === 'REM_COMMENT');
         const tokens = [...result.tokens, ...comments].sort((a, b) => a.startOffset - b.startOffset);
         result.tokens = tokens;
-        // Only a trailing label on an assignment is a mode. Keep .accumulate
-        // and labels with that prefix available as ordinary data elsewhere.
-        let depth = 0, assignment = -1;
-        const assignmentOperators = new Set(['=', '+=', '-=', '*=', '**=', '/=', '//=', 'mod=', 'and=', 'or=', 'xor=']);
-        for (let index = 0; index < tokens.length; index++) {
-            const token = tokens[index];
-            if (token.image === '(') depth++;
-            else if (token.image === ')') depth--;
-            if (depth !== 0) continue;
-            if (newline(token)) { assignment = -1; continue; }
-            if (assignmentOperators.has(token.image)) assignment = index;
-            if (assignment < 0 || index <= assignment + 1 || token.image !== '.'
-                || tokens[index + 1]?.image !== 'accumulate'
-                || tokens[index + 2] && !newline(tokens[index + 2])) continue;
-            const word = tokens[index + 1], tokenType = this.definition.ACCUMULATE;
-            tokens.splice(index, 2, { ...token, image: text.slice(token.startOffset, word.endOffset! + 1),
-                endOffset: word.endOffset, endLine: word.endLine, endColumn: word.endColumn,
-                tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! });
-        }
+        this.operatorOffsets.clear();
+        const replace = (index: number, type: string) => {
+            const tokenType = this.definition[type];
+            tokens[index] = { ...tokens[index], tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! };
+        };
+        const replaceOperator = (index: number) => {
+            replace(index, 'WORD');
+            this.operatorOffsets.add(tokens[index].startOffset);
+        };
         const contextualWords = new Map(literalWords);
         interface Scope {
             parent?: Scope;
             names: Map<string, Header | { alias: string } | null>;
             inline?: boolean;
         }
-        const root: Scope = { names: new Map([...this.signatures].map(([name, signature]) => [name, {
+        const root: Scope = { names: new Map([...this.signatures].map(([name, signature]): [string, Header] => [name, {
             right: signature.rightParameters.map(parameter => parameter.kind === 'function'),
             words: new Set(signature.words.map(group => group.word)),
         }])) };
@@ -89,21 +80,8 @@ export class SignatureLexer extends DefaultLexer {
                 scope = { parent: scope.parent, names: new Map() };
             }
             scopes[index] = scope;
-            if (tokens[index - 1]?.image !== '.') {
-                let arrayBlock = false;
-                if (token.image === 'array' && tokens[index + 1]?.image === 'shape') {
-                    arrayBlock = true;
-                    for (let cursor = index + 2; tokens[cursor] && !newline(tokens[cursor]); cursor++) {
-                        if (tokens[cursor].image === 'fill') { arrayBlock = false; break; }
-                    }
-                }
-                const blockExpression = ['record', 'select', 'filter', 'update', 'with'].includes(token.image)
-                    && newline(tokens[index + 1])
-                    || token.image === 'text' && (lineStart || ['=', 'return', '('].includes(tokens[index - 1]?.image))
-                        && (newline(tokens[index + 1])
-                        || ['lines', 'joined'].includes(tokens[index + 1]?.image) && newline(tokens[index + 2]))
-                    || arrayBlock;
-                if (blockExpression) scope = { parent: scope, names: new Map() };
+            if (isBlockExpressionStart(tokens, index, lineStart)) {
+                scope = { parent: scope, names: new Map() };
             }
             if (!lineStart) continue;
             if (['for', 'if', 'try', 'test'].includes(token.image)) {
@@ -140,13 +118,9 @@ export class SignatureLexer extends DefaultLexer {
                     cursor = next;
                 }
                 if (tokens[cursor]?.image !== '.' || !lowercase(tokens[cursor + 1])) break;
-                const dot = tokens[cursor], word = tokens[cursor + 1];
-                const tokenType = this.definition.SIGNATURE_WORD;
-                tokens.splice(cursor, 2, { ...dot, image: '.' + word.image,
-                    endOffset: word.endOffset, endLine: word.endLine, endColumn: word.endColumn,
-                    tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! });
-                words.add(word.image);
-                cursor++;
+                replace(cursor + 1, 'WORD');
+                words.add(tokens[cursor + 1].image);
+                cursor += 2;
                 if (uppercase(tokens[cursor])) {
                     cursor++;
                     if (tokens[cursor]?.image === "'") cursor++;
@@ -165,6 +139,7 @@ export class SignatureLexer extends DefaultLexer {
                 inline: tokens[cursor]?.image === '=' };
             index = cursor - 1;
         }
+        const higherOrderHeader: Header = { right: [true], words: new Set() };
         const lookup = (name: string, scope: Scope | undefined, seen = new Set<string>()): Header | undefined => {
             if (seen.has(name)) return undefined;
             seen.add(name);
@@ -176,10 +151,6 @@ export class SignatureLexer extends DefaultLexer {
             return undefined;
         };
         const removed = new Set<number>();
-        const replace = (index: number, type: string) => {
-            const tokenType = this.definition[type];
-            tokens[index] = { ...tokens[index], tokenType, tokenTypeIdx: tokenType.tokenTypeIdx! };
-        };
         // In `A B * rank L R`, the symbol is a function operand rather than
         // an infix operator. Keep ordinary formulas and comparison rank intact.
         for (let index = 0; index < tokens.length; index++) {
@@ -190,11 +161,17 @@ export class SignatureLexer extends DefaultLexer {
                 if (tokens[cursor]?.image === '-') cursor++;
                 return tokens[cursor++]?.tokenType.name === 'INTEGER';
             };
-            if (rank() && rank()) replace(index, 'CALL_OPERATOR');
+            if (rank() && rank()) replaceOperator(index);
         }
         for (let index = 0; index < tokens.length; index++) {
             if (declarations.has(index) || removed.has(index)) continue;
-            const header = lookup(tokens[index].image, scopes[index]);
+            const lookedUp = lookup(tokens[index].image, scopes[index]);
+            const attachedSignedLiteral = ['-', '+'].includes(tokens[index + 1]?.image)
+                && tokens[index + 1]?.endOffset === tokens[index + 2]?.startOffset
+                && ['INTEGER', 'FLOAT'].includes(tokens[index + 2]?.tokenType.name ?? '');
+            const header = lookedUp?.right.length ? lookedUp
+                : !attachedSignedLiteral && ['scan', 'reduce', 'segment', 'outer'].includes(tokens[index].image)
+                    ? higherOrderHeader : lookedUp;
             if (!header) continue;
             let cursor = index + 1;
             for (const functionOperand of header.right) {
@@ -202,14 +179,14 @@ export class SignatureLexer extends DefaultLexer {
                 const pair = `${tokens[cursor].image} ${tokens[cursor + 1]?.image}`;
                 const comparison = ({ 'not equal': 'notequal', 'at least': 'atleast', 'at most': 'atmost' } as Record<string, string>)[pair];
                 if (functionOperand && comparison) {
-                    replace(cursor, 'CALL_OPERATOR');
+                    replaceOperator(cursor);
                     const last = tokens[cursor + 1];
                     tokens[cursor] = { ...tokens[cursor], image: comparison,
                         endOffset: last.endOffset, endLine: last.endLine, endColumn: last.endColumn };
                     removed.add(cursor + 1);
                     cursor += 2;
                 } else if (functionOperand && symbolic.has(tokens[cursor].image)) {
-                    replace(cursor, 'CALL_OPERATOR');
+                    replaceOperator(cursor);
                     cursor++;
                 } else cursor = atomEnd(tokens, cursor);
             }
@@ -217,10 +194,11 @@ export class SignatureLexer extends DefaultLexer {
                 const token = tokens[cursor];
                 const word = token.image.split(/[\t ]/)[0];
                 if (!header.words.has(word)) break;
-                if (token.tokenType.name === 'REM_COMMENT' || token.tokenType.name === 'HIGHER_ORDER') {
+                if (token.tokenType.name === 'REM_COMMENT') {
                     contextualWords.set(token.startOffset, word);
                     break;
                 }
+                declarations.add(cursor);
                 replace(cursor++, 'WORD');
                 if (!tokens[cursor] || newline(tokens[cursor])) break;
                 cursor = atomEnd(tokens, cursor);
@@ -228,9 +206,54 @@ export class SignatureLexer extends DefaultLexer {
         }
         if (contextualWords.size > literalWords.size) return this.contextualTokens(text, options, contextualWords);
         for (const index of [...removed].sort((a, b) => b - a)) tokens.splice(index, 1);
-        result.tokens = tokens.filter(token => token.tokenType.name !== 'REM_COMMENT');
+        result.tokens = hideParenthesizedNewlines(tokens).filter(token => token.tokenType.name !== 'REM_COMMENT');
         return result;
     }
+}
+
+function isBlockExpressionStart(tokens: readonly IToken[], index: number, lineStart: boolean): boolean {
+    if (tokens[index - 1]?.image === '.') return false;
+    const token = tokens[index];
+    if (token.image === 'array' && tokens[index + 1]?.image === 'shape') {
+        for (let cursor = index + 2; tokens[cursor] && !newline(tokens[cursor]); cursor++) {
+            if (tokens[cursor].image === 'fill') return false;
+        }
+        return true;
+    }
+    return ['record', 'select', 'filter', 'update', 'with'].includes(token.image)
+        && newline(tokens[index + 1])
+        || token.image === 'text' && (lineStart || ['=', 'return', '('].includes(tokens[index - 1]?.image))
+            && (newline(tokens[index + 1])
+            || ['lines', 'joined'].includes(tokens[index + 1]?.image) && newline(tokens[index + 2]));
+}
+
+function hideParenthesizedNewlines(tokens: readonly IToken[]): IToken[] {
+    const closingParen = new Map<number, number>();
+    const stack: number[] = [];
+    for (let index = 0; index < tokens.length; index++) {
+        const token = tokens[index];
+        if (token.image === '(') stack.push(index);
+        else if (token.image === ')' && stack.length) closingParen.set(stack.pop()!, index);
+    }
+    const filtered: IToken[] = [];
+    const modes: ('paren' | 'block')[] = [];
+    for (let index = 0; index < tokens.length; index++) {
+        const token = tokens[index];
+        const lineStart = index === 0 || newline(tokens[index - 1])
+            || tokens[index - 1]?.image === '(' && closingParen.has(index - 1);
+        if (token.image === '(' && closingParen.has(index)) {
+            modes.push('paren');
+        } else if (token.image === ')' && modes.length) {
+            while (modes.length && modes.pop() !== 'paren') { /* close unclosed inner blocks */ }
+        } else if (lineStart && token.image === 'end' && modes.at(-1) === 'block') {
+            modes.pop();
+        } else if (modes.length && isBlockExpressionStart(tokens, index, lineStart)) {
+            modes.push('block');
+        }
+        if (token.tokenType.name === 'NL' && modes.at(-1) === 'paren') continue;
+        filtered.push(token);
+    }
+    return filtered;
 }
 
 function atomEnd(tokens: readonly IToken[], start: number): number {

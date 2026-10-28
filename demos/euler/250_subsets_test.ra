@@ -19,3 +19,73 @@ test "small inputs"
 
   Answer equal 103
 end
+
+test "period boundaries and non-coprime residues"
+  use "250_subsets"
+  N = 0
+  M = 250
+  run
+
+  Answer equal 0
+  N = 16
+  M = 8
+  run
+
+  Answer equal 9215
+  N = 17
+  M = 8
+  run
+
+  Answer equal 17407
+  N = 25
+  M = 8
+  run
+
+  Answer equal 4259839
+  N = 49
+  M = 7
+  run
+
+  Answer equal 80421421917695
+  N = 92
+  M = 7
+  run
+
+  Answer equal 3074443470135295
+  N = 46
+  M = 9
+  run
+
+  Answer equal 7818749345791
+  N = 10
+  M = 1
+  run
+
+  Answer equal 1023
+end
+
+test "arbitrary count moduli"
+  use "250_subsets"
+  N = 503
+  M = 10
+  Mod = 1
+  run
+
+  Answer equal 0
+  Mod = 2
+  run
+
+  Answer equal 1
+  Mod = 97
+  run
+
+  Answer equal 15
+  Mod = -97
+  run
+
+  Answer equal -82
+  Mod = 1000000000000000000000000000000
+  run
+
+  Answer equal 15349672881218145844855832575
+end

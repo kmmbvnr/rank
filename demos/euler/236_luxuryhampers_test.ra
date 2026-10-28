@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes about 1 min.
+rem Exercise the full candidate range.
 test "default input"
   use "236_luxuryhampers"
   run

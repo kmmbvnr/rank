@@ -27,7 +27,7 @@ import type { FunctionInvocation } from '../function-invocation.js';
 import type { BuiltinRegistry } from '../modules/builtins.js';
 import { fenwickSum } from '../modules/algo.js';
 import { materializeArray, uniqueLength } from '../modules/sequences.js';
-import { numericUniqueSort } from '../numeric-collections.js';
+import { numericUniqueSort, numericUniqueSum, integerDistinctConsumer } from '../numeric-collections.js';
 import { formattedText } from '../modules/text.js';
 import { type Operators } from '../operators.js';
 import { type RankApplication } from '../rank-application.js';
@@ -456,6 +456,17 @@ export class ApplicationEvaluator {
                                 // when the ordinary reducer is invoked below.
                                 if (receiver !== undefined) pending = [receiver];
                             }
+                            const next = parts[index + 1];
+                            if (pending.length === 1 && isNameExpression(part) && next && isNameExpression(next)
+                                && context.operationOf(part.name) && context.operationOf(next.name)) {
+                                const unique = context.resolve(part.name), sum = context.resolve(next.name);
+                                if (isNativeFunction(unique) && isNativeFunction(sum)
+                                    && context.builtins.is('sequences', 'unique', unique)
+                                    && context.builtins.is('core', 'sum', sum)) {
+                                    const result = numericUniqueSum(pending[0]);
+                                    if (result !== undefined) { pending = [result]; index++; continue; }
+                                }
+                            }
                             const value = isAllAxisExpression(part)
                                 ? ALL_AXIS : yield* resume(context.evaluate(part));
                             pending.push(value);
@@ -479,6 +490,53 @@ export class ApplicationEvaluator {
         expression: Expression, parts: Expression[], missing?: () => RankValue, tail = false,
         ordinary = this.compileNativeApplication(expression, parts, missing, tail),
     ): () => Evaluation<RankValue> {
+        const context = this.context, application = this;
+        if (parts.length === 2 && isParenthesizedExpression(parts[0]) && isNameExpression(parts[1])) {
+            const inner = flattenApplication(parts[0].value), unique = inner.at(-1);
+            if (inner.length > 1 && unique && isNameExpression(unique)) {
+                return function* (): Execution<RankValue> {
+                    const u = context.operationOf(unique.name), sum = context.operationOf((parts[1] as typeof unique).name);
+                    if (!u || u.name !== 'unique' || !sum || sum.name !== 'sum') return yield* resume(ordinary());
+                    const source = yield* resume(context.evaluate(applicationParts(inner.slice(0, -1))));
+                    const uf = yield* resume(context.evaluate(unique));
+                    if (isNativeFunction(uf) && context.builtins.is('sequences', 'unique', uf)) {
+                        const sf = context.resolve((parts[1] as typeof unique).name);
+                        if (isNativeFunction(sf) && context.builtins.is('core', 'sum', sf)) {
+                            const result = numericUniqueSum(source);
+                            if (result !== undefined) return result;
+                        }
+                    }
+                    const distinct = yield* resume(application.apply([source, uf]));
+                    const sf = yield* resume(context.evaluate(parts[1]));
+                    return yield* resume(application.apply([distinct, sf], missing, 0, [], tail));
+                };
+            }
+        }
+        const materialHead = parts[0];
+        if (isMaterializeExpression(materialHead) && (parts.length === 2 || parts.length === 3)
+            && parts.slice(1).every(isNameExpression)) {
+            return function* (): Execution<RankValue> {
+                const source = yield* resume(context.evaluate(materialHead.source));
+                const names = parts.slice(1).filter(isNameExpression);
+                const isBuiltin = (position: number, module: string, operation: string) => {
+                    const name = names[position]?.name;
+                    if (!name || !context.operationOf(name)) return false;
+                    const fn = context.resolve(name);
+                    return isNativeFunction(fn) && context.builtins.is(module, operation, fn);
+                };
+                if (isBuiltin(0, 'sequences', 'unique')) {
+                    const terminal = parts.length === 2 ? 'array' : isBuiltin(1, 'core', 'sum') ? 'sum'
+                        : isBuiltin(1, 'core', 'len') ? 'len' : undefined;
+                    if (terminal) {
+                        const result = integerDistinctConsumer(source, terminal);
+                        if (result !== undefined) return result;
+                    }
+                }
+                const input = materializeArray(source);
+                const operations = yield* resume(mapExecution(parts.slice(1), part => context.evaluate(part)));
+                return yield* resume(application.apply([input, ...operations], missing, 0, [], tail));
+            };
+        }
         const last = parts.at(-1);
         if (!last || !isNameExpression(last)) return ordinary;
         return () => {
@@ -647,6 +705,18 @@ export class ApplicationEvaluator {
                 if (result !== undefined && result !== false) return completed(result);
             }
             const next = values[index + 1];
+            if (arguments_.length === 1 && isNativeFunction(next)
+                && context.builtins.is('sequences', 'sort', value)
+                && context.builtins.is('sequences', 'unique', next)) {
+                const sorted = numericUniqueSort(arguments_[0]);
+                if (sorted !== undefined) { pending = [sorted]; index += 1; continue; }
+            }
+            if (arguments_.length === 1 && isNativeFunction(next)
+                && context.builtins.is('sequences', 'unique', value)
+                && context.builtins.is('core', 'sum', next)) {
+                const sum = numericUniqueSum(arguments_[0]);
+                if (sum !== undefined) { pending = [sum]; index += 1; continue; }
+            }
             if (arguments_.length === 1 && isNativeFunction(next)
                 && context.builtins.is('sequences', 'unique', value)
                 && context.builtins.is('sequences', 'sort', next)) {

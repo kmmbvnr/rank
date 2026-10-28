@@ -26,6 +26,55 @@ After`;
         expect(compiled.diagnostics.compiledTensors).toBeGreaterThanOrEqual(40);
     });
 
+    it.each(['all', 'any'])('refreshes a graph after lazy contract refinement for %s', operation => {
+        const source = `Sorted = 1 to 1000 array
+Pos = (0 to 12 array) reshape 1 13
+Pw = 10 ** Pos
+Rows = Sorted len
+Col' = Sorted reshape Rows 1
+Win' = Col // Pw mod 1000
+Has' = (Win equal 200) ${operation} axis 1
+Has copy`;
+        const compiled = execute(source, true);
+        expect(compiled.value).toBe(execute(source, false).value);
+        expect(compiled.diagnostics.tensorMapPreparations).toBe(2);
+        expect(compiled.diagnostics.fallbacks['tensor:stale-input']).toBe(1);
+    });
+
+    it.each(['all', 'any'])('keeps captured sources read-only after refreshing %s', operation => {
+        for (const compilation of [false, true]) {
+            const runtime = new Interpreter(undefined, { compilation });
+            try {
+                runtime.execute(`use sequences
+Sorted = 1 to 1000 array
+Pos = (0 to 12 array) reshape 1 13
+Pw = 10 ** Pos
+Col' = Sorted reshape 1000 1
+Mask' = ((Col // Pw mod 1000) equal 200) ${operation} axis 1
+Before = Mask copy`);
+                const before = formatValue(runtime.variables.get('Before')!);
+                expect(() => runtime.execute('Sorted 199 = 999')).toThrow('read-only');
+                expect(formatValue(runtime.execute('Mask copy')!)).toBe(before);
+            } finally { runtime.dispose(); }
+        }
+    });
+
+    it.each([false, true])('keeps later-row errors after contract refinement (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`use sequences
+A = (array 1 0) reshape 2 1
+Pw = (array 1 10) reshape 1 2
+Col' = A reshape 2 1
+Mask' = ((1 // (Col // Pw)) equal 1) any axis 1`);
+            expect(runtime.execute('Mask first')).toBe(true);
+            expect(() => runtime.execute('Before = 7\nFailed = Mask copy\nAfter = 9')).toThrow();
+            expect(runtime.variables.get('Before')).toBe(7n);
+            expect(runtime.variables.has('Failed')).toBe(false);
+            expect(runtime.variables.has('After')).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+
     it.each(['all', 'any'])('handles empty %s cells and empty frames', operation => {
         for (const shape of ['3 0', '0 3']) {
             const source = `A = array shape ${shape} fill 1

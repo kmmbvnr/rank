@@ -16,6 +16,7 @@ import { isRankArray, isRankIndex, isRankSet } from './value.js';
 import { RankDeque } from './containers.js';
 import { denseScalarItems, materializedArrayItems, arrayRevision, storedScalarKinds } from './array-storage.js';
 
+import { describeCompilerRejection, recordCompilerRejection } from './compiler-rejection.js';
 import type { LoopCompilationState } from './integer-loop-state.js';
 
 /** Pure builtins inlined as `Value name`; runtime entry rechecks their bindings. */
@@ -53,6 +54,16 @@ const inlineBuiltins = new Map<string, InlineBuiltin>([
     ['ceil', bound('ceil')],
 ]);
 
+// Code-size budget, not a numeric precision or array-size limit. Number array
+// accesses spend IDs on coordinate/bounds checks too; bounded-Y Euler 212
+// exhausted the old 256-ID budget. Fresh-process probes (see
+// benchmarks/euler212-compiler-budget-results.md) found that 1024 admits useful
+// medium regions while retaining fallback for a ~559 KB exact+Number expansion
+// whose preparation and short-run cost increased without a cap. This is a
+// conservative heuristic, not a universal optimum; the separate 128-statement
+// and per-expression inference budgets still apply.
+const MAX_LOOP_TEMPORARIES = 1024;
+
 /** Expression lowering records its required bindings on the current plan. */
 export function createLoopExpressions(state: LoopCompilationState, wide = false) {
     const {
@@ -62,6 +73,11 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     const numberMode = state.numberMode && !wide;
     const safe = wide ? (code: string) => code : state.safe;
 
+    function temporaryBudget(source: Expression): boolean {
+        if (state.serial <= MAX_LOOP_TEMPORARIES) return true;
+        recordCompilerRejection(describeCompilerRejection(state.numberMode ? 'number-loop' : 'loop', source, 'temporary-budget'));
+        return false;
+    }
     function container(name: string, kind: 'index' | 'deque' | 'set', integers = false): string | undefined {
         if (name.includes('.')) return undefined;
         const old = containers.get(name);
@@ -170,7 +186,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return lower(inferred.expression, lines) ?? reject(e);
     }
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[], selection?: { name: string; count: number }): LoopTerm | undefined {
-        if (state.serial > 256) return undefined;
+        if (!temporaryBudget(node.source)) return undefined;
         if (node.kind === 'group') return lower(node.operand, lines);
         if (node.kind === 'literal') {
             const value = node.value;
@@ -501,7 +517,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         return emit(e, lines, hint, tail);
     }
     function emitInput(e: Expression, lines: string[], hint?: LoopTerm['type'], tail = false): LoopValue | undefined {
-        if (state.serial > 256) return undefined;
+        if (!temporaryBudget(e)) return undefined;
         if (isNameExpression(e) && !e.name.includes('.')) {
             if (arrays.has(e.name)) return undefined;
             const type = localTypes.get(e.name) ?? (textSources.has(e.name) ? 'text' : hint ?? realInput(e.name) ?? 'integer');

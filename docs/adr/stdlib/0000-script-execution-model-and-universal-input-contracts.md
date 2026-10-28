@@ -38,8 +38,7 @@ flag Verbose = false
 
 ### 2. Declarative Input Contracts (`arg`, `flag`)
 Program inputs are declared as first-class statements guarded by `use cli`:
-- `arg Name Type [= Default]`: Declares a named option (maps to `--limit 10` on CLI or `Limit = 10` in workspace).
-- `arg Name Type [array] [= Default]`: Declares a positional argument. The `array` modifier collects remaining or repeated inputs into a rank-1 sequence.
+- `arg Name Type [array] [= Default]`: Declares a program input, passed by name or position on CLI or bound by name in the workspace. Named inputs bind first; positional values fill remaining declarations in order. The `array` modifier collects remaining or repeated inputs into a rank-1 array and must be the last input declaration.
 - `flag Name [= Boolean]`: Declares a boolean toggle (defaulting to `false` if omitted).
 - `path`: An input constraint validated as a valid file/directory path and represented as `text`.
 - **Automatic help text:** Contiguous `rem` lines immediately preceding an input declaration serve as its canonical documentation in `--help` output.

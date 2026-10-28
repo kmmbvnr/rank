@@ -28,7 +28,8 @@ describe('dense sum-of-squares blocks', () => {
         try {
             diagnostics.run(() => runtime.execute(`use numbers\n${block}\nAnswer = ${low} biclinic_block ${high}`));
             expect(runtime.variables.get('Answer')).toBe(oracle(low, high));
-            expect(diagnostics.numberLoops).toBe(2);
+            // Fresh local storage now spans both loops in one numeric prefix.
+            expect(diagnostics.numberLoops).toBe(1);
             expect(diagnostics.numberLoopOverflows).toBe(0);
             expect(diagnostics.typedUnpacks).toBe(0);
         } finally { runtime.dispose(); }

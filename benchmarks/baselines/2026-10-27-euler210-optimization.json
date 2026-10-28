@@ -1,0 +1,547 @@
+{
+  "baseCommit": "892e19e4904d04eca9f61467771311c70e00ebf5",
+  "environment": {
+    "platform": "macOS arm64",
+    "node": "v24.15.0"
+  },
+  "protocol": "Five alternating serial fresh processes per compiled main variant; three per reference main variant in a separate alternating cohort. No heavy work overlapped admitted samples. Imports and interpreter construction excluded. Whole-process peak RSS. Before runtime is final build with only the isqrt result metadata reverted. Original program reconstruction equals git HEAD source exactly. The first reference sample overlapped a small diagnostic run and was excluded; one serial replacement was admitted. The reference cohort therefore includes one replacement at the end.",
+  "samples": [
+    {
+      "args": [
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 8967.663583000001,
+      "rssMiB": 614.59375,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 3024.85475,
+      "rssMiB": 272.609375,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 2988.6250410000002,
+      "rssMiB": 241.234375,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping"
+    },
+    {
+      "args": [
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 9248.446333,
+      "rssMiB": 615.1875,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original"
+    },
+    {
+      "args": [
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 9259.55575,
+      "rssMiB": 617.609375,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 2936.857167,
+      "rssMiB": 241.609375,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 3058.1665829999997,
+      "rssMiB": 226.1875,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping"
+    },
+    {
+      "args": [
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 9261.374167,
+      "rssMiB": 619.0625,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original"
+    },
+    {
+      "args": [
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 9258.070917000001,
+      "rssMiB": 614.984375,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 3005.331417,
+      "rssMiB": 229.40625,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping"
+    },
+    {
+      "args": [
+        "--reference",
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 11298.507,
+      "rssMiB": 426.671875,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping-reference"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js",
+        "--original"
+      ],
+      "ms": 129.48141700000002,
+      "rssMiB": 169.984375,
+      "sourceHash": "9b61a814499b4cda04f644727eb33e5820d1779fd54a5298990a2b230a2514a8",
+      "tests": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 19.06404200000003
+        }
+      ],
+      "variant": "original-fixture"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 132.147375,
+      "rssMiB": 165.578125,
+      "sourceHash": "9b61a814499b4cda04f644727eb33e5820d1779fd54a5298990a2b230a2514a8",
+      "tests": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 22.498250000000013
+        }
+      ],
+      "variant": "shipping-fixture"
+    },
+    {
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--reference"
+      ],
+      "ms": 131.197,
+      "rssMiB": 171.546875,
+      "sourceHash": "9b61a814499b4cda04f644727eb33e5820d1779fd54a5298990a2b230a2514a8",
+      "tests": [
+        {
+          "name": "small radii",
+          "passed": true,
+          "output": [
+            "100",
+            "916",
+            "1022626"
+          ],
+          "durationMs": 17.85374999999999
+        }
+      ],
+      "variant": "shipping-fixture-reference"
+    }
+  ],
+  "controls": [
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 414.356167,
+      "rssMiB": 309.59375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "before"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 418.35974999999996,
+      "rssMiB": 382.765625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "after"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 420.989083,
+      "rssMiB": 379,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "after"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 419.23520800000006,
+      "rssMiB": 306.84375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "before"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 418.07308300000005,
+      "rssMiB": 313.125,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "before"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 418.03520799999995,
+      "rssMiB": 374.921875,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "after"
+    }
+  ],
+  "referenceSamples": [
+    {
+      "args": [
+        "--reference",
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 11073.879832999999,
+      "rssMiB": 429.21875,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping-reference"
+    },
+    {
+      "args": [
+        "--reference",
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 11568.160375,
+      "rssMiB": 430.328125,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping-reference"
+    },
+    {
+      "args": [
+        "--reference",
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 9264.704625,
+      "rssMiB": 619.015625,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original-reference"
+    },
+    {
+      "args": [
+        "--reference",
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 9472.258084000001,
+      "rssMiB": 615.375,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original-reference"
+    },
+    {
+      "args": [
+        "--reference",
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 11446.608832999998,
+      "rssMiB": 430.734375,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "shipping-reference"
+    },
+    {
+      "args": [
+        "--reference",
+        "--original",
+        "--runtime=/tmp/rank210-baseline-runtime/index.js"
+      ],
+      "ms": 8887.08375,
+      "rssMiB": 614.4375,
+      "answer": "1598174770174689458",
+      "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+      "tests": [],
+      "variant": "original-reference"
+    }
+  ],
+  "verification": {
+    "build": {
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tail": []
+    },
+    "focusedAndAudits": {
+      "logSha256": "b781c3ca34cb8d423b6a06a13ca7735f53f4226121f2199fc450f573258fc848",
+      "tail": [
+        "comparing euler/210_obtuse.ra",
+        "",
+        "stdout | test/differential.test.ts > compiled and reference demo execution > euler/210_obtuse_test.ra",
+        "comparing euler/210_obtuse_test.ra",
+        "",
+        "stdout | test/differential.test.ts > compiled and reference demo execution",
+        "differential: 2/1776 compared, 2 completed, 1 test blocks, 920 compiled entries, 0 Number loop entries",
+        "",
+        " \u2713 test/differential.test.ts (1777 tests | 1775 skipped) 22000ms",
+        "   \u2713 compiled and reference demo execution > euler/210_obtuse.ra  21942ms",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  36 passed | 3549 skipped (3585)",
+        "   Start at  19:45:23",
+        "   Duration  23.13s (transform 674ms, setup 0ms, collect 2.17s, tests 26.72s, environment 0ms, prepare 69ms)",
+        ""
+      ]
+    },
+    "ordinarySuite": {
+      "logSha256": "902830d58c35e9eb551c2b002a7b5ede3744477ce7fdf9383dac12346e3b74f3",
+      "tail": [
+        " \u2713 test/element-source.test.ts (5 tests) 5ms",
+        " \u2713 test/array-packed-read.test.ts (6 tests) 5ms",
+        " \u2713 test/membership-keys.test.ts (4 tests) 3ms",
+        " \u2713 test/type-audit-runner.test.ts (2 tests) 3ms",
+        " \u2713 test/debug-session.test.ts (3 tests) 2ms",
+        " \u2713 test/transpose-reader.test.ts (4 tests) 4ms",
+        " \u2713 test/table-revisions.test.ts (3 tests) 4ms",
+        " \u2713 test/array-traversal.test.ts (3 tests) 3ms",
+        " \u2713 test/native-array-storage.test.ts (2 tests) 2ms",
+        " \u2713 test/array-revisions.test.ts (5 tests) 3ms",
+        "",
+        " Test Files  401 passed (401)",
+        "      Tests  9091 passed (9091)",
+        "   Start at  19:46:00",
+        "   Duration  97.58s (transform 2.37s, setup 0ms, collect 123.14s, tests 227.86s, environment 29ms, prepare 9.74s)",
+        ""
+      ],
+      "scope": "401 files, 9091 ordinary interpreter tests; excludes exhaustive types/differential suites and Nurikabe; four scoped type/differential checks run separately."
+    },
+    "smallOracle": [
+      {
+        "prototype": false,
+        "compilation": false,
+        "smallOracleChecks": 20,
+        "fixture": [
+          {
+            "name": "small radii",
+            "passed": true,
+            "output": [
+              "100",
+              "916",
+              "1022626"
+            ],
+            "durationMs": 6.833416999999997
+          }
+        ]
+      },
+      {
+        "prototype": false,
+        "compilation": true,
+        "smallOracleChecks": 20,
+        "fixture": [
+          {
+            "name": "small radii",
+            "passed": true,
+            "output": [
+              "100",
+              "916",
+              "1022626"
+            ],
+            "durationMs": 6.3936669999999935
+          }
+        ]
+      }
+    ],
+    "smallOracleSource": "import assert from 'node:assert/strict';\nimport { readFileSync } from 'node:fs';\nimport { resolve,dirname } from 'node:path';\nconst original=readFileSync('/tmp/rank196-delivery/demos/euler/210_obtuse.ra','utf8');\nconst optimized=original.replace('  Gen += (Q - Xs * Xs) isqrt sum', \"  Part' = (Q - Xs * Xs) isqrt sum\\n  Gen += Part\");\nfunction oracle(r){let n=0,c=r/4;for(let x=-r;x<=r;x++)for(let y=-r+Math.abs(x);y<=r-Math.abs(x);y++){\n if(x===y)continue;\n if(c*(x+y)<0 || x*x+y*y-c*(x+y)<0 || 2*c*c-c*(x+y)<0)n++;\n}return String(n);}\nconst results=[];\nfor(const prototype of [false]){\n const {Interpreter}=await import(prototype?'/tmp/rank210-runtime/index.js':'/tmp/rank195-isolated/packages/interpreter/out/index.js');\n for(const compilation of [false,true]){\n  for(let radius=8;radius<=160;radius+=8){\n   const r=new Interpreter(()=>{}, {compilation});\n   try{\n   const src=(prototype?optimized:original).replace('arg R integer = 1000000000',`arg R integer = ${radius}`).replace(/arg Chunk integer = \\d+/,'arg Chunk integer = 3');\n   r.execute(src);const answer=String(r.variables.get('Answer'));assert.equal(answer,oracle(radius));\n   }finally{r.dispose();}\n  }\n  const file='/tmp/rank196-delivery/demos/euler/210_obtuse_test.ra';\n  const fixture=new Interpreter(()=>{}, {compilation,testing:true,sourceId:file,loadModule(specifier,from){const id=resolve(dirname(from??file),specifier+'.ra');return {id,source:specifier==='210_obtuse'?(prototype?optimized:original):readFileSync(id,'utf8')};}});\n  try{fixture.execute(readFileSync(file,'utf8'));assert.equal(fixture.testResults.length,1);assert(fixture.testResults.every(x=>x.passed));results.push({prototype,compilation,smallOracleChecks:20,fixture:fixture.testResults});}finally{fixture.dispose();}\n }\n}\nconsole.log(JSON.stringify(results));\n",
+    "diagnosticSmall": {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--R=1000000",
+        "--diag"
+      ],
+      "ms": 131.428334,
+      "rssMiB": 166.859375,
+      "answer": "1598174519142",
+      "sourceHash": "b476a3a07d6c42e16de978d77b569560fba79b79d6db86de2cf38b8c7b1a1522",
+      "tests": [],
+      "diagnostics": {
+        "memoHits": 0,
+        "memoMisses": 0,
+        "indexReads": 0,
+        "indexReadHits": 0,
+        "indexReadMisses": 0,
+        "indexWrites": 0,
+        "sequencePredicateCalls": 0,
+        "cellsComputed": 0,
+        "hoistedReaders": 0,
+        "loopElementScans": 0,
+        "nativeSequenceCopies": 0,
+        "compiledLoops": 0,
+        "compiledGeneratorLoops": 0,
+        "integerMembershipFilters": 0,
+        "compiledGraphAdds": 0,
+        "compiledEffectCalls": 0,
+        "numericSorts": 0,
+        "numericInPlaceSorts": 0,
+        "numericDistincts": 0,
+        "compiledDistincts": 0,
+        "numericUniqueSorts": 0,
+        "numericSearches": 0,
+        "numericSearchIndexes": 0,
+        "numberLoops": 0,
+        "exactLoopWorkSamples": 0,
+        "exactLoopWorkPromotions": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "numberLoopReadBuffers": 0,
+        "numberLoopReadBufferCells": 0,
+        "numberLoopReadBufferHits": 0,
+        "compiledTensors": 1,
+        "numberTensors": 0,
+        "compiledCounterBuilds": 0,
+        "compiledCounterSums": 0,
+        "compiledCounterKeys": 0,
+        "tensorMapPreparations": 1,
+        "compiledArrayFunctions": 0,
+        "rankedArrayBatches": 0,
+        "rankedBatches": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "bulkArrayWrites": 0,
+        "bulkArrayWriteCells": 0,
+        "fusedArrayUpdates": 0,
+        "fusedArrayUpdateCells": 0,
+        "fusedArrayUpdateWidenings": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0,
+        "elementTypeScans": 0,
+        "elementTypeScannedCells": 0,
+        "rangeSelectorViews": 0,
+        "selectionSnapshots": 0,
+        "selectionSnapshotCells": 0,
+        "typedUnpacks": 0,
+        "typedUnpackedCells": 0,
+        "fallbacks": {
+          "scalar-expression:too-small": 8,
+          "tensor:output-shape": 6,
+          "tensor:scalar-evaluation-timing": 3,
+          "scalar-expression:unsupported-op:isqrt": 2,
+          "scalar-expression:unsupported-node:ParenthesizedExpression": 2,
+          "scalar-expression:unsupported-op://": 2,
+          "tensor:binding:isqrt": 2,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 3,
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "tensor:deferred-binding:AssignmentStatement": 1,
+          "tensor:binding:Part": 1,
+          "scalar-expression:operator-guard:*": 1,
+          "scalar-expression:operator-guard:-": 1
+        },
+        "compilerRejections": []
+      }
+    },
+    "developmentNote": "First focused run had two test setup failures because the new opaque-host case omitted use sequences; corrected before the passing scoped run and full ordinary suite."
+  },
+  "hashes": {
+    "packages/interpreter/src/modules/numbers.ts": "605e6d9855369f677e4eabe140fa05164b667c3b015ea72f404aa50ff8d01dd2",
+    "packages/interpreter/test/integer-square-root.test.ts": "fbf1cc4a16242aa2762f2f1259a2e24c8173fe715aa672e90e9cc71a9b8ad67e",
+    "demos/euler/210_obtuse.ra": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+    "demos/euler/210_obtuse_test.ra": "9b61a814499b4cda04f644727eb33e5820d1779fd54a5298990a2b230a2514a8",
+    "benchmarks/euler210-obtuse.mjs": "6cecedf85be44d05c3c5ed109cb5156c4a3ed973c2b909c6827ef71703affbbb"
+  },
+  "excludedReferenceSample": {
+    "args": [
+      "--reference",
+      "--original",
+      "--runtime=/tmp/rank210-baseline-runtime/index.js"
+    ],
+    "ms": 9104.318041999999,
+    "rssMiB": 614.75,
+    "answer": "1598174770174689458",
+    "sourceHash": "d3bb07f9ebd35c011011d57c544b77d68fe1ef51839801b76d7c6598b341be5a",
+    "tests": [],
+    "variant": "original-reference",
+    "exclusionReason": "Overlapped a 0.15-second small diagnostic run; excluded conservatively."
+  }
+}

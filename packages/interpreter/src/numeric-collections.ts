@@ -1,9 +1,11 @@
+import { integerMaskSelection } from './array-mask-selection.js';
+import { prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { denseScalarItems, typedArray, ownedScalarArray, isSharedArray, sortStoredIntegerArray, integer32Cells, IntegerCells } from './array-storage.js';
 import { constructingTensorPlan, visitIntegerTensorMap } from './tensor-map.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { integerConcatCells } from './concat-array.js';
 import { checkpoint, interruptsEnabled, privateLoopPolling } from './interrupt.js';
-import { isRankArray, type RankArray, type RankValue } from './value.js';
+import { isRankArray, isRankSequence, type RankArray, type RankValue } from './value.js';
 
 const MIN_INT64 = -(1n << 63n), MAX_INT64 = (1n << 63n) - 1n;
 type NumericBuffer = BigInt64Array | Float64Array | Uint8Array;
@@ -314,4 +316,117 @@ export function numericDistinct(value: RankValue, countOnly = false): RankArray 
         return typedArray(out);
     }
     return ownedScalarArray(result, 'boolean');
+}
+
+/** Exact integer distinct sum, retaining ordinary floating-point fallback. */
+export function numericUniqueSum(value: RankValue): bigint | undefined {
+    const result = integerDistinctConsumer(value, 'sum');
+    return typeof result === 'bigint' ? result : undefined;
+}
+
+/** Shared consumers compose native slices, masks and integer arithmetic graphs. */
+export function integerDistinctConsumer(value: RankValue, terminal: 'array' | 'sum' | 'len'): RankValue | undefined {
+    if (!privateLoopPolling()) return undefined;
+    const view = isRankArray(value) && value.shape.length === 1 && !value.columnNames
+        ? prepareIntegerView(value, true) : undefined;
+    const selected = isRankSequence(value) ? integerMaskSelection(value) : undefined;
+    if (!view && !selected && !integerTensor(value)) return undefined;
+    const stored = view ? prepareStoredScalarView(value, true) : undefined;
+    const compact = stored?.linear && (!stored.validate || stored.validateUniform) ? stored.compact : undefined;
+    if ((compact || selected?.numberAt) && terminal === 'sum') {
+        const { offset, stride } = stored?.linear ?? { offset: 0, stride: 1 };
+        const length = selected?.length ?? view!.shape[0];
+        if (compact && length) stored!.validateUniform?.(BigInt(compact[offset]));
+        const seen = new Set<number>();
+        let partial = 0, sum = 0n;
+        for (let i = 0; i < length; i++) {
+            if ((i & 4095) === 0) checkpoint('summing distinct integers', 4096);
+            const cell = compact ? compact[offset + i * stride] : selected!.numberAt!(i);
+            if (seen.has(cell)) continue;
+            seen.add(cell);
+            const next = partial + cell;
+            if (Number.isSafeInteger(next)) partial = next;
+            else { sum += BigInt(partial); partial = cell; }
+        }
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.numericUniqueSums++;
+        return sum + BigInt(partial);
+    }
+    const seen = new Set<bigint | number | boolean>();
+    const items: bigint[] = [];
+    let sum = 0n;
+    const accept = (cell: bigint) => {
+        const key = numericKey(cell)!;
+        if (seen.has(key)) return;
+        seen.add(key);
+        if (terminal === 'array') items.push(cell);
+        else if (terminal === 'sum') sum += cell;
+    };
+
+    if (compact) {
+        for (let i = 0; i < view!.shape[0]; i++) {
+            if ((i & 4095) === 0) checkpoint('consuming distinct integers', 4096);
+            const key = compact[stored!.linear!.offset + i * stored!.linear!.stride];
+            if (i === 0) stored!.validateUniform?.(BigInt(key));
+            if (seen.has(key)) continue;
+            seen.add(key);
+            if (terminal === 'array') items.push(BigInt(key));
+        }
+    } else if (view || selected) {
+        const read = selected?.read ?? view!.read;
+        const length = selected?.length ?? view!.shape[0];
+        for (let i = 0; i < length; i++) {
+            if ((i & 4095) === 0) checkpoint('consuming distinct integers', 4096);
+            accept(read(i));
+        }
+    } else if (!visitIntegerTensorMap(value as RankArray, accept)) return undefined;
+    const diagnostics = currentDiagnostics();
+    if (diagnostics && terminal === 'sum') diagnostics.numericUniqueSums++;
+    return terminal === 'array' ? ownedScalarArray(items, 'integer') : terminal === 'sum' ? sum : BigInt(seen.size);
+}
+
+/** Bounded max heap: retain only the K smallest exact integers. */
+export function numericSmallest(value: RankValue, count: RankValue, distinct: boolean): RankValue | undefined {
+    const cells = numericCells(value);
+    const view = !cells && privateLoopPolling() && isRankArray(value) && value.shape.length === 1 && !value.columnNames
+        ? prepareIntegerView(value, true) : undefined;
+    const concat = !cells && !view && privateLoopPolling() && isRankArray(value) ? integerConcatCells(value) : undefined;
+    if ((!cells && !view && !concat) || typeof count !== 'bigint' || count < 0n || count > BigInt(Number.MAX_SAFE_INTEGER)) return undefined;
+    const compact = isRankArray(value) ? integer32Cells(value) : undefined;
+    if (cells && !compact) for (let i = 0; i < cells.length; i++) if (typeof cells[i] !== 'bigint') return undefined;
+    const length = cells?.length ?? view?.shape[0] ?? concat!.length;
+    const limit = Math.min(Number(count), length);
+    const heap: (bigint | number)[] = [], seen = distinct ? new Set<bigint | number>() : undefined;
+    for (let i = 0; i < length; i++) {
+        if ((i & 4095) === 0) checkpoint('selecting smallest integers', 4096);
+        const cell = compact ? compact[i] : cells ? cells[i] as bigint : view ? view.read(i) : concat!.read(i);
+        if (!limit || seen?.has(cell)) continue;
+        if (heap.length < limit) {
+            let at = heap.length;
+            heap.push(cell);
+            while (at > 0) {
+                const parent = (at - 1) >> 1;
+                if (heap[parent] >= cell) break;
+                heap[at] = heap[parent]; at = parent;
+            }
+            heap[at] = cell;
+        } else {
+            if (cell >= heap[0]) continue;
+            seen?.delete(heap[0]);
+            let at = 0;
+            while (at * 2 + 1 < heap.length) {
+                let child = at * 2 + 1;
+                if (child + 1 < heap.length && heap[child + 1] > heap[child]) child++;
+                if (heap[child] <= cell) break;
+                heap[at] = heap[child]; at = child;
+            }
+            heap[at] = cell;
+        }
+        seen?.add(cell);
+    }
+    const diagnostics = currentDiagnostics();
+    if (diagnostics) diagnostics.numericSmallestSelections++;
+    // Poll inside comparisons; unlike native typed sorting this also works interactively.
+    heap.sort((a, b) => { checkpoint('ordering smallest integers'); return a < b ? -1 : a > b ? 1 : 0; });
+    return ownedScalarArray(heap.map(BigInt), 'integer');
 }

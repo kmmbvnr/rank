@@ -1,74 +1,38 @@
 rem Totient Chains
 rem https://projecteuler.net/problem=214
-rem Add up the primes below Limit whose
-rem totient chain p, phi(p),
-rem phi(phi(p)), ... down to 1 has Len
-rem terms
+rem Sum primes below Limit with Len
+rem terms in their totient chain.
 
 use numbers
-use sequences
 use io
 use cli
-
 arg Limit integer = 40000000
 arg Len integer = 25
-arg Block integer = 1000000
-
-rem Let L(n) = 1 + L(phi(n)) be the
-rem number of terms. For a prime p, L(p)
-rem = 2 + L(phi(p - 1)) and phi(p - 1)
-rem is at most Limit / 2, so only L at
-rem even numbers up to Limit / 2 is
-rem kept: in Lt[n / 2], filled as phi
-rem comes from a sieve one block of
-rem numbers at a time.
-Root = Limit isqrt + 1
-Ps = primes till Root array
-Half = Limit // 2
-Lt = array shape (Half // 2 + 2) fill 0
-Lt 0 = 1
-Total = 0
-Step = Block - 1
-for Lo in 1 to (Limit - 1) by Step
-  Hi = (Lo + Block) min (Limit)
-  Phi = array shape (Hi - Lo + 1) fill 0
-  Rem = array shape (Hi - Lo + 1) fill 0
-  for K in 0 to (Hi - Lo)
-    Phi K = Lo + K
-    Rem K = Lo + K
-  end
-  for Q in Ps
-    From = (Lo + Q - 1) // Q * Q
-    for N in From to Hi by Q
-      Ix = N - Lo
-      Phi Ix -= Phi Ix // Q
-      for
-        if Rem Ix mod Q not equal 0
-          break
-        end
-        Rem Ix //= Q
-      end
-    end
-  end
-  for K in 0 to (Hi - Lo)
-    if Rem K greater 1
-      Phi K -= Phi K // Rem K
-    end
-  end
-  for K in 1 to (Hi - Lo - 1)
-    N = Lo + K
-    Even = N mod 2 equal 0
-    if Even and N at most Half
-      Lt (N // 2) = 1 + Lt (Phi K // 2)
-    end
-    if Phi K equal N - 1 and N greater 2
-      Pm = Phi (K - 1)
-      Steps = 2 + Lt (Pm // 2)
-      if Steps equal Len
-        Total += N
-      end
-    end
-  end
-end
-Answer = Total
+Answer = Limit totientchain_sum
 Answer print
+
+fun Bound totientchain_sum
+  Total = 0
+  rem Unprocessed cells hold phi(n).
+  rem Processed cells hold chain lengths.
+  rem Later primes only touch later cells.
+  Phi = array shape Bound fill 0
+  for N in 1 till Bound
+    Phi N = N
+  end
+  for N in 2 till Bound
+    Isprime = Phi N equal N
+    if Isprime
+      for K in N till Bound by N
+        Phi K -= Phi K // N
+      end
+    end
+    rem phi(N) < N: its length is ready.
+    Steps = 1 + Phi (Phi N)
+    Phi N = Steps
+    if Isprime and Steps equal Len
+      Total += N
+    end
+  end
+  return Total
+end

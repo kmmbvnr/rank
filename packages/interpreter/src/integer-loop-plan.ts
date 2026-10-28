@@ -1,5 +1,5 @@
 import type { RankDeque } from './containers.js';
-import type { Expression, ForStatement, Statement, CompiledLoopType } from '@arrrank/language';
+import type { Expression, ForStatement, FunctionStatement, Statement, CompiledLoopType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
 import type { Evaluation } from './execution.js';
@@ -94,7 +94,7 @@ export type CompiledLoop = {
 
 /** Analyzed loop requirements and lowered body; runtime binding never infers syntax. */
 export interface IntegerLoopPlan {
-    statement: ForStatement;
+    statement: ForStatement | FunctionStatement;
     names: string[];
     wideScalars: ReadonlySet<string>;
     arrays: Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>;

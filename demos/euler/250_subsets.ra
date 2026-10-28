@@ -6,6 +6,8 @@ rem divisible by M; give the last 16
 rem digits
 
 use numbers
+use bits
+use sequences
 use io
 use cli
 
@@ -13,21 +15,63 @@ arg N integer = 250250
 arg M integer = 250
 arg Mod integer = 10000000000000000
 
-rem Count the subsets by sum mod M. A
-rem number with residue r adds each old
-rem count to the one r places up.
-Cnt = array shape M fill 0
-Cnt 0 = 1
-Old = Cnt
-for K in 1 to N
-  R = K K M powmod
+rem Cyclic product modulo x^M - 1.
+rem Reduce after each exact dot product.
+fun A cyclic_product B M Mod
+  C = array shape M fill 0
   for S in 0 till M
-    Old S = Cnt S
+    Total = 0
+    for I in 0 till M
+      Total += A I * B ((S + M - I) mod M)
+    end
+    C S = Total mod Mod
   end
-  for S in 0 till M
-    From = (S + M - R) mod M
-    Cnt S = (Old S + Old From) mod Mod
+  return C
+end
+
+fun Start subset_counts Count M Mod
+  Cnt = array shape M fill 0
+  Old = array shape M fill 0
+  Cnt 0 = 1
+  for K in Start till (Start + Count)
+    R = K K M powmod
+    for S in 0 till M
+      Old S = Cnt S
+    end
+    for S in 0 till M
+      From = (S + M - R) mod M
+      Cnt S = (Old S + Old From) mod Mod
+    end
+  end
+  return Cnt
+end
+
+rem After k >= M, k^k mod M repeats
+rem every lcm(M, phi(M)) steps. Preserve
+rem the prefix, then raise one complete
+rem period by cyclic multiplication.
+Phi = M
+for P in (M factors array unique)
+  Phi = Phi // P * (P - 1)
+end
+Period = M lcm Phi
+Prefix = N
+if N greater M + Period
+  Prefix = M + (N - M) mod Period
+end
+Res = 1 subset_counts Prefix M Mod
+Q = (N - Prefix) // Period
+if Q greater 0
+  Base = (Prefix + 1) subset_counts Period M Mod
+  for Step in 1 to (Q binary len)
+    if Q mod 2 equal 1
+      Res = Res cyclic_product Base M Mod
+    end
+    Q = Q // 2
+    if Q greater 0
+      Base = Base cyclic_product Base M Mod
+    end
   end
 end
-Answer = (Cnt 0 - 1) mod Mod
+Answer = (Res 0 - 1) mod Mod
 Answer print

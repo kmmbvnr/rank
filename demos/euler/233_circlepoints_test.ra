@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes about 15 s.
+rem Exercise the full default limit.
 test "default input"
   use "233_circlepoints"
   run

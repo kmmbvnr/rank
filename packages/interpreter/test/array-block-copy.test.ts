@@ -65,6 +65,40 @@ Total`));
 });
 
 for (const compilation of [true, false]) describe(`concat block copies (compilation=${compilation})`, () => {
+    it.each(['int32', 'int64', 'real'] as const)('keeps explicit concat copies on the %s block kernel', kind => {
+        const runtime = new Interpreter(undefined, { compilation });
+        const a = kind === 'int32' ? Int32Array.from({ length: 1024 }, (_, i) => i % 2 ? 2147483647 : -2147483648)
+            : kind === 'int64' ? BigInt64Array.from({ length: 1024 }, (_, i) => i % 2 ? (1n << 63n) - 1n : -(1n << 63n))
+            : Float64Array.from({ length: 1024 }, (_, i) => i % 2 ? 1.5 : -0);
+        runtime.variables.set('A', typedArray(a));
+        runtime.variables.set('B', typedArray(a.slice()));
+        try {
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(() => runtime.execute('use sequences\nC = (concat A B) copy\nC')) as RankArray;
+            expect(result.shape).toEqual([2048]);
+            for (let i = 0; i < 2048; i++) expect(readArrayItem(result, i)).toEqual(
+                kind === 'int32' ? BigInt(a[i % 2]) : a[i % 2]);
+            expect(diagnostics.compiledTensors).toBe(0);
+            expect(diagnostics.cellsComputed).toBe(0);
+            expect(diagnostics.typedUnpacks).toBe(0);
+            if (compilation) expect(diagnostics.fallbacks['tensor:stored-concat-copy']).toBeGreaterThan(0);
+            runtime.execute(kind === 'real' ? 'C 0 = 3.5' : 'C 0 = 3');
+            expect(readArrayItem(runtime.variables.get('A') as RankArray, 0)).toEqual(kind === 'int32' ? -2147483648n : a[0]);
+        } finally { runtime.dispose(); }
+    });
+
+    it('retains cached tensor copies for tiny stored blocks', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        runtime.variables.set('A', typedArray(new Int32Array(64).fill(7)));
+        try {
+            const diagnostics = new RuntimeDiagnostics();
+            const result = diagnostics.run(() => runtime.execute('use sequences\nTotal = 0\nfor I in 1 to 3\n C = (concat A A) copy\n Total += C 127\nend\nTotal'));
+            expect(result).toBe(21n);
+            expect(diagnostics.compiledTensors).toBe(compilation ? 3 : 0);
+            expect(diagnostics.fallbacks['tensor:stored-concat-copy']).toBeUndefined();
+        } finally { runtime.dispose(); }
+    });
+
     it.each([0, 1, 2])('copies tensor blocks along axis %s and isolates later writes', axis => {
         const runtime = new Interpreter(undefined, { compilation });
         const shape = [4, 5, 6], other = [...shape];

@@ -6,6 +6,7 @@ rem Limit
 
 use io
 use cli
+use numbers
 
 arg Limit integer = 100000000
 
@@ -17,10 +18,13 @@ rem keeping b d within Limit / 2 and
 rem a / b below 1 / 100. Follow the left
 rem child in a loop and stack the right.
 Half = Limit // 2
-Sa = array shape 100000 fill 0
-Sb = array shape 100000 fill 0
-Sc = array shape 100000 fill 0
-Sd = array shape 100000 fill 0
+rem Pending right children have strictly
+rem increasing D and D^2 less Half.
+StackSize = (1 max Half) isqrt
+Sa = array shape StackSize fill 0
+Sb = array shape StackSize fill 0
+Sc = array shape StackSize fill 0
+Sd = array shape StackSize fill 0
 Top = 1
 Sb 0 = 1
 Sc 0 = 1
@@ -35,6 +39,17 @@ for Top greater 0
   Prod = B * D
   Low = A * 100 less B
   for Prod at most Half and Low
+    rem No more right children: count
+    rem D, D+B, ... by the midpoint bound.
+    rem B*C - A*D = 1, so a hit needs
+    rem D * (B - 100*A) greater 50.
+    if (B + D) * D greater Half
+      Last = Half // B
+      Threshold = 50 // (B - 100 * A)
+      First = D + (0 max ((Threshold - D) // B + 1)) * B
+      Answer += 0 max ((Last - First) // B + 1)
+      break
+    end
     Mid = (A * D + B * C) * 100
     if Mid less 2 * Prod
       Answer += 1

@@ -1,16 +1,44 @@
 import { safeIntegerSquareRoot } from './integer-square-root.js';
-import { isForStatement } from '@arrrank/language';
+import { isForStatement, isNameExpression } from '@arrrank/language';
 import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
-import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells } from './array-storage.js';
+import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 import type { CompiledLoop, IntegerLoopPlan, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
 type NumberCells = ArrayLike<number | bigint>;
 const overflow = {};
+/** Fresh local storage stays private until publication. In particular, a later
+ * allocation cannot replace the array retained as a previous iteration result. */
+class PrivateIntegerArray {
+    private published?: RankArray;
+    cells: Int32Array | Float64Array;
+    constructor(readonly shape: number[], fill: number) {
+        const size = Number(shape.reduce((product, dimension) => product * BigInt(dimension), 1n));
+        // Keep lengths outside the publishing backend's Array(length) range
+        // on the exact path, before allocating speculative typed cells.
+        if (size > 0xffffffff) throw overflow;
+        this.cells = fill === (fill | 0) ? new Int32Array(size).fill(fill) : new Float64Array(size).fill(fill);
+    }
+    value(): RankArray {
+        // No polling during publication: errors/cancellation publish all the
+        // completed stores and scalar bindings as one uninterrupted operation.
+        // TypedArray.from takes the iterable path for typed-array inputs and
+        // collects their values first. Index the numeric buffer directly so a
+        // large publication needs only its destination, not that temporary list.
+        return this.published ??= typedArray(this.cells instanceof Int32Array
+            ? this.cells : (() => {
+                const result = new BigInt64Array(this.cells.length);
+                for (let index = 0; index < result.length; index++) {
+                    result[index] = BigInt(this.cells[index]);
+                }
+                return result;
+            })(), this.shape);
+    }
+}
 function safe(value: number): number {
     if (!Number.isSafeInteger(value)) throw overflow;
     return value;
@@ -45,7 +73,8 @@ function divide(a: number, b: number): number {
     return safe(quotient - ((a < 0) !== (b < 0) && remainder !== 0 ? 1 : 0));
 }
 const rankValue = (value: unknown, type: string | undefined): RankValue | undefined =>
-    typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
+    value instanceof PrivateIntegerArray ? value.value()
+        : typeof value === 'number' && type === 'integer' ? BigInt(value) : value as RankValue | undefined;
 
 /** Only private scalar/cell writes and trusted eager reads qualify. Nothing is
  * published until success, so overflow can discard this attempt and enter the
@@ -54,29 +83,33 @@ const rankValue = (value: unknown, type: string | undefined): RankValue | undefi
 export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedback?: LoopWorkFeedback): CompiledLoop | undefined {
     const { names, localTypes, arrays, required, body, root, locations, statement } = plan;
     if (host.observableEntry || !host.canDeferWrites || plan.calls.some(call => !call.numberSafe) || plan.iterators.length || plan.containers.size
-        || plan.arrayDefinitions.size || plan.hasReturn || plan.hasYield
+        || plan.hasReturn || plan.hasYield
         || [...localTypes.values()].some(type => type !== 'integer' && type !== 'boolean' && type !== 'real')
         || [...arrays.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1)
         || [...plan.destinations.values()].some(info => !['integer', 'real', 'boolean'].includes(info.type ?? 'integer') || info.rank < 1 || info.slice)
         // A traversal must keep its original cells even when the same binding is
         // written. Other names have separate private buffers, preserving COW.
-        || plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]))) return undefined;
+        || plan.vectorIterations.some(({ slot }) => plan.destinations.has(names[slot]) || plan.arrayDefinitions.has(names[slot]))
+        // An entry read (including one on an unassigned branch) needs the old
+        // array and its ownership guards. Only definitely local fresh arrays
+        // qualify; aliases retain the exact backend.
+        || [...plan.arrayDefinitions].some(name => plan.arrayInputs.has(name))) return undefined;
     const cursor = plan.iteration?.names[0];
     const indexedPass = cursor !== undefined && !plan.writerNames.includes(cursor) && !locations.some(isForStatement) && !plan.vectorIterations.length;
     const storage = new Map<string, { slot: number; rank: number; type?: LoopTerm['type'] }>([...arrays, ...plan.destinations]);
     if (plan.vectorIterations.length && !host.declareIteration) return undefined;
     const written = new Set([...plan.writerNames, ...plan.binderNames]);
-    const bindings = [...written].map(name => [name, localTypes.get(name)!] as [string, 'integer' | 'real' | 'boolean']);
+    const bindings = [...written].map(name => [name, plan.arrayDefinitions.has(name) ? 'array' : localTypes.get(name)!] as [string, 'integer' | 'real' | 'boolean' | 'array']);
     const slots = [...written].map(name => names.indexOf(name));
     const registers = names.map((_, index) => `r${index} = input[${index}]`);
     for (const slot of slots) registers.push(`d${slot} = 0`);
     for (const info of storage.values()) {
         registers.push(`cells${info.slot} = cells[${info.slot}]`);
         if (info.rank > 1) for (let axis = 0; axis < info.rank; axis++) {
-            registers.push(`size${info.slot}_${axis} = input[${info.slot}].shape[${axis}]`);
+            registers.push(`size${info.slot}_${axis} = ${plan.arrayDefinitions.has(names[info.slot]) ? 'undefined' : `input[${info.slot}].shape[${axis}]`}`);
         }
     }
-    for (const info of plan.destinations.values()) registers.push(`changed${info.slot} = changes[${info.slot}]`);
+    for (const [name, info] of plan.destinations) if (!plan.arrayDefinitions.has(name)) registers.push(`changed${info.slot} = changes[${info.slot}]`);
     const publish = `publish(entered, [${slots.map(slot => `[d${slot}, ${slot}, r${slot}]`).join(',')}]);`;
     const source = `"use strict"; return function(input, cells, changes, calls, publish) {
         let ${registers.length ? `${registers.join(',')}, ` : ''}result, resultType = 'integer', location = -1, order = 0;
@@ -98,7 +131,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: ((arguments_: RankValue[]) => RankValue)[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
-    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', code)(
+    const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', code)(
             safe, int32, overflow, () => new RankError('division by zero'),
             () => new RankError('range step must be a nonzero integer'), checkpoint,
             (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]),
@@ -109,7 +142,8 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             () => new RankError('zero cannot be raised to a negative power'),
             () => new RankError('power result is not real'),
             (index: number | bigint, axis = 0) => index < 0 ? new RankError(`array index must be nonnegative on axis ${axis}`)
-                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower);
+                : new MissingValueError(`array index out of bounds on axis ${axis}: ${index}`), argumentSelectionError, safeIntegerSquareRoot, divide, power, widePower,
+            (size: number) => host.dimension(BigInt(size)), (shape: number[], fill: number) => new PrivateIntegerArray(shape, fill));
     try { run = compile(source); } catch { return undefined; }
     host.compiled?.(source);
     // Re-entered regions often read the same factorial/search tables. These
@@ -146,11 +180,32 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
         }
         let conditionWriteCells = 0;
-        if (!plan.iteration) for (const [name] of plan.destinations) {
+        if (!plan.iteration || plan.vectorIterations.some(vector => vector.binding === plan.iteration)) for (const [name] of plan.destinations) {
+            if (plan.arrayDefinitions.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array') return undefined;
             conditionWriteCells += value.shape.reduce((a, b) => a * b, 1);
         }
+        // A complete, unshortened vector pass has at least one checkpoint per
+        // cell. Keep its existing fast path when that work covers the copies.
+        // Early exits and sliced/derived traversals instead use measured work.
+        const iterable = plan.iteration?.iterable;
+        if (conditionWriteCells && !plan.hasControl && iterable && isNameExpression(iterable)) {
+            const value = host.read(iterable.name);
+            if (value && isRankArray(value)
+                && value.shape.reduce((a, b) => a * b, 1) >= conditionWriteCells) conditionWriteCells = 0;
+        }
+        // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
+        // the small-store fast path; larger stores get a bounded first probe.
+        // Mac M5 / Intel i7-10750H controls (Node 24.15.0) gave Euler 185 ~4x
+        // while work feedback cut 5000 short-call probes from 78 to 1. Repeated
+        // copying and overflow replay can still waste work, so retain the
+        // conservative 262144-cell cap; it is not a measured universal optimum.
+        // Measurements/tradeoffs: benchmarks/condition-loop-feedback-results.md.
+        // Euler 221 exposed short vector loops bypassing this policy: copying
+        // 960000 output cells per handful of divisors exceeded 90 s. Apply the
+        // same budget/feedback to those loops; full amortized passes stay fast.
+        // Controls: benchmarks/euler221-investigation.md.
         const probe = conditionWriteCells > 64;
         if (probe) {
             if (conditionWriteCells > 262144 || !feedback) return recordFallback('number-loop:condition-write-budget');
@@ -166,6 +221,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (diagnostics) diagnostics.numberLoopCopyProbes++;
         }
         for (const [name, info] of storage) {
+            if (plan.arrayDefinitions.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array' || value.itemAt !== undefined || value.shape.length !== info.rank) return undefined;
             const revision = arrayRevision(value);
@@ -230,6 +286,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             // commit exactly the preceding stores; no polling/callback may split
             // this publication from the scalar bindings below.
             for (const [name, info] of plan.destinations) {
+                if (plan.arrayDefinitions.has(name)) continue;
                 const dirty = changes[info.slot];
                 const first = dirty.indexOf(1);
                 if (first < 0) continue;

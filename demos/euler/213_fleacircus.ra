@@ -13,52 +13,54 @@ use cli
 arg N integer = 30
 arg Rings integer = 50
 
-rem Row s of D holds, for each flea of
-rem one quarter of the board, the chance
-rem that it is on square s; row Z is a
-rem zero pad that off-board neighbours
-rem point to. A ring gathers the four
-rem neighbours, each share split by the
-rem degree of its square. A square is
-rem empty when no flea is on it; the
-rem other quarters are mirror images.
-H = N // 2
-Z = N * N
-Fn = H * H
-Cell = 0 till Z array
-Rw = Cell // N
-Cl = Cell mod N
-Up' = (Rw at least 1) choose (Cell - N) Z
-Last = N - 1
-Dn' = (Rw less Last) choose (Cell + N) Z
-Lf' = (Cl at least 1) choose (Cell - 1) Z
-Rt' = (Cl less Last) choose (Cell + 1) Z
-Nb = concat Up Dn Lf Rt
-Real' = (Nb not equal Z) reshape 4 Z
-Deg' = Real count axis 0
-Inv' = 1 / Deg
-Fl = 0 till Fn array
-Home' = (Fl // H) * N + Fl mod H
-Hit' = (Cell reshape Z 1) equal Home
-Ones' = Fl - Fl + 1
-Wc' = (Inv reshape Z 1) * Ones
-Wt = Wc reshape (Z * Fn) copy
-Grid' = (Nb reshape (4 * Z) 1) * Fn + Fl
-Src = Grid reshape (4 * Z * Fn) copy
-Pad = array shape Fn fill 0.0
-Real0' = Hit choose 1.0 0.0
-D = Real0 reshape (Z * Fn)
-for R in 1 to Rings
-  Qz' = concat (D * Wt) Pad
-  G' = (Qz Src) reshape 4 (Z * Fn)
-  D = G sum axis 0 copy
+rem A lone flea stays on its only cell.
+Answer = 0.0
+if N not equal 1
+  rem Even boards need only a quarter of
+  rem the starting fleas. Odd boards use
+  rem every flea, including central axes.
+  H = N // 2
+  Odd = N mod 2
+  if Odd equal 1
+    H = N
+  end
+  Z = N * N
+  Fn = H * H
+  Cell = 0 till Z array
+  Rw = Cell // N
+  Cl = Cell mod N
+  Last = N - 1
+  Real' = (concat (Rw at least 1) (Rw less Last) (Cl at least 1) (Cl less Last)) reshape 4 Z
+  Deg = Real count axis 0
+  Inv = 1 / Deg
+  Fl = 0 till Fn array
+  Home' = (Fl // H) * N + Fl mod H
+  Hit' = (Cell reshape Z 1) equal Home
+  Ones' = Fl - Fl + 1
+  Wt = ((Inv reshape Z 1) * Ones) reshape (Z * Fn) copy
+  D = (Hit choose 1.0 0.0) reshape (Z * Fn)
+
+  rem Each source shares its probability
+  rem among neighbours. Shifts gather the
+  rem four shares without an index table.
+  for R in 1 to Rings
+    Q = (D * Wt) reshape N N Fn
+    Up' = Q shift 1 with 0.0 axis 0
+    Dn' = Q shift -1 with 0.0 axis 0
+    Lf' = Q shift 1 with 0.0 axis 1
+    Rt' = Q shift -1 with 0.0 axis 1
+    D = (Up + Dn + Lf + Rt) reshape (Z * Fn) copy
+  end
+  Dm' = D reshape Z Fn
+  Pq' = (1 - Dm) reduce * axis 1
+  Empty' = Pq
+  if Odd equal 0
+    M = Pq reshape N N
+    Mv = M reverse
+    Mh' = M reverse axis 1
+    Mb' = Mv reverse axis 1
+    Empty' = M * Mv * Mh * Mb
+  end
+  Answer = Empty sum round 6
 end
-Dm' = D reshape Z Fn
-Pq' = (1 - Dm) reduce * axis 1
-M = Pq reshape N N
-Mv = M reverse
-Mh' = M reverse axis 1
-Mb' = Mv reverse axis 1
-Empty' = M * Mv * Mh * Mb
-Answer = Empty sum round 6
 Answer print

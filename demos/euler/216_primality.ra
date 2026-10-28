@@ -1,22 +1,75 @@
-rem Investigating the primality of
-rem numbers of the form 2n^2 - 1
+rem Investigating the primality of 2n^2 - 1
 rem https://projecteuler.net/problem=216
-rem Count the n from 2 to Limit for
-rem which 2 n^2 - 1 is prime
-
+rem Count prime values for n from 2 to Limit.
 use numbers
-use sequences
 use io
 use cli
-
 arg Limit integer = 50000000
-
-rem Test each number for primality.
-Count = 0
-for N in 2 to Limit
-  if 2 * N * N - 1 in primes
-    Count += 1
+fun Bound count_primes
+  rem Every composite has a prime factor at most Root.
+  rem Its smaller root modulo that prime is at most Cut.
+  Root = (2 * Bound * Bound - 1) isqrt
+  Cut = (Root - 1) // 2
+  rem Keep residual factors in the prefix; the tail only
+  rem needs a flag, since all its factors are found here.
+  R = array shape (Cut + 1) fill 0
+  Tail = array shape (Bound - Cut) fill 1
+  Count = 0
+  for N in 2 to Cut
+    R N = 2 * N * N - 1
   end
+  for N in 2 to Cut
+    rem Earlier roots removed every smaller factor.
+    rem A remaining factor is prime; its roots are N and P-N.
+    P = R N
+    if P greater 1
+      if P equal 2 * N * N - 1
+        Count += 1
+      end
+      if N + P at most Cut
+        for K in N + P to Cut by P
+          for (R K) mod P equal 0
+            R K = R K // P
+          end
+        end
+      end
+      Other = P - N
+      if Other greater N and Other at most Cut
+        for K in Other to Cut by P
+          for (R K) mod P equal 0
+            R K = R K // P
+          end
+        end
+      end
+      rem Larger primes cannot be the smallest factor of
+      rem a composite in the tail.
+      if P at most Root
+        Start = N + P
+        if Start at most Cut
+          Start += (Cut - Start + P) // P * P
+        end
+        for K in Start to Bound by P
+          Tail (K - Cut - 1) = 0
+        end
+        if Other greater N
+          Start = Other
+          if Start at most Cut
+            Start += (Cut - Start + P) // P * P
+          end
+          for K in Start to Bound by P
+            Tail (K - Cut - 1) = 0
+          end
+        end
+      end
+    end
+  end
+  for N in ((Cut + 1) max 2) to Bound
+    Count += Tail (N - Cut - 1)
+  end
+  return Count
 end
-Answer = Count
+Answer = 0
+if Limit at least 2
+  Answer = Limit count_primes
+end
 Answer print

@@ -4,6 +4,7 @@ import { ownedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
+import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { applicationForm } from '@arrrank/language';
 import { checkpoint, interruptsEnabled, privateLoopPolling, InterruptedError } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -59,6 +60,13 @@ export type TensorCodeCache = Map<string, KernelRun>;
 export function compileNativeTensorReduction(root: TensorNode, operation: TensorReduction,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
     return build(root, operation, host, domains, false, code, true);
+}
+/** One source graph serves every cell of an axis fold. The frame index is a
+ * runtime argument; source-axis traversal remains in natural row-major order. */
+export function compileNativeTensorAxisReduction(root: TensorNode, operation: TensorReduction,
+    axes: readonly number[], domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>,
+    host: TensorKernelHost, code: TensorCodeCache) {
+    return build(root, operation, host, domains, false, code, true, undefined, undefined, axes);
 }
 /** Completion consumes native recipes at the existing binding boundary. */
 export function compileNativeTensorCopy(root: TensorNode,
@@ -309,7 +317,7 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
 
 function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false,
-    scan?: bigint | null, visit?: (cell: RankValue, index: number) => void) {
+    scan?: bigint | null, visit?: (cell: RankValue, index: number) => void, axes?: readonly number[]) {
     const scanning = scan !== undefined;
     const seeded = typeof scan === 'bigint';
     const outputDomain = domains.get(root);
@@ -356,7 +364,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         `${shape === undefined ? 's' : shape.join(',')}:${kind ?? ''}:${boolean}:${slot}:${storage ?? ''}:${scalarType ?? ''}`;
     let generated = '';
     let unavailable = false;
-    return { get source() { return generated; }, run(range?: TensorRange): RankValue | undefined {
+    return { get source() { return generated; }, run(range?: TensorRange, frame?: number): RankValue | undefined {
+        if (axes && (!privateLoopPolling() || frame === undefined || !Number.isSafeInteger(frame) || frame < 0)) return undefined;
         if (range && (!nativeGraph || terminal !== 'all' && terminal !== 'any')) return undefined;
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
         if (implicit && !privateLoopPolling()) return recordFallback('tensor:observable-expression');
@@ -412,16 +421,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     layout = selected;
                     generated = selected.source;
                     if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-                    const result = invoke(selected.execute, data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, range?.start, visit);
+                    const result = invoke(selected.execute, data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, frame ?? range?.start, visit);
                     return terminal === 'copy' && !visit && result !== undefined
                         ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape) : result as RankValue | undefined;
                 }
             }
         }
-        return bindRun(range);
+        return bindRun(range, frame);
     } };
 
-    function bindRun(range?: TensorRange): RankValue | undefined {
+    function bindRun(range?: TensorRange, frame?: number): RankValue | undefined {
         layout = undefined;
         const bound = new Map<TensorNode, Bound>();
         let broadcasts = false;
@@ -637,6 +646,25 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             return recordFallback('tensor:broadcast-selection');
         }
         const size = output.shape.reduce((p, n) => p * n, 1);
+        // Plain stored concat copies have a bulk kernel. Scalar emission boxes
+        // Int32 cells into BigInt (Euler 223). Small copies retain their cached
+        // tensor loop: 1000-copy probes put the crossover near 1024 output cells,
+        // matching the existing dense-kernel minimum, not the Number-loop budget.
+        if (!nativeGraph && terminal === 'copy' && root.kind === 'concat'
+            && size >= DENSE_MIN_CELLS && privateLoopPolling()) {
+            let storage: ArrayLike<RankValue> | undefined;
+            const stored = root.sources.every(node => {
+                if (node.kind !== 'input') return false;
+                const view = bound.get(node)?.view;
+                if (!view || view.kind !== 'integer' && view.kind !== 'real') return false;
+                const cells = view.items;
+                if (!(cells instanceof Int32Array || cells instanceof BigInt64Array || cells instanceof Float64Array)
+                    || storage && cells.constructor !== storage.constructor) return false;
+                storage = cells;
+                return true;
+            });
+            if (stored && storage) return recordFallback('tensor:stored-concat-copy');
+        }
         // Even an empty array must evaluate scalar subexpressions that can
         // fail, such as A * (1 // 0). Let the reference path locate that error.
         if (implicit && size === 0 && [...domains.keys()].some(node =>
@@ -906,7 +934,30 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
             const prefix = scanning ? `let accumulated = ${seeded ? `${scan}n` : '0n'}; ${seeded ? 'answer.set(0, accumulated);' : ''}` : '';
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit) { let answer = ${initial}, length = 0; ${prefix} for (let i = start; i < size; i++) { ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            let loop = 'for (let i = start; i < size; i++) {';
+            if (axes) {
+                const shape = output.shape;
+                const reduced = shape.map((_, axis) => axis).filter(axis => axes.includes(axis));
+                const frames = shape.map((_, axis) => axis).filter(axis => !axes.includes(axis));
+                const count = reduced.reduce((n, axis) => n * shape[axis], 1);
+                const offset = (index: string, selected: readonly number[]): string => {
+                    let stride = 1;
+                    const terms: string[] = [];
+                    for (let at = selected.length - 1; at >= 0; at--) {
+                        const axis = selected[at];
+                        const sourceStride = shape.slice(axis + 1).reduce((n, size) => n * size, 1);
+                        terms.push(`(Math.floor(${index} / ${stride}) % ${shape[axis]}) * ${sourceStride}`);
+                        stride *= shape[axis];
+                    }
+                    return terms.join(' + ') || '0';
+                };
+                const frameCount = frames.reduce((n, axis) => n * shape[axis], 1);
+                loop = `if (start >= ${frameCount}) return decline('tensor:axis-frame');
+                    const base = ${offset('start', frames)};
+                    for (let cell = 0; cell < ${count}; cell++) {
+                        const i = base + ${offset('cell', reduced)};`;
+            }
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit) { let answer = ${initial}, length = 0; ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -941,7 +992,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-        const result = invoke(execute!, data, offsets, scalars, range ? range.start + range.size : size, checks, routes, range?.start, visit);
+        const result = invoke(execute!, data, offsets, scalars, range ? range.start + range.size : size, checks, routes, frame ?? range?.start, visit);
         if (terminal === 'copy' && !visit && result !== undefined) {
             return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells,
                 scanning ? [size + (seeded ? 1 : 0)] : compact ? [(result as RankValue[]).length] : output.shape);

@@ -556,6 +556,21 @@ export function scalarFunctionResult(statement: FunctionStatement, blocks = fals
         }
         return env;
     }
+    // Seed a closed scalar return before visiting recursive calls. This is
+    // only a candidate: normal flow still checks every return and all paths.
+    // Do not read locals/captures or execute calls out of source order.
+    const terminal = statement.statements.at(-1);
+    if (loops && terminal && isReturnStatement(terminal) && terminal.value) {
+        const seed = inferCompiledExpression<CompiledScalarType, never>(terminal.value, {
+            atom: type => compiledScalarTypes.find(candidate => candidate === type),
+            read: () => undefined,
+            isBound: () => true,
+            operator: (operation, inputs) => matchCompiledOperatorSignature(operation.scalarFunction, inputs),
+            call: () => undefined,
+            budget: { remaining: 64 },
+        });
+        if (!seed.failure) resultType = seed.expression.type;
+    }
     const outcome = flow(statement.statements, new Map(settled));
     // Only constructor-owned slots can be written without an argument frame.
     // Reject aliases and every later assignment from a non-constructor source.

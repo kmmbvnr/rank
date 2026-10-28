@@ -67,29 +67,37 @@ end
 Mod = 20300713
 Start = 14025256
 Pw10 = 10 ** (7 to 0 by -1)
-Pw2 = 2 ** (0 to 31 array)
+rem 52-bit words stay within safe integer
+rem precision and halve the padded word
+rem array here compared with 32-bit words.
+Pw2 = 2 ** (0 to 51 array)
 Dw = 0
+Period = 0
 Cur = Start
 for
   for P in Pw10
     Dw += Cur // P mod 10
   end
+  Period += 1
   Cur = Cur * Cur mod Mod
   if Cur equal Start
     break
   end
 end
-Nw = Dw // 32 + 2
+Nw = Dw // 52 + 1
 Words = array shape Nw fill 0
 Words 0 = 1
+rem Reuse the measured period: this finite
+rem pass admits Number execution without
+rem the conditional-loop copy budget.
 Pre = 0
 Cur = Start
-for
+for Step in 1 to Period
   for P in Pw10
     Pre += Cur // P mod 10
     if Pre less Dw
-      Ix = Pre // 32
-      Bt = Pw2 (Pre mod 32)
+      Ix = Pre // 52
+      Bt = Pw2 (Pre mod 52)
       Old = Words Ix
       if Old // Bt mod 2 equal 0
         Words Ix = Old + Bt
@@ -97,9 +105,6 @@ for
     end
   end
   Cur = Cur * Cur mod Mod
-  if Cur equal Start
-    break
-  end
 end
 Nw = Words len
 Size = 1
@@ -110,14 +115,12 @@ for Step in 1 to 40
 end
 Pad = array shape (Size - Nw) fill 0
 Ws = concat Words Pad
-Width = 32
+Width = 52
 for Step in 1 to 40
   Nl = Ws len
   if Nl greater 1
-    Pair' = Ws reshape (Nl // 2) 2
-    Tr = Pair transpose
-    Lo' = Tr 0
-    Hi' = Tr 1
+    Lo' = Ws (0 till Nl by 2)
+    Hi' = Ws (1 till Nl by 2)
     Ws = Lo + (Hi shl Width)
     Width = Width * 2
   end

@@ -1,5 +1,5 @@
 import { mapPackedBooleanArrays } from './packed-booleans.js';
-import { chooseStoredIntegers, mapStoredIntegers } from './integer-array-kernel.js';
+import { chooseStoredIntegers, compareStoredInt32, mapStoredIntegers } from './integer-array-kernel.js';
 import { mapArrayCells } from './array-cell-mapping.js';
 import { mapScalarArrays } from './scalar-array-map.js';
 import { prepareDenseOperands, isArrayValue, numericKinds, DENSE_MIN_CELLS } from './tensor-operands.js';
@@ -76,6 +76,8 @@ export function mapDenseArrays(
     allowSmall = false,
     integerOperation = ['+', '-', '*'][realCode],
 ): RankArray | undefined {
+    const comparison = compareStoredInt32(left, right, integerOperation);
+    if (comparison) return comparison;
     const integers = mapStoredIntegers(left, right, integerOperation);
     if (integers) return integers;
     const operands = prepareDenseOperands(left, right, realCode, allowSmall);

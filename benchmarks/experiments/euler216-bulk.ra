@@ -1,0 +1,40 @@
+rem Research prototype: sieve polynomial values by their residual factors.
+rem Uses O(Limit) exact-integer cells; reference execution is slower.
+use numbers
+use io
+use cli
+arg Limit integer = 50000000
+fun Bound count_primes
+  R = 2 * (0 to Bound array) ** 2 - 1
+  Count = 0
+  for N in 2 to Bound
+    P = R N
+    if P greater 1
+      if P equal 2 * N * N - 1
+        Count += 1
+      end
+      Slice = N + P to Bound by P
+      R Slice //= P
+      Again = Slice (R Slice mod P equal 0)
+      for K in Again
+        for (R K) mod P equal 0
+          R K = R K // P
+        end
+      end
+      Other = P - N
+      if Other greater N
+        Slice = Other to Bound by P
+        R Slice //= P
+        Again = Slice (R Slice mod P equal 0)
+        for K in Again
+          for (R K) mod P equal 0
+            R K = R K // P
+          end
+        end
+      end
+    end
+  end
+  return Count
+end
+Answer = Limit count_primes
+Answer print

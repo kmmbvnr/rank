@@ -1,10 +1,12 @@
 import {
-    isHigherOrderOperator, isNameExpression, isNumberLiteral, isUnaryExpression,
+    isFunctionOperator, isNameExpression, isNumberLiteral, isUnaryExpression,
     type Expression,
 } from './generated/ast.js';
 import { flattenApplication } from './expressions.js';
 import type { FunctionCallSignature } from './function-call-signature.js';
 import { findOperation } from './operations.js';
+
+const HIGHER_ORDER_WORDS = new Set(['scan', 'reduce', 'segment', 'outer']);
 
 export interface FunctionPipelinePlan {
     readonly arities: readonly number[];
@@ -27,12 +29,15 @@ export function functionPipelinePlan(
     let error: string | undefined;
     for (let index = 0; index < parts.length;) {
         const head = parts[index++];
-        if (!isNameExpression(head) && !isHigherOrderOperator(head)) {
+        if (!isNameExpression(head)) {
             error = 'Implicit functions require an operation pipeline. Use explicit parameters for an expression body.';
             break;
         }
         const stage: Expression[] = [head];
-        const words = isNameExpression(head) ? declarations.get(head.name)?.words.map(group => group.word) ?? [] : [];
+        if (HIGHER_ORDER_WORDS.has(head.name) && isFunctionOperator(parts[index])) {
+            stage.push(parts[index++]);
+        }
+        const words = declarations.get(head.name)?.words.map(group => group.word) ?? [];
         // Operation parameters and rank/axis modifiers belong to this stage.
         while (index < parts.length) {
             const next = parts[index];
@@ -41,18 +46,21 @@ export function functionPipelinePlan(
                 if (index < parts.length) stage.push(parts[index++]);
                 if (next.name === 'rank' && numeric(parts[index])) stage.push(parts[index++]);
                 if (next.name === 'axis') while (numeric(parts[index])) stage.push(parts[index++]);
-            } else if (!isNameExpression(next) && !isHigherOrderOperator(next)) stage.push(parts[index++]);
+            } else if (!isNameExpression(next)) stage.push(parts[index++]);
             else break;
         }
         stages.push(stage);
     }
-    const entry = isHigherOrderOperator(first) ? [1]
+    const isSymbolicHigherOrder = (stage: readonly Expression[] | undefined) =>
+        !!stage && isNameExpression(stage[0]) && HIGHER_ORDER_WORDS.has(stage[0].name) && isFunctionOperator(stage[1]);
+    const entry = isSymbolicHigherOrder(stages[0]) ? [1]
         : isNameExpression(first) ? arities(first.name) ?? [] : [];
     const fixed = (stage: Expression[]) => {
         let count = 0;
         const head = stage[0];
         const words = isNameExpression(head) ? declarations.get(head.name)?.words.map(group => group.word) ?? [] : [];
-        for (let index = 1; index < stage.length; index++) {
+        const start = isSymbolicHigherOrder(stage) ? 2 : 1;
+        for (let index = start; index < stage.length; index++) {
             const part = stage[index];
             if (isNameExpression(part) && ['rank', 'axis', 'with', ...words].includes(part.name)) {
                 index++;
@@ -73,7 +81,7 @@ export function functionPipelinePlan(
     const signature = stageArities(stages[0] ?? [], entry);
     for (const stage of stages.slice(1)) {
         const head = stage[0];
-        const supported = isHigherOrderOperator(head) ? [1]
+        const supported = isSymbolicHigherOrder(stage) ? [1]
             : isNameExpression(head) ? arities(head.name) : undefined;
         if (supported && !stageArities(stage, supported).includes(1)) error = `Pipeline stage ${isNameExpression(head) ? head.name : 'operation'} must accept one value; use explicit parameters for additional operands.`;
     }

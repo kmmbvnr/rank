@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes minutes.
+rem Keep the full default in the manual execution lane.
 test "small limits"
   use "216_primality"
   Limit = 100
@@ -11,4 +11,20 @@ test "small limits"
   run
 
   Answer equal 2202
+end
+
+test "empty limits and repeated prime factors"
+  use "216_primality"
+  Limit = 0
+  run
+  Answer equal 0
+  Limit = 1
+  run
+  Answer equal 0
+  Limit = 2
+  run
+  Answer equal 1
+  Limit = 5
+  run
+  Answer equal 3
 end

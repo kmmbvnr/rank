@@ -7,12 +7,12 @@ import { groupInfixRank, groupModifiers } from './modifier-grouping.js';
 import { AstUtils, GrammarUtils, isAstNode, type AstNode, type CstNode } from 'langium';
 import {
     isArrayAssignmentStatement, isAssignmentStatement, isOperationAssignmentStatement,
-    isFunctionStatement, isForStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isHigherOrderOperator, isMaterializeExpression,
-    isAllAxisExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression, isFunctionOperator, type HigherOrderOperator,
+    isFunctionStatement, isForStatement, isApplicationExpression, isArrayExpression, isBinaryExpression, isExpression, isFunctionBindingStatement, isMaterializeExpression,
+    isAllAxisExpression, isLabelLiteral, isNameExpression, isNumberLiteral, isUnaryExpression, isFunctionOperator, type FunctionOperator,
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
-import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped, markPlacedOperands, hasPlacedOperands } from './expressions.js';
+import { attachedSign, flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped, markPlacedOperands, hasPlacedOperands } from './expressions.js';
 import { findOperation, operationArities, type Operation } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
 
@@ -31,16 +31,6 @@ const modifiers = new Set(['repeat', 'axis', 'rank', 'outer', 'segment', 'scan',
 const higherOrder = new Set(['scan', 'reduce', 'segment', 'outer']);
 /** Words after a higher-order operation that are its own parameters, not the function. */
 const higherOrderParameters = new Set(['with', 'axis', 'rank']);
-const wordOperators: Readonly<Record<string, string>> = {
-    'not equal': 'notequal', 'at least': 'atleast', 'at most': 'atmost',
-};
-
-/** Split the joined `scan +` token into the operation name and its combining operator. */
-function higherOrderParts(part: HigherOrderOperator): { name: string; operator: string } {
-    const [name, ...rest] = part.text.split(/[\t ]+/);
-    const operator = rest.join(' ');
-    return { name, operator: wordOperators[operator] ?? operator };
-}
 
 export interface GroupingDiagnostic {
     readonly message: string;
@@ -79,15 +69,6 @@ export function requiresDataOperand(expression: Expression): boolean {
 }
 export function expressionDiagnostics(program: Program): readonly GroupingDiagnostic[] {
     return (program as AnnotatedProgram)[grouping]?.diagnostics ?? [];
-}
-
-/** A `-` after whitespace and before its operand, as in `A -1`, is a sign; `A - 1` and `A-1` subtract. */
-function attachedSign(expression: BinaryExpression): boolean {
-    if (expression.operator !== '-') return false;
-    const operator = GrammarUtils.findNodeForProperty(expression.$cstNode, 'operator');
-    if (!operator) return false;
-    const text = operator.root.fullText;
-    return /\s/.test(text[operator.offset - 1] ?? '') && !/\s/.test(text[operator.end] ?? ' ');
 }
 
 export interface GroupingOptions {
@@ -207,7 +188,7 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
     function hasCall(expression: Expression): boolean {
         if (isMaterializeExpression(expression)) return true;
         if (isApplicationExpression(expression)) return flatten(expression).slice(1)
-            .some(part => callable(part) || isHigherOrderOperator(part)
+            .some(part => callable(part)
                 || (isNameExpression(part) && symbolic.has(part.name)));
         return isBinaryExpression(expression) && !!precedence[expression.operator]
             && (hasCall(expression.left) || hasCall(expression.right));
@@ -322,8 +303,8 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const literal = isArrayExpression(tail) && !tail.range && !tail.dimensions.length && !tail.rows.length
                 && !tail.items[0]?.sign ? tail : undefined;
             const word = literal?.items[0]?.value;
-            if (literal && word && (callable(word) || isHigherOrderOperator(word)
-                || isNameExpression(word) && higherOrder.has(word.name) && standard(word))) {
+            if (literal && word && (callable(word)
+                || isNameExpression(word) && higherOrder.has(word.name) && (standard(word) || isFunctionOperator(literal.items[1]?.value)))) {
                 const source = { $type: 'MaterializeExpression', $cstNode: expression.$cstNode,
                     source: application(ungrouped.slice(0, -1), expression) } as Expression;
                 return tokens(application([source, ...literal.items.map(item => item.value)], expression));
@@ -345,15 +326,22 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             const raw = groupDeclaredCalls(ungrouped,
                 part => repeated.has(part) || binaryCall(part) ? undefined : declaredSignature(part),
                 callable, (part, message) => report(part, message));
-            const joined = raw.findIndex(part => isHigherOrderOperator(part));
-            if (joined > 0) {
+            const joined = raw.findIndex((part, index) => isNameExpression(part)
+                && higherOrder.has(part.name) && isFunctionOperator(raw[index + 1]));
+            if (joined === 0) {
+                const name = (raw[0] as NameExpression).name;
+                const operator = (raw[1] as FunctionOperator).operator;
+                report(raw[0], `\`${name} ${operator}\` needs the values it applies to on its left.`);
+            } else if (joined > 0) {
                 // `A scan + with 0` is the call form `A scan + with 0` that grouping and execution share.
-                const { name, operator } = higherOrderParts(raw[joined] as HigherOrderOperator);
+                const name = (raw[joined] as NameExpression).name;
+                const operator = (raw[joined + 1] as FunctionOperator).operator;
                 if (!standard(name)) {
                     report(raw[joined], `\`${name}\` is rebound in this program, so \`${name} ${operator}\` cannot name the standard operation.`);
                 }
                 const nameExpression = { $type: 'NameExpression', name, $cstNode: raw[joined].$cstNode } as Expression;
-                const call = application([nameExpression, ...raw.slice(joined + 1)], expression);
+                if (raw[joined + 1].$cstNode) (raw[joined + 1].$cstNode as { astNode: AstNode }).astNode = nameExpression;
+                const call = application([nameExpression, ...raw.slice(joined + 2)], expression);
                 const original = { $type: 'BinaryExpression', operator, left: raw[0], right: call,
                     $cstNode: expression.$cstNode } as BinaryExpression;
                 return [...tokens(application(raw.slice(0, joined), expression)), { kind: 'symbolic', original }];
@@ -567,9 +555,6 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
                 errors.push(...groupExpressions(wrapped, options).diagnostics);
             }
             return node;
-        }
-        if (isHigherOrderOperator(node)) {
-            report(node, `\`${node.text}\` needs the values it applies to on its left.`);
         }
         if (isNameExpression(node) && !node.name.includes('.')) {
             const binding = metadata(node);

@@ -7,7 +7,7 @@ import { currentDiagnostics } from './diagnostics.js';
 import { prepareNativeScalarView, prepareIntegerView, prepareStoredScalarView } from './integer-view.js';
 import { arrayRevision } from './array-revision.js';
 import { registerMappedArrayRange } from './range-plan.js';
-import { compileNativeIntegerScan, compileNativeTensorCopy, compileNativeTensorVisit, compileNativeTensorReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
+import { compileNativeIntegerScan, compileNativeTensorCopy, compileNativeTensorVisit, compileNativeTensorReduction, compileNativeTensorAxisReduction, type TensorCodeCache, type TensorKernelHost, type TensorNode, type TensorReduction, type TensorRange } from './tensor-kernel.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
 
 interface MapRecipe {
@@ -133,6 +133,39 @@ export function reduceTensorMap(value: RankArray, operation: string): RankValue 
     return consumeTensorMap(value, operation);
 }
 
+/** Prepare at first demand, then reuse proofs and code across the frame. This
+ * retains recipes, never computed cells; each invocation still checks guards. */
+export function prepareTensorAxisReduction(value: RankArray, operation: string, axes: readonly number[]):
+    ((frame: number) => RankValue | undefined) | undefined {
+    if (!reductions.has(operation)) return undefined;
+    const prepare = () => {
+        const graph = prepareTensorGraph(value);
+        if (!graph?.transformed) return undefined;
+        const { root, domains, host, scope } = graph;
+        const diagnostics = currentDiagnostics();
+        if (diagnostics) diagnostics.tensorMapPreparations++;
+        const kernel = compileNativeTensorAxisReduction(root, operation as TensorReduction, axes, domains, host, scope.code);
+        return (frame: number) => {
+            if (!consumerCompilation || !scope.enabled()) return undefined;
+            const result = kernel.run(undefined, frame);
+            if (result !== undefined) scope.executed();
+            return result;
+        };
+    };
+    let run = prepare();
+    if (!run) return undefined;
+    let refreshed = false;
+    return frame => {
+        const result = run?.(frame);
+        if (result !== undefined || refreshed) return result;
+        // Lazy contract refinement may invalidate the first graph. Retry only
+        // once, as for contiguous boolean folds, without weakening any guard.
+        refreshed = true;
+        run = prepare();
+        return run?.(frame);
+    };
+}
+
 /** Only native integer graphs may feed a private collection consumer. A decline
  * discards its private state before ordinary traversal starts. */
 export function visitIntegerTensorMap(value: RankArray, visit: (cell: bigint) => void): boolean {
@@ -157,8 +190,19 @@ function consumeTensorMap(value: RankArray, operation: string): RankValue | unde
 /** One native graph serves contiguous boolean cells, without completing later cells. */
 export function prepareTensorBooleanRange(value: RankArray, operation: 'all' | 'any'):
     ((start: number, size: number) => RankValue | undefined) | undefined {
-    const run = prepareTensorMap(value, operation);
-    return run && ((start, size) => run({ start, size }));
+    let run = prepareTensorMap(value, operation);
+    if (!run) return undefined;
+    let refreshed = false;
+    return (start, size) => {
+        const result = run?.({ start, size });
+        if (result !== undefined || refreshed) return result;
+        // The first demand may refine a lazy binding contract and invalidate
+        // this graph's revision guards. Refresh once, retaining every guard;
+        // unsupported graphs still fall back without a retry on every row.
+        refreshed = true;
+        run = prepareTensorMap(value, operation);
+        return run?.({ start, size });
+    };
 }
 
 function prepareTensorGraph(value: RankArray) {

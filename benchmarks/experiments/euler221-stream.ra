@@ -1,0 +1,33 @@
+rem Alexandrian Integers
+rem https://projecteuler.net/problem=221
+rem Find the Nth positive integer
+rem A = p q r with 1/A = 1/p + 1/q + 1/r
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 150000
+arg Limit integer = 80000
+
+rem Every Alexandrian integer is p q r
+rem with q = p + d, r = p + (p^2+1) / d
+rem for a divisor d of p^2 + 1 up to p.
+rem For p above Limit it exceeds
+rem 4 Limit^3, above the Nth value.
+Out = array shape (12 * Limit) fill 0
+At = 0
+for P in 1 to Limit
+  Value = P * P + 1
+  for D in Value divisors
+    if D greater P
+      break
+    end
+    Out At = P * (P + D) * (P + Value // D)
+    At += 1
+  end
+end
+Sorted = Out take At sort
+Answer = Sorted (N - 1)
+Answer print

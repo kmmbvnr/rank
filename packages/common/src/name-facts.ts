@@ -356,8 +356,11 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
         }
     }
     if (isNameExpression(node)) {
-        if (['outer', 'segment', 'maxsum'].includes(node.name) && (text === node.name || text.split(/\s+/)[0] === node.name)) {
-            return { name: text.replace(/\s+/g, ' '), node, kind: 'form' };
+        if (['outer', 'segment', 'maxsum'].includes(node.name)) {
+            const container = node.$container as AstNode | undefined;
+            const parent = isApplicationExpression(container) ? container.$container as AstNode | undefined : container;
+            const binary = isBinaryExpression(parent) && flattenApplication(parent.right)[0] === node ? parent : undefined;
+            return { name: binary ? `${node.name} ${binary.operator}` : node.name, node, kind: 'form' };
         }
         return node.name === text ? { name: text, node, kind: loopOf(node) ? 'loop' : 'read' } : undefined;
     }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { integerSquareRoot } from '../src/integer-square-root.js';
 import { ownedArray } from '../src/array-storage.js';
-import { Interpreter, formatValue, isRankArray, type NativeFunction } from '../src/index.js';
+import { Interpreter, RuntimeDiagnostics, formatValue, isRankArray, type NativeFunction, type RankArray } from '../src/index.js';
 import { InterruptedError, withInterrupt, type InterruptSignal } from '../src/interrupt.js';
 import { numbersModule } from '../src/modules/numbers.js';
 import type { RuntimeContext } from '../src/modules/types.js';
@@ -214,6 +214,103 @@ end
             expect(() => runtime.execute('Roots 2')).toThrow('isqrt expects a nonnegative integer');
             const roots = demandValue(runtime.variables.get('Roots')!);
             expect(isRankArray(roots!)).toBe(true);
+        } finally { runtime.dispose(); }
+    });
+});
+
+describe('deferred square-root consumers', () => {
+    it.each([false, true])('sums an exact wide-integer recipe (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        const diagnostics = new RuntimeDiagnostics();
+        const q = 31249999999999999n;
+        let expected = 0n;
+        for (let x = 125000000n; x <= 125002047n; x++) expected += newton(q - x * x);
+        try {
+            const result = diagnostics.run(() => runtime.execute(`use numbers
+use sequences
+Xs = 125000000 to 125002047 array
+Total' = (31249999999999999 - Xs * Xs) isqrt sum
+Total`));
+            expect(result).toBe(expected);
+            if (compilation) expect(diagnostics.compiledTensors).toBeGreaterThan(0);
+            else expect(diagnostics.compiledTensors).toBe(0);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('keeps unused plans and later domain errors lazy (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute(`use numbers
+use sequences
+A = array 4 9 -1
+Roots' = (A + 0) isqrt
+Unused' = (A - 100) isqrt sum`);
+            expect(runtime.execute('Roots 1')).toBe(3n);
+            expect(() => runtime.execute('Before = 7\nFailed = Roots sum\nAfter = 9'))
+                .toThrow('isqrt expects a nonnegative integer');
+            expect(runtime.variables.get('Before')).toBe(7n);
+            expect(runtime.variables.has('Failed')).toBe(false);
+            expect(runtime.variables.has('After')).toBe(false);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('keeps completed results independent of later writes (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            expect(runtime.execute(`use numbers
+use sequences
+A = array 4 9 16
+Roots' = (A + 0) isqrt
+Saved = Roots
+Saved 0 = 99
+Roots sum`)).toBe(9n);
+            expect(runtime.execute('Saved sum')).toBe(106n);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('retains user overrides in a deferred recipe (compilation=%s)', compilation => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            expect(runtime.execute(`use sequences
+fun X isqrt
+ return X + 10
+end
+A = 1 to 2048 array
+Total' = (A + 0) isqrt sum
+Total`)).toBe(2118656n);
+        } finally { runtime.dispose(); }
+    });
+
+    it.each([false, true])('retains demand order for opaque host cells (compilation=%s)', compilation => {
+        const reads: number[] = [];
+        const host: RankArray = { kind: 'array', shape: [3], items: [], itemAt(index) {
+            reads.push(index);
+            if (index === 2) throw new Error('later host cell');
+            return index === 0 ? 4n : 9n;
+        } };
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.variables.set('Host', host);
+            runtime.execute("use numbers\nuse sequences\nRoots' = (Host + 0) isqrt");
+            expect(reads).toEqual([]);
+            expect(runtime.execute('Roots first')).toBe(2n);
+            expect(reads.every(index => index === 0)).toBe(true);
+            expect(() => runtime.execute('Roots sum')).toThrow('later host cell');
+        } finally { runtime.dispose(); }
+    });
+
+    it('can cancel a native reduction and retry the same plan exactly', () => {
+        const runtime = new Interpreter();
+        const signal = new Int32Array(new SharedArrayBuffer(4));
+        try {
+            runtime.execute(`use numbers
+use sequences
+A = 1 to 10000 array
+Total' = (A * A) isqrt sum`);
+            const plan = runtime.variables.get('Total')!;
+            Atomics.store(signal, 0, 1);
+            expect(() => withInterrupt(signal, () => demandValue(plan))).toThrow(InterruptedError);
+            expect(demandValue(plan)).toBe(50005000n);
         } finally { runtime.dispose(); }
     });
 });

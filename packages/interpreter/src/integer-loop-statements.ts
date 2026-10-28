@@ -33,6 +33,16 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
         written.add(assignment.name);
         writers.push(host.writer(assignment.name)); writerNames.push(assignment.name);
         const completed = `completed${state.serial++}`;
+        if (numberMode) {
+            if (type !== 'integer') return reject(assignment);
+            body.push(`location = ${location};`, ...lines,
+                `const ${completed} = ${value};`, dirty(destination),
+                `r${destination} = ${completed}; cells${destination} = cells[${destination}] = ${completed}.cells;`,
+                ...Array.from({ length: rank > 1 ? rank : 0 }, (_, axis) => `size${destination}_${axis} = ${completed}.shape[${axis}];`),
+                `iterationResult = ${completed}; iterationType = 'array';`);
+            assigned.add(assignment.name);
+            return true;
+        }
         body.push(`location = ${location};`, ...lines,
             `const ${completed} = materializeValue(${value});`,
             `writers[${index}](${completed}); r${destination} = ${completed}; storage${destination} = access(${completed}); reader${destination} = read(storage${destination}, stableReads, ${rank}); write${destination} = write(storage${destination}, batchWrites); iterationResult = ${completed};`);
@@ -232,14 +242,17 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                             dimensions.push(name);
                         }
                         const shape = `shape${state.serial++}`, size = `size${state.serial++}`;
-                        lines.push(`const ${shape} = [${dimensions.join(',')}];`,
-                            `const ${size} = ${shape}.reduce((a,b) => a * BigInt(b), 1n);`);
+                        lines.push(`const ${shape} = [${dimensions.join(',')}];`);
+                        if (!numberMode) lines.push(`const ${size} = ${shape}.reduce((a,b) => a * BigInt(b), 1n);`);
                         const fill = emit(expression.fill, lines);
                         if (!fill || fill.type === 'text' && (!host.nativeCalls || !host.textArrayLoops) || fill.type === 'bytes' || fill.type === 'boolean' && !host.booleanArrays) return reject(assignment);
                         rank = dimensions.length; type = fill.type;
                         value = `created${state.serial++}`;
-                        lines.push(`const ${value} = ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true);`);
+                        lines.push(`const ${value} = ${numberMode ? `createArray(${shape}, ${fill.code})` : `ownedArray(Array(Number(${size})).fill(${fill.code}), ${shape}, true)`};`);
                     } else {
+                        // Local aliases require per-store COW, beyond private
+                        // numeric buffers. Keep their existing exact fallback.
+                        if (numberMode) return reject(assignment);
                         if (!isNameExpression(expression) || !source) return reject(assignment);
                         const name = expression.name;
                         if (!assigned.has(name)) arrayInputs.add(name);

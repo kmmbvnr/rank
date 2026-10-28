@@ -1259,7 +1259,7 @@ arg Numbers integer array
 flag Verbose
 ```
 
-`array` collects the remaining or repeated values into a sequence. A declaration
+`array` collects remaining positional values or repeated named values into a rank-one array and must be the last `arg` declaration. Named inputs bind first; positional inputs fill the remaining declarations in order. A declaration
 without a default is required. Contiguous `rem` lines immediately above an input
 declaration provide its help text.
 

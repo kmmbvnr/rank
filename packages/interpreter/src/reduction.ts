@@ -15,7 +15,7 @@ import { numericKernel } from './numeric-kernels.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { dyadicCells, tensorCells } from './rank-application.js';
 import { reduceWindowCell, scanSequence } from './sequence.js';
-import { prepareTensorBooleanRange, reduceTensorMap, scanTensorMap } from './tensor-map.js';
+import { prepareTensorAxisReduction, prepareTensorBooleanRange, scanTensorMap } from './tensor-map.js';
 import { isNativeFunction, isRankArray, isRankSequence, valueRank,
     type NativeFunction, type RankArray, type RankValue } from './value.js';
 
@@ -398,11 +398,9 @@ export class ReductionEvaluator {
         // worked out once for the reduced axes instead of once per cell.
         const stored = denseScalarItems(value);
         const producer = arrayCells(value) ? tensorCells(value, frameAxes) : undefined;
-        // Reuse checked scalar views so native terminals see the original map.
-        // Boolean folds consume the same view in reference mode to short-circuit
+        // Boolean folds consume the same checked view in reference mode to short-circuit
         // within each cell, just as a whole-array fold does.
-        const scalarCells = !producer && reducedAxes.length > 0
-            && (booleanFold || builtin && this.isTensorFusion()) ? tensorCells(value, frameAxes) : undefined;
+        const scalarCells = !producer && booleanFold && reducedAxes.length > 0 ? tensorCells(value, frameAxes) : undefined;
         let reducedOffsets: Int32Array | undefined;
         if (stored && reducedSize <= MAX_OFFSET_TABLE) {
             reducedOffsets = new Int32Array(reducedSize);
@@ -414,7 +412,18 @@ export class ReductionEvaluator {
             && reducedAxes.every((axis, i) => axis === value.shape.length - reducedAxes.length + i);
         let rangePrepared = false;
         let booleanRange: ReturnType<typeof prepareTensorBooleanRange>;
+        let axisPrepared = false;
+        let axisReduction: ReturnType<typeof prepareTensorAxisReduction>;
         const reduceAt = (frameIndex: number): RankValue => {
+            if (!producer && !booleanFold && builtin && reducedAxes.length > 0
+                && this.isTensorFusion() && privateLoopPolling() && hasNativeImplementation(reducer)) {
+                if (!axisPrepared) {
+                    axisPrepared = true;
+                    axisReduction = prepareTensorAxisReduction(value, operation, reducedAxes);
+                }
+                const folded = axisReduction?.(frameIndex);
+                if (folded !== undefined) return folded;
+            }
             if (contiguousBoolean && this.isTensorFusion() && privateLoopPolling()) {
                 if (!rangePrepared) {
                     rangePrepared = true;
@@ -428,14 +437,7 @@ export class ReductionEvaluator {
                 if (packed !== undefined) return packed;
             }
             if (producer) return reducer.call([producer.cellAt(frameIndex)]);
-            if (scalarCells && hasNativeImplementation(reducer)) {
-                const cell = scalarCells.cellAt(frameIndex);
-                if (booleanFold) return reducer.call([cell]);
-                if (isRankArray(cell)) {
-                    const native = reduceTensorMap(cell, operation);
-                    if (native !== undefined) return native;
-                }
-            }
+            if (scalarCells && hasNativeImplementation(reducer)) return reducer.call([scalarCells.cellAt(frameIndex)]);
             const start = offsetAt(frameIndex, frameAxes);
             const itemAt = stored && reducedOffsets
                 ? (index: number) => stored[start + reducedOffsets![index]]

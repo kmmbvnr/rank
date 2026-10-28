@@ -23,6 +23,8 @@ export class RuntimeDiagnostics {
     numericDistincts = 0;
     compiledDistincts = 0;
     numericUniqueSorts = 0;
+    numericSmallestSelections = 0;
+    numericUniqueSums = 0;
     numericSearches = 0;
     numericSearchIndexes = 0;
     numberLoops = 0;

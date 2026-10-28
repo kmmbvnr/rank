@@ -1,0 +1,845 @@
+{
+  "date": "2026-10-27",
+  "platform": "macOS arm64",
+  "node": "v24.15.0",
+  "baselineCommit": "c7dadbc4c410aa47bf93ac9ca7b71142e8982f71",
+  "samples": [
+    {
+      "args": [
+        "64000000"
+      ],
+      "ms": 46622.180375,
+      "rss": 438.359375,
+      "answer": "1922364685",
+      "variant": "original",
+      "sample": 1
+    },
+    {
+      "args": [
+        "64000000",
+        "--reuse"
+      ],
+      "ms": 5831.524125,
+      "rss": 219.75,
+      "answer": "1922364685",
+      "variant": "reuse",
+      "sample": 1
+    },
+    {
+      "args": [
+        "64000000",
+        "--multiplicative"
+      ],
+      "ms": 10302.775000000001,
+      "rss": 231.625,
+      "answer": "1922364685",
+      "variant": "multiplicative",
+      "sample": 1
+    },
+    {
+      "args": [
+        "64000000"
+      ],
+      "ms": 47578.968541,
+      "rss": 392.171875,
+      "answer": "1922364685",
+      "variant": "original",
+      "sample": 2
+    },
+    {
+      "args": [
+        "64000000",
+        "--reuse"
+      ],
+      "ms": 5956.109542,
+      "rss": 219.71875,
+      "answer": "1922364685",
+      "variant": "reuse",
+      "sample": 2
+    },
+    {
+      "args": [
+        "64000000",
+        "--multiplicative"
+      ],
+      "ms": 10284.271292,
+      "rss": 231.984375,
+      "answer": "1922364685",
+      "variant": "multiplicative",
+      "sample": 2
+    },
+    {
+      "args": [
+        "64000000"
+      ],
+      "ms": 48562.479291999996,
+      "rss": 369.8125,
+      "answer": "1922364685",
+      "variant": "original",
+      "sample": 3
+    },
+    {
+      "args": [
+        "64000000",
+        "--reuse"
+      ],
+      "ms": 5955.577458,
+      "rss": 219.78125,
+      "answer": "1922364685",
+      "variant": "reuse",
+      "sample": 3
+    },
+    {
+      "args": [
+        "64000000",
+        "--multiplicative"
+      ],
+      "ms": 10325.515625,
+      "rss": 234.609375,
+      "answer": "1922364685",
+      "variant": "multiplicative",
+      "sample": 3
+    },
+    {
+      "args": [
+        "100000"
+      ],
+      "ms": 190.43029200000004,
+      "rss": 187.671875,
+      "answer": "462294",
+      "variant": "original",
+      "reference": false
+    },
+    {
+      "args": [
+        "100000",
+        "--reference"
+      ],
+      "ms": 620.6545,
+      "rss": 207.96875,
+      "answer": "462294",
+      "variant": "original",
+      "reference": true
+    },
+    {
+      "args": [
+        "100000",
+        "--reuse"
+      ],
+      "ms": 211.325833,
+      "rss": 218.640625,
+      "answer": "462294",
+      "variant": "reuse",
+      "reference": false
+    },
+    {
+      "args": [
+        "100000",
+        "--reuse",
+        "--reference"
+      ],
+      "ms": 938.5974580000001,
+      "rss": 210.1875,
+      "answer": "462294",
+      "variant": "reuse",
+      "reference": true
+    },
+    {
+      "args": [
+        "100000",
+        "--multiplicative"
+      ],
+      "ms": 206.83350000000002,
+      "rss": 221.125,
+      "answer": "462294",
+      "variant": "multiplicative",
+      "reference": false
+    },
+    {
+      "args": [
+        "100000",
+        "--multiplicative",
+        "--reference"
+      ],
+      "ms": 803.6103330000001,
+      "rss": 213.265625,
+      "answer": "462294",
+      "variant": "multiplicative",
+      "reference": true
+    }
+  ],
+  "verification": [
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1304"
+    }
+  ]
+}

@@ -1,5 +1,18 @@
 # Compiler progress
 
+## Compact integer comparison masks (Euler 196)
+
+Completed compact integer arrays now compare directly into bitmaps, including
+scalar and array broadcasting and regular linear views. Existing packed `indices`
+consumers then scan words without an intermediate boxed boolean array. Only
+Int32 storage and Int32 scalar operands enter this path; wider integers, mixed
+real/integer comparisons, unread or foreign readers and nonuniform checks retain
+the exact mapper. Small comparison masks retain the existing demand path.
+Private work is interruptible and published only on completion; ordinary `=`
+completion and native operation guards are unchanged. The Euler 196 source and
+segmented-sieve algorithm are unchanged. See the
+[measurements and verification](../../benchmarks/euler196-prime-triplets-results.md).
+
 ## Checked integer plan consumers (Euler 195)
 
 Native rank-one integer/boolean graphs now feed mask-position construction and
@@ -17,9 +30,11 @@ See [measurements and limits](../../benchmarks/euler195-inscribed-circles-result
 ## Exact numeric self recursion (#372)
 
 Scalar function kernels can call their own guarded definition when an earlier
-base return establishes a scalar result and every recursive argument preserves
-its proven domain. Array-writing recursion and mutually recursive call graphs
-retain ordinary execution. Non-tail calls retain the runtime depth limit; self
+base return or a closed scalar expression in the final return establishes a
+scalar result and every recursive argument preserves its proven domain. The
+final-return candidate is inferred without reading bindings or invoking calls;
+the ordinary flow proof still validates every return and all paths. Array-writing
+recursion and mutually recursive call graphs retain ordinary execution. Non-tail calls retain the runtime depth limit; self
 tail transfers use a trampoline and poll the cooperative demand budget.
 
 Ordinary entry now admits tracked integer indices, preserving their shared
@@ -2676,3 +2691,176 @@ exact, while native sorting keeps its interruptible fallback. The Euler 155 demo
 retains ordinary `Rec =`: controlled comparison found it faster than deferring
 that stage, even with the new consumer. See the
 [plan-consumer follow-up](../../benchmarks/euler155-plan-consumers-results.md).
+
+## Recover reusable boolean-axis graphs after contract refinement (Euler 200, #447)
+
+Contiguous native `all axis` / `any axis` consumers may refresh their prepared
+recipe once after a declined range. A first lazy read can refine an array binding
+contract and invalidate the graph's revision snapshot; refreshing retains all
+existing guards and avoids preparing another graph for every subsequent row.
+Unsupported recipes still use ordinary traversal, and refresh attempts remain
+bounded per consumer. Native short circuit order, deferred errors, captured
+source protection and ordinary binding completion remain unchanged.
+
+Euler 200 retains its array algorithm. Its two small first-answer tests now use
+bounds 200 and 2000000; the default-answer test retains the full bound. See the
+[measurements and verification](../../benchmarks/euler200-primeproof-squbes-results.md).
+
+## Exact square-root stages in native reductions (Euler 210, #447)
+
+The pure `numbers.isqrt` registration declares its integer result to the existing
+native scalar recipe machinery. Deferred arithmetic feeding `isqrt` can therefore
+flow directly into a native reduction, retaining exact integer square roots and
+the existing domain, demand, interruption and source guards. Ordinary binding
+completion and Number-loop admission are unchanged.
+
+Euler 210 keeps its geometric algorithm and array formulation, completes each
+input block with ordinary `Xs =`, and defers the square-root sum as `Part'` for
+its consumer. A smaller measured block lowers process peak memory. See the
+[measurements and verification](../../benchmarks/euler210-obtuse-results.md).
+
+## Fresh integer arrays in Number loops (Euler 211, #447)
+
+Number regions can create fresh `array shape ... fill ...` integer buffers and
+use their scalar cells directly, including changing multidimensional shapes.
+Allocations remain private until success or publication of completed work on
+ordinary errors/cancellation. Overflow discards the attempt and replays exact
+execution; old snapshots and skipped allocations retain their ordinary behavior.
+Array dimensions and fill dependencies stay in checked numeric registers even
+when unrelated scalar results use the mixed BigInt backend.
+
+This lowering covers definitely assigned fresh integer arrays. Local aliases,
+entry-dependent array reads, local array traversal and other array constructors
+retain their existing fallback. Number admission/copy thresholds are unchanged.
+Euler 211 keeps its original divisor-pair algorithm, block size and ordinary
+allocation inside the outer loop. See the
+[measurements and verification](../../benchmarks/euler211-divisor-square-results.md).
+
+## Generated-name budget and bounded sweeps (Euler 212, #447)
+
+Loop expression lowering retains a 1024-ID code-generation budget. Generated
+coordinate checks count toward that budget, so the previous 256-ID ceiling
+could decline a moderate array region even though its arithmetic was safe.
+Budget declines now include an explicit compiler diagnostic; statement limits,
+precision checks, overflow replay and array copy admission remain unchanged.
+The measured ceiling is a compromise: larger failed preparation attempts cost
+more, while unbounded generation can be slower still. See the
+[budget experiment](../../benchmarks/euler212-compiler-budget-results.md).
+
+Euler 212 scans only the active Y bounding interval, including its last closing
+event to empty the cover tree. The two boundary-to-root walks advance together
+and update common ancestors once. Input sizes and exact answers are unchanged.
+
+## Reusable numeric axis folds (Euler 213, #447)
+
+Native `sum`, `mean`, `min`, `max` and `count` axis reductions prepare one
+checked source graph per demand and reuse its kernel across output cells. A
+runtime frame index selects the group; generated addressing visits reduced axes
+in natural source order, including noncontiguous and reordered axis lists.
+No per-cell graph or intermediate reduction array is needed. Each invocation
+still validates the source and native implementation, and polls cancellation.
+Lazy contract refinement permits one guarded graph refresh; unsupported inputs
+retain ordinary traversal. Existing boolean short-circuit paths are unchanged.
+
+This is independent of cell length and introduces no short-reduction threshold.
+Ordinary `=` remains a completion boundary, deferred stages retain their demand
+semantics, and arbitrary-precision integer sums keep exact accumulators.
+
+Euler 213 completes its board degrees once and gathers neighbour probabilities
+with four zero-padded array shifts. Even boards retain quarter symmetry; odd
+boards use all starting fleas to include their central rows and columns. A
+single-square board stays occupied. See the
+[measurements and verification](../../benchmarks/euler213-investigation.md).
+
+## Fresh-array function prefixes (Euler 214, #447)
+
+A numeric function prefix with at least two top-level loops can now use one
+Number region, including its fresh local array allocation. The terminal return
+retains ordinary function dispatch, contracts and tail calls. This reuses loop
+lowering, guarded native operations, binding checks, private storage, exact
+replay on overflow and error/cancellation publication. Only fresh-array write
+regions qualify; external destinations, local aliases, deferred bindings,
+early returns and unsupported operations retain ordinary execution. No copy-cost
+or precision threshold changed.
+
+Euler 214 uses an in-place totient sieve: processed cells become chain lengths,
+so no residual-factor or separate length table is needed. The helper has two
+ordinary loops and no artificial wrapper. Prime 2 and empty exclusive ranges
+are covered. See [measurements and limits](../../benchmarks/euler214-investigation.md).
+
+
+## Scalar writes with interpreted RHS (Euler 214, #447)
+
+The reference single-cell writer also handles a right-hand expression that needs
+ordinary suspendable evaluation, including a function call or another array
+read. Destination bounds are checked before the RHS; its result is consumed
+once, with general shape validation for object values. Scalar validation,
+copy-on-write and exact integer stores remain unchanged. This prepares syntax
+without generating code and applies with compilation disabled. The controlled
+million-element Euler 214 reference run is 27.8% faster, with a higher measured
+RSS peak; see the [time and memory results](../../benchmarks/euler214-investigation.md).
+
+## Bounded publication memory for private integer buffers (Euler 216, #447)
+
+Number regions now publish widened private integer arrays by filling a
+preallocated BigInt64Array with indexed exact conversions. TypedArray.from uses
+its iterable path for a typed-array source, collecting a temporary list before
+allocating its destination; large publications paid that allocation cost too.
+Int32 buffers still publish without conversion. Memoized publication, array
+ownership, exact replay, and uninterrupted error/cancellation publication are
+unchanged. No arithmetic, copy-admission, or code-size threshold changed.
+
+Euler 216 uses residual factors only up to the largest possible smaller root
+of a needed prime divisor, and integer composite flags for the remaining tail.
+Both complete within one Number function prefix. The reference engine still
+pays for scalar loops, and is slower on the new algorithm at measured reduced
+inputs. See [comparisons and limitations](../../benchmarks/euler216-investigation.md).
+
+## Copy admission for short vector loops (Euler 221, #447)
+
+Root loops over numeric arrays now share the condition-loop copy budget and
+exact-work feedback. Previously, a short vector invocation could copy a large
+external destination on every entry. The 64-cell fast path and 262144-cell
+probe cap are unchanged; fresh local arrays and range-loop admission retain
+their existing behavior.
+
+A complete traversal of a plain named input array retains Number execution
+when its length covers the total copied destination cells and the region has
+no early control transfer. Other vector traversals use the bounded first probe
+and exact-backend work observations. This preserves long full passes while
+avoiding repeated unamortized copies for short vectors. No values are cached,
+iterators are not consumed during admission, and ownership, publication,
+checked arithmetic, overflow replay and error timing retain their contracts.
+
+Euler 221 consumes its ascending divisor sequence directly and writes one
+candidate at a time, removing short mask/tensor pipelines. The native divisor
+iterator still builds its own divisor list. It currently retains ordinary
+execution; ordered sequence-loop lowering is a separate opportunity. See the
+[comparisons and verification](../../benchmarks/euler221-investigation.md).
+
+### Stored mask consumers (Euler 223, #447)
+
+Boolean mask selection now uses the existing packed-word positions consumer
+before trying tensor recipes or scalar reads. Each selection still snapshots
+its own positions; this does not cache masks across demands or change lazy/host
+reader behavior. Packed storage is used only while its reader and shape remain
+valid.
+
+Materializing a selection from homogeneous stored integer cells can gather
+straight into Int32 or BigInt64 storage, preserving linear view offsets,
+strides and uniform binding checks. Empty results retain ordinary empty-array
+construction. Missing, nested and opaque sources keep the ordinary path. These
+native consumers benefit reference execution as well as compiled programs; they
+do not add whole-loop compiler coverage for filters and materialization.
+
+Euler 223 also avoids mirrored subtrees, explicitly completes intermediate
+arithmetic, and bounds side-branch seeds while counting the long root chains
+algebraically. Measurements and independent checks are recorded in
+[`euler223-investigation.md`](../../benchmarks/euler223-investigation.md).
+
+The source tensor compiler also leaves a plain `concat ... copy` of completed,
+compatible numeric blocks to the existing block-copy kernel at the existing
+1024-cell dense-kernel minimum; smaller results retain cached tensor execution. The decision is
+checked against the live operands on every execution. Concat expressions that
+still compute arithmetic or read lazy producers retain tensor lowering. This
+avoids turning an existing bulk copy into BigInt scalar loads and stores.

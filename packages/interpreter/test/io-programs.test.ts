@@ -457,24 +457,24 @@ describe('Rank IO, modules and programs', () => {
         expect(run(source)).toBe('1000');
     });
 
-    it.each(['option', 'argument'])('binds %s text from defaults, args and the workspace', declaration => {
-        const source = `use cli\n${declaration} Value text = "abc"\nValue`;
+    it.each(['named', 'positional'])('binds %s text from defaults, args and the workspace', declaration => {
+        const source = `use cli\narg Value text = "abc"\nValue`;
         expect(new Interpreter().execute(source)).toBe('abc');
         for (const value of ['', '-hello', '--hello', 'first\nsecond\n']) {
-            const args = declaration === 'option' ? [`--value=${value}`] : ['--', value];
+            const args = declaration === 'named' ? [`--value=${value}`] : ['--', value];
             expect(new Interpreter(undefined, { args }).execute(source)).toBe(value);
-            const runtime = new Interpreter(undefined, { args: declaration === 'option' ? args : [] });
+            const runtime = new Interpreter(undefined, { args: declaration === 'named' ? args : [] });
             runtime.variables.set('Value', 'workspace\ntext');
             expect(runtime.execute(source)).toBe('workspace\ntext');
         }
-        if (declaration === 'option') {
+        if (declaration === 'named') {
             expect(new Interpreter(undefined, { args: ['--value', ''] }).execute(source)).toBe('');
             expect(new Interpreter(undefined, { args: ['--value', '-hello'] }).execute(source)).toBe('-hello');
         }
         const runtime = new Interpreter();
         runtime.variables.set('Value', 1n);
         expect(() => runtime.execute(source)).toThrow('Value expects text, got integer');
-        expect(() => new Interpreter().execute(`use cli\n${declaration} Value text = 1`))
+        expect(() => new Interpreter().execute(`use cli\narg Value text = 1`))
             .toThrow('Value expects text, got integer');
     });
 

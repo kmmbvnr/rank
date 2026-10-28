@@ -18,16 +18,58 @@ rem prime in turn and sweeping the sums
 rem downward.
 Ps = primes till Limit array
 Max = Ps sum
-Ways = array shape (Max + 1) fill 0
-Ways 0 = 1
-Top = 0
-for P in Ps
-  Top += P
-  for S in Top to P by -1
-    From = Ways (S - P)
-    Ways S = (Ways S + From) mod Mod
+Answer = 0
+Low = Mod // 2
+High = Mod - Low
+if Mod greater 0 and High at most 9007199254740991
+  Ways = Ps subset_counts Max Low High
+  Pr = primes till (Max + 1) array
+  Answer = (Ways Pr) sum mod Mod
+else
+  Ways = array shape (Max + 1) fill 0
+  Ways 0 = 1
+  Top = 0
+  for P in Ps
+    Top += P
+    for S in Top to P by -1
+      From = Ways (S - P)
+      Ways S = (Ways S + From) mod Mod
+    end
   end
+  Pr = primes till (Max + 1) array
+  Answer = (Ways Pr) sum mod Mod
 end
-Pr = primes till (Max + 1) array
-Answer = (Ways Pr) sum mod Mod
 Answer print
+
+rem Store residues in [-Low, High). Move
+rem across Mod = Low + High before adding,
+rem keeping every intermediate exact in
+rem Number. Larger moduli use BigInt above.
+fun Ps subset_counts Max Low High
+  Ways = array shape (Max + 1) fill 0
+  Ways 0 = 1
+  if High equal 1
+    Ways 0 = 0 - Low
+  end
+  Top = 0
+  for P in Ps
+    Top += P
+    for S in Top to P by -1
+      Value = Ways S
+      From = Ways (S - P)
+      if From at least 0
+        if Value at least High - From
+          Value -= High
+          From -= Low
+        end
+      else
+        if Value less (0 - Low) - From
+          Value += Low
+          From += High
+        end
+      end
+      Ways S = Value + From
+    end
+  end
+  return Ways
+end

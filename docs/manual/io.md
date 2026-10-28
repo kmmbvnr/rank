@@ -28,7 +28,7 @@ as a sequence.
 
 ### See also
 
-argument, read
+arg, read
 
 ## append
 

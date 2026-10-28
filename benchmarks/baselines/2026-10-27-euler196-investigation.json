@@ -1,0 +1,812 @@
+{
+  "revision": "33d233742e2adabb27e801d082df94d127979751",
+  "runtime": "/tmp/rank195-isolated/packages/interpreter/out/index.js",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "macOS arm64 Apple M5"
+  },
+  "timing": "Fresh serial processes, alternating base/tail order. Construction, parsing, execution included; imports and validation excluded. RSS process peak. Diagnostics and CPU profile separate. Full reference is a single validation; small oracle checks overlapped its run, so it is not a controlled performance estimate.",
+  "samples": [
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 2200.322459,
+      "rssMiB": 756.296875,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 2200.276584,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 1088.447083,
+      "rssMiB": 536.234375,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1088.4026250000002,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "66e0707dee5efa15e6a971e9ab7eca736d3f3439b636d62af3e887d836ca27a7"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 1089.483708,
+      "rssMiB": 536.890625,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1089.43825,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "66e0707dee5efa15e6a971e9ab7eca736d3f3439b636d62af3e887d836ca27a7"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 2231.934583,
+      "rssMiB": 756.390625,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 2231.887625,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 2199.896708,
+      "rssMiB": 756.34375,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 2199.850833,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "166b2ff19d7eb45e2466a460d96d80cd603241f49e1f1c0ee6033a07abe9f3c5"
+    },
+    {
+      "n1": 5678027,
+      "n2": 7208785,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 1086.6926250000001,
+      "rssMiB": 537,
+      "answer": "322303240771079935",
+      "output": [
+        {
+          "ms": 1086.646125,
+          "line": "322303240771079935"
+        }
+      ],
+      "sourceHash": "66e0707dee5efa15e6a971e9ab7eca736d3f3439b636d62af3e887d836ca27a7"
+    }
+  ],
+  "reference": {
+    "ms": 69773.712833,
+    "variant": "base",
+    "fixture": false,
+    "reference": true,
+    "rssMiB": 2918.109375,
+    "answer": "322303240771079935",
+    "output": [
+      {
+        "ms": 4809.016375,
+        "line": "sieve"
+      },
+      {
+        "ms": 29127.278625,
+        "line": "scan"
+      },
+      {
+        "ms": 36805.988167,
+        "line": "sieve"
+      },
+      {
+        "ms": 69089.32616699999,
+        "line": "scan"
+      },
+      {
+        "ms": 69773.678667,
+        "line": "322303240771079935"
+      }
+    ]
+  },
+  "diagnostic": {
+    "ms": 2202.7365,
+    "rssMiB": 764.328125,
+    "answer": "322303240771079935",
+    "output": [
+      {
+        "ms": 410.08237499999996,
+        "line": "sieve"
+      },
+      {
+        "ms": 559.130375,
+        "line": "scan"
+      },
+      {
+        "ms": 1376.376166,
+        "line": "sieve"
+      },
+      {
+        "ms": 1561.112708,
+        "line": "scan"
+      },
+      {
+        "ms": 2202.65175,
+        "line": "322303240771079935"
+      }
+    ],
+    "diag": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 6,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 4,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 2,
+      "numberLoopReadBufferCells": 10,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 638939,
+      "bulkArrayWriteCells": 192780524,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "loop:loop-header:ForStatement": 1,
+        "tensor:scalar-evaluation-timing": 4,
+        "scalar-expression:too-small": 4,
+        "tensor:unsupported-type:array": 3
+      },
+      "compilerRejections": []
+    }
+  },
+  "oracles": [
+    {
+      "n1": 3,
+      "n2": 4,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 172.48454199999998,
+      "rssMiB": 177.5,
+      "answer": "12",
+      "output": [
+        {
+          "ms": 172.447542,
+          "line": "12"
+        }
+      ],
+      "sourceHash": "f3bfa51b6e4f1a77d7b3a524bc8193f78ef410e2b8ac80d97403a81b37e30a41"
+    },
+    {
+      "n1": 5,
+      "n2": 6,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 168.38350000000003,
+      "rssMiB": 177.703125,
+      "answer": "60",
+      "output": [
+        {
+          "ms": 168.348834,
+          "line": "60"
+        }
+      ],
+      "sourceHash": "1eadfb82376b60b39981050059bd459cf8dd98cd87c8eef23f0c8d6a1826caff"
+    },
+    {
+      "n1": 8,
+      "n2": 9,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 170.503167,
+      "rssMiB": 177.390625,
+      "answer": "97",
+      "output": [
+        {
+          "ms": 170.468917,
+          "line": "97"
+        }
+      ],
+      "sourceHash": "83240690e4fa27d59b9e43183c694b577b6de8751bd2dc1518badabcac827aa3"
+    },
+    {
+      "n1": 10,
+      "n2": 11,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 176.29441599999998,
+      "rssMiB": 181.09375,
+      "answer": "167",
+      "output": [
+        {
+          "ms": 176.25970800000002,
+          "line": "167"
+        }
+      ],
+      "sourceHash": "3933d3304cd3b4c221f07adb4b892f957aea0dcb4fdd5dbf32774e1ad9e423e8"
+    },
+    {
+      "n1": 20,
+      "n2": 30,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 180.40120900000002,
+      "rssMiB": 177.875,
+      "answer": "2153",
+      "output": [
+        {
+          "ms": 180.36354200000002,
+          "line": "2153"
+        }
+      ],
+      "sourceHash": "0193e1e2317978332697ba3de611f9059c8c3c6f238ff7ce468921bb5c7f4513"
+    },
+    {
+      "n1": 50,
+      "n2": 100,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 173.703833,
+      "rssMiB": 177.8125,
+      "answer": "13647",
+      "output": [
+        {
+          "ms": 173.66883299999998,
+          "line": "13647"
+        }
+      ],
+      "sourceHash": "c5e02e99e35b5c590d5d6843eccd308bb5c284171d359c3474a54b10fa56d8eb"
+    },
+    {
+      "n1": 150,
+      "n2": 200,
+      "variant": "base",
+      "fixture": false,
+      "reference": false,
+      "ms": 178.614125,
+      "rssMiB": 177.53125,
+      "answer": "196312",
+      "output": [
+        {
+          "ms": 178.57820900000002,
+          "line": "196312"
+        }
+      ],
+      "sourceHash": "687717315d2f3f6d830f43c53ca987091080ee4ef52a0e0f09defc6425603d5c"
+    },
+    {
+      "n1": 3,
+      "n2": 4,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 167.18104199999996,
+      "rssMiB": 176.828125,
+      "answer": "12",
+      "output": [
+        {
+          "ms": 167.14449999999997,
+          "line": "12"
+        }
+      ],
+      "sourceHash": "f3bfa51b6e4f1a77d7b3a524bc8193f78ef410e2b8ac80d97403a81b37e30a41"
+    },
+    {
+      "n1": 5,
+      "n2": 6,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 172.58441600000003,
+      "rssMiB": 177.421875,
+      "answer": "60",
+      "output": [
+        {
+          "ms": 172.53950000000003,
+          "line": "60"
+        }
+      ],
+      "sourceHash": "1eadfb82376b60b39981050059bd459cf8dd98cd87c8eef23f0c8d6a1826caff"
+    },
+    {
+      "n1": 8,
+      "n2": 9,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 172.89133399999997,
+      "rssMiB": 176.46875,
+      "answer": "97",
+      "output": [
+        {
+          "ms": 172.85862499999996,
+          "line": "97"
+        }
+      ],
+      "sourceHash": "83240690e4fa27d59b9e43183c694b577b6de8751bd2dc1518badabcac827aa3"
+    },
+    {
+      "n1": 10,
+      "n2": 11,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 178.13175,
+      "rssMiB": 176.890625,
+      "answer": "167",
+      "output": [
+        {
+          "ms": 178.100166,
+          "line": "167"
+        }
+      ],
+      "sourceHash": "3933d3304cd3b4c221f07adb4b892f957aea0dcb4fdd5dbf32774e1ad9e423e8"
+    },
+    {
+      "n1": 20,
+      "n2": 30,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 168.44808299999997,
+      "rssMiB": 177.5,
+      "answer": "2153",
+      "output": [
+        {
+          "ms": 168.411917,
+          "line": "2153"
+        }
+      ],
+      "sourceHash": "0193e1e2317978332697ba3de611f9059c8c3c6f238ff7ce468921bb5c7f4513"
+    },
+    {
+      "n1": 50,
+      "n2": 100,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 178.84841699999998,
+      "rssMiB": 177.46875,
+      "answer": "13647",
+      "output": [
+        {
+          "ms": 178.810875,
+          "line": "13647"
+        }
+      ],
+      "sourceHash": "c5e02e99e35b5c590d5d6843eccd308bb5c284171d359c3474a54b10fa56d8eb"
+    },
+    {
+      "n1": 150,
+      "n2": 200,
+      "variant": "base",
+      "fixture": false,
+      "reference": true,
+      "ms": 177.083375,
+      "rssMiB": 176.9375,
+      "answer": "196312",
+      "output": [
+        {
+          "ms": 177.03941700000001,
+          "line": "196312"
+        }
+      ],
+      "sourceHash": "687717315d2f3f6d830f43c53ca987091080ee4ef52a0e0f09defc6425603d5c"
+    },
+    {
+      "n1": 3,
+      "n2": 4,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 182.57562499999997,
+      "rssMiB": 177.6875,
+      "answer": "12",
+      "output": [
+        {
+          "ms": 182.54216699999998,
+          "line": "12"
+        }
+      ],
+      "sourceHash": "e1d844a84dfcf2535e79fbe6848e8a4bf577e1281715799ff582107179305266"
+    },
+    {
+      "n1": 5,
+      "n2": 6,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 179.407791,
+      "rssMiB": 180.75,
+      "answer": "60",
+      "output": [
+        {
+          "ms": 179.37275000000002,
+          "line": "60"
+        }
+      ],
+      "sourceHash": "9390ba3e42df910526a95b431015c5f1dd076dfbb50f9e752a6f513726520d52"
+    },
+    {
+      "n1": 8,
+      "n2": 9,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 178.661459,
+      "rssMiB": 177.359375,
+      "answer": "97",
+      "output": [
+        {
+          "ms": 178.62558400000003,
+          "line": "97"
+        }
+      ],
+      "sourceHash": "36f39c4cdf84c556a4fbbd8d1d07f368847df3bfd04cc01fa3588d3e45eee5a1"
+    },
+    {
+      "n1": 10,
+      "n2": 11,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 178.43733400000002,
+      "rssMiB": 177.453125,
+      "answer": "167",
+      "output": [
+        {
+          "ms": 178.40337499999998,
+          "line": "167"
+        }
+      ],
+      "sourceHash": "d199d9c2dc432c89fe6fe66d0ff25ff2dcf8a40af1886e86ed3869caee6db3db"
+    },
+    {
+      "n1": 20,
+      "n2": 30,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 179.74499999999998,
+      "rssMiB": 181.296875,
+      "answer": "2153",
+      "output": [
+        {
+          "ms": 179.70954100000003,
+          "line": "2153"
+        }
+      ],
+      "sourceHash": "4a2ec8c73180c769ac765b563adfc19bd8b624be2b2a2b5ebc3c15982dc58a8b"
+    },
+    {
+      "n1": 50,
+      "n2": 100,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 175.826417,
+      "rssMiB": 177.875,
+      "answer": "13647",
+      "output": [
+        {
+          "ms": 175.790125,
+          "line": "13647"
+        }
+      ],
+      "sourceHash": "3c30eab16b02c29f997aeb3db81dfef3e5709b88fd9b33a9bc06c631b855bbe3"
+    },
+    {
+      "n1": 150,
+      "n2": 200,
+      "variant": "tail",
+      "fixture": false,
+      "reference": false,
+      "ms": 185.302167,
+      "rssMiB": 181.515625,
+      "answer": "196312",
+      "output": [
+        {
+          "ms": 185.26637499999998,
+          "line": "196312"
+        }
+      ],
+      "sourceHash": "7960a78a8a3c95b5f57a70da3dd6b69204244dc317885ae8eeaf52a381e6db7d"
+    },
+    {
+      "n1": 3,
+      "n2": 4,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 170.43650000000002,
+      "rssMiB": 176.578125,
+      "answer": "12",
+      "output": [
+        {
+          "ms": 170.392333,
+          "line": "12"
+        }
+      ],
+      "sourceHash": "e1d844a84dfcf2535e79fbe6848e8a4bf577e1281715799ff582107179305266"
+    },
+    {
+      "n1": 5,
+      "n2": 6,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 175.80775,
+      "rssMiB": 176.734375,
+      "answer": "60",
+      "output": [
+        {
+          "ms": 175.76799999999997,
+          "line": "60"
+        }
+      ],
+      "sourceHash": "9390ba3e42df910526a95b431015c5f1dd076dfbb50f9e752a6f513726520d52"
+    },
+    {
+      "n1": 8,
+      "n2": 9,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 170.119625,
+      "rssMiB": 176.671875,
+      "answer": "97",
+      "output": [
+        {
+          "ms": 170.084459,
+          "line": "97"
+        }
+      ],
+      "sourceHash": "36f39c4cdf84c556a4fbbd8d1d07f368847df3bfd04cc01fa3588d3e45eee5a1"
+    },
+    {
+      "n1": 10,
+      "n2": 11,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 171.52625,
+      "rssMiB": 176.296875,
+      "answer": "167",
+      "output": [
+        {
+          "ms": 171.493791,
+          "line": "167"
+        }
+      ],
+      "sourceHash": "d199d9c2dc432c89fe6fe66d0ff25ff2dcf8a40af1886e86ed3869caee6db3db"
+    },
+    {
+      "n1": 20,
+      "n2": 30,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 177.72212499999998,
+      "rssMiB": 176.625,
+      "answer": "2153",
+      "output": [
+        {
+          "ms": 177.682917,
+          "line": "2153"
+        }
+      ],
+      "sourceHash": "4a2ec8c73180c769ac765b563adfc19bd8b624be2b2a2b5ebc3c15982dc58a8b"
+    },
+    {
+      "n1": 50,
+      "n2": 100,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 183.145125,
+      "rssMiB": 177.125,
+      "answer": "13647",
+      "output": [
+        {
+          "ms": 183.103833,
+          "line": "13647"
+        }
+      ],
+      "sourceHash": "3c30eab16b02c29f997aeb3db81dfef3e5709b88fd9b33a9bc06c631b855bbe3"
+    },
+    {
+      "n1": 150,
+      "n2": 200,
+      "variant": "tail",
+      "fixture": false,
+      "reference": true,
+      "ms": 181.78041700000003,
+      "rssMiB": 177.25,
+      "answer": "196312",
+      "output": [
+        {
+          "ms": 181.736417,
+          "line": "196312"
+        }
+      ],
+      "sourceHash": "7960a78a8a3c95b5f57a70da3dd6b69204244dc317885ae8eeaf52a381e6db7d"
+    }
+  ],
+  "source": "rem Prime Triplets\nrem https://projecteuler.net/problem=196\nrem Sum S(n) over the rows N1 and N2 of\nrem a number triangle, where S(n) adds\nrem the primes of row n that belong to a\nrem prime triplet\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption N1 integer = 5678027\noption N2 integer = 7208785\n\nrem Row r holds r numbers from\nrem r (r - 1) / 2 + 1. A prime with two\nrem prime neighbours among the 8 around\nrem it starts a triplet, and joins its\nrem neighbours to it. Only rows n - 2 to\nrem n + 2 matter: sieve that strip, then\nrem scan the centres in rows n - 1 to\nrem n + 1 and mark primes of row n.\nAnswer = 0\nfor N in array N1 N2\n  First = (N - 2) * (N - 3) // 2 + 1\n  Len = 5 * N\n  Pr = array shape Len fill 1\n  Root = (First + Len) isqrt\n  for P in primes to Root\n    Start = (First + P - 1) // P * P\n    Start = Start max (2 * P)\n    Pr (Start - First till Len by P) = 0\n  end\n  if First equal 1\n    Pr 0 = 0\n  end\n  Offs = array shape 5 fill 0\n  for K in 0 to 4\n    R = N - 2 + K\n    Top = R * (R - 1) // 2 + 1\n    Offs K = Top - First\n  end\n  Mk = array shape N fill 0\n  M0 = Offs 2\n  for R in N - 1 to N + 1\n    Rows = R - N + 2\n    for C in 0 to R - 1\n      At = Offs Rows + C\n      if Pr At equal 1\n        Near = 0\n        for Dr in -1 to 1\n          Row = R + Dr\n          Base = Offs (Rows + Dr)\n          for Dc in -1 to 1\n            Col = C + Dc\n            if Col at least 0\n              if Col less Row\n                Near += Pr (Base + Col)\n              end\n            end\n          end\n        end\n        if Near at least 3\n          for Dc in -1 to 1\n            Col = C + Dc\n            if Col at least 0\n              if Col less N\n                if Pr (M0 + Col) equal 1\n                  Mk Col = 1\n                end\n              end\n            end\n          end\n        end\n      end\n    end\n  end\n  Row0 = N * (N - 1) // 2 + 1\n  Hit = (Mk equal 1) indices\n  Answer += (Row0 + Hit) sum\nend\nAnswer print\n",
+  "fixture": {
+    "n1": 5678027,
+    "n2": 7208785,
+    "variant": "base",
+    "fixture": true,
+    "reference": false,
+    "ms": 2178.626458,
+    "rssMiB": 754.84375,
+    "output": [],
+    "sourceHash": "019c8a360470726250b347301cbc1ca6da88ed8528354ea157ffd35520d68a69"
+  },
+  "tailDiagnostic": {
+    "n1": 5678027,
+    "n2": 7208785,
+    "variant": "tail",
+    "fixture": false,
+    "reference": false,
+    "ms": 1091.635334,
+    "rssMiB": 536.171875,
+    "answer": "322303240771079935",
+    "output": [
+      {
+        "ms": 1091.584917,
+        "line": "322303240771079935"
+      }
+    ],
+    "sourceHash": "66e0707dee5efa15e6a971e9ab7eca736d3f3439b636d62af3e887d836ca27a7",
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 8,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 6,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 2,
+      "numberLoopReadBufferCells": 10,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 638939,
+      "bulkArrayWriteCells": 192780524,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {
+        "loop:loop-header:ForStatement": 1,
+        "tensor:scalar-evaluation-timing": 4,
+        "scalar-expression:too-small": 3,
+        "tensor:unsupported-type:array": 3,
+        "tensor:output-shape": 2
+      },
+      "compilerRejections": []
+    }
+  }
+}

@@ -11,7 +11,7 @@ use io
 use cli
 
 arg R integer = 1000000000
-arg Chunk integer = 5000000
+arg Chunk integer = 250000
 
 rem The angle is obtuse at O below the
 rem line x + y = 0, at C above x + y =
@@ -36,7 +36,8 @@ A0 = (1 + (2 * Q - 1) isqrt) // 2
 Gen = A0 * (A0 - 1) // 2
 for L in A0 + 1 to A by Chunk
   Xs = L to (L + Chunk - 1 min A) array
-  Gen += (Q - Xs * Xs) isqrt sum
+  Part' = (Q - Xs * Xs) isqrt sum
+  Gen += Part
 end
 Diag = Q // 2 isqrt
 Circle = 1 + 4 * A + 4 * Diag + 8 * Gen

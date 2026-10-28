@@ -28,7 +28,6 @@ class RankTokenBuilder extends DefaultTokenBuilder {
 /** An integer written with an exponent (`4e6`, `2E+3`) is the digits followed by that many zeros. */
 class RankValueConverter extends DefaultValueConverter {
     protected override runConverter(rule: GrammarAST.AbstractRule, input: string, cstNode: CstNode): ValueType {
-        if (rule.name === 'SIGNATURE_WORD') return input.slice(1);
         const exponent = rule.name === 'INTEGER' ? /^([0-9]+)[eE]\+?([0-9]+)$/.exec(input) : undefined;
         if (exponent) {
             if (Number(exponent[2]) > 10_000) throw new Error('Integer exponent is too large');
@@ -132,7 +131,7 @@ export const RankModule: Module<RankServices, PartialLangiumServices & RankAdded
                 }
                 if (!result.lexerErrors.length && !result.parserErrors.length && isProgram(result.value)) {
                     prepareFunctionDeclarations(result.value);
-                    normalizePrimaryApplications(result.value);
+                    normalizePrimaryApplications(result.value, lexer.operatorOffsets);
                     groupExpressions(result.value, grouping);
                 }
                 return result;

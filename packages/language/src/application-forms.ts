@@ -205,12 +205,12 @@ export interface NamedScanApplication extends FoldModifiers {
 }
 
 export function explicitNamedScanApplication(parts: Expression[], nameOf: NameOf = rawName): NamedScanApplication | undefined {
-    if (!isNamed(parts[2], 'scan', nameOf)) return undefined;
+    if (!isNamed(parts[2], 'scan', nameOf) || isFunctionOperator(parts[3])) return undefined;
     return { source: parts[0], operation: parts[1], ...foldModifiers(parts, 3, true, nameOf) };
 }
 
 export function explicitNamedReduceApplication(parts: Expression[], nameOf: NameOf = rawName): NamedScanApplication | undefined {
-    if (!isNamed(parts[2], 'reduce', nameOf)) return undefined;
+    if (!isNamed(parts[2], 'reduce', nameOf) || isFunctionOperator(parts[3])) return undefined;
     return { source: parts[0], operation: parts[1], ...foldModifiers(parts, 3, false, nameOf) };
 }
 

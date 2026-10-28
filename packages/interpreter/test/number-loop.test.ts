@@ -22,6 +22,30 @@ function compare(source: string) {
 }
 
 describe('private safe-integer loop registers', () => {
+    it.each(['normal', 'overflow', 'bounds'])('compiles a larger guarded array region with %s semantics', mode => {
+        const writes = Array.from({ length: 64 }, () => ' A 0 = A 0 + A 1 + I').join('\n');
+        const source = `A = array 0 1
+Alias = A
+for I in 0 to 1
+${writes}
+${mode === 'overflow' ? ' A 0 += 9007199254740991' : mode === 'bounds' ? ' A 2 = 3' : ''}
+end`;
+        const diagnostics = compare(source);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(mode === 'overflow' ? 1 : 0);
+    });
+
+    it('reports the temporary budget when a large region retains exact execution', () => {
+        const rhs = ['A 0', ...Array(15).fill('A 1'), 'I'].join(' + ');
+        const writes = Array.from({ length: 100 }, () => ' A 0 = ' + rhs).join('\n');
+        const diagnostics = compare(`A = array 0 1
+for I in 0 to 1
+${writes}
+end`);
+        expect(diagnostics.numberLoops).toBe(0);
+        expect(diagnostics.compilerRejections.some(failure => failure.reason.startsWith('number-loop:temporary-budget:'))).toBe(true);
+    });
+
     it.each(['continue', 'break'])('retains a nested real result type across %s', control => {
         const diagnostics = new RuntimeDiagnostics();
         const runtime = new Interpreter(() => {}, { scalarEntryCompilation: false });
@@ -747,4 +771,185 @@ for I in 0 till ${numerators.length}
 end`);
     expect(diagnostics.numberLoops).toBe(1);
     expect(diagnostics.numberLoopOverflows).toBe(0);
+});
+
+describe('private fresh integer arrays in Number loops', () => {
+    it('reallocates changing shapes and widens cells without losing earlier stores', () => {
+        const diagnostics = compare(`A = array 0
+Total = 0
+for I in 1 to 3
+ A = array shape I fill I
+ A (I - 1) += 2147483647
+ Total += A 0
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it('publishes fresh multidimensional arrays and reads their current shape', () => {
+        const diagnostics = compare(`A = array shape 1 2 fill 0
+Total = 0
+for I in 1 to 3
+ A = array shape I 2 fill -2147483649
+ A (I - 1) 1 = 9007199254740991
+ Total += A 0 0
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it('keeps old aliases and zero-iteration bindings untouched', () => {
+        const source = `A = array 10 20
+Saved = A
+for I in 1 to 0
+ A = array shape 3 fill 0
+ Fresh = array shape 2 fill 1
+end`;
+        expect(compare(source).numberLoops).toBe(1);
+        expect(execute(source).observation.variables).not.toContainEqual(['Fresh', expect.anything()]);
+    });
+
+    it('replaces a binding without mutating its prior snapshot', () => {
+        expect(compare(`A = array 10 20
+Saved = A
+for I in 1 to 3
+ A = array shape 2 fill I
+ A 0 *= 2
+end`).numberLoops).toBe(1);
+    });
+
+    it('discards local allocations and existing-array writes before exact overflow replay', () => {
+        const diagnostics = compare(`A = array 0
+Existing = array 1 2
+Saved = Existing
+Start = 9007199254740991
+for I in 0 to 2
+ A = array shape 3 fill I
+ A I = I + 1
+ Existing 0 += 1
+ X = Start + I
+end`);
+        expect(diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it.each(['-1', '2'])('publishes completed local stores before a bad matrix coordinate %s', index => {
+        const diagnostics = compare(`A = array shape 2 2 fill 0
+Before = 0
+for I in 1 to 2
+ A = array shape 2 2 fill I
+ A 0 0 = 2147483648
+ Before = I
+ A 0 (${index}) = 9
+ After = I
+end`);
+        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it('retains the preceding array when the next allocation has a bad dimension', () => {
+        expect(compare(`A = array 5
+for I in 0 to 2
+ A = array shape (1 - I) fill I
+ Done = I
+end`).numberLoops).toBe(1);
+    });
+
+    it('does not charge fresh buffers against the condition-loop copy budget', () => {
+        expect(compare(`A = array 7
+I = 0
+for I less 2
+ A = array shape 262145 fill I
+ A I += 1
+ I += 1
+end`).numberLoops).toBe(1);
+    });
+
+    it('replays unsafe fill arithmetic exactly', () => {
+        const diagnostics = compare(`A = array 0
+Start = 9007199254740991
+for I in 0 to 2
+ A = array shape 2 fill (Start + I)
+end`);
+        expect(diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it('retains a previous iteration result when continue follows a newer allocation', () => {
+        const source = `A = array 0
+for I in 1 to 2
+ if I equal 2
+  A = array shape 2 fill I
+  continue
+ end
+ A = array shape 2 fill I
+end`;
+        const values = [true, false].map(compilation => {
+            const runtime = new Interpreter(() => {}, {compilation});
+            try {
+                return {result: formatValue(runtime.execute(source)!), current: formatValue(runtime.variables.get('A')!)};
+            } finally { runtime.dispose(); }
+        });
+        expect(values[0]).toEqual(values[1]);
+        expect(values[0].result).not.toEqual(values[0].current);
+    });
+
+    it('preserves local aliases through the existing COW fallback', () => {
+        const source = `A = array 0
+Snapshot = array 0
+for I in 1 to 2
+ A = array shape 2 fill I
+ Snapshot = A
+ A 0 = 99
+end`;
+        expect(compare(source).numberLoops).toBe(0);
+        expect(execute(source).observation.variables).toContainEqual(['Snapshot', '2 2']);
+    });
+
+    it('declines a possibly unassigned local array that needs an entry value', () => {
+        expect(compare(`A = array 5 6
+Total = 0
+for I in 1 to 2
+ if I equal 2
+  A = array shape 2 fill I
+ end
+ Total += A 0
+end`).numberLoops).toBe(0);
+    });
+
+    it('checks an existing binding contract before allocating privately', () => {
+        expect(compare(`A = 7
+Before = 0
+for I in 1 to 2
+ Before = I
+ A = array shape 2 fill 0
+ After = I
+end`).numberLoops).toBe(0);
+    });
+
+    it('publishes the current local array and completed scalar progress on cancellation', () => {
+        const source = `A = array 0 0
+Last = -1
+Done = 0
+try
+ for I in 0 to 1000000
+  A = array shape 2 fill I
+  A 0 += 2147483648
+  Last = I
+ end
+finally
+ Done = 1
+end`;
+        const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
+        const flag = new Int32Array(1); flag[0] = 1;
+        try {
+            expect(() => withInterrupt(flag, () => diagnostics.run(() => runtime.execute(source)))).toThrow('Interrupted');
+            const last = runtime.variables.get('Last') as bigint;
+            expect(last).toBeGreaterThanOrEqual(0n);
+            expect(runtime.execute('A 0')).toBe(last + 2147483648n);
+            expect(runtime.execute('A 1')).toBe(last);
+            expect(runtime.variables.get('Done')).toBe(1n);
+            expect(diagnostics.numberLoops).toBe(1);
+        } finally { runtime.dispose(); }
+    });
 });

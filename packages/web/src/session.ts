@@ -59,7 +59,7 @@ export function browserSession(onFailure: (message: string) => void, onChange: (
             ? new URL('/__rank_debug?token=' + crypto.randomUUID(), location.href).href : undefined;
         controls = Promise.resolve();
         ready = signalUrl ? control('reset') : Promise.resolve();
-        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules, attachments, inputs, files, nativeRam: capacitor?.getPlatform() === 'android' }))
+        void ready.then(() => next.postMessage({ signal: signal?.buffer, signalUrl, modules, attachments, inputs, files, nativeRam: capacitor?.getPlatform() === 'android', nativeFiles: capacitor?.getPlatform() === 'android' }))
             .catch(error => onFailure(String(error)));
         next.onmessage = (event: MessageEvent<WorkerResponse | { ram: { id: string; payload: string } }>) => {
             if ('ram' in event.data) {

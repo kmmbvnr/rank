@@ -491,10 +491,18 @@ describe('Rank grammar', () => {
             '  A greater 0',
             '  and B less 10',
             ')',
+            'Filtered = (',
+            '  Values till greater 0',
+            '  and even',
+            ')',
+            'Copy = (record',
+            '  .x = 1',
+            '  .y = 2',
+            'end)',
         ].join('\n'));
         expect(document.parseResult.lexerErrors).toEqual([]);
         expect(document.parseResult.parserErrors).toEqual([]);
-        expect(document.parseResult.value.statements).toHaveLength(2);
+        expect(document.parseResult.value.statements).toHaveLength(4);
     });
 
     it('parses a named function modified by outer', async () => {
@@ -873,6 +881,30 @@ describe('Rank grammar', () => {
         expect(isTableFilterExpression(statement.value)).toBe(true);
         if (!isTableFilterExpression(statement.value)) return;
         expect(isSubjectComparisonExpression(statement.value.condition!)).toBe(true);
+    });
+
+    it('parses contextual keywords in labels, record fields, function names and array items', async () => {
+        const document = await parse([
+            'fun X insert Y',
+            '  return X + Y',
+            'end',
+            'R = record',
+            '  .shape = array 2 3',
+            '  .filter = 1',
+            '  .select = 2',
+            '  .delete = 3',
+            'end',
+            'S = R .shape',
+            'Items = array insert update with first index sort group scan reduce',
+        ].join('\n'));
+        expect(document.parseResult.lexerErrors).toEqual([]);
+        expect(document.parseResult.parserErrors).toEqual([]);
+        const labels = [...AstUtils.streamAllContents(document.parseResult.value)]
+            .filter(isLabelLiteral).map(node => node.name);
+        expect(labels).toEqual(['shape']);
+        const record = document.parseResult.value.statements[1];
+        expect(isAssignmentStatement(record) && isRecordExpression(record.value)
+            && record.value.fields.map(field => field.name)).toEqual(['shape', 'filter', 'select', 'delete']);
     });
 
     it('keeps a filter condition that names its own operand', async () => {

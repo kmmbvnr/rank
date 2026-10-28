@@ -736,6 +736,12 @@ export class ExpressionEvaluator {
     clauseContext(): ClauseExpressionContext {
         const expressions = this;
         return {
+            isBuiltin: (name, operation) => {
+                const op = expressions.operationOf(name);
+                if (!op || op.name !== operation) return false;
+                const fn = expressions.context.resolve(name);
+                return fn !== undefined && isNativeFunction(fn) && expressions.context.builtins.is('sequences', operation, fn);
+            },
             get localFrame() { return expressions.context.bindings.current; },
             set localFrame(frame) { expressions.context.bindings.current = frame; },
             evaluate: node => expressions.evaluate(node),

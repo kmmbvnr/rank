@@ -1,0 +1,1306 @@
+{
+  "date": "2026-10-27",
+  "platform": "macOS arm64",
+  "node": "v24.15.0",
+  "baselineCommit": "c7dadbc4c410aa47bf93ac9ca7b71142e8982f71",
+  "method": "Serial fresh processes, three alternating before/after pairs per cohort. Imports/construction excluded; parsing, compilation and execution included.",
+  "baselineBuild": "Copy of shipping out, replacing four changed JS modules with c7dadbc4 source emitted with TypeScript ES2020/ES module output. Same runtime dependencies and unchanged modules.",
+  "measurementScript": "import subprocess,json,pathlib,statistics\nroot='/tmp/rank196-delivery'\nruntimes={'before':'/tmp/rank211-baseline-runtime/index.js','after':'/tmp/rank195-isolated/packages/interpreter/out/index.js'}\nrows=[]\ndef run(variant,cohort,harness='benchmarks/euler211-divisor-square.mjs',args=[]):\n r=json.loads(subprocess.check_output(['node',harness,'--runtime='+runtimes[variant],*args],cwd=root,text=True));r.update(variant=variant,cohort=cohort);rows.append(r)\n pathlib.Path('/tmp/rank211-final-measure.json').write_text(json.dumps(rows,indent=2));print(json.dumps(r),flush=True)\nfor i in range(3):\n for v in ['before','after']: run(v,'full')\nfor i in range(3):\n for v in ['before','after']: run(v,'fixture',args=['--fixture'])\nfor i in range(3):\n for v in ['before','after']: run(v,'euler200-control','benchmarks/euler200-primeproof-squbes.mjs')\nfor i in range(3):\n for v in ['before','after']: run(v,'euler210-control','benchmarks/euler210-obtuse.mjs')\nfor i in range(3):\n for v in ['before','after']: run(v,'fixture-reference',args=['--fixture','--reference'])\n\nfor i in range(3):\n for v in ['before','after']:\n  r=json.loads(subprocess.check_output(['node','/tmp/rank211-control214.mjs',runtimes[v]],text=True));r.update(variant=v,cohort='euler214-small-control');rows.append(r)\n  pathlib.Path('/tmp/rank211-final-measure.json').write_text(json.dumps(rows,indent=2));print(json.dumps(r),flush=True)\n",
+  "control214Script": "import assert from 'node:assert/strict';\nimport {readFileSync} from 'node:fs';\nimport {pathToFileURL} from 'node:url';\nconst {Interpreter,RuntimeDiagnostics}=await import(pathToFileURL(process.argv[2]));\nconst source=readFileSync('/tmp/rank196-delivery/demos/euler/214_totientchains.ra','utf8')\n.replace('40000000','100000').replace('arg Len integer = 25','arg Len integer = 15').replace('1000000','5000');\nconst runtime=new Interpreter(()=>{}, {compilation:!process.argv.includes('--reference')});\nconst diagnostics=new RuntimeDiagnostics();\ntry {const start=performance.now(); if(process.argv.includes('--diag')) diagnostics.run(()=>runtime.execute(source));else runtime.execute(source);\nconst ms=performance.now()-start;assert.equal(runtime.variables.get('Answer'),162726509n);\nconsole.log(JSON.stringify({ms,rssMiB:process.resourceUsage().maxRSS/1024,answer:String(runtime.variables.get('Answer')),source,...(process.argv.includes('--diag')?{diagnostics}:{})}));}finally{runtime.dispose();}\n",
+  "oracleScript": "import {readFileSync,writeFileSync} from 'node:fs';\nimport assert from 'node:assert/strict';\nimport {Interpreter} from '/tmp/rank195-isolated/packages/interpreter/out/index.js';\nconst original=readFileSync('/tmp/rank196-delivery/demos/euler/211_divisorsquare.ra','utf8');\nconst reuse=original.replace('Total = 0','Total = 0\\nSig = array shape Block fill 0').replace('  Sig = array shape Block fill 0','  for Clear in 0 till Block\\n    Sig Clear = 0\\n  end');\nconst mult=readFileSync('/tmp/rank211-multiplicative.ra','utf8');\nconst results=[];\nfor(const limit of [1,2,3,10,42,100,257,1000]) {\n let expected=0n;\n for(let n=1;n<limit;n++) {let s=0n;for(let d=1;d<=n;d++)if(n%d===0)s+=BigInt(d*d);let r=0n;while(r*r<s)r++;if(r*r===s)expected+=BigInt(n);}\n for(const block of [7,31]) for(const compilation of [false,true]) for(const [variant,text] of Object.entries({original,reuse,multiplicative:mult})) {\n  const r=new Interpreter(()=>{}, {compilation});\n  try {r.execute(text.replace('64000000',String(limit)).replace('1000000',String(block)));assert.equal(r.variables.get('Answer'),expected);results.push({limit,block,compilation,variant,answer:String(expected)});} finally {r.dispose();}\n }\n}\nwriteFileSync('/tmp/rank211-verification.json',JSON.stringify(results,null,2));console.log(results.length+' independent checks pass');\n",
+  "samples": [
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js"
+      ],
+      "ms": 49667.76825,
+      "rssMiB": 395.28125,
+      "answer": "1922364685",
+      "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+      "tests": [],
+      "variant": "before",
+      "cohort": "full"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 5045.903334,
+      "rssMiB": 281.3125,
+      "answer": "1922364685",
+      "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+      "tests": [],
+      "variant": "after",
+      "cohort": "full"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js"
+      ],
+      "ms": 52247.412625,
+      "rssMiB": 441.34375,
+      "answer": "1922364685",
+      "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+      "tests": [],
+      "variant": "before",
+      "cohort": "full"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 5071.823292,
+      "rssMiB": 279.421875,
+      "answer": "1922364685",
+      "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+      "tests": [],
+      "variant": "after",
+      "cohort": "full"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js"
+      ],
+      "ms": 51183.760083,
+      "rssMiB": 434.484375,
+      "answer": "1922364685",
+      "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+      "tests": [],
+      "variant": "before",
+      "cohort": "full"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 5077.567208,
+      "rssMiB": 274,
+      "answer": "1922364685",
+      "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+      "tests": [],
+      "variant": "after",
+      "cohort": "full"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js",
+        "--fixture"
+      ],
+      "ms": 207.655083,
+      "rssMiB": 198.03125,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 89.30512499999998
+        }
+      ],
+      "variant": "before",
+      "cohort": "fixture"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--fixture"
+      ],
+      "ms": 175.13916700000001,
+      "rssMiB": 177.34375,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 53.52358300000003
+        }
+      ],
+      "variant": "after",
+      "cohort": "fixture"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js",
+        "--fixture"
+      ],
+      "ms": 211.960459,
+      "rssMiB": 194.53125,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 91.361584
+        }
+      ],
+      "variant": "before",
+      "cohort": "fixture"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--fixture"
+      ],
+      "ms": 169.70687499999997,
+      "rssMiB": 177.453125,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 51.50154199999997
+        }
+      ],
+      "variant": "after",
+      "cohort": "fixture"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js",
+        "--fixture"
+      ],
+      "ms": 216.89525,
+      "rssMiB": 199.609375,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 94.60537499999998
+        }
+      ],
+      "variant": "before",
+      "cohort": "fixture"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--fixture"
+      ],
+      "ms": 171.127958,
+      "rssMiB": 177.078125,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 52.376165999999955
+        }
+      ],
+      "variant": "after",
+      "cohort": "fixture"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 425.25770800000004,
+      "rssMiB": 312.09375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "before",
+      "cohort": "euler200-control"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 420.76379199999997,
+      "rssMiB": 379.5625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "after",
+      "cohort": "euler200-control"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 420.698167,
+      "rssMiB": 309,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "before",
+      "cohort": "euler200-control"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 421.25279199999994,
+      "rssMiB": 383,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "after",
+      "cohort": "euler200-control"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 417.495083,
+      "rssMiB": 310.09375,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "before",
+      "cohort": "euler200-control"
+    },
+    {
+      "fixture": false,
+      "reference": false,
+      "originalTests": false,
+      "ms": 421.33158299999997,
+      "rssMiB": 374.890625,
+      "answer": "229161792008",
+      "sourceHash": "d7a3380c7517f0bb301c38535ca116126a225d4bb8874f9910f0747640496b7c",
+      "tests": [],
+      "variant": "after",
+      "cohort": "euler200-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js"
+      ],
+      "ms": 2997.329042,
+      "rssMiB": 243.328125,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "before",
+      "cohort": "euler210-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 3026.001833,
+      "rssMiB": 237.296875,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "after",
+      "cohort": "euler210-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js"
+      ],
+      "ms": 2993.860291,
+      "rssMiB": 221.265625,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "before",
+      "cohort": "euler210-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 2961.2160000000003,
+      "rssMiB": 237.34375,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "after",
+      "cohort": "euler210-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js"
+      ],
+      "ms": 3013.498625,
+      "rssMiB": 258.203125,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "before",
+      "cohort": "euler210-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js"
+      ],
+      "ms": 2999.169792,
+      "rssMiB": 233.265625,
+      "answer": "1598174770174689458",
+      "sourceHash": "6706a2db35ec2d915cbce906c43c4d47195e636153d752c5860b3f23c93da7fa",
+      "tests": [],
+      "variant": "after",
+      "cohort": "euler210-control"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 650.820792,
+      "rssMiB": 188.765625,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 526.7869169999999
+        }
+      ],
+      "variant": "before",
+      "cohort": "fixture-reference"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 641.876875,
+      "rssMiB": 186.8125,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 518.4658750000001
+        }
+      ],
+      "variant": "after",
+      "cohort": "fixture-reference"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 636.277708,
+      "rssMiB": 184.109375,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 519.4440420000001
+        }
+      ],
+      "variant": "before",
+      "cohort": "fixture-reference"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 647.891042,
+      "rssMiB": 186.75,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 524.601375
+        }
+      ],
+      "variant": "after",
+      "cohort": "fixture-reference"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank211-baseline-runtime/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 643.267375,
+      "rssMiB": 187.1875,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 517.367542
+        }
+      ],
+      "variant": "before",
+      "cohort": "fixture-reference"
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 654.436792,
+      "rssMiB": 181.828125,
+      "sourceHash": "e1d0a1d2b39c9450f09fff24635ec60d8a7ee8a6e6688a03c394053fc8107603",
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "1304",
+            "462294"
+          ],
+          "durationMs": 532.6153750000001
+        }
+      ],
+      "variant": "after",
+      "cohort": "fixture-reference"
+    },
+    {
+      "ms": 336.160708,
+      "rssMiB": 203.109375,
+      "answer": "162726509",
+      "source": "rem Totient Chains\nrem https://projecteuler.net/problem=214\nrem Add up the primes below Limit whose\nrem totient chain p, phi(p),\nrem phi(phi(p)), ... down to 1 has Len\nrem terms\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 100000\noption Len integer = 15\noption Block integer = 5000\n\nrem Let L(n) = 1 + L(phi(n)) be the\nrem number of terms. For a prime p, L(p)\nrem = 2 + L(phi(p - 1)) and phi(p - 1)\nrem is at most Limit / 2, so only L at\nrem even numbers up to Limit / 2 is\nrem kept: in Lt[n / 2], filled as phi\nrem comes from a sieve one block of\nrem numbers at a time.\nRoot = Limit isqrt + 1\nPs = primes till Root array\nHalf = Limit // 2\nLt = array shape (Half // 2 + 2) fill 0\nLt 0 = 1\nTotal = 0\nStep = Block - 1\nfor Lo in 1 to (Limit - 1) by Step\n  Hi = (Lo + Block) min (Limit)\n  Phi = array shape (Hi - Lo + 1) fill 0\n  Rem = array shape (Hi - Lo + 1) fill 0\n  for K in 0 to (Hi - Lo)\n    Phi K = Lo + K\n    Rem K = Lo + K\n  end\n  for Q in Ps\n    From = (Lo + Q - 1) // Q * Q\n    for N in From to Hi by Q\n      Ix = N - Lo\n      Phi Ix -= Phi Ix // Q\n      for\n        if Rem Ix mod Q not equal 0\n          break\n        end\n        Rem Ix //= Q\n      end\n    end\n  end\n  for K in 0 to (Hi - Lo)\n    if Rem K greater 1\n      Phi K -= Phi K // Rem K\n    end\n  end\n  for K in 1 to (Hi - Lo - 1)\n    N = Lo + K\n    Even = N mod 2 equal 0\n    if Even and N at most Half\n      Lt (N // 2) = 1 + Lt (Phi K // 2)\n    end\n    if Phi K equal N - 1 and N greater 2\n      Pm = Phi (K - 1)\n      Steps = 2 + Lt (Pm // 2)\n      if Steps equal Len\n        Total += N\n      end\n    end\n  end\nend\nAnswer = Total\nAnswer print\n",
+      "variant": "before",
+      "cohort": "euler214-small-control"
+    },
+    {
+      "ms": 191.303959,
+      "rssMiB": 177.109375,
+      "answer": "162726509",
+      "source": "rem Totient Chains\nrem https://projecteuler.net/problem=214\nrem Add up the primes below Limit whose\nrem totient chain p, phi(p),\nrem phi(phi(p)), ... down to 1 has Len\nrem terms\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 100000\noption Len integer = 15\noption Block integer = 5000\n\nrem Let L(n) = 1 + L(phi(n)) be the\nrem number of terms. For a prime p, L(p)\nrem = 2 + L(phi(p - 1)) and phi(p - 1)\nrem is at most Limit / 2, so only L at\nrem even numbers up to Limit / 2 is\nrem kept: in Lt[n / 2], filled as phi\nrem comes from a sieve one block of\nrem numbers at a time.\nRoot = Limit isqrt + 1\nPs = primes till Root array\nHalf = Limit // 2\nLt = array shape (Half // 2 + 2) fill 0\nLt 0 = 1\nTotal = 0\nStep = Block - 1\nfor Lo in 1 to (Limit - 1) by Step\n  Hi = (Lo + Block) min (Limit)\n  Phi = array shape (Hi - Lo + 1) fill 0\n  Rem = array shape (Hi - Lo + 1) fill 0\n  for K in 0 to (Hi - Lo)\n    Phi K = Lo + K\n    Rem K = Lo + K\n  end\n  for Q in Ps\n    From = (Lo + Q - 1) // Q * Q\n    for N in From to Hi by Q\n      Ix = N - Lo\n      Phi Ix -= Phi Ix // Q\n      for\n        if Rem Ix mod Q not equal 0\n          break\n        end\n        Rem Ix //= Q\n      end\n    end\n  end\n  for K in 0 to (Hi - Lo)\n    if Rem K greater 1\n      Phi K -= Phi K // Rem K\n    end\n  end\n  for K in 1 to (Hi - Lo - 1)\n    N = Lo + K\n    Even = N mod 2 equal 0\n    if Even and N at most Half\n      Lt (N // 2) = 1 + Lt (Phi K // 2)\n    end\n    if Phi K equal N - 1 and N greater 2\n      Pm = Phi (K - 1)\n      Steps = 2 + Lt (Pm // 2)\n      if Steps equal Len\n        Total += N\n      end\n    end\n  end\nend\nAnswer = Total\nAnswer print\n",
+      "variant": "after",
+      "cohort": "euler214-small-control"
+    },
+    {
+      "ms": 325.838083,
+      "rssMiB": 202.203125,
+      "answer": "162726509",
+      "source": "rem Totient Chains\nrem https://projecteuler.net/problem=214\nrem Add up the primes below Limit whose\nrem totient chain p, phi(p),\nrem phi(phi(p)), ... down to 1 has Len\nrem terms\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 100000\noption Len integer = 15\noption Block integer = 5000\n\nrem Let L(n) = 1 + L(phi(n)) be the\nrem number of terms. For a prime p, L(p)\nrem = 2 + L(phi(p - 1)) and phi(p - 1)\nrem is at most Limit / 2, so only L at\nrem even numbers up to Limit / 2 is\nrem kept: in Lt[n / 2], filled as phi\nrem comes from a sieve one block of\nrem numbers at a time.\nRoot = Limit isqrt + 1\nPs = primes till Root array\nHalf = Limit // 2\nLt = array shape (Half // 2 + 2) fill 0\nLt 0 = 1\nTotal = 0\nStep = Block - 1\nfor Lo in 1 to (Limit - 1) by Step\n  Hi = (Lo + Block) min (Limit)\n  Phi = array shape (Hi - Lo + 1) fill 0\n  Rem = array shape (Hi - Lo + 1) fill 0\n  for K in 0 to (Hi - Lo)\n    Phi K = Lo + K\n    Rem K = Lo + K\n  end\n  for Q in Ps\n    From = (Lo + Q - 1) // Q * Q\n    for N in From to Hi by Q\n      Ix = N - Lo\n      Phi Ix -= Phi Ix // Q\n      for\n        if Rem Ix mod Q not equal 0\n          break\n        end\n        Rem Ix //= Q\n      end\n    end\n  end\n  for K in 0 to (Hi - Lo)\n    if Rem K greater 1\n      Phi K -= Phi K // Rem K\n    end\n  end\n  for K in 1 to (Hi - Lo - 1)\n    N = Lo + K\n    Even = N mod 2 equal 0\n    if Even and N at most Half\n      Lt (N // 2) = 1 + Lt (Phi K // 2)\n    end\n    if Phi K equal N - 1 and N greater 2\n      Pm = Phi (K - 1)\n      Steps = 2 + Lt (Pm // 2)\n      if Steps equal Len\n        Total += N\n      end\n    end\n  end\nend\nAnswer = Total\nAnswer print\n",
+      "variant": "before",
+      "cohort": "euler214-small-control"
+    },
+    {
+      "ms": 196.004417,
+      "rssMiB": 177.03125,
+      "answer": "162726509",
+      "source": "rem Totient Chains\nrem https://projecteuler.net/problem=214\nrem Add up the primes below Limit whose\nrem totient chain p, phi(p),\nrem phi(phi(p)), ... down to 1 has Len\nrem terms\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 100000\noption Len integer = 15\noption Block integer = 5000\n\nrem Let L(n) = 1 + L(phi(n)) be the\nrem number of terms. For a prime p, L(p)\nrem = 2 + L(phi(p - 1)) and phi(p - 1)\nrem is at most Limit / 2, so only L at\nrem even numbers up to Limit / 2 is\nrem kept: in Lt[n / 2], filled as phi\nrem comes from a sieve one block of\nrem numbers at a time.\nRoot = Limit isqrt + 1\nPs = primes till Root array\nHalf = Limit // 2\nLt = array shape (Half // 2 + 2) fill 0\nLt 0 = 1\nTotal = 0\nStep = Block - 1\nfor Lo in 1 to (Limit - 1) by Step\n  Hi = (Lo + Block) min (Limit)\n  Phi = array shape (Hi - Lo + 1) fill 0\n  Rem = array shape (Hi - Lo + 1) fill 0\n  for K in 0 to (Hi - Lo)\n    Phi K = Lo + K\n    Rem K = Lo + K\n  end\n  for Q in Ps\n    From = (Lo + Q - 1) // Q * Q\n    for N in From to Hi by Q\n      Ix = N - Lo\n      Phi Ix -= Phi Ix // Q\n      for\n        if Rem Ix mod Q not equal 0\n          break\n        end\n        Rem Ix //= Q\n      end\n    end\n  end\n  for K in 0 to (Hi - Lo)\n    if Rem K greater 1\n      Phi K -= Phi K // Rem K\n    end\n  end\n  for K in 1 to (Hi - Lo - 1)\n    N = Lo + K\n    Even = N mod 2 equal 0\n    if Even and N at most Half\n      Lt (N // 2) = 1 + Lt (Phi K // 2)\n    end\n    if Phi K equal N - 1 and N greater 2\n      Pm = Phi (K - 1)\n      Steps = 2 + Lt (Pm // 2)\n      if Steps equal Len\n        Total += N\n      end\n    end\n  end\nend\nAnswer = Total\nAnswer print\n",
+      "variant": "after",
+      "cohort": "euler214-small-control"
+    },
+    {
+      "ms": 326.20670800000005,
+      "rssMiB": 204.171875,
+      "answer": "162726509",
+      "source": "rem Totient Chains\nrem https://projecteuler.net/problem=214\nrem Add up the primes below Limit whose\nrem totient chain p, phi(p),\nrem phi(phi(p)), ... down to 1 has Len\nrem terms\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 100000\noption Len integer = 15\noption Block integer = 5000\n\nrem Let L(n) = 1 + L(phi(n)) be the\nrem number of terms. For a prime p, L(p)\nrem = 2 + L(phi(p - 1)) and phi(p - 1)\nrem is at most Limit / 2, so only L at\nrem even numbers up to Limit / 2 is\nrem kept: in Lt[n / 2], filled as phi\nrem comes from a sieve one block of\nrem numbers at a time.\nRoot = Limit isqrt + 1\nPs = primes till Root array\nHalf = Limit // 2\nLt = array shape (Half // 2 + 2) fill 0\nLt 0 = 1\nTotal = 0\nStep = Block - 1\nfor Lo in 1 to (Limit - 1) by Step\n  Hi = (Lo + Block) min (Limit)\n  Phi = array shape (Hi - Lo + 1) fill 0\n  Rem = array shape (Hi - Lo + 1) fill 0\n  for K in 0 to (Hi - Lo)\n    Phi K = Lo + K\n    Rem K = Lo + K\n  end\n  for Q in Ps\n    From = (Lo + Q - 1) // Q * Q\n    for N in From to Hi by Q\n      Ix = N - Lo\n      Phi Ix -= Phi Ix // Q\n      for\n        if Rem Ix mod Q not equal 0\n          break\n        end\n        Rem Ix //= Q\n      end\n    end\n  end\n  for K in 0 to (Hi - Lo)\n    if Rem K greater 1\n      Phi K -= Phi K // Rem K\n    end\n  end\n  for K in 1 to (Hi - Lo - 1)\n    N = Lo + K\n    Even = N mod 2 equal 0\n    if Even and N at most Half\n      Lt (N // 2) = 1 + Lt (Phi K // 2)\n    end\n    if Phi K equal N - 1 and N greater 2\n      Pm = Phi (K - 1)\n      Steps = 2 + Lt (Pm // 2)\n      if Steps equal Len\n        Total += N\n      end\n    end\n  end\nend\nAnswer = Total\nAnswer print\n",
+      "variant": "before",
+      "cohort": "euler214-small-control"
+    },
+    {
+      "ms": 184.359125,
+      "rssMiB": 176.21875,
+      "answer": "162726509",
+      "source": "rem Totient Chains\nrem https://projecteuler.net/problem=214\nrem Add up the primes below Limit whose\nrem totient chain p, phi(p),\nrem phi(phi(p)), ... down to 1 has Len\nrem terms\n\nuse numbers\nuse sequences\nuse io\nuse cli\n\noption Limit integer = 100000\noption Len integer = 15\noption Block integer = 5000\n\nrem Let L(n) = 1 + L(phi(n)) be the\nrem number of terms. For a prime p, L(p)\nrem = 2 + L(phi(p - 1)) and phi(p - 1)\nrem is at most Limit / 2, so only L at\nrem even numbers up to Limit / 2 is\nrem kept: in Lt[n / 2], filled as phi\nrem comes from a sieve one block of\nrem numbers at a time.\nRoot = Limit isqrt + 1\nPs = primes till Root array\nHalf = Limit // 2\nLt = array shape (Half // 2 + 2) fill 0\nLt 0 = 1\nTotal = 0\nStep = Block - 1\nfor Lo in 1 to (Limit - 1) by Step\n  Hi = (Lo + Block) min (Limit)\n  Phi = array shape (Hi - Lo + 1) fill 0\n  Rem = array shape (Hi - Lo + 1) fill 0\n  for K in 0 to (Hi - Lo)\n    Phi K = Lo + K\n    Rem K = Lo + K\n  end\n  for Q in Ps\n    From = (Lo + Q - 1) // Q * Q\n    for N in From to Hi by Q\n      Ix = N - Lo\n      Phi Ix -= Phi Ix // Q\n      for\n        if Rem Ix mod Q not equal 0\n          break\n        end\n        Rem Ix //= Q\n      end\n    end\n  end\n  for K in 0 to (Hi - Lo)\n    if Rem K greater 1\n      Phi K -= Phi K // Rem K\n    end\n  end\n  for K in 1 to (Hi - Lo - 1)\n    N = Lo + K\n    Even = N mod 2 equal 0\n    if Even and N at most Half\n      Lt (N // 2) = 1 + Lt (Phi K // 2)\n    end\n    if Phi K equal N - 1 and N greater 2\n      Pm = Phi (K - 1)\n      Steps = 2 + Lt (Pm // 2)\n      if Steps equal Len\n        Total += N\n      end\n    end\n  end\nend\nAnswer = Total\nAnswer print\n",
+      "variant": "after",
+      "cohort": "euler214-small-control"
+    }
+  ],
+  "smallOracleChecks": [
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "0"
+    },
+    {
+      "limit": 1,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "0"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 2,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 3,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 10,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1"
+    },
+    {
+      "limit": 42,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "43"
+    },
+    {
+      "limit": 100,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "43"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "289"
+    },
+    {
+      "limit": 257,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "289"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 7,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": false,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": false,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": false,
+      "variant": "multiplicative",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": true,
+      "variant": "original",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": true,
+      "variant": "reuse",
+      "answer": "1304"
+    },
+    {
+      "limit": 1000,
+      "block": 31,
+      "compilation": true,
+      "variant": "multiplicative",
+      "answer": "1304"
+    }
+  ],
+  "shippingDiagnostics": {
+    "args": [
+      "--runtime=/tmp/rank195-isolated/packages/interpreter/out/index.js",
+      "--diag"
+    ],
+    "ms": 4960.566542,
+    "rssMiB": 271.25,
+    "answer": "1922364685",
+    "sourceHash": "d29c9d934cfc9b8f35d06410c9e94e8a3767186a3078e9cabf8c5076e2713eba",
+    "tests": [],
+    "diagnostics": {
+      "memoHits": 0,
+      "memoMisses": 0,
+      "indexReads": 0,
+      "indexReadHits": 0,
+      "indexReadMisses": 0,
+      "indexWrites": 0,
+      "sequencePredicateCalls": 0,
+      "cellsComputed": 0,
+      "hoistedReaders": 0,
+      "loopElementScans": 0,
+      "nativeSequenceCopies": 0,
+      "compiledLoops": 1,
+      "compiledGeneratorLoops": 0,
+      "integerMembershipFilters": 0,
+      "compiledGraphAdds": 0,
+      "compiledEffectCalls": 0,
+      "numericSorts": 0,
+      "numericInPlaceSorts": 0,
+      "numericDistincts": 0,
+      "compiledDistincts": 0,
+      "numericUniqueSorts": 0,
+      "numericSearches": 0,
+      "numericSearchIndexes": 0,
+      "numberLoops": 1,
+      "exactLoopWorkSamples": 0,
+      "exactLoopWorkPromotions": 0,
+      "numberLoopCopyProbes": 0,
+      "numberLoopCopyAmortized": 0,
+      "mixedIntegerLoops": 0,
+      "numberLoopOverflows": 0,
+      "numberLoopReadBuffers": 0,
+      "numberLoopReadBufferCells": 0,
+      "numberLoopReadBufferHits": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "compiledCounterBuilds": 0,
+      "compiledCounterSums": 0,
+      "compiledCounterKeys": 0,
+      "tensorMapPreparations": 0,
+      "compiledArrayFunctions": 0,
+      "rankedArrayBatches": 0,
+      "rankedBatches": 0,
+      "maskMaterializations": 0,
+      "maskMaterializedCells": 0,
+      "bulkArrayWrites": 0,
+      "bulkArrayWriteCells": 0,
+      "fusedArrayUpdates": 0,
+      "fusedArrayUpdateCells": 0,
+      "fusedArrayUpdateWidenings": 0,
+      "cowCopies": 0,
+      "cowCopiedCells": 0,
+      "elementTypeScans": 0,
+      "elementTypeScannedCells": 0,
+      "rangeSelectorViews": 0,
+      "selectionSnapshots": 0,
+      "selectionSnapshotCells": 0,
+      "typedUnpacks": 0,
+      "typedUnpackedCells": 0,
+      "fallbacks": {},
+      "compilerRejections": []
+    }
+  },
+  "verification": {
+    "ordinaryTests": 9106,
+    "ordinaryFiles": 401,
+    "ordinarySeconds": 160.25,
+    "numberLoopTests": 179,
+    "newTests": 15,
+    "typeAudits": 2,
+    "fixtureDifferentialAudits": 1,
+    "oracleChecks": 96,
+    "build": "pass",
+    "timeoutRerun": "A prior four-worker run had three ~29s deadline stalls. All 79 tests in those files passed serially, then all 9106 passed with two workers."
+  }
+}
