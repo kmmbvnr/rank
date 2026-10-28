@@ -1024,5 +1024,67 @@
     "Only first four token and position embedding rows",
     "Activations return through host between modules",
     "No full-model performance or memory claim"
-  ]
+  ],
+  "finalMainMergeVerification": {
+    "commit": "09c9c00b",
+    "main": "905c9ea4",
+    "typeScriptBuild": "passed",
+    "focusedInterpreterTests": 36,
+    "macGpuCalls": 9,
+    "macValuesCompared": 43200,
+    "macChecks": [
+      {
+        "label": "embedding",
+        "values": 3072,
+        "maxError": 0
+      },
+      {
+        "label": "attention",
+        "values": 3072,
+        "maxError": 4.09530788214596e-06
+      },
+      {
+        "label": "output",
+        "values": 3072,
+        "maxError": 5.333026487619463e-05
+      },
+      {
+        "label": "changed-attention",
+        "values": 3072,
+        "maxError": 4.09530788214596e-06
+      },
+      {
+        "label": "changed-output",
+        "values": 3072,
+        "maxError": 5.333026487619463e-05
+      },
+      {
+        "label": "returned",
+        "values": 3072,
+        "maxError": 5.333026487619463e-05
+      },
+      {
+        "label": "Norm1",
+        "values": 3072,
+        "maxError": 6.439362365551204e-08
+      },
+      {
+        "label": "Projection",
+        "values": 9216,
+        "maxError": 2.4949261323570227e-06
+      },
+      {
+        "label": "Probabilities",
+        "values": 192,
+        "maxError": 2.0791467619796222e-07
+      },
+      {
+        "label": "Activated",
+        "values": 12288,
+        "maxError": 2.242885356551483e-06
+      }
+    ],
+    "causalityVerified": true,
+    "note": "Intel and Android measurements above preceded the final application-role-cache main commit."
+  }
 }
