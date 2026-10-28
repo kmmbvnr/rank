@@ -6,4 +6,4 @@ option W .f32 shape 3 4 = array shape 3 4
     9.0 10.0 11.0 12.0
 end
 option Bias .f32 shape 4 = array 0.5 -1.0 1.5 -2.0
-return ((X W linear) + Bias) relu
+return (X W linear) + Bias relu

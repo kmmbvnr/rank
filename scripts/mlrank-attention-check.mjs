@@ -42,7 +42,7 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  `K = (P # # (${C} till ${2*C})) reshape ${B} ${T} ${H} ${D}`,
  `V = (P # # (${2*C} till ${3*C})) reshape ${B} ${T} ${H} ${D}`,
  'Q = Q transpose axis 0 2 1 3','K = K transpose axis 0 2 3 1','V = V transpose axis 0 2 1 3',
- 'Scores = (Q matmul K rank 2 2) * Scale','Masked = Scores + Mask','Probabilities = Masked softmax',
+ 'Scores = Q matmul K rank 2 2 * Scale','Masked = Scores + Mask','Probabilities = Masked softmax',
  'Context = Probabilities matmul V rank 2 2','Merged = Context transpose axis 0 2 1 3',
  `Merged = Merged reshape ${B} ${T} ${C}`,'Output = Merged O linear'];
  const stages=[['Scores',7,scores,[B,H,T,T]],['Masked',8,masked,[B,H,T,T]],['Probabilities',9,probabilities,[B,H,T,T]],['Context',10,context,[B,H,T,D]],['Merged',12,merged,[B,T,C]],['Output',13,output,[B,T,C]]];
