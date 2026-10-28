@@ -1,6 +1,7 @@
 # Pinned GPT-2 block 0 or all 12 blocks, plus four token/position embedding rows.
 # Downloads byte ranges, keeps weights in Safetensors, uses an independent NumPy reference.
 import argparse,concurrent.futures,hashlib,json,pathlib,re,struct,subprocess,sys,numpy as np
+from mlrank_gpt2_reference import norm,block
 REV='607a30d783dfa663caf39e06633721c8d4cfcd7e'
 BASE='https://huggingface.co/openai-community/gpt2/resolve/'+REV+'/'
 parser=argparse.ArgumentParser(description=__doc__)
@@ -50,22 +51,6 @@ def weight(name,rows=None):
  e,p=entries_by_name[name]
  mapped=np.memmap(p,dtype='<f4',mode='r',shape=tuple(e['shape']))
  return (mapped if rows is None else mapped[rows]).astype(np.float64)
-weights={}
-def w(n):return weights[n]
-def norm(x,g,b):
- centered=x-x.mean(axis=-1,keepdims=True)
- return centered/np.sqrt((centered*centered).mean(axis=-1,keepdims=True)+1e-5)*g+b
-def reference(x):
- n=norm(x,w('ln_1.weight'),w('ln_1.bias'));p=n@w('attn.c_attn.weight')+w('attn.c_attn.bias')
- q,k,v=[a.reshape(1,4,12,64).transpose(0,2,1,3) for a in np.split(p,3,axis=-1)]
- scores=(q@k.transpose(0,1,3,2))*0.125+np.where(np.triu(np.ones((4,4)),1),-10000.,0.)
- probs=np.exp(scores-scores.max(axis=-1,keepdims=True));probs/=probs.sum(axis=-1,keepdims=True)
- context=(probs@v).transpose(0,2,1,3).reshape(1,4,768)
- a=context@w('attn.c_proj.weight')+w('attn.c_proj.bias');h=x+a
- n2=norm(h,w('ln_2.weight'),w('ln_2.bias'));up=n2@w('mlp.c_fc.weight')+w('mlp.c_fc.bias')
- gelu=.5*up*(1+np.tanh(np.sqrt(2/np.pi)*(up+.044715*up**3)))
- result=h+gelu@w('mlp.c_proj.weight')+w('mlp.c_proj.bias')
- return {'Norm1':n,'Projection':p,'Probabilities':probs,'Attention':a,'Residual1':h,'Norm2':n2,'Up':up,'Activated':gelu,'Output':result}
 if args.full_vocabulary:
  assert config['vocab_size']==50257 and config['n_positions']==1024
  token_cases=[[0,127,8192,50256],[0,127,8192,256]]
@@ -83,7 +68,7 @@ for layer in range(layers):
  prefix=f'h.{layer}.'
  weights={name[len(prefix):]:weight(name) for name in entries_by_name if name.startswith(prefix)}
  for i,value in enumerate(values):
-  stages=reference(value)
+  stages=block(value,weights)
   if layers==1:cases[i]['stages']={n:v.ravel().tolist() for n,v in stages.items()}
   cases[i]['blocks'].append({n:stages[n].ravel().tolist() for n in ['Residual1','Output']})
   values[i]=stages['Output']

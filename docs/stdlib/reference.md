@@ -327,6 +327,7 @@ Standard input, whole-file text and stateful file handles.
 | `Path read` | text, io | unary all | Complete decoded UTF-8 text of a file, final line ending included. |
 | `File readbytes Count | Path Offset Count readbytes` | bytes, io | binary all / all; 3 operands: whole | Reads a block of bytes by offset, or the next Count bytes of an open file. |
 | `Path readlines` | array, io | unary all | Lines of a file with their separators removed. |
+| `File verify Sha256` | file, io | binary all / all | Verifies a file SHA-256 with bounded native reads and pins its revision until close. |
 | `File safetensors` | array, io | unary all | Lists tensor names, dtypes, shapes and byte sizes without reading tensor data. |
 | `File tensor Name` | value, io | binary all / all | Reads a named Safetensors tensor through a bounded file-backed view; the file must remain open. |
 | `File seek Offset` | file, io | binary all / all | Sets an absolute byte offset from the beginning. |
@@ -554,6 +555,8 @@ Splitting, formatting, parsing and code points.
 | `Text Width Fill lpad` | text | 3 operands: whole | Pads text on the left without truncating longer values. |
 | `Text Chars Replacement translate` | text | 3 operands: whole | Replaces listed characters, deleting those with no replacement. |
 | `Texts vocab Limit` | array | binary all / all | Most frequent words, at most Limit of them, ties by code point. |
+| `Text bpeencode TokenizerJson` | array | binary all / all | Encodes text using a GPT-2-compatible byte-level BPE tokenizer JSON, including declared special tokens. |
+| `Tokens bpedecode TokenizerJson` | text | binary all / all | Decodes byte-level BPE IDs as UTF-8, retaining special tokens and replacing incomplete byte sequences. |
 | `Text words` | array | unary all | Lowercase Unicode letter and number runs. |
 
 ## xml

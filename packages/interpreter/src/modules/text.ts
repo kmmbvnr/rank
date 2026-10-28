@@ -1,3 +1,4 @@
+import { bpeEncode, bpeDecode } from '../byte-bpe.js';
 import { positionalValue } from '../positional-value.js';
 import { interruptibleCallback } from '../interrupt.js';
 import { RankError } from '../errors.js';
@@ -15,6 +16,8 @@ const hexadecimalBytes = Array.from({ length: 256 }, (_, byte) =>
     byte.toString(16).padStart(2, '0'));
 
 export const textModule: RuntimeModule = {
+    bpeencode: () => native('bpeencode', 2, ([text, config]) => bpeEncode(text, config)),
+    bpedecode: () => native('bpedecode', 2, ([tokens, config]) => bpeDecode(tokens, config)),
     words: () => native('words', 1, ([value]) => {
         if (typeof value !== 'string') throw new RankError('words expects text', 'TypeError');
         return textArray(tokenize(value));

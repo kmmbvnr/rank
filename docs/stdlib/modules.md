@@ -1031,6 +1031,14 @@ order, and returns at most `Limit` terms. An empty input or zero limit returns
 an empty array. These operations require `use text`; wrong element types raise
 `.TypeError`, and an invalid limit raises `.DomainError`.
 
+`Text bpeencode TokenizerJson` and `Tokens bpedecode TokenizerJson` use a
+GPT-2-compatible byte-level BPE vocabulary and merge list supplied as tokenizer
+JSON text. Encoding preserves whitespace and case and recognizes declared
+special tokens; decoding joins token bytes before UTF-8 replacement decoding.
+The operations consume whole operands. Unsupported tokenizer processing is
+rejected rather than silently approximated. See the [text manual](../manual/text.md#bpeencode)
+for the supported JSON contract and error behavior.
+
 `parse` matches a complete text value against a text pattern and returns the
 captured values as a rank-1 array. It is normally combined with `unpack`:
 
