@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-option Position integer = 1000000
+arg Position integer = 1000000
 
 Digits = 0 to 9 array
 

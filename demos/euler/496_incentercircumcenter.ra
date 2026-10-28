@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option L integer = 1000000000
+arg L integer = 1000000000
 
 rem The triangles are r s t with
 rem coprime r < s < 2r, scale t, rst

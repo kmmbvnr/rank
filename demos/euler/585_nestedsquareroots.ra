@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 5000000
+arg N integer = 5000000
 
 rem A denestable value is a two-root sum
 rem sqrt(k a) + sqrt(k b), a + b = s

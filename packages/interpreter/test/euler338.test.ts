@@ -4,7 +4,7 @@ import { Interpreter } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/338_gridpaper.ra', import.meta.url), 'utf8')
     .replace('use io', '').replace('use cli', '')
-    .replace('option Limit integer = 1000000000000', '')
+    .replace('arg Limit integer = 1000000000000', '')
     .replace('Limit grid print', '');
 
 // Deliberately enumerate divisors and every outer index, without quotient blocks

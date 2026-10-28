@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Count integer = 18
+arg Count integer = 18
 
 rem A value p / q is stored as the key
 rem p K + q. Level m holds the circuits

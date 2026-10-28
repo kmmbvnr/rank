@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 200000000000
+arg Limit integer = 200000000000
 
 rem Then n - 1 = k (n - phi(n)), so n is
 rem squarefree with all primes above k,

@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option Tiles integer = 1000000
-option Most integer = 10
+arg Tiles integer = 1000000
+arg Most integer = 10
 
 rem As in problem 173, t = 4 k j with
 rem j > k. Tally for each product k j

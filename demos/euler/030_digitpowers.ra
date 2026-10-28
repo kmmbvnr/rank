@@ -6,7 +6,7 @@ rem powers of their decimal digits
 use io
 use cli
 
-option Power integer = 5
+arg Power integer = 5
 
 Answer = Power digit_power_numbers
 Answer print

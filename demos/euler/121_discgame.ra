@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Turns integer = 15
+arg Turns integer = 15
 
 rem Turn t draws blue with chance
 rem 1/(t+1). Over all 2^N blue/red

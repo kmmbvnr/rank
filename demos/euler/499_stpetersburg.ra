@@ -7,8 +7,8 @@ use linalg
 use io
 use cli
 
-option T integer = 15
-option B integer = 1000000000
+arg T integer = 15
+arg B integer = 1000000000
 
 rem A round costs T and pays 2^n with
 rem chance 2^-(n+1) (n < 50 is enough

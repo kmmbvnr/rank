@@ -5,9 +5,9 @@ use numbers
 use io
 use cli
 
-option C integer = 7
-option B integer = 10
-option D integer = 20
+arg C integer = 7
+arg B integer = 10
+arg D integer = 20
 
 rem Each colour is missing with chance
 rem C((C-1)B, D) / C(CB, D); expected

@@ -18,7 +18,7 @@ describe.each([false, true])('Euler 179 (compilation=%s)', compilation => {
     it.each([1, 2, 3, 4, 5, 10, 14, 15, 16, 99, 100, 101, 256, 999, 1000])('matches trial division at limit %s', limit => {
         const runtime = new Interpreter(() => {}, { compilation });
         try {
-            runtime.execute(source.replace('option Limit integer = 10000000', `option Limit integer = ${limit}`));
+            runtime.execute(source.replace('arg Limit integer = 10000000', `arg Limit integer = ${limit}`));
             expect(runtime.variables.get('Answer')).toBe(oracle(limit));
         } finally { runtime.dispose(); }
     });

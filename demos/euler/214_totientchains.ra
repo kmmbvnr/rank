@@ -10,9 +10,9 @@ use sequences
 use io
 use cli
 
-option Limit integer = 40000000
-option Len integer = 25
-option Block integer = 1000000
+arg Limit integer = 40000000
+arg Len integer = 25
+arg Block integer = 1000000
 
 rem Let L(n) = 1 + L(phi(n)) be the
 rem number of terms. For a prime p, L(p)

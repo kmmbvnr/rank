@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { compileRam, ramRound, Interpreter } from '../src/index.js';
 
-const hello = 'use ml\noption X .f16 shape 1 4\nreturn X relu\n';
+const hello = 'use ml\narg X .f16 shape 1 4\nreturn X relu\n';
 describe('RAM ReLU MVP', () => {
     it('imports a callable graph and returns the host GPU result', () => {
         let calls = 0;
@@ -55,22 +55,22 @@ describe('RAM ReLU MVP', () => {
         expect(() => ramRound(1e39, 'f32')).toThrow('outside .f32');
     });
     it('compiles same-shape constants and nested operations, invalidating model bytes when weights change', () => {
-        const source = 'use ml\noption X .f32 shape 1 4\n'
-            + 'option Scale .f32 shape 1 4 = array shape 1 4 fill 2.0\n'
-            + 'option Bias .f32 shape 1 4 = array shape 1 4 fill 0.5\nreturn ((X * Scale) + Bias) relu';
+        const source = 'use ml\narg X .f32 shape 1 4\n'
+            + 'arg Scale .f32 shape 1 4 = array shape 1 4 fill 2.0\n'
+            + 'arg Bias .f32 shape 1 4 = array shape 1 4 fill 0.5\nreturn ((X * Scale) + Bias) relu';
         const module = compileRam(source, 'affine.ram');
         expect(module.graph.nodes.filter(node => ['mul', 'add', 'relu'].includes(node.kind)).map(node => node.kind)).toEqual(['mul', 'add', 'relu']);
         expect(module.graph.outputShape).toEqual([1, 4]);
         expect(module.graph.model).not.toEqual(compileRam(source.replace('fill 2.0', 'fill 3.0'), 'affine.ram').graph.model);
-        for (const invalid of [source.replace('option Bias .f32 shape 1 4', 'option Bias .f32 shape 4'),
+        for (const invalid of [source.replace('arg Bias .f32 shape 1 4', 'arg Bias .f32 shape 4'),
             source.replace('fill 0.5', 'fill 1e39'),
             source.replace('X * Scale', 'X / Scale'), source.replace('X * Scale', 'X * Unknown'),
-            source.replace(/\.f32/g, '.f16'), source.replace('option Bias', 'option Scale')])
+            source.replace(/\.f32/g, '.f16'), source.replace('arg Bias', 'arg Scale')])
             expect(() => compileRam(invalid, 'affine.ram')).toThrow();
     });
     it('materializes ordinary Rank weight expressions and converts integers to f32', () => {
-        const bake = (expression: string) => compileRam('use ml\noption X .f32 shape 2 3\n'
-            + 'option W .f32 shape 2 3 = ' + expression + '\nreturn X * W', 'weights.ram').graph.nodes[1];
+        const bake = (expression: string) => compileRam('use ml\narg X .f32 shape 2 3\n'
+            + 'arg W .f32 shape 2 3 = ' + expression + '\nreturn X * W', 'weights.ram').graph.nodes[1];
         for (const expression of ['array shape 2 3 fill 1', 'array shape (1 + 1) 3 fill (2 - 1)',
             '(array 1 1 1 1 1 1) reshape 2 3'])
             expect(bake(expression)).toMatchObject({kind:'constant', values:[1,1,1,1,1,1]});
@@ -78,20 +78,20 @@ describe('RAM ReLU MVP', () => {
             expect(bake(expression)).toMatchObject({values:[1,2,3,4,5,6]});
         expect(bake('(array 1 2 3 4 5 6 shape 3 2) transpose')).toMatchObject({values:[1,3,5,2,4,6]});
         expect(bake('(array 1 2 3 4 5 6 shape 2 3) * 2')).toMatchObject({values:[2,4,6,8,10,12]});
-        const source = 'use ml\noption X .f32 shape 2 3\noption A .f32 shape 2 3 = (1 to 6) reshape 2 3\n'
-            + 'option B .f32 shape 2 3 = A * 2\nreturn X + B';
+        const source = 'use ml\narg X .f32 shape 2 3\narg A .f32 shape 2 3 = (1 to 6) reshape 2 3\n'
+            + 'arg B .f32 shape 2 3 = A * 2\nreturn X + B';
         expect(compileRam(source,'weights.ram').graph.nodes[2]).toMatchObject({values:[2,4,6,8,10,12]});
         for (const expression of ['X', 'Unknown', 'array shape 2 3 fill "text"', 'array shape 2 3 fill .NA',
             'array shape 2 3 fill 1e39', 'array shape 3 2 fill 1', 'array shape 2 3 fill (1 = 1)', '1'])
             expect(() => bake(expression)).toThrow();
     });
     it('bakes explicit vector constants', () => {
-        const source = 'use ml\noption X .f32 shape 4\noption W .f32 shape 4 = array -2.0 0.0 1.0 3.0\nreturn X * W';
+        const source = 'use ml\narg X .f32 shape 4\narg W .f32 shape 4 = array -2.0 0.0 1.0 3.0\nreturn X * W';
         expect(compileRam(source, 'scale.ram').graph.nodes[1]).toEqual({ kind: 'constant', shape: [4], values: [-2, 0, 1, 3] });
     });
     it('infers linear output shapes and returns a differently sized GPU tensor', () => {
-        const source = 'use ml\noption X .f32 shape 2 3\n'
-            + 'option W .f32 shape 3 2 = array 1.0 2.0 3.0 4.0 5.0 6.0 shape 3 2\n'
+        const source = 'use ml\narg X .f32 shape 2 3\n'
+            + 'arg W .f32 shape 3 2 = array 1.0 2.0 3.0 4.0 5.0 6.0 shape 3 2\n'
             + 'return (X W linear) relu';
         const graph = compileRam(source, 'dense.ram').graph;
         expect(graph.outputShape).toEqual([2, 2]);
@@ -108,10 +108,10 @@ describe('RAM ReLU MVP', () => {
             expect(() => compileRam(invalid, 'dense.ram')).toThrow();
     });
     it('supports explicit matrix rows and chained linear layers', () => {
-        const source = 'use ml\noption X .f32 shape 2 3\n'
-            + 'option W .f32 shape 3 2 = array shape 3 2\n1.0 2.0\n3.0 4.0\n5.0 6.0\nend\n'
-            + 'option V .f32 shape 2 4 = array shape 2 4 fill 0.5\n'
-            + 'option B .f32 shape 2 4 = array shape 2 4 fill 1.0\n'
+        const source = 'use ml\narg X .f32 shape 2 3\n'
+            + 'arg W .f32 shape 3 2 = array shape 3 2\n1.0 2.0\n3.0 4.0\n5.0 6.0\nend\n'
+            + 'arg V .f32 shape 2 4 = array shape 2 4 fill 0.5\n'
+            + 'arg B .f32 shape 2 4 = array shape 2 4 fill 1.0\n'
             + 'return (((X W linear) relu) V linear) + B';
         const graph = compileRam(source, 'dense.ram').graph;
         expect(graph.outputShape).toEqual([2, 4]);
@@ -123,29 +123,29 @@ describe('RAM ReLU MVP', () => {
             [[2, 3], [3], [2, 3]], [[3], [2, 3], [2, 3]],
             [[2, 1, 3], [1, 4, 1], [2, 4, 3]], [[2, 3, 4, 5], [5], [2, 3, 4, 5]],
         ]) for (const op of ['+', '*']) {
-            const source = `use ml\noption X .f32 shape ${a.join(' ')}\n`
-                + `option B .f32 shape ${b.join(' ')} = array shape ${b.join(' ')} fill 0.5\nreturn X ${op} B`;
+            const source = `use ml\narg X .f32 shape ${a.join(' ')}\n`
+                + `arg B .f32 shape ${b.join(' ')} = array shape ${b.join(' ')} fill 0.5\nreturn X ${op} B`;
             expect(compileRam(source, 'broadcast.ram').graph.outputShape).toEqual(expected);
         }
     });
     it('rejects incompatible broadcasting and oversized broadcast results', () => {
         for (const [a, b] of [['2 3', '2'], ['1024 1', '1 1025'], ['2 3 4 5', '2 1 1 5']]) {
-            const source = `use ml\noption X .f32 shape ${a}\n`
-                + `option B .f32 shape ${b} = array shape ${b} fill 0.5\nreturn X + B`;
+            const source = `use ml\narg X .f32 shape ${a}\n`
+                + `arg B .f32 shape ${b} = array shape ${b} fill 0.5\nreturn X + B`;
             expect(() => compileRam(source, 'broadcast.ram')).toThrow();
         }
     });
     it('binds assignments to immutable graph nodes and reuses computed tensors', () => {
-        const graph = compileRam('use ml\noption X .f32 shape 2 3\nH = X relu\nOld = H\nH = H softmax\nreturn Old + H', 'steps.ram').graph;
+        const graph = compileRam('use ml\narg X .f32 shape 2 3\nH = X relu\nOld = H\nH = H softmax\nreturn Old + H', 'steps.ram').graph;
         expect(graph.nodes.filter(n => n.kind === 'relu')).toHaveLength(1);
         expect(graph.nodes.filter(n => n.kind === 'softmax')).toEqual([{ kind: 'softmax', input: 2, shape: [1, 2, 3] }]);
         expect(graph.outputShape).toEqual([2, 3]);
-        expect(compileRam('use ml\noption X .f32 shape 3\nX = X softmax\nreturn X', 'steps.ram').graph.output).toBe(3);
+        expect(compileRam('use ml\narg X .f32 shape 3\nX = X softmax\nreturn X', 'steps.ram').graph.output).toBe(3);
     });
     it('rejects unsupported assignments and forward references at the offending statement', () => {
         for (const statement of ['H = Missing relu', 'H += X', "H' = X", 'H = X / X']) {
             try {
-                compileRam('use ml\noption X .f32 shape 3\n' + statement + '\nreturn X relu', 'steps.ram');
+                compileRam('use ml\narg X .f32 shape 3\n' + statement + '\nreturn X relu', 'steps.ram');
                 expect.fail('Expected a compile error');
             } catch (error) {
                 expect(error).toMatchObject({ location: { sourceId: 'steps.ram', line: 3 } });
@@ -154,10 +154,10 @@ describe('RAM ReLU MVP', () => {
         expect(() => compileRam(hello.replace('relu', 'softmax'), 'hello.ram')).toThrow('requires .f32');
     });
     it('invalidates models after assignment edits and bounds assignment graphs', () => {
-        const source = 'use ml\noption X .f32 shape 3\nH = X relu\nreturn H softmax';
+        const source = 'use ml\narg X .f32 shape 3\nH = X relu\nreturn H softmax';
         expect(compileRam(source, 'steps.ram').graph.model)
             .not.toEqual(compileRam(source.replace('H = X relu', 'H = X softmax'), 'steps.ram').graph.model);
-        expect(() => compileRam('use ml\noption X .f32 shape 3\n' + 'X = X relu\n'.repeat(128) + 'return X', 'steps.ram'))
+        expect(() => compileRam('use ml\narg X .f32 shape 3\n' + 'X = X relu\n'.repeat(128) + 'return X', 'steps.ram'))
             .toThrow('128 tensors');
     });
     it('rounds binary16 ties to even and handles subnormals without silently overflowing', () => {
@@ -173,26 +173,26 @@ describe('RAM normalization and GELU', () => {
     it('preserves every supported input rank and permits affine LayerNorm', () => {
         for (const shape of ['7', '2 7', '2 3 7', '2 2 3 7']) {
             for (const op of ['layernorm', 'gelu_new']) {
-                const graph = compileRam(`use ml\noption X .f32 shape ${shape}\nreturn X ${op}`, 'norm.ram').graph;
+                const graph = compileRam(`use ml\narg X .f32 shape ${shape}\nreturn X ${op}`, 'norm.ram').graph;
                 expect(graph.outputShape).toEqual(shape.split(' ').map(Number));
             }
-            const source = `use ml\noption X .f32 shape ${shape}\n`
-                + 'option E .f32 shape 1 = array 0.01\n'
-                + 'option Scale .f32 shape 7 = array shape 7 fill 0.5\n'
-                + 'option Bias .f32 shape 7 = array shape 7 fill -0.1\n'
+            const source = `use ml\narg X .f32 shape ${shape}\n`
+                + 'arg E .f32 shape 1 = array 0.01\n'
+                + 'arg Scale .f32 shape 7 = array shape 7 fill 0.5\n'
+                + 'arg Bias .f32 shape 7 = array shape 7 fill -0.1\n'
                 + 'return (X E layernorm) * Scale + Bias';
             expect(compileRam(source, 'norm.ram').graph.outputShape).toEqual(shape.split(' ').map(Number));
         }
     });
     it('validates epsilon, precision, and expanded graph limits', () => {
-        const source = 'use ml\noption X .f32 shape 3\noption E .f32 shape 1 = array 0.01\nreturn X E layernorm';
+        const source = 'use ml\narg X .f32 shape 3\narg E .f32 shape 1 = array 0.01\nreturn X E layernorm';
         for (const invalid of [source.replace('0.01', '0.0'), source.replace('0.01', '-0.01'),
             source.replace('X E layernorm', 'X X layernorm'),
             source.replace('shape 1 = array 0.01', 'shape 2 = array 0.01 0.02')])
             expect(() => compileRam(invalid, 'norm.ram')).toThrow('positive baked one-element');
         for (const op of ['layernorm', 'gelu_new']) {
-            expect(() => compileRam(`use ml\noption X .f16 shape 3\nreturn X ${op}`, 'norm.ram')).toThrow('require .f32');
-            expect(() => compileRam('use ml\noption X .f32 shape 3\n'
+            expect(() => compileRam(`use ml\narg X .f16 shape 3\nreturn X ${op}`, 'norm.ram')).toThrow('require .f32');
+            expect(() => compileRam('use ml\narg X .f32 shape 3\n'
                 + `X = X ${op}\n`.repeat(30) + 'return X', 'norm.ram')).toThrow('128 tensors');
         }
         expect(compileRam(source, 'norm.ram').graph.model)
@@ -201,7 +201,7 @@ describe('RAM normalization and GELU', () => {
 });
 
 describe('RAM structural graphs', () => {
-    const head = 'use ml\noption X .f32 shape 2 3\n';
+    const head = 'use ml\narg X .f32 shape 2 3\n';
     it('preserves Rank structural shapes and rejects invalid static arguments', () => {
         for (const [body, shape] of [
             ['X reshape 3 2', [3,2]], ['X transpose', [3,2]],
@@ -214,7 +214,7 @@ describe('RAM structural graphs', () => {
             expect(()=>compileRam(head+'return '+body,'s.ram')).toThrow();
     });
     it('passes multiple validated arguments in declaration order and reloads changed shapes', () => {
-        let source = head+'option W .f32 shape 1 = array 1.0\noption Y .f32 shape 3 2\nreturn X matmul Y';
+        let source = head+'arg W .f32 shape 1 = array 1.0\narg Y .f32 shape 3 2\nreturn X matmul Y';
         let calls=0;
         const r=new Interpreter(()=>{}, {loadModule:name=>({id:name,source}), ramGpu:(g,x)=>{
             calls++; expect(g.inputs.map(i=>i.name)).toEqual(['X','Y']);
@@ -230,7 +230,7 @@ describe('RAM structural graphs', () => {
         expect(calls).toBe(1);
     });
     it('preserves the declared call signature for three runtime inputs', () => {
-        const source='use ml\noption X .f32 shape 1\noption Y .f32 shape 1\noption Z .f32 shape 1\nreturn (X + Y) + Z';
+        const source='use ml\narg X .f32 shape 1\narg Y .f32 shape 1\narg Z .f32 shape 1\nreturn (X + Y) + Z';
         const r=new Interpreter(()=>{}, {loadModule:id=>({id,source}),ramGpu:(_graph,input)=>{
             expect(input).toEqual([1,2,3]); return [6];
         }});
@@ -241,10 +241,10 @@ describe('RAM structural graphs', () => {
         expect(()=>r.execute('X three Y Z')).toThrow('finite real');
     });
     it('checks matrix contraction, batch broadcasting and batched linear shapes', () => {
-        const source='use ml\noption X .f32 shape 2 1 3 5\noption Y .f32 shape 1 4 5 7\nreturn X matmul Y rank 2 2';
+        const source='use ml\narg X .f32 shape 2 1 3 5\narg Y .f32 shape 1 4 5 7\nreturn X matmul Y rank 2 2';
         expect(compileRam(source,'s.ram').graph.outputShape).toEqual([2,4,3,7]);
         for(const invalid of [source.replace('1 4 5 7','1 4 6 7'),source.replace('1 4 5 7','3 4 5 7'),source.replace(' rank 2 2','')])
             expect(()=>compileRam(invalid,'s.ram')).toThrow();
-        expect(compileRam('use ml\noption X .f32 shape 2 3 5\noption W .f32 shape 5 7 = array shape 5 7 fill 0.5\nreturn X W linear','s.ram').graph.outputShape).toEqual([2,3,7]);
+        expect(compileRam('use ml\narg X .f32 shape 2 3 5\narg W .f32 shape 5 7 = array shape 5 7 fill 0.5\nreturn X W linear','s.ram').graph.outputShape).toEqual([2,3,7]);
     });
 });

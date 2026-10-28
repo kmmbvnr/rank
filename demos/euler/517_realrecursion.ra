@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option Lo integer = 10000000
-option W integer = 10000
+arg Lo integer = 10000000
+arg W integer = 10000
 
 rem A leaf of g with k jumps of sqrt n
 rem fixes when the jumps happen, a

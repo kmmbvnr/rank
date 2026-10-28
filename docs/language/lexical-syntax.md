@@ -461,7 +461,7 @@ Model X predict
 
 This is the canonical call order for standard-library and user-defined
 functions. Nullary sources such as `fibonacci` and `primes` are values rather
-than calls. Keywords such as `use`, `run`, `option` and `if` introduce their own
+than calls. Keywords such as `use`, `run`, `arg` and `if` introduce their own
 statements and do not follow the function-call rule.
 
 An application may form an unambiguous left-to-right pipeline. Each function

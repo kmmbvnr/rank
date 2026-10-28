@@ -7,8 +7,8 @@ use linalg
 use io
 use cli
 
-option N integer = 1000000000000000
-option Top integer = 100
+arg N integer = 1000000000000000
+arg Top integer = 100
 
 rem State (a(k), a(k-1), F(k)) with
 rem a(k) = f(k) x^k advances by a

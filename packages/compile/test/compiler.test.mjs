@@ -6,11 +6,11 @@ import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {prepare, task, verify} from '../src/index.js';
 
-const source = 'use cli\nuse io\noption Limit integer = 10\nAnswer = Limit + 1\nAnswer print\n';
+const source = 'use cli\nuse io\narg Limit integer = 10\nAnswer = Limit + 1\nAnswer print\n';
 const planSource = `use io
 use sequences
 use cli
-option Limit integer = 3
+arg Limit integer = 3
 fun X mark
  X print
  return X

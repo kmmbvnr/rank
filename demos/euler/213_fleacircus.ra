@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option N integer = 30
-option Rings integer = 50
+arg N integer = 30
+arg Rings integer = 50
 
 rem Row s of D holds, for each flea of
 rem one quarter of the board, the chance

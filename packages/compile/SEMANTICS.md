@@ -19,7 +19,7 @@ a result, bind it without an apostrophe. Conditions, indexing and operations
 that need computed data demand it. A true single-pass resource is different:
 preserving it does not create a restartable recipe or reopen it on each read.
 
-`option Limit integer = 100` declares a command-line integer input, with default
+`arg Limit integer = 100` declares a command-line integer input, with default
 100 and override `--limit VALUE`. Integer literals have arbitrary precision.
 String literals are quoted. A trailing `Answer print` writes its decimal value
 and a newline. `use cli` and `use io` open options/output, not implicit I/O effects.

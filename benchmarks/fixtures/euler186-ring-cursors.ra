@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Percent integer = 99
-option Calls integer = 3000000
+arg Percent integer = 99
+arg Calls integer = 3000000
 
 rem Lagged Fibonacci numbers pair into
 rem calls. A union-find forest, joining

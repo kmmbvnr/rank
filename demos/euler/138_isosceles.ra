@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Count integer = 12
+arg Count integer = 12
 
 rem The legs are L = F(6n + 3) / 2:
 rem 17, 305, 5473... The language

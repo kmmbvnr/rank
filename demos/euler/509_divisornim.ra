@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option N integer = 123456787654321
+arg N integer = 123456787654321
 
 rem A pile n moves to every 2-adic
 rem valuation below v2(n) but never to

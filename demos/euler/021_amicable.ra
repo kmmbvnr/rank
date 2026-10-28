@@ -6,7 +6,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 10000
+arg Limit integer = 10000
 
 rem Test every value against the proper
 rem divisor sum of its partner.

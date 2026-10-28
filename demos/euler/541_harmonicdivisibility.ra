@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option P integer = 137
+arg P integer = 137
 
 rem H(pn + k) = H(n) / p + B(n) + sum of
 rem 1 / (pn + t), t <= k, B(n) the sum

@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 150
+arg Limit integer = 150
 
 rem A prime p = u^2 + v^2 = (u + v i)
 rem (u - v i). A product of some of

@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-option K integer = 1234567890123
+arg K integer = 1234567890123
 
 rem M = gcd(24, 36+6a, 14+6a+2b,
 rem 1+a+b+c) depends on a, b, c mod

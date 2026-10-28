@@ -20,9 +20,9 @@ for (const value of [primeLimit, limit, count]) assert.ok(Number.isSafeInteger(v
 if (process.argv.includes('--worker')) {
     const { Interpreter } = await import(pathToFileURL(resolve(checkout, 'packages/interpreter/out/index.js')));
     let source = readFileSync(resolve(checkout, 'demos/euler/399_squarefree.ra'), 'utf8')
-        .replace('option PrimeLimit integer = 5714285', `option PrimeLimit integer = ${primeLimit}`)
-        .replace('option Limit integer = 200000000', `option Limit integer = ${limit}`)
-        .replace('option Count integer = 100000000', `option Count integer = ${count}`);
+        .replace('arg PrimeLimit integer = 5714285', `arg PrimeLimit integer = ${primeLimit}`)
+        .replace('arg Limit integer = 200000000', `arg Limit integer = ${limit}`)
+        .replace('arg Count integer = 100000000', `arg Count integer = ${count}`);
     if (variant === 'powers') source = source.replace('A * A + B * B', 'A ** 2 + B ** 2');
     const helper = source.slice(source.indexOf('rem Fast doubling'));
     let compiledCalls = 0;

@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option X integer = 1000000000
-option Y integer = 10000000
-option N integer = 1000000000000000
+arg X integer = 1000000000
+arg Y integer = 10000000
+arg N integer = 1000000000000000
 
 rem b = 6a + 5 gives b' = b^2 - 2 and
 rem b_1 = 11, so b_n = V(2^(n-1)) for

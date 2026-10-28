@@ -100,13 +100,13 @@ it('keeps an exhausted general preview result unknown', async () => {
 
 it('infers functions after CLI options and a loop in the full notebook context', async () => {
     const session = createReplSession();
-    const prefix = 'use cli\noption N integer = 42\nfor N greater 1\n N = 1\nend';
+    const prefix = 'use cli\narg N integer = 42\nfor N greater 1\n N = 1\nend';
     const generator = 'fun N factors\n Rest = N\n D = 2\n for Rest greater 1\n  yield D\n  Rest = Rest // D\n end\nend';
     const inc = 'fun X inc\n return X + 1\nend';
     const file = [prefix, generator, inc].join('\n').split('\n');
     try {
         expect((await session.execute('use cli', 0, file, 40, true)).ok).toBe(true);
-        expect((await session.execute('option N integer = 42', 1, file, 40, true)).ok).toBe(true);
+        expect((await session.execute('arg N integer = 42', 1, file, 40, true)).ok).toBe(true);
         expect((await session.execute('for N greater 1\n N = 1\nend', 2, file, 40, true)).ok).toBe(true);
         expect((await session.execute(generator, 1, file, 40, true)).output.map(row => row.text).join(' '))
             .toBe("i → c<i> ; r → c<i>");

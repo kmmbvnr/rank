@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0059_cipher.txt"
+arg Input path = "demos/euler/fixtures/0059_cipher.txt"
 
 Cipher = Input read split "," integer rank 0
 Weights = english_weights

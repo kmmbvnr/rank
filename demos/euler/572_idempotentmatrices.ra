@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option N integer = 200
+arg N integer = 200
 
 rem An idempotent 3x3 integer matrix is
 rem 0, I, a rank-1 matrix p w^T or

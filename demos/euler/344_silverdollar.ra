@@ -6,8 +6,8 @@ use numbers
 use io
 use cli
 
-option N integer = 1000000
-option C integer = 100
+arg N integer = 1000000
+arg C integer = 100
 
 M = 1000036000099
 P0 = 1000003

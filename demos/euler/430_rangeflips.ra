@@ -6,10 +6,10 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000000
-option M integer = 4000
-option Digits integer = 2
-option Edge integer = 30000000
+arg N integer = 10000000000
+arg M integer = 4000
+arg Digits integer = 2
+arg Edge integer = 30000000
 
 rem Disk i stays white with chance
 rem (1 + r^M) / 2 with r = ((N + 1 -

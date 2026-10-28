@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Sides integer = 4
+arg Sides integer = 4
 
 rem Land[p]: squares reached after
 rem landing on p and resolving

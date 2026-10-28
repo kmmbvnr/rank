@@ -10,9 +10,9 @@ use numbers
 use io
 use cli
 
-option P integer = 61
-option Q integer = 10000000
-option Exp integer = 10
+arg P integer = 61
+arg Q integer = 10000000
+arg Exp integer = 10
 
 rem By Legendre the count is
 rem (N - s) / (p - 1) with s the digit

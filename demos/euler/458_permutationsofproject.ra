@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-option N integer = 1000000000000
+arg N integer = 1000000000000
 
 rem State j: the last j letters are
 rem distinct, the one before repeats

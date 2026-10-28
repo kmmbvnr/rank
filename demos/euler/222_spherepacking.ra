@@ -9,9 +9,9 @@ use sequences
 use io
 use cli
 
-option R integer = 50
-option Lo integer = 30
-option Hi integer = 50
+arg R integer = 50
+arg Lo integer = 30
+arg Hi integer = 50
 
 rem Neighbouring spheres touch the tube
 rem on opposite sides, 2 sqrt(R (a + b -

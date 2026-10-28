@@ -21,7 +21,7 @@ if (option('worker')) {
     let source = load(variant === 'demo' ? '../demos/euler/343_fractional.ra' : './fixtures/343-fractional-manual.ra');
     if (variant === 'factors') source = source.replace(/fun N lpf[\s\S]*?\nend/,
         'fun N lpf\n  if N equal 1\n    return 1\n  end\n  return N factors max\nend');
-    source = source.replace('option Limit integer = 2000000', `option Limit integer = ${limit}`);
+    source = source.replace('arg Limit integer = 2000000', `arg Limit integer = ${limit}`);
     const compilation = option('compilation') !== 'false';
     const runtime = new Interpreter(() => {}, { compilation });
     const { Factorizer } = await import(new URL('factorization.js', entry).href);

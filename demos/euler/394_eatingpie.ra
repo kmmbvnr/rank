@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option X integer = 400
+arg X integer = 400
 
 Y = X / 10.0
 Answer = 7.0 / 9.0

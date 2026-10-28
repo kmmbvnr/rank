@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Wide integer = 9
-option High integer = 12
+arg Wide integer = 9
+arg High integer = 12
 
 rem Fill cells in row order. A state is
 rem a mask of which of the next 2 Wide

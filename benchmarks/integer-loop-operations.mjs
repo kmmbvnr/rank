@@ -18,14 +18,14 @@ const cases = [
 const demoSource = name => {
     if (name.startsWith('272')) {
         let source = readFileSync(new URL('../demos/euler/272_modularcubes.ra', import.meta.url), 'utf8')
-            .replace('option Limit integer = 100000000000', 'Limit = 1000000000');
+            .replace('arg Limit integer = 100000000000', 'Limit = 1000000000');
         if (name.endsWith('power')) source = source
             .replace('Pw1 = A1\n    for Rp in 2 to (3 - Mode)\n      Pw1 = Pw1 * A1\n    end', 'Pw1 = A1 ** (3 - Mode)')
             .replace('Pw2 = P1 I2\n      for Rp in 2 to (2 - Mode)\n        Pw2 = Pw2 * P1 I2\n      end', 'Pw2 = (P1 I2) ** (2 - Mode)');
         return source;
     }
     let source = readFileSync(new URL('../demos/euler/424_kakuro.ra', import.meta.url), 'utf8')
-        .replace('option Count integer = 200', 'Count = 1');
+        .replace('arg Count integer = 200', 'Count = 1');
     if (name.endsWith('power')) source = source.replace(/P2 (Lw|Dv|Pd|D|Lc)\b/g, '(2 ** ($1))')
         .replace('P2 (Fd J)', '(2 ** (Fd J))');
     return source;

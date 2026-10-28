@@ -9,8 +9,8 @@ rem to Limit
 use io
 use cli
 
-option Limit integer = 100000
-option Bound integer = 1000000000000
+arg Limit integer = 100000
+arg Bound integer = 1000000000000
 
 rem Walk the continued fraction of the
 rem root while the convergent keeps its

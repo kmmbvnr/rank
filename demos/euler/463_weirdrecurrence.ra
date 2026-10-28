@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option N integer = 450283905890997363
+arg N integer = 450283905890997363
 
 rem f(n) reverses the bits of the odd
 rem part of n, so S(N) adds rev(u) for

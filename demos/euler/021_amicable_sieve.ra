@@ -9,7 +9,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 10000
+arg Limit integer = 10000
 
 rem Add both divisors of each product.
 rem A square contributes its root once.

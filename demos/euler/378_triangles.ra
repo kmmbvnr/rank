@@ -6,7 +6,7 @@ use io
 use sequences
 use cli
 
-option Limit integer = 60000000
+arg Limit integer = 60000000
 
 rem D(n) is the divisor count of T(n).
 Max = Limit + 1

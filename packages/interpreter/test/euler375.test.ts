@@ -4,8 +4,8 @@ import { Interpreter } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/375_subseqmin.ra', import.meta.url), 'utf8');
 function program(limit: number, period: number) {
-    return source.replace('option Limit integer = 2000000000', `Limit = ${limit}`)
-        .replace('option Period integer = 6308948', `Period = ${period}`);
+    return source.replace('arg Limit integer = 2000000000', `Limit = ${limit}`)
+        .replace('arg Period integer = 6308948', `Period = ${period}`);
 }
 
 function reference(limit: number, period: number): bigint {

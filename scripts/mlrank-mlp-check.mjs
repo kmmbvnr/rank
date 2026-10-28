@@ -26,7 +26,7 @@ for (const input of [[0,0,0,1,1,0,1,1], [-1,0,0.25,0.75,0.5,0.5,2,-1]]) {
     const cpuSource = source.replace(/option (\w+) \.f32 shape ([\d ]+) = "([^"]+)"/g, (_, name, dimensions, file) => {
         const shape = dimensions.trim().split(/ +/).map(Number);
         return `option ${name} .f32 shape ${dimensions} = array shape ${dimensions}\n${decodeRamWeights(readWeight(file), shape).map(x => x.toFixed(1)).join(' ')}\nend`;
-    }).replace('use ml\noption X .f32 shape 4 2\n','')
+    }).replace('use ml\narg X .f32 shape 4 2\n','')
         .replace(/option (\w+) \.f32 shape [\d ]+ = /g, '$1 = ')
         .replace('X W1 linear','X matmul W1').replace('Hidden W2 linear','Hidden matmul W2')
         .replace('return Logits softmax','Logits');

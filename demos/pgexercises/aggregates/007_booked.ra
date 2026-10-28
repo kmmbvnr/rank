@@ -6,7 +6,7 @@ use io
 use sequences
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
 
 Db = DbPath sqlite
 Ids' = Db .bookings select .memid

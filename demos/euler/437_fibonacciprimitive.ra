@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000
+arg N integer = 100000000
 
 rem g^2 = g + 1 mod p has roots
 rem (1 +- s) / 2 with s^2 = 5, which

@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000000
+arg Limit integer = 100000000000
 
 rem x^3 = 1 mod n has 3^t solutions,
 rem where t counts the primes of n with

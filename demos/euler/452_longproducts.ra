@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option M integer = 1000000000
-option N integer = 1000000000
+arg M integer = 1000000000
+arg N integer = 1000000000
 
 rem F = sum of C(N, r) G_r(M), where
 rem G_r(v) counts r-tuples of factors

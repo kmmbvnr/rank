@@ -6,7 +6,7 @@ rem N by N grid
 use io
 use cli
 
-option Size integer = 20
+arg Size integer = 20
 
 rem Compute the binomial coefficient
 rem with reduce. Alternatively:

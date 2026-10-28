@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000
+arg N integer = 100000000000
 
 rem The radius for (a, b) is b(a -
 rem 2b)/(a - b). With c = a - b it is

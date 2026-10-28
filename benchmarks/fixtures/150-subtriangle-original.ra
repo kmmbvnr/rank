@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Rows integer = 1000
+arg Rows integer = 1000
 
 rem The array is stored row by row. A
 rem prefix sum of the flat array gives

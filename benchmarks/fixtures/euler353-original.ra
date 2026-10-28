@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option Last integer = 15
+arg Last integer = 15
 
 fun R moon
   Cap = 8 * R * R + 2

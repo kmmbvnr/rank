@@ -182,8 +182,8 @@ These need `use cli` but have no name to look up.
 
 | Form | Summary |
 | --- | --- |
-| `option Name Type = Default` | Declares a named command-line input. |
-| `argument Name Type` | Declares a positional command-line input. |
+| `arg Name Type = Default` | Declares a named command-line input. |
+| `arg Name Type` | Declares a positional command-line input. |
 | `flag Name` | Declares a boolean command-line flag. |
 | `args Values` | Sets arguments for the next run. |
 

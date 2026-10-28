@@ -12,7 +12,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem The ratio is k = (a + b)(a + c) / (b
 rem c), between 1 and 4, and a (a + b +

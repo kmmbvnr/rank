@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Mod integer = 168
+arg Mod integer = 168
 
 rem A primitive triangle with a square
 rem hypotenuse k^2 comes from coprime r,

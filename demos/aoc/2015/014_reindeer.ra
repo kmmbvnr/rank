@@ -8,7 +8,7 @@ use algo
 use sequences
 use text
 
-argument Input path
+arg Input path
 
 Lines = Input readlines
 unpack Part1 Part2 = Lines solve 2503

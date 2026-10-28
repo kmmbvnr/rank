@@ -5,7 +5,7 @@ use bits
 use io
 use cli
 
-option Limit integer = 20000000
+arg Limit integer = 20000000
 
 Mod = 100000000
 Phi = 0 to Limit array

@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Top integer = 11
-option Last integer = 9
+arg Top integer = 11
+arg Last integer = 9
 
 rem Let g(n) = f(n, d) - n. It falls by
 rem at most 1 per step, and rises by

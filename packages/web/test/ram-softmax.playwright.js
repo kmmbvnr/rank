@@ -47,7 +47,7 @@ async page => {
     await page.waitForFunction(() => document.querySelector('#screen').textContent.replace(/\s/g, '').includes('38.54351.554'));
     await page.getByRole('button', { name: 'dense.ram', exact: true }).click();
     await page.getByRole('textbox', { name: 'RAM module source' }).fill(
-        'use ml\noption X .f32 shape 2 3\nOld = X\nX = X relu\nH = Old softmax\nreturn H');
+        'use ml\narg X .f32 shape 2 3\nOld = X\nX = X relu\nH = Old softmax\nreturn H');
     await page.getByRole('button', { name: 'Program', exact: true }).click();
     await page.getByRole('button', { name: 'Terminal commands' }).click();
     await page.getByRole('button', { name: 'Run program', exact: true }).click();

@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option L integer = 10000000000
+arg L integer = 10000000000
 
 rem The palindrome d_(n-1)..d_0 .
 rem d_0..d_(n-1) is sum d_i w_i with

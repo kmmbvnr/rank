@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option L integer = 1000000000000
+arg L integer = 1000000000000
 
 rem x = t u (u+v), y = t v (u+v) with
 rem u < v coprime. With a = v and

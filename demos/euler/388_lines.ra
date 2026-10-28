@@ -7,8 +7,8 @@ use algo
 use io
 use cli
 
-option N integer = 10 ** 10
-option Cut integer = 4641589
+arg N integer = 10 ** 10
+arg Cut integer = 4641589
 
 rem Mertens values up to N^(2/3).
 Mu = array shape (Cut + 1) fill 1

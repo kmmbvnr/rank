@@ -6,7 +6,7 @@ use numbers
 use io
 use cli
 
-option Bits integer = 32
+arg Bits integer = 32
 
 Answer = Bits expected
 Answer print

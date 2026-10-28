@@ -243,7 +243,7 @@ describe('type facts', () => {
     it('reads literals, constructors and declared inputs', async () => {
         const result = await facts([
             'use algo',
-            'option Limit integer = 10',
+            'arg Limit integer = 10',
             'flag Verbose',
             'N = 3',
             'R = 1.5',
@@ -371,15 +371,15 @@ it('recognizes core operations without imports and still reports specialized nam
 });
 
 it('reports CLI declarations and args without their own import', async () => {
-    const lines = ['option N integer = 3', 'argument Path path', 'flag Verbose', 'args "--n" "7"'];
+    const lines = ['arg N integer = 3', 'arg Path path', 'flag Verbose', 'args "--n" "7"'];
     expect((await facts(lines)).missing.map(op => [op.name, op.module])).toEqual([
-        ['option', 'cli'], ['argument', 'cli'], ['flag', 'cli'], ['args', 'cli'],
+        ['arg', 'cli'], ['flag', 'cli'], ['args', 'cli'],
     ]);
     expect((await facts(['use cli', ...lines])).missing).toEqual([]);
 });
 
 it.each(INPUT_TYPES)('parses and infers the declared input type %s', async valueType => {
-    const result = await facts(['use cli', `option Value ${valueType}`, `argument Input ${valueType}`]);
+    const result = await facts(['use cli', `arg Value ${valueType}`, `arg Input ${valueType}`]);
     const expected = valueType === 'path' ? 'text' : valueType;
     expect(named(result, 'program', 'Value').types).toEqual([expected]);
     expect(named(result, 'program', 'Input').types).toEqual([expected]);

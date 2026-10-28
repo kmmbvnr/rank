@@ -12,7 +12,7 @@ if (process.argv[2] === '--worker') {
     const { Interpreter, RuntimeDiagnostics } = await import('../packages/interpreter/out/index.js');
     const size = Number(process.argv[3]);
     const source = readFileSync(new URL('../demos/euler/400_fibtree.ra', import.meta.url), 'utf8')
-        .replace('option K integer = 10000', `option K integer = ${size}`);
+        .replace('arg K integer = 10000', `arg K integer = ${size}`);
     const diagnostics = new RuntimeDiagnostics();
     let compiledEntries = 0;
     const runtime = new Interpreter(() => {}, { onScalarFunctionExecuted: () => compiledEntries++ });

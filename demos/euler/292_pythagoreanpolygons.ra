@@ -10,7 +10,7 @@ use numbers
 use io
 use cli
 
-option N integer = 120
+arg N integer = 120
 
 rem A polygon is a set of edge vectors
 rem of integer length, no two in one

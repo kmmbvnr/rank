@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option N integer = 3000000
+arg N integer = 3000000
 
 rem For a fixed largest side the best
 rem quadrilateral takes the three next

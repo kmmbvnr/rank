@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-argument Input path = (
+arg Input path = (
   "demos/euler/fixtures/"
   + "0079_keylog.txt"
 )

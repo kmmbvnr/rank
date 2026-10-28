@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Days integer = 30
+arg Days integer = 30
 
 rem State s = 3 l + a: lates so far l,
 rem absents a at the end. A day on time

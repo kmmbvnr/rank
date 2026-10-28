@@ -57,7 +57,7 @@ add('three-runtime-inputs',{X:three[0],Y:three[1],Z:three[2]},'return (X + Y) + 
  {shape:[2,3],items:three[0].items.map((v,i)=>v+three[1].items[i]+three[2].items[i])});
 const x=tensor([2,3,4]),w=tensor([4,12],9);
 const literal='array shape 4 12\n'+w.items.join(' ')+'\nend';
-const weight='option W .f32 shape 4 12 = '+literal;
+const weight='arg W .f32 shape 4 12 = '+literal;
 const projection=matmul(x,w);
 add('batched-linear',{X:x},weight+'\nreturn X W linear',projection,'W = '+literal+'\nX matmul W rank 2 2');
 const q=transpose(reshape(slice(projection,[0,0,0],[2,3,4]),[2,3,2,2]),[0,2,1,3]);

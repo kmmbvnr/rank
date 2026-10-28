@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1500000
+arg Limit integer = 1500000
 
 rem Euclid: coprime m > n of opposite
 rem parity give a primitive triple of

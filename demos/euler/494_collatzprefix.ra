@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option T integer = 90
+arg T integer = 90
 
 rem f(t) = F_t plus, for the seeds 9,
 rem 19, 37, 51, 155 and 159, B_r(s):

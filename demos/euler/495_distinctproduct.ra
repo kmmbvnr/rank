@@ -7,8 +7,8 @@ use sequences
 use io
 use cli
 
-option N integer = 10000
-option K integer = 30
+arg N integer = 10000
+arg K integer = 30
 
 rem Choose k distinct divisors: e_k of
 rem the divisor monomials, written in

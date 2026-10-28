@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option Defects integer = 20000
-option Chips integer = 1000000
+arg Defects integer = 20000
+arg Chips integer = 1000000
 
 Answer = 0.0
 if Defects greater 2

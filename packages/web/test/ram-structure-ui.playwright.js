@@ -6,7 +6,7 @@ async page => {
     const editor=page.getByRole('textbox',{name:'RAM module source'});
     const original=await editor.inputValue();
     try {
-        await editor.fill("use ml\noption X .f32 shape 2 3\noption W .f32 shape 3 12 = array shape 3 12 fill 0.5\nP = X W linear\nQ = (P # (0 till 4)) reshape 1 2 2 2\nK = (P # (4 till 8)) reshape 1 2 2 2\nQ = Q transpose axis 0 2 1 3\nK = K transpose axis 0 2 3 1\nreturn Q matmul K rank 2 2\n");
+        await editor.fill("use ml\narg X .f32 shape 2 3\narg W .f32 shape 3 12 = array shape 3 12 fill 0.5\nP = X W linear\nQ = (P # (0 till 4)) reshape 1 2 2 2\nK = (P # (4 till 8)) reshape 1 2 2 2\nQ = Q transpose axis 0 2 1 3\nK = K transpose axis 0 2 3 1\nreturn Q matmul K rank 2 2\n");
         await page.getByRole('button',{name:'Program',exact:true}).click();
         await page.getByRole('button',{name:'Terminal commands'}).click();
         await page.getByRole('button',{name:'Run program',exact:true}).click();

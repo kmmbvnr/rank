@@ -142,7 +142,7 @@ rem https://projecteuler.net/problem=7
 
 use sequences
 
-option Count integer = 10001
+arg Count integer = 10001
 
 Index = Count - 1
 Answer = primes Index
@@ -162,7 +162,7 @@ use text
 use sequences
 use numbers
 
-option Width integer = 13
+arg Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits window Width
@@ -184,7 +184,7 @@ rem https://projecteuler.net/problem=9
 use numbers
 use sequences
 
-option Target integer = 1000
+arg Target integer = 1000
 
 ALast = (Target - 1) // 3
 As = 1 to ALast array
@@ -211,7 +211,7 @@ rem https://projecteuler.net/problem=10
 use sequences
 use numbers
 
-option Limit integer = 2000000
+arg Limit integer = 2000000
 
 Primes = primes till Limit
 Answer = Primes sum
@@ -250,7 +250,7 @@ rem https://projecteuler.net/problem=12
 
 use numbers
 use sequences
-option Min integer = 500
+arg Min integer = 500
 N = 1 to #
 Triangles = N * (N + 1) // 2
 Counts = Triangles divisors count rank 0

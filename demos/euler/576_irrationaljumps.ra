@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 100
-option Gi integer = 20000000000000
+arg N integer = 100
+arg Gi integer = 20000000000000
 
 rem Gap g = Gi / 10^18. For a prime p
 rem the k-th landing is x(k) =

@@ -7,7 +7,7 @@ use cli
 use numbers
 use text
 
-argument Input path
+arg Input path
 
 Text = Input read
 Answer = Text solve

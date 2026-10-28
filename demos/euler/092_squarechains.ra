@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 7
+arg Digits integer = 7
 
 rem Group the digit strings by the
 rem multiset of their digits: a multiset

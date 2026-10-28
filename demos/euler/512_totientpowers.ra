@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 500000000
+arg N integer = 500000000
 
 rem The sum is G(N), phi summed over
 rem odd m <= N. phi(2^k m) = 2^(k-1)

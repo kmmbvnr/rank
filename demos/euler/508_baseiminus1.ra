@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option L integer = 1000000000000000
-option Bl integer = 1024
+arg L integer = 1000000000000000
+arg Bl integer = 1024
 
 rem One digit: a + bi = r + (i - 1)(a'
 rem + b'i), r = (a - b) mod 2. Sums

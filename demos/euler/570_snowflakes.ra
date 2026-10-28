@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000
+arg N integer = 10000000
 
 rem A(n) = 6 (2 U - V) and B(n) = 6
 rem ((3n - 23) U + (2n + 13) V) with U =

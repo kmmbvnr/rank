@@ -5,8 +5,8 @@ use bits
 use io
 use cli
 
-option Ranks integer = 13
-option Max integer = 13
+arg Ranks integer = 13
+arg Max integer = 13
 
 Answer = Ranks badugi Max
 Answer print

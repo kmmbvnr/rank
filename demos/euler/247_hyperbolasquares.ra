@@ -11,9 +11,9 @@ use sequences
 use io
 use cli
 
-option Right integer = 3
-option Up integer = 3
-option Cap integer = 1000000
+arg Right integer = 3
+arg Up integer = 3
+arg Cap integer = 1000000
 
 rem A square with its lower left corner
 rem at (a, b) has the side s with

@@ -182,7 +182,7 @@ test('Unicode text functions and slices agree on SQLite and arrays', () => {
         for (const value of values) insert.run(value);
         const program = [
             'use cli', 'use tables', 'use text',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'R\' = Db .strings',
             'Texts\' = R .value', 'Lower\' = Texts lower',
             'Padded\' = Texts 7 "é🙂" lpad',

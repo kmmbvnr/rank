@@ -3,7 +3,7 @@ import { demandValue } from './plan.js';
 import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.js';
 import { lowerRamStructure } from './ram-structure.js';
 import { ramModel, type RamNode } from './ram-model.js';
-import { isApplicationExpression, isNameExpression, isOptionStatement, isReturnStatement,
+import { isApplicationExpression, isNameExpression, isArgStatement, isReturnStatement,
     isUseStatement, isFunctionStatement, functionCallSignature, isParenthesizedExpression, isBinaryExpression,
     isStringLiteral, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
@@ -45,9 +45,9 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
             fail('RAM MVP permits only use ml', statement);
     }
     const input = body[0], output = body.at(-1);
-    if (!isOptionStatement(input) || input.defaultValue || !isReturnStatement(output))
+    if (!isArgStatement(input) || input.defaultValue || !isReturnStatement(output))
         fail('RAM expects runtime options, optional baked weights, and a final return', body[0]);
-    if (!isOptionStatement(input) || !isReturnStatement(output)) throw new Error('unreachable');
+    if (!isArgStatement(input) || !isReturnStatement(output)) throw new Error('unreachable');
     const precision = input.precision?.name;
     if (precision !== 'f16' && precision !== 'f32') fail('RAM input requires .f16 or .f32', input);
     const shape = input.dimensions.map(dimension => Number(dimension.value));
@@ -67,9 +67,9 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     const inputs = [{ name: input.name, shape }];
     const names = new Map<string, number>([[input.name, 0]]);
     const declareWeight = (weight: Statement): void => {
-        if (!isOptionStatement(weight) || !weight.defaultValue)
+        if (!isArgStatement(weight) || !weight.defaultValue)
             fail('RAM permits only baked option declarations before return', weight);
-        if (!isOptionStatement(weight) || !weight.defaultValue) throw new Error('unreachable');
+        if (!isArgStatement(weight) || !weight.defaultValue) throw new Error('unreachable');
         if (precision !== 'f32' || weight.precision?.name !== 'f32')
             fail('Baked arithmetic currently requires .f32 inputs and weights', weight);
         if (names.has(weight.name)) fail('Duplicate RAM option: ' + weight.name, weight);
@@ -251,7 +251,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     };
     for (const statement of body.slice(1, -1)) {
         current = statement;
-        if (isOptionStatement(statement)) {
+        if (isArgStatement(statement)) {
             if (statement.defaultValue) declareWeight(statement);
             else {
                 if (precision !== 'f32' || statement.precision?.name !== 'f32')

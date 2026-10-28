@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Target integer = 1000000
-option Limit integer = 2000
+arg Target integer = 1000000
+arg Limit integer = 2000
 
 rem Longest side c, s = a + b: the route
 rem sqrt(s^2 + c^2) makes a triple. Use

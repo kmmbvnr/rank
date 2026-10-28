@@ -8,7 +8,7 @@ for (const precision of ['f16', 'f32']) for (const shape of [[8], [1, 64], [16, 
     // f16 values here are exactly representable. f32 values expose unintended FP16 execution.
     const input = Array.from({ length: size }, (_, i) => precision === 'f16'
         ? (i % 2048 - 1024) / 8 : Math.fround((i - size / 2) / 7));
-    const source = `use ml\noption X .${precision} shape ${shape.join(' ')}\nreturn X relu\n`;
+    const source = `use ml\narg X .${precision} shape ${shape.join(' ')}\nreturn X relu\n`;
     const reference = new Interpreter(() => {});
     reference.execute('use ml');
     reference.variables.set('X', { kind: 'array', shape, items: input });

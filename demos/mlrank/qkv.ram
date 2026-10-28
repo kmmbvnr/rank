@@ -1,6 +1,6 @@
 use ml
-option X .f32 shape 2 3
-option W .f32 shape 3 12 = array shape 3 12 fill 0.5
+arg X .f32 shape 2 3
+arg W .f32 shape 3 12 = array shape 3 12 fill 0.5
 P = X W linear
 Q = (P # (0 till 4)) reshape 1 2 2 2
 K = (P # (4 till 8)) reshape 1 2 2 2

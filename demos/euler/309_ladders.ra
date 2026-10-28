@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 Top = Limit - 1
 Data = new index

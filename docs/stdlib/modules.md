@@ -66,7 +66,7 @@ Size = Values len
 Bound = (0 max Size) min 10
 ```
 
-`use cli` is required for `option`, `argument`, `flag`, `args` and `env`.
+`use cli` is required for `arg`, `flag`, `args` and `env`.
 `env` reads and writes the session environment. `use testing` enables test blocks.
 
 ## Numbers

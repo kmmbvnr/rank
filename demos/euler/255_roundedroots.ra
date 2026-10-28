@@ -11,7 +11,7 @@ use numbers
 use io
 use cli
 
-option Digits integer = 14
+arg Digits integer = 14
 
 rem Group the n. Those with the same x
 rem at some step form an interval, and

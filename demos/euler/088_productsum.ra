@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 12000
+arg Limit integer = 12000
 
 rem Factors with product P, sum S and
 rem count n give k = P - S + n, the rest

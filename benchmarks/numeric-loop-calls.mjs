@@ -33,7 +33,7 @@ const cases = [
         const fixture = { '141': '141-progressive-inline', '155': '155-capacitors-inline', '170': '170-pandigital-inline' }[number];
         return [['inline', `./fixtures/${fixture}.ra`], ['builtin', `../demos/euler/${number}_${slug}.ra`]]
             .map(([variant, path]) => ({ name: `${number}-${variant}`, group: number,
-                source: load(path).replace('option Count integer = 18', 'option Count integer = 15'),
+                source: load(path).replace('arg Count integer = 18', 'arg Count integer = 15'),
                 result: 'Answer', expected }));
     }),
     { name: '127-current', group: '127', source: load('../demos/euler/127_abchits.ra'), result: 'Answer', expected: 18407904n },

@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option Pn integer = 9
-option Cn integer = 6
+arg Pn integer = 9
+arg Cn integer = 6
 
 rem Every die adds each face to every
 rem total so far. Counting the totals

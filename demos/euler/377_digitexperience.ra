@@ -4,7 +4,7 @@ rem https://projecteuler.net/problem=377
 use io
 use cli
 
-option Terms integer = 17
+arg Terms integer = 17
 
 Mod = 10 ** 9
 Cnt = array shape 9 fill 0

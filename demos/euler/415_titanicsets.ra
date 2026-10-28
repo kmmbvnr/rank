@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000
-option L integer = 10000000
+arg N integer = 100000000000
+arg L integer = 10000000
 
 rem A set is not titanic when it is
 rem empty, one point or at least three

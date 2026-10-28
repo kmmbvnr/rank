@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Lo integer = 1864
-option Hi integer = 1909
+arg Lo integer = 1864
+arg Hi integer = 1909
 
 rem The sum has one side for each
 rem distinct edge direction, a fraction

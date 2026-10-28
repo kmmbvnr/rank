@@ -11,9 +11,9 @@ use sequences
 use tables
 use text
 
-argument TrainPath path = "demos/kaggle/data/disaster-tweets/train.csv"
-argument TestPath path = "demos/kaggle/data/disaster-tweets/test.csv"
-argument OutputPath path = "demos/kaggle/submissions/disaster-tweets.csv"
+arg TrainPath path = "demos/kaggle/data/disaster-tweets/train.csv"
+arg TestPath path = "demos/kaggle/data/disaster-tweets/test.csv"
+arg OutputPath path = "demos/kaggle/submissions/disaster-tweets.csv"
 
 Train = TrainPath csv
 Test = TestPath csv

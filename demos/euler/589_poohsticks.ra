@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option K integer = 100
-option D integer = 5
+arg K integer = 100
+arg D integer = 5
 
 rem For times n .. m let u = n + D,
 rem v = m + D, q = m - n + 1. The

@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 120000
+arg Limit integer = 120000
 
 rem The three are pairwise coprime, so
 rem rad(abc) = rad(a) rad(b) rad(c).

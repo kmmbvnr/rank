@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option First integer = 1
-option Count integer = 30
-option Power integer = 5
+arg First integer = 1
+arg Count integer = 30
+arg Power integer = 5
 
 rem Stations (2^i, 3^i) mod n repeat
 rem after p + T steps: p = max power

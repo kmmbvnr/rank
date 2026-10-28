@@ -30,7 +30,7 @@ values; lowercase words name operations and functions. `X = expression` creates
 or replaces a binding, while `X += Y`, `X *= Y`, `X or= Y` and `X and= Y` update it.
 These updates use previously bound X. Named sequences and arrays may be reused.
 
-`option Limit integer = 100` declares a command-line integer input, with default
+`arg Limit integer = 100` declares a command-line integer input, with default
 100 and override `--limit VALUE`. Integer literals have arbitrary precision.
 String literals are quoted. A trailing `Answer print` writes its decimal value
 and a newline. `use cli` and `use io` open options/output, not implicit I/O effects.
@@ -159,7 +159,7 @@ use io
 use cli
 
 rem Number of digits in each factor.
-option Digits integer = 3
+arg Digits integer = 3
 
 Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1

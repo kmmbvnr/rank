@@ -8,7 +8,7 @@ use io
 use cli
 
 rem Largest power, 22 is enough for 9.
-option Top integer = 25
+arg Top integer = 25
 
 Pows' = 1 to Top
 Grid' = (1 to 9) Pows outer **

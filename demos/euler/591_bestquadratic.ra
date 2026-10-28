@@ -5,9 +5,9 @@ use numbers
 use io
 use cli
 
-option M integer = 10000000000000
-option D0 integer = 2
-option D1 integer = 99
+arg M integer = 10000000000000
+arg D0 integer = 2
+arg D1 integer = 99
 
 rem The pairs (b, a + b sqrt d) form a
 rem lattice. The best a + b sqrt d for

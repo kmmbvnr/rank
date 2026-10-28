@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Segs integer = 5000
-option Room integer = 3000000
+arg Segs integer = 5000
+arg Room integer = 3000000
 
 rem Test each pair by orientation signs.
 rem A crossing at t = o3 / (o3 - o4)

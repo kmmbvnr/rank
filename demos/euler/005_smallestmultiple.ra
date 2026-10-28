@@ -5,7 +5,7 @@ rem Smallest number divisible by 1..20
 use io
 use cli
 
-option Limit integer = 20
+arg Limit integer = 20
 
 Range' = 1 to Limit
 Answer = Range reduce lcm with 1

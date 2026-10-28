@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 2000000000
+arg Limit integer = 2000000000
 
 rem With a and b allowed to be 0, n is
 rem all four when n = q m^2, q

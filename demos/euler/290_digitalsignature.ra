@@ -7,7 +7,7 @@ use numbers
 use io
 use cli
 
-option N integer = 18
+arg N integer = 18
 
 rem Build n digit by digit from the low
 rem end, as a product by 137 is done.

@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 10 ** 14
+arg Limit integer = 10 ** 14
 
 Mod = 982451653
 MaxM = ((8 * Limit + 9) isqrt - 3) // 2

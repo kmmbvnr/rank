@@ -9,7 +9,7 @@ use bits
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 Answer = Limit double_palindrome_sum
 Answer print

@@ -1,7 +1,7 @@
 use ml
-option X .f32 shape 2 3
-option Epsilon .f32 shape 1 = array 0.00001
-option Scale .f32 shape 3 = array 1.0 0.5 2.0
-option Bias .f32 shape 3 = array 0.0 0.1 -0.1
+arg X .f32 shape 2 3
+arg Epsilon .f32 shape 1 = array 0.00001
+arg Scale .f32 shape 3 = array 1.0 0.5 2.0
+arg Bias .f32 shape 3 = array 0.0 0.1 -0.1
 H = X Epsilon layernorm * Scale + Bias
 return H gelu_new

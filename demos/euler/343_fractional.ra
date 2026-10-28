@@ -5,7 +5,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 2000000
+arg Limit integer = 2000000
 
 Ks = 0 to Limit
 Rest = Ks * Ks - Ks + 1

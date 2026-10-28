@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 10
+arg Digits integer = 10
 
 Numbers = array shape 100
   37107287533902102798797998220837590246510135740250

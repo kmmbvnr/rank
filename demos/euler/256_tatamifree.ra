@@ -12,9 +12,9 @@ use sequences
 use io
 use cli
 
-option Target integer = 200
-option Start integer = 2000000
-option Step integer = 55440
+arg Target integer = 200
+arg Start integer = 2000000
+arg Step integer = 55440
 
 rem For a <= b the room can be tiled
 rem when |a g - b| <= g + 1, where g is

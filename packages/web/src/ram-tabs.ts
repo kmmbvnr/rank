@@ -1,6 +1,6 @@
 import type { NotebookDraft, RamDocument } from './notebook-store.js';
 
-const template = 'use ml\noption X .f16 shape 1 64\nreturn X relu\n';
+const template = 'use ml\narg X .f16 shape 1 64\nreturn X relu\n';
 
 /** Module documents belong to one notebook; the main REPL remains mounted. */
 export class RamTabs {

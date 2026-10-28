@@ -4,8 +4,8 @@ rem https://pgexercises.com/questions/basic/date.html
 use cli
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/008_dates.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/008_dates.csv"
 
 Db = DbPath sqlite
 R' = Db .members

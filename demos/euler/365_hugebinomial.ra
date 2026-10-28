@@ -6,10 +6,10 @@ use numbers
 use io
 use cli
 
-option N integer = 10 ** 18
-option K integer = 10 ** 9
-option Lo integer = 1000
-option Hi integer = 5000
+arg N integer = 10 ** 18
+arg K integer = 10 ** 9
+arg Lo integer = 1000
+arg Hi integer = 5000
 
 Ps = primes from Lo till Hi array
 Answer = N K Ps triples

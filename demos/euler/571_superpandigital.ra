@@ -7,8 +7,8 @@ use bits
 use io
 use cli
 
-option B integer = 12
-option T integer = 10
+arg B integer = 12
+arg T integer = 10
 
 rem The least B-super-pandigital numbers
 rem have B digits in base B, all

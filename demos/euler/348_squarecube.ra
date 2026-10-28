@@ -6,7 +6,7 @@ use algo
 use io
 use cli
 
-option Want integer = 5
+arg Want integer = 5
 
 fun Prefix mirror Odd
   Tail = Prefix

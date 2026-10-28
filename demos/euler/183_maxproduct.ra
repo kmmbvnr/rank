@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10000
+arg Limit integer = 10000
 
 rem The product (N / k)^k is greatest
 rem for k near N / e. It terminates when

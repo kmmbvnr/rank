@@ -15,8 +15,8 @@ use sequences
 use io
 use cli
 
-option M integer = 6
-option N integer = 10
+arg M integer = 6
+arg N integer = 10
 
 rem The corners are taken row by row,
 rem and the state is how the arcs that

@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option B integer = 10000000000000
+arg B integer = 10000000000000
 
 rem T(2x) = x (2x + 1) and T(2x - 1) =
 rem x (2x - 1) with coprime factors, so

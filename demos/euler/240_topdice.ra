@@ -9,10 +9,10 @@ use sequences
 use io
 use cli
 
-option N integer = 20
-option S integer = 12
-option Top integer = 10
-option Sum integer = 70
+arg N integer = 20
+arg S integer = 12
+arg Top integer = 10
+arg Sum integer = 70
 
 rem Deal out the faces from the highest
 rem down. W[u, t] counts the ways for u

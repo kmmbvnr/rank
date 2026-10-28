@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000
+arg N integer = 100000000
 
 rem A unitary divisor of n! takes
 rem each prime p to the power 0 or

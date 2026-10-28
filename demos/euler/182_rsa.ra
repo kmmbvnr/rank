@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option P integer = 1009
-option Q integer = 3643
+arg P integer = 1009
+arg Q integer = 3643
 
 rem m^e = m mod p q has 1 + gcd(e - 1,
 rem p - 1) solutions mod p and likewise

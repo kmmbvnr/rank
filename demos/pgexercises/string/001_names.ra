@@ -4,8 +4,8 @@ rem https://pgexercises.com/questions/string/concat.html
 use cli
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/string_001.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/string_001.csv"
 
 Db = DbPath sqlite
 M' = Db .members

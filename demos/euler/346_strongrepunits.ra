@@ -6,7 +6,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 10 ** 12
+arg Limit integer = 10 ** 12
 
 fun Limit strong
   Seen = new set

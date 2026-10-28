@@ -62,7 +62,7 @@ if (option('small-checks')) {
         for (const [version, source] of Object.entries(sources)) for (const compilation of [false, true]) {
             const output = [], runtime = new Interpreter(line => output.push(line), { compilation });
             try {
-                runtime.execute(source.replace('option Limit integer = 120000', `option Limit integer = ${limit}`));
+                runtime.execute(source.replace('arg Limit integer = 120000', `arg Limit integer = ${limit}`));
                 assert.equal(runtime.variables.get('Answer'), BigInt(sum));
                 assert.deepEqual(output, [String(sum)]);
                 results.push({ version, compilation, limit, hits, sum });

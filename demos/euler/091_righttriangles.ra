@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Size integer = 50
+arg Size integer = 50
 
 rem 3N^2 have the right angle at O or on
 rem an axis. Otherwise from P = (x, y)

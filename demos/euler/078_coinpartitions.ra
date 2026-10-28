@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Modulus integer = 1000000
-option Limit integer = 60000
+arg Modulus integer = 1000000
+arg Limit integer = 60000
 
 rem Pentagonal recurrence: p(n) is the
 rem signed sum of p(n - g) for the

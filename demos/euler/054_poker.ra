@@ -7,7 +7,7 @@ use text
 use io
 use cli
 
-argument Input path = "demos/euler/fixtures/0054_poker.txt"
+arg Input path = "demos/euler/fixtures/0054_poker.txt"
 
 Ranks = "23456789TJQKA"
 

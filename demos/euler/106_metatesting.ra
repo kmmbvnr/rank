@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Size integer = 12
+arg Size integer = 12
 
 rem For subsets of size k, choose 2k
 rem items and split them into two

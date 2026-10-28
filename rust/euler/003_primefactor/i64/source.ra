@@ -7,7 +7,7 @@ use io
 use cli
 
 rem Integer whose factors are inspected.
-option N integer = 600851475143
+arg N integer = 600851475143
 
 Factors = N factors
 Answer = Factors max

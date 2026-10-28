@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Size integer = 50
-option Min integer = 3
+arg Size integer = 50
+arg Min integer = 3
 
 rem K red blocks of total length R:
 rem split R into K parts of at least

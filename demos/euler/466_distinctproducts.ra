@@ -7,8 +7,8 @@ use sequences
 use io
 use cli
 
-option M integer = 64
-option N integer = 10000000000000000
+arg M integer = 64
+arg N integer = 10000000000000000
 
 rem Give each product to its largest
 rem row d <= M. Row e > d takes d c

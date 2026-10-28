@@ -130,7 +130,7 @@ describe('the type of an imported call in the footer', () => {
 
 describe('createModuleLoader', () => {
     it('discovers RAM call signatures without running a GPU and keeps file names distinct', () => {
-        let source = 'use ml\noption X .f16 shape 1 64\nreturn X relu\n';
+        let source = 'use ml\narg X .f16 shape 1 64\nreturn X relu\n';
         const load = createModuleLoader(() => source);
         expect(load('hello.ram')?.statements[0]).toMatchObject({ name: 'hello', parameters: ['X'] });
         expect(load('other.ram')?.statements[0]).toMatchObject({ name: 'other', parameters: ['X'] });

@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Size integer = 36
+arg Size integer = 36
 
 rem Points (a, b, c), a + b + c = M =
 rem 2 N. Six line families f = k with

@@ -7,7 +7,7 @@ use io
 use cli
 
 rem Upper boundary, excluded.
-option Limit integer = 1000
+arg Limit integer = 1000
 
 N = 1 till Limit
 

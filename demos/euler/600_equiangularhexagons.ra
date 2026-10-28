@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 55106
+arg N integer = 55106
 
 rem Sides (a, b, c, a - t, b + t, c - t)
 rem close an equiangular hexagon.

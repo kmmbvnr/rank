@@ -8,11 +8,11 @@ use text
 use io
 use cli
 
-argument Input path = (
+arg Input path = (
   "demos/euler/fixtures/"
   + "0424_kakuro200.txt"
 )
-option Count integer = 200
+arg Count integer = 200
 
 rem Search the letters A-J in order of
 rem use, checking every run whose sum

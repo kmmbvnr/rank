@@ -7,9 +7,9 @@ use sequences
 use io
 use cli
 
-option Exp integer = 1000000000
-option Count integer = 40
-option Limit integer = 200000
+arg Exp integer = 1000000000
+arg Count integer = 40
+arg Limit integer = 200000
 
 rem A prime p other than 3 divides the
 rem repunit R(n) when 10^n = 1 mod 9 p.

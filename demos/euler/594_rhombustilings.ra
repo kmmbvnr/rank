@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option A integer = 4
-option B integer = 2
+arg A integer = 4
+arg B integer = 2
 
 rem O(a, b) is a zonogon of four edge
 rem directions 0 .. 3 with a, b, a, b

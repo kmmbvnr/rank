@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem Only 60, 90 and 120 degrees have a
 rem rational cosine, so the triangles

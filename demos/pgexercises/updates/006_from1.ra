@@ -4,7 +4,7 @@ rem https://pgexercises.com/questions/updates/updatecalculated.html
 use cli
 use tables
 
-argument DbPath path
+arg DbPath path
 
 Db = DbPath sqlite
 F' = Db .facilities

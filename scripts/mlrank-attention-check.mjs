@@ -35,7 +35,7 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  }
  for(let n=0;n<B*T;n++)for(let j=0;j<C;j++)for(let k=0;k<C;k++)output[n*C+j]+=merged[n*C+k]*outWeights[k*C+j];
  if(!changed)original=output;else for(let b=0;b<B;b++)for(let t=0;t<T-1;t++)for(let c=0;c<C;c++)assert.equal(output[(b*T+t)*C+c],original[(b*T+t)*C+c]);
- const prefix=`use ml\noption X .f32 shape ${B} ${T} ${C}\n${literal('W',[C,3*C],weights)}\n${literal('O',[C,C],outWeights)}\n${literal('Scale',[1],[scale])}\n${literal('Mask',[1,1,T,T],mask)}\n`;
+ const prefix=`use ml\narg X .f32 shape ${B} ${T} ${C}\n${literal('W',[C,3*C],weights)}\n${literal('O',[C,C],outWeights)}\n${literal('Scale',[1],[scale])}\n${literal('Mask',[1,1,T,T],mask)}\n`;
  const lines=[
  'P = X W linear',
  `Q = (P # # (0 till ${C})) reshape ${B} ${T} ${H} ${D}`,

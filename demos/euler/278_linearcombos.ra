@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 5000
+arg Limit integer = 5000
 
 rem For these primes f = 2 p q r - p q -
 rem p r - q r. Summed over all triples,

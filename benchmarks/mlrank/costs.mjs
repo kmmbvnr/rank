@@ -12,7 +12,7 @@ function fixture([batch,width,hidden,output]) {
         : [values(width*hidden,1,1/Math.sqrt(width)),values(hidden,2,.1),values(hidden*output,3,1/Math.sqrt(hidden)),values(output,4,.1)];
     const names=['W1','B1','W2','B2'];
     const files=Object.fromEntries(names.map((name,i)=>[name.toLowerCase()+'.rwt',encodeRamWeights(shapes[i],weights[i])]));
-    const source=`use ml\noption X .f32 shape ${batch} ${width}\n`+names.map((name,i)=>
+    const source=`use ml\narg X .f32 shape ${batch} ${width}\n`+names.map((name,i)=>
         `option ${name} .f32 shape ${shapes[i].join(' ')} = "${name.toLowerCase()}.rwt"`).join('\n')+
         '\nHidden = ((X W1 linear) + B1) relu\nLogits = (Hidden W2 linear) + B2\nreturn Logits softmax';
     const inputs = [values(batch*width,5),values(batch*width,7)];

@@ -11,7 +11,7 @@ use sequences
 use io
 use cli
 
-option Power integer = 25
+arg Power integer = 25
 
 rem Let x = b(m), y = b(m-1). The next
 rem bit of n maps (x, y) to (x + y, y)

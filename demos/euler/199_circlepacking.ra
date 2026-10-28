@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Steps integer = 10
+arg Steps integer = 10
 
 rem Three equal circles of curvature K
 rem fill the unit circle. Descartes

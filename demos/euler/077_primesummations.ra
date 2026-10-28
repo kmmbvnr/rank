@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option Target integer = 5000
-option Limit integer = 100
+arg Target integer = 5000
+arg Limit integer = 100
 
 rem Euler transform: n a(n) is the sum
 rem of b(k) a(n - k), where b(k) adds

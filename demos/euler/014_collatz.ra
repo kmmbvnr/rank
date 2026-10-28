@@ -6,7 +6,7 @@ rem with the longest Collatz chain
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 Lengths = array shape Limit fill 0
 Lengths 1 = 1

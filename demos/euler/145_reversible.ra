@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 9
+arg Digits integer = 9
 
 rem By digit count k, summing pairs of
 rem digits with odd sums: even k gives

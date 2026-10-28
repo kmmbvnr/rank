@@ -43,7 +43,7 @@ if (option('worker')) {
     const fixture = option('worker') === 'fixture';
     assert(!fixture || n === 2000, 'the fixture retains the full default input');
     const file = fixture ? main.replace('.ra', '_test.ra') : main;
-    const mainSource = readFileSync(main, 'utf8').replace('option N integer = 2000', `option N integer = ${n}`);
+    const mainSource = readFileSync(main, 'utf8').replace('arg N integer = 2000', `arg N integer = ${n}`);
     const source = fixture ? readFileSync(file, 'utf8') : mainSource;
     const output = [], diagnostics = new RuntimeDiagnostics();
     const runtime = new Interpreter(line => output.push(line), {

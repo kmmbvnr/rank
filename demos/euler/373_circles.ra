@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10000000
+arg Limit integer = 10000000
 
 Root = Limit isqrt
 Data = (Limit + 1) groups

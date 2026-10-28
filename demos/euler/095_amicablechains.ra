@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 rem Divisor sums: each D up to the root
 rem adds D and its partner K to D * K.

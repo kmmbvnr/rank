@@ -7,9 +7,9 @@ use algo
 use io
 use cli
 
-option R integer = 10
-option C integer = 9
-option N integer = 1112131415
+arg R integer = 10
+arg C integer = 9
+arg N integer = 1112131415
 
 rem Count colourings that name colours
 rem in order of first use: with j

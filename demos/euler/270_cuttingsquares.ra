@@ -11,8 +11,8 @@ use numbers
 use io
 use cli
 
-option N integer = 30
-option Mod integer = 100000000
+arg N integer = 30
+arg Mod integer = 100000000
 
 rem Number the 4 N integer points round
 rem the edge. Every face of a finished

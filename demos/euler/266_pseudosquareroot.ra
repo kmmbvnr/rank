@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 190
+arg Limit integer = 190
 
 rem Split the primes in two halves and
 rem list the divisors a of one half and

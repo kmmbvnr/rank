@@ -7,7 +7,7 @@ use cli
 use text
 use crypto
 
-argument Input path
+arg Input path
 
 Door = Input readlines 0
 Door part1 print

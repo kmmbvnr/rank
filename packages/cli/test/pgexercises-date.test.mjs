@@ -42,7 +42,7 @@ test('date-to-datetime cast stays in SQL and preserves bound timestamps', () => 
         insert.run('2012-02-29 23:59:59');
         const program = [
             'use cli', 'use dates', 'use tables',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'M\' = Db .moments',
             'Moment\' = M .time datetime',
             'Today\' = Moment date datetime',
@@ -127,7 +127,7 @@ test('datetime differences stay in SQL with bound timestamp operands', () => {
         insert.run('2024-03-01 00:00:00', '2024-02-29 23:59:59');
         const program = [
             'use cli', 'use dates', 'use tables',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'E\' = Db .events',
             'Start\' = E .started datetime',
             'End\' = E .ended datetime',
@@ -201,7 +201,7 @@ test('month boundaries on SQLite columns stay in a lazy SQL plan', () => {
         insert.run('2012-12-31 08:30:00');
         const program = [
             'use cli', 'use dates', 'use tables',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'M\' = Db .moments',
             'Time\' = M .time datetime',
             'First\' = Time monthstart',
@@ -305,7 +305,7 @@ test('SQLite datetime addition leaves nonintegral duration seconds missing', () 
         insert.run('2024-03-01 00:00:00', -30);
         fs.writeFileSync(script, [
             'use cli', 'use dates', 'use tables',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'M\' = Db .moments',
             'Moment\' = M .time datetime',
             'Span\' = M .offset duration',
@@ -426,8 +426,8 @@ test('monthly facility utilisation matches SQL and arrays while staying lazy', (
             + '2,2024-01-31 08:00:00,1\n');
         fs.writeFileSync(facilitiesCsv, 'facid,name\n1,Court\n2,Pool\n');
         const arraySource = source.replace(
-            'argument DbPath path = "demos/pgexercises/data/club.sqlite3"',
-            'argument BookingPath path\nargument FacilityPath path')
+            'arg DbPath path = "demos/pgexercises/data/club.sqlite3"',
+            'arg BookingPath path\narg FacilityPath path')
             .replace('Db = DbPath sqlite\nB\' = Db .bookings\nF\' = Db .facilities',
                 'B = BookingPath csv\nF = FacilityPath csv');
         fs.writeFileSync(arrayScript, arraySource);

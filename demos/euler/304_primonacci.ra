@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option Start integer = 10 ** 14
-option Count integer = 100000
-option Mod integer = 1234567891011
+arg Start integer = 10 ** 14
+arg Count integer = 100000
+arg Mod integer = 1234567891011
 
 Pr = primes from Start take Count array
 F0 = Pr * 0

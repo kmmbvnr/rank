@@ -7,7 +7,7 @@ use numbers
 use io
 use cli
 
-option N integer = 124
+arg N integer = 124
 
 rem Terms mod m repeat from (1, 1, 1),
 rem so m divides a term exactly when the

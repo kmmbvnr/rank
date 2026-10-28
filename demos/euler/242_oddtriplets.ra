@@ -11,7 +11,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000000000
+arg Limit integer = 1000000000000
 
 rem The triples are exactly n = 4 a + 1
 rem and k = 2 b + 1 with C(2 a, b) odd.

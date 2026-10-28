@@ -568,7 +568,7 @@ describe('Rank grammar', () => {
     it('parses open imports and input declarations', async () => {
         const document = await parse([
             'use "worker"',
-            'option Limit integer = 1000',
+            'arg Limit integer = 1000',
             'args "--limit" "10"',
             'run "worker"',
         ].join('\n'));

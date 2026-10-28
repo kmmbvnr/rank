@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000
+arg N integer = 100000000
 
 rem (a+1)(c+1) = (b+1)^2 gives a + 1 =
 rem d u^2, b + 1 = d u v, c + 1 = d v^2

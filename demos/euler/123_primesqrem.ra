@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10000000000
+arg Limit integer = 10000000000
 
 rem Even n leaves 2 and odd n leaves
 rem 2 n p mod p^2. As p > n, n up to

@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Count integer = 100
+arg Count integer = 100
 
 rem The numerator is the continuant of
 rem the terms 2, 1, 2, 1, 1, 4, ...: the

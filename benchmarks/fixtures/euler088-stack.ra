@@ -8,7 +8,7 @@ use io
 use sequences
 use cli
 
-option Limit integer = 12000
+arg Limit integer = 12000
 
 Big = Limit * 2
 Best = array shape (Limit + 1) fill Big

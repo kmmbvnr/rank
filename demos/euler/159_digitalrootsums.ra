@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 rem Best[m] is the larger of dr(m) and
 rem dr(d) + Best[k] over m = k d. Here

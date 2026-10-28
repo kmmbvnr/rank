@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000000
-option Ka integer = 2
-option Kb integer = 10
+arg N integer = 100000000000000
+arg Ka integer = 2
+arg Kb integer = 10
 
 rem f(kx + s) = sum of f(t // k), t <=
 rem kx + s, so f(n) nests prefix sums

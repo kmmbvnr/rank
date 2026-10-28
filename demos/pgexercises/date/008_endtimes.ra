@@ -6,8 +6,8 @@ use dates
 use sequences
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/date_008.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/date_008.csv"
 
 Db = DbPath sqlite
 B' = Db .bookings

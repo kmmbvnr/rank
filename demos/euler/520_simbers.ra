@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option U integer = 39
+arg U integer = 39
 
 rem An even digit's count is even:
 rem (1 + (-1)^c) / 2; an odd digit's is

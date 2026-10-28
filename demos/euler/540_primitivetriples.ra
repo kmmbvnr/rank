@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option N integer = 3141592653589793
+arg N integer = 3141592653589793
 
 rem Primitive triples are pairs m > n
 rem > 0, coprime, of opposite parity,

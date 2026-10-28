@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Count integer = 25
-option Top integer = 20000
+arg Count integer = 25
+arg Top integer = 20000
 
 rem A(n) is the order of 10 mod 9 n, so
 rem A(n) | n - 1 means 10^(n-1) = 1 mod

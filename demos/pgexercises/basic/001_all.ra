@@ -5,8 +5,8 @@ rem Retrieve every facility and all six columns.
 use cli
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/001_all.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/001_all.csv"
 
 Db = DbPath sqlite
 Result' = Db .facilities

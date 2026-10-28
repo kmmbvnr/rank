@@ -40,7 +40,7 @@ function solve(order: number, compilation: boolean): { answer: unknown; calls: n
     let calls = 0;
     const runtime = new Interpreter(() => {}, { compilation, onScalarFunctionExecuted: () => calls++ });
     try {
-        runtime.execute(source.replace('option K integer = 10000', `option K integer = ${order}`));
+        runtime.execute(source.replace('arg K integer = 10000', `arg K integer = ${order}`));
         return { answer: runtime.variables.get('Answer'), calls };
     } finally { runtime.dispose(); }
 }

@@ -9,8 +9,8 @@ use numbers
 use io
 use cli
 
-option N integer = 1000000000000000000
-option Mod integer = 20092010
+arg N integer = 1000000000000000000
+arg Mod integer = 20092010
 
 rem g(N) is the sum of the coefficients
 rem of x^N reduced modulo x^2000 = x +

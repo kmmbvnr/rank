@@ -99,7 +99,7 @@ callback must produce finitely many successors; known-infinite sequences are
 rejected. Unknown-size sequences are consumed within the budget. Cancellation
 checkpoints and ordinary callback errors remain active.
 
-This four-argument BFS also accepts explicit and finite predicate graphs and
+This four-arg BFS also accepts explicit and finite predicate graphs and
 ignores edge weights. For predicate graphs, an entry budget does not count failed
 predicate tests while scanning the finite domain. The existing two-argument BFS
 on finite graphs is unchanged. Successor graphs reject unbounded BFS, DFS,

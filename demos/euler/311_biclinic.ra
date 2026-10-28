@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10 ** 10
-option Block integer = 4000000
+arg Limit integer = 10 ** 10
+arg Block integer = 4000000
 
 Top = Limit // 4
 Answer = 0

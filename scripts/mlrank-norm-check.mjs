@@ -13,7 +13,7 @@ const norm=(input,width,epsilon)=>input.flatMap((_,i)=>{
 });
 const add=(stage,shape,input,body,expected)=>{
     input=input.map(Math.fround);
-    const source='use ml\noption X .f32 shape '+shape.join(' ')+'\n'+body;
+    const source='use ml\narg X .f32 shape '+shape.join(' ')+'\n'+body;
     const graph=compileRam(source,'norm.ram').graph;
     const tolerance = 1e-5;
     fixtures.push({tolerance,stage,shape,input,source,expected:expected(input),outputShape:graph.outputShape,
@@ -37,9 +37,9 @@ for(const shape of [[13],[2,13],[2,2,13],[2,2,2,13]]){
  add('gelu/'+shape.join('x'),shape,values,'return X gelu_new',x=>x.map(gelu));
 }
 add('epsilon-scale-bias',[2,3],[1,1.001,1.002,-2,0,2],
- 'option E .f32 shape 1 = array 0.01\noption S .f32 shape 3 = array -2.0 0.5 3.0\noption B .f32 shape 3 = array 0.1 -0.2 0.3\nreturn (X E layernorm) * S + B',
+ 'arg E .f32 shape 1 = array 0.01\narg S .f32 shape 3 = array -2.0 0.5 3.0\narg B .f32 shape 3 = array 0.1 -0.2 0.3\nreturn (X E layernorm) * S + B',
  x=>norm(x,3,Math.fround(.01)).map((v,i)=>v*[-2,.5,3][i%3]+Math.fround([.1,-.2,.3][i%3])));
-const mlp='option W .f32 shape 3 4 = array shape 3 4\n0.5 -1.0 2.0 0.25\n-0.5 0.75 0.1 -2.0\n1.0 0.25 -0.5 0.75\nend\noption B .f32 shape 4 = array 0.1 -0.2 0.3 -0.4\noption V .f32 shape 4 2 = array shape 4 2\n1.0 -0.5\n0.25 0.75\n-0.1 0.5\n2.0 -1.0\nend\nH = ((X layernorm) W linear) + B\nH = H gelu_new\nreturn H V linear';
+const mlp='arg W .f32 shape 3 4 = array shape 3 4\n0.5 -1.0 2.0 0.25\n-0.5 0.75 0.1 -2.0\n1.0 0.25 -0.5 0.75\nend\narg B .f32 shape 4 = array 0.1 -0.2 0.3 -0.4\narg V .f32 shape 4 2 = array shape 4 2\n1.0 -0.5\n0.25 0.75\n-0.1 0.5\n2.0 -1.0\nend\nH = ((X layernorm) W linear) + B\nH = H gelu_new\nreturn H V linear';
 add('normalized-gelu-mlp',[2,3],[-1,.25,2,4,4.01,4.02],mlp,x=>{
  const n=norm(x,3,1e-5),w=[.5,-1,2,.25,-.5,.75,.1,-2,1,.25,-.5,.75].map(Math.fround),b=[.1,-.2,.3,-.4].map(Math.fround),v=[1,-.5,.25,.75,-.1,.5,2,-1].map(Math.fround);
  const out=[];

@@ -37,8 +37,8 @@ describe('dense sum-of-squares blocks', () => {
     it.each([[10000, 4000, 49n], [1000000, 400000, 38239n]])('preserves published B(%s) with block %s', (limit, size, answer) => {
         const runtime = new Interpreter(() => {});
         try {
-            runtime.execute(program.replace('option Limit integer = 10 ** 10', `option Limit integer = ${limit}`)
-                .replace('option Block integer = 4000000', `option Block integer = ${size}`));
+            runtime.execute(program.replace('arg Limit integer = 10 ** 10', `arg Limit integer = ${limit}`)
+                .replace('arg Block integer = 4000000', `arg Block integer = ${size}`));
             expect(runtime.variables.get('Answer')).toBe(answer);
         } finally { runtime.dispose(); }
     });

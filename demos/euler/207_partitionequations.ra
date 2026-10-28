@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Q integer = 12345
+arg Q integer = 12345
 
 rem With x = 2^t the equation is
 rem k = x (x - 1), so each integer x > 1

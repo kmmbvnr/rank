@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 2500000
+arg N integer = 2500000
 
 rem Peak k has x = p1 + .. + p(2k-1) and
 rem y = p1 - p2 + .. + p(2k-1). Peak j

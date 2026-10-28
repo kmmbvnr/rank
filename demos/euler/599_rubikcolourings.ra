@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10
+arg N integer = 10
 
 rem Burnside over the 8! 3^7 cube
 rem moves. A permutation with k cycles

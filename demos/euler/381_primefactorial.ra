@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10 ** 8
+arg Limit integer = 10 ** 8
 
 rem Wilson gives S(p) = -3 / 8 mod p.
 Ps = primes from 5 till Limit array

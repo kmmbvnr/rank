@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option Lo integer = 10
-option Hi integer = 15
+arg Lo integer = 10
+arg Hi integer = 15
 
 rem With a slack term the count is
 rem C(n + k, k) without the caps x_m <=

@@ -19,7 +19,7 @@ if (process.argv[2] && process.argv[2] !== '--compile-only') {
         values = tensor.items;
     } finally { interpreter.dispose(); }
 }
-const source = `use ml\noption X .f32 shape 1 ${values.length}\noption Scale .f32 shape ${values.length} = array shape ${values.length}\n  ${values.map(v=>Number.isInteger(v)?v+'.0':String(v)).join(' ')}\nend\nreturn X * Scale`;
+const source = `use ml\narg X .f32 shape 1 ${values.length}\narg Scale .f32 shape ${values.length} = array shape ${values.length}\n  ${values.map(v=>Number.isInteger(v)?v+'.0':String(v)).join(' ')}\nend\nreturn X * Scale`;
 const graph = compileRam(source, 'filecheck.ram').graph;
 const path = join(directory, 'filecheck.tflite');
 writeFileSync(path, graph.model);

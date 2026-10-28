@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option Base integer = 10
-option K integer = 1000000000000000000
+arg Base integer = 10
+arg K integer = 1000000000000000000
 
 rem f(n) = 1 - (-1)^n / 15
 rem        - 4/3 2^n + 2/5 4^n

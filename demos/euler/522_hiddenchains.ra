@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 12344321
+arg N integer = 12344321
 
 rem F(n) = n (n - 1) (n - 2)^(n - 1)
 rem plus, over 2 <= m <= n - 2, the

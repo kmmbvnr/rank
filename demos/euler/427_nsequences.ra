@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 7500000
+arg N integer = 7500000
 
 rem f(n) = n^(n+1) - n (S1 - S2) with
 rem S1 = sum over k of A(n-1, k) and

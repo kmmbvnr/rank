@@ -17,7 +17,7 @@ Values min
 Values max
 ```
 
-`use cli` enables `option`, `argument`, `flag` and `args`. Without it, a
+`use cli` enables `arg`, `flag` and `args`. Without it, a
 program cannot declare command-line inputs. `use testing` enables test blocks.
 
 A bare module name opens standard-library vocabulary in the current workspace:
@@ -73,7 +73,7 @@ A construct that the grammar always parses but only the module gives meaning to
 names itself instead, since there is no unknown word to report:
 
 ```
-option requires: use cli
+arg requires: use cli
 ```
 
 Both shapes carry the same instruction. The second covers CLI declarations and `args`,
@@ -165,7 +165,7 @@ open, and any word that is neither. Reading a source module with `use "file"`
 brings that module's names along, so a test file resolves the names it borrows.
 
 Each name also carries the runtime types it may hold, taken from literals,
-constructors, declared `option` and `argument` types, operators and the
+constructors, declared `arg` types, operators and the
 catalogue. Rank states no types, so many names report `unknown`, and that is the
 intended answer rather than a gap to fill with a guess: a parameter, a loop
 value and anything a user function returns all report it. What the pass does
@@ -180,7 +180,7 @@ A name reported under `needs a use` is a program that cannot run, and
 Declare program inputs with `use cli`. The import is required even when all
 inputs have defaults or receive values from the workspace.
 
-`option` declares an input parameter of a program. It is broader than a
+`arg` declares an input parameter of a program. It is broader than a
 terminal-only CLI option: a caller may bind it through the current workspace, a
 command-line adapter, a browser host or another runner.
 
@@ -188,7 +188,7 @@ command-line adapter, a browser host or another runner.
 use cli
 
 rem Upper boundary, excluded.
-option Limit integer = 1000
+arg Limit integer = 1000
 ```
 
 Input resolution has one fixed precedence order:
@@ -214,16 +214,16 @@ run
 The workspace value wins when both are present. Every selected value is checked
 against the declared type before program statements execute.
 
-Positional and boolean inputs use the same model:
+Scalar, array and boolean inputs use the same model:
 
 ```rank
 use cli
-argument Input path
-argument Numbers integer many
+arg Input path
+arg Numbers integer array
 flag Verbose
 ```
 
-`many` collects the remaining or repeated values into a sequence. A declaration
+`array` collects remaining positional values or repeated named values into a rank-one array and must be the last `arg` declaration. Named inputs bind first; positional inputs fill the remaining declarations in order. A declaration
 without a default is required. Contiguous `rem` lines immediately above an input
 declaration provide its help text.
 

@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Rows integer = 8
+arg Rows integer = 8
 
 rem State: the colours u of the up
 rem triangles of a row, one tensor axis

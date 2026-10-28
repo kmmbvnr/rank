@@ -74,8 +74,7 @@ entry Program:
 Statement:
     UseStatement |
     RunStatement |
-    OptionStatement |
-    ArgumentStatement |
+    ArgStatement |
     FlagStatement |
     ArgsStatement |
     TestStatement |
@@ -100,14 +99,11 @@ UseStatement:
 RunStatement:
     'run' path=STRING?;
 
-OptionStatement:
-    'option' name=VARIABLE (valueType=(WORD | 'text') (many?='many')? |
+ArgStatement:
+    'arg' name=VARIABLE (valueType=(WORD | 'text') (many?='array')? |
         precision=LabelLiteral 'shape' dimensions+=NumberLiteral+)
     ('=' defaultValue=Expression)?;
 
-ArgumentStatement:
-    'argument' name=VARIABLE valueType=(WORD | 'text') (many?='many')?
-    ('=' defaultValue=Expression)?;
 
 FlagStatement:
     'flag' name=VARIABLE ('=' defaultValue=BooleanValue)?;

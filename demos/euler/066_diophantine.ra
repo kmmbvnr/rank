@@ -7,7 +7,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 1000
+arg Limit integer = 1000
 
 rem Walk the convergents of the sqrt D
 rem fraction until x^2 - D y^2 = 1.

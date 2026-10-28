@@ -4,7 +4,7 @@ rem https://projecteuler.net/problem=341
 use io
 use cli
 
-option Count integer = 1000000
+arg Count integer = 1000000
 
 Count cubes print
 

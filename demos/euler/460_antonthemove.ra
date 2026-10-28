@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option D integer = 10000
-option Band real = 0.5
-option K integer = 300
+arg D integer = 10000
+arg Band real = 0.5
+arg K integer = 300
 
 rem Speed y makes time a hyperbolic
 rem length, so the quickest path keeps

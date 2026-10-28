@@ -5,7 +5,7 @@ use algo
 use io
 use cli
 
-option Moves integer = 10 ** 18
+arg Moves integer = 10 ** 18
 
 fun Steps ants
   Black = new set

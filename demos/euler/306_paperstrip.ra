@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 Last = 133
 G = array shape (Last + 1) fill 0

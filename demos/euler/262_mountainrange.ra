@@ -17,7 +17,7 @@ use algo
 use io
 use cli
 
-option Step integer = 2
+arg Step integer = 2
 
 rem On a grid of the given spacing the
 rem least f is the height of the cell at

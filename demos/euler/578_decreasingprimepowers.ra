@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000000000
+arg N integer = 10000000000000
 
 rem g(L, i, e) counts the ways to extend
 rem with primes from index i on, with

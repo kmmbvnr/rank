@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option K integer = 500500
+arg K integer = 500500
 
 rem 2^K divisors: every exponent is
 rem 2^b - 1 with sum b = K, and each

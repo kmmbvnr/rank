@@ -21,7 +21,7 @@ const payload=Buffer.alloc(values.length*4);values.forEach((v,i)=>payload.writeF
 const offset=prefix.length+padding,path=join(directory,'input.safetensors'),fd=openSync(path,'wx');
 try{writeSync(fd,prefix);ftruncateSync(fd,offset+payload.length);writeSync(fd,payload,0,payload.length,offset);}finally{closeSync(fd);}
 writeFileSync(join(directory,'prefix.bin'),prefix);writeFileSync(join(directory,'payload.bin'),payload);
-const ram=`use ml\noption X .f32 shape ${values.length}\nreturn X + X\n`;
+const ram=`use ml\narg X .f32 shape ${values.length}\nreturn X + X\n`;
 const source=`use io\nuse "mapped.ram"\nF = ${JSON.stringify(path)} open\nW' = F tensor "weight"\nResult = W mapped\nF close\nResult`;
 let jsBytes=0,inputDescriptor;
 const io={...nodeIo,open(...args){const h=nodeIo.open(...args),r=h.read.bind(h);h.read=count=>{

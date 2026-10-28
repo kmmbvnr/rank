@@ -1,9 +1,9 @@
 use ml
-option X .f32 shape 4 2
-option W1 .f32 shape 2 3 = "w1.rwt"
-option B1 .f32 shape 3 = "b1.rwt"
-option W2 .f32 shape 3 2 = "w2.rwt"
-option B2 .f32 shape 2 = "b2.rwt"
+arg X .f32 shape 4 2
+arg W1 .f32 shape 2 3 = "w1.rwt"
+arg B1 .f32 shape 3 = "b1.rwt"
+arg W2 .f32 shape 3 2 = "w2.rwt"
+arg B2 .f32 shape 2 = "b2.rwt"
 Hidden = (X W1 linear) + B1 relu
 Logits = (Hidden W2 linear) + B2
 return Logits softmax

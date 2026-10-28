@@ -9,7 +9,7 @@ use numbers
 use sequences
 use algo
 
-argument Input path
+arg Input path
 
 unpack Part1 Part2 = Input read solve
 Part1 print

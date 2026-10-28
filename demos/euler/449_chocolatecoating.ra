@@ -6,10 +6,10 @@ use sequences
 use io
 use cli
 
-option A integer = 3
-option B integer = 1
-option Steps integer = 4096
-option Digits integer = 8
+arg A integer = 3
+arg B integer = 1
+arg Steps integer = 4096
+arg Digits integer = 8
 
 rem The outer surface at distance 1
 rem along the normal is R = s (a +

@@ -7,8 +7,8 @@ use sequences
 use stats
 use tables
 
-argument DataPath path = "demos/tidytuesday/data/africa.csv"
-argument OutputPath path = "demos/tidytuesday/africa_family_summary.csv"
+arg DataPath path = "demos/tidytuesday/data/africa.csv"
+arg OutputPath path = "demos/tidytuesday/africa_family_summary.csv"
 
 Data = DataPath csv
 Summary' = Data solve

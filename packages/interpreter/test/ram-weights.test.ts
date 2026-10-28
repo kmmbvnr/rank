@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { compileRam, encodeRamWeights, decodeRamWeights, Interpreter } from '../src/index.js';
-const source = 'use ml\noption X .f32 shape 1 2\noption W .f32 shape 2 1 = "weights.rwt"\nreturn X W linear';
+const source = 'use ml\narg X .f32 shape 1 2\narg W .f32 shape 2 1 = "weights.rwt"\nreturn X W linear';
 describe('binary RAM weights', () => {
     it('checks shape, dtype, size, checksum and finite values', () => {
         const bytes = encodeRamWeights([2, 1], [1, -2]);
@@ -16,8 +16,8 @@ describe('binary RAM weights', () => {
         expect(() => compileRam(source, 'model.ram')).toThrow('unavailable');
     });
     it('does not serialize unused original linear weights', () => {
-        const module = compileRam('use ml\noption X .f32 shape 1 100\n'
-            + 'option W .f32 shape 100 100 = array shape 100 100 fill 1.0\nreturn X W linear', 'dense.ram');
+        const module = compileRam('use ml\narg X .f32 shape 1 100\n'
+            + 'arg W .f32 shape 100 100 = array shape 100 100 fill 1.0\nreturn X W linear', 'dense.ram');
         expect(module.graph.model.length).toBeLessThan(40_000 + 4096);
     });
     it('reuses the graph until source or attachment content changes', () => {

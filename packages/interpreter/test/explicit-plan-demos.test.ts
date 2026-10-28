@@ -929,7 +929,7 @@ end`);
         const output: string[] = [];
         const runtime = new Interpreter(text => output.push(text), { compilation });
         try {
-            runtime.execute(source.replace('option Limit integer = 10000', 'option Limit integer = 300'));
+            runtime.execute(source.replace('arg Limit integer = 10000', 'arg Limit integer = 300'));
             expect(runtime.variables.get('Answer')).toBe(504n);
             expect(output).toEqual(['504']);
         } finally { runtime.dispose(); }

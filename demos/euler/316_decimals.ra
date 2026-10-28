@@ -5,8 +5,8 @@ use sequences
 use io
 use cli
 
-option Top integer = 999999
-option Num integer = 10000000000000000
+arg Top integer = 999999
+arg Num integer = 10000000000000000
 
 Answer = 0
 for N in 2 to Top

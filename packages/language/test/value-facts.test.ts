@@ -1565,8 +1565,8 @@ it('does not keep a length across a loop that rebinds the array', async () => {
 it('gives each `many` command-line value one symbolic length', async () => {
     const { provenSameShape } = await import('../src/analysis/value-domain.js');
     const names = bound([
-        'option Xs integer many',
-        'option Ys integer many',
+        'arg Xs integer array',
+        'arg Ys integer array',
         'N = Xs len',
         'A = array shape N fill 0',
         'Sum = Xs + A',
@@ -1722,7 +1722,7 @@ it('tracks absent endpoints separately from numeric infinity and slice boundarie
 
 it('keeps integer sums after a completed boolean mask of unknown length', () => {
     const values = bound(`use numbers
-option Limit integer = 1000
+arg Limit integer = 1000
 N = 1 till Limit
 Mask = N mod 3 equal 0
 Mask or= N mod 5 equal 0
@@ -1757,7 +1757,7 @@ it.each(['equal', 'not equal', 'less', 'greater', 'at least', 'at most'])(
 
 
 it('types declared CLI scalars without treating defaults as supplied values', () => {
-    const names = bound('option Digits integer = 3\nargument File path = "input"\nflag Verbose\nOther = 2\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n');
+    const names = bound('arg Digits integer = 3\narg File path = "input"\nflag Verbose\nOther = 2\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n');
     expect(names.get('Digits')).toMatchObject({ types: ['integer'], rank: 0 });
     expect(names.get('Digits')!.integer).toBeUndefined();
     expect(names.get('File')).toMatchObject({ types: ['text'], rank: 1 });
@@ -1768,7 +1768,7 @@ it('types declared CLI scalars without treating defaults as supplied values', ()
 });
 
 it('retains validated CLI values and infers integer powers from known exponent signs', () => {
-    const names = bound('option Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n',
+    const names = bound('arg Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n',
         { Digits: { types: ['integer'], rank: 0, shape: [], integer: '3' } });
     expect(names.get('Lower')!.types).toEqual(['integer']);
     expect(names.get('Upper')!.types).toEqual(['integer']);

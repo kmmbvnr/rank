@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Wide integer = 47
-option High integer = 43
+arg Wide integer = 47
+arg High integer = 43
 
 rem Upright ones: T(w) T(h) per grid.
 rem Diagonal ones, in half units: from

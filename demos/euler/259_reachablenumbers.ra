@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Top integer = 9
+arg Top integer = 9
 
 rem Keep for every run i..j of digits
 rem the set of fractions it can make, in

@@ -9,9 +9,9 @@ use numbers
 use io
 use cli
 
-option N integer = 250250
-option M integer = 250
-option Mod integer = 10000000000000000
+arg N integer = 250250
+arg M integer = 250
+arg Mod integer = 10000000000000000
 
 rem Count the subsets by sum mod M. A
 rem number with residue r adds each old

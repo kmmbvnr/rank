@@ -50,8 +50,8 @@ test('ops describes core names as already available', () => {
 });
 
 test('CLI declarations require use cli in a REPL workspace', () => {
-    const session = repl(['option N integer = 3', 'use cli', 'option N integer = 3', 'N']);
-    assert.match(session.stderr + session.stdout, /option requires: use cli/);
+    const session = repl(['arg N integer = 3', 'use cli', 'arg N integer = 3', 'N']);
+    assert.match(session.stderr + session.stdout, /arg requires: use cli/);
     assert.match(session.stdout, /3/);
 });
 

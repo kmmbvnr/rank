@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Letters integer = 26
+arg Letters integer = 26
 
 rem Choose the n letters, then arrange
 rem them with exactly one descent: the

@@ -5,8 +5,8 @@ use cli
 use sequences
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/agg_014.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/agg_014.csv"
 
 Db = DbPath sqlite
 B' = Db .bookings

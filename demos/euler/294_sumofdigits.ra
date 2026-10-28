@@ -9,8 +9,8 @@ use numbers
 use io
 use cli
 
-option N integer = 3138428376721
-option Mod integer = 1000000000
+arg N integer = 3138428376721
+arg Mod integer = 1000000000
 
 rem A block of L digits is a table of
 rem how many strings give each digit

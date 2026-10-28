@@ -11,8 +11,8 @@ use sequences
 use io
 use cli
 
-option Width integer = 32
-option Height integer = 10
+arg Width integer = 32
+arg Height integer = 10
 
 rem Grow the rows brick by brick. A row
 rem is the bit set of its cracks, bit

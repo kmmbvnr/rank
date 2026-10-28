@@ -6,7 +6,7 @@ use dates
 use sequences
 use tables
 
-argument OutputPath path = "demos/pgexercises/data/date_006.csv"
+arg OutputPath path = "demos/pgexercises/data/date_006.csv"
 
 Days' = "2012-01-01" "2012-12-31" calendar
 Months' = Days select

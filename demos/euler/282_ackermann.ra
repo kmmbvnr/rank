@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Base integer = 14
-option Pow integer = 8
+arg Base integer = 14
+arg Pow integer = 8
 
 rem A(0,0), A(1,1), A(2,2), A(3,3) are
 rem 1, 3, 7, 61. A(4,n) = 2^^(n+3) - 3

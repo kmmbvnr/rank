@@ -11,8 +11,8 @@ use sequences
 use io
 use cli
 
-option Black integer = 40
-option White integer = 60
+arg Black integer = 40
+arg White integer = 60
 
 rem Cnt[b, w] counts the splittings of b
 rem black and w white objects by the

@@ -24,7 +24,7 @@ if (process.argv[2] === '--index-worker') {
 } else if (process.argv[2] === '--worker') {
     const limit = Number(process.argv[3]);
     const source = readFileSync(new URL('../demos/euler/309_ladders.ra', import.meta.url), 'utf8')
-        .replace('option Limit integer = 1000000', `option Limit integer = ${limit}`);
+        .replace('arg Limit integer = 1000000', `arg Limit integer = ${limit}`);
     const split = source.indexOf('Answer = 0');
     assert(split > 0);
     const diagnostics = new RuntimeDiagnostics();

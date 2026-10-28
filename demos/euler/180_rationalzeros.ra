@@ -13,7 +13,7 @@ use sequences
 use io
 use cli
 
-option Order integer = 35
+arg Order integer = 35
 
 rem Write every fraction as X / L over
 rem L = lcm(1..Order). Then z is x + y,

@@ -16,7 +16,7 @@ use sequences
 use io
 use cli
 
-option N integer = 15
+arg N integer = 15
 
 rem Walks are found by a depth first
 rem search, the first step to the right

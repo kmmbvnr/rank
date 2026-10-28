@@ -52,7 +52,7 @@ if (option('worker') || option('checks')) {
                 const expected = oracle(count);
                 const check = makeRuntime();
                 try {
-                    check.execute(program.replace('option Count integer = 18', `option Count integer = ${count}`));
+                    check.execute(program.replace('arg Count integer = 18', `arg Count integer = ${count}`));
                     assert.equal(check.variables.get('Answer'), BigInt(expected.all.size));
                     // Compare complete attainable sets and the exact-count level.
                     const store = Array.from(check.variables.get('Store').items);
@@ -67,7 +67,7 @@ if (option('worker') || option('checks')) {
             console.log(JSON.stringify({ engine: option('engine') ?? 'compiled', checks }, null, 2));
         } else {
             let source = fixture ? readFileSync(file, 'utf8') : program;
-            if (option('count')) source = source.replace('option Count integer = 18', `option Count integer = ${Number(option('count'))}`);
+            if (option('count')) source = source.replace('arg Count integer = 18', `arg Count integer = ${Number(option('count'))}`);
             if (option('stages')) source = source.replace('for M in 2 to Count\n', 'for M in 2 to Count\n  M print\n')
                 .replace('  Out =', '  Pairs print\n  Out =').replace('  Par =', '  Used print\n  Par =')
                 .replace('  Store = concat', '  Lev len print\n  Store = concat')

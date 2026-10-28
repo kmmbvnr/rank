@@ -49,8 +49,8 @@ Out + (Size text)`)).toBe('1😀😀9');
             const r = runtime();
             try {
                 const source = readFileSync(new URL('../../../benchmarks/fixtures/euler316-kmp.ra', import.meta.url), 'utf8');
-                r.execute(source.replace('option Top integer = 999999', 'Top = 999')
-                    .replace('option Num integer = 10000000000000000', 'Num = 1000000'));
+                r.execute(source.replace('arg Top integer = 999999', 'Top = 999')
+                    .replace('arg Num integer = 10000000000000000', 'Num = 1000000'));
                 expect(r.variables.get('Answer')).toBe(27280188n);
                 expect(r.execute('535 waiting')).toBe(1008n);
                 expect(r.execute('1111 waiting')).toBe(11107n);

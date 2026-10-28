@@ -8,7 +8,7 @@ use text
 use io
 use cli
 
-option N integer = 1000000000000
+arg N integer = 1000000000000
 
 rem Conway's 92 atoms: each term
 rem splits into atoms that evolve

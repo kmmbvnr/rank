@@ -158,7 +158,7 @@ test('reach skips missing edges, duplicate seeds and cycle returns', () => {
         for (const row of [[1, 2], [1, 2], [2, 3], [3, 1], [2, 4], [5, null]]) add.run(...row);
         const program = [
             'use cli', 'use sequences', 'use tables',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'E\' = Db .edges',
             'Starts = array 1 1 4',
             'Result\' = E Starts reach by .src .dst',
@@ -200,7 +200,7 @@ test('computed SQLite start columns retain their bound expression parameters', (
             + 'CREATE TABLE seeds (id INTEGER); INSERT INTO seeds VALUES (0),(7)');
         const program = [
             'use cli', 'use sequences', 'use tables',
-            'argument DbPath path', 'argument OutputPath path',
+            'arg DbPath path', 'arg OutputPath path',
             'Db = DbPath sqlite', 'E\' = Db .edges', 'S\' = Db .seeds',
             "Starts' = S .id + 1",
             'Result\' = E Starts reach by .src .dst',

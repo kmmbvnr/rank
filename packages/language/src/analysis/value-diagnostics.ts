@@ -21,7 +21,7 @@ import {
     isOperationAssignmentStatement,
     isExpressionStatement, isNewStructureExpression, isRecordExpression, isRecordUpdateExpression,
     isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement, isReturnStatement,
-    isArgumentStatement, isOptionStatement, isFlagStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
+    isArgStatement, isFlagStatement, isPushStatement, isTryStatement, isUnpackStatement, isUseStatement,
     isBoundClauseExpression, isCountClauseExpression, isFirstIndexWhereExpression, isFirstWhereExpression,
     isTakeWhileExpression,
     isTableFilterExpression, isUnpackExpression,
@@ -1498,7 +1498,7 @@ export function analyzeValues(program: Program, initial: ReadonlyMap<string, Val
                     insertCollectionElement(parts[0].name, expressionFacts(payload, name => env.get(name)), payload, env);
                 }
                 if (calls.directNoReturnCall(statement.value, env)) return false;
-            } else if (isOptionStatement(statement) || isArgumentStatement(statement)) {
+            } else if (isArgStatement(statement)) {
                 if (statement.defaultValue) invalidateCalls(statement.defaultValue, env);
                 env.set(statement.name, completedValueFacts(statement.many ? externalArray(statement.valueType ?? '')
                     : externalScalar(statement.valueType ?? '', env.get(statement.name))));

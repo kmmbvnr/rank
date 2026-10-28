@@ -11,7 +11,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000
+arg N integer = 100000
 
 rem With x = k a + 1 and y = k b + 1 the
 rem score is k times the share of the

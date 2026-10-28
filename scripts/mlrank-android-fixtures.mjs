@@ -3,9 +3,9 @@ import { compileRam } from '../packages/interpreter/out/index.js';
 
 const fixtures = [2, 3].map(scale => {
     const source = `use ml
-option X .f32 shape 16 256
-option W .f32 shape 16 256 = array shape 16 256 fill ${scale}.0
-option B .f32 shape 16 256 = array shape 16 256 fill 0.5
+arg X .f32 shape 16 256
+arg W .f32 shape 16 256 = array shape 16 256 fill ${scale}.0
+arg B .f32 shape 16 256 = array shape 16 256 fill 0.5
 return ((X * W) + B) relu
 `;
     return { scale, model: Buffer.from(compileRam(source, 'affine.ram').graph.model).toString('base64') };

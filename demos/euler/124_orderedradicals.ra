@@ -7,8 +7,8 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000
-option K integer = 10000
+arg Limit integer = 100000
+arg K integer = 10000
 
 Rad = array shape (Limit + 1) fill 1
 for P in primes to Limit

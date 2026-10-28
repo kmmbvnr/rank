@@ -7,8 +7,8 @@ use linalg
 use io
 use cli
 
-option Lt integer = 1000
-option Mx integer = 2000
+arg Lt integer = 1000
+arg Mx integer = 2000
 
 rem With s = sin(pi / n) one bot runs
 rem L = int sqrt(1 / s^2 - u^2) / (1 -

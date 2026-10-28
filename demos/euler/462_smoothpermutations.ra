@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000000000
+arg N integer = 1000000000000000000
 
 rem 2^a 3^b is cell (b, a) of a Young
 rem diagram: row b holds the a with

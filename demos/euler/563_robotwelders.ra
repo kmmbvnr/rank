@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option L integer = 60000000
-option K integer = 100
+arg L integer = 60000000
+arg K integer = 100
 
 rem Sides are 23-smooth. Pairs x <= y
 rem <= 11x / 10 of them meet on the area

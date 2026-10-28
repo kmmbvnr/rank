@@ -7,7 +7,7 @@ use io
 use cli
 
 rem Upper boundary, included.
-option Limit integer = 4000000
+arg Limit integer = 4000000
 
 rem Builtin: `use sequences`
 rem `fibonacci to Limit`.

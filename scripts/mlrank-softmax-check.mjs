@@ -22,7 +22,7 @@ function softmaxFixtures() {
                     : Math.fround((i % 13 - 6) * 7.3));
             const body = op === 'alias' ? 'Old = X\nX = X relu\nreturn Old softmax'
                 : 'H = X softmax\nOld = H\nH = H relu\nreturn (Old + H) softmax';
-            const source = `use ml\noption X .f32 shape ${shape.join(' ')}\n${body}\n`;
+            const source = `use ml\narg X .f32 shape ${shape.join(' ')}\n${body}\n`;
             const graph = compileRam(source, 'dense.ram').graph;
             const first = softmax(input, shape.at(-1));
             const expected = op === 'alias' ? first : softmax(first.map(x => Math.fround(Math.fround(x) * 2)), shape.at(-1));

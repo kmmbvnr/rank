@@ -19,9 +19,9 @@ const runtime = new Interpreter(() => {}, {
 const input = Array.from({ length: 4096 }, (_, i) => Math.fround((i - 2048) / 7));
 for (const scale of [2, 3]) {
     source = `use ml
-option X .f32 shape 16 256
-option Scale .f32 shape 16 256 = array shape 16 256 fill ${scale}.0
-option Bias .f32 shape 16 256 = array shape 16 256 fill 0.5
+arg X .f32 shape 16 256
+arg Scale .f32 shape 16 256 = array shape 16 256 fill ${scale}.0
+arg Bias .f32 shape 16 256 = array shape 16 256 fill 0.5
 return ((X * Scale) + Bias) relu
 `;
     if (scale === 2) runtime.execute('use "affine.ram"');

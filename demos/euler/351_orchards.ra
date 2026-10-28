@@ -6,7 +6,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 10 ** 8
+arg Limit integer = 10 ** 8
 
 fun X N Root Phi Cache tots
   if X at most Root

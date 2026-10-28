@@ -7,7 +7,7 @@ import { type RankArray } from '../src/value.js';
 
 describe('dense real envelope DP', () => {
     const source = readFileSync(new URL('../../../demos/euler/314_mousemoon.ra', import.meta.url), 'utf8')
-        .replace('option Grid integer = 250', 'option Grid integer = 10');
+        .replace('arg Grid integer = 250', 'arg Grid integer = 10');
 
     it.each([true, false])('includes the initial vertical perimeter with compilation %s', compilation => {
         const runtime = new Interpreter(() => {}, { compilation });

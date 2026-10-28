@@ -13,7 +13,7 @@ use sequences
 use io
 use cli
 
-option N integer = 40
+arg N integer = 40
 
 rem Run backward, the full line has one
 rem segment and a random cell goes each

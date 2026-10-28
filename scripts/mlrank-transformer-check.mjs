@@ -52,7 +52,7 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  const mlp=linear(activated,downW,downB,B*T,4*C,C);
  for(let i=0;i<output.length;i++)output[i]=residual1[i]+mlp[i];
  if(!changed)original=output;else for(let b=0;b<B;b++)for(let t=0;t<T-1;t++)for(let c=0;c<C;c++)assert.equal(output[(b*T+t)*C+c],original[(b*T+t)*C+c]);
- const prefix=`use ml\noption X .f32 shape ${B} ${T} ${C}\n${literal('W',[C,3*C],weights)}\n${literal('O',[C,C],outWeights)}\n${literal('Scale',[1],[scale])}\n${literal('Mask',[1,1,T,T],mask)}\n`;
+ const prefix=`use ml\narg X .f32 shape ${B} ${T} ${C}\n${literal('W',[C,3*C],weights)}\n${literal('O',[C,C],outWeights)}\n${literal('Scale',[1],[scale])}\n${literal('Mask',[1,1,T,T],mask)}\n`;
  const constants=[['G1',[C],g1],['B1',[C],b1],['G2',[C],g2],['B2',[C],b2],['QkvBias',[3*C],qkvBias],['OutBias',[C],outBias],['UpW',[C,4*C],upW],['UpB',[4*C],upB],['DownW',[4*C,C],downW],['DownB',[C],downB]].map(([n,s,v])=>literal(n,s,v)).join('\n')+'\n';
  const lines=[
  'Norm1 = X layernorm * G1 + B1',
@@ -79,7 +79,7 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
 if(process.argv.includes('--ui')) {
  mkdirSync('output/playwright',{recursive:true});
  const f=fixtures.find(f=>f.stage==='1x1x1x3/base/Output');
- const source=f.source.replace('option X .f32 shape 1 1 3','option X .f32 shape 2 3').replace('Norm1 =','X = (X (0 till 1) #) reshape 1 1 3\nNorm1 =');
+ const source=f.source.replace('arg X .f32 shape 1 1 3','arg X .f32 shape 2 3').replace('Norm1 =','X = (X (0 till 1) #) reshape 1 1 3\nNorm1 =');
  compileRam(source,'dense.ram');
  writeFileSync('output/playwright/ram-transformer-ui.js',readFileSync('packages/web/test/ram-transformer-ui.playwright.js','utf8').replace('__RAM_SOURCE__',JSON.stringify(source)).replace('__EXPECTED__',JSON.stringify(f.expected)));
 } else if(process.argv.includes('--android')) {

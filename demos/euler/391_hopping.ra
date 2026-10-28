@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 1000
+arg Limit integer = 1000
 
 rem Rows map residues zero through N.
 Stride = Limit + 1

@@ -9,7 +9,7 @@ use io
 use cli
 
 rem Number of digits in each factor.
-option Digits integer = 3
+arg Digits integer = 3
 
 Lower = 10 ** (Digits - 1)
 Upper = Lower * 10 - 1

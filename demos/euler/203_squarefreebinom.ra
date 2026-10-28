@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Rows integer = 51
+arg Rows integer = 51
 
 rem K is clipped to the row, which only
 rem repeats values of that row. A

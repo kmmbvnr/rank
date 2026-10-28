@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
-option Window integer = 30
+arg Limit integer = 1000000
+arg Window integer = 30
 
 rem A(n) is the order of 10 mod 9 n and
 rem is at most n, so look just above

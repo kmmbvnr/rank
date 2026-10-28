@@ -11,7 +11,7 @@ use text
 use io
 use cli
 
-option Top integer = 90
+arg Top integer = 90
 
 A1 = "1415926535897932384626433"
 A2 = "8327950288419716939937510"

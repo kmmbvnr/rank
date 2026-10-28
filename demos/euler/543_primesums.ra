@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option Lo integer = 3
-option Hi integer = 44
+arg Lo integer = 3
+arg Hi integer = 44
 
 rem S(n) counts pairs (i, k), i <= n, i
 rem a sum of k primes. k = 1: pi(n);

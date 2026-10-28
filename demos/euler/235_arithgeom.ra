@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option N integer = 5000
-option Target integer = -600000000000
+arg N integer = 5000
+arg Target integer = -600000000000
 
 rem The sum falls as r grows, so bisect
 rem on r.

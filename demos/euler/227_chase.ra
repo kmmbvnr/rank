@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100
+arg N integer = 100
 
 rem Only the distance d between the dice
 rem matters. Each die goes one way, the

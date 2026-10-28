@@ -6,7 +6,7 @@ use numbers
 use io
 use cli
 
-option Upper integer = 1000000
+arg Upper integer = 1000000
 
 K = 1234567890
 Mod = 10 ** 18

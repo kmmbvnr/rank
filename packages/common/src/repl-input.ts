@@ -59,7 +59,7 @@ const OPEN_SYMBOLS = new Set([
 const OPEN_WORDS = new Set([
     'and', 'or', 'xor', 'not', 'to', 'till', 'by', 'default', 'fill', 'equal', 'less',
     'greater', 'in', 'is', 'at', 'least', 'most', 'mod', 'divmod', 'use', 'as',
-    'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'option', 'argument',
+    'push', 'yield', 'unpack', 'new', 'stdin', 'catch', 'arg',
     'flag', 'args', 'on', 'group', 'leftjoin', 'innerjoin', 'where', 'while',
 ]);
 
@@ -89,9 +89,9 @@ export const OPERATOR_KEYWORDS = [
 ];
 
 export const STATEMENT_KEYWORDS = [
-    'args', 'argument', 'array', 'break', 'catch', 'continue', 'elif', 'else',
+    'args', 'arg', 'array', 'break', 'catch', 'continue', 'elif', 'else',
     'end', 'false', 'finally', 'flag', 'for', 'fun', 'if', 'index', 'memo',
-    'new', 'not', 'option', 'push', 'record', 'return', 'run', 'shape', 'stdin',
+    'new', 'not', 'push', 'record', 'return', 'run', 'shape', 'stdin',
     'test', 'true', 'try', 'unpack', 'use', 'yield',
 ];
 

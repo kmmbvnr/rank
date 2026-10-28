@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Nth integer = 15
+arg Nth integer = 15
 
 rem The nuggets are products of
 rem consecutive Fibonacci numbers,

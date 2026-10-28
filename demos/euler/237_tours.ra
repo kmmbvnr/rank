@@ -11,8 +11,8 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000
-option Mod integer = 100000000
+arg N integer = 1000000000000
+arg Mod integer = 100000000
 
 rem The counts 1, 1, 4, 8, 23, 55, 144
 rem follow T(n) = 2 T(n-1) + 2 T(n-2)

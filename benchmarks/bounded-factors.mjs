@@ -28,7 +28,7 @@ if (option('worker')) {
         ? pathToFileURL(option('runtime')).href : '../packages/interpreter/out/index.js');
     const source = (entry.source ?? load(option('variant') === 'manual'
         ? './fixtures/302-strongachilles-manual.ra' : '../demos/euler/302_strongachilles.ra'))
-        .replace('option Limit integer = 10 ** 18', `option Limit integer = ${entry.limit}`);
+        .replace('arg Limit integer = 10 ** 18', `arg Limit integer = ${entry.limit}`);
     const runtime = new Interpreter(() => {}), cpu = process.cpuUsage(), start = performance.now();
     try {
         runtime.execute(source);

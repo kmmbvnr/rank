@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Limit integer = 5000
-option Mod integer = 10000000000000000
+arg Limit integer = 5000
+arg Mod integer = 10000000000000000
 
 rem Count the subsets by sum with the
 rem usual knapsack table, adding each

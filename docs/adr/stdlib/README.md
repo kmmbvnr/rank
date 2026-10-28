@@ -57,7 +57,7 @@ flowchart TD
 
 | ADR | Title | Summary |
 |---|---|---|
-| [ADR-0000](0000-script-execution-model-and-universal-input-contracts.md) | Script Execution Model and Universal Input Contracts (`use cli`) | Zero-ceremony sequential execution without `main()`, input contracts (`option`, `argument`, `flag`), and strict precedence (`workspace -> args -> default`). |
+| [ADR-0000](0000-script-execution-model-and-universal-input-contracts.md) | Script Execution Model and Universal Input Contracts (`use cli`) | Zero-ceremony sequential execution without `main()`, input contracts (`arg`, `flag`), and strict precedence (`workspace -> args -> default`). |
 | [ADR-0001](0001-first-class-testing-and-whole-tensor-assertions.md) | First-Class Testing Syntax and Whole-Tensor Assertions (`use testing`) | Isolated workspace test blocks (`test "..." ... end`), bare relational assertions, and single-expression whole-tensor verification. |
 
 ---

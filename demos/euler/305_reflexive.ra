@@ -6,7 +6,7 @@ use text
 use io
 use cli
 
-option Power integer = 13
+arg Power integer = 13
 
 Answer = 0
 for N in 3 ** (1 to Power array)

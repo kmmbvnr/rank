@@ -70,7 +70,7 @@ if (!option('worker')) {
     if (workload === 'demo') {
         source = readFileSync(new URL(variant === 'recursive' ? './fixtures/397-parabola-recursive.ra'
             : '../demos/euler/397_parabola.ra', import.meta.url), 'utf8')
-            .replace('option K integer = 1000000', `option K integer = ${limit}`);
+            .replace('arg K integer = 1000000', `arg K integer = ${limit}`);
     }
     runtime.execute('use numbers');
     const operation = runtime.execute(workload === 'sieve' ? 'factorsieve' : 'divisors');

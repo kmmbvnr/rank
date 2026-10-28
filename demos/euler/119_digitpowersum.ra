@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Nth integer = 30
-option Digits integer = 16
+arg Nth integer = 30
+arg Digits integer = 16
 
 rem Below 10^Digits the digit sum is at
 rem most 9 * Digits. Try each base up to

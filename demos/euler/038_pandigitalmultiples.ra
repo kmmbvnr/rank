@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option MaximumBase integer = 9999
+arg MaximumBase integer = 9999
 
 Answer = MaximumBase pandigital_multiple
 Answer print

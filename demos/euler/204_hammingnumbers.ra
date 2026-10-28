@@ -9,9 +9,9 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000000
-option Max integer = 100
-option Split integer = 17
+arg Limit integer = 1000000000
+arg Max integer = 100
+arg Split integer = 17
 
 rem Meet in the middle: Lo holds the
 rem smooth numbers of the primes below

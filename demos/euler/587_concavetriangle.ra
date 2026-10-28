@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Eps real = 0.001
+arg Eps real = 0.001
 
 rem Scale the circles to radius 1. The
 rem diagonal y = x / n meets the lower

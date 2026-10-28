@@ -7,7 +7,7 @@ use text
 use io
 use cli
 
-argument Input path = (
+arg Input path = (
   "demos/euler/fixtures/"
   + "0102_triangles.txt"
 )

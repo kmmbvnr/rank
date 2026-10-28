@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 5000000000000000
+arg N integer = 5000000000000000
 
 rem g(n) = gcd(n, n') is multiplicative
 rem with g(p) = 1 and g(p^e) = p^e if p

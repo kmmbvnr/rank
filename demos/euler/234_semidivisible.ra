@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 999966663333
+arg Limit integer = 999966663333
 
 rem Between the squares of consecutive
 rem primes p < q the neighbours of the

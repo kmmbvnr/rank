@@ -84,7 +84,7 @@ it('uses a shadowed bit function instead of the catalogue builtin', () => {
 
 it.each([2, 3, 6, 12])('matches stack frame search in reference mode for limit %s', limit => {
     const source = readFileSync(new URL('../../../demos/euler/088_productsum_stack.ra', import.meta.url), 'utf8')
-        .replace('option Limit integer = 12000', `Limit = ${limit}`);
+        .replace('arg Limit integer = 12000', `Limit = ${limit}`);
     const result = compare(source);
     expect(result.error).toBeUndefined();
     expect(result.values.Answer).toBe(String({ 2: 4, 3: 10, 6: 30, 12: 61 }[limit]));

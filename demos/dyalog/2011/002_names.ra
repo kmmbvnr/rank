@@ -12,15 +12,15 @@ use sequences
 use text
 
 rem Chance per letter to become X.
-option Rate real = 0.2
+arg Rate real = 0.2
 rem Seed for repeatable noise.
-option Seed integer = 42
+arg Seed integer = 42
 rem Name to alter and find.
-option Name text = "Jack Johnson"
+arg Name text = "Jack Johnson"
 rem Text to search.
-option Text text = "I think Jakc Jonnson is the greatest"
+arg Text text = "I think Jakc Jonnson is the greatest"
 rem Maximum mismatched characters.
-option Tolerance integer = 3
+arg Tolerance integer = 3
 
 rem Only letters change.
 rem Each draw is independent.

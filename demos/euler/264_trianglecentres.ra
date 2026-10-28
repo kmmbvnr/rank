@@ -11,7 +11,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000
+arg Limit integer = 100000
 
 rem The vertices A, B, C add up to (5,
 rem 0). With C taken as the least

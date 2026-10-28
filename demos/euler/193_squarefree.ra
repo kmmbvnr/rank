@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Power integer = 50
+arg Power integer = 50
 
 rem Q = sum of mu(d) floor(M / d^2) over
 rem d up to the root of M, the last n.

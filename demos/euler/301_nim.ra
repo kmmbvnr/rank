@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Bits integer = 30
+arg Bits integer = 30
 
 rem n, 2n and 3n have xor zero when n
 rem has no adjacent binary one bits.

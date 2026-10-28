@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Num integer = 1000
-option Limit integer = 20000
+arg Num integer = 1000
+arg Limit integer = 20000
 
 rem Enumerate a <= b <= c whose first
 rem layer fits. Expand each (a,b) pair

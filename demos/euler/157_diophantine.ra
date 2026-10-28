@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 9
+arg Digits integer = 9
 
 rem Write a = d x, b = d y with x, y
 rem coprime. Then x y divides 10^n and

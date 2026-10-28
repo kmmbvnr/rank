@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
-option Ways integer = 10
+arg Limit integer = 1000000
+arg Ways integer = 10
 
 rem x, y, z = z + 2d, z + d, z gives
 rem n = u v with u = 3 d - z, v = d + z,

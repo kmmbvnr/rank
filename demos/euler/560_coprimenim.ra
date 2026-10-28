@@ -7,8 +7,8 @@ use bits
 use io
 use cli
 
-option N integer = 10000000
-option K integer = 10000000
+arg N integer = 10000000
+arg K integer = 10000000
 
 rem Grundy value of a pile: 0 if even,
 rem 1 for 1, else the index of its

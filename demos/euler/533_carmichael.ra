@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option N integer = 20000000
+arg N integer = 20000000
 
 rem L(n) - 1 is the largest M(t), t <
 rem n, M(t) the largest m with lambda(m)

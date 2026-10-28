@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000000000000
+arg Limit integer = 1000000000000000
 
 rem Hyperbola: sum d^2 [N/d] over
 rem d <= r, plus sum S2(N/k) over

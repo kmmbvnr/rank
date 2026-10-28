@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option T integer = 18
+arg T integer = 18
 
 rem Over GF(2) P(x)^2 = P(x^2), so P^k
 rem is the product of P(x^(2^b)) for

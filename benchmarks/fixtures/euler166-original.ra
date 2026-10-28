@@ -11,7 +11,7 @@ use sequences
 use io
 use cli
 
-option Base integer = 10
+arg Base integer = 10
 
 rem Join two row pairs for each sum S.
 rem Rows (r1, r2) give the four column

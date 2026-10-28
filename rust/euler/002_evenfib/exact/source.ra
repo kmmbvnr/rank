@@ -8,7 +8,7 @@ use io
 use cli
 
 rem Upper boundary, included.
-option Limit integer = 4000000
+arg Limit integer = 4000000
 
 Fib = fibonacci to Limit
 Mask = Fib even

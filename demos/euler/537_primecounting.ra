@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 20000
-option K integer = 20000
+arg N integer = 20000
+arg K integer = 20000
 
 rem pi(x) = r for p(r) <= x < p(r + 1),
 rem a(r) = p(r + 1) - p(r) values, and

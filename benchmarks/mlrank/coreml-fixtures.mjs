@@ -25,6 +25,6 @@ for(const [name,a,b]of [
  ['matmul-throughput',[1,8,256,256],[1,8,256,256]],
 ]) add(name,'matmul',[{shape:a,items:values(a)},{shape:b,items:values(b,2)}],'return X matmul Y rank 2 2');
 const shape=[1,16,64],weightShape=[64,192],weights=values(weightShape,3);
-const body='option W .f32 shape 64 192 = array shape 64 192\n'+weights.join(' ')+'\nend\nP = X W linear\nQ = (P # # (0 till 64)) reshape 1 16 4 16\nK = (P # # (64 till 128)) reshape 1 16 4 16\nQ = Q transpose axis 0 2 1 3\nK = K transpose axis 0 2 3 1\nreturn Q matmul K rank 2 2';
+const body='arg W .f32 shape 64 192 = array shape 64 192\n'+weights.join(' ')+'\nend\nP = X W linear\nQ = (P # # (0 till 64)) reshape 1 16 4 16\nK = (P # # (64 till 128)) reshape 1 16 4 16\nQ = Q transpose axis 0 2 1 3\nK = K transpose axis 0 2 3 1\nreturn Q matmul K rank 2 2';
 add('qkv-heads-qkt','qkv',[{shape,items:values(shape)}],body,{weights,weightShape});
 writeFileSync(process.argv[2]??'/tmp/rank-mlrank/coreml-fixtures.json',JSON.stringify(fixtures));

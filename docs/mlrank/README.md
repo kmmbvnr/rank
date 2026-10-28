@@ -3,7 +3,7 @@
 ## Implemented Hello World subset
 
 The prototype supports fixed-shape real tensor inputs, ReLU, and broadcast
-`.f32` expressions using `+`, `*`, `softmax`, `linear`, `layernorm`, and `gelu_new` with baked `option` constants. Import it with `use "hello.ram"` and call `X hello`.
+`.f32` expressions using `+`, `*`, `softmax`, `linear`, `layernorm`, and `gelu_new` with baked `arg` constants. Import it with `use "hello.ram"` and call `X hello`.
 See [the ReLU example](../../demos/mlrank/main.ra) and
 [the affine example](../../demos/mlrank/affine.ra), and
 [the linear example](../../demos/mlrank/linear.ra).
@@ -13,8 +13,8 @@ operations from `core`, `sequences`, `numbers`, and `linalg`. Earlier baked opti
 are available; runtime inputs and host I/O are not. The result must be a numeric
 array with exactly the declared shape. Integer and real elements are materialized
 and rounded to finite FP32 values; existing size limits still apply. For example,
-`option W .f32 shape 2 3 = (1 to 6) reshape 2 3` and
-`option W .f32 shape 2 3 = array shape 2 3 fill 1` both work.
+`arg W .f32 shape 2 3 = (1 to 6) reshape 2 3` and
+`arg W .f32 shape 2 3 = array shape 2 3 fill 1` both work.
 A string default still names a binary `.rwt` attachment (see below).
 `X W linear` accepts `X[...,M,K]` and baked `W[K,N]`, producing `[...,M,N]`.
 Each tensor has its own statically checked shape. `+` and `*` align trailing axes;
@@ -32,7 +32,7 @@ Deferred, compound and indexed assignments remain unsupported.
 
 ```rank
 use ml
-option X .f32 shape 2 3
+arg X .f32 shape 2 3
 Old = X
 X = X relu
 H = Old softmax
@@ -151,10 +151,10 @@ and bias using existing broadcasting:
 
 ```rank
 use ml
-option X .f32 shape 2 3
-option Epsilon .f32 shape 1 = array 0.00001
-option Scale .f32 shape 3 = array 1.0 0.5 2.0
-option Bias .f32 shape 3 = array 0.0 0.1 -0.1
+arg X .f32 shape 2 3
+arg Epsilon .f32 shape 1 = array 0.00001
+arg Scale .f32 shape 3 = array 1.0 0.5 2.0
+arg Bias .f32 shape 3 = array 0.0 0.1 -0.1
 H = X Epsilon layernorm * Scale + Bias
 return H gelu_new
 ```
@@ -282,7 +282,7 @@ The MLP uses four `.rwt` files beside `classifier.ram`. Ordinary Rank still impo
 only the module; a baked option names its attachment:
 
 ```rank
-option W1 .f32 shape 2 3 = "w1.rwt"
+arg W1 .f32 shape 2 3 = "w1.rwt"
 ```
 
 Names are lowercase letters, digits and underscores followed by `.rwt`, with no
@@ -457,7 +457,7 @@ calls, compiler/import times, model/tensor sizes, memory observations and placem
 **File extension:** `.ram` (Rank Accelerator Module)  
 **Target backends:** Apple CoreML (MIL / ANE / Metal GPU), Google LiteRT (TFLite FlatBuffers / StableHLO / GPU & NPU Delegates), ARM TOSA, and Rank CPU Interpreter fallback.
 
-`mlRank` is a **statically compilable subset of Rank** stored in `.ram` files and designed for hardware neural accelerators (NPUs and GPUs). Every `.ram` file is a self-contained Rank module that declares its typed/shaped tensor inputs via `option`, expresses computation using pure tensor dataflow, and returns its outputs via `return`.
+`mlRank` is a **statically compilable subset of Rank** stored in `.ram` files and designed for hardware neural accelerators (NPUs and GPUs). Every `.ram` file is a self-contained Rank module that declares its typed/shaped tensor inputs via `arg`, expresses computation using pure tensor dataflow, and returns its outputs via `return`.
 
 Crucially, **no external JSON manifest is needed**, and **`.ram` modules can be imported and executed directly from ordinary `.ra` files** using Rank's standard `use` / `run` module mechanism.
 
@@ -474,14 +474,14 @@ Crucially, **no external JSON manifest is needed**, and **`.ram` modules can be 
 
 ---
 
-## 2. `.ram` Program Structure: `option`, Shapes & `return`
+## 2. `.ram` Program Structure: `arg`, Shapes & `return`
 
-In `.ram`, `use ml` extends `option` declarations to accept **hardware precision labels** and **`shape` contracts**, while top-level `return` defines the graph's output tensor (or `record` of tensors).
+In `.ram`, `use ml` extends `arg` declarations to accept **hardware precision labels** and **`shape` contracts**, while top-level `return` defines the graph's output tensor (or `record` of tensors).
 
-### 2.1 Inputs vs. Constant Weights (`option`)
+### 2.1 Inputs vs. Constant Weights (`arg`)
 
-* **Runtime Input (`option` without `=`):** Declares a positional parameter of the `.ram` function in declaration order.
-* **Baked Weight / Parameter (`option` with `= DefaultExpr`):** Declares a model weight or hyperparameter. When compiling to CoreML / LiteRT, its default value (or workspace override) is baked into the `.mlpackage` / `.tflite` constant buffer (enabling offline NPU weight packing and quantization).
+* **Runtime Input (`arg` without `=`):** Declares a positional parameter of the `.ram` function in declaration order.
+* **Baked Weight / Parameter (`arg` with `= DefaultExpr`):** Declares a model weight or hyperparameter. When compiling to CoreML / LiteRT, its default value (or workspace override) is baked into the `.mlpackage` / `.tflite` constant buffer (enabling offline NPU weight packing and quantization).
 
 ```rank
 rem att.ram
@@ -491,12 +491,12 @@ use numbers
 use sequences
 
 rem Positional runtime inputs (no default '=')
-option Q .f16 shape 16 64
-option K .f16 shape 16 64
-option V .f16 shape 16 64
+arg Q .f16 shape 16 64
+arg K .f16 shape 16 64
+arg V .f16 shape 16 64
 
 rem Baked weight (has default '=')
-option Gamma .f16 shape 64 = array shape 64 fill 1.0
+arg Gamma .f16 shape 64 = array shape 64 fill 1.0
 
 Qn' = (Q 1e-5 rmsnorm) * Gamma
 Kn' = (K 1e-5 rmsnorm) * Gamma
@@ -541,10 +541,10 @@ In `.ram`, a single fixed shape is written inline, while **enumerated shapes** u
 
 ```rank
 rem Single fixed shape (inline):
-option Image .f16 shape 1 224 224 3
+arg Image .f16 shape 1 224 224 3
 
 rem Enumerated shapes (one profile per line, closed by 'end'):
-option Tokens .i32 shape
+arg Tokens .i32 shape
   1 64
   1 128
   1 256
@@ -559,7 +559,7 @@ If several inputs use `shape ... end` blocks, they must declare the same number 
 
 Importing a `.ram` file with `use "att.ram"` binds a callable function named after the file stem (`att`) — or the explicit alias in `use "att.ram" as my_att`.
 
-Its positional parameters correspond to the `.ram` file's runtime `option` declarations (those without a `=` default), in top-to-bottom declaration order:
+Its positional parameters correspond to the `.ram` file's runtime `arg` declarations (those without a `=` default), in top-to-bottom declaration order:
 
 ```rank
 rem main.ra — ordinary Rank script (tables, I/O, text, loops allowed)
@@ -708,7 +708,7 @@ flowchart TD
 1. **Rank-Modifier Broadcast Insertion (`rank L R`):**
    In Rank, `Scores - Tops rank 1 0` subtracts a rank-0 scalar cell `Tops[b]` from each rank-1 row `Scores[b, :]`. CoreML MIL and LiteRT expect trailing-axis numpy-style broadcasting. The `mlRank` compiler automatically inserts a static `reshape` / `expand_dims` (`[B] -> [B, 1]`) on the lower-cell-rank operand.
 2. **Enumerated Shapes Lowering (`shape ... end`):**
-   When `option` declares a `shape ... end` block, the compiler propagates each row's shape profile through the DAG:
+   When `arg` declares a `shape ... end` block, the compiler propagates each row's shape profile through the DAG:
    * For **CoreML**, it emits `ct.EnumeratedShapes(shapes=[[1, 64], [1, 128], [1, 256]])` on the MIL function input.
    * For **LiteRT**, it emits multi-signature subgraphs (`shape_0`, `shape_1`, `shape_2`) sharing the constant weight buffers in a single `.tflite` file, selecting the matching signature when `Q K V att` is called based on the runtime input's actual shape.
 3. **Window + Reduce Idiom Lifting:**
@@ -733,12 +733,12 @@ empty tensors and dynamic structural arguments are outside this subset.
 General `rank` modifiers remain unsupported; `matmul rank 2 2` is the specific matrix-cell form.
 The tensor size and 128-node graph limits still apply, including internal expansion.
 
-Declare additional runtime inputs with `option` without a default:
+Declare additional runtime inputs with `arg` without a default:
 
 ```rank
 use ml
-option X .f32 shape 2 3
-option Y .f32 shape 3 2
+arg X .f32 shape 2 3
+arg Y .f32 shape 3 2
 return X matmul Y
 ```
 

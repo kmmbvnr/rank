@@ -160,7 +160,7 @@ The top-level program computes the answer and prints it. Do not wrap the whole
 task in a `main` or `solve` function. Add a function only for a repeated step,
 a recursive step, or a generator, as in the Euler 1-11 demos.
 
-Declare every value a test may want to change as an `option` from `use cli`,
+Declare every value a test may want to change as an `arg` from `use cli`,
 with a one-line `rem` above it as its help text: a limit, a seed, a rate, a
 tolerance, the text to search. Give each result a name (`Answer`, `Positions`,
 `Noisy`) so a test can read it after `run`.
@@ -169,8 +169,8 @@ tolerance, the text to search. Give each result a name (`Answer`, `Positions`,
 use cli
 
 rem Chance that each letter becomes X.
-option Rate real = 0.2
-option Seed integer = 42
+arg Rate real = 0.2
+arg Seed integer = 42
 ```
 
 Randomized demos take a `Seed` option and call `Seed seed` before the first

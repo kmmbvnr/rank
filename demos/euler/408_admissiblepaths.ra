@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000
+arg N integer = 10000000
 
 rem Forbidden points are (a^2, b^2)
 rem with a^2 + b^2 a square. Bs I

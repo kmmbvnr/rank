@@ -7,7 +7,7 @@ use io
 use cli
 use sequences
 
-option Limit integer = 1000
+arg Limit integer = 1000
 
 Small = array shape 10
   ""

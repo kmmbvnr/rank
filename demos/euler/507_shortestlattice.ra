@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 20000000
-option Lc integer = 20
+arg N integer = 20000000
+arg Lc integer = 20
 
 rem Lattice n uses Tribonacci terms
 rem 12n-11 .. 12n: v = (r1 - r2, r3 +

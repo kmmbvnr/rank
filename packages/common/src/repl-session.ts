@@ -854,7 +854,7 @@ function prefixes(line: string, word: string): string[] {
 /**
  * What may follow what has been typed. A statement whose grammar fixes the next
  * word offers only that word: `use` takes a module, and a declared input takes
- * one of the five types before an optional `many`.
+ * one of the five types before an optional `array`.
  */
 function callWords(name: string, interpreter: EditorBindings): readonly string[] {
     const value = interpreter.variables.get(name) as RankValue | undefined;
@@ -871,9 +871,9 @@ function candidates(
     const words = before.split(/\s+/).filter(part => part !== '');
     const previous = words.at(-1);
     if (previous === 'use' || previous === 'ops') return Object.keys(standardModules);
-    if (words[0] === 'option' || words[0] === 'argument') {
+    if (words[0] === 'arg') {
         if (words.length === 2) return INPUT_TYPES;
-        if (words.length === 3 && INPUT_TYPES.includes(words[2])) return ['many'];
+        if (words.length === 3 && INPUT_TYPES.includes(words[2])) return ['array'];
     }
     const declaredWords = words.flatMap(name => {
         return callWords(name, interpreter).filter(word => !words.includes(word));

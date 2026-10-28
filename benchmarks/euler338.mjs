@@ -18,7 +18,7 @@ if (option('worker')) {
     const { Interpreter } = await import(runtime.href);
     const source = readFileSync(new URL(entry.original ? './fixtures/euler338-original.ra' : '../demos/euler/338_gridpaper.ra', import.meta.url), 'utf8')
         .replace('use io', '').replace('use cli', '')
-        .replace('option Limit integer = 1000000000000', `Limit = ${entry.n}`)
+        .replace('arg Limit integer = 1000000000000', `Limit = ${entry.n}`)
         .replace('Limit grid print', 'Answer = Limit grid');
     const interpreter = new Interpreter(() => {}), start = performance.now();
     try {

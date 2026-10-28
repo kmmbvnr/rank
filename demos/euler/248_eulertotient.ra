@@ -10,8 +10,8 @@ use algo
 use io
 use cli
 
-option Target integer = 6227020800
-option Rank integer = 150000
+arg Target integer = 6227020800
+arg Rank integer = 150000
 
 rem If phi(n) = Target then every prime
 rem p of n has p - 1 dividing Target.

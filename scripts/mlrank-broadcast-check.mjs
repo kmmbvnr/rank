@@ -11,7 +11,7 @@ function broadcastFixtures() {
         const input = Array.from({ length: shape.reduce((a,b) => a*b) }, (_, i) => Math.fround((i % 19 - 9) / 11));
         const weights = Array.from({ length: biasShape.reduce((a,b) => a*b) }, (_, i) => Math.fround((i % 7 - 3) / 13));
         const literals = weights.map(x => Number.isInteger(x) ? x.toFixed(1) : String(x)).join(' ');
-        const source = `use ml\noption X .f32 shape ${shape.join(' ')}\noption B .f32 shape ${biasShape.join(' ')} = array ${literals} shape ${biasShape.join(' ')}\nreturn ${op}\n`;
+        const source = `use ml\narg X .f32 shape ${shape.join(' ')}\narg B .f32 shape ${biasShape.join(' ')} = array ${literals} shape ${biasShape.join(' ')}\nreturn ${op}\n`;
         const graph = compileRam(source, 'dense.ram').graph;
         const reference = new Interpreter(() => {});
         reference.execute('use ml');

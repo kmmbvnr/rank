@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-argument Input path
+arg Input path
 
 Text = Input read
 Words = Text words_from_text

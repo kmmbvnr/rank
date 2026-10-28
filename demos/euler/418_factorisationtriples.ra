@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option Fact integer = 43
-option Num integer = 0
+arg Fact integer = 43
+arg Num integer = 0
 
 rem The triple a <= b <= c with
 rem a b c = n and the least c / a has

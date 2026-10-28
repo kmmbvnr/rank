@@ -5,9 +5,9 @@ use numbers
 use io
 use cli
 
-option Height real = 100.0
-option Speed real = 20.0
-option Gravity real = 9.81
+arg Height real = 100.0
+arg Speed real = 20.0
+arg Gravity real = 9.81
 
 Height Speed Gravity volume print
 

@@ -7,7 +7,7 @@ use cli
 use text
 use crypto
 
-argument Input path
+arg Input path
 
 Lines = Input readlines
 Secret = Lines 0

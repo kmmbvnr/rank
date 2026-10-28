@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option N integer = 400
+arg N integer = 400
 
 M = N // 2
 Xs = array shape (M + 2) fill 0.0

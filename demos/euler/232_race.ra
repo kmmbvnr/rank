@@ -11,7 +11,7 @@ use sequences
 use io
 use cli
 
-option Goal integer = 100
+arg Goal integer = 100
 
 rem F[j] is the chance that the second
 rem player wins when the first is to

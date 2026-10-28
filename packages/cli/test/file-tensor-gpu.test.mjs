@@ -17,7 +17,7 @@ function fixture(dtype='F32') {
     const io={...nodeIo,open(...args){const h=nodeIo.open(...args),read=h.read.bind(h);h.read=count=>{
         assert.ok(h.position()+count<=8+header.length,'Tensor payload entered JavaScript');bytes+=count;return read(count);
     };return h;}};
-    const interpreter=new Interpreter(undefined,{io,loadModule:()=>({id:'gpu.ram',source:'use ml\noption X .f32 shape 2 3\noption Y .f32 shape 2 3\nreturn X + Y'}),
+    const interpreter=new Interpreter(undefined,{io,loadModule:()=>({id:'gpu.ram',source:'use ml\narg X .f32 shape 2 3\narg Y .f32 shape 2 3\nreturn X + Y'}),
         ramGpu:(graph,input,files)=>{calls++;assert.deepEqual(input,[1,1,1,1,1,1]);assert.equal(files.length,2);assert.equal(files[0].offset,8+header.length+offset);assert.equal(files[0].length,24);assert.equal(files[1],null);return [1,1,1,1,1,1];}});
     return {interpreter,path,headerBytes:8+header.length,bytes:()=>bytes,calls:()=>calls,close(){interpreter.dispose();rmSync(root,{recursive:true});}};
 }

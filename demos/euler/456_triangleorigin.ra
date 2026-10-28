@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 2000000
+arg N integer = 2000000
 
 rem Only the ray of a point matters:
 rem merge equal primitive directions

@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option R integer = 100000000
-option X integer = 1000000000
-option Block integer = 10000000
+arg R integer = 100000000
+arg X integer = 1000000000
+arg Block integer = 10000000
 
 rem F(A, B) = sum over m <= min(A, B)
 rem of 2^w(m) U(m), w = distinct

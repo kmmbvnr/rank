@@ -99,7 +99,7 @@ end`);
 
     it('compiles the unchanged Euler 320 factor walk and preserves the official sample', () => {
         const source = readFileSync(new URL('../../../demos/euler/320_factorials.ra', import.meta.url), 'utf8')
-            .replace('option Upper integer = 1000000', 'option Upper integer = 1000');
+            .replace('arg Upper integer = 1000000', 'arg Upper integer = 1000');
         for (const compilation of [false, true]) {
             const runtime = new Interpreter(() => {}, { compilation });
             const diagnostics = new RuntimeDiagnostics();

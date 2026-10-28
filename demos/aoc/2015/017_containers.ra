@@ -6,7 +6,7 @@ use io
 use cli
 use bits
 
-argument Input path
+arg Input path
 
 Containers = Input readlines integer rank 0
 unpack Part1 Part2 = Containers solve 150

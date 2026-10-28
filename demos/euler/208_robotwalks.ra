@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Steps integer = 70
+arg Steps integer = 70
 
 rem The robot is back at the start when
 rem all five edges of the cycle of

@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option N integer = 14
+arg N integer = 14
 
 rem State: alive set M and the chef t
 rem to cook. W holds every chef's win

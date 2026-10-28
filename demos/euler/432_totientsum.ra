@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000
-option L integer = 10000000
+arg N integer = 100000000000
+arg L integer = 10000000
 
 rem For n = 2*3*5*7*11*13*17 the sum
 rem of phi(n i) for i <= N is phi(n)
