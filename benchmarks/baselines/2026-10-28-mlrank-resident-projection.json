@@ -181,13 +181,106 @@
     ]
   },
   "android": {
-    "status": "pending",
-    "reason": "OnePlus not discoverable over wireless ADB; APK built."
+    "weightBytes": 7077888,
+    "weightSha256": "df332e9d9ae908db358a00423f14af1c0036bc9a2332aca395adf68e3eb08b48",
+    "maxError": 8.787243837460323e-06,
+    "valuesCompared": 11520,
+    "staleRejected": true,
+    "reloadReadsWeights": true,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.012188,
+        "executeMs": 118.649114,
+        "pssBytes": 176133120,
+        "fileBytesRead": 7077888,
+        "fileInputsReused": 0,
+        "inputMs": 103.424219,
+        "dispatchMs": 1.05375,
+        "readbackMs": 12.012656,
+        "outputMs": 2.100156
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.011771,
+        "executeMs": 13.008281,
+        "pssBytes": 175371264,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 2.022552,
+        "dispatchMs": 0.822709,
+        "readbackMs": 9.953906,
+        "outputMs": 0.167396
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.014531,
+        "executeMs": 10.930625,
+        "pssBytes": 176493568,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 2.038594,
+        "dispatchMs": 0.540364,
+        "readbackMs": 8.079427,
+        "outputMs": 0.222136
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.014323,
+        "executeMs": 13.491718,
+        "pssBytes": 178103296,
+        "fileBytesRead": 0,
+        "fileInputsReused": 1,
+        "inputMs": 3.63125,
+        "dispatchMs": 0.522135,
+        "readbackMs": 9.072969,
+        "outputMs": 0.218333
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.011302,
+        "executeMs": 91.876302,
+        "pssBytes": 187597824,
+        "fileBytesRead": 7077888,
+        "fileInputsReused": 0,
+        "inputMs": 77.020208,
+        "dispatchMs": 1.004688,
+        "readbackMs": 12.897656,
+        "outputMs": 0.778021
+      }
+    ],
+    "status": "passed",
+    "device": "OnePlus N10 BE2029",
+    "delegate": "LITERT_CL",
+    "delegatedNodes": 1,
+    "totalNodes": 1,
+    "demo": {
+      "visibleValuesCompared": 7,
+      "firstValues": [
+        -7.094323635101318,
+        6.955036640167236,
+        7.376286029815674,
+        2.384345054626465,
+        1.2655495405197144,
+        2.4151251316070557
+      ],
+      "persistedAndRerun": true
+    }
   },
   "tests": {
     "vitest": 29,
     "node": 7,
     "nativeCache": 5
   },
-  "memoryNote": "Desktop peak RSS is the process lifetime high-water mark, including runtime and previous loads. It is not GPU allocation size. Timings are diagnostic samples."
+  "memoryNote": "Desktop peak RSS is the process lifetime high-water mark, including runtime and previous loads. It is not GPU allocation size. Timings are diagnostic samples. Android PSS values are snapshots of the whole app, not peak GPU memory."
 }

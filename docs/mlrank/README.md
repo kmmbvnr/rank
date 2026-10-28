@@ -1090,15 +1090,18 @@ worker, native execution, viewer output and WebView file-read ranges. Results:
 It computes one token's QKV matrix product, without bias, embeddings or attention.
 The 7,077,888-byte weight payload stays outside the 564-byte graph.
 
-Mac and Intel checks compare all 2,304 outputs over five calls, changing activations,
+Mac, Intel and OnePlus checks compare all 2,304 outputs over five calls, changing activations,
 rejecting a stale file descriptor and releasing/reloading the model. Only the first
 call and the call after reload read weight bytes; intermediate calls report zero.
-The ordinary Rank path reads only the 80-byte Safetensors header per invocation.
+The instrumented desktop Rank path reads only the 80-byte Safetensors header per invocation.
 Native profiles report `fileBytesRead` and `fileInputsReused`, as well as timings
 and desktop process peak RSS. These counters measure our file reads and buffer
 writes, not copies inside LiteRT or the GPU driver. The reference uses an independent
 float64 scalar dot product with atol=rtol=1e-4. Timings are diagnostic samples, not
-a speed benchmark. Android verification of this larger projection is pending.
+a speed benchmark. OnePlus native logs confirm delegation of the single matmul
+node. Android PSS snapshots cover the whole app, not peak GPU memory. The saved
+**GPT-2 QKV projection** notebook was run from the menu, inspected and run again
+after reload; seven visible output values matched the reference.
 
 Reproduce with the pinned GPT-2 revision (the range is the QKV weight payload):
 
@@ -1119,3 +1122,14 @@ substituted. On desktop, the demo expects the same file under `models/`.
 Native cache lifecycle tests run with
 `node_modules/.cache/mlrank/bin/python packages/cli/test/ram-file-cache.test.py`.
 Results: `benchmarks/baselines/2026-10-28-mlrank-resident-projection.json`.
+
+
+The dedicated OnePlus test device was reachable at `192.168.1.74:38461` on
+2026-10-28. Try `adb connect 192.168.1.74:38461` before treating an empty device or
+mDNS list as a disconnected phone; direct connection worked when discovery did not.
+Use `-s 192.168.1.74:38461` for all device commands, since another phone may be attached.
+The device already had stay-awake-on-power enabled (`stay_on_while_plugged_in=7`),
+ADB authorization expiry disabled (`adb_allowed_connection_time=0`) and battery
+saver off. Rank was added to the Android Doze whitelist with
+`adb -s 192.168.1.74:38461 shell dumpsys deviceidle whitelist +com.arrrank.app`.
+These settings do not pin the wireless debugging port across device restarts.
