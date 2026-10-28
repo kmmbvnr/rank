@@ -898,3 +898,54 @@ These are correctness checks, not a throughput or memory benchmark. The
 TypeScript build, Android APK build and 27 focused interpreter tests pass;
 the full test suite was not run. The next stage combines attention with
 LayerNorm, residual connections and an MLP into a small transformer block.
+
+## Small transformer block (stage 12)
+
+[`transformer.ra`](../../demos/mlrank/transformer.ra) imports
+[`transformer.ram`](../../demos/mlrank/transformer.ram). The fixed FP32 inference
+block applies affine LayerNorm, causal attention, a residual addition, a second
+affine LayerNorm, a 4× expansion MLP with `gelu_new`, and the second residual
+addition. All projections include bias. The graph uses existing RAM operations;
+its synthetic weights are not a trained checkpoint.
+
+Validation on 2026-10-28 compares 11 stages against independent scalar JavaScript:
+first normalization, QKV projection, scores, probabilities, attention output,
+first residual, second normalization, MLP expansion, GELU, MLP projection and
+final output. The 66 fixtures cover contexts 1/3/5, batch sizes and head counts
+1/2, head width 3, and a changed final token. The perturbation differs by channel
+so LayerNorm cannot remove it as a common offset. Previous outputs must remain
+unchanged; probability rows must sum to one with zero future attention.
+
+Mac and Intel each pass 198 ordinary GPU calls and six additional profiled calls;
+OnePlus passes 396. Maximum absolute error is below 5.34e-7 at atol=rtol=1e-5.
+Android native logs confirm full delegation for all 66 fixture loads. The app
+check compiles the block from RAM source, runs it from Program, compares all
+three output cells in the array viewer, reloads and checks source persistence,
+then restores the example. No compiler or runtime change was needed.
+
+The complete block contains 115 graph nodes. Serialized models occupy
+10,476–12,024 bytes; constant payloads contain 932–2,636 bytes. The sum of logical
+FP32/INT32 tensor sizes is 2,176–28,156 bytes; this sum is not an allocation or
+GPU peak-memory measurement. Native helper peak RSS during the fixture sequence
+reaches 54.8 MiB on Mac and 113.2 MiB on Intel, including the interpreter, runtime,
+driver allocations and caches. Sampling Android `dumpsys meminfo com.arrrank.app`
+about once per second during the final fixture sequence records a peak PSS of
+189.5 MiB and RSS of 299.1 MiB for the app process. These process measurements
+are not tensor-arena sizes, do not sum all separate WebView processes, and do
+not establish that GPT-2 fits on any device.
+
+Run `node scripts/mlrank-transformer-check.mjs` for desktop GPU checks and native
+RSS profiles. `--compile-only` checks all fixtures without a GPU;
+`--write-demo --compile-only` also regenerates the demo. `--android` generates
+`output/playwright/ram-transformer.js`; `--ui` generates
+`output/playwright/ram-transformer-ui.js`. The UI fixture adapts the one-token
+block to the existing GPU Linear example's first input row.
+[Recorded results](../../benchmarks/baselines/2026-10-28-mlrank-transformer.json)
+include the scalar comparison, native memory profiles, Android memory samples
+and delegation logs. TypeScript compilation and 27 focused tests pass. The full
+suite was not run; this stage does not claim a throughput improvement.
+
+Before importing a real checkpoint, review the 128-node limit: this single block
+already uses 115 nodes. Also check tensor, constant, attachment and transport
+limits, then choose graph partitioning or justified limit changes using actual
+checkpoint sizes and device measurements.

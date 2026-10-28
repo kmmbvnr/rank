@@ -23,10 +23,10 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  const g1=values(C,2,.15).map(v=>Math.fround(1+v)),b1=values(C,4,.1),g2=values(C,7,.2).map(v=>Math.fround(1+v)),b2=values(C,8,.1);
  const qkvBias=values(3*C,11,.1),outBias=values(C,13,.1),upW=values(C*4*C,17,.15),upB=values(4*C,19,.1),downW=values(4*C*C,23,.15),downB=values(C,29,.1);
  const mask=Array.from({length:T*T},(_,i)=>i%T>Math.floor(i/T)?-10000:0);
- const base=Array.from({length:B*T*C},(_,i)=>Math.fround(Math.sin(i+1)*.7));
+ const base=Array.from({length:B*T*C},(_,i)=>process.argv.includes('--ui') ? i+1 : Math.fround(Math.sin(i+1)*.7));
  let original;
  for(const changed of [false,true]) {
- const input=base.map((v,i)=>changed&&Math.floor(i/C)%T===T-1?Math.fround(v+2):v);
+ const input=base.map((v,i)=>changed&&Math.floor(i/C)%T===T-1?Math.fround(v+2*(1+i%C)):v);
  const n1=norm(input,g1,b1,C);
  const p=linear(n1,weights,qkvBias,B*T,C,3*C);
  const scores=[],masked=[],probabilities=[],context=Array(B*H*T*D).fill(0),merged=Array(B*T*C).fill(0),output=Array(B*T*C).fill(0);
@@ -76,7 +76,13 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  }
  }
 }
-if(process.argv.includes('--android')) {
+if(process.argv.includes('--ui')) {
+ mkdirSync('output/playwright',{recursive:true});
+ const f=fixtures.find(f=>f.stage==='1x1x1x3/base/Output');
+ const source=f.source.replace('option X .f32 shape 1 1 3','option X .f32 shape 2 3').replace('Norm1 =','X = (X (0 till 1) #) reshape 1 1 3\nNorm1 =');
+ compileRam(source,'dense.ram');
+ writeFileSync('output/playwright/ram-transformer-ui.js',readFileSync('packages/web/test/ram-transformer-ui.playwright.js','utf8').replace('__RAM_SOURCE__',JSON.stringify(source)).replace('__EXPECTED__',JSON.stringify(f.expected)));
+} else if(process.argv.includes('--android')) {
  mkdirSync('output/playwright',{recursive:true});
  writeFileSync('output/playwright/ram-transformer.js',readFileSync('packages/web/test/ram-transformer.playwright.js','utf8').replace('__RAM_FIXTURES__',JSON.stringify(fixtures)));
 } else if(!process.argv.includes('--compile-only')) {
