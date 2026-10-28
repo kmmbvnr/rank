@@ -1,3 +1,4 @@
+import { inheritFileTensorSlice } from './file-tensor.js';
 import { resolveAxis } from './tensor-index.js';
 import { registerArrayCopy, copyStoredArrayBlocks } from './array-copy.js';
 import { registerPackedBooleanSelection } from './packed-booleans.js';
@@ -54,6 +55,8 @@ function selectionArray(shape: readonly number[], source: RankArray, offsetAt: (
             }
         });
     });
+    if (linear?.stride === 1) inheritFileTensorSlice(source, result,
+        () => linear?.stride === 1 ? { source: current, offset: linear.offset } : undefined);
     registerPackedBooleanSelection(result, () => current, () => linear?.stride === 1 ? linear.offset : undefined);
     return result;
 }
