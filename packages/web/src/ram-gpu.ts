@@ -20,8 +20,11 @@ const client = createRamClient((message: RamRequest) => {
     if (request.status !== 200) throw new Error('RAM GPU runtime is unavailable on this host');
     return JSON.parse(request.responseText);
 });
-export const browserRamGpu: RamGpu = (graph, input, inputFiles) => client.invoke(graph, () => {
+export const browserRamGpu: RamGpu = (graph, input, inputFiles, options) => { const result = client.invoke(graph, () => {
     let binary = '';
     for (const byte of graph.model) binary += String.fromCharCode(byte);
     return btoa(binary);
-}, input, graph.outputShape.reduce((a, b) => a * b, 1), graph.inputs.map(input => input.shape.reduce((a,b)=>a*b,1)), inputFiles, graph.reservationBytes, graph.inputs.map(input => input.dtype ?? 'f32')).output!;
+}, input, graph.outputShape.reduce((a, b) => a * b, 1), graph.inputs.map(input => input.shape.reduce((a,b)=>a*b,1)), inputFiles, graph.reservationBytes, graph.inputs.map(input => input.dtype ?? 'f32'), { ...options, inputNames: graph.nodes.flatMap((node, i) => node.kind === 'input' ? ['t' + i] : []), outputName: 't' + graph.output });
+    return result.state ?? result.output!;
+};
+browserRamGpu.control = request => client.stateControl(request);

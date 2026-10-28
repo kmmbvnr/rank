@@ -86,6 +86,7 @@ export class Interpreter {
         (name, local) => this.checkMutable(name, local), (error, node) => this.locateError(error, node),
     );
     private readonly resources = new ResourceOwnership();
+    private readonly ramStates = new Set<() => void>();
     private readonly checkedInputs = new CheckedInputContracts();
     private readonly operators = new Operators(value => this.resources.ownFiles(value),
         fn => this.functions.scalarCallback(fn));
@@ -438,6 +439,8 @@ export class Interpreter {
     }
 
     dispose(): void {
+        for (const release of this.ramStates) { try { release(); } catch { /* Host teardown may already have disposed the GPU. */ } }
+        this.ramStates.clear();
         for (const child of this.aliases.values()) child.dispose();
         this.resources.dispose();
     }
@@ -629,7 +632,7 @@ export class Interpreter {
                     !source.readBinary || ramWeightDigest(source.readBinary(name)) !== digest))
                     current = compileRam(source.source, source.id, source.readBinary);
                 return current;
-            }));
+            }, release => { this.ramStates.add(release); return () => { this.ramStates.delete(release); }; }));
         }
 
         if (alias) {

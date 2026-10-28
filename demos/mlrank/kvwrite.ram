@@ -1,0 +1,7 @@
+use ml
+arg Cache .f32 shape 8 8
+arg Row .f32 shape 1 8
+arg Slot .f32 shape 8 1
+arg One .f32 shape 1 = array shape 1 fill 1.0
+arg Negative .f32 shape 1 = array shape 1 fill -1.0
+return Cache * (One + Slot * Negative) + Row * Slot

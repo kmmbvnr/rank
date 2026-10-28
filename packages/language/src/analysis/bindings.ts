@@ -650,8 +650,9 @@ class Analyzer {
                 operation: isFunctionBindingStatement(node) && functionBindingPlan(node).alias
                     ? this.aliasOperation(functionBindingPlan(node).alias!) : undefined,
                 callSignature: kind === 'function' && isFunctionStatement(node) ? functionCallSignature(node)
-                    : isFunctionBindingStatement(node) && functionBindingPlan(node).alias
-                        ? (this.lookup(functionBindingPlan(node).alias!)?.callSignature ?? this.signatures.get(functionBindingPlan(node).alias!)) : undefined,
+                    : isFunctionBindingStatement(node) ? functionBindingPlan(node).callSignature
+                        ?? (functionBindingPlan(node).alias
+                            ? (this.lookup(functionBindingPlan(node).alias!)?.callSignature ?? this.signatures.get(functionBindingPlan(node).alias!)) : undefined) : undefined,
                 writes: [site(node)], reads: [],
                 writeDepths: new Set([this.loopDepth]), readDepths: new Set(),
                 shadows: scope !== this.program && this.program.slots.has(name),

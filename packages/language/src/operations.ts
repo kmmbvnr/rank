@@ -1,3 +1,4 @@
+import type { FunctionCallSignature } from './function-call-signature.js';
 import { capabilityKinds, collectionProtocol, uniqueResultKind, type CollectionCapability } from './collection-capabilities.js';
 import type { SignatureAtom, SignatureContainer, SignatureType, TypeSignature } from './type-signature.js';
 import type { ShapePattern, ShapeSignature } from './shape-signature.js';
@@ -115,6 +116,9 @@ export interface Operation {
     };
     /** Syntax marker dispatched by application forms; its native placeholder cannot be called. */
     readonly formOnly?: true;
+    readonly callSignature?: FunctionCallSignature;
+    /** A unary function adapter preserves its operand call syntax. */
+    readonly preservesFunctionSignature?: true;
     /** Binding-aware surface forms normalized before application analysis. */
     readonly grouping?: {
         readonly trailingOperands?: 1 | 'alternatives';
@@ -866,6 +870,15 @@ export const operations: readonly Operation[] = [
         numericArrayNoCallback: true,
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
+    { name: 'gpukeep', module: 'ml', arities: [1], form: 'ramfunction gpukeep', preservesFunctionSignature: true, result: 'value', signatures: [{inputs:['function'],result:'function'}],
+        callSignature: { arity:1, leftCount:1, words:[], dataParameters:[],
+            parameters:[{name:'fn',index:0,deferred:false,acceptsFunction:true,kind:'function'}],
+            rightParameters:[] },
+        summary: 'Wraps a RAM function to retain its F32 output as an explicit GPU tensor handle.' },
+    { name: 'gpuread', module: 'ml', arities: [1], form: 'GpuTensor gpuread', result: 'array', signatures:[{inputs:['record'],result:'array'}], effects: ['io'],
+        summary: 'Copies a retained GPU tensor to an ordinary Rank array.' },
+    { name: 'gpufree', module: 'ml', arities: [1], form: 'GpuTensor gpufree', result: 'boolean', signatures:[{inputs:['record'],result:'boolean'}], effects: ['io'],
+        summary: 'Releases a retained GPU tensor; subsequent use of any alias fails.' },
     { name: 'relu', module: 'ml', arities: [1], form: 'Value relu', result: 'number', monadicRank: 0,
         signatures: [{ inputs: ['real'], result: 'real', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],

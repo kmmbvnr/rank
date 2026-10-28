@@ -1,0 +1,23 @@
+use ml
+use sequences
+use "kvwrite.ram"
+use "kvattention.ram"
+keep = (kvwrite gpukeep)
+Empty = array shape 8 8 fill 0.0
+Row = (array 1.0 0.0 0.0 1.0 2.0 3.0 4.0 5.0) reshape 1 8
+Slot = array shape 8 1 fill 0.0
+Slot 0 0 = 1.0
+Cache = Empty keep Row Slot
+for Position in 1 till 4
+    Row = (array 1.0 0.0 0.0 1.0 2.0 3.0 4.0 5.0) reshape 1 8
+    Slot = array shape 8 1 fill 0.0
+    Slot Position 0 = 1.0
+    Next = Cache keep Row Slot
+    Cache gpufree
+    Cache = Next
+end
+Q = (array 1.0 0.0 0.0 1.0) reshape 1 4
+Mask = (array 0.0 0.0 0.0 0.0 -10000.0 -10000.0 -10000.0 -10000.0) reshape 1 8
+Result = Q kvattention Cache Mask
+Cache gpufree
+Result

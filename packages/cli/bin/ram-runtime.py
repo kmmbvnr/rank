@@ -15,6 +15,8 @@ result_fd = os.dup(sys.stdout.fileno())
 os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
 
 import numpy as np
+import ai_edge_litert
+from ai_edge_litert.environment import Environment, EnvironmentOptions
 from ai_edge_litert.compiled_model import CompiledModel
 from ai_edge_litert.hardware_accelerator import HardwareAccelerator
 from ai_edge_litert.options import Options, GpuOptions
@@ -23,19 +25,37 @@ from ai_edge_litert.options import Options, GpuOptions
 MEMORY_BUDGET = 128 * 1024 * 1024
 MAX_MODELS = 4
 models = OrderedDict()
+states = {}
+MAX_STATES = 64
+environment = None
+
+
+def state_bytes():
+    return sum(entry["bytes"] for entry in states.values())
 
 
 def cache_status():
     return {"residentModels": len(models),
-            "residentBytes": sum(entry["reservation"] for entry in models.values()),
+            "residentBytes": sum(entry["reservation"] for entry in models.values()) + state_bytes(),
+            "residentStates": len(states), "stateBytes": state_bytes(),
             "memoryBudgetBytes": MEMORY_BUDGET}
 
 
 def run(request):
+    global environment
     started = time.perf_counter()
     action = request.get("action")
-    if action not in ("load", "invoke", "release"):
+    if action not in ("load", "invoke", "release", "readState", "releaseState"):
         raise ValueError("Unknown RAM action")
+    if action == "releaseState":
+        states.pop(request.get("stateId"), None)
+        return {"released": True, **cache_status()}
+    if action == "readState":
+        state = states.get(request.get("stateId"))
+        if state is None: return {"error": "RAM state is no longer available", "code": "STALE_STATE"}
+        values = state["buffer"].read(state["bytes"] // 4, np.float32)
+        if not np.isfinite(values).all(): raise ValueError("Non-finite GPU state")
+        return {"output": values.tolist(), **cache_status()}
     if action == "release":
         models.pop(request.get("modelId"), None)
         return {"released": True, **cache_status()}
@@ -70,12 +90,16 @@ def run(request):
             data = base64.b64decode(request["model"], validate=True)
             if len(data) > reservation:
                 raise ValueError("RAM reservation is smaller than the serialized model")
+        if state_bytes() + reservation > MEMORY_BUDGET:
+            raise ValueError("RAM states leave insufficient model memory; release states explicitly")
         evicted = 0
         while models and (len(models) >= MAX_MODELS or cache_status()["residentBytes"] + reservation > MEMORY_BUDGET):
             models.popitem(last=False)
             evicted += 1
         options = Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
-        model = CompiledModel.from_file(path, options=options) if path else CompiledModel.from_buffer(data, options=options)
+        if environment is None:
+            environment = Environment.create(options=EnvironmentOptions(runtime_path=os.path.dirname(ai_edge_litert.__file__)))
+        model = CompiledModel.from_file(path, options=options, environment=environment) if path else CompiledModel.from_buffer(data, options=options, environment=environment)
         if not model.is_fully_accelerated():
             raise RuntimeError("RAM graph was not fully delegated to GPU")
         inputs, outputs = model.create_input_buffers(0), model.create_output_buffers(0)
@@ -96,11 +120,33 @@ def run(request):
     files = request.get("inputFiles", [None] * len(inputs))
     if not isinstance(files, list) or len(files) != len(inputs):
         raise ValueError("Wrong file input count")
-    if data.ndim != 1 or data.size != sum(size for size, file in zip(sizes, files) if file is None) or not np.isfinite(data).all():
+    state_inputs = request.get("inputStates", [None] * len(inputs))
+    if not isinstance(state_inputs, list) or len(state_inputs) != len(inputs):
+        raise ValueError("Wrong state input count")
+    call_inputs = list(inputs)
+    for index, state_id in enumerate(state_inputs):
+        if state_id is None: continue
+        if files[index] is not None: raise ValueError("Input cannot be both a state and a file")
+        if not isinstance(state_id, str) or state_id not in states:
+            return {"error": "RAM state is no longer available", "code": "STALE_STATE"}
+        saved = states[state_id]
+        details = inputs[index].get_tensor_details()
+        if saved["shape"] != list(details["shape"]) or details.get("dtype", "float32") != "float32":
+            raise ValueError("GPU state input shape or dtype mismatch")
+        call_inputs[index] = saved["buffer"]
+    retain = request.get("retainOutput", False)
+    output_shape = list(outputs[0].get_tensor_details()["shape"])
+    output_bytes = int(np.prod(output_shape)) * 4
+    if retain and outputs[0].get_tensor_details().get("dtype", "float32") != "float32":
+        raise ValueError("Retained output requires F32 tensor metadata")
+    if retain and (len(states) >= MAX_STATES or cache_status()["residentBytes"] + output_bytes > MEMORY_BUDGET):
+        raise ValueError("RAM state memory/count limit reached; release states explicitly")
+    if data.ndim != 1 or data.size != sum(size for size, file, state in zip(sizes, files, state_inputs) if file is None and state is None) or not np.isfinite(data).all():
         raise ValueError("Invalid RAM input shape or values")
     offset = 0
     file_bytes = file_reused = 0
     for index, (buffer, size, descriptor) in enumerate(zip(inputs, sizes, files)):
+        if state_inputs[index] is not None: continue
         if descriptor is None:
             file_inputs[index] = None
             values = data[offset:offset + size]
@@ -148,18 +194,25 @@ def run(request):
             finally:
                 mapped._mmap.close()
     written = time.perf_counter()
-    model.run_by_index(0, inputs, outputs)
+    model.run_by_index(0, call_inputs, outputs)
     dispatched = time.perf_counter()
-    output_size = int(np.prod(outputs[0].get_tensor_details()["shape"]))
-    output = outputs[0].read(output_size, np.float32)
-    read = time.perf_counter()
-    result = output.tolist()
+    if retain:
+        replacement = model.create_output_buffers(0)
+        state_id = str(uuid.uuid4())
+        states[state_id] = {"buffer": outputs[0], "shape": output_shape, "bytes": output_bytes}
+        entry["outputs"] = replacement
+        result = {"state": {"id": state_id, "shape": output_shape, "dtype": "f32"}}
+        read = time.perf_counter()
+    else:
+        output = outputs[0].read(output_bytes // 4, np.float32)
+        read = time.perf_counter()
+        result = {"output": output.tolist()}
     finished = time.perf_counter()
-    response = {"output": result, "backend": "LiteRT GPU", "fullyAccelerated": True,
+    response = {**result, "backend": "LiteRT GPU", "fullyAccelerated": True,
             "cached": True, **cache_status(), "prepareMs": (prepared - started) * 1000,
             "executeMs": (finished - prepared) * 1000}
     if request.get("profile"):
-        response.update(fileBytesRead=file_bytes, fileInputsReused=file_reused, inputMs=(written - prepared) * 1000,
+        response.update(stateInputsReused=sum(x is not None for x in state_inputs), outputBytesRead=0 if retain else output_bytes, fileBytesRead=file_bytes, fileInputsReused=file_reused, inputMs=(written - prepared) * 1000,
                         dispatchMs=(dispatched - written) * 1000,
                         readbackMs=(read - dispatched) * 1000,
                         outputMs=(finished - read) * 1000,

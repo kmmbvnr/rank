@@ -14,12 +14,20 @@ export function groupDeclaredCalls(
     report: (expression: Expression, message: string) => void,
 ): Expression[] {
     const result: Expression[] = [];
+    const functionOperands = new Set<Expression>();
+    for (let index = 0; index < parts.length; index++) {
+        const signature = signatureOf(parts[index]);
+        if (!signature) continue;
+        for (let i = 0; i < signature.leftCount; i++)
+            if (signature.parameters[i].kind === 'function' && parts[index - signature.leftCount + i])
+                functionOperands.add(parts[index - signature.leftCount + i]);
+    }
     const numeric = (value: Expression | undefined) => isNumberLiteral(value)
         || isUnaryExpression(value) && value.operator === '-' && isNumberLiteral(value.operand);
     for (let cursor = 0; cursor < parts.length; cursor++) {
         const callee = parts[cursor];
         const signature = signatureOf(callee);
-        if (!signature || !signature.rightParameters.length && !signature.words.length) {
+        if (functionOperands.has(callee) || !signature || !signature.rightParameters.length && !signature.words.length && !signature.parameters.some(p => p.kind === 'function')) {
             result.push(callee);
             continue;
         }

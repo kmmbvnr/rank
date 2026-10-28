@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.ArrayList;
+import com.google.ai.edge.litert.TensorType;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +30,13 @@ final class RamGpu {
     private static final long MEMORY_BUDGET = 128L * 1024 * 1024;
     private static final int MAX_MODELS = 4;
     private final LinkedHashMap<String, Resident> models = new LinkedHashMap<>(8, 0.75f, true);
+    private final LinkedHashMap<String, State> states = new LinkedHashMap<>();
+    private static final int MAX_STATES = 64;
+    private static final class State {
+        TensorBuffer buffer;
+        List<Integer> shape;
+        long bytes;
+    }
     private static final class Resident {
         CompiledModel model;
         List<TensorBuffer> inputs, outputs;
@@ -35,6 +44,8 @@ final class RamGpu {
         boolean[] integerInputs;
         String[] fileInputs;
         long reservation;
+        List<TensorType> inputTypes;
+        TensorType outputType;
     }
 
     RamGpu(Context context) { this.context = context.getApplicationContext(); }
@@ -73,11 +84,27 @@ final class RamGpu {
     private JSONObject execute(JSONObject request) throws Exception {
         long started = System.nanoTime();
         String action = request.getString("action");
-        if (!action.equals("load") && !action.equals("invoke") && !action.equals("release"))
+        if (!action.equals("load") && !action.equals("invoke") && !action.equals("release") && !action.equals("readState") && !action.equals("releaseState"))
             throw new IllegalArgumentException("Unknown RAM action");
+        if (action.equals("releaseState")) {
+            State state = states.remove(request.optString("stateId"));
+            if (state != null) state.buffer.close();
+            if (models.isEmpty() && states.isEmpty()) closeEnvironment();
+            return cacheStatus(new JSONObject().put("released", true));
+        }
+        if (action.equals("readState")) {
+            State state = states.get(request.optString("stateId"));
+            if (state == null) return new JSONObject().put("error", "RAM state is no longer available").put("code", "STALE_STATE");
+            JSONArray values = new JSONArray();
+            for (float value : state.buffer.readFloat()) {
+                if (!Float.isFinite(value)) throw new IllegalArgumentException("Non-finite GPU state");
+                values.put((double) value);
+            }
+            return cacheStatus(new JSONObject().put("output", values));
+        }
         if (action.equals("release")) {
             closeModel(models.remove(request.optString("modelId")));
-            if (models.isEmpty()) closeEnvironment();
+            if (models.isEmpty() && states.isEmpty()) closeEnvironment();
             return cacheStatus(new JSONObject().put("released", true));
         }
         boolean cached = action.equals("invoke");
@@ -116,6 +143,7 @@ final class RamGpu {
                 }
                 if (file.length() > entry.reservation)
                     throw new IllegalArgumentException("RAM reservation is smaller than the serialized model");
+                if (stateBytes() + entry.reservation > MEMORY_BUDGET) throw new IllegalArgumentException("RAM states leave insufficient model memory; release states explicitly");
                 while (!models.isEmpty() && (models.size() >= MAX_MODELS || residentBytes() + entry.reservation > MEMORY_BUDGET)) {
                     String oldest = models.keySet().iterator().next();
                     closeModel(models.remove(oldest)); evicted++;
@@ -130,6 +158,13 @@ final class RamGpu {
                 if (environment == null) environment = Environment.create();
                 entry.model = CompiledModel.create(file.getAbsolutePath(), options, environment);
                 entry.inputs = entry.model.createInputBuffers(); entry.outputs = entry.model.createOutputBuffers();
+                JSONArray names = request.optJSONArray("inputNames");
+                if (names != null) {
+                    if (names.length() != entry.inputs.size()) throw new IllegalArgumentException("Wrong input name count");
+                    entry.inputTypes = new ArrayList<>();
+                    for (int i = 0; i < names.length(); i++) entry.inputTypes.add(entry.model.getInputTensorType(names.getString(i), ""));
+                    entry.outputType = entry.model.getOutputTensorType(request.getString("outputName"), "");
+                }
                 entry.fileInputs = new String[entry.inputs.size()];
                 entry.integerInputs = new boolean[entry.inputs.size()];
                 JSONArray dtypes = request.optJSONArray("inputDtypes");
@@ -153,7 +188,7 @@ final class RamGpu {
                 } else if (entry.inputs.size() != 1) throw new IllegalArgumentException("Multiple RAM inputs require sizes");
                 key = java.util.UUID.randomUUID().toString();
                 models.put(key, entry);
-            } catch (Exception | OutOfMemoryError error) { closeModel(entry); if (models.isEmpty()) closeEnvironment(); throw error; } finally { if (temporary) file.delete(); }
+            } catch (Exception | OutOfMemoryError error) { closeModel(entry); if (models.isEmpty() && states.isEmpty()) closeEnvironment(); throw error; } finally { if (temporary) file.delete(); }
         }
         if (action.equals("load")) return cacheStatus(new JSONObject().put("modelId", key)
             .put("cacheEvictions", evicted).put("gpuOnlyRequested", true).put("prepareMs", (System.nanoTime() - started) / 1e6));
@@ -167,12 +202,38 @@ final class RamGpu {
         JSONArray files = request.optJSONArray("inputFiles");
         if (files != null && (inputSizes == null || files.length() != sizes.length))
             throw new IllegalArgumentException("File inputs require declared input sizes");
+        JSONArray stateInputs = request.optJSONArray("inputStates");
+        if (stateInputs != null && (entry.inputTypes == null || stateInputs.length() != sizes.length))
+            throw new IllegalArgumentException("State inputs require tensor metadata and matching input count");
+        List<TensorBuffer> callInputs = new ArrayList<>(inputs);
+        int stateInputsReused = 0;
         long total = 0;
-        for (int i = 0; i < sizes.length; i++) if (files == null || files.isNull(i)) total += sizes[i];
+        for (int i = 0; i < sizes.length; i++) {
+            if (stateInputs != null && !stateInputs.isNull(i)) {
+                if (files != null && !files.isNull(i)) throw new IllegalArgumentException("Input cannot be both a state and a file");
+                State state = states.get(stateInputs.getString(i));
+                if (state == null) return new JSONObject().put("error", "RAM state is no longer available").put("code", "STALE_STATE");
+                TensorType type = entry.inputTypes.get(i);
+                if (type.getElementType() != TensorType.ElementType.FLOAT || !state.shape.equals(type.getLayout().getDimensions()))
+                    throw new IllegalArgumentException("GPU state input shape or dtype mismatch");
+                callInputs.set(i, state.buffer); stateInputsReused++;
+            } else if (files == null || files.isNull(i)) total += sizes[i];
+        }
+        boolean retain = request.optBoolean("retainOutput", false);
+        long outputBytes = 0;
+        if (retain) {
+            if (entry.outputType == null || entry.outputType.getElementType() != TensorType.ElementType.FLOAT)
+                throw new IllegalArgumentException("Retained output requires F32 tensor metadata");
+            outputBytes = 4;
+            for (int n : entry.outputType.getLayout().getDimensions()) outputBytes = Math.multiplyExact(outputBytes, n);
+            if (states.size() >= MAX_STATES || residentBytes() + outputBytes > MEMORY_BUDGET)
+                throw new IllegalArgumentException("RAM state memory/count limit reached; release states explicitly");
+        }
         if (total != data.length()) throw new IllegalArgumentException("Wrong RAM input length");
         int offset = 0, fileInputsReused = 0;
         long fileBytesRead = 0;
         for (int index = 0; index < sizes.length; index++) {
+            if (stateInputs != null && !stateInputs.isNull(index)) continue;
             if (files != null && !files.isNull(index)) {
                 if (entry.integerInputs[index]) throw new IllegalArgumentException("File inputs require F32 tensors");
                 JSONObject descriptor = files.getJSONObject(index);
@@ -205,20 +266,34 @@ final class RamGpu {
             inputs.get(index).writeFloat(input);
         }
         long written = System.nanoTime();
-        model.run(inputs, outputs);
+        model.run(callInputs, outputs);
         long dispatched = System.nanoTime();
-        float[] output = outputs.get(0).readFloat();
-        long read = System.nanoTime();
-        JSONArray values = new JSONArray();
-        for (float value : output) values.put((double) value);
+        JSONObject result = new JSONObject();
+        long read;
+        if (retain) {
+            List<TensorBuffer> replacement = model.createOutputBuffers();
+            State state = new State(); state.buffer = outputs.get(0);
+            state.shape = new ArrayList<>(entry.outputType.getLayout().getDimensions()); state.bytes = outputBytes;
+            String id = java.util.UUID.randomUUID().toString();
+            states.put(id, state); entry.outputs = replacement;
+            result.put("state", new JSONObject().put("id", id).put("shape", new JSONArray(state.shape)).put("dtype", "f32"));
+            read = System.nanoTime();
+        } else {
+            float[] output = outputs.get(0).readFloat();
+            read = System.nanoTime(); outputBytes = output.length * 4L;
+            JSONArray values = new JSONArray();
+            for (float value : output) values.put((double) value);
+            result.put("output", values);
+        }
         long packed = System.nanoTime();
-        JSONObject result = new JSONObject(); result.put("output", values);
         // Kotlin 2.3.0 exposes no isFullyAccelerated query. Do not invent one:
         // full graph placement is verified with delegate logs in the device check.
         result.put("backend", "LiteRT GPU"); result.put("gpuOnlyRequested", true);
         result.put("cached", cached); result.put("prepareMs", (prepared - started) / 1e6);
         result.put("executeMs", (System.nanoTime() - prepared) / 1e6);
         if (request.optBoolean("profile", false)) {
+            result.put("stateInputsReused", stateInputsReused);
+            result.put("outputBytesRead", retain ? 0 : outputBytes);
             result.put("pssBytes", android.os.Debug.getPss() * 1024L);
             result.put("fileBytesRead", fileBytesRead);
             result.put("fileInputsReused", fileInputsReused);
@@ -230,13 +305,14 @@ final class RamGpu {
         return cacheStatus(result);
     }
 
+    private long stateBytes() { long bytes = 0; for (State state : states.values()) bytes += state.bytes; return bytes; }
     private long residentBytes() {
-        long bytes = 0; for (Resident entry : models.values()) bytes += entry.reservation;
+        long bytes = stateBytes(); for (Resident entry : models.values()) bytes += entry.reservation;
         return bytes;
     }
     private JSONObject cacheStatus(JSONObject result) throws Exception {
         return result.put("residentBytes", residentBytes()).put("residentModels", models.size())
-            .put("memoryBudgetBytes", MEMORY_BUDGET);
+            .put("memoryBudgetBytes", MEMORY_BUDGET).put("residentStates", states.size()).put("stateBytes", stateBytes());
     }
     private static void closeModel(Resident entry) {
         if (entry == null) return;
@@ -247,7 +323,7 @@ final class RamGpu {
     }
     private void closeEnvironment() { if (environment != null) { environment.close(); environment = null; } }
     void close() {
-        executor.submit(() -> { for (Resident entry : models.values()) closeModel(entry); models.clear(); closeEnvironment(); });
+        executor.submit(() -> { for (Resident entry : models.values()) closeModel(entry); models.clear(); for (State state : states.values()) state.buffer.close(); states.clear(); closeEnvironment(); });
         executor.shutdown();
     }
 }

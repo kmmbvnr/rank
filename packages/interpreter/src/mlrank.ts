@@ -1,3 +1,4 @@
+import { ramState, retainRamState, registerRetainFunction, type RamStateDescriptor, type OwnRamState } from './ram-state.js';
 import { fileTensorInput, type FileTensorInput } from './file-tensor.js';
 import { demandValue } from './plan.js';
 import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.js';
@@ -25,7 +26,9 @@ export interface RamGraph {
     readonly reservationBytes: number;
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
-export type RamGpu = (graph: RamGraph, input: readonly number[], inputFiles?: readonly (FileTensorInput | null)[]) => readonly number[];
+export type RamGpu = ((graph: RamGraph, input: readonly number[], inputFiles?: readonly (FileTensorInput | null)[], options?: {inputStates?: readonly (string|null)[]; retainOutput?: boolean}) => readonly number[] | RamStateDescriptor) & {
+    control?: (request: {action:'readState'|'releaseState';stateId:string;outputSize?:number}) => {output?:number[]};
+};
 export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string; readonly weights: Readonly<Record<string, string>> }
 
 /** Static tensor expressions with baked constants. */
@@ -308,17 +311,29 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     return { name, graph, program, source, weights };
 }
 
-export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamModule): NativeFunction {
+export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamModule, own?: OwnRamState, retain = false): NativeFunction {
     const declaration = module.program.statements[0];
     if (!isFunctionStatement(declaration)) throw new Error('Missing RAM function declaration');
     const callSignature = functionCallSignature(declaration);
-    return { ...native(module.name, module.graph.inputs.length, (values) => {
+    const fn = { ...native(module.name, module.graph.inputs.length, (values) => {
         if (reload) module = reload();
         if (values.length !== module.graph.inputs.length)
             throw new RankError('RAM input count changed; import the module again', 'DimensionMismatch');
+        if (retain && (module.graph.precision !== 'f32' || !gpu?.control))
+            throw new RankError('gpukeep requires .f32 and GPU state support', 'GpuUnavailable');
         const inputFiles: (FileTensorInput | null)[] = [];
+        const inputStates: (string|null)[] = [];
         const input = module.graph.inputs.flatMap((spec, i) => {
             const value = demandValue(values[i]);
+            const state = ramState(value);
+            if (state) {
+                if (state.gpu !== gpu) throw new RankError('GPU state belongs to a different host', 'GpuState');
+                if (spec.dtype === 'i32' || module.graph.precision !== 'f32') throw new RankError('GPU states require F32 inputs', 'TypeError');
+                if (state.descriptor.shape.length !== spec.shape.length || state.descriptor.shape.some((n,j)=>n!==spec.shape[j]))
+                    throw new RankError(`${module.name} expects shape ${spec.shape.join(' ')} for ${spec.name}`, 'DimensionMismatch');
+                inputFiles.push(null); inputStates.push(state.descriptor.id); return [];
+            }
+            inputStates.push(null);
             if (!isRankArray(value) || value.shape.length !== spec.shape.length
                 || value.shape.some((n, j) => n !== spec.shape[j]))
                 throw new RankError(`${module.name} expects shape ${spec.shape.join(' ')} for ${spec.name}`, 'DimensionMismatch');
@@ -345,11 +360,19 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
             });
         });
         if (!gpu) throw new RankError('RAM GPU runtime is unavailable on this host', 'GpuUnavailable');
-        const output = gpu(module.graph, input, inputFiles.some(Boolean) ? inputFiles : undefined);
+        const output = gpu(module.graph, input, inputFiles.some(Boolean) ? inputFiles : undefined,
+            retain || inputStates.some(Boolean) ? {...(retain ? {retainOutput:true} : {}), ...(inputStates.some(Boolean) ? {inputStates} : {})} : undefined);
+        if ('id' in output) {
+            if (!retain || output.dtype !== 'f32' || output.shape.length !== module.graph.outputShape.length || output.shape.some((n,i)=>n!==module.graph.outputShape[i]))
+                throw new RankError('Invalid GPU state result', 'GpuExecution');
+            return retainRamState(output, gpu, own);
+        }
+        if (retain) throw new RankError('GPU runtime did not retain the output', 'GpuExecution');
         if (output.length !== module.graph.outputShape.reduce((a, b) => a * b, 1) || output.some(n => !Number.isFinite(n)))
             throw new RankError('Invalid GPU output', 'GpuExecution');
         return ownedArray(output.map(n => ramRound(n, module.graph.precision)), module.graph.outputShape);
     }), callSignature };
+    return registerRetainFunction(fn, () => ramFunction(module, gpu, reload, own, true));
 }
 
 /** Round at the declared boundary; LiteRT uses float32 transport tensors.

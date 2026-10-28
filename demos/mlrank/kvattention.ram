@@ -1,0 +1,9 @@
+use ml
+arg Q .f32 shape 1 4
+arg Cache .f32 shape 8 8
+arg Mask .f32 shape 1 8
+arg Scale .f32 shape 1 = array shape 1 fill 0.5
+K = Cache # (0 till 4)
+V = Cache # (4 till 8)
+Scores = (Q matmul (K transpose)) * Scale + Mask
+return (Scores softmax) matmul V

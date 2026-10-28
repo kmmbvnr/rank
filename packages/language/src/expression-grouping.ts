@@ -142,7 +142,8 @@ export function groupExpressions(program: Program, options: GroupingOptions = {}
             && /^[a-z]/.test(node.name.split('.').at(-1)!)) annotate(node, { callable: true });
     }
     const declaredSignature = (part: Expression): FunctionCallSignature | undefined =>
-        metadata(part).callSignature ?? (isNameExpression(part) && !metadata(part).bound ? options.signatures?.get(part.name) : undefined);
+        metadata(part).callSignature ?? (isNameExpression(part) && !metadata(part).bound ? options.signatures?.get(part.name) : undefined)
+            ?? surfaceOperation(part)?.callSignature;
     const callable = (part: Expression): boolean => {
         if (!isNameExpression(part)) return false;
         const bound = metadata(part).callable;

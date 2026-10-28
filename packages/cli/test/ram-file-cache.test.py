@@ -24,7 +24,7 @@ class Model:
     def __init__(self): self.input, self.output = Buffer(), Buffer()
     def is_fully_accelerated(self): return True
     def create_input_buffers(self, _): return [self.input]
-    def create_output_buffers(self, _): return [self.output]
+    def create_output_buffers(self, _): return [Buffer()]
     def run_by_index(self, _, inputs, outputs): outputs[0].write(inputs[0].values * 2)
 
 class FileCacheTest(unittest.TestCase):
@@ -37,6 +37,7 @@ class FileCacheTest(unittest.TestCase):
         self.loader.start()
         self.load()
     def tearDown(self):
+        runtime.states.clear()
         for key in list(runtime.models): runtime.run({'action':'release', 'modelId':key})
         self.loader.stop()
         self.directory.cleanup()
@@ -50,6 +51,33 @@ class FileCacheTest(unittest.TestCase):
     def load(self): self.key = runtime.run({'action':'load','model':'AA=='})['modelId']
     def invoke(self, descriptor=None, inline=None):
         return runtime.run(dict(action='invoke',modelId=self.key,input=[] if inline is None else inline,inputFiles=[self.descriptor() if descriptor is None and inline is None else descriptor],profile=True))
+    def test_retained_snapshots_survive_release_and_reject_stale_inputs(self):
+        runtime.models[self.key]["reservation"] = 1024
+        first = runtime.run(dict(action='invoke',modelId=self.key,input=[1,2],retainOutput=True,profile=True))
+        self.assertNotIn('output', first)
+        self.assertEqual(first['outputBytesRead'], 0)
+        key = first['state']['id']
+        result = runtime.run(dict(action='invoke',modelId=self.key,input=[],inputStates=[key],retainOutput=True))
+        self.assertEqual(runtime.run(dict(action='readState',stateId=key))['output'], [2,4])
+        runtime.run(dict(action='release',modelId=self.key))
+        self.assertEqual(runtime.run(dict(action='readState',stateId=result['state']['id']))['output'], [4,8])
+        self.key = runtime.run(dict(action='load',model='AA==',reservationBytes=1024))['modelId']
+        runtime.run(dict(action='releaseState',stateId=key))
+        self.assertEqual(runtime.run(dict(action='invoke',modelId=self.key,input=[],inputStates=[key]))['code'], 'STALE_STATE')
+
+    def test_retention_budget_and_allocation_failure_publish_no_state(self):
+        with self.assertRaisesRegex(ValueError, 'limit'):
+            runtime.run(dict(action='invoke',modelId=self.key,input=[1,2],retainOutput=True))
+        self.assertEqual(len(runtime.states), 0)
+        runtime.models[self.key]["reservation"] = 1024
+        with patch.object(self.model, 'create_output_buffers', side_effect=MemoryError('allocation failed')):
+            with self.assertRaisesRegex(MemoryError, 'allocation failed'):
+                runtime.run(dict(action='invoke',modelId=self.key,input=[1,2],retainOutput=True))
+        self.assertEqual(len(runtime.states), 0)
+        with patch.object(runtime, 'MAX_STATES', 0):
+            with self.assertRaisesRegex(ValueError, 'limit'):
+                runtime.run(dict(action='invoke',modelId=self.key,input=[1,2],retainOutput=True))
+
     def test_integer_input_keeps_bits_and_rejects_invalid_values(self):
         self.model.input.values = np.zeros(2, dtype=np.int32)
         self.model.input.get_tensor_details = lambda: {'shape': [2], 'dtype': 'int32'}

@@ -7,13 +7,14 @@ import {
 } from './generated/ast.js';
 import { AstUtils, type AstNode } from 'langium';
 import { applicationExpression, flattenApplication, groupedExpression, markPlacedOperands } from './expressions.js';
-import { operationArities } from './operations.js';
+import { operationArities, findOperation } from './operations.js';
 import { functionPipelinePlan } from './function-pipeline.js';
 
 export interface FunctionBindingPlan {
     readonly arities: readonly number[];
     readonly alias?: string;
     readonly value?: Expression;
+    readonly callSignature?: FunctionCallSignature;
     readonly definitions: readonly FunctionStatement[];
     readonly stages?: readonly (readonly Expression[])[];
     readonly error?: string;
@@ -68,8 +69,15 @@ export function prepareFunctionBindings(program: Program, signatures: ReadonlyMa
         const parts = flattenApplication(node.value);
         const first = parts[0];
         if (parts.length === 1 && isParenthesizedExpression(first)) {
-            plans.set(node, { arities: [], definitions, value: first });
-            known.set(node.name, []);
+            const operands = flattenApplication(first.value);
+            const source = operands[0], adapter = operands[1];
+            const preserves = operands.length === 2 && isNameExpression(source) && isNameExpression(adapter)
+                && !known.has(adapter.name) && findOperation(adapter.name)?.preservesFunctionSignature;
+            const signature = preserves ? calls.get(source.name) : undefined;
+            const counts = preserves ? arities(source.name) ?? [] : [];
+            plans.set(node, { arities: counts, definitions, value: first, callSignature: signature });
+            known.set(node.name, counts);
+            if (signature) calls.set(node.name, signature);
             return;
         }
         if (parts.length === 1 && isNameExpression(first)) {
