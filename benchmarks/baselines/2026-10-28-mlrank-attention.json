@@ -1,0 +1,4718 @@
+{
+  "date": "2026-10-28",
+  "purpose": "Fixed causal multi-head attention correctness; not a speed benchmark",
+  "tolerance": {
+    "atol": 1e-05,
+    "rtol": 1e-05
+  },
+  "reference": "Independent scalar JavaScript arithmetic over FP32 inputs and constants, double precision accumulation; no graph evaluation",
+  "fixtures": 36,
+  "checks": {
+    "mac": {
+      "platform": "darwin",
+      "fixtureCount": 36,
+      "tolerance": {
+        "atol": 1e-05,
+        "rtol": 1e-05
+      },
+      "checks": [
+        {
+          "stage": "1x1x1x3/base/Scores",
+          "repeat": 0,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Scores",
+          "repeat": 1,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Scores",
+          "repeat": 2,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Masked",
+          "repeat": 0,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Masked",
+          "repeat": 1,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Masked",
+          "repeat": 2,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Probabilities",
+          "repeat": 0,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Probabilities",
+          "repeat": 1,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Probabilities",
+          "repeat": 2,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Context",
+          "repeat": 0,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Context",
+          "repeat": 1,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Context",
+          "repeat": 2,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Merged",
+          "repeat": 0,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Merged",
+          "repeat": 1,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Merged",
+          "repeat": 2,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 0,
+          "maxError": 6.821577946611312e-10,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 1,
+          "maxError": 6.821577946611312e-10,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 2,
+          "maxError": 6.821577946611312e-10,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Scores",
+          "repeat": 0,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Scores",
+          "repeat": 1,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Scores",
+          "repeat": 2,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Masked",
+          "repeat": 0,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Masked",
+          "repeat": 1,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Masked",
+          "repeat": 2,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Probabilities",
+          "repeat": 0,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Probabilities",
+          "repeat": 1,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Probabilities",
+          "repeat": 2,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Context",
+          "repeat": 0,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Context",
+          "repeat": 1,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Context",
+          "repeat": 2,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Merged",
+          "repeat": 0,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Merged",
+          "repeat": 1,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Merged",
+          "repeat": 2,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 0,
+          "maxError": 4.687731196273415e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 1,
+          "maxError": 4.687731196273415e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 2,
+          "maxError": 4.687731196273415e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Scores",
+          "repeat": 0,
+          "maxError": 1.2992726755589601e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Scores",
+          "repeat": 1,
+          "maxError": 1.2992726755589601e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Scores",
+          "repeat": 2,
+          "maxError": 1.2992726755589601e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Masked",
+          "repeat": 0,
+          "maxError": 0.0004505922188400291,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Masked",
+          "repeat": 1,
+          "maxError": 0.0004505922188400291,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Masked",
+          "repeat": 2,
+          "maxError": 0.0004505922188400291,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Probabilities",
+          "repeat": 0,
+          "maxError": 2.9488782304909478e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Probabilities",
+          "repeat": 1,
+          "maxError": 2.9488782304909478e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Probabilities",
+          "repeat": 2,
+          "maxError": 2.9488782304909478e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Context",
+          "repeat": 0,
+          "maxError": 2.733031201351821e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Context",
+          "repeat": 1,
+          "maxError": 2.733031201351821e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Context",
+          "repeat": 2,
+          "maxError": 2.733031201351821e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Merged",
+          "repeat": 0,
+          "maxError": 2.733031201351821e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Merged",
+          "repeat": 1,
+          "maxError": 2.733031201351821e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Merged",
+          "repeat": 2,
+          "maxError": 2.733031201351821e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 0,
+          "maxError": 7.250485212217939e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 1,
+          "maxError": 7.250485212217939e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 2,
+          "maxError": 7.250485212217939e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Scores",
+          "repeat": 0,
+          "maxError": 7.972644167075771e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Scores",
+          "repeat": 1,
+          "maxError": 7.972644167075771e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Scores",
+          "repeat": 2,
+          "maxError": 7.972644167075771e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Masked",
+          "repeat": 0,
+          "maxError": 0.0004738395527965622,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Masked",
+          "repeat": 1,
+          "maxError": 0.0004738395527965622,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Masked",
+          "repeat": 2,
+          "maxError": 0.0004738395527965622,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Probabilities",
+          "repeat": 0,
+          "maxError": 2.9488782304909478e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Probabilities",
+          "repeat": 1,
+          "maxError": 2.9488782304909478e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Probabilities",
+          "repeat": 2,
+          "maxError": 2.9488782304909478e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Context",
+          "repeat": 0,
+          "maxError": 3.289826933094986e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Context",
+          "repeat": 1,
+          "maxError": 3.289826933094986e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Context",
+          "repeat": 2,
+          "maxError": 3.289826933094986e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Merged",
+          "repeat": 0,
+          "maxError": 3.289826933094986e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Merged",
+          "repeat": 1,
+          "maxError": 3.289826933094986e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Merged",
+          "repeat": 2,
+          "maxError": 3.289826933094986e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 0,
+          "maxError": 1.9714435563200627e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 1,
+          "maxError": 1.9714435563200627e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 2,
+          "maxError": 1.9714435563200627e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Scores",
+          "repeat": 0,
+          "maxError": 1.5560800897818083e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Scores",
+          "repeat": 1,
+          "maxError": 1.5560800897818083e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Scores",
+          "repeat": 2,
+          "maxError": 1.5560800897818083e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Masked",
+          "repeat": 0,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Masked",
+          "repeat": 1,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Masked",
+          "repeat": 2,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Probabilities",
+          "repeat": 0,
+          "maxError": 5.458231111532541e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Probabilities",
+          "repeat": 1,
+          "maxError": 5.458231111532541e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Probabilities",
+          "repeat": 2,
+          "maxError": 5.458231111532541e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Context",
+          "repeat": 0,
+          "maxError": 3.7296028709832285e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Context",
+          "repeat": 1,
+          "maxError": 3.7296028709832285e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Context",
+          "repeat": 2,
+          "maxError": 3.7296028709832285e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Merged",
+          "repeat": 0,
+          "maxError": 3.7296028709832285e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Merged",
+          "repeat": 1,
+          "maxError": 3.7296028709832285e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Merged",
+          "repeat": 2,
+          "maxError": 3.7296028709832285e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 0,
+          "maxError": 2.2723295432791613e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 1,
+          "maxError": 2.2723295432791613e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 2,
+          "maxError": 2.2723295432791613e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Scores",
+          "repeat": 0,
+          "maxError": 5.6563181805024954e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Scores",
+          "repeat": 1,
+          "maxError": 5.6563181805024954e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Scores",
+          "repeat": 2,
+          "maxError": 5.6563181805024954e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Masked",
+          "repeat": 0,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Masked",
+          "repeat": 1,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Masked",
+          "repeat": 2,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Probabilities",
+          "repeat": 0,
+          "maxError": 5.458231111532541e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Probabilities",
+          "repeat": 1,
+          "maxError": 5.458231111532541e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Probabilities",
+          "repeat": 2,
+          "maxError": 5.458231111532541e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Context",
+          "repeat": 0,
+          "maxError": 5.287703702672175e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Context",
+          "repeat": 1,
+          "maxError": 5.287703702672175e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Context",
+          "repeat": 2,
+          "maxError": 5.287703702672175e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Merged",
+          "repeat": 0,
+          "maxError": 5.287703702672175e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Merged",
+          "repeat": 1,
+          "maxError": 5.287703702672175e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Merged",
+          "repeat": 2,
+          "maxError": 5.287703702672175e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 0,
+          "maxError": 2.007980088453154e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 1,
+          "maxError": 2.007980088453154e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 2,
+          "maxError": 2.007980088453154e-08,
+          "fullyAccelerated": true
+        }
+      ]
+    },
+    "intel": {
+      "platform": "linux",
+      "fixtureCount": 36,
+      "tolerance": {
+        "atol": 1e-05,
+        "rtol": 1e-05
+      },
+      "checks": [
+        {
+          "stage": "1x1x1x3/base/Scores",
+          "repeat": 0,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Scores",
+          "repeat": 1,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Scores",
+          "repeat": 2,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Masked",
+          "repeat": 0,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Masked",
+          "repeat": 1,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Masked",
+          "repeat": 2,
+          "maxError": 3.006960674380166e-11,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Probabilities",
+          "repeat": 0,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Probabilities",
+          "repeat": 1,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Probabilities",
+          "repeat": 2,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Context",
+          "repeat": 0,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Context",
+          "repeat": 1,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Context",
+          "repeat": 2,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Merged",
+          "repeat": 0,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Merged",
+          "repeat": 1,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Merged",
+          "repeat": 2,
+          "maxError": 3.178653451563207e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 0,
+          "maxError": 6.821577946611312e-10,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 1,
+          "maxError": 6.821577946611312e-10,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 2,
+          "maxError": 6.821577946611312e-10,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Scores",
+          "repeat": 0,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Scores",
+          "repeat": 1,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Scores",
+          "repeat": 2,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Masked",
+          "repeat": 0,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Masked",
+          "repeat": 1,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Masked",
+          "repeat": 2,
+          "maxError": 4.741933554153199e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Probabilities",
+          "repeat": 0,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Probabilities",
+          "repeat": 1,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Probabilities",
+          "repeat": 2,
+          "maxError": 0,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Context",
+          "repeat": 0,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Context",
+          "repeat": 1,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Context",
+          "repeat": 2,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Merged",
+          "repeat": 0,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Merged",
+          "repeat": 1,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Merged",
+          "repeat": 2,
+          "maxError": 1.5718512713647215e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 0,
+          "maxError": 4.687731196273415e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 1,
+          "maxError": 4.687731196273415e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 2,
+          "maxError": 4.687731196273415e-09,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Scores",
+          "repeat": 0,
+          "maxError": 1.2992726755589601e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Scores",
+          "repeat": 1,
+          "maxError": 1.2992726755589601e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Scores",
+          "repeat": 2,
+          "maxError": 1.2992726755589601e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Masked",
+          "repeat": 0,
+          "maxError": 0.0004505922188400291,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Masked",
+          "repeat": 1,
+          "maxError": 0.0004505922188400291,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Masked",
+          "repeat": 2,
+          "maxError": 0.0004505922188400291,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Probabilities",
+          "repeat": 0,
+          "maxError": 3.27800428467917e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Probabilities",
+          "repeat": 1,
+          "maxError": 3.27800428467917e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Probabilities",
+          "repeat": 2,
+          "maxError": 3.27800428467917e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Context",
+          "repeat": 0,
+          "maxError": 2.8214856673258737e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Context",
+          "repeat": 1,
+          "maxError": 2.8214856673258737e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Context",
+          "repeat": 2,
+          "maxError": 2.8214856673258737e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Merged",
+          "repeat": 0,
+          "maxError": 2.8214856673258737e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Merged",
+          "repeat": 1,
+          "maxError": 2.8214856673258737e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Merged",
+          "repeat": 2,
+          "maxError": 2.8214856673258737e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 0,
+          "maxError": 1.0975775510679853e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 1,
+          "maxError": 1.0975775510679853e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 2,
+          "maxError": 1.0975775510679853e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Scores",
+          "repeat": 0,
+          "maxError": 7.972644167075771e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Scores",
+          "repeat": 1,
+          "maxError": 7.972644167075771e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Scores",
+          "repeat": 2,
+          "maxError": 7.972644167075771e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Masked",
+          "repeat": 0,
+          "maxError": 0.0004738395527965622,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Masked",
+          "repeat": 1,
+          "maxError": 0.0004738395527965622,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Masked",
+          "repeat": 2,
+          "maxError": 0.0004738395527965622,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Probabilities",
+          "repeat": 0,
+          "maxError": 7.05243424214963e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Probabilities",
+          "repeat": 1,
+          "maxError": 7.05243424214963e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Probabilities",
+          "repeat": 2,
+          "maxError": 7.05243424214963e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Context",
+          "repeat": 0,
+          "maxError": 6.301727756286013e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Context",
+          "repeat": 1,
+          "maxError": 6.301727756286013e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Context",
+          "repeat": 2,
+          "maxError": 6.301727756286013e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Merged",
+          "repeat": 0,
+          "maxError": 6.301727756286013e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Merged",
+          "repeat": 1,
+          "maxError": 6.301727756286013e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Merged",
+          "repeat": 2,
+          "maxError": 6.301727756286013e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 0,
+          "maxError": 2.7766724142175292e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 1,
+          "maxError": 2.7766724142175292e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 2,
+          "maxError": 2.7766724142175292e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Scores",
+          "repeat": 0,
+          "maxError": 2.109432586938631e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Scores",
+          "repeat": 1,
+          "maxError": 2.109432586938631e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Scores",
+          "repeat": 2,
+          "maxError": 2.109432586938631e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Masked",
+          "repeat": 0,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Masked",
+          "repeat": 1,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Masked",
+          "repeat": 2,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Probabilities",
+          "repeat": 0,
+          "maxError": 5.582698958672694e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Probabilities",
+          "repeat": 1,
+          "maxError": 5.582698958672694e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Probabilities",
+          "repeat": 2,
+          "maxError": 5.582698958672694e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Context",
+          "repeat": 0,
+          "maxError": 4.047609558632814e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Context",
+          "repeat": 1,
+          "maxError": 4.047609558632814e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Context",
+          "repeat": 2,
+          "maxError": 4.047609558632814e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Merged",
+          "repeat": 0,
+          "maxError": 4.047609558632814e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Merged",
+          "repeat": 1,
+          "maxError": 4.047609558632814e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Merged",
+          "repeat": 2,
+          "maxError": 4.047609558632814e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 0,
+          "maxError": 2.2660329713347638e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 1,
+          "maxError": 2.2660329713347638e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 2,
+          "maxError": 2.2660329713347638e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Scores",
+          "repeat": 0,
+          "maxError": 3.9914677674168786e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Scores",
+          "repeat": 1,
+          "maxError": 3.9914677674168786e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Scores",
+          "repeat": 2,
+          "maxError": 3.9914677674168786e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Masked",
+          "repeat": 0,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Masked",
+          "repeat": 1,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Masked",
+          "repeat": 2,
+          "maxError": 0.00048179867917497177,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Probabilities",
+          "repeat": 0,
+          "maxError": 5.582698958672694e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Probabilities",
+          "repeat": 1,
+          "maxError": 5.582698958672694e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Probabilities",
+          "repeat": 2,
+          "maxError": 5.582698958672694e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Context",
+          "repeat": 0,
+          "maxError": 7.063565404807903e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Context",
+          "repeat": 1,
+          "maxError": 7.063565404807903e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Context",
+          "repeat": 2,
+          "maxError": 7.063565404807903e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Merged",
+          "repeat": 0,
+          "maxError": 7.063565404807903e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Merged",
+          "repeat": 1,
+          "maxError": 7.063565404807903e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Merged",
+          "repeat": 2,
+          "maxError": 7.063565404807903e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 0,
+          "maxError": 2.6488068585739377e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 1,
+          "maxError": 2.6488068585739377e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 2,
+          "maxError": 2.6488068585739377e-08,
+          "fullyAccelerated": true
+        }
+      ]
+    },
+    "android": [
+      {
+        "stage": "1x1x1x3/base/Scores",
+        "repeat": 0,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 515.2999999970198,
+        "prepareMs": 458.761615,
+        "executeMs": 7.829843,
+        "transportAndSchedulingMs": 48.708541997019765,
+        "requestBytes": 4037,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/base/Scores",
+        "repeat": 1,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 20.299999997019768,
+        "prepareMs": 0.014584,
+        "executeMs": 2.621041,
+        "transportAndSchedulingMs": 17.66437499701977,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/base/Scores",
+        "repeat": 2,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 23.099999994039536,
+        "prepareMs": 0.015209,
+        "executeMs": 3.955468,
+        "transportAndSchedulingMs": 19.129322994039537,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/base/Scores",
+        "repeat": 3,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 20,
+        "prepareMs": 0.016146,
+        "executeMs": 4.947552,
+        "transportAndSchedulingMs": 15.036302000000001,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/base/Scores",
+        "repeat": 4,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 17.700000002980232,
+        "prepareMs": 0.014531,
+        "executeMs": 2.508958,
+        "transportAndSchedulingMs": 15.17651100298023,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/base/Scores",
+        "repeat": 5,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 17.80000001192093,
+        "prepareMs": 0.014532,
+        "executeMs": 3.094635,
+        "transportAndSchedulingMs": 14.69083301192093,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/base/Masked",
+        "repeat": 0,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 500.5,
+        "prepareMs": 450.765,
+        "executeMs": 8.426979,
+        "transportAndSchedulingMs": 41.30802100000001,
+        "requestBytes": 4213,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/base/Masked",
+        "repeat": 1,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 20.099999994039536,
+        "prepareMs": 0.013489,
+        "executeMs": 2.397292,
+        "transportAndSchedulingMs": 17.689218994039535,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/base/Masked",
+        "repeat": 2,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 19.100000008940697,
+        "prepareMs": 0.015573,
+        "executeMs": 2.703593,
+        "transportAndSchedulingMs": 16.380834008940695,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/base/Masked",
+        "repeat": 3,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 19.899999991059303,
+        "prepareMs": 0.014167,
+        "executeMs": 2.323072,
+        "transportAndSchedulingMs": 17.562760991059303,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/base/Masked",
+        "repeat": 4,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 19.899999991059303,
+        "prepareMs": 0.015521,
+        "executeMs": 3.936198,
+        "transportAndSchedulingMs": 15.948280991059303,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/base/Masked",
+        "repeat": 5,
+        "maxError": 8.634571508313316e-11,
+        "wallMs": 20.599999994039536,
+        "prepareMs": 0.018958,
+        "executeMs": 9.075781,
+        "transportAndSchedulingMs": 11.505260994039535,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/base/Probabilities",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 553.7999999970198,
+        "prepareMs": 497.690989,
+        "executeMs": 10.095625,
+        "transportAndSchedulingMs": 46.01338599701977,
+        "requestBytes": 4341,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/base/Probabilities",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 23.5,
+        "prepareMs": 0.015417,
+        "executeMs": 3.766563,
+        "transportAndSchedulingMs": 19.71802,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/base/Probabilities",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 17.700000002980232,
+        "prepareMs": 0.027969,
+        "executeMs": 1.653177,
+        "transportAndSchedulingMs": 16.018854002980234,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/base/Probabilities",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 19.599999994039536,
+        "prepareMs": 0.015261,
+        "executeMs": 2.387864,
+        "transportAndSchedulingMs": 17.196874994039536,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/base/Probabilities",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 16.799999997019768,
+        "prepareMs": 0.013958,
+        "executeMs": 2.85625,
+        "transportAndSchedulingMs": 13.92979199701977,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/base/Probabilities",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 16.19999998807907,
+        "prepareMs": 0.015208,
+        "executeMs": 5.58875,
+        "transportAndSchedulingMs": 10.596041988079069,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/base/Context",
+        "repeat": 0,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 586.4000000059605,
+        "prepareMs": 542.322499,
+        "executeMs": 2.408959,
+        "transportAndSchedulingMs": 41.66854200596047,
+        "requestBytes": 4469,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/base/Context",
+        "repeat": 1,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 21.5,
+        "prepareMs": 0.015625,
+        "executeMs": 2.547969,
+        "transportAndSchedulingMs": 18.936405999999998,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/base/Context",
+        "repeat": 2,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 26.700000002980232,
+        "prepareMs": 0.013594,
+        "executeMs": 3.199427,
+        "transportAndSchedulingMs": 23.48697900298023,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/base/Context",
+        "repeat": 3,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 20.399999991059303,
+        "prepareMs": 0.014532,
+        "executeMs": 2.296666,
+        "transportAndSchedulingMs": 18.088801991059306,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/base/Context",
+        "repeat": 4,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 20.600000008940697,
+        "prepareMs": 0.015416,
+        "executeMs": 3.231198,
+        "transportAndSchedulingMs": 17.3533860089407,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/base/Context",
+        "repeat": 5,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 23.099999994039536,
+        "prepareMs": 0.016406,
+        "executeMs": 2.735052,
+        "transportAndSchedulingMs": 20.348541994039536,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/base/Merged",
+        "repeat": 0,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 653.7000000029802,
+        "prepareMs": 607.817135,
+        "executeMs": 7.508594,
+        "transportAndSchedulingMs": 38.37427100298022,
+        "requestBytes": 4837,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/base/Merged",
+        "repeat": 1,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 23.799999997019768,
+        "prepareMs": 0.017708,
+        "executeMs": 1.1625,
+        "transportAndSchedulingMs": 22.619791997019767,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/base/Merged",
+        "repeat": 2,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 25,
+        "prepareMs": 0.015313,
+        "executeMs": 2.197812,
+        "transportAndSchedulingMs": 22.786875000000002,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/base/Merged",
+        "repeat": 3,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 19.099999994039536,
+        "prepareMs": 0.01651,
+        "executeMs": 4.376667,
+        "transportAndSchedulingMs": 14.706822994039534,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/base/Merged",
+        "repeat": 4,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 18.899999991059303,
+        "prepareMs": 0.017761,
+        "executeMs": 1.452135,
+        "transportAndSchedulingMs": 17.430103991059305,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/base/Merged",
+        "repeat": 5,
+        "maxError": 5.305680339517949e-09,
+        "wallMs": 16.399999991059303,
+        "prepareMs": 0.016823,
+        "executeMs": 4.840521,
+        "transportAndSchedulingMs": 11.542655991059306,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/base/Output",
+        "repeat": 0,
+        "maxError": 5.948463032909301e-10,
+        "wallMs": 658.2000000029802,
+        "prepareMs": 614.8552070000001,
+        "executeMs": 8.955365,
+        "transportAndSchedulingMs": 34.38942800298017,
+        "requestBytes": 5361,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/base/Output",
+        "repeat": 1,
+        "maxError": 5.948463032909301e-10,
+        "wallMs": 21.299999997019768,
+        "prepareMs": 0.016979,
+        "executeMs": 2.73625,
+        "transportAndSchedulingMs": 18.54677099701977,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/base/Output",
+        "repeat": 2,
+        "maxError": 5.948463032909301e-10,
+        "wallMs": 20.900000005960464,
+        "prepareMs": 0.016198,
+        "executeMs": 2.905052,
+        "transportAndSchedulingMs": 17.978750005960464,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/base/Output",
+        "repeat": 3,
+        "maxError": 5.948463032909301e-10,
+        "wallMs": 22.5,
+        "prepareMs": 0.014792,
+        "executeMs": 1.78125,
+        "transportAndSchedulingMs": 20.703958,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/base/Output",
+        "repeat": 4,
+        "maxError": 5.948463032909301e-10,
+        "wallMs": 17.30000001192093,
+        "prepareMs": 0.01625,
+        "executeMs": 2.010989,
+        "transportAndSchedulingMs": 15.27276101192093,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/base/Output",
+        "repeat": 5,
+        "maxError": 5.948463032909301e-10,
+        "wallMs": 25.5,
+        "prepareMs": 0.01625,
+        "executeMs": 3.053698,
+        "transportAndSchedulingMs": 22.430052,
+        "requestBytes": 136,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Scores",
+        "repeat": 0,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 499.09999999403954,
+        "prepareMs": 456.09598900000003,
+        "executeMs": 8.62625,
+        "transportAndSchedulingMs": 34.377760994039505,
+        "requestBytes": 4036,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Scores",
+        "repeat": 1,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 19.30000001192093,
+        "prepareMs": 0.017761,
+        "executeMs": 3.627135,
+        "transportAndSchedulingMs": 15.65510401192093,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Scores",
+        "repeat": 2,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 18.399999991059303,
+        "prepareMs": 0.015365,
+        "executeMs": 3.16802,
+        "transportAndSchedulingMs": 15.216614991059304,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Scores",
+        "repeat": 3,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 19.799999997019768,
+        "prepareMs": 0.015208,
+        "executeMs": 2.296146,
+        "transportAndSchedulingMs": 17.488645997019766,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Scores",
+        "repeat": 4,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 17.400000005960464,
+        "prepareMs": 0.015886,
+        "executeMs": 4.339218,
+        "transportAndSchedulingMs": 13.044896005960467,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Scores",
+        "repeat": 5,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 19.5,
+        "prepareMs": 0.014532,
+        "executeMs": 2.825208,
+        "transportAndSchedulingMs": 16.66026,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 2892
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Masked",
+        "repeat": 0,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 505.79999999701977,
+        "prepareMs": 462.368802,
+        "executeMs": 8.880781,
+        "transportAndSchedulingMs": 34.55041699701975,
+        "requestBytes": 4212,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Masked",
+        "repeat": 1,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 19.399999991059303,
+        "prepareMs": 0.016823,
+        "executeMs": 2.780469,
+        "transportAndSchedulingMs": 16.602707991059305,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Masked",
+        "repeat": 2,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 17.299999997019768,
+        "prepareMs": 0.015365,
+        "executeMs": 2.344739,
+        "transportAndSchedulingMs": 14.939895997019768,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Masked",
+        "repeat": 3,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 19.599999994039536,
+        "prepareMs": 0.015052,
+        "executeMs": 2.499687,
+        "transportAndSchedulingMs": 17.085260994039533,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Masked",
+        "repeat": 4,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 23,
+        "prepareMs": 0.015261,
+        "executeMs": 3.06776,
+        "transportAndSchedulingMs": 19.916979,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Masked",
+        "repeat": 5,
+        "maxError": 1.7609808236618285e-08,
+        "wallMs": 18.5,
+        "prepareMs": 0.015469,
+        "executeMs": 2.62625,
+        "transportAndSchedulingMs": 15.858281,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3024
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Probabilities",
+        "repeat": 0,
+        "maxError": 0,
+        "wallMs": 560,
+        "prepareMs": 516.656927,
+        "executeMs": 10.667812,
+        "transportAndSchedulingMs": 32.675261000000006,
+        "requestBytes": 4340,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Probabilities",
+        "repeat": 1,
+        "maxError": 0,
+        "wallMs": 20.599999994039536,
+        "prepareMs": 0.007865,
+        "executeMs": 1.819739,
+        "transportAndSchedulingMs": 18.772395994039538,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Probabilities",
+        "repeat": 2,
+        "maxError": 0,
+        "wallMs": 16,
+        "prepareMs": 0.006875,
+        "executeMs": 2.390416,
+        "transportAndSchedulingMs": 13.602708999999999,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Probabilities",
+        "repeat": 3,
+        "maxError": 0,
+        "wallMs": 16.100000008940697,
+        "prepareMs": 0.008594,
+        "executeMs": 2.269166,
+        "transportAndSchedulingMs": 13.822240008940698,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Probabilities",
+        "repeat": 4,
+        "maxError": 0,
+        "wallMs": 19,
+        "prepareMs": 0.009323,
+        "executeMs": 3.935885,
+        "transportAndSchedulingMs": 15.054792000000003,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Probabilities",
+        "repeat": 5,
+        "maxError": 0,
+        "wallMs": 18.700000002980232,
+        "prepareMs": 0.008021,
+        "executeMs": 2.758646,
+        "transportAndSchedulingMs": 15.933333002980232,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3120
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Context",
+        "repeat": 0,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 609.2000000029802,
+        "prepareMs": 566.548593,
+        "executeMs": 7.485313,
+        "transportAndSchedulingMs": 35.16609400298025,
+        "requestBytes": 4468,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Context",
+        "repeat": 1,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 19.799999997019768,
+        "prepareMs": 0.01026,
+        "executeMs": 1.226198,
+        "transportAndSchedulingMs": 18.56354199701977,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Context",
+        "repeat": 2,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 23.599999994039536,
+        "prepareMs": 0.007813,
+        "executeMs": 2.733437,
+        "transportAndSchedulingMs": 20.858749994039538,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Context",
+        "repeat": 3,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 18.700000002980232,
+        "prepareMs": 0.008906,
+        "executeMs": 3.115521,
+        "transportAndSchedulingMs": 15.575573002980232,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Context",
+        "repeat": 4,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 20.400000005960464,
+        "prepareMs": 0.008177,
+        "executeMs": 4.676666,
+        "transportAndSchedulingMs": 15.715157005960464,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Context",
+        "repeat": 5,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 17.200000002980232,
+        "prepareMs": 0.007083,
+        "executeMs": 2.071562,
+        "transportAndSchedulingMs": 15.12135500298023,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Merged",
+        "repeat": 0,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 654.8999999910593,
+        "prepareMs": 616.584114,
+        "executeMs": 2.628542,
+        "transportAndSchedulingMs": 35.6873439910593,
+        "requestBytes": 4836,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Merged",
+        "repeat": 1,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 19.100000008940697,
+        "prepareMs": 0.009323,
+        "executeMs": 2.686875,
+        "transportAndSchedulingMs": 16.403802008940698,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Merged",
+        "repeat": 2,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 20.299999997019768,
+        "prepareMs": 0.009323,
+        "executeMs": 3.474166,
+        "transportAndSchedulingMs": 16.81651099701977,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Merged",
+        "repeat": 3,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 20.700000002980232,
+        "prepareMs": 0.00927,
+        "executeMs": 2.913803,
+        "transportAndSchedulingMs": 17.77692700298023,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Merged",
+        "repeat": 4,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 23,
+        "prepareMs": 0.017968,
+        "executeMs": 3.148073,
+        "transportAndSchedulingMs": 19.833959,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Merged",
+        "repeat": 5,
+        "maxError": 1.8486904451719965e-08,
+        "wallMs": 16.69999998807907,
+        "prepareMs": 0.010312,
+        "executeMs": 1.515677,
+        "transportAndSchedulingMs": 15.174010988079072,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3492
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Output",
+        "repeat": 0,
+        "maxError": 5.1430553218989594e-09,
+        "wallMs": 661.2999999970198,
+        "prepareMs": 619.867656,
+        "executeMs": 7.382291,
+        "transportAndSchedulingMs": 34.050052997019755,
+        "requestBytes": 5360,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Output",
+        "repeat": 1,
+        "maxError": 5.1430553218989594e-09,
+        "wallMs": 23.5,
+        "prepareMs": 0.008334,
+        "executeMs": 2.440885,
+        "transportAndSchedulingMs": 21.050780999999997,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Output",
+        "repeat": 2,
+        "maxError": 5.1430553218989594e-09,
+        "wallMs": 19.200000002980232,
+        "prepareMs": 0.008333,
+        "executeMs": 1.561198,
+        "transportAndSchedulingMs": 17.63046900298023,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Output",
+        "repeat": 3,
+        "maxError": 5.1430553218989594e-09,
+        "wallMs": 20.80000001192093,
+        "prepareMs": 0.01026,
+        "executeMs": 1.336459,
+        "transportAndSchedulingMs": 19.45328101192093,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Output",
+        "repeat": 4,
+        "maxError": 5.1430553218989594e-09,
+        "wallMs": 19.299999997019768,
+        "prepareMs": 0.00875,
+        "executeMs": 3.375,
+        "transportAndSchedulingMs": 15.916249997019769,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x1x1x3/future-changed/Output",
+        "repeat": 5,
+        "maxError": 5.1430553218989594e-09,
+        "wallMs": 19.799999997019768,
+        "prepareMs": 0.008386,
+        "executeMs": 1.746666,
+        "transportAndSchedulingMs": 18.044947997019765,
+        "requestBytes": 135,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3884
+      },
+      {
+        "stage": "1x3x2x3/base/Scores",
+        "repeat": 0,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 638.6000000089407,
+        "prepareMs": 594.914479,
+        "executeMs": 3.524479,
+        "transportAndSchedulingMs": 40.16104200894067,
+        "requestBytes": 4766,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/base/Scores",
+        "repeat": 1,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 21.399999991059303,
+        "prepareMs": 0.009011,
+        "executeMs": 1.861562,
+        "transportAndSchedulingMs": 19.529426991059303,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/base/Scores",
+        "repeat": 2,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 17.600000008940697,
+        "prepareMs": 0.01026,
+        "executeMs": 2.371823,
+        "transportAndSchedulingMs": 15.217917008940699,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/base/Scores",
+        "repeat": 3,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 19.599999994039536,
+        "prepareMs": 0.010104,
+        "executeMs": 1.715365,
+        "transportAndSchedulingMs": 17.87453099403954,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/base/Scores",
+        "repeat": 4,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 18.69999998807907,
+        "prepareMs": 0.009427,
+        "executeMs": 4.439167,
+        "transportAndSchedulingMs": 14.251405988079071,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/base/Scores",
+        "repeat": 5,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 18.799999997019768,
+        "prepareMs": 0.008385,
+        "executeMs": 2.16901,
+        "transportAndSchedulingMs": 16.622604997019767,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/base/Masked",
+        "repeat": 0,
+        "maxError": 0.0004505922188400291,
+        "wallMs": 639.5,
+        "prepareMs": 593.107864,
+        "executeMs": 7.821667,
+        "transportAndSchedulingMs": 38.57046900000005,
+        "requestBytes": 4986,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/base/Masked",
+        "repeat": 1,
+        "maxError": 0.0004505922188400291,
+        "wallMs": 24.299999997019768,
+        "prepareMs": 0.010365,
+        "executeMs": 2.999531,
+        "transportAndSchedulingMs": 21.290103997019767,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/base/Masked",
+        "repeat": 2,
+        "maxError": 0.0004505922188400291,
+        "wallMs": 21.5,
+        "prepareMs": 0.010104,
+        "executeMs": 1.892292,
+        "transportAndSchedulingMs": 19.597604,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/base/Masked",
+        "repeat": 3,
+        "maxError": 0.0004505922188400291,
+        "wallMs": 21.599999994039536,
+        "prepareMs": 0.008073,
+        "executeMs": 3.025365,
+        "transportAndSchedulingMs": 18.566561994039535,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/base/Masked",
+        "repeat": 4,
+        "maxError": 0.0004505922188400291,
+        "wallMs": 19.799999997019768,
+        "prepareMs": 0.008125,
+        "executeMs": 1.736354,
+        "transportAndSchedulingMs": 18.05552099701977,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/base/Masked",
+        "repeat": 5,
+        "maxError": 0.0004505922188400291,
+        "wallMs": 18,
+        "prepareMs": 0.010104,
+        "executeMs": 1.619896,
+        "transportAndSchedulingMs": 16.37,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/base/Probabilities",
+        "repeat": 0,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 683.3000000119209,
+        "prepareMs": 642.547187,
+        "executeMs": 4.114271,
+        "transportAndSchedulingMs": 36.63854201192092,
+        "requestBytes": 5114,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/base/Probabilities",
+        "repeat": 1,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 20.799999997019768,
+        "prepareMs": 0.008281,
+        "executeMs": 1.641823,
+        "transportAndSchedulingMs": 19.14989599701977,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/base/Probabilities",
+        "repeat": 2,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 19.299999997019768,
+        "prepareMs": 0.010365,
+        "executeMs": 1.837187,
+        "transportAndSchedulingMs": 17.452447997019767,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/base/Probabilities",
+        "repeat": 3,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 18.900000005960464,
+        "prepareMs": 0.009219,
+        "executeMs": 2.05125,
+        "transportAndSchedulingMs": 16.839531005960463,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/base/Probabilities",
+        "repeat": 4,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 21.400000005960464,
+        "prepareMs": 0.009583,
+        "executeMs": 3.389011,
+        "transportAndSchedulingMs": 18.001406005960465,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/base/Probabilities",
+        "repeat": 5,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 20.100000008940697,
+        "prepareMs": 0.008802,
+        "executeMs": 4.294427,
+        "transportAndSchedulingMs": 15.796771008940699,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/base/Context",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 737.1000000089407,
+        "prepareMs": 692.702552,
+        "executeMs": 8.038334,
+        "transportAndSchedulingMs": 36.35911400894073,
+        "requestBytes": 5242,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/base/Context",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21.799999997019768,
+        "prepareMs": 0.012396,
+        "executeMs": 2.608958,
+        "transportAndSchedulingMs": 19.178645997019768,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/base/Context",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 20.299999997019768,
+        "prepareMs": 0.009479,
+        "executeMs": 1.539427,
+        "transportAndSchedulingMs": 18.75109399701977,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/base/Context",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 25,
+        "prepareMs": 0.009375,
+        "executeMs": 3.13198,
+        "transportAndSchedulingMs": 21.858645000000003,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/base/Context",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 25.599999994039536,
+        "prepareMs": 0.009792,
+        "executeMs": 4.118437,
+        "transportAndSchedulingMs": 21.471770994039534,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/base/Context",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18,
+        "prepareMs": 0.009532,
+        "executeMs": 4.506458,
+        "transportAndSchedulingMs": 13.48401,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/base/Merged",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 734.5999999940395,
+        "prepareMs": 695.64828,
+        "executeMs": 7.702865,
+        "transportAndSchedulingMs": 31.248854994039537,
+        "requestBytes": 5610,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/base/Merged",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 22.599999994039536,
+        "prepareMs": 0.007448,
+        "executeMs": 1.621823,
+        "transportAndSchedulingMs": 20.970728994039536,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/base/Merged",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18.599999994039536,
+        "prepareMs": 0.00875,
+        "executeMs": 1.535469,
+        "transportAndSchedulingMs": 17.055780994039537,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/base/Merged",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18.600000008940697,
+        "prepareMs": 0.00875,
+        "executeMs": 1.477604,
+        "transportAndSchedulingMs": 17.113646008940698,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/base/Merged",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18.400000005960464,
+        "prepareMs": 0.010156,
+        "executeMs": 1.58625,
+        "transportAndSchedulingMs": 16.803594005960466,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/base/Merged",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 17.30000001192093,
+        "prepareMs": 0.007708,
+        "executeMs": 1.868281,
+        "transportAndSchedulingMs": 15.424011011920928,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/base/Output",
+        "repeat": 0,
+        "maxError": 2.8507959416723683e-08,
+        "wallMs": 737.3999999910593,
+        "prepareMs": 700.2577600000001,
+        "executeMs": 8.726094,
+        "transportAndSchedulingMs": 28.416145991059228,
+        "requestBytes": 6278,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/base/Output",
+        "repeat": 1,
+        "maxError": 2.8507959416723683e-08,
+        "wallMs": 18.200000002980232,
+        "prepareMs": 0.008907,
+        "executeMs": 3.109791,
+        "transportAndSchedulingMs": 15.081302002980232,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/base/Output",
+        "repeat": 2,
+        "maxError": 2.8507959416723683e-08,
+        "wallMs": 17.599999994039536,
+        "prepareMs": 0.008854,
+        "executeMs": 2.162968,
+        "transportAndSchedulingMs": 15.428177994039537,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/base/Output",
+        "repeat": 3,
+        "maxError": 2.8507959416723683e-08,
+        "wallMs": 19.19999998807907,
+        "prepareMs": 0.007916,
+        "executeMs": 1.809792,
+        "transportAndSchedulingMs": 17.382291988079068,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/base/Output",
+        "repeat": 4,
+        "maxError": 2.8507959416723683e-08,
+        "wallMs": 16.400000005960464,
+        "prepareMs": 0.00849,
+        "executeMs": 3.574166,
+        "transportAndSchedulingMs": 12.817344005960466,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/base/Output",
+        "repeat": 5,
+        "maxError": 2.8507959416723683e-08,
+        "wallMs": 17.599999994039536,
+        "prepareMs": 0.00849,
+        "executeMs": 4.775104,
+        "transportAndSchedulingMs": 12.816405994039538,
+        "requestBytes": 432,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Scores",
+        "repeat": 0,
+        "maxError": 9.971959302745859e-08,
+        "wallMs": 638.8999999910593,
+        "prepareMs": 595.002032,
+        "executeMs": 6.938958,
+        "transportAndSchedulingMs": 36.95900999105932,
+        "requestBytes": 4757,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Scores",
+        "repeat": 1,
+        "maxError": 9.971959302745859e-08,
+        "wallMs": 23.400000005960464,
+        "prepareMs": 0.00901,
+        "executeMs": 3.804219,
+        "transportAndSchedulingMs": 19.586771005960465,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Scores",
+        "repeat": 2,
+        "maxError": 9.971959302745859e-08,
+        "wallMs": 19.700000002980232,
+        "prepareMs": 0.008177,
+        "executeMs": 1.621875,
+        "transportAndSchedulingMs": 18.069948002980233,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Scores",
+        "repeat": 3,
+        "maxError": 9.971959302745859e-08,
+        "wallMs": 16.5,
+        "prepareMs": 0.008802,
+        "executeMs": 3.532031,
+        "transportAndSchedulingMs": 12.959167,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Scores",
+        "repeat": 4,
+        "maxError": 9.971959302745859e-08,
+        "wallMs": 18.899999991059303,
+        "prepareMs": 0.008178,
+        "executeMs": 1.622291,
+        "transportAndSchedulingMs": 17.269530991059302,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Scores",
+        "repeat": 5,
+        "maxError": 9.971959302745859e-08,
+        "wallMs": 18.700000002980232,
+        "prepareMs": 0.009531,
+        "executeMs": 3.059115,
+        "transportAndSchedulingMs": 15.631354002980233,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Masked",
+        "repeat": 0,
+        "maxError": 0.0004738395527965622,
+        "wallMs": 646.7999999970198,
+        "prepareMs": 607.939114,
+        "executeMs": 3.758959,
+        "transportAndSchedulingMs": 35.10192699701975,
+        "requestBytes": 4977,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Masked",
+        "repeat": 1,
+        "maxError": 0.0004738395527965622,
+        "wallMs": 20.700000002980232,
+        "prepareMs": 0.00849,
+        "executeMs": 2.676927,
+        "transportAndSchedulingMs": 18.014583002980235,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Masked",
+        "repeat": 2,
+        "maxError": 0.0004738395527965622,
+        "wallMs": 24.099999994039536,
+        "prepareMs": 0.010104,
+        "executeMs": 1.881406,
+        "transportAndSchedulingMs": 22.20848999403954,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Masked",
+        "repeat": 3,
+        "maxError": 0.0004738395527965622,
+        "wallMs": 22,
+        "prepareMs": 0.009531,
+        "executeMs": 1.664792,
+        "transportAndSchedulingMs": 20.325677000000002,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Masked",
+        "repeat": 4,
+        "maxError": 0.0004738395527965622,
+        "wallMs": 18.599999994039536,
+        "prepareMs": 0.00875,
+        "executeMs": 2.725261,
+        "transportAndSchedulingMs": 15.865988994039537,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Masked",
+        "repeat": 5,
+        "maxError": 0.0004738395527965622,
+        "wallMs": 17.899999991059303,
+        "prepareMs": 0.007084,
+        "executeMs": 3.121927,
+        "transportAndSchedulingMs": 14.770988991059305,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3380
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Probabilities",
+        "repeat": 0,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 698.2000000029802,
+        "prepareMs": 655.460364,
+        "executeMs": 7.407344,
+        "transportAndSchedulingMs": 35.3322920029802,
+        "requestBytes": 5105,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Probabilities",
+        "repeat": 1,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 22.299999997019768,
+        "prepareMs": 0.00901,
+        "executeMs": 2.319219,
+        "transportAndSchedulingMs": 19.971770997019767,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Probabilities",
+        "repeat": 2,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 21.900000005960464,
+        "prepareMs": 0.010834,
+        "executeMs": 2.335833,
+        "transportAndSchedulingMs": 19.553333005960464,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Probabilities",
+        "repeat": 3,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 21.599999994039536,
+        "prepareMs": 0.009427,
+        "executeMs": 2.963281,
+        "transportAndSchedulingMs": 18.62729199403954,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Probabilities",
+        "repeat": 4,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 24.799999997019768,
+        "prepareMs": 0.01151,
+        "executeMs": 4.099792,
+        "transportAndSchedulingMs": 20.688697997019766,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Probabilities",
+        "repeat": 5,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 20.80000001192093,
+        "prepareMs": 0.010469,
+        "executeMs": 4.102812,
+        "transportAndSchedulingMs": 16.68671901192093,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3476
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Context",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 750.9000000059605,
+        "prepareMs": 707.816146,
+        "executeMs": 6.764219,
+        "transportAndSchedulingMs": 36.319635005960464,
+        "requestBytes": 5233,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Context",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21.5,
+        "prepareMs": 0.00974,
+        "executeMs": 2.531614,
+        "transportAndSchedulingMs": 18.958645999999998,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Context",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 19.200000002980232,
+        "prepareMs": 0.008125,
+        "executeMs": 1.49427,
+        "transportAndSchedulingMs": 17.697605002980232,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Context",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21.900000005960464,
+        "prepareMs": 0.008282,
+        "executeMs": 1.536718,
+        "transportAndSchedulingMs": 20.355000005960463,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Context",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21.700000002980232,
+        "prepareMs": 0.009219,
+        "executeMs": 2.646198,
+        "transportAndSchedulingMs": 19.044583002980232,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Context",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 19.600000008940697,
+        "prepareMs": 0.009687,
+        "executeMs": 4.950261,
+        "transportAndSchedulingMs": 14.640052008940696,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3572
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Merged",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 731.7000000029802,
+        "prepareMs": 693.418229,
+        "executeMs": 6.635417,
+        "transportAndSchedulingMs": 31.646354002980235,
+        "requestBytes": 5601,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Merged",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21.799999997019768,
+        "prepareMs": 0.011197,
+        "executeMs": 2.477188,
+        "transportAndSchedulingMs": 19.311614997019767,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Merged",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18.5,
+        "prepareMs": 0.012188,
+        "executeMs": 6.971979,
+        "transportAndSchedulingMs": 11.515833,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Merged",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18.900000005960464,
+        "prepareMs": 0.010416,
+        "executeMs": 1.373646,
+        "transportAndSchedulingMs": 17.515938005960464,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Merged",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 16.19999998807907,
+        "prepareMs": 0.007136,
+        "executeMs": 1.522604,
+        "transportAndSchedulingMs": 14.670259988079072,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Merged",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 15.700000002980232,
+        "prepareMs": 0.006928,
+        "executeMs": 1.951979,
+        "transportAndSchedulingMs": 13.741093002980232,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3848
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Output",
+        "repeat": 0,
+        "maxError": 2.006503320439723e-08,
+        "wallMs": 713.2000000029802,
+        "prepareMs": 676.931667,
+        "executeMs": 7.59302,
+        "transportAndSchedulingMs": 28.675313002980285,
+        "requestBytes": 6269,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Output",
+        "repeat": 1,
+        "maxError": 2.006503320439723e-08,
+        "wallMs": 18.5,
+        "prepareMs": 0.008646,
+        "executeMs": 1.680937,
+        "transportAndSchedulingMs": 16.810417,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Output",
+        "repeat": 2,
+        "maxError": 2.006503320439723e-08,
+        "wallMs": 19.799999997019768,
+        "prepareMs": 0.009687,
+        "executeMs": 1.644896,
+        "transportAndSchedulingMs": 18.14541699701977,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Output",
+        "repeat": 3,
+        "maxError": 2.006503320439723e-08,
+        "wallMs": 18.400000005960464,
+        "prepareMs": 0.008386,
+        "executeMs": 2.419479,
+        "transportAndSchedulingMs": 15.972135005960464,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Output",
+        "repeat": 4,
+        "maxError": 2.006503320439723e-08,
+        "wallMs": 19.600000008940697,
+        "prepareMs": 0.010208,
+        "executeMs": 1.696771,
+        "transportAndSchedulingMs": 17.8930210089407,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "1x3x2x3/future-changed/Output",
+        "repeat": 5,
+        "maxError": 2.006503320439723e-08,
+        "wallMs": 19.5,
+        "prepareMs": 0.014583,
+        "executeMs": 5.638281,
+        "transportAndSchedulingMs": 13.847136000000003,
+        "requestBytes": 423,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4348
+      },
+      {
+        "stage": "2x5x2x3/base/Scores",
+        "repeat": 0,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 648.9000000059605,
+        "prepareMs": 606.340677,
+        "executeMs": 3.522135,
+        "transportAndSchedulingMs": 39.03718800596044,
+        "requestBytes": 5591,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/base/Scores",
+        "repeat": 1,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 22.599999994039536,
+        "prepareMs": 0.009375,
+        "executeMs": 2.398021,
+        "transportAndSchedulingMs": 20.192603994039537,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/base/Scores",
+        "repeat": 2,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 21.299999997019768,
+        "prepareMs": 0.010156,
+        "executeMs": 2.236927,
+        "transportAndSchedulingMs": 19.052916997019768,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/base/Scores",
+        "repeat": 3,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 24.400000005960464,
+        "prepareMs": 0.011198,
+        "executeMs": 3.254166,
+        "transportAndSchedulingMs": 21.134636005960463,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/base/Scores",
+        "repeat": 4,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 20.099999994039536,
+        "prepareMs": 0.009427,
+        "executeMs": 3.71323,
+        "transportAndSchedulingMs": 16.377342994039537,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/base/Scores",
+        "repeat": 5,
+        "maxError": 2.5435150957653363e-08,
+        "wallMs": 17.69999998807907,
+        "prepareMs": 0.009375,
+        "executeMs": 3.930625,
+        "transportAndSchedulingMs": 13.759999988079073,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/base/Masked",
+        "repeat": 0,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 650.7999999970198,
+        "prepareMs": 605.303125,
+        "executeMs": 7.924271,
+        "transportAndSchedulingMs": 37.57260399701975,
+        "requestBytes": 5895,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/base/Masked",
+        "repeat": 1,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 20.900000005960464,
+        "prepareMs": 0.011718,
+        "executeMs": 1.374792,
+        "transportAndSchedulingMs": 19.513490005960467,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/base/Masked",
+        "repeat": 2,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 19.099999994039536,
+        "prepareMs": 0.012813,
+        "executeMs": 2.024739,
+        "transportAndSchedulingMs": 17.062447994039534,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/base/Masked",
+        "repeat": 3,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 20,
+        "prepareMs": 0.011146,
+        "executeMs": 1.638021,
+        "transportAndSchedulingMs": 18.350833,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/base/Masked",
+        "repeat": 4,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 21.5,
+        "prepareMs": 0.009427,
+        "executeMs": 1.478385,
+        "transportAndSchedulingMs": 20.012188000000002,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/base/Masked",
+        "repeat": 5,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 17.200000002980232,
+        "prepareMs": 0.008542,
+        "executeMs": 5.407812,
+        "transportAndSchedulingMs": 11.783646002980234,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/base/Probabilities",
+        "repeat": 0,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 703.2999999970198,
+        "prepareMs": 666.8642189999999,
+        "executeMs": 2.901094,
+        "transportAndSchedulingMs": 33.53468699701983,
+        "requestBytes": 6023,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/base/Probabilities",
+        "repeat": 1,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 22.399999991059303,
+        "prepareMs": 0.00974,
+        "executeMs": 1.926354,
+        "transportAndSchedulingMs": 20.463905991059303,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/base/Probabilities",
+        "repeat": 2,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 19,
+        "prepareMs": 0.009375,
+        "executeMs": 1.873177,
+        "transportAndSchedulingMs": 17.117448000000003,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/base/Probabilities",
+        "repeat": 3,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 17,
+        "prepareMs": 0.009167,
+        "executeMs": 1.563958,
+        "transportAndSchedulingMs": 15.426874999999999,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/base/Probabilities",
+        "repeat": 4,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 17.899999991059303,
+        "prepareMs": 0.009375,
+        "executeMs": 1.681563,
+        "transportAndSchedulingMs": 16.209061991059304,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/base/Probabilities",
+        "repeat": 5,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 17,
+        "prepareMs": 0.008854,
+        "executeMs": 2.3825,
+        "transportAndSchedulingMs": 14.608646,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/base/Context",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 763.7000000029802,
+        "prepareMs": 723.6866150000001,
+        "executeMs": 2.573021,
+        "transportAndSchedulingMs": 37.44036400298016,
+        "requestBytes": 6151,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/base/Context",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 23.299999997019768,
+        "prepareMs": 0.009583,
+        "executeMs": 1.883021,
+        "transportAndSchedulingMs": 21.40739599701977,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/base/Context",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21.900000005960464,
+        "prepareMs": 0.010416,
+        "executeMs": 1.88099,
+        "transportAndSchedulingMs": 20.008594005960465,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/base/Context",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 17.899999991059303,
+        "prepareMs": 0.01,
+        "executeMs": 1.727552,
+        "transportAndSchedulingMs": 16.162447991059302,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/base/Context",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 17.099999994039536,
+        "prepareMs": 0.010781,
+        "executeMs": 1.395365,
+        "transportAndSchedulingMs": 15.693853994039534,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/base/Context",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 16.900000005960464,
+        "prepareMs": 0.009166,
+        "executeMs": 3.803438,
+        "transportAndSchedulingMs": 13.087396005960464,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/base/Merged",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 761.9000000059605,
+        "prepareMs": 719.080364,
+        "executeMs": 7.946875,
+        "transportAndSchedulingMs": 34.872761005960434,
+        "requestBytes": 6519,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/base/Merged",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18,
+        "prepareMs": 0.008854,
+        "executeMs": 1.738907,
+        "transportAndSchedulingMs": 16.252239,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/base/Merged",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 18.80000001192093,
+        "prepareMs": 0.009844,
+        "executeMs": 1.697813,
+        "transportAndSchedulingMs": 17.092343011920928,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/base/Merged",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 22.799999997019768,
+        "prepareMs": 0.009584,
+        "executeMs": 4.297968,
+        "transportAndSchedulingMs": 18.492447997019767,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/base/Merged",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 23,
+        "prepareMs": 0.010573,
+        "executeMs": 3.689584,
+        "transportAndSchedulingMs": 19.299843,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/base/Merged",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 19.30000001192093,
+        "prepareMs": 0.008177,
+        "executeMs": 1.566094,
+        "transportAndSchedulingMs": 17.72572901192093,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/base/Output",
+        "repeat": 0,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 803.4000000059605,
+        "prepareMs": 758.28052,
+        "executeMs": 7.900834,
+        "transportAndSchedulingMs": 37.21864600596044,
+        "requestBytes": 7187,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/base/Output",
+        "repeat": 1,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 19.099999994039536,
+        "prepareMs": 0.010469,
+        "executeMs": 1.483437,
+        "transportAndSchedulingMs": 17.606093994039536,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/base/Output",
+        "repeat": 2,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 22,
+        "prepareMs": 0.009532,
+        "executeMs": 2.285573,
+        "transportAndSchedulingMs": 19.704895,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/base/Output",
+        "repeat": 3,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 17.200000002980232,
+        "prepareMs": 0.008906,
+        "executeMs": 1.489062,
+        "transportAndSchedulingMs": 15.702032002980232,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/base/Output",
+        "repeat": 4,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 18.700000002980232,
+        "prepareMs": 0.01,
+        "executeMs": 1.651354,
+        "transportAndSchedulingMs": 17.03864600298023,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/base/Output",
+        "repeat": 5,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 18.900000005960464,
+        "prepareMs": 0.008073,
+        "executeMs": 4.479636,
+        "transportAndSchedulingMs": 14.412291005960466,
+        "requestBytes": 1257,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Scores",
+        "repeat": 0,
+        "maxError": 1.0556401619510325e-07,
+        "wallMs": 649.1999999880791,
+        "prepareMs": 609.802761,
+        "executeMs": 2.912292,
+        "transportAndSchedulingMs": 36.48494698807904,
+        "requestBytes": 5579,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Scores",
+        "repeat": 1,
+        "maxError": 1.0556401619510325e-07,
+        "wallMs": 22.900000005960464,
+        "prepareMs": 0.010572,
+        "executeMs": 1.786407,
+        "transportAndSchedulingMs": 21.103021005960464,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Scores",
+        "repeat": 2,
+        "maxError": 1.0556401619510325e-07,
+        "wallMs": 18.900000005960464,
+        "prepareMs": 0.016927,
+        "executeMs": 1.458177,
+        "transportAndSchedulingMs": 17.424896005960466,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Scores",
+        "repeat": 3,
+        "maxError": 1.0556401619510325e-07,
+        "wallMs": 19.100000008940697,
+        "prepareMs": 0.009531,
+        "executeMs": 2.690312,
+        "transportAndSchedulingMs": 16.4001570089407,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Scores",
+        "repeat": 4,
+        "maxError": 1.0556401619510325e-07,
+        "wallMs": 17.299999997019768,
+        "prepareMs": 0.016094,
+        "executeMs": 2.787344,
+        "transportAndSchedulingMs": 14.496561997019768,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Scores",
+        "repeat": 5,
+        "maxError": 1.0556401619510325e-07,
+        "wallMs": 19.399999991059303,
+        "prepareMs": 0.011875,
+        "executeMs": 3.801614,
+        "transportAndSchedulingMs": 15.586510991059303,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3216
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Masked",
+        "repeat": 0,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 645.2000000029802,
+        "prepareMs": 606.759635,
+        "executeMs": 7.454166,
+        "transportAndSchedulingMs": 30.98619900298023,
+        "requestBytes": 5883,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Masked",
+        "repeat": 1,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 19.200000002980232,
+        "prepareMs": 0.010208,
+        "executeMs": 2.36125,
+        "transportAndSchedulingMs": 16.828542002980235,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Masked",
+        "repeat": 2,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 20,
+        "prepareMs": 0.012031,
+        "executeMs": 2.154479,
+        "transportAndSchedulingMs": 17.83349,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Masked",
+        "repeat": 3,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 16.5,
+        "prepareMs": 0.032604,
+        "executeMs": 2.078698,
+        "transportAndSchedulingMs": 14.388698000000002,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Masked",
+        "repeat": 4,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 16.099999994039536,
+        "prepareMs": 0.013802,
+        "executeMs": 2.655052,
+        "transportAndSchedulingMs": 13.431145994039538,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Masked",
+        "repeat": 5,
+        "maxError": 0.00048179867917497177,
+        "wallMs": 19.100000008940697,
+        "prepareMs": 0.012448,
+        "executeMs": 3.009323,
+        "transportAndSchedulingMs": 16.078229008940696,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3444
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Probabilities",
+        "repeat": 0,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 712.2000000029802,
+        "prepareMs": 670.482343,
+        "executeMs": 2.696563,
+        "transportAndSchedulingMs": 39.02109400298022,
+        "requestBytes": 6011,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Probabilities",
+        "repeat": 1,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 23.200000002980232,
+        "prepareMs": 0.012656,
+        "executeMs": 1.478541,
+        "transportAndSchedulingMs": 21.708803002980233,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Probabilities",
+        "repeat": 2,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 19.19999998807907,
+        "prepareMs": 0.013021,
+        "executeMs": 1.720937,
+        "transportAndSchedulingMs": 17.466041988079073,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Probabilities",
+        "repeat": 3,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 19.099999994039536,
+        "prepareMs": 0.012448,
+        "executeMs": 2.736406,
+        "transportAndSchedulingMs": 16.351145994039538,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Probabilities",
+        "repeat": 4,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 20,
+        "prepareMs": 0.012083,
+        "executeMs": 1.872031,
+        "transportAndSchedulingMs": 18.115886,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Probabilities",
+        "repeat": 5,
+        "maxError": 5.929110458158249e-08,
+        "wallMs": 17.200000002980232,
+        "prepareMs": 0.01302,
+        "executeMs": 1.441667,
+        "transportAndSchedulingMs": 15.74531300298023,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3540
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Context",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 751.9000000059605,
+        "prepareMs": 710.691199,
+        "executeMs": 8.040521,
+        "transportAndSchedulingMs": 33.16828000596048,
+        "requestBytes": 6139,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Context",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 19.19999998807907,
+        "prepareMs": 0.010886,
+        "executeMs": 1.581354,
+        "transportAndSchedulingMs": 17.60775998807907,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Context",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 16.799999997019768,
+        "prepareMs": 0.011823,
+        "executeMs": 1.79573,
+        "transportAndSchedulingMs": 14.992446997019767,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Context",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 17.200000002980232,
+        "prepareMs": 0.012032,
+        "executeMs": 2.266562,
+        "transportAndSchedulingMs": 14.92140600298023,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Context",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 17.899999991059303,
+        "prepareMs": 0.014062,
+        "executeMs": 1.934063,
+        "transportAndSchedulingMs": 15.951874991059304,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Context",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 16.599999994039536,
+        "prepareMs": 0.01125,
+        "executeMs": 1.816093,
+        "transportAndSchedulingMs": 14.772656994039535,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3636
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Merged",
+        "repeat": 0,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 757.0999999940395,
+        "prepareMs": 717.904897,
+        "executeMs": 7.448958,
+        "transportAndSchedulingMs": 31.74614499403953,
+        "requestBytes": 6507,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Merged",
+        "repeat": 1,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 24.799999997019768,
+        "prepareMs": 0.011666,
+        "executeMs": 2.361094,
+        "transportAndSchedulingMs": 22.427239997019765,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Merged",
+        "repeat": 2,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 23.799999997019768,
+        "prepareMs": 0.011042,
+        "executeMs": 1.826406,
+        "transportAndSchedulingMs": 21.96255199701977,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Merged",
+        "repeat": 3,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 20.5,
+        "prepareMs": 0.013177,
+        "executeMs": 3.356927,
+        "transportAndSchedulingMs": 17.129896000000002,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Merged",
+        "repeat": 4,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 21,
+        "prepareMs": 0.009687,
+        "executeMs": 8.799011,
+        "transportAndSchedulingMs": 12.191302,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Merged",
+        "repeat": 5,
+        "maxError": 6.290838705513835e-08,
+        "wallMs": 15.300000011920929,
+        "prepareMs": 0.008281,
+        "executeMs": 5.640886,
+        "transportAndSchedulingMs": 9.650833011920929,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 3912
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Output",
+        "repeat": 0,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 793.3999999910593,
+        "prepareMs": 749.7099999999999,
+        "executeMs": 8.118177,
+        "transportAndSchedulingMs": 35.57182299105938,
+        "requestBytes": 7175,
+        "actions": [
+          "load",
+          "invoke"
+        ],
+        "modelTransmissions": 1,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Output",
+        "repeat": 1,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 20.400000005960464,
+        "prepareMs": 0.012761,
+        "executeMs": 1.861927,
+        "transportAndSchedulingMs": 18.525312005960462,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Output",
+        "repeat": 2,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 19.700000002980232,
+        "prepareMs": 0.012343,
+        "executeMs": 1.557813,
+        "transportAndSchedulingMs": 18.12984400298023,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Output",
+        "repeat": 3,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 18.600000008940697,
+        "prepareMs": 0.012448,
+        "executeMs": 1.769062,
+        "transportAndSchedulingMs": 16.8184900089407,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Output",
+        "repeat": 4,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 21.099999994039536,
+        "prepareMs": 0.011875,
+        "executeMs": 1.745625,
+        "transportAndSchedulingMs": 19.342499994039535,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      },
+      {
+        "stage": "2x5x2x3/future-changed/Output",
+        "repeat": 5,
+        "maxError": 2.1057378819799855e-08,
+        "wallMs": 17.100000008940697,
+        "prepareMs": 0.0125,
+        "executeMs": 2.690729,
+        "transportAndSchedulingMs": 14.396771008940696,
+        "requestBytes": 1245,
+        "actions": [
+          "invoke"
+        ],
+        "modelTransmissions": 0,
+        "modelBytes": 4412
+      }
+    ]
+  },
+  "androidUI": {
+    "compiledInApp": true,
+    "causalAttention": true,
+    "persisted": true
+  },
+  "androidFullDelegationLog": [
+    "10-28 07:16:45.615 23841 22858 I tflite  : Replacing 5 out of 5 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:16:47.715 23841 22858 I tflite  : Replacing 20 out of 20 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:35.210 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:35.814 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:36.422 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:37.061 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:37.773 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:38.530 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:39.294 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:39.894 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:40.500 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:41.150 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:41.863 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:42.622 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:43.388 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:44.122 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:44.870 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:45.662 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:46.508 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:47.344 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:48.168 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:48.909 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:49.662 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:50.476 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:51.332 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:52.146 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:52.966 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:53.725 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:54.478 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:55.277 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:56.141 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:57.008 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:57.909 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:58.654 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:59.398 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:18:00.206 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:18:01.053 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:18:01.908 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ()."
+  ],
+  "androidFixtureDelegationLog": [
+    "10-28 07:17:35.210 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:35.814 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:36.422 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:37.061 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:37.773 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:38.530 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:39.294 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:39.894 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:40.500 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:41.150 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:41.863 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:42.622 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:43.388 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:44.122 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:44.870 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:45.662 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:46.508 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:47.344 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:48.168 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:48.909 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:49.662 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:50.476 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:51.332 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:52.146 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:52.966 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:53.725 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:54.478 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:55.277 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:56.141 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:57.008 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:57.909 23841 22858 I tflite  : Replacing 14 out of 14 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:58.654 23841 22858 I tflite  : Replacing 15 out of 15 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:17:59.398 23841 22858 I tflite  : Replacing 16 out of 16 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:18:00.206 23841 22858 I tflite  : Replacing 17 out of 17 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:18:01.053 23841 22858 I tflite  : Replacing 19 out of 19 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ().",
+    "10-28 07:18:01.908 23841 22858 I tflite  : Replacing 22 out of 22 node(s) with delegate (LITERT_CL) node, yielding 1 partitions for subgraph 0 ()."
+  ],
+  "coverage": [
+    "scaled scores",
+    "masked scores",
+    "softmax probabilities",
+    "per-head context",
+    "merged heads",
+    "output projection",
+    "probability row sums",
+    "zero future probability",
+    "earlier outputs unchanged after final-token perturbation"
+  ],
+  "limits": [
+    "Fixed contexts 1, 3, 5; batch and head counts 1 or 2; head width 3",
+    "Finite -10000 mask validated for bounded fixtures only",
+    "Synthetic weights, no trained checkpoint",
+    "Full test suite not run"
+  ],
+  "validation": {
+    "focusedTests": 27,
+    "typescriptBuild": true,
+    "androidApkBuild": true
+  },
+  "sha256": {
+    "scripts/mlrank-attention-check.mjs": "bf2172171483c69a1297ec636813d9d0616d5330d420c262de6c82dd02e7cf78",
+    "packages/web/test/ram-attention.playwright.js": "b64e9f530ae6a136d69e0fa9f9d6115669ceedb0406a001211243a95ea0a12a7",
+    "packages/web/test/ram-attention-ui.playwright.js": "b55870876749f2004487b314375dfb6a52c02fa73170252ba8d57f5b630a8332",
+    "packages/interpreter/src/mlrank.ts": "5332af3b9a68810cc71400496739d13152a0a862d0db876f151be28b9d592ae7",
+    "demos/mlrank/attention.ram": "b1c5ed55c0cfdb3b2ad6a176f6bd1a9e7ed1766288e51dcebf2192cdaf279243"
+  }
+}

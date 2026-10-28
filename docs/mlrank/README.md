@@ -863,3 +863,38 @@ The Python comparison emits both a literal translation of the lowered RAM graph
 and natural Core ML operations, so the latter can avoid LiteRT-specific batch
 expansion. This is a benchmark adapter, not a Core ML backend integrated into
 Rank or Android. [Recorded results](../../benchmarks/baselines/2026-10-27-mlrank-coreml-comparison.json).
+
+## Causal attention (stage 11)
+
+[`attention.ra`](../../demos/mlrank/attention.ra) imports
+[`attention.ram`](../../demos/mlrank/attention.ram), a fixed FP32 graph with Q/K/V
+projection, head splitting, scaled QKᵀ, a baked causal mask, last-axis softmax,
+attention × V, head merging and output projection. It uses existing RAM operations.
+The deterministic example weights are not a trained checkpoint.
+
+Validation on 2026-10-28 covers 36 fixtures: six intermediate/output stages,
+three shapes and two inputs differing only at the final token. Context lengths
+are 1, 3 and 5; batch sizes and head counts are 1 or 2; head width is 3.
+An independent JavaScript scalar implementation supplies the reference.
+Mac and Intel each pass 108 GPU calls; OnePlus passes 216. The runners check
+atol=rtol=1e-5, row probability sums, exactly zero future probabilities for these
+fixtures, and unchanged earlier outputs when the last token changes.
+
+Maximum absolute error outside masked scores is below 1.06e-7. Masked scores
+have absolute error up to 4.82e-4 at magnitude 10000, consistent with FP32
+rounding and within the same relative tolerance. The finite -10000 mask is
+validated for these bounded fixtures; this is not a guarantee for unbounded
+logits or a trained checkpoint. Native Android logs confirm full GPU delegation.
+The UI test compiles integer `fill 1` weights in the app, runs attention from
+Program, checks the analytical output, reloads and verifies source persistence.
+It restores the original example afterward.
+
+Run `node scripts/mlrank-attention-check.mjs`; add `--android` to generate
+`output/playwright/ram-attention.js` for the native bridge checks. The UI check
+is `packages/web/test/ram-attention-ui.playwright.js`. `--compile-only` checks
+all graph shapes without a GPU; `--write-demo --compile-only` also regenerates
+the demo module. See the [recorded results](../../benchmarks/baselines/2026-10-28-mlrank-attention.json).
+These are correctness checks, not a throughput or memory benchmark. The
+TypeScript build, Android APK build and 27 focused interpreter tests pass;
+the full test suite was not run. The next stage combines attention with
+LayerNorm, residual connections and an MLP into a small transformer block.

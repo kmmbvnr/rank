@@ -74,7 +74,8 @@ describe('RAM ReLU MVP', () => {
         for (const expression of ['array shape 2 3 fill 1', 'array shape (1 + 1) 3 fill (2 - 1)',
             '(array 1 1 1 1 1 1) reshape 2 3'])
             expect(bake(expression)).toMatchObject({kind:'constant', values:[1,1,1,1,1,1]});
-        expect(bake('(1 to 6) reshape 2 3')).toMatchObject({values:[1,2,3,4,5,6]});
+        for (const expression of ['(1 to 6) reshape 2 3', 'array 1 to 6 shape 2 3'])
+            expect(bake(expression)).toMatchObject({values:[1,2,3,4,5,6]});
         expect(bake('(array 1 2 3 4 5 6 shape 3 2) transpose')).toMatchObject({values:[1,3,5,2,4,6]});
         expect(bake('(array 1 2 3 4 5 6 shape 2 3) * 2')).toMatchObject({values:[2,4,6,8,10,12]});
         const source = 'use ml\noption X .f32 shape 2 3\noption A .f32 shape 2 3 = (1 to 6) reshape 2 3\n'
