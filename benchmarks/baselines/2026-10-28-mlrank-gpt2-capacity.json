@@ -1,0 +1,1714 @@
+{
+  "tensors": [
+    {
+      "name": "h.3.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.4.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.8.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.2.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.7.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.8.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.8.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.11.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.1.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.9.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.5.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "wpe.weight",
+      "dtype": "F32",
+      "shape": [
+        1024,
+        768
+      ],
+      "elements": 786432,
+      "f32Bytes": 3145728,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.0.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.0.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.0.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.8.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.2.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "ln_f.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.4.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.3.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.6.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.9.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.6.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.3.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.2.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "wte.weight",
+      "dtype": "F32",
+      "shape": [
+        50257,
+        768
+      ],
+      "elements": 38597376,
+      "f32Bytes": 154389504,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.5.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.6.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.8.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.2.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.10.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.10.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.2.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.9.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.3.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.3.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.2.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.ln_1.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.9.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.5.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.mlp.c_fc.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        3072
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.4.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.0.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.attn.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.mlp.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        3072,
+        768
+      ],
+      "elements": 2359296,
+      "f32Bytes": 9437184,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.4.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.11.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.5.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "ln_f.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.7.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.attn.c_attn.bias",
+      "dtype": "F32",
+      "shape": [
+        2304
+      ],
+      "elements": 2304,
+      "f32Bytes": 9216,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.ln_2.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.attn.c_proj.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        768
+      ],
+      "elements": 589824,
+      "f32Bytes": 2359296,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.8.mlp.c_fc.bias",
+      "dtype": "F32",
+      "shape": [
+        3072
+      ],
+      "elements": 3072,
+      "f32Bytes": 12288,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.ln_2.weight",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.1.attn.c_attn.weight",
+      "dtype": "F32",
+      "shape": [
+        768,
+        2304
+      ],
+      "elements": 1769472,
+      "f32Bytes": 7077888,
+      "fitsTensorLimit": false
+    },
+    {
+      "name": "h.1.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.10.attn.bias",
+      "dtype": "F32",
+      "shape": [
+        1,
+        1,
+        1024,
+        1024
+      ],
+      "elements": 1048576,
+      "f32Bytes": 4194304,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.6.mlp.c_proj.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    },
+    {
+      "name": "h.4.ln_1.bias",
+      "dtype": "F32",
+      "shape": [
+        768
+      ],
+      "elements": 768,
+      "f32Bytes": 3072,
+      "fitsTensorLimit": true
+    }
+  ],
+  "totalF32Bytes": 548090880,
+  "fitsConstantBudget": false,
+  "fitsAttachmentPayloadBudget": false,
+  "fitsAttachmentCount": false,
+  "note": "Budgets assume all listed tensors imported as f32; attachment headers add bytes. This does not check graph nodes, intermediate tensors, GPU memory or execution.",
+  "checkpoint": "openai-community/gpt2",
+  "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+  "sourceUrl": "https://huggingface.co/openai-community/gpt2/resolve/607a30d783dfa663caf39e06633721c8d4cfcd7e/model.safetensors",
+  "headerSha256": "6201ba7dfaf69457803f802c211019e95f0c1a99a1f5387dcb53e500e5e30e85",
+  "headerRange": [
+    0,
+    14290
+  ],
+  "sourcePayloadBytes": 548090880,
+  "verification": {
+    "scope": "Capacity audit of the complete Safetensors header only. No full checkpoint download, import or forward run claimed.",
+    "headerBytes": 14291,
+    "tensorCount": 160,
+    "tensorsOverCurrentElementLimit": 37
+  },
+  "metadata": {
+    "format": "pt"
+  },
+  "reproduce": "Fetch sourceUrl with HTTP Range bytes=0-14290. Decode the first 8 bytes as little-endian uint64 header length; parse that many UTF-8 JSON bytes. For each tensor multiply shape dimensions and multiply by 4 for FP32 size. Compare against current limits; headerSha256 hashes the entire fetched range."
+}
