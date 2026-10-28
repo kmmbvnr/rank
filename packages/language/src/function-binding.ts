@@ -72,7 +72,8 @@ export function prepareFunctionBindings(program: Program, signatures: ReadonlyMa
             const operands = flattenApplication(first.value);
             const source = operands[0], adapter = operands[1];
             const preserves = operands.length === 2 && isNameExpression(source) && isNameExpression(adapter)
-                && !known.has(adapter.name) && findOperation(adapter.name)?.preservesFunctionSignature;
+                && (!known.has(adapter.name) || calls.get(adapter.name) === findOperation(adapter.name)?.callSignature)
+                && findOperation(adapter.name)?.preservesFunctionSignature;
             const signature = preserves ? calls.get(source.name) : undefined;
             const counts = preserves ? arities(source.name) ?? [] : [];
             plans.set(node, { arities: counts, definitions, value: first, callSignature: signature });

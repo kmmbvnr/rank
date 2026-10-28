@@ -39,6 +39,7 @@ describe('explicit retained GPU state',()=>{
             for(const cell of ['use ml','use "hold.ram"','keep = (hold gpukeep)',
                 'S = (array 1.0 2.0 shape 1 2) keep (array 3.0 4.0 shape 1 2)','S gpufree'])
                 runtime.execute(cell);
+            runtime.execute('again = (hold gpukeep)\nT = (array 1.0 2.0 shape 1 2) again (array 3.0 4.0 shape 1 2)\nT gpufree');
         }finally{runtime.dispose();}
     });
     it('rejects non-RAM factories and ordinary arrays as handles',()=>{
