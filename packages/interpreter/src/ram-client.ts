@@ -9,6 +9,7 @@ export interface RamRequest {
 export interface RamReply {
     error?: string; code?: string; modelId?: string; output?: number[];
     fullyAccelerated?: boolean; gpuOnlyRequested?: boolean;
+    fileBytesRead?: number; fileInputsReused?: number; pssBytes?: number;
     inputMs?: number; dispatchMs?: number; readbackMs?: number; outputMs?: number; peakRssBytes?: number;
     cached?: boolean; prepareMs?: number; executeMs?: number; backend?: string;
 }

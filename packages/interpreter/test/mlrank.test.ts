@@ -248,3 +248,28 @@ describe('RAM structural graphs', () => {
         expect(compileRam('use ml\narg X .f32 shape 2 3 5\narg W .f32 shape 5 7 = array shape 5 7 fill 0.5\nreturn X W linear','s.ram').graph.outputShape).toEqual([2,3,7]);
     });
 });
+
+describe('file-backed projection budgets', () => {
+    const projection = 'use ml\narg X .f32 shape 1 768\narg W .f32 shape 768 2304\nreturn X matmul W';
+    it('allows a large runtime matrix without embedding its payload in the model', () => {
+        const graph = compileRam(projection, 'projection.ram').graph;
+        expect(graph.model.length).toBeLessThan(1024);
+        expect(graph.outputShape).toEqual([1, 2304]);
+        expect(graph.nodes.some(n => n.kind === 'constant')).toBe(false);
+    });
+    it('keeps separate limits for inputs, computed tensors and total runtime storage', () => {
+        expect(() => compileRam(projection.replace('768 2304', '768 8192'), 'projection.ram')).toThrow('4194304');
+        expect(() => compileRam(projection.replace('return X matmul W', 'H = W relu\nreturn X matmul H'), 'projection.ram')).toThrow('1048576');
+        const inputs = Array.from({length:5}, (_,i) => `arg W${i} .f32 shape 1024 4096`).join('\n');
+        expect(() => compileRam(`use ml\narg X .f32 shape 1 1024\n${inputs}\nreturn X matmul W0`, 'projection.ram')).toThrow('64 MiB');
+    });
+    it('rejects a large ordinary input before reading its cells', () => {
+        const runtime = new Interpreter(() => {}, {loadModule:()=>({id:'projection.ram',source:projection}),ramGpu:()=>{throw Error('GPU must not run');}});
+        try {
+            runtime.execute('use "projection.ram"');
+            runtime.variables.set('X', {kind:'array',shape:[1,768],items:Array(768).fill(1)});
+            runtime.variables.set('W', {kind:'array',shape:[768,2304],get items(): never {throw Error('Cells must not be read');}});
+            expect(() => runtime.execute('X projection W')).toThrow('require a file tensor');
+        } finally { runtime.dispose(); }
+    });
+});

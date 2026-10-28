@@ -23,8 +23,8 @@ final class ModelFiles {
         return file;
     }
 
-    static float[] readTensor(Context context, JSONObject descriptor, int size) throws Exception {
-        if (!"F32".equals(descriptor.getString("dtype")) || size < 1 || size > 1048576)
+    static File tensorFile(Context context, JSONObject descriptor, int size) throws Exception {
+        if (!"F32".equals(descriptor.getString("dtype")) || size < 1 || size > 4194304)
             throw new IllegalArgumentException("File input requires F32 and a valid tensor size");
         long offset = exactLong(descriptor, "offset"), length = exactLong(descriptor, "length");
         long expectedSize = exactLong(descriptor, "fileSize");
@@ -33,7 +33,7 @@ final class ModelFiles {
         if (shape.length() < 1 || shape.length() > 4) throw new IllegalArgumentException("Invalid file tensor shape");
         for (int i = 0; i < shape.length(); i++) {
             long dimension = shape.getLong(i);
-            if (dimension < 1 || dimension > 1048576 || !shape.get(i).toString().matches("[0-9]+"))
+            if (dimension < 1 || dimension > 4194304 || !shape.get(i).toString().matches("[0-9]+"))
                 throw new IllegalArgumentException("Invalid file tensor shape");
             elements = Math.multiplyExact(elements, dimension);
         }
@@ -43,6 +43,13 @@ final class ModelFiles {
         String revision = descriptor.getString("revision");
         if (file.length() != expectedSize || !revision.equals(file.length() + ":" + file.lastModified()))
             throw new IllegalArgumentException("File tensor changed; reopen the checkpoint");
+        return file;
+    }
+
+    static float[] readTensor(Context context, JSONObject descriptor, int size) throws Exception {
+        File file = tensorFile(context, descriptor, size);
+        long offset = descriptor.getLong("offset");
+        String revision = descriptor.getString("revision");
         // The Kotlin LiteRT API accepts float[], not a file or mapped ByteBuffer.
         // Keep the intermediate read buffer bounded; no tensor data enters the WebView.
         float[] values = new float[size];

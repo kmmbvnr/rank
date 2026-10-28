@@ -26,6 +26,7 @@ final class RamGpu {
     private CompiledModel model;
     private List<TensorBuffer> inputs;
     private int[] inputSizes;
+    private String[] fileInputs;
     private List<TensorBuffer> outputs;
 
     RamGpu(Context context) { this.context = context.getApplicationContext(); }
@@ -102,13 +103,14 @@ final class RamGpu {
                     null, null, null, null, null, null, null));
                 model = CompiledModel.create(file.getAbsolutePath(), options);
                 inputs = model.createInputBuffers(); outputs = model.createOutputBuffers();
+                fileInputs = new String[inputs.size()];
                 JSONArray sizes = request.optJSONArray("inputSizes");
                 if (sizes != null) {
                     if (sizes.length() != inputs.size()) throw new IllegalArgumentException("Wrong RAM input count");
                     inputSizes = new int[sizes.length()];
                     for (int i = 0; i < inputSizes.length; i++) {
                         inputSizes[i] = sizes.getInt(i);
-                        if (inputSizes[i] < 1 || inputSizes[i] > 1048576)
+                        if (inputSizes[i] < 1 || inputSizes[i] > 4194304)
                             throw new IllegalArgumentException("Invalid RAM input size");
                     }
                 } else if (inputs.size() != 1) throw new IllegalArgumentException("Multiple RAM inputs require sizes");
@@ -126,12 +128,21 @@ final class RamGpu {
         long total = 0;
         for (int i = 0; i < sizes.length; i++) if (files == null || files.isNull(i)) total += sizes[i];
         if (total != data.length()) throw new IllegalArgumentException("Wrong RAM input length");
-        int offset = 0;
+        int offset = 0, fileInputsReused = 0;
+        long fileBytesRead = 0;
         for (int index = 0; index < sizes.length; index++) {
             if (files != null && !files.isNull(index)) {
-                inputs.get(index).writeFloat(ModelFiles.readTensor(context, files.getJSONObject(index), sizes[index]));
+                JSONObject descriptor = files.getJSONObject(index);
+                ModelFiles.tensorFile(context, descriptor, sizes[index]);
+                String identity = descriptor.toString();
+                if (identity.equals(fileInputs[index])) { fileInputsReused++; continue; }
+                fileInputs[index] = null;
+                inputs.get(index).writeFloat(ModelFiles.readTensor(context, descriptor, sizes[index]));
+                fileInputs[index] = identity;
+                fileBytesRead += descriptor.getLong("length");
                 continue;
             }
+            fileInputs[index] = null;
             float[] input = new float[sizes[index]];
             for (int i = 0; i < input.length; i++) {
                 input[i] = (float) data.getDouble(offset++);
@@ -154,6 +165,9 @@ final class RamGpu {
         result.put("cached", cached); result.put("prepareMs", (prepared - started) / 1e6);
         result.put("executeMs", (System.nanoTime() - prepared) / 1e6);
         if (request.optBoolean("profile", false)) {
+            result.put("pssBytes", android.os.Debug.getPss() * 1024L);
+            result.put("fileBytesRead", fileBytesRead);
+            result.put("fileInputsReused", fileInputsReused);
             result.put("inputMs", (written - prepared) / 1e6);
             result.put("dispatchMs", (dispatched - written) / 1e6);
             result.put("readbackMs", (read - dispatched) / 1e6);
@@ -166,7 +180,7 @@ final class RamGpu {
         if (inputs != null) for (TensorBuffer buffer : inputs) buffer.close();
         if (outputs != null) for (TensorBuffer buffer : outputs) buffer.close();
         if (model != null) model.close();
-        inputs = null; inputSizes = null; outputs = null; model = null; key = null;
+        inputs = null; inputSizes = null; fileInputs = null; outputs = null; model = null; key = null;
     }
     void close() { executor.submit(this::closeModel); executor.shutdown(); }
 }

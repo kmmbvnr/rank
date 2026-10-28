@@ -21,10 +21,11 @@ from ai_edge_litert.options import Options, GpuOptions
 
 cached_key = None
 model = inputs = outputs = None
+file_inputs = []
 
 
 def run(request):
-    global cached_key, model, inputs, outputs
+    global cached_key, model, inputs, outputs, file_inputs
     started = time.perf_counter()
     action = request.get("action")
     if action not in ("load", "invoke", "release"):
@@ -32,11 +33,13 @@ def run(request):
     if action == "release":
         if request.get("modelId") == cached_key:
             inputs = outputs = model = cached_key = None
+            file_inputs = []
         return {"released": True}
     cached = action == "invoke"
     if cached and (model is None or request.get("modelId") != cached_key):
         return {"error": "RAM model is no longer loaded", "code": "STALE_MODEL"}
     if not cached:
+        file_inputs = []
         inputs = outputs = model = cached_key = None
         try:
             options = Options(HardwareAccelerator.GPU, gpu_options=GpuOptions(enforce_f32=True))
@@ -66,6 +69,7 @@ def run(request):
                 raise RuntimeError("RAM graph was not fully delegated to GPU")
             inputs = model.create_input_buffers(0)
             outputs = model.create_output_buffers(0)
+            file_inputs = [None] * len(inputs)
             cached_key = str(uuid.uuid4())
         except Exception:
             inputs = outputs = model = cached_key = None
@@ -82,8 +86,10 @@ def run(request):
     if data.ndim != 1 or data.size != sum(size for size, file in zip(sizes, files) if file is None) or not np.isfinite(data).all():
         raise ValueError("Invalid RAM input shape or values")
     offset = 0
-    for buffer, size, descriptor in zip(inputs, sizes, files):
+    file_bytes = file_reused = 0
+    for index, (buffer, size, descriptor) in enumerate(zip(inputs, sizes, files)):
         if descriptor is None:
+            file_inputs[index] = None
             buffer.write(data[offset:offset + size])
             offset += size
             continue
@@ -100,6 +106,10 @@ def run(request):
             revision = lambda st: f"{st.st_dev}:{st.st_ino}:{st.st_size}:{st.st_mtime_ns}:{st.st_ctime_ns}"
             if stat.st_size != descriptor["fileSize"] or revision(stat) != descriptor.get("revision"):
                 raise ValueError("File tensor changed; reopen the checkpoint")
+            if file_inputs[index] == descriptor:
+                file_reused += 1
+                continue
+            file_inputs[index] = None
             mapped = np.memmap(source, dtype="<f4", mode="r", offset=descriptor["offset"], shape=(size,))
             try:
                 for start in range(0, size, 16384):
@@ -108,6 +118,8 @@ def run(request):
                 buffer.write(mapped)
                 if revision(os.fstat(source.fileno())) != descriptor["revision"]:
                     raise ValueError("File tensor changed during transfer")
+                file_inputs[index] = dict(descriptor)
+                file_bytes += descriptor["length"]
             finally:
                 mapped._mmap.close()
     written = time.perf_counter()
@@ -122,7 +134,7 @@ def run(request):
             "cached": cached, "prepareMs": (prepared - started) * 1000,
             "executeMs": (finished - prepared) * 1000}
     if request.get("profile"):
-        response.update(inputMs=(written - prepared) * 1000,
+        response.update(fileBytesRead=file_bytes, fileInputsReused=file_reused, inputMs=(written - prepared) * 1000,
                         dispatchMs=(dispatched - written) * 1000,
                         readbackMs=(read - dispatched) * 1000,
                         outputMs=(finished - read) * 1000,

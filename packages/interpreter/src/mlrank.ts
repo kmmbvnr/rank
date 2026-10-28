@@ -53,15 +53,15 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     const shape = input.dimensions.map(dimension => Number(dimension.value));
     const size = shape.reduce((a, b) => a * b, 1);
     if (!shape.length || shape.length > 4 || shape.some(n => !Number.isSafeInteger(n) || n < 1)
-        || !Number.isSafeInteger(size) || size > 1_048_576)
-        fail('RAM shape requires 1–4 positive dimensions and at most 1048576 elements', input);
+        || !Number.isSafeInteger(size) || size > 4_194_304)
+        fail('RAM input shape requires 1–4 positive dimensions and at most 4194304 elements', input);
     const nodes: RamNode[] = [{ kind: 'input', shape }];
     let constantSize = 0;
-    const validShape = (dimensions: number[], statement: Statement): number => {
+    const validShape = (dimensions: readonly number[], statement: Statement, limit = 1_048_576): number => {
         const count = dimensions.reduce((a, b) => a * b, 1);
         if (!dimensions.length || dimensions.length > 4 || dimensions.some(n => !Number.isSafeInteger(n) || n < 1)
-            || !Number.isSafeInteger(count) || count > 1_048_576)
-            fail('RAM tensor requires 1–4 positive dimensions and at most 1048576 elements', statement);
+            || !Number.isSafeInteger(count) || count > limit)
+            fail(`RAM tensor requires 1–4 positive dimensions and at most ${limit} elements`, statement);
         return count;
     };
     const inputs = [{ name: input.name, shape }];
@@ -258,7 +258,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                     fail('Multiple RAM inputs require .f32', statement);
                 if (names.has(statement.name)) fail('Duplicate RAM option: ' + statement.name, statement);
                 const shape = statement.dimensions.map(d => Number(d.value));
-                validShape(shape, statement);
+                validShape(shape, statement, 4_194_304);
                 inputs.push({name:statement.name,shape});
                 names.set(statement.name, nodes.length); nodes.push({kind:'input',shape});
                 if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', statement);
@@ -272,6 +272,9 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     if (!output.value) fail('RAM requires an output tensor', output);
     const result = lower(output.value!);
     if (nodes[result].kind === 'input' || nodes[result].kind === 'constant') fail('RAM output must contain a GPU operation', output);
+    if (inputs.reduce((sum, input) => sum + input.shape.reduce((a,b) => a*b, 1), 0) > 16_777_216)
+        fail('RAM runtime input storage exceeds 64 MiB');
+    for (const node of nodes) if (node.kind !== 'input') validShape(node.shape, output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
     const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, inputs, nodes, outputShape: nodes[result].shape, output: result, model: ramModel(nodes, result) };
@@ -302,6 +305,8 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
                     throw new RankError('File tensor GPU inputs currently require F32 data and .f32 options', 'TypeError');
                 return [];
             }
+            if (value.shape.reduce((a,b) => a*b, 1) > 1_048_576)
+                throw new RankError('RAM inputs above 1048576 elements require a file tensor', 'TypeError');
             return value.items.map(cell => {
                 if (typeof cell !== 'number' || !Number.isFinite(cell))
                     throw new RankError('RAM input requires finite real values', 'TypeError');
