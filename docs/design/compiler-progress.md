@@ -30,9 +30,11 @@ See [measurements and limits](../../benchmarks/euler195-inscribed-circles-result
 ## Exact numeric self recursion (#372)
 
 Scalar function kernels can call their own guarded definition when an earlier
-base return establishes a scalar result and every recursive argument preserves
-its proven domain. Array-writing recursion and mutually recursive call graphs
-retain ordinary execution. Non-tail calls retain the runtime depth limit; self
+base return or a closed scalar expression in the final return establishes a
+scalar result and every recursive argument preserves its proven domain. The
+final-return candidate is inferred without reading bindings or invoking calls;
+the ordinary flow proof still validates every return and all paths. Array-writing
+recursion and mutually recursive call graphs retain ordinary execution. Non-tail calls retain the runtime depth limit; self
 tail transfers use a trampoline and poll the cooperative demand budget.
 
 Ordinary entry now admits tracked integer indices, preserving their shared

@@ -41,6 +41,46 @@ end
 Cache = new index`;
 
 describe('compiled numeric self recursion', () => {
+    it.each(['0', '1.5', 'true', '"done"', '(2 * 3 - 6)'])('infers a later closed return %s before self calls', result => {
+        const source = `use algo
+fun N helper Out
+  if N greater 0
+    Dummy = (N - 1) helper Out
+  end
+  Out add N
+  return ${result}
+end
+Out = new set`;
+        const run = compare(source, ['8 helper Out', 'Out len', '0 helper Out']);
+        expect(run.calls).toBeGreaterThan(0);
+        expect(run.values[1]).toEqual({ value: '9' });
+    });
+
+    it('validates conflicting returns despite a closed terminal seed', () => {
+        const source = `fun N helper
+  if N equal 0
+    return "zero"
+  end
+  Dummy = (N - 1) helper
+  return 0
+end`;
+        const fn = parse(source).statements.find(isFunctionStatement)!;
+        expect(scalarFunctionResult(fn, true, ['integer'], true)).toBeUndefined();
+        compare(source, ['0 helper', '2 helper']);
+    });
+
+    it('preserves recursive errors and depth limits with a later return', () => {
+        const source = `fun N helper
+  if N greater 0
+    Dummy = (N - 1) helper
+  end
+  Value = 10 // N
+  return 0
+end`;
+        compare(source, ['3 helper', '0 helper'], { maxCallDepth: 2 });
+        compare(source, ['3 helper', '0 helper']);
+    });
+
     it('publishes exact results through the shared index and reuses entries', () => {
         const run = compare(fibonacci, ['100 helper Cache', 'Cache 100', '100 helper Cache', '0 helper Cache']);
         expect(run.values[0]).toEqual({ value: '354224848179261915075' });
