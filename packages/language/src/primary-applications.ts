@@ -1,11 +1,12 @@
 import { applicationExpression, attachedSign, flattenApplication } from './expressions.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isBinaryExpression, isLabelLiteral, isNumberLiteral, isUnaryExpression, type Expression,
-    isPrimaryTailExpression, isNameExpression, type Program, type ApplicationExpression,
-    type KeyedGroupExpression, type KeyedSortExpression,
-    type KeyedRollingExpression, type KeyedReachExpression, type KeyedJoinExpression,
-    type KeyedMergeExpression, type TableWriteExpression,
+    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
+    isLabelLiteral, isNameExpression, isNumberLiteral, isOperationAssignmentStatement,
+    isPrimaryTailExpression, isUnaryExpression, type ApplicationExpression, type Expression,
+    type KeyedGroupExpression, type KeyedJoinExpression, type KeyedMergeExpression,
+    type KeyedReachExpression, type KeyedRollingExpression, type KeyedSortExpression,
+    type Program, type TableWriteExpression,
 } from './generated/ast.js';
 
 type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
@@ -14,9 +15,15 @@ const SORT_BY_WORDS = new Set(['sort', 'argsort', 'merge']);
 const GROUP_BY_WORDS = new Set(['group', 'rollup']);
 
 /** Restore the public AST after sharing the two-operand grammar prefix. */
-export function normalizePrimaryApplications(program: Program): void {
+export function normalizePrimaryApplications(program: Program, operatorOffsets: ReadonlySet<number> = new Set()): void {
     // Keep the node objects: their CST nodes and descendants already refer to them.
     for (const node of AstUtils.streamAst(program).toArray()) {
+        if (isNameExpression(node) && node.$cstNode && operatorOffsets.has(node.$cstNode.offset)) {
+            const operator = node.name;
+            Reflect.deleteProperty(node, 'name');
+            Object.assign(node, { $type: 'FunctionOperator', operator });
+            continue;
+        }
         if (!isPrimaryTailExpression(node)) continue;
         const tailArguments = [...(node.secondArgument ? [node.secondArgument] : []), ...node.arguments];
         let properties: Fields<ApplicationExpression> | Fields<KeyedGroupExpression>
@@ -108,6 +115,13 @@ export function normalizePrimaryApplications(program: Program): void {
         Object.assign(node, properties);
         AstUtils.linkContentToContainer(node);
     }
+    for (const node of AstUtils.streamAst(program).toArray()) {
+        if (!isArrayAssignmentStatement(node) && !isAssignmentStatement(node) && !isOperationAssignmentStatement(node)) continue;
+        const extracted = extractAccumulate(node.value);
+        node.value = extracted.value;
+        node.accumulate = extracted.accumulate;
+        if (extracted.accumulate) AstUtils.linkContentToContainer(node);
+    }
     // A glued minus after axis belongs to its literal, including symbolic folds
     // and implicit pipelines. Spaced subtraction keeps its arithmetic meaning.
     for (const node of AstUtils.streamAst(program).toArray().reverse()) {
@@ -127,4 +141,31 @@ export function normalizePrimaryApplications(program: Program): void {
         Object.assign(node, replacement);
         AstUtils.linkContentToContainer(node);
     }
+}
+
+function extractAccumulate(expression: Expression): { value: Expression; accumulate: boolean } {
+    if (isBinaryExpression(expression)) {
+        const right = extractAccumulate(expression.right);
+        if (!right.accumulate) return { value: expression, accumulate: false };
+        expression.right = right.value;
+        AstUtils.linkContentToContainer(expression);
+        return { value: expression, accumulate: true };
+    }
+    if (isUnaryExpression(expression)) {
+        const operand = extractAccumulate(expression.operand);
+        if (!operand.accumulate) return { value: expression, accumulate: false };
+        expression.operand = operand.value;
+        AstUtils.linkContentToContainer(expression);
+        return { value: expression, accumulate: true };
+    }
+    if (isApplicationExpression(expression)) {
+        const last = expression.arguments.at(-1);
+        if (isLabelLiteral(last) && last.name === 'accumulate') {
+            expression.arguments.pop();
+            if (expression.arguments.length === 0) return { value: expression.head, accumulate: true };
+            AstUtils.linkContentToContainer(expression);
+            return { value: expression, accumulate: true };
+        }
+    }
+    return { value: expression, accumulate: false };
 }

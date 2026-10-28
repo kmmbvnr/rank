@@ -11,6 +11,26 @@ interface ArrayAssignmentStatement {
     accumulate: boolean
 }
 
+interface AssignmentStatement {
+    name: string
+    deferred: boolean
+    operator: string
+    value: Expression
+    accumulate: boolean
+}
+
+interface OperationAssignmentStatement {
+    name: string
+    indices: AddressItem[]
+    operator: string
+    value: Expression
+    accumulate: boolean
+}
+
+interface FunctionOperator extends Expression {
+    operator: string
+}
+
 interface KeyedSortExpression extends Expression {
     source: Expression
     operator: string
@@ -132,7 +152,7 @@ FunctionStatement returns FunctionStatement:
     ('fun' | memo?='memo') leftBindings+=LeftFunctionParameter* name=FunctionName rightBindings+=FunctionParameter*
     groups+=FunctionCallGroup* ('rank' ranks+=RankSpec+)?
     ('=' expressionBody=Expression |
-        NL+ (groups+=FunctionCallGroup+ NL+)*
+        NL+ (groups+=ContinuationCallGroup+ NL+)*
         (statements+=Statement NL+)*
         'end');
 
@@ -146,7 +166,13 @@ FunctionName returns string:
     WORD | 'text' | 'first' | 'take' | 'insert' | 'update' | 'ascending' | 'descending';
 
 FunctionCallGroup:
-    word=SIGNATURE_WORD parameter=VARIABLE (deferred?="'")? ('=' defaultValue=FunctionDefault)?;
+    '.' word=WORD parameter=VARIABLE (deferred?="'")? ('=' defaultValue=FunctionDefault)?;
+
+ContinuationCallGroup infers FunctionCallGroup:
+    '.' word=WORD parameter=VARIABLE (
+        deferred?="'" ('=' defaultValue=FunctionDefault)? |
+        '=' defaultValue=FunctionDefault
+    );
 
 FunctionDefault returns Expression:
     NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
@@ -155,11 +181,11 @@ FunctionDefault returns Expression:
 FunctionBindingStatement:
     name=FunctionName '=' value=Expression;
 
-OperationAssignmentStatement:
+OperationAssignmentStatement returns OperationAssignmentStatement:
     name=FunctionName (
         indices+=NamedAddressItem* indices+=NonNameAddressItem indices+=AddressItem* operator=AssignmentOperator |
         indices+=NamedAddressItem+ operator=AssignmentOperator
-    ) value=Expression (accumulate?=ACCUMULATE)?;
+    ) value=Expression;
 
 NamedAddressItem infers AddressItem:
     value=NameExpression;
@@ -223,10 +249,10 @@ UnpackStatement:
 
 ArrayAssignmentStatement returns ArrayAssignmentStatement:
     name=AssignableName indices+=AddressItem+ ('rank' selectorRanks+=AddressItem+)?
-    operator=AssignmentOperator value=Expression (accumulate?=ACCUMULATE)?;
+    operator=AssignmentOperator value=Expression;
 
-AssignmentStatement:
-    name=AssignableName (deferred?="'" operator='=' | operator=AssignmentOperator) value=Expression (accumulate?=ACCUMULATE)?;
+AssignmentStatement returns AssignmentStatement:
+    name=AssignableName (deferred?="'" operator='=' | operator=AssignmentOperator) value=Expression;
 
 AssignmentOperator returns string:
     '=' | '+=' | '-=' | '*=' | '**=' | '/=' | '//=' | 'mod=' |
@@ -308,8 +334,7 @@ ArrayItem:
 // `Values array reduce +` reaches grouping as this literal, which makes it postfix.
 ArrayItemAtom returns Expression:
     NumberLiteral | StringLiteral | BooleanLiteral | LabelLiteral |
-    NewStructureExpression | StdinExpression | ArrayNameExpression | ParenthesizedExpression |
-    FunctionOperator;
+    NewStructureExpression | StdinExpression | ArrayNameExpression | ParenthesizedExpression;
 
 ArrayNameExpression infers NameExpression:
     name=ArrayReferenceName;
@@ -550,10 +575,7 @@ NonPrimaryArgument returns Expression:
     UnpackExpression | ArrayExpression | TupleExpression;
 
 PrimaryExpression returns Expression:
-    ArrayAtom | AllAxisExpression | FunctionOperator;
-
-FunctionOperator:
-    operator=CALL_OPERATOR;
+    ArrayAtom | AllAxisExpression;
 
 AllAxisExpression:
     {infer AllAxisExpression} '#';
@@ -624,9 +646,6 @@ ReferenceName returns string:
 hidden terminal WS: /[\t ]+/;
 hidden terminal REM_COMMENT: /(?<![A-Za-z0-9_.])rem(?![A-Za-z0-9_])(?:[\t ]+[^\n\r]*)?/;
 terminal NL: /\r?\n/;
-terminal ACCUMULATE: /\b\Baccumulate/;
-terminal CALL_OPERATOR: /\b\B/;
-terminal SIGNATURE_WORD: /\b\Bword/;
 terminal QUALIFIED_NAME: /[A-Za-z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*/;
 terminal VARIABLE: /[A-Z][A-Za-z0-9_]*/;
 terminal WORD: /[a-z][A-Za-z0-9_]*/;
