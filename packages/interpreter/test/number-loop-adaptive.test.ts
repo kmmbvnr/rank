@@ -132,3 +132,55 @@ describe('adaptive vector-loop copying', () => {
         expect(full.numberLoopCopyProbes).toBe(0);
     });
 });
+
+const rangeCalls = (count: string, body = 'A (J mod 128) += 1', rounds = 100) =>
+    vectorCalls(count, body, rounds).replace(` Values = 0 till ${count} array\n for J in Values`, ` Limit = ${count}\n for J in 0 till Limit`);
+
+describe('adaptive range-loop copying', () => {
+    it('learns repeated short range calls without repeated whole-array copies', () => {
+        const d = compare(rangeCalls('1'));
+        expect(d.numberLoopCopyProbes).toBe(1);
+        expect(d.numberLoopCopyAmortized).toBe(0);
+        expect(d.exactLoopWorkSamples).toBe(99);
+    });
+    it('recovers when range work grows after short calls', () => {
+        const d = compare(rangeCalls('(R less 40 choose 1 256)', 'A (J mod 128) += 1\n  if J less 0\n   break\n  end', 45));
+        expect(d.exactLoopWorkPromotions).toBe(1);
+        expect(d.numberLoopCopyAmortized).toBe(4);
+    });
+    it.each(['0 till 262145', '262144 to 0 by -1'])(
+        'retains a complete range pass beyond the probe cap (%s)', range => {
+            const d = compare(`A = array shape 262145 fill 0\nfor J in ${range}\n A J = J\nend`);
+            expect(d.numberLoops).toBe(1);
+            expect(d.numberLoopCopyProbes).toBe(0);
+        });
+    it('counts stepped ranges rather than just comparing endpoints', () => {
+        const d = compare('A = array shape 262145 fill 0\nfor J in 0 to 262144 by 2\n A J = J\nend');
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('retains admission for a short root range with substantial nested work', () => {
+        const d = compare('A = array shape 262145 fill 0\nfor Row in 0 till 3\n for Col in 0 till 90000\n  A Col = Col\n end\nend');
+        expect(d.numberLoops).toBe(1);
+        expect(d.numberLoopCopyProbes).toBe(0);
+    });
+    it('does not trust the length of a range with an early exit', () => {
+        const d = compare(rangeCalls('256', 'A 0 += 1\n  break'));
+        expect(d.numberLoopCopyProbes).toBe(1);
+        expect(d.exactLoopWorkSamples).toBe(99);
+    });
+    it('caps short range copies before allocating private storage', () => {
+        const d = compare('A = array shape 262145 fill 0\nfor J in 0 till 1\n A J = 7\nend');
+        expect(d.numberLoops).toBe(0);
+        expect(d.fallbacks['number-loop:condition-write-budget']).toBeGreaterThan(0);
+    });
+    it('preserves overflow replay and preceding stores on a bounds error', () => {
+        const source = rangeCalls('129', 'A J = 9007199254740991 + J + 1', 1);
+        const d = compare(source);
+        expect(d.numberLoopOverflows).toBe(1);
+        expect(run(source).result.error).toContain('array index out of bounds');
+    });
+    it('preserves empty-loop bindings and snapshots', () => {
+        compare('A = array shape 128 fill 0\nAlias = A\nfor J in 2 till 1\n A 0 = 7\nend');
+    });
+});

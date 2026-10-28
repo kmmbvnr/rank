@@ -1,5 +1,6 @@
 import { safeIntegerSquareRoot } from './integer-square-root.js';
-import { isForStatement, isNameExpression } from '@arrrank/language';
+import { expressionFacts, isBinaryExpression, isForStatement, isNameExpression } from '@arrrank/language';
+import { loopTraversal } from './loop-traversal.js';
 import { argumentSelectionError, MissingValueError, RankError } from './errors.js';
 import { completed } from './execution.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -150,6 +151,13 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     // buffers are private snapshots, never destinations. Tracked revisions
     // invalidate them after a store; weak keys do not retain earlier inputs.
     const readBuffers = new WeakMap<RankArray, { revision: number; type: LoopTerm['type']; cells: Float64Array }>();
+    const traversal = plan.iteration && loopTraversal(plan.iteration);
+    // A nested region can do much more work than its root range length (for
+    // example a three-row stencil or a long stack-processing pass). Retain
+    // its existing admission until the estimate accounts for nested work.
+    const copyAdmission = !plan.iteration
+        || plan.vectorIterations.some(vector => vector.binding === plan.iteration)
+        || !locations.some(isForStatement);
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
@@ -180,7 +188,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             }
         }
         let conditionWriteCells = 0;
-        if (!plan.iteration || plan.vectorIterations.some(vector => vector.binding === plan.iteration)) for (const [name] of plan.destinations) {
+        if (copyAdmission) for (const [name] of plan.destinations) {
             if (plan.arrayDefinitions.has(name)) continue;
             const value = host.read(name);
             if (!value || !isRankArray(value) || value.kind !== 'array') return undefined;
@@ -195,6 +203,18 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
             if (value && isRankArray(value)
                 && value.shape.reduce((a, b) => a * b, 1) >= conditionWriteCells) conditionWriteCells = 0;
         }
+        // Range bounds use already guarded scalar inputs, never callbacks or
+        // array cells. A full range pass amortizes copying just like a vector.
+        if (conditionWriteCells && !plan.hasControl && traversal && !traversal.slice
+            && isBinaryExpression(traversal.source) && ['to', 'till'].includes(traversal.source.operator)) {
+            const count = expressionFacts(traversal.source, name => {
+                const slot = names.indexOf(name), value = input[slot];
+                if (!required.has(slot) || localTypes.get(name) !== 'integer') return undefined;
+                return typeof value === 'bigint' || typeof value === 'number'
+                    ? { types: ['integer'], rank: 0, shape: [], integer: String(value) } : undefined;
+            }).shape?.[0];
+            if (count !== undefined && count !== null && count >= conditionWriteCells) conditionWriteCells = 0;
+        }
         // Copy-cost heuristic, not a Number precision limit: <=64 cells keep
         // the small-store fast path; larger stores get a bounded first probe.
         // Mac M5 / Intel i7-10750H controls (Node 24.15.0) gave Euler 185 ~4x
@@ -206,6 +226,11 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         // 960000 output cells per handful of divisors exceeded 90 s. Apply the
         // same budget/feedback to those loops; full amortized passes stay fast.
         // Controls: benchmarks/euler221-investigation.md.
+        // Euler 253 exposed the same bypass for range iterators: tiny row
+        // stores copied the entire probability table for every state. Leaf
+        // ranges now share this policy and exact-work feedback; proven full
+        // passes retain Number above the probe cap. Nested range regions keep
+        // their previous admission. See euler253-investigation.md.
         const probe = conditionWriteCells > 64;
         if (probe) {
             if (conditionWriteCells > 262144 || !feedback) return recordFallback('number-loop:condition-write-budget');

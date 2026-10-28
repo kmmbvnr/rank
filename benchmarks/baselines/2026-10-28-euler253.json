@@ -1,0 +1,2028 @@
+{
+  "revision": "905c9ea4be2c7662e130f7888cb4ce9561ac6363",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5"
+  },
+  "method": "N=30: three serial fresh processes per variant, alternating order. Full N=40: single serial observations except original compiled, abandoned after 6m43s with some overlapping diagnostic probes; do not derive a precise full speedup from it. Imports excluded; parse/preparation/evaluation/diagnostics included. Host load uncontrolled. No other own benchmark/test ran during the controlled cohort.",
+  "samples": [
+    {
+      "variant": "original",
+      "ms": 9001.60625,
+      "answer": "8.842823",
+      "rssMiB": 300.875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 6842,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 218912,
+        "elementTypeScannedCells": 4186304,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 61059,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 61057,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 61053,
+          "scalar-expression:operator-guard:+": 61053
+        }
+      }
+    },
+    {
+      "variant": "budget",
+      "ms": 1733.1535,
+      "answer": "8.842823",
+      "rssMiB": 588.109375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 4186304,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "number-loop:condition-write-budget": 6842,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 61059,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 61057,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 61053,
+          "scalar-expression:operator-guard:+": 61053
+        }
+      }
+    },
+    {
+      "variant": "bounded",
+      "ms": 220.32629200000002,
+      "answer": "8.842823",
+      "rssMiB": 205.234375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice",
+      "ms": 2165.8936249999997,
+      "answer": "8.842823",
+      "rssMiB": 564.296875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 15,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 14,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 7,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "scalar-expression:unsupported-op:/": 3,
+          "tensor:binding:Offsets": 6841,
+          "scalar-expression:unsupported-op:G": 2,
+          "scalar-expression:unsupported-op:*": 4,
+          "scalar-expression:unsupported-op:Ts": 2,
+          "tensor:stale-input": 1,
+          "scalar-expression:unsupported-op:+": 5,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "original-reference",
+      "ms": 2375.5496249999997,
+      "answer": "8.842823",
+      "rssMiB": 796.75,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 4126304,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "bounded-reference",
+      "ms": 1911.2664169999998,
+      "answer": "8.842823",
+      "rssMiB": 363.421875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice-reference",
+      "ms": 2684.835083,
+      "answer": "8.842823",
+      "rssMiB": 552.5625,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 5
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice-reference",
+      "ms": 2687.8489579999996,
+      "answer": "8.842823",
+      "rssMiB": 554.734375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 5
+        }
+      }
+    },
+    {
+      "variant": "bounded-reference",
+      "ms": 1943.0610000000001,
+      "answer": "8.842823",
+      "rssMiB": 364.671875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "original-reference",
+      "ms": 2300.888959,
+      "answer": "8.842823",
+      "rssMiB": 573.765625,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 4126304,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice",
+      "ms": 2189.4804160000003,
+      "answer": "8.842823",
+      "rssMiB": 561.671875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 15,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 14,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 7,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "scalar-expression:unsupported-op:/": 3,
+          "tensor:binding:Offsets": 6841,
+          "scalar-expression:unsupported-op:G": 2,
+          "scalar-expression:unsupported-op:*": 4,
+          "scalar-expression:unsupported-op:Ts": 2,
+          "tensor:stale-input": 1,
+          "scalar-expression:unsupported-op:+": 5,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "bounded",
+      "ms": 225.46799999999996,
+      "answer": "8.842823",
+      "rssMiB": 203.71875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "budget",
+      "ms": 1742.07775,
+      "answer": "8.842823",
+      "rssMiB": 599.375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 4186304,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "number-loop:condition-write-budget": 6842,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 61059,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 61057,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 61053,
+          "scalar-expression:operator-guard:+": 61053
+        }
+      }
+    },
+    {
+      "variant": "original",
+      "ms": 9465.289667,
+      "answer": "8.842823",
+      "rssMiB": 304.21875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 6842,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 218912,
+        "elementTypeScannedCells": 4186304,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 61059,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 61057,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 61053,
+          "scalar-expression:operator-guard:+": 61053
+        }
+      }
+    },
+    {
+      "variant": "original",
+      "ms": 9653.24075,
+      "answer": "8.842823",
+      "rssMiB": 305.578125,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 6842,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 218912,
+        "elementTypeScannedCells": 4186304,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 61059,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 61057,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 61053,
+          "scalar-expression:operator-guard:+": 61053
+        }
+      }
+    },
+    {
+      "variant": "budget",
+      "ms": 1767.3455000000001,
+      "answer": "8.842823",
+      "rssMiB": 608.953125,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 4186304,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "number-loop:condition-write-budget": 6842,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 61059,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 61057,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 61053,
+          "scalar-expression:operator-guard:+": 61053
+        }
+      }
+    },
+    {
+      "variant": "bounded",
+      "ms": 231.60720899999998,
+      "answer": "8.842823",
+      "rssMiB": 203.859375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice",
+      "ms": 2201.572291,
+      "answer": "8.842823",
+      "rssMiB": 836.15625,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 15,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 14,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "tensor:output-shape": 6842,
+          "scalar-expression:unsupported-op:S": 7,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "scalar-expression:unsupported-op:/": 3,
+          "tensor:binding:Offsets": 6841,
+          "scalar-expression:unsupported-op:G": 2,
+          "scalar-expression:unsupported-op:*": 4,
+          "scalar-expression:unsupported-op:Ts": 2,
+          "tensor:stale-input": 1,
+          "scalar-expression:unsupported-op:+": 5,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "original-reference",
+      "ms": 2355.969083,
+      "answer": "8.842823",
+      "rssMiB": 563.796875,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 4126304,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "bounded-reference",
+      "ms": 1968.328625,
+      "answer": "8.842823",
+      "rssMiB": 361.484375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice-reference",
+      "ms": 2692.4802499999996,
+      "answer": "8.842823",
+      "rssMiB": 554.234375,
+      "states": "6842",
+      "transitions": "61053",
+      "N": 30,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 5
+        }
+      }
+    },
+    {
+      "variant": "budget",
+      "ms": 13472.769959,
+      "answer": "11.492847",
+      "rssMiB": 1298,
+      "states": "44583",
+      "transitions": "530383",
+      "N": 40,
+      "diagnostics": {
+        "compiledLoops": 44584,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 46484616,
+        "fallbacks": {
+          "scalar-expression:too-small": 9,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 9,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "scalar-expression:unsupported-op:till": 6,
+          "loop:unbound-name:NameExpression": 1,
+          "tensor:output-shape": 44583,
+          "scalar-expression:unsupported-op:S": 2,
+          "scalar-expression:unsupported-op:equal": 2,
+          "number-loop:condition-write-budget": 44583,
+          "loop:unsupported-op:till": 1,
+          "scalar-expression:unsupported-op:T": 530389,
+          "scalar-expression:unsupported-op:*": 6,
+          "scalar-expression:unsupported-op:G": 530387,
+          "scalar-expression:unsupported-op:+": 2,
+          "tensor:unsupported-op:till": 2,
+          "scalar-expression:operator-guard:*": 530383,
+          "scalar-expression:operator-guard:+": 530383
+        }
+      }
+    },
+    {
+      "variant": "bounded",
+      "ms": 579.2114160000001,
+      "answer": "11.492847",
+      "rssMiB": 234.71875,
+      "states": "44583",
+      "transitions": "530383",
+      "N": 40,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 3,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 2,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice",
+      "ms": 15037.099833,
+      "answer": "11.492847",
+      "rssMiB": 1718.515625,
+      "states": "44583",
+      "transitions": "530383",
+      "N": 40,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 60000,
+        "fallbacks": {
+          "scalar-expression:too-small": 15,
+          "scalar-expression:unsupported-op:**": 3,
+          "tensor:unsupported-node:MaterializeExpression": 3,
+          "scalar-expression:unsupported-op:to": 1,
+          "tensor:unsupported-type:array": 8,
+          "tensor:unsupported-node:NewStructureExpression": 1,
+          "tensor:scalar-evaluation-timing": 1,
+          "scalar-expression:unsupported-op:till": 14,
+          "loop:unsupported-node:MaterializeExpression": 1,
+          "tensor:output-shape": 44583,
+          "scalar-expression:unsupported-op:S": 7,
+          "scalar-expression:unsupported-op:equal": 2,
+          "tensor:deferred-binding:AssignmentStatement": 2,
+          "scalar-expression:unsupported-op:/": 3,
+          "tensor:binding:Offsets": 44582,
+          "scalar-expression:unsupported-op:G": 2,
+          "scalar-expression:unsupported-op:*": 4,
+          "scalar-expression:unsupported-op:Ts": 2,
+          "tensor:stale-input": 1,
+          "scalar-expression:unsupported-op:+": 5,
+          "tensor:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "variant": "original-reference",
+      "ms": 16722.263125,
+      "answer": "11.492847",
+      "rssMiB": 708.5625,
+      "states": "44583",
+      "transitions": "530383",
+      "N": 40,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 46424616,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "bounded-reference",
+      "ms": 16774.971084,
+      "answer": "11.492847",
+      "rssMiB": 531.609375,
+      "states": "44583",
+      "transitions": "530383",
+      "N": 40,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "variant": "matrix-slice-reference",
+      "ms": 19509.729541,
+      "answer": "11.492847",
+      "rssMiB": 1720.34375,
+      "states": "44583",
+      "transitions": "530383",
+      "N": 40,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopReadBufferCells": 0,
+        "elementTypeScannedCells": 0,
+        "fallbacks": {
+          "loop:disabled": 5
+        }
+      }
+    },
+    {
+      "variant": "pruned40",
+      "N": 40,
+      "ms": 526.1414580000001,
+      "answer": "11.492847",
+      "rssMiB": 234.453125,
+      "states": "44583",
+      "transitions": "530383"
+    },
+    {
+      "variant": "pruned-reference40",
+      "N": 40,
+      "ms": 13324.422832999999,
+      "answer": "11.492847",
+      "rssMiB": 517.28125,
+      "states": "44583",
+      "transitions": "530383"
+    },
+    {
+      "variant": "copyrow40",
+      "N": 40,
+      "ms": 933.093958,
+      "answer": "11.492847",
+      "rssMiB": 494.828125,
+      "states": "44583",
+      "transitions": "530383"
+    },
+    {
+      "variant": "copyrow-reference40",
+      "N": 40,
+      "ms": 12722.658125,
+      "answer": "11.492847",
+      "rssMiB": 574.3125,
+      "states": "44583",
+      "transitions": "530383"
+    }
+  ],
+  "sources": {
+    "scalar": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = N + 2\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  if Tot S equal 0\n    for J in 0 till Jm\n      G (Rw + J) = 1.0\n    end\n    continue\n  end\n  for J in (Prt S) till Jm\n    V = 0.0\n    for T in (Tb S) till (Tb (S + 1))\n      V += G (To T * Jm + J) * Wt T\n    end\n    G (Rw + J) = V / Tot S\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "bounded": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = (N + 1) // 2 + 1\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  if Tot S equal 0\n    for J in 0 till Jm\n      G (Rw + J) = 1.0\n    end\n    continue\n  end\n  for J in (Prt S) till Jm\n    V = 0.0\n    for T in (Tb S) till (Tb (S + 1))\n      V += G (To T * Jm + J) * Wt T\n    end\n    G (Rw + J) = V / Tot S\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "bound-only": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = (N + 1) // 2 + 1\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  if Tot S equal 0\n    for J in 0 till Jm\n      G (Rw + J) = 1.0\n    end\n    continue\n  end\n  V = array shape Jm fill 0.0\n  for T in (Tb S) till (Tb (S + 1))\n    Rt = To T * Jm\n    V = V + G (Rt till (Rt + Jm)) * Wt T\n  end\n  V = V / Tot S copy\n  for J in (Prt S) till Jm\n    G (Rw + J) = V J\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "eager": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = N + 2\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  if Tot S equal 0\n    for J in 0 till Jm\n      G (Rw + J) = 1.0\n    end\n    continue\n  end\n  V = array shape Jm fill 0.0\n  for T in (Tb S) till (Tb (S + 1))\n    Rt = To T * Jm\n    V = (V + G (Rt till (Rt + Jm)) * Wt T) copy\n  end\n  V = V / Tot S copy\n  for J in (Prt S) till Jm\n    G (Rw + J) = V J\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "matrix": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = (N + 1) // 2 + 1\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  if Tot S equal 0\n    for J in 0 till Jm\n      G (Rw + J) = 1.0\n    end\n    continue\n  end\n  Ts = (Tb S) till (Tb (S + 1)) array\n  Offsets' = (To Ts * Jm) reshape # 1\n  Weights' = (Wt Ts) reshape # 1\n  V = ((G (Offsets + Js) * Weights) sum axis 0) / Tot S\n  for J in (Prt S) till Jm\n    G (Rw + J) = V J\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "matrix-slice": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = (N + 1) // 2 + 1\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  if Tot S equal 0\n    G (Rw till (Rw + Jm)) = 1.0\n    continue\n  end\n  Ts = (Tb S) till (Tb (S + 1)) array\n  Offsets' = (To Ts * Jm) reshape # 1\n  Weights' = (Wt Ts) reshape # 1\n  V = ((G (Offsets + Js) * Weights) sum axis 0) / Tot S\n  G ((Rw + Prt S) till (Rw + Jm)) = V ((Prt S) till Jm)\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "pruned": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nMx = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nMx 0 = (N + 1) // 2\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        for J in 1 to N\n          Cnt (Nb + J) = Cnt (Bs + J)\n        end\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Mx Nid = Mx I - (L + 1) // 2 + (A + 1) // 2 + (B + 1) // 2\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = (N + 1) // 2 + 1\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  for J in (Mx S) till Jm\n    G (Rw + J) = 1.0\n  end\n  for J in (Prt S) till (Mx S)\n    V = 0.0\n    for T in (Tb S) till (Tb (S + 1))\n      V += G (To T * Jm + J) * Wt T\n    end\n    G (Rw + J) = V / Tot S\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n",
+    "copyrow": "rem Tidying Up\nrem https://projecteuler.net/problem=253\nrem N numbered pieces are picked at\nrem random and put in place in a line,\nrem in segments that merge as the line\nrem builds up. Find the expected most\nrem segments seen at any time, to 6\nrem places.\n\nuse numbers\nuse algo\nuse sequences\nuse io\nuse cli\n\narg N integer = 40\n\nrem Run backward, the full line has one\nrem segment and a random cell goes each\nrem turn. A state is the multiset of\nrem segment lengths, as counts of each\nrem length, found from the full line\nrem with the moves, each cell of a\nrem segment splitting it in a and L - 1\nrem - a, equal pairs once and others\nrem twice. For each state and j, G is\nrem the chance the segments never exceed\nrem j from there on. It is zero when the\nrem state has more than j, else the\nrem average of G over the next states, 1\nrem when none is left. The expected most\nrem is the sum over j of 1 - G of the\nrem full line.\nRd = N + 1\nPw = Rd ** (0 to N array)\nCap = 60000\nCnt = array shape (Cap * (N + 1)) fill 0\nKy = array shape Cap fill 0\nPrt = array shape Cap fill 0\nTot = array shape Cap fill 0\nMx = array shape Cap fill 0\nTb = array shape (Cap + 1) fill 0\nTo = array shape 800000 fill 0\nWt = array shape 800000 fill 0\nIdx = new index\nCnt N = 1\nKy 0 = Pw N\nPrt 0 = 1\nTot 0 = N\nMx 0 = (N + 1) // 2\nIdx (Pw N) = 0\nNs = 1\nNt = 0\nI = 0\nfor\n  if I equal Ns\n    break\n  end\n  Tb I = Nt\n  Bs = I * (N + 1)\n  for L in 1 to N\n    C = Cnt (Bs + L)\n    if C equal 0\n      continue\n    end\n    for A in 0 to ((L - 1) // 2)\n      B = L - 1 - A\n      W = C\n      if A not equal B\n        W = 2 * C\n      end\n      Nk = Ky I - Pw L\n      Np = Prt I - 1\n      if A greater 0\n        Nk += Pw A\n        Np += 1\n      end\n      if B greater 0\n        Nk += Pw B\n        Np += 1\n      end\n      Nid = 0\n      if Nk in Idx\n        Nid = Idx Nk\n      else\n        Nid = Ns\n        Idx Nk = Ns\n        Nb = Nid * (N + 1)\n        Cnt ((Nb + 1) till (Nb + N + 1)) = Cnt ((Bs + 1) till (Bs + N + 1))\n        Cnt (Nb + L) = Cnt (Nb + L) - 1\n        if A greater 0\n          Ca = Nb + A\n          Cnt Ca = Cnt Ca + 1\n        end\n        if B greater 0\n          Cb = Nb + B\n          Cnt Cb = Cnt Cb + 1\n        end\n        Ky Nid = Nk\n        Prt Nid = Np\n        Tot Nid = Tot I - 1\n        Mx Nid = Mx I - (L + 1) // 2 + (A + 1) // 2 + (B + 1) // 2\n        Ns += 1\n      end\n      To Nt = Nid\n      Wt Nt = W\n      Nt += 1\n    end\n  end\n  I += 1\nend\nTb Ns = Nt\nJm = (N + 1) // 2 + 1\nG = array shape (Ns * Jm) fill 0.0\nJs = 0 till Jm array\nfor K in 0 till Ns\n  S = Ns - 1 - K\n  Rw = S * Jm\n  for J in (Mx S) till Jm\n    G (Rw + J) = 1.0\n  end\n  for J in (Prt S) till (Mx S)\n    V = 0.0\n    for T in (Tb S) till (Tb (S + 1))\n      V += G (To T * Jm + J) * Wt T\n    end\n    G (Rw + J) = V / Tot S\n  end\nend\nG0 = G (0 till Jm)\nAnswer = (1 - G0) sum round 6\nAnswer print\n"
+  },
+  "originalSourceSha256": "066f6733db39204a43a28e605172c17d3d473fb3e6d3cfdf9f4e3044d65477b0",
+  "admissionPrototype": "Diagnostic only: remove the (!plan.iteration || plan.vectorIterations.some(vector => vector.binding === plan.iteration)) condition around destination-cell counting in number-loop-runtime.js. Leave all thresholds and feedback construction unchanged. This also disables Number on useful long ranges: not a production fix.",
+  "admissionControls": [
+    {
+      "name": "short",
+      "variant": "original",
+      "result": {
+        "answer": "5 5 0 0",
+        "A0": "5 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 43.930499999999995,
+      "numberLoops": 5,
+      "compiledLoops": 5,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:TupleExpression": 1,
+        "scalar-expression:unsupported-op:till": 2,
+        "tensor:unsupported-node:TupleExpression": 1,
+        "tensor:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "short",
+      "variant": "budget",
+      "result": {
+        "answer": "5 5 0 0",
+        "A0": "5 5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 88.012542,
+      "numberLoops": 0,
+      "compiledLoops": 5,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "loop:unsupported-node:TupleExpression": 1,
+        "scalar-expression:unsupported-op:till": 2,
+        "number-loop:condition-write-budget": 5,
+        "tensor:unsupported-node:TupleExpression": 1,
+        "tensor:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "full",
+      "variant": "original",
+      "result": {
+        "answer": "299997 299998 299999",
+        "A0": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36"
+      },
+      "ms": 33.93962499999998,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "tensor:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "full",
+      "variant": "budget",
+      "result": {
+        "answer": "299997 299998 299999",
+        "A0": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36"
+      },
+      "ms": 49.130709000000024,
+      "numberLoops": 0,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "number-loop:condition-write-budget": 1,
+        "tensor:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "vector",
+      "variant": "original",
+      "result": {
+        "answer": "299997 299998 299999",
+        "A0": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36"
+      },
+      "ms": 33.10004200000003,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "tensor:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:till": 2,
+        "tensor:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "vector",
+      "variant": "budget",
+      "result": {
+        "answer": "299997 299998 299999",
+        "A0": "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36"
+      },
+      "ms": 35.364959,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "tensor:unsupported-node:MaterializeExpression": 1,
+        "scalar-expression:unsupported-op:till": 2,
+        "tensor:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "alias",
+      "variant": "original",
+      "result": {
+        "answer": "1.5 0",
+        "A0": "1.5 1.5 1.5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 1.501875000000041,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "tensor:unsupported-node:TupleExpression": 1
+      }
+    },
+    {
+      "name": "alias",
+      "variant": "budget",
+      "result": {
+        "answer": "1.5 0",
+        "A0": "1.5 1.5 1.5 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 2.3148329999999078,
+      "numberLoops": 0,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "number-loop:condition-write-budget": 1,
+        "tensor:unsupported-node:TupleExpression": 1
+      }
+    },
+    {
+      "name": "overflow",
+      "variant": "original",
+      "result": {
+        "answer": "9007199254740991 9007199254740992 9007199254740993",
+        "A0": "9007199254740991 9007199254740992 9007199254740993 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      "ms": 2.0423330000000988,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "tensor:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "overflow",
+      "variant": "budget",
+      "result": {
+        "answer": "9007199254740991 9007199254740992 9007199254740993",
+        "A0": "9007199254740991 9007199254740992 9007199254740993 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+      },
+      "ms": 2.197584000000006,
+      "numberLoops": 0,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "number-loop:condition-write-budget": 1,
+        "tensor:unsupported-op:till": 1,
+        "scalar-expression:unsupported-op:till": 1
+      }
+    },
+    {
+      "name": "error",
+      "variant": "original",
+      "result": {
+        "error": "array index out of bounds on axis 0: 128",
+        "A0": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 0.6800839999999653,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1
+      }
+    },
+    {
+      "name": "error",
+      "variant": "budget",
+      "result": {
+        "error": "array index out of bounds on axis 0: 128",
+        "A0": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 0.80925000000002,
+      "numberLoops": 0,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "number-loop:condition-write-budget": 1
+      }
+    },
+    {
+      "name": "empty",
+      "variant": "original",
+      "result": {
+        "answer": "0",
+        "A0": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 0.7625829999999496,
+      "numberLoops": 1,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1
+      }
+    },
+    {
+      "name": "empty",
+      "variant": "budget",
+      "result": {
+        "answer": "0",
+        "A0": "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "
+      },
+      "ms": 1.0310839999999644,
+      "numberLoops": 0,
+      "compiledLoops": 1,
+      "fallbacks": {
+        "tensor:unsupported-type:array": 1,
+        "number-loop:condition-write-budget": 1
+      }
+    }
+  ],
+  "oracle": [
+    {
+      "N": 1,
+      "answer": "1",
+      "exact": "1",
+      "distribution": {
+        "1": 1
+      }
+    },
+    {
+      "N": 2,
+      "answer": "1",
+      "exact": "1",
+      "distribution": {
+        "1": 2
+      }
+    },
+    {
+      "N": 3,
+      "answer": "1.333333",
+      "exact": "4/3",
+      "distribution": {
+        "1": 4,
+        "2": 2
+      }
+    },
+    {
+      "N": 4,
+      "answer": "1.666667",
+      "exact": "5/3",
+      "distribution": {
+        "1": 8,
+        "2": 16
+      }
+    },
+    {
+      "N": 5,
+      "answer": "1.966667",
+      "exact": "59/30",
+      "distribution": {
+        "1": 16,
+        "2": 92,
+        "3": 12
+      }
+    },
+    {
+      "N": 6,
+      "answer": "2.255556",
+      "exact": "203/90",
+      "distribution": {
+        "1": 32,
+        "2": 472,
+        "3": 216
+      }
+    },
+    {
+      "N": 7,
+      "answer": "2.544444",
+      "exact": "229/90",
+      "distribution": {
+        "1": 64,
+        "2": 2312,
+        "3": 2520,
+        "4": 144
+      }
+    },
+    {
+      "N": 8,
+      "answer": "2.83254",
+      "exact": "3569/1260",
+      "distribution": {
+        "1": 128,
+        "2": 11104,
+        "3": 24480,
+        "4": 4608
+      }
+    },
+    {
+      "N": 9,
+      "answer": "3.117945",
+      "exact": "14143/4536",
+      "distribution": {
+        "1": 256,
+        "2": 52880,
+        "3": 216432,
+        "4": 90432,
+        "5": 2880
+      }
+    },
+    {
+      "N": 10,
+      "answer": "3.400732",
+      "exact": "385643/113400",
+      "distribution": {
+        "1": 512,
+        "2": 250912,
+        "3": 1815264,
+        "4": 1418112,
+        "5": 144000
+      }
+    },
+    {
+      "N": 11,
+      "answer": "3.681627",
+      "exact": "4592461/1247400",
+      "distribution": {
+        "1": 1024,
+        "2": 1188704,
+        "3": 14763168,
+        "4": 19615104,
+        "5": 4262400,
+        "6": 86400
+      }
+    },
+    {
+      "N": 12,
+      "answer": "3.961047",
+      "exact": "14823029/3742200",
+      "distribution": {
+        "1": 2048,
+        "2": 5627776,
+        "3": 117873792,
+        "4": 251241984,
+        "5": 98035200,
+        "6": 6220800
+      }
+    }
+  ],
+  "fixtures": [
+    {
+      "variant": "original",
+      "reference": false,
+      "ms": 424.80283399999996,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 280.66537500000004
+        }
+      ]
+    },
+    {
+      "variant": "original",
+      "reference": true,
+      "ms": 399.787709,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 264.15479100000005
+        }
+      ]
+    },
+    {
+      "variant": "budget",
+      "reference": false,
+      "ms": 354.123791,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 214.515375
+        }
+      ]
+    },
+    {
+      "variant": "budget",
+      "reference": true,
+      "ms": 404.53720799999996,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 256.806959
+        }
+      ]
+    },
+    {
+      "variant": "bounded",
+      "reference": false,
+      "ms": 190.23375,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 54.32175000000001
+        }
+      ]
+    },
+    {
+      "variant": "bounded",
+      "reference": true,
+      "ms": 327.780833,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 187.18404199999998
+        }
+      ]
+    },
+    {
+      "variant": "pruned",
+      "reference": false,
+      "ms": 193.75787499999998,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 56.76487499999996
+        }
+      ]
+    },
+    {
+      "variant": "pruned",
+      "reference": true,
+      "ms": 310.789583,
+      "tests": [
+        {
+          "name": "fewer pieces",
+          "passed": true,
+          "output": [
+            "2.255556",
+            "3.400732",
+            "6.156946"
+          ],
+          "durationMs": 169.60591699999998
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "checkCount": 168,
+    "answersByVariant": {
+      "original": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      },
+      "budget": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      },
+      "scalar": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      },
+      "bounded": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      },
+      "pruned": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      },
+      "copyrow": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      },
+      "matrix-slice": {
+        "compiled": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ],
+        "reference": [
+          {
+            "N": 1,
+            "answer": "1"
+          },
+          {
+            "N": 2,
+            "answer": "1"
+          },
+          {
+            "N": 3,
+            "answer": "1.333333"
+          },
+          {
+            "N": 4,
+            "answer": "1.666667"
+          },
+          {
+            "N": 5,
+            "answer": "1.966667"
+          },
+          {
+            "N": 6,
+            "answer": "2.255556"
+          },
+          {
+            "N": 7,
+            "answer": "2.544444"
+          },
+          {
+            "N": 8,
+            "answer": "2.83254"
+          },
+          {
+            "N": 9,
+            "answer": "3.117945"
+          },
+          {
+            "N": 10,
+            "answer": "3.400732"
+          },
+          {
+            "N": 11,
+            "answer": "3.681627"
+          },
+          {
+            "N": 12,
+            "answer": "3.961047"
+          }
+        ]
+      }
+    }
+  }
+}

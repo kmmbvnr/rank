@@ -38,6 +38,9 @@ Cnt = array shape (Cap * (N + 1)) fill 0
 Ky = array shape Cap fill 0
 Prt = array shape Cap fill 0
 Tot = array shape Cap fill 0
+rem A length L can leave at most
+rem ceil(L / 2) separate pieces.
+MaxSeg = array shape Cap fill 0
 Tb = array shape (Cap + 1) fill 0
 To = array shape 800000 fill 0
 Wt = array shape 800000 fill 0
@@ -46,6 +49,7 @@ Cnt N = 1
 Ky 0 = Pw N
 Prt 0 = 1
 Tot 0 = N
+MaxSeg 0 = (N + 1) // 2
 Idx (Pw N) = 0
 Ns = 1
 Nt = 0
@@ -99,6 +103,7 @@ for
         Ky Nid = Nk
         Prt Nid = Np
         Tot Nid = Tot I - 1
+        MaxSeg Nid = MaxSeg I - (L + 1) // 2 + (A + 1) // 2 + (B + 1) // 2
         Ns += 1
       end
       To Nt = Nid
@@ -109,26 +114,24 @@ for
   I += 1
 end
 Tb Ns = Nt
-Jm = N + 2
+rem Only thresholds up to ceil(N / 2)
+rem can contribute to the expectation.
+Jm = (N + 1) // 2 + 1
 G = array shape (Ns * Jm) fill 0.0
-Js = 0 till Jm array
 for K in 0 till Ns
   S = Ns - 1 - K
   Rw = S * Jm
-  if Tot S equal 0
-    for J in 0 till Jm
-      G (Rw + J) = 1.0
+  rem Above the state bound G is 1.
+  rem Below its present count G is 0.
+  for J in (MaxSeg S) till Jm
+    G (Rw + J) = 1.0
+  end
+  for J in (Prt S) till (MaxSeg S)
+    V = 0.0
+    for T in (Tb S) till (Tb (S + 1))
+      V += G (To T * Jm + J) * Wt T
     end
-    continue
-  end
-  V = array shape Jm fill 0.0
-  for T in (Tb S) till (Tb (S + 1))
-    Rt = To T * Jm
-    V = V + G (Rt till (Rt + Jm)) * Wt T
-  end
-  V = V / Tot S copy
-  for J in (Prt S) till Jm
-    G (Rw + J) = V J
+    G (Rw + J) = V / Tot S
   end
 end
 G0 = G (0 till Jm)

@@ -19,7 +19,7 @@ It writes through its existing exact stores and records work only on normal
 completion. Reaching the same threshold permits the next numeric invocation;
 short calls remain exact without periodic probe copies. The shared per-region
 feedback contains only a cell count and admission flag, never Rank values or
-cached results. Ordinary range/small-array runners have no work counter.
+cached results. Small-store and proven full-pass runners have no work counter.
 Existing ownership, safe arithmetic, cancellation, private publication and exact
 replay guards remain. This does not resume from the point of overflow: numeric
 overflow still discards private work and replays with BigInt.
@@ -28,6 +28,13 @@ Checkpoint counts include nested iterations and final condition checks. They
 are a heuristic for amortization, not a calibrated CPU cost model. Promotion
 happens between invocations; one long exact call is needed to discover a new
 long phase after a short phase.
+
+Euler 253 extended this policy to leaf range iterators: short ranges must not copy
+an entire large destination on every call. A range whose guarded scalar bounds
+prove a complete pass keeps Number execution, including above the probe cap.
+Early exits and unknown bounds use the same measured-work feedback as short
+vectors. Nested range regions retain their previous admission pending a work
+estimate that accounts for their inner loops. See [the comparison](euler253-investigation.md).
 
 ## Controlled timings
 

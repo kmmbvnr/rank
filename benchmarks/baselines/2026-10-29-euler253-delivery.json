@@ -1,0 +1,1473 @@
+{
+  "baseRevision": "905c9ea4be2c7662e130f7888cb4ce9561ac6363",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5"
+  },
+  "method": "Three serial fresh processes per row; alternate paired runtime order. No own tests/other benchmark processes overlapped the cohort; external host load uncontrolled. Imports excluded; parsing/preparation/evaluation included. Full reference rows compare the parent and shipping sources on the shipping runtime; compilation=false. Controls use unchanged source on parent/shipping runtimes. Samples retain the loop/copy counters relevant to admission; unrelated diagnostic counters are omitted.",
+  "medians": {
+    "253-original30 / parent": {
+      "ms": 8824.075917,
+      "minMs": 8444.535208,
+      "maxMs": 8835.676083,
+      "rssMiB": 303.296875,
+      "samples": 3
+    },
+    "253-original30 / shipping": {
+      "ms": 1690.70325,
+      "minMs": 1639.565458,
+      "maxMs": 2021.25575,
+      "rssMiB": 586.21875,
+      "samples": 3
+    },
+    "253-shipping30 / shipping": {
+      "ms": 230.055291,
+      "minMs": 220.84608300000002,
+      "maxMs": 248.67195800000002,
+      "rssMiB": 204.765625,
+      "samples": 3
+    },
+    "253-shipping40 / shipping": {
+      "ms": 561.068125,
+      "minMs": 548.096125,
+      "maxMs": 647.063042,
+      "rssMiB": 234.265625,
+      "samples": 3
+    },
+    "185 / parent": {
+      "ms": 539.7023340000001,
+      "minMs": 520.668833,
+      "maxMs": 606.676792,
+      "rssMiB": 205.84375,
+      "samples": 3
+    },
+    "185 / shipping": {
+      "ms": 525.0093340000001,
+      "minMs": 524.238458,
+      "maxMs": 614.32775,
+      "rssMiB": 204.984375,
+      "samples": 3
+    },
+    "426 / parent": {
+      "ms": 1446.266042,
+      "minMs": 1436.1404169999998,
+      "maxMs": 1672.789083,
+      "rssMiB": 368.703125,
+      "samples": 3
+    },
+    "426 / shipping": {
+      "ms": 1446.5244590000002,
+      "minMs": 1439.44675,
+      "maxMs": 1674.419708,
+      "rssMiB": 385.765625,
+      "samples": 3
+    },
+    "196 / parent": {
+      "ms": 1126.055708,
+      "minMs": 1106.4407919999999,
+      "maxMs": 1303.6660829999998,
+      "rssMiB": 538.078125,
+      "samples": 3
+    },
+    "196 / shipping": {
+      "ms": 1156.516791,
+      "minMs": 1125.813125,
+      "maxMs": 1277.6366669999998,
+      "rssMiB": 538.96875,
+      "samples": 3
+    },
+    "221 / parent": {
+      "ms": 1207.690583,
+      "minMs": 1176.500792,
+      "maxMs": 1484.854459,
+      "rssMiB": 347.203125,
+      "samples": 3
+    },
+    "221 / shipping": {
+      "ms": 1221.3192920000001,
+      "minMs": 1219.97975,
+      "maxMs": 1553.95475,
+      "rssMiB": 345.515625,
+      "samples": 3
+    },
+    "250 / parent": {
+      "ms": 212.959208,
+      "minMs": 207.71641700000004,
+      "maxMs": 263.948833,
+      "rssMiB": 181.65625,
+      "samples": 3
+    },
+    "250 / shipping": {
+      "ms": 213.21633300000002,
+      "minMs": 209.768,
+      "maxMs": 267.33899999999994,
+      "rssMiB": 181.5625,
+      "samples": 3
+    },
+    "251 / parent": {
+      "ms": 2748.501,
+      "minMs": 2655.854291,
+      "maxMs": 2964.2262499999997,
+      "rssMiB": 241.328125,
+      "samples": 3
+    },
+    "251 / shipping": {
+      "ms": 2658.3432500000004,
+      "minMs": 2644.802166,
+      "maxMs": 2674.035334,
+      "rssMiB": 239.671875,
+      "samples": 3
+    },
+    "252 / parent": {
+      "ms": 1714.519458,
+      "minMs": 1713.107208,
+      "maxMs": 1735.0715,
+      "rssMiB": 339.734375,
+      "samples": 3
+    },
+    "252 / shipping": {
+      "ms": 1751.414625,
+      "minMs": 1638.393167,
+      "maxMs": 1787.9262919999999,
+      "rssMiB": 345.15625,
+      "samples": 3
+    },
+    "253-reference40 / original": {
+      "ms": 16869.367792,
+      "minMs": 16842.854875,
+      "maxMs": 16934.55275,
+      "rssMiB": 903.296875,
+      "samples": 3
+    },
+    "253-reference40 / shipping": {
+      "ms": 13617.570125,
+      "minMs": 13457.828125,
+      "maxMs": 14188.233416000001,
+      "rssMiB": 518.8125,
+      "samples": 3
+    }
+  },
+  "runs": [
+    {
+      "workload": "253-original30",
+      "runtime": "parent",
+      "ms": 8444.535208,
+      "answer": "8.842823",
+      "rssMiB": 307.46875,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 6842,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:unbound-name:NameExpression": 1,
+          "loop:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "workload": "253-original30",
+      "runtime": "shipping",
+      "ms": 1690.70325,
+      "answer": "8.842823",
+      "rssMiB": 585.578125,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 2,
+        "numberLoopCopyProbes": 2,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 6840,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:unbound-name:NameExpression": 1,
+          "loop:unsupported-op:till": 1,
+          "number-loop:condition-work": 6840
+        }
+      }
+    },
+    {
+      "workload": "253-shipping30",
+      "runtime": "shipping",
+      "ms": 220.84608300000002,
+      "answer": "8.842823",
+      "rssMiB": 204.328125,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "253-shipping40",
+      "runtime": "shipping",
+      "ms": 548.096125,
+      "answer": "11.492847",
+      "rssMiB": 234.078125,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "185",
+      "runtime": "parent",
+      "ms": 520.668833,
+      "answer": "4640261571849533",
+      "rssMiB": 205.84375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "185",
+      "runtime": "shipping",
+      "ms": 524.238458,
+      "answer": "4640261571849533",
+      "rssMiB": 205.234375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "426",
+      "runtime": "parent",
+      "ms": 1436.1404169999998,
+      "answer": "31591886008",
+      "rssMiB": 368.703125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "426",
+      "runtime": "shipping",
+      "ms": 1446.5244590000002,
+      "answer": "31591886008",
+      "rssMiB": 368.65625,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "196",
+      "runtime": "parent",
+      "ms": 1106.4407919999999,
+      "answer": "322303240771079935",
+      "rssMiB": 538.84375,
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 4,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "196",
+      "runtime": "shipping",
+      "ms": 1125.813125,
+      "answer": "322303240771079935",
+      "rssMiB": 538.390625,
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 4,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "221",
+      "runtime": "parent",
+      "ms": 1176.500792,
+      "answer": "1884161251122450",
+      "rssMiB": 347.203125,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 2
+        }
+      }
+    },
+    {
+      "workload": "221",
+      "runtime": "shipping",
+      "ms": 1221.3192920000001,
+      "answer": "1884161251122450",
+      "rssMiB": 342.453125,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 2
+        }
+      }
+    },
+    {
+      "workload": "250",
+      "runtime": "parent",
+      "ms": 207.71641700000004,
+      "answer": "1425480602091519",
+      "rssMiB": 181.65625,
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1,
+          "number-loop:unsafe-input": 32,
+          "loop:unsupported-node:DeclaredCallExpression": 1
+        }
+      }
+    },
+    {
+      "workload": "250",
+      "runtime": "shipping",
+      "ms": 209.768,
+      "answer": "1425480602091519",
+      "rssMiB": 181.5625,
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1,
+          "number-loop:unsafe-input": 32,
+          "loop:unsupported-node:DeclaredCallExpression": 1
+        }
+      }
+    },
+    {
+      "workload": "251",
+      "runtime": "parent",
+      "ms": 2655.854291,
+      "answer": "18946051",
+      "rssMiB": 241.328125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "251",
+      "runtime": "shipping",
+      "ms": 2658.3432500000004,
+      "answer": "18946051",
+      "rssMiB": 233.90625,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "252",
+      "runtime": "parent",
+      "ms": 1714.519458,
+      "answer": "104924",
+      "rssMiB": 339.734375,
+      "diagnostics": {
+        "compiledLoops": 1496,
+        "numberLoops": 1496,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:deferred-binding:AssignmentStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "252",
+      "runtime": "shipping",
+      "ms": 1751.414625,
+      "answer": "104924",
+      "rssMiB": 349.90625,
+      "diagnostics": {
+        "compiledLoops": 1496,
+        "numberLoops": 502,
+        "numberLoopCopyProbes": 3,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 994,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "number-loop:condition-work": 994
+        }
+      }
+    },
+    {
+      "workload": "253-original30",
+      "runtime": "shipping",
+      "ms": 1639.565458,
+      "answer": "8.842823",
+      "rssMiB": 586.21875,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 2,
+        "numberLoopCopyProbes": 2,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 6840,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:unbound-name:NameExpression": 1,
+          "loop:unsupported-op:till": 1,
+          "number-loop:condition-work": 6840
+        }
+      }
+    },
+    {
+      "workload": "253-original30",
+      "runtime": "parent",
+      "ms": 8835.676083,
+      "answer": "8.842823",
+      "rssMiB": 300.578125,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 6842,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:unbound-name:NameExpression": 1,
+          "loop:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "workload": "253-shipping30",
+      "runtime": "shipping",
+      "ms": 230.055291,
+      "answer": "8.842823",
+      "rssMiB": 204.765625,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "253-shipping40",
+      "runtime": "shipping",
+      "ms": 561.068125,
+      "answer": "11.492847",
+      "rssMiB": 234.265625,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "185",
+      "runtime": "shipping",
+      "ms": 525.0093340000001,
+      "answer": "4640261571849533",
+      "rssMiB": 203.828125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "185",
+      "runtime": "parent",
+      "ms": 539.7023340000001,
+      "answer": "4640261571849533",
+      "rssMiB": 203.796875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "426",
+      "runtime": "shipping",
+      "ms": 1439.44675,
+      "answer": "31591886008",
+      "rssMiB": 385.828125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "426",
+      "runtime": "parent",
+      "ms": 1446.266042,
+      "answer": "31591886008",
+      "rssMiB": 385.828125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "196",
+      "runtime": "shipping",
+      "ms": 1156.516791,
+      "answer": "322303240771079935",
+      "rssMiB": 538.96875,
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 4,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "196",
+      "runtime": "parent",
+      "ms": 1126.055708,
+      "answer": "322303240771079935",
+      "rssMiB": 538.078125,
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 4,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "221",
+      "runtime": "shipping",
+      "ms": 1219.97975,
+      "answer": "1884161251122450",
+      "rssMiB": 345.515625,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 2
+        }
+      }
+    },
+    {
+      "workload": "221",
+      "runtime": "parent",
+      "ms": 1207.690583,
+      "answer": "1884161251122450",
+      "rssMiB": 345.90625,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 2
+        }
+      }
+    },
+    {
+      "workload": "250",
+      "runtime": "shipping",
+      "ms": 213.21633300000002,
+      "answer": "1425480602091519",
+      "rssMiB": 181.609375,
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1,
+          "number-loop:unsafe-input": 32,
+          "loop:unsupported-node:DeclaredCallExpression": 1
+        }
+      }
+    },
+    {
+      "workload": "250",
+      "runtime": "parent",
+      "ms": 212.959208,
+      "answer": "1425480602091519",
+      "rssMiB": 181.375,
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1,
+          "number-loop:unsafe-input": 32,
+          "loop:unsupported-node:DeclaredCallExpression": 1
+        }
+      }
+    },
+    {
+      "workload": "251",
+      "runtime": "shipping",
+      "ms": 2644.802166,
+      "answer": "18946051",
+      "rssMiB": 239.8125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "251",
+      "runtime": "parent",
+      "ms": 2748.501,
+      "answer": "18946051",
+      "rssMiB": 242.671875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "252",
+      "runtime": "shipping",
+      "ms": 1638.393167,
+      "answer": "104924",
+      "rssMiB": 337.40625,
+      "diagnostics": {
+        "compiledLoops": 1496,
+        "numberLoops": 502,
+        "numberLoopCopyProbes": 3,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 994,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "number-loop:condition-work": 994
+        }
+      }
+    },
+    {
+      "workload": "252",
+      "runtime": "parent",
+      "ms": 1713.107208,
+      "answer": "104924",
+      "rssMiB": 332.609375,
+      "diagnostics": {
+        "compiledLoops": 1496,
+        "numberLoops": 1496,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:deferred-binding:AssignmentStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "253-original30",
+      "runtime": "parent",
+      "ms": 8824.075917,
+      "answer": "8.842823",
+      "rssMiB": 303.296875,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 6842,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:unbound-name:NameExpression": 1,
+          "loop:unsupported-op:till": 1
+        }
+      }
+    },
+    {
+      "workload": "253-original30",
+      "runtime": "shipping",
+      "ms": 2021.25575,
+      "answer": "8.842823",
+      "rssMiB": 600.484375,
+      "diagnostics": {
+        "compiledLoops": 6843,
+        "numberLoops": 2,
+        "numberLoopCopyProbes": 2,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 6840,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:unbound-name:NameExpression": 1,
+          "loop:unsupported-op:till": 1,
+          "number-loop:condition-work": 6840
+        }
+      }
+    },
+    {
+      "workload": "253-shipping30",
+      "runtime": "shipping",
+      "ms": 248.67195800000002,
+      "answer": "8.842823",
+      "rssMiB": 205.0625,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "253-shipping40",
+      "runtime": "shipping",
+      "ms": 647.063042,
+      "answer": "11.492847",
+      "rssMiB": 235.84375,
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "185",
+      "runtime": "parent",
+      "ms": 606.676792,
+      "answer": "4640261571849533",
+      "rssMiB": 206.34375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "185",
+      "runtime": "shipping",
+      "ms": 614.32775,
+      "answer": "4640261571849533",
+      "rssMiB": 204.984375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "426",
+      "runtime": "parent",
+      "ms": 1672.789083,
+      "answer": "31591886008",
+      "rssMiB": 368.59375,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "426",
+      "runtime": "shipping",
+      "ms": 1674.419708,
+      "answer": "31591886008",
+      "rssMiB": 385.765625,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "196",
+      "runtime": "parent",
+      "ms": 1303.6660829999998,
+      "answer": "322303240771079935",
+      "rssMiB": 537.71875,
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 4,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "196",
+      "runtime": "shipping",
+      "ms": 1277.6366669999998,
+      "answer": "322303240771079935",
+      "rssMiB": 540.671875,
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 4,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "221",
+      "runtime": "parent",
+      "ms": 1484.854459,
+      "answer": "1884161251122450",
+      "rssMiB": 348.59375,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 2
+        }
+      }
+    },
+    {
+      "workload": "221",
+      "runtime": "shipping",
+      "ms": 1553.95475,
+      "answer": "1884161251122450",
+      "rssMiB": 352.53125,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 2
+        }
+      }
+    },
+    {
+      "workload": "250",
+      "runtime": "parent",
+      "ms": 263.948833,
+      "answer": "1425480602091519",
+      "rssMiB": 182.3125,
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1,
+          "number-loop:unsafe-input": 32,
+          "loop:unsupported-node:DeclaredCallExpression": 1
+        }
+      }
+    },
+    {
+      "workload": "250",
+      "runtime": "shipping",
+      "ms": 267.33899999999994,
+      "answer": "1425480602091519",
+      "rssMiB": 180.953125,
+      "diagnostics": {
+        "compiledLoops": 16,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:loop-header:ForStatement": 1,
+          "number-loop:unsafe-input": 32,
+          "loop:unsupported-node:DeclaredCallExpression": 1
+        }
+      }
+    },
+    {
+      "workload": "251",
+      "runtime": "parent",
+      "ms": 2964.2262499999997,
+      "answer": "18946051",
+      "rssMiB": 240.78125,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "251",
+      "runtime": "shipping",
+      "ms": 2674.035334,
+      "answer": "18946051",
+      "rssMiB": 239.671875,
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {}
+      }
+    },
+    {
+      "workload": "252",
+      "runtime": "parent",
+      "ms": 1735.0715,
+      "answer": "104924",
+      "rssMiB": 339.890625,
+      "diagnostics": {
+        "compiledLoops": 1496,
+        "numberLoops": 1496,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:deferred-binding:AssignmentStatement": 1
+        }
+      }
+    },
+    {
+      "workload": "252",
+      "runtime": "shipping",
+      "ms": 1787.9262919999999,
+      "answer": "104924",
+      "rssMiB": 345.15625,
+      "diagnostics": {
+        "compiledLoops": 1496,
+        "numberLoops": 502,
+        "numberLoopCopyProbes": 3,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 994,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "number-loop:condition-work": 994
+        }
+      }
+    },
+    {
+      "workload": "253-reference40",
+      "runtime": "original",
+      "ms": 16869.367792,
+      "answer": "11.492847",
+      "rssMiB": 706.265625,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "workload": "253-reference40",
+      "runtime": "shipping",
+      "ms": 13457.828125,
+      "answer": "11.492847",
+      "rssMiB": 520.890625,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "workload": "253-reference40",
+      "runtime": "shipping",
+      "ms": 13617.570125,
+      "answer": "11.492847",
+      "rssMiB": 518.8125,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "workload": "253-reference40",
+      "runtime": "original",
+      "ms": 16842.854875,
+      "answer": "11.492847",
+      "rssMiB": 903.296875,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "workload": "253-reference40",
+      "runtime": "original",
+      "ms": 16934.55275,
+      "answer": "11.492847",
+      "rssMiB": 912.09375,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    },
+    {
+      "workload": "253-reference40",
+      "runtime": "shipping",
+      "ms": 14188.233416000001,
+      "answer": "11.492847",
+      "rssMiB": 514.9375,
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopCopyProbes": 0,
+        "numberLoopCopyAmortized": 0,
+        "exactLoopWorkSamples": 0,
+        "mixedIntegerLoops": 0,
+        "numberLoopOverflows": 0,
+        "fallbacks": {
+          "loop:disabled": 8
+        }
+      }
+    }
+  ],
+  "oracleChecks": [
+    {
+      "N": 1,
+      "reference": false,
+      "answer": "1"
+    },
+    {
+      "N": 1,
+      "reference": true,
+      "answer": "1"
+    },
+    {
+      "N": 2,
+      "reference": false,
+      "answer": "1"
+    },
+    {
+      "N": 2,
+      "reference": true,
+      "answer": "1"
+    },
+    {
+      "N": 3,
+      "reference": false,
+      "answer": "1.333333"
+    },
+    {
+      "N": 3,
+      "reference": true,
+      "answer": "1.333333"
+    },
+    {
+      "N": 4,
+      "reference": false,
+      "answer": "1.666667"
+    },
+    {
+      "N": 4,
+      "reference": true,
+      "answer": "1.666667"
+    },
+    {
+      "N": 5,
+      "reference": false,
+      "answer": "1.966667"
+    },
+    {
+      "N": 5,
+      "reference": true,
+      "answer": "1.966667"
+    },
+    {
+      "N": 6,
+      "reference": false,
+      "answer": "2.255556"
+    },
+    {
+      "N": 6,
+      "reference": true,
+      "answer": "2.255556"
+    },
+    {
+      "N": 7,
+      "reference": false,
+      "answer": "2.544444"
+    },
+    {
+      "N": 7,
+      "reference": true,
+      "answer": "2.544444"
+    },
+    {
+      "N": 8,
+      "reference": false,
+      "answer": "2.83254"
+    },
+    {
+      "N": 8,
+      "reference": true,
+      "answer": "2.83254"
+    },
+    {
+      "N": 9,
+      "reference": false,
+      "answer": "3.117945"
+    },
+    {
+      "N": 9,
+      "reference": true,
+      "answer": "3.117945"
+    },
+    {
+      "N": 10,
+      "reference": false,
+      "answer": "3.400732"
+    },
+    {
+      "N": 10,
+      "reference": true,
+      "answer": "3.400732"
+    },
+    {
+      "N": 11,
+      "reference": false,
+      "answer": "3.681627"
+    },
+    {
+      "N": 11,
+      "reference": true,
+      "answer": "3.681627"
+    },
+    {
+      "N": 12,
+      "reference": false,
+      "answer": "3.961047"
+    },
+    {
+      "N": 12,
+      "reference": true,
+      "answer": "3.961047"
+    }
+  ],
+  "compiledFixture": {
+    "ms": 583.597333,
+    "rssMiB": 303.484375,
+    "tests": [
+      {
+        "name": "full default",
+        "passed": true,
+        "output": [
+          "11.492847"
+        ],
+        "durationMs": 409.273208
+      },
+      {
+        "name": "fewer pieces",
+        "passed": true,
+        "output": [
+          "1",
+          "1",
+          "1.333333",
+          "2.255556",
+          "3.400732",
+          "6.156946"
+        ],
+        "durationMs": 39.01333299999999
+      }
+    ]
+  },
+  "shippingSourceSha256": "07b7b9d706df8799dbc28050493e4cfa413aa08ddd2577174dde518b28ef0e49",
+  "runtimeModulesSha256": {
+    "integer-loop": {
+      "parent": "e9e019e642d734dd5d711a81401277bbf9e6d30cde67f653572f1a76c8b384ed",
+      "shipping": "39c0d87a02f2922bde9201447f0e632a9d6b844b23a1085ab82b17a4818b4f3a"
+    },
+    "number-loop-runtime": {
+      "parent": "80fa8bf21dfb5169340de011c985fb387e9d5af8b92677117c0acf4c07a17c80",
+      "shipping": "18a1976c8682c87062a7b427ffe77016fa8244001cbf0a7d65c787ea5db37ad1"
+    }
+  },
+  "verification": {
+    "build": "TypeScript project build passed",
+    "language": "1482/1482 tests passed",
+    "focused": "546/546 tests passed, seven suites",
+    "ordinaryInterpreter": "9217 passed, 28 existing failures; exact failed-name set matches the parent run",
+    "parentFailureNames": [
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for *=",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for +=",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > handles real reductions for -=",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted addition",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted multiplication",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=false) > weighted subtraction",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for *=",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for +=",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > handles real reductions for -=",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted addition",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted multiplication",
+      "test/accumulate-writes.test.ts > accumulating writes (compilation=true) > weighted subtraction",
+      "test/array-construction.test.ts > array construction (compiled false) > runs the Euler 11 solution with separate directional products",
+      "test/array-construction.test.ts > array construction (compiled true) > runs the Euler 11 solution with separate directional products",
+      "test/diagnostics.test.ts > syntax error wording > reports \"fun N inc\\n\" in one readable line",
+      "test/explicit-plan-demos.test.ts > explicit-plan demo migration (compilation=false) > packs ready digit words through the actual infinite-string merge stage",
+      "test/explicit-plan-demos.test.ts > explicit-plan demo migration (compilation=true) > packs ready digit words through the actual infinite-string merge stage",
+      "test/intrinsic-matrix-ranks.test.ts > intrinsic matrix cells > executes the documented Euler 8 and 11 programs",
+      "test/io-programs.test.ts > Rank IO, modules and programs > binds argument text from defaults, args and the workspace",
+      "test/io-programs.test.ts > Rank IO, modules and programs > binds option text from defaults, args and the workspace",
+      "test/negative-axis.test.ts > negative tensor axes (compilation=false) > keeps trailing-axis helpers independent of the frame rank",
+      "test/negative-axis.test.ts > negative tensor axes (compilation=true) > keeps trailing-axis helpers independent of the frame rank",
+      "test/window-dimensions.test.ts > window dimensions (compiled false) > continues builtin and user function pipelines and preserves source pipelines",
+      "test/window-dimensions.test.ts > window dimensions (compiled true) > continues builtin and user function pipelines and preserves source pipelines"
+    ],
+    "redControl": "Five new range-admission tests fail on unchanged parent sources; all 25 adaptive tests pass with the fix",
+    "boundaries": "11 tests passed; 65 semantic owners checked; application-form checks passed",
+    "corpus": "Both 253 paths pass differential observation equality and type audits; isolated retries passed after an initial concurrent run reported a Vitest worker RPC timeout",
+    "oracle": "24 shipping checks, N=1..12 in both engines; independent forward permutation-count DP",
+    "fixture": "Two blocks / seven program runs, including N=40, pass in both engines through the scoped corpus audits",
+    "cli": "Both files: one checked, zero failures",
+    "notRun": "Exhaustive types/differential/Nurikabe corpus audits; no all-green repository suite claim"
+  }
+}

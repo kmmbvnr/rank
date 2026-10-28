@@ -1,9 +1,26 @@
 use testing
 
-rem The default input takes 15 min, so
-rem only fewer pieces are tested.
+test "full default"
+  use "253_tidyingup"
+  run
+
+  Answer equal 11.492847
+end
+
 test "fewer pieces"
   use "253_tidyingup"
+  N = 1
+  run
+
+  Answer equal 1
+  N = 2
+  run
+
+  Answer equal 1
+  N = 3
+  run
+
+  Answer equal 1.333333
   N = 6
   run
 
