@@ -120,11 +120,18 @@ final class RamGpu {
         long prepared = System.nanoTime();
         JSONArray data = request.getJSONArray("input");
         int[] sizes = inputSizes == null ? new int[] {data.length()} : inputSizes;
+        JSONArray files = request.optJSONArray("inputFiles");
+        if (files != null && (inputSizes == null || files.length() != sizes.length))
+            throw new IllegalArgumentException("File inputs require declared input sizes");
         long total = 0;
-        for (int size : sizes) total += size;
+        for (int i = 0; i < sizes.length; i++) if (files == null || files.isNull(i)) total += sizes[i];
         if (total != data.length()) throw new IllegalArgumentException("Wrong RAM input length");
         int offset = 0;
         for (int index = 0; index < sizes.length; index++) {
+            if (files != null && !files.isNull(index)) {
+                inputs.get(index).writeFloat(ModelFiles.readTensor(context, files.getJSONObject(index), sizes[index]));
+                continue;
+            }
             float[] input = new float[sizes[index]];
             for (int i = 0; i < input.length; i++) {
                 input[i] = (float) data.getDouble(offset++);

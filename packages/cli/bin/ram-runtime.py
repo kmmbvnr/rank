@@ -76,12 +76,40 @@ def run(request):
     prepared = time.perf_counter()
     data = np.asarray(request["input"], dtype=np.float32)
     sizes = [int(np.prod(buffer.get_tensor_details()["shape"])) for buffer in inputs]
-    if data.ndim != 1 or data.size != sum(sizes) or not np.isfinite(data).all():
+    files = request.get("inputFiles", [None] * len(inputs))
+    if not isinstance(files, list) or len(files) != len(inputs):
+        raise ValueError("Wrong file input count")
+    if data.ndim != 1 or data.size != sum(size for size, file in zip(sizes, files) if file is None) or not np.isfinite(data).all():
         raise ValueError("Invalid RAM input shape or values")
     offset = 0
-    for buffer, size in zip(inputs, sizes):
-        buffer.write(data[offset:offset + size])
-        offset += size
+    for buffer, size, descriptor in zip(inputs, sizes, files):
+        if descriptor is None:
+            buffer.write(data[offset:offset + size])
+            offset += size
+            continue
+        shape = list(buffer.get_tensor_details()["shape"])
+        if (descriptor.get("dtype") != "F32" or descriptor.get("shape") != shape
+                or type(descriptor.get("offset")) is not int or type(descriptor.get("length")) is not int
+                or type(descriptor.get("fileSize")) is not int or descriptor["offset"] < 0
+                or descriptor["length"] != size * 4
+                or descriptor["offset"] > descriptor["fileSize"] - descriptor["length"]
+                or not isinstance(descriptor.get("path"), str) or not os.path.isabs(descriptor["path"])):
+            raise ValueError("Invalid file tensor descriptor")
+        with open(descriptor["path"], "rb") as source:
+            stat = os.fstat(source.fileno())
+            revision = lambda st: f"{st.st_dev}:{st.st_ino}:{st.st_size}:{st.st_mtime_ns}:{st.st_ctime_ns}"
+            if stat.st_size != descriptor["fileSize"] or revision(stat) != descriptor.get("revision"):
+                raise ValueError("File tensor changed; reopen the checkpoint")
+            mapped = np.memmap(source, dtype="<f4", mode="r", offset=descriptor["offset"], shape=(size,))
+            try:
+                for start in range(0, size, 16384):
+                    if not np.isfinite(mapped[start:start + 16384]).all():
+                        raise ValueError("RAM file input requires finite f32 values")
+                buffer.write(mapped)
+                if revision(os.fstat(source.fileno())) != descriptor["revision"]:
+                    raise ValueError("File tensor changed during transfer")
+            finally:
+                mapped._mmap.close()
     written = time.perf_counter()
     model.run_by_index(0, inputs, outputs)
     dispatched = time.perf_counter()

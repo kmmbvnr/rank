@@ -1,3 +1,5 @@
+import { fileTensorInput, type FileTensorInput } from './file-tensor.js';
+import { demandValue } from './plan.js';
 import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.js';
 import { lowerRamStructure } from './ram-structure.js';
 import { ramModel, type RamNode } from './ram-model.js';
@@ -21,7 +23,7 @@ export interface RamGraph {
     readonly model: Uint8Array;
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
-export type RamGpu = (graph: RamGraph, input: readonly number[]) => readonly number[];
+export type RamGpu = (graph: RamGraph, input: readonly number[], inputFiles?: readonly (FileTensorInput | null)[]) => readonly number[];
 export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string; readonly weights: Readonly<Record<string, string>> }
 
 /** Static tensor expressions with baked constants. */
@@ -287,11 +289,19 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
         if (reload) module = reload();
         if (values.length !== module.graph.inputs.length)
             throw new RankError('RAM input count changed; import the module again', 'DimensionMismatch');
+        const inputFiles: (FileTensorInput | null)[] = [];
         const input = module.graph.inputs.flatMap((spec, i) => {
-            const value = values[i];
+            const value = demandValue(values[i]);
             if (!isRankArray(value) || value.shape.length !== spec.shape.length
                 || value.shape.some((n, j) => n !== spec.shape[j]))
                 throw new RankError(`${module.name} expects shape ${spec.shape.join(' ')} for ${spec.name}`, 'DimensionMismatch');
+            const descriptor = fileTensorInput(value);
+            inputFiles.push(descriptor ?? null);
+            if (descriptor) {
+                if (descriptor.dtype !== 'F32' || module.graph.precision !== 'f32')
+                    throw new RankError('File tensor GPU inputs currently require F32 data and .f32 options', 'TypeError');
+                return [];
+            }
             return value.items.map(cell => {
                 if (typeof cell !== 'number' || !Number.isFinite(cell))
                     throw new RankError('RAM input requires finite real values', 'TypeError');
@@ -299,7 +309,7 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
             });
         });
         if (!gpu) throw new RankError('RAM GPU runtime is unavailable on this host', 'GpuUnavailable');
-        const output = gpu(module.graph, input);
+        const output = gpu(module.graph, input, inputFiles.some(Boolean) ? inputFiles : undefined);
         if (output.length !== module.graph.outputShape.reduce((a, b) => a * b, 1) || output.some(n => !Number.isFinite(n)))
             throw new RankError('Invalid GPU output', 'GpuExecution');
         return ownedArray(output.map(n => ramRound(n, module.graph.precision)), module.graph.outputShape);

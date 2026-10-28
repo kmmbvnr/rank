@@ -1,3 +1,4 @@
+import { registerFileTensor } from './file-tensor.js';
 import { derivedArray, ownedArray, ownedObject } from './array-storage.js';
 import { RankError } from './errors.js';
 import { isRankFile, type RankFile, type RankValue } from './value.js';
@@ -129,5 +130,15 @@ export function safetensor(value: RankValue, name: RankValue): RankValue {
             default: return invalid('unsupported dtype');
         }
     };
-    return tensor.shape.length ? derivedArray(tensor.shape, [source], readCell) : readCell(0);
+    if (!tensor.shape.length) return readCell(0);
+    const view = derivedArray(tensor.shape, [source], readCell);
+    registerFileTensor(view, () => {
+        file(source);
+        const revision = source.handle.revision?.(), path = source.handle.nativePath?.();
+        if (revision === undefined || path === undefined) return invalid('native file tensor transfer is unavailable on this host');
+        if (source.handle.size() !== metadata.size || revision !== metadata.revision) return invalid('file changed; reopen the checkpoint');
+        return { path, revision, fileSize: metadata.size, offset: tensor.offset, length: tensor.length,
+            dtype: tensor.dtype, shape: tensor.shape };
+    });
+    return view;
 }

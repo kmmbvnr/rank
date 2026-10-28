@@ -94,6 +94,8 @@ export interface RankFileHandle {
     size(): number;
     /** Host identity used to detect modified file-backed tensors. */
     revision?(): string;
+    /** Native-runtime path for descriptor-based tensor transfer, when supported. */
+    nativePath?(): string;
     flush(): void;
     close(): void;
 }

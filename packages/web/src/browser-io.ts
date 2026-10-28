@@ -174,6 +174,7 @@ class NativeModelFile implements RankFileHandle {
     }
     position(): number { return this.cursor; }
     size(): number { return JSON.parse(this.request('&action=stat').responseText).size; }
+    nativePath(): string { if (this.closed) throw new Error('file is closed'); return this.name.slice('models/'.length); }
     revision(): string { return JSON.parse(this.request('&action=stat').responseText).revision; }
     write(): void { throw new Error('Model files are read-only'); }
     flush(): void { if (this.closed) throw new Error('file is closed'); }

@@ -1,9 +1,10 @@
+import type { FileTensorInput } from './file-tensor.js';
 export interface RamModelFile { path: string; size: number; sha256: string }
 /** One resident native model. A stale handle is retried once after a runtime restart
  * or another client loading a model. Execution failures are never retried. */
 export interface RamRequest {
     action: 'load' | 'invoke' | 'release'; profile?: boolean; model?: string; modelId?: string;
-    modelFile?: RamModelFile; inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
+    inputFiles?: readonly (FileTensorInput | null)[]; modelFile?: RamModelFile; inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
 }
 export interface RamReply {
     error?: string; code?: string; modelId?: string; output?: number[];
@@ -26,7 +27,7 @@ export function createRamClient(send: (request: RamRequest) => RamReply) {
             }
             current = modelId = undefined;
         },
-        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[]): RamReply {
+        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[], inputFiles?: readonly (FileTensorInput | null)[]): RamReply {
             let prepareMs = 0, loaded = false;
             for (let attempt = 0; attempt < 2; attempt++) {
                 if (current !== key || !modelId) {
@@ -38,7 +39,7 @@ export function createRamClient(send: (request: RamRequest) => RamReply) {
                     modelId = reply.modelId; current = key; loaded = true;
                     prepareMs += reply.prepareMs ?? 0;
                 }
-                const reply = send({ action: 'invoke', modelId, input, outputSize });
+                const reply = send({ action: 'invoke', modelId, input, outputSize, ...(inputFiles ? {inputFiles} : {}) });
                 if (reply.code === 'STALE_MODEL') { current = modelId = undefined; continue; }
                 check(reply);
                 return { ...reply, cached: !loaded, prepareMs: prepareMs + (reply.prepareMs ?? 0) };

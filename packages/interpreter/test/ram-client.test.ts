@@ -37,6 +37,23 @@ describe('RAM model lifecycle', () => {
         client.invoke(key, encode, [2], 1);
         expect(requests.filter(r => r.action === 'load')).toHaveLength(4);
     });
+    it('keeps file inputs out of inline data, including stale-handle recovery', () => {
+        const requests: RamRequest[] = []; let stale = true;
+        const file = { path: '/models/weights.safetensors', revision: 'version', fileSize: 3 * 1024 ** 3,
+            offset: 2 ** 31 + 64, length: 4, dtype: 'F32', shape: [1] };
+        const client = createRamClient(request => {
+            requests.push(request);
+            if (request.action === 'load') return { modelId: 'model', fullyAccelerated: true };
+            if (stale) { stale = false; return { error: 'expired', code: 'STALE_MODEL' }; }
+            return { output: [3], fullyAccelerated: true };
+        });
+        expect(client.invoke({}, () => 'small graph', [2], 1, [1, 1], [file, null]).output).toEqual([3]);
+        for (const request of requests.filter(r => r.action === 'invoke')) {
+            expect(request.input).toEqual([2]);
+            expect(request.inputFiles).toEqual([file, null]);
+            expect(request.model).toBeUndefined();
+        }
+    });
     it('does not retry execution errors and bounds stale recovery', () => {
         let calls = 0;
         const client = createRamClient(r => {

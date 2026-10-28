@@ -244,6 +244,8 @@ class NodeFile implements RankFileHandle {
         return fs.fstatSync(this.descriptor).size;
     }
 
+    nativePath(): string { this.ensureOpen(); return pathModule.resolve(this.name); }
+
     revision(): string {
         this.ensureOpen();
         const stat = fs.fstatSync(this.descriptor, { bigint: true });

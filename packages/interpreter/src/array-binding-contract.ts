@@ -1,3 +1,4 @@
+import { inheritFileTensor } from './file-tensor.js';
 import { inheritConcatCheck } from './concat-array.js';
 import { registerPackedBooleanCheck } from './packed-booleans.js';
 import { resume, type Execution } from './execution.js';
@@ -354,6 +355,7 @@ export class ArrayBindingContract {
             });
             registerArrayCellEvaluation(checked, evaluate);
             this.metadata(source, checked);
+            inheritFileTensor(source, checked, validate);
             holdArraySource(checked, source);
             registerScalarView(checked, source, index => index, { accepts: () =>
                 this.at(path)?.elements?.some(cell => cell.type === 'integer') === true,
