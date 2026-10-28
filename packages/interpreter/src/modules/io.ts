@@ -1,3 +1,4 @@
+import { safetensor, safetensorIndex } from '../safetensors.js';
 import { ByteArray } from '../bytes.js';
 import { RankError } from '../errors.js';
 import type { RankFileMode, RankInput, RankIo } from '../io.js';
@@ -19,6 +20,8 @@ import type { RuntimeModule } from './types.js';
 const encoder = new TextEncoder();
 
 export const ioModule: RuntimeModule = {
+    safetensors: () => native('safetensors', 1, args => safetensorIndex(args[0])),
+    tensor: () => native('tensor', 2, args => safetensor(args[0], args[1])),
     print: context => native('print', 1, arguments_ => {
         const value = isRankSqliteTable(arguments_[0])
             ? materializeSqlite(arguments_[0])

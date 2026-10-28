@@ -15,6 +15,9 @@ export class BufferedInput implements RankInput {
     }
 }
 
+let nativeFiles = false;
+export function configureNativeFiles(enabled: boolean): void { nativeFiles = enabled; }
+
 export class BrowserIo implements RankIo {
     private readonly files = new Map<string, Uint8Array>();
 
@@ -23,14 +26,23 @@ export class BrowserIo implements RankIo {
     }
 
     read(path: string): Uint8Array {
+        if (nativeFiles && path.startsWith('models/')) {
+            const file = new NativeModelFile(path);
+            try { return file.read(file.size()); } finally { file.close(); }
+        }
         return this.file(path).slice();
     }
 
     readRange(path: string, offset: number, count: number): Uint8Array {
+        if (nativeFiles && path.startsWith('models/')) {
+            const file = new NativeModelFile(path);
+            try { file.seek(offset); return file.read(count); } finally { file.close(); }
+        }
         return this.file(path).slice(offset, offset + count);
     }
 
     write(path: string, data: Uint8Array, append: boolean): void {
+        if (nativeFiles && path.startsWith('models/')) throw new Error('Model files are read-only');
         const previous = append ? this.files.get(path) : undefined;
         if (!previous) {
             this.files.set(path, data.slice());
@@ -43,6 +55,10 @@ export class BrowserIo implements RankIo {
     }
 
     open(path: string, mode: RankFileMode): RankFileHandle {
+        if (nativeFiles && path.startsWith('models/')) {
+            if (mode !== 'read') throw new Error('Model files are read-only');
+            return new NativeModelFile(path);
+        }
         if (mode === 'write') this.files.set(path, new Uint8Array());
         else if (!this.files.has(path) && mode !== 'append') this.file(path);
         else if (!this.files.has(path)) this.files.set(path, new Uint8Array());
@@ -120,4 +136,46 @@ class BrowserFileHandle implements RankFileHandle {
     private ensureOpen(): void {
         if (this.closed) throw new Error('file is closed');
     }
+}
+
+/** Only bounded byte ranges cross the WebView boundary; files remain in app storage. */
+class NativeModelFile implements RankFileHandle {
+    private cursor = 0;
+    private closed = false;
+    private readonly url: string;
+    constructor(readonly name: string) {
+        this.url = '/__rank_model_file?name=' + encodeURIComponent(name.slice('models/'.length));
+        this.size();
+    }
+    private request(query: string, binary = false): XMLHttpRequest {
+        if (this.closed) throw new Error('file is closed');
+        const request = new XMLHttpRequest();
+        request.open('GET', this.url + query, false);
+        if (binary) request.responseType = 'arraybuffer';
+        request.send();
+        if (request.status !== 200) throw new Error('Cannot read model file: ' + this.name);
+        return request;
+    }
+    read(count: number): Uint8Array {
+        if (this.closed) throw new Error('file is closed');
+        if (!Number.isSafeInteger(count) || count < 0 || count > 16 * 1024 * 1024)
+            throw new Error('Model file reads are limited to 16 MiB; use ranges');
+        const result = new Uint8Array(count); let done = 0;
+        while (done < count) {
+            const data = new Uint8Array(this.request('&offset=' + this.cursor + '&count=' + Math.min(65536, count - done), true).response);
+            result.set(data, done); done += data.length; this.cursor += data.length;
+            if (!data.length) break;
+        }
+        return result.subarray(0, done);
+    }
+    seek(offset: number): void {
+        if (this.closed || !Number.isSafeInteger(offset) || offset < 0) throw new Error('Invalid file offset');
+        this.cursor = offset;
+    }
+    position(): number { return this.cursor; }
+    size(): number { return JSON.parse(this.request('&action=stat').responseText).size; }
+    revision(): string { return JSON.parse(this.request('&action=stat').responseText).revision; }
+    write(): void { throw new Error('Model files are read-only'); }
+    flush(): void { if (this.closed) throw new Error('file is closed'); }
+    close(): void { this.closed = true; }
 }

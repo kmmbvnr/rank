@@ -449,3 +449,42 @@ Turn text into bytes first with bytes.
 ### See also
 
 open, bytes, readbytes
+
+## safetensors and tensor
+
+Inspect a Safetensors checkpoint through an open file. `F safetensors` lists
+`.name`, `.dtype`, `.shape` and `.bytes` without reading tensor payloads.
+`F tensor Name` returns the named array, or a scalar for a rank-zero tensor.
+
+```rank
+use io
+use sequences
+F = "model.safetensors" open
+F safetensors
+W' = F tensor "wte.weight"
+W 0 0
+Preview = W (0 till 3) #
+Preview
+```
+
+Use the existing deferred binding (`W' =`) for large tensors. Ordinary `W =`
+materializes the array, just as it does for other Rank expressions. The reader
+holds at most one 64 KiB payload block per view; the index is limited to 16 MiB.
+Selecting a small slice and assigning it normally creates an ordinary in-memory
+array. A full reduction still reads the full tensor. Keep the file open while
+using a deferred view; `F close` invalidates it. File resources follow the usual
+program/REPL lifetime.
+
+Supported dtypes: F16, BF16, F32, F64, signed/unsigned 8/16/32/64-bit integers,
+and BOOL. Integers remain exact Rank integers; floating values become Rank reals.
+Empty tensors and rank-zero scalars are supported. Packed/sub-byte types are not.
+Shapes, offsets, byte lengths, duplicate keys and complete payload coverage are
+validated before access. Hosts with file revisions reject modified files; do not
+modify a checkpoint while it is open. Safetensors itself contains no payload
+checksum: structural validation is not a content-integrity check.
+
+On Android, `"models/model.safetensors" open` reads a file already placed in the
+app's `files/models` directory. This is separate from notebook attachments and
+is not included in notebook ZIP exports. The file-picker/import UI and automatic
+shard-index loading are not implemented yet. Desktop uses ordinary file paths;
+individual shard files can be opened separately.

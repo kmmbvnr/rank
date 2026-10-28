@@ -1,5 +1,7 @@
 /// <reference lib="webworker" />
 
+import { BrowserIo, configureNativeFiles } from './browser-io.js';
+
 import { createReplSession } from '@arrrank/common/repl-session';
 import { withInterrupt, DebugSession, type PauseSnapshot, type InterruptSignal } from '@arrrank/interpreter';
 import { nativeDebugSignal } from './debug-signal.js';
@@ -13,6 +15,7 @@ let signalUrl: string | undefined;
 let breakpoints: { source: string; line: number }[] = [];
 const onPause = (pause: PauseSnapshot) => self.postMessage({ id: 0, pause, snapshot: session.snapshot() } satisfies WorkerResponse);
 let queue = Promise.resolve();
+let androidFiles = false;
 let modules: Record<string, string> = {};
 let attachments: Record<string, Uint8Array> = {};
 const setAttachments = (files: Record<string, string>) => {
@@ -20,7 +23,7 @@ const setAttachments = (files: Record<string, string>) => {
         [name, Uint8Array.from(atob(data), c => c.charCodeAt(0))]));
 };
 const createSession = () => createReplSession({ options: {
-    sourceId: 'main.ra', ramGpu: browserRamGpu,
+    sourceId: 'main.ra', ramGpu: browserRamGpu, io: androidFiles ? new BrowserIo([]) : undefined,
     loadModule: name => {
         if (!Object.hasOwn(modules, name)) throw new Error('Module is not attached to this program: ' + name);
         return { id: name, source: modules[name], readBinary: file => {
@@ -32,6 +35,8 @@ const createSession = () => createReplSession({ options: {
 self.addEventListener('message', (event: MessageEvent<WorkerRequest | WorkerInit>) => {
     if (!('method' in event.data)) {
         configureRamGpu(event.data.nativeRam ?? false);
+        androidFiles = event.data.nativeRam ?? false;
+        configureNativeFiles(androidFiles);
         signalUrl = event.data.signalUrl;
         signal = event.data.signal ? new Int32Array(event.data.signal)
             : event.data.signalUrl ? nativeDebugSignal(event.data.signalUrl) : undefined;

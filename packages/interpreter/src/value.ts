@@ -92,6 +92,8 @@ export interface RankFileHandle {
     seek(offset: number): void;
     position(): number;
     size(): number;
+    /** Host identity used to detect modified file-backed tensors. */
+    revision?(): string;
     flush(): void;
     close(): void;
 }

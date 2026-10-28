@@ -1372,6 +1372,13 @@ Both accept text or bytes and return the same 16-byte digest.
 
 ## File I/O
 
+`File safetensors` lists a checkpoint's tensor names, dtypes, shapes and byte
+sizes without loading the payload. `File tensor Name` reads a named tensor through
+bounded file reads. Use a deferred binding (`W' = File tensor "wte.weight"`) to
+avoid ordinary assignment materializing a large tensor. Small slices work with
+ordinary Rank operations. See [file-backed tensors](../manual/io.md#safetensors-and-tensor)
+for supported dtypes, file lifetime and Android storage.
+
 `print` writes one line using Rank's default value representation and returns
 the value so a pipeline may continue. Scalars and arrays keep their compact
 grader-friendly form. Records include field names and values, for example

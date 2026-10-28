@@ -328,6 +328,8 @@ Standard input, whole-file text and stateful file handles.
 | `Path read` | text, io | unary all | Complete decoded UTF-8 text of a file, final line ending included. |
 | `File readbytes Count | Path Offset Count readbytes` | bytes, io | binary all / all; 3 operands: whole | Reads a block of bytes by offset, or the next Count bytes of an open file. |
 | `Path readlines` | array, io | unary all | Lines of a file with their separators removed. |
+| `File safetensors` | array, io | unary all | Lists tensor names, dtypes, shapes and byte sizes without reading tensor data. |
+| `File tensor Name` | value, io | binary all / all | Reads a named Safetensors tensor through a bounded file-backed view; the file must remain open. |
 | `File seek Offset` | file, io | binary all / all | Sets an absolute byte offset from the beginning. |
 | `File size` | integer, io | unary all | Length of an open file in bytes. |
 | `Text write Path` | text, io | binary all / all | Creates or replaces a file with UTF-8 text. |
