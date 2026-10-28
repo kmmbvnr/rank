@@ -337,12 +337,11 @@ export function integerDistinctConsumer(value: RankValue, terminal: 'array' | 's
         const { offset, stride } = stored?.linear ?? { offset: 0, stride: 1 };
         const length = selected?.length ?? view!.shape[0];
         if (compact && length) stored!.validateUniform?.(BigInt(compact[offset]));
-        const read = selected?.numberAt ?? ((index: number) => compact![offset + index * stride]);
         const seen = new Set<number>();
         let partial = 0, sum = 0n;
         for (let i = 0; i < length; i++) {
             if ((i & 4095) === 0) checkpoint('summing distinct integers', 4096);
-            const cell = read(i);
+            const cell = compact ? compact[offset + i * stride] : selected!.numberAt!(i);
             if (seen.has(cell)) continue;
             seen.add(cell);
             const next = partial + cell;

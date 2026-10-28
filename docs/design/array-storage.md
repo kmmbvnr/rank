@@ -156,3 +156,7 @@ Count expressions with effects keep ordinary evaluation order.
 
 Run `node benchmarks/collection-chains.mjs` after the TypeScript build to compare
 chained and separately materialized execution, including exact result checks.
+
+Distinct sum fusion removes the output array; it is not a universal speedup.
+The 100,000-element control and its measurements are recorded in
+`benchmarks/baselines/2026-10-28-collection-chains.jsonl`.
