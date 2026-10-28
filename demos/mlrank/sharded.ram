@@ -1,0 +1,5 @@
+use ml
+arg X .f32 shape 1 768
+arg W .f32 shape 768 2304
+arg S .f32 shape 768
+return (X * S) matmul W

@@ -510,3 +510,65 @@ bounded chunks into the `float[]` required by LiteRT's Kotlin API. Neither path
 promises zero-copy GPU access. Binding checks still apply; unsupported dtypes,
 closed files and changed files fail explicitly. An ordinary assignment or an
 operation that transforms the array uses the usual Rank evaluation rules.
+
+## verify
+
+`File verify Sha256` checks a lowercase 64-character SHA-256 digest and returns
+the same open file. Verification streams through a 64 KiB native buffer and
+preserves the file cursor. A changed verified file must be reopened. This is
+available for desktop files and Android `models/` files; hosts without a streaming
+checksum API report an error.
+
+```rank
+use io
+F = "models/locked.safetensors.index.json" open
+F verify "4945fc6c0c6606c66afc79d27bd228468febc6a3a41e4ccbc3028f6f4305c060"
+F safetensors
+```
+
+That digest belongs to the bundled GPT-2 checkpoint demonstration's generated
+index. Use the digest reported by the importer for your own files.
+
+### Multi-file Safetensors checkpoints
+
+The existing `safetensors` and `tensor` operations also accept an open
+`.safetensors.index.json` file. Its `weight_map` maps tensor names to sibling
+`.safetensors` files. `F safetensors` reads the index and shard headers only,
+returning the ordinary metadata columns plus `file`. An unlocked Hugging Face
+index can be inspected this way.
+
+Tensor access additionally requires a `files` map with each shard's `size` and
+`sha256`. Create this locked index beside the source files:
+
+```sh
+node scripts/mlrank-lock-checkpoint.mjs \
+  /path/to/model.safetensors.index.json /path/to/locked.safetensors.index.json
+```
+
+The command verifies shard tensor names and ranges, hashes each shard in bounded
+chunks, and writes a new index without copying the weights. It prints the locked
+index's SHA-256. Pin that digest with `F verify "..."` before selecting tensors.
+This pins local content; it does not establish who published the source files.
+
+```rank
+use io
+F = "models/locked.safetensors.index.json" open
+Weights' = F tensor "weight"
+First = Weights 0 0
+F close
+First
+```
+
+The first tensor selection from a shard verifies its complete file checksum.
+Further selections from the same open checkpoint check the file revision without
+rehashing. Reopening the checkpoint verifies selected shards again. This reads the
+whole selected shard once but does not materialize it in JS memory. Inspection of
+metadata alone does not verify payload checksums. Close the parent index to close
+its opened shards; tensor views must not outlive it. File-backed F32 tensors keep
+their native GPU descriptors through this selection.
+
+Indexes are limited to 16 MiB and 1024 shards. Shards must be simple sibling
+filenames: nested paths and parent-directory references are rejected. Duplicate
+JSON keys, mismatched tensor names, missing integrity records, changed files and
+checksum failures are errors. Files remain external to notebook exports; the
+checkpoint import UI and file bundling are separate work.

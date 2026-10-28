@@ -1,0 +1,251 @@
+{
+  "date": "2026-10-28",
+  "scope": "Locked local multi-file checkpoint, streamed SHA-256, file-backed Rank views and GPU inputs; not full GPT-2.",
+  "tolerance": {
+    "atol": 0.0001,
+    "rtol": 0.0001
+  },
+  "mac": {
+    "manifestSha256": "4945fc6c0c6606c66afc79d27bd228468febc6a3a41e4ccbc3028f6f4305c060",
+    "shards": 2,
+    "hashes": 3,
+    "jsBytes": 568,
+    "maxError": 1.0194889077386193e-06,
+    "valuesCompared": 6912,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0015420373529195786,
+        "executeMs": 12.681332882493734,
+        "fileBytesRead": 7080960,
+        "fileInputsReused": 0,
+        "inputMs": 10.079999919980764,
+        "dispatchMs": 2.5624160189181566,
+        "readbackMs": 0.0189170241355896,
+        "outputMs": 0.019999919459223747,
+        "peakRssBytes": 74989568
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.001250067725777626,
+        "executeMs": 1.0077920742332935,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 0.09341700933873653,
+        "dispatchMs": 0.8888330776244402,
+        "readbackMs": 0.00900006853044033,
+        "outputMs": 0.016541918739676476,
+        "peakRssBytes": 74989568
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.00045797787606716156,
+        "executeMs": 0.9712500032037497,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 0.08216709829866886,
+        "dispatchMs": 0.870624789968133,
+        "readbackMs": 0.0071660615503787994,
+        "outputMs": 0.011292053386569023,
+        "peakRssBytes": 74989568
+      }
+    ]
+  },
+  "intel": {
+    "manifestSha256": "4945fc6c0c6606c66afc79d27bd228468febc6a3a41e4ccbc3028f6f4305c060",
+    "shards": 2,
+    "hashes": 3,
+    "jsBytes": 568,
+    "maxError": 1.7059570740496355e-06,
+    "valuesCompared": 6912,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0020917505025863647,
+        "executeMs": 38.50311599671841,
+        "fileBytesRead": 7080960,
+        "fileInputsReused": 0,
+        "inputMs": 7.322207093238831,
+        "dispatchMs": 15.707474201917648,
+        "readbackMs": 15.432797372341156,
+        "outputMs": 0.04063732922077179,
+        "peakRssBytes": 135229440
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0033956021070480347,
+        "executeMs": 16.38641022145748,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 0.1987069845199585,
+        "dispatchMs": 0.3525149077177048,
+        "readbackMs": 15.794305130839348,
+        "outputMs": 0.040883198380470276,
+        "peakRssBytes": 135229440
+      },
+      {
+        "backend": "LiteRT GPU",
+        "fullyAccelerated": true,
+        "cached": true,
+        "prepareMs": 0.0017937272787094116,
+        "executeMs": 16.408054158091545,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 0.19539520144462585,
+        "dispatchMs": 0.2431124448776245,
+        "readbackMs": 15.9393809735775,
+        "outputMs": 0.03016553819179535,
+        "peakRssBytes": 135229440
+      }
+    ]
+  },
+  "android": {
+    "valuesCompared": 6912,
+    "maxError": 1.4079338501726824e-06,
+    "workerGpuCalls": 3,
+    "nativeReuseCalls": 2,
+    "wrongPinRejected": true,
+    "profiles": [
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.013802,
+        "executeMs": 14.284115,
+        "pssBytes": 170946560,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 4.243125,
+        "dispatchMs": 1.165625,
+        "readbackMs": 8.475834,
+        "outputMs": 0.342552
+      },
+      {
+        "backend": "LiteRT GPU",
+        "gpuOnlyRequested": true,
+        "cached": true,
+        "prepareMs": 0.013802,
+        "executeMs": 15.799688,
+        "pssBytes": 172093440,
+        "fileBytesRead": 0,
+        "fileInputsReused": 2,
+        "inputMs": 6.14875,
+        "dispatchMs": 0.79849,
+        "readbackMs": 8.49875,
+        "outputMs": 0.311615
+      }
+    ],
+    "reads": [
+      {
+        "name": "locked.safetensors.index.json",
+        "offset": 0,
+        "count": 400
+      },
+      {
+        "name": "qkv.safetensors",
+        "offset": 0,
+        "count": 8
+      },
+      {
+        "name": "qkv.safetensors",
+        "offset": 8,
+        "count": 72
+      },
+      {
+        "name": "gpt2-ln1.safetensors",
+        "offset": 0,
+        "count": 8
+      },
+      {
+        "name": "gpt2-ln1.safetensors",
+        "offset": 8,
+        "count": 80
+      }
+    ],
+    "hashes": [
+      "locked.safetensors.index.json",
+      "qkv.safetensors",
+      "gpt2-ln1.safetensors",
+      "locked.safetensors.index.json"
+    ],
+    "webViewBytes": 568,
+    "delegate": "LITERT_CL",
+    "delegatedNodes": 5,
+    "totalNodes": 5,
+    "demo": {
+      "id": "3714c5dc-fa95-434a-a0ba-1e6f511472a6",
+      "visibleValuesCompared": 7,
+      "firstValues": [
+        -1.220770001411438,
+        0.9865783452987671,
+        1.1667271852493286,
+        0.3642873764038086,
+        0.26050636172294617,
+        0.5077981352806091
+      ],
+      "persistedAndRerun": true
+    },
+    "finalApkDemoVerified": true
+  },
+  "largeSparseFile": {
+    "mac": {
+      "size": 2147483881,
+      "offset": 2147483873,
+      "sha256": "af66e8ab244e7544ac6ded72254379acb88094dda217b12b9e4b237b8e0cfeb6",
+      "jsBytes": 362,
+      "elapsedMs": 1301.176917,
+      "peakRssBytes": 170704896,
+      "correct": true
+    },
+    "intel": {
+      "size": 2147483881,
+      "offset": 2147483873,
+      "sha256": "af66e8ab244e7544ac6ded72254379acb88094dda217b12b9e4b237b8e0cfeb6",
+      "jsBytes": 362,
+      "elapsedMs": 4139.16834,
+      "peakRssBytes": 162263040,
+      "correct": true
+    },
+    "android": {
+      "size": 2147483881,
+      "offset": 2147483873,
+      "sha256": "af66e8ab244e7544ac6ded72254379acb88094dda217b12b9e4b237b8e0cfeb6",
+      "elapsedMs": 5225.89999999851,
+      "values": [
+        2.5,
+        -5
+      ],
+      "correct": true,
+      "webViewBytes": 362,
+      "appPeakRssBytes": 262303744
+    }
+  },
+  "tests": {
+    "nodePassed": 14,
+    "vitestPassed": 82,
+    "vitestFailed": 2,
+    "baselineFailures": [
+      "io-programs: binds option text",
+      "io-programs: binds argument text"
+    ],
+    "baselineVerification": "Both failures reproduced with HEAD interpreter source and tests in an isolated temporary directory. Existing tests use removed option/argument syntax; grammar accepts arg.",
+    "typescriptBuild": "passed",
+    "androidBuild": "passed"
+  },
+  "limitations": [
+    "Selected shards are fully hashed once per open checkpoint; reopening hashes them again.",
+    "GPU fileBytesRead counters exclude the checksum scans.",
+    "RSS high-water marks include process runtime and prior work, not GPU allocations alone.",
+    "External checkpoint files are not bundled in notebook exports."
+  ]
+}

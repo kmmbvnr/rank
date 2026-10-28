@@ -1,0 +1,11 @@
+rem GPT-2 checkpoint
+use io
+use "sharded.ram"
+F = "models/locked.safetensors.index.json" open
+F verify "4945fc6c0c6606c66afc79d27bd228468febc6a3a41e4ccbc3028f6f4305c060"
+W' = F tensor "weight"
+S' = F tensor "h.0.ln_1.weight"
+X = array shape 1 768 fill 0.5
+Result = X sharded W S
+F close
+Result

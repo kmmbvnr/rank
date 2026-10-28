@@ -1133,3 +1133,55 @@ ADB authorization expiry disabled (`adb_allowed_connection_time=0`) and battery
 saver off. Rank was added to the Android Doze whitelist with
 `adb -s 192.168.1.74:38461 shell dumpsys deviceidle whitelist +com.arrrank.app`.
 These settings do not pin the wireless debugging port across device restarts.
+
+### Locked multi-file checkpoints
+
+Ordinary Rank now accepts `.safetensors.index.json` through the existing file API.
+The `weight_map` follows the [Hugging Face checkpoint index](https://huggingface.co/docs/transformers/v4.57.2/models).
+Our additional `files` map records shard byte sizes and SHA-256 digests. The local
+importer `scripts/mlrank-lock-checkpoint.mjs INPUT OUTPUT` creates this map without
+copying weights and prints the output index's hash. Output must be a new sibling
+`.safetensors.index.json` file. Existing integrity records are verified, not silently
+replaced. Pin the returned hash in the program with `F verify "..."`.
+
+`F safetensors` reads only index/header bytes and includes the shard filename.
+`F tensor "name"` verifies the selected shard once per open checkpoint, then returns
+the ordinary file-backed view. The hash runs in a 64 KiB native buffer on desktop
+and Android; shard payload bytes do not enter JS or the WebView. The input descriptor
+still points to the shard, so the existing native buffer reuse remains available.
+The counters `fileBytesRead` on GPU replies count buffer transfers, **not** the
+separate checksum scan. Reopening a checkpoint hashes selected shards again.
+
+`demos/mlrank/gpt2-checkpoint.ra` and `sharded.ram` demonstrate two real GPT-2 tensors:
+LayerNorm scale and the QKV matrix, computing `(X * S) matmul W`. This is not a full
+LayerNorm or attention block. Mac, Intel and OnePlus matched the independent
+reference within atol=rtol=1e-4. Each Rank path read 568 bytes of index/header data;
+Android confirmed five of five graph nodes on GPU and reuse of both native inputs.
+The **GPT-2 checkpoint** notebook on OnePlus was run from Program and rerun after
+reload; the visible output cells matched the reference.
+
+A separate sparse-file check verifies SHA-256 over 2,147,483,881 bytes and executes
+a tensor starting beyond 2 GiB on all three devices. Only 362 bytes entered JS.
+Desktop RSS high-water marks and Android app RSS high-water marks are recorded;
+these include the process runtime and prior work, not just GPU allocations. The
+sparse test verifies bounded memory and offsets, not execution of a full-size LLM.
+
+Reproduce after preparing the QKV and LayerNorm samples from the earlier checks:
+
+```sh
+node scripts/mlrank-checkpoint-check.mjs /tmp/rank-mlrank
+node scripts/mlrank-checkpoint-large-check.mjs
+node --test packages/cli/test/checkpoint.test.mjs
+```
+
+The first command writes a fixture directory with both shards, plain/locked indexes
+and `fixture.json`. Android checks are in `packages/web/test/ram-checkpoint.playwright.js`
+and `ram-checkpoint-large.playwright.js`; substitute their fixture placeholders
+and place the files in the app's `files/models` directory. Large fixtures include
+`prefix.bin` and `tail.bin` so the sparse file can be recreated without uploading
+its zero-filled region. Results are in
+`benchmarks/baselines/2026-10-28-mlrank-checkpoint.json`.
+
+The full model still needs graph partitioning, larger-artifact placement checks and
+embedding/head handling. The importer seals local files; downloading, the Android
+file-picker workflow and automatic packaging of external checkpoints are not added.
