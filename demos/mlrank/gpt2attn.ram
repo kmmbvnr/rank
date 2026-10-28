@@ -1,0 +1,32 @@
+use ml
+arg X .f32 shape 4 768
+arg G1 .f32 shape 768
+arg B1 .f32 shape 768
+arg W .f32 shape 768 2304
+arg QkvBias .f32 shape 2304
+arg O .f32 shape 768 768
+arg OutBias .f32 shape 768
+arg Scale .f32 shape 1 = array shape 1 fill 0.125
+arg Mask .f32 shape 1 1 4 4 = array shape 1 1 4 4
+0.0 -10000.0 -10000.0 -10000.0
+0.0 0.0 -10000.0 -10000.0
+0.0 0.0 0.0 -10000.0
+0.0 0.0 0.0 0.0
+end
+Norm1 = X layernorm * G1 + B1
+Projection = (Norm1 matmul W) + QkvBias
+Q = (Projection # (0 till 768)) reshape 1 4 12 64
+K = (Projection # (768 till 1536)) reshape 1 4 12 64
+V = (Projection # (1536 till 2304)) reshape 1 4 12 64
+Q = Q transpose axis 0 2 1 3
+K = K transpose axis 0 2 3 1
+V = V transpose axis 0 2 1 3
+Scores = Q matmul K rank 2 2 * Scale
+Masked = Scores + Mask
+Probabilities = Masked softmax
+Context = Probabilities matmul V rank 2 2
+Merged = Context transpose axis 0 2 1 3
+Merged = Merged reshape 4 768
+Attention = (Merged matmul O) + OutBias
+Residual1 = X + Attention
+return Residual1

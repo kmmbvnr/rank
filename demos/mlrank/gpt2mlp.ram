@@ -1,0 +1,14 @@
+use ml
+arg X .f32 shape 4 768
+arg G2 .f32 shape 768
+arg B2 .f32 shape 768
+arg UpW .f32 shape 768 3072
+arg UpB .f32 shape 3072
+arg DownW .f32 shape 3072 768
+arg DownB .f32 shape 768
+Norm2 = X layernorm * G2 + B2
+Up = (Norm2 matmul UpW) + UpB
+Activated = Up gelu_new
+Mlp = (Activated matmul DownW) + DownB
+Output = X + Mlp
+return Output

@@ -1,0 +1,27 @@
+use io
+use "gpt2embed.ram"
+use "gpt2attn.ram"
+use "gpt2mlp.ram"
+F = "models/gpt2-block0.safetensors" open
+F verify "3c161c0fff4f89dcf9b5c8ad1c2291bdadcaba4e1501e8a5941f94e05145b06d"
+G1' = F tensor "h.0.ln_1.weight"
+B1' = F tensor "h.0.ln_1.bias"
+W' = F tensor "h.0.attn.c_attn.weight"
+QkvBias' = F tensor "h.0.attn.c_attn.bias"
+O' = F tensor "h.0.attn.c_proj.weight"
+OutBias' = F tensor "h.0.attn.c_proj.bias"
+G2' = F tensor "h.0.ln_2.weight"
+B2' = F tensor "h.0.ln_2.bias"
+UpW' = F tensor "h.0.mlp.c_fc.weight"
+UpB' = F tensor "h.0.mlp.c_fc.bias"
+DownW' = F tensor "h.0.mlp.c_proj.weight"
+DownB' = F tensor "h.0.mlp.c_proj.bias"
+TokenTable' = F tensor "wte.weight"
+PositionTable' = F tensor "wpe.weight"
+Tokens = array 0 1 2 3
+Positions = array 0 1 2 3
+X = TokenTable gpt2embed Tokens PositionTable Positions
+H = X gpt2attn G1 B1 W QkvBias O OutBias
+Result = H gpt2mlp G2 B2 UpW UpB DownW DownB
+F close
+Result
