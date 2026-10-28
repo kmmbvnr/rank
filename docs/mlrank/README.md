@@ -1591,5 +1591,76 @@ not throughput benchmarks.
 Evidence: `benchmarks/baselines/2026-10-29-mlrank-gpt2-stack.json`.
 Android template: `packages/web/test/ram-gpt2-stack.playwright.js`, replacing
 `__GPT2_STACK_FIXTURE__` with the generated `stack-fixture.json`.
-The next slice is full-vocabulary embeddings and LM-head projection with shared
-weights, bounded input ranges and logits comparison. Stage 13c remains open.
+The next section covers full-vocabulary embeddings and LM-head projection with
+shared weights, bounded input ranges and logits comparison.
+
+### Full-vocabulary GPT-2 forward (stage 13c, fixed four-token context)
+
+`demos/mlrank/gpt2-forward.ra` returns `[4,50257]` logits from the pinned GPT-2
+checkpoint. It includes all 12 blocks, final LayerNorm, the complete 50,257-row
+token table, all 1024 positional rows and the LM head. The extracted F32 file
+contains 148 tensors and 497,759,232 payload bytes. The token table is stored
+once: both input embeddings and the output projection reference `wte.weight`.
+
+The ordinary Rank program selects one contiguous token row and one position row
+per input token. `gpt2row.ram` adds them on the GPU. This avoids loading the full
+token table for an embedding lookup; selection is explicit host-side file slicing,
+not a whole-table GPU gather. The head reads the same table in 49 blocks of 1024
+rows and a tail of 81 rows, using `gpt2head.ram` and `gpt2tail.ram`. Each computes
+`Hidden matmul (Part transpose)` for all four tokens. Rank writes each result into
+the corresponding columns of the complete logits array.
+
+Each pass makes 79 GPU calls: four row embeddings, 24 block parts, one final
+normalization and 50 head chunks. Six graph shapes are needed, so the existing
+four-model LRU evicts old graphs and reloads them on the next pass. Within a pass,
+all 12 attention/MLP calls and all 49 full head chunks reuse their respective
+graphs. No limits were raised. The largest observed sum of graph reservations
+on desktop was 36,451,892 bytes (34.76 MiB). Android profiling observed up to
+59,911,840 bytes (57.14 MiB) in the shared native cache, which also served the
+app UI. Both stayed within four models and 128 MiB. Reservations are distinct
+from actual process/GPU memory.
+The logits and intermediate activations still travel through host transport;
+block/head weights are read again on the next forward pass.
+
+Reproduce using a new output directory:
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-gpt2-block-fixture.py /tmp/gpt2-forward --layers 12 --full-vocabulary
+node scripts/mlrank-gpt2-forward-check.mjs /tmp/gpt2-forward
+```
+
+Place the generated `gpt2-forward.safetensors` in `models/` to run the demo.
+The program verifies its checksum. The fixture/reference generator reads the
+large token table by selected rows or 1024-row chunks rather than converting the
+whole table to float64. Existing block-0 and stack fixture modes remain available.
+
+The three passes use token IDs `[0,127,8192,50256]`, then `[0,127,8192,256]`,
+then repeat the first input. Positions are `[0,1,2,3]`. The independent NumPy
+float64 reference covers every block and every logit. The checker also verifies
+that input and output use the exact same table file offsets, no weight payload
+is read into JavaScript on desktop, earlier tokens remain exactly unchanged,
+the repeated GPU outputs are identical, and per-row argmax agrees with the
+reference. The original input selects IDs `[198,250,345,464]`; changing the last
+input selects `[198,250,345,339]`. This checks logits and token selection, not
+text tokenization or a generation loop.
+
+Android uses `packages/web/test/ram-gpt2-forward.playwright.js`, substituting the
+generated `forward-fixture.json`. It inspects the complete worker-returned logits
+array and separately replays the GPU requests, reloading evicted graph handles.
+The 237 profiling calls are additional to 237 worker calls. This is a correctness
+check, not a throughput benchmark. The test OnePlus has **GPT-2 full forward**
+saved as a notebook with all six RAM modules.
+
+Each device passed 1,445,784 comparisons with the unchanged tolerance
+`abs(error) <= 5e-4 + abs(reference) * 1e-4`. Maximum absolute logit errors were
+`1.14e-4` (Mac), `2.09e-4` (Intel) and `1.99e-4` (OnePlus). Native runtime peak
+RSS was about 185 MiB on Mac and 181 MiB on Intel; Android app-process PSS reached
+about 300 MiB during profiling. These counters exclude separate JavaScript and
+WebView processes and do not establish a total device-memory bound. Every Android
+graph was fully delegated to OpenCL, including the row add and both head shapes.
+Evidence is recorded in
+`benchmarks/baselines/2026-10-29-mlrank-gpt2-forward.json`. Stage 13c's numerical
+forward contract is complete for four tokens. Arbitrary context lengths, FP16,
+quantization and faster weight/activation reuse are not established by this check.
+The next task is stage 14: compatible tokenization/decoding and host generation
+without a KV cache, including padding, positions and context limits.
