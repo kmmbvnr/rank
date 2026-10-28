@@ -1527,5 +1527,69 @@ Results: `benchmarks/baselines/2026-10-28-mlrank-gpt2-block0.json`.
 Android test template: `packages/web/test/ram-gpt2-block.playwright.js`, replacing
 `__GPT2_BLOCK_FIXTURE__` with the generated `block-fixture.json`.
 
-Remaining stage 13c work: the 12-block stack, final LayerNorm, full embedding/LM
-head table and logits comparison. Tokenization and generation remain stage 14.
+The next section covers the 12-block stack and final LayerNorm. Full embedding/LM
+head tables and logits comparison remain in stage 13c; tokenization and generation
+remain stage 14.
+
+### Twelve GPT-2 blocks and final LayerNorm (stage 13c, third slice)
+
+`demos/mlrank/gpt2-stack.ra` runs all 12 blocks and the final learned LayerNorm
+for four tokens. It uses the same pinned GPT-2 revision as the block-0 check.
+The extracted file contains 148 tensors and 340,248,576 payload bytes. Token and
+position embeddings still contain only rows 0..3; there is no vocabulary-wide
+LM head or logits output yet. The result is the final hidden state `[4,768]`.
+
+The loop in ordinary Rank selects each block's tensors by name, calls
+`gpt2attn.ram` and `gpt2mlp.ram`, and carries `X` to the next iteration.
+`gpt2norm.ram` applies the final LayerNorm. The same four compiled graphs serve
+all blocks and repeated runs. File ranges change between blocks, so the native
+runtime replaces their weight buffers. It does not keep all 12 blocks' weights
+on the GPU. The existing 128-tensor, four-model and 128 MiB reservation limits
+are unchanged.
+
+The four graph reservations total 30,230,544 bytes (28.83 MiB). That is a logical
+reservation, not total device memory. In this check the native desktop runtime
+reported peak RSS of 120 MiB on Mac and about 157 MiB on Intel. The Android native
+app process reported up to about 201 MiB PSS during profile replays; this excludes
+separate WebView processes and is not a whole-device memory limit. Each pass reads
+about 340 MB of weight payload into the native buffers. Embedding and final
+LayerNorm weights can remain cached, but the block weights are read again on the
+next pass. Activations still pass through the host between calls. These results
+establish bounded graph reuse and correctness, not an optimized generation path.
+
+Generate a new fixture directory and check it with:
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-gpt2-block-fixture.py /tmp/gpt2-stack --layers 12
+node scripts/mlrank-gpt2-stack-check.mjs /tmp/gpt2-stack
+```
+
+The default fixture command still produces the original block-0 file with the
+same SHA-256. The 12-layer fixture streams its final checksum and constructs the
+NumPy reference one block at a time. Place `gpt2-stack.safetensors` in `models/`
+to run the demo. It verifies the file checksum before evaluating the program.
+The test OnePlus has **GPT-2 12 blocks** saved with its four RAM modules and the
+loop as one notebook cell.
+
+The check runs the original input, an input with a nonuniform change to the last
+token, then the original input again. Each run makes 26 GPU calls: embedding,
+24 block parts, final LayerNorm. It compares every attention residual, block
+output and final result against an independent float64 NumPy reference. Earlier
+tokens must remain exactly equal at every depth, and the repeated run must
+reproduce all GPU outputs exactly. The tolerance remains
+`abs(error) <= 5e-4 + abs(reference) * 1e-4`.
+
+Each device passed 248,832 comparisons. Maximum absolute final-hidden-state
+errors were `5.23e-5` (Mac), `2.82e-4` (Intel) and `3.58e-4` (OnePlus).
+Larger intermediate values had absolute errors up to `2.61e-3`, within the same
+relative tolerance. Android delegated all operations to OpenCL: 6/6 embedding,
+52/52 attention, 47/47 MLP and 22/22 final normalization. The Android check
+replays the exact worker requests to inspect every block and memory counters;
+its 78 profiling calls are additional to the 78 worker calls. These checks are
+not throughput benchmarks.
+
+Evidence: `benchmarks/baselines/2026-10-29-mlrank-gpt2-stack.json`.
+Android template: `packages/web/test/ram-gpt2-stack.playwright.js`, replacing
+`__GPT2_STACK_FIXTURE__` with the generated `stack-fixture.json`.
+The next slice is full-vocabulary embeddings and LM-head projection with shared
+weights, bounded input ranges and logits comparison. Stage 13c remains open.
