@@ -1,8 +1,9 @@
-import { noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem } from './array-storage.js';
+import { noteArrayBinding, ownedArray, ownedScalarArray, readArrayItem, typedArray } from './array-storage.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { RankError } from './errors.js';
 import { prepareStoredScalarView } from './integer-view.js';
 import { checkpoint } from './interrupt.js';
+import { packedTruePositions } from './packed-booleans.js';
 import { tensorMaskPositions, sumTensorPositions } from './tensor-map.js';
 import { sameShape } from './tensor-index.js';
 import { MISSING, type RankArray, type RankSequence, type RankValue } from './value.js';
@@ -13,7 +14,7 @@ const selections = new WeakMap<RankSequence['plan'], Selection>();
 /** Snapshot mask positions without demanding source cells. */
 export function maskSelection(source: RankArray, selector: RankArray): RankSequence {
     const size = selector.shape.reduce((n, axis) => n * axis, 1);
-    const native = tensorMaskPositions(selector);
+    const native = packedTruePositions(selector) ?? tensorMaskPositions(selector);
     const positions: number[] = native ?? [];
     const view = prepareStoredScalarView(selector, true);
     const linear = view?.linear;
@@ -80,18 +81,38 @@ export function materializeMaskSelection(selected: RankSequence): RankArray | un
     const { source, positions } = selection;
     const view = prepareStoredScalarView(source, true);
     if (!view) return undefined;
-    const items: RankValue[] = new Array(positions.length);
     const linear = view.linear;
     const direct = linear && (!view.validate || view.validateUniform);
     if (direct && positions.length) view.validateUniform?.(view.items[linear.offset + linear.stride * positions[0]]);
-    for (let start = 0; start < positions.length; start += 4096) {
-        const end = Math.min(start + 4096, positions.length);
-        checkpoint('materializing array selection', end - start);
-        for (let index = start; index < end; index++) {
-            items[index] = direct ? view.items[linear.offset + linear.stride * positions[index]] : view.read(positions[index]);
+    const cells = view.compact ?? view.items;
+    let result: RankArray;
+    // Stored integer cells can be gathered without boxing every integer and
+    // then packing it again. No source cell is read for an empty selection.
+    if (positions.length && direct && view.kinds?.length === 1
+        && (cells instanceof Int32Array || cells instanceof BigInt64Array)) {
+        const out = cells instanceof Int32Array ? new Int32Array(positions.length) : new BigInt64Array(positions.length);
+        for (let start = 0; start < positions.length; start += 4096) {
+            const end = Math.min(start + 4096, positions.length);
+            checkpoint('materializing array selection', end - start);
+            for (let index = start; index < end; index++) {
+                const at = linear.offset + linear.stride * positions[index];
+                if (out instanceof BigInt64Array) out[index] = (cells as BigInt64Array)[at];
+                else out[index] = (cells as Int32Array)[at];
+            }
         }
+        result = typedArray(out, [positions.length], undefined, view.kinds[0]);
+    } else {
+        const items: RankValue[] = new Array(positions.length);
+        for (let start = 0; start < positions.length; start += 4096) {
+            const end = Math.min(start + 4096, positions.length);
+            checkpoint('materializing array selection', end - start);
+            for (let index = start; index < end; index++) {
+                items[index] = direct ? view.items[linear.offset + linear.stride * positions[index]] : view.read(positions[index]);
+            }
+        }
+        result = view.kinds?.length === 1 ? ownedScalarArray(items, view.kinds[0]) : ownedArray(items, [items.length], true);
     }
     const diagnostics = currentDiagnostics();
-    if (diagnostics) { diagnostics.maskMaterializations++; diagnostics.maskMaterializedCells += items.length; }
-    return view.kinds?.length === 1 ? ownedScalarArray(items, view.kinds[0]) : ownedArray(items, [items.length], true);
+    if (diagnostics) { diagnostics.maskMaterializations++; diagnostics.maskMaterializedCells += positions.length; }
+    return result;
 }

@@ -7,6 +7,23 @@ import { sliceSource } from '../src/slice-source.js';
 import { maskSelection } from '../src/value-selection.js';
 
 describe('array mask selection plans', () => {
+    it('uses current packed mask bits across word boundaries and partial words', () => {
+        const flags = Array.from({ length: 97 }, (_, i) => [0, 31, 32, 63, 64, 96].includes(i));
+        const source = ownedArray(flags.map((_, i) => BigInt(i))), mask = ownedArray(flags);
+        const selected = maskSelection(source, mask);
+        mask.items[31] = false;
+        expect([...selected.plan.iterate()]).toEqual([0n, 31n, 32n, 63n, 64n, 96n]);
+        expect([...maskSelection(source, mask).plan.iterate()]).toEqual([0n, 32n, 63n, 64n, 96n]);
+    });
+
+    it('does not bypass replaced readers on packed masks', () => {
+        const mask = ownedArray(Array(65).fill(true)), source = ownedArray(Array(65).fill(1n));
+        const reads: number[] = [];
+        Object.defineProperty(mask, 'itemAt', { value: (i: number) => { reads.push(i); return i === 32 ? 1.5 : false; } });
+        expect(() => maskSelection(source, mask)).toThrow('index array has real elements');
+        expect(reads).toEqual(Array.from({ length: 33 }, (_, i) => i));
+    });
+
     it('counts positions once without reading source cells', () => {
         const flags = [false, true, false, true];
         let maskReads = 0;

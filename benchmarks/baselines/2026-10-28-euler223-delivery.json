@@ -1,0 +1,5649 @@
+{
+  "baseCommit": "006ed21bffe765a476ddaf77cf551a6ce45a3d2c",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v24.15.0",
+    "cpu": "Apple M5"
+  },
+  "sampling": "Fresh processes, sequential workers, imports excluded, parsing/preparation/execution included. RSS is whole-process high water. Three samples per policy/case, per unchanged control/version, per fixture/engine and for selected compiled full input. Old full runtimes and selected full reference are single samples. No simultaneous test workers during measurements.",
+  "diagnostics": "Zero counters are omitted except key coverage/storage counters; all nonzero counters and fallbacks retained.",
+  "runtimes": {
+    "before": "/tmp/rank221-after/out/index.js (parent runtime)",
+    "bitmap": "/tmp/rank223-bitmap/out/index.js (packed positions only)",
+    "masks": "/tmp/rank223-masks/out/index.js (packed positions plus numeric gather candidate, including Float64)",
+    "after": "/tmp/rank223-after/out/index.js (selected integer gather and >=1024-cell stored concat dispatch)"
+  },
+  "policyComparison": [
+    {
+      "workload": "kernel-int32",
+      "version": "before",
+      "kind": "int32",
+      "ms": 268.620625,
+      "rssMiB": 186.9375,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "bitmap",
+      "kind": "int32",
+      "ms": 153.57083400000002,
+      "rssMiB": 178.234375,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "masks",
+      "kind": "int32",
+      "ms": 116.50900000000001,
+      "rssMiB": 161.28125,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "after",
+      "kind": "int32",
+      "ms": 114.102833,
+      "rssMiB": 158.296875,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "before",
+      "kind": "int64",
+      "ms": 243.393958,
+      "rssMiB": 183.25,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "bitmap",
+      "kind": "int64",
+      "ms": 128.84316700000002,
+      "rssMiB": 183.359375,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "masks",
+      "kind": "int64",
+      "ms": 124.25270900000001,
+      "rssMiB": 172.84375,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "after",
+      "kind": "int64",
+      "ms": 127.785958,
+      "rssMiB": 170.296875,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "before",
+      "kind": "real",
+      "ms": 254.640125,
+      "rssMiB": 201.984375,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "bitmap",
+      "kind": "real",
+      "ms": 139.26883400000003,
+      "rssMiB": 176.015625,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "masks",
+      "kind": "real",
+      "ms": 144.081042,
+      "rssMiB": 191.984375,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "after",
+      "kind": "real",
+      "ms": 143.538792,
+      "rssMiB": 187.34375,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "before",
+      "kind": "empty",
+      "ms": 216.35770800000003,
+      "rssMiB": 167.40625,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "bitmap",
+      "kind": "empty",
+      "ms": 100.6455,
+      "rssMiB": 135.671875,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "masks",
+      "kind": "empty",
+      "ms": 100.487584,
+      "rssMiB": 135.265625,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "after",
+      "kind": "empty",
+      "ms": 98.35079100000002,
+      "rssMiB": 135.59375,
+      "answer": "0"
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "before",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 3435.690375,
+      "rssMiB": 550.984375,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "bitmap",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-bitmap/out/index.js"
+      ],
+      "ms": 2278.407166,
+      "rssMiB": 492.625,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "masks",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-masks/out/index.js"
+      ],
+      "ms": 2194.483917,
+      "rssMiB": 476,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "after",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 862.8795,
+      "rssMiB": 404.921875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3121,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 303,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "before",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 3150.898708,
+      "rssMiB": 543.921875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "bitmap",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-bitmap/out/index.js"
+      ],
+      "ms": 2046.19375,
+      "rssMiB": 428.65625,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "masks",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-masks/out/index.js"
+      ],
+      "ms": 2052.0446660000002,
+      "rssMiB": 427.953125,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "after",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 768.704125,
+      "rssMiB": 394.296875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3121,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 303,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "before",
+      "kind": "int32",
+      "ms": 270.273417,
+      "rssMiB": 186.53125,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "bitmap",
+      "kind": "int32",
+      "ms": 153.02566599999997,
+      "rssMiB": 181.578125,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "masks",
+      "kind": "int32",
+      "ms": 122.89312499999997,
+      "rssMiB": 158.90625,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "after",
+      "kind": "int32",
+      "ms": 114.10658299999997,
+      "rssMiB": 157.5625,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "before",
+      "kind": "int64",
+      "ms": 243.23108299999998,
+      "rssMiB": 203.453125,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "bitmap",
+      "kind": "int64",
+      "ms": 134.289458,
+      "rssMiB": 186.3125,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "masks",
+      "kind": "int64",
+      "ms": 126.62049999999999,
+      "rssMiB": 174.453125,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "after",
+      "kind": "int64",
+      "ms": 127.22337499999998,
+      "rssMiB": 177.015625,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "before",
+      "kind": "real",
+      "ms": 262.46745899999996,
+      "rssMiB": 201.84375,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "bitmap",
+      "kind": "real",
+      "ms": 138.09225,
+      "rssMiB": 175.546875,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "masks",
+      "kind": "real",
+      "ms": 140.662917,
+      "rssMiB": 187.15625,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "after",
+      "kind": "real",
+      "ms": 143.629375,
+      "rssMiB": 187.375,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "before",
+      "kind": "empty",
+      "ms": 213.53300000000002,
+      "rssMiB": 167.75,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "bitmap",
+      "kind": "empty",
+      "ms": 100.564166,
+      "rssMiB": 135.84375,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "masks",
+      "kind": "empty",
+      "ms": 99.731875,
+      "rssMiB": 135.546875,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "after",
+      "kind": "empty",
+      "ms": 100.198125,
+      "rssMiB": 135.390625,
+      "answer": "0"
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "before",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 3559.976791,
+      "rssMiB": 551,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "bitmap",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-bitmap/out/index.js"
+      ],
+      "ms": 2295.3295,
+      "rssMiB": 480.875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "masks",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-masks/out/index.js"
+      ],
+      "ms": 2215.343209,
+      "rssMiB": 473.96875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "after",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 869.920208,
+      "rssMiB": 404.8125,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3121,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 303,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "before",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 3227.235208,
+      "rssMiB": 479.78125,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "bitmap",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-bitmap/out/index.js"
+      ],
+      "ms": 2100.4075000000003,
+      "rssMiB": 427.578125,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "masks",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-masks/out/index.js"
+      ],
+      "ms": 2065.581583,
+      "rssMiB": 430.6875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "after",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 778.9049580000001,
+      "rssMiB": 393.84375,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3121,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 303,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "before",
+      "kind": "int32",
+      "ms": 275.203708,
+      "rssMiB": 189.703125,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "bitmap",
+      "kind": "int32",
+      "ms": 154.55770900000002,
+      "rssMiB": 177.78125,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "masks",
+      "kind": "int32",
+      "ms": 112.67558300000002,
+      "rssMiB": 158.25,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int32",
+      "version": "after",
+      "kind": "int32",
+      "ms": 115.71950000000004,
+      "rssMiB": 153.171875,
+      "answer": "53333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "before",
+      "kind": "int64",
+      "ms": 253.01695800000002,
+      "rssMiB": 205.890625,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "bitmap",
+      "kind": "int64",
+      "ms": 126.45679200000004,
+      "rssMiB": 182.25,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "masks",
+      "kind": "int64",
+      "ms": 126.73504199999999,
+      "rssMiB": 170.328125,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-int64",
+      "version": "after",
+      "kind": "int64",
+      "ms": 125.018,
+      "rssMiB": 172.59375,
+      "answer": "533328053333066664"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "before",
+      "kind": "real",
+      "ms": 261.25275,
+      "rssMiB": 197.46875,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "bitmap",
+      "kind": "real",
+      "ms": 143.189916,
+      "rssMiB": 187.75,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "masks",
+      "kind": "real",
+      "ms": 139.832166,
+      "rssMiB": 187.265625,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-real",
+      "version": "after",
+      "kind": "real",
+      "ms": 144.28708400000002,
+      "rssMiB": 187.25,
+      "answer": "26666533332"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "before",
+      "kind": "empty",
+      "ms": 213.783042,
+      "rssMiB": 167.265625,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "bitmap",
+      "kind": "empty",
+      "ms": 103.9485,
+      "rssMiB": 137.640625,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "masks",
+      "kind": "empty",
+      "ms": 100.51724999999999,
+      "rssMiB": 137.71875,
+      "answer": "0"
+    },
+    {
+      "workload": "kernel-empty",
+      "version": "after",
+      "kind": "empty",
+      "ms": 102.36212499999999,
+      "rssMiB": 135.390625,
+      "answer": "0"
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "before",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 3661.068959,
+      "rssMiB": 504.859375,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "bitmap",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-bitmap/out/index.js"
+      ],
+      "ms": 2322.311792,
+      "rssMiB": 478.484375,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "masks",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-masks/out/index.js"
+      ],
+      "ms": 2234.314042,
+      "rssMiB": 476.171875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-canonical-eager",
+      "version": "after",
+      "args": [
+        "--Limit=1000000",
+        "--source=benchmarks/experiments/euler223-canonical-eager.ra",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 877.279,
+      "rssMiB": 414.453125,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 114771,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3121,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 7519395,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 1,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 29,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 303,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "before",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 3238.723458,
+      "rssMiB": 494.875,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "bitmap",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-bitmap/out/index.js"
+      ],
+      "ms": 2131.888042,
+      "rssMiB": 427.125,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "masks",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-masks/out/index.js"
+      ],
+      "ms": 2066.689542,
+      "rssMiB": 430.65625,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3424,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "medium-shipping",
+      "version": "after",
+      "args": [
+        "--Limit=1000000",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 780.499458,
+      "rssMiB": 394.0625,
+      "answer": "2012468",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 76067,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 3121,
+        "numberTensors": 0,
+        "maskMaterializations": 3621,
+        "maskMaterializedCells": 6894396,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 4,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 303,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "smallConcatUnbounded": [
+    {
+      "version": "before",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 100.82695799999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 134.09375
+    },
+    {
+      "version": "masks",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 105.25591699999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 139.140625
+    },
+    {
+      "version": "after",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 105.010209,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.703125
+    },
+    {
+      "version": "before",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 104.61458400000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.140625
+    },
+    {
+      "version": "masks",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 102.05179099999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.25
+    },
+    {
+      "version": "after",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 107.16229099999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.203125
+    },
+    {
+      "version": "before",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 104.45595799999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 138.84375
+    },
+    {
+      "version": "masks",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 104.280958,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.703125
+    },
+    {
+      "version": "after",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 119.271042,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 155.4375
+    },
+    {
+      "version": "before",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 181.145041,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 198.828125
+    },
+    {
+      "version": "masks",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 182.789125,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 201.75
+    },
+    {
+      "version": "after",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 123.06795799999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 184.421875
+    },
+    {
+      "version": "before",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 102.1265,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.421875
+    },
+    {
+      "version": "masks",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 105.68299999999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.953125
+    },
+    {
+      "version": "after",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 108.67870900000003,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 141.84375
+    },
+    {
+      "version": "before",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 103.18754200000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.65625
+    },
+    {
+      "version": "masks",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 104.52954199999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.140625
+    },
+    {
+      "version": "after",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 103.28812499999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.421875
+    },
+    {
+      "version": "before",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 108.01124999999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.71875
+    },
+    {
+      "version": "masks",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 112.003375,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 142.953125
+    },
+    {
+      "version": "after",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 117.178417,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 148.90625
+    },
+    {
+      "version": "before",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 183.157458,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 198.75
+    },
+    {
+      "version": "masks",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 184.94650000000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 201.5625
+    },
+    {
+      "version": "after",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 125.44633399999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 184.296875
+    },
+    {
+      "version": "before",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 105.69791599999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.265625
+    },
+    {
+      "version": "masks",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 106.10483400000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.765625
+    },
+    {
+      "version": "after",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 107.57383299999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 142.09375
+    },
+    {
+      "version": "before",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 106.34129199999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.015625
+    },
+    {
+      "version": "masks",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 102.504708,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.703125
+    },
+    {
+      "version": "after",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 104.702292,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 142.65625
+    },
+    {
+      "version": "before",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 108.469833,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.53125
+    },
+    {
+      "version": "masks",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 106.89445800000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.765625
+    },
+    {
+      "version": "after",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 113.383375,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 155.9375
+    },
+    {
+      "version": "before",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 179.67183300000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 199.609375
+    },
+    {
+      "version": "masks",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 184.02125,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 202.140625
+    },
+    {
+      "version": "after",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 121.69958400000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 184.875
+    }
+  ],
+  "concatCrossoverUnbounded": [
+    {
+      "version": "before",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 105.42220800000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 138.640625
+    },
+    {
+      "version": "masks",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 106.13154200000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.25
+    },
+    {
+      "version": "after",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 114.398166,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 156.0625
+    },
+    {
+      "version": "before",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 112.47562500000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 163.15625
+    },
+    {
+      "version": "masks",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 114.50341699999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 163.1875
+    },
+    {
+      "version": "after",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 118.49137499999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 156.75
+    },
+    {
+      "version": "before",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 117.18124999999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 192.046875
+    },
+    {
+      "version": "masks",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 119.01600000000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 187.234375
+    },
+    {
+      "version": "after",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 117.99950000000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 163.75
+    },
+    {
+      "version": "before",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 131.96612499999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 242.90625
+    },
+    {
+      "version": "masks",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 130.571333,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 243.5625
+    },
+    {
+      "version": "after",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 119.31604200000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.34375
+    },
+    {
+      "version": "before",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 105.28566699999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.625
+    },
+    {
+      "version": "masks",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 110.50229199999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 154.109375
+    },
+    {
+      "version": "after",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 116.91079200000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 156.328125
+    },
+    {
+      "version": "before",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 116.99491599999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 162.890625
+    },
+    {
+      "version": "masks",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 111.36220900000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.9375
+    },
+    {
+      "version": "after",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 119.20575,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 157.28125
+    },
+    {
+      "version": "before",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 116.84966700000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 186.25
+    },
+    {
+      "version": "masks",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 121.705458,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 191.828125
+    },
+    {
+      "version": "after",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 118.49925000000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 159.359375
+    },
+    {
+      "version": "before",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 128.60025000000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 244.5625
+    },
+    {
+      "version": "masks",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 130.93474999999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 244.484375
+    },
+    {
+      "version": "after",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 117.12354200000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 156.046875
+    },
+    {
+      "version": "before",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 106.08795800000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 148.765625
+    },
+    {
+      "version": "masks",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 106.11708399999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.046875
+    },
+    {
+      "version": "after",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 115.54245899999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 156
+    },
+    {
+      "version": "before",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 111.10791699999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.703125
+    },
+    {
+      "version": "masks",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 111.96841699999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 150.859375
+    },
+    {
+      "version": "after",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 114.299833,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 157.296875
+    },
+    {
+      "version": "before",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 120.416417,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 186.6875
+    },
+    {
+      "version": "masks",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 117.93112500000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 186.875
+    },
+    {
+      "version": "after",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 120.31991699999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 164.15625
+    },
+    {
+      "version": "before",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 129.39800000000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 245.09375
+    },
+    {
+      "version": "masks",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 132.2715,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 242.609375
+    },
+    {
+      "version": "after",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 118.727792,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 167.484375
+    }
+  ],
+  "selectedSmallConcat": [
+    {
+      "version": "before",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 103.00566699999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.875
+    },
+    {
+      "version": "after",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 103.616667,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.9375
+    },
+    {
+      "version": "before",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 102.67237499999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.96875
+    },
+    {
+      "version": "after",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 102.27308300000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.75
+    },
+    {
+      "version": "before",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 107.65270799999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.21875
+    },
+    {
+      "version": "after",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 108.32512499999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 148.15625
+    },
+    {
+      "version": "before",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 109.22995900000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.171875
+    },
+    {
+      "version": "after",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 105.91924999999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.53125
+    },
+    {
+      "version": "before",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 111.87579100000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.84375
+    },
+    {
+      "version": "after",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 111.832458,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 159.203125
+    },
+    {
+      "version": "before",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 118.94566699999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 187.21875
+    },
+    {
+      "version": "after",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 119.26666599999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.875
+    },
+    {
+      "version": "before",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 129.89925000000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 243.21875
+    },
+    {
+      "version": "after",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 123.25,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 166.125
+    },
+    {
+      "version": "before",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 181.267459,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 203.875
+    },
+    {
+      "version": "after",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 124.08366600000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 187.03125
+    },
+    {
+      "version": "before",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 108.435375,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 142.328125
+    },
+    {
+      "version": "after",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 105.110083,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.125
+    },
+    {
+      "version": "before",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 104.81975,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.125
+    },
+    {
+      "version": "after",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 102.76612500000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.28125
+    },
+    {
+      "version": "before",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 105.32249999999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.515625
+    },
+    {
+      "version": "after",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 104.93579199999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.640625
+    },
+    {
+      "version": "before",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 105.00495900000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 149.5625
+    },
+    {
+      "version": "after",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 108.07483399999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 148.984375
+    },
+    {
+      "version": "before",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 113.267708,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.234375
+    },
+    {
+      "version": "after",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 112.14695899999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 155.28125
+    },
+    {
+      "version": "before",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 119.68937500000004,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 191.796875
+    },
+    {
+      "version": "after",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 123.70737499999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 164.53125
+    },
+    {
+      "version": "before",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 128.70966700000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 225.09375
+    },
+    {
+      "version": "after",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 119.21237499999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 163.234375
+    },
+    {
+      "version": "before",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 183.160041,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 201.796875
+    },
+    {
+      "version": "after",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 124.677041,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 187.625
+    },
+    {
+      "version": "before",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 103.153334,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 137.203125
+    },
+    {
+      "version": "after",
+      "size": 2,
+      "rounds": 1000,
+      "answer": "4000",
+      "ms": 103.720666,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.71875
+    },
+    {
+      "version": "before",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 106.97583399999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 136.84375
+    },
+    {
+      "version": "after",
+      "size": 8,
+      "rounds": 1000,
+      "answer": "16000",
+      "ms": 106.00287499999999,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 139.015625
+    },
+    {
+      "version": "before",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 107.468583,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 142.71875
+    },
+    {
+      "version": "after",
+      "size": 64,
+      "rounds": 1000,
+      "answer": "128000",
+      "ms": 105.29775000000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 143.015625
+    },
+    {
+      "version": "before",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 112.64254200000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 153.734375
+    },
+    {
+      "version": "after",
+      "size": 128,
+      "rounds": 1000,
+      "answer": "256000",
+      "ms": 111.02345899999997,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 138.484375
+    },
+    {
+      "version": "before",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 109.88199999999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.65625
+    },
+    {
+      "version": "after",
+      "size": 256,
+      "rounds": 1000,
+      "answer": "512000",
+      "ms": 110.19870799999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 158.71875
+    },
+    {
+      "version": "before",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 118.376833,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 191.71875
+    },
+    {
+      "version": "after",
+      "size": 512,
+      "rounds": 1000,
+      "answer": "1024000",
+      "ms": 120.48779200000001,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 160
+    },
+    {
+      "version": "before",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 141.26133299999998,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 243.265625
+    },
+    {
+      "version": "after",
+      "size": 1024,
+      "rounds": 1000,
+      "answer": "2048000",
+      "ms": 137.22470900000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 152.921875
+    },
+    {
+      "version": "before",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 197.85212500000003,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 1000,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 208.15625
+    },
+    {
+      "version": "after",
+      "size": 4096,
+      "rounds": 1000,
+      "answer": "8192000",
+      "ms": 122.08729100000002,
+      "diagnostics": {
+        "cellsComputed": 0,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 0,
+        "maskMaterializedCells": 0,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:unsupported-node:MaterializeExpression": 1,
+          "scalar-expression:unsupported-op:to": 2,
+          "scalar-expression:too-small": 1,
+          "loop:unsupported-op:copy": 1,
+          "tensor:stored-concat-copy": 1000
+        },
+        "compilerRejections": []
+      },
+      "rssMiB": 188.015625
+    }
+  ],
+  "oldAndMasksOnlyFull": [
+    {
+      "workload": "full-shipping",
+      "version": "before",
+      "args": [
+        "--runtime=/tmp/rank221-after/out/index.js"
+      ],
+      "ms": 103315.62729199999,
+      "rssMiB": 1926.859375,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 17108,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 6,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "full-shipping",
+      "version": "after",
+      "args": [
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 66732.59033400001,
+      "rssMiB": 1878.8125,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 17108,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 6,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "full-shipping-reference",
+      "version": "after",
+      "args": [
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--reference"
+      ],
+      "ms": 15291.389792,
+      "rssMiB": 1336.078125,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    }
+  ],
+  "beforeFullReference": {
+    "args": [
+      "--runtime=/tmp/rank221-after/out/index.js",
+      "--reference"
+    ],
+    "ms": 116217.170292,
+    "rssMiB": 2250.796875,
+    "answer": "61614848",
+    "tests": [],
+    "diagnostics": {
+      "cellsComputed": 386860,
+      "compiledLoops": 0,
+      "numberLoops": 0,
+      "compiledTensors": 0,
+      "numberTensors": 0,
+      "maskMaterializations": 18123,
+      "maskMaterializedCells": 223230822,
+      "typedUnpacks": 0,
+      "fallbacks": {
+        "loop:disabled": 3
+      },
+      "compilerRejections": []
+    }
+  },
+  "selectedFullFixturesAndControls": [
+    {
+      "workload": "full-shipping",
+      "version": "after",
+      "args": [
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 13885.953417,
+      "rssMiB": 1375.46875,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 15623,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 6,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 1485,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "full-shipping",
+      "version": "after",
+      "args": [
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 14440.092999999999,
+      "rssMiB": 1374.78125,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 15623,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 6,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 1485,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "full-shipping",
+      "version": "after",
+      "args": [
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 13914.559959,
+      "rssMiB": 1375.90625,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 15623,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 5,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 27,
+          "tensor:output-shape": 6,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "tensor:stored-concat-copy": 1485,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "full-shipping-reference",
+      "version": "after",
+      "args": [
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--reference"
+      ],
+      "ms": 14914.620165999999,
+      "rssMiB": 1331.640625,
+      "answer": "61614848",
+      "tests": [],
+      "diagnostics": {
+        "cellsComputed": 386860,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 18123,
+        "maskMaterializedCells": 223230822,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-original-compiled",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--original"
+      ],
+      "ms": 3912.016291,
+      "rssMiB": 760.609375,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 3781.3942079999997
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 28173,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 33568,
+        "numberTensors": 0,
+        "tensorMapPreparations": 33568,
+        "maskMaterializations": 25176,
+        "maskMaterializedCells": 170922,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 3,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 28,
+          "tensor:output-shape": 9,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "tensor:deferred-binding:AssignmentStatement": 19,
+          "tensor:binding:A2": 6,
+          "scalar-expression:operator-guard:*": 36,
+          "scalar-expression:operator-guard:+": 16802,
+          "scalar-expression:operator-guard:-": 18,
+          "tensor:binding:B2": 6,
+          "tensor:binding:C2": 6,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 8,
+          "tensor:binding:A1": 8386,
+          "tensor:binding:B1": 8386,
+          "tensor:binding:C1": 8386,
+          "scalar-expression:unsupported-node:NameExpression": 6
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-original-reference",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--original",
+        "--reference"
+      ],
+      "ms": 2753.303834,
+      "rssMiB": 1118.515625,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 2630.354625
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 2134521,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 25176,
+        "maskMaterializedCells": 170922,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-shipping-compiled",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 261.804709,
+      "rssMiB": 236.96875,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 132.44650000000001
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 21093,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 840,
+        "numberTensors": 0,
+        "maskMaterializations": 855,
+        "maskMaterializedCells": 150234,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 15,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 30,
+          "tensor:output-shape": 12,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 8,
+          "scalar-expression:unsupported-node:NameExpression": 6
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-shipping-reference",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--reference"
+      ],
+      "ms": 214.5705,
+      "rssMiB": 201.078125,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 83.19658300000003
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 21093,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 855,
+        "maskMaterializedCells": 150234,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "control-023",
+      "version": "before",
+      "ms": 390.5687919999999,
+      "answer": "4179871",
+      "rssMiB": 171.703125
+    },
+    {
+      "workload": "control-023",
+      "version": "after",
+      "ms": 394.49925,
+      "answer": "4179871",
+      "rssMiB": 171.59375
+    },
+    {
+      "workload": "control-088",
+      "version": "before",
+      "ms": 791.148417,
+      "answer": "7587457",
+      "rssMiB": 503.015625
+    },
+    {
+      "workload": "control-088",
+      "version": "after",
+      "ms": 786.1043749999999,
+      "answer": "7587457",
+      "rssMiB": 504.3125
+    },
+    {
+      "workload": "control-125",
+      "version": "before",
+      "ms": 195.16529099999997,
+      "answer": "2906969179",
+      "rssMiB": 168.875
+    },
+    {
+      "workload": "control-125",
+      "version": "after",
+      "ms": 194.707584,
+      "answer": "2906969179",
+      "rssMiB": 169.296875
+    },
+    {
+      "workload": "control-166",
+      "version": "before",
+      "ms": 1071.752208,
+      "answer": "7130034",
+      "rssMiB": 415.71875
+    },
+    {
+      "workload": "control-166",
+      "version": "after",
+      "ms": 1013.980916,
+      "answer": "7130034",
+      "rssMiB": 437
+    },
+    {
+      "workload": "control-185",
+      "version": "before",
+      "ms": 599.646958,
+      "answer": "4640261571849533",
+      "rssMiB": 224.09375
+    },
+    {
+      "workload": "control-185",
+      "version": "after",
+      "ms": 594.128833,
+      "answer": "4640261571849533",
+      "rssMiB": 224.28125
+    },
+    {
+      "workload": "control-213",
+      "version": "before",
+      "ms": 1688.238417,
+      "answer": "330.721154",
+      "rssMiB": 300.4375
+    },
+    {
+      "workload": "control-213",
+      "version": "after",
+      "ms": 1702.919542,
+      "answer": "330.721154",
+      "rssMiB": 310.671875
+    },
+    {
+      "workload": "control-214",
+      "version": "before",
+      "ms": 1330.1019999999999,
+      "answer": "1677366278943",
+      "rssMiB": 297
+    },
+    {
+      "workload": "control-214",
+      "version": "after",
+      "ms": 1325.066167,
+      "answer": "1677366278943",
+      "rssMiB": 296.921875
+    },
+    {
+      "workload": "control-221",
+      "version": "before",
+      "ms": 1212.901584,
+      "answer": "1884161251122450",
+      "rssMiB": 344.609375
+    },
+    {
+      "workload": "control-221",
+      "version": "after",
+      "ms": 1207.169417,
+      "answer": "1884161251122450",
+      "rssMiB": 342.859375
+    },
+    {
+      "workload": "fixture-original-compiled",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--original"
+      ],
+      "ms": 3892.1531250000003,
+      "rssMiB": 760.125,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 3770.6656669999998
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 28173,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 33568,
+        "numberTensors": 0,
+        "tensorMapPreparations": 33568,
+        "maskMaterializations": 25176,
+        "maskMaterializedCells": 170922,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 3,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 28,
+          "tensor:output-shape": 9,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "tensor:deferred-binding:AssignmentStatement": 19,
+          "tensor:binding:A2": 6,
+          "scalar-expression:operator-guard:*": 36,
+          "scalar-expression:operator-guard:+": 16802,
+          "scalar-expression:operator-guard:-": 18,
+          "tensor:binding:B2": 6,
+          "tensor:binding:C2": 6,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 8,
+          "tensor:binding:A1": 8386,
+          "tensor:binding:B1": 8386,
+          "tensor:binding:C1": 8386,
+          "scalar-expression:unsupported-node:NameExpression": 6
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-original-reference",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--original",
+        "--reference"
+      ],
+      "ms": 2849.511458,
+      "rssMiB": 591.953125,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 2722.942125
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 2134521,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 25176,
+        "maskMaterializedCells": 170922,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-shipping-compiled",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 261.795542,
+      "rssMiB": 237.921875,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 134.215417
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 21093,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 840,
+        "numberTensors": 0,
+        "maskMaterializations": 855,
+        "maskMaterializedCells": 150234,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 15,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 30,
+          "tensor:output-shape": 12,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 8,
+          "scalar-expression:unsupported-node:NameExpression": 6
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-shipping-reference",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--reference"
+      ],
+      "ms": 217.11974999999998,
+      "rssMiB": 201.375,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 84.691416
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 21093,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 855,
+        "maskMaterializedCells": 150234,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "control-023",
+      "version": "before",
+      "ms": 394.734917,
+      "answer": "4179871",
+      "rssMiB": 171.34375
+    },
+    {
+      "workload": "control-023",
+      "version": "after",
+      "ms": 388.555333,
+      "answer": "4179871",
+      "rssMiB": 171.46875
+    },
+    {
+      "workload": "control-088",
+      "version": "before",
+      "ms": 784.157125,
+      "answer": "7587457",
+      "rssMiB": 503.96875
+    },
+    {
+      "workload": "control-088",
+      "version": "after",
+      "ms": 787.7384579999999,
+      "answer": "7587457",
+      "rssMiB": 504.1875
+    },
+    {
+      "workload": "control-125",
+      "version": "before",
+      "ms": 197.50666699999996,
+      "answer": "2906969179",
+      "rssMiB": 169.171875
+    },
+    {
+      "workload": "control-125",
+      "version": "after",
+      "ms": 196.97575,
+      "answer": "2906969179",
+      "rssMiB": 168.875
+    },
+    {
+      "workload": "control-166",
+      "version": "before",
+      "ms": 1076.6875420000001,
+      "answer": "7130034",
+      "rssMiB": 415.625
+    },
+    {
+      "workload": "control-166",
+      "version": "after",
+      "ms": 1014.7065420000001,
+      "answer": "7130034",
+      "rssMiB": 416.3125
+    },
+    {
+      "workload": "control-185",
+      "version": "before",
+      "ms": 600.620417,
+      "answer": "4640261571849533",
+      "rssMiB": 224.953125
+    },
+    {
+      "workload": "control-185",
+      "version": "after",
+      "ms": 590.98875,
+      "answer": "4640261571849533",
+      "rssMiB": 224.671875
+    },
+    {
+      "workload": "control-213",
+      "version": "before",
+      "ms": 1721.072792,
+      "answer": "330.721154",
+      "rssMiB": 324.21875
+    },
+    {
+      "workload": "control-213",
+      "version": "after",
+      "ms": 1702.729709,
+      "answer": "330.721154",
+      "rssMiB": 254.0625
+    },
+    {
+      "workload": "control-214",
+      "version": "before",
+      "ms": 1322.530416,
+      "answer": "1677366278943",
+      "rssMiB": 297.375
+    },
+    {
+      "workload": "control-214",
+      "version": "after",
+      "ms": 1347.573833,
+      "answer": "1677366278943",
+      "rssMiB": 296.34375
+    },
+    {
+      "workload": "control-221",
+      "version": "before",
+      "ms": 1226.0494999999999,
+      "answer": "1884161251122450",
+      "rssMiB": 344.765625
+    },
+    {
+      "workload": "control-221",
+      "version": "after",
+      "ms": 1261.026709,
+      "answer": "1884161251122450",
+      "rssMiB": 345
+    },
+    {
+      "workload": "fixture-original-compiled",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--original"
+      ],
+      "ms": 4104.972208,
+      "rssMiB": 1159.109375,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 3980.8272920000004
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 28173,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 33568,
+        "numberTensors": 0,
+        "tensorMapPreparations": 33568,
+        "maskMaterializations": 25176,
+        "maskMaterializedCells": 170922,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 3,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 28,
+          "tensor:output-shape": 9,
+          "tensor:unsupported-node:MaterializeExpression": 4,
+          "tensor:deferred-binding:AssignmentStatement": 19,
+          "tensor:binding:A2": 6,
+          "scalar-expression:operator-guard:*": 36,
+          "scalar-expression:operator-guard:+": 16802,
+          "scalar-expression:operator-guard:-": 18,
+          "tensor:binding:B2": 6,
+          "tensor:binding:C2": 6,
+          "loop:deferred-binding:AssignmentStatement": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 8,
+          "tensor:binding:A1": 8386,
+          "tensor:binding:B1": 8386,
+          "tensor:binding:C1": 8386,
+          "scalar-expression:unsupported-node:NameExpression": 6
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-original-reference",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--original",
+        "--reference"
+      ],
+      "ms": 2785.283833,
+      "rssMiB": 820.5625,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 2657.6589169999997
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 2134521,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 25176,
+        "maskMaterializedCells": 170922,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-shipping-compiled",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js"
+      ],
+      "ms": 266.468958,
+      "rssMiB": 236.34375,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 138.06262499999997
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 21093,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 840,
+        "numberTensors": 0,
+        "maskMaterializations": 855,
+        "maskMaterializedCells": 150234,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "tensor:scalar-evaluation-timing": 15,
+          "loop:unsupported-node:MaterializeExpression": 2,
+          "scalar-expression:unsupported-op:to": 3,
+          "scalar-expression:too-small": 30,
+          "tensor:output-shape": 12,
+          "tensor:unsupported-node:MaterializeExpression": 10,
+          "loop:unbound-name:NameExpression": 1,
+          "scalar-expression:unsupported-op:len": 2,
+          "scalar-expression:unsupported-op:equal": 8,
+          "scalar-expression:unsupported-node:NameExpression": 6
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "fixture-shipping-reference",
+      "version": "after",
+      "args": [
+        "--fixture",
+        "--runtime=/tmp/rank223-after/out/index.js",
+        "--reference"
+      ],
+      "ms": 221.57345899999999,
+      "rssMiB": 201,
+      "tests": [
+        {
+          "name": "small limits",
+          "passed": true,
+          "output": [
+            "72",
+            "3591",
+            "45638"
+          ],
+          "durationMs": 85.85612500000002
+        }
+      ],
+      "diagnostics": {
+        "cellsComputed": 21093,
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "maskMaterializations": 855,
+        "maskMaterializedCells": 150234,
+        "typedUnpacks": 0,
+        "fallbacks": {
+          "loop:disabled": 3
+        },
+        "compilerRejections": []
+      }
+    },
+    {
+      "workload": "control-023",
+      "version": "before",
+      "ms": 401.09700000000004,
+      "answer": "4179871",
+      "rssMiB": 171.5625
+    },
+    {
+      "workload": "control-023",
+      "version": "after",
+      "ms": 408.150375,
+      "answer": "4179871",
+      "rssMiB": 176.078125
+    },
+    {
+      "workload": "control-088",
+      "version": "before",
+      "ms": 790.257833,
+      "answer": "7587457",
+      "rssMiB": 503.8125
+    },
+    {
+      "workload": "control-088",
+      "version": "after",
+      "ms": 799.064166,
+      "answer": "7587457",
+      "rssMiB": 505.515625
+    },
+    {
+      "workload": "control-125",
+      "version": "before",
+      "ms": 200.93895799999999,
+      "answer": "2906969179",
+      "rssMiB": 173.390625
+    },
+    {
+      "workload": "control-125",
+      "version": "after",
+      "ms": 194.808792,
+      "answer": "2906969179",
+      "rssMiB": 169.21875
+    },
+    {
+      "workload": "control-166",
+      "version": "before",
+      "ms": 1090.357875,
+      "answer": "7130034",
+      "rssMiB": 415.484375
+    },
+    {
+      "workload": "control-166",
+      "version": "after",
+      "ms": 1002.807709,
+      "answer": "7130034",
+      "rssMiB": 417.015625
+    },
+    {
+      "workload": "control-185",
+      "version": "before",
+      "ms": 595.131208,
+      "answer": "4640261571849533",
+      "rssMiB": 224.453125
+    },
+    {
+      "workload": "control-185",
+      "version": "after",
+      "ms": 593.690292,
+      "answer": "4640261571849533",
+      "rssMiB": 223.8125
+    },
+    {
+      "workload": "control-213",
+      "version": "before",
+      "ms": 1716.4817079999998,
+      "answer": "330.721154",
+      "rssMiB": 320.078125
+    },
+    {
+      "workload": "control-213",
+      "version": "after",
+      "ms": 1666.096125,
+      "answer": "330.721154",
+      "rssMiB": 254.515625
+    },
+    {
+      "workload": "control-214",
+      "version": "before",
+      "ms": 1322.154625,
+      "answer": "1677366278943",
+      "rssMiB": 296.78125
+    },
+    {
+      "workload": "control-214",
+      "version": "after",
+      "ms": 1318.142042,
+      "answer": "1677366278943",
+      "rssMiB": 301.25
+    },
+    {
+      "workload": "control-221",
+      "version": "before",
+      "ms": 1240.3564999999999,
+      "answer": "1884161251122450",
+      "rssMiB": 341.015625
+    },
+    {
+      "workload": "control-221",
+      "version": "after",
+      "ms": 1242.483209,
+      "answer": "1884161251122450",
+      "rssMiB": 344.375
+    }
+  ],
+  "controlFiles": {
+    "023": "demos/euler/023_abundantsums.ra",
+    "088": "demos/euler/088_productsum_stack.ra",
+    "125": "demos/euler/125_palindromicsums.ra",
+    "166": "demos/euler/166_crisscross.ra",
+    "185": "demos/euler/185_numbermind.ra",
+    "213": "demos/euler/213_fleacircus.ra",
+    "214": "demos/euler/214_totientchains.ra",
+    "221": "demos/euler/221_alexandrian.ra"
+  },
+  "oracle": {
+    "checks": 300,
+    "results": [
+      {
+        "limit": 0,
+        "expected": 0
+      },
+      {
+        "limit": 1,
+        "expected": 0
+      },
+      {
+        "limit": 2,
+        "expected": 0
+      },
+      {
+        "limit": 3,
+        "expected": 1
+      },
+      {
+        "limit": 4,
+        "expected": 1
+      },
+      {
+        "limit": 5,
+        "expected": 2
+      },
+      {
+        "limit": 6,
+        "expected": 2
+      },
+      {
+        "limit": 7,
+        "expected": 3
+      },
+      {
+        "limit": 8,
+        "expected": 3
+      },
+      {
+        "limit": 9,
+        "expected": 4
+      },
+      {
+        "limit": 10,
+        "expected": 4
+      },
+      {
+        "limit": 11,
+        "expected": 5
+      },
+      {
+        "limit": 12,
+        "expected": 5
+      },
+      {
+        "limit": 13,
+        "expected": 6
+      },
+      {
+        "limit": 14,
+        "expected": 6
+      },
+      {
+        "limit": 15,
+        "expected": 7
+      },
+      {
+        "limit": 16,
+        "expected": 7
+      },
+      {
+        "limit": 17,
+        "expected": 9
+      },
+      {
+        "limit": 18,
+        "expected": 9
+      },
+      {
+        "limit": 19,
+        "expected": 11
+      },
+      {
+        "limit": 20,
+        "expected": 11
+      },
+      {
+        "limit": 31,
+        "expected": 19
+      },
+      {
+        "limit": 50,
+        "expected": 32
+      },
+      {
+        "limit": 99,
+        "expected": 72
+      },
+      {
+        "limit": 100,
+        "expected": 72
+      },
+      {
+        "limit": 101,
+        "expected": 75
+      },
+      {
+        "limit": 199,
+        "expected": 167
+      },
+      {
+        "limit": 200,
+        "expected": 167
+      },
+      {
+        "limit": 201,
+        "expected": 168
+      },
+      {
+        "limit": 300,
+        "expected": 263
+      }
+    ]
+  },
+  "sourceHashes": {
+    "demos/euler/223_almostright.ra": "5bb06a5a9303b3cc67cbe354196b508063e0f7acceea6d6fc1ccf699344ed621",
+    "packages/interpreter/src/array-mask-selection.ts": "18fafb8781ca0521452c837ebe93347ce04110328095d0dfcbdc5e3b959e7e3d",
+    "packages/interpreter/src/packed-booleans.ts": "79facb459be5c0c33f320f9fbe20ce63aebb57efb8c18fdfa7a4c6bd74c8fda6",
+    "packages/interpreter/src/tensor-kernel.ts": "303358ce1f8f65afd03d1b3b44d763fb4c7975b23256b14f1c1704d6743da1b2"
+  },
+  "runtimeJsHashes": {
+    "before": {
+      "array-mask-selection.js": "30afa5c1d895b1cd67630104d0ed6ef3593cf747b3398709c41714843dc8df30",
+      "packed-booleans.js": "2d00d86cb6fc4870c3532213b698436ff177c7184b77e064c578f557693f61e7",
+      "tensor-kernel.js": "14d33f98ea4cad7260ffe4ff82126ba0b0a39cc80446664c6fe5699d548072f9"
+    },
+    "bitmap": {
+      "array-mask-selection.js": "b92dbbb2ee9c4ad2d0bb3d991cf73536a37227b7ca3efe3242f52be42bf6b30e",
+      "packed-booleans.js": "23d5c8b4a3b1a36aa80c688670383bd58ade37fbb391b9fdbdb31c343dad854e",
+      "tensor-kernel.js": "14d33f98ea4cad7260ffe4ff82126ba0b0a39cc80446664c6fe5699d548072f9"
+    },
+    "masks": {
+      "array-mask-selection.js": "e41a82b3bc30573ed094c85e7cd978961750f9165e560aeaab6f22cf931b1168",
+      "packed-booleans.js": "23d5c8b4a3b1a36aa80c688670383bd58ade37fbb391b9fdbdb31c343dad854e",
+      "tensor-kernel.js": "14d33f98ea4cad7260ffe4ff82126ba0b0a39cc80446664c6fe5699d548072f9"
+    },
+    "after": {
+      "array-mask-selection.js": "12bde926d9ef568ee556e0861160af27470122b075fc5865032cc6e15a4714f0",
+      "packed-booleans.js": "23d5c8b4a3b1a36aa80c688670383bd58ade37fbb391b9fdbdb31c343dad854e",
+      "tensor-kernel.js": "6d3141a696f90c323d3fd187dbe9101fbeecd5d24a9f47da69d78840aad4f113"
+    }
+  },
+  "notes": [
+    "No Number-loop threshold or arithmetic semantics changed.",
+    "Initial eager-canonical full run (114.24 s) is in the separate investigation baseline. Original full source was not executed.",
+    "Unbounded concat dispatch regressed small copies; final rule reuses the existing 1024-cell dense threshold and keeps tiny cached kernels.",
+    "Direct Float64 selection gather did not establish a benefit and is omitted from delivery. Real/missing/mixed sources retain the ordinary materialization path.",
+    "Full default remains in the existing resource-exclusion catalogue; the small fixture stays in routine scoped audits. Full default was verified separately in both modes.",
+    "No Intel comparison or exhaustive corpus type/differential/Nurikabe run."
+  ],
+  "verification": {
+    "jobs": [
+      {
+        "name": "build",
+        "exitCode": 0,
+        "seconds": 0.6837742328643799
+      },
+      {
+        "name": "test-types",
+        "exitCode": 0,
+        "seconds": 0.560197114944458
+      },
+      {
+        "name": "focused",
+        "exitCode": 0,
+        "seconds": 4.57007908821106
+      },
+      {
+        "name": "semantic",
+        "exitCode": 0,
+        "seconds": 2.2431538105010986
+      },
+      {
+        "name": "forms",
+        "exitCode": 0,
+        "seconds": 2.5850179195404053
+      },
+      {
+        "name": "oracle",
+        "exitCode": 0,
+        "seconds": 3.4717540740966797
+      },
+      {
+        "name": "ordinary",
+        "exitCode": 0,
+        "seconds": 288.45699286460876
+      },
+      {
+        "name": "types",
+        "exitCode": 0,
+        "seconds": 1.607006311416626
+      },
+      {
+        "name": "differential",
+        "exitCode": 0,
+        "seconds": 1.8326189517974854
+      }
+    ],
+    "ordinaryTests": 9192,
+    "ordinaryFiles": 404,
+    "ordinaryWorkers": 1,
+    "focusedTests": 256,
+    "scopedFixtureTypeAudits": 1,
+    "scopedFixtureDifferentialAudits": 1,
+    "oracleChecks": 300,
+    "ordinaryExclusions": [
+      "test/types.test.ts",
+      "test/differential.test.ts",
+      "test/nurikabe.test.ts"
+    ],
+    "initialParallelAttempt": {
+      "workers": 2,
+      "passed": 9185,
+      "failedTimeouts": 7,
+      "seconds": 1437.52179312706,
+      "affectedFiles": [
+        "euler165",
+        "expressions",
+        "memo",
+        "outer-lazy-operands",
+        "plan-tensor-composition",
+        "record-contracts",
+        "segment"
+      ],
+      "assertionMismatches": 0,
+      "isolatedRerun": {
+        "workers": 1,
+        "tests": 171,
+        "files": 7,
+        "passed": 171,
+        "seconds": 9.84
+      },
+      "note": "No source changes between the timed-out parallel attempt, isolated rerun and complete serial pass; root cause of stalls not established."
+    },
+    "logs": {
+      "ordinary": "okup.test.ts (4 tests) 113ms\n \u2713 test/unpack-axis.test.ts (5 tests) 116ms\n \u2713 test/graph-traversal.test.ts (14 tests) 114ms\n \u2713 test/window-demand.test.ts (15 tests) 125ms\n \u2713 test/wide-argsort.test.ts (8 tests) 133ms\n \u2713 test/tensor-cell-compiler.test.ts (11 tests) 131ms\n \u2713 test/text-string-ops.test.ts (4 tests) 126ms\n \u2713 test/outer-sequence-demand.test.ts (20 tests) 133ms\n \u2713 test/shift-storage.test.ts (5 tests) 112ms\n \u2713 test/scalar-array-reader.test.ts (13 tests) 102ms\n \u2713 test/dense-integer-kernels.test.ts (5 tests) 112ms\n \u2713 test/images.test.ts (2 tests) 104ms\n \u2713 test/binary-scalar-ranks.test.ts (4 tests) 103ms\n \u2713 test/builtin-grouping.test.ts (5 tests) 104ms\n \u2713 test/array-shape-vector.test.ts (4 tests) 103ms\n \u2713 test/runtime-scope.test.ts (4 tests) 104ms\n \u2713 test/direct-scalar-live.test.ts (6 tests) 107ms\n \u2713 test/grids.test.ts (4 tests) 96ms\n \u2713 test/named-sum.test.ts (14 tests) 100ms\n \u2713 test/text-words.test.ts (3 tests) 103ms\n \u2713 test/text-block.test.ts (6 tests) 95ms\n \u2713 test/condition-composition.test.ts (1 test) 99ms\n \u2713 test/extrema-text.test.ts (3 tests) 100ms\n \u2713 test/mutation-guards.test.ts (4 tests) 91ms\n \u2713 test/collection-capabilities.test.ts (5 tests) 93ms\n \u2713 test/stats-demand.test.ts (5 tests) 92ms\n \u2713 test/lowercase-variable.test.ts (3 tests) 89ms\n \u2713 test/packed-distinct.test.ts (10 tests) 52ms\n \u2713 test/modular-power.test.ts (3 tests) 21ms\n \u2713 test/shape-contracts.test.ts (120 tests) 16ms\n \u2713 test/arrow-table.test.ts (36 tests) 9ms\n \u2713 test/plan.test.ts (4 tests) 6ms\n \u2713 test/selector-type-checks.test.ts (22 tests) 7ms\n \u2713 test/mapped-array-traversal.test.ts (14 tests) 6ms\n \u2713 test/capture-protection.test.ts (9 tests) 4ms\n \u2713 test/tensor-cache.test.ts (4 tests) 4ms\n \u2713 test/native-callback-demand.test.ts (5 tests) 4ms\n \u2713 test/numeric-set.test.ts (14 tests) 3ms\n \u2713 test/sequence-retention.test.ts (8 tests) 3ms\n \u2713 test/element-source.test.ts (5 tests) 3ms\n \u2713 test/array-packed-read.test.ts (6 tests) 3ms\n \u2713 test/membership-keys.test.ts (4 tests) 4ms\n \u2713 test/table-revisions.test.ts (3 tests) 3ms\n \u2713 test/transpose-reader.test.ts (4 tests) 3ms\n \u2713 test/native-array-storage.test.ts (2 tests) 2ms\n \u2713 test/array-revisions.test.ts (5 tests) 4ms\n \u2713 test/type-audit-runner.test.ts (2 tests) 4ms\n \u2713 test/debug-session.test.ts (3 tests) 2ms\n \u2713 test/array-traversal.test.ts (3 tests) 2ms\n\n Test Files  404 passed (404)\n      Tests  9192 passed (9192)\n   Start at  11:05:49\n   Duration  288.21s (transform 2.35s, setup 0ms, collect 84.30s, tests 173.57s, environment 22ms, prepare 7.39s)\n\n",
+      "types": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\nstdout | test/types.test.ts > inferred types against the values a run produced > euler/223_almostright_test.ra\nauditing euler/223_almostright_test.ra\n\n \u2713 test/types.test.ts (1775 tests | 1774 skipped) 104ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 1774 skipped (1775)\n   Start at  11:10:37\n   Duration  1.36s (transform 769ms, setup 0ms, collect 1.14s, tests 104ms, environment 0ms, prepare 29ms)\n\n",
+      "differential": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\nstdout | test/differential.test.ts > compiled and reference demo execution > euler/223_almostright_test.ra\ncomparing euler/223_almostright_test.ra\n\nstdout | test/differential.test.ts > compiled and reference demo execution\ndifferential: 1/1775 compared, 1 completed, 1 test blocks, 2138 compiled entries, 0 Number loop entries\n\n \u2713 test/differential.test.ts (1776 tests | 1775 skipped) 388ms\n   \u2713 compiled and reference demo execution > euler/223_almostright_test.ra  384ms\n\n Test Files  1 passed (1)\n      Tests  1 passed | 1775 skipped (1776)\n   Start at  11:10:39\n   Duration  1.60s (transform 662ms, setup 0ms, collect 1.11s, tests 388ms, environment 0ms, prepare 23ms)\n\n",
+      "semantic": "\n> rank-workspace@0.0.1 check:semantic-boundaries\n> node --test scripts/semantic-source.test.mjs scripts/demo-execution-exclusions.test.mjs scripts/local-demo-audits.test.mjs && node scripts/check-semantic-boundaries.mjs\n\n\u2714 execution exclusions name existing workloads and explain the resource cost (4.778625ms)\n\u2714 recorded timeouts stay excluded while corrected compiler cases remain eligible (0.073292ms)\n\u2714 new full-scale exclusions retain their small test fixtures unless they timed out (18.116333ms)\n\u2714 local concurrency uses CPU and memory limits, with a serial CI path (0.562416ms)\n\u2714 shards execute concurrently and all results enter the coverage gate (575.864625ms)\n\u2714 a failing worker fails the audit (534.108709ms)\n\u2714 successful workers with incomplete summaries still fail coverage (590.05225ms)\n\u2714 comments and ordinary strings do not create dependencies or semantic violations (2.414041ms)\n\u2714 distinguishes runtime dependencies from all forms of type-only imports and exports (1.360667ms)\n\u2714 recognizes semantic owner helpers from declarations and typed closures (0.734292ms)\n\u2714 retains requirement restrictions for aliases, properties, types, and module paths (0.342667ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1731.29075\nSemantic boundaries: 65 owners checked\n",
+      "forms": "\n> rank-workspace@0.0.1 check:application-forms\n> node scripts/check-application-forms.mjs\n\nApplication forms: both consumers reject an unhandled form\nApplication forms: isolated #24 pilot uses unchanged runtime and analysis handlers\n",
+      "focused": "\n RUN  v3.2.7 /private/tmp/rank195-isolated/packages/interpreter\n\n \u2713 test/packed-booleans.test.ts (51 tests) 452ms\n \u2713 test/integer-comparison-mask.test.ts (21 tests) 199ms\n \u2713 test/tensor-concat.test.ts (15 tests) 189ms\n \u2713 test/array-block-copy.test.ts (31 tests) 1805ms\n \u2713 test/number-tensor-selection.test.ts (20 tests) 191ms\n \u2713 test/mask-selection.test.ts (38 tests) 180ms\n \u2713 test/stored-integer-selection.test.ts (17 tests) 143ms\n \u2713 test/mask-materialization.test.ts (21 tests) 138ms\n \u2713 test/boolean-masks.test.ts (8 tests) 128ms\n \u2713 test/selector-type-checks.test.ts (22 tests) 12ms\n \u2713 test/tensor-binding-boundaries.test.ts (12 tests) 113ms\n\n Test Files  11 passed (11)\n      Tests  256 passed (256)\n   Start at  10:32:50\n   Duration  4.32s (transform 758ms, setup 0ms, collect 4.12s, tests 3.55s, environment 1ms, prepare 228ms)\n\n"
+    }
+  }
+}

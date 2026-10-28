@@ -39,7 +39,8 @@ export function mapPackedBooleanArrays(left: RankArray, right?: RankArray, opera
 function bitReader(value: RankArray): BitReader | undefined {
     if (inspectionEnabled()) return undefined;
     const stored = ownedStorage.get(value);
-    if (stored?.stable && stored.booleans) {
+    if (stored?.stable && stored.booleans && value.itemAt === undefined
+        && value.shape.reduce((n, axis) => n * axis, 1) === stored.booleans.length) {
         const cells = stored.booleans;
         return { length: cells.length, physical: { words: cells.words, offset: 0 }, wordAt: index => cells.words[index] ?? 0 };
     }

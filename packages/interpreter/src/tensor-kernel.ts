@@ -4,6 +4,7 @@ import { ownedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
+import { DENSE_MIN_CELLS } from './tensor-operands.js';
 import { applicationForm } from '@arrrank/language';
 import { checkpoint, interruptsEnabled, privateLoopPolling, InterruptedError } from './interrupt.js';
 import { currentDiagnostics, recordFallback } from './diagnostics.js';
@@ -645,6 +646,25 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             return recordFallback('tensor:broadcast-selection');
         }
         const size = output.shape.reduce((p, n) => p * n, 1);
+        // Plain stored concat copies have a bulk kernel. Scalar emission boxes
+        // Int32 cells into BigInt (Euler 223). Small copies retain their cached
+        // tensor loop: 1000-copy probes put the crossover near 1024 output cells,
+        // matching the existing dense-kernel minimum, not the Number-loop budget.
+        if (!nativeGraph && terminal === 'copy' && root.kind === 'concat'
+            && size >= DENSE_MIN_CELLS && privateLoopPolling()) {
+            let storage: ArrayLike<RankValue> | undefined;
+            const stored = root.sources.every(node => {
+                if (node.kind !== 'input') return false;
+                const view = bound.get(node)?.view;
+                if (!view || view.kind !== 'integer' && view.kind !== 'real') return false;
+                const cells = view.items;
+                if (!(cells instanceof Int32Array || cells instanceof BigInt64Array || cells instanceof Float64Array)
+                    || storage && cells.constructor !== storage.constructor) return false;
+                storage = cells;
+                return true;
+            });
+            if (stored && storage) return recordFallback('tensor:stored-concat-copy');
+        }
         // Even an empty array must evaluate scalar subexpressions that can
         // fail, such as A * (1 // 0). Let the reference path locate that error.
         if (implicit && size === 0 && [...domains.keys()].some(node =>

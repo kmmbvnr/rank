@@ -1,0 +1,3 @@
+import {readFileSync} from 'node:fs';import {resolve,dirname} from 'node:path';import {pathToFileURL} from 'node:url';
+const [file,entry]=process.argv.slice(2);const {Interpreter}=await import(pathToFileURL(entry));const r=new Interpreter(()=>{},{sourceId:file,loadModule(spec,from){const id=resolve(dirname(from??file),spec+'.ra');return{id,source:readFileSync(id,'utf8')}}});
+try{const t=performance.now();r.execute(readFileSync(file,'utf8'));console.log(JSON.stringify({ms:performance.now()-t,answer:String(r.variables.get('Answer')),rssMiB:process.resourceUsage().maxRSS/1024}));}finally{r.dispose()}
