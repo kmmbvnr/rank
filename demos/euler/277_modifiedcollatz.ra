@@ -9,7 +9,7 @@ use text
 use io
 use cli
 
-option Limit integer = 1000000000000000
+arg Limit integer = 1000000000000000
 Steps = "UDDDUdddDDUDDddDdDddDDUDDdUUDd"
 
 rem Step D takes n = 3 m to m, U takes

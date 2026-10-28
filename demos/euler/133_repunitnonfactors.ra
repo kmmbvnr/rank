@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000
+arg Limit integer = 100000
 
 rem p divides R(10^n) when the order of
 rem 10 mod 9 p has only the factors 2

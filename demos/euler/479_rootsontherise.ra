@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000
+arg N integer = 1000000
 
 rem The three roots give (a_k - b_k)
 rem (b_k - c_k) (c_k - a_k) = 1 - k^2

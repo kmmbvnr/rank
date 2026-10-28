@@ -1,5 +1,5 @@
 import {
-    INPUT_TYPES, isArgumentStatement, isFlagStatement, isOptionStatement, isUseStatement,
+    INPUT_TYPES, isFlagStatement, isArgStatement, isUseStatement,
     type Expression, type Program, type Statement,
 } from '@arrrank/language';
 import { ownedArray } from './array-storage.js';
@@ -82,7 +82,7 @@ export function kebabCase(name: string): string {
 }
 
 export function inputDeclarationName(statement: Statement): string {
-    return isOptionStatement(statement) ? 'option' : isArgumentStatement(statement) ? 'argument' : 'flag';
+    return isArgStatement(statement) ? 'arg' : 'flag';
 }
 
 /** What binding command-line inputs needs from the interpreter. */
@@ -94,13 +94,13 @@ export interface InputHost {
 }
 
 /**
- * Binds the program's `option`, `argument` and `flag` declarations from the
+ * Binds the program's `arg` and `flag` declarations from the
  * command line before it runs. A value the host already bound is validated
  * instead; defaults are evaluated in declaration order.
  */
 export function bindInputs(program: Program, args: readonly string[], host: InputHost): void {
     const declarations = program.statements.filter(statement =>
-        isOptionStatement(statement) || isArgumentStatement(statement) || isFlagStatement(statement));
+        isArgStatement(statement) || isFlagStatement(statement));
     if (declarations.length === 0) {
         if (args.length > 0) throw new RankError(`unexpected arguments: ${args.join(' ')}`);
         return;
@@ -111,11 +111,16 @@ export function bindInputs(program: Program, args: readonly string[], host: Inpu
         throw host.locate(new RankError(`${inputDeclarationName(declarations[0])} requires: use cli`), declarations[0]);
     }
 
+    const inputs = declarations.filter(isArgStatement);
+    const rest = inputs.findIndex(input => input.many);
+    if (rest >= 0 && rest !== inputs.length - 1) {
+        throw host.locate(new RankError('array argument must be last'), inputs[rest]);
+    }
     const parsed = parseArguments(args);
     let positionalIndex = 0;
     const knownOptions = new Set<string>();
     for (const declaration of declarations) {
-        if (isOptionStatement(declaration)) {
+        if (isArgStatement(declaration)) {
             const optionName = kebabCase(declaration.name);
             knownOptions.add(optionName);
             const supplied = parsed.options.get(optionName);
@@ -126,31 +131,16 @@ export function bindInputs(program: Program, args: readonly string[], host: Inpu
                     declaration.name,
                     inputValues(supplied, declaration.valueType, declaration.many),
                 );
+            } else if (positionalIndex < parsed.positionals.length) {
+                const values = declaration.many ? parsed.positionals.slice(positionalIndex)
+                    : parsed.positionals.slice(positionalIndex, positionalIndex + 1);
+                positionalIndex += values.length;
+                host.variables.set(declaration.name, inputValues(values, declaration.valueType, declaration.many));
             } else if (declaration.defaultValue) {
                 host.variables.set(declaration.name, host.evaluate(declaration.defaultValue));
                 validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
             } else {
-                throw new RankError(`missing option: --${optionName}`);
-            }
-        } else if (isArgumentStatement(declaration)) {
-            if (host.variables.has(declaration.name)) {
-                validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
-                continue;
-            }
-            const values = declaration.many
-                ? parsed.positionals.slice(positionalIndex)
-                : parsed.positionals.slice(positionalIndex, positionalIndex + 1);
-            positionalIndex += values.length;
-            if (values.length > 0) {
-                host.variables.set(
-                    declaration.name,
-                    inputValues(values, declaration.valueType, declaration.many),
-                );
-            } else if (declaration.defaultValue) {
-                host.variables.set(declaration.name, host.evaluate(declaration.defaultValue));
-                validateInput(host.variables, declaration.name, declaration.valueType, declaration.many);
-            } else {
-                throw new RankError(`missing argument: ${declaration.name}`);
+                throw new RankError(`missing argument: --${optionName}`);
             }
         } else {
             const optionName = kebabCase(declaration.name);

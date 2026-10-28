@@ -8,7 +8,7 @@ use linalg
 use io
 use cli
 
-option N integer = 40
+arg N integer = 40
 
 rem K(dx, dy): total distance between
 rem two unit cells offset by (dx, dy),

@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Target integer = 1000
+arg Target integer = 1000
 
 rem Solutions number (d(n^2) + 1) / 2,
 rem and d(n^2) is the product of 2e + 1

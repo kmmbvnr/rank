@@ -13,8 +13,8 @@ use sequences
 use io
 use cli
 
-option Radius integer = 15000
-option Gap integer = 10000
+arg Radius integer = 15000
+arg Gap integer = 10000
 
 rem The ellipse has foci M and G and
 rem major axis Radius, so with the

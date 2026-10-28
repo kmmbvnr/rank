@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option Rows integer = 100
-option Cols integer = 500
+arg Rows integer = 100
+arg Cols integer = 500
 
 rem Matrix-tree eigenvalue product.
 Pi = 0.0 atan2 (0.0 - 1.0)

@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-option N integer = 1000000000000
+arg N integer = 1000000000000
 
 rem Lucy's sieve keeps the count C and
 rem sum S of 2..x minus the composites

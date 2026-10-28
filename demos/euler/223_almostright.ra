@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 25000000
+arg Limit integer = 25000000
 
 rem The two ternary trees start at
 rem (1, 1, 1) and (1, 2, 2). Count their

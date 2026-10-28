@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option Count integer = 30
-option Power integer = 987654321
-option Mod integer = 10 ** 8
+arg Count integer = 30
+arg Power integer = 987654321
+arg Mod integer = 10 ** 8
 
 fun A B Mod mul
   C = array shape 9 fill 0

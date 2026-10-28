@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 350
+arg N integer = 350
 
 rem g(n) sums lcm^2 / prod c^m m! over
 rem cycle types. States (t cells used,

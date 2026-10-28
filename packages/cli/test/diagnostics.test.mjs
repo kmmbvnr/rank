@@ -13,7 +13,7 @@ function fixture(t, count, fail = false) {
     const file = join(directory, 'program.ra');
     writeFileSync(file, `use io
 use cli
-option Count integer = 3
+arg Count integer = 3
 T = 0
 for R in 1 to Count
 ${Array.from({ length: count - 1 }, () => '  A = 0').join('\n')}

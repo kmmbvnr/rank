@@ -9,8 +9,8 @@ use text
 use io
 use cli
 
-option Order integer = 50
-option Steps integer = 1000000000000
+arg Order integer = 50
+arg Steps integer = 1000000000000
 
 rem D_n = Fa with a -> aRbFR and
 rem b -> LFaLb. For each level and each

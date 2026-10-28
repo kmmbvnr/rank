@@ -8,7 +8,7 @@ use numbers
 use io
 use cli
 
-option Count integer = 4
+arg Count integer = 4
 
 Answer = Count distinct_factor_run
 Answer print

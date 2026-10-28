@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000000000
+arg N integer = 1000000000000000000
 
 rem The first knight leaves a path of
 rem N - 3 chairs. On a path of m the

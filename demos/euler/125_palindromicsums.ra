@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem Positive squares only increase a run.
 rem Stop once its sum reaches Limit and

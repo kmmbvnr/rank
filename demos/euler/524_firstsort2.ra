@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option K integer = 8916100448256
+arg K integer = 8916100448256
 
 rem F(P) sums 2^s over the entries that
 rem are not left-to-right maxima, s the

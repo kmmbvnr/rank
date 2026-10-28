@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Mod integer = 100000007
+arg Mod integer = 100000007
 
 rem A board is its empty square and a
 rem 16 bit set of red squares. Spread

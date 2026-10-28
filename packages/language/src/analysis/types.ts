@@ -101,7 +101,7 @@ const RESULTS: Partial<Record<ResultKind, Types>> = {
 };
 
 /**
- * The runtime type of a declared input. `option`, `argument` and `flag` are the
+ * The runtime type of a declared input. `arg` and `flag` are the
  * one place Rank states a type, and `many` collects the values into an array.
  */
 export function declaredType(valueType: string, many: boolean): Types {
@@ -111,7 +111,7 @@ export function declaredType(valueType: string, many: boolean): Types {
 }
 
 /**
- * The types `option` and `argument` accept, in the order a reader wants them
+ * The types `arg` accept, in the order a reader wants them
  * offered. `path` is a filename hint; input binding preserves the text unchanged.
  */
 export const INPUT_TYPES: readonly string[] = [

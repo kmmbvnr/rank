@@ -12,7 +12,7 @@ use cli
 use numbers
 use sequences
 
-argument Input path = "demos/dyalog/2010/data/buyrent.xml"
+arg Input path = "demos/dyalog/2010/data/buyrent.xml"
 
 Params = Input read getparams copy
 rem The initial rent at which buying and renting break even.

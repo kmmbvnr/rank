@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Tiles integer = 1000000
+arg Tiles integer = 1000000
 
 rem Outer side n, hole side m with the
 rem same parity: n - m = 2 k, n + m =

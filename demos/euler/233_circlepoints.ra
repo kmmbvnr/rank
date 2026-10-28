@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000000
+arg Limit integer = 100000000000
 
 rem The count is 4 times the product of
 rem 2 e + 1 over the primes p = 1 mod 4

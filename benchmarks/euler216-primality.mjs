@@ -18,8 +18,8 @@ function load(id) {
     let source = id === main && variant === 'original' ? captured.originalSource
         : readFileSync(id === main && !['original', 'shipping'].includes(variant)
             ? new URL(`./experiments/euler216-${variant}.ra`, import.meta.url) : id, 'utf8');
-    if (option('Limit')) source = source.replace(/option Limit integer = \d+/,
-        `option Limit integer = ${option('Limit')}`);
+    if (option('Limit')) source = source.replace(/arg Limit integer = \d+/,
+        `arg Limit integer = ${option('Limit')}`);
     return source;
 }
 const runtime = new Interpreter(() => {}, {

@@ -9,10 +9,10 @@ use numbers
 use io
 use cli
 
-option Na integer = 25
-option Nb integer = 75
-option Colours integer = 1984
-option Modulo integer = 100000000
+arg Na integer = 25
+arg Nb integer = 75
+arg Colours integer = 1984
+arg Modulo integer = 100000000
 
 rem A unit is coloured in A(c) or B(c)
 rem ways once its first vertices are

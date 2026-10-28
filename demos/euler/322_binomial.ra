@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Top integer = 10 ** 18
-option Pick integer = 10 ** 12 - 10
+arg Top integer = 10 ** 18
+arg Pick integer = 10 ** 12 - 10
 
 Limit = Top - Pick
 A2 = Pick Limit 2 nocarry

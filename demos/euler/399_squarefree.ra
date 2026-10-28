@@ -8,9 +8,9 @@ use text
 use io
 use cli
 
-option Count integer = 100000000
-option Limit integer = 200000000
-option PrimeLimit integer = 5714285
+arg Count integer = 100000000
+arg Limit integer = 200000000
+arg PrimeLimit integer = 5714285
 
 rem Wall gives p z(p) as forbidden
 rem indices for each prime p.

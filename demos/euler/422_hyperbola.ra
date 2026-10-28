@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-option N integer = 379749833583241
+arg N integer = 379749833583241
 
 rem With u = 25 q the points are
 rem x = 3q + 4/q and y = 4q - 3/q,

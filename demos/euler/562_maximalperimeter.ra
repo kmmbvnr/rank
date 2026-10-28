@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option R integer = 10000000
-option Dm integer = 2000000
+arg R integer = 10000000
+arg Dm integer = 2000000
 
 rem Perimeter is 2 L plus a term below
 rem 10^-14, so take the largest L^2 =

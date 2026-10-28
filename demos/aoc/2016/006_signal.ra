@@ -7,7 +7,7 @@ use cli
 use text
 use sequences
 
-argument Input path
+arg Input path
 
 unpack Part1 Part2 = Input readlines solve
 Part1 print

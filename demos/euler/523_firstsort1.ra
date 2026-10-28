@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 30
+arg N integer = 30
 
 rem With prefix sums P, n E(n) = P(n -
 rem 1) + 2^n - n - 1. Differencing two

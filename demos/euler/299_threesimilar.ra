@@ -11,7 +11,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem Such triples come in two families,
 rem with P = (x, a - x) and p = b - a, q

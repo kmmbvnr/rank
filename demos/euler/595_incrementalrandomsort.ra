@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 52
+arg N integer = 52
 
 rem After a check the k pieces behave
 rem as 1 .. k in a random order, and

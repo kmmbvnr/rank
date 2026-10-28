@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option M integer = 5000000
+arg M integer = 5000000
 
 rem r^3 = r^2 + 1 gives r^(e+1) = r^e
 rem + r^(e-2). Greedy digits of j^2

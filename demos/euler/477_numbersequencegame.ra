@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000
+arg N integer = 100000000
 
 rem With D the best score difference,
 rem the first player gets (sum + D)

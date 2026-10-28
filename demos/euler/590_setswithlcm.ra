@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 50000
+arg N integer = 50000
 
 rem H(n) = sum over subsets S of the
 rem primes of (-1)^|S| 2^M, M the

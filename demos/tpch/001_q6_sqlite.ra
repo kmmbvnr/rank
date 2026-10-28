@@ -5,7 +5,7 @@ use cli
 use io
 use tables
 
-argument DbPath path = "demos/tpch/data/tpch.sqlite3"
+arg DbPath path = "demos/tpch/data/tpch.sqlite3"
 
 Db = DbPath sqlite
 Lineitem' = Db .lineitem

@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option N integer = 200000
-option Power integer = 12
+arg N integer = 200000
+arg Power integer = 12
 
 rem The exponent of p in N! / (i! j! k!)
 rem is v(N) - v(i) - v(j) - v(k), with

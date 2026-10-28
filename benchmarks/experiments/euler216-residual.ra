@@ -3,7 +3,7 @@ rem Uses O(Limit) exact-integer cells; reference execution is slower.
 use numbers
 use io
 use cli
-option Limit integer = 50000000
+arg Limit integer = 50000000
 fun Bound count_primes
   R = array shape (Bound + 1) fill 0
   Count = 0

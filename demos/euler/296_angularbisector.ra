@@ -11,7 +11,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 100000
+arg Limit integer = 100000
 
 rem BE = a c / (a + b) with a = BC, b =
 rem AC and c = AB. With g = gcd(a, b), a

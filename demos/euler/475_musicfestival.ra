@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 600
+arg N integer = 600
 
 rem Inclusion-exclusion over pairs of
 rem one quartet in one trio: such a

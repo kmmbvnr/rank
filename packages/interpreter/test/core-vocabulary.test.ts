@@ -59,17 +59,17 @@ for (const compiled of [true, false]) {
         });
 
         it('gates each CLI construct and keeps ordinary files parameterless', () => {
-            for (const source of ['option N integer = 3', 'argument N integer = 3', 'flag Verbose', 'args "--n" "7"']) {
+            for (const source of ['arg N integer = 3', 'arg N integer = 3', 'flag Verbose', 'args "--n" "7"']) {
                 expect(() => runtime().execute(source)).toThrow(`${source.split(' ')[0]} requires: use cli`);
                 expect(() => runtime().execute(`use cli\n${source}`)).not.toThrow();
             }
             expect(() => new Interpreter(() => undefined, { args: ['7'] }).execute('42'))
                 .toThrow('unexpected arguments: 7');
             expect(new Interpreter(() => undefined, { args: ['--n', '7'] })
-                .execute('use cli\noption N integer = 3\nN')).toBe(7n);
+                .execute('use cli\narg N integer = 3\nN')).toBe(7n);
             const r = runtime();
             r.execute('use cli');
-            expect(r.execute('option N integer = 3\nN')).toBe(3n);
+            expect(r.execute('arg N integer = 3\nN')).toBe(3n);
         });
 
         it('retains testing imports and gives source modules the same core', () => {

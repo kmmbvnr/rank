@@ -7,8 +7,8 @@ use sequences
 use io
 use cli
 
-option Ma integer = 18
-option Nb integer = 1900
+arg Ma integer = 18
+arg Nb integer = 1900
 
 rem gcd(n^3 + b, (n + a)^3 + b) divides
 rem the resultant a^3 (a^6 + 27 b^2),

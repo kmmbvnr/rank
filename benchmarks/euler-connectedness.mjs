@@ -122,8 +122,8 @@ if (option('worker')) {
             try {
                 r.execute(program.replace('Users = 1000000', `Users = ${users}`)
                     .replace('Pm = 524287', `Pm = ${pm}`)
-                    .replace('option Calls integer = 3000000', `option Calls integer = ${calls}`)
-                    .replace('option Percent integer = 99', `option Percent integer = ${percent}`));
+                    .replace('arg Calls integer = 3000000', `arg Calls integer = ${calls}`)
+                    .replace('arg Percent integer = 99', `arg Percent integer = ${percent}`));
                 assert.equal(r.variables.get('Answer'), BigInt(expected));
                 checks.push({ variant, users, percent, engine, answer: expected });
             } finally { r.dispose(); }
@@ -132,8 +132,8 @@ if (option('worker')) {
     for (const program of [ringSource, cursorSource]) for (const engine of ['compiled', 'reference']) {
         const r = runtime(engine);
         try {
-            r.execute(program.replace('option Calls integer = 3000000', 'option Calls integer = 1000')
-                .replace('option Percent integer = 99', 'option Percent integer = 101')
+            r.execute(program.replace('arg Calls integer = 3000000', 'arg Calls integer = 1000')
+                .replace('arg Percent integer = 99', 'arg Percent integer = 101')
                 .replace('Made = 0', 'Trace = array shape 2000 fill 0\nMade = 0')
                 .replace('  if A not equal B', '  Trace (2 * N) = A\n  Trace (2 * N + 1) = B\n  if A not equal B'));
             assert.deepEqual(Array.from(r.variables.get('Trace').items), Array.from(generate(1000000, 1000), BigInt));

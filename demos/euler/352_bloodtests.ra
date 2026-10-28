@@ -5,7 +5,7 @@ use io
 use numbers
 use cli
 
-option Size integer = 10000
+arg Size integer = 10000
 
 fun P blood Size
   Q = 1.0 - P

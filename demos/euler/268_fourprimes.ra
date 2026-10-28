@@ -10,9 +10,9 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10000000000000000
-option Under integer = 100
-option Least integer = 4
+arg Limit integer = 10000000000000000
+arg Under integer = 100
+arg Least integer = 4
 
 rem By inclusion and exclusion a subset
 rem of k primes with product d, k at

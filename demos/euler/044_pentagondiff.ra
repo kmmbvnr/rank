@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 2200
+arg Limit integer = 2200
 
 Answer = Limit pentagonal_difference
 Answer print

@@ -7,9 +7,9 @@ use text
 use io
 use cli
 
-option N integer = 100000000000000
-option K integer = 20
-option Digits integer = 9
+arg N integer = 100000000000000
+arg K integer = 20
+arg Digits integer = 9
 
 rem E(p) = H(p), the harmonic number,
 rem and k-fold prefix sums give

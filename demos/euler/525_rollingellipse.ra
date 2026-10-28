@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option M integer = 20000
+arg M integer = 20000
 
 rem The contact point (a cos t, b sin t)
 rem is the centre of rotation, so the

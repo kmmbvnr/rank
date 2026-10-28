@@ -12,9 +12,9 @@ use sequences
 use io
 use cli
 
-option Count integer = 4
-option Start integer = 210
-option Limit integer = 100000000000
+arg Count integer = 4
+arg Start integer = 210
+arg Limit integer = 100000000000
 
 rem The primes n - 9 .. n + 9 avoid 3,
 rem 5 and 7 as factors. Above 4, practical

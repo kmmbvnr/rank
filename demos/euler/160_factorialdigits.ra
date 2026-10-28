@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000
+arg N integer = 1000000000000
 
 rem Drop the factors 5 level by level:
 rem N! = 5^e times the product P of the

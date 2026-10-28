@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 50000000
+arg Limit integer = 50000000
 
 rem As in problem 135 with u v = n, one
 rem solution occurs only for n = 4, 16,

@@ -7,7 +7,7 @@ rem leaves through the top gap
 use io
 use cli
 
-option Gap real = 0.01
+arg Gap real = 0.01
 
 rem The beam enters at (0, 10.1) and
 rem first hits (1.4, -9.6). A hit

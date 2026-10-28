@@ -5,7 +5,7 @@ rem Sum the decimal digits of 100 factorial
 use io
 use cli
 
-option N integer = 100
+arg N integer = 100
 
 rem Form the factorial with exact integers,
 rem then reduce its decimal digits.

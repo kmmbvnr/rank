@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 13
-option L integer = 1800
+arg N integer = 13
+arg L integer = 1800
 
 rem M is the course length in 40 m units.
 rem K counts boats from rear to front.

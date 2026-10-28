@@ -1,8 +1,8 @@
 use numbers
 use io
 use cli
-option Limit integer = 40000000
-option Len integer = 25
+arg Limit integer = 40000000
+arg Len integer = 25
 Answer = Limit totientchain_sum
 Answer print
 

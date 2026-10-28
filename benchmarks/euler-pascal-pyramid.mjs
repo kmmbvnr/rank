@@ -44,8 +44,8 @@ if (option('worker')) {
     const { Interpreter, RuntimeDiagnostics } = await import(pathToFileURL(runtimePath));
     const { readArrayItem } = await import(pathToFileURL(resolve(dirname(runtimePath), 'array-storage.js')));
     const mainSource = name === 'medium' ? sourceFor(version)
-        .replace('option N integer = 200000', 'option N integer = 10000')
-        .replace('option Power integer = 12', 'option Power integer = 6') : sourceFor(version);
+        .replace('arg N integer = 200000', 'arg N integer = 10000')
+        .replace('arg Power integer = 12', 'arg Power integer = 6') : sourceFor(version);
     const output = [];
     const file = name === 'fixture' ? main.replace('.ra', '_test.ra') : main;
     const source = name === 'fixture' ? readFileSync(file, 'utf8') : mainSource;

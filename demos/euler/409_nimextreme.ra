@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000
+arg N integer = 10000000
 
 rem Heaps are distinct nonzero vectors
 rem of F2^N, in order. All: (2^N - 1)

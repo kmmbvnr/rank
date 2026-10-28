@@ -4,8 +4,8 @@ rem https://pgexercises.com/questions/aggregates/fachours4.html
 use cli
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/agg_017.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/agg_017.csv"
 
 Db = DbPath sqlite
 R' = Db .bookings

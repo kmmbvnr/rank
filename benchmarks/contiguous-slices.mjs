@@ -17,7 +17,7 @@ if (process.argv.includes('--worker')) {
   const workload = workloads[Number(process.argv.at(-1))];
   const { Interpreter } = await import(pathToFileURL(runtime).href);
   const source = readFileSync(new URL(`../demos/euler/${workload.id}.ra`, import.meta.url), 'utf8')
-    .replace(/option N integer = \d+/, `option N integer = ${workload.n}`);
+    .replace(/arg N integer = \d+/, `arg N integer = ${workload.n}`);
   const interpreter = new Interpreter(() => {});
   try {
     const start = performance.now();

@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option L integer = 50000000
+arg L integer = 50000000
 
 rem C(n) = 6 P(n-1, pi(n)) with
 rem P(m, t) = sum of C(m, k) 5^(m-k)

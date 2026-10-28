@@ -6,7 +6,7 @@ rem value has Digits decimal digits
 use io
 use cli
 
-option Digits integer = 1000
+arg Digits integer = 1000
 
 Answer = Digits first_fibonacci_index
 Answer print

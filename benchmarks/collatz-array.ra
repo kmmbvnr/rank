@@ -3,7 +3,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 Parents = (0 till Limit) copy
 Lengths = array shape Limit fill 0

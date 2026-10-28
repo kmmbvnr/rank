@@ -6,8 +6,8 @@ use algo
 use io
 use cli
 
-option Power integer = 18
-option Mod integer = 10 ** 9
+arg Power integer = 18
+arg Mod integer = 10 ** 9
 
 rem Factors beginning with one.
 memo N count

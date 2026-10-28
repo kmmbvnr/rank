@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 400000
+arg Limit integer = 400000
 
 rem Last nine digits by the recurrence
 rem modulo 10^9, with F(1) at index 1.

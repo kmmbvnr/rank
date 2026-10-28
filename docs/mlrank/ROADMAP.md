@@ -23,7 +23,7 @@
 rem hello.ram
 use ml
 
-option X .f16 shape 1 64
+arg X .f16 shape 1 64
 return X relu
 ```
 
@@ -54,7 +54,7 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
+  arg X .f16 shape 1 64
   return X relu
   ```
 * **Цель:** Базовая кодогенерация оператора (`Relu` / `mb.relu` / `RELU`), выделение буферов, запуск на чипе, считывание результата в Rank.
@@ -63,9 +63,9 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
-  option Scale .f16 shape 64 = array shape 64 fill 2.0
-  option Bias  .f16 shape 64 = array shape 64 fill 0.5
+  arg X .f16 shape 1 64
+  arg Scale .f16 shape 64 = array shape 64 fill 2.0
+  arg Bias  .f16 shape 64 = array shape 64 fill 0.5
   return (X * Scale) + Bias
   ```
 * **Цель:** Разделение runtime-входов (динамические тензоры параметров) и запекаемых весов (Initializers в ONNX, FlatBuffer Buffer в LiteRT, `mb.const` в MIL). Оффлайн-упаковка весов в память модели.
@@ -74,8 +74,8 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
-  option W .f16 shape 64 128
+  arg X .f16 shape 1 64
+  arg W .f16 shape 64 128
   return X W linear
   ```
 * **Цель:** Исполнение на матричных процессорах (Apple AMX, Qualcomm Hexagon). Проверка аппаратного выравнивания размерностей (padding до кратных 16/32).
@@ -84,8 +84,8 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option BatchScores .f16 shape 1 16 64
-  option Bias .f16 shape 64
+  arg BatchScores .f16 shape 1 16 64
+  arg Bias .f16 shape 64
   return BatchScores + Bias
   ```
 * **Цель:** В Rank сложение векторов и матриц опирается на семантику рамок (frame broadcasting). Компилятор должен автоматически синтезировать статические `reshape` / `expand_dims` до `[1, 1, 64]`, так как NPU требуют явных правил бродкастинга.
@@ -94,7 +94,7 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
+  arg X .f16 shape 1 64
   return (X 1e-5 rmsnorm)
   ```
 * **Цель:** Реализация операторов ранга 1 (нормализация по последней оси). Сравнение нативных инструкций (`mb.rms_norm` в CoreML) с декомпозицией в подграф (`Mean` + `Rsqrt` + `Mul` в LiteRT и ONNX).
@@ -103,9 +103,9 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
-  option W1 .f16 shape 64 256
-  option W2 .f16 shape 256 64
+  arg X .f16 shape 1 64
+  arg W1 .f16 shape 64 256
+  arg W2 .f16 shape 256 64
   H = (X W1 linear) gelu
   return (H W2 linear)
   ```
@@ -115,8 +115,8 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64
-  option Weights .f16 shape 4 64 64
+  arg X .f16 shape 1 64
+  arg Weights .f16 shape 4 64 64
   H = X
   for i in 0 till 4
     W = Weights i
@@ -130,8 +130,8 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option Img .f16 shape 1 28 28 1
-  option K .f16 shape 3 3 1 16
+  arg Img .f16 shape 1 28 28 1
+  arg K .f16 shape 3 3 1 16
   return (Img K conv2d stride 1 padding 1) relu
   ```
 * **Цель:** Преодоление несовместимости форматов: CoreML ANE требует `NCHW` (channels-first), LiteRT NPU требует `NHWC` (channels-last). Компилятор должен прозрачно переставлять оси весов и входов.
@@ -140,9 +140,9 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option Q .f16 shape 1 16 64
-  option K .f16 shape 1 16 64
-  option V .f16 shape 1 16 64
+  arg Q .f16 shape 1 16 64
+  arg K .f16 shape 1 16 64
+  arg V .f16 shape 1 16 64
   return Q K V attention
   ```
 * **Цель:** Компиляция макро-инструкций внимания (`mb.scaled_dot_product_attention` в CoreML, оптимизированный подграф в LiteRT) и выборка по таблице (`gather` для токенов).
@@ -151,7 +151,7 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option Tokens .i32 shape
+  arg Tokens .i32 shape
     1 64
     1 128
     1 256
@@ -184,9 +184,9 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64 768
-  option Gamma .f16 shape 768 = array shape 768 fill 1.0
-  option Beta  .f16 shape 768 = array shape 768 fill 0.0
+  arg X .f16 shape 1 64 768
+  arg Gamma .f16 shape 768 = array shape 768 fill 1.0
+  arg Beta  .f16 shape 768 = array shape 768 fill 0.0
   return (X 1e-5 layernorm) * Gamma + Beta
   ```
 * **Цель компилятора:** Распознавание паттерна нормализации с масштабированием и трансляция в нативный узел (`mb.layer_norm` с весами в CoreML, `LAYER_NORM` в LiteRT).
@@ -196,7 +196,7 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option QKV .f16 shape 1 64 2304
+  arg QKV .f16 shape 1 64 2304
   rem Разделение на 3 среза и изменение формы под головы
   Q = QKV slice 0 768 axis 2 reshape 1 64 12 64 transpose 0 2 1 3
   K = QKV slice 768 1536 axis 2 reshape 1 64 12 64 transpose 0 2 1 3
@@ -210,8 +210,8 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option Scores .f16 shape 1 12 64 64
-  option Mask .f16 shape 64 64 = array ... rem Нижний треугольник 0.0, верхний -1e4
+  arg Scores .f16 shape 1 12 64 64
+  arg Mask .f16 shape 64 64 = array ... rem Нижний треугольник 0.0, верхний -1e4
   return (Scores + Mask) softmax
   ```
 * **Цель компилятора:** Запекание треугольной константной маски в веса модели, избегая её динамического вычисления в рантайме.
@@ -222,11 +222,11 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64 768
-  option W_qkv .f16 shape 768 2304
-  option B_qkv .f16 shape 2304
-  option W_proj .f16 shape 768 768
-  option B_proj .f16 shape 768
+  arg X .f16 shape 1 64 768
+  arg W_qkv .f16 shape 768 2304
+  arg B_qkv .f16 shape 2304
+  arg W_proj .f16 shape 768 768
+  arg B_proj .f16 shape 768
 
   QKV = (X W_qkv linear) + B_qkv
   rem ... MHA расчет ...
@@ -242,11 +242,11 @@ return X relu
 * **Код `.ram`:**
   ```rank
   use ml
-  option X .f16 shape 1 64 768
-  option W_fc .f16 shape 768 3072
-  option B_fc .f16 shape 3072
-  option W_proj .f16 shape 3072 768
-  option B_proj .f16 shape 768
+  arg X .f16 shape 1 64 768
+  arg W_fc .f16 shape 768 3072
+  arg B_fc .f16 shape 3072
+  arg W_proj .f16 shape 3072 768
+  arg B_proj .f16 shape 768
 
   Hidden = ((X W_fc linear) + B_fc) gelu
   Out = (Hidden W_proj linear) + B_proj
@@ -261,7 +261,7 @@ return X relu
 * **Код `.ram`:**
   ```rank
   rem block.ram
-  option X .f16 shape 1 64 768
+  arg X .f16 shape 1 64 768
   H1 = X + (X BlockLN1 MHA)
   H2 = H1 + (H1 BlockLN2 MLP)
   return H2
@@ -289,10 +289,10 @@ return X relu
 * **Контекст:** Генерация токенов по одному требует сохранения предыдущих ключей и значений, чтобы не пересчитывать историю контекста заново на каждом шаге.
 * **Специфика NPU:** NPU не может динамически менять форму тензора от шага к шагу. Поэтому создается статический кольцевой буфер максимального контекста (например, `1024`):
   ```rank
-  option K_cache .f16 shape 12 1024 64
-  option V_cache .f16 shape 12 1024 64
-  option Pos .i32 shape 1
-  option NewToken .i32 shape 1 1
+  arg K_cache .f16 shape 12 1024 64
+  arg V_cache .f16 shape 12 1024 64
+  arg Pos .i32 shape 1
+  arg NewToken .i32 shape 1 1
   ```
 * **Цель компилятора:** Реализация in-place записи нового среза $K_{new}, V_{new}$ по индексу `Pos` в статическую арену памяти NPU.
 

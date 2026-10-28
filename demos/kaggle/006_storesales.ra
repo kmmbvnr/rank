@@ -8,9 +8,9 @@ use dates
 use stats
 use tables
 
-argument TrainPath path = "demos/kaggle/data/store-sales/train.csv"
-argument TestPath path = "demos/kaggle/data/store-sales/test.csv"
-argument OutputPath path = "demos/kaggle/submissions/store-sales.csv"
+arg TrainPath path = "demos/kaggle/data/store-sales/train.csv"
+arg TestPath path = "demos/kaggle/data/store-sales/test.csv"
+arg OutputPath path = "demos/kaggle/submissions/store-sales.csv"
 
 Train = TrainPath csv
 Test = TestPath csv

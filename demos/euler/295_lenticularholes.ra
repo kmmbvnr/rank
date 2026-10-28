@@ -14,7 +14,7 @@ use algo
 use io
 use cli
 
-option N integer = 100000
+arg N integer = 100000
 
 rem Put the chord from (0, 0) to (a, b),
 rem a and b odd and coprime, s2 = a^2 +

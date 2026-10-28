@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 12345
+arg N integer = 12345
 
 rem A hexagon has a side vector (a, b)
 rem and its 60 degree turn; for each

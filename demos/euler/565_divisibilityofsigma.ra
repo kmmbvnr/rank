@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000
+arg N integer = 100000000000
 
 rem sigma is multiplicative, so 2017
 rem divides s(n) when some q^e exactly

@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option Low integer = 2000000
-option High integer = 1000000000
+arg Low integer = 2000000
+arg High integer = 1000000000
 
 Answer = Low pencils High
 Answer print

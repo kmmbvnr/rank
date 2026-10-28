@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Top integer = 90
+arg Top integer = 90
 
 rem Rows of a 2n board hold k pieces on
 rem one side and n-k on the other, which

@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-option L integer = 1000000000000
+arg L integer = 1000000000000
 
 rem phi(n) is 5-smooth iff n = h q, h
 rem 5-smooth, q a squarefree product

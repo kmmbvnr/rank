@@ -127,7 +127,7 @@ Answer += Seen sum`);
 
     it.each([2, 3, 4, 6, 8, 10])('retains the exact unchanged Euler 393 answer for N=%s', n => {
         const source = readFileSync(new URL('../../../demos/euler/393_ants.ra', import.meta.url), 'utf8')
-            .replace('option N integer = 10', `option N integer = ${n}`);
+            .replace('arg N integer = 10', `arg N integer = ${n}`);
         const expected = new Map([[2, 2n], [3, 0n], [4, 88n], [6, 207408n],
             [8, 22902801416n], [10, 112398351350823112n]]);
         const result = n <= 6 ? compare(source) : execute(source);

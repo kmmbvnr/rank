@@ -46,7 +46,7 @@ When an unimported feature is encountered, the compiler provides helpful, action
   ```
 - **Grammar construct requiring a gating module:**
   ```text
-  option requires: use cli
+  arg requires: use cli
   test requires: use testing
   ```
 

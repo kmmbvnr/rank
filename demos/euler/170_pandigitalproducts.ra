@@ -14,7 +14,7 @@ use sequences
 use io
 use cli
 
-option Low integer = 0
+arg Low integer = 0
 
 rem Walk the pandigitals downward and
 rem test each of the 511 splits into

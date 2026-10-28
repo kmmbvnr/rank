@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000000
+arg N integer = 100000000000000
 
 rem The stream 1 2 3 4 3 2 ... sums 15
 rem per cycle and A_n = n(n+1)/2, so

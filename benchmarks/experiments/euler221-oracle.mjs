@@ -13,8 +13,8 @@ for (const limit of [1,2,3,4,5,10,19,31,64,100,127,250]) {
     expected.sort((a,b)=>a<b?-1:a>b?1:0);
     for(const source of sources) for(const compilation of [false,true]) {
         const text=(source === 'original' ? JSON.parse(readFileSync(new URL('../baselines/2026-10-28-euler221-investigation.json',import.meta.url),'utf8')).originalSource : readFileSync(new URL(source,import.meta.url),'utf8'))
-            .replace(/option Limit integer = \d+/,`option Limit integer = ${limit}`)
-            .replace(/option N integer = \d+/,`option N integer = ${expected.length}`);
+            .replace(/arg Limit integer = \d+/,`arg Limit integer = ${limit}`)
+            .replace(/arg N integer = \d+/,`arg N integer = ${expected.length}`);
         const runtime=new Interpreter(()=>{},{compilation});
         try {
             runtime.execute(text);

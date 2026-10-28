@@ -8,7 +8,7 @@ use io
 use cli
 use numbers
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem An ambiguous number is the midpoint
 rem of Farey neighbours a/b < c/d, with

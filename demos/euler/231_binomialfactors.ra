@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option N integer = 20000000
-option K integer = 15000000
+arg N integer = 20000000
+arg K integer = 15000000
 
 rem Legendre: the power of p in C(N, K)
 rem is the sum over q = p, p^2, ... of

@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option Top integer = 2011
-option Nines integer = 2011
+arg Top integer = 2011
+arg Nines integer = 2011
 
 Answer = 0
 for P in 1 till Top

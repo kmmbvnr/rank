@@ -7,8 +7,8 @@ use sequences
 use io
 use cli
 
-option N integer = 1234567898765
-option K integer = 4321
+arg N integer = 1234567898765
+arg K integer = 4321
 
 rem Count the divisors of n by residue
 rem mod k; n picks multiply in the

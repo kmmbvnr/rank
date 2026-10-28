@@ -7,7 +7,7 @@ use cli
 use algo
 use bits
 
-argument Input path
+arg Input path
 
 Packages = Input readlines integer rank 0
 Part1 = Packages balance 3

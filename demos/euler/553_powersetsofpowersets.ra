@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 10000
-option K integer = 10
+arg N integer = 10000
+arg K integer = 10
 
 rem R(r) = 2^(2^r - 1) - 1 families on
 rem r labels. Inclusion-exclusion gives

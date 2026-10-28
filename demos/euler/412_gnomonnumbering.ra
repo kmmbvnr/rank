@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option M integer = 10000
-option K integer = 5000
-option Chunk integer = 4000000
+arg M integer = 10000
+arg K integer = 5000
+arg Chunk integer = 4000000
 
 rem Count standard Young tableaux of
 rem the gnomon: (M^2 - K^2)! divided

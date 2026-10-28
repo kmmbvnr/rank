@@ -11,8 +11,8 @@ use sequences
 use io
 use cli
 
-option Digits integer = 20
-option Cap integer = 9
+arg Digits integer = 20
+arg Cap integer = 9
 
 rem State (p, q): the last two digits as
 rem 10 p + q. Appending r is allowed

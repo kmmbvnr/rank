@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option N integer = 365
-option K integer = 4
-option D integer = 7
+arg N integer = 365
+arg K integer = 4
+arg D integer = 7
 
 rem E = sum over n of P(no K people
 rem within D days of each other) = sum

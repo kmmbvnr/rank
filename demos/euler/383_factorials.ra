@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 10 ** 18
+arg Limit integer = 10 ** 18
 
 Answer = 0
 P = 5

@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 10 ** 12
+arg Limit integer = 10 ** 12
 
 rem S(v) sums d(n^2) to v. Keep it for
 rem every distinct value floor(N / i).

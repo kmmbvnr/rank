@@ -544,7 +544,7 @@ test('grouped aggregate programs match SQLite without reading source rows early'
         assert.match(result.stdout, /COUNT\(\*\)/);
         const mixed = path.join(dir, 'mixed.ra');
         fs.writeFileSync(mixed, `use io\nuse numbers\nuse sequences\nuse stats\nuse tables\n`
-            + `use cli\nargument DbPath path\nargument OutputPath path\n`
+            + `use cli\narg DbPath path\narg OutputPath path\n`
             + 'Db = DbPath sqlite\nR\' = Db .bookings\nG\' = R group by .facid\n'
             + 'S\' = G select\n  .visits = count\n  .present = .slots count\n'
             + '  .slots = .slots sum\n  .low = .slots min\n'
@@ -596,7 +596,7 @@ Db = ${JSON.stringify(JSON.stringify({
             const inspect = storage === 'sqlite'
                 ? 'Q = Totals sql\nQ .params len print\nQ .text print\n' : '';
             fs.writeFileSync(source, 'use cli\nuse io\nuse numbers\nuse sequences\nuse tables\n'
-                + 'argument DbPath path\nargument OutputPath path\n'
+                + 'arg DbPath path\narg OutputPath path\n'
                 + setup + body.replace('Totals csv OutputPath\n', inspect + 'Totals csv OutputPath\n'));
             const result = spawnSync(process.execPath,
                 [cli, source, dbPath, output], { cwd: root, encoding: 'utf8', timeout: 15_000 });

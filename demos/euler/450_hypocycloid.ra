@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000
+arg N integer = 1000000
 
 rem With R = g p and r = g q the point
 rem is g (e z^q + q z^-e) for a point z

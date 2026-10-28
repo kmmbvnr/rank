@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 rem n / phi(n) = product of p / (p - 1)
 rem over primes p of n. More primes win,

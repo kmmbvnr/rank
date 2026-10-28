@@ -10,6 +10,6 @@ for(const limit of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,31,50,9
   const file=source.startsWith('shipping')?new URL('../../demos/euler/223_almostright.ra',import.meta.url):new URL(`./euler223-${source}.ra`,import.meta.url);
   let code=source==='original'?JSON.parse(readFileSync(new URL('../baselines/2026-10-28-euler223-investigation.json',import.meta.url),'utf8')).originalSource:readFileSync(file,'utf8');
   if(source==='shipping-small-chunks')code=code.replace('Wd = 2000000','Wd = 8');
-  const r=new Interpreter(()=>{},{compilation});try{r.execute(code.replace('option Limit integer = 25000000',`option Limit integer = ${limit}`));assert.equal(String(r.variables.get('Answer')),String(expected),`${source} ${limit} ${compilation}`);checks++;}finally{r.dispose()}
+  const r=new Interpreter(()=>{},{compilation});try{r.execute(code.replace('arg Limit integer = 25000000',`arg Limit integer = ${limit}`));assert.equal(String(r.variables.get('Answer')),String(expected),`${source} ${limit} ${compilation}`);checks++;}finally{r.dispose()}
  }results.push({limit,expected});
 }console.log(JSON.stringify({checks,results}));

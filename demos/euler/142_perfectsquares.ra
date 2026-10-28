@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Top integer = 1100
+arg Top integer = 1100
 
 rem Let x + y = a^2, x + z = c^2 and
 rem x - z = d^2. Then y - z = a^2 - c^2,

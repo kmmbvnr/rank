@@ -11,10 +11,10 @@ const { Interpreter, RuntimeDiagnostics } = await import(pathToFileURL(option('r
 const file = fileURLToPath(new URL(`../demos/euler/210_obtuse${flag('fixture') ? '_test' : ''}.ra`, import.meta.url));
 function transform(source) {
     if (flag('original')) source = source
-        .replace('option Chunk integer = 250000', 'option Chunk integer = 5000000')
+        .replace('arg Chunk integer = 250000', 'arg Chunk integer = 5000000')
         .replace("  Part' = (Q - Xs * Xs) isqrt sum\n  Gen += Part", '  Gen += (Q - Xs * Xs) isqrt sum');
-    if (option('R')) source = source.replace('option R integer = 1000000000', `option R integer = ${option('R')}`);
-    if (option('Chunk')) source = source.replace(/option Chunk integer = \d+/, `option Chunk integer = ${option('Chunk')}`);
+    if (option('R')) source = source.replace('arg R integer = 1000000000', `arg R integer = ${option('R')}`);
+    if (option('Chunk')) source = source.replace(/arg Chunk integer = \d+/, `arg Chunk integer = ${option('Chunk')}`);
     if (flag('scalar')) source = source.replace(/for L in A0 \+ 1 to A by Chunk[\s\S]*?\nend/,
         'for X in A0 + 1 to A\n  Gen += (Q - X * X) isqrt\nend');
     if (flag('plan')) source = source.replace('  Gen += (Q - Xs * Xs) isqrt sum',

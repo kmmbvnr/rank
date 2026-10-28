@@ -18,7 +18,7 @@ if (option('worker')) {
     const { Interpreter, RuntimeDiagnostics } = await import(option('runtime')
         ? pathToFileURL(option('runtime')).href : '../packages/interpreter/out/index.js');
     const source = readFileSync(new URL('../demos/euler/320_factorials.ra', import.meta.url), 'utf8')
-        .replace('option Upper integer = 1000000', `option Upper integer = ${upper}`);
+        .replace('arg Upper integer = 1000000', `arg Upper integer = ${upper}`);
     const runtime = new Interpreter(() => {}), diagnostics = new RuntimeDiagnostics();
     const cpu = process.cpuUsage(), start = performance.now();
     try {

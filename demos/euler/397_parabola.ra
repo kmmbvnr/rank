@@ -6,8 +6,8 @@ use numbers
 use io
 use cli
 
-option K integer = 1000000
-option X integer = 1000000000
+arg K integer = 1000000
+arg X integer = 1000000000
 
 Answer = 0
 Spf = K factorsieve

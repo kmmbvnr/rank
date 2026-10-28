@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option E integer = 100
-option G integer = 100
+arg E integer = 100
+arg G integer = 100
 
 rem With b = a + d, c^2 = a^2 + ab + b^2
 rem becomes U^2 - 3 X^2 = d^2, U = 2c,

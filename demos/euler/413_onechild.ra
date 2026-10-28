@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-option Digits integer = 19
+arg Digits integer = 19
 
 rem For each length n a state is the
 rem count (capped at 2) of suffixes

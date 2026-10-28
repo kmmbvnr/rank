@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option L integer = 10000000000000000
+arg L integer = 10000000000000000
 
 rem g(n) depends on the exponents a of n
 rem only: with T(j) = prod C(a_i + j -

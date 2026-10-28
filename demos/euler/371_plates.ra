@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Max integer = 999
+arg Max integer = 999
 
 Answer = Max plates round 8
 Answer print

@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 5000000000000000
+arg Limit integer = 5000000000000000
 
 rem These primes are n^2 + (n + 1)^2 = 2
 rem n^2 + 2 n + 1. A prime q with q mod

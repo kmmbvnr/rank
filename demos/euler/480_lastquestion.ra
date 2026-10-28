@@ -7,7 +7,7 @@ use text
 use io
 use cli
 
-option Depth integer = 15
+arg Depth integer = 15
 
 Ph = "thereisasyetinsufficientdata"
 Ph += "forameaningfulanswer"

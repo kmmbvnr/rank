@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Size integer = 50
+arg Size integer = 50
 
 rem K tiles of length T can sit in
 rem C(Size - K (T - 1), K) ways. Sum

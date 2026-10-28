@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option R integer = 1000000000
-option Chunk integer = 250000
+arg R integer = 1000000000
+arg Chunk integer = 250000
 
 rem The angle is obtuse at O below the
 rem line x + y = 0, at C above x + y =

@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000000
+arg Limit integer = 1000000000
 
 rem Pell solutions of x^2 - 3 y^2 = 1
 rem are x = ((2 + sqrt 3)^n + (2 - sqrt

@@ -22,10 +22,10 @@ Rank establishes the **Script Execution Model with Universal Input Contracts via
 use cli
 
 rem Upper boundary for summation, excluded.
-option Limit integer = 1000
+arg Limit integer = 1000
 
 rem Positional input file path.
-argument Input path
+arg Input path
 
 rem Optional boolean flag.
 flag Verbose = false
@@ -36,10 +36,9 @@ flag Verbose = false
 - Running a file from the host terminal (`rank solution.ra`) executes its top-level statements directly.
 - Helper functions declared with `fun` or `memo` are hoisted (ADR-0302) and can be placed at the bottom of the file without requiring forward declarations.
 
-### 2. Declarative Input Contracts (`option`, `argument`, `flag`)
+### 2. Declarative Input Contracts (`arg`, `flag`)
 Program inputs are declared as first-class statements guarded by `use cli`:
-- `option Name Type [= Default]`: Declares a named option (maps to `--limit 10` on CLI or `Limit = 10` in workspace).
-- `argument Name Type [many] [= Default]`: Declares a positional argument. The `many` keyword collects remaining or repeated inputs into a rank-1 sequence.
+- `arg Name Type [array] [= Default]`: Declares a program input, passed by name or position on CLI or bound by name in the workspace. Named inputs bind first; positional values fill remaining declarations in order. The `array` modifier collects remaining or repeated inputs into a rank-1 array and must be the last input declaration.
 - `flag Name [= Boolean]`: Declares a boolean toggle (defaulting to `false` if omitted).
 - `path`: An input constraint validated as a valid file/directory path and represented as `text`.
 - **Automatic help text:** Contiguous `rem` lines immediately preceding an input declaration serve as its canonical documentation in `--help` output.
@@ -64,7 +63,7 @@ All inputs are validated against their declared types (`integer`, `real`, `text`
 
 ### Positive
 * **Zero ceremony:** No `def main(argv):` boilerplate; programs begin executing immediately.
-* **40-column readability:** Input declarations (`option Limit integer = 1000`) are concise, self-documenting, and fit on a single line.
+* **40-column readability:** Input declarations (`arg Limit integer = 1000`) are concise, self-documenting, and fit on a single line.
 * **Universal adapter:** The exact same script can be driven from the command line, imported as a library module, or exercised inside an automated test suite without modifying a single line of code.
 * **Automatic documentation:** Preceding `rem` comments generate clean CLI help messages automatically.
 

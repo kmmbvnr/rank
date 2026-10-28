@@ -112,7 +112,7 @@ already exists — loading weights, narrowing a computed result.
 store Weights fp8
 ```
 
-Shaped like the existing `option N integer` and `argument Path text many`
+Shaped like the existing `arg N integer` and `arg Path text array`
 declarations. It annotates a variable rather than an array, which conflicts with
 a variable's type already being fixed by its first assignment. Not recommended.
 

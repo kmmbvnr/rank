@@ -128,7 +128,7 @@ outer`)).toThrow('unknown name: Dy');
     });
 
     it('allows updating a declared option inside a loop', () => {
-        expect(run('use cli\noption N integer = 8\nfor N greater 1\n N = N // 2\nend\nN')).toBe('1');
+        expect(run('use cli\narg N integer = 8\nfor N greater 1\n N = N // 2\nend\nN')).toBe('1');
     });
 
     it('ends loop bindings and body names with the loop', () => {

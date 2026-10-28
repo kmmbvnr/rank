@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem Prefix sums P of the squares give a
 rem run of L squares from i as

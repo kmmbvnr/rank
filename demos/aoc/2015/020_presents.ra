@@ -6,7 +6,7 @@ use io
 use cli
 use algo
 
-argument Input path
+arg Input path
 
 Target = (Input readlines 0) integer
 Part1 = Target 10 0 firsthouse

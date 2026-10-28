@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 47
+arg Digits integer = 47
 
 rem A number of 2k or 2k + 1 digits is
 rem balanced when its first k and last k

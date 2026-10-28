@@ -16,7 +16,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 6
+arg Digits integer = 6
 
 rem A state is the seeds left on the
 rem bottom row b, the filled top squares

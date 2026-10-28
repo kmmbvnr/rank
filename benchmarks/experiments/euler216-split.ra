@@ -2,7 +2,7 @@ rem Research: residual factors only below the largest needed first root.
 use numbers
 use io
 use cli
-option Limit integer = 50000000
+arg Limit integer = 50000000
 fun Bound count_primes
   Root = (2 * Bound * Bound - 1) isqrt
   Cut = (Root - 1) // 2

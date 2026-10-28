@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option R integer = 100000000
+arg R integer = 100000000
 
 rem Jacobi: r4(n) = 8 sum of the d | n
 rem with 4 not dividing d, so with

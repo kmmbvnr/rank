@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
-option Window integer = 30
+arg Limit integer = 1000000
+arg Window integer = 30
 
 rem A(n) is at most n, so start above
 rem Limit. The mask is deferred: first

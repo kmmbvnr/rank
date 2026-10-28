@@ -5,7 +5,7 @@ rem https://adventofcode.com/2015/day/8
 use io
 use cli
 
-argument Input path
+arg Input path
 
 unpack Part1 Part2 = Input readlines solve
 

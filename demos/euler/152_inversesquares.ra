@@ -12,7 +12,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 80
+arg Limit integer = 80
 
 rem Only numbers made of 2, 3, 5, 7, 13
 rem can occur. For p = 13, 7, 5 the

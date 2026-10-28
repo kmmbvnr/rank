@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 7
+arg N integer = 7
 
 rem Write P(x) = sum of a_k times the
 rem falling factorial x^(n-k), so

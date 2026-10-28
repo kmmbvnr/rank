@@ -4,7 +4,7 @@ use io
 use cli
 use bits
 
-option N integer = 53
+arg N integer = 53
 
 Ep = 0.000000000001
 Wd = 1048576

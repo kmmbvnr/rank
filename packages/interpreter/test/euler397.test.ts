@@ -60,7 +60,7 @@ describe.each([false, true])('Euler 397 (compilation=%s)', compilation => {
 it('keeps the complete reduced workload in one compiled region', () => {
     const r = runtime(true), diagnostics = new RuntimeDiagnostics();
     try {
-        diagnostics.run(() => r.execute(source.replace('option K integer = 1000000', 'option K integer = 10000')));
+        diagnostics.run(() => r.execute(source.replace('arg K integer = 1000000', 'arg K integer = 10000')));
         expect(r.variables.get('Answer')).toBe(1008745304821002n);
         expect(diagnostics.compiledLoops).toBe(1);
         expect(diagnostics.numberLoops).toBe(1);

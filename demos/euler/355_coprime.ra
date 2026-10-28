@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 200000
+arg Limit integer = 200000
 
 fun N power P
   V = P

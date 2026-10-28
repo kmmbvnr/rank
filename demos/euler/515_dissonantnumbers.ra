@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option A integer = 1000000000
-option B integer = 100000
-option K integer = 100000
+arg A integer = 1000000000
+arg B integer = 100000
+arg K integer = 100000
 
 rem For a prime p, d(p, p - 1, k) is
 rem the inverse of k - 1 mod p, so sum

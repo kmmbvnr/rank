@@ -4,7 +4,7 @@ import { Interpreter } from '../src/index.js';
 
 const source = readFileSync(new URL('../../../demos/euler/370_triangles.ra', import.meta.url), 'utf8')
     .replace('use io', '').replace('use cli', '')
-    .replace(/option Limit integer = \d+/, '')
+    .replace(/arg Limit integer = \d+/, '')
     .replace('Answer = Limit triangles', '').replace('Answer print', '');
 
 // Enumerate each primitive pair independently of SPF, signed divisors,

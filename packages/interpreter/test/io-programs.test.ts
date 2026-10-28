@@ -448,7 +448,7 @@ describe('Rank IO, modules and programs', () => {
     });
 
     it('resolves program inputs as workspace, args, then default', () => {
-        const source = 'use cli\noption Limit integer = 1000\nLimit';
+        const source = 'use cli\narg Limit integer = 1000\nLimit';
         expect(new Interpreter(undefined, { args: ['--limit', '20'] }).execute(source)).toBe(20n);
 
         const interpreter = new Interpreter(undefined, { args: ['--limit', '20'] });
@@ -479,7 +479,7 @@ describe('Rank IO, modules and programs', () => {
     });
 
     it('keeps path inputs unchanged', () => {
-        const source = 'use cli\noption File path = "../input.txt"\nFile';
+        const source = 'use cli\narg File path = "../input.txt"\nFile';
         expect(new Interpreter().execute(source)).toBe('../input.txt');
         expect(new Interpreter(undefined, { args: ['--file', './other.txt'] }).execute(source)).toBe('./other.txt');
     });
@@ -488,7 +488,7 @@ describe('Rank IO, modules and programs', () => {
         const runtime = new Interpreter(undefined, {
             loadModule: specifier => ({
                 id: specifier,
-                source: 'use cli\noption Value text = "abc"\nAnswer = Value',
+                source: 'use cli\narg Value text = "abc"\nAnswer = Value',
             }),
         });
         expect(runtime.execute([
@@ -501,7 +501,7 @@ describe('Rank IO, modules and programs', () => {
             sourceId: '/tests/example_test.ra',
             loadModule: specifier => ({
                 id: `/tests/${specifier}.ra`,
-                source: 'use cli\noption Limit integer = 1000\nAnswer = Limit + 1',
+                source: 'use cli\narg Limit integer = 1000\nAnswer = Limit + 1',
             }),
         });
         expect(interpreter.execute('use "worker"\nLimit = 10\nrun\nAnswer')).toBe(11n);
@@ -542,7 +542,7 @@ describe('Rank IO, modules and programs', () => {
         const interpreter = new Interpreter(undefined, {
             loadModule: specifier => ({
                 id: specifier,
-                source: 'use cli\noption Limit integer = 1000\nAnswer = Limit + 1',
+                source: 'use cli\narg Limit integer = 1000\nAnswer = Limit + 1',
             }),
         });
         expect(interpreter.execute('use "worker" as W\nW.Limit = 20\nW.run\nW.Answer')).toBe(21n);
@@ -554,7 +554,7 @@ describe('Rank IO, modules and programs', () => {
             testing: true,
             loadModule: specifier => ({
                 id: `/tests/${specifier}.ra`,
-                source: 'use cli\noption Limit integer = 1000\nAnswer = Limit + 1',
+                source: 'use cli\narg Limit integer = 1000\nAnswer = Limit + 1',
             }),
         });
         interpreter.execute([

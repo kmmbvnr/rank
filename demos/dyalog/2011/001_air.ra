@@ -10,7 +10,7 @@ use numbers
 use io
 use cli
 
-option MaxStops integer = 2
+arg MaxStops integer = 2
 
 Airports = array "A" "B" "C" "D" "E"
 rem Latitude and longitude in decimal degrees.

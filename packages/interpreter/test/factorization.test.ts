@@ -189,7 +189,7 @@ describe('Euler 302 using builtin factors', () => {
             for (const [limit, expected] of [[10000, 7n], [100000000, 656n]] as const) {
                 const runtime = new Interpreter(() => {}, { compilation });
                 try {
-                    runtime.execute(demo.replace('option Limit integer = 10 ** 18', `option Limit integer = ${limit}`));
+                    runtime.execute(demo.replace('arg Limit integer = 10 ** 18', `arg Limit integer = ${limit}`));
                     expect(runtime.variables.get('Answer')).toBe(expected);
                 } finally { runtime.dispose(); }
             }

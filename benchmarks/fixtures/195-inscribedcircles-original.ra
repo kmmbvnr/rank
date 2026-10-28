@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1053779
+arg Limit integer = 1053779
 
 rem Primitive triples z^2 = x^2 + x y +
 rem y^2 come from m > n, with t = m - n

@@ -1,7 +1,7 @@
 import { AstUtils, type AstNode } from 'langium';
 import {
     isArrayAssignmentStatement, isOperationAssignmentStatement, isPushStatement,
-    isOptionStatement, isArgumentStatement, isFlagStatement,
+    isArgStatement, isFlagStatement,
     isAssignmentStatement, isFunctionBindingStatement, isFunctionStatement, isForStatement,
     isIfStatement, isNameExpression, isTestStatement, isTryStatement, isUnpackStatement,
     type FunctionStatement, type Program, type Statement,
@@ -97,7 +97,7 @@ export function analyzeFunctionScopes(program: Program): FunctionScopeAnalysis {
             else if (isAssignmentStatement(node) && node.operator === '=' && !node.name.includes('.')) local(target, node.name, node);
             else if (isUnpackStatement(node)) node.names.forEach(name => local(target, name, node));
             else if (isFunctionBindingStatement(node)) local(target, node.name, node);
-            else if (isOptionStatement(node) || isArgumentStatement(node) || isFlagStatement(node)) local(target, node.name, node);
+            else if (isArgStatement(node) || isFlagStatement(node)) local(target, node.name, node);
         }
         for (const node of statements) {
             mark(node, target);

@@ -9,7 +9,7 @@ use text
 use io
 use cli
 
-option Size integer = 7
+arg Size integer = 7
 
 rem Branch and bound under the
 rem near-optimum seed: {20} plus 20

@@ -599,7 +599,7 @@ Model X predict
 
 This is the canonical call order for standard-library and user-defined
 functions. Nullary sources such as `fibonacci` and `primes` are values rather
-than calls. Keywords such as `use`, `run`, `option` and `if` introduce their own
+than calls. Keywords such as `use`, `run`, `arg` and `if` introduce their own
 statements and do not follow the function-call rule.
 
 An application may form an unambiguous left-to-right pipeline. Each function
@@ -1102,7 +1102,7 @@ Values min
 Values max
 ```
 
-`use cli` enables `option`, `argument`, `flag` and `args`. Without it, a
+`use cli` enables `arg`, `flag` and `args`. Without it, a
 program cannot declare command-line inputs. `use testing` enables test blocks.
 
 A bare module name opens standard-library vocabulary in the current workspace:
@@ -1216,7 +1216,7 @@ Rank does not require a `main` function.
 Declare program inputs with `use cli`. The import is required even when all
 inputs have defaults or receive values from the workspace.
 
-`option` declares an input parameter of a program. It is broader than a
+`arg` declares an input parameter of a program. It is broader than a
 terminal-only CLI option: a caller may bind it through the current workspace, a
 command-line adapter, a browser host or another runner.
 
@@ -1224,7 +1224,7 @@ command-line adapter, a browser host or another runner.
 use cli
 
 rem Upper boundary, excluded.
-option Limit integer = 1000
+arg Limit integer = 1000
 ```
 
 Input resolution has one fixed precedence order:
@@ -1254,12 +1254,12 @@ Positional and boolean inputs use the same model:
 
 ```rank
 use cli
-argument Input path
-argument Numbers integer many
+arg Input path
+arg Numbers integer array
 flag Verbose
 ```
 
-`many` collects the remaining or repeated values into a sequence. A declaration
+`array` collects remaining positional values or repeated named values into a rank-one array and must be the last `arg` declaration. Named inputs bind first; positional inputs fill the remaining declarations in order. A declaration
 without a default is required. Contiguous `rem` lines immediately above an input
 declaration provide its help text.
 
@@ -8462,7 +8462,7 @@ rem https://projecteuler.net/problem=7
 
 use sequences
 
-option Count integer = 10001
+arg Count integer = 10001
 
 Index = Count - 1
 Answer = primes Index
@@ -8482,7 +8482,7 @@ use text
 use sequences
 use numbers
 
-option Width integer = 13
+arg Width integer = 13
 
 Digits = Number integer rank 0
 Windows = Digits window Width
@@ -8503,7 +8503,7 @@ rem https://projecteuler.net/problem=9
 
 use numbers
 
-option Target integer = 1000
+arg Target integer = 1000
 
 ALast = (Target - 1) // 3
 BLast = (Target - 1) // 2
@@ -8542,7 +8542,7 @@ rem https://projecteuler.net/problem=10
 use sequences
 use numbers
 
-option Limit integer = 2000000
+arg Limit integer = 2000000
 
 Primes = primes till Limit
 Answer = Primes sum
@@ -8581,7 +8581,7 @@ rem https://projecteuler.net/problem=12
 
 use numbers
 use sequences
-option Min integer = 500
+arg Min integer = 500
 N = 1 to #
 Triangles = N * (N + 1) // 2
 Counts = Triangles divisors count rank 0

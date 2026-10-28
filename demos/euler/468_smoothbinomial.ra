@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option N integer = 11111111
+arg N integer = 11111111
 
 rem With primes p_1 < p_2 < ... and
 rem gaps w_i = p_(i+1) - p_i (the last

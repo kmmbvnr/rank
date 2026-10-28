@@ -10,7 +10,7 @@ use numbers
 use io
 use cli
 
-option N integer = 50000
+arg N integer = 50000
 
 rem S(k) = 100003 - 200003 k + 300007
 rem k^3 for k up to 55 and S(k) = S(k -

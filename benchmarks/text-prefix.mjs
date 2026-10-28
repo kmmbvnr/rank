@@ -13,8 +13,8 @@ assert.ok(num >= 0n);
 assert.ok(['kmp', 'numeric'].includes(algorithm));
 const input = readFileSync(new URL(algorithm === 'kmp' ? './fixtures/euler316-kmp.ra'
     : '../demos/euler/316_decimals.ra', import.meta.url), 'utf8');
-const program = parse(input.replace('option Top integer = 999999', `Top = ${top}`)
-    .replace('option Num integer = 10000000000000000', `Num = ${num}`));
+const program = parse(input.replace('arg Top integer = 999999', `Top = ${top}`)
+    .replace('arg Num integer = 10000000000000000', `Num = ${num}`));
 
 // Independent border oracle: a waiting time sums powers for every prefix
 // which is also a suffix, including the complete decimal representation.

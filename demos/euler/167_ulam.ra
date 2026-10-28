@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option K integer = 100000000000
+arg K integer = 100000000000
 
 rem With g = v + 1 the only even terms
 rem are 2 and 2 g. The odd terms 2 t + 1

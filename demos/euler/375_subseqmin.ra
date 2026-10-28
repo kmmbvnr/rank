@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option Limit integer = 2000000000
-option Period integer = 6308948
+arg Limit integer = 2000000000
+arg Period integer = 6308948
 
 Mod = 50515093
 A = array shape Period fill 0

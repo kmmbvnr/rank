@@ -20,7 +20,7 @@ for (const limit of [-3, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 19, 31, 47, 6
         if (limit < 0 && variant > 1) continue;
         const runtime = new Interpreter(() => {}, { compilation });
         try {
-            runtime.execute(source.replace(/option Limit integer = \d+/, `option Limit integer = ${limit}`));
+            runtime.execute(source.replace(/arg Limit integer = \d+/, `arg Limit integer = ${limit}`));
             assert.equal(runtime.variables.get('Answer'), BigInt(expected), `limit=${limit}, compiled=${compilation}`);
             checks++;
         } finally { runtime.dispose(); }

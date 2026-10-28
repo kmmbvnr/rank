@@ -9,8 +9,8 @@ use text
 use io
 use cli
 
-option Limit integer = 100
-option Digits integer = 100
+arg Limit integer = 100
+arg Digits integer = 100
 
 rem isqrt of N * 100^(Digits - 1) holds
 rem the first Digits digits of sqrt N,

@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000
+arg N integer = 100000
 
 rem Following the eulersolve method:
 rem the triangles map to lattice

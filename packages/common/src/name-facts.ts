@@ -1,7 +1,7 @@
 import { AstUtils, CstUtils, GrammarUtils, type AstNode, type LeafCstNode } from 'langium';
 import {
     analyzeValues, completedValueFacts, completionMayCall, expressionFacts, forIteration, loopNames, applicationForm, formatTypeSignature, signatureType, displayTypeName, describeTypes as nominalTypes, declaredType, findOperation, functionSignature, functionCallSignature, operationSignature, operatorSignature, flattenApplication, unaryApplicationHead, isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression, isForStatement, functionBodyKey, joinValueFacts,
-    isFunctionCallGroup, isFunctionParameter, isExpression, isOptionStatement, isArgumentStatement, isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
+    isFunctionCallGroup, isFunctionParameter, isExpression, isArgStatement,  isFlagStatement, isFunctionStatement, isNameExpression, isUnaryExpression, isUnpackExpression, isUnpackStatement,
     type Expression, type ForStatement, type FunctionStatement, type ImportedFunction, type Program, type ValueFacts, type FunctionCallFacts,
 } from '@arrrank/language';
 import { parse } from '@arrrank/interpreter';
@@ -364,7 +364,7 @@ function nameSite(root: NonNullable<Program['$cstNode']>, offset: number): Site 
     if (isAssignmentStatement(node) || isArrayAssignmentStatement(node)) {
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'assignment' } : undefined;
     }
-    if (isOptionStatement(node) || isArgumentStatement(node) || isFlagStatement(node)) {
+    if (isArgStatement(node) || isFlagStatement(node)) {
         return ownsLeaf(node, 'name', leaf) ? { name: text, node, kind: 'input' } : undefined;
     }
     if (isFunctionStatement(node)) {
@@ -405,7 +405,7 @@ function staticFacts(site: Site, analysis: ReturnType<typeof analyzeValues>): Va
         }
         case 'input': {
             if (isFlagStatement(node)) return { types: ['boolean'], rank: 0, shape: [] };
-            if (!isOptionStatement(node) && !isArgumentStatement(node)) return UNKNOWN;
+            if (!isArgStatement(node)) return UNKNOWN;
             const types = declaredType(node.valueType, node.many);
             if (!types.length) return UNKNOWN;
             return node.many ? { types, rank: 1, shape: [null], elements: declaredType(node.valueType, false) }

@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Degree integer = 10
+arg Degree integer = 10
 
 rem Newton form: with differences d_i of
 rem u(1), the fit to k terms predicts

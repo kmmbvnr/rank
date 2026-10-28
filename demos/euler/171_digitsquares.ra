@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 20
+arg Digits integer = 20
 
 rem State: the square sum s of the
 rem digits so far, with how many

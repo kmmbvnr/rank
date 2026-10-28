@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option W integer = 1000
+arg W integer = 1000
 
 rem The walk is reversible, so the
 rem long-run share of a room is its

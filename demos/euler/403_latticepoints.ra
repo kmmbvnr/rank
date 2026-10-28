@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000
+arg N integer = 1000000000000
 
 rem Area is rational iff a^2 + 4b is
 rem s^2. With a = v - u, b = u v,

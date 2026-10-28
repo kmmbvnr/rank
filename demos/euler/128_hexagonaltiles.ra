@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Nth integer = 2000
+arg Nth integer = 2000
 
 rem Only the first and last tile of a
 rem ring k can have three: their

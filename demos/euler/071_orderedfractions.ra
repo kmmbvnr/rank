@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 rem Best numerator for each denominator
 rem below 3/7; keep the largest ratio.

@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Rows integer = 1000000000
+arg Rows integer = 1000000000
 
 rem By Lucas' theorem row n has the
 rem product of (d + 1) over its base 7

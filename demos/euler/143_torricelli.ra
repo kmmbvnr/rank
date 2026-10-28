@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 120000
+arg Limit integer = 120000
 
 rem x, y fit x^2 + x y + y^2 = z^2 when
 rem they are multiples of m^2 - n^2 and

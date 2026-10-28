@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 96889010407
+arg N integer = 96889010407
 
 rem A primitive ray of level k (its
 rem max |coordinate|) holds N // k

@@ -234,7 +234,7 @@ it('shows the type after tapping the name in a CLI declaration on the touch cons
     const session = createReplSession();
     try {
         const repl = new NotebookRepl(session);
-        const source = 'option Digits integer = 3';
+        const source = 'arg Digits integer = 3';
         repl.notebook.replace(source);
         repl.notebook.cursor = source.indexOf('Digits') + 2;
         const frame = frameOf(repl, 12, false);

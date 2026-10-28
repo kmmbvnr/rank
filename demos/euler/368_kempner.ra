@@ -6,8 +6,8 @@ use numbers
 use io
 use cli
 
-option Terms integer = 16
-option Digits integer = 3
+arg Terms integer = 16
+arg Digits integer = 3
 
 Answer = Terms kempner Digits round 10
 Answer print

@@ -50,7 +50,7 @@ for Pass in 1 to 4
     end
   end
 end
-Answer = M 63 63` : source.replace('option Grid integer = 250', `option Grid integer = ${grid}`);
+Answer = M 63 63` : source.replace('arg Grid integer = 250', `arg Grid integer = ${grid}`);
     try {
         runtime.execute('');
         const start = performance.now();

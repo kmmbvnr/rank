@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 5000000
+arg N integer = 5000000
 
 rem E(y, x) = E(x, y) + 1, so S = 2 L
 rem + N (N + 1) / 2 with L the sum over

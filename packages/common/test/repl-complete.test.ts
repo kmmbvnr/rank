@@ -48,32 +48,32 @@ describe('Repl inline completion and cancel', () => {
 
     it('cancels completion even when there is only one candidate', () => {
         const repl = new NotebookRepl(createReplSession());
-        repl.notebook.replace('option Limit integ');
+        repl.notebook.replace('arg Limit integ');
         repl.complete(true);
-        expect(repl.notebook.current.source).toBe('option Limit integer ');
+        expect(repl.notebook.current.source).toBe('arg Limit integer ');
         expect(repl.hasCompletion).toBe(true);
 
         const cancelled = repl.cancelCompletion();
         expect(cancelled).toBe(true);
-        expect(repl.notebook.current.source).toBe('option Limit integ');
-        expect(repl.notebook.cursor).toBe('option Limit integ'.length);
+        expect(repl.notebook.current.source).toBe('arg Limit integ');
+        expect(repl.notebook.cursor).toBe('arg Limit integ'.length);
     });
 
     it('typing or dismissing confirms completion so it cannot be cancelled', () => {
         const repl = new NotebookRepl(createReplSession());
-        repl.notebook.replace('option Limit integ');
+        repl.notebook.replace('arg Limit integ');
         repl.complete(true);
-        expect(repl.notebook.current.source).toBe('option Limit integer ');
+        expect(repl.notebook.current.source).toBe('arg Limit integer ');
 
         repl.dismiss();
         expect(repl.hasCompletion).toBe(false);
         expect(repl.cancelCompletion()).toBe(false);
-        expect(repl.notebook.current.source).toBe('option Limit integer ');
+        expect(repl.notebook.current.source).toBe('arg Limit integer ');
     });
 
     it('closes a completion when the draft is replaced another way', () => {
         const repl = new NotebookRepl(createReplSession());
-        repl.notebook.replace('option Limit integ');
+        repl.notebook.replace('arg Limit integ');
         repl.complete(true);
         expect(repl.hasCompletion).toBe(true);
 
@@ -121,7 +121,7 @@ describe('lowercase variable prefix completion', () => {
         } finally { session.dispose(); }
     });
 
-    it.each(['"num', 'rem num', 'use num', 'option Limit num', 'Record.num'])
+    it.each(['"num', 'rem num', 'use num', 'arg Limit num', 'Record.num'])
         ('does not offer a variable where it is not an operand: %s', async source => {
             const session = createReplSession();
             try {

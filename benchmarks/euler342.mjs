@@ -23,7 +23,7 @@ if (option('worker')) {
     const runtime = option('runtime') ? pathToFileURL(option('runtime')) : new URL('../packages/interpreter/out/index.js', import.meta.url);
     const { Interpreter } = await import(runtime.href);
     let source = readFileSync(new URL(entry.variant ? './fixtures/euler342-original.ra' : '../demos/euler/342_totientcube.ra', import.meta.url), 'utf8')
-        .replace('option Limit integer = 10000000000', `option Limit integer = ${entry.limit}`);
+        .replace('arg Limit integer = 10000000000', `arg Limit integer = ${entry.limit}`);
     if (entry.variant === 'factors') {
         // Isolate reuse of the general factorizer without changing enumeration.
         source = source.replace('use numbers', 'use numbers\nuse sequences')

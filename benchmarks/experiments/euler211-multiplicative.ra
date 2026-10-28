@@ -8,8 +8,8 @@ use sequences
 
 use cli
 
-option Limit integer = 64000000
-option Block integer = 1000000
+arg Limit integer = 64000000
+arg Block integer = 1000000
 Root = Limit isqrt
 Ps = primes to Root array
 Sig = array shape Block fill 0

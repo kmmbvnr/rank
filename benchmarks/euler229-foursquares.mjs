@@ -17,8 +17,8 @@ if (variant && !sources[variant]) throw new Error(`Unknown variant: ${variant}`)
 function load(id) {
     if (id !== main) return readFileSync(id, 'utf8');
     let source = variant ? sources[variant] : readFileSync(option('source') ?? id, 'utf8');
-    if (option('Limit')) source = source.replace(/option Limit integer = \d+/,
-        `option Limit integer = ${option('Limit')}`);
+    if (option('Limit')) source = source.replace(/arg Limit integer = \d+/,
+        `arg Limit integer = ${option('Limit')}`);
     if (flag('phases')) for (const [at, name] of [
         ['Rt = Limit isqrt', 'start'], ['Gp = Gp filter', 'sieve'],
         ['Total = 0', 'queries'], ['Sp = array', 'search'], ['Answer = Total + Sq', 'squares'],

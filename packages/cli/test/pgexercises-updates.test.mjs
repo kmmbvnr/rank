@@ -109,7 +109,7 @@ test('sql and explain inspect writes without changing the database', () => {
 use io
 use sequences
 use tables
-argument DbPath path
+arg DbPath path
 Db = DbPath sqlite
 F' = Db .facilities
 Spa = record
@@ -150,7 +150,7 @@ test('filtered update reads the old row and insert binds quoted text', () => {
     try {
         fs.writeFileSync(source, `use cli
 use tables
-argument DbPath path
+arg DbPath path
 Db = DbPath sqlite
 F' = Db .facilities
 T' = F filter .facid equal 1

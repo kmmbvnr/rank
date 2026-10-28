@@ -6,7 +6,7 @@ use io
 use cli
 use text
 
-argument Input path
+arg Input path
 
 Lines = Input readlines
 unpack Part1 Part2 = Lines solve

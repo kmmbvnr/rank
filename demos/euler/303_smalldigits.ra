@@ -5,7 +5,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 10000
+arg Limit integer = 10000
 
 Answer = 0
 for N in 1 to Limit

@@ -12,8 +12,8 @@ use sequences
 use io
 use cli
 
-option N integer = 200
-option Bound integer = 300000000000
+arg N integer = 200
+arg Bound integer = 300000000000
 
 rem List the squbes up to Bound, keep
 rem those with 200 inside, and test each

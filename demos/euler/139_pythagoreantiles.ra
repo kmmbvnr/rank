@@ -7,7 +7,7 @@ rem where the middle square tiles c
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem In a primitive triple b - a is
 rem coprime to c, so it must be 1. Those

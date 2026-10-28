@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option Len integer = 18
-option Most integer = 3
+arg Len integer = 18
+arg Most integer = 3
 
 rem F[n] counts strings of n positions
 rem over the digits taken so far. A new

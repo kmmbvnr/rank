@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Top integer = 43
+arg Top integer = 43
 
 rem The roots of x^3 = 1 mod n pair up
 rem across the primes by the Chinese

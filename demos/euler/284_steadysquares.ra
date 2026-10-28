@@ -10,7 +10,7 @@ use text
 use io
 use cli
 
-option N integer = 10000
+arg N integer = 10000
 rem x is steady when x^2 = x mod 14^n:
 rem 0, 1 and two more, a = 0 mod 7^n and
 rem 1 mod 2^n, and b = 1 - a. The a for

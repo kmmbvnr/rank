@@ -6,7 +6,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 2000000
+arg Limit integer = 2000000
 
 fun N lpf
   X = N

@@ -8,8 +8,8 @@ use graph
 use io
 use cli
 
-option Limit integer = 1000000
-option Terms integer = 60
+arg Limit integer = 1000000
+arg Terms integer = 60
 
 rem f(n) = f(n // 10) + Fact(n mod 10).
 rem Extend by digit length so every

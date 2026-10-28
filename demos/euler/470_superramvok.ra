@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-option N integer = 20
+arg N integer = 20
 
 rem On a face set A of size k with t
 rem rolls left, h_t = mean max(v,

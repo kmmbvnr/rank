@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 10 ** 9
+arg Limit integer = 10 ** 9
 
 Dirs = new queue
 for M in -12 to 12

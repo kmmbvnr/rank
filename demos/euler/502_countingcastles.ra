@@ -6,12 +6,12 @@ use sequences
 use io
 use cli
 
-option W1 integer = 1000000000000
-option H1 integer = 100
-option W2 integer = 10000
-option H2 integer = 10000
-option W3 integer = 100
-option H3 integer = 1000000000000
+arg W1 integer = 1000000000000
+arg H1 integer = 100
+arg W2 integer = 10000
+arg H2 integer = 10000
+arg W3 integer = 100
+arg H3 integer = 1000000000000
 
 rem Castles of height <= h have the
 rem generating function P/Q, (P, Q) =

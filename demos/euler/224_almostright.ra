@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 75000000
+arg Limit integer = 75000000
 
 rem All solutions hang from (2, 2, 3) in
 rem a ternary tree whose three maps keep

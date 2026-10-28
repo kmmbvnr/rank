@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100
+arg N integer = 100
 
 rem A braced grid is rigid exactly when
 rem its bipartite graph of rows and

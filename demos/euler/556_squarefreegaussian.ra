@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000000
+arg N integer = 100000000000000
 
 rem Mobius over Z[i]: 4 f(n) = sum over
 rem m <= sqrt n of w(m) G(n // m^2) with

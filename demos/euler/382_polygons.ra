@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 10 ** 18
+arg Limit integer = 10 ** 18
 
 Mod = 10 ** 9
 M = array shape 12 12 fill 0

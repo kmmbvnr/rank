@@ -6,7 +6,7 @@ rem a 1000-digit number
 use io
 use cli
 
-option Width integer = 13
+arg Width integer = 13
 
 fun Values window Width
   for I in 0 to Values len - Width

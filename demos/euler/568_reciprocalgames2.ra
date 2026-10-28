@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option N integer = 123456789
+arg N integer = 123456789
 
 rem D(n) = H(n) / 2^n, with H the
 rem harmonic number from its asymptotic

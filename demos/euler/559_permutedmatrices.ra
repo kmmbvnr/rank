@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 50000
+arg N integer = 50000
 
 rem Inclusion-exclusion over the ascent
 rem runs gives P(k, n, n) = (n!)^n g

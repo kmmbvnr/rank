@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem S = T(N) + 2 C where T(x) is the
 rem sum of d floor(x / d) and C sums

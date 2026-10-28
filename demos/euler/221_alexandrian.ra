@@ -8,8 +8,8 @@ use sequences
 use io
 use cli
 
-option N integer = 150000
-option Limit integer = 80000
+arg N integer = 150000
+arg Limit integer = 80000
 
 rem Every Alexandrian integer is p q r
 rem with q = p + d, r = p + (p^2+1) / d

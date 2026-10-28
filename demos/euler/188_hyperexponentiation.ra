@@ -10,9 +10,9 @@ use sequences
 use io
 use cli
 
-option Base integer = 1777
-option Height integer = 1855
-option Digits integer = 8
+arg Base integer = 1777
+arg Height integer = 1855
+arg Digits integer = 8
 
 rem Reduce the exponent by Euler's phi:
 rem a^x = a^(x mod phi + phi) mod m for

@@ -10,9 +10,9 @@ use sequences
 use io
 use cli
 
-option Shots integer = 50
-option Hits integer = 20
-option Target real = 0.02
+arg Shots integer = 50
+arg Hits integer = 20
+arg Target real = 0.02
 
 rem Dist[k] is the chance of k scores in
 rem the shots so far. Each shot x moves

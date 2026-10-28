@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000
+arg N integer = 1000000000
 
 rem A Steiner chain of k circles closes
 rem when a c = t b (a + b + c) with

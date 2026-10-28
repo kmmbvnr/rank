@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10000
+arg N integer = 10000
 
 rem With p = a + b and q = a + c, the
 rem area T obeys 1/T + 1/a = 1/p + 1/q

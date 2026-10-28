@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000
-option Terms integer = 30
+arg N integer = 1000000000000
+arg Terms integer = 30
 
 rem K(c) = 1 + K(c - a) + K(c - b)
 rem counts numbers solvable within

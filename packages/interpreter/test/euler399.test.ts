@@ -53,9 +53,9 @@ describe('Euler 399 compiled modular doubling', () => {
         const allowed = Array.from({ length: limit }, (_, i) => i + 1).filter(n => !forbidden[n]);
         const runtime = new Interpreter(() => {});
         try {
-            runtime.execute(source.replace('option Count integer = 100000000', `option Count integer = ${count}`)
-                .replace('option Limit integer = 200000000', `option Limit integer = ${limit}`)
-                .replace('option PrimeLimit integer = 5714285', 'option PrimeLimit integer = 1000')
+            runtime.execute(source.replace('arg Count integer = 100000000', `arg Count integer = ${count}`)
+                .replace('arg Limit integer = 200000000', `arg Limit integer = ${limit}`)
+                .replace('arg PrimeLimit integer = 5714285', 'arg PrimeLimit integer = 1000')
                 .replace('Segment = 1000000', 'Segment = 37'));
             expect(runtime.variables.get('Index')).toBe(BigInt(allowed[count - 1]));
         } finally { runtime.dispose(); }

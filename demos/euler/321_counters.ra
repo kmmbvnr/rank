@@ -4,7 +4,7 @@ rem https://projecteuler.net/problem=321
 use io
 use cli
 
-option Terms integer = 40
+arg Terms integer = 40
 
 AX = 5
 AY = 2

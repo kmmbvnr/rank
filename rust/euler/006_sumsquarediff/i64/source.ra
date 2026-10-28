@@ -7,7 +7,7 @@ use io
 use cli
 
 rem Inclusive upper boundary.
-option Limit integer = 100
+arg Limit integer = 100
 
 Range = 1 to Limit
 

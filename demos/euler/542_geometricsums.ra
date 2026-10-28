@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option N integer = 100000000000000000
+arg N integer = 100000000000000000
 
 rem Terms q b^p, q a b^(p-1), .., q a^p
 rem sum best with b = a - 1: q D(a, p),

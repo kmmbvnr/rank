@@ -39,7 +39,7 @@ if (mode === 'writer') {
     try {
         const source = mode === 'loop' ? `use sequences\nN = ${n}\nS = array shape (N + 1) fill 0\nfor P in primes to N\n S (P to N by P) = P\nend`
             : readFileSync(new URL('../demos/euler/549_divisibilityfactorials.ra', import.meta.url), 'utf8')
-                .replace('option N integer = 100000000', `N = ${n}`).replace('Answer print', '');
+                .replace('arg N integer = 100000000', `N = ${n}`).replace('Answer print', '');
         const start = performance.now();
         const run = () => runtime.execute(source);
         if (process.argv.includes('--diagnostics')) diagnostics.run(run); else run();

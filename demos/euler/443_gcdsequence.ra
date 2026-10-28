@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000000
+arg N integer = 1000000000000000
 
 rem From an index a with g(a) = 3a the
 rem sequence grows by 1 until a' = a +

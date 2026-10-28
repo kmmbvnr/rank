@@ -2,10 +2,10 @@ import { normalizeAxis } from '../axis-index.js';
 import { arrayBindingContract, refineArrayContract } from './array-binding-contract.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isAllAxisExpression, isDeclaredCallExpression, isApplicationExpression, isArgumentStatement, isArrayAssignmentStatement,
+    isAllAxisExpression, isDeclaredCallExpression, isApplicationExpression,  isArrayAssignmentStatement,
     isAssignmentStatement, isBinaryExpression, isExpression, isExpressionStatement, isForStatement,
     isFunctionStatement, isIfStatement, isLabelLiteral, isNameExpression, isCountClauseExpression,
-    isOptionStatement, isParenthesizedExpression, isReturnStatement, isTestStatement, isTryStatement,
+    isArgStatement, isParenthesizedExpression, isReturnStatement, isTestStatement, isTryStatement,
     isUseStatement, type Expression, type FunctionStatement, type Program, type Statement,
 } from '../generated/ast.js';
 import { applicationForm, symbolicApplicationForm, type FoldModifiers } from '../application-forms.js';
@@ -528,7 +528,7 @@ export function inferRequirements(program: Program, options: RequirementOptions 
                 env.set(item.name, binding); graph.bindings.push(binding);
                 // Lengths and current cell subsets change; the established contract survives.
                 for (const name of env.keys()) if (name.startsWith(`${item.name}.`)) env.delete(name);
-            } else if (isOptionStatement(item) || isArgumentStatement(item)) {
+            } else if (isArgStatement(item)) {
                 const types = declaredType(item.valueType, item.many);
                 const fact: ValueFacts = { types, rank: item.many || types.join() === 'text' ? 1 : 0,
                     ...(item.many ? { elements: declaredType(item.valueType, false), shape: [null] } : {}) };

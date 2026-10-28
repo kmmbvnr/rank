@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option N integer = 10000000000
-option Limit integer = 4641589
+arg N integer = 10000000000
+arg Limit integer = 4641589
 
 Mod = 1000000000
 Mu = array shape (Limit + 1) fill 2

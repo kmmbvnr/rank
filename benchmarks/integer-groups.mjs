@@ -65,7 +65,7 @@ if (option('worker', '')) {
         assert(phase === 'euler' || phase === 'checkpoint');
         const root = resolve(dirname(modulePath), '../../..');
         let source = readFileSync(resolve(root, 'demos/euler/373_circles.ra'), 'utf8')
-            .replace('option Limit integer = 10000000', `option Limit integer = ${limit}`);
+            .replace('arg Limit integer = 10000000', `arg Limit integer = ${limit}`);
         if (phase === 'euler') source = source.slice(0, source.indexOf('Spf ='));
         const runtime = new Interpreter(() => {}, { compilation: option('compiled', 'true') !== 'false' });
         try {

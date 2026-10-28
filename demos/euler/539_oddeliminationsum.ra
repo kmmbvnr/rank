@@ -6,7 +6,7 @@ use bits
 use io
 use cli
 
-option N integer = 1000000000000000000
+arg N integer = 1000000000000000000
 
 rem One sweep leaves 2, 4, .., 2m, m =
 rem n // 2, and the next sweep runs the

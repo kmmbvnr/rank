@@ -12,7 +12,7 @@ const counts=new Uint32Array(top+1);for(let n=1;n<=top;n++)counts[n]=counts[n-1]
 let checked=0;
 for(const file of ['original','factors','compact','shipping'])for(const compilation of [true,false])for(const limit of limits){
  const r=new Interpreter(()=>{},{compilation});
- try{r.execute(sources[file].replace(/option Limit integer = \d+/,`option Limit integer = ${limit}`));assert.equal(String(r.variables.get('Answer')),String(counts[limit]),`${file} ${compilation} ${limit}`);checked++;}finally{r.dispose();}
+ try{r.execute(sources[file].replace(/arg Limit integer = \d+/,`arg Limit integer = ${limit}`));assert.equal(String(r.variables.get('Answer')),String(counts[limit]),`${file} ${compilation} ${limit}`);checked++;}finally{r.dispose();}
 }
 console.log(JSON.stringify({checked,limits,answers:limits.map(x=>counts[x])}));
 

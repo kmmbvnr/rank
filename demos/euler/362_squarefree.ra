@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 10 ** 10
+arg Limit integer = 10 ** 10
 
 rem Count squarefree integers from two.
 fun Mu Cs Q N squarefree

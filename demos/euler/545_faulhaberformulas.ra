@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Q integer = 100000
+arg Q integer = 100000
 
 rem By von Staudt-Clausen D(k) is the
 rem product of the primes p with p - 1

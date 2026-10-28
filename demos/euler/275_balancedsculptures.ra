@@ -11,7 +11,7 @@ use numbers
 use io
 use cli
 
-option N integer = 18
+arg N integer = 18
 
 rem The blocks are connected through the
 rem cell (0, 1), so every block is

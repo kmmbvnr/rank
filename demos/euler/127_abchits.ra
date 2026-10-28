@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 120000
+arg Limit integer = 120000
 
 rem Coprime hits satisfy rad(abc) =
 rem rad(a) rad(b) rad(c). Sort by rad(a)

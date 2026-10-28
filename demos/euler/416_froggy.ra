@@ -7,8 +7,8 @@ use linalg
 use io
 use cli
 
-option M integer = 10
-option N integer = 1000000000000
+arg M integer = 10
+arg N integer = 1000000000000
 
 rem Each of the p = 2M legs keeps
 rem its run of skipped squares

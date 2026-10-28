@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000
+arg N integer = 10000000
 
 rem P counts primitive triples in
 rem 0..N^3, H(L) = 1 + coprime x, y > 0

@@ -56,7 +56,7 @@ describe.each([false, true])('Euler 343 bulk factorization (compilation=%s)', co
     it('preserves reduced checksums', () => {
         const runtime = createRuntime(compilation);
         try {
-            runtime.execute(source.replace('option Limit integer = 2000000', 'option Limit integer = 1000'));
+            runtime.execute(source.replace('arg Limit integer = 2000000', 'arg Limit integer = 1000'));
             expect(runtime.variables.get('Answer')).toBe(72421603n);
         } finally { runtime.dispose(); }
     });

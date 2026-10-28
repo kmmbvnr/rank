@@ -10,9 +10,9 @@ use sequences
 use stats
 use tables
 
-argument TrainPath path = "demos/kaggle/data/titanic/train.csv"
-argument TestPath path = "demos/kaggle/data/titanic/test.csv"
-argument OutputPath path = "demos/kaggle/submissions/titanic.csv"
+arg TrainPath path = "demos/kaggle/data/titanic/train.csv"
+arg TestPath path = "demos/kaggle/data/titanic/test.csv"
+arg OutputPath path = "demos/kaggle/submissions/titanic.csv"
 
 Train = TrainPath csv
 Test = TestPath csv

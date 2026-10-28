@@ -106,10 +106,10 @@ test('explain recognizes core operations and reports missing CLI declarations', 
     const core = explain(file);
     assert.equal(core.status, 0, core.stderr);
     assert.match(core.stdout, /sum +core/);
-    fs.appendFileSync(file, 'option N integer = 3\n');
+    fs.appendFileSync(file, 'arg N integer = 3\n');
     const missing = explain(file);
     assert.equal(missing.status, 1);
-    assert.match(missing.stdout, /option +cli/);
+    assert.match(missing.stdout, /arg +cli/);
     fs.writeFileSync(file, 'use cli\n' + fs.readFileSync(file, 'utf8'));
     assert.equal(explain(file).status, 0);
 });

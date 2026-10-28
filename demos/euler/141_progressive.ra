@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000000000
+arg Limit integer = 1000000000000
 
 rem Take r = c b^2, d = c a b, q = c a^2
 rem for coprime a > b, so n = c b (c a^3

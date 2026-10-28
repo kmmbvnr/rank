@@ -599,9 +599,9 @@ test('completion has one replaceable suggestion and is dismissed without executi
     assert.equal(repl.suggestion.split('Tab:').length - 1, 1);
     repl.dismiss();
     assert.equal(repl.suggestion, '');
-    book.replace('option Limit integ');
+    book.replace('arg Limit integ');
     repl.complete();
-    assert.equal(book.current.source, 'option Limit integer ');
+    assert.equal(book.current.source, 'arg Limit integer ');
     book.replace('N mo');
     repl.complete();
     assert.equal(book.current.source, 'N mod ');

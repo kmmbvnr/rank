@@ -7,7 +7,7 @@ use numbers
 use io
 use cli
 
-option Digits integer = 100
+arg Digits integer = 100
 
 rem Rising numbers are multisets of
 rem Digits digits from 1 to 9 plus zero

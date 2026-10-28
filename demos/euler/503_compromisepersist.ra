@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option N integer = 1000000
+arg N integer = 1000000
 
 rem Stopping at relative rank r of t
 rem expects absolute rank r (n + 1) /

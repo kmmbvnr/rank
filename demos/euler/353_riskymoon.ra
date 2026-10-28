@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Last integer = 15
+arg Last integer = 15
 
 rem Count unordered nonnegative triples before allocating coordinate storage.
 fun R mooncount

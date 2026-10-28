@@ -5,8 +5,8 @@ use numbers
 use io
 use cli
 
-option Grid integer = 250
-option Rounds integer = 12
+arg Grid integer = 250
+arg Rounds integer = 12
 
 Answer = 130.87
 Eps = 0.000000000001

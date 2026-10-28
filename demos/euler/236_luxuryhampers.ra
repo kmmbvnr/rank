@@ -13,7 +13,7 @@ use text
 use io
 use cli
 
-option Top integer = 5248
+arg Top integer = 5248
 
 rem With a spoiled of A and b of B for a
 rem product, b / B = m a / A, so product

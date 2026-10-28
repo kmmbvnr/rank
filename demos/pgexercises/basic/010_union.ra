@@ -6,8 +6,8 @@ use algo
 use sequences
 use tables
 
-argument DbPath path = "demos/pgexercises/data/club.sqlite3"
-argument OutputPath path = "demos/pgexercises/data/010_union.csv"
+arg DbPath path = "demos/pgexercises/data/club.sqlite3"
+arg OutputPath path = "demos/pgexercises/data/010_union.csv"
 
 Db = DbPath sqlite
 M' = Db .members select .surname

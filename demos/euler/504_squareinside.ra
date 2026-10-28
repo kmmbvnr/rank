@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option M integer = 100
+arg M integer = 100
 
 rem Vertices (a,0), (0,b), (-c,0),
 rem (0,-d): 2A = (a + c)(b + d) and

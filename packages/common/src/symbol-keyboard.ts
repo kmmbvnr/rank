@@ -8,8 +8,8 @@ export interface KeyboardTab {
 
 /** Keywords that only open a statement, so they belong at the start of a line. */
 const STATEMENT_HEADS = new Set([
-    'args', 'argument', 'break', 'catch', 'continue', 'elif', 'else', 'end', 'finally',
-    'flag', 'for', 'fun', 'if', 'memo', 'option', 'return', 'run', 'test', 'try', 'use', 'yield',
+    'args', 'arg', 'break', 'catch', 'continue', 'elif', 'else', 'end', 'finally',
+    'flag', 'for', 'fun', 'if', 'memo', 'return', 'run', 'test', 'try', 'use', 'yield',
 ]);
 
 /** Statement keywords that continue an open block; the grammar knows which block is open. */
@@ -43,7 +43,7 @@ const PAIR = new Set(['leftjoin by', 'innerjoin by', 'leftjoin on', 'innerjoin o
 /** Grammar forms have import gates too, even when they are not named operations. */
 const MODULE_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
     algo: ['new', 'push'],
-    cli: ['args', 'argument', 'flag', 'option'],
+    cli: ['args', 'arg', 'flag'],
     graph: ['new'],
     io: ['stdin'],
     sequences: ['sort by', 'argsort by'],

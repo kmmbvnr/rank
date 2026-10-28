@@ -6,7 +6,7 @@ use numbers
 use io
 use cli
 
-option Exp integer = 5 * 10 ** 9999
+arg Exp integer = 5 * 10 ** 9999
 
 Mod = 100000007
 K = 23

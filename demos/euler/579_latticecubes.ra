@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option N integer = 5000
+arg N integer = 5000
 
 rem A cube's edge frame is a proper
 rem integer matrix with orthogonal

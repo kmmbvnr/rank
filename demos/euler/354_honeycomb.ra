@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 5 * 10 ** 11
+arg Limit integer = 5 * 10 ** 11
 
 rem Count 3^a times a 2-mod-3 square.
 fun N g Good

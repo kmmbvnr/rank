@@ -8,7 +8,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 28123
+arg Limit integer = 28123
 
 rem Sieve divisor sums, mark abundant pairs,
 rem then total every unmarked value.

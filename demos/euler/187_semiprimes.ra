@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 100000000
+arg Limit integer = 100000000
 
 rem n = p q with p <= q <= M / p, M the
 rem last n, so the count is the sum over

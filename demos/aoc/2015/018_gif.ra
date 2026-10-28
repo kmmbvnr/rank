@@ -7,7 +7,7 @@ use cli
 use algo
 use sequences
 
-argument Input path
+arg Input path
 
 Lines = Input readlines
 Part1 = Lines 100 false solve

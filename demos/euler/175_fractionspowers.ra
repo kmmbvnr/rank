@@ -14,8 +14,8 @@ use text
 use io
 use cli
 
-option Num integer = 123456789
-option Den integer = 987654321
+arg Num integer = 123456789
+arg Den integer = 987654321
 
 rem Undo the bit steps of problem 169
 rem on (x, y) = (b(n), b(n-1)): a 0 bit

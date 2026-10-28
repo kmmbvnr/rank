@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Len integer = 40
+arg Len integer = 40
 
 rem Cnt[d, m]: step numbers of the
 rem current length ending in digit d

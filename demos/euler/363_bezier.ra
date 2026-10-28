@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option Steps integer = 1000000
+arg Steps integer = 1000000
 
 Pi = (-1) acos
 V = 2 - (((22 - 5 * Pi) / 3) sqrt)

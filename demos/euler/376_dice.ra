@@ -6,7 +6,7 @@ use bits
 use io
 use cli
 
-option Limit integer = 30
+arg Limit integer = 30
 
 Cur = new index
 Keys = new queue

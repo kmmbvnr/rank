@@ -6,10 +6,10 @@ use sequences
 use io
 use cli
 
-option K integer = 10000
-option N integer = 1000000000000
-option Lo integer = 2000000000
-option Wd integer = 2000
+arg K integer = 10000
+arg N integer = 1000000000000
+arg Lo integer = 2000000000
+arg Wd integer = 2000
 
 rem S_k(n) = (n + 1) F_k(n) - F_(k+1)(n)
 rem and F_e is a polynomial of degree

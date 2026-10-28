@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 10000
-option C integer = 4000000
+arg N integer = 10000
+arg C integer = 4000000
 
 rem Meet in the middle: a <= b <= c <=
 rem d, so f(a) + f(b) is at most pi/2

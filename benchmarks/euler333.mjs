@@ -8,7 +8,7 @@ import { Interpreter, RuntimeDiagnostics, isRankArray } from '../packages/interp
 
 const option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const source = readFileSync(new URL('../demos/euler/333_specialpartitions.ra', import.meta.url), 'utf8');
-const helpers = source.slice(0, source.indexOf('option Limit')) + source.slice(source.indexOf('fun Limit solve'));
+const helpers = source.slice(0, source.indexOf('arg Limit')) + source.slice(source.indexOf('fun Limit solve'));
 const solve = helpers.slice(0, helpers.indexOf('rem Counts include'));
 // Original traversal from 413eded7, with table construction separated from solve.
 const recursive = `fun Limit partitioncounts

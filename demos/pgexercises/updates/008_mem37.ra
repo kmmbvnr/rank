@@ -4,7 +4,7 @@ rem https://pgexercises.com/questions/updates/deletewh.html
 use cli
 use tables
 
-argument DbPath path
+arg DbPath path
 
 Db = DbPath sqlite
 T' = Db .members filter .memid equal 37

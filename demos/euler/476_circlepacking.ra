@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 1803
+arg N integer = 1803
 
 rem Sides a <= b <= c = b + u, u < a.
 rem With x, y, z = p - 2a, p - 2b, p -

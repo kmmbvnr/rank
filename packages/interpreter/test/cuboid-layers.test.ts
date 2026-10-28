@@ -5,8 +5,8 @@ import { readArrayItem } from '../src/array-storage.js';
 
 const limit = 200;
 const source = readFileSync(new URL('../../../demos/euler/126_cuboidlayers.ra',import.meta.url),'utf8')
-    .replace('option Num integer = 1000','Num = 10')
-    .replace('option Limit integer = 20000',`Limit = ${limit}`);
+    .replace('arg Num integer = 1000','Num = 10')
+    .replace('arg Limit integer = 20000',`Limit = ${limit}`);
 // Check the complete tally, including duplicates, against the direct formula.
 const expected: bigint[] = Array(limit+1).fill(0n);
 for (let a=1; 6*a*a<=limit; a++) for (let b=a; 2*(2*a*b+b*b)<=limit; b++)

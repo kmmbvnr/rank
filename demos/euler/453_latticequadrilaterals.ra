@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option M integer = 12345
-option N integer = 6789
-option Md integer = 135707531
+arg M integer = 12345
+arg N integer = 6789
+arg Md integer = 135707531
 
 rem Q = C(T,4) - bad sets + 2 (points
 rem inside triangles). Collinear sets

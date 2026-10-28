@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 25000000000000
+arg Limit integer = 25000000000000
 
 Answer = Limit triangles
 Answer print

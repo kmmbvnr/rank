@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option Target integer = 10001
+arg Target integer = 10001
 
 Ps = primes take Target array
 Top = Ps (Ps len - 1)

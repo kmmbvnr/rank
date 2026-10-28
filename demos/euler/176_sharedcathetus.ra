@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Ways integer = 47547
+arg Ways integer = 47547
 
 rem A cathetus n gives (d(n^2) - 1) / 2
 rem triangles, or (d(n^2 / 4) - 1) / 2

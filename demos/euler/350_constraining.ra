@@ -5,9 +5,9 @@ use numbers
 use io
 use cli
 
-option G integer = 10 ** 6
-option L integer = 10 ** 12
-option N integer = 10 ** 18
+arg G integer = 10 ** 6
+arg L integer = 10 ** 12
+arg N integer = 10 ** 18
 
 Mod = 101 ** 4
 

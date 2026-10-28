@@ -6,7 +6,7 @@ use io
 use cli
 use sequences
 
-option Exponent integer = 1000
+arg Exponent integer = 1000
 
 rem With big integers:
 rem P = 2 ** Exponent

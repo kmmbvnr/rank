@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000000000
+arg N integer = 100000000000000000
 
 rem C[i] is the sum over n < F[i], and
 rem C[i] = C[i-1] + C[i-2] + F[i-2]: the

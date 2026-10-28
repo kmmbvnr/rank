@@ -10,9 +10,9 @@ use sequences
 use io
 use cli
 
-option Min integer = 50
-option Target integer = 1000000
-option Size integer = 200
+arg Min integer = 50
+arg Target integer = 1000000
+arg Size integer = 200
 
 rem The closed form of problem 114 over
 rem all row lengths N at once.

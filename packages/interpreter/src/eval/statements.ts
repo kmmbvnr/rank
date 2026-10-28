@@ -1,8 +1,8 @@
 import {
-    applicationForm, isApplicationExpression, isDeclaredCallExpression, isArgsStatement, isArgumentStatement,
+    applicationForm, isApplicationExpression, isDeclaredCallExpression, isArgsStatement,
     isArrayAssignmentStatement, isAssignmentStatement, isBreakStatement, isContinueStatement, isExpressionStatement,
     isFlagStatement, isForStatement, isFunctionStatement, isFunctionBindingStatement, isIfStatement,
-    isNameExpression, isOptionStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
+    isNameExpression, isArgStatement, isParenthesizedExpression, isPushStatement, isReturnStatement,
     isOperationAssignmentStatement,
     isRunStatement, isTestStatement, isTryStatement, isUnpackStatement, isUseStatement, isYieldStatement,
     type Expression, type FunctionBindingStatement, type FunctionStatement, type Operation, type Statement,
@@ -80,8 +80,7 @@ export function prepareStatement(statement: Statement, host: StatementContext): 
             return undefined;
         } };
     }
-    if (isOptionStatement(statement)
-        || isArgumentStatement(statement)
+    if (isArgStatement(statement)
         || isFlagStatement(statement)) {
         return { stream: function* (): Execution<RankValue | undefined> {
             host.requireModule('cli', inputDeclarationName(statement));

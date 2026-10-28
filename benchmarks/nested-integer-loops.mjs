@@ -17,7 +17,7 @@ if (option('worker')) {
     const { readArrayItem } = await import(new URL('./array-storage.js', runtimePath));
     let source = readFileSync(new URL(name === 'current' ? '../demos/euler/370_triangles.ra'
         : './fixtures/370-triangles-original.ra', import.meta.url), 'utf8')
-        .replace(/option Limit integer = \d+/, `Limit = ${limit}`)
+        .replace(/arg Limit integer = \d+/, `Limit = ${limit}`)
         .replace('Answer print', '');
     if (name === 'sieve') source = source.replace(/  Sum = 0\n  for P in 1 to Top[\s\S]*?  return Sum/, '  return Spf');
     if (name === 'division') source = `Sum = 0\nDividend = 100000000000000\nfor I in 1 to 1000000\n Sum += Dividend // I\nend\nAnswer = Sum`;

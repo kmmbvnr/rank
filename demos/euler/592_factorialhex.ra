@@ -8,7 +8,7 @@ use text
 use io
 use cli
 
-option N integer = 2432902008176640000
+arg N integer = 2432902008176640000
 
 rem N! = 2^v odd, v = N - popcount N.
 rem Dropping v // 4 hex zeros leaves

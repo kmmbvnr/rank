@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000
+arg Limit integer = 1000
 
 rem Even n leaves 2. Odd n leaves 2 a n
 rem mod a^2 = a (2 n mod a), whose best

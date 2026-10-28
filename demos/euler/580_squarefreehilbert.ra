@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 9999999999999999
+arg N integer = 9999999999999999
 
 rem No prime 1 mod 4 may be squared and
 rem at most one prime q = 3 mod 4, so

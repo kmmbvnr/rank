@@ -6,10 +6,10 @@ use sequences
 use io
 use cli
 
-option R integer = 6
-option Deg integer = 40
-option Steps integer = 4096
-option Digits integer = 9
+arg R integer = 6
+arg Deg integer = 40
+arg Steps integer = 4096
+arg Digits integer = 9
 
 rem Empty volume V(x) = (tan a / 3) *
 rem integral of s^3 over the angle,

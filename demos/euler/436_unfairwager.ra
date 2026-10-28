@@ -5,7 +5,7 @@ use numbers
 use io
 use cli
 
-option Digits integer = 10
+arg Digits integer = 10
 
 rem Louise's last draw x and her
 rem overshoot w above 1 have density

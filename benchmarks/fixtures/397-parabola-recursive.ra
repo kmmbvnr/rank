@@ -7,8 +7,8 @@ use algo
 use io
 use cli
 
-option K integer = 1000000
-option X integer = 1000000000
+arg K integer = 1000000
+arg X integer = 1000000000
 
 Hits = new index
 Hits 0 = 0

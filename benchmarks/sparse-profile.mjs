@@ -25,7 +25,7 @@ if (args.worker) {
     assert(expected, 'No oracle for this input');
     const source = kind === 'ants'
         ? readFileSync(new URL('../demos/euler/393_ants.ra', import.meta.url), 'utf8')
-            .replace('option N integer = 10', `option N integer = ${size}`)
+            .replace('arg N integer = 10', `arg N integer = ${size}`)
         : `use algo\nCache = new index\nCache 0 = 9007199254740993\nfor I in 1 to ${size}\n Cache 0 += I\nend\nAnswer = Cache 0`;
     const output = [], runtime = new Interpreter(value => output.push(value));
     try {

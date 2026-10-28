@@ -7,7 +7,7 @@ use linalg
 use io
 use cli
 
-option N integer = 20000
+arg N integer = 20000
 
 rem F = Nu / De with the q-series
 rem Nu = sum (-1)^m x^(m(m+2))/(x;x)_m

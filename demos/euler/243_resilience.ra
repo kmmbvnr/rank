@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Num integer = 15499
-option Den integer = 94744
+arg Num integer = 15499
+arg Den integer = 94744
 
 rem Resilience falls with each new prime
 rem factor, so the best d are multiples

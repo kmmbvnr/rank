@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-option N integer = 100
+arg N integer = 100
 
 rem N! = prod p^e. A pair (prod p^x,
 rem prod p^(e - x)) has equal divisor

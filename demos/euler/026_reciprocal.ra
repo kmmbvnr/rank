@@ -7,7 +7,7 @@ use algo
 use io
 use cli
 
-option Limit integer = 1000
+arg Limit integer = 1000
 
 Answer = Limit longest_reciprocal_cycle
 Answer print

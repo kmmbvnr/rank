@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Count integer = 30
+arg Count integer = 30
 
 rem The nuggets need 5 n^2 + 14 n + 1 to
 rem be a square s^2, so with x = 5 n + 7

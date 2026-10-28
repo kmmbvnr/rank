@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000000000
+arg N integer = 100000000000000000
 
 rem With X = 2a/b, Y = 2a/c the rule
 rem a < b < c < 2a means X^2 + Y^2 = 5.

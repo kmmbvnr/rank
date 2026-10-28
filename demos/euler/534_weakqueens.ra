@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option N integer = 14
+arg N integer = 14
 
 rem A queen reaching D rows only meets
 rem the last D queens, so step rows on

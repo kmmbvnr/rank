@@ -41,8 +41,8 @@ end`);
         it(`passes the official sample sum (compilation=${compilation})`, () => {
             const r = new Interpreter(() => {}, { compilation });
             try {
-                r.execute(source.replace('option Top integer = 999999', 'Top = 999')
-                    .replace('option Num integer = 10000000000000000', 'Num = 1000000'));
+                r.execute(source.replace('arg Top integer = 999999', 'Top = 999')
+                    .replace('arg Num integer = 10000000000000000', 'Num = 1000000'));
                 expect(r.variables.get('Answer')).toBe(27280188n);
             } finally { r.dispose(); }
         });

@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option Percent integer = 99
-option Digits integer = 7
+arg Percent integer = 99
+arg Digits integer = 7
 
 rem List the non-bouncy numbers: their
 rem digits are a multiset in rising or

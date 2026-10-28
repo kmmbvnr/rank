@@ -7,8 +7,8 @@ use bits
 use io
 use cli
 
-option N integer = 1000000
-option D integer = 65432
+arg N integer = 1000000
+arg D integer = 65432
 
 rem D = 2^a 5^b T with a, b below its
 rem K digits: a divisor ending in D

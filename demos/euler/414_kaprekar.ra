@@ -6,9 +6,9 @@ use sequences
 use io
 use cli
 
-option First integer = 2
-option Last integer = 300
-option Mod integer = 1000000000000000000
+arg First integer = 2
+arg Last integer = 300
+arg Mod integer = 1000000000000000000
 
 rem Base b = 6k + 3. A 5-digit string
 rem sorted x0 <= .. <= x4 has state

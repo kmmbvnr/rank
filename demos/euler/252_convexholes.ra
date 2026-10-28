@@ -13,7 +13,7 @@ use sequences
 use io
 use cli
 
-option N integer = 500
+arg N integer = 500
 
 rem Each polygon is taken from its
 rem lowest point A, then the points

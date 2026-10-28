@@ -10,9 +10,9 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000000000000
-option MaxM integer = 40
-option MaxN integer = 60
+arg Limit integer = 1000000000000000
+arg MaxM integer = 40
+arg MaxN integer = 60
 
 rem By Burnside's lemma f(m, n) is the
 rem sum of phi(t) (m n / t)! /

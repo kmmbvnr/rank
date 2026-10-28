@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 99999999019
-option L integer = 10000000
+arg N integer = 99999999019
+arg L integer = 10000000
 
 rem A(n) = (1 + sum of k phi(k) over
 rem k | n) / 2, so S(N) = (N + R) / 2

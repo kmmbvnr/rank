@@ -8,7 +8,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 10000000
+arg Limit integer = 10000000
 
 rem A prime has phi = n - 1, never a
 rem permutation. The ratio is least for

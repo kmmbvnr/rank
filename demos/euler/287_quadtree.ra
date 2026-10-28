@@ -11,7 +11,7 @@ use numbers
 use io
 use cli
 
-option N integer = 24
+arg N integer = 24
 
 rem A region that is all black or all
 rem white costs 2 bits, any other 1 bit

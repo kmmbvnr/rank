@@ -7,7 +7,7 @@ use bits
 use io
 use cli
 
-option N integer = 10000
+arg N integer = 10000
 
 Md = 1000000007
 Top = 20 * N + 100

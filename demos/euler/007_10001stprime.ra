@@ -7,7 +7,7 @@ use io
 use cli
 
 rem One-based position in the sequence.
-option Count integer = 10001
+arg Count integer = 10001
 
 fun Limit sieve
   Marked = array shape (Limit + 1) fill false

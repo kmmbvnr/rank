@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000
+arg N integer = 100000000
 
 rem s(n) is the largest t(p, a) over
 rem the p^a || n, t(p, a) the least m

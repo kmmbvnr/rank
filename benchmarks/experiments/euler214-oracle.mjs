@@ -33,8 +33,8 @@ for (const limit of [0, 1, 2, 3, 10, 31, 100, 257]) {
         for (const compilation of [false, true]) {
             const runtime = new Interpreter(() => {}, { compilation });
             try {
-                runtime.execute(source.replace('option Limit integer = 40000000', `option Limit integer = ${limit}`)
-                    .replace('option Len integer = 25', `option Len integer = ${length}`));
+                runtime.execute(source.replace('arg Limit integer = 40000000', `arg Limit integer = ${limit}`)
+                    .replace('arg Len integer = 25', `arg Len integer = ${length}`));
                 assert.equal(String(runtime.variables.get('Answer')), expected,
                     `Limit=${limit} Len=${length} compilation=${compilation}`);
                 checks++;

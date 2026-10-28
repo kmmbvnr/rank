@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 100000000000000
-option Cut integer = 3000
+arg N integer = 100000000000000
+arg Cut integer = 3000
 
 rem R(n) = s(n) - n for the sum s of
 rem unitary divisors, and s(n) =

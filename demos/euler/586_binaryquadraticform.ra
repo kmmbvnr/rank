@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 1000000000000000
-option R integer = 40
+arg N integer = 1000000000000000
+arg R integer = 40
 
 rem k = a^2 + 3ab + b^2 (a > b > 0) has
 rem floor(tau(x) / 2) forms when k =

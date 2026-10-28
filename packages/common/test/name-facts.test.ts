@@ -402,7 +402,7 @@ it('keeps body alternatives separate from concrete call signatures', () => {
 
 
 it('infers Euler product bounds with a known CLI option and without a run', () => {
-    const source = 'use cli\noption Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n';
+    const source = 'use cli\narg Digits integer = 3\nLower = 10 ** (Digits - 1)\nUpper = Lower * 10 - 1\n';
     for (const name of ['Lower', 'Upper']) {
         const offset = source.indexOf(`${name} =`);
         expect(formatNameFacts(factsAt(source, offset)!)).toBe(`${name} · integer or real`);
@@ -439,10 +439,10 @@ it('infers every Euler palindrome pipeline name before running the notebook', ()
 
 
 it.each([
-    ['option Digits integer = 3', 'Digits', 'integer'],
-    ['argument File path', 'File', 'text'],
-    ['option Values integer many', 'Values', 'c[#]<integer>'],
-    ['argument Files path many', 'Files', 'c[#]<text>'],
+    ['arg Digits integer = 3', 'Digits', 'integer'],
+    ['arg File path', 'File', 'text'],
+    ['arg Values integer array', 'Values', 'c[#]<integer>'],
+    ['arg Files path array', 'Files', 'c[#]<text>'],
     ['flag Verbose', 'Verbose', 'boolean'],
 ])('shows the declared input type on its name: %s', (source, name, type) => {
     const start = source.indexOf(name);
@@ -453,10 +453,10 @@ it.each([
 });
 
 it('uses the input declaration type rather than stale runtime or later binding facts', () => {
-    const source = 'option Digits integer = 3\nDigits = "bad"';
+    const source = 'arg Digits integer = 3\nDigits = "bad"';
     expect(formatNameFacts(factsAt(source, source.indexOf('Digits'), [['Digits', { types: ['text'] }]])!))
         .toBe('Digits · integer');
-    expect(factsAt('option Digits integer = 3', 'option Digits '.length + 2)).toBeUndefined();
+    expect(factsAt('arg Digits integer = 3', 'arg Digits '.length + 2)).toBeUndefined();
 });
 
 

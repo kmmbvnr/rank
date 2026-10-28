@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Digits integer = 8
+arg Digits integer = 8
 
 rem Under the curve the circle is cut
 rem from x1, where the curve rises above

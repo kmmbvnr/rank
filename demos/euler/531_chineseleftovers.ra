@@ -7,8 +7,8 @@ use algo
 use io
 use cli
 
-option Lo integer = 1000000
-option Hi integer = 1005000
+arg Lo integer = 1000000
+arg Hi integer = 1005000
 
 rem x = phi(n) mod n, phi(m) mod m has
 rem a solution iff g = gcd(n, m) divides

@@ -7,9 +7,9 @@ use cli
 use stats
 use tables
 
-argument TrainPath path = "demos/kaggle/data/spaceship-titanic/train.csv"
-argument TestPath path = "demos/kaggle/data/spaceship-titanic/test.csv"
-argument OutputPath path = "demos/kaggle/submissions/spaceship-titanic.csv"
+arg TrainPath path = "demos/kaggle/data/spaceship-titanic/train.csv"
+arg TestPath path = "demos/kaggle/data/spaceship-titanic/test.csv"
+arg OutputPath path = "demos/kaggle/submissions/spaceship-titanic.csv"
 
 Train = TrainPath csv
 Test = TestPath csv

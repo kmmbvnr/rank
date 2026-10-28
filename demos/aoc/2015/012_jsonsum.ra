@@ -8,7 +8,7 @@ use json
 use tables
 use sequences
 
-argument Input path
+arg Input path
 
 Text = Input read
 unpack Part1 Part2 = Text solve

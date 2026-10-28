@@ -7,7 +7,7 @@ use sequences
 use io
 use cli
 
-option K integer = 10000
+arg K integer = 10000
 
 Mod = 1000000000000000000
 Gs = array shape (K + 1) fill 0

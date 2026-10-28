@@ -6,8 +6,8 @@ use sequences
 use io
 use cli
 
-option N integer = 10000000
-option K integer = 100000
+arg N integer = 10000000
+arg K integer = 100000
 
 rem p(k)^k mod 10007 needs only the
 rem exponent mod 10006. S2 lies in

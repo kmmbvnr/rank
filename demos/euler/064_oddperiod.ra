@@ -7,7 +7,7 @@ use numbers
 use io
 use cli
 
-option Limit integer = 10000
+arg Limit integer = 10000
 
 rem The period of sqrt N ends when a
 rem term reaches 2 * a0. Squares have

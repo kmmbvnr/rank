@@ -212,7 +212,7 @@ end`);
         for (const compilation of [false, true]) {
             const runtime = new Interpreter(() => {}, { compilation });
             try {
-                runtime.execute(source.replace('option Limit integer = 10 ** 8', 'Limit = 1'));
+                runtime.execute(source.replace('arg Limit integer = 10 ** 8', 'Limit = 1'));
                 for (const n of [0, 1, 2, 5, 10, 25, 100, 1000, 10000]) {
                     expect(runtime.execute(`${n} hidden`)).toBe(6n * (BigInt(n) * BigInt(n + 1) / 2n - BigInt(phi[n])));
                 }

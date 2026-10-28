@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option N integer = 6
+arg N integer = 6
 
 rem g permutes the 2^N inputs, so it
 rem splits into cycles. A table on

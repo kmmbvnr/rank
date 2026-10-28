@@ -9,8 +9,8 @@ use linalg
 use io
 use cli
 
-option N integer = 1000000000000000000
-option Sd integer = 10
+arg N integer = 1000000000000000000
+arg Sd integer = 10
 
 rem Scan left to right keeping H, the
 rem offsets back to earlier cuts that

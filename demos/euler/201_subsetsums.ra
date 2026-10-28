@@ -9,8 +9,8 @@ use sequences
 use io
 use cli
 
-option Count integer = 100
-option K integer = 50
+arg Count integer = 100
+arg K integer = 50
 
 rem One[k] and Many[k] are bit sets of
 rem the sums reached by one, or by more

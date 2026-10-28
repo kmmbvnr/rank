@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option N integer = 20000000
+arg N integer = 20000000
 
 rem Strided sieve: flip mu for each
 rem small p, zero it at p^2, divide

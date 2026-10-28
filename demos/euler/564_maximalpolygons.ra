@@ -6,7 +6,7 @@ use sequences
 use io
 use cli
 
-option K integer = 50
+arg K integer = 50
 
 rem Sides 1 + e with e >= 0 summing to
 rem n - 3 form a partition of n - 3 plus

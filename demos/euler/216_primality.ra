@@ -4,7 +4,7 @@ rem Count prime values for n from 2 to Limit.
 use numbers
 use io
 use cli
-option Limit integer = 50000000
+arg Limit integer = 50000000
 fun Bound count_primes
   rem Every composite has a prime factor at most Root.
   rem Its smaller root modulo that prime is at most Cut.

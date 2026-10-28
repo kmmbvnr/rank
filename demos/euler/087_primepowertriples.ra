@@ -9,7 +9,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 50000000
+arg Limit integer = 50000000
 
 Side = Limit isqrt + 1
 Ps = primes till Side array

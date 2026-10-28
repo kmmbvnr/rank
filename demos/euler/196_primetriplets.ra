@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option N1 integer = 5678027
-option N2 integer = 7208785
+arg N1 integer = 5678027
+arg N2 integer = 7208785
 
 rem Row r holds r numbers from
 rem r (r - 1) / 2 + 1. A prime with two

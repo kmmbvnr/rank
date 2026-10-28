@@ -3,9 +3,9 @@ use numbers
 use sequences
 use io
 use cli
-option Limit integer = 50000000
-option Seed integer = 10000
-option Block integer = 1000000
+arg Limit integer = 50000000
+arg Seed integer = 10000
+arg Block integer = 1000000
 Bound = Seed min Limit
 R = array shape (Bound + 1) fill 0
 Roots = array shape Bound fill 0

@@ -10,7 +10,7 @@ use sequences
 use io
 use cli
 
-option Bounces integer = 12017639147
+arg Bounces integer = 12017639147
 
 rem Unfolding the triangle, a path is a
 rem k < n = (Bounces + 3) / 2 with

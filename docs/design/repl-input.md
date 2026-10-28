@@ -315,7 +315,7 @@ local declarations before the cursor, without executing the draft.
 Tab inserts a completion. When several candidates match, repeated Tab cycles them
 in place and one footer shows the current candidate and count. Typing or navigation
 removes the footer. Completion uses session names, module exports, keywords,
-operator aliases and context such as the type after `option Limit`.
+operator aliases and context such as the type after `arg Limit`.
 After `load`, Tab completes directory names and `.ra` files. Directory completions
 end with `/`; paths can be relative, absolute, or start with `~/`.
 

@@ -12,7 +12,7 @@ use sequences
 use io
 use cli
 
-option K integer = 16
+arg K integer = 16
 
 rem The roots can only be 0 and -1 to
 rem -9. Root 0 is a last digit 0, and

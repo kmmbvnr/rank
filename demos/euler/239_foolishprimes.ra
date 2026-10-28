@@ -10,8 +10,8 @@ use sequences
 use io
 use cli
 
-option N integer = 100
-option Keep integer = 22
+arg N integer = 100
+arg Keep integer = 22
 
 rem The primes that stay can be chosen
 rem in C(P, P - Keep) ways. Of the rest,

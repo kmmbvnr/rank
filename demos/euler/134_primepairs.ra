@@ -8,7 +8,7 @@ use sequences
 use io
 use cli
 
-option Limit integer = 1000000
+arg Limit integer = 1000000
 
 rem For p1 with d digits, n = p1 + 10^d
 rem k with 10^d k = -p1 mod p2. Invert
