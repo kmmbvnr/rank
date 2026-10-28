@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes minutes.
+rem Keep the full default in the manual lane.
 test "small limits"
   use "249_primesubsetsums"
   Limit = 10
@@ -15,4 +15,24 @@ test "small limits"
   run
 
   Answer equal 5253640
+end
+
+test "wrapped counts and arbitrary moduli"
+  use "249_primesubsetsums"
+  Limit = 300
+  run
+
+  Answer equal 9053434012630419
+  Mod = 2
+  run
+
+  Answer equal 1
+  Mod = 97
+  run
+
+  Answer equal 62
+  Mod = 1000000000000000000000000000000
+  run
+
+  Answer equal 549053434012630419
 end

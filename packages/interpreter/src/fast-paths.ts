@@ -139,7 +139,10 @@ export class FastPaths {
                 compiled: this.context.options().onFunctionBodyCompiled,
                 executed: this.context.options().onFunctionBodyExecuted,
             }) ?? null : null;
-            if (body && commands.slice(0, -1).filter(isForStatement).length >= 2) {
+            // A single outer loop can contain all the work (including nested
+            // loops). Join its fresh allocations too: compiling it separately
+            // would treat the local arrays as external speculative copies.
+            if (body && commands.slice(0, -1).some(isForStatement)) {
                 const prefix = this.compileLoop(statement, undefined);
                 if (prefix) {
                     const ordinary = body;

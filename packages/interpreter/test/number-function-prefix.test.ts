@@ -31,6 +31,42 @@ function compare(source: string, options: InterpreterOptions = {}) {
 }
 
 describe('numeric function prefixes with fresh arrays', () => {
+    const nested = `fun Input build_nested N
+  A = array shape N fill 0
+  for Value in Input
+    for J in 0 till 3
+      A 0 += Value
+    end
+  end
+  return A
+end`;
+
+    it('joins one outer array loop and private allocations above the copy budget', () => {
+        const result = compare(`${nested}\nResult = (array 4 5) build_nested 262145\nResult 0`);
+        expect(result.observation.value).toBe('27');
+        expect(result.diagnostics.numberLoops).toBe(1);
+        expect(result.diagnostics.numberLoopCopyProbes).toBe(0);
+        expect(result.diagnostics.numberLoopOverflows).toBe(0);
+    });
+
+    it('keeps empty array walks and repeated single-loop calls independent', () => {
+        const result = compare(`${nested}\nFirst = (array 2 3) build_nested 2\nEmpty = (array shape 0 fill 0) build_nested 1\nNext = (array 7) build_nested 1\narray (First 0) (Empty 0) (Next 0)`);
+        expect(result.observation.value).toBe('15 0 21');
+        expect(result.diagnostics.numberLoops).toBe(3);
+    });
+
+    it('replays overflowing stores in a single outer loop without retaining partial arrays', () => {
+        const result = compare(`${nested}\nResult = (array 4503599627370496) build_nested 1\nResult 0`);
+        expect(result.observation.value).toBe('13510798882111488');
+        expect(result.diagnostics.numberLoopOverflows).toBeGreaterThan(0);
+    });
+
+    it('preserves the location and call trace of an invalid store in the single-loop region', () => {
+        const result = compare(`${nested}\n(array 7) build_nested 0`);
+        expect(result.observation.error).toContain('array index out of bounds');
+        expect(result.diagnostics.numberLoops).toBe(1);
+    });
+
     it('keeps two loops and their allocation in one Number region', () => {
         const result = compare(`${helper}\n100 build`);
         expect(result.observation.value).toBe('10100');
