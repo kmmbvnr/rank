@@ -12,15 +12,15 @@ async page => {
   const check=(values,expected)=>{if(values.length!==expected.length)throw Error('Wrong shape');values.forEach((v,i)=>{const e=Math.abs(v-expected[i]);maxError=Math.max(maxError,e);if(e>1e-5+Math.abs(expected[i])*1e-4)throw Error('Wrong value '+i);});};
   try{
    await post({nativeRam:true,modules:f.modules},0);
-   const source=f.source.replace(`X = array shape 1 ${f.plan.inputShape[1]} fill 0.5`, `X = array shape 1 ${f.plan.inputShape[1]}\n${f.x.map(v=>Number.isInteger(v)?v+'.0':String(v)).join(' ')}\nend`);
+   const source=f.source.replace(`X = array shape ${f.plan.inputShape.join(' ')} fill 0.5`, `X = array shape ${f.plan.inputShape.join(' ')}\n${f.x.map(v=>Number.isInteger(v)?v+'.0':String(v)).join(' ')}\nend`);
    const run=await call('execute',[source,1,source.split('\n')]);if(!run.result.ok)throw Error(JSON.stringify(run.result));
-   const values=[];for(let start=0;start<f.expected.length;start+=256){const v=await call('inspect',[run.result.valueRef,{offset:[0,start],count:[1,256]}]);values.push(...v.result.cells.flat().map(c=>Number(c.text)));}check(values,f.expected);
-   const invokes=requests.filter(r=>r.action==='invoke');if(invokes.length!==f.plan.gpuCalls||requests.filter(r=>r.action==='load').length!==Object.keys(f.modules).length)throw Error('Expected one graph and eight invocations');
+   const values=[];for(let row=0;row<f.plan.outputShape[0];row++)for(let start=0;start<f.plan.outputShape[1];start+=256){const v=await call('inspect',[run.result.valueRef,{offset:[row,start],count:[1,256]}]);values.push(...v.result.cells.flat().map(c=>Number(c.text)));}check(values,f.expected);
+   const invokes=requests.filter(r=>r.action==='invoke');if(invokes.length!==f.plan.gpuCalls||requests.filter(r=>r.action==='load').length!==Object.keys(f.modules).length)throw Error('Unexpected projection loads or invocations');
    const profiles=[];
    for(const request of invokes){
     const d=request.inputFiles[1],start=(d.offset-(f.tensorOffset??f.headerBytes))/(f.plan.inputShape[1]*4);
-    if(request.input.length!==f.plan.inputShape[1]||d.length>f.plan.chunkBudgetBytes)throw Error('Slice descriptor or JSON payload incorrect');
-    const {output,...profile}=await send({...request,profile:true});check(output,f.expected.slice(start,start+d.shape[0]));profiles.push(profile);
+    if(request.input.length!==f.plan.inputShape.reduce((a,b)=>a*b,1)||d.length>f.plan.chunkBudgetBytes)throw Error('Slice descriptor or JSON payload incorrect');
+    const {output,...profile}=await send({...request,profile:true});check(output,Array.from({length:f.plan.inputShape[0]},(_,t)=>f.expected.slice(t*f.plan.outputShape[1]+start,t*f.plan.outputShape[1]+start+d.shape[0])).flat());profiles.push(profile);
    }
    for(const modelId of new Set(invokes.map(r=>r.modelId)))await send({action:'release',modelId});
    return {plan:f.plan,workerGpuCalls:invokes.length,profileGpuCalls:invokes.length,modelLoads:Object.keys(f.modules).length,valuesCompared:f.expected.length*2,maxError,profiles};

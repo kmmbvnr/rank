@@ -14,13 +14,13 @@ const client=createRamClient(request=>{const reply=sendRamGpu({...request,...(re
 let jsWeightBytes=0;
 const io={...nodeIo,open(...args){const h=nodeIo.open(...args),read=h.read.bind(h);h.read=n=>{if(args[0]===plan.source.path&&h.position()+n>reference.headerBytes){jsWeightBytes+=n;throw Error('Weight payload in JS');}return read(n);};return h;}};
 const r=new Interpreter(undefined,{io,loadModule:n=>({id:n,source:modules[n]}),ramGpu:(g,input,files)=>{
- assert.equal(input.length,plan.inputShape[1]);const d=files[1],start=(d.offset-(reference.tensorOffset??reference.headerBytes))/(plan.inputShape[1]*4);assert.ok(d.length<=plan.chunkBudgetBytes);
- const result=client.invoke(g,()=>Buffer.from(g.model).toString('base64'),input,g.outputShape[1],g.inputs.map(i=>i.shape.reduce((a,b)=>a*b,1)),files,g.reservationBytes).output;
- check(result,reference.expected.slice(start,start+d.shape[0]));calls++;return result;
+ assert.equal(input.length,plan.inputShape.reduce((a,b)=>a*b,1));const d=files[1],start=(d.offset-(reference.tensorOffset??reference.headerBytes))/(plan.inputShape[1]*4);assert.ok(d.length<=plan.chunkBudgetBytes);
+ const result=client.invoke(g,()=>Buffer.from(g.model).toString('base64'),input,g.outputShape.reduce((a,b)=>a*b,1),g.inputs.map(i=>i.shape.reduce((a,b)=>a*b,1)),files,g.reservationBytes).output;
+ check(result,Array.from({length:plan.inputShape[0]},(_,t)=>reference.expected.slice(t*plan.outputShape[1]+start,t*plan.outputShape[1]+start+d.shape[0])).flat());calls++;return result;
 }});
 try{
  r.variables.set('X',{kind:'array',shape:plan.inputShape,items:reference.x});
- const result=r.execute(source.replace(`X = array shape 1 ${plan.inputShape[1]} fill 0.5\n`,''));check(result.items,reference.expected);
+ const result=r.execute(source.replace(`X = array shape ${plan.inputShape.join(' ')} fill 0.5\n`,''));check(result.items,reference.expected);
  assert.equal(calls,plan.gpuCalls);assert.equal(loads.length,Object.keys(modules).length);assert.equal(profiles.reduce((n,p)=>n+p.fileBytesRead,0),plan.source.shape.reduce((a,b)=>a*b,4));
  client.release();console.log(JSON.stringify({plan,calls,jsWeightBytes,valuesCompared:reference.expected.length*2,maxError,loads,profiles},null,2));
 }finally{r.dispose();closeRamGpu();}

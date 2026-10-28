@@ -1352,10 +1352,11 @@ publish a partial program.
 
 Rows per part are constrained by both the requested byte budget and the existing
 1,048,576-element computed-tensor limit: the RAM transpose of each weight block
-must also fit. A row that cannot fit is rejected. The current generated input is
-one row (`[1, inputs]`), initialized to 0.5 for a runnable example; replace that
-assignment with the desired activation. The assembled host output is limited to
-1,048,576 elements. There is no bias, activation or batched-input planner yet.
+must also fit. A row that cannot fit is rejected. The generated input is
+`[tokens, inputs]`, with one token by default, initialized to 0.5 for a runnable
+example; replace that assignment with the desired activation. Both the host
+input and assembled output are limited to 1,048,576 elements each. There is no
+bias or activation planner yet.
 
 The generated program pins the source SHA-256, iterates over full row blocks,
 handles a smaller final block with its own compiled shape, and writes each GPU
@@ -1386,3 +1387,35 @@ file path to the installed model path. Evidence is recorded in
 comparisons per device on Mac, Intel and OnePlus. The Android process measurements
 include previously resident demo models. No speedup or full-LLM execution is
 claimed by this check.
+
+### Multi-token projections (stage 13b, fifth slice)
+
+An optional token count follows the weight-part budget:
+
+```sh
+node scripts/mlrank-plan-projection.mjs WEIGHTS.safetensors TENSOR NEW_DIRECTORY 3145728 4
+node_modules/.cache/mlrank/bin/python scripts/mlrank-projection-reference.py WEIGHTS.safetensors TENSOR reference.json 4
+node scripts/mlrank-projection-check.mjs NEW_DIRECTORY reference.json
+```
+
+This produces `X [4, inputs]` and `Result [4, outputs]`. Each weight part is
+transferred once and used for all four rows in one GPU matrix multiplication.
+Output assembly preserves token rows when writing full parts and the smaller
+final part. The existing default remains one token.
+
+Planning now checks the full host input and output element counts and each GPU
+part's output size, as well as weight bytes and the computed transpose size.
+Invalid token counts or shapes that exceed those limits fail before publication.
+The weight budget still does not represent all physical GPU allocations.
+
+`demos/mlrank/planned-batch-projection.ra` uses the existing 32 MiB fixture,
+ten full parts and a tail, and returns `[4, 8192]`. The numerical checks use four
+different input rows; the editable demo initializes them to 0.5. Mac, Intel and
+OnePlus each pass 65,536 numerical comparisons. Desktop profiles confirm one
+32 MiB weight pass for all four rows, without JS weight payloads. This is a
+transfer-count result, not a claim of measured speedup over four separate runs.
+Evidence: `benchmarks/baselines/2026-10-28-mlrank-batch-projection.json`.
+
+This prepares the projection path for a short context; it does not implement
+embedding lookup, attention across tokens, the full transformer forward or KV
+cache. Activations and assembled outputs remain host values.
