@@ -2,7 +2,7 @@ import { RankSession } from './session.js';
 import { runtimeValueFacts } from './value-diagnostics.js';
 import { displayTypeName, formatTypeSignature, functionTestExamples, isFunctionStatement, type FunctionTestExample, type ValueFacts } from '@arrrank/language';
 import {
-    Interpreter, EnvironmentOverlay, RankError, InterruptedError, DemandBudgetExhausted, checkInterrupt, demandValue, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
+    Interpreter, EnvironmentOverlay, RankError, InterruptedError, DemandBudgetExhausted, checkInterrupt, demandValue, createArraySnapshot, formatValue, summarizeValue, isNativeFunction, isRankArray, isRankSequence, standardModules, parse, type RankValue, type InterpreterOptions,
 } from '@arrrank/interpreter';
 import { INPUT_TYPES, findOperation, moduleForms, moduleOperations, type Operation } from '@arrrank/language';
 import { preview } from './preview.js';
@@ -89,6 +89,7 @@ export function createReplSession(host: ReplHost = {}) {
         wrapSinglePassSequence: replay.wrap,
         persistentResources: true, ...host.options, sourceId, environment,
     });
+    let inputs = new Map<string, RankValue>();
     let runtime = createRuntime();
     let interpreter = runtime.interpreter;
     let aliases = true;
@@ -112,6 +113,8 @@ export function createReplSession(host: ReplHost = {}) {
         if (resetEnvironment) environment = new EnvironmentOverlay(host.options?.environment);
         runtime = createRuntime();
         interpreter = runtime.interpreter;
+        for (const [name, value] of inputs) interpreter.variables.set(name,
+            isRankArray(value) ? createArraySnapshot(value.items) : value);
         aliases = true;
         last = undefined;
         held.clear();
@@ -126,6 +129,10 @@ export function createReplSession(host: ReplHost = {}) {
     };
 
     return {
+        setInputs(values: ReadonlyMap<string, RankValue>): void {
+            inputs = new Map(values);
+            resetExecution(true);
+        },
         resetExecution,
         get savedFile() { return savedFile; },
         get names() { return [...interpreter.bindingNames()]; },

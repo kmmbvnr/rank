@@ -1,3 +1,4 @@
+import { ProgramInputs, programInputs, pathInput } from './program-inputs.js';
 import './styles.css';
 import { MobileGuidance } from './mobile-guidance.js';
 import { Feedback } from './feedback.js';
@@ -126,6 +127,12 @@ let paintedStatus: string | undefined;
 let typeFooterTop: number | undefined;
 let paintedCaret = '';
 const session = browserSession(message => { failure = message; needsRestart = true; render(); }, () => render());
+const programParameters = new ProgramInputs(() => { paintedLines = []; render(); }, async () => {
+    setKeyboard(false);
+    session.requestTurbo?.();
+    await press({ name: 'l', ctrl: true });
+}, (inputs, files) => session.configureInputs(inputs, files), error => { failure = String(error); render(); });
+const programSource = () => repl.notebook.cells.filter(cell => !cell.command).map(cell => cell.source).join('\n');
 const repl = new NotebookRepl(session, statusOnly => render(statusOnly), () => columns, true);
 repl.rows = () => rows;
 const keys = new KeyRouter(repl, [], () => columns, {
@@ -258,7 +265,7 @@ voiceIndicator.onclick = event => {
     focusInput();
 };
 
-(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => closeAbout() || feedback.back() || guidance?.back() || notebookPanel?.close() || valueOverlay.back();
+(globalThis as typeof globalThis & { rankBack?: () => boolean }).rankBack = () => programParameters.back() || closeAbout() || feedback.back() || guidance?.back() || notebookPanel?.close() || valueOverlay.back();
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && activeVoiceDictation) {
@@ -447,6 +454,7 @@ function render(statusOnly = false): void {
         paintStatus('\x1b[90m' + clipped(status, Math.min(40, columns - 1)) + '\x1b[0m');
         return;
     }
+    programParameters.use(notebookHistory?.current?.id ?? 'scratch');
     renderKeyboard();
     const turboRun = commands.querySelector<HTMLButtonElement>('button[data-action="turbo-run"]');
     if (turboRun) turboRun.disabled = repl.running;
@@ -467,6 +475,16 @@ function render(statusOnly = false): void {
         frame = helpFrame(repl.help.text, columns, rows, repl.help.top);
         repl.help.top = frame.top;
     } else {
+        const sourceNotes = new Map<number, ReadonlyMap<number, string>>();
+        repl.notebook.cells.forEach((cell, index) => {
+            const notes = new Map<number, string>();
+            cell.source.split('\n').forEach((line, offset) => {
+                const declaration = pathInput(line);
+                const filename = declaration && programParameters.filename(declaration);
+                if (filename) notes.set(offset + 1, filename);
+            });
+            if (notes.size) sourceNotes.set(index, notes);
+        });
         const showShortcutHints = keyHints();
         const nameFacts = repl.nameFacts;
         const shownFailure = failure === 'Stopped' ? stoppedMessage() : failure;
@@ -483,7 +501,7 @@ function render(statusOnly = false): void {
             repl.breakpoints, repl.promptLabel, repl.liveOutputs, repl.exampleFields,
             repl.liveIterationFocus, repl.stepping,
             anchorCursor && restingCursorRow !== undefined ? Math.min(restingCursorRow, rows - 1) : undefined, showShortcutHints,
-            overscan, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter, touchConsole);
+            overscan, repl.diagnosticOutputs, repl.importFixFocus, nameFacts, repl.valueFocus, notebookGutter, touchConsole, sourceNotes);
         if (windowedFrame) top = Math.min(top, frame.maxTop ?? 0);
         else { top = frame.top; scrollWindow = false; }
         if (!follow && top >= (frame.maxTop ?? 0)) scrollFraction = 0;
@@ -533,6 +551,14 @@ function render(statusOnly = false): void {
         paintLine(element, line);
         if (compact) keepMarkerFullSize(element);
         if (hasCompactGutter(index)) compactGutter(element);
+        if (target?.kind === 'source') {
+            const sourceLine = repl.notebook.cells[target.cell]?.source.split('\n')[target.line - 1] ?? '';
+            const declaration = pathInput(sourceLine);
+            // Only decorate the first visual row of a wrapped declaration.
+            const start = repl.notebook.cells[target.cell].source.split('\n').slice(0, target.line - 1).join('\n').length
+                + (target.line > 1 ? 1 : 0);
+            if (declaration && target.points.some(point => point.offset === start)) programParameters.decorate(element, declaration);
+        }
     });
     paintedLines = painted;
     caret.style.width = (frame.cursorStyle === 6 ? 2 : cellWidth) + 'px';
@@ -593,6 +619,13 @@ async function press(key: Key, text = ''): Promise<void> {
             return press(key, text);
         }
         return;
+    }
+    if (key.name === 'return' || key.ctrl && ['r', 'l'].includes(key.name ?? '')) {
+        programParameters.use(notebookHistory?.current?.id ?? 'scratch');
+        try {
+            if (await programParameters.apply(programSource()) && (key.ctrl || programInputs(programSource()).length))
+                key = { name: 'l', ctrl: true };
+        } catch (error) { failure = String(error); render(); return; }
     }
     if (needsRestart && (key.name === 'return' || key.ctrl && key.name === 'r')) {
         failure = 'Stopped'; render(); return;
@@ -1034,8 +1067,8 @@ commands.onclick = event => {
         haptic('tap');
         closeMenu();
         setKeyboard(false);
-        session.requestTurbo?.();
-        void press({ name: 'l', ctrl: true });
+        programParameters.use(notebookHistory?.current?.id ?? 'scratch');
+        programParameters.open(programSource());
         return;
     }
 };
@@ -1811,7 +1844,10 @@ async function changeNotebook(id?: string): Promise<void> {
         }
         notebookHistory!.schedule(notebookSnapshot());
         valueOverlay.back();
-        await notebookHistory!.open(id, snapshot => repl.restoreNotebook(snapshot.cells, snapshot.draft));
+        await notebookHistory!.open(id, async snapshot => {
+            await programParameters.clearRuntime();
+            await repl.restoreNotebook(snapshot.cells, snapshot.draft);
+        });
         failure = ''; needsRestart = false; lastPause = undefined;
         top = 0; scrollFraction = 0; restingCursorRow = undefined; follow = true;
         rememberNotebook();

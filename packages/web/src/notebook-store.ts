@@ -1,4 +1,4 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 
 export interface NotebookDraft { cells: string[]; draft: string }
 export interface NotebookMeta {
@@ -44,7 +44,21 @@ const native = registerPlugin<{
     remove(options: { id: string; debugPreview?: boolean }): Promise<void>;
     exportFile(options: { id: string; debugPreview?: boolean }): Promise<void>;
     importFile(): Promise<{ source?: string }>;
+    addListener(event: 'inputDownloadProgress', listener: (event: { id: string; received: number; total: number }) => void): Promise<PluginListenerHandle>;
+    downloadInputFile(options: { id: string; url: string }): Promise<{ path: string; name: string }>;
+    pickInputFile(): Promise<{ path?: string; name?: string }>;
 }>('Notebooks');
+
+export const pickInputFile = () => native.pickInputFile();
+export async function downloadInputFile(url: string, progress: (received: number, total: number) => void): Promise<{ path: string; name: string }> {
+    const id = crypto.randomUUID();
+    const listener = await native.addListener('inputDownloadProgress', event => {
+        if (event.id === id) progress(event.received, event.total);
+    });
+    try { return await native.downloadInputFile({ id, url }); }
+    finally { await listener.remove(); }
+}
+
 
 /** Metadata and source use separate stores so paging never reads notebook bodies. */
 export class BrowserNotebookStore implements NotebookStore {

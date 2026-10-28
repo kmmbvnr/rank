@@ -38,6 +38,7 @@ public final class DebugSignalClient extends BridgeWebViewClient {
         Uri uri = request.getUrl();
         if (!"https".equals(uri.getScheme()) || !"localhost".equals(uri.getHost()))
             return super.shouldInterceptRequest(view, request);
+        if ("/__rank_input_file".equals(uri.getPath())) return InputFiles.serve(view.getContext(), uri);
         if ("/__rank_keyboard_hide".equals(uri.getPath())) {
             MainActivity activity = MainActivity.getCurrentActivity();
             if (activity != null) view.post(() -> activity.hideKeyboard());

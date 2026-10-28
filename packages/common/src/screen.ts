@@ -326,6 +326,7 @@ export function notebookFrame(
     stepping = false, anchoredCursorRow?: number, showShortcutHints = true, overscanRows = 0,
     diagnostics?: ReadonlyMap<number, readonly { text: string; error: boolean; inlineText?: string }[]>,
     importFixFocus?: number, nameFacts?: NameFacts, valueFocus?: number, sourceGutter = 6, fixedNameFacts = false,
+    sourceNotes?: ReadonlyMap<number, ReadonlyMap<number, string>>,
 ): ScreenFrame {
     const width = Math.max(1, columns - 1);
     const gutter = Math.min(Math.max(sourceGutter, cellWidth(promptLabel)), Math.max(0, width - 1));
@@ -398,9 +399,10 @@ export function notebookFrame(
             }
             const nextOffset = sourceRows[line + 1]?.points[0]?.offset;
             const nextLine = nextOffset === undefined ? undefined : lineAt(nextOffset);
-            if ((live || index === notebook.active && diagnostics) && nextLine !== sourceLine) {
+            if ((live || index === notebook.active && diagnostics || sourceNotes?.has(index)) && nextLine !== sourceLine) {
                 const outputs = [...(live ? promptOutputs?.get(sourceLine) ?? [] : []),
-                    ...(index === notebook.active ? diagnostics?.get(sourceLine) ?? [] : [])];
+                    ...(index === notebook.active ? diagnostics?.get(sourceLine) ?? [] : []),
+                    ...(sourceNotes?.get(index)?.has(sourceLine) ? [{ text: sourceNotes.get(index)!.get(sourceLine)!, error: false }] : [])];
                 for (const output of outputs) {
                     const sourceText = cell.source.split('\n')[sourceLine - 1] ?? '';
                     const indent = cellWidth(/^\s*/.exec(sourceText)?.[0] ?? '');

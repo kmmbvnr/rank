@@ -2,9 +2,10 @@ import type { SessionSnapshot } from '@arrrank/common/repl-session';
 import type { PauseSnapshot } from '@arrrank/interpreter';
 
 export interface BrowserFile { readonly name: string; readonly data: ArrayBuffer }
-export type SessionMethod = 'execute' | 'preview' | 'prepareFunctions' | 'rewind' | 'resetExecution' | 'debugExecute' | 'turboExecute' | 'setDebugBreakpoints' | 'inspect' | 'extend';
+export interface ProgramInputValue { name: string; valueType: string; many: boolean; values: string[] }
+export type SessionMethod = 'setInputs' | 'execute' | 'preview' | 'prepareFunctions' | 'rewind' | 'resetExecution' | 'debugExecute' | 'turboExecute' | 'setDebugBreakpoints' | 'inspect' | 'extend';
 export interface WorkerRequest { id: number; method: SessionMethod; args: unknown[] }
-export interface WorkerInit { signal?: SharedArrayBuffer; signalUrl?: string }
+export interface WorkerInit { nativeFiles?: boolean; inputs?: ProgramInputValue[]; files?: BrowserFile[]; signal?: SharedArrayBuffer; signalUrl?: string }
 export interface WorkerResponse {
     id: number;
     result?: unknown;

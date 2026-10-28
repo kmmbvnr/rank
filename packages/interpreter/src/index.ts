@@ -18,3 +18,5 @@ export { InterruptedError, DemandBudgetExhausted, withDemandBudget, DebugSession
 export { integerValue, realValue } from './numeric-conversions.js';
 
 export { demand, demandValue, isRankPlan, type RankPlan } from './plan.js';
+
+export { inputValues } from './cli-args.js';
