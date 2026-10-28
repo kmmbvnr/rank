@@ -1,8 +1,8 @@
-import { applicationExpression, flattenApplication } from './expressions.js';
-import { AstUtils, GrammarUtils, type AstNode } from 'langium';
+import { applicationExpression, attachedSign, flattenApplication } from './expressions.js';
+import { AstUtils, type AstNode } from 'langium';
 import {
     isBinaryExpression, isLabelLiteral, isNumberLiteral, isUnaryExpression, type Expression,
-    isPrimaryTailExpression, isArrayAssignmentStatement, isNameExpression, type Program, type ApplicationExpression,
+    isPrimaryTailExpression, isNameExpression, type Program, type ApplicationExpression,
     type KeyedRollingExpression, type KeyedReachExpression, type KeyedJoinExpression,
     type KeyedMergeExpression, type TableWriteExpression,
 } from './generated/ast.js';
@@ -13,15 +13,6 @@ type Fields<T extends AstNode> = Omit<T, keyof AstNode> & Pick<T, '$type'>;
 export function normalizePrimaryApplications(program: Program): void {
     // Keep the node objects: their CST nodes and descendants already refer to them.
     for (const node of AstUtils.streamAst(program).toArray()) {
-        if (isArrayAssignmentStatement(node)) {
-            const marker = node.indices.findIndex((item, index) => index > 0
-                && !item.sign && !item.spread && isNameExpression(item.value) && item.value.name === 'rank');
-            if (marker >= 0 && marker + 1 < node.indices.length) {
-                node.selectorRanks = node.indices.slice(marker + 1);
-                node.indices = node.indices.slice(0, marker);
-                AstUtils.linkContentToContainer(node);
-            }
-        }
         if (!isPrimaryTailExpression(node)) continue;
         const operator = node.operator?.replace(/\s+/g, '');
         let properties: Fields<ApplicationExpression> | Fields<KeyedRollingExpression>
@@ -79,10 +70,7 @@ export function normalizePrimaryApplications(program: Program): void {
     // A glued minus after axis belongs to its literal, including symbolic folds
     // and implicit pipelines. Spaced subtraction keeps its arithmetic meaning.
     for (const node of AstUtils.streamAst(program).toArray().reverse()) {
-        if (!isBinaryExpression(node) || node.operator !== '-') continue;
-        const operator = GrammarUtils.findNodeForProperty(node.$cstNode, 'operator');
-        if (!operator || !/\s/.test(operator.root.fullText[operator.offset - 1] ?? '')
-            || /\s/.test(operator.root.fullText[operator.end] ?? ' ')) continue;
+        if (!isBinaryExpression(node) || !attachedSign(node)) continue;
         const left = isBinaryExpression(node.left) ? node.left.right : node.left;
         const parts = flattenApplication(left);
         const marker = parts.map(part => isNameExpression(part) && part.name === 'axis').lastIndexOf(true);

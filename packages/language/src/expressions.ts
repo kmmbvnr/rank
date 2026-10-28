@@ -1,6 +1,17 @@
+import { GrammarUtils } from 'langium';
 import { isAllAxisExpression, isApplicationExpression, isBinaryExpression, isNameExpression,
-    isParenthesizedExpression, type Expression } from './generated/ast.js';
+    isParenthesizedExpression, type BinaryExpression, type Expression } from './generated/ast.js';
 import { findOperation } from './operations.js';
+
+/** A `-` after whitespace and before its operand, as in `A -1`, is a sign; `A - 1` and `A-1` subtract. */
+export function attachedSign(expression: BinaryExpression): boolean {
+    if (expression.operator !== '-') return false;
+    const operator = GrammarUtils.findNodeForProperty(expression.$cstNode, 'operator');
+    if (!operator || operator.offset === 0) return false;
+    const right = expression.right.$cstNode;
+    if (!right || operator.end !== right.offset) return false;
+    return /\s/.test(operator.root.fullText[operator.offset - 1]);
+}
 
 /** Synthesized and normalized calls already place every operand before the operation. */
 const placedOperands = Symbol('placed operands');

@@ -208,7 +208,7 @@ UnpackStatement:
     'unpack' names+=UnpackTarget+ '=' value=Expression;
 
 ArrayAssignmentStatement returns ArrayAssignmentStatement:
-    name=AssignableName indices+=AddressItem+
+    name=AssignableName indices+=AddressItem+ ('rank' selectorRanks+=AddressItem+)?
     operator=AssignmentOperator value=Expression (accumulate?=ACCUMULATE)?;
 
 AssignmentStatement:
@@ -305,12 +305,28 @@ ArrayNameExpression infers NameExpression:
 
 // Inline array values and range bounds stop before `shape` and pipeline clause words.
 ArrayReferenceName returns string:
+    AddressReferenceName | 'rank';
+
+AddressNameExpression infers NameExpression:
+    name=AddressReferenceName;
+
+AddressReferenceName returns string:
     VARIABLE | WORD | QUALIFIED_NAME | ContextualWord;
 
 AddressItem:
-    spread?='unpack' value=ArrayAtom |
-    sign=('+' | '-')? value=ArrayAtom |
+    spread?='unpack' value=AddressAtom |
+    sign=('+' | '-')? value=AddressAtom |
     all?='#';
+
+AddressAtom returns Expression:
+    NumberLiteral |
+    StringLiteral |
+    BooleanLiteral |
+    LabelLiteral |
+    NewStructureExpression |
+    StdinExpression |
+    AddressNameExpression |
+    ParenthesizedExpression;
 
 // A filter condition may drop its leading operand: the filtered value itself
 // becomes the left side, so `filter greater 5` reads as `each value greater 5`.
@@ -631,11 +647,11 @@ TypeName returns string:
 
 // Words that also act as operations or modifiers inside expressions and array items.
 ContextualWord returns string:
-    'rank' | 'text' | 'first' | 'index' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'ascending' | 'descending';
+    'text' | 'first' | 'index' | 'sql' | 'explain' | 'insert' | 'update' | 'with' | 'ascending' | 'descending';
 
 // Pipeline and table clause keywords that cannot appear as bare expression references.
 ClauseKeyword returns string:
-    'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'delete';
+    'rank' | 'take' | 'drop' | 'from' | 'after' | 'till' | 'filter' | 'select' | 'delete';
 
 Identifier returns string:
     VARIABLE | WORD | ContextualWord | ClauseKeyword | 'shape';

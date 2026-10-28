@@ -12,7 +12,7 @@ import {
     type BinaryExpression, type Expression, type FunctionStatement, type NameExpression, type Program,
 } from './generated/ast.js';
 import { analyzeBindings } from './analysis/bindings.js';
-import { flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped, markPlacedOperands, hasPlacedOperands } from './expressions.js';
+import { attachedSign, flattenApplication as flatten, applicationExpression as application, groupedExpression as grouped, markPlacedOperands, hasPlacedOperands } from './expressions.js';
 import { findOperation, operationArities, type Operation } from './operations.js';
 import { splitClauseConditions } from './clause-conditions.js';
 
@@ -79,15 +79,6 @@ export function requiresDataOperand(expression: Expression): boolean {
 }
 export function expressionDiagnostics(program: Program): readonly GroupingDiagnostic[] {
     return (program as AnnotatedProgram)[grouping]?.diagnostics ?? [];
-}
-
-/** A `-` after whitespace and before its operand, as in `A -1`, is a sign; `A - 1` and `A-1` subtract. */
-function attachedSign(expression: BinaryExpression): boolean {
-    if (expression.operator !== '-') return false;
-    const operator = GrammarUtils.findNodeForProperty(expression.$cstNode, 'operator');
-    if (!operator) return false;
-    const text = operator.root.fullText;
-    return /\s/.test(text[operator.offset - 1] ?? '') && !/\s/.test(text[operator.end] ?? ' ');
 }
 
 export interface GroupingOptions {
