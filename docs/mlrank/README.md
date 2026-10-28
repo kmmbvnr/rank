@@ -309,7 +309,8 @@ ordinary execution errors are not retried. Runtime shutdown also releases resour
 Source or weight changes produce a new graph. Weight bytes are checked on each call,
 so file reads and hashing still contribute to host cost.
 
-Tensor inputs and outputs remain JSON arrays. The small MLP does not justify another
+Ordinary tensor inputs and outputs use JSON arrays; file-backed inputs and
+retained GPU handles use the paths described below. The small MLP does not justify another
 binary tensor protocol yet: its repeated invoke body is 109 bytes on desktop and
 94 bytes on Android. There are no model bytes in either repeated request. The current
 FlatBuffer is 1,924 bytes instead of 2,072: unused original linear-weight buffers are
@@ -1728,3 +1729,65 @@ GPU requests. The 474 worker calls are six real forward passes. The updated
 OnePlus app has **GPT-2 generate** saved with its six RAM modules, and the demo
 was run from the menu and again after reload. Results are recorded in
 `benchmarks/baselines/2026-10-29-mlrank-gpt2-generation.json`.
+
+### Retained GPU tensors: first slice of stage 15
+
+A RAM call normally returns an ordinary array. `gpukeep` creates a callable with
+the same input order and call syntax that returns a retained F32 GPU tensor:
+
+```rank
+use ml
+use "kvwrite.ram"
+keep = (kvwrite gpukeep)
+Cache = Empty keep Row Slot
+Snapshot = Cache gpuread
+Cache gpufree
+```
+
+The parentheses evaluate the function adapter; an unparenthesized lowercase
+binding denotes a function pipeline in Rank. The handle is a record containing
+an identifier, dtype and shape. Viewing or assigning it does not read tensor
+data. Pass it directly to a compatible RAM input. `gpuread` explicitly copies
+the data into an ordinary Rank array; `gpufree` invalidates every alias.
+Handles belong to a live host session and cannot be persisted as tensor data.
+Ordinary arrays, file-backed inputs and retained inputs can share a call.
+
+Retaining an output transfers ownership of its native TensorBuffer and allocates
+a replacement output for the model's next run. Old snapshots are unchanged.
+The native bridges validate actual input shape and dtype. They never silently
+evict states or reconstruct a lost state after a runtime restart. Models still
+use their existing LRU; a shared GPU environment keeps retained buffers alive
+after model release. Model reservations plus retained F32 bytes share the
+128 MiB admission budget, with at most 64 retained states. These are logical
+accounting limits, not measurements of driver allocation. Update a cache,
+then free its predecessor; both are temporarily resident.
+
+Interpreter disposal attempts to free its retained states. Programs should free
+them explicitly, including on error paths. Abrupt worker/process termination
+does not guarantee interpreter disposal: on Android, restart the app process if
+a terminated worker left unreachable native states. Automatic worker-session
+reclamation remains follow-up work.
+
+[GPU KV cache](../../demos/mlrank/kv-cache.ra) initializes one token, appends
+three tokens to an eight-slot packed K/V tensor and evaluates attention on the
+GPU. It returns `2 3 4 5`. The saved **GPU KV cache** notebook on OnePlus was
+run from the menu and run again after reloading the interface. The example uses explicit write-slot and attention
+masks. The write graph computes a new full cache; it does not update in place.
+It is a transport/lifetime demonstration, not the twelve-layer GPT-2 generator.
+The slot primitive itself does not enforce token positions or context overflow.
+
+Reproduce with `node scripts/mlrank-kv-check.mjs` after the TypeScript build.
+The independent float64 attention calculation checks two interleaved sequences
+through all eight slots, old snapshots, model eviction/reload and stale handles.
+Each host passed 32 comparisons, 16 retained outputs and 30 state-input reuses.
+Retained outputs reported zero bridge readback bytes; explicit snapshot checks
+still read data. Maximum errors were 6.87e-8 on Metal and Adreno, and 1.31e-7 on
+Intel. Android logs show complete delegation (18/18 and 15/15 nodes).
+For Android, generate `--fixture` and substitute its JSON into
+`packages/web/test/ram-kv-cache.playwright.js`.
+
+This establishes correctness and removes host transport for retained outputs.
+It does not establish a speedup or zero-copy behavior inside LiteRT. Remaining
+stage-15 work: integrate per-layer caches into GPT-2, define prefill/decode and
+overflow/reset behavior, reclaim abandoned worker sessions, compare generated
+tokens against the uncached model, then measure token latency and memory.

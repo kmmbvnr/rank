@@ -374,6 +374,9 @@ Tensor activations and accelerator modules.
 
 | Form | Result | Default cells | Summary |
 | --- | --- | --- | --- |
+| `ramfunction gpukeep` | value | unary all | Wraps a RAM function to retain its F32 output as an explicit GPU tensor handle. |
+| `GpuTensor gpuread` | array, io | unary all | Copies a retained GPU tensor to an ordinary Rank array. |
+| `GpuTensor gpufree` | boolean, io | unary all | Releases a retained GPU tensor; subsequent use of any alias fails. |
 | `Value relu` | number | unary 0 | Replaces negative real values with zero. |
 
 ## numbers

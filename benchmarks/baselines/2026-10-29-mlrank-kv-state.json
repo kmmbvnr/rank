@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-29",
+  "scope": "Retained F32 TensorBuffers and eight-slot single-head attention; GPT-2 integration remains pending",
+  "mac": {
+    "checks": 32,
+    "maxError": 6.861217960452137e-08,
+    "retainedOutputs": 16,
+    "stateInputsReused": 30,
+    "retainedReadbackBytes": 0,
+    "independentSequences": 2,
+    "positions": 8,
+    "modelEviction": true,
+    "staleStatesRejected": true,
+    "finalStateBytes": 0,
+    "rankDemo": true
+  },
+  "intel": {
+    "checks": 32,
+    "maxError": 1.300964411754535e-07,
+    "retainedOutputs": 16,
+    "stateInputsReused": 30,
+    "retainedReadbackBytes": 0,
+    "independentSequences": 2,
+    "positions": 8,
+    "modelEviction": true,
+    "staleStatesRejected": true,
+    "finalStateBytes": 0,
+    "rankDemo": true
+  },
+  "oneplus": {
+    "checks": 32,
+    "maxError": 6.861217960452137e-08,
+    "retainedOutputs": 16,
+    "stateInputsReused": 30,
+    "retainedReadbackBytes": 0,
+    "independentSequences": 2,
+    "positions": 8,
+    "modelEviction": true,
+    "staleStatesRejected": true,
+    "finalStateBytes": 0
+  },
+  "androidPlacement": {
+    "kvwrite": "18/18 nodes LITERT_CL",
+    "kvattention": "15/15 nodes LITERT_CL"
+  },
+  "androidUI": {
+    "notebookId": "be80da16-38e4-482c-8cf0-29625073561a",
+    "title": "GPU KV cache",
+    "result": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "persistedAndRerun": true
+  },
+  "limits": {
+    "logicalBudgetBytes": 134217728,
+    "maxStates": 64
+  },
+  "performance": "No latency improvement or internal runtime zero-copy claim"
+}
