@@ -47,8 +47,11 @@ Rt = (Tot * Tot - 4 * (A * B - 1)) sqrt
 Sides' = (Rt - Tot) / 2
 Eps = 1 - 0.000000000001
 Small = (Sides min) * Eps
-Xs = array shape Cap fill 0.0
-Ys = array shape Cap fill 0.0
+rem Pending siblings follow upward steps.
+rem Each adds at least Small to Y < 1.
+StackCap = Cap min ((1.0 / Small) ceil + 2)
+Xs = array shape StackCap fill 0.0
+Ys = array shape StackCap fill 0.0
 Xs 0 = 1.0
 Top = 1
 Answer = 0
@@ -61,11 +64,20 @@ for Step in 1 to (Cap * 4)
   S = (Dd - Sm) / 2
   if S at least Small
     Answer += 1
-    Xs Top = X + S
-    Ys Top = Y
-    Xs (Top + 1) = X
-    Ys (Top + 1) = Y + S
-    Top += 2
+    Nx = X + S
+    Ny = Y + S
+    rem A child fits iff its Small square
+    rem stays under the hyperbola.
+    if (Nx + Small) * (Y + Small) at most 1
+      Xs Top = Nx
+      Ys Top = Y
+      Top += 1
+    end
+    if (X + Small) * (Ny + Small) at most 1
+      Xs Top = X
+      Ys Top = Ny
+      Top += 1
+    end
   end
   if Top equal 0
     break
