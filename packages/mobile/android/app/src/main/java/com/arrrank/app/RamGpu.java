@@ -4,12 +4,14 @@ import android.content.Context;
 import android.util.Base64;
 import com.google.ai.edge.litert.Accelerator;
 import com.google.ai.edge.litert.CompiledModel;
+import com.google.ai.edge.litert.Environment;
 import com.google.ai.edge.litert.TensorBuffer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -18,16 +20,21 @@ import java.util.concurrent.Executors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/** All GPU creation, execution and disposal use the same thread. One cached graph. */
+/** GPU resources and their bounded LRU are owned by one executor thread. */
 final class RamGpu {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Context context;
-    private String key;
-    private CompiledModel model;
-    private List<TensorBuffer> inputs;
-    private int[] inputSizes;
-    private String[] fileInputs;
-    private List<TensorBuffer> outputs;
+    private Environment environment;
+    private static final long MEMORY_BUDGET = 128L * 1024 * 1024;
+    private static final int MAX_MODELS = 4;
+    private final LinkedHashMap<String, Resident> models = new LinkedHashMap<>(8, 0.75f, true);
+    private static final class Resident {
+        CompiledModel model;
+        List<TensorBuffer> inputs, outputs;
+        int[] inputSizes;
+        String[] fileInputs;
+        long reservation;
+    }
 
     RamGpu(Context context) { this.context = context.getApplicationContext(); }
 
@@ -45,6 +52,7 @@ final class RamGpu {
                 if (payload == null || payload.length() > 32 * 1024 * 1024) throw new IllegalArgumentException("Invalid RAM request");
                 result.complete(execute(new JSONObject(payload)).toString());
             } catch (Exception error) { result.complete(failure(error)); }
+            catch (OutOfMemoryError error) { result.complete(failure(new IllegalStateException("RAM GPU allocation failed", error))); }
         });
     }
 
@@ -67,14 +75,22 @@ final class RamGpu {
         if (!action.equals("load") && !action.equals("invoke") && !action.equals("release"))
             throw new IllegalArgumentException("Unknown RAM action");
         if (action.equals("release")) {
-            if (request.optString("modelId").equals(key)) closeModel();
-            return new JSONObject().put("released", true);
+            closeModel(models.remove(request.optString("modelId")));
+            if (models.isEmpty()) closeEnvironment();
+            return cacheStatus(new JSONObject().put("released", true));
         }
         boolean cached = action.equals("invoke");
-        if (cached && (model == null || !request.optString("modelId").equals(key)))
+        Resident entry = cached ? models.get(request.optString("modelId")) : new Resident();
+        if (entry == null)
             return new JSONObject().put("error", "RAM model is no longer loaded").put("code", "STALE_MODEL");
+        String key = request.optString("modelId");
+        int evicted = 0;
         if (!cached) {
-            closeModel();
+            Object raw = request.opt("reservationBytes");
+            if (raw != null && (!raw.toString().matches("[0-9]+") || request.getLong("reservationBytes") < 1
+                    || request.getLong("reservationBytes") > MEMORY_BUDGET))
+                throw new IllegalArgumentException("RAM model reservation exceeds the 128 MiB budget or is invalid");
+            entry.reservation = raw == null ? MEMORY_BUDGET : request.getLong("reservationBytes");
             if (request.has("model") == request.has("modelFile")) throw new IllegalArgumentException("Supply exactly one model source");
             boolean temporary = !request.has("modelFile");
             File file = temporary ? File.createTempFile("rank-ram-", ".tflite", context.getCacheDir())
@@ -85,6 +101,7 @@ final class RamGpu {
                 } else {
                     JSONObject descriptor = request.getJSONObject("modelFile");
                     long size = file.length(), modified = file.lastModified();
+                    if (size > entry.reservation) throw new IllegalArgumentException("RAM reservation is smaller than the model file");
                     if (size != descriptor.getLong("size")) throw new IllegalArgumentException("Model file size mismatch");
                     MessageDigest digest = MessageDigest.getInstance("SHA-256");
                     byte[] chunk = new byte[1024 * 1024];
@@ -96,29 +113,43 @@ final class RamGpu {
                     if (!hex.toString().equals(descriptor.getString("sha256"))) throw new IllegalArgumentException("Model file checksum mismatch");
                     if (size != file.length() || modified != file.lastModified()) throw new IllegalArgumentException("Model file changed during verification");
                 }
+                if (file.length() > entry.reservation)
+                    throw new IllegalArgumentException("RAM reservation is smaller than the serialized model");
+                while (!models.isEmpty() && (models.size() >= MAX_MODELS || residentBytes() + entry.reservation > MEMORY_BUDGET)) {
+                    String oldest = models.keySet().iterator().next();
+                    closeModel(models.remove(oldest)); evicted++;
+                }
                 // GPU only: do not request CPU as a secondary accelerator.
                 CompiledModel.Options options = new CompiledModel.Options(Accelerator.GPU);
                 options.setGpuOptions(new CompiledModel.GpuOptions(null, null, null,
                     CompiledModel.GpuOptions.Precision.FP32, null, null, null, null,
                     null, null, null, null, null, null, null));
-                model = CompiledModel.create(file.getAbsolutePath(), options);
-                inputs = model.createInputBuffers(); outputs = model.createOutputBuffers();
-                fileInputs = new String[inputs.size()];
+                // A single environment owns the shared GPU context. Closing an older
+                // per-model environment while another is alive crashes Adreno's driver.
+                if (environment == null) environment = Environment.create();
+                entry.model = CompiledModel.create(file.getAbsolutePath(), options, environment);
+                entry.inputs = entry.model.createInputBuffers(); entry.outputs = entry.model.createOutputBuffers();
+                entry.fileInputs = new String[entry.inputs.size()];
                 JSONArray sizes = request.optJSONArray("inputSizes");
                 if (sizes != null) {
-                    if (sizes.length() != inputs.size()) throw new IllegalArgumentException("Wrong RAM input count");
-                    inputSizes = new int[sizes.length()];
-                    for (int i = 0; i < inputSizes.length; i++) {
-                        inputSizes[i] = sizes.getInt(i);
-                        if (inputSizes[i] < 1 || inputSizes[i] > 4194304)
+                    if (sizes.length() != entry.inputs.size()) throw new IllegalArgumentException("Wrong RAM input count");
+                    entry.inputSizes = new int[sizes.length()];
+                    for (int i = 0; i < entry.inputSizes.length; i++) {
+                        entry.inputSizes[i] = sizes.getInt(i);
+                        if (entry.inputSizes[i] < 1 || entry.inputSizes[i] > 4194304)
                             throw new IllegalArgumentException("Invalid RAM input size");
                     }
-                } else if (inputs.size() != 1) throw new IllegalArgumentException("Multiple RAM inputs require sizes");
+                } else if (entry.inputs.size() != 1) throw new IllegalArgumentException("Multiple RAM inputs require sizes");
                 key = java.util.UUID.randomUUID().toString();
-            } catch (Exception error) { closeModel(); throw error; } finally { if (temporary) file.delete(); }
+                models.put(key, entry);
+            } catch (Exception | OutOfMemoryError error) { closeModel(entry); if (models.isEmpty()) closeEnvironment(); throw error; } finally { if (temporary) file.delete(); }
         }
-        if (action.equals("load")) return new JSONObject().put("modelId", key)
-            .put("gpuOnlyRequested", true).put("prepareMs", (System.nanoTime() - started) / 1e6);
+        if (action.equals("load")) return cacheStatus(new JSONObject().put("modelId", key)
+            .put("cacheEvictions", evicted).put("gpuOnlyRequested", true).put("prepareMs", (System.nanoTime() - started) / 1e6));
+        CompiledModel model = entry.model;
+        List<TensorBuffer> inputs = entry.inputs, outputs = entry.outputs;
+        int[] inputSizes = entry.inputSizes;
+        String[] fileInputs = entry.fileInputs;
         long prepared = System.nanoTime();
         JSONArray data = request.getJSONArray("input");
         int[] sizes = inputSizes == null ? new int[] {data.length()} : inputSizes;
@@ -173,14 +204,27 @@ final class RamGpu {
             result.put("readbackMs", (read - dispatched) / 1e6);
             result.put("outputMs", (packed - read) / 1e6);
         }
-        return result;
+        return cacheStatus(result);
     }
 
-    private void closeModel() {
-        if (inputs != null) for (TensorBuffer buffer : inputs) buffer.close();
-        if (outputs != null) for (TensorBuffer buffer : outputs) buffer.close();
-        if (model != null) model.close();
-        inputs = null; inputSizes = null; fileInputs = null; outputs = null; model = null; key = null;
+    private long residentBytes() {
+        long bytes = 0; for (Resident entry : models.values()) bytes += entry.reservation;
+        return bytes;
     }
-    void close() { executor.submit(this::closeModel); executor.shutdown(); }
+    private JSONObject cacheStatus(JSONObject result) throws Exception {
+        return result.put("residentBytes", residentBytes()).put("residentModels", models.size())
+            .put("memoryBudgetBytes", MEMORY_BUDGET);
+    }
+    private static void closeModel(Resident entry) {
+        if (entry == null) return;
+        if (entry.inputs != null) for (TensorBuffer buffer : entry.inputs) buffer.close();
+        if (entry.outputs != null) for (TensorBuffer buffer : entry.outputs) buffer.close();
+        if (entry.model != null) entry.model.close();
+        entry.inputs = null; entry.outputs = null; entry.model = null; entry.fileInputs = null;
+    }
+    private void closeEnvironment() { if (environment != null) { environment.close(); environment = null; } }
+    void close() {
+        executor.submit(() -> { for (Resident entry : models.values()) closeModel(entry); models.clear(); closeEnvironment(); });
+        executor.shutdown();
+    }
 }

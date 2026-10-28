@@ -37,7 +37,7 @@ class FileCacheTest(unittest.TestCase):
         self.loader.start()
         self.load()
     def tearDown(self):
-        runtime.run({'action':'release', 'modelId':self.key})
+        for key in list(runtime.models): runtime.run({'action':'release', 'modelId':key})
         self.loader.stop()
         self.directory.cleanup()
     def replace(self, values):
@@ -74,5 +74,46 @@ class FileCacheTest(unittest.TestCase):
     def test_release_and_load_invalidate_inputs(self):
         self.invoke(); runtime.run({'action':'release','modelId':self.key}); self.load()
         self.assertEqual(self.invoke()['fileBytesRead'], 8)
+
+    def test_multiple_models_budget_lru_and_individual_release(self):
+        with patch.object(runtime.CompiledModel, 'from_buffer', side_effect=lambda *args, **kwargs: Model()):
+            load = lambda: runtime.run({'action':'load','model':'AA==','reservationBytes':64*1024*1024})
+            a = load()['modelId']; self.key = a
+            self.assertEqual(self.invoke()['fileBytesRead'], 8)
+            b = load()['modelId']; self.key = b
+            self.assertEqual(self.invoke()['fileBytesRead'], 8)
+            self.key = a
+            self.assertEqual(self.invoke()['fileInputsReused'], 1)
+            c = load()
+            self.assertEqual(c['cacheEvictions'], 1)
+            self.assertEqual(c['residentModels'], 2)
+            self.assertEqual(c['residentBytes'], 128*1024*1024)
+            self.assertEqual(runtime.run({'action':'invoke','modelId':b})['code'], 'STALE_MODEL')
+            self.assertEqual(self.invoke()['fileBytesRead'], 0)
+            released = runtime.run({'action':'release','modelId':c['modelId']})
+            self.assertEqual(released['residentModels'], 1)
+            self.assertEqual(self.invoke()['fileInputsReused'], 1)
+
+    def test_invalid_admission_preserves_existing_model(self):
+        self.invoke()
+        for reservation in [0, -1, True, 0.5, 128*1024*1024+1]:
+            with self.assertRaisesRegex(ValueError, 'reservation'):
+                runtime.run({'action':'load','model':'AA==','reservationBytes':reservation})
+        with self.assertRaisesRegex(ValueError, 'smaller'):
+            runtime.run({'action':'load','model':'AAAA','reservationBytes':1})
+        self.assertEqual(self.invoke()['fileInputsReused'], 1)
+
+    def test_entry_cap_and_failed_allocation(self):
+        with patch.object(runtime.CompiledModel, 'from_buffer', side_effect=lambda *args, **kwargs: Model()):
+            ids = [runtime.run({'action':'load','model':'AA==','reservationBytes':1024})['modelId'] for _ in range(5)]
+            self.assertEqual(len(runtime.models), 4)
+            self.assertEqual(runtime.run({'action':'invoke','modelId':ids[0]})['code'], 'STALE_MODEL')
+        # Make room so a failed construction need not evict an existing part.
+        runtime.run({'action':'release','modelId':ids[1]})
+        before = list(runtime.models)
+        with patch.object(runtime.CompiledModel, 'from_buffer', side_effect=MemoryError('allocation failed')):
+            with self.assertRaisesRegex(MemoryError, 'allocation failed'):
+                runtime.run({'action':'load','model':'AA==','reservationBytes':1024})
+        self.assertEqual(list(runtime.models), before)
 
 if __name__ == '__main__': unittest.main()

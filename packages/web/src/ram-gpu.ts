@@ -24,4 +24,4 @@ export const browserRamGpu: RamGpu = (graph, input, inputFiles) => client.invoke
     let binary = '';
     for (const byte of graph.model) binary += String.fromCharCode(byte);
     return btoa(binary);
-}, input, graph.outputShape.reduce((a, b) => a * b, 1), graph.inputs.map(input => input.shape.reduce((a,b)=>a*b,1)), inputFiles).output!;
+}, input, graph.outputShape.reduce((a, b) => a * b, 1), graph.inputs.map(input => input.shape.reduce((a,b)=>a*b,1)), inputFiles, graph.reservationBytes).output!;

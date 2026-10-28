@@ -45,7 +45,7 @@ export function runRamGpu(request: RamGpuRequest): RamGpuResult {
 }
 export const nodeRamGpu: RamGpu = (graph, input, inputFiles) => {
     const result = client.invoke(graph, () => Buffer.from(graph.model).toString('base64'), input,
-        graph.outputShape.reduce((a, b) => a * b, 1), graph.inputs.map(input => input.shape.reduce((a,b)=>a*b,1)), inputFiles);
+        graph.outputShape.reduce((a, b) => a * b, 1), graph.inputs.map(input => input.shape.reduce((a,b)=>a*b,1)), inputFiles, graph.reservationBytes);
     if (!result.fullyAccelerated) throw new Error('RAM graph did not execute entirely on GPU');
     return result.output!;
 };

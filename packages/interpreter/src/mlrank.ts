@@ -21,6 +21,8 @@ export interface RamGraph {
     readonly outputShape: readonly number[];
     readonly output: number;
     readonly model: Uint8Array;
+    /** Serialized graph plus nominal tensor storage; excludes driver overhead. */
+    readonly reservationBytes: number;
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
 export type RamGpu = (graph: RamGraph, input: readonly number[], inputFiles?: readonly (FileTensorInput | null)[]) => readonly number[];
@@ -277,7 +279,12 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     for (const node of nodes) if (node.kind !== 'input') validShape(node.shape, output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
-    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, inputs, nodes, outputShape: nodes[result].shape, output: result, model: ramModel(nodes, result) };
+    const model = ramModel(nodes, result);
+    const transposedWeights = new Set(nodes.flatMap(node => node.kind === 'linear' ? [node.right] : []));
+    const tensorBytes = (node: RamNode) => node.shape.reduce((a,b) => a*b, 1) * 4;
+    const reservationBytes = model.length + nodes.reduce((sum,node) => sum + tensorBytes(node), 0)
+        + [...transposedWeights].reduce((sum,index) => sum + tensorBytes(nodes[index]), 0);
+    const graph: RamGraph = { precision: precision as RamGraph['precision'], shape, inputs, nodes, outputShape: nodes[result].shape, output: result, model, reservationBytes };
     // Ordinary import discovery sees a standard function with the declared inputs. Its runtime
     // implementation is installed by useFile, rather than evaluating this stub.
     const program = parse(`fun ${inputs[0].name} ${name} ${inputs.slice(1).map(input => input.name).join(' ')}\nreturn ${input.name}\nend\n`, id);

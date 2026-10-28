@@ -1,12 +1,13 @@
 import type { FileTensorInput } from './file-tensor.js';
 export interface RamModelFile { path: string; size: number; sha256: string }
-/** One resident native model. A stale handle is retried once after a runtime restart
- * or another client loading a model. Execution failures are never retried. */
+/** Bounded client handles for the native LRU. Retry stale handles once after
+ * eviction/restart; ordinary execution errors are never retried. */
 export interface RamRequest {
-    action: 'load' | 'invoke' | 'release'; profile?: boolean; model?: string; modelId?: string;
+    action: 'load' | 'invoke' | 'release'; profile?: boolean; reservationBytes?: number; model?: string; modelId?: string;
     inputFiles?: readonly (FileTensorInput | null)[]; modelFile?: RamModelFile; inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
 }
 export interface RamReply {
+    residentBytes?: number; residentModels?: number; memoryBudgetBytes?: number; cacheEvictions?: number;
     error?: string; code?: string; modelId?: string; output?: number[];
     fullyAccelerated?: boolean; gpuOnlyRequested?: boolean;
     fileBytesRead?: number; fileInputsReused?: number; pssBytes?: number;
@@ -14,7 +15,7 @@ export interface RamReply {
     cached?: boolean; prepareMs?: number; executeMs?: number; backend?: string;
 }
 export function createRamClient(send: (request: RamRequest) => RamReply) {
-    let current: object | string | undefined, modelId: string | undefined;
+    const handles = new Map<object | string, string>();
     const check = (reply: RamReply): RamReply => {
         if (reply.error) throw new Error(reply.error);
         if (!reply.fullyAccelerated && !reply.gpuOnlyRequested) throw new Error('RAM GPU execution was not requested');
@@ -22,27 +23,34 @@ export function createRamClient(send: (request: RamRequest) => RamReply) {
     };
     return {
         release() {
-            if (modelId) {
+            for (const [key, modelId] of handles) {
                 const reply = send({ action: 'release', modelId });
                 if (reply.error) throw new Error(reply.error);
+                handles.delete(key);
             }
-            current = modelId = undefined;
         },
-        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[], inputFiles?: readonly (FileTensorInput | null)[]): RamReply {
+        invoke(key: object | string, encode: () => string | RamModelFile, input: readonly number[], outputSize: number, inputSizes?: readonly number[], inputFiles?: readonly (FileTensorInput | null)[], reservationBytes?: number): RamReply {
             let prepareMs = 0, loaded = false;
+            let modelId = handles.get(key);
             for (let attempt = 0; attempt < 2; attempt++) {
-                if (current !== key || !modelId) {
-                    // Loading atomically replaces the runtime's single resident model.
-                    current = modelId = undefined;
+                if (!modelId) {
                     const source = encode();
-                    const reply = check(send({ action: 'load', ...(typeof source === 'string' ? { model: source } : { modelFile: source }), ...(inputSizes ? {inputSizes} : {}) }));
+                    const reply = check(send({ action: 'load', ...(typeof source === 'string' ? { model: source } : { modelFile: source }), ...(inputSizes ? {inputSizes} : {}), ...(reservationBytes !== undefined ? {reservationBytes} : {}) }));
                     if (!reply.modelId) throw new Error('RAM runtime returned no model identifier');
-                    modelId = reply.modelId; current = key; loaded = true;
+                    modelId = reply.modelId; loaded = true;
+                    handles.set(key, modelId);
+                    if (handles.size > 4) {
+                        const oldest = handles.keys().next().value!;
+                        const released = send({action:'release', modelId:handles.get(oldest)});
+                        if (released.error) throw new Error(released.error);
+                        handles.delete(oldest);
+                    }
                     prepareMs += reply.prepareMs ?? 0;
                 }
                 const reply = send({ action: 'invoke', modelId, input, outputSize, ...(inputFiles ? {inputFiles} : {}) });
-                if (reply.code === 'STALE_MODEL') { current = modelId = undefined; continue; }
+                if (reply.code === 'STALE_MODEL') { handles.delete(key); modelId = undefined; continue; }
                 check(reply);
+                handles.delete(key); handles.set(key, modelId);
                 return { ...reply, cached: !loaded, prepareMs: prepareMs + (reply.prepareMs ?? 0) };
             }
             throw new Error('RAM model expired again after reload');

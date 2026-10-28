@@ -67,3 +67,45 @@ describe('RAM model lifecycle', () => {
         expect(() => expired.invoke({}, () => '', [], 0)).toThrow('expired again');
     });
 });
+
+describe('RAM multiple resident parts', () => {
+    it('retains A across A/B/A and releases all owned handles', () => {
+        const requests: RamRequest[] = []; let sequence = 0;
+        const live = new Set<string>();
+        const client = createRamClient(request => {
+            requests.push(request);
+            if (request.action === 'load') { const modelId=String(++sequence);live.add(modelId);return {modelId,fullyAccelerated:true}; }
+            if (request.action === 'release') {live.delete(request.modelId!);return {};}
+            return live.has(request.modelId!) ? {output:[1],fullyAccelerated:true} : {error:'expired',code:'STALE_MODEL'};
+        });
+        client.invoke('a',()=> 'a',[1],1,[1],undefined,1024);
+        client.invoke('b',()=> 'b',[1],1,[1],undefined,2048);
+        expect(client.invoke('a',()=>{throw Error('A must stay loaded');},[2],1).cached).toBe(true);
+        expect(requests.filter(r=>r.action==='load').map(r=>r.reservationBytes)).toEqual([1024,2048]);
+        client.release();expect(live.size).toBe(0);
+    });
+    it('bounds client handles and drops the least recently used one', () => {
+        let loads=0;const released:string[]=[];
+        const client=createRamClient(request=>{
+            if(request.action==='load')return {modelId:String(++loads),fullyAccelerated:true};
+            if(request.action==='release'){released.push(request.modelId!);return {};}
+            return {output:[1],fullyAccelerated:true};
+        });
+        for(const key of ['a','b','c','d','a','e'])client.invoke(key,()=>key,[1],1);
+        expect(loads).toBe(5);expect(released).toEqual(['2']);
+        client.invoke('a',()=>{throw Error('A was recently used');},[1],1);
+        client.release();expect(new Set(released).size).toBe(5);
+    });
+    it('recovers an evicted part without reloading other parts', () => {
+        let loads=0,staleA=false;
+        const client=createRamClient(request=>{
+            if(request.action==='load')return {modelId:String(++loads),fullyAccelerated:true};
+            if(request.action==='invoke' && request.modelId==='1' && staleA)return {error:'evicted',code:'STALE_MODEL'};
+            return {output:[1],fullyAccelerated:true};
+        });
+        client.invoke('a',()=> 'a',[1],1);client.invoke('b',()=> 'b',[1],1);staleA=true;
+        expect(client.invoke('a',()=> 'a',[1],1).cached).toBe(false);
+        expect(client.invoke('b',()=>{throw Error('B must stay loaded');},[1],1).cached).toBe(true);
+        expect(loads).toBe(3);
+    });
+});
