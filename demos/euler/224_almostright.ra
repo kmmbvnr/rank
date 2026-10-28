@@ -18,10 +18,8 @@ rem mirror image (a <-> b), so below a
 rem triangle with a = b, its own mirror,
 rem maps 1 and 3 give mirror subtrees,
 rem so only map 1 is walked.
-rem Those are taken level by level,
-rem dropping the triangles that are too
-rem long; their depth is below the root
-rem of Limit.
+rem Walk the remaining trees in array
+rem batches until no triangle fits.
 Answer = 0
 A = array shape 0 fill 0
 B = A
@@ -39,34 +37,33 @@ for K in 1 to 40
     T = Next
   end
 end
-for Lv in 1 to (Limit isqrt)
-  Per' = A + B + C
+for
+  Per = A + B + C
   Fit = Per at most Limit
   A = A filter Fit array
   B = B filter Fit array
   C = C filter Fit array
+  if A len equal 0
+    break
+  end
   Answer += A len
-  Ta = 2 * A
-  Tb = 2 * B
-  Tc = 2 * C
-  Tc3 = Tc + C
-  Up = A + Tc
-  Dn' = Tc - A
-  Wp = B + Tc
-  Wm' = Tc - B
-  Df = Ta - Tb
-  Sm' = Ta + Tb
-  A1' = Up - Tb
-  A2' = Up + Tb
-  A3' = Dn + Tb
-  B1' = Ta + Wm
-  B2' = Ta + Wp
-  B3' = Wp - Ta
-  C1' = Tc3 + Df
-  C2' = Tc3 + Sm
-  C3' = Tc3 - Df
-  A = concat A1 A2 A3
-  B = concat B1 B2 B3
-  C = concat C1 C2 C3
+  rem Keep shared multiples in storage;
+  rem the maps below become small kernels.
+  Ta = (2 * A) copy
+  Tb = (2 * B) copy
+  Tc = (2 * C) copy
+  Tc3 = (Tc + C) copy
+  A1 = (A - Tb + Tc) copy
+  A2 = (A + Tb + Tc) copy
+  A3 = (Tb + Tc - A) copy
+  B1 = (Ta + Tc - B) copy
+  B2 = (Ta + B + Tc) copy
+  B3 = (B + Tc - Ta) copy
+  C1 = (Ta - Tb + Tc3) copy
+  C2 = (Ta + Tb + Tc3) copy
+  C3 = (Tc3 - Ta + Tb) copy
+  A = concat A1 A2 A3 copy
+  B = concat B1 B2 B3 copy
+  C = concat C1 C2 C3 copy
 end
 Answer print
