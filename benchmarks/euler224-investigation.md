@@ -7,6 +7,34 @@ it has no unfinished inventory row. The delivery below updates the demo and
 fixture comments. Compiler/runtime code and the execution-exclusion catalogue
 remain unchanged. The research measurements below are a separate earlier cohort.
 
+## Integration with concurrent main changes
+
+Before the source commit was created, main also acquired collection-chain
+optimizations and a function-resolution-order repair through `02650fbe`. The
+Euler source change is committed as `72d0018a`; its runtime includes those
+concurrent commits. The validation checkout was synchronized to all seven
+changed interpreter files and rebuilt successfully. The final integrated
+original/shipping comparison was repeated from that build, separately from
+the earlier delivery and source-selection cohorts.
+
+| Source, integrated runtime | Compiled median ms | Reference median ms | Compiled/reference median RSS MiB |
+| --- | ---: | ---: | ---: |
+| Original | 7,791 | 16,459 | 1184 / 1223 |
+| Delivered shared stages | 1,785 | 6,604 | 572 / 915 |
+
+The integrated comparison improves compiled time **4.36x** and reference time
+**2.49x**. All twelve full-input samples return **4,137,330**.
+RSS is reported independently for each engine; it is process highwater and
+varies with garbage collection. The raw samples and integrated runtime hashes
+are retained under `integration` in the delivery baseline. The prior cohort
+tables below are historical evidence, not timings to mix with this build.
+
+Integrated verification passed: TypeScript build, 120 focused tests across five
+collection/mask/block-copy/concat suites, 160 independent oracle checks, both
+fixture modes, static checks of both files, and the scoped type/differential
+audits. No full runtime-suite or Intel run is claimed. Neither the source
+algorithm nor our chosen implementation changed during integration.
+
 ## Delivered choice and final verification
 
 The delivered demo uses the `staged` source: stop after the filtered frontier
