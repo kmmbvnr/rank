@@ -488,3 +488,25 @@ app's `files/models` directory. This is separate from notebook attachments and
 is not included in notebook ZIP exports. The file-picker/import UI and automatic
 shard-index loading are not implemented yet. Desktop uses ordinary file paths;
 individual shard files can be opened separately.
+
+A whole deferred F32 tensor can also be passed directly to a `.ram` function with
+an `.f32` input. Keep its file open until the call completes:
+
+```rank
+use io
+use "doubleweights.ram"
+F = "models/gpt2-ln1.safetensors" open
+Weights' = F tensor "h.0.ln_1.weight"
+Result = Weights doubleweights
+F close
+Result
+```
+
+The GPU bridge sends the file path, revision, byte range and shape instead of
+reading `Weights` into JavaScript. The native runtime checks the revision and
+range, validates finite FP32 values, and fills the GPU input buffer. Desktop uses
+a read-only memory mapping for the selected range. Android reads it natively in
+bounded chunks into the `float[]` required by LiteRT's Kotlin API. Neither path
+promises zero-copy GPU access. Binding checks still apply; unsupported dtypes,
+closed files and changed files fail explicitly. An ordinary assignment or an
+operation that transforms the array uses the usual Rank evaluation rules.

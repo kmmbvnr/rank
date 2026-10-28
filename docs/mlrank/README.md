@@ -1021,14 +1021,51 @@ not a full LayerNorm or transformer. Results are recorded in
 ### Runnable file-to-GPU demo
 
 `demos/mlrank/fileweights.ra` and `doubleweights.ram` read the 768 real GPT-2
-`h.0.ln_1.weight` values from `models/gpt2-ln1.safetensors`, materialize that small
-input in ordinary Rank, and pass it to the GPU module. The module computes
-`X + X`; `Result` is the output and `Error` is the maximum absolute difference
-from ordinary Rank's `Weights * 2.0`. This exercises file → Rank array → GPU,
-not direct GPU mapping of the Safetensors file or large-model compilation.
+`h.0.ln_1.weight` values from `models/gpt2-ln1.safetensors` through a deferred
+file tensor and pass its descriptor to the GPU module. The module computes
+`X + X`; `Result` is the output. Keep `F` open until the GPU call completes.
+The input payload does not enter JavaScript or the JSON request. This is not
+zero-copy GPU access or large-model compilation.
 
 The test OnePlus has the checkpoint sample and a saved **GPT-2 weights on GPU**
 notebook. Use **Terminal commands → Run program** and open `real [768]` to inspect
-the result. The demo was run twice, including after reload; the first 38 displayed
-values matched the reference and native logs confirmed delegation of all 4 graph
-nodes. On desktop, provide the sample file at that relative path or edit the path.
+the result. The earlier, materialized-input version was verified twice, including
+after reload, with all 4 graph nodes delegated. Updating the saved notebook and
+verifying the deferred-input version on OnePlus is pending reconnection of wireless
+debugging. On desktop, provide the sample file at that relative path or edit the path.
+
+
+### File tensor inputs to RAM
+
+`Weights' = F tensor "name"` preserves a whole file tensor at the RAM call
+boundary. The `RamGpu` host receives an optional `inputFiles` array, one descriptor
+or null per declared input. Inline `input` contains only the remaining in-memory
+inputs, flattened in declaration order. `createRamClient` forwards descriptors on
+invoke, including stale-model recovery; model loading remains separate.
+
+A descriptor contains `path`, `revision`, `fileSize`, `offset`, `length`, `dtype`
+and `shape`. Both runtimes reject changed files, invalid ranges, nonfinite data
+and unsupported dtypes before running the graph. Current descriptor transfer is
+limited to whole F32 tensors and `.f32` runtime inputs. Arithmetic and selections
+are ordinary computed arrays; they are not silently replaced by their source
+file. Ordinary assignment still materializes. Type checks on deferred bindings
+are retained when a descriptor passes through a binding wrapper.
+
+Desktop maps only the selected byte range with NumPy memmap and copies it into
+the LiteRT input buffer; the mapping is closed after the transfer. Android's
+current Kotlin LiteRT API exposes `writeFloat(float[])`, so it uses a bounded
+64 KiB read buffer plus the required native float array. It does not send file
+payloads through the WebView. GPU buffers still need device memory, and each
+invocation fills its runtime inputs again. Persistent weights, file-backed baked
+constants and full-model partitioning remain separate work. Existing RAM shape
+and graph limits are unchanged.
+
+`node scripts/mlrank-file-input-check.mjs` checks the complete Rank call path
+with an input placed beyond 2 GiB in a sparse Safetensors file. Pass the standalone
+GPT-2 LayerNorm sample as an argument to use its 768 real weights; `--compile-only`
+prepares Android fixtures without running the desktop GPU. The output directory
+contains `prefix.bin`, `payload.bin` and `fixture.json`; recreate the sparse input
+with the recorded size and offset, without transferring gigabytes of zeros.
+`packages/web/test/ram-file-input.playwright.js` validates the shipped Android
+worker, native execution, viewer output and WebView file-read ranges. Results:
+`benchmarks/baselines/2026-10-28-mlrank-file-input.json`.

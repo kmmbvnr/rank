@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-28",
+  "scope": "Deferred whole F32 runtime input; sparse file addressing beyond 2 GiB, not a full LLM or zero-copy GPU test.",
+  "mac": {
+    "fileSize": 2147486947,
+    "offset": 2147483875,
+    "headerBytes": 163,
+    "jsBytesForTwoCalls": 326,
+    "inputValuesSerialized": 0,
+    "descriptorBytes": 266,
+    "elements": 768,
+    "gpuCalls": 3,
+    "maxError": 0,
+    "fullyAccelerated": true,
+    "staleRejected": true,
+    "rangeRejected": true,
+    "dtypeRejected": true
+  },
+  "intel": {
+    "fileSize": 2147486947,
+    "offset": 2147483875,
+    "headerBytes": 163,
+    "jsBytesForTwoCalls": 326,
+    "inputValuesSerialized": 0,
+    "descriptorBytes": 214,
+    "elements": 768,
+    "gpuCalls": 3,
+    "maxError": 0,
+    "fullyAccelerated": true,
+    "staleRejected": true,
+    "rangeRejected": true,
+    "dtypeRejected": true
+  },
+  "android": {
+    "status": "pending",
+    "apkBuiltAndInstalled": true,
+    "reason": "OnePlus wireless debugging disconnected before worker and updated demo validation."
+  },
+  "tests": {
+    "vitestPassed": 48,
+    "nodePassed": 7,
+    "intelDescriptorTestsPassed": 3
+  },
+  "limitations": [
+    "Existing RAM shape and graph limits remain.",
+    "Desktop memmap is copied to the LiteRT input buffer.",
+    "Android uses a bounded read buffer and native float array.",
+    "Runtime inputs are filled on each invocation."
+  ]
+}
