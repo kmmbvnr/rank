@@ -1,0 +1,14 @@
+use io
+use "chunkdot.ram"
+F = "models/chunks.safetensors" open
+W' = F tensor "weight"
+X = array shape 1 8192 fill 0.5
+Result = array shape 1 1024 fill 0.0
+for Start in 0 till 8192 by 2048
+Input = X # (Start till (Start + 2048))
+Weights' = W (Start till (Start + 2048)) #
+Y = Input chunkdot Weights
+Result = Result + Y
+end
+F close
+Result

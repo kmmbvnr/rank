@@ -1050,9 +1050,9 @@ invoke, including stale-model recovery; model loading remains separate.
 A descriptor contains `path`, `revision`, `fileSize`, `offset`, `length`, `dtype`
 and `shape`. Both runtimes reject changed files, invalid ranges, nonfinite data
 and unsupported dtypes before running the graph. Current descriptor transfer is
-limited to whole F32 tensors and `.f32` runtime inputs. Arithmetic and selections
-are ordinary computed arrays; they are not silently replaced by their source
-file. Ordinary assignment still materializes. Type checks on deferred bindings
+limited to F32 tensors and proved contiguous slices with `.f32` runtime inputs.
+Arithmetic and noncontiguous selections remain ordinary computed arrays; they
+are not replaced by their source file. Ordinary assignment still materializes. Type checks on deferred bindings
 are retained when a descriptor passes through a binding wrapper.
 
 Desktop maps only the selected byte range with NumPy memmap and copies it into
@@ -1280,3 +1280,56 @@ Evidence: `benchmarks/baselines/2026-10-28-mlrank-prepared-weights.json`.
 GPU checks pass on Mac, Intel and OnePlus. A separate sparse F16 zero tensor
 produces a real 1 GiB F32 output at about 185 MiB process peak RSS on Mac;
 this tests bounded preparation, not full-model inference or quantization quality.
+
+### Contiguous file slices on GPU (stage 13b, third slice)
+
+A deferred contiguous selection keeps a native byte-range descriptor:
+
+```rank
+W' = F tensor "weight"
+Part' = W (Start till (Start + 2048)) #
+Y = Input chunkdot Part
+```
+
+This uses ordinary Rank addressing. Nested contiguous ranges and single leading
+rows compose their offsets without reading the payload into JavaScript. The
+selection must be contiguous in row-major storage; strided ranges, disjoint
+columns and arithmetic retain their ordinary computed-array behavior. They do
+not inherit a file descriptor. Ordinary assignment still materializes, so retain
+the apostrophe on file-backed weights and slices. Closing or changing the source
+invalidates its deferred slices. Existing binding checks and read-only dependency
+rules still apply.
+
+`demos/mlrank/file-chunks.ra` multiplies a 1-by-8192 input by an 8192-by-1024
+matrix (32 MiB), explicitly taking four 2048-row blocks. Each 8 MiB weight input
+fits the existing native limit. One `chunkdot.ram` graph is loaded and reused;
+partial matrix products run on GPU, and the main program sums the four results
+on the host. The matrix itself is never materialized in JS or copied into separate
+chunk files. For a different matrix shape or a partial final block, the caller
+must provide matching RAM shapes; there is no automatic graph/tensor partitioner.
+
+Native input caching remembers the most recent slice in each model's input
+buffer. Repeating that slice avoids a read; moving to a different offset uploads
+the new slice. This is bounded streaming, not a cache of every chunk. Activations
+and partial results still cross the host; no native activation handoff is claimed.
+All current per-input, output and reservation limits remain in force.
+
+Reproduce the deterministic synthetic fixture and desktop GPU check:
+
+```sh
+node_modules/.cache/mlrank/bin/python scripts/mlrank-chunks-fixture.py NEW_DIRECTORY
+node scripts/mlrank-chunks-check.mjs NEW_DIRECTORY
+node --test packages/cli/test/file-tensor-slices.test.mjs
+```
+
+The fixture builder uses NumPy to generate the reference outside the tested Rank
+execution. Copy `chunks.safetensors` to Android's `models/` directory. The Android
+worker check is `packages/web/test/ram-chunks.playwright.js`, with its placeholder
+replaced by the generated `chunks-fixture.json`.
+
+Evidence: `benchmarks/baselines/2026-10-28-mlrank-file-chunks.json`. Mac, Intel
+and OnePlus each compare 9,216 values with the independent reference; the checker
+also verifies offsets, weight traffic and same-slice reuse. Unit checks cover
+nested slices, ordinary noncontiguous behavior and byte ranges beyond 2 GiB.
+This demonstrates execution above the single-input size limit, not a full LLM
+forward pass or execution of a gigabyte-scale model.
