@@ -96,6 +96,8 @@ export interface RankFileHandle {
     revision?(): string;
     /** Native-runtime path for descriptor-based tensor transfer, when supported. */
     nativePath?(): string;
+    /** Streaming host digest; must preserve the file cursor. */
+    sha256?(): string;
     flush(): void;
     close(): void;
 }

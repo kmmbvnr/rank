@@ -89,6 +89,19 @@ final class ModelFiles {
                 data = new JSONObject().put("size", file.length()).put("revision", file.length() + ":" + file.lastModified())
                     .toString().getBytes(StandardCharsets.UTF_8);
                 mime = "application/json";
+            } else if ("sha256".equals(uri.getQueryParameter("action"))) {
+                long size = file.length(), modified = file.lastModified();
+                java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+                byte[] chunk = new byte[65536];
+                try (java.io.FileInputStream stream = new java.io.FileInputStream(file)) {
+                    int count; while ((count = stream.read(chunk)) != -1) digest.update(chunk, 0, count);
+                }
+                if (size != file.length() || modified != file.lastModified())
+                    throw new IllegalArgumentException("File changed during checksum verification");
+                StringBuilder hex = new StringBuilder();
+                for (byte b : digest.digest()) hex.append(String.format("%02x", b & 255));
+                data = new JSONObject().put("sha256", hex.toString()).toString().getBytes(StandardCharsets.UTF_8);
+                mime = "application/json";
             } else {
                 long offset = Long.parseLong(uri.getQueryParameter("offset"));
                 int count = Integer.parseInt(uri.getQueryParameter("count"));

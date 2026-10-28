@@ -1,7 +1,8 @@
+import { checkedFile } from './file-integrity.js';
 import { registerFileTensor } from './file-tensor.js';
 import { derivedArray, ownedArray, ownedObject } from './array-storage.js';
 import { RankError } from './errors.js';
-import { isRankFile, type RankFile, type RankValue } from './value.js';
+import { type RankFile, type RankValue } from './value.js';
 
 const widths: Record<string, number> = { BOOL: 1, U8: 1, I8: 1, I16: 2, U16: 2, F16: 2, BF16: 2,
     F32: 4, F64: 8, I32: 4, U32: 4, I64: 8, U64: 8 };
@@ -9,11 +10,7 @@ interface Tensor { name: string; dtype: string; shape: number[]; offset: number;
 interface Index { size: number; revision?: string; tensors: Tensor[] }
 const indices = new WeakMap<RankFile, Index>();
 const invalid = (message: string): never => { throw new RankError('Safetensors: ' + message, 'IO'); };
-function file(value: RankValue): RankFile {
-    if (!isRankFile(value)) return invalid('expected an open file');
-    if (value.closed) return invalid('file is closed');
-    return value;
-}
+function file(value: RankValue): RankFile { return checkedFile(value); }
 /** Positional access preserves the user's cursor. Offsets never use 32-bit arithmetic. */
 function read(value: RankFile, offset: number, count: number): Uint8Array {
     file(value);
@@ -25,7 +22,7 @@ function read(value: RankFile, offset: number, count: number): Uint8Array {
         return result;
     } finally { value.handle.seek(position); }
 }
-function parseHeader(text: string): Record<string, unknown> {
+export function parseSafetensorsJson(text: string): Record<string, unknown> {
     // JSON.parse silently overwrites duplicates; reject them, including escaped keys.
     const stack: (Set<string> | null)[] = [];
     for (const token of text.matchAll(/"(?:[^"\\]|\\.)*"|[{}\[\]:]/g)) {
@@ -57,7 +54,7 @@ function index(value: RankFile): Index {
     const length = Number(length64), start = 8 + length;
     const bytes = read(value, 8, length);
     if (bytes[0] !== 123) return invalid('header must begin with an object');
-    const header = parseHeader(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    const header = parseSafetensorsJson(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
     const tensors: Tensor[] = [];
     for (const [name, raw] of Object.entries(header)) {
         if (name === '__metadata__') {

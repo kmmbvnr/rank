@@ -1,5 +1,6 @@
 import { attachSqliteInterrupt, closeSqlite, sqliteOperation } from './sqlite-interrupt.js';
 import * as fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import * as pathModule from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -242,6 +243,17 @@ class NodeFile implements RankFileHandle {
     size(): number {
         this.ensureOpen();
         return fs.fstatSync(this.descriptor).size;
+    }
+
+    sha256(): string {
+        this.ensureOpen();
+        const before = this.revision(), hash = createHash('sha256'), chunk = Buffer.alloc(65536);
+        let offset = 0, count: number;
+        while ((count = fs.readSync(this.descriptor, chunk, 0, chunk.length, offset)) > 0) {
+            hash.update(chunk.subarray(0, count)); offset += count;
+        }
+        if (before !== this.revision()) throw new Error('File changed during checksum verification');
+        return hash.digest('hex');
     }
 
     nativePath(): string { this.ensureOpen(); return pathModule.resolve(this.name); }

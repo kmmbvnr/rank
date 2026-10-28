@@ -1,3 +1,5 @@
+import { checkedFile, verifyFile } from '../file-integrity.js';
+import { isCheckpoint, checkpointIndex, checkpointTensor, closeCheckpoint } from '../checkpoint.js';
 import { safetensor, safetensorIndex } from '../safetensors.js';
 import { ByteArray } from '../bytes.js';
 import { RankError } from '../errors.js';
@@ -20,8 +22,9 @@ import type { RuntimeModule } from './types.js';
 const encoder = new TextEncoder();
 
 export const ioModule: RuntimeModule = {
-    safetensors: () => native('safetensors', 1, args => safetensorIndex(args[0])),
-    tensor: () => native('tensor', 2, args => safetensor(args[0], args[1])),
+    safetensors: context => native('safetensors', 1, args => isCheckpoint(args[0]) ? checkpointIndex(args[0],context) : safetensorIndex(args[0])),
+    tensor: context => native('tensor', 2, args => isCheckpoint(args[0]) ? checkpointTensor(args[0],args[1],context) : safetensor(args[0],args[1])),
+    verify: () => native('verify', 2, args => verifyFile(args[0],args[1])),
     print: context => native('print', 1, arguments_ => {
         const value = isRankSqliteTable(arguments_[0])
             ? materializeSqlite(arguments_[0])
@@ -109,6 +112,7 @@ export const ioModule: RuntimeModule = {
 
 export function closeFile(file: RankFile): void {
     if (file.closed) return;
+    closeCheckpoint(file);
     ioCall(file.handle.name, () => file.handle.close());
     file.closed = true;
 }
@@ -146,7 +150,7 @@ function expectFile(value: RankValue): RankFile {
 function openFile(value: RankValue): RankFile {
     const file = expectFile(value);
     if (file.closed) throw new RankError(`file is closed: ${file.handle.name}`, 'IO');
-    return file;
+    return checkedFile(file);
 }
 
 function openMode(value: RankValue): RankFileMode {

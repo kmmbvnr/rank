@@ -154,7 +154,7 @@ class NativeInputFile implements RankFileHandle {
             + encodeURIComponent(name.slice(model ? 'models/'.length : 'inputs/'.length));
         this.size();
     }
-    private request(query: string, binary = false): XMLHttpRequest {
+    protected request(query: string, binary = false): XMLHttpRequest {
         if (this.closed) throw new Error('file is closed');
         const request = new XMLHttpRequest();
         request.open('GET', this.url + query, false);
@@ -188,5 +188,6 @@ class NativeInputFile implements RankFileHandle {
 }
 
 class NativeModelFile extends NativeInputFile {
+    sha256(): string { return JSON.parse(this.request('&action=sha256').responseText).sha256; }
     nativePath(): string { if (this.closed) throw new Error('file is closed'); return this.name.slice('models/'.length); }
 }
