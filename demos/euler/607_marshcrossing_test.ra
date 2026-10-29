@@ -1,0 +1,14 @@
+use testing
+
+test "default input"
+  use "607_marshcrossing"
+  run
+  Answer equal "13.1265108586"
+end
+
+test "wider gap"
+  use "607_marshcrossing"
+  D = 200
+  run
+  Answer equal "23.0360535708"
+end
