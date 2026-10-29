@@ -56,7 +56,7 @@ describe('automatic RAM partitioning',()=>{
    return h.gpu(g,all,files,options);
   };gpu.control=h.gpu.control;
   expect(executeRamGraph(graph,gpu,[-2,3],[null,file,null],{inputStates:[null,null,'borrowed']})).toEqual([5,10]);
-  expect(h.calls.some(c=>c.files?.includes(file))).toBe(true);expect(h.states.size).toBe(1);
+  expect(h.calls.some(c=>c.files?.some((f:any)=>f?.path===file.path&&f.offset===file.offset&&f.length===file.length))).toBe(true);expect(h.states.size).toBe(1);
  });
  it('cleans malformed descriptors and rejects hosts without state support before invoking',()=>{
   const graph=compileRam(source,'network.ram').graph,h=host();

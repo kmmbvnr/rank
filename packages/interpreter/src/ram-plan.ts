@@ -1,3 +1,5 @@
+import {bindRamFiles} from './ram-file-plan.js';
+import {ramWeightDigest} from './ram-weights.js';
 import { ramModel, type RamNode } from './ram-model.js';
 import type { RamGraph, RamGpu } from './mlrank.js';
 import type { FileTensorInput } from './file-tensor.js';
@@ -20,7 +22,7 @@ export function ramDependencies(node: RamNode): readonly number[] {
     if ('left' in node) return [node.left, node.right];
     return [];
 }
-function remap(node: RamNode, ids: Map<number, number>): RamNode {
+export function remapRamNode(node: RamNode, ids: Map<number, number>): RamNode {
     const id = (n: number) => ids.get(n)!;
     if (node.kind === 'concat') return {...node, operands: node.operands.map(id)};
     if (node.kind === 'transpose') return {...node, input: id(node.input), permutation: id(node.permutation)};
@@ -71,6 +73,7 @@ export function partitionRam(precision: RamGraph['precision'], nodes: readonly R
         return bytes;
     };
     const parts: RamPart[] = [];
+    const models = new Map<string, RamGraph>();
     while (remaining.size) {
         const target = Math.max(...remaining), included = new Set([target]);
         let dependencies = new Set(ramDependencies(nodes[target]));
@@ -88,11 +91,14 @@ export function partitionRam(precision: RamGraph['precision'], nodes: readonly R
         const ids = new Map(all.map((n, i) => [n, i]));
         const external = all.filter(i => !included.has(i) && nodes[i].kind !== 'constant');
         const localNodes = all.map(i => included.has(i) || nodes[i].kind === 'constant'
-            ? remap(nodes[i], ids) : {kind: 'input' as const, shape: nodes[i].shape,
+            ? remapRamNode(nodes[i], ids) : {kind: 'input' as const, shape: nodes[i].shape,
                 ...(nodes[i].kind === 'input' && nodes[i].dtype === 'i32' ? {dtype: 'i32' as const} : {})});
         const localInputs = external.map(i => specs.get(i) ?? {name: 't' + i, shape: nodes[i].shape});
-        const graph = ramGraph(precision, localNodes, ids.get(target)!, localInputs, localInputs[0]?.shape ?? []);
+        let graph = ramGraph(precision, localNodes, ids.get(target)!, localInputs, localInputs[0]?.shape ?? []);
         if (graph.reservationBytes > partBudget) throw new RankError('RAM serialized part exceeds memory budget', 'GpuMemory');
+        const digest = ramWeightDigest(graph.model)+':'+graph.reservationBytes;
+        const existing = models.get(digest);
+        if (existing) graph = existing; else models.set(digest,graph);
         parts.push({graph, inputs: external, output: target});
         included.forEach(i => remaining.delete(i));
     }
@@ -134,6 +140,7 @@ const memoryPlans = new WeakMap<RamGraph, {key:string;plan:RamGraph}>();
 /** Internal states never enter Rank values. Borrowed caller states are not owned here. */
 export function executeRamGraph(graph: RamGraph, gpu: RamGpu, input: readonly number[],
     files?: readonly (FileTensorInput | null)[], options?: {inputStates?: readonly (string | null)[]; retainOutput?: boolean}): readonly number[] | RamStateDescriptor {
+    ({graph,input,files,options}=bindRamFiles(graph,input,files,options));
     if (gpu.memory) {
         const memory = gpu.memory(), available = memory.memoryBudgetBytes-memory.stateBytes;
         const slots = memory.maxStates-memory.residentStates;

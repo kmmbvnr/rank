@@ -62,14 +62,15 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     if (precision !== 'f16' && precision !== 'f32') fail('RAM input requires .f16 or .f32', input);
     const shape = input.dimensions.map(dimension => Number(dimension.value));
     const size = shape.reduce((a, b) => a * b, 1);
-    if (!shape.length || shape.length > 4 || shape.some(n => !Number.isSafeInteger(n) || n < 1)
-        || !Number.isSafeInteger(size) || size > 4_194_304)
-        fail('RAM input shape requires 1–4 positive dimensions and at most 4194304 elements', input);
+    const inputLimit = precision === 'f32' && firstType !== 'i32' ? Math.floor(Number.MAX_SAFE_INTEGER/4) : 4_194_304;
+    if (!shape.length || shape.length > 4 || shape.some(n => !Number.isSafeInteger(n) || n < 1 || n > 2_147_483_647)
+        || !Number.isSafeInteger(size) || size > inputLimit)
+        fail('RAM input shape requires 1–4 positive int32 dimensions and a safely addressable byte range', input);
     const nodes: RamNode[] = [{ kind: 'input', shape, ...(firstType === 'i32' ? {dtype:'i32' as const} : {}) }];
     let constantSize = 0;
     const validShape = (dimensions: readonly number[], statement: Statement, limit = 1_048_576): number => {
         const count = dimensions.reduce((a, b) => a * b, 1);
-        if (!dimensions.length || dimensions.length > 4 || dimensions.some(n => !Number.isSafeInteger(n) || n < 1)
+        if (!dimensions.length || dimensions.length > 4 || dimensions.some(n => !Number.isSafeInteger(n) || n < 1 || n > 2_147_483_647)
             || !Number.isSafeInteger(count) || count > limit)
             fail(`RAM tensor requires 1–4 positive dimensions and at most ${limit} elements`, statement);
         return count;
@@ -345,7 +346,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                     fail('Multiple RAM inputs require .f32 or .i32', statement);
                 if (names.has(statement.name)) fail('Duplicate RAM option: ' + statement.name, statement);
                 const shape = statement.dimensions.map(d => Number(d.value));
-                validShape(shape, statement, 4_194_304);
+                validShape(shape, statement, statement.precision?.name === 'f32' ? Math.floor(Number.MAX_SAFE_INTEGER/4) : 4_194_304);
                 const dtype = statement.precision?.name === 'i32' ? {dtype:'i32' as const} : {};
                 inputs.push({name:statement.name,shape,...dtype});
                 inputSpecs.set(nodes.length, inputs.at(-1)!);
@@ -361,8 +362,6 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     if (!output.value) fail('RAM requires an output tensor', output);
     const result = lower(output.value!);
     if (nodes[result].kind === 'input' || nodes[result].kind === 'constant') fail('RAM output must contain a GPU operation', output);
-    if (inputs.reduce((sum, input) => sum + input.shape.reduce((a,b) => a*b, 1), 0) > 16_777_216)
-        fail('RAM runtime input storage exceeds 64 MiB');
     for (const node of nodes) if (node.kind !== 'input') validShape(node.shape, output);
     const name = id.split(/[\\/]/).at(-1)!.replace(/\.ram$/i, '');
     if (!/^[a-z][a-z0-9_]*$/.test(name)) fail('RAM file name must be a lowercase function name');
@@ -385,6 +384,7 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
             throw new RankError('gpukeep requires .f32 and GPU state support', 'GpuUnavailable');
         const inputFiles: (FileTensorInput | null)[] = [];
         const inputStates: (string|null)[] = [];
+        let inlineElements = 0;
         const input = module.graph.inputs.flatMap((spec, i) => {
             const value = demandValue(values[i]);
             const state = ramState(value);
@@ -408,6 +408,8 @@ export function ramFunction(module: RamModule, gpu?: RamGpu, reload?: () => RamM
             }
             if (value.shape.reduce((a,b) => a*b, 1) > 1_048_576)
                 throw new RankError('RAM inputs above 1048576 elements require a file tensor', 'TypeError');
+            inlineElements += spec.shape.reduce((a,b)=>a*b,1);
+            if (inlineElements > 16_777_216) throw new RankError('RAM inline input storage exceeds 64 MiB', 'TypeError');
             return value.items.map(cell => {
                 if (spec.dtype === 'i32') {
                     if (typeof cell !== 'bigint' || cell < -2147483648n || cell > 2147483647n)

@@ -1,0 +1,11 @@
+use io
+use "stream.ram"
+Result = array shape 1 1024 fill 0.5
+F = "models/stream.safetensors" open
+try
+Weights' = F tensor "weights"
+Result = Result stream Weights
+finally
+F close
+end
+Result

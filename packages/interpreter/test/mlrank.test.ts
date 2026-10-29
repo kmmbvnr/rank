@@ -257,11 +257,11 @@ describe('file-backed projection budgets', () => {
         expect(graph.outputShape).toEqual([1, 2304]);
         expect(graph.nodes.some(n => n.kind === 'constant')).toBe(false);
     });
-    it('keeps separate limits for inputs, computed tensors and total runtime storage', () => {
-        expect(() => compileRam(projection.replace('768 2304', '768 8192'), 'projection.ram')).toThrow('4194304');
+    it('allows logical file banks while keeping computed tensors bounded', () => {
+        expect(compileRam(projection.replace('768 2304', '768 8192'), 'projection.ram').graph.inputs[1].shape).toEqual([768,8192]);
         expect(() => compileRam(projection.replace('return X matmul W', 'H = W relu\nreturn X matmul H'), 'projection.ram')).toThrow('1048576');
         const inputs = Array.from({length:5}, (_,i) => `arg W${i} .f32 shape 1024 4096`).join('\n');
-        expect(() => compileRam(`use ml\narg X .f32 shape 1 1024\n${inputs}\nreturn X matmul W0`, 'projection.ram')).toThrow('64 MiB');
+        expect(compileRam(`use ml\narg X .f32 shape 1 1024\n${inputs}\nreturn X matmul W0`, 'projection.ram').graph.inputs).toHaveLength(6);
     });
     it('rejects a large ordinary input before reading its cells', () => {
         const runtime = new Interpreter(() => {}, {loadModule:()=>({id:'projection.ram',source:projection}),ramGpu:()=>{throw Error('GPU must not run');}});
