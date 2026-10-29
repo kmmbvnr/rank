@@ -1,0 +1,23 @@
+use testing
+
+test "statement values"
+  use "623_lambdaterms"
+  N = 6
+  run
+  Answer equal 1
+  N = 9
+  run
+  Answer equal 2
+  N = 15
+  run
+  Answer equal 20
+  N = 35
+  run
+  Answer equal 3166438
+end
+
+test "default input"
+  use "623_lambdaterms"
+  run
+  Answer equal 3679796
+end
