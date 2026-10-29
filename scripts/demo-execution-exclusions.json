@@ -236,5 +236,6 @@
   "euler/619_squaresubsets.ra": "About 65 s: GF(2) elimination of 230k packed vectors; run manually.",
   "euler/620_planetarygears.ra": "About 12 s: 6 x 10^7 triples in 495 grids; run manually.",
   "euler/621_triangularsums.ra": "About 14 s: reduced-form count for a 2 x 10^10 discriminant; run manually.",
-  "euler/623_lambdaterms.ra": "About 40 s: size by scope table with N^3 / 30 products; run manually."
+  "euler/623_lambdaterms.ra": "About 40 s: size by scope table with N^3 / 30 products; run manually.",
+  "euler/625_gcdsum.ra": "About 20 s: totient sums to N^(2/3) and N = 10^11 recursion; run manually."
 }

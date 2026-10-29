@@ -1,0 +1,27 @@
+use testing
+
+test "statement value"
+  use "625_gcdsum"
+  N = 10
+  run
+  Answer equal 122
+end
+
+test "brute force"
+  use "625_gcdsum"
+  N = 1000
+  run
+  Answer equal 2475190
+  N = 100000
+  run
+  Answer equal 783912038
+  N = 1234567
+  run
+  Answer equal 873839733
+end
+
+test "default input"
+  use "625_gcdsum"
+  run
+  Answer equal 551614306
+end
