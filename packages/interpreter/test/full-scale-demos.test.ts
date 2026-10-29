@@ -20,6 +20,20 @@ it.each([
     } finally { runtime.dispose(); }
 }, 60_000);
 
+it('compiles the full Euler 255 interval traversal and preserves the exact total', () => {
+    const url = new URL('../../../demos/euler/255_roundedroots.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Total')).toBe(400266100622279n);
+        expect(runtime.variables.get('Count')).toBe(90000000000000n);
+        expect(runtime.variables.get('Answer')).toBe(4.447401118);
+        expect(diagnostics.numberLoops).toBeGreaterThan(0);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
+
 // Independent representation: match individual balls and boxes, rather than
 // the Rank program's run stack and difference table of removal rounds.
 function perBallReference(last: number): number {

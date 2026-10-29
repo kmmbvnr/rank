@@ -1,13 +1,41 @@
 use testing
 
-test "fewer digits"
+test "small inputs and exact totals"
   use "255_roundedroots"
+  Digits = 1
+  run
+
+  Total equal 14
+  Count equal 9
+  Answer equal 1.5555555556
+  Digits = 2
+  run
+
+  Total equal 186
+  Count equal 90
+  Answer equal 2.0666666667
+  Digits = 3
+  run
+
+  Total equal 2362
+  Count equal 900
+  Answer equal 2.6244444444
   Digits = 4
   run
 
+  Total equal 25545
+  Count equal 9000
   Answer equal 2.8383333333
   Digits = 5
   run
 
+  Total equal 288926
+  Count equal 90000
   Answer equal 3.2102888889
+  Digits = 6
+  run
+
+  Total equal 3008866
+  Count equal 900000
+  Answer equal 3.3431844444
 end

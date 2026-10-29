@@ -13,28 +13,24 @@ use cli
 
 arg Digits integer = 14
 
-rem Group the n. Those with the same x
-rem at some step form an interval, and
-rem ceil(n / x) = c on a sub-interval,
-rem with the next x = (x + c) // 2. A
-rem group finishes when the next x
-rem equals x, and adds its size times
-rem the steps taken. The first step is a
-rem loop over the next x, each then
-rem followed depth first on a small
-rem stack.
+rem Count one iteration per active n
+rem each time a group is visited. After
+rem the first step, x is at least the
+rem rounded root, so n > x (x - 1) is
+rem already stable. Trim that suffix.
+rem Process the last child directly;
+rem keep only its siblings on the stack.
 First = 10 ** (Digits - 1)
 Last = 10 ** Digits - 1
-X0 = 7 * 10 ** (Digits // 2 - 1)
-if Digits mod 2 equal 1
-  X0 = 2 * 10 ** (Digits // 2)
+X0 = 2 * 10 ** (Digits // 2)
+if Digits mod 2 equal 0
+  X0 = 7 * 10 ** (Digits // 2 - 1)
 end
 Cap = 400
 Sx = array shape Cap fill 0
 Sl = array shape Cap fill 0
 Sh = array shape Cap fill 0
-Sk = array shape Cap fill 0
-Total = 0
+Total = Last - First + 1
 C = (First + X0 - 1) // X0
 Cend = (Last + X0 - 1) // X0
 for
@@ -54,16 +50,49 @@ for
   if Last less Nhi
     Nhi = Last
   end
-  Size = Nhi - Nlo + 1
-  if Y equal X0
-    Total += Size
-  else
-    Sx 0 = Y
-    Sl 0 = Nlo
-    Sh 0 = Nhi
-    Sk 0 = 1
-    Top = 1
+  if Y not equal X0
+    X = Y
+    Lo = Nlo
+    Hi = Nhi
+    Top = 0
     for
+      Total += Hi - Lo + 1
+      Bound = X * (X - 1)
+      if Hi greater Bound
+        Hi = Bound
+      end
+      if Lo at most Hi
+        D1 = (Lo + X - 1) // X
+        D2 = (Hi + X - 1) // X
+        D = D1
+        for
+          Z = (X + D) // 2
+          D3 = 2 * Z + 1 - X
+          if D2 less D3
+            D3 = D2
+          end
+          Mlo = (D - 1) * X + 1
+          if Lo greater Mlo
+            Mlo = Lo
+          end
+          Mhi = D3 * X
+          if Hi less Mhi
+            Mhi = Hi
+          end
+          if D3 equal D2
+            X = Z
+            Lo = Mlo
+            Hi = Mhi
+            break
+          end
+          Sx Top = Z
+          Sl Top = Mlo
+          Sh Top = Mhi
+          Top += 1
+          D = D3 + 1
+        end
+        continue
+      end
       if Top equal 0
         break
       end
@@ -71,39 +100,6 @@ for
       X = Sx Top
       Lo = Sl Top
       Hi = Sh Top
-      K = Sk Top
-      D1 = (Lo + X - 1) // X
-      D2 = (Hi + X - 1) // X
-      D = D1
-      for
-        if D greater D2
-          break
-        end
-        Z = (X + D) // 2
-        D3 = 2 * Z + 1 - X
-        if D2 less D3
-          D3 = D2
-        end
-        Mlo = (D - 1) * X + 1
-        if Lo greater Mlo
-          Mlo = Lo
-        end
-        Mhi = D3 * X
-        if Hi less Mhi
-          Mhi = Hi
-        end
-        Count = Mhi - Mlo + 1
-        if Z equal X
-          Total += Count * (K + 1)
-        else
-          Sx Top = Z
-          Sl Top = Mlo
-          Sh Top = Mhi
-          Sk Top = K + 1
-          Top += 1
-        end
-        D = D3 + 1
-      end
     end
   end
   C = C2 + 1

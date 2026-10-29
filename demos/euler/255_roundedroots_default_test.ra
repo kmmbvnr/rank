@@ -4,5 +4,7 @@ test "default input"
   use "255_roundedroots"
   run
 
+  Total equal 400266100622279
+  Count equal 90000000000000
   Answer equal 4.447401118
 end

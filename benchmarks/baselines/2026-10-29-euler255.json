@@ -1,0 +1,1569 @@
+{
+  "date": "2026-10-29",
+  "baseCommit": "265bbe3e6d0352185436f2f7cbfba6fd70cad076",
+  "environment": {
+    "node": "v24.15.0",
+    "cpu": "Apple M5",
+    "platform": "macOS arm64"
+  },
+  "method": "Three serial fresh processes per variant and mode, reversed variant order on alternate repetitions. Imports excluded; parsing, preparation, execution and diagnostics included. External host load uncontrolled. Instrumented/profiled observations are separate from comparison timings.",
+  "sourceSnapshots": {
+    "original": "rem Rounded Square Roots\nrem https://projecteuler.net/problem=255\nrem Find the average number of\nrem iterations of x -> (x + ceil(n / x))\nrem // 2, from the start 2 10^((d -\nrem 1)/2) for odd d and 7 10^((d - 2)/2)\nrem for even d, until x stops changing,\nrem over the n with d digits\n\nuse numbers\nuse io\nuse cli\n\narg Digits integer = 14\n\nrem Group the n. Those with the same x\nrem at some step form an interval, and\nrem ceil(n / x) = c on a sub-interval,\nrem with the next x = (x + c) // 2. A\nrem group finishes when the next x\nrem equals x, and adds its size times\nrem the steps taken. The first step is a\nrem loop over the next x, each then\nrem followed depth first on a small\nrem stack.\nFirst = 10 ** (Digits - 1)\nLast = 10 ** Digits - 1\nX0 = 7 * 10 ** (Digits // 2 - 1)\nif Digits mod 2 equal 1\n  X0 = 2 * 10 ** (Digits // 2)\nend\nCap = 400\nSx = array shape Cap fill 0\nSl = array shape Cap fill 0\nSh = array shape Cap fill 0\nSk = array shape Cap fill 0\nTotal = 0\nC = (First + X0 - 1) // X0\nCend = (Last + X0 - 1) // X0\nfor\n  if C greater Cend\n    break\n  end\n  Y = (X0 + C) // 2\n  C2 = 2 * Y + 1 - X0\n  if Cend less C2\n    C2 = Cend\n  end\n  Nlo = (C - 1) * X0 + 1\n  if First greater Nlo\n    Nlo = First\n  end\n  Nhi = C2 * X0\n  if Last less Nhi\n    Nhi = Last\n  end\n  Size = Nhi - Nlo + 1\n  if Y equal X0\n    Total += Size\n  else\n    Sx 0 = Y\n    Sl 0 = Nlo\n    Sh 0 = Nhi\n    Sk 0 = 1\n    Top = 1\n    for\n      if Top equal 0\n        break\n      end\n      Top -= 1\n      X = Sx Top\n      Lo = Sl Top\n      Hi = Sh Top\n      K = Sk Top\n      D1 = (Lo + X - 1) // X\n      D2 = (Hi + X - 1) // X\n      D = D1\n      for\n        if D greater D2\n          break\n        end\n        Z = (X + D) // 2\n        D3 = 2 * Z + 1 - X\n        if D2 less D3\n          D3 = D2\n        end\n        Mlo = (D - 1) * X + 1\n        if Lo greater Mlo\n          Mlo = Lo\n        end\n        Mhi = D3 * X\n        if Hi less Mhi\n          Mhi = Hi\n        end\n        Count = Mhi - Mlo + 1\n        if Z equal X\n          Total += Count * (K + 1)\n        else\n          Sx Top = Z\n          Sl Top = Mlo\n          Sh Top = Mhi\n          Sk Top = K + 1\n          Top += 1\n        end\n        D = D3 + 1\n      end\n    end\n  end\n  C = C2 + 1\nend\nCount = Last - First + 1\nAnswer = Total / Count round 10\nAnswer print\n",
+    "original-fixed-start": "rem Rounded Square Roots\nrem https://projecteuler.net/problem=255\nrem Find the average number of\nrem iterations of x -> (x + ceil(n / x))\nrem // 2, from the start 2 10^((d -\nrem 1)/2) for odd d and 7 10^((d - 2)/2)\nrem for even d, until x stops changing,\nrem over the n with d digits\n\nuse numbers\nuse io\nuse cli\n\narg Digits integer = 14\n\nrem Group the n. Those with the same x\nrem at some step form an interval, and\nrem ceil(n / x) = c on a sub-interval,\nrem with the next x = (x + c) // 2. A\nrem group finishes when the next x\nrem equals x, and adds its size times\nrem the steps taken. The first step is a\nrem loop over the next x, each then\nrem followed depth first on a small\nrem stack.\nFirst = 10 ** (Digits - 1)\nLast = 10 ** Digits - 1\nX0 = 2 * 10 ** (Digits // 2)\nif Digits mod 2 equal 0\n  X0 = 7 * 10 ** (Digits // 2 - 1)\nend\nCap = 400\nSx = array shape Cap fill 0\nSl = array shape Cap fill 0\nSh = array shape Cap fill 0\nSk = array shape Cap fill 0\nTotal = 0\nC = (First + X0 - 1) // X0\nCend = (Last + X0 - 1) // X0\nfor\n  if C greater Cend\n    break\n  end\n  Y = (X0 + C) // 2\n  C2 = 2 * Y + 1 - X0\n  if Cend less C2\n    C2 = Cend\n  end\n  Nlo = (C - 1) * X0 + 1\n  if First greater Nlo\n    Nlo = First\n  end\n  Nhi = C2 * X0\n  if Last less Nhi\n    Nhi = Last\n  end\n  Size = Nhi - Nlo + 1\n  if Y equal X0\n    Total += Size\n  else\n    Sx 0 = Y\n    Sl 0 = Nlo\n    Sh 0 = Nhi\n    Sk 0 = 1\n    Top = 1\n    for\n      if Top equal 0\n        break\n      end\n      Top -= 1\n      X = Sx Top\n      Lo = Sl Top\n      Hi = Sh Top\n      K = Sk Top\n      D1 = (Lo + X - 1) // X\n      D2 = (Hi + X - 1) // X\n      D = D1\n      for\n        if D greater D2\n          break\n        end\n        Z = (X + D) // 2\n        D3 = 2 * Z + 1 - X\n        if D2 less D3\n          D3 = D2\n        end\n        Mlo = (D - 1) * X + 1\n        if Lo greater Mlo\n          Mlo = Lo\n        end\n        Mhi = D3 * X\n        if Hi less Mhi\n          Mhi = Hi\n        end\n        Count = Mhi - Mlo + 1\n        if Z equal X\n          Total += Count * (K + 1)\n        else\n          Sx Top = Z\n          Sl Top = Mlo\n          Sh Top = Mhi\n          Sk Top = K + 1\n          Top += 1\n        end\n        D = D3 + 1\n      end\n    end\n  end\n  C = C2 + 1\nend\nCount = Last - First + 1\nAnswer = Total / Count round 10\nAnswer print\n",
+    "bulk-fixed-start": "rem Rounded Square Roots\nrem https://projecteuler.net/problem=255\nrem Find the average number of\nrem iterations of x -> (x + ceil(n / x))\nrem // 2, from the start 2 10^((d -\nrem 1)/2) for odd d and 7 10^((d - 2)/2)\nrem for even d, until x stops changing,\nrem over the n with d digits\n\nuse numbers\nuse io\nuse cli\n\narg Digits integer = 14\n\nrem Group the n. Those with the same x\nrem at some step form an interval, and\nrem ceil(n / x) = c on a sub-interval,\nrem with the next x = (x + c) // 2. A\nrem group finishes when the next x\nrem equals x, and adds its size times\nrem the steps taken. The first step is a\nrem loop over the next x, each then\nrem followed depth first on a small\nrem stack.\nFirst = 10 ** (Digits - 1)\nLast = 10 ** Digits - 1\nX0 = 2 * 10 ** (Digits // 2)\nif Digits mod 2 equal 0\n  X0 = 7 * 10 ** (Digits // 2 - 1)\nend\nCap = 400\nSx = array shape Cap fill 0\nSl = array shape Cap fill 0\nSh = array shape Cap fill 0\nSk = array shape Cap fill 0\nTotal = 0\nC = (First + X0 - 1) // X0\nCend = (Last + X0 - 1) // X0\nfor\n  if C greater Cend\n    break\n  end\n  Y = (X0 + C) // 2\n  C2 = 2 * Y + 1 - X0\n  if Cend less C2\n    C2 = Cend\n  end\n  Nlo = (C - 1) * X0 + 1\n  if First greater Nlo\n    Nlo = First\n  end\n  Nhi = C2 * X0\n  if Last less Nhi\n    Nhi = Last\n  end\n  Size = Nhi - Nlo + 1\n  if Y equal X0\n    Total += Size\n  else\n    Sx 0 = Y\n    Sl 0 = Nlo\n    Sh 0 = Nhi\n    Sk 0 = 1\n    Top = 1\n    for\n      if Top equal 0\n        break\n      end\n      Top -= 1\n      X = Sx Top\n      Lo = Sl Top\n      Hi = Sh Top\n      K = Sk Top\n      StableLo = X * (X - 1) + 1\n      StableHi = X * (X + 1)\n      if Lo at least StableLo and Hi at most StableHi\n        Total += (Hi - Lo + 1) * (K + 1)\n        continue\n      end\n      D1 = (Lo + X - 1) // X\n      D2 = (Hi + X - 1) // X\n      D = D1\n      for\n        if D greater D2\n          break\n        end\n        Z = (X + D) // 2\n        D3 = 2 * Z + 1 - X\n        if D2 less D3\n          D3 = D2\n        end\n        Mlo = (D - 1) * X + 1\n        if Lo greater Mlo\n          Mlo = Lo\n        end\n        Mhi = D3 * X\n        if Hi less Mhi\n          Mhi = Hi\n        end\n        Count = Mhi - Mlo + 1\n        if Z equal X\n          Total += Count * (K + 1)\n        else\n          Sx Top = Z\n          Sl Top = Mlo\n          Sh Top = Mhi\n          Sk Top = K + 1\n          Top += 1\n        end\n        D = D3 + 1\n      end\n    end\n  end\n  C = C2 + 1\nend\nCount = Last - First + 1\nAnswer = Total / Count round 10\nAnswer print\n",
+    "count-work-fixed-start": "rem Rounded Square Roots\nrem https://projecteuler.net/problem=255\nrem Find the average number of\nrem iterations of x -> (x + ceil(n / x))\nrem // 2, from the start 2 10^((d -\nrem 1)/2) for odd d and 7 10^((d - 2)/2)\nrem for even d, until x stops changing,\nrem over the n with d digits\n\nuse numbers\nuse io\nuse cli\n\narg Digits integer = 14\n\nrem Group the n. Those with the same x\nrem at some step form an interval, and\nrem ceil(n / x) = c on a sub-interval,\nrem with the next x = (x + c) // 2. A\nrem group finishes when the next x\nrem equals x, and adds its size times\nrem the steps taken. The first step is a\nrem loop over the next x, each then\nrem followed depth first on a small\nrem stack.\nFirst = 10 ** (Digits - 1)\nLast = 10 ** Digits - 1\nX0 = 2 * 10 ** (Digits // 2)\nif Digits mod 2 equal 0\n  X0 = 7 * 10 ** (Digits // 2 - 1)\nend\nCap = 400\nSx = array shape Cap fill 0\nSl = array shape Cap fill 0\nSh = array shape Cap fill 0\nTotal = Last - First + 1\nC = (First + X0 - 1) // X0\nCend = (Last + X0 - 1) // X0\nfor\n  if C greater Cend\n    break\n  end\n  Y = (X0 + C) // 2\n  C2 = 2 * Y + 1 - X0\n  if Cend less C2\n    C2 = Cend\n  end\n  Nlo = (C - 1) * X0 + 1\n  if First greater Nlo\n    Nlo = First\n  end\n  Nhi = C2 * X0\n  if Last less Nhi\n    Nhi = Last\n  end\n  if Y not equal X0\n    Sx 0 = Y\n    Sl 0 = Nlo\n    Sh 0 = Nhi\n    Top = 1\n    for\n      if Top equal 0\n        break\n      end\n      Top -= 1\n      X = Sx Top\n      Lo = Sl Top\n      Hi = Sh Top\n      Total += Hi - Lo + 1\n      Bound = X * (X - 1)\n      if Hi greater Bound\n        Hi = Bound\n      end\n      if Lo greater Hi\n        continue\n      end\n      D1 = (Lo + X - 1) // X\n      D2 = (Hi + X - 1) // X\n      D = D1\n      for\n        if D greater D2\n          break\n        end\n        Z = (X + D) // 2\n        D3 = 2 * Z + 1 - X\n        if D2 less D3\n          D3 = D2\n        end\n        Mlo = (D - 1) * X + 1\n        if Lo greater Mlo\n          Mlo = Lo\n        end\n        Mhi = D3 * X\n        if Hi less Mhi\n          Mhi = Hi\n        end\n        Sx Top = Z\n        Sl Top = Mlo\n        Sh Top = Mhi\n        Top += 1\n        D = D3 + 1\n      end\n    end\n  end\n  C = C2 + 1\nend\nCount = Last - First + 1\nAnswer = Total / Count round 10\nAnswer print\n",
+    "tail-fixed-start": "rem Rounded Square Roots\nrem https://projecteuler.net/problem=255\nrem Find the average number of\nrem iterations of x -> (x + ceil(n / x))\nrem // 2, from the start 2 10^((d -\nrem 1)/2) for odd d and 7 10^((d - 2)/2)\nrem for even d, until x stops changing,\nrem over the n with d digits\n\nuse numbers\nuse io\nuse cli\n\narg Digits integer = 14\n\nrem Group the n. Those with the same x\nrem at some step form an interval, and\nrem ceil(n / x) = c on a sub-interval,\nrem with the next x = (x + c) // 2. A\nrem group finishes when the next x\nrem equals x, and adds its size times\nrem the steps taken. The first step is a\nrem loop over the next x, each then\nrem followed depth first on a small\nrem stack.\nFirst = 10 ** (Digits - 1)\nLast = 10 ** Digits - 1\nX0 = 2 * 10 ** (Digits // 2)\nif Digits mod 2 equal 0\n  X0 = 7 * 10 ** (Digits // 2 - 1)\nend\nCap = 400\nSx = array shape Cap fill 0\nSl = array shape Cap fill 0\nSh = array shape Cap fill 0\nTotal = Last - First + 1\nC = (First + X0 - 1) // X0\nCend = (Last + X0 - 1) // X0\nfor\n  if C greater Cend\n    break\n  end\n  Y = (X0 + C) // 2\n  C2 = 2 * Y + 1 - X0\n  if Cend less C2\n    C2 = Cend\n  end\n  Nlo = (C - 1) * X0 + 1\n  if First greater Nlo\n    Nlo = First\n  end\n  Nhi = C2 * X0\n  if Last less Nhi\n    Nhi = Last\n  end\n  if Y not equal X0\n    X = Y\n    Lo = Nlo\n    Hi = Nhi\n    Top = 0\n    for\n      Total += Hi - Lo + 1\n      Bound = X * (X - 1)\n      if Hi greater Bound\n        Hi = Bound\n      end\n      if Lo at most Hi\n        D1 = (Lo + X - 1) // X\n        D2 = (Hi + X - 1) // X\n        D = D1\n        for\n          Z = (X + D) // 2\n          D3 = 2 * Z + 1 - X\n          if D2 less D3\n            D3 = D2\n          end\n          Mlo = (D - 1) * X + 1\n          if Lo greater Mlo\n            Mlo = Lo\n          end\n          Mhi = D3 * X\n          if Hi less Mhi\n            Mhi = Hi\n          end\n          if D3 equal D2\n            X = Z\n            Lo = Mlo\n            Hi = Mhi\n            break\n          end\n          Sx Top = Z\n          Sl Top = Mlo\n          Sh Top = Mhi\n          Top += 1\n          D = D3 + 1\n        end\n        continue\n      end\n      if Top equal 0\n        break\n      end\n      Top -= 1\n      X = Sx Top\n      Lo = Sl Top\n      Hi = Sh Top\n    end\n  end\n  C = C2 + 1\nend\nCount = Last - First + 1\nAnswer = Total / Count round 10\nAnswer print\n",
+    "proposed": "rem Rounded Square Roots\nrem https://projecteuler.net/problem=255\nrem Find the average number of\nrem iterations of x -> (x + ceil(n / x))\nrem // 2, from the start 2 10^((d -\nrem 1)/2) for odd d and 7 10^((d - 2)/2)\nrem for even d, until x stops changing,\nrem over the n with d digits\n\nuse numbers\nuse io\nuse cli\n\narg Digits integer = 14\n\nrem Count one iteration per active n\nrem each time a group is visited. After\nrem the first step, x is at least the\nrem rounded root, so n > x (x - 1) is\nrem already stable. Trim that suffix.\nrem Process the last child directly;\nrem keep only its siblings on the stack.\nFirst = 10 ** (Digits - 1)\nLast = 10 ** Digits - 1\nX0 = 2 * 10 ** (Digits // 2)\nif Digits mod 2 equal 0\n  X0 = 7 * 10 ** (Digits // 2 - 1)\nend\nCap = 400\nSx = array shape Cap fill 0\nSl = array shape Cap fill 0\nSh = array shape Cap fill 0\nTotal = Last - First + 1\nC = (First + X0 - 1) // X0\nCend = (Last + X0 - 1) // X0\nfor\n  if C greater Cend\n    break\n  end\n  Y = (X0 + C) // 2\n  C2 = 2 * Y + 1 - X0\n  if Cend less C2\n    C2 = Cend\n  end\n  Nlo = (C - 1) * X0 + 1\n  if First greater Nlo\n    Nlo = First\n  end\n  Nhi = C2 * X0\n  if Last less Nhi\n    Nhi = Last\n  end\n  if Y not equal X0\n    X = Y\n    Lo = Nlo\n    Hi = Nhi\n    Top = 0\n    for\n      Total += Hi - Lo + 1\n      Bound = X * (X - 1)\n      if Hi greater Bound\n        Hi = Bound\n      end\n      if Lo at most Hi\n        D1 = (Lo + X - 1) // X\n        D2 = (Hi + X - 1) // X\n        D = D1\n        for\n          Z = (X + D) // 2\n          D3 = 2 * Z + 1 - X\n          if D2 less D3\n            D3 = D2\n          end\n          Mlo = (D - 1) * X + 1\n          if Lo greater Mlo\n            Mlo = Lo\n          end\n          Mhi = D3 * X\n          if Hi less Mhi\n            Mhi = Hi\n          end\n          if D3 equal D2\n            X = Z\n            Lo = Mlo\n            Hi = Mhi\n            break\n          end\n          Sx Top = Z\n          Sl Top = Mlo\n          Sh Top = Mhi\n          Top += 1\n          D = D3 + 1\n        end\n        continue\n      end\n      if Top equal 0\n        break\n      end\n      Top -= 1\n      X = Sx Top\n      Lo = Sl Top\n      Hi = Sh Top\n    end\n  end\n  C = C2 + 1\nend\nCount = Last - First + 1\nAnswer = Total / Count round 10\nAnswer print\n"
+  },
+  "sourceHashes": {
+    "original": "6b0c292cb42fff1565d11097bf4488f13e58ae326322985e810f02bc5e0229fe",
+    "original-fixed-start": "4051632772487ae12257d1252756247ee42193e3f497e23007c6c66491332789",
+    "bulk-fixed-start": "7859fb0044f5cf06beaeb044005cf43fe5da20543c7f793a3dde9e9f73dbde98",
+    "count-work-fixed-start": "a33fe3b27f960162e10ed1cf57da0cb8221e3751def2e1b4b0a7aaa2f95a8413",
+    "tail-fixed-start": "91947182383f369cf1a57b91813d9d459db96313f0b68405a24941fad1416c80",
+    "proposed": "dea04d0c9ed717fa404cc8b5098b315af01432a13c7d0e31df24034f5bf2d5d7"
+  },
+  "proposedSourceDifference": "The proposed source changes only the explanatory comment block from the timed tail-fixed-start snapshot.",
+  "comparisons": [
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1929.784041,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.671875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "original",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-bulk-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1962.125833,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 178.21875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "bulk",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-count-work-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1612.9630000000002,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.359375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "count-work",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1276.948083,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.421875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "tail",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2768.901584,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.203125,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "original",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-bulk-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2629.404375,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 177.671875,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "bulk",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-count-work-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2117.298084,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.828125,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "count-work",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 1355.4057910000001,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.15625,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "tail",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1283.9002910000002,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.109375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "tail",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-count-work-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1612.811208,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.46875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "count-work",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-bulk-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1952.378208,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 178.484375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "bulk",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1954.4411670000002,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.890625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "original",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 1354.3812500000001,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 175.8125,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "tail",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-count-work-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2083.547208,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.21875,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "count-work",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-bulk-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2619.004625,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 177.359375,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "bulk",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2796.39775,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.90625,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "original",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1942.800166,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.5,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "original",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-bulk-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1966.726667,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 178.59375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "bulk",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-count-work-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1609.156625,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.03125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "count-work",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-fixed-start.ra",
+        "--Digits=14"
+      ],
+      "ms": 1301.95575,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "rssMiB": 176.296875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      },
+      "variant": "tail",
+      "reference": false
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2831.779583,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 177.9375,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "original",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-bulk-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2606.922875,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 177.546875,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "bulk",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-count-work-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2125.512292,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.34375,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "count-work",
+      "reference": true
+    },
+    {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-fixed-start.ra",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 1326.882083,
+      "answer": "3.9456584348",
+      "total": "35510925913",
+      "count": "9000000000",
+      "rssMiB": 176.109375,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      },
+      "variant": "tail",
+      "reference": true
+    }
+  ],
+  "originalUnprofiledDefault": {
+    "args": [
+      "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+      "--Digits=14"
+    ],
+    "ms": 1922.06225,
+    "answer": "4.447401118",
+    "total": "400266100622279",
+    "count": "90000000000000",
+    "rssMiB": 178.21875,
+    "tests": [],
+    "diagnostics": {
+      "compiledLoops": 1,
+      "numberLoops": 1,
+      "numberLoopCopyProbes": 1,
+      "numberLoopCopyAmortized": 1,
+      "fallbacks": {
+        "scalar-expression:unsupported-op:**": 5,
+        "scalar-expression:too-small": 1,
+        "tensor:scalar-evaluation-timing": 5,
+        "scalar-expression:unsupported-op:-": 1,
+        "scalar-expression:unsupported-op:*": 1,
+        "tensor:unsupported-type:array": 4,
+        "tensor:output-shape": 1,
+        "scalar-expression:unsupported-op:/": 1
+      }
+    }
+  },
+  "originalReferenceScaling": {
+    "8": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--Digits=8",
+        "--reference"
+      ],
+      "ms": 362.869917,
+      "answer": "3.7087867",
+      "rssMiB": 176.625,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      }
+    },
+    "10": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--Digits=10",
+        "--reference"
+      ],
+      "ms": 2763.751583,
+      "answer": "3.9456584348",
+      "rssMiB": 177.390625,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      }
+    },
+    "12": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--Digits=12",
+        "--reference"
+      ],
+      "ms": 29599.272292,
+      "answer": "4.2038288238",
+      "rssMiB": 177.265625,
+      "tests": [],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      }
+    }
+  },
+  "proposedFullReference": {
+    "args": [
+      "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+      "--source=/tmp/rank255-tail-fixed-start.ra",
+      "--reference"
+    ],
+    "ms": 151970.622125,
+    "answer": "4.447401118",
+    "total": "400266100622279",
+    "count": "90000000000000",
+    "rssMiB": 177.203125,
+    "tests": [],
+    "diagnostics": {
+      "fallbacks": {
+        "loop:disabled": 3
+      }
+    }
+  },
+  "fullReferenceLimit": "No completed current full-default original reference timing; the issue contains an older >15-minute observation. Use the repeated Digits=10 cohort for relative reference claims.",
+  "instrumentedDefaultCounts": {
+    "original": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-original-stats.ra",
+        "--Digits=14"
+      ],
+      "ms": 2068.672542,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "stats": {
+        "Groups": "6428572",
+        "Nodes": "57941868",
+        "Parts": "80846888",
+        "Pushes": "57941868"
+      },
+      "rssMiB": 177.203125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 5,
+          "scalar-expression:too-small": 1,
+          "tensor:scalar-evaluation-timing": 5,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 1,
+          "tensor:unsupported-type:array": 4,
+          "tensor:output-shape": 1,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      }
+    },
+    "tail": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank255-tail-stats.ra",
+        "--Digits=14"
+      ],
+      "ms": 1374.026458,
+      "answer": "4.447401118",
+      "total": "400266100622279",
+      "count": "90000000000000",
+      "stats": {
+        "Groups": "6428572",
+        "Nodes": "57941868",
+        "Parts": "51513297",
+        "Pushes": "16067309"
+      },
+      "rssMiB": 176.515625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 2,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1
+        }
+      }
+    }
+  },
+  "independentOracle": [
+    {
+      "digits": 1,
+      "total": "14",
+      "count": "9",
+      "answer": "1.5555555556",
+      "max": 2
+    },
+    {
+      "digits": 2,
+      "total": "186",
+      "count": "90",
+      "answer": "2.0666666667",
+      "max": 3
+    },
+    {
+      "digits": 3,
+      "total": "2362",
+      "count": "900",
+      "answer": "2.6244444444",
+      "max": 4
+    },
+    {
+      "digits": 4,
+      "total": "25545",
+      "count": "9000",
+      "answer": "2.8383333333",
+      "max": 5
+    },
+    {
+      "digits": 5,
+      "total": "288926",
+      "count": "90000",
+      "answer": "3.2102888889",
+      "max": 5
+    },
+    {
+      "digits": 6,
+      "total": "3008866",
+      "count": "900000",
+      "answer": "3.3431844444",
+      "max": 5
+    }
+  ],
+  "verification": [
+    {
+      "variant": "original",
+      "digits": 1,
+      "reference": false,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "original",
+      "digits": 1,
+      "reference": true,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "original",
+      "digits": 2,
+      "reference": false,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "original",
+      "digits": 2,
+      "reference": true,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "original",
+      "digits": 3,
+      "reference": false,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "original",
+      "digits": 3,
+      "reference": true,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "original",
+      "digits": 4,
+      "reference": false,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "original",
+      "digits": 4,
+      "reference": true,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "original",
+      "digits": 5,
+      "reference": false,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "original",
+      "digits": 5,
+      "reference": true,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "original",
+      "digits": 6,
+      "reference": false,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "original",
+      "digits": 6,
+      "reference": true,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "bulk",
+      "digits": 1,
+      "reference": false,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "bulk",
+      "digits": 1,
+      "reference": true,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "bulk",
+      "digits": 2,
+      "reference": false,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "bulk",
+      "digits": 2,
+      "reference": true,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "bulk",
+      "digits": 3,
+      "reference": false,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "bulk",
+      "digits": 3,
+      "reference": true,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "bulk",
+      "digits": 4,
+      "reference": false,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "bulk",
+      "digits": 4,
+      "reference": true,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "bulk",
+      "digits": 5,
+      "reference": false,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "bulk",
+      "digits": 5,
+      "reference": true,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "bulk",
+      "digits": 6,
+      "reference": false,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "bulk",
+      "digits": 6,
+      "reference": true,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "count-work",
+      "digits": 1,
+      "reference": false,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "count-work",
+      "digits": 1,
+      "reference": true,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "count-work",
+      "digits": 2,
+      "reference": false,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "count-work",
+      "digits": 2,
+      "reference": true,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "count-work",
+      "digits": 3,
+      "reference": false,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "count-work",
+      "digits": 3,
+      "reference": true,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "count-work",
+      "digits": 4,
+      "reference": false,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "count-work",
+      "digits": 4,
+      "reference": true,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "count-work",
+      "digits": 5,
+      "reference": false,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "count-work",
+      "digits": 5,
+      "reference": true,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "count-work",
+      "digits": 6,
+      "reference": false,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "count-work",
+      "digits": 6,
+      "reference": true,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "tail",
+      "digits": 1,
+      "reference": false,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "tail",
+      "digits": 1,
+      "reference": true,
+      "total": "14",
+      "answer": "1.5555555556"
+    },
+    {
+      "variant": "tail",
+      "digits": 2,
+      "reference": false,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "tail",
+      "digits": 2,
+      "reference": true,
+      "total": "186",
+      "answer": "2.0666666667"
+    },
+    {
+      "variant": "tail",
+      "digits": 3,
+      "reference": false,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "tail",
+      "digits": 3,
+      "reference": true,
+      "total": "2362",
+      "answer": "2.6244444444"
+    },
+    {
+      "variant": "tail",
+      "digits": 4,
+      "reference": false,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "tail",
+      "digits": 4,
+      "reference": true,
+      "total": "25545",
+      "answer": "2.8383333333"
+    },
+    {
+      "variant": "tail",
+      "digits": 5,
+      "reference": false,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "tail",
+      "digits": 5,
+      "reference": true,
+      "total": "288926",
+      "answer": "3.2102888889"
+    },
+    {
+      "variant": "tail",
+      "digits": 6,
+      "reference": false,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    },
+    {
+      "variant": "tail",
+      "digits": 6,
+      "reference": true,
+      "total": "3008866",
+      "answer": "3.3431844444"
+    }
+  ],
+  "fixtures": {
+    "smallCompiled": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=benchmarks/experiments/euler255-tail-intervals.ra",
+        "--fixture"
+      ],
+      "ms": 128.61950000000002,
+      "total": "undefined",
+      "count": "undefined",
+      "rssMiB": 176.9375,
+      "tests": [
+        {
+          "name": "fewer digits",
+          "passed": true,
+          "output": [
+            "2.8383333333",
+            "3.2102888889"
+          ],
+          "durationMs": 23.160624999999982
+        }
+      ],
+      "diagnostics": {
+        "compiledLoops": 2,
+        "numberLoops": 1,
+        "exactLoopWorkSamples": 1,
+        "exactLoopWorkPromotions": 1,
+        "numberLoopCopyProbes": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 4,
+          "tensor:scalar-evaluation-timing": 11,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 4,
+          "scalar-expression:unsupported-op:/": 1,
+          "scalar-expression:unsupported-node:NameExpression": 4,
+          "scalar-expression:unsupported-op:equal": 4,
+          "number-loop:condition-work": 2
+        }
+      }
+    },
+    "smallReference": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=benchmarks/experiments/euler255-tail-intervals.ra",
+        "--fixture",
+        "--reference"
+      ],
+      "ms": 128.671833,
+      "total": "undefined",
+      "count": "undefined",
+      "rssMiB": 176.234375,
+      "tests": [
+        {
+          "name": "fewer digits",
+          "passed": true,
+          "output": [
+            "2.8383333333",
+            "3.2102888889"
+          ],
+          "durationMs": 24.091583000000014
+        }
+      ],
+      "diagnostics": {
+        "fallbacks": {
+          "loop:disabled": 3
+        }
+      }
+    },
+    "fullCompiled": {
+      "args": [
+        "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+        "--source=benchmarks/experiments/euler255-tail-intervals.ra",
+        "--default-fixture"
+      ],
+      "ms": 1302.8394580000001,
+      "total": "undefined",
+      "count": "undefined",
+      "rssMiB": 178.59375,
+      "tests": [
+        {
+          "name": "default input",
+          "passed": true,
+          "output": [
+            "4.447401118"
+          ],
+          "durationMs": 1195.11125
+        }
+      ],
+      "diagnostics": {
+        "compiledLoops": 1,
+        "numberLoops": 1,
+        "numberLoopCopyProbes": 1,
+        "numberLoopCopyAmortized": 1,
+        "fallbacks": {
+          "scalar-expression:unsupported-op:**": 7,
+          "scalar-expression:too-small": 3,
+          "tensor:scalar-evaluation-timing": 6,
+          "scalar-expression:unsupported-op:-": 1,
+          "scalar-expression:unsupported-op:*": 2,
+          "tensor:unsupported-type:array": 3,
+          "tensor:output-shape": 2,
+          "scalar-expression:unsupported-op:/": 1,
+          "scalar-expression:unsupported-node:NameExpression": 2,
+          "scalar-expression:unsupported-op:equal": 2
+        }
+      }
+    }
+  },
+  "edgeCase": {
+    "digits": 1,
+    "original": "X0 has type real and cannot receive integer",
+    "cause": "The even-digit initializer evaluates 10 ** -1 before the odd-digit branch. Initialize the odd-digit expression first and override it only for even Digits."
+  },
+  "researchScope": "The original measurement phase used isolated prototypes; shipping changes and validation are recorded in delivery.",
+  "delivery": {
+    "sourceSha256": "dea04d0c9ed717fa404cc8b5098b315af01432a13c7d0e31df24034f5bf2d5d7",
+    "changes": [
+      "Active-work counting and stable-suffix trimming",
+      "Last-child continuation; sibling-only three-array stack",
+      "Integer initialization for Digits=1",
+      "Small fixture extended to six cases with exact Total/Count",
+      "Full assertion retained with exact Total/Count",
+      "Full compiled regression included in ordinary full-scale tests",
+      "Manual reference-budget exclusions retained with refreshed descriptions"
+    ],
+    "shippingOracleChecks": [
+      {
+        "digits": 1,
+        "reference": false,
+        "answer": "1.5555555556",
+        "total": "14",
+        "count": "9"
+      },
+      {
+        "digits": 1,
+        "reference": true,
+        "answer": "1.5555555556",
+        "total": "14",
+        "count": "9"
+      },
+      {
+        "digits": 2,
+        "reference": false,
+        "answer": "2.0666666667",
+        "total": "186",
+        "count": "90"
+      },
+      {
+        "digits": 2,
+        "reference": true,
+        "answer": "2.0666666667",
+        "total": "186",
+        "count": "90"
+      },
+      {
+        "digits": 3,
+        "reference": false,
+        "answer": "2.6244444444",
+        "total": "2362",
+        "count": "900"
+      },
+      {
+        "digits": 3,
+        "reference": true,
+        "answer": "2.6244444444",
+        "total": "2362",
+        "count": "900"
+      },
+      {
+        "digits": 4,
+        "reference": false,
+        "answer": "2.8383333333",
+        "total": "25545",
+        "count": "9000"
+      },
+      {
+        "digits": 4,
+        "reference": true,
+        "answer": "2.8383333333",
+        "total": "25545",
+        "count": "9000"
+      },
+      {
+        "digits": 5,
+        "reference": false,
+        "answer": "3.2102888889",
+        "total": "288926",
+        "count": "90000"
+      },
+      {
+        "digits": 5,
+        "reference": true,
+        "answer": "3.2102888889",
+        "total": "288926",
+        "count": "90000"
+      },
+      {
+        "digits": 6,
+        "reference": false,
+        "answer": "3.3431844444",
+        "total": "3008866",
+        "count": "900000"
+      },
+      {
+        "digits": 6,
+        "reference": true,
+        "answer": "3.3431844444",
+        "total": "3008866",
+        "count": "900000"
+      }
+    ],
+    "fixtures": {
+      "fixture-reference-False": {
+        "args": [
+          "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+          "--fixture"
+        ],
+        "ms": 134.015666,
+        "total": "undefined",
+        "count": "undefined",
+        "rssMiB": 175.234375,
+        "tests": [
+          {
+            "name": "small inputs and exact totals",
+            "passed": true,
+            "output": [
+              "1.5555555556",
+              "2.0666666667",
+              "2.6244444444",
+              "2.8383333333",
+              "3.2102888889",
+              "3.3431844444"
+            ],
+            "durationMs": 26.66833399999996
+          }
+        ],
+        "diagnostics": {
+          "compiledLoops": 6,
+          "numberLoops": 2,
+          "exactLoopWorkSamples": 4,
+          "exactLoopWorkPromotions": 1,
+          "numberLoopCopyProbes": 2,
+          "numberLoopCopyAmortized": 1,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 7,
+            "scalar-expression:too-small": 20,
+            "tensor:scalar-evaluation-timing": 33,
+            "scalar-expression:unsupported-op:-": 1,
+            "scalar-expression:unsupported-op:*": 2,
+            "tensor:unsupported-type:array": 3,
+            "tensor:output-shape": 12,
+            "scalar-expression:unsupported-op:/": 1,
+            "scalar-expression:unsupported-node:NameExpression": 36,
+            "scalar-expression:unsupported-op:equal": 36,
+            "number-loop:condition-work": 8
+          }
+        }
+      },
+      "fixture-reference-True": {
+        "args": [
+          "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+          "--fixture",
+          "--reference"
+        ],
+        "ms": 145.14200000000002,
+        "total": "undefined",
+        "count": "undefined",
+        "rssMiB": 179.828125,
+        "tests": [
+          {
+            "name": "small inputs and exact totals",
+            "passed": true,
+            "output": [
+              "1.5555555556",
+              "2.0666666667",
+              "2.6244444444",
+              "2.8383333333",
+              "3.2102888889",
+              "3.3431844444"
+            ],
+            "durationMs": 38.179416
+          }
+        ],
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 3
+          }
+        }
+      },
+      "default-fixture-reference-False": {
+        "args": [
+          "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+          "--default-fixture"
+        ],
+        "ms": 1309.173666,
+        "total": "undefined",
+        "count": "undefined",
+        "rssMiB": 177.59375,
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "4.447401118"
+            ],
+            "durationMs": 1202.614083
+          }
+        ],
+        "diagnostics": {
+          "compiledLoops": 1,
+          "numberLoops": 1,
+          "numberLoopCopyProbes": 1,
+          "numberLoopCopyAmortized": 1,
+          "fallbacks": {
+            "scalar-expression:unsupported-op:**": 7,
+            "scalar-expression:too-small": 5,
+            "tensor:scalar-evaluation-timing": 6,
+            "scalar-expression:unsupported-op:-": 1,
+            "scalar-expression:unsupported-op:*": 2,
+            "tensor:unsupported-type:array": 3,
+            "tensor:output-shape": 2,
+            "scalar-expression:unsupported-op:/": 1,
+            "scalar-expression:unsupported-node:NameExpression": 6,
+            "scalar-expression:unsupported-op:equal": 6
+          }
+        }
+      },
+      "default-fixture-reference-True": {
+        "args": [
+          "--runtime=/tmp/rank254-validation/packages/interpreter/out/index.js",
+          "--default-fixture",
+          "--reference"
+        ],
+        "ms": 161374.907291,
+        "total": "undefined",
+        "count": "undefined",
+        "rssMiB": 179.09375,
+        "tests": [
+          {
+            "name": "default input",
+            "passed": true,
+            "output": [
+              "4.447401118"
+            ],
+            "durationMs": 161266.245042
+          }
+        ],
+        "diagnostics": {
+          "fallbacks": {
+            "loop:disabled": 3
+          }
+        }
+      }
+    },
+    "validation": {
+      "fullScaleInterpreterTests": "4 passed, including the new full 255 Number-loop regression",
+      "TypeScriptTestProjectBuild": "passed",
+      "smallFixtureDifferentialAndTypeAudits": "2 passed",
+      "cliChecks": "all three files passed",
+      "exhaustiveRepositorySuites": "not rerun; production interpreter sources unchanged"
+    }
+  }
+}
