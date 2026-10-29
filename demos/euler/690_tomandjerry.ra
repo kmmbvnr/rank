@@ -1,0 +1,130 @@
+rem Tom and Jerry
+rem https://projecteuler.net/problem=690
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 2019
+
+rem Tom graphs are the forests of
+rem lobsters, so T is the Euler
+rem transform of the lobster counts L.
+rem With the partition series P:
+rem   A = P - 1/(1-x), X = x P,
+rem   B = P(x^2) - 1/(1-x^2),
+rem   U = A^2 / (1 - X),
+rem   V = B (1 + X) / (1 - x^2 P(x^2)),
+rem   L = X + x^2 (U + V) / 2
+rem       - x^3 / ((1-x)(1-x^2)).
+rem Then n T(n) = sum of c(k) T(n-k),
+rem c(m) the sum of d L(d) over d | m.
+rem Series products are dot products.
+P = 1000000007
+I2 = 500000004
+Mm = Nn + 1
+Z = array shape Mm fill 0
+Pn = Z copy
+Pn 0 = 1
+for N in 1 to Nn
+  Sm = 0
+  for K in 1 to N
+    G1 = K * (3 * K - 1) // 2
+    G2 = K * (3 * K + 1) // 2
+    if G1 at most N
+      Tt = Pn (N - G1)
+      if G2 at most N
+        Tt = Tt + Pn (N - G2)
+      end
+      if K mod 2 equal 1
+        Sm = Sm + Tt
+      end
+      if K mod 2 equal 0
+        Sm = Sm - Tt
+      end
+    end
+  end
+  Pn N = (Sm mod P + P) mod P
+end
+Xs = Z copy
+Xs (1 to Nn) = Pn (0 to Nn - 1)
+Aa = (Pn - 1 + P) mod P
+Bb = Z copy
+Y2 = Z copy
+for K in 0 to Nn // 2
+  Bb (2 * K) = (Pn K - 1 + P) mod P
+  if 2 * K + 2 at most Nn
+    Y2 (2 * K + 2) = Pn K
+  end
+end
+Sq = Z copy
+for N in 0 to Nn
+  Ra = Aa (N to 0 by -1)
+  Pr = Aa (0 to N) * Ra mod P
+  Sq N = Pr sum mod P
+end
+Gx = Z copy
+Gx 0 = 1
+Gy = Z copy
+Gy 0 = 1
+for N in 1 to Nn
+  Rg = Gx (N - 1 to 0 by -1)
+  Pr = Xs (1 to N) * Rg mod P
+  Gx N = Pr sum mod P
+  Rh = Gy (N - 1 to 0 by -1)
+  Pr = Y2 (1 to N) * Rh mod P
+  Gy N = Pr sum mod P
+end
+Ux = Z copy
+Vx = Z copy
+X1 = (Xs + (Z * 0) + 0) mod P
+X1 0 = 1
+Bx = Z copy
+for N in 0 to Nn
+  Rg = Gx (N to 0 by -1)
+  Pr = Sq (0 to N) * Rg mod P
+  Ux N = Pr sum mod P
+  Rx = X1 (N to 0 by -1)
+  Pr = Bb (0 to N) * Rx mod P
+  Bx N = Pr sum mod P
+end
+for N in 0 to Nn
+  Rg = Gy (N to 0 by -1)
+  Pr = Bx (0 to N) * Rg mod P
+  Vx N = Pr sum mod P
+end
+Ls = Z copy
+for N in 1 to Nn
+  Tt = Xs N
+  if N at least 2
+    Uv = Ux (N - 2) + Vx (N - 2)
+    Tt = Tt + Uv * I2
+  end
+  if N at least 3
+    Tt = Tt - ((N - 3) // 2 + 1)
+  end
+  Ls N = (Tt mod P + P) mod P
+end
+Cs = Z copy
+for D in 1 to Nn
+  Dl = D * Ls D mod P
+  Cv = Cs (D to Nn by D)
+  Cs (D to Nn by D) = (Cv + Dl) mod P
+end
+Ti = Z copy
+Ti 0 = 1
+Iv = Z copy
+Iv 1 = 1
+for N in 2 to Nn
+  Pq = (P // N) * Iv (P mod N) mod P
+  Iv N = (P - Pq) mod P
+end
+for N in 1 to Nn
+  Rt = Ti (N - 1 to 0 by -1)
+  Pr = Cs (1 to N) * Rt mod P
+  Sm = Pr sum mod P
+  Ti N = Sm * Iv N mod P
+end
+Answer = Ti Nn
+Answer print
