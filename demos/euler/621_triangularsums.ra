@@ -47,7 +47,9 @@ B = 1
 Bm = (M // 3) isqrt
 Am = ((Bm * Bm + M) // 4) isqrt + 1
 Pa = primes from 3 to Am array
-Lg = ((0 - M) mod Pa) ((Pa - 1) // 2) Pa powmod
+Ng = (0 - M) mod Pa
+Eh = (Pa - 1) // 2
+Lg = Ng Eh Pa powmod
 Bd = Pa ((Lg equal Pa - 1) indices)
 Bad = (0 to Am) * 0
 for P in Bd
@@ -61,7 +63,9 @@ for 3 * B * B at most M
   Cs = Gd (((T mod Gd) equal 0) indices)
   Cs = Cs ((Cs at least B) indices)
   Cs = Cs ((Cs at most Rt) indices)
-  Ge = ((Cs greater B) integer) * (((Cs * Cs) less T) integer)
+  Gb = (Cs greater B) integer
+  Gq = ((Cs * Cs) less T) integer
+  Ge = Gb * Gq
   H += (1 + Ge) sum
   B += 2
 end
