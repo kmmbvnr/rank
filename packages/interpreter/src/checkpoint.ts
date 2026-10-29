@@ -66,8 +66,10 @@ function shard(source: RankFile, name: string, context: RuntimeContext, verify: 
         file = {kind:'file',closed:false,handle:context.io.open(directory + name,'read')};
         context.ownFile(file);
         const revision = file.handle.revision?.bind(file.handle);
+        const stat = file.handle.stat?.bind(file.handle);
         // Every tensor cell/descriptor also validates its parent index's lifetime and version.
         if (revision) file.handle.revision = () => { state(source); return revision(); };
+        if (stat) file.handle.stat = () => { state(source); return stat(); };
         const entries = safetensorIndex(file);
         if (!isRankArray(entries)) return invalid('invalid shard index');
         const actual = new Set(entries.items.map(row => isRankObject(row) ? row.entries.get('name') : invalid('invalid tensor metadata')));

@@ -1,4 +1,4 @@
-import { checkedFile } from './file-integrity.js';
+import { checkedFile, checkedFileStatus } from './file-integrity.js';
 import { registerFileTensor } from './file-tensor.js';
 import { derivedArray, ownedArray, ownedObject } from './array-storage.js';
 import { RankError } from './errors.js';
@@ -7,7 +7,7 @@ import { type RankFile, type RankValue } from './value.js';
 const widths: Record<string, number> = { BOOL: 1, U8: 1, I8: 1, I16: 2, U16: 2, F16: 2, BF16: 2,
     F32: 4, F64: 8, I32: 4, U32: 4, I64: 8, U64: 8 };
 interface Tensor { name: string; dtype: string; shape: number[]; offset: number; length: number }
-interface Index { size: number; revision?: string; tensors: Tensor[] }
+interface Index { file: RankFile; size: number; revision?: string; tensors: Tensor[] }
 const indices = new WeakMap<RankFile, Index>();
 const invalid = (message: string): never => { throw new RankError('Safetensors: ' + message, 'IO'); };
 function file(value: RankValue): RankFile { return checkedFile(value); }
@@ -38,15 +38,13 @@ export function parseSafetensorsJson(text: string): Record<string, unknown> {
     }
     return JSON.parse(text);
 }
-function index(value: RankFile): Index {
-    file(value);
-    const size = value.handle.size(), cached = indices.get(value);
+function index(input: RankValue): Index {
+    const { file: value, size, revision } = checkedFileStatus(input), cached = indices.get(value);
     if (!Number.isSafeInteger(size) || size < 8) return invalid('invalid file size');
     if (cached) {
-        if (size !== cached.size || value.handle.revision?.() !== cached.revision) invalid('file changed; reopen the checkpoint');
+        if (size !== cached.size || revision !== cached.revision) invalid('file changed; reopen the checkpoint');
         return cached;
     }
-    const revision = value.handle.revision?.();
     const prefix = read(value, 0, 8);
     const length64 = new DataView(prefix.buffer, prefix.byteOffset, 8).getBigUint64(0, true);
     if (length64 > 16n * 1024n * 1024n || length64 < 2n || length64 > BigInt(size - 8))
@@ -79,11 +77,12 @@ function index(value: RankFile): Index {
         end += tensor.length;
     }
     if (end !== size) invalid('unindexed trailing bytes');
-    if (value.handle.size() !== size || value.handle.revision?.() !== revision) invalid('file changed while reading the index');
-    const result = { size, tensors, revision }; indices.set(value, result); return result;
+    const after = checkedFileStatus(value);
+    if (after.size !== size || after.revision !== revision) invalid('file changed while reading the index');
+    const result = { file: value, size, tensors, revision }; indices.set(value, result); return result;
 }
 export function safetensorIndex(value: RankValue): RankValue {
-    return ownedArray(index(file(value)).tensors.map(t => ownedObject([
+    return ownedArray(index(value).tensors.map(t => ownedObject([
         ['name', t.name], ['dtype', t.dtype], ['shape', ownedArray(t.shape.map(BigInt))],
         ['bytes', BigInt(t.length)],
     ])));
@@ -94,15 +93,15 @@ function half(bits: number): number {
         : sign * (exponent ? 1 + mantissa / 1024 : mantissa / 1024) * 2 ** (exponent ? exponent - 15 : -14);
 }
 export function safetensor(value: RankValue, name: RankValue): RankValue {
-    const source = file(value), metadata = index(source);
+    const metadata = index(value), source = metadata.file;
     if (typeof name !== 'string') return invalid('tensor name must be text');
     const tensor = metadata.tensors.find(t => t.name === name);
     if (!tensor) return invalid('unknown tensor: ' + name);
     const width = widths[tensor.dtype], count = tensor.length / width;
     let block = -1, data: DataView;
     const readCell = (i: number): RankValue => {
-        file(source);
-        if (source.handle.size() !== metadata.size || source.handle.revision?.() !== metadata.revision) return invalid('file changed; reopen the checkpoint');
+        const status = checkedFileStatus(source);
+        if (status.size !== metadata.size || status.revision !== metadata.revision) return invalid('file changed; reopen the checkpoint');
         if (!Number.isSafeInteger(i) || i < 0 || i >= count) return invalid('tensor index out of bounds');
         const byte = i * width, next = Math.floor(byte / 65536) * 65536;
         if (next !== block) {
@@ -130,10 +129,9 @@ export function safetensor(value: RankValue, name: RankValue): RankValue {
     if (!tensor.shape.length) return readCell(0);
     const view = derivedArray(tensor.shape, [source], readCell);
     registerFileTensor(view, () => {
-        file(source);
-        const revision = source.handle.revision?.(), path = source.handle.nativePath?.();
+        const { size, revision } = checkedFileStatus(source), path = source.handle.nativePath?.();
         if (revision === undefined || path === undefined) return invalid('native file tensor transfer is unavailable on this host');
-        if (source.handle.size() !== metadata.size || revision !== metadata.revision) return invalid('file changed; reopen the checkpoint');
+        if (size !== metadata.size || revision !== metadata.revision) return invalid('file changed; reopen the checkpoint');
         return { path, revision, fileSize: metadata.size, offset: tensor.offset, length: tensor.length,
             dtype: tensor.dtype, shape: tensor.shape };
     });

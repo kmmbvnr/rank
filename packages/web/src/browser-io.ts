@@ -180,8 +180,9 @@ class NativeInputFile implements RankFileHandle {
         this.cursor = offset;
     }
     position(): number { return this.cursor; }
-    size(): number { return JSON.parse(this.request('&action=stat').responseText).size; }
-    revision(): string { return JSON.parse(this.request('&action=stat').responseText).revision; }
+    stat(): { size: number; revision: string } { return JSON.parse(this.request('&action=stat').responseText); }
+    size(): number { return this.stat().size; }
+    revision(): string { return this.stat().revision; }
     write(): void { throw new Error('Model files are read-only'); }
     flush(): void { if (this.closed) throw new Error('file is closed'); }
     close(): void { this.closed = true; }

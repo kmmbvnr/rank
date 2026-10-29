@@ -92,6 +92,8 @@ export interface RankFileHandle {
     seek(offset: number): void;
     position(): number;
     size(): number;
+    /** One fresh host query for size and identity; never a cached snapshot. */
+    stat?(): { size: number; revision?: string };
     /** Host identity used to detect modified file-backed tensors. */
     revision?(): string;
     /** Native-runtime path for descriptor-based tensor transfer, when supported. */

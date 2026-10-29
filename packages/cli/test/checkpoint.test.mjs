@@ -8,7 +8,7 @@ import {execFileSync} from 'node:child_process';
 import {Interpreter} from '../../interpreter/out/index.js';
 import {nodeIo} from '../out/node-io.js';
 const digest=data=>createHash('sha256').update(data).digest('hex');
-function fixture(){
+function fixture(combinedStat=false){
  const root=mkdtempSync(join(tmpdir(),'rank-shards-')),headers=new Map();
  const files={},weight_map={};
  for(const [name,values]of [['a',[1,2]],['b',[3,4]]]){
@@ -18,7 +18,7 @@ function fixture(){
  }
  const path=join(root,'model.safetensors.index.json'),manifest={metadata:{total_size:16},weight_map,files};
  const save=()=>writeFileSync(path,JSON.stringify(manifest));save();
- let hashes=0,reads=0,closed=0;const io={...nodeIo,open(...args){const h=nodeIo.open(...args),read=h.read.bind(h),hash=h.sha256.bind(h),close=h.close.bind(h);h.sha256=()=>{hashes++;return hash();};h.read=n=>{const header=headers.get(args[0].split('/').at(-1));if(header)assert.ok(h.position()+n<=header,'Payload read into JS');reads+=n;return read(n);};h.close=()=>{closed++;close();};return h;}};
+ let hashes=0,reads=0,closed=0;const io={...nodeIo,open(...args){const h=nodeIo.open(...args);if(combinedStat){const size=h.size.bind(h),revision=h.revision.bind(h);h.stat=()=>({size:size(),revision:revision()});}const read=h.read.bind(h),hash=h.sha256.bind(h),close=h.close.bind(h);h.sha256=()=>{hashes++;return hash();};h.read=n=>{const header=headers.get(args[0].split('/').at(-1));if(header)assert.ok(h.position()+n<=header,'Payload read into JS');reads+=n;return read(n);};h.close=()=>{closed++;close();};return h;}};
  const calls=[];const r=new Interpreter(undefined,{io,loadModule:()=>({id:'combinegpu.ram',source:'use ml\narg A .f32 shape 2\narg B .f32 shape 2\nreturn A + B'}),ramGpu:(g,input,files)=>{calls.push({input,files});return [4,6];}});
  return {root,path,manifest,save,r,calls,io,hashes:()=>hashes,reads:()=>reads,closed:()=>closed,cleanup(){r.dispose();rmSync(root,{recursive:true});}};
 }
@@ -64,8 +64,8 @@ test('locking an existing index seals the same files without copying weights',()
 });
 
 test('changes to an opened index or verified shard are rejected before a second GPU call',()=>{
- for(const changed of ['index','shard']){
-  const f=fixture();try{
+ for(const combinedStat of [false,true])for(const changed of ['index','shard']){
+  const f=fixture(combinedStat);try{
    // Mutate on the first native invocation, while both deferred inputs are alive.
    const r=new Interpreter(undefined,{io:f.io,loadModule:()=>({id:'combinegpu.ram',source:'use ml\narg A .f32 shape 2\narg B .f32 shape 2\nreturn A + B'}),ramGpu:()=>{
     f.calls.push({});const path=changed==='index'?f.path:join(f.root,'a.safetensors');
