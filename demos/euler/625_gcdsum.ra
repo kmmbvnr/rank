@@ -57,7 +57,8 @@ end
 S = N isqrt
 Ds = 1 to S
 Xs = N // Ds
-Pa = (Xs at most L) choose (Fs (Xs min L)) (Bg (Ds min K))
+Sm = Fs (Xs min L)
+Pa = (Xs at most L) choose Sm (Bg (Ds min K))
 Answer = ((Ds * Pa) mod M) sum
 Q1 = N // (S + 1)
 Qs = 1 to Q1
