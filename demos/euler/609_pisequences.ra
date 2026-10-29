@@ -11,7 +11,7 @@ arg N integer = 100000000
 rem G(v) is the polynomial in x (x marks
 rem a non-prime) over all prefixes of
 rem the pi chain from v: G(v) = x^c
-rem (1 + G(pi v)), c = 1 for a non-prime.
+rem (1 + G(pi v)), c = 1 if not prime.
 rem All v in [p, next prime) share pi v
 rem = m, so only G(m) for m <= pi(N) is
 rem built, by repeated gathers, and the
@@ -43,7 +43,8 @@ for J in 1 to 10
   Gs = (C2 choose (Bm shift 1) Bm) * N2
 end
 Bm = (Gs Rw Pi) + E0
-Gm = (Cm reshape 1 (Mx + 1)) choose (Bm shift 1) Bm
+Cw = Cm reshape 1 (Mx + 1)
+Gm = Cw choose (Bm shift 1) Bm
 Gm = Gm * (Zn reshape 1 (Mx + 1))
 Ik = 1 to Mx
 Bf = (Gm Rw Ik) + E0
@@ -57,7 +58,8 @@ Tot = Tot - Z0 * Mx - Z1 * Nc
 Answer = 1
 for K in 0 to Kd - 1
   if Tot K greater 0
-    Answer = Answer * (Tot K mod Md) mod Md
+    Tk = Tot K mod Md
+    Answer = Answer * Tk mod Md
   end
 end
 Answer print
