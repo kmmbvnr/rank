@@ -19,7 +19,8 @@ rem D - j) / C(D, j), I(D, k) = D / (D -
 rem k) C(D - k, k) the independent sets
 rem of size k. State j costs D / (D - j)
 rem draws, so E is the sum over the
-rem k = D - j unseen days of (open) D / k.
+rem k = D - j unseen days, the sum of
+rem D / k over the open states.
 Ks = 1 to D
 Lg = ((1 to D) * 1.0) log
 Lf = Lg scan + with 0.0
