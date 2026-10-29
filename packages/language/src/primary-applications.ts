@@ -1,7 +1,7 @@
 import { applicationExpression, attachedSign, flattenApplication } from './expressions.js';
 import { AstUtils, type AstNode } from 'langium';
 import {
-    isApplicationExpression, isArrayAssignmentStatement, isAssignmentStatement, isBinaryExpression,
+    isApplicationExpression, isArrayAssignmentStatement, isArrayExpression, isAssignmentStatement, isBinaryExpression,
     isLabelLiteral, isNameExpression, isNumberLiteral, isOperationAssignmentStatement,
     isPrimaryTailExpression, isUnaryExpression, type ApplicationExpression, type Expression,
     type KeyedGroupExpression, type KeyedJoinExpression, type KeyedMergeExpression,
@@ -157,6 +157,25 @@ function extractAccumulate(expression: Expression): { value: Expression; accumul
         expression.operand = operand.value;
         AstUtils.linkContentToContainer(expression);
         return { value: expression, accumulate: true };
+    }
+    // Inline array values consume labels before application grouping sees them.
+    // A parenthesized label remains ordinary data, as in `array 1 (.accumulate)`.
+    if (isArrayExpression(expression)) {
+        if (expression.fill) {
+            const fill = extractAccumulate(expression.fill);
+            if (!fill.accumulate) return { value: expression, accumulate: false };
+            expression.fill = fill.value;
+            AstUtils.linkContentToContainer(expression);
+            return { value: expression, accumulate: true };
+        }
+        const items = expression.dimensions.length ? expression.dimensions : expression.items;
+        const last = items.at(-1);
+        if (items.length > 1 && last && !last.sign && isLabelLiteral(last.value) && last.value.name === 'accumulate'
+            && last.$cstNode?.end === expression.$cstNode?.end) {
+            items.pop();
+            AstUtils.linkContentToContainer(expression);
+            return { value: expression, accumulate: true };
+        }
     }
     if (isApplicationExpression(expression)) {
         const last = expression.arguments.at(-1);

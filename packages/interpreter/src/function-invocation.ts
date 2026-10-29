@@ -11,7 +11,7 @@ import type { AstNode } from 'langium';
 import {
     functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation,
     writtenArrayParameters, availableBuiltin, builtinBindingMessage, expressionFacts, functionBindingPlan,
-    groupExpressions, flattenApplication, isNameExpression, declaredRanks, functionEffects,
+    groupExpressions, flattenApplication, isNameExpression, isFunctionOperator, declaredRanks, functionEffects,
     isReturnStatement, type LastArrayUseProof, type FunctionCallSignature, type CallRequirement,
     type KnownShape, type Expression, type FunctionBindingStatement, type FunctionStatement,
     type Program, type Statement, type ValueFacts,
@@ -196,9 +196,14 @@ export class FunctionInvocation {
             const signatures = new Map<string, readonly number[] | false>();
             const declarations = new Map<string, FunctionCallSignature>();
             let words: readonly string[] = [];
-            for (const part of flattenApplication(statement.value)) {
+            const parts = flattenApplication(statement.value);
+            for (const [index, part] of parts.entries()) {
                 if (!isNameExpression(part) || ['rank', 'axis', 'with', ...words].includes(part.name)) continue;
-                const value = resolve(part.name);
+                // A symbolic higher-order stage is syntax, not a callable binding.
+                // Still expose an actual shadowing binding to the grouping check.
+                const symbolic = isFunctionOperator(parts[index + 1]);
+                const value = symbolic ? this.bindings.find(part.name) : resolve(part.name);
+                if (value === undefined) continue;
                 signatures.set(part.name, isNativeFunction(value) ? value.arities : false);
                 const declaration = isNativeFunction(value) ? value.callSignature : undefined;
                 if (declaration) declarations.set(part.name, declaration);

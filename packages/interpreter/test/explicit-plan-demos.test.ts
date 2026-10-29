@@ -611,7 +611,7 @@ end`);
             runtime.execute('use bits\nuse numbers\nuse sequences\nWords = array 1 2 3');
             // Run the unchanged merge stage, without the expensive period search.
             runtime.execute(source.slice(start, end));
-            expect(runtime.variables.get('B')).toBe(1n + (2n << 32n) + (3n << 64n));
+            expect(runtime.variables.get('B')).toBe(1n + (2n << 52n) + (3n << 104n));
             expect(isStoredValue(runtime.variables.get('Ws')!)).toBe(true);
         } finally { runtime.dispose(); }
     });

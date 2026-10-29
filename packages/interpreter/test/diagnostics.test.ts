@@ -18,7 +18,7 @@ function failure(source: string, interpreter = new Interpreter(() => {}, { sourc
 describe('syntax error wording', () => {
     it.each([
         ['memo N fib\n  if N at leat 2\n    return 1\n  end\nend\n', "Unexpected 'at', did you mean 'at least'? at 2:8"],
-        ['fun N inc\n', 'Unexpected end of line at 1:10'],
+        ['fun N inc\n', 'Unexpected end of input at 2:1'],
         ['X = 1 +\n', "Unexpected '+' at 1:7"],
         ['X = @\n', "Unexpected character '@' at 1:5"],
         ['X = "abc\n', 'Text is missing its closing quote at 1:5'],

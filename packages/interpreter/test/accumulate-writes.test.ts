@@ -7,6 +7,8 @@ import { InterruptedError, withInterrupt } from '../src/interrupt.js';
 const prefix = 'use sequences\nuse numbers\n';
 const cases: [string, string, string][] = [
     ['broadcast addition', 'H Ix += 1 .accumulate', '10 13 11 10 10'],
+    ['filled weights', 'H Ix += array shape 4 fill 2 .accumulate', '10 16 12 10 10'],
+    ['shaped weights', 'H Ix += array 2 3 4 5 shape 4 .accumulate', '10 20 14 10 10'],
     ['weighted addition', 'H Ix += array 2 3 4 5 .accumulate', '10 20 14 10 10'],
     ['weighted subtraction', 'H Ix -= array 2 3 4 5 .accumulate', '10 0 6 10 10'],
     ['broadcast subtraction', 'H Ix -= 2 .accumulate', '10 4 8 10 10'],

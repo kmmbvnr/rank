@@ -115,3 +115,23 @@ describe('single-expression function bindings', () => {
         expect(runtime.execute('run "module.ra"')).toBe(9n);
     });
 });
+
+describe.each([false, true])('symbolic function pipelines (compilation=%s)', compilation => {
+    it('binds symbolic stages and their following pipelines without resolving syntax as a value', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.execute('use sequences\nproducts = reduce * axis -1 max\ntotals = scan + with 0 sum');
+            expect(runtime.execute('(array 2 3 4 5 shape 2 2) products')).toBe(20n);
+            expect(runtime.execute('(array 1 2 3) totals')).toBe(10n);
+            runtime.execute('reversed_total = reverse reduce +');
+            expect(runtime.execute('(array 1 2 3) reversed_total')).toBe(6n);
+        } finally { runtime.dispose(); }
+    });
+    it('does not treat a shadowed symbolic operation as the builtin', () => {
+        const runtime = new Interpreter(undefined, { compilation });
+        try {
+            runtime.variables.set('reduce', { kind: 'function', name: 'reduce', arities: [1], monadicRank: 'all', call: args => args[0] });
+            expect(() => runtime.execute('use sequences\nproducts = reduce * max')).toThrow(/rebound/);
+        } finally { runtime.dispose(); }
+    });
+});
