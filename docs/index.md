@@ -132,6 +132,7 @@ Structures, modules, and query syntax that extend the core language via `use`:
 
 - [ADR Index: Implementation & Runtime](adr/implementation/README.md) — Architectural decisions for compiler internals, memory model, shape inference, and JIT kernel fusion.
 - [LLM-aided Rust rewrite](design/llm-rust-rewrite.md)
+- [Rank to JavaScript for online judges](design/judge-javascript-compiler.md)
 - [Console, editor and the analysis core](design/editor-plan.md)
 - [REPL input on a phone keyboard](design/repl-input.md)
 - [Looking at a sequence without spending it](design/generator-previews.md)
