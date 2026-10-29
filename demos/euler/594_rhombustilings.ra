@@ -35,98 +35,91 @@ for I in 1 to B
   Nw = Nw // I // I
 end
 Vc = array shape Nw fill 0
-Rv = array shape Nw fill 0
-Nk = 0
 Dg = array shape Ln fill 0
-for Cd in 0 till Bs
-  C0 = 0
-  C1 = 0
-  C2 = 0
-  C3 = 0
-  Cu = Cd
-  for P in 0 till Ln
-    X = Cu mod 4
-    Dg P = X
-    Cu = Cu // 4
-    if X equal 0
-      C0 += 1
-    elif X equal 1
-      C1 += 1
-    elif X equal 2
-      C2 += 1
-    else
-      C3 += 1
-    end
+Pos = 0
+for Lt in 0 to 3
+  Cnt = A
+  if Lt mod 2 equal 1
+    Cnt = B
   end
-  Ok = (C0 equal A) and (C1 equal B)
-  Ok = Ok and (C2 equal A)
-  Ok = Ok and (C3 equal B)
-  if Ok
-    Rm = 0
-    for I in 0 till Ln
-      for J in (I + 1) till Ln
-        if (Dg I) less (Dg J)
-          Rm += 1
-        end
-      end
-    end
-    Vc Nk = Cd
-    Rv Nk = Rm
-    Nk += 1
+  for I in 0 till Cnt
+    Dg Pos = Lt
+    Pos += 1
   end
 end
-Od = Rv argsort
+P4 = array shape Ln fill 1
+for I in 1 till Ln
+  P4 I = (P4 (I - 1)) * 4
+end
+rem Lexicographic multiset permutations enumerate exactly
+rem the admissible words in increasing numeric-code order.
 for Q in 0 till Nw
-  Id = Od Q
-  Cd = Vc Id
+  Cd = 0
+  for P in 0 till Ln
+    Cd = Cd * 4 + (Dg P)
+  end
+  Vc Q = Cd
+  if Q less Nw - 1
+    P = Ln - 2
+    for (Dg P) at least (Dg (P + 1))
+      P -= 1
+    end
+    J = Ln - 1
+    for (Dg J) at most (Dg P)
+      J -= 1
+    end
+    X = Dg P
+    Dg P = Dg J
+    Dg J = X
+    L = P + 1
+    R = Ln - 1
+    for L less R
+      X = Dg L
+      Dg L = Dg R
+      Dg R = X
+      L += 1
+      R -= 1
+    end
+  end
+end
+rem Swapping an ascent reduces its code, so dependencies
+rem have already been counted; no inversion sort is needed.
+rem Each extension adds only a non-overlapping tile and
+rem flips its inclusion-exclusion sign.
+Sc = array shape (2 ** Ln) fill 0
+Ss = array shape (2 ** Ln) fill 0
+Sp = array shape (2 ** Ln) fill 0
+for Q in 0 till Nw
+  Cd = Vc Q
   Cu = Cd
   for P in 0 till Ln
     Dg P = Cu mod 4
     Cu = Cu // 4
   end
   Tt = 0
-  if (Rv Id) equal 0
+  if Q equal 0
     Tt = 1
   else
-    Na = 0
+    Ns = 1
+    Sc 0 = Cd
+    Ss 0 = -1
+    Sp 0 = -2
     for P in 0 till (Ln - 1)
-      if (Dg P) less (Dg (P + 1))
-        Na += 1
-      end
-    end
-    Ap = array shape Na fill 0
-    Na = 0
-    for P in 0 till (Ln - 1)
-      if (Dg P) less (Dg (P + 1))
-        Ap Na = P
-        Na += 1
-      end
-    end
-    for Mk in 1 till 2 ** Na
-      Ok = 1
-      Nc = Cd
-      Sz = 0
-      Pv = 0 - 5
-      for I in 0 till Na
-        if (Mk // 2 ** I) mod 2 equal 1
-          P = Ap I
-          if P equal Pv + 1
-            Ok = 0
+      Wl = Dg P
+      Wr = Dg (P + 1)
+      if Wl less Wr
+        Dl = (Wr - Wl) * 3 * (P4 P)
+        Old = Ns
+        for K in 0 till Old
+          if (Sp K) less P - 1
+            Nc = (Sc K) - Dl
+            Sg = 0 - (Ss K)
+            Tt += Sg * (Tv Nc)
+            Sc Ns = Nc
+            Ss Ns = Sg
+            Sp Ns = P
+            Ns += 1
           end
-          Pv = P
-          Wl = Dg P
-          Wr = Dg (P + 1)
-          Dl = Wr - Wl
-          Nc += Dl * 4 ** P
-          Nc -= Dl * 4 ** (P + 1)
-          Sz += 1
-        end
-      end
-      if Ok equal 1
-        if Sz mod 2 equal 1
-          Tt += Tv Nc
-        else
-          Tt -= Tv Nc
         end
       end
     end
