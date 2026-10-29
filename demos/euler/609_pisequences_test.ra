@@ -1,0 +1,24 @@
+use testing
+
+test "statement values"
+  use "609_pisequences"
+  N = 10
+  run
+  Answer equal 648
+  N = 100
+  run
+  Answer equal 38675815
+end
+
+test "brute force"
+  use "609_pisequences"
+  N = 1000
+  run
+  Answer equal 649720175
+  N = 100000
+  run
+  Answer equal 240041293
+  N = 10000000
+  run
+  Answer equal 742870469
+end
