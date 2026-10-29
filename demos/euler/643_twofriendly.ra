@@ -1,0 +1,71 @@
+rem Gcd Sum -> 2-Friendly
+rem https://projecteuler.net/problem=643
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 100000000000
+
+rem A pair p < q with gcd 2^t is 2^t
+rem times a coprime pair a < b <= N //
+rem 2^t, and there are Phi(m) - 1 of
+rem those up to m, Phi the sum of the
+rem totients. So f = sum over t >= 1
+rem of Phi(N // 2^t) - 1, with Phi
+rem sieved to N^(2/3) and above that
+rem from Phi(x) = x(x + 1)/2 - sum
+rem Phi(x // d), all mod M.
+M = 1000000007
+L = ((N * 1.0) ** (2.0 / 3.0)) floor
+L += 10
+Ph = (0 to L) copy
+Rs = (0 to L) copy
+Lr = L isqrt
+for P in primes to Lr
+  Sl = P to L by P
+  Ph Sl -= Ph Sl // P
+  Pe = P
+  for Pe at most L
+    Rs (Pe to L by Pe) //= P
+    Pe *= P
+  end
+end
+Rm = Rs max 1
+Pr = Ph // Rm * (Rm - 1)
+Ph = (Rs greater 1) choose Pr Ph
+Fs = (Ph scan +) mod M
+K = N // (L + 1)
+Bg = array shape (K + 2) fill 0
+for Kk in K to 1 by -1
+  X = N // Kk
+  Sx = X isqrt
+  D1 = X // (L + 1)
+  Ev = X + (X mod 2)
+  Od = X + 1 - (X mod 2)
+  V = (Ev // 2) mod M * (Od mod M) mod M
+  if D1 at least 2
+    Ds = (2 to D1) copy
+    V -= (Bg (Kk * Ds)) sum
+  end
+  Dd = (D1 + 1 to Sx) copy
+  V -= (Fs (X // Dd)) sum
+  Qs = (1 to X // (Sx + 1)) copy
+  Ct = (X // Qs - X // (Qs + 1)) mod M
+  V -= ((Fs Qs * Ct) mod M) sum
+  Bg Kk = V mod M
+end
+Answer = 0
+Tp = 1
+for 2 ** Tp at most N
+  X = N // 2 ** Tp
+  Fx = Fs (X min L)
+  if X greater L
+    Fx = Bg (2 ** Tp)
+  end
+  Answer += Fx - 1
+  Tp += 1
+end
+Answer = Answer mod M
+Answer print

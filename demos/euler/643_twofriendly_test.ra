@@ -1,0 +1,11 @@
+use testing
+
+test "statement values"
+  use "643_twofriendly"
+  N = 100
+  run
+  Answer equal 1031
+  N = 1000000
+  run
+  Answer equal 321418433
+end
