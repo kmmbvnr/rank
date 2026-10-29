@@ -1,0 +1,4 @@
+use ml
+arg W .f32 shape 768 768
+arg Zero .f32 shape 1 = array shape 1 fill 0.0
+return W + Zero

@@ -18,12 +18,13 @@ async page => {
    try{
     await post({nativeRam:true,nativeFiles:true,ramSessionId:owner.sessionId,modules:f.modules},0);
     let source=f.source.replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(c.prompt)).replace(/^MaxNew = .*$/m,'MaxNew = '+(c.maxNew??1));
+    if(c.weightBudget!==undefined)source=source.replace('WeightBudget = 32 * 1024 * 1024','WeightBudget = '+c.weightBudget);
     if(c.poison)source=source.replace('Empty = array shape ContextLimit 1536 fill 0.0','Empty = ((1 to (ContextLimit * 1536)) * 0.00001) reshape ContextLimit 1536').replace('Rows = array shape ContextLimit 768 fill 0.0','Rows = ((1 to (ContextLimit * 768)) * 0.00001) reshape ContextLimit 768').replace('X = array shape ContextLimit 768 fill 0.0','X = ((1 to (ContextLimit * 768)) * 0.00001) reshape ContextLimit 768');
-    if(c.after)source=source.replace(c.after,c.after+'\n.DomainError "injected activation failure" raise');
+    if(c.after)source=source.replace(c.after,c.after+'\n'+(c.injection??'.DomainError "injected activation failure" raise'));
     if(c.steps)source=source.replace('for Position in','Trace = array shape '+c.steps.length+' 50257 fill 0.0\nfor Position in').replace('Next = Logits max .index','Trace Generated # = Logits\nNext = Logits max .index').replace('F close\nTokens bpedecode Config','F close\nTrace');
     const started=performance.now(),result=await execute(source),wallMs=performance.now()-started;
     if(c.after){
-     if(result.ok||!result.output.some(line=>line.text.includes('injected activation failure')))throw Error('Missing injected failure: '+c.name);
+     if(result.ok||!result.output.some(line=>line.text.includes(c.message??'injected activation failure')))throw Error('Missing injected failure: '+c.name);
      const id=crypto.randomUUID();await native('submit',{id,payload:JSON.stringify({...owner,action:'releaseState',stateId:'nonexistent'})});
      const status=await fetch('/__rank_ml_result?id='+id+'&sessionId='+owner.sessionId).then(r=>r.json());
      if(status.stateBytes!==0||status.residentStates!==0)throw Error('Failure leaked states: '+c.name);
@@ -56,6 +57,6 @@ async page => {
   }
   if(cacheReadbackRequests)throw Error('KV cache was read into JS');
   if(valuesCompared!==f.reference.cases.reduce((sum,c)=>sum+c.steps.length*50257,0))throw Error('Missing logits');
-  return {context:16,batched:!!f.batched,retained:!!f.retained,runs,boundaries,invalid,failedStages,valuesCompared,maxError,cacheReadbackRequests};
+  return {context:16,batched:!!f.batched,retained:!!f.retained,pinned:!!f.pinned,runs,boundaries,invalid,failedStages,valuesCompared,maxError,cacheReadbackRequests};
  },fixture);
 }
