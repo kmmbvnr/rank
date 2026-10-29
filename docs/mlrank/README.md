@@ -97,12 +97,54 @@ call the low-level API must use `executeRamGraph` to submit their parts. A compo
 the entire execution. Native accounting still includes live states and cached
 models in its shared 128 MiB budget, with at most 64 retained states.
 
-This first partitioner chooses cuts by graph dependencies and node count. It does
-not optimize cuts for latency, adapt to available device memory, stream a GiB of
-weights, or replace the manually partitioned full GPT-2 example. Constants can be
-repeated between serialized parts and model-cache eviction can cause recompilation.
-An individual oversized part or excessive live states still fail native admission;
-partitioning does not guarantee that every permitted source fits a device.
+Before each RAM call, the host reports its memory budget and all retained states.
+`executeRamGraph` subtracts those states, including unrelated caller tensors,
+and checks the working set of each part: model reservation, live intermediate
+states, and a new retained output before its inputs can be freed. If necessary,
+it rebuilds the partition plan, even for graphs below 128 nodes. Small models keep
+their native cache identity when only admission metadata changes. The last plan
+for a graph is cached by available bytes, state slots and output retention.
+
+`planRamMemory(graph, availableBytes, stateSlots, retainOutput)` exposes the same
+planner for inspection. Its `memoryPlan` reports `budgetBytes`, `peakBytes`,
+`peakStateBytes` and `peakStates`. The byte budget is the runtime's **logical
+reservation budget**, not free physical GPU memory or process RSS. Native admission
+remains authoritative if other sessions allocate after the status query.
+
+Candidate cuts use a conservative serialization allowance; finalized parts use
+actual model bytes plus nominal tensors, including transposed `linear` weights.
+Planning reserves peak live-state storage and reduces the part budget until it
+finds a fitting plan. It rejects an impossible operation, too many states or
+failure to converge before submitting GPU work. This conservative search can
+reject a graph that a more advanced schedule could fit. It neither tiles an
+oversized operation nor spills live tensors. Cached inactive models are evictable:
+native retention now evicts them when necessary while preserving the active model
+and every retained state.
+
+This still does not optimize cuts for latency, query physical device memory,
+stream a GiB of weights, or replace the manually partitioned full GPT-2 example.
+Constants can repeat between parts, and eviction can cause recompilation. File
+input buffers remain included in reservations; this step adds no weight-streaming
+mechanism.
+
+Memory validation on Mac and Intel used real GPU execution with injected planning
+caps of 256 KiB and 128 KiB: four and ten parts, respectively, with measured logical
+working sets below the caps. These caps do not change the native 128 MiB limit.
+On OnePlus, 29 real retained tensors occupied 116 MiB, leaving 12 MiB. The actual
+Android worker split a 101-node graph into three parts; all 65,536 output values
+matched, borrowed states remained intact and internal states were freed. Test
+teardown released all pressure states. All three hosts verified native cache
+eviction for retained outputs. The 68 focused tests also cover preflight rejection,
+changing pressure, model identity and state-slot bounds.
+[Memory validation results](../../benchmarks/baselines/2026-10-29-mlrank-memory.json).
+
+```sh
+node scripts/mlrank-memory-check.mjs
+node scripts/mlrank-memory-check.mjs --fixture
+```
+
+For Android, substitute `memory-android-fixture.json` into
+`packages/web/test/ram-memory.playwright.js` and run against the rebuilt app.
 
 Validation: 18 runs on each of Mac, Intel and OnePlus, against an independent scalar
 reference, including changes to future tokens. Maximum absolute error was

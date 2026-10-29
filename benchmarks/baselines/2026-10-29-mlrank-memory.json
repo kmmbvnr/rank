@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-29",
+  "scope": "Memory-aware partition planning using native logical reservations and live states",
+  "tests": {
+    "focused": 68,
+    "typescript": "passed",
+    "androidApk": "built and installed",
+    "fullSuite": false
+  },
+  "mac": {
+    "platform": "darwin",
+    "checks": [
+      {
+        "cap": 262144,
+        "parts": 4,
+        "peakWorkingBytes": 247072,
+        "plan": {
+          "budgetBytes": 262144,
+          "peakBytes": 247072,
+          "peakStateBytes": 32768,
+          "peakStates": 2
+        },
+        "wallMs": 88.18925000000002,
+        "finalStateBytes": 0
+      },
+      {
+        "cap": 131072,
+        "parts": 10,
+        "peakWorkingBytes": 115424,
+        "plan": {
+          "budgetBytes": 131072,
+          "peakBytes": 115424,
+          "peakStateBytes": 32768,
+          "peakStates": 2
+        },
+        "wallMs": 12.824999999999989,
+        "finalStateBytes": 0
+      },
+      {
+        "cap": 262144,
+        "parts": 4,
+        "peakWorkingBytes": 247072,
+        "plan": {
+          "budgetBytes": 262144,
+          "peakBytes": 247072,
+          "peakStateBytes": 32768,
+          "peakStates": 2
+        },
+        "wallMs": 6.097290999999984,
+        "finalStateBytes": 0
+      }
+    ],
+    "tooSmallRejectedBeforeInvoke": true,
+    "retentionEvictedCachedModel": true,
+    "finalStateBytes": 0
+  },
+  "intel": {
+    "platform": "linux",
+    "checks": [
+      {
+        "cap": 262144,
+        "parts": 4,
+        "peakWorkingBytes": 247072,
+        "plan": {
+          "budgetBytes": 262144,
+          "peakBytes": 247072,
+          "peakStateBytes": 32768,
+          "peakStates": 2
+        },
+        "wallMs": 166.24898200000007,
+        "finalStateBytes": 0
+      },
+      {
+        "cap": 131072,
+        "parts": 10,
+        "peakWorkingBytes": 115424,
+        "plan": {
+          "budgetBytes": 131072,
+          "peakBytes": 115424,
+          "peakStateBytes": 32768,
+          "peakStates": 2
+        },
+        "wallMs": 20.772291999999993,
+        "finalStateBytes": 0
+      },
+      {
+        "cap": 262144,
+        "parts": 4,
+        "peakWorkingBytes": 247072,
+        "plan": {
+          "budgetBytes": 262144,
+          "peakBytes": 247072,
+          "peakStateBytes": 32768,
+          "peakStates": 2
+        },
+        "wallMs": 10.893208000000072,
+        "finalStateBytes": 0
+      }
+    ],
+    "tooSmallRejectedBeforeInvoke": true,
+    "retentionEvictedCachedModel": true,
+    "finalStateBytes": 0
+  },
+  "oneplus": {
+    "pressureStates": 29,
+    "pressureBytes": 121634816,
+    "availableBytes": 12582912,
+    "parts": 3,
+    "valuesCompared": 65536,
+    "wallMs": 1546.8999999910593,
+    "retentionEvictedCachedModel": true,
+    "borrowedStatesPreserved": true,
+    "internalStateBytes": 0
+  },
+  "limits": [
+    "Logical accounting, not physical GPU memory or process RSS",
+    "Desktop caps are injected planner budgets; native runtime remains at 128 MiB",
+    "Android test uses actual retained native buffers to consume 116 MiB",
+    "Conservative planner can reject schedules that a more advanced algorithm could fit",
+    "No operation tiling, state spilling or GiB weight streaming",
+    "GiB acceptance and whole GPT-2 migration remain pending"
+  ],
+  "reproduce": [
+    "npx tsc -b tsconfig.build.json",
+    "node scripts/mlrank-memory-check.mjs",
+    "node scripts/mlrank-memory-check.mjs --fixture",
+    "Substitute fixture into packages/web/test/ram-memory.playwright.js and run against the rebuilt Android app"
+  ],
+  "implementationCommit": "aea90101"
+}
