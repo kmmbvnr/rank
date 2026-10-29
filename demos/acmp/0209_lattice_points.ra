@@ -1,0 +1,29 @@
+rem Lattice Points in Polygon
+rem https://acmp.ru/index.asp?main=task&id_task=209
+rem Number of strictly interior integer points using Pick's theorem
+
+use numbers
+use sequences
+use text
+use io
+use cli
+
+arg XsText text = "-1 -1 1 1"
+arg YsText text = "-1 1 1 -1"
+
+Xs = XsText split " " integer
+Ys = YsText split " " integer
+
+N = Xs len
+Shift = concat (1 till N array) (array 0)
+
+XsNext = Xs Shift
+YsNext = Ys Shift
+
+DoubleArea = (Xs * YsNext - XsNext * Ys sum) abs
+DX = (XsNext - Xs) abs
+DY = (YsNext - Ys) abs
+
+Boundary = DX gcd DY sum
+Answer = (DoubleArea - Boundary + 2) // 2
+Answer print
