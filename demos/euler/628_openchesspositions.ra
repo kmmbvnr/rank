@@ -19,9 +19,9 @@ rem and C(m) are exclusive among
 rem themselves, B(n) = C(n - 1) is the
 rem identity and B(j) C(m) leaves
 rem (n - j - m - 1)! free, so
-rem f = n! - 2 sum k! + sum s (n - 1 - s)!
-rem + 1 with k = 0 to n - 1, s = 1 to
-rem n - 1. Summed with a running k!.
+rem f = n! - 2 sum k! + 1 + sum s
+rem (n - 1 - s)!, k = 0 to n - 1 and
+rem s = 1 to n - 1, with a running k!.
 M = 1008691207
 Fk = 1
 S1 = 0
