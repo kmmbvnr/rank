@@ -1,0 +1,31 @@
+rem Numbers with a Given Prime Factor Sum
+rem https://projecteuler.net/problem=618
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Top integer = 24
+
+rem S(k) is the coefficient of x^k in
+rem prod 1 / (1 - p x^p) over primes.
+rem Each prime is an unbounded knapsack
+rem g[j] += p g[j - p], taken a block
+rem of p entries at a time since a
+rem block reads the finished one before.
+M = 1000000000
+Fb = fibonacci to 1000000 array
+Fb = Fb (0 till Top - 1)
+K = Fb last
+G = (0 to K) * 0
+G 0 = 1
+for P in primes to K
+  for B in P to K by P
+    Hi = (B + P) min (K + 1)
+    Ds = P * G (B - P till Hi - P)
+    G (B till Hi) = (G (B till Hi) + Ds) mod M
+  end
+end
+Answer = (G Fb) sum mod M
+Answer print
