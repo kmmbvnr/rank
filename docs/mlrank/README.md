@@ -1997,3 +1997,64 @@ both producing `Hello, I'm` with zero retained GPU state bytes. The prior step's
 menu runs took 48.45 and 43.16 seconds; those are historical comparisons rather
 than interleaved controls. The matching profiled before/after runs above show
 about 1.50× speedup in total elapsed time on average.
+
+
+### Fixed 16-token GPT-2 KV profile
+
+[`gpt2-generate-kv16.ra`](../../demos/mlrank/gpt2-generate-kv16.ra) adds a separate
+16-token profile. It uses `gpt2kvwrite16.ram` and `gpt2kvattn16.ram`, with the same
+row, QKV, MLP, normalization and vocabulary-head modules as the four-token demo.
+The old demo remains available for regression and timing comparisons.
+
+The limit counts prompt and generated tokens together. A prompt longer than
+16 tokens is rejected. A prompt already at the limit returns unchanged without
+GPU calls. Generation stops before appending beyond the limit; the last emitted
+token does not need to be inserted into the cache. `ContextLimit = 16` must match
+the two RAM modules' fixed shapes: changing that variable alone does not create
+a different compiled profile. This is not dynamic context sizing or a sliding
+window. Prefill still runs one prompt token at a time.
+
+Each layer retains `[16,1536]` F32 K/V storage. The twelve caches total 1,179,648
+payload bytes; desktop peak retained-state payload is 1,287,168 bytes including
+a replacement cache and QKV projection. These counts exclude driver memory.
+Weight loading and the 128 MiB native accounting budget are unchanged.
+
+`mlrank-gpt2-context-reference.py` recomputes each complete prefix independently
+in NumPy float64 with a triangular causal mask. It does not implement a KV cache.
+The shared reference block now takes the prefix length from its input; regenerating
+the original four-token reference produced byte-identical output.
+
+The checks cover a seven-token prompt plus two generated tokens, six decode outputs
+from `Hello`, a fifteen-token prompt stopped at sixteen, and a cache initialized
+with small values varying by position and component instead of zero. That last
+case checks that unused slots cannot influence logits. All ten output vectors
+are compared, totalling 502,570 values per host. Zero generation, a full context,
+EOS at the end of the prompt, empty/oversized prompts and invalid generation
+limits are checked separately. Every real case verifies state cleanup.
+
+Run the independent reference and desktop check with:
+
+```sh
+OPENBLAS_NUM_THREADS=1 node_modules/.cache/mlrank/bin/python scripts/mlrank-gpt2-context-reference.py /tmp/rank-gpt2-forward
+node scripts/mlrank-gpt2-context-check.mjs /tmp/rank-gpt2-forward
+```
+
+`--fixture` writes `/tmp/rank-mlrank/gpt2-context-fixture.json` for
+`packages/web/test/ram-gpt2-context.playwright.js`. The Android check uses native
+session ownership, reads logits in bounded viewer pages, and rejects KV readbacks.
+These are numerical and lifecycle checks, not a controlled speed comparison
+between context sizes.
+
+Mac, Intel and OnePlus each passed all 502,570 comparisons. Maximum absolute
+errors were 0.00018953, 0.00034950 and 0.00034114 respectively, within the existing
+`5e-4 + 1e-4 * abs(reference)` tolerance. The long-prompt case made 494 GPU calls,
+the six-output decode case 600, and the near-limit case 786. All finished with
+zero retained state bytes. Android delegate logs show full OpenCL placement for
+the loaded graphs. Results: [context-16 baseline](../../benchmarks/baselines/2026-10-29-mlrank-gpt2-context16.json).
+
+The OnePlus notebook **GPT-2 context 16** is saved separately from the old demo.
+Its default `Prompt = "Hello"`, `MaxNew = 6` produced `Hello, I'm sorry, but` in
+60.35 seconds through the ordinary menu, with zero retained state bytes afterward.
+This is six generated tokens; the earlier three-token timings are a different
+workload. The next step is batched prefill for this profile, compared with this
+sequential implementation before claiming a speedup.

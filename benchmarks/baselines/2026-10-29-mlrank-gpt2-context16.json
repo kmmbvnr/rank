@@ -1,0 +1,216 @@
+{
+  "date": "2026-10-29",
+  "implementationCommit": "7681ab6d",
+  "scope": "Fixed 16 total tokens, twelve-layer GPT-2 F32, sequential prefill and cached decode",
+  "reference": "Independent NumPy full-prefix forward, pinned GPT-2 weights and tokenizer used by existing demos",
+  "tolerance": {
+    "absolute": 0.0005,
+    "relative": 0.0001
+  },
+  "correctness": {
+    "mac": {
+      "context": 16,
+      "runs": [
+        {
+          "name": "prefill",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 2440.5427910000003,
+          "gpuCalls": 494,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "decode",
+          "promptTokens": 1,
+          "generated": 6,
+          "text": "Hello, I'm sorry, but",
+          "reason": "token limit",
+          "wallMs": 1909.5292919999997,
+          "gpuCalls": 600,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "edge",
+          "promptTokens": 15,
+          "generated": 1,
+          "text": "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello",
+          "reason": "context limit",
+          "wallMs": 2553.6430419999997,
+          "gpuCalls": 786,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "masked",
+          "promptTokens": 1,
+          "generated": 1,
+          "text": "Hello,",
+          "reason": "token limit",
+          "wallMs": 589.1417499999998,
+          "gpuCalls": 100,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "context limit",
+        "token limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most sixteen",
+        "nonnegative",
+        "integer"
+      ],
+      "valuesCompared": 502570,
+      "maxError": 0.0001895270710292607,
+      "peakStateBytes": 1287168
+    },
+    "intel": {
+      "context": 16,
+      "runs": [
+        {
+          "name": "prefill",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 17339.552944000003,
+          "gpuCalls": 494,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "decode",
+          "promptTokens": 1,
+          "generated": 6,
+          "text": "Hello, I'm sorry, but",
+          "reason": "token limit",
+          "wallMs": 17714.009394,
+          "gpuCalls": 600,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "edge",
+          "promptTokens": 15,
+          "generated": 1,
+          "text": "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello",
+          "reason": "context limit",
+          "wallMs": 25729.021015,
+          "gpuCalls": 786,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "masked",
+          "promptTokens": 1,
+          "generated": 1,
+          "text": "Hello,",
+          "reason": "token limit",
+          "wallMs": 3811.3985079999984,
+          "gpuCalls": 100,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "context limit",
+        "token limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most sixteen",
+        "nonnegative",
+        "integer"
+      ],
+      "valuesCompared": 502570,
+      "maxError": 0.0003494966798598398,
+      "peakStateBytes": 1287168
+    },
+    "oneplus": {
+      "context": 16,
+      "runs": [
+        {
+          "name": "prefill",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 53954.29999999702,
+          "gpuCalls": 494,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "decode",
+          "promptTokens": 1,
+          "generated": 6,
+          "text": "Hello, I'm sorry, but",
+          "reason": "token limit",
+          "wallMs": 58443.70000000298,
+          "gpuCalls": 600,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "edge",
+          "promptTokens": 15,
+          "generated": 1,
+          "text": "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello",
+          "reason": "context limit",
+          "wallMs": 85627.10000000894,
+          "gpuCalls": 786,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "masked",
+          "promptTokens": 1,
+          "generated": 1,
+          "text": "Hello,",
+          "reason": "token limit",
+          "wallMs": 14863.800000011921,
+          "gpuCalls": 100,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "context limit",
+        "token limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most sixteen",
+        "nonnegative",
+        "integer"
+      ],
+      "valuesCompared": 502570,
+      "maxError": 0.0003411379224189659,
+      "cacheReadbackRequests": 0
+    }
+  },
+  "validation": {
+    "fourTokenReferenceByteIdentical": true,
+    "fourTokenGpuRegression": {
+      "text": "Hello, I'm",
+      "generatedEosMockVerified": true,
+      "valuesCompared": 251285,
+      "maxError": 0.000189527071000839
+    }
+  },
+  "limitations": [
+    "Static 16-token profile, not dynamic context or sliding-window support.",
+    "The limit includes prompt and generated tokens; the terminal emitted token need not enter the cache.",
+    "Sequential prefill and repeated weight transfers remain.",
+    "Wall times are correctness runs, not a controlled comparison between context sizes.",
+    "Reported peak state bytes are desktop tensor payload accounting, not physical GPU memory."
+  ],
+  "androidUI": {
+    "books": [
+      {
+        "id": "439910c4-50e2-483f-a626-b86ca19041b8",
+        "title": "GPT-2 context 16"
+      }
+    ],
+    "finalStateBytes": 0,
+    "text": "Hello, I'm sorry, but",
+    "wallMs": 60352
+  }
+}
