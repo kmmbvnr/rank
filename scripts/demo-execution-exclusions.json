@@ -248,5 +248,7 @@
   "euler/636_restrictedfactorisations.ra": "About 150 s: 1900 knapsack passes over 10^6 cells; run manually (#476 for row writes).",
   "euler/639_multiplicativesum.ra": "About 45 s: 1.6 million powerful numbers times 50 exponents; run manually.",
   "euler/640_shutthebox.ra": "About 45 s: value iteration over 4096 states, 1500 rounds; run manually.",
-  "euler/641_longrowofdice.ra": "About 15 s: Mertens sums above 10^7 for 21 cutoffs; run manually."
+  "euler/641_longrowofdice.ra": "About 15 s: Mertens sums above 10^7 for 21 cutoffs; run manually.",
+  "euler/642_largestprimefactors.ra": "About 3 min: Lucy sieve and a second sieve over N // k values; run manually.",
+  "euler/643_twofriendly.ra": "About 60 s: totient sums to 10^11 over N // 2^t; run manually."
 }
