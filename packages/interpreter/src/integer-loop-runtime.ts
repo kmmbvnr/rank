@@ -24,6 +24,9 @@ import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayIt
 /** Bind invocation values and owned storage separately from loop analysis/lowering. */
 export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject: () => undefined, feedback?: LoopWorkFeedback): CompiledLoop | undefined {
     const { statement, names, arrays, destinations, root, body, locations, required, localTypes, containers, builtins, calls, iterators, writerNames, binderNames, writers, binders, arrayInputs, calleeArrays, hasControl, hasReturn, hasYield, needsAlgo, arrayDefinitions, writable, iteration } = plan;
+    const integerIndexInputs = [...containers.values()].filter(info => info.kind === 'index' && info.integers);
+    const nonintegerDestinations = integerIndexInputs.length
+        ? [...destinations].filter(([, info]) => info.type !== 'integer') : [];
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
     const source = `"use strict"; return function${hasYield ? '*' : ''}(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
         ${names.length ? `let ${names.map((name, index) => {
@@ -225,6 +228,16 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
                 if (!matchingCells(value, info.type)) return entryGuard('storage-or-cell-type', name);
             }
             values[info.slot] = value;
+        }
+        // An index read by a typed callee must stay integer-valued, including
+        // writes through aliases. Separate real arrays cannot change that index.
+        // Check backing storage before publishing any COW destination bindings.
+        for (const [name, info] of nonintegerDestinations) {
+            const value = values[info.slot];
+            if (value && isRankIndex(value) && integerIndexInputs.some(input => {
+                const index = values[input.slot];
+                return index && isRankIndex(index) && index.entries === value.entries;
+            })) return entryGuard('container-write-type', name);
         }
         for (const [name, info] of destinations) {
             if (!arrayInputs.has(name)) continue;

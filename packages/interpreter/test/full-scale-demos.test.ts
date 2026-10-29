@@ -94,3 +94,17 @@ it('compiles the full Euler 261 squarefree-table search', () => {
         expect(diagnostics.numberLoopOverflows).toBe(0);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+
+it('compiles the full Euler 262 contour and preserves the sampled route', () => {
+    const url = new URL('../../../demos/euler/262_mountainrange.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(2531.205);
+        expect(runtime.variables.get('Best')).toBeCloseTo(2531.2047740264857, 8);
+        expect(diagnostics.compiledLoops).toBeGreaterThanOrEqual(3);
+        expect(diagnostics.fallbacks['loop:container-write-type:ForStatement']).toBeUndefined();
+    } finally { runtime.dispose(); }
+}, 60_000);

@@ -134,10 +134,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
             root.setup = `${root.setup}\n${rootScope.setupLines.join('\n')}`;
         }
     }
-    // Index aliases can be written under another name. All writes in a region
-    // with typed container arguments must preserve their integer cell domain.
-    if ([...containers.values()].some(info => info.kind === 'index' && info.integers)
-        && [...destinations.values()].some(info => info.type !== 'integer')) return reject(statement, 'container-write-type');
     // Container bindings must remain stable throughout the compiled region.
     if ([...containers].some(([name, info]) => written.has(name) || required.has(info.slot))) return reject(statement, 'unstable-bindings');
     if ([...arrays].some(([name, info]) => written.has(name) && !arrayDefinitions.has(name) || required.has(info.slot) || containers.has(name))) return reject(statement, 'unstable-bindings');

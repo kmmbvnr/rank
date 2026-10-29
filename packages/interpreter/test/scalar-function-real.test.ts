@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Interpreter } from '../src/index.js';
-import { isNativeFunction, type RankValue } from '../src/value.js';
+import { Interpreter, RankError, formatValue } from '../src/index.js';
+import { native } from '../src/modules/shared.js';
+import { isNativeFunction, isRankArray, type RankValue } from '../src/value.js';
 
 function run(compiled: boolean, body: string, args: RankValue[]) {
     let kernels = 0;
@@ -85,6 +86,56 @@ describe('real scalar function kernels', () => {
             const compiled = run(true, `return X ${operator} Y`, args);
             expect(Object.is(compiled.value, reference.value), `${operator}: ${pair}`).toBe(true);
             expect(compiled.kernels).toBe(1);
+        }
+    });
+});
+
+
+describe('guarded numeric builtins in scalar helpers', () => {
+    function evaluate(compiled: boolean, operation: string, value: RankValue, typed = true) {
+        let kernels = 0;
+        const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled, typedNativeCalls: typed,
+            onScalarFunctionExecuted: () => kernels++ });
+        try {
+            runtime.execute(`use numbers\nfun X probe\n return X ${operation}\nend`);
+            const fn = runtime.variables.get('probe');
+            if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
+            try {
+                const result = fn.call([value]);
+                return { value: isRankArray(result) ? formatValue(result) : result, kernels };
+            }
+            catch (error) {
+                if (!(error instanceof RankError)) throw error;
+                return { error: error.format(), kernels };
+            }
+        } finally { runtime.dispose(); }
+    }
+
+    it.each(['abs', 'sqrt', 'exp'])('preserves %s results, domains and unsupported inputs', operation => {
+        for (const value of [-0, 0, -2.5, 4.0, NaN, Infinity, -Infinity, 0n, 4n, -1n, 10n ** 400n, true, '4']) {
+            const reference = evaluate(false, operation, value);
+            const compiled = evaluate(true, operation, value);
+            expect({ ...compiled, kernels: 0 }).toEqual({ ...reference, kernels: 0 });
+            expect(evaluate(true, operation, value, false)).toEqual(compiled);
+            if (!('error' in compiled) && (typeof value === 'number' || operation !== 'abs' && typeof value === 'bigint'))
+                expect(compiled.kernels).toBe(1);
+        }
+    });
+
+    it.each(['abs', 'sqrt', 'exp'])('rechecks the %s binding after warming a helper', operation => {
+        for (const compiled of [false, true]) {
+            let kernels = 0;
+            const runtime = new Interpreter(undefined, { scalarFunctionCompilation: compiled, onScalarFunctionExecuted: () => kernels++ });
+            try {
+                runtime.execute(`use numbers\nfun X probe\n return X ${operation}\nend`);
+                const fn = runtime.variables.get('probe');
+                if (!fn || !isNativeFunction(fn)) throw new Error('missing function');
+                fn.call([4.0]);
+                expect(kernels).toBe(compiled ? 1 : 0);
+                runtime.variables.set(operation, native('replacement', 1, () => 7.5));
+                expect(fn.call([4.0])).toBe(7.5);
+                expect(kernels).toBe(compiled ? 1 : 0);
+            } finally { runtime.dispose(); }
         }
     });
 });

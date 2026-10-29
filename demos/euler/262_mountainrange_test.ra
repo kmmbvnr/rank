@@ -1,11 +1,19 @@
 use testing
 
-rem The default input takes 8 min, so
-rem only a coarser grid is tested.
+rem Retain the coarse-grid regression;
+rem the default is checked separately.
 test "coarse grid"
   use "262_mountainrange"
   Step = 8
   run
 
   Answer equal 2531.2
+end
+
+
+test "default grid"
+  use "262_mountainrange"
+  run
+
+  Answer equal 2531.205
 end

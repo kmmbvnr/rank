@@ -79,7 +79,6 @@
   "euler/255_roundedroots.ra": "Manual Digits=14 workload: the optimized full reference run takes about 152 seconds; retain the separate full assertion and independent Digits=1..6 checks in the small fixture.",
   "euler/255_roundedroots_default_test.ra": "Manual full-input assertion for Digits=14: the optimized reference run takes about 152 seconds; exact Total/Count and the original rounded answer are retained, with full compiled coverage in full-scale-demos.test.ts.",
   "euler/258_laggedfibonacci.ra": "Manual N=1000000000000000000 polynomial workload: the full reference budget has not been requalified after symmetric squaring (historically about 690 seconds before that change). The full compiled golden answer is covered by full-scale-demos.test.ts; independent smaller indices remain in 258_laggedfibonacci_test.ra.",
-  "euler/262_mountainrange.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/266_pseudosquareroot.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/268_fourprimes.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",
   "euler/272_modularcubes.ra": "Execution-budget exclusion: the default input or the reference interpreter takes minutes (Euler 201-300).",

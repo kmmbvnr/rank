@@ -278,22 +278,34 @@ Sc = Cs (0 till Bl) copy
 Lt = Cs Bl
 Ap = 200.0
 Bp = 1400.0
-fun Bx By Cx Cy vis
+fun Bx By Cx Cy Limit visible
   Xd = Cx - Bx
   Yd = Cy - By
   Dd = (Xd * Xd + Yd * Yd) sqrt
   Fl = (Dd / 0.5) floor
   Ms = Fl max 2
+  rem Reject with a subset of the same
+  rem samples; survivors keep the full
+  rem check at the original resolution.
+  Gap = (Ms // 16) max 1
+  Probe = (0 till Ms by Gap array) / (Ms - 1.0)
+  Xp = Bx + (Cx - Bx) * Probe
+  Yp = By + (Cy - By) * Probe
+  Hp' = Xp hgt Yp
+  Peak = Hp max
+  if Peak greater Limit
+    return false
+  end
   Tq = (0 till Ms array) / (Ms - 1.0)
   Xq = Bx + (Cx - Bx) * Tq
   Yq = By + (Cy - By) * Tq
   Hq' = Xq hgt Yq
-  return Hq max
+  return (Hq max) at most Limit
 end
 Lim = F + 0.000000001
 Best = 1000000.0
-Dm = Ap Ap Bp Bp vis
-if Dm at most Lim
+Dm = Ap Ap Bp Bp Lim visible
+if Dm
   Best = 1200.0 * (2.0 sqrt)
 end
 Da = array shape Bl fill 0.0
@@ -303,15 +315,15 @@ Vb = array shape Bl fill 0
 for I in 0 till Bl
   Qx = Lx I
   Qy = Ly I
-  Ha = Ap Ap Qx Qy vis
-  if Ha at most Lim
+  Ha = Ap Ap Qx Qy Lim visible
+  if Ha
     Va I = 1
     Xd = Qx - Ap
     Yd = Qy - Ap
     Da I = (Xd * Xd + Yd * Yd) sqrt
   end
-  Hb = Bp Bp Qx Qy vis
-  if Hb at most Lim
+  Hb = Bp Bp Qx Qy Lim visible
+  if Hb
     Vb I = 1
     Xd = Qx - Bp
     Yd = Qy - Bp

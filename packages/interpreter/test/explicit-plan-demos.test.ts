@@ -550,9 +550,10 @@ end`);
             const expected = [5000 * Math.exp(-0.7), 12200 * Math.exp(-0.86),
                 12200 * Math.exp(-0.86), 6600 * Math.exp(-1.02)];
             (grid as RankArray).items.forEach((value, index) => expect(value).toBeCloseTo(expected[index], 9));
-            // A line of zero length samples the same point twice; its maximum is that height.
-            const stationary = runtime.execute('200.0 200.0 200.0 200.0 vis');
-            expect(stationary).toBeCloseTo(9400 * Math.exp(-0.18), 9);
+            // Visibility owns its threshold; the helpers need no outer contour state.
+            expect(runtime.execute('200.0 200.0 200.0 200.0 8000.0 visible')).toBe(true);
+            expect(runtime.execute('200.0 200.0 200.0 200.0 7000.0 visible')).toBe(false);
+            expect(runtime.execute('200.0 200.0 1400.0 1400.0 10400.0 visible')).toBe(false);
         } finally { runtime.dispose(); }
     });
 

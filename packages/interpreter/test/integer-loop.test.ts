@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { typedArray, typedElementKind } from '../src/array-storage.js';
 import { RuntimeDiagnostics } from '../src/diagnostics.js';
 import { Interpreter, RankError, formatValue } from '../src/index.js';
+import { isRankIndex } from '../src/value.js';
 
 function execute(source: string, integerLoopCompilation: boolean, nestedLoopCompilation = true, scalarFunctionCompilation = true) {
     let loops = 0;
@@ -2749,6 +2750,66 @@ for I in 1 to 3
 end`);
         expect(result).toHaveProperty('error');
         expect(result.loops).toBe(1);
+    });
+    it('links integer index reads alongside writes to an unrelated real array', () => {
+        const result = compareLinked(`use algo
+fun Cache readcache N
+ return Cache N + 1
+end
+Cache = new index
+Cache 0 = 2
+Cache 1 = 4
+Points = array 0.0 0.0
+for I in 0 till 2
+ Points I = (Cache readcache I) / 2.0
+end
+Points 1`);
+        expect(result.value).toBe('2.5');
+        expect(result.loops).toBe(1);
+    });
+    it('retains alias protection for real writes into an integer index', () => {
+        const result = compareLinked(`use algo
+fun Cache readcache N
+ return Cache N + 1
+end
+Cache = new index
+Alias = Cache
+Cache 0 = 2
+Cache 1 = 4
+Total = 0.0
+for I in 0 till 2
+ Alias I = 0.5
+ Total += Cache readcache I
+end
+Total`);
+        expect(result.value).toBe('3');
+        expect(result.loops).toBe(0);
+    });
+    it('guards different index wrappers sharing the same backing entries', () => {
+        for (const compiled of [false, true]) {
+            let loops = 0;
+            const runtime = new Interpreter(undefined, { scalarEntryCompilation: false,
+                integerLoopCompilation: compiled, onIntegerLoopExecuted: () => loops++ });
+            try {
+                runtime.execute(`use algo
+fun Cache readcache N
+ return Cache N + 1
+end
+Cache = new index
+Cache 0 = 2
+Cache 1 = 4`);
+                const cache = runtime.variables.get('Cache');
+                if (!cache || !isRankIndex(cache)) throw new Error('missing index');
+                runtime.variables.set('Alias', { ...cache });
+                expect(runtime.execute(`Total = 0.0
+for I in 0 till 2
+ Alias I = 0.5
+ Total += Cache readcache I
+end
+Total`)).toBe(3.0);
+                expect(loops).toBe(0);
+            } finally { runtime.dispose(); }
+        }
     });
     it('rejects an index cell type changed through a caller alias', () => {
         const result = compareLinked(`use algo

@@ -857,6 +857,7 @@ export const operations: readonly Operation[] = [
         summary: 'Solves A * X = B for a square coefficient matrix.' },
 
     { name: 'abs', module: 'numbers', arities: [1], form: 'Value abs', result: 'number',
+        compiledCall: { inputs: ['real'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: [{ inputs: [{ variable: 0, domain: ['integer', 'real'] }],
             result: { variable: 0 }, ranks: [0] }, { inputs: ['missing'], result: 'missing', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
@@ -934,6 +935,7 @@ export const operations: readonly Operation[] = [
         signatures: integerPredicateSignatures,
         scalarNoCallback: 'integer', summary: 'True for an even integer.' },
     { name: 'exp', module: 'numbers', arities: [1], form: 'Value exp', result: 'real',
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: realMathSignatures,
         scalarNoCallback: 'number', monadicRank: 0,
         shape: [{ args: [[]], result: [] }],
@@ -1042,6 +1044,7 @@ export const operations: readonly Operation[] = [
         shape: [{ args: [[]], result: [] }],
         summary: 'Hyperbolic sine.' },
     { name: 'sqrt', module: 'numbers', arities: [1], form: 'Value sqrt', result: 'real',
+        compiledCall: { inputs: ['number'], result: 'real', callbacks: 'none', cost: 'input-dependent' },
         signatures: [{ inputs: ['number'], result: 'real', ranks: [0] },
             { inputs: ['missing'], result: 'missing', ranks: [0] }],
         shape: [{ args: [[]], result: [] }],
