@@ -103,6 +103,8 @@ export interface IntegerLoopPlan {
     statement: ForStatement | FunctionStatement;
     names: string[];
     wideScalars: ReadonlySet<string>;
+    /** Audited integer operands consumed exactly, without a numeric result. */
+    exactInputs: ReadonlySet<Expression>;
     arrays: Map<string, { slot: number; rank: number; type: LoopTerm['type'] }>;
     destinations: Map<string, { slot: number; rank: number; compound: boolean; type?: LoopTerm['type']; slice?: boolean }>;
     root: { setup: string; header: string; bindings: string };

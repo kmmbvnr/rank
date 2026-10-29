@@ -157,7 +157,7 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         && (writable.has(target) || writable.has(source)))
         || state.localAliases.some(([target, source]) => writable.has(target) || writable.has(source))) return reject(statement, 'unstable-bindings');
     return {
-        statement, names, wideScalars, arrays, destinations, root, body, locations, required, localTypes, containers,
+        statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
         needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration,

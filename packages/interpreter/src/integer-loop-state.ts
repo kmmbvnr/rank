@@ -26,6 +26,7 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
     // One read per source at a named cursor; computed/repeated reads use undefined.
     const indexedReads = new Map<string, string | undefined>();
     const arrayInputs = new Set<string>(), arrayDefinitions = new Set<string>();
+    const exactInputs = new Set<Expression>();
     const aliases: [string, string][] = [];
     const localAliases: [string, string][] = [];
     const dequeArrays = new Set<string>();
@@ -38,7 +39,7 @@ export function createLoopState(host: LoopHost, textSources: ReadonlySet<string>
         localTypes, names, required, assigned, written, writers, binders, writerNames, binderNames,
         containers, builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases, localAliases, dequeArrays,
         vectorIterations, iterators, destinations, locations,
-        serial: 0, hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
+        exactInputs, serial: 0, hasArrayCall: false, hasControl: false, hasReturn: false, hasYield: false, needsAlgo: false,
     };
 }
 

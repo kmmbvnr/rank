@@ -7,6 +7,7 @@ import { Interpreter, RuntimeDiagnostics } from '../src/index.js';
 // Fixture-level reference comparisons belong to the corpus audits.
 it.each([
     ['257_angularbisectors.ra', 139012411n],
+    ['258_laggedfibonacci.ra', 12747994n],
     ['299_threesimilar.ra', 549936643n],
     ['426_boxball.ra', 31591886008n],
 ] as const)('checks the full compiled answer for %s', (file, expected) => {

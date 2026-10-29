@@ -1,4 +1,5 @@
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
+import { AstUtils } from 'langium';
 import { loopValueType, type LoopHost, type LoopTerm } from './integer-loop-plan.js';
 import { compiledIntegerMembership } from './integer-membership.js';
 import { type CompiledCalleeType } from './compiled-callee-type.js';
@@ -276,6 +277,30 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
     /** Lower an audited catalogue call. Argument reads remain in source order;
      * runtime binding still checks the module and current builtin on every entry. */
     function emitBuiltinCall(operation: Operation, operands: readonly Expression[], lines: string[]): LoopTerm | undefined {
+        const signature = operation.compiledCall!;
+        // Pure integer-to-text/predicate calls cannot round a numeric result.
+        // Keep their operands exact while the surrounding arithmetic stays in
+        // checked Number registers. Entry binding still verifies the native.
+        const exactConsumer = signature.callbacks === 'none' && !signature.hostFunction
+            && signature.inputs.every(type => type === 'integer')
+            && (signature.result === 'text' || signature.result === 'boolean');
+        if (exactConsumer) operands.forEach(operand => state.exactInputs.add(operand));
+        const wideInput = operands.some(operand => [operand, ...AstUtils.streamAllContents(operand)]
+            .some(node => isNameExpression(node) && state.wideScalars.has(node.name)));
+        if (numberMode && exactConsumer && (signature.result === 'text' || wideInput)) {
+            const exact = createLoopExpressions(state, true);
+            const arguments_: string[] = [];
+            for (const operand of operands) {
+                const value = exact.emit(operand, lines, 'integer');
+                if (value?.type !== 'integer') return undefined;
+                arguments_.push(value.code);
+            }
+            const name = `v${state.serial++}`, index = calls.length;
+            calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: true,
+                bind: host.prepareBuiltinCall(operation.module, operation.name, signature.inputs, false) });
+            lines.push(`const ${name} = calls[${index}](${arguments_.join(',')});`);
+            return { code: name, type: signature.result };
+        }
         if (numberMode && operation.module === 'bits' && ['band', 'bor', 'bxor', 'bit', 'shl'].includes(operation.name)) {
             const arguments_: string[] = [];
             for (const operand of operands) {
@@ -301,7 +326,6 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             }
             return { code: name, type: operation.name === 'bit' ? 'boolean' : 'integer' };
         }
-        const signature = operation.compiledCall!;
         if (numberMode && (signature.callbacks !== 'none' || signature.hostFunction
             || !['integer', 'real', 'boolean'].includes(signature.result)
             || signature.inputs.some(type => !['integer', 'real', 'boolean', 'number'].includes(type)))) return undefined;
@@ -633,8 +657,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     return { code: numberMode ? safe(length) : `BigInt(${length})`, type: 'integer' };
                 }
             }
-            if (!numberMode && op === 'len' && host.scalarText) {
-                if (host.nativeCalls && knownType(e.head) === 'bytes') {
+            if (op === 'len' && host.scalarText) {
+                if (!numberMode && host.nativeCalls && knownType(e.head) === 'bytes') {
                     const value = emit(e.head, lines, 'bytes');
                     if (!value) return undefined;
                     builtins.set(op, 'core');
@@ -648,7 +672,8 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     if (value?.type !== 'text') return undefined;
                     builtins.set(op, 'core');
                     const name = `v${state.serial++}`;
-                    lines.push(`const ${name} = BigInt(${value.ascii ? `(${value.code}).length` : `textLength(${value.code})`});`);
+                    const length = value.ascii ? `(${value.code}).length` : `textLength(${value.code})`;
+                    lines.push(`const ${name} = ${numberMode ? safe(length) : `BigInt(${length})`};`);
                     return { code: name, type: 'integer' };
                 }
             }

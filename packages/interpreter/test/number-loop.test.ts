@@ -157,9 +157,9 @@ end`);
         ['shl', '2147483647', '23'], ['shl', '1', '-1'],
         ['bit', '2147483648', '31'], ['bit', '1', '32'],
         ['bit', '-1', '0'], ['bit', '1', '-1'],
-    ])('replays %s for %s and %s without publishing private writes', (operation, left, right) => {
+    ])('retries %s for %s and %s without publishing private writes', (operation, left, right) => {
         const diagnostics = compare(`use bits\nA = array 0 0 0\nAlias = A\nLeft = ${left}\nRight = ${right}\nfor I in 0 to 2\n A I += 1\n R = Left ${operation} Right\nend`);
-        expect(diagnostics.numberLoops).toBe(1);
+        expect(diagnostics.numberLoops).toBe(operation === 'bit' ? 2 : 1);
         expect(diagnostics.numberLoopOverflows).toBe(1);
     });
 

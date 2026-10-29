@@ -1,20 +1,19 @@
 import { AstUtils, type AstNode } from 'langium';
-import { isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression } from '@arrrank/language';
+import { isAssignmentStatement, isArrayAssignmentStatement, isArrayExpression, isForStatement, isIfStatement, isNameExpression, type Expression } from '@arrrank/language';
 import type { IntegerLoopPlan } from './integer-loop-plan.js';
 
-/** Keep control, addresses and numeric cell stores checked Numbers. Integer
- * scalars that only feed other scalar results can instead remain exact BigInts.
+/** Keep addresses, numeric control and cell stores checked Numbers. Integer
+ * scalars consumed by exact scalar results, predicates or formatting can remain BigInts.
  * Propagate numeric requirements backwards through every assignment, including
  * branches and loop-carried dependencies; never rely on one observed value. */
 export function wideLoopScalars(plan: IntegerLoopPlan): Set<string> {
     const numeric = new Set(plan.binderNames);
     const nodes = [plan.statement, ...AstUtils.streamAllContents(plan.statement)];
     const assignments = nodes.filter(isAssignmentStatement);
-    const read = (node: AstNode | undefined) => {
-        if (!node) return;
-        for (const part of [node, ...AstUtils.streamAllContents(node)]) {
-            if (isNameExpression(part)) numeric.add(part.name);
-        }
+    const read = (node: AstNode | undefined): void => {
+        if (!node || plan.exactInputs.has(node as Expression)) return;
+        if (isNameExpression(node)) numeric.add(node.name);
+        for (const child of AstUtils.streamContents(node)) read(child);
     };
     for (const node of nodes) {
         if (isForStatement(node)) read(node.condition);

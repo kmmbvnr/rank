@@ -26,9 +26,14 @@ for B in (N binary len - 2) to 0 by -1
   for I in 0 till Deg
     Ri = Res I
     if Ri not equal 0
-      for J in 0 till Deg
+      rem Off-diagonal products occur twice.
+      for J in I till Deg
         Ix = I + J
-        Acc = Tmp Ix + Ri * Res J
+        Product = Ri * Res J
+        if J not equal I
+          Product += Product
+        end
+        Acc = Tmp Ix + Product
         Tmp Ix = Acc mod Mod
       end
     end
