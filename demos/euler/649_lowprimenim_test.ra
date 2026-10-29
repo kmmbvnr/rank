@@ -14,3 +14,21 @@ test "statement values"
   run
   Answer equal 450304
 end
+
+test "brute force"
+  use "649_lowprimenim"
+  N = 20
+  C = 3
+  run
+  Answer equal 53901312
+  N = 31
+  C = 2
+  run
+  Answer equal 758912
+end
+
+test "default input"
+  use "649_lowprimenim"
+  run
+  Answer equal 924668016
+end

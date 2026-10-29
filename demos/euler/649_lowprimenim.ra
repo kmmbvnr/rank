@@ -14,7 +14,10 @@ rem A move changes one coordinate by
 rem 2, 3, 5 or 7, so a coin is the sum
 rem of a row game and a column game
 rem and has Grundy value g(r) xor
-rem g(c), g the subtraction game. With
+rem g(c), g the subtraction game; its
+rem values repeat 0 0 1 1 2 2 3 3 4
+rem (checked by mex), g(n) = n mod 9
+rem // 2. With
 rem cnt[v] squares of value v, the
 rem arrangements with xor 0 are (1/8)
 rem times the sum over the eight
@@ -22,21 +25,7 @@ rem characters k of
 rem (sum of (-1)^bits(k and v) cnt[v])^C
 rem (exact, then 8 divides it). The
 rem answer is all (N^2)^C less those.
-Sv = primes to 7 array
-Gr = (0 to (N - 1)) * 0
-for I in 2 to N - 1
-  Mk = 0
-  for S in Sv
-    if I at least S
-      Mk = Mk bor (1 shl Gr (I - S))
-    end
-  end
-  V = 0
-  for (Mk shr V) band 1 equal 1
-    V += 1
-  end
-  Gr I = V
-end
+Gr = ((0 to (N - 1)) mod 9) // 2
 C1 = (0 to 7) * 0
 for V in 0 to 7
   C1 V = ((Gr equal V) integer) sum
