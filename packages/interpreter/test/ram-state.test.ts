@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {Interpreter,type RamGpu} from '../src/index.js';
+import {Interpreter,withInterrupt,type RamGpu} from '../src/index.js';
 describe('explicit retained GPU state',()=>{
     function host() {
         const saved=new Map<string,number[]>(); let id=0,reads=0;
@@ -30,6 +30,55 @@ describe('explicit retained GPU state',()=>{
         const {runtime,saved}=host();
         runtime.execute('use ml\nuse "hold.ram"\nkeep = (hold gpukeep)\nState = (array 2.0 3.0 shape 1 2) keep');
         expect(saved.size).toBe(1);runtime.dispose();expect(saved.size).toBe(0);
+    });
+    it('releases failed-cell allocations while preserving earlier successful cells',()=>{
+        const {runtime,saved}=host();
+        try{
+            runtime.execute('use ml\nuse "hold.ram"\nkeep = (hold gpukeep)\nOld = (array 2.0 3.0 shape 1 2) keep');
+            expect(()=>runtime.execute('New = Old keep\n.DomainError "injected failure" raise')).toThrow('injected failure');
+            expect(saved.size).toBe(1);
+            expect(runtime.execute('Old gpuread')).toMatchObject({items:[2,3]});
+            expect(()=>runtime.execute('New gpuread')).toThrow(/released/);
+            runtime.execute('Again = Old keep');
+            expect(saved.size).toBe(2);
+        }finally{runtime.dispose();}
+        expect(saved.size).toBe(0);
+    });
+    it('does not release state for a handled error',()=>{
+        const {runtime,saved}=host();
+        try{
+            runtime.execute('use ml\nuse "hold.ram"\nkeep = (hold gpukeep)\nState = (array 2.0 3.0 shape 1 2) keep\ntry\n.DomainError "handled" raise\ncatch Error\n0\nend');
+            expect(saved.size).toBe(1);
+            expect(runtime.execute('State gpuread')).toMatchObject({items:[2,3]});
+        }finally{runtime.dispose();}
+    });
+    it('releases state when execution is interrupted after GPU allocation',()=>{
+        const signal=new Int32Array(new SharedArrayBuffer(12));
+        let released=0;
+        const gpu:RamGpu=()=>{Atomics.store(signal,0,1);return {id:'interrupted',shape:[1,2],dtype:'f32'};};
+        gpu.control=()=>{released++;return {};};
+        const runtime=new Interpreter(undefined,{ramGpu:gpu,loadModule:n=>({id:n,source:'use ml\narg X .f32 shape 1 2\nreturn X relu'})});
+        try{
+            runtime.execute('use ml\nuse "hold.ram"\nkeep = (hold gpukeep)');
+            expect(()=>withInterrupt(signal,()=>runtime.execute('State = (array 1.0 2.0 shape 1 2) keep\n1 + 2'))).toThrow();
+            expect(released).toBe(1);
+        }finally{runtime.dispose();}
+    });
+    it('owns preview allocations in the fork and protects borrowed parent states',()=>{
+        const {runtime,saved}=host();
+        runtime.execute('use ml\nuse "hold.ram"\nkeep = (hold gpukeep)\nOld = (array 2.0 3.0 shape 1 2) keep');
+        const fork=runtime.forkForPreview();
+        try{
+            fork.execute('copy = (hold gpukeep)\nPreview = Old copy');
+            expect(saved.size).toBe(2);
+            expect(()=>fork.execute('Old gpufree')).toThrow(/borrowed/);
+            expect(saved.size).toBe(2);
+            expect(()=>fork.execute('Failed = Old keep\n.DomainError "preview failed" raise')).toThrow('preview failed');
+            expect(saved.size).toBe(2);
+            fork.dispose();expect(saved.size).toBe(1);
+            expect(runtime.execute('Old gpuread')).toMatchObject({items:[2,3]});
+        }finally{fork.dispose();runtime.dispose();}
+        expect(saved.size).toBe(0);
     });
     it('keeps multiple operands in the same order across notebook cells',()=>{
         const gpu:RamGpu=(_g,input)=>{expect(input).toEqual([1,2,3,4]);return {id:'multi',shape:[1,2],dtype:'f32'};};

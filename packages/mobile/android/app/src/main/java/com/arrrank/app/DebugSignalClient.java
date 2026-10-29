@@ -21,6 +21,14 @@ public final class DebugSignalClient extends BridgeWebViewClient {
     final RamGpu ramGpu;
 
     public DebugSignalClient(Bridge bridge) { super(bridge); ramGpu = new RamGpu(bridge.getContext()); }
+    @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+        ramGpu.resetSessions();
+        super.onPageStarted(view, url, favicon);
+    }
+    @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+        ramGpu.resetSessions();
+        return super.onRenderProcessGone(view, detail);
+    }
     void closeRamGpu() { ramGpu.close(); }
 
     static Map<String, String> addIsolationHeaders(Map<String, String> existing) {
@@ -42,7 +50,7 @@ public final class DebugSignalClient extends BridgeWebViewClient {
             return super.shouldInterceptRequest(view, request);
         if ("/__rank_input_file".equals(uri.getPath())) return InputFiles.serve(view.getContext(), uri);
         if ("/__rank_model_file".equals(uri.getPath())) return ModelFiles.serve(view.getContext(), uri);
-        if ("/__rank_ml_result".equals(uri.getPath())) return response(200, "OK", ramGpu.await(uri.getQueryParameter("id")));
+        if ("/__rank_ml_result".equals(uri.getPath())) return response(200, "OK", ramGpu.await(uri.getQueryParameter("id"), uri.getQueryParameter("sessionId")));
         if ("/__rank_keyboard_hide".equals(uri.getPath())) {
             MainActivity activity = MainActivity.getCurrentActivity();
             if (activity != null) view.post(() -> activity.hideKeyboard());

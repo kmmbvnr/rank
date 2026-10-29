@@ -32,12 +32,16 @@ final class RamGpu {
     private final LinkedHashMap<String, Resident> models = new LinkedHashMap<>(8, 0.75f, true);
     private final LinkedHashMap<String, State> states = new LinkedHashMap<>();
     private static final int MAX_STATES = 64;
+    private final java.util.Set<String> sessions = ConcurrentHashMap.newKeySet();
+    private final ConcurrentHashMap<String, String> replyOwners = new ConcurrentHashMap<>();
     private static final class State {
+        String owner;
         TensorBuffer buffer;
         List<Integer> shape;
         long bytes;
     }
     private static final class Resident {
+        String owner;
         CompiledModel model;
         List<TensorBuffer> inputs, outputs;
         int[] inputSizes;
@@ -49,6 +53,58 @@ final class RamGpu {
     }
 
     RamGpu(Context context) { this.context = context.getApplicationContext(); }
+
+    CompletableFuture<JSONObject> openSession() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String id = java.util.UUID.randomUUID().toString();
+                sessions.add(id);
+                return new JSONObject().put("sessionId", id);
+            } catch (Exception error) { throw new RuntimeException(error); }
+        }, executor);
+    }
+
+    CompletableFuture<JSONObject> closeSession(String owner) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (owner == null || owner.isEmpty()) throw new IllegalArgumentException("Missing GPU session");
+                synchronized (replies) {
+                    sessions.remove(owner);
+                    states.entrySet().removeIf(item -> {
+                        if (!owner.equals(item.getValue().owner)) return false;
+                        item.getValue().buffer.close(); return true;
+                    });
+                    models.entrySet().removeIf(item -> {
+                        if (!owner.equals(item.getValue().owner)) return false;
+                        closeModel(item.getValue()); return true;
+                    });
+                    replyOwners.entrySet().removeIf(item -> {
+                        if (!owner.equals(item.getValue())) return false;
+                        CompletableFuture<String> reply = replies.remove(item.getKey());
+                        if (reply != null) reply.complete("{\"error\":\"GPU session closed\"}");
+                        return true;
+                    });
+                    if (models.isEmpty() && states.isEmpty()) closeEnvironment();
+                    return cacheStatus(new JSONObject());
+                }
+            } catch (Exception error) { throw new RuntimeException(error); }
+        }, executor);
+    }
+
+    void resetSessions() {
+        executor.submit(() -> {
+            synchronized (replies) {
+                sessions.clear();
+                for (Resident entry : models.values()) closeModel(entry);
+                models.clear();
+                for (State state : states.values()) state.buffer.close();
+                states.clear();
+                for (CompletableFuture<String> reply : replies.values()) reply.complete("{\"error\":\"GPU page closed\"}");
+                replies.clear(); replyOwners.clear();
+                closeEnvironment();
+            }
+        });
+    }
 
     private final ConcurrentHashMap<String, CompletableFuture<String>> replies = new ConcurrentHashMap<>();
 
@@ -62,16 +118,34 @@ final class RamGpu {
         executor.submit(() -> {
             try {
                 if (payload == null || payload.length() > 32 * 1024 * 1024) throw new IllegalArgumentException("Invalid RAM request");
-                result.complete(execute(new JSONObject(payload)).toString());
+                JSONObject request = new JSONObject(payload);
+                String owner = request.optString("sessionId", "");
+                if (!owner.isEmpty() && sessions.contains(owner)) replyOwners.put(id, owner);
+                result.complete(execute(request).toString());
             } catch (Exception error) { result.complete(failure(error)); }
             catch (OutOfMemoryError error) { result.complete(failure(new IllegalStateException("RAM GPU allocation failed", error))); }
         });
     }
 
-    String await(String id) {
-        try { return reply(id).get(60, TimeUnit.SECONDS); }
-        catch (Exception error) { return failure(error); }
-        finally { if (id != null) replies.remove(id); }
+    String await(String id, String sessionId) {
+        CompletableFuture<String> response;
+        synchronized (replies) {
+            if (sessionId != null && !sessions.contains(sessionId)) {
+                replies.remove(id); replyOwners.remove(id);
+                return "{\"error\":\"GPU session is closed\",\"code\":\"STALE_SESSION\"}";
+            }
+            response = reply(id);
+        }
+        try { return response.get(60, TimeUnit.SECONDS); }
+        catch (Exception error) {
+            String owner = sessionId != null ? sessionId : id == null ? null : replyOwners.get(id);
+            if (owner != null) {
+                closeSession(owner);
+                return "{\"error\":\"GPU request failed; session closed\",\"code\":\"STALE_SESSION\"}";
+            }
+            return failure(error);
+        }
+        finally { if (id != null) { replies.remove(id); replyOwners.remove(id); } }
     }
 
     private static String failure(Exception error) {
@@ -84,17 +158,22 @@ final class RamGpu {
     private JSONObject execute(JSONObject request) throws Exception {
         long started = System.nanoTime();
         String action = request.getString("action");
+        String owner = request.optString("sessionId", "");
+        if (!owner.isEmpty() && !sessions.contains(owner))
+            return new JSONObject().put("error", "GPU session is closed").put("code", "STALE_SESSION");
         if (!action.equals("load") && !action.equals("invoke") && !action.equals("release") && !action.equals("readState") && !action.equals("releaseState"))
             throw new IllegalArgumentException("Unknown RAM action");
         if (action.equals("releaseState")) {
-            State state = states.remove(request.optString("stateId"));
+            State state = states.get(request.optString("stateId"));
+            if (state != null && !owner.equals(state.owner)) throw new IllegalArgumentException("GPU state belongs to another session");
+            states.remove(request.optString("stateId"));
             if (state != null) state.buffer.close();
             if (models.isEmpty() && states.isEmpty()) closeEnvironment();
             return cacheStatus(new JSONObject().put("released", true));
         }
         if (action.equals("readState")) {
             State state = states.get(request.optString("stateId"));
-            if (state == null) return new JSONObject().put("error", "RAM state is no longer available").put("code", "STALE_STATE");
+            if (state == null || !owner.equals(state.owner)) return new JSONObject().put("error", "RAM state is no longer available").put("code", "STALE_STATE");
             JSONArray values = new JSONArray();
             for (float value : state.buffer.readFloat()) {
                 if (!Float.isFinite(value)) throw new IllegalArgumentException("Non-finite GPU state");
@@ -103,17 +182,20 @@ final class RamGpu {
             return cacheStatus(new JSONObject().put("output", values));
         }
         if (action.equals("release")) {
+            Resident released = models.get(request.optString("modelId"));
+            if (released != null && !owner.equals(released.owner)) throw new IllegalArgumentException("GPU model belongs to another session");
             closeModel(models.remove(request.optString("modelId")));
             if (models.isEmpty() && states.isEmpty()) closeEnvironment();
             return cacheStatus(new JSONObject().put("released", true));
         }
         boolean cached = action.equals("invoke");
         Resident entry = cached ? models.get(request.optString("modelId")) : new Resident();
-        if (entry == null)
+        if (entry == null || cached && !owner.equals(entry.owner))
             return new JSONObject().put("error", "RAM model is no longer loaded").put("code", "STALE_MODEL");
         String key = request.optString("modelId");
         int evicted = 0;
         if (!cached) {
+            entry.owner = owner;
             Object raw = request.opt("reservationBytes");
             if (raw != null && (!raw.toString().matches("[0-9]+") || request.getLong("reservationBytes") < 1
                     || request.getLong("reservationBytes") > MEMORY_BUDGET))
@@ -212,7 +294,7 @@ final class RamGpu {
             if (stateInputs != null && !stateInputs.isNull(i)) {
                 if (files != null && !files.isNull(i)) throw new IllegalArgumentException("Input cannot be both a state and a file");
                 State state = states.get(stateInputs.getString(i));
-                if (state == null) return new JSONObject().put("error", "RAM state is no longer available").put("code", "STALE_STATE");
+                if (state == null || !owner.equals(state.owner)) return new JSONObject().put("error", "RAM state is no longer available").put("code", "STALE_STATE");
                 TensorType type = entry.inputTypes.get(i);
                 if (type.getElementType() != TensorType.ElementType.FLOAT || !state.shape.equals(type.getLayout().getDimensions()))
                     throw new IllegalArgumentException("GPU state input shape or dtype mismatch");
@@ -272,7 +354,7 @@ final class RamGpu {
         long read;
         if (retain) {
             List<TensorBuffer> replacement = model.createOutputBuffers();
-            State state = new State(); state.buffer = outputs.get(0);
+            State state = new State(); state.owner = owner; state.buffer = outputs.get(0);
             state.shape = new ArrayList<>(entry.outputType.getLayout().getDimensions()); state.bytes = outputBytes;
             String id = java.util.UUID.randomUUID().toString();
             states.put(id, state); entry.outputs = replacement;
@@ -311,7 +393,7 @@ final class RamGpu {
         return bytes;
     }
     private JSONObject cacheStatus(JSONObject result) throws Exception {
-        return result.put("residentBytes", residentBytes()).put("residentModels", models.size())
+        return result.put("residentSessions", sessions.size()).put("residentBytes", residentBytes()).put("residentModels", models.size())
             .put("memoryBudgetBytes", MEMORY_BUDGET).put("residentStates", states.size()).put("stateBytes", stateBytes());
     }
     private static void closeModel(Resident entry) {
@@ -323,7 +405,7 @@ final class RamGpu {
     }
     private void closeEnvironment() { if (environment != null) { environment.close(); environment = null; } }
     void close() {
-        executor.submit(() -> { for (Resident entry : models.values()) closeModel(entry); models.clear(); for (State state : states.values()) state.buffer.close(); states.clear(); closeEnvironment(); });
+        resetSessions();
         executor.shutdown();
     }
 }

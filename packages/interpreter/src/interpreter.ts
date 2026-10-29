@@ -1,3 +1,4 @@
+import { withRamStateOwner, inheritRamFunction, type OwnRamState } from './ram-state.js';
 import { ramWeightDigest } from './ram-weights.js';
 import { InterruptedError, inspectionEnabled } from './interrupt.js';
 import { type AstNode } from 'langium';
@@ -87,6 +88,10 @@ export class Interpreter {
     );
     private readonly resources = new ResourceOwnership();
     private readonly ramStates = new Set<() => void>();
+    private readonly ownRamState: OwnRamState = release => {
+        this.ramStates.add(release);
+        return () => { this.ramStates.delete(release); };
+    };
     private readonly checkedInputs = new CheckedInputContracts();
     private readonly operators = new Operators(value => this.resources.ownFiles(value),
         fn => this.functions.scalarCallback(fn));
@@ -311,7 +316,14 @@ export class Interpreter {
     execute(source: string, syntheticNames: ReadonlySet<string> = new Set()): RankValue | undefined {
         const previous = this.syntheticNames;
         this.syntheticNames = syntheticNames;
+        const retained = new Set(this.ramStates);
         try { return this.inEnvironment(() => this.executeSource(source)); }
+        catch (error) {
+            for (const release of this.ramStates) if (!retained.has(release)) {
+                try { release(); } catch { /* Preserve the execution error if the host has already closed. */ }
+            }
+            throw error;
+        }
         finally { this.syntheticNames = previous; }
     }
 
@@ -388,8 +400,9 @@ export class Interpreter {
 
     /** Hosts force preview results in this environment, without borrowing a caller's compiler. */
     inEnvironment<T>(run: () => T): T {
-        return withoutAmbientTensorPlan(() => this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run(),
-            this.options.tensorFusion !== false);
+        return withRamStateOwner(this.ownRamState, () => withoutAmbientTensorPlan(
+            () => this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run(),
+            this.options.tensorFusion !== false));
     }
 
     /** Copy the current bindings without rerunning the program that produced them. */
@@ -415,6 +428,7 @@ export class Interpreter {
                             call: (arguments_: RankValue[], value: RankValue) => withEnvironment(environment, () => copy.write!.call(arguments_, value)),
                         } } : {}) };
                     BuiltinRegistry.inheritOperation(copy, isolated);
+                    inheritRamFunction(copy, isolated);
                     if (source) fork.functions.adoptSource(isolated, source);
                     fork.variables.set(name, isolated);
                 } else fork.variables.set(name, copy);
@@ -632,7 +646,7 @@ export class Interpreter {
                     !source.readBinary || ramWeightDigest(source.readBinary(name)) !== digest))
                     current = compileRam(source.source, source.id, source.readBinary);
                 return current;
-            }, release => { this.ramStates.add(release); return () => { this.ramStates.delete(release); }; }));
+            }, this.ownRamState));
         }
 
         if (alias) {

@@ -1,7 +1,8 @@
 import { createRamClient, type RamRequest, type RamGpu } from '@arrrank/interpreter';
 
 let native = false;
-export function configureRamGpu(android: boolean): void { native = android; }
+let sessionId: string | undefined;
+export function configureRamGpu(android: boolean, owner?: string): void { native = android; sessionId = owner; }
 
 const client = createRamClient((message: RamRequest) => {
     const request = new XMLHttpRequest();
@@ -10,7 +11,7 @@ const client = createRamClient((message: RamRequest) => {
     if (native) {
         const id = crypto.randomUUID();
         self.postMessage({ ram: { id, payload } });
-        request.open('GET', '/__rank_ml_result?id=' + id, false);
+        request.open('GET', '/__rank_ml_result?id=' + id + (sessionId ? '&sessionId=' + encodeURIComponent(sessionId) : ''), false);
         request.send();
     } else {
         request.open('POST', '/__rank_ml', false);
@@ -18,7 +19,9 @@ const client = createRamClient((message: RamRequest) => {
         request.send(payload);
     }
     if (request.status !== 200) throw new Error('RAM GPU runtime is unavailable on this host');
-    return JSON.parse(request.responseText);
+    const reply = JSON.parse(request.responseText);
+    if (native && reply.code === 'STALE_SESSION') self.postMessage({ ramFailure: reply.error });
+    return reply;
 });
 export const browserRamGpu: RamGpu = (graph, input, inputFiles, options) => { const result = client.invoke(graph, () => {
     let binary = '';
