@@ -1,0 +1,310 @@
+{
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "steps": 1000,
+  "samples": 5,
+  "size": 50000,
+  "comparison": "same primitive-specialized emitter, with/without preserved real result proof",
+  "results": [
+    {
+      "workload": "vector-execute",
+      "sample": 0,
+      "variant": "no-proof",
+      "ms": 583.487625,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 0,
+      "variant": "proof",
+      "ms": 277.400667,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 1,
+      "variant": "proof",
+      "ms": 268.728042,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 1,
+      "variant": "no-proof",
+      "ms": 595.8294579999999,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 2,
+      "variant": "no-proof",
+      "ms": 584.547,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 2,
+      "variant": "proof",
+      "ms": 279.888375,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 3,
+      "variant": "proof",
+      "ms": 281.078209,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 3,
+      "variant": "no-proof",
+      "ms": 584.790542,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 4,
+      "variant": "no-proof",
+      "ms": 604.629584,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-execute",
+      "sample": 4,
+      "variant": "proof",
+      "ms": 289.093042,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 0,
+      "variant": "no-proof",
+      "ms": 486.28945799999997,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 0,
+      "variant": "proof",
+      "ms": 169.98975000000002,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 1,
+      "variant": "proof",
+      "ms": 167.766167,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 1,
+      "variant": "no-proof",
+      "ms": 494.65429200000005,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 2,
+      "variant": "no-proof",
+      "ms": 480.81312499999996,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 2,
+      "variant": "proof",
+      "ms": 175.599083,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 3,
+      "variant": "proof",
+      "ms": 174.29870799999998,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 3,
+      "variant": "no-proof",
+      "ms": 484.47583299999997,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 4,
+      "variant": "no-proof",
+      "ms": 493.56,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "vector-loop",
+      "sample": 4,
+      "variant": "proof",
+      "ms": 165.88475,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 0,
+      "variant": "no-proof",
+      "ms": 506.87270800000005,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 0,
+      "variant": "proof",
+      "ms": 180.5285,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 1,
+      "variant": "proof",
+      "ms": 177.82795799999997,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 1,
+      "variant": "no-proof",
+      "ms": 502.01179199999996,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 2,
+      "variant": "no-proof",
+      "ms": 482.56483399999996,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 2,
+      "variant": "proof",
+      "ms": 177.13100000000003,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 3,
+      "variant": "proof",
+      "ms": 181.98250000000002,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 3,
+      "variant": "no-proof",
+      "ms": 508.260042,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 4,
+      "variant": "no-proof",
+      "ms": 517.662875,
+      "scans": 1000,
+      "scannedCells": 50000000,
+      "reuse": 1000,
+      "sum": 5199727
+    },
+    {
+      "workload": "matrix-loop",
+      "sample": 4,
+      "variant": "proof",
+      "ms": 177.72004199999998,
+      "scans": 0,
+      "scannedCells": 0,
+      "reuse": 1000,
+      "sum": 5199727
+    }
+  ]
+}

@@ -364,7 +364,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
     const pointwiseSafe = destinationName !== undefined && terminal === 'copy' && !visit && !axes && scan === undefined && checkPointwiseSafety(root, destinationName);
 
-    // Typed results are already complete. Boxed fallback retains its scalar proof.
+    // Every completed Float64 copy passed the terminal finite-value guard.
+    // Preserve that proof for binding checks, including when storage is reused.
     const copied = (items: RankValue[] | Float64Array | IntegerCells | BooleanCells, shape: readonly number[], target?: DestinationTarget): RankValue => {
         if (target) {
             if (items instanceof Float64Array && items === target.buffer) {
@@ -374,7 +375,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     diagnostics.reusedTensorBuffers++;
                     diagnostics.reusedTensorBufferCells += target.buffer.length;
                 }
-                return typedArray(items, shape);
+                return typedArray(items, shape, undefined, 'real');
             }
             if (items instanceof BooleanCells && items === target.buffer) {
                 target.state.revision = noteMutation(target.state.birth);
@@ -395,7 +396,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 return items.array(shape);
             }
         }
-        return items instanceof BooleanCells ? createOwned(items, shape, true) : items instanceof IntegerCells ? items.array(shape) : items instanceof Float64Array ? typedArray(items, shape) : integerOutput
+        return items instanceof BooleanCells ? createOwned(items, shape, true) : items instanceof IntegerCells ? items.array(shape) : items instanceof Float64Array ? typedArray(items, shape, undefined, 'real') : integerOutput
             ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
     };
 
@@ -840,7 +841,36 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             const lines: string[] = [];
             let emitted = new Map<TensorNode, Map<string, string>>();
             let serial = 0;
-            const num = (x: string) => `(typeof ${x} === 'bigint' || typeof ${x} === 'number' && Number.isFinite(${x}))`;
+            // Physical input types are part of the variant key and rechecked by
+            // the cached layout. Do not infer primitive types from domain hints:
+            // boxed cells and callbacks still need their runtime guards.
+            type Primitive = 'bigint' | 'number';
+            const primitives = new Map<TensorNode, Primitive | undefined>();
+            function primitive(node: TensorNode): Primitive | undefined {
+                if (primitives.has(node)) return primitives.get(node);
+                const info = bound.get(node)!;
+                let type: Primitive | undefined;
+                if (typeof info.scalar === 'bigint' || typeof info.scalar === 'number') type = typeof info.scalar as Primitive;
+                else if (info.view?.items instanceof Float64Array) type = 'number';
+                else if (info.view?.items instanceof BigInt64Array || info.view?.items instanceof Int32Array) type = 'bigint';
+                else if (node.kind === 'binary' || node.kind === 'outer') {
+                    const a = primitive(node.left), b = primitive(node.right);
+                    if (a && b && ['+', '-', '*', '/'].includes(node.op) && !(node.kind === 'binary' && node.native)) {
+                        type = node.op !== '/' && a === 'bigint' && b === 'bigint' ? 'bigint' : 'number';
+                    }
+                } else if (node.kind === 'unary' && ['+', '-'].includes(node.op)) type = primitive(node.operand);
+                primitives.set(node, type);
+                return type;
+            }
+            const registers = new Map<string, Primitive>();
+            const num = (x: string) => registers.get(x) === 'bigint' ? 'true'
+                : registers.get(x) === 'number' ? `Number.isFinite(${x})`
+                : `(typeof ${x} === 'bigint' || typeof ${x} === 'number' && Number.isFinite(${x}))`;
+            const asNumber = (x: string) => registers.get(x) === 'number' ? x : `Number(${x})`;
+            const numericGuard = (values: string[], decline: string) => {
+                const checks = values.map(num).filter(check => check !== 'true');
+                if (checks.length) lines.push(`if (${checks.map(check => `!${check}`).join(' || ')}) ${decline}`);
+            };
             function address(shape: readonly number[], target: readonly number[], index: string): string {
                 if (same(shape, target)) return index;
                 let sourceStride = 1, targetStride = 1;
@@ -872,6 +902,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 let entries = emitted.get(node);
                 if (!entries) emitted.set(node, entries = new Map());
                 entries.set(at, name);
+                const type = primitive(node);
+                if (type) registers.set(name, type);
                 const child = (operand: TensorNode) => emit(operand, at, info.shape ?? frame);
                 if (info.scalar !== undefined) lines.push(`const ${name} = scalars[${info.slot}];`);
                 else if (info.progression) {
@@ -990,22 +1022,28 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         lines.push(`if (typeof ${a} !== 'boolean' || typeof ${b} !== 'boolean') ${decline}`);
                         lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b)};`);
                     } else {
-                        lines.push(`if (!${num(a)} || !${num(b)}) ${decline}`);
+                        numericGuard([a, b], decline);
                         if (signatures.every(signature => signature.result === 'boolean')) {
                             lines.push(`if (typeof ${a} !== typeof ${b}) ${decline}`);
                             lines.push(`const ${name} = ${binaryOperatorSource(operation, a, b)};`);
                         } else {
                             if (node.op === '/') lines.push(`if (${zeroTestSource(b, 'numeric')}) ${decline}`);
                             if (node.op === '**') lines.push(`if (${b} < 0 || ${b} > 1024 || (typeof ${b} === 'number' && !Number.isInteger(${b}))) ${decline}`);
-                            const expr = binaryOperatorSource(operation, `Number(${a})`, `Number(${b})`);
-                            lines.push(`const ${name} = ${node.op === '/' ? expr : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${binaryOperatorSource(operation, a, b)} : ${expr})`};`);
+                            const expr = binaryOperatorSource(operation, asNumber(a), asNumber(b));
+                            const integer = binaryOperatorSource(operation, a, b);
+                            const aType = registers.get(a), bType = registers.get(b);
+                            const arithmetic = node.op === '/' ? expr
+                                : aType && bType ? aType === 'bigint' && bType === 'bigint' ? integer : expr
+                                : `(typeof ${a} === 'bigint' && typeof ${b} === 'bigint' ? ${integer} : ${expr})`;
+                            lines.push(`const ${name} = ${arithmetic};`);
                         }
                     }
                 } else if (node.kind === 'unary') {
                     const a = child(node.operand);
                     const decline = `return decline(${JSON.stringify(`tensor:operator-guard:${node.op}`)});`;
                     const boolean = tensorOperatorSignatures(node.op, 1).every(signature => signature.inputs[0] === 'boolean');
-                    lines.push(`if (${boolean ? `typeof ${a} !== 'boolean'` : `!${num(a)}`}) ${decline}`);
+                    if (boolean) lines.push(`if (typeof ${a} !== 'boolean') ${decline}`);
+                    else numericGuard([a], decline);
                     lines.push(`const ${name} = ${findCompiledOperator(node.op)!.unary}${a};`);
                 } else if (node.kind === 'select') {
                     const b = child(node.selector);
@@ -1024,7 +1062,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             }
             const value = emit(root);
             const isBoolean = terminal === 'copy' ? output.boolean : ['any', 'all', 'count'].includes(terminal);
-            lines.push(`if (${isBoolean ? `typeof ${value} !== 'boolean'` : `!${num(value)}`}) return decline('tensor:terminal-type:${terminal}');`);
+            if (isBoolean) lines.push(`if (typeof ${value} !== 'boolean') return decline('tensor:terminal-type:${terminal}');`);
+            else numericGuard([value], `return decline('tensor:terminal-type:${terminal}');`);
             if (scanning) lines.push(`if (typeof ${value} !== 'bigint') return decline('tensor:scan-type');`,
                 seeded ? `accumulated += ${value};` : `accumulated = i === 0 ? ${value} : accumulated + ${value};`,
                 `answer.set(i + ${seeded ? 1 : 0}, accumulated);`);
