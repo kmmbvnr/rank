@@ -242,5 +242,6 @@
   "euler/627_countingproducts.ra": "About 22 s: 4D sumsets of 7-smooth exponents for n <= 11; run manually.",
   "euler/629_scatterstonenim.ra": "About 11 s: xor-count table over partitions, three Grundy tables; run manually.",
   "euler/631_constrainedpermutations.ra": "About 70 s: merged state counts for 43 core lengths; run manually.",
-  "euler/632_squareprimefactors.ra": "About 30 s: sieve of 10^8 squarefree candidates in blocks; run manually."
+  "euler/632_squareprimefactors.ra": "About 30 s: sieve of 10^8 squarefree candidates in blocks; run manually.",
+  "euler/635_subsetsums.ra": "About 45 s: running factorials to 3 x 10^8 in chunks; run manually."
 }
