@@ -1,0 +1,4 @@
+use ml
+arg X .f32 shape 1 768
+arg W .f32 shape 81 768
+return X matmul (W transpose)

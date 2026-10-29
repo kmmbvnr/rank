@@ -1,0 +1,8 @@
+use ml
+arg X .f32 shape 1 768
+arg G .f32 shape 768
+arg B .f32 shape 768
+arg W .f32 shape 768 2304
+arg Bias .f32 shape 2304
+Norm = X layernorm * G + B
+return (Norm matmul W) + Bias

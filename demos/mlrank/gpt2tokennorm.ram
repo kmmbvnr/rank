@@ -1,0 +1,5 @@
+use ml
+arg X .f32 shape 1 768
+arg G .f32 shape 768
+arg B .f32 shape 768
+return X layernorm * G + B

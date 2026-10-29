@@ -26,3 +26,15 @@ test('full vocabulary uses row embeddings and bounded full/tail LM-head graphs',
   assert.ok(graph.reservationBytes<128*1024*1024);
  }
 });
+
+test('cached GPT-2 uses bounded single-token graphs and packed K/V state',()=>{
+ const expected={gpt2qkv:[1,2304],gpt2kvwrite:[4,1536],gpt2kvattn:[1,768],gpt2tokenmlp:[1,768],gpt2tokennorm:[1,768],gpt2tokenhead:[1,1024],gpt2tokentail:[1,81]};
+ for(const [name,shape] of Object.entries(expected)){
+  const source=readFileSync(new URL(`../../../demos/mlrank/${name}.ram`,import.meta.url),'utf8');
+  const graph=compileRam(source,name+'.ram').graph;
+  assert.deepEqual(graph.outputShape,shape);
+  assert.ok(graph.nodes.length<=128);
+  assert.ok(graph.model.length<16384,'Checkpoint weights must remain runtime inputs');
+  assert.ok(graph.reservationBytes<128*1024*1024);
+ }
+});
