@@ -1,0 +1,41 @@
+rem Inverse Digit Sum
+rem https://projecteuler.net/problem=684
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Kk integer = 0
+
+rem For n = 9 a + b, 0 <= b < 9, the
+rem smallest number with digit sum n is
+rem (b + 1) 10^a - 1. A block of nine
+rem terms with equal a sums to
+rem 54 (10^a) - 9, so with k = 9 q + r
+rem   S(k) = 6 (10^q - 1) - 9 q
+rem          + r (r + 3) / 2 10^q - r.
+rem With Kk = 0 the sum runs over S(F_i)
+rem for F_i the Fibonacci numbers i =
+rem 2 to 90; else it is S(Kk).
+P = 1000000007
+Fb = array shape 91 fill 0
+Fb 1 = 1
+for I in 2 to 90
+  Fb I = Fb (I - 1) + Fb (I - 2)
+end
+Ks = Fb (2 to 90)
+if Kk greater 0
+  Ks = Ks * 0 + Kk
+end
+Q = Ks // 9
+R = Ks mod 9
+Tp = 10 Q P powmod
+Tr = R * (R + 3) // 2
+Sv = 6 * (Tp + P - 1) + Tr * Tp mod P
+Sv = (Sv + P - (9 * Q + R) mod P) mod P
+Answer = Sv sum mod P
+if Kk greater 0
+  Answer = Sv 0
+end
+Answer print

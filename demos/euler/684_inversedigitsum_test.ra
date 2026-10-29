@@ -1,0 +1,15 @@
+use testing
+
+test "statement value"
+  use "684_inversedigitsum"
+  Kk = 20
+  run
+  Answer equal 1074
+end
+
+test "default input"
+  use "684_inversedigitsum"
+  Kk = 0
+  run
+  Answer equal 922058210
+end
