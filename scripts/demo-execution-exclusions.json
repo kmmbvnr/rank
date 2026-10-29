@@ -262,5 +262,6 @@
   "euler/663_sumsofsubarrays.ra": "About 77 s: slice-assign tree build; run manually (#488).",
   "euler/662_fibonaccipaths.ra": "About 15 min: 88-step slice += per anti-diagonal; run manually (#489).",
   "euler/675_twoomega.ra": "About 71 s: strided slices and powmod; run manually (#490).",
-  "euler/677_colouredgraphs.ra": "About 95 s: online series dot products; run manually (#491)."
+  "euler/677_colouredgraphs.ra": "About 95 s: online series dot products; run manually (#491).",
+  "euler/678_fermatlike.ra": "About 156 s: sieves and 4e8-pair scan; run manually (#492)."
 }
