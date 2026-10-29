@@ -261,5 +261,6 @@
   "euler/660_pandigitaltriangles.ra": "About 99 s: digit-mask filtering of 10^7 triples; run manually (#487).",
   "euler/663_sumsofsubarrays.ra": "About 77 s: slice-assign tree build; run manually (#488).",
   "euler/662_fibonaccipaths.ra": "About 15 min: 88-step slice += per anti-diagonal; run manually (#489).",
-  "euler/675_twoomega.ra": "About 71 s: strided slices and powmod; run manually (#490)."
+  "euler/675_twoomega.ra": "About 71 s: strided slices and powmod; run manually (#490).",
+  "euler/677_colouredgraphs.ra": "About 95 s: online series dot products; run manually (#491)."
 }

@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "677_colouredgraphs"
+  Nn = 2
+  run
+  Answer equal 5
+  Nn = 3
+  run
+  Answer equal 15
+  Nn = 4
+  run
+  Answer equal 57
+  Nn = 10
+  run
+  Answer equal 710249
+  Nn = 100
+  run
+  Answer equal 919747298
+end
