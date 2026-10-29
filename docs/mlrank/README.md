@@ -2123,3 +2123,60 @@ The OnePlus notebook **GPT-2 batched prefill** is saved with the seven-token
 prompt and two-token output. Running it through the ordinary menu produced
 `Hello, world! My name is Kiy` in 31.70 seconds, with zero retained state bytes
 afterward. This UI run is separate from the worker ABBA timings above.
+
+### Retained activations for context 16
+
+[`gpt2-generate-retained16.ra`](../../demos/mlrank/gpt2-generate-retained16.ra)
+keeps attention residuals, MLP outputs, decode embeddings, and normalized hidden
+states on the GPU with explicit `gpukeep` calls. Each consumer is followed by an
+explicit `gpufree` when that input is no longer needed. The previous prefill demo
+remains the comparison baseline. No compiler rewrite chooses this behavior.
+
+Batched embedding rows are still assembled on the host. The first layer receives
+that matrix; subsequent layers pass retained activations. A small
+[`gpt2prefilllast16.ram`](../../demos/mlrank/gpt2prefilllast16.ram) module selects
+the last valid prompt row with a one-hot matrix multiplication, avoiding readback
+of the full matrix. The normalized hidden state is shared by all vocabulary head
+chunks, then freed. Logits still return to the host for greedy token selection.
+
+For seven prompt tokens and two outputs, readback decreases from 1,686,152 to
+423,560 bytes; the remaining bytes are embedding rows and logits. GPU invocations
+increase from 206 to 207 because row selection is now a GPU operation. Weight
+reads remain 989,276,160 bytes. Peak desktop retained tensor payload increases
+from 1,327,104 to 1,425,408 bytes; this does not include driver allocations.
+
+`mlrank-gpt2-context-check.mjs --retained` checks the same 603,084 reference logits
+and injects failures after attention, MLP, prompt-row selection, normalization,
+and decode attention. Each failure must leave zero retained states before the
+interpreter is disposed. `mlrank-gpt2-prefill-bench.mjs --retained` compares the
+previous batched program against retained activations in ABBA order; `--short`
+checks the one-token route. Separate profiled runs count weight reads.
+
+All three devices passed the numerical and five failure-cleanup checks. Maximum
+absolute errors remain 1.90e-4 (Metal), 3.50e-4 (Intel), and 3.42e-4 (OnePlus).
+Android issued no explicit state readbacks. The previous batched implementation
+also passed its reference checks after extending the shared test harness.
+
+Unprofiled ABBA full-program timings for seven prompt and two generated tokens:
+
+| Device | Previous batched | Retained activations |
+| --- | --- | --- |
+| Mac / Metal | 0.85–1.19 s | 0.68–0.69 s |
+| jack / Intel | 6.82–7.70 s | 5.14–5.29 s |
+| OnePlus / OpenCL | 26.34–26.64 s | 19.98–20.48 s |
+
+There are only two runs per variant. Desktop first-token timings include startup
+and head execution; Android reports full-program wall time. For a one-token
+prompt, readback decreases from 280,900 to 201,028 bytes with 100 GPU invocations
+in either version. Short-prompt Metal timings overlap, so this does not establish
+a speedup for every workload. Desktop profiles confirm unchanged weight reads;
+Android weight-read profiling was not repeated for this step.
+See the [retained activations baseline](../../benchmarks/baselines/2026-10-29-mlrank-gpt2-retained.json).
+
+The saved OnePlus notebook **GPT-2 retained activations** produced
+`Hello, world! My name is Kiy` through the ordinary Run program menu in 30.84 s,
+with zero retained state bytes afterward. This UI run includes per-cell/editor
+work and is separate from the worker timings above; the previous UI demo took
+31.70 s in a single earlier run, so the UI measurements do not establish the same
+24% improvement. Short-prompt worker ABBA on OnePlus measured 13.63–14.31 s for
+the previous version and 12.50–12.86 s with retained activations.

@@ -5,20 +5,23 @@ import {Interpreter,createRamClient} from '../packages/interpreter/out/index.js'
 import {nodeIo} from '../packages/cli/out/node-io.js';
 import {sendRamGpu,closeRamGpu} from '../packages/cli/out/ram-gpu.js';
 const directory=resolve(process.argv[2]??'/tmp/rank-gpt2-forward');
+const retained=process.argv.includes('--retained');
+const modes=retained?['batched','retained']:['sequential','batched'];
 const short=process.argv.includes('--short');
-const programs=Object.fromEntries(['sequential','batched'].map(mode=>[mode,readFileSync(new URL('../demos/mlrank/gpt2-generate-'+(mode==='batched'?'prefill16':'kv16')+'.ra',import.meta.url),'utf8').replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(short?'Hello':'Hello, world! My name is')).replace(/^MaxNew = .*$/m,'MaxNew = '+(short?1:2))]));
+const programs=Object.fromEntries(modes.map(mode=>[mode,readFileSync(new URL('../demos/mlrank/gpt2-generate-'+(mode==='retained'?'retained16':mode==='batched'?'prefill16':'kv16')+'.ra',import.meta.url),'utf8').replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(short?'Hello':'Hello, world! My name is')).replace(/^MaxNew = .*$/m,'MaxNew = '+(short?1:2))]));
 const names=['row','qkv','kvwrite16','kvattn16','tokenmlp','tokennorm','tokenhead','tokentail','prefillqkv16','prefillcache16','prefillattn16','prefillmlp16'];
+if(retained)names.push('prefilllast16');
 const modules=Object.fromEntries(names.map(n=>['gpt2'+n+'.ram',readFileSync(new URL('../demos/mlrank/gpt2'+n+'.ram',import.meta.url),'utf8')]));
 const expected=JSON.parse(readFileSync(join(directory,'context-reference.json'))).cases.find(c=>c.name===(short?'masked':'prefill')).text;
-const order=['sequential','batched','batched','sequential'];
+const order=[modes[0],modes[1],modes[1],modes[0]];
 mkdirSync('/tmp/rank-mlrank',{recursive:true});
-writeFileSync('/tmp/rank-mlrank/gpt2-prefill'+(short?'-short':'')+'-bench-fixture.json',JSON.stringify({programs,modules,expected,order,profileModes:['sequential','batched']}));
+writeFileSync('/tmp/rank-mlrank/gpt2-'+(retained?'retained':'prefill')+(short?'-short':'')+'-bench-fixture.json',JSON.stringify({programs,modules,expected,order,profileModes:modes}));
 if(process.argv.includes('--fixture'))process.exit();
 const runs=[];
 let profile=false,fileBytesRead=0;
 const client=createRamClient(request=>{const reply=sendRamGpu({...request,...(profile?{profile:true}:{})});fileBytesRead+=reply.fileBytesRead??0;return reply;});
 try{
- for(const [index,mode] of [...order,'sequential','batched'].entries()){
+ for(const [index,mode] of [...order,...modes].entries()){
   profile=index>=order.length;fileBytesRead=0;
   const tokenEnds=[];let gpuCalls=0,retained=0,readbackBytes=0;
   const gpu=(g,input,files,options)=>{
