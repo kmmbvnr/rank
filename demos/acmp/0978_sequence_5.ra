@@ -1,0 +1,29 @@
+rem Sequence 5 (Max Prime Power in Factorial)
+rem https://acmp.ru/index.asp?main=task&id_task=978
+rem Find maximal k such that n^k divides n!
+
+use numbers
+use sequences
+use algo
+use io
+use cli
+
+arg N integer = 12
+
+Factors = N factors array
+Primes = Factors unique array
+
+Ks = new queue
+for P in Primes
+  E = (Factors equal P) count
+  Legendre = 0
+  X = N // P
+  for X greater 0
+    Legendre += X
+    X //= P
+  end
+  Ks push (Legendre // E)
+end
+
+Answer = (Ks array) min
+Answer print

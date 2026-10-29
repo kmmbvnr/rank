@@ -1,0 +1,32 @@
+use testing
+
+test "default 12"
+  use "0978_sequence_5"
+  run
+
+  Answer equal 5
+end
+
+test "n=45"
+  use "0978_sequence_5"
+  N = 45
+  run
+
+  Answer equal 10
+end
+
+test "prime n=7"
+  use "0978_sequence_5"
+  N = 7
+  run
+
+  Answer equal 1
+end
+
+test "large n=1000000000"
+  use "0978_sequence_5"
+  N = 1000000000
+  run
+
+  Answer equal 27777777
+end
