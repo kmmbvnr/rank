@@ -328,8 +328,41 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
             },
             budget: { remaining: 1024 },
         }, hint);
-        if (inferred.failure) return reject(inferred.failure.source, inferred.failure.detail);
-        return lower(inferred.expression, lines) ?? reject(e);
+        if (inferred.failure) {
+            const fallback = callout(e, lines, hint);
+            if (fallback) return fallback;
+            return reject(inferred.failure.source, inferred.failure.detail);
+        }
+        const lowered = lower(inferred.expression, lines);
+        if (lowered) return lowered;
+        const fallback = callout(e, lines, hint);
+        if (fallback) return fallback;
+        return reject(e);
+    }
+    function callout(source: Expression, lines: string[], hint?: LoopTerm['type']): LoopTerm | undefined {
+        if (!state.canCallout(source, hint)) return undefined;
+        const id = state.callouts.length;
+        state.callouts.push({ expression: source, expectedType: hint });
+        const spilled = [...state.assigned].filter(name => !name.includes('.'));
+        for (const name of spilled) {
+            const s = slot(name);
+            const val = `(typeof r${s} === 'number' ? BigInt(r${s}) : r${s})`;
+            const wIdx = state.writerNames.indexOf(name);
+            if (wIdx >= 0) {
+                lines.push(`writers[${wIdx}](${val});`);
+            } else {
+                const bIdx = state.binderNames.indexOf(name);
+                if (bIdx >= 0) {
+                    lines.push(`binders[${bIdx}](${val});`);
+                }
+            }
+        }
+        const temp = `v${state.serial++}`;
+        lines.push(
+            `const raw_${temp} = callouts[${id}]();`,
+            `const ${temp} = typeof raw_${temp} === 'number' && !Number.isNaN(raw_${temp}) ? BigInt(Math.trunc(raw_${temp})) : raw_${temp};`
+        );
+        return { code: temp, type: hint ?? 'integer' };
     }
     function lower(node: CompiledExpression<CompiledLoopType, LoopInput>, lines: string[], selection?: { name: string; count: number }): LoopTerm | undefined {
         if (!temporaryBudget(node.source)) return undefined;

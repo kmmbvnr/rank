@@ -7,6 +7,7 @@ import {
 import { checkpoint } from './interrupt.js';
 import { prepareIntegerView } from './integer-view.js';
 import { isNativeFunction, type RankValue } from './value.js';
+import { evaluateBinaryInteger } from './jit/operator-codegen.js';
 
 type Node = { kind: 'read'; name: string } | { kind: 'literal'; value: bigint | boolean }
     | { kind: 'count'; input: Node } | { kind: 'length'; input: Node }
@@ -151,7 +152,7 @@ export function compileDistinctFunction(statement: FunctionStatement): {
                     if ('scalar' in x && x.type !== 'integer'
                         || 'scalar' in y && y.type !== 'integer'
                         || 'read' in x && 'read' in y && x.length !== y.length) return undefined;
-                    const op = (a: bigint, b: bigint) => node.op === '+' ? a + b : node.op === '-' ? a - b : a * b;
+                    const op = (a: bigint, b: bigint) => evaluateBinaryInteger(node.op, a, b);
                     const read = (i: number) => op('scalar' in x ? x.scalar() as bigint : x.read(i),
                         'scalar' in y ? y.scalar() as bigint : y.read(i));
                     value = 'scalar' in x && 'scalar' in y ? { type: 'integer', scalar: () => read(0) }

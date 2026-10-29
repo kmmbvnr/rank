@@ -6,7 +6,7 @@ import { type CompiledCalleeType, isCompiledContainer } from './compiled-callee-
 import { newStructure, addToCollection, expectAddCollection, setHas } from '../collections.js';
 import { indexGet, indexHas, indexRead, indexSet, indexKey } from '../index-storage.js';
 import {
-    findCompiledOperator, applicationForm, findOperation,
+    findCompiledOperator, applicationForm, findOperation, rangeSliceOperands,
     isReturnStatement, isExpressionStatement, isAssignmentStatement, isIfStatement, isForStatement, isBinaryExpression, isParenthesizedExpression, forIteration, isPushStatement, isNameExpression, isArrayAssignmentStatement, isBreakStatement, isContinueStatement, isUnpackStatement,
     type CompiledExpression, type CompiledOperator, type CompiledScalarType, type Operation, type Expression, type FunctionStatement, type Statement,
 } from '@arrrank/language';
@@ -35,6 +35,7 @@ import { broadcastShape } from '../tensor.js';
 
 interface Kernel {
     readonly source: string;
+    readonly returnType?: CompiledCalleeType;
     readonly plans: boolean;
     readonly dequeIteration: boolean;
     readonly setMembership: boolean;
@@ -63,7 +64,10 @@ interface Kernel {
         safe: (val: number) => number,
         zero: () => Error,
         overflow: unknown,
-        checkpoint: () => void) => LoopCallable;
+        checkpoint: () => void,
+        badStep?: () => Error,
+        powerZero?: () => Error,
+        powerDomain?: () => Error) => LoopCallable;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
 
@@ -160,8 +164,10 @@ function compileScalarNumberKernel(
                 lines.push(`const ${remainder} = (${left}) % (${right});`);
                 lines.push(`const ${res} = ${binaryOperatorSource(compiled.operation, left, right, { number: true, remainder, safe: s => `safe(${s})` })};`);
             } else if (op === '**') {
-                lines.push(`if (${left} === 0 && (${right}) < 0) throw zero();`);
-                lines.push(`const ${res} = safe((${left}) ** (${right}));`);
+                lines.push(`if (${zeroTestSource(left, 'numeric')} && (${right}) < 0) throw powerZero();`);
+                const isInteger = compiled.signature.result === 'integer';
+                lines.push(`const ${res} = ${isInteger ? `safe((${left}) ** (${right}))` : `(${left}) ** (${right})`};`);
+                if (!isInteger) lines.push(`if (Number.isNaN(${res})) throw powerDomain();`);
             }
         } else if (['<', '<=', '>', '>=', '==', '!=', 'equal', 'notequal'].includes(op) || compiled.operation.binary) {
             lines.push(`const ${res} = (${left}) ${compiled.operation.binary} (${right});`);
@@ -206,6 +212,40 @@ function compileScalarNumberKernel(
                 lines.push('}'.repeat(branches.length));
             } else if (isForStatement(cmd)) {
                 const binding = forIteration(cmd.condition);
+                if (binding && binding.iterable && binding.names.length === 1 && !binding.names[0].includes('.')) {
+                    let rangeExpr = binding.iterable;
+                    while (isParenthesizedExpression(rangeExpr)) rangeExpr = rangeExpr.value;
+                    const range = rangeSliceOperands(rangeExpr);
+                    if (range) {
+                        const start = emitNum(range.start, lines);
+                        const end = emitNum(range.end, lines);
+                        if (!start || !end) return false;
+                        const induction = slot(binding.names[0]);
+                        const endVar = `end${serial++}`;
+                        const cmp = range.inclusive ? '<=' : '<';
+                        lines.push(`const ${endVar} = ${end};`);
+                        lines.push(`for (let ${induction} = ${start}; ${induction} ${cmp} ${endVar}; ${induction} = safe(${induction} + 1)) { checkpoint();`);
+                        if (!lowerCommands(cmd.statements, lines)) return false;
+                        lines.push('}');
+                        continue;
+                    }
+                    if (isBinaryExpression(rangeExpr) && (rangeExpr.operator === 'to' || rangeExpr.operator === 'till')) {
+                        const start = emitNum(rangeExpr.left, lines);
+                        const end = emitNum(rangeExpr.right, lines);
+                        const step = rangeExpr.step ? emitNum(rangeExpr.step, lines) : '1';
+                        if (!start || !end || !step) return false;
+                        const induction = slot(binding.names[0]);
+                        const endVar = `end${serial++}`, stepVar = `step${serial++}`;
+                        const cmp = rangeExpr.operator === 'to' ? '<=' : '<';
+                        lines.push(`const ${endVar} = ${end}, ${stepVar} = ${step};`);
+                        lines.push(`if (${stepVar} === 0) throw badStep();`);
+                        lines.push(`for (let ${induction} = ${start}; ${stepVar} > 0 ? ${induction} ${cmp} ${endVar} : ${induction} >= ${endVar}; ${induction} = safe(${induction} + ${stepVar})) { checkpoint();`);
+                        if (!lowerCommands(cmd.statements, lines)) return false;
+                        lines.push('}');
+                        continue;
+                    }
+                    return false;
+                }
                 if (!binding && cmd.condition) {
                     lines.push('for (;;) { checkpoint();');
                     const cond = emitNum(cmd.condition, lines);
@@ -231,7 +271,7 @@ function compileScalarNumberKernel(
     if (!lowerCommands(statement.statements, lines)) return undefined;
     const paramNames = statement.parameters.map((_, i) => `r${i}`);
     const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
-    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint) {
+    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint, badStep, powerZero, powerDomain) {
         return function(${paramNames.join(',')}) {
             ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
             let location = -1;
@@ -719,6 +759,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             captures,
             guards: proof.nativeReads,
             modules: proof.modules,
+            returnType: proof.type as CompiledCalleeType,
             run,
             direct,
             numberDirect,

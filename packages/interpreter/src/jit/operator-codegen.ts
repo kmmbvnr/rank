@@ -39,3 +39,33 @@ export function zeroTestSource(value: string, kind: 'integer' | 'real' | 'numeri
     if (kind === 'numeric') return `(${value} === 0n || ${value} === 0)`;
     return `((${value}) === ${kind === 'integer' ? '0n' : '0'})`;
 }
+
+/** Evaluate binary integer arithmetic uniformly across micro-compilers and evaluators. */
+export function evaluateBinaryInteger(op: string, left: bigint, right: bigint): bigint {
+    switch (op) {
+        case '+': return left + right;
+        case '-': return left - right;
+        case '*': return left * right;
+        case '//': return right === 0n ? 0n : left / right;
+        case 'mod': return right === 0n ? 0n : left % right;
+        default: throw new Error(`unsupported integer operator ${op}`);
+    }
+}
+
+/** Evaluate binary comparison and logical operators uniformly. */
+export function evaluateBinaryComparison(op: string, left: bigint | boolean, right: bigint | boolean): bigint | boolean {
+    switch (op) {
+        case '+': return (left as bigint) + (right as bigint);
+        case '-': return (left as bigint) - (right as bigint);
+        case '*': return (left as bigint) * (right as bigint);
+        case 'equal': case '==': return left === right;
+        case 'notequal': case '!=': return left !== right;
+        case 'and': return (left as boolean) && (right as boolean);
+        case 'or': return (left as boolean) || (right as boolean);
+        case '<': return (left as bigint) < (right as bigint);
+        case '<=': return (left as bigint) <= (right as bigint);
+        case '>': return (left as bigint) > (right as bigint);
+        case '>=': return (left as bigint) >= (right as bigint);
+        default: throw new Error(`unsupported operator ${op}`);
+    }
+}

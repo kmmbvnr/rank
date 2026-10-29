@@ -3082,4 +3082,48 @@ Total`);
         expect(result.value).toBe('1060');
         expect(result.loops).toBe(1);
     });
+
+    it('delegates unsupported expressions on an if-branch via guarded runtime callout', () => {
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter();
+        let result: bigint;
+        try {
+            result = diagnostics.run(() => runtime.execute(`
+Total = 0
+for I in 1 to 5
+  if I equal 3
+    Total += (tuple Total) len
+  else
+    Total += I
+  end
+end
+Total
+`)) as bigint;
+        } finally {
+            runtime.dispose();
+        }
+        expect(result).toBe(13n);
+        expect(diagnostics.compiledLoops).toBe(1);
+        expect(diagnostics.fallbacks).toEqual({});
+    });
+
+    it('rejects compilation when unsupported expression is at the top level of the loop', () => {
+        const diagnostics = new RuntimeDiagnostics();
+        const runtime = new Interpreter();
+        let result: bigint;
+        try {
+            result = diagnostics.run(() => runtime.execute(`
+Total = 0
+for I in 1 to 5
+  Total += (tuple Total) len
+end
+Total
+`)) as bigint;
+        } finally {
+            runtime.dispose();
+        }
+        expect(result).toBe(5n);
+        expect(diagnostics.compiledLoops).toBe(0);
+        expect(diagnostics.fallbacks).toHaveProperty('loop:unsupported-node:TupleExpression');
+    });
 });

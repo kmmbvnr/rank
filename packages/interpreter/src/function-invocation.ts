@@ -786,6 +786,16 @@ export class FunctionInvocation {
             if (diagnostics) diagnostics.compiledTensors++;
         };
         const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
+        const rawNumber = kernel.numberDirect ? kernel.numberDirect(
+            locate,
+            val => { if (!Number.isSafeInteger(val)) throw numberOverflow; return val; },
+            () => new RankError('division by zero'),
+            numberOverflow,
+            checkpoint,
+            () => new RankError('range step must be a nonzero integer'),
+            () => new RankError('zero cannot be raised to a negative power'),
+            () => new RankError('power result is not real'),
+        ) : undefined;
         const hasTailCalls = kernel.userCalls.some(call => call.tail);
         const hasUserCalls = kernel.userCalls.length > 0 || kernel.rankedCalls.length > 0;
         let directFn: ((...arguments_: RankValue[]) => RankValue) | undefined;
@@ -796,6 +806,21 @@ export class FunctionInvocation {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                     }
                     this.compiler.hooks.onScalarFunctionExecuted?.();
+                    if (rawNumber && arguments_.every(a => typeof a === 'bigint' || typeof a === 'number' || typeof a === 'boolean')) {
+                        try {
+                            const numArgs = arguments_.map(a => typeof a === 'bigint' ? Number(a) : a as number);
+                            if (numArgs.every(a => typeof a === 'number' ? Number.isSafeInteger(a) : true)) {
+                                const numResult = rawNumber(...numArgs as never[]);
+                                return typeof numResult === 'number' && kernel.returnType === 'integer' ? BigInt(numResult) : numResult;
+                            }
+                        } catch (error) {
+                            if (error !== numberOverflow) {
+                                if (error instanceof FunctionPlanDemandError) throw error.error;
+                                if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
+                                throw error;
+                            }
+                        }
+                    }
                     try {
                         return kernelDirect(...arguments_ as never[]);
                     } catch (error) {
@@ -875,14 +900,7 @@ export class FunctionInvocation {
             }
         };
         if (directFn) run.direct = directFn;
-        if (kernel.numberDirect) {
-            const rawNumber = kernel.numberDirect(
-                locate,
-                val => { if (!Number.isSafeInteger(val)) throw numberOverflow; return val; },
-                () => new RankError('division by zero'),
-                numberOverflow,
-                checkpoint,
-            );
+        if (rawNumber) {
             run.numberDirect = (...arguments_: number[]) => {
                 if (this.depth >= this.maxDepth) {
                     throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');

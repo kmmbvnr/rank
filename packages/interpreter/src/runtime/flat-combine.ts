@@ -1,11 +1,12 @@
 import {
-    flattenApplication,
+    flattenApplication, findCompiledOperator,
     isReturnStatement, isRecordExpression, isParenthesizedExpression, isNumberLiteral,
     isBinaryExpression, isUnaryExpression, isNameExpression,
     isLabelLiteral, type Expression, type FunctionStatement,
 } from '@arrrank/language';
 import type { RankValue } from './value.js';
 import type { FlatRecords } from './flat.js';
+import { binaryOperatorSource, scalarExtremeSource } from '../jit/operator-codegen.js';
 
 export interface FlatCombine {
     readonly order: readonly string[];
@@ -58,7 +59,8 @@ function compile(
         }
         if (isBinaryExpression(e) && !e.step && ['+', '-', '*'].includes(e.operator)) {
             const left = emit(e.left), right = emit(e.right);
-            return left === undefined || right === undefined ? undefined : variable(`${left} ${e.operator} ${right}`);
+            const op = findCompiledOperator(e.operator);
+            return left === undefined || right === undefined || !op ? undefined : variable(binaryOperatorSource(op, left, right));
         }
         const chain = flattenApplication(e);
         if (chain.length === 2 && isNameExpression(chain[0]) && isLabelLiteral(chain[1])) {
@@ -74,7 +76,7 @@ function compile(
             builtins.add(op.name);
             const left = emit(chain[0]), right = emit(chain[1]);
             if (left === undefined || right === undefined) return undefined;
-            return variable(`${left} ${op.name === 'max' ? '>' : '<'} ${right} ? ${left} : ${right}`);
+            return variable(scalarExtremeSource(op.name as 'min' | 'max', left, right));
         }
         return undefined;
     }

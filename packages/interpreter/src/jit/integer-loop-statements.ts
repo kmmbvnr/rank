@@ -3,7 +3,7 @@ import {
     applicationForm, isExpressionStatement, findOperation, matchCompiledEffectSignature, loopOperatorSignature,
     isAssignmentStatement, isIfStatement, isForStatement, isBreakStatement, isContinueStatement,
     isPushStatement, isArrayAssignmentStatement, isReturnStatement, isYieldStatement, isArrayExpression,
-    isParenthesizedExpression, isNameExpression, isUnpackStatement, type Statement, type AssignmentStatement,
+    isParenthesizedExpression, isNameExpression, isUnpackStatement, isFunctionStatement, type Statement, type AssignmentStatement,
 } from '@arrrank/language';
 
 import type { LoopCompilationState } from './integer-loop-state.js';
@@ -109,6 +109,21 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                 continue;
             }
             if (isReturnStatement(assignment)) {
+                if (isFunctionStatement(state.statement)) {
+                    state.hasControl = true; state.hasReturn = true;
+                    if (!assignment.value) {
+                        body.push(`location = ${location};`, 'return undefined;');
+                        return 'stop';
+                    }
+                    const lines: string[] = [];
+                    let expression = assignment.value;
+                    while (isParenthesizedExpression(expression)) expression = expression.value;
+                    const result = emitValue(expression, lines, undefined, allowTail);
+                    if (!result) return reject(assignment);
+                    const valCode = numberMode && result.type === 'integer' ? `safe(${result.code})` : result.code;
+                    body.push(`location = ${location};`, ...lines, `return ${valCode};`);
+                    return 'stop';
+                }
                 if (numberMode) return undefined;
                 if (!host.returns || !assignment.value) return reject(assignment);
                 state.hasControl = true; state.hasReturn = true;
@@ -214,14 +229,18 @@ export function createLoopStatements(state: LoopCompilationState, expressions: L
                     const condition = emit(branch.condition, lines, 'boolean');
                     if (condition?.type !== 'boolean') return reject(assignment);
                     body.push(`location = ${location};`, ...lines, `if (${condition.code}) {`);
+                    state.branchDepth++;
                     const flow = statements(branch.statements, body, allowTail, breakLabel);
+                    state.branchDepth--;
                     if (flow === undefined) return reject(assignment);
                     if (flow === 'next') outcomes.push(new Set(assigned));
                     body.push('} else {');
                 }
                 assigned.clear();
                 for (const name of incoming) assigned.add(name);
+                state.branchDepth++;
                 const flow = statements(assignment.elseStatements, body, allowTail, breakLabel);
+                state.branchDepth--;
                 if (flow === undefined) return reject(assignment);
                 if (flow === 'next') outcomes.push(new Set(assigned));
                 body.push('}'.repeat(branches.length));

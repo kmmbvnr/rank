@@ -67,6 +67,8 @@ export interface LoopHost {
     locate(error: unknown, statement: Statement): unknown;
     module(name: string): boolean;
     builtin(module: string, name: string): boolean;
+    evaluate?(expression: Expression): RankValue;
+    callout?(expression: Expression): () => RankValue;
     compiled?(source: string): void;
     executed?(): void;
 }
@@ -132,4 +134,9 @@ export interface IntegerLoopPlan {
     writable: Set<string>;
     iteration: IterationBinding | undefined;
     workCounting?: boolean;
+    callouts?: { expression: Expression; expectedType?: LoopTerm['type'] }[];
 }
+
+/** Unified Region plan and host definitions over shared typed IR. */
+export type RegionPlan = IntegerLoopPlan;
+export type RegionHost = LoopHost;

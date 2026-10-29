@@ -113,7 +113,7 @@ function compileTypedLoop(statement: ForStatement, host: LoopHost, iteration: It
 function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopHost, iteration: IterationBinding | undefined,
     textSources: ReadonlySet<string>, textArrays: ReadonlySet<string>, failed: (reason: string) => void, numberMode = false,
     wideScalars: ReadonlySet<string> = new Set(), workCounting = false): IntegerLoopPlan | undefined {
-    const state = createLoopState(host, textSources, textArrays, failed, numberMode, wideScalars, workCounting);
+    const state = createLoopState(statement, host, textSources, textArrays, failed, numberMode, wideScalars, workCounting);
     const {
         localTypes, names, required, writers, binders, writerNames, binderNames, written, containers,
         builtins, calls, arrays, calleeArrays, indexedReads, arrayInputs, arrayDefinitions, aliases,
@@ -167,6 +167,6 @@ function lowerTypedLoop(statement: ForStatement | FunctionStatement, host: LoopH
         statement, names, wideScalars, exactInputs: state.exactInputs, arrays, destinations, root, body, locations, required, localTypes, containers,
         builtins, calls, iterators, vectorIterations, writerNames, binderNames, writers,
         binders, arrayInputs, calleeArrays, indexedReads, hasControl: state.hasControl, hasReturn: state.hasReturn, hasYield: state.hasYield,
-        needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration, workCounting,
+        needsAlgo: state.needsAlgo, arrayDefinitions, writable, iteration, workCounting, callouts: state.callouts,
     };
 }

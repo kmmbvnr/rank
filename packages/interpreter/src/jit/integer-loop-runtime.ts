@@ -23,7 +23,7 @@ import { readArrayItem, storedScalarKinds, denseScalarItems, materializedArrayIt
 
 function emitIntegerLoopSource(plan: IntegerLoopPlan, workCounting = false): string {
     const { names, arrays, destinations, root, body, hasYield } = plan;
-    return `"use strict"; return function${hasYield ? '*' : ''}(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads) {
+    return `"use strict"; return function${hasYield ? '*' : ''}(input, writers, binders, calls, tailCallsAllowed, batchWrites, stableReads, callouts) {
         ${names.length ? `let ${names.map((name, index) => {
             const value = `r${index} = input[${index}]`;
             // Scalar/container slots never use tensor accessors. In short loops,
@@ -50,7 +50,7 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
         ? [...destinations].filter(([, info]) => info.type !== 'integer') : [];
     const checkedCells = new WeakMap<RankArray, { revision: number; type: LoopTerm['type'] | undefined }>();
     const source = emitIntegerLoopSource(plan, false);
-    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean) => RankValue | undefined;
+    let run: (values: (RankValue | undefined)[], writers: ((value: RankValue) => void)[], binders: ((value: RankValue) => void)[], calls: ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed: boolean, batchWrites: boolean, stableReads: boolean, callouts?: (() => RankValue)[]) => RankValue | undefined;
     const compile = (code: string, observeWork: (work: number) => void): typeof run => new Function('zero', 'badStep', 'locate', 'indexHas', 'indexSet', 'checkValueMutable', 'key', 'arrayRead', 'arrayOffset', 'iterators', 'dimension', 'leave', 'badIndex', 'access', 'write', 'read', 'ownedArray', 'checkpoint', 'textRead', 'slice', 'domain', 'fill', 'indexRead', 'powerZero', 'powerDomain', 'textLength', 'primeRange', 'materializeValue', 'argumentSelectionError', 'isqrt', 'copySlice', 'arrayValues', 'initialResult', 'setHas', 'unpackArray', 'observeWork', 'shapeMismatch', code)(
         () => new RankError('division by zero'), () => new RankError('range step must be a nonzero integer'),
         (error: unknown, index: number) => host.locate(error, index < 0 ? statement : locations[index]), indexHas, indexSet, checkValueMutable, indexKey, host.arrayRead, host.arrayOffset, iterators, host.dimension, host.returnValue,
@@ -293,7 +293,10 @@ export function prepareIntegerLoop(plan: IntegerLoopPlan, host: LoopHost, reject
             }
             runner = countedRun ?? run;
         }
-        const outcome = runner(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads);
+        const calloutFns = plan.callouts?.map(({ expression }) => () => {
+            return host.evaluate ? host.evaluate(expression) : host.callout ? host.callout(expression)() : undefined as unknown as RankValue;
+        }) ?? [];
+        const outcome = runner(values, activeWriters, activeBinders, activeCalls as ((arguments_: RankValue[], tail?: boolean) => RankValue)[], tailCallsAllowed, batchWrites, stableReads, calloutFns);
         // A suspending region returns its own task for the execution driver.
         return hasYield ? outcome as unknown as Execution<RankValue | undefined> : completed(outcome);
     } };

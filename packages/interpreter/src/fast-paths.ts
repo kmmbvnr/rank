@@ -298,6 +298,8 @@ export class FastPaths {
             booleanArrays: loops.booleanArrays,
             booleanLocals: loops.booleans,
             scalarText: scalars.text,
+            evaluate: expression => runExecution(this.context.evaluate(expression)),
+            callout: expression => () => runExecution(this.context.evaluate(expression)),
             nativeCalls: loops.nativeCalls,
             prepareBuiltinCall: (module, name, types, numberMode) => preparePositionalBuiltin(this.context, module, name, types, numberMode),
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({
