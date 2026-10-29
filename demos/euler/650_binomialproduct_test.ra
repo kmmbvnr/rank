@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "650_binomialproduct"
+  N = 5
+  run
+  Answer equal 5736
+  N = 10
+  run
+  Answer equal 721034267
+  N = 100
+  run
+  Answer equal 332792866
+end
