@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "682_fivesmoothpairs"
+  Nn = 10
+  run
+  Answer equal 4
+  Nn = 100
+  run
+  Answer equal 3629
+end
+
+test "default input"
+  use "682_fivesmoothpairs"
+  Nn = 10000000
+  run
+  Answer equal 290872710
+end
