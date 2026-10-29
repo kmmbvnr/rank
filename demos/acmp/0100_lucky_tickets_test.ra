@@ -1,0 +1,24 @@
+use testing
+
+test "default input 4"
+  use "0100_lucky_tickets"
+  run
+
+  Answer equal 670
+end
+
+test "6 digits"
+  use "0100_lucky_tickets"
+  N = 6
+  run
+
+  Answer equal 55252
+end
+
+test "12 digits"
+  use "0100_lucky_tickets"
+  N = 12
+  run
+
+  Answer equal 39581170420
+end
