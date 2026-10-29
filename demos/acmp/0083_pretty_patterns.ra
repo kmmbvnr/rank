@@ -4,6 +4,7 @@ rem Count M x N monochromatic-free 2x2 patterns
 
 use bits
 use io
+use sequences
 use cli
 
 arg M integer = 3
@@ -21,45 +22,26 @@ if R equal 1
   Answer = 2 ** C
 else
   States = 2 ** R
-  Compat = array shape States States fill 1
+  AdjacentMask = (2 ** (R - 1)) - 1
+  FullMask = States - 1
+
+  Compat = array shape States States fill 0
 
   for A in 0 till States
     for B in 0 till States
-      Valid = true
-      for J in 0 till (R - 1)
-        A1 = A bit J
-        A2 = A bit (J + 1)
-        B1 = B bit J
-        B2 = B bit (J + 1)
-        if A1 equal A2
-          if A1 equal B1
-            if A1 equal B2
-              Valid = false
-              break
-            end
-          end
-        end
-      end
-      if not Valid
-        Compat A B = 0
+      Both1 = A band B
+      Adj1 = Both1 band (Both1 shr 1) band AdjacentMask
+      Both0 = (A bor B) bxor FullMask
+      Adj0 = Both0 band (Both0 shr 1) band AdjacentMask
+      if (Adj1 equal 0) and (Adj0 equal 0)
+        Compat A B = 1
       end
     end
   end
 
   DP = array shape States fill 1
   for Step in 1 till C
-    NextDP = array shape States fill 0
-    for A in 0 till States
-      Count = DP A
-      if Count greater 0
-        for B in 0 till States
-          if Compat A B equal 1
-            NextDP B += Count
-          end
-        end
-      end
-    end
-    DP = NextDP
+    DP = (Compat * DP) sum axis -1
   end
 
   Answer = DP sum

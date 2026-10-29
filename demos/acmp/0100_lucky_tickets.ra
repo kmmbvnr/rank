@@ -8,22 +8,17 @@ use cli
 arg N integer = 4
 
 K = N // 2
-MaxSum = 9 * K
-
-DP = array shape (MaxSum + 1) fill 0
-DP 0 = 1
+DP = array 1
 
 for Step in 1 to K
-  NextDP = array shape (MaxSum + 1) fill 0
-  for S in 0 to (Step * 9)
-    Total = 0
-    MaxD = 9 min S
-    for D in 0 to MaxD
-      Total += DP (S - D)
-    end
-    NextDP S = Total
-  end
-  DP = NextDP
+  C = DP scan + with 0 array
+  NextLen = DP len + 9
+  Indices = 0 till NextLen array
+  HiLimit = array shape NextLen fill (DP len)
+  LoLimit = array shape NextLen fill 0
+  Hi = (Indices + 1) min HiLimit
+  Lo = (Indices - 9) max LoLimit
+  DP = C Hi - C Lo
 end
 
 Squares = DP * DP
