@@ -176,11 +176,21 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             throw new RankError('cannot assign to a lazy array');
         }
         const selection = ranks ? rankedAddressSelection(target, selectors, ranks) : tensorSelection(target, selectors);
+        const count = arraySize(selection.shape);
+        // Linear selectors prove a bounding interval, including reverse strides.
+        // Keep retained slices when every destination misses them. RHS snapshots
+        // and whole-value aliases still follow the ordinary ownership checks.
+        const ownedSelection = () => {
+            const linear = selection.linear;
+            if (!linear || !count) return owned(target);
+            const last = linear.offset + (count - 1) * linear.stride;
+            return owned(target, Math.min(linear.offset, last), Math.max(linear.offset, last) + 1);
+        };
         if (fused && evaluated === undefined && host.options().compilation !== false) {
             const update = fused(target, selection, host);
             if (update) {
                 host.checkArrayWrite(statement.name, target, [update.representative]);
-                if (update.write(owned(target) as typeof target)) return undefined;
+                if (update.write(ownedSelection() as typeof target)) return undefined;
             }
         }
         // The compiled single-cell form hands its value over when the
@@ -192,7 +202,6 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             ? undefined : assignmentOperator(statement.operator);
         let operands: RankValue[] | undefined;
         let compactOperands: Int32Array | undefined;
-        const count = arraySize(selection.shape);
         if (isRankArray(result)) {
             if (!sameShape(selection.shape, result.shape)) {
                 throw new RankError(
@@ -216,7 +225,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 host.checkArrayWrite(statement.name, target, [first]);
                 const updates = reduceIntegerUpdates(arraySize(target.shape), count, selection.offsetAt,
                     index => view.items[offset + index * stride] as bigint, statement.operator === '*=');
-                writeIntegerSelection(owned(target) as typeof target, updates.offsets.length,
+                writeIntegerSelection(ownedSelection() as typeof target, updates.offsets.length,
                     index => updates.offsets[index], updates.operands, statement.operator as '+=' | '-=' | '*=');
                 return result;
             }
@@ -267,7 +276,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                     values = replacements;
                     operation = '=';
                 }
-                const destination = owned(target) as typeof target;
+                const destination = ownedSelection() as typeof target;
                 if (statement.accumulate) {
                     accumulateIntegerSelection(destination, count, selection.offsetAt, values as bigint | readonly bigint[], operation as '+=' | '-=' | '*=');
                 } else writeIntegerSelection(destination, count, selection.offsetAt, values, operation as '=' | '+=' | '-=' | '*=', selection.linear);
@@ -280,7 +289,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
             && target.shape.length === 1 && statement.operator === '='
             && typeof result === 'boolean' && hasWritableBooleanCells(target)) {
             host.checkArrayWrite(statement.name, target, [result]);
-            fillBooleanSelection(owned(target) as typeof target, count, selection.offsetAt, result);
+            fillBooleanSelection(ownedSelection() as typeof target, count, selection.offsetAt, result);
             return result;
         }
         if (statement.accumulate) {
@@ -308,7 +317,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 return materializeValue(host.operators.evaluateBinary(operator!, old, updates.get(offset)!));
             });
             const checked = host.checkArrayWrite(statement.name, target, replacements, offsets);
-            const destination = owned(target) as typeof target;
+            const destination = ownedSelection() as typeof target;
             for (let index = 0; index < offsets.length; index++) {
                 checkpoint('writing accumulated array updates');
                 writeArrayCell(destination, offsets[index], checked[index]);
@@ -324,7 +333,7 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
                 demandValue(operand),
             )));
         const checked = host.checkArrayWrite(statement.name, target, replacements, replacements.map((_, index) => selection.offsetAt(index)));
-        const destination = owned(target) as typeof target;
+        const destination = ownedSelection() as typeof target;
         for (let index = 0; index < replacements.length; index += 1) {
             writeArrayCell(destination, selection.offsetAt(index), checked[index]);
         }
@@ -333,9 +342,9 @@ export function prepareArrayAssignment(statement: ArrayAssignmentStatement, host
     // A write is where sharing has to be paid for: shared storage
     // becomes this name's own copy, which the name then keeps.
     const rebind = host.compileAssign(statement.name);
-    const owned = (target: RankValue, offset?: number): RankValue => {
+    const owned = (target: RankValue, offset?: number, end?: number): RankValue => {
         const copy = isRankArray(target) && hasDeferredSelectionCopy(target)
-            ? privateArrayCopy(target) : arrayForWrite(target, offset);
+            ? privateArrayCopy(target) : arrayForWrite(target, offset, end);
         if (copy === undefined) return target;
         rebind(copy);
         return copy;

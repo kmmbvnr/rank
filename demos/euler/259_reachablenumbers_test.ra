@@ -9,6 +9,14 @@ end
 
 test "fewer digits"
   use "259_reachablenumbers"
+  Top = 1
+  run
+
+  Answer equal 1
+  Top = 2
+  run
+
+  Answer equal 17
   Top = 3
   run
 
@@ -21,4 +29,8 @@ test "fewer digits"
   run
 
   Answer equal 74689
+  Top = 6
+  run
+
+  Answer equal 1486823
 end

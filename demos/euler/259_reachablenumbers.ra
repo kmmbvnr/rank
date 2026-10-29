@@ -89,6 +89,10 @@ for L in 1 to Top
         Rn' = Fn // G
         Rd' = Fq // G
         More' = (Rn + Shift) * Wide + Rd
+        rem No later interval needs the final fractions.
+        if L equal Top
+          More = More filter (Rd equal 1) array
+        end
         Pool = concat Pool More
       end
     end

@@ -195,17 +195,18 @@ export function privateArrayCopy(value: RankArray): RankArray {
     return copy;
 }
 
-/** Protect aliases and retained selections before a Rank write. An offset
- * proves one scalar address; omitted addresses conservatively protect all cells. */
-export function arrayForWrite(value: RankValue, offset?: number): RankArray | undefined {
+/** Protect aliases and retained selections before a Rank write. The half-open
+ * range proves which cells may change; one offset proves a scalar address.
+ * Missing or invalid bounds conservatively protect the whole value. */
+export function arrayForWrite(value: RankValue, offset?: number, end = offset === undefined ? undefined : offset + 1): RankArray | undefined {
     // Host descriptors can invalidate writable storage even without an alias.
     if (typeof value === 'object' && value.kind === 'array') {
         const stored = ownedStorage.get(value);
         if (stored && (!stored.stable || stored.readOnlyCells)) return privateArrayCopy(value);
         if (sharesNumericSlices(value)) {
             const bounds = stored!.slices!;
-            if (offset === undefined || !Number.isSafeInteger(offset)
-                || offset >= bounds.start && offset < bounds.end) return privateArrayCopy(value);
+            if (offset === undefined || end === undefined || !Number.isSafeInteger(offset) || !Number.isSafeInteger(end)
+                || offset < 0 || end <= offset || offset < bounds.end && end > bounds.start) return privateArrayCopy(value);
         }
     }
     if (!isSharedArray(value)) return undefined;

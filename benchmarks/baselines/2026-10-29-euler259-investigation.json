@@ -1,0 +1,437 @@
+{
+  "revision": "a97ff4eb",
+  "note": "Exploratory fresh-process samples. No own overlapping benchmark processes; external host load uncontrolled. range runtime is an unshipped JS prototype over this revision. Top=8 CPU profile is excluded from unprofiled samples.",
+  "samples": {
+    "full": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js"
+      ],
+      "ms": 43987.858709,
+      "answer": "20101196798",
+      "rssMiB": 1978.5,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 1,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 4518598,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "full2": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js"
+      ],
+      "ms": 21370.015666,
+      "answer": "20101196798",
+      "rssMiB": 2379.46875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 1,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 4518598,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "full3": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js"
+      ],
+      "ms": 23095.356708,
+      "answer": "20101196798",
+      "rssMiB": 2200.765625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 1,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 4518598,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "ref-full": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--reference"
+      ],
+      "ms": 51073.138958,
+      "answer": "20101196798",
+      "rssMiB": 2029.953125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "grow-full": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-grow.ra"
+      ],
+      "ms": 38849.534833,
+      "answer": "20101196798",
+      "rssMiB": 2503.40625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 1,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 0,
+        "cowCopiedCells": 0
+      }
+    },
+    "range-full": {
+      "args": [
+        "--runtime=/tmp/rank259-range-runtime/out/index.js"
+      ],
+      "ms": 22414.297292000003,
+      "answer": "20101196798",
+      "rssMiB": 2697.359375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 1,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 4518598,
+        "cowCopies": 0,
+        "cowCopiedCells": 0
+      }
+    },
+    "range-full2": {
+      "args": [
+        "--runtime=/tmp/rank259-range-runtime/out/index.js"
+      ],
+      "ms": 20483.946165999998,
+      "answer": "20101196798",
+      "rssMiB": 2662.390625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 1,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 4518598,
+        "cowCopies": 0,
+        "cowCopiedCells": 0
+      }
+    },
+    "base8": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--Top=8"
+      ],
+      "ms": 3059.222875,
+      "answer": "782204419",
+      "rssMiB": 1064.171875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 36,
+        "numberLoops": 36,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 590,
+        "numberTensors": 1,
+        "numericUniqueSorts": 36,
+        "maskMaterializations": 672,
+        "maskMaterializedCells": 3667694,
+        "bulkArrayWriteCells": 557774,
+        "cowCopies": 28,
+        "cowCopiedCells": 224000000
+      }
+    },
+    "range8": {
+      "args": [
+        "--runtime=/tmp/rank259-range-runtime/out/index.js",
+        "--Top=8"
+      ],
+      "ms": 3258.074708,
+      "answer": "782204419",
+      "rssMiB": 690.53125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 36,
+        "numberLoops": 36,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 590,
+        "numberTensors": 1,
+        "numericUniqueSorts": 36,
+        "maskMaterializations": 672,
+        "maskMaterializedCells": 3667694,
+        "bulkArrayWriteCells": 557774,
+        "cowCopies": 0,
+        "cowCopiedCells": 0
+      }
+    },
+    "eager8": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-eager.ra",
+        "--Top=8"
+      ],
+      "ms": 3318.967292,
+      "answer": "782204419",
+      "rssMiB": 1176.890625,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 36,
+        "numberLoops": 36,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 506,
+        "numberTensors": 1,
+        "numericUniqueSorts": 36,
+        "maskMaterializations": 672,
+        "maskMaterializedCells": 3667694,
+        "bulkArrayWriteCells": 557774,
+        "cowCopies": 28,
+        "cowCopiedCells": 224000000
+      }
+    },
+    "ref8": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--Top=8",
+        "--reference"
+      ],
+      "ms": 7906.19075,
+      "answer": "782204419",
+      "rssMiB": 1398.984375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "numericUniqueSorts": 36,
+        "maskMaterializations": 672,
+        "maskMaterializedCells": 3667694,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 28,
+        "cowCopiedCells": 224000000
+      }
+    },
+    "final-integers-full": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra"
+      ],
+      "ms": 9167.047292,
+      "answer": "20101196798",
+      "rssMiB": 1479.46875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 33,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 1410570,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "final-integers-full2": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra"
+      ],
+      "ms": 8940.231666,
+      "answer": "20101196798",
+      "rssMiB": 1355.234375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 33,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 1410570,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "final-integers-ref": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra",
+        "--reference"
+      ],
+      "ms": 19773.878208,
+      "answer": "20101196798",
+      "rssMiB": 1412.171875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 0,
+        "numberLoops": 0,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 0,
+        "numberTensors": 0,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 0,
+        "cowCopies": 36,
+        "cowCopiedCells": 288000000
+      }
+    },
+    "small3": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra",
+        "--Top=3",
+        "--expect=255"
+      ],
+      "ms": 556.186292,
+      "answer": "255",
+      "rssMiB": 530.84375,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 6,
+        "numberLoops": 6,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 30,
+        "numberTensors": 9,
+        "numericUniqueSorts": 6,
+        "maskMaterializations": 32,
+        "maskMaterializedCells": 96,
+        "bulkArrayWriteCells": 31,
+        "cowCopies": 3,
+        "cowCopiedCells": 24000000
+      }
+    },
+    "small4": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra",
+        "--Top=4",
+        "--expect=4179"
+      ],
+      "ms": 578.820375,
+      "answer": "4179",
+      "rssMiB": 643.828125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 10,
+        "numberLoops": 10,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 72,
+        "numberTensors": 13,
+        "numericUniqueSorts": 10,
+        "maskMaterializations": 80,
+        "maskMaterializedCells": 848,
+        "bulkArrayWriteCells": 148,
+        "cowCopies": 6,
+        "cowCopiedCells": 48000000
+      }
+    },
+    "small5": {
+      "args": [
+        "--runtime=/tmp/rank257-current-validation/packages/interpreter/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra",
+        "--Top=5",
+        "--expect=74689"
+      ],
+      "ms": 636.737209,
+      "answer": "74689",
+      "rssMiB": 769.875,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 15,
+        "numberLoops": 15,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 142,
+        "numberTensors": 17,
+        "numericUniqueSorts": 15,
+        "maskMaterializations": 160,
+        "maskMaterializedCells": 6974,
+        "bulkArrayWriteCells": 784,
+        "cowCopies": 10,
+        "cowCopiedCells": 80000000
+      }
+    },
+    "combined": {
+      "args": [
+        "--runtime=/tmp/rank259-range-runtime/out/index.js",
+        "--source=/tmp/rank259-final-integers.ra"
+      ],
+      "ms": 8322.571541000001,
+      "answer": "20101196798",
+      "rssMiB": 856.28125,
+      "tests": [],
+      "diagnostics": {
+        "compiledLoops": 45,
+        "numberLoops": 45,
+        "numberLoopOverflows": 0,
+        "compiledTensors": 842,
+        "numberTensors": 33,
+        "numericUniqueSorts": 45,
+        "maskMaterializations": 960,
+        "maskMaterializedCells": 30848856,
+        "bulkArrayWriteCells": 1410570,
+        "cowCopies": 0,
+        "cowCopiedCells": 0
+      }
+    }
+  },
+  "diagnosticFields": [
+    "compiledLoops",
+    "numberLoops",
+    "numberLoopOverflows",
+    "compiledTensors",
+    "numberTensors",
+    "numericUniqueSorts",
+    "maskMaterializations",
+    "maskMaterializedCells",
+    "bulkArrayWriteCells",
+    "cowCopies",
+    "cowCopiedCells"
+  ]
+}
