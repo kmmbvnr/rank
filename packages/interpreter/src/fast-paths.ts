@@ -381,7 +381,13 @@ export class FastPaths {
     application(
         form: ApplicationForm, parts: readonly Expression[], reference: ApplicationReference,
     ): (() => Evaluation<RankValue>) | undefined {
+        let scope: (<T>(run: () => T) => T) | undefined;
         const arithmetic = {
+            tensorBinary: (operator: string, a: RankValue, b: RankValue) => {
+                scope ??= this.tensorPlanScope(form.kind === 'reduce' ? form.source : parts[0]);
+                return scope(() => this.context.operators.evaluateBinary(operator, a, b));
+            },
+            compilation: () => this.context.options().tensorFusion !== false,
             prepareLeaf: (source: Expression) => this.context.compileDirect(source),
             binary: (operator: string, a: RankValue, b: RankValue) => this.context.operators.evaluateBinary(operator, a, b),
         };
@@ -399,7 +405,7 @@ export class FastPaths {
                 if (!operation || !isNameExpression(operation)) return undefined;
                 const identity = this.context.operationOf(operation.name);
                 if (!identity || identity.module !== 'core' || identity.name !== 'sum') return undefined;
-                return compileFusedSum(parts[0], arithmetic, (value, sum) => {
+                const fused = compileFusedSum(parts[0], arithmetic, (value, sum) => {
                     // A host can still bind the name to something else between runs.
                     const fn = this.context.resolve(operation.name);
                     if (isNativeFunction(fn) && hasNativeImplementation(fn) && this.context.builtins.is('core', 'sum', fn)) {
@@ -407,6 +413,7 @@ export class FastPaths {
                     }
                     return reference.apply([value, fn]);
                 });
+                return fused;
             }
             default: return undefined;
         }

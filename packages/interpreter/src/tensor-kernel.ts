@@ -1,3 +1,6 @@
+import { tensorReductionStep } from './tensor-reduction-codegen.js';
+import { tensorBufferedNodes, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
+export type { TensorNode } from './tensor-ir.js';
 import { RankError } from './errors.js';
 import { prepareBoundedTensor } from './tensor-bounds.js';
 import { BooleanCells } from './boolean-cells.js';
@@ -15,7 +18,7 @@ import {
     isApplicationExpression, isAssignmentStatement, isReturnStatement, isBinaryExpression,
     isNameExpression, isNumberLiteral, isFunctionOperator,
     isParenthesizedExpression, isUnaryExpression, isCountClauseExpression, isAllAxisExpression,
-    type Expression, type Statement, type ReturnStatement, type CompiledAtomType, type CompiledExpression,
+    type Expression, type Statement, type ReturnStatement, type CompiledAtomType,
 } from '@arrrank/language';
 import { type RankArray, type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
@@ -23,25 +26,12 @@ import { arraySliceLayout, reshapeDimensions, rankedBroadcastShapes } from './te
 import { arrayRevision, ownedArray, ownedScalarArray, typedArray, IntegerCells, isSharedArray, hasPendingSelections } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 
-type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
+type Terminal = 'reduce+' | 'reduce-' | 'reduce*' | 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
 export type TensorReduction = Exclude<Terminal, 'copy'>;
 const bitwiseTokens = { bxor: '^', band: '&', bor: '|' } as const;
 type Bitwise = keyof typeof bitwiseTokens;
 const bitwise = (name: string): name is Bitwise => Object.prototype.hasOwnProperty.call(bitwiseTokens, name);
 const terminals = new Set(['copy', 'sum', 'mean', 'any', 'all', 'count', 'min', 'max']);
-export type TensorNode =
-    | { kind: 'input'; name?: string; value?: RankValue }
-    | { kind: 'check'; source: TensorNode; validate(cell: RankValue, index: number): RankValue; uniform?: boolean }
-    | { kind: 'call'; source: TensorNode; validate(cell: RankValue, index: number): RankValue }
-    | { kind: 'shift'; source: TensorNode; fill: TensorNode; amount: number; axis: number }
-    | { kind: 'view'; source: TensorNode; shape: readonly number[]; offset(index: number): number }
-    | { kind: 'binary'; op: string; native?: Bitwise | 'min' | 'max'; ranks?: readonly [number, number]; left: TensorNode; right: TensorNode }
-    | { kind: 'outer'; op: string; left: TensorNode; right: TensorNode }
-    | { kind: 'reshape'; source: TensorNode; dimensions: (TensorNode | undefined)[] }
-    | { kind: 'unary'; op: string; operand: TensorNode }
-    | { kind: 'concat'; sources: TensorNode[]; axis?: number }
-    | { kind: 'slice'; source: TensorNode; count: TensorNode; drop: boolean }
-    | { kind: 'select'; source: TensorNode; selector: TensorNode };
 export interface TensorKernelHost {
     readonly textDigits?: boolean;
     lookup(name: string): RankValue | undefined;
@@ -60,7 +50,7 @@ export type TensorCodeCache = Map<string, KernelRun>;
  * Checks belong to this demand; the optional cache retains executable code only. */
 export function compileNativeTensorReduction(root: TensorNode, operation: TensorReduction,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, host: TensorKernelHost, code: TensorCodeCache) {
-    return build(root, operation, host, domains, false, code, true);
+    return build(root, operation, host, domains, operation.startsWith('reduce'), code, true);
 }
 /** One source graph serves every cell of an axis fold. The frame index is a
  * runtime argument; source-axis traversal remains in natural row-major order. */
@@ -154,24 +144,16 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         if (result.failure) return reject(result.failure.source, result.failure.detail);
         return lower(result.expression);
     }
-    function lower(node: CompiledExpression<Domain, TensorNode>): TensorNode | undefined {
-        if (node.kind === 'extreme') return undefined; // Scalar extrema are not tensor capabilities.
-        if (node.kind === 'group') return lower(node.operand);
-        if (node.kind === 'input') return node.input;
-        if (node.kind === 'literal') return typed({ kind: 'input', value: node.value }, node.type);
-        if (node.kind === 'call') {
-            if (!bitwise(node.operation.name)) return undefined;
-            const left = lower(node.arguments[0]), right = lower(node.arguments[1]);
-            return left && right ? typed({ kind: 'binary', op: node.operation.name,
-                native: node.operation.name, left, right }, node.type) : undefined;
-        }
-        if (node.kind === 'unary') {
-            const operand = lower(node.operand);
-            return operand ? typed({ kind: 'unary', op: node.operation.name, operand }, node.type) : undefined;
-        }
-        const left = lower(node.left), right = lower(node.right);
-        return left && right ? typed({ kind: 'binary', op: node.operation.name, left, right }, node.type) : undefined;
-    }
+    const lower = tensorExpressionLowerer<Domain, TensorNode>({
+        typed: (node, expression) => typed(node, expression.type),
+        input: (expression): TensorNode | undefined => {
+            if (expression.kind === 'input') return expression.input;
+            if (expression.kind !== 'call' || !bitwise(expression.operation.name)) return undefined;
+            const left = lower(expression.arguments[0]), right = lower(expression.arguments[1]);
+            return left && right ? typed({ kind: 'binary', op: expression.operation.name,
+                native: expression.operation.name, left, right }, expression.type) : undefined;
+        },
+    });
     function parseInput(e: Expression): TensorNode | undefined {
         if (isCountClauseExpression(e)) {
             const source = parse(e.source), count = parse(e.count);
@@ -473,6 +455,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     function invoke(run: KernelRun, ...args: Parameters<KernelRun>): KernelResult {
         try { return run(...args); }
         catch (error) {
+            // Contract checks can observe cancellation between cell checkpoints.
+            if (error instanceof InterruptedError && error.message === 'Interrupted') throw new InterruptedError('computing tensor');
             if (hasCalls && error instanceof RankError && !(error instanceof InterruptedError)) return recordFallback('tensor:scalar-domain');
             throw error;
         }
@@ -519,7 +503,15 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         // Native boolean recipes have word kernels. A scalar emitter would
         // unpack their advantage into one load/operation/store per bit.
+        const booleanInputs = new Map<TensorNode, boolean>();
         const booleanInput = (node: TensorNode): boolean => {
+            const known = booleanInputs.get(node);
+            if (known !== undefined) return known;
+            const result = proveBooleanInput(node);
+            booleanInputs.set(node, result);
+            return result;
+        };
+        const proveBooleanInput = (node: TensorNode): boolean => {
             if (node.kind === 'input') {
                 const value = node.name === undefined ? node.value : host.lookup(node.name);
                 return typeof value === 'boolean' || value !== undefined && isRankArray(value) && ownedStorage.get(value)?.stable === true
@@ -716,6 +708,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                         result = { shape: [a.scalar.length], boolean: false, digits: true, slot: scalars.push(a.scalar) - 1 };
                     }
                 } else if (a) result = { shape: a.shape, boolean: domains.get(node)!.every(type => type === 'boolean') };
+            } else if (node.kind === 'reduction') {
+                const source = bind(node.source);
+                if (!source?.shape || source.shape.length !== (node.rows ? 2 : 1)) return undefined;
+                result = { shape: node.rows ? source.shape.slice(0, -1) : [], boolean: false };
             } else {
                 const a = bind(node.source), b = bind(node.selector);
                 if (!a || !b || a.progression || !a.shape || a.shape.length === 0) return undefined;
@@ -767,7 +763,15 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         // Source structural expressions may complete arguments before a filter.
         // Only total integer expressions can move behind it. A native outer
         // producer already has lazy scalar addressing and completes neither side.
+        const totalIntegers = new Map<TensorNode, boolean>();
         function totalInteger(node: TensorNode): boolean {
+            const known = totalIntegers.get(node);
+            if (known !== undefined) return known;
+            const result = proveTotalInteger(node);
+            totalIntegers.set(node, result);
+            return result;
+        }
+        function proveTotalInteger(node: TensorNode): boolean {
             const info = bound.get(node);
             if (!info) return false;
             if (node.kind === 'input') return typeof info.scalar === 'bigint' || info.view?.kind === 'integer'
@@ -826,7 +830,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             let value = bound.get(node)?.filter ?? false;
             if (node.kind === 'unary') value ||= domain(node.operand);
             if (node.kind === 'check' || node.kind === 'call' || node.kind === 'view') value ||= domain(node.source);
-            if (node.kind === 'reshape') {
+            if (node.kind === 'reshape' || node.kind === 'reduction') {
                 if (domain(node.source)) throw false;
             }
             if (node.kind === 'outer') {
@@ -873,7 +877,11 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         const variant = variants.get(key);
         if (variant) { execute = variant.run; generated = variant.source; cachedKey = key; cachedRun = execute; }
         if (cachedKey !== key) {
-            const lines: string[] = [];
+            let lines: string[] = [];
+            const buffered = tensorBufferedNodes(root);
+            const readers = new Map<TensorNode, string>();
+            const firstIndices = new Map<TensorNode, string>();
+            const preparations: string[] = [];
             let emitted = new Map<TensorNode, Map<string, string>>();
             let serial = 0;
             // Physical input types are part of the variant key and rechecked by
@@ -928,11 +936,32 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                 const read = `data[${slot}][offsets[${slot}] + (${index})]`;
                 return data[slot!] instanceof Int32Array ? `BigInt(${read})` : read;
             };
-            function emit(node: TensorNode, index = 'i', frame = output!.shape!): string {
+            function emit(node: TensorNode, index = 'i', frame = output!.shape!, buffer = true): string {
                 const info = bound.get(node)!;
                 const at = info.shape ? address(info.shape, frame, index) : '0';
                 const existing = emitted.get(node)?.get(at);
                 if (existing) return existing;
+                const firstIndex = firstIndices.get(node);
+                firstIndices.set(node, firstIndex ?? at);
+                if (buffer && (buffered.has(node) || readers.has(node) || firstIndex !== undefined && firstIndex !== at) && node.kind !== 'input' && !domain(node) && info.shape) {
+                    let reader = readers.get(node);
+                    if (!reader) {
+                        reader = `read${serial++}`;
+                        readers.set(node, reader);
+                        const cache = `cache${serial++}`, position = `index${serial++}`;
+                        const savedLines = lines, savedEmitted = emitted;
+                        lines = []; emitted = new Map();
+                        const value = emit(node, position, info.shape, false);
+                        preparations.push(`const ${cache} = []; const ${reader} = (${position}) => { if (${position} in ${cache}) return ${cache}[${position}]; ${lines.join('\n')} return ${cache}[${position}] = ${value}; };`);
+                        lines = savedLines; emitted = savedEmitted;
+                    }
+                    const name = `v${serial++}`;
+                    let entries = emitted.get(node);
+                    if (!entries) emitted.set(node, entries = new Map());
+                    entries.set(at, name);
+                    lines.push(`const ${name} = ${reader}(${at}); if (${name} === undefined) return undefined;`);
+                    return name;
+                }
                 const name = `v${serial++}`;
                 let entries = emitted.get(node);
                 if (!entries) emitted.set(node, entries = new Map());
@@ -1023,6 +1052,21 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     const source = emit(node.source, at, bound.get(node.source)!.shape!);
                     lines.push(`const ${name} = ${source};`);
                 }
+                else if (node.kind === 'reduction') {
+                    const shape = bound.get(node.source)!.shape!;
+                    const size = shape.at(-1)!;
+                    const position = `r${serial++}`;
+                    lines.push(`let ${name} = 0n;`);
+                    if (node.operation === 'min' || node.operation === 'max') lines.push(`if (${size} === 0) return decline('tensor:empty-reduction');`);
+                    lines.push(`for (let ${position} = 0; ${position} < ${size}; ${position}++) {`);
+                    if (interruptible) lines.push("checkpoint('reducing tensor');");
+                    const saved = emitted;
+                    emitted = new Map();
+                    const cell = emit(node.source, node.rows ? `((${at}) * ${size} + ${position})` : position, shape);
+                    emitted = saved;
+                    lines.push(`if (${node.operation === 'count' ? `typeof ${cell} !== 'boolean'` : `!${num(cell)}`}) return decline('tensor:reduction-type');`);
+                    lines.push(tensorReductionStep(node.operation, name, cell, position), '}');
+                }
                 else if (node.kind === 'binary' || node.kind === 'outer') {
                     const rankedChild = (operand: TensorNode, shape: readonly number[]) => emit(operand,
                         address(shape, info.shape ?? [], at), bound.get(operand)!.shape ?? []);
@@ -1105,16 +1149,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             else if (visit) lines.push(`visit(${value}, i);`);
             else if (terminal === 'copy') lines.push(outputKind === 'boolean' ? `answer.write(i, ${value});` : outputKind === 'integer' ? `answer.set(i, ${value});`
                 : compact ? `answer.push(${value});` : `answer[i] = ${value};`);
-            if (terminal === 'sum') lines.push(`answer = typeof answer === 'bigint' && typeof ${value} === 'bigint' ? answer + ${value} : Number(answer) + Number(${value});`);
-            if (terminal === 'mean') lines.push(`answer += Number(${value});`);
-            if (terminal === 'count') lines.push(`if (${value}) answer += 1n;`);
-            if (terminal === 'any' || terminal === 'all') lines.push(nativeGraph
-                ? `if (${terminal === 'any' ? value : `!${value}`}) return ${terminal === 'any'};`
-                : `answer = answer ${terminal === 'any' ? '||' : '&&'} ${value};`);
-            if (terminal === 'min' || terminal === 'max') lines.push(`if (length === 0 || ${value} ${terminal === 'min' ? '<' : '>'} answer) answer = ${value};`);
+            lines.push(tensorReductionStep(terminal, 'answer', value, 'length', false, nativeGraph));
             lines.push('length++;');
             const initial = visit ? 'true' : scanning ? `new IntegerCells(size + ${seeded ? 1 : 0})`
-                : terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
+                : terminal === 'copy' ? outputKind === 'boolean' ? 'new BooleanCells(size)' : outputKind === 'integer' ? 'new IntegerCells(size)' : outputKind === 'real' ? 'new Float64Array(size)' : compact ? '[]' : 'new Array(size)' : terminal === 'reduce*' ? '1n' : terminal === 'mean' ? '0' : terminal === 'all' ? 'true' : terminal === 'any' ? 'false' : '0n';
             // Distinct functions keep each input load on one physical backing type,
             // including callers that share the source-text code cache.
             const prefix = scanning ? `let accumulated = ${seeded ? `${scan}n` : '0n'}; ${seeded ? 'answer.set(0, accumulated);' : ''}` : '';
@@ -1141,7 +1179,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     for (let cell = 0; cell < ${count}; cell++) {
                         const i = base + ${offset('cell', reduced)};`;
             }
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : ${initial}, length = 0; ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : ${initial}, length = 0; ${preparations.join('\n')} ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max', 'reduce-'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {

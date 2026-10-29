@@ -273,7 +273,7 @@ S print`);
     it('falls back when browser policy prohibits generated functions', () => {
         const source = 'use numbers\nA = array 1 2 3\nS = (A * A) sum\nS';
         const reference = run(source, false);
-        const blocked = vi.spyOn(globalThis, 'Function').mockImplementationOnce(() => {
+        const blocked = vi.spyOn(globalThis, 'Function').mockImplementation(() => {
             throw new EvalError('blocked by CSP');
         });
         try {

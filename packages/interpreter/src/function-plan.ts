@@ -1,3 +1,6 @@
+import { tensorReductionStep } from './tensor-reduction-codegen.js';
+import { tensorBufferedNodes, tensorChildren, tensorExpressionLowerer, type TensorNode } from './tensor-ir.js';
+import { inlineTensorEmitter, type PreparedTensor } from './tensor-inline.js';
 import {
     inferCompiledExpression, flattenApplication, isNameExpression, isNumberLiteral, isBinaryExpression, isUnaryExpression, isArrayExpression, isLabelLiteral, findCompiledOperator, applicationForm, findOperation,
     matchCompiledOperatorSignature,
@@ -23,21 +26,6 @@ interface PlanInput {
 export type FunctionPlan = CompiledExpression<FunctionPlanDomain, PlanInput>;
 export type FunctionPlanTerminal = 'copy' | 'sum';
 export interface FunctionPlanConsumer { readonly stage: FunctionPlan; readonly terminal: FunctionPlanTerminal }
-const expansionSizes = new WeakMap<FunctionPlan, number>();
-const expansionBudget = 512;
-
-function expansionSize(plan: FunctionPlan): number {
-    const known = expansionSizes.get(plan);
-    if (known !== undefined) return known;
-    const children = plan.kind === 'input' ? [plan.input.stage, plan.input.operand, ...plan.input.power ?? [], ...plan.input.vector ?? [], plan.input.map?.operand,
-        plan.input.outer?.left, plan.input.outer?.right, plan.input.reduction?.operand, plan.input.native?.operand, plan.input.length].filter((node): node is FunctionPlan => !!node)
-        : plan.kind === 'group' || plan.kind === 'unary' ? [plan.operand]
-            : plan.kind === 'binary' ? [plan.left, plan.right] : [];
-    const size = Math.min(expansionBudget + 1, 1 + children.reduce((size, node) => size + expansionSize(node), 0));
-    expansionSizes.set(plan, size);
-    return size;
-}
-
 /** A consumed helper has returned before its plan can fail. Its generated
  * consumer must not add that discarded helper frame to the demand error. */
 export class FunctionPlanDemandError {
@@ -199,10 +187,7 @@ export function proveFunctionPlan(expression: Expression, host: {
         });
         return result.expression;
     };
-    const result = parse(expression);
-    // Shared stages form a DAG, but naive emission expands each reference.
-    // Bound the expanded tree before handing it to code generation.
-    return result && expansionSize(result) <= expansionBudget ? result : undefined;
+    return parse(expression);
 }
 
 interface PlanEmitter {
@@ -213,7 +198,6 @@ interface PlanEmitter {
     callback(key: number, value: string, lines: string[]): string;
     binary(operation: CompiledOperator, left: string, right: string, lines: string[], type: CompiledScalarType, inputs?: readonly CompiledScalarType[]): string;
 }
-interface PreparedPlan { readonly value?: string; readonly shape?: string; readonly rows?: string; readonly columns?: string; readonly size?: string; read(index: string, lines: string[]): string }
 
 /** Emit a consumer directly in the scalar function. Preparation evaluates scalar
  * operands at demand; vector cells stream through the consumer in source order. */
@@ -221,15 +205,53 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
     for (const key of functionPlanCallbacks(consumer.stage)) host.capture(key, lines);
     const demandLocation = host.variable();
     lines.push(`const ${demandLocation} = location;`);
-    function prepare(node: FunctionPlan): PreparedPlan {
-        if (node.kind === 'group') return prepare(node.operand);
+    const origins = new Map<TensorNode, FunctionPlan>();
+    const typed = (node: TensorNode, origin: FunctionPlan): TensorNode => {
+        origins.set(node, origin);
+        return node;
+    };
+    const lower = tensorExpressionLowerer<FunctionPlanDomain, PlanInput>({
+        typed,
+        input: (node): TensorNode | undefined => {
+            if (node.kind !== 'input') return undefined;
+            if (node.input.stage) return lower(node.input.stage);
+            if (node.input.outer) {
+                const outer = node.input.outer;
+                return typed({ kind: 'outer', op: outer.operation.name, left: lower(outer.left)!, right: lower(outer.right)! }, node);
+            }
+            if (node.input.reduction) {
+                const reduction = node.input.reduction;
+                return typed({ kind: 'reduction', operation: reduction.name, source: lower(reduction.operand)!, rows: reduction.rows }, node);
+            }
+            return typed({ kind: 'input' }, node);
+        },
+    });
+    const root = lower(consumer.stage)!;
+    const buffered = tensorBufferedNodes(root, node => {
+        if (node.kind !== 'input') return tensorChildren(node);
+        const origin = origins.get(node)!;
+        if (origin.kind !== 'input') return [];
+        const input = origin.input;
+        return [input.operand, ...input.power ?? [], ...input.vector ?? [], input.map?.operand,
+            input.native?.operand, input.length].filter((n): n is FunctionPlan => !!n).map(n => lower(n)!);
+    });
+    const emit = inlineTensorEmitter(lines, {
+        buffered,
+        variable: () => host.variable(),
+        input: node => prepareInput(origins.get(node)!),
+        element: node => origins.get(node)!.type.element,
+        locate: (node, body) => host.locate(origins.get(node)!.source, body, demandLocation),
+        demandLocation,
+        binary: (...args) => host.binary(...args),
+    });
+    const prepare = (node: FunctionPlan): PreparedTensor => emit(lower(node)!);
+    function prepareInput(node: FunctionPlan): PreparedTensor {
         if (node.kind === 'literal') {
             const code = typeof node.value === 'bigint' ? `${node.value}n`
                 : typeof node.value === 'number' && Object.is(node.value, -0) ? '-0' : JSON.stringify(node.value);
             return { read: () => code };
         }
         if (node.kind === 'input') {
-            if (node.input.stage) return prepare(node.input.stage);
             if (node.input.vector) {
                 const values = node.input.vector.map(prepare).map(item => item.read('0', lines));
                 const array = host.variable();
@@ -243,35 +265,6 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
                     host.locate(node.source, body, demandLocation);
                     return host.callback(map.key, value, body);
                 } };
-            }
-            if (node.input.outer) {
-                const { operation, left: a, right: b } = node.input.outer;
-                const left = prepare(a), right = prepare(b);
-                return { size: `(${left.size} * ${right.size})`, shape: `[${left.size}, ${right.size}]`, rows: left.size, columns: right.size,
-                    read: (index, body) => {
-                        const x = left.read(`Math.floor((${index}) / ${right.size})`, body), y = right.read(`((${index}) % ${right.size})`, body);
-                        host.locate(node.source, body, demandLocation);
-                        return host.binary(operation, x, y, body, node.type.element, [a.type.element, b.type.element]);
-                    } };
-            }
-            if (node.input.reduction) {
-                const { name, operand, rows } = node.input.reduction, input = prepare(operand);
-                const read = (row: string, body: string[]) => {
-                    const result = host.variable(), index = host.variable();
-                    body.push(`let ${result} = 0n;`);
-                    const size = rows ? input.columns! : input.size!;
-                    host.locate(node.source, body, demandLocation);
-                    if (name === 'min' || name === 'max') body.push(`location = ${demandLocation}; if (${size} === 0) throw new RankError('${name} requires at least one value', 'EmptyReduction');`);
-                    const loop: string[] = [];
-                    const value = input.read(rows ? `((${row}) * ${size} + ${index})` : index, loop);
-                    loop.push(name === 'count' ? `if (${value}) ${result}++;` : name === 'sum' ? `${result} += ${value};`
-                        : `if (${index} === 0 || ${value} ${name === 'min' ? '<' : '>'} ${result}) ${result} = ${value};`);
-                    body.push(`for (let ${index} = 0; ${index} < ${size}; ${index}++) { checkpoint('reducing function plan'); ${loop.join('\n')} }`);
-                    return result;
-                };
-                if (rows) return { size: input.rows, read };
-                const result = read('0', lines);
-                return { read: () => result };
             }
             if (node.input.native) {
                 const { name, operand, descending } = node.input.native;
@@ -327,37 +320,9 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
                 return result;
             } };
         }
-        if (node.kind === 'unary') {
-            const operand = prepare(node.operand);
-            const read = (index: string, body: string[]) => {
-                const value = operand.read(index, body), result = host.variable();
-                host.locate(node.source, body, demandLocation);
-                body.push(`const ${result} = ${node.operation.unary}(${value});`);
-                return result;
-            };
-            if (operand.size) return { size: operand.size, read };
-            const value = read('0', lines);
-            return { read: () => value };
-        }
-        if (node.kind !== 'binary') throw Error('unproved function plan');
-        const left = prepare(node.left), right = prepare(node.right);
-        let size = left.size ?? right.size;
-        if (left.size && right.size) {
-            size = host.variable();
-            host.locate(node.source, lines, demandLocation);
-            lines.push(`const ${size} = broadcastShape([${left.size}], [${right.size}])[0];`);
-        }
-        const read = (index: string, body: string[]) => {
-            const a = left.read(left.size && right.size ? `(${left.size} === 1 ? 0 : ${index})` : index, body);
-            const b = right.read(left.size && right.size ? `(${right.size} === 1 ? 0 : ${index})` : index, body);
-            host.locate(node.source, body, demandLocation);
-            return host.binary(node.operation, a, b, body, node.type.element, [node.left.type.element, node.right.type.element]);
-        };
-        if (size) return { size, read };
-        const scalar = read('0', lines);
-        return { read: () => scalar };
+        throw Error('unproved function plan input');
     }
-    function complete(source: PreparedPlan): string {
+    function complete(source: PreparedTensor): string {
         if (source.value) return source.value;
         if (!source.size) return source.read('0', lines);
         const result = host.variable(), index = host.variable(), body: string[] = [];
@@ -374,7 +339,7 @@ export function emitFunctionPlan(consumer: FunctionPlanConsumer, lines: string[]
     const body: string[] = [];
     const value = source.read(index, body);
     body.push(consumer.terminal === 'copy' ? `${result}.push(${value});`
-        : `${result} = typeof ${result} === 'bigint' && typeof ${value} === 'bigint' ? ${result} + ${value} : Number(${result}) + Number(${value});`);
+        : tensorReductionStep('sum', result, value, index));
     lines.push(`for (let ${index} = 0; ${index} < ${source.size}; ${index}++) { checkpoint('consuming function plan'); ${body.join('\n')} }`);
     lines.push('planConsumed?.();');
     return consumer.terminal === 'copy' ? `ownedArray(${result}, ${source.shape ?? `[${source.size}]`}, true)` : result;

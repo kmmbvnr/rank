@@ -39,7 +39,7 @@ const shifts = new WeakMap<RankArray, { reader: RankArray['itemAt']; shape: read
 const owners = new WeakMap<RankArray, PlanScope>();
 const mapOperators = new Set(['+', '-', '*', '/', '//', 'mod', '**',
     'less', 'greater', 'atmost', 'atleast', 'equal', 'notequal', 'and', 'or', 'xor', 'not', 'integer0', 'min', 'max']);
-const reductions: ReadonlySet<string> = new Set<TensorReduction>(['sum', 'mean', 'min', 'max', 'count', 'any', 'all']);
+const reductions: ReadonlySet<string> = new Set<TensorReduction>(['reduce+', 'reduce-', 'reduce*', 'sum', 'mean', 'min', 'max', 'count', 'any', 'all']);
 interface PlanScope {
     readonly host: TensorKernelHost;
     readonly code: TensorCodeCache;
@@ -224,7 +224,15 @@ function prepareTensorGraph(value: RankArray) {
         guards.push(() => value.itemAt === reader && value.shape.length === shape.length
             && value.shape.every((n, axis) => n === shape[axis]) && arrayRevision(value) === revision);
     }
+    const lowered = new Map<RankArray, TensorNode>();
     function lower(value: RankValue): TensorNode | undefined {
+        const known = isRankArray(value) ? lowered.get(value) : undefined;
+        if (known) return known;
+        const node = lowerValue(value);
+        if (node && isRankArray(value)) lowered.set(value, node);
+        return node;
+    }
+    function lowerValue(value: RankValue): TensorNode | undefined {
         if (--remaining < 0) return undefined;
         checkpoint('preparing tensor map');
         if (typeof value === 'bigint') return typed({ kind: 'input', value }, ['integer']);

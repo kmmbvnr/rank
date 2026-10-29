@@ -1,0 +1,963 @@
+{
+  "date": "2026-10-29",
+  "baselineCommit": "6b7bb3ad",
+  "cpu": "Apple M5",
+  "node": "v24.15.0",
+  "method": "Three fresh processes per revision, alternating revision order; median of five warm samples after two warmups. Parsing, loading and array construction excluded. Exact result checked on every call. Timings include call/result-demand/assertion overhead. No concurrent test workloads.",
+  "samples": {
+    "before": [
+      {
+        "node": "v24.15.0",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-470-baseline",
+        "results": [
+          {
+            "name": "dag-0",
+            "ms": 0.23362500000001774,
+            "expected": "20000"
+          },
+          {
+            "name": "dag-4",
+            "ms": 2.4726249999999936,
+            "expected": "320000"
+          },
+          {
+            "name": "dag-6",
+            "ms": 10.223833000000013,
+            "expected": "1280000"
+          },
+          {
+            "name": "dag-7",
+            "ms": 78.91387499999996,
+            "expected": "2560000"
+          },
+          {
+            "name": "dag-8",
+            "ms": 588.5825840000007,
+            "expected": "5120000"
+          },
+          {
+            "name": "sum-integer-16",
+            "ms": 0.0035750000000007278,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-integer-16",
+            "ms": 0.019514160000017,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --integer-16",
+            "ms": 0.016946680000000925,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-integer-16",
+            "ms": 0.015930000000007567,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-16",
+            "ms": 0.009540820000001986,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-real-16",
+            "ms": 0.01748332000001028,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --real-16",
+            "ms": 0.01716582000000926,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-real-16",
+            "ms": 0.015845840000001773,
+            "expected": "1"
+          },
+          {
+            "name": "sum-integer-10000",
+            "ms": 0.35327766666675114,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-integer-10000",
+            "ms": 1.112694333333214,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --integer-10000",
+            "ms": 1.0800973333334696,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-integer-10000",
+            "ms": 1.083736000000196,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-10000",
+            "ms": 0.13320833333333817,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-real-10000",
+            "ms": 0.28036100000008446,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --real-10000",
+            "ms": 0.27911100000013295,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-real-10000",
+            "ms": 0.27713866666666337,
+            "expected": "1"
+          },
+          {
+            "name": "outer-rows-4",
+            "ms": 0.004666666666707897,
+            "expected": "64"
+          },
+          {
+            "name": "outer-rows-64",
+            "ms": 0.25708333333326056,
+            "expected": "16384"
+          }
+        ]
+      },
+      {
+        "node": "v24.15.0",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-470-baseline",
+        "results": [
+          {
+            "name": "dag-0",
+            "ms": 0.23579199999997513,
+            "expected": "20000"
+          },
+          {
+            "name": "dag-4",
+            "ms": 2.42433299999999,
+            "expected": "320000"
+          },
+          {
+            "name": "dag-6",
+            "ms": 9.990207999999996,
+            "expected": "1280000"
+          },
+          {
+            "name": "dag-7",
+            "ms": 70.37729100000001,
+            "expected": "2560000"
+          },
+          {
+            "name": "dag-8",
+            "ms": 577.180292,
+            "expected": "5120000"
+          },
+          {
+            "name": "sum-integer-16",
+            "ms": 0.003606660000004922,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-integer-16",
+            "ms": 0.019500000000007275,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --integer-16",
+            "ms": 0.016199159999996483,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-integer-16",
+            "ms": 0.014758340000007593,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-16",
+            "ms": 0.009458340000001043,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-real-16",
+            "ms": 0.016711659999982656,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --real-16",
+            "ms": 0.016296659999989062,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-real-16",
+            "ms": 0.015132499999999709,
+            "expected": "1"
+          },
+          {
+            "name": "sum-integer-10000",
+            "ms": 0.3168750000001334,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-integer-10000",
+            "ms": 1.099347000000004,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --integer-10000",
+            "ms": 1.0679026666666687,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-integer-10000",
+            "ms": 1.0651806666664925,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-10000",
+            "ms": 0.13056966666681546,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-real-10000",
+            "ms": 0.2938333333331684,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --real-10000",
+            "ms": 0.29509733333331195,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-real-10000",
+            "ms": 0.27368033333308023,
+            "expected": "1"
+          },
+          {
+            "name": "outer-rows-4",
+            "ms": 0.004930666666647691,
+            "expected": "64"
+          },
+          {
+            "name": "outer-rows-64",
+            "ms": 0.2462916666666691,
+            "expected": "16384"
+          }
+        ]
+      },
+      {
+        "node": "v24.15.0",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-470-baseline",
+        "results": [
+          {
+            "name": "dag-0",
+            "ms": 0.2423339999999996,
+            "expected": "20000"
+          },
+          {
+            "name": "dag-4",
+            "ms": 2.3953750000000014,
+            "expected": "320000"
+          },
+          {
+            "name": "dag-6",
+            "ms": 9.957750000000033,
+            "expected": "1280000"
+          },
+          {
+            "name": "dag-7",
+            "ms": 73.33249999999998,
+            "expected": "2560000"
+          },
+          {
+            "name": "dag-8",
+            "ms": 597.0808749999997,
+            "expected": "5120000"
+          },
+          {
+            "name": "sum-integer-16",
+            "ms": 0.0037874999999985446,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-integer-16",
+            "ms": 0.02003334000000905,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --integer-16",
+            "ms": 0.016143319999991947,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-integer-16",
+            "ms": 0.014673339999990275,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-16",
+            "ms": 0.009457499999989523,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-real-16",
+            "ms": 0.016837500000001455,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --real-16",
+            "ms": 0.01647000000000844,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-real-16",
+            "ms": 0.015275000000001456,
+            "expected": "1"
+          },
+          {
+            "name": "sum-integer-10000",
+            "ms": 0.32112500000008976,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-integer-10000",
+            "ms": 1.099472333333324,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --integer-10000",
+            "ms": 1.07790300000003,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-integer-10000",
+            "ms": 1.085625000000012,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-10000",
+            "ms": 0.13301400000000285,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-real-10000",
+            "ms": 0.2901250000001407,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --real-10000",
+            "ms": 0.28723600000012084,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-real-10000",
+            "ms": 0.29304166666649206,
+            "expected": "1"
+          },
+          {
+            "name": "outer-rows-4",
+            "ms": 0.00479166666658178,
+            "expected": "64"
+          },
+          {
+            "name": "outer-rows-64",
+            "ms": 0.2527499999999539,
+            "expected": "16384"
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "node": "v24.15.0",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-470",
+        "results": [
+          {
+            "name": "dag-0",
+            "ms": 0.21529200000000515,
+            "expected": "20000"
+          },
+          {
+            "name": "dag-4",
+            "ms": 0.1767499999999984,
+            "expected": "320000"
+          },
+          {
+            "name": "dag-6",
+            "ms": 0.1547920000000147,
+            "expected": "1280000"
+          },
+          {
+            "name": "dag-7",
+            "ms": 0.17254199999999287,
+            "expected": "2560000"
+          },
+          {
+            "name": "dag-8",
+            "ms": 0.17770799999999554,
+            "expected": "5120000"
+          },
+          {
+            "name": "sum-integer-16",
+            "ms": 0.003917500000000018,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-integer-16",
+            "ms": 0.020236659999999348,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --integer-16",
+            "ms": 0.016200000000000044,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-integer-16",
+            "ms": 0.015656659999999645,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-16",
+            "ms": 0.009717499999999291,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-real-16",
+            "ms": 0.01891499999999951,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --real-16",
+            "ms": 0.01584918000000016,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-real-16",
+            "ms": 0.01472084000000109,
+            "expected": "1"
+          },
+          {
+            "name": "sum-integer-10000",
+            "ms": 0.30579166666666424,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-integer-10000",
+            "ms": 0.45138900000000604,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --integer-10000",
+            "ms": 0.474472333333343,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-integer-10000",
+            "ms": 0.4904026666666634,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-10000",
+            "ms": 0.13370833333332635,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-real-10000",
+            "ms": 0.30918066666667227,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --real-10000",
+            "ms": 0.2948473333333368,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-real-10000",
+            "ms": 0.28994466666667523,
+            "expected": "1"
+          },
+          {
+            "name": "outer-rows-4",
+            "ms": 0.0029723333333322444,
+            "expected": "64"
+          },
+          {
+            "name": "outer-rows-64",
+            "ms": 0.20950000000001032,
+            "expected": "16384"
+          }
+        ]
+      },
+      {
+        "node": "v24.15.0",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-470",
+        "results": [
+          {
+            "name": "dag-0",
+            "ms": 0.23187500000000227,
+            "expected": "20000"
+          },
+          {
+            "name": "dag-4",
+            "ms": 0.17287500000000477,
+            "expected": "320000"
+          },
+          {
+            "name": "dag-6",
+            "ms": 0.16745900000000802,
+            "expected": "1280000"
+          },
+          {
+            "name": "dag-7",
+            "ms": 0.15641600000000722,
+            "expected": "2560000"
+          },
+          {
+            "name": "dag-8",
+            "ms": 0.16912499999997976,
+            "expected": "5120000"
+          },
+          {
+            "name": "sum-integer-16",
+            "ms": 0.004175000000000182,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-integer-16",
+            "ms": 0.02097750000000019,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --integer-16",
+            "ms": 0.016566660000000864,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-integer-16",
+            "ms": 0.015497500000000173,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-16",
+            "ms": 0.009649160000000165,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-real-16",
+            "ms": 0.019660840000000235,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --real-16",
+            "ms": 0.015524179999999888,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-real-16",
+            "ms": 0.014803340000000845,
+            "expected": "1"
+          },
+          {
+            "name": "sum-integer-10000",
+            "ms": 0.3111946666666654,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-integer-10000",
+            "ms": 0.5114859999999908,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --integer-10000",
+            "ms": 0.4954306666666639,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-integer-10000",
+            "ms": 0.5012499999999894,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-10000",
+            "ms": 0.13034733333332346,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-real-10000",
+            "ms": 0.30187499999999545,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --real-10000",
+            "ms": 0.312152666666672,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-real-10000",
+            "ms": 0.2839999999999918,
+            "expected": "1"
+          },
+          {
+            "name": "outer-rows-4",
+            "ms": 0.003611333333329488,
+            "expected": "64"
+          },
+          {
+            "name": "outer-rows-64",
+            "ms": 0.2080693333333367,
+            "expected": "16384"
+          }
+        ]
+      },
+      {
+        "node": "v24.15.0",
+        "root": "/Users/kmmbvnr/Workspace/Playground/09-Rank/.worktrees/issue-470",
+        "results": [
+          {
+            "name": "dag-0",
+            "ms": 0.2237909999999772,
+            "expected": "20000"
+          },
+          {
+            "name": "dag-4",
+            "ms": 0.20487499999998704,
+            "expected": "320000"
+          },
+          {
+            "name": "dag-6",
+            "ms": 0.18449999999998568,
+            "expected": "1280000"
+          },
+          {
+            "name": "dag-7",
+            "ms": 0.16379100000000335,
+            "expected": "2560000"
+          },
+          {
+            "name": "dag-8",
+            "ms": 0.18429199999999923,
+            "expected": "5120000"
+          },
+          {
+            "name": "sum-integer-16",
+            "ms": 0.00414418000000012,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-integer-16",
+            "ms": 0.020609160000000203,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --integer-16",
+            "ms": 0.017312500000000456,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-integer-16",
+            "ms": 0.015108340000000452,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-16",
+            "ms": 0.0093425000000002,
+            "expected": "16"
+          },
+          {
+            "name": "reduce +-real-16",
+            "ms": 0.018791660000000546,
+            "expected": "16"
+          },
+          {
+            "name": "reduce --real-16",
+            "ms": 0.01619000000000028,
+            "expected": "-14"
+          },
+          {
+            "name": "reduce *-real-16",
+            "ms": 0.014612500000000637,
+            "expected": "1"
+          },
+          {
+            "name": "sum-integer-10000",
+            "ms": 0.3257500000000088,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-integer-10000",
+            "ms": 0.34641666666666043,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --integer-10000",
+            "ms": 0.5125696666666689,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-integer-10000",
+            "ms": 0.4982776666666761,
+            "expected": "1"
+          },
+          {
+            "name": "sum-real-10000",
+            "ms": 0.13087499999998423,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce +-real-10000",
+            "ms": 0.32501366666667764,
+            "expected": "10000"
+          },
+          {
+            "name": "reduce --real-10000",
+            "ms": 0.33173633333332947,
+            "expected": "-9998"
+          },
+          {
+            "name": "reduce *-real-10000",
+            "ms": 0.2985833333333214,
+            "expected": "1"
+          },
+          {
+            "name": "outer-rows-4",
+            "ms": 0.0037639999999896645,
+            "expected": "64"
+          },
+          {
+            "name": "outer-rows-64",
+            "ms": 0.2090276666666758,
+            "expected": "16384"
+          }
+        ]
+      }
+    ]
+  },
+  "medians": [
+    {
+      "name": "dag-0",
+      "beforeMs": 0.23579199999997513,
+      "afterMs": 0.2237909999999772,
+      "ratioAfterBefore": 0.9491034471059273
+    },
+    {
+      "name": "dag-4",
+      "beforeMs": 2.42433299999999,
+      "afterMs": 0.1767499999999984,
+      "ratioAfterBefore": 0.07290665102525071
+    },
+    {
+      "name": "dag-6",
+      "beforeMs": 9.990207999999996,
+      "afterMs": 0.16745900000000802,
+      "ratioAfterBefore": 0.016762313657534268
+    },
+    {
+      "name": "dag-7",
+      "beforeMs": 73.33249999999998,
+      "afterMs": 0.16379100000000335,
+      "ratioAfterBefore": 0.0022335390174888815
+    },
+    {
+      "name": "dag-8",
+      "beforeMs": 588.5825840000007,
+      "afterMs": 0.17770799999999554,
+      "ratioAfterBefore": 0.0003019253454499009
+    },
+    {
+      "name": "sum-integer-16",
+      "beforeMs": 0.003606660000004922,
+      "afterMs": 0.00414418000000012,
+      "ratioAfterBefore": 1.1490353956276622
+    },
+    {
+      "name": "reduce +-integer-16",
+      "beforeMs": 0.019514160000017,
+      "afterMs": 0.020609160000000203,
+      "ratioAfterBefore": 1.0561130994099797
+    },
+    {
+      "name": "reduce --integer-16",
+      "beforeMs": 0.016199159999996483,
+      "afterMs": 0.016566660000000864,
+      "ratioAfterBefore": 1.022686361515317
+    },
+    {
+      "name": "reduce *-integer-16",
+      "beforeMs": 0.014758340000007593,
+      "afterMs": 0.015497500000000173,
+      "ratioAfterBefore": 1.0500842235639103
+    },
+    {
+      "name": "sum-real-16",
+      "beforeMs": 0.009458340000001043,
+      "afterMs": 0.009649160000000165,
+      "ratioAfterBefore": 1.020174787541905
+    },
+    {
+      "name": "reduce +-real-16",
+      "beforeMs": 0.016837500000001455,
+      "afterMs": 0.01891499999999951,
+      "ratioAfterBefore": 1.1233853006680252
+    },
+    {
+      "name": "reduce --real-16",
+      "beforeMs": 0.01647000000000844,
+      "afterMs": 0.01584918000000016,
+      "ratioAfterBefore": 0.9623060109284783
+    },
+    {
+      "name": "reduce *-real-16",
+      "beforeMs": 0.015275000000001456,
+      "afterMs": 0.01472084000000109,
+      "ratioAfterBefore": 0.963721112929603
+    },
+    {
+      "name": "sum-integer-10000",
+      "beforeMs": 0.32112500000008976,
+      "afterMs": 0.3111946666666654,
+      "ratioAfterBefore": 0.9690764240298277
+    },
+    {
+      "name": "reduce +-integer-10000",
+      "beforeMs": 1.099472333333324,
+      "afterMs": 0.45138900000000604,
+      "ratioAfterBefore": 0.41055057623097063
+    },
+    {
+      "name": "reduce --integer-10000",
+      "beforeMs": 1.07790300000003,
+      "afterMs": 0.4954306666666639,
+      "ratioAfterBefore": 0.45962453640694023
+    },
+    {
+      "name": "reduce *-integer-10000",
+      "beforeMs": 1.083736000000196,
+      "afterMs": 0.4982776666666761,
+      "ratioAfterBefore": 0.45977771954293845
+    },
+    {
+      "name": "sum-real-10000",
+      "beforeMs": 0.13301400000000285,
+      "afterMs": 0.13087499999998423,
+      "ratioAfterBefore": 0.9839189859712618
+    },
+    {
+      "name": "reduce +-real-10000",
+      "beforeMs": 0.2901250000001407,
+      "afterMs": 0.30918066666667227,
+      "ratioAfterBefore": 1.0656808846756478
+    },
+    {
+      "name": "reduce --real-10000",
+      "beforeMs": 0.28723600000012084,
+      "afterMs": 0.312152666666672,
+      "ratioAfterBefore": 1.0867463224196852
+    },
+    {
+      "name": "reduce *-real-10000",
+      "beforeMs": 0.27713866666666337,
+      "afterMs": 0.28994466666667523,
+      "ratioAfterBefore": 1.0462079151712693
+    },
+    {
+      "name": "outer-rows-4",
+      "beforeMs": 0.00479166666658178,
+      "afterMs": 0.003611333333329488,
+      "ratioAfterBefore": 0.7536695652299404
+    },
+    {
+      "name": "outer-rows-64",
+      "beforeMs": 0.2527499999999539,
+      "afterMs": 0.2090276666666758,
+      "ratioAfterBefore": 0.8270135179691945
+    }
+  ],
+  "verification": {
+    "typescriptBuild": "passed",
+    "interpreter": {
+      "baselinePassed": 9288,
+      "changedPassed": 9302,
+      "failedBoth": 29,
+      "newFailures": 0,
+      "baselineFailures": [
+        "accumulating writes (compilation=false) weighted addition",
+        "accumulating writes (compilation=false) weighted subtraction",
+        "accumulating writes (compilation=false) weighted multiplication",
+        "accumulating writes (compilation=false) handles real reductions for +=",
+        "accumulating writes (compilation=false) handles real reductions for -=",
+        "accumulating writes (compilation=false) handles real reductions for *=",
+        "accumulating writes (compilation=false) leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+        "accumulating writes (compilation=false) leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+        "accumulating writes (compilation=true) weighted addition",
+        "accumulating writes (compilation=true) weighted subtraction",
+        "accumulating writes (compilation=true) weighted multiplication",
+        "accumulating writes (compilation=true) handles real reductions for +=",
+        "accumulating writes (compilation=true) handles real reductions for -=",
+        "accumulating writes (compilation=true) handles real reductions for *=",
+        "accumulating writes (compilation=true) leaves the array intact on failure: A (array 0 0) += array 1 .accumulate",
+        "accumulating writes (compilation=true) leaves the array intact on failure: A (array 0 0) += array 1.0 2.0 .accumulate",
+        "array construction (compiled true) runs the Euler 11 solution with separate directional products",
+        "array construction (compiled false) runs the Euler 11 solution with separate directional products",
+        "syntax error wording reports \"fun N inc\\n\" in one readable line",
+        "explicit-plan demo migration (compilation=false) packs ready digit words through the actual infinite-string merge stage",
+        "explicit-plan demo migration (compilation=true) packs ready digit words through the actual infinite-string merge stage",
+        "intrinsic matrix cells executes the documented Euler 8 and 11 programs",
+        "the bundled offline manual covers every builtin with a summary, example, usage and valid links within 40 columns",
+        "the bundled offline manual executes the safetensors and tensor example",
+        "the bundled offline manual executes the verify example",
+        "negative tensor axes (compilation=false) keeps trailing-axis helpers independent of the frame rank",
+        "negative tensor axes (compilation=true) keeps trailing-axis helpers independent of the frame rank",
+        "window dimensions (compiled true) continues builtin and user function pipelines and preserves source pipelines",
+        "window dimensions (compiled false) continues builtin and user function pipelines and preserves source pipelines"
+      ]
+    },
+    "language": {
+      "passed": 1482,
+      "failed": 0
+    },
+    "common": {
+      "passed": 448,
+      "baselineFailure": "symbol keyboard has a bundled manual page for every offered key"
+    },
+    "cli": {
+      "initialPassed": 410,
+      "initialFailed": 114,
+      "sqliteRetestPassed": 273,
+      "sqliteTerminalRetestPassed": 1,
+      "remainingFailure": "explain finds nothing to report across the demos",
+      "remainingFailureVerifiedOnBaseline": true
+    },
+    "compile": {
+      "passed": 11,
+      "skipped": 2,
+      "failed": 0
+    },
+    "semanticBoundaries": "Fails on both revisions: packages/interpreter/src/mlrank.ts imports Interpreter facade",
+    "applicationForms": "passed",
+    "differential": {
+      "deepmlPassed": 110,
+      "deepmlTestBlocks": 217,
+      "fullCorpus": "Interrupted without a final verdict after more than 1500 execution observations; synchronous reference Euler 594 exceeded the five-minute test timeout. This is not a complete corpus pass."
+    },
+    "mainIntegration": {
+      "baseline": "ea2e432d",
+      "typescriptBuild": "passed",
+      "interpreterPassed": 9425,
+      "interpreterFailed": 0,
+      "deepmlDifferentialPassed": 110,
+      "languagePassed": 1487,
+      "commonOrdinaryPassed": 448,
+      "commonFullDemoAudit": "Stopped; not part of the completed ordinary suite",
+      "compilePassed": 11,
+      "compileSkipped": 2,
+      "semanticBoundaries": "passed",
+      "applicationForms": "passed",
+      "benchmarkExactAnswers": "all 23 cases passed; timings not used because tests ran concurrently",
+      "mergeResolution": "Preserved destination reuse and added per-invocation DAG preparations in generated tensor kernels"
+    }
+  }
+}

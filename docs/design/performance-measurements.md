@@ -1046,3 +1046,74 @@ CLI samples per variant, alternating order, gave matching answers but a slowdown
 N=3000: 1116 to 1240 ms; N=10000: 1057 to 2002 ms. The demo retains its scalar
 histogram loop. These measurements do not establish a speedup for the complete
 Euler 459 program or its default N=1000000 input.
+
+
+## Shared tensor DAGs and arithmetic folds (#470)
+
+Apple M5, Node v24.15.0; baseline `6b7bb3ad`. The harness runs each revision
+in three fresh processes, alternating their order. Each process reports the
+median of five warm samples after two warmups. Every call checks an exact
+answer. Parsing, loading and input construction are outside the timed region;
+function calls, result demand and assertions are included. No test suite ran
+during these measurements.
+
+| Workload | Before, ms | After, ms |
+| --- | ---: | ---: |
+| `dag-0` | 0.2358 | 0.2238 |
+| `dag-4` | 2.4243 | 0.1767 |
+| `dag-6` | 9.9902 | 0.1675 |
+| `dag-7` | 73.3325 | 0.1638 |
+| `dag-8` | 588.5826 | 0.1777 |
+| `sum-integer-16` | 0.0036 | 0.0041 |
+| `reduce +-real-16` | 0.0168 | 0.0189 |
+| `reduce +-integer-10000` | 1.0995 | 0.4514 |
+| `reduce --integer-10000` | 1.0779 | 0.4954 |
+| `reduce *-integer-10000` | 1.0837 | 0.4983 |
+| `sum-real-10000` | 0.1330 | 0.1309 |
+| `reduce +-real-10000` | 0.2901 | 0.3092 |
+| `reduce --real-10000` | 0.2872 | 0.3122 |
+| `reduce *-real-10000` | 0.2771 | 0.2899 |
+| `outer-rows-64` | 0.2527 | 0.2090 |
+
+`dag-N` repeatedly doubles a shared deferred stage with `Snext' = S + S`,
+then sums 10,000 integers. The old function compiler rejects the seven-level
+graph, and the eight-level graph also loses native tensor fusion. These
+synthetic cases measure that failure mode, not a general application speedup.
+Pointwise stages now use scalar temporaries. Producers read at different
+indices can use buffers populated on demand; those buffers last for one
+consumer invocation. Peak memory was not measured.
+
+The reduction cases evaluate `(A * 2) + (B - 3)` before their fold. Every
+result cell is one, so multiplication remains bounded. Large integer folds
+use the native kernel. Small folds and stored real arithmetic retain the
+inline/dense path: forcing all of them through native graph preparation made
+16-cell folds roughly twice as slow in an earlier experiment. The final
+measurements still show 5–9% overhead on the large real `reduce` cases and
+about 15% on the 16-cell integer sum (about 0.5 microseconds per call).
+Unification does not imply a speedup for every workload.
+
+Reproduce after building both checkouts:
+
+```sh
+node benchmarks/tensor-dag.mjs /path/to/baseline
+node benchmarks/tensor-dag.mjs /path/to/changed-checkout
+```
+
+[Raw samples and all medians](../../benchmarks/baselines/2026-10-29-tensor-dag.json)
+include the short-array controls and exact expected answers.
+
+Verification: the ordinary interpreter suite reports 9,302 passes and the
+same 29 failures as the baseline (9,288 passes). All 110 DeepML differential
+cases agree between compiled and reference execution, covering 217 embedded
+test blocks. TypeScript builds successfully. The full demo differential audit
+was interrupted without a final verdict: the synchronous reference execution
+of Euler 594 exceeded the five-minute test timeout. The focused differential
+pass does not establish full-corpus parity.
+
+Integration on main `ea2e432d`: the TypeScript build, all 9,425 ordinary
+interpreter tests, 110 DeepML differential cases, 1,487 language tests,
+448 ordinary common tests, and 11 compiler tests pass (two compiler tests
+are skipped). Semantic-boundary and application-form checks pass. All 23
+benchmark cases retain their exact answers; concurrent test activity makes
+that smoke run unsuitable for timing comparisons. The additional full-demo
+name-facts audit was stopped and is not counted as passed.

@@ -77,6 +77,28 @@ not run. Selection validates indices before producing its result, so an early
 answer cannot hide an invalid index. Inline and named masks both reject numeric reductions;
 `count`, `min`, and `max` read their boolean cells. Empty means and extrema preserve their errors.
 
+### Shared DAGs and inline consumers
+
+`tensor-ir.ts` owns `TensorNode` and the arithmetic lowering used by source
+expressions and function-local proofs. Function plans lower shared stages to
+shared nodes rather than expanding a tree. Their frontend still proves the
+existing rank-0, rank-1 and rank-2 subset; this change does not extend its public
+syntax or scalar domains.
+
+The native kernel and inline adapter reuse scalar temporaries for pointwise
+DAGs. Reindexed shared producers use buffers populated only when a cell is
+requested, preserving demand order. Buffers never survive a consumer call.
+Both adapters support row-reduction nodes and share the scalar reduction
+updates used by terminal axis folds.
+
+`fused-reduction.ts` is a compatibility export. Its arithmetic frontend uses
+the shared IR and inline emitter for dynamic numeric dispatch, without a tree
+of reader closures. Large stored integer expressions can enter the native
+kernel for `reduce +`, `reduce -` and `reduce *`. Small folds and stored real
+arithmetic retain the cheaper inline/dense path. Unsupported readers, blocked
+dynamic code generation and disabled compilation retain ordinary reduction.
+Arithmetic setup still validates operands in source order before consumption.
+
 ### Guards, ownership and fallback
 
 Every demand checks compilation policy, builtin identity, input storage, shape

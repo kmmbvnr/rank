@@ -40,11 +40,17 @@ describe('function-local plan lowering', () => {
         expect(kernel.source).not.toContain('materializeValue');
     });
 
-    it('bounds expansion when successive stages duplicate their predecessors', () => {
+    it('emits shared stages once when successive stages duplicate their predecessors', () => {
         const stages = Array.from({ length: 30 }, (_, index) => ` S${index + 1}' = S${index} + S${index}`).join('\n');
         const fn = parse(`fun Input huge\n S0' = Input * 2\n${stages}\n return S30 sum\nend`).statements[0];
         if (!isFunctionStatement(fn)) throw Error('expected function');
-        expect(scalarFunctionResult(fn, true, [{ kind: 'array', element: 'integer', rank: 1 }], true)).toBeUndefined();
+        const kernel = compileScalarFunction(fn, [{ kind: 'array', element: 'integer', rank: 1 }], true)!;
+        expect(kernel).toBeDefined();
+        expect(kernel.source.length).toBeLessThan(12000);
+        expect(kernel.source.match(/readArrayItem\(/g)).toHaveLength(1);
+        expect(kernel.source.match(/for \(/g)).toHaveLength(1);
+        expect(evaluate(`fun Input huge\n S0' = Input * 2\n${stages}\n R = S30 sum\n return R\nend\n(array 1 2 3) huge`, true))
+            .toMatchObject({ value: String(6n * 2n ** 31n), calls: 1 });
     });
 
     it.each(['array 1 2 3', 'array shape 0 fill 0', 'array 1.5 2.5'])('compiles the consumer and helper for %s', input => {
