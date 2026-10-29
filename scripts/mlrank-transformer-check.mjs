@@ -5,6 +5,7 @@ import {nodeRamGpu,sendRamGpu,closeRamGpu} from '../packages/cli/out/ram-gpu.js'
 
 // Independent scalar reference; no graph evaluator or tensor backend is used.
 const fixtures=[];
+const composed=process.argv.includes('--functions');
 const linear=(x,w,b,rows,cin,cout)=>Array.from({length:rows*cout},(_,i)=>{
  const row=Math.floor(i/cout),col=i%cout;let v=b[col];
  for(let k=0;k<cin;k++)v+=x[row*cin+k]*w[k*cout+col];return v;
@@ -15,7 +16,7 @@ const norm=(x,gain,bias,C)=>x.map((_,i)=>{
  return (x[i]-mean)/Math.sqrt(variance+Math.fround(1e-5))*gain[i%C]+bias[i%C];
 });
 const values=(n,seed,scale)=>Array.from({length:n},(_,i)=>Math.fround(Math.sin(i+seed)*scale));
-const literal=(name,shape,items)=>`option ${name} .f32 shape ${shape.join(' ')} = array shape ${shape.join(' ')}\n${items.map(v=>v.toFixed(16)).join(' ')}\nend`;
+const literal=(name,shape,items)=>`arg ${name} .f32 shape ${shape.join(' ')} = array shape ${shape.join(' ')}\n${items.map(v=>v.toFixed(16)).join(' ')}\nend`;
 for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  const C=H*D, scale=Math.fround(1/Math.sqrt(D));
  const weights=Array.from({length:C*3*C},(_,i)=>Math.fround(Math.sin(i+3)*.2));
@@ -69,14 +70,22 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  'Output = Residual1 + Mlp'];
  const stages=[['Norm1',0,n1,[B,T,C]],['P',1,p,[B,T,3*C]],['Scores',8,scores,[B,H,T,T]],['Probabilities',10,probabilities,[B,H,T,T]],['Attention',14,attention,[B,T,C]],['Residual1',15,residual1,[B,T,C]],['Norm2',16,n2,[B,T,C]],['Up',17,up,[B,T,4*C]],['Activated',18,activated,[B,T,4*C]],['Mlp',19,mlp,[B,T,C]],['Output',20,output,[B,T,C]]];
  for(const [name,end,expected,outputShape] of stages) {
- const source=prefix+constants+lines.slice(0,end+1).join('\n')+'\nreturn '+name+'\n';
+ if(composed&&name!=='Output')continue;
+ const flat=prefix+constants+lines.slice(0,end+1).join('\n')+'\nreturn '+name+'\n';
+ const source=composed?prefix+constants+'fun X attentionblock W O\n'+lines.slice(0,15).join('\n')+'\nreturn X + Attention\nend\n'
+  +'fun X feedforward UpW DownW\n'+lines.slice(16,20).join('\n').replaceAll('Residual1','X')+'\nreturn X + Mlp\nend\n'
+  +'return (X attentionblock W O) feedforward UpW DownW\n':flat;
+ if(composed)assert.deepEqual(compileRam(source,'transformer.ram').graph.model,compileRam(flat,'transformer.ram').graph.model);
  const graph=compileRam(source,'transformer.ram').graph;assert.deepEqual(graph.outputShape,outputShape);
  fixtures.push({stage:`${B}x${T}x${H}x${D}/${changed?'future-changed':'base'}/${name}`,source,expected,outputShape,input,inputSizes:[input.length],inputShape:[B,T,C],nodeCount:graph.nodes.length,constantBytes:graph.nodes.filter(n=>n.kind==='constant').reduce((sum,n)=>sum+n.values.length*4,0),logicalTensorBytes:graph.nodes.reduce((sum,n)=>sum+n.shape.reduce((a,b)=>a*b,1)*4,0),model:Buffer.from(graph.model).toString('base64')});
  if(B===1&&T===3&&!changed&&name==='Output'&&process.argv.includes('--write-demo'))writeFileSync('demos/mlrank/transformer.ram',source);
  }
  }
 }
-if(process.argv.includes('--ui')) {
+if(process.argv.includes('--fixture')){
+ mkdirSync('/tmp/rank-mlrank',{recursive:true});
+ writeFileSync('/tmp/rank-mlrank/transformer-functions-fixture.json',JSON.stringify(fixtures));
+}else if(process.argv.includes('--ui')) {
  mkdirSync('output/playwright',{recursive:true});
  const f=fixtures.find(f=>f.stage==='1x1x1x3/base/Output');
  const source=f.source.replace('arg X .f32 shape 1 1 3','arg X .f32 shape 2 3').replace('Norm1 =','X = (X (0 till 1) #) reshape 1 1 3\nNorm1 =');
@@ -120,6 +129,6 @@ if(process.argv.includes('--ui')) {
  }
  }finally{r.dispose();}
  }
- console.log(JSON.stringify({platform:process.platform,fixtureCount:fixtures.length,memoryBefore,memoryAfter:process.memoryUsage(),profiles,tolerance:{atol:1e-5,rtol:1e-5},checks},null,2));
+ console.log(JSON.stringify({platform:process.platform,composed,fixtureCount:fixtures.length,memoryBefore,memoryAfter:process.memoryUsage(),profiles,tolerance:{atol:1e-5,rtol:1e-5},checks},null,2));
  }finally{closeRamGpu();}
 }

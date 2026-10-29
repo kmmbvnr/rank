@@ -5,8 +5,8 @@ import { decodeRamWeights, ramWeightDigest, ramWeightName } from './ram-weights.
 import { lowerRamStructure } from './ram-structure.js';
 import { ramModel, type RamNode } from './ram-model.js';
 import { isApplicationExpression, isNameExpression, isArgStatement, isReturnStatement,
-    isUseStatement, isFunctionStatement, functionCallSignature, isParenthesizedExpression, isBinaryExpression,
-    isStringLiteral, isAssignmentStatement, type Expression, type Program, type Statement } from '@arrrank/language';
+    isUseStatement, isFunctionStatement, isDeclaredCallExpression, functionCallSignature, isParenthesizedExpression, isBinaryExpression,
+    isStringLiteral, isAssignmentStatement, type Expression, type FunctionStatement, type Program, type Statement } from '@arrrank/language';
 import { parse } from './parser.js';
 import { RankError } from './errors.js';
 import { native } from './modules/shared.js';
@@ -49,7 +49,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         if (isUseStatement(statement) && (statement.module !== 'ml' || statement.path))
             fail('RAM MVP permits only use ml', statement);
     }
-    const input = body[0], output = body.at(-1);
+    const input = body.find(statement => !isFunctionStatement(statement)), output = body.at(-1);
     if (!isArgStatement(input) || input.defaultValue || !isReturnStatement(output))
         fail('RAM expects runtime options, optional baked weights, and a final return', body[0]);
     if (!isArgStatement(input) || !isReturnStatement(output)) throw new Error('unreachable');
@@ -71,7 +71,26 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         return count;
     };
     const inputs: {name:string;shape:number[];dtype?:'i32';indexLimit?:number}[] = [{ name: input.name, shape, ...(firstType === 'i32' ? {dtype:'i32' as const} : {}) }];
-    const names = new Map<string, number>([[input.name, 0]]);
+    const moduleNames = new Map<string, number>([[input.name, 0]]);
+    let names = moduleNames;
+    const inputSpecs = new Map([[0, inputs[0]]]);
+    const functions = new Map<string, FunctionStatement>();
+    const activeFunctions: string[] = [];
+    const simpleAssignment = (statement: Statement) => isAssignmentStatement(statement)
+        && statement.operator === '=' && !statement.deferred && !statement.accumulate;
+    const declareFunction = (statement: FunctionStatement): void => {
+        const signature = functionCallSignature(statement);
+        if (!signature.arity || statement.memo || statement.ranks.length || signature.words.length
+            || signature.parameters.some(parameter => parameter.kind !== 'data' || parameter.deferred))
+            fail('RAM functions require positional tensor parameters without memo, rank or deferred modifiers', statement);
+        if (functions.has(statement.name)) fail('Duplicate RAM function: ' + statement.name, statement);
+        const result = statement.statements.at(-1);
+        if (!isReturnStatement(result) || !result.value)
+            fail('RAM function requires a final tensor return', statement);
+        for (const inner of statement.statements.slice(0, -1))
+            if (!simpleAssignment(inner)) fail('RAM function permits simple tensor assignments and a final return', inner);
+        functions.set(statement.name, statement);
+    };
     const declareWeight = (weight: Statement): void => {
         if (!isArgStatement(weight) || !weight.defaultValue)
             fail('RAM permits only baked option declarations before return', weight);
@@ -125,15 +144,56 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', weight);
     };
     let current: Statement = output;
-    const lower = (expression: Expression): number => {
+    const lower = (expression: Expression, argument = false): number => {
         if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
-        if (isParenthesizedExpression(expression)) return lower(expression.value);
+        if (isParenthesizedExpression(expression)) return lower(expression.value, argument);
         if (isNameExpression(expression)) {
             const index = names.get(expression.name);
             if (index === undefined) return fail('Unknown RAM tensor: ' + expression.name, current);
-            if (nodes[index].kind === 'input' && 'dtype' in nodes[index] && nodes[index].dtype === 'i32')
+            if (!argument && nodes[index].kind === 'input' && 'dtype' in nodes[index] && nodes[index].dtype === 'i32')
                 return fail('Integer RAM inputs are only supported as gather indices', current);
             return index;
+        }
+        let call: { definition: FunctionStatement; arguments: readonly Expression[] } | undefined;
+        if (isDeclaredCallExpression(expression)) {
+            if (!isNameExpression(expression.callee)) return fail('RAM call requires a named local function', current);
+            const definition = functions.get(expression.callee.name);
+            if (!definition) return fail('Unknown RAM function: ' + expression.callee.name, current);
+            if (expression.ranks.length || expression.axes.length)
+                return fail('RAM function call modifiers are not supported', current);
+            call = { definition, arguments: expression.arguments };
+        } else if (isApplicationExpression(expression) && expression.arguments.length === 1
+            && isNameExpression(expression.arguments[0])) {
+            const definition = functions.get(expression.arguments[0].name);
+            if (definition?.parameters.length === 1) call = {definition, arguments:[expression.head]};
+            else if (definition?.parameters.length === 2 && isApplicationExpression(expression.head)
+                && expression.head.arguments.length === 1)
+                call = {definition, arguments:[expression.head.head, expression.head.arguments[0]]};
+        }
+        if (call) {
+            const {definition} = call;
+            if (activeFunctions.includes(definition.name))
+                return fail('Recursive RAM function: ' + definition.name, current);
+            if (activeFunctions.length >= 64) return fail('RAM function nesting exceeds 64 calls', current);
+            if (call.arguments.length !== definition.parameters.length)
+                return fail('RAM function argument count mismatch: ' + definition.name, current);
+            // Evaluate each argument once in the caller, then use the module's lexical
+            // environment. Caller locals must not become free variables of the callee.
+            const values = call.arguments.map(value => lower(value, true));
+            const previousNames = names, previousStatement = current;
+            names = new Map(moduleNames);
+            definition.parameters.forEach((name, index) => names.set(name, values[index]));
+            activeFunctions.push(definition.name);
+            try {
+                for (const statement of definition.statements) {
+                    current = statement;
+                    if (isReturnStatement(statement)) return lower(statement.value!, argument);
+                    if (isAssignmentStatement(statement)) names.set(statement.name, lower(statement.value));
+                }
+                return fail('RAM function requires a final tensor return', definition);
+            } finally {
+                activeFunctions.pop(); names = previousNames; current = previousStatement;
+            }
         }
         // Normalization is centered before squaring, avoiding E[X²] - E[X]² cancellation.
         const append = (node: RamNode): number => {
@@ -143,8 +203,8 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         if (isApplicationExpression(expression) && expression.arguments.length === 1
             && isNameExpression(expression.arguments[0])) {
             const name = expression.arguments[0].name;
-            const spec = inputs.find(input => input.name === name && input.dtype === 'i32');
             const right = names.get(name), indexNode = right === undefined ? undefined : nodes[right];
+            const spec = right === undefined ? undefined : inputSpecs.get(right);
             if (spec && indexNode?.kind === 'input' && indexNode.dtype === 'i32' && right !== undefined) {
                 const left = lower(expression.head);
                 const shape = [...spec.shape, ...nodes[left].shape.slice(1)];
@@ -270,9 +330,11 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
         if (nodes.length >= 128) return fail('RAM graph exceeds 128 tensors', current);
         nodes.push(node); return nodes.length - 1;
     };
-    for (const statement of body.slice(1, -1)) {
+    for (const statement of body.slice(0, -1)) {
+        if (statement === input) continue;
         current = statement;
-        if (isArgStatement(statement)) {
+        if (isFunctionStatement(statement)) declareFunction(statement);
+        else if (isArgStatement(statement)) {
             if (statement.defaultValue) declareWeight(statement);
             else {
                 if (precision !== 'f32' || !['f32','i32'].includes(statement.precision?.name ?? ''))
@@ -282,6 +344,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
                 validShape(shape, statement, 4_194_304);
                 const dtype = statement.precision?.name === 'i32' ? {dtype:'i32' as const} : {};
                 inputs.push({name:statement.name,shape,...dtype});
+                inputSpecs.set(nodes.length, inputs.at(-1)!);
                 names.set(statement.name, nodes.length); nodes.push({kind:'input',shape,...dtype});
                 if (nodes.length > 128) fail('RAM graph exceeds 128 tensors', statement);
             }

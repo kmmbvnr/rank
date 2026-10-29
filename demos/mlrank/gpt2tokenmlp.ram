@@ -6,9 +6,17 @@ arg UpW .f32 shape 768 3072
 arg UpB .f32 shape 3072
 arg DownW .f32 shape 3072 768
 arg DownB .f32 shape 768
-Norm2 = X layernorm * G2 + B2
-Up = (Norm2 matmul UpW) + UpB
+fun X normalized Gain Bias
+return X layernorm * Gain + Bias
+end
+fun X affine Weight Bias
+return (X matmul Weight) + Bias
+end
+fun X feedforward
+Norm2 = X normalized G2 B2
+Up = Norm2 affine UpW UpB
 Activated = Up gelu_new
-Mlp = (Activated matmul DownW) + DownB
-Output = X + Mlp
-return Output
+Mlp = Activated affine DownW DownB
+return X + Mlp
+end
+return X feedforward
