@@ -1,0 +1,833 @@
+{
+  "date": "2026-10-29",
+  "implementationCommits": [
+    "6a1f38f6",
+    "6b2b3c26"
+  ],
+  "scope": "Fixed total context 16, GPT-2 F32, full program including setup and head",
+  "correctness": {
+    "metal": {
+      "context": 16,
+      "batched": true,
+      "runs": [
+        {
+          "name": "prefill",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 1249.746,
+          "gpuCalls": 206,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "decode",
+          "promptTokens": 1,
+          "generated": 6,
+          "text": "Hello, I'm sorry, but",
+          "reason": "token limit",
+          "wallMs": 1762.7794999999999,
+          "gpuCalls": 600,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "edge",
+          "promptTokens": 15,
+          "generated": 1,
+          "text": "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello",
+          "reason": "context limit",
+          "wallMs": 647.5645829999999,
+          "gpuCalls": 114,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "masked",
+          "promptTokens": 1,
+          "generated": 1,
+          "text": "Hello,",
+          "reason": "token limit",
+          "wallMs": 557.2125420000002,
+          "gpuCalls": 100,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "prefill-padding",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 912.8963330000006,
+          "gpuCalls": 206,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "context limit",
+        "token limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most sixteen",
+        "nonnegative",
+        "integer"
+      ],
+      "valuesCompared": 603084,
+      "maxError": 0.0001895270710292607,
+      "peakStateBytes": 1327104
+    },
+    "intel": {
+      "context": 16,
+      "batched": true,
+      "runs": [
+        {
+          "name": "prefill",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 8117.388078,
+          "gpuCalls": 206,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "decode",
+          "promptTokens": 1,
+          "generated": 6,
+          "text": "Hello, I'm sorry, but",
+          "reason": "token limit",
+          "wallMs": 17213.022226,
+          "gpuCalls": 600,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "edge",
+          "promptTokens": 15,
+          "generated": 1,
+          "text": "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello",
+          "reason": "context limit",
+          "wallMs": 3694.2375009999996,
+          "gpuCalls": 114,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "masked",
+          "promptTokens": 1,
+          "generated": 1,
+          "text": "Hello,",
+          "reason": "token limit",
+          "wallMs": 3720.5906649999997,
+          "gpuCalls": 100,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "prefill-padding",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 6376.243784999999,
+          "gpuCalls": 206,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "context limit",
+        "token limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most sixteen",
+        "nonnegative",
+        "integer"
+      ],
+      "valuesCompared": 603084,
+      "maxError": 0.0003494966798598398,
+      "peakStateBytes": 1327104
+    },
+    "oneplus": {
+      "context": 16,
+      "batched": true,
+      "runs": [
+        {
+          "name": "prefill",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 27104.80000001192,
+          "gpuCalls": 206,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "decode",
+          "promptTokens": 1,
+          "generated": 6,
+          "text": "Hello, I'm sorry, but",
+          "reason": "token limit",
+          "wallMs": 59934.79999999702,
+          "gpuCalls": 600,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "edge",
+          "promptTokens": 15,
+          "generated": 1,
+          "text": "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello",
+          "reason": "context limit",
+          "wallMs": 16992.80000001192,
+          "gpuCalls": 114,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "masked",
+          "promptTokens": 1,
+          "generated": 1,
+          "text": "Hello,",
+          "reason": "token limit",
+          "wallMs": 16055.39999999106,
+          "gpuCalls": 100,
+          "finalStateBytes": 0
+        },
+        {
+          "name": "prefill-padding",
+          "promptTokens": 7,
+          "generated": 2,
+          "text": "Hello, world! My name is Kiy",
+          "reason": "token limit",
+          "wallMs": 26799,
+          "gpuCalls": 206,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "context limit",
+        "token limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most sixteen",
+        "nonnegative",
+        "integer"
+      ],
+      "valuesCompared": 603084,
+      "maxError": 0.0003411379224189659,
+      "cacheReadbackRequests": 0
+    }
+  },
+  "longPrompt": {
+    "promptTokens": 7,
+    "generatedTokens": 2,
+    "implementationCommit": "6a1f38f6",
+    "note": "Measured before explicit one-token routing; long-prompt path unchanged. ABBA, two unprofiled runs per variant; desktop profile runs are separate.",
+    "metal": {
+      "order": "sequential,batched,batched,sequential",
+      "includes": "ABBA unprofiled full-program timing; first token includes prefill/setup. Two separate profiled runs measure native file bytes.",
+      "runs": [
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 1872.37375,
+          "firstTokenMs": 1623.084458,
+          "decodeMs": [
+            235.632208
+          ],
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 906.7342919999996,
+          "firstTokenMs": 664.066542,
+          "decodeMs": [
+            234.8919579999997
+          ],
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 892.2324170000002,
+          "firstTokenMs": 646.945792,
+          "decodeMs": [
+            236.2050830000003
+          ],
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        },
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 1435.7321670000001,
+          "firstTokenMs": 1201.6065419999995,
+          "decodeMs": [
+            226.7161670000005
+          ],
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "sequential",
+          "profile": true,
+          "fileBytesRead": 3030583296,
+          "totalMs": 1437.2925830000004,
+          "firstTokenMs": 1202.2004580000003,
+          "decodeMs": [
+            227.6619579999997
+          ],
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "batched",
+          "profile": true,
+          "fileBytesRead": 989276160,
+          "totalMs": 874.4211669999995,
+          "firstTokenMs": 633.0722089999999,
+          "decodeMs": [
+            234.16441599999962
+          ],
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        }
+      ]
+    },
+    "intel": {
+      "order": "sequential,batched,batched,sequential",
+      "includes": "ABBA unprofiled full-program timing; first token includes prefill/setup. Two separate profiled runs measure native file bytes.",
+      "runs": [
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 15753.794691,
+          "firstTokenMs": 13107.190926,
+          "decodeMs": [
+            2607.3229919999994
+          ],
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 6921.758825999999,
+          "firstTokenMs": 4228.4249,
+          "decodeMs": [
+            2664.263010999999
+          ],
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 6830.614674,
+          "firstTokenMs": 4254.076975,
+          "decodeMs": [
+            2545.174081000001
+          ],
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        },
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 14719.198776999998,
+          "firstTokenMs": 11957.451697000004,
+          "decodeMs": [
+            2720.0756089999995
+          ],
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "sequential",
+          "profile": true,
+          "fileBytesRead": 3030583296,
+          "totalMs": 15567.455427,
+          "firstTokenMs": 12652.373091999994,
+          "decodeMs": [
+            2891.6876820000034
+          ],
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "batched",
+          "profile": true,
+          "fileBytesRead": 989276160,
+          "totalMs": 7022.230723000008,
+          "firstTokenMs": 4219.249271000001,
+          "decodeMs": [
+            2750.189102000004
+          ],
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        }
+      ]
+    },
+    "oneplus": {
+      "order": "sequential,batched,batched,sequential",
+      "includes": "Full worker execute including file verification and model compilation; fresh interpreter each run",
+      "runs": [
+        {
+          "mode": "sequential",
+          "totalMs": 52795.09999999404,
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        },
+        {
+          "mode": "batched",
+          "totalMs": 26869.29999999702,
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        },
+        {
+          "mode": "batched",
+          "totalMs": 26767.09999999404,
+          "gpuCalls": 206,
+          "retainedOutputs": 48,
+          "readbackBytes": 1686152
+        },
+        {
+          "mode": "sequential",
+          "totalMs": 54733.70000000298,
+          "gpuCalls": 494,
+          "retainedOutputs": 192,
+          "readbackBytes": 1022600
+        }
+      ]
+    }
+  },
+  "singleTokenPrompt": {
+    "generatedTokens": 1,
+    "implementationCommit": "6b2b3c26",
+    "metal": {
+      "order": "sequential,batched,batched,sequential",
+      "includes": "ABBA unprofiled full-program timing; first token includes prefill/setup. Two separate profiled runs measure native file bytes.",
+      "runs": [
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 806.604125,
+          "firstTokenMs": 791.736875,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 554.607709,
+          "firstTokenMs": 541.491917,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 499.5998340000001,
+          "firstTokenMs": 490.29887499999995,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 452.73816699999975,
+          "firstTokenMs": 444.9099169999997,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "sequential",
+          "profile": true,
+          "fileBytesRead": 494619648,
+          "totalMs": 474.8032500000004,
+          "firstTokenMs": 465.36958300000015,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "profile": true,
+          "fileBytesRead": 494619648,
+          "totalMs": 505.59779100000014,
+          "firstTokenMs": 496.4250000000002,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        }
+      ]
+    },
+    "intel": {
+      "order": "sequential,batched,batched,sequential",
+      "includes": "ABBA unprofiled full-program timing; first token includes prefill/setup. Two separate profiled runs measure native file bytes.",
+      "runs": [
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 4775.096589,
+          "firstTokenMs": 4709.027661,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 3696.449896,
+          "firstTokenMs": 3654.0511270000006,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "profile": false,
+          "totalMs": 3860.670540000001,
+          "firstTokenMs": 3838.235299,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "sequential",
+          "profile": false,
+          "totalMs": 3672.564400000001,
+          "firstTokenMs": 3619.4456439999994,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "sequential",
+          "profile": true,
+          "fileBytesRead": 494619648,
+          "totalMs": 3727.3285910000013,
+          "firstTokenMs": 3668.733507000001,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "profile": true,
+          "fileBytesRead": 494619648,
+          "totalMs": 3586.0385209999986,
+          "firstTokenMs": 3545.2439809999996,
+          "decodeMs": [],
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        }
+      ]
+    },
+    "oneplus": {
+      "order": "sequential,batched,batched,sequential",
+      "includes": "Full worker execute including file verification and model compilation; fresh interpreter each run",
+      "runs": [
+        {
+          "mode": "sequential",
+          "totalMs": 14134.10000000894,
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "totalMs": 13370.70000000298,
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "batched",
+          "totalMs": 14201.60000000894,
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        },
+        {
+          "mode": "sequential",
+          "totalMs": 14055.89999999106,
+          "gpuCalls": 100,
+          "retainedOutputs": 24,
+          "readbackBytes": 280900
+        }
+      ]
+    }
+  },
+  "oneplusSeparateProfile": {
+    "runs": [
+      {
+        "mode": "sequential",
+        "totalMs": 59719.10000000894,
+        "text": "Hello, world! My name is Kiy",
+        "finalStateBytes": 0,
+        "outsideXhrMs": 5010.500000119209,
+        "groups": {
+          "/__rank_model_file:stat": {
+            "count": 2555,
+            "wallMs": 19016.4999999851,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:sha256": {
+            "count": 2,
+            "wallMs": 608.8999999910593,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:read": {
+            "count": 23,
+            "wallMs": 196.10000003874302,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:load": {
+            "count": 46,
+            "wallMs": 3503.800000011921,
+            "prepareMs": 2982.7640080000006,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:invoke": {
+            "count": 494,
+            "wallMs": 28972.79999999702,
+            "prepareMs": 3.0578730000000007,
+            "inputMs": 11835.181498999993,
+            "dispatchMs": 605.0008309999992,
+            "readbackMs": 3663.1480700000016,
+            "outputMs": 33.27349799999998,
+            "fileBytesRead": 3030583296,
+            "tensorAllocationMs": 57.71765700000002,
+            "fileReadMs": 2483.592486000002,
+            "fileDecodeMs": 5311.134988999997,
+            "bufferWriteMs": 2290.3502859999994
+          },
+          "/__rank_ml_result:releaseState": {
+            "count": 192,
+            "wallMs": 1979.699999898672,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:release": {
+            "count": 42,
+            "wallMs": 430.79999996721745,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          }
+        }
+      },
+      {
+        "mode": "batched",
+        "totalMs": 28250.89999999106,
+        "text": "Hello, world! My name is Kiy",
+        "finalStateBytes": 0,
+        "outsideXhrMs": 4068.8000001758337,
+        "groups": {
+          "/__rank_model_file:stat": {
+            "count": 827,
+            "wallMs": 6132.7999997884035,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:sha256": {
+            "count": 2,
+            "wallMs": 605.9000000059605,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_model_file:read": {
+            "count": 23,
+            "wallMs": 157.89999993145466,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:load": {
+            "count": 16,
+            "wallMs": 3020.4999999701977,
+            "prepareMs": 2837.768384,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:invoke": {
+            "count": 206,
+            "wallMs": 13645.000000074506,
+            "prepareMs": 1.1950059999999991,
+            "inputMs": 3924.1529640000003,
+            "dispatchMs": 214.20619799999994,
+            "readbackMs": 1525.5494260000007,
+            "outputMs": 38.446512,
+            "fileBytesRead": 989276160,
+            "tensorAllocationMs": 14.325356999999999,
+            "fileReadMs": 816.5995759999996,
+            "fileDecodeMs": 1722.748774999999,
+            "bufferWriteMs": 812.401666
+          },
+          "/__rank_ml_result:releaseState": {
+            "count": 48,
+            "wallMs": 474.7000000476837,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          },
+          "/__rank_ml_result:release": {
+            "count": 12,
+            "wallMs": 145.29999999701977,
+            "prepareMs": 0,
+            "inputMs": 0,
+            "dispatchMs": 0,
+            "readbackMs": 0,
+            "outputMs": 0,
+            "fileBytesRead": 0,
+            "tensorAllocationMs": 0,
+            "fileReadMs": 0,
+            "fileDecodeMs": 0,
+            "bufferWriteMs": 0
+          }
+        }
+      }
+    ],
+    "notes": [
+      "Native profile includes per-invoke PSS collection overhead.",
+      "Host intervals do not isolate GPU kernel time."
+    ]
+  },
+  "oneplusSavedNotebook": {
+    "id": "c238ad8c-a07a-41d4-ba8f-d697e1560aec",
+    "title": "GPT-2 batched prefill",
+    "text": "Hello, world! My name is Kiy",
+    "wallMs": 31702,
+    "finalStateBytes": 0
+  },
+  "limitations": [
+    "Two timed runs per variant, cold setup affects results.",
+    "Native fileBytesRead counts weight input preparation, not physical disk traffic.",
+    "Profile runs include PSS sampling and are excluded from timing comparison.",
+    "Weights are not resident across layers/tokens.",
+    "Residual and MLP activations still cross the host boundary; long-prompt readback increases from 1022600 to 1686152 bytes.",
+    "Embedding rows fetched individually.",
+    "Peak desktop retained-state payload 1327104 bytes excludes driver allocations."
+  ],
+  "formatterIssue": "https://github.com/kmmbvnr/rank/issues/473"
+}

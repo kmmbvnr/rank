@@ -5,24 +5,25 @@ async page => {
  return page.evaluate(async f=>{
   const main=document.querySelector('script[type="module"][src]').src,code=await fetch(main).then(r=>r.text());
   const url=new URL(code.match(/worker-[A-Za-z0-9_-]+\.js/)[0],main),runs=[];
-  for(const mode of ['baseline','kv','kv','baseline']){
+  for(const mode of f.order??['baseline','kv','kv','baseline']){
+   const owner=await window.Capacitor.nativePromise('RamGpu','openSession',{});
    const worker=new Worker(url,{type:'module'}),pending=new Map(),requests=[];let sequence=0;
-   worker.onmessage=event=>{const m=event.data;if(m.ram){requests.push(JSON.parse(m.ram.payload));void window.Capacitor.nativePromise('RamGpu','submit',m.ram).catch(e=>{for(const p of pending.values())p.reject(e);});return;}const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(Error(m.error)):p.resolve(m);}};
+   worker.onmessage=event=>{const m=event.data;if(m.ram){requests.push(JSON.parse(m.ram.payload));void window.Capacitor.nativePromise('RamGpu','submit',{id:m.ram.id,payload:JSON.stringify({...JSON.parse(m.ram.payload),...owner})}).catch(e=>{for(const p of pending.values())p.reject(e);});return;}const p=pending.get(m.id);if(p){pending.delete(m.id);m.error?p.reject(Error(m.error)):p.resolve(m);}};
    const post=(message,id)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Benchmark timeout')),240000);pending.set(id,{resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}});worker.postMessage(message);});
    const call=(method,args)=>{const id=++sequence;return post({id,method,args},id);};
    try{
-    await post({nativeRam:true,nativeFiles:true,modules:f.modules},0);
+    await post({nativeRam:true,nativeFiles:true,ramSessionId:owner.sessionId,modules:f.modules},0);
     const source=f.programs[mode],started=performance.now();
     const r=await call('execute',[source,1,source.split('\n')]),totalMs=performance.now()-started;
     if(!r.result.ok)throw Error(JSON.stringify(r.result));
-    if((await call('inspect',[r.result.valueRef,{}])).result.text!=="Hello, I'm")throw Error('Unexpected generated text');
-    const id=crypto.randomUUID();await window.Capacitor.nativePromise('RamGpu','submit',{id,payload:JSON.stringify({action:'releaseState',stateId:'nonexistent'})});
-    const status=await fetch('/__rank_ml_result?id='+id).then(r=>r.json());
+    if((await call('inspect',[r.result.valueRef,{}])).result.text!==(f.expected??"Hello, I'm"))throw Error('Unexpected generated text');
+    const id=crypto.randomUUID();await window.Capacitor.nativePromise('RamGpu','submit',{id,payload:JSON.stringify({...owner,action:'releaseState',stateId:'nonexistent'})});
+    const status=await fetch('/__rank_ml_result?id='+id+'&sessionId='+owner.sessionId).then(r=>r.json());
     if(status.residentStates!==0)throw Error('States leaked');
     const calls=requests.filter(r=>r.action==='invoke');
     runs.push({mode,totalMs,gpuCalls:calls.length,retainedOutputs:calls.filter(r=>r.retainOutput).length,readbackBytes:calls.filter(r=>!r.retainOutput).reduce((n,r)=>n+r.outputSize*4,0)});
-   }finally{worker.terminate();}
+   }finally{worker.terminate();await window.Capacitor.nativePromise('RamGpu','closeSession',owner);}
   }
-  return {order:'baseline,kv,kv,baseline',includes:'Full worker execute including file verification and model compilation; fresh interpreter each run',runs};
+  return {order:(f.order??['baseline','kv','kv','baseline']).join(','),includes:'Full worker execute including file verification and model compilation; fresh interpreter each run',runs};
  },fixture);
 }

@@ -2056,5 +2056,70 @@ The OnePlus notebook **GPT-2 context 16** is saved separately from the old demo.
 Its default `Prompt = "Hello"`, `MaxNew = 6` produced `Hello, I'm sorry, but` in
 60.35 seconds through the ordinary menu, with zero retained state bytes afterward.
 This is six generated tokens; the earlier three-token timings are a different
-workload. The next step is batched prefill for this profile, compared with this
-sequential implementation before claiming a speedup.
+workload. The batched implementation below uses this sequential program as its baseline.
+
+
+### Batched prefill for the 16-token profile
+
+[`gpt2-generate-prefill16.ra`](../../demos/mlrank/gpt2-generate-prefill16.ra) processes
+the prompt through all twelve transformer layers as a padded `[16,768]` matrix.
+Embedding rows are still fetched individually through `gpt2row.ram`. Four new RAM
+modules project the whole matrix, retain its K/V slice, apply causal attention,
+and run the MLP. The cache slice stays on the GPU. The last valid prompt row feeds
+the existing normalization/head; subsequent generated tokens use the existing
+single-token decode modules.
+
+Padding cannot influence valid rows: attention uses a baked lower-triangular mask,
+and decode only exposes filled positions. The reference checks initialize unused
+embedding rows with values varying by row and component, then compare against the
+same independent full-prefix forward. The checks compare 603,084 logits, including the separate padded-prompt case,
+with the existing tolerance: long prompts, decode past four
+tokens, the context boundary and cleanup. The peak retained-state payload is
+1,327,104 bytes on desktop; this excludes driver memory.
+
+For a seven-token prompt plus two output tokens, GPU invocations decrease from
+494 to 206. For fifteen prompt tokens plus one output token they decrease from
+786 to 114. A one-token prompt still makes 100 invocations for its first output,
+while padded prefill computes more rows. The sequential demo remains available;
+the program now explicitly selects the original single-token path when
+`PromptLength = 1`. Padding 16 rows for that case was slower on OnePlus and has
+been removed from the final route. This choice is visible in the Rank program.
+
+`mlrank-gpt2-context-check.mjs --batched` selects the new demo with the existing
+reference. `mlrank-gpt2-prefill-bench.mjs` runs sequential/batched/batched/sequential
+without profiling, then two separate profiled runs to count actual native weight
+reads. `--short` uses a one-token prompt and one output. The Android benchmark
+uses fresh owned sessions, and its weight-read profile is separate from timing
+runs because native profiling includes PSS sampling. Desktop first-token intervals
+include setup and the vocabulary head; they are not isolated transformer timings.
+
+For seven prompt tokens and two generated tokens, unprofiled ABBA timings were:
+
+| Device | Sequential | Batched |
+| --- | --- | --- |
+| Mac / Metal | 1.44–1.87 s | 0.89–0.91 s |
+| jack / Intel | 14.72–15.75 s | 6.83–6.92 s |
+| OnePlus / OpenCL | 52.80–54.73 s | 26.77–26.87 s |
+
+These are two runs per variant, not a broad latency distribution. The long-prompt
+measurements preceded the single-token routing change; that change leaves the
+long-prompt path intact. Native weight reads on all three devices decrease from
+3,030,583,296 to 989,276,160 bytes. This is repeated input preparation, not a
+measurement of physical disk traffic or proof that weights remain on the GPU.
+Activation readback increases from 1,022,600 to 1,686,152 bytes. Keeping those
+activations between modules is the next step.
+
+Final numerical checks passed on all three devices: maximum absolute errors
+1.90e-4 (Metal), 3.50e-4 (Intel), and 3.42e-4 (OnePlus). All runs released their
+retained states; Android requested no cache readback. The one-token route has
+100 invocations and 280,900 readback bytes in both programs.
+See the [prefill baseline](../../benchmarks/baselines/2026-10-29-mlrank-gpt2-prefill.json).
+
+The demo uses a short `Begin` variable in its loop header to avoid the editor's
+long-header formatting bug, tracked in [#473](https://github.com/kmmbvnr/rank/issues/473).
+The formatter bug is not fixed by this change.
+
+The OnePlus notebook **GPT-2 batched prefill** is saved with the seven-token
+prompt and two-token output. Running it through the ordinary menu produced
+`Hello, world! My name is Kiy` in 31.70 seconds, with zero retained state bytes
+afterward. This UI run is separate from the worker ABBA timings above.

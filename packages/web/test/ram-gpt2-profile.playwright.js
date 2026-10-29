@@ -26,7 +26,7 @@ async page => {
   const blob=URL.createObjectURL(new Blob([instrumentation],{type:'text/javascript'}));
   const runs=[];
   try{
-   for(let repeat=0;repeat<2;repeat++){
+   for(const mode of f.profileModes??['kv','kv']){
     const owner=await native('openSession'),worker=new Worker(blob,{type:'module'}),pending=new Map(),requests=new Map(),entries=[];let sequence=0;
     let startedWorker;const boot=new Promise(resolve=>{startedWorker=resolve;});
     worker.onmessage=event=>{
@@ -41,10 +41,10 @@ async page => {
     const call=(method,args)=>{const id=++sequence;return post({id,method,args},id);};
     try{
      await boot;await post({nativeRam:true,nativeFiles:true,ramSessionId:owner.sessionId,modules:f.modules},0);
-     const source=f.programs.kv,started=performance.now();
+     const source=f.programs[mode],started=performance.now();
      const r=await call('execute',[source,1,source.split('\n')]),totalMs=performance.now()-started;
      if(!r.result.ok)throw Error(JSON.stringify(r.result));
-     if((await call('inspect',[r.result.valueRef,{}])).result.text!=="Hello, I'm")throw Error('Unexpected generated text');
+     if((await call('inspect',[r.result.valueRef,{}])).result.text!==(f.expected??"Hello, I'm"))throw Error('Unexpected generated text');
      const models=new Map(),calls=entries.map(e=>{
       const request=requests.get(e.id);
       if(!request)return e;
@@ -60,7 +60,7 @@ async page => {
       group.count++;group.wallMs+=call.elapsedMs;
       for(const field of ['prepareMs','inputMs','dispatchMs','readbackMs','outputMs','fileBytesRead','tensorAllocationMs','fileReadMs','fileDecodeMs','bufferWriteMs'])group[field]+=call.reply?.[field]??0;
      }
-     runs.push({totalMs,text:"Hello, I'm",finalStateBytes:status.stateBytes,
+     runs.push({mode,totalMs,text:f.expected??"Hello, I'm",finalStateBytes:status.stateBytes,
       outsideXhrMs:totalMs-calls.reduce((sum,call)=>sum+call.elapsedMs,0),groups});
     }finally{worker.terminate();await native('closeSession',owner);}
    }
