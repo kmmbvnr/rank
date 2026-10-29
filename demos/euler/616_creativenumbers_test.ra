@@ -1,0 +1,23 @@
+use testing
+
+test "default input"
+  use "616_creativenumbers"
+  run
+  Answer equal 310884668312456458
+end
+
+test "brute force"
+  use "616_creativenumbers"
+  N = 100
+  run
+  Answer equal 281
+  N = 1000
+  run
+  Answer equal 8769
+  N = 1000000
+  run
+  Answer equal 305249492
+  N = 1000000000
+  run
+  Answer equal 9715657253630
+end
