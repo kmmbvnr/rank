@@ -1,0 +1,85 @@
+rem Proportionate Nim
+rem https://projecteuler.net/problem=665
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Mm integer = 10000000
+
+rem Losing pairs (x, y), x < y, come
+rem one x at a time: x is the next
+rem unused coordinate and y the least
+rem value no earlier pair (a, b) blocks:
+rem y not a coordinate, y - x != b - a,
+rem y - 2x != b - 2a or a - 2b, and
+rem 2y - x != 2b - a or 2a - b. Each
+rem family is a "next free value" table
+rem with path halving, and y is the
+rem fixed point of the four lookups.
+Xm = Mm // 2 + 2
+Ym = 3 * Xm + 10
+Of = Xm
+Pu = 0 to (Ym + 4)
+Pd = 0 to (Ym + 4)
+Pe = 0 to (Ym + Of + 4)
+Pf = 0 to (2 * Ym + 4)
+Pu 0 = 1
+Pd 0 = 1
+Pe Of = Of + 1
+Pf 0 = 2
+Answer = 0
+for Xx in 1 to (Mm - 1) // 2
+  if Pu Xx equal Xx
+    X2 = 2 * Xx
+    Yy = Xx + 1
+    Go = 1
+    for Go equal 1
+      Y0 = Yy
+      for Pu Yy not equal Yy
+        Pu Yy = Pu (Pu Yy)
+        Yy = Pu Yy
+      end
+      Vv = Yy - Xx
+      for Pd Vv not equal Vv
+        Pd Vv = Pd (Pd Vv)
+        Vv = Pd Vv
+      end
+      Yy = Vv + Xx
+      Vv = Yy - X2 + Of
+      for Pe Vv not equal Vv
+        Pe Vv = Pe (Pe Vv)
+        Vv = Pe Vv
+      end
+      Yy = Vv - Of + X2
+      Vv = 2 * Yy - Xx
+      for Pf Vv not equal Vv
+        Pf Vv = Pf (Pf Vv)
+        Vv = Pf Vv
+      end
+      Yy = (Vv + Xx) // 2
+      Go = (Yy not equal Y0) integer
+    end
+    if Xx + Yy at most Mm
+      Answer += Xx + Yy
+    end
+    Pu Xx = Xx + 1
+    Pu Yy = Yy + 1
+    Dd = Yy - Xx
+    Pd Dd = Dd + 1
+    Ie = Dd - Xx + Of
+    Pe Ie = Ie + 1
+    Ie = Xx - 2 * Yy + Of
+    if Ie at least 0
+      Pe Ie = Ie + 1
+    end
+    If = 2 * Yy - Xx
+    Pf If = If + 2
+    If = X2 - Yy
+    if If at least 0
+      Pf If = If + 2
+    end
+  end
+end
+Answer print

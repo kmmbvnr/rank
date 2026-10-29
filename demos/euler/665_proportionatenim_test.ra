@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "665_proportionatenim"
+  Mm = 10
+  run
+  Answer equal 21
+  Mm = 100
+  run
+  Answer equal 1164
+  Mm = 1000
+  run
+  Answer equal 117002
+end
+
+test "default input"
+  use "665_proportionatenim"
+  Mm = 10000000
+  run
+  Answer equal 11541685709674
+end
