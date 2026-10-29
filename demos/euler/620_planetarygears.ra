@@ -1,0 +1,49 @@
+rem Planetary Gears
+rem https://projecteuler.net/problem=620
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 500
+
+rem With radii read off the tooth counts
+rem the four planets sit around S at
+rem angles from the law of cosines in
+rem the triangle u = s + p, v = s + q,
+rem w = p + q - 2 pi. Meshing leaves
+rem g = u + floor((v t - u f) / pi)
+rem positions (t, f the angles), when
+rem that is positive.
+Pi = 0.0 atan2 (0.0 - 1.0)
+Answer = 0
+for S in 5 to N
+  Mm = N - S
+  Mp = (Mm - 1) // 2
+  if Mp at least 5
+    Ps = 5 to Mp
+    Qs = 6 to (Mm - 5)
+    P = Ps reshape (Mp - 4) 1
+    Q = Qs reshape 1 (Mm - 10)
+    Gt = (Q greater P) integer
+    Fit = ((P + Q) at most Mm) integer
+    Ok = Gt * Fit
+    U = (S + P) * 1.0
+    V = (S + Q) * 1.0
+    W = P + Q - 2.0 * Pi
+    Uu = U * U
+    Vv = V * V
+    Ww = W * W
+    Cb = (Vv + Ww - Uu) / (2.0 * V * W)
+    Cd = (Uu + Ww - Vv) / (2.0 * U * W)
+    Th = (Cb max -1.0 min 1.0) acos
+    Fi = (Cd max -1.0 min 1.0) acos
+    Mx = (V * Th - U * Fi) / Pi
+    Mx = Mx + 0.0000000000001
+    Gv = (U + Mx floor) max 0.0
+    Answer += (Gv * Ok) sum
+  end
+end
+Answer = Answer round 0
+Answer print

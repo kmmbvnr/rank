@@ -1,0 +1,20 @@
+use testing
+
+test "statement values"
+  use "620_planetarygears"
+  N = 16
+  run
+  Answer equal 9
+  N = 20
+  run
+  Answer equal 205
+  N = 100
+  run
+  Answer equal 1790942
+end
+
+test "default input"
+  use "620_planetarygears"
+  run
+  Answer equal 1470337306
+end
