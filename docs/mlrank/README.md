@@ -1787,7 +1787,82 @@ For Android, generate `--fixture` and substitute its JSON into
 `packages/web/test/ram-kv-cache.playwright.js`.
 
 This establishes correctness and removes host transport for retained outputs.
-It does not establish a speedup or zero-copy behavior inside LiteRT. Remaining
-stage-15 work: integrate per-layer caches into GPT-2, define prefill/decode and
-overflow/reset behavior, reclaim abandoned worker sessions, compare generated
-tokens against the uncached model, then measure token latency and memory.
+It does not establish a speedup or zero-copy behavior inside LiteRT. The next section implements per-layer GPT-2 caches and measures the complete
+single-token path. Abandoned worker-session reclamation remains pending.
+
+### GPT-2 generation with per-layer GPU KV caches (stage 15)
+
+[gpt2-generate-kv.ra](../../demos/mlrank/gpt2-generate-kv.ra) uses the same
+checkpoint, tokenizer, greedy selection and four-token total context as the
+uncached generator. The **GPT-2 GPU KV cache** notebook is saved on OnePlus;
+a menu run produced `Hello, I'm`. It processes prompt tokens sequentially (prefill), then
+processes each newly generated token once (decode). Each of the twelve layers
+owns a packed F32 `[4,1536]` K/V buffer. Positions start at zero; unused slots
+are masked. Re-running the program creates fresh caches. At the context limit
+it stops instead of overwriting old positions.
+
+Three explicit RAM calls implement attention:
+- `gpt2qkv.ram` normalizes and projects one token. Its `gpukeep` adapter
+  retains `[1,2304]` Q/K/V on the GPU.
+- `gpt2kvwrite.ram` writes the new K/V row into a fresh cache buffer. The
+  program frees the previous buffer after the new buffer is available.
+- `gpt2kvattn.ram` consumes the projection and cache handles, applies the
+  causal mask, and returns the attention residual for this token.
+
+The MLP, final normalization and vocabulary head use fixed single-token graph
+variants. The projection handle is freed after attention; layer caches are freed
+on normal exit, including token/context limits and generated EOS. Cache contents
+never go through JSON. Residual activations and logits still do. Each normal
+three-token generation uses 300 GPU calls, compared with 237 in the previous
+four-row generator. There are 72 retained outputs. Peak accounted state storage
+on desktop is 328,704 bytes (twelve caches, one replacement and one projection).
+This is tensor payload accounting, not physical GPU memory usage. Checkpoint
+weights still change between layers in shared model input buffers: the measured
+three-token run reads 1,483,858,944 weight bytes. KV caching does not make these
+weights permanently GPU-resident.
+
+The native numerical check compares every logit against the existing independent
+NumPy full-forward reference. `Hello` plus three new tokens and `Hello,` plus
+two both produce `Hello, I'm`, token IDs `15496 11 314 1101`.
+Across both inputs, each host compared 251,285 values: maximum absolute error
+1.90e-4 on Metal, 3.50e-4 on Intel and 3.22e-4 on OnePlus. The tolerance remains
+5e-4 absolute plus 1e-4 relative. Zero token budget, a full initial context and
+a prompt ending in EOS issue no GPU calls. Desktop checks also reject invalid
+prompt/budget inputs before dispatch and force generated EOS with a mock to
+verify all cache handles are released. Android logs confirm complete delegation.
+
+Reproduce numerical checks and timings after preparing the stage-14 fixture:
+
+```sh
+node scripts/mlrank-gpt2-kv-check.mjs /tmp/rank-gpt2-forward
+node scripts/mlrank-gpt2-kv-bench.mjs /tmp/rank-gpt2-forward
+```
+
+Both scripts accept `--fixture` for the corresponding Android Playwright
+templates. The timing check uses baseline/KV/KV/baseline order, a fresh
+interpreter for each run, the same `Hello` prompt and three generated tokens.
+Full-program time includes checkpoint verification, compilation and tokenization;
+desktop decode intervals exclude initial setup. Two runs per variant are a
+small sample, not a controlled throughput benchmark. The comparison measures
+the whole single-token implementation: the old baseline returns four rows of
+logits, whereas the new head returns one. Its readback payload falls from
+3,370,800 to 842,700 bytes per three-token run, so the timing difference cannot
+be attributed to the K/V cache alone.
+
+The four-token shape is still a correctness fixture. Longer contexts, batched
+prefill, in-place cache writes, sampling, retained residuals, and cleanup after
+abrupt Android worker termination remain separate work.
+
+
+ABBA full-program measurements for three generated tokens:
+
+| Host | Uncached runs | KV runs |
+| --- | ---: | ---: |
+| Mac / Metal | 1.33–1.65 s | 0.92–1.00 s |
+| Intel / jack | 10.21–11.51 s | 9.16–9.39 s |
+| OnePlus / Adreno | 79.94–80.00 s | 69.60–71.79 s |
+
+Desktop decode intervals were 382–426 ms versus 240–277 ms on Metal,
+and 2.94–3.39 s versus 2.69–2.86 s on Intel. Android timings above are full
+program execution, not per-token latency. The full reports are in
+[`2026-10-29-mlrank-gpt2-kv.json`](../../benchmarks/baselines/2026-10-29-mlrank-gpt2-kv.json).

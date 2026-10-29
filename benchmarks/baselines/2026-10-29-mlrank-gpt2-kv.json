@@ -1,0 +1,308 @@
+{
+  "date": "2026-10-29",
+  "implementationCommit": "17e55427",
+  "scope": "GPT-2 twelve-layer sequential prefill/decode, four total tokens, F32",
+  "reference": "Pinned GPT-2 revision 607a30d783dfa663caf39e06633721c8d4cfcd7e; existing independent NumPy full-forward reference",
+  "tolerance": {
+    "absolute": 0.0005,
+    "relative": 0.0001
+  },
+  "correctness": {
+    "mac": {
+      "text": "Hello, I'm",
+      "tokens": [
+        15496,
+        11,
+        314,
+        1101
+      ],
+      "runs": [
+        {
+          "prompt": "Hello",
+          "maxNew": 4,
+          "wallMs": 1385.247709,
+          "gpuCalls": 300,
+          "finalStateBytes": 0,
+          "fileBytesRead": 1483858944
+        },
+        {
+          "prompt": "Hello,",
+          "maxNew": 2,
+          "wallMs": 839.9650420000003,
+          "gpuCalls": 249,
+          "finalStateBytes": 0,
+          "fileBytesRead": 1329463296
+        }
+      ],
+      "boundaries": [
+        "token limit",
+        "context limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most four",
+        "nonnegative",
+        "integer"
+      ],
+      "generatedEosMockVerified": true,
+      "valuesCompared": 251285,
+      "maxError": 0.000189527071000839,
+      "retainedOutputs": 144,
+      "stateInputsReused": 264,
+      "peakStateBytes": 328704,
+      "loads": 45,
+      "peakResidentStates": 14
+    },
+    "intel": {
+      "text": "Hello, I'm",
+      "tokens": [
+        15496,
+        11,
+        314,
+        1101
+      ],
+      "runs": [
+        {
+          "prompt": "Hello",
+          "maxNew": 4,
+          "wallMs": 10300.346823,
+          "gpuCalls": 300,
+          "finalStateBytes": 0,
+          "fileBytesRead": 1483858944
+        },
+        {
+          "prompt": "Hello,",
+          "maxNew": 2,
+          "wallMs": 8207.324969000001,
+          "gpuCalls": 249,
+          "finalStateBytes": 0,
+          "fileBytesRead": 1329463296
+        }
+      ],
+      "boundaries": [
+        "token limit",
+        "context limit",
+        "eos"
+      ],
+      "invalid": [
+        "at least one",
+        "at most four",
+        "nonnegative",
+        "integer"
+      ],
+      "generatedEosMockVerified": true,
+      "valuesCompared": 251285,
+      "maxError": 0.0003494966798598398,
+      "retainedOutputs": 144,
+      "stateInputsReused": 264,
+      "peakStateBytes": 328704,
+      "loads": 45,
+      "peakResidentStates": 14
+    },
+    "oneplus": {
+      "text": "Hello, I'm",
+      "tokens": [
+        15496,
+        11,
+        314,
+        1101
+      ],
+      "runs": [
+        {
+          "prompt": "Hello",
+          "wallMs": 77350.19999998808,
+          "gpuCalls": 300,
+          "finalStateBytes": 0
+        },
+        {
+          "prompt": "Hello,",
+          "wallMs": 64340.69999998808,
+          "gpuCalls": 249,
+          "finalStateBytes": 0
+        }
+      ],
+      "boundaries": [
+        "token limit",
+        "context limit",
+        "eos"
+      ],
+      "valuesCompared": 251285,
+      "maxError": 0.0003215610061602092,
+      "retainedOutputs": 144,
+      "stateInputsReused": 264,
+      "cacheReadbackRequests": 0
+    }
+  },
+  "timings": {
+    "mac": {
+      "order": "baseline,kv,kv,baseline",
+      "includes": "Full program including model compilation, file verification, tokenization and GPU work; decode intervals exclude initial setup",
+      "runs": [
+        {
+          "mode": "baseline",
+          "totalMs": 1652.471375,
+          "firstTokenMs": 837.361625,
+          "decodeMs": [
+            426.25749999999994,
+            381.82779200000004
+          ],
+          "gpuCalls": 237,
+          "retainedOutputs": 0,
+          "readbackBytes": 3370800
+        },
+        {
+          "mode": "kv",
+          "totalMs": 996.4286669999999,
+          "firstTokenMs": 471.5590420000001,
+          "decodeMs": [
+            277.43283299999985,
+            239.58354199999985
+          ],
+          "gpuCalls": 300,
+          "retainedOutputs": 72,
+          "readbackBytes": 842700
+        },
+        {
+          "mode": "kv",
+          "totalMs": 922.7829590000001,
+          "firstTokenMs": 434.0810419999998,
+          "decodeMs": [
+            241.11770800000022,
+            240.51004199999988
+          ],
+          "gpuCalls": 300,
+          "retainedOutputs": 72,
+          "readbackBytes": 842700
+        },
+        {
+          "mode": "baseline",
+          "totalMs": 1333.1201250000004,
+          "firstTokenMs": 556.1242499999998,
+          "decodeMs": [
+            386.149625,
+            383.10200000000077
+          ],
+          "gpuCalls": 237,
+          "retainedOutputs": 0,
+          "readbackBytes": 3370800
+        }
+      ],
+      "medianTotalMs": {
+        "baseline": 1492.7957500000002,
+        "kv": 959.605813
+      },
+      "baselineOverKv": 1.5556343341992658
+    },
+    "intel": {
+      "order": "baseline,kv,kv,baseline",
+      "includes": "Full program including model compilation, file verification, tokenization and GPU work; decode intervals exclude initial setup",
+      "runs": [
+        {
+          "mode": "baseline",
+          "totalMs": 11505.928205,
+          "firstTokenMs": 4767.79321,
+          "decodeMs": [
+            3313.671807999999,
+            3391.9442310000013
+          ],
+          "gpuCalls": 237,
+          "retainedOutputs": 0,
+          "readbackBytes": 3370800
+        },
+        {
+          "mode": "kv",
+          "totalMs": 9390.620049000001,
+          "firstTokenMs": 3785.7090449999996,
+          "decodeMs": [
+            2857.652299000001,
+            2692.0835819999993
+          ],
+          "gpuCalls": 300,
+          "retainedOutputs": 72,
+          "readbackBytes": 842700
+        },
+        {
+          "mode": "kv",
+          "totalMs": 9161.369139999999,
+          "firstTokenMs": 3610.7126739999985,
+          "decodeMs": [
+            2697.3182140000026,
+            2797.241295
+          ],
+          "gpuCalls": 300,
+          "retainedOutputs": 72,
+          "readbackBytes": 842700
+        },
+        {
+          "mode": "baseline",
+          "totalMs": 10205.441627,
+          "firstTokenMs": 4120.757731000005,
+          "decodeMs": [
+            3126.3088869999992,
+            2939.2309819999937
+          ],
+          "gpuCalls": 237,
+          "retainedOutputs": 0,
+          "readbackBytes": 3370800
+        }
+      ],
+      "medianTotalMs": {
+        "baseline": 10855.684916,
+        "kv": 9275.9945945
+      },
+      "baselineOverKv": 1.1702987539941694
+    },
+    "oneplus": {
+      "order": "baseline,kv,kv,baseline",
+      "includes": "Full worker execute including file verification and model compilation; fresh interpreter each run",
+      "runs": [
+        {
+          "mode": "baseline",
+          "totalMs": 79997.5,
+          "gpuCalls": 237,
+          "retainedOutputs": 0,
+          "readbackBytes": 3370800
+        },
+        {
+          "mode": "kv",
+          "totalMs": 69600,
+          "gpuCalls": 300,
+          "retainedOutputs": 72,
+          "readbackBytes": 842700
+        },
+        {
+          "mode": "kv",
+          "totalMs": 71788.20000000298,
+          "gpuCalls": 300,
+          "retainedOutputs": 72,
+          "readbackBytes": 842700
+        },
+        {
+          "mode": "baseline",
+          "totalMs": 79941.40000000596,
+          "gpuCalls": 237,
+          "retainedOutputs": 0,
+          "readbackBytes": 3370800
+        }
+      ],
+      "medianTotalMs": {
+        "baseline": 79969.45000000298,
+        "kv": 70694.10000000149
+      },
+      "baselineOverKv": 1.1312040184400296
+    }
+  },
+  "limitations": [
+    "Two timing runs per variant in ABBA order; not a controlled throughput benchmark",
+    "Timing gain includes single-token MLP and vocabulary head, not only KV caching",
+    "Weights are reread across layers and tokens",
+    "Abrupt Android worker termination can leave retained native states"
+  ],
+  "androidUI": {
+    "notebookId": "c9f7fbd2-ca51-4d15-8a79-b54dd9bbd996",
+    "title": "GPT-2 GPU KV cache",
+    "text": "Hello, I'm",
+    "savedAndRun": true
+  }
+}
