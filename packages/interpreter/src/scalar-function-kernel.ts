@@ -14,6 +14,7 @@ import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { argumentSelectionError, RankError } from './errors.js';
 import { recordFallback } from './diagnostics.js';
 import type { RankArray, RankValue } from './value.js';
+import type { LoopCallable } from './integer-loop-plan.js';
 import { scalarArrayWriteOffset } from './selectors.js';
 import { checkedArrayDimension } from './tensor-index.js';
 import { arrayForWrite, ownedArray, noteArrayBinding, readArrayItem, borrowArrayStorage, prepareScalarArrayWriter, prepareArrayReader, prepareScalarArrayReader, prepareMatrixArrayReader } from './array-storage.js';
@@ -46,12 +47,203 @@ interface Kernel {
     readonly guards: readonly string[];
     readonly modules: readonly string[];
     readonly locations: readonly (Statement | Expression)[];
-    run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly ((arguments_: RankValue[]) => RankValue)[],
-        userCalls?: readonly ((arguments_: RankValue[], tail?: boolean) => RankValue)[],
+    run(arguments_: RankValue[], locate: (error: unknown, index: number) => unknown, calls?: readonly LoopCallable[],
+        userCalls?: readonly LoopCallable[],
         memberships?: readonly ((value: bigint) => boolean)[],
         captures?: readonly ((indices: bigint[]) => bigint)[], scalars?: readonly (() => RankValue)[], planConsumed?: () => void, rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[]): RankValue;
+    readonly direct?: (locate: (error: unknown, index: number) => unknown,
+        calls?: readonly LoopCallable[],
+        userCalls?: readonly LoopCallable[],
+        memberships?: readonly ((value: bigint) => boolean)[],
+        captures?: readonly ((indices: bigint[]) => bigint)[],
+        scalars?: readonly (() => RankValue)[],
+        planConsumed?: () => void,
+        rankedCalls?: readonly (() => (arguments_: RankValue[]) => RankValue)[]) => LoopCallable;
+    readonly numberDirect?: (locate: (error: unknown, index: number) => unknown,
+        safe: (val: number) => number,
+        zero: () => Error,
+        overflow: unknown,
+        checkpoint: () => void) => LoopCallable;
 }
 const kernels = new WeakMap<ScalarFunctionProof, Kernel | null>();
+
+function compileScalarNumberKernel(
+    statement: FunctionStatement,
+    proof: ScalarFunctionProof,
+    parameterTypes: readonly CompiledCalleeType[],
+    locations: readonly (Statement | Expression)[],
+): Kernel['numberDirect'] | undefined {
+    if (proof.containers || proof.arrayWrites.size || proof.planCalls.length
+        || proof.planBindings.size || proof.planReturn || proof.nativeReads.length
+        || proof.dependencies.length || proof.callCount > 0) return undefined;
+    const isNumType = (t: CompiledCalleeType) => t === 'integer' || t === 'real' || t === 'boolean';
+    if (!isNumType(proof.type) || !parameterTypes.every(isNumType)) return undefined;
+
+    const slots = new Map<string, number>();
+    const slot = (name: string): string => {
+        if (!slots.has(name)) slots.set(name, slots.size);
+        return `r${slots.get(name)}`;
+    };
+    statement.parameters.forEach(slot);
+    let serial = 0;
+
+    function emitNum(expression: Expression, lines: string[]): string | undefined {
+        const compiled = proof.expressions.get(expression);
+        if (!compiled) return undefined;
+        return lowerNum(compiled, lines);
+    }
+
+    function lowerNum(compiled: CompiledExpression<CompiledCalleeType, ScalarFunctionInput>, lines: string[]): string | undefined {
+        if (compiled.kind === 'group') return lowerNum(compiled.operand, lines);
+        if (compiled.kind === 'literal') {
+            if (typeof compiled.value === 'bigint') {
+                const n = Number(compiled.value);
+                if (!Number.isSafeInteger(n)) return undefined;
+                return String(n);
+            }
+            if (typeof compiled.value === 'number') {
+                return Object.is(compiled.value, -0) ? '-0' : String(compiled.value);
+            }
+            if (typeof compiled.value === 'boolean') return String(compiled.value);
+            return undefined;
+        }
+        if (compiled.kind === 'input') {
+            if (compiled.input.operation) return undefined;
+            return slot(compiled.input.name);
+        }
+        if (compiled.kind === 'unary') {
+            const val = lowerNum(compiled.operand, lines);
+            if (!val) return undefined;
+            const res = `v${serial++}`;
+            if (compiled.operation.name === '-') {
+                lines.push(`const ${res} = safe(-(${val}));`);
+            } else if (compiled.operation.name === 'not') {
+                lines.push(`const ${res} = !(${val});`);
+            } else return undefined;
+            return res;
+        }
+        if (compiled.kind === 'extreme') {
+            const left = lowerNum(compiled.left, lines);
+            if (!left) return undefined;
+            if (!compiled.right) return left;
+            const right = lowerNum(compiled.right, lines);
+            if (!right) return undefined;
+            const res = `v${serial++}`;
+            lines.push(`const ${res} = ${scalarExtremeSource(compiled.name, left, right)};`);
+            return res;
+        }
+        if (compiled.kind === 'call') return undefined;
+        const op = compiled.operation.name;
+        if (op === 'and' || op === 'or') {
+            const left = lowerNum(compiled.left, lines);
+            if (!left) return undefined;
+            const res = `v${serial++}`, guarded: string[] = [];
+            const right = lowerNum(compiled.right, guarded);
+            if (!right) return undefined;
+            lines.push(`let ${res} = ${left}; if (${op === 'and' ? '' : '!'}${res}) { ${guarded.join('\n')} ${res} = ${right}; }`);
+            return res;
+        }
+        const left = lowerNum(compiled.left, lines), right = lowerNum(compiled.right, lines);
+        if (!left || !right) return undefined;
+        const res = `v${serial++}`;
+        if (op === '+' || op === '-' || op === '*') {
+            const isInteger = compiled.signature.result === 'integer';
+            const calc = `(${left}) ${compiled.operation.binary} (${right})`;
+            lines.push(`const ${res} = ${isInteger ? `safe(${calc})` : calc};`);
+        } else if (op === '/' || op === '//' || op === 'mod' || op === '**') {
+            if (op === '/') {
+                lines.push(`if (${right} === 0) throw zero();`);
+                lines.push(`const ${res} = (${left}) / (${right});`);
+            } else if (op === '//' || op === 'mod') {
+                lines.push(`if (${right} === 0) throw zero();`);
+                const remainder = `v${serial++}`;
+                lines.push(`const ${remainder} = (${left}) % (${right});`);
+                lines.push(`const ${res} = ${binaryOperatorSource(compiled.operation, left, right, { number: true, remainder, safe: s => `safe(${s})` })};`);
+            } else if (op === '**') {
+                lines.push(`if (${left} === 0 && (${right}) < 0) throw zero();`);
+                lines.push(`const ${res} = safe((${left}) ** (${right}));`);
+            }
+        } else if (['<', '<=', '>', '>=', '==', '!=', 'equal', 'notequal'].includes(op) || compiled.operation.binary) {
+            lines.push(`const ${res} = (${left}) ${compiled.operation.binary} (${right});`);
+        } else return undefined;
+        return res;
+    }
+
+    function lowerCommands(statements: readonly Statement[], lines: string[]): boolean {
+        for (const cmd of statements) {
+            const loc = locations.indexOf(cmd);
+            lines.push(`location = ${loc};`);
+            if (isReturnStatement(cmd)) {
+                if (!cmd.value) { lines.push('return undefined;'); continue; }
+                const val = emitNum(cmd.value, lines);
+                if (!val) return false;
+                lines.push(`return ${proof.type === 'integer' ? `safe(${val})` : val};`);
+            } else if (isExpressionStatement(cmd)) {
+                if (!emitNum(cmd.value, lines)) return false;
+            } else if (isAssignmentStatement(cmd)) {
+                let val = emitNum(cmd.value, lines);
+                if (!val) return false;
+                if (cmd.operator !== '=') {
+                    const op = findCompiledOperator(cmd.operator.slice(0, -1));
+                    if (!op) return false;
+                    const prev = slot(cmd.name);
+                    const calc = `(${prev}) ${op.binary} (${val})`;
+                    val = proof.expressions.get(cmd.value)?.type === 'integer' ? `safe(${calc})` : calc;
+                } else if (proof.expressions.get(cmd.value)?.type === 'integer') {
+                    val = `safe(${val})`;
+                }
+                lines.push(`${slot(cmd.name)} = ${val};`);
+            } else if (isIfStatement(cmd)) {
+                const branches = [{ condition: cmd.condition, statements: cmd.thenStatements }, ...cmd.elifClauses];
+                for (const branch of branches) {
+                    const cond = emitNum(branch.condition, lines);
+                    if (!cond) return false;
+                    lines.push(`if (${cond}) {`);
+                    if (!lowerCommands(branch.statements, lines)) return false;
+                    lines.push('} else {');
+                }
+                if (!lowerCommands(cmd.elseStatements, lines)) return false;
+                lines.push('}'.repeat(branches.length));
+            } else if (isForStatement(cmd)) {
+                const binding = forIteration(cmd.condition);
+                if (!binding && cmd.condition) {
+                    lines.push('for (;;) { checkpoint();');
+                    const cond = emitNum(cmd.condition, lines);
+                    if (!cond) return false;
+                    lines.push(`if (!(${cond})) break;`);
+                    if (!lowerCommands(cmd.statements, lines)) return false;
+                    lines.push('}');
+                } else {
+                    return false;
+                }
+            } else if (isBreakStatement(cmd)) {
+                lines.push('break;');
+            } else if (isContinueStatement(cmd)) {
+                lines.push('continue;');
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    const lines: string[] = [];
+    if (!lowerCommands(statement.statements, lines)) return undefined;
+    const paramNames = statement.parameters.map((_, i) => `r${i}`);
+    const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
+    const source = `"use strict"; return function(locate, safe, zero, overflow, checkpoint) {
+        return function(${paramNames.join(',')}) {
+            ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
+            let location = -1;
+            try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+        };
+    };`;
+    try {
+        return new Function(source)() as Kernel['numberDirect'];
+    } catch {
+        return undefined;
+    }
+}
 
 // Callers prove the selected argument types and private local assignments before binding.
 // The kernel has no environment access; cached code retains only syntax metadata.
@@ -163,7 +355,9 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
                     types: callee?.types ?? expression.input.indices!.map(argument => argument.type),
                     locals: callee?.proof.locals ?? proof!.locals, tail, recursive: operation === 'self-call', captures: callee?.captures }) - 1;
                 const result = `v${serial++}`;
-                lines.push(`const ${result} = userCalls[${index}]([${arguments_.join(',')}], ${tail});`);
+                lines.push(tail
+                    ? `const ${result} = userCalls[${index}]([${arguments_.join(',')}], true);`
+                    : `const ${result} = userCalls[${index}](${arguments_.join(',')});`);
                 return result;
             }
             if (operation === 'sequence-contains' || operation === 'sequence-not-contains') {
@@ -267,7 +461,7 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
             const index = calls.push({ operation: expression.operation, inputs: expression.arguments.map(({ type }) => typeof type === 'string' ? type
                 : !isCompiledContainer(type) && (type.element === 'text' || type.element === 'integer') && type.rank === 1 ? `${type.element}-array` : 'array') }) - 1;
             const result = `v${serial++}`;
-            lines.push(`const ${result} = calls[${index}]([${arguments_.join(',')}]);`);
+            lines.push(`const ${result} = calls[${index}](${arguments_.join(',')});`);
             return result;
         }
         const operator = expression.operation.name;
@@ -458,6 +652,20 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
         let location = -1;
         try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
     };`;
+    const paramNames = statement.parameters.map((_, i) => `r${i}`);
+    const localSlots = [...slots.values()].filter(i => i >= statement.parameters.length).map(i => `r${i}`);
+    const directSource = `"use strict"; return function(locate, calls, userCalls, memberships, captures, scalars, planConsumed, rankedCalls) {
+        return function(${paramNames.join(',')}) {
+            ${proof.planCalls.length ? 'const mappedCalls = [];' : ''}
+            ${stableCaptures && scalarCaptures.length ? 'const scalarValues = scalars.map(read => read());' : ''}
+            ${localSlots.length ? `let ${localSlots.join(',')};` : ''}
+            ${slots.size ? `let ${[...slots.values()].map(index => `reader${index}`).join(',')};` : ''}
+            ${writtenSlots.size ? `let ${[...writtenSlots].map(name => `write${slots.get(name)}`).join(',')};` : ''}
+            ${(proof.arrayWrites.size || proof.planBindings.size) && paramNames.length ? `${paramNames.map(p => `noteArrayBinding(${p});`).join('')}` : ''}
+            let location = -1;
+            try { ${lines.join('\n')} } catch (error) { throw locate(error, location); }
+        };
+    };`;
     let kernel: Kernel | undefined;
     const prepareWriter = (value: RankValue) => prepareScalarArrayWriter(
         !calls.length && !userCalls.length && !proof.planCalls.length && privateLoopPolling() ? borrowArrayStorage(value) : value);
@@ -477,7 +685,45 @@ export function compileScalarFunction(statement: FunctionStatement, parameterTyp
     const writable = (array: RankArray) => {
         if (array.itemAt !== undefined && !hasDeferredSelectionCopy(array)) throw new RankError('cannot assign to a lazy array');
     };
-    try { kernel = { source, plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'), dequeIteration, setMembership, locations, calls, userCalls, rankedCalls: proof.planCalls, scalarCaptures, memberships, captures, guards: proof.nativeReads, modules: proof.modules, run: new Function('RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection', 'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension', 'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem', 'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection', 'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setHas', 'textAt', 'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems', source)(RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection, indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension, membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem, prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection, textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setHas, textAt, sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems) as Kernel['run'] }; }
+    const kernelArguments = [
+        RankError, scalarSelection, noteArrayBinding, checkpoint, newStructure, addToCollection, expectAddCollection,
+        indexGet, indexHas, indexRead, indexSet, checkValueMutable, indexKey, ownedArray, checkedArrayDimension,
+        membershipLookup, scalarArrayWriteOffset, arrayForWrite, takeDropValue, copyArray, readArrayItem,
+        prepareWriter, prepareReader, writable, materializeValue, argumentSelectionError, materializeCollection,
+        textPoints, integerValue, formatValue, broadcastShape, FunctionPlanDemandError, setHas, textAt,
+        sortValue, argsortValue, uniqueValue, applySelectors, compareCells, unpackApplicationItems,
+    ];
+    const kernelParameterNames = [
+        'RankError', 'scalarSelection', 'noteArrayBinding', 'checkpoint', 'newStructure', 'addToCollection', 'expectAddCollection',
+        'indexGet', 'indexHas', 'indexRead', 'indexSet', 'checkValueMutable', 'indexKey', 'ownedArray', 'checkedArrayDimension',
+        'membershipLookup', 'scalarArrayWriteOffset', 'arrayForWrite', 'takeDropValue', 'copyArray', 'readArrayItem',
+        'prepareWriter', 'prepareReader', 'writable', 'materializeValue', 'argumentSelectionError', 'materializeCollection',
+        'textPoints', 'integerValue', 'formatValue', 'broadcastShape', 'FunctionPlanDemandError', 'setHas', 'textAt',
+        'sortValue', 'argsortValue', 'uniqueValue', 'applySelectors', 'compareCells', 'unpackApplicationItems',
+    ];
+    try {
+        const run = new Function(...kernelParameterNames, source)(...kernelArguments) as Kernel['run'];
+        const direct = new Function(...kernelParameterNames, directSource)(...kernelArguments) as Kernel['direct'];
+        const numberDirect = parameterTypes ? compileScalarNumberKernel(statement, proof, parameterTypes, locations) : undefined;
+        kernel = {
+            source,
+            plans: proof.planBindings.size > 0 || [...expressions.values()].some(expression => expression.kind === 'input' && expression.input.operation === 'plan'),
+            dequeIteration,
+            setMembership,
+            locations,
+            calls,
+            userCalls,
+            rankedCalls: proof.planCalls,
+            scalarCaptures,
+            memberships,
+            captures,
+            guards: proof.nativeReads,
+            modules: proof.modules,
+            run,
+            direct,
+            numberDirect,
+        };
+    }
     catch { /* CSP keeps the ordinary function implementation. */ }
     kernels.set(proof, kernel ?? null);
     return kernel ?? recordFallback('scalar-function:code-generation');

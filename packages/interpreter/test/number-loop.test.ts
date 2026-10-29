@@ -650,12 +650,17 @@ end`)))).toThrow('Interrupted');
 
     it.each([
         'use algo\nQ = queue\nfor I in 0 to 1\n Q push I\nend',
-        'fun N twice\n return N * 2\nend\nS = 0\nfor I in 0 to 1\n S += I twice\nend',
+        'use algo\nQ = queue\nfun N twice\n Q push N\n return N * 2\nend\nS = 0\nfor I in 0 to 1\n S += I twice\nend',
         'X = true\nfor I in 0 to 1\n Before = I\n X = I\nend',
         'X = 1.0\nfor I in 0 to 1\n Before = I\n X = I\nend',
     ])('retains the existing backend for effects and contracts: %s', source => {
         const diagnostics = compare(source);
         expect(diagnostics.numberLoops).toBe(0);
+    });
+
+    it('executes proven scalar helper calls in number loops', () => {
+        const diagnostics = compare('fun N twice\n return N * 2\nend\nS = 0\nfor I in 0 to 1\n S += I twice\nend');
+        expect(diagnostics.numberLoops).toBe(1);
     });
 
     it('supports ordinary cancellation polling with private registers', () => {

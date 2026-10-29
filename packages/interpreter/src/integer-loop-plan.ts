@@ -35,7 +35,9 @@ export interface LoopHost {
     readonly absolute: boolean;
     readonly reals: boolean;
     readonly scalarText: boolean;
-    prepareBuiltinCall(module: string, name: string, types: readonly string[], numberMode?: boolean): () => ((arguments_: RankValue[]) => RankValue) | undefined;
+    /** Binds a positional call `(a, b, ...)`: generated code passes registers
+     * directly, so a compiled call site allocates no argument array. */
+    prepareBuiltinCall(module: string, name: string, types: readonly string[], numberMode?: boolean): () => LoopCallable | undefined;
     prepareEffectCall(name: string, receiver: string, types: readonly string[]): () => ((arguments_: RankValue[]) => RankValue) | undefined;
     readonly nativeCalls: boolean;
     readonly sequenceMembership: boolean;
@@ -68,6 +70,10 @@ export interface LoopHost {
     compiled?(source: string): void;
     executed?(): void;
 }
+/** A bound call slot. Its calling convention belongs to the code that emitted
+ * the call site: positional registers for builtins and memberships, an
+ * argument array (plus tail flag) for user scalar functions. */
+export type LoopCallable = (...arguments_: never[]) => RankValue;
 export interface LoopTerm { code: string; type: CompiledLoopType; ascii?: boolean; selection?: boolean }
 
 /** The loop register type of a runtime value: one mapping for entry
@@ -106,7 +112,7 @@ export interface IntegerLoopPlan {
     localTypes: Map<string, LoopTerm['type']>;
     containers: Map<string, { slot: number; kind: 'index' | 'deque' | 'set'; integers: boolean; mode?: RankDeque['mode']; array?: { rank: number; type: LoopTerm['type'] } }>;
     builtins: Map<string, string>;
-    calls: { numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined }[];
+    calls: { numberSafe?: boolean; name: string; receiver?: string; locals: readonly string[]; stableArrayReads: boolean; bind(): LoopCallable | undefined }[];
     vectorIterations: { slot: number; binding: IterationBinding }[];
     iterators: ((source: RankArray | RankDeque | RankSet | string) => Iterable<RankValue>)[];
     writerNames: string[];

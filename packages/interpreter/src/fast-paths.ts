@@ -1,6 +1,6 @@
 import { selectValues } from './value-selection.js';
 import { sumCounterTensor } from './collections.js';
-import type { LoopHost, LoopContinuation } from './integer-loop-plan.js';
+import type { LoopHost, LoopContinuation, LoopCallable } from './integer-loop-plan.js';
 import { prepareEffectCall } from './effect-call.js';
 import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
 import type { CompiledCallee } from './compiled-callee.js';
@@ -35,7 +35,7 @@ import type { InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { copyArray } from './modules/sequences.js';
 import { ALL_AXIS, atArray, sliceArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
-import { prepareCompiledBuiltin } from './typed-native.js';
+import { preparePositionalBuiltin } from './typed-native.js';
 import { textAt } from './text-storage.js';
 import { isRankArray, isRankCounter, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
@@ -293,7 +293,7 @@ export class FastPaths {
             booleanLocals: this.context.options().booleanLoopCompilation !== false,
             scalarText: this.context.options().scalarTextCompilation !== false,
             nativeCalls: this.context.options().nativeLoopCompilation !== false,
-            prepareBuiltinCall: (module, name, types, numberMode) => prepareCompiledBuiltin(this.context, module, name, types, numberMode),
+            prepareBuiltinCall: (module, name, types, numberMode) => preparePositionalBuiltin(this.context, module, name, types, numberMode),
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({
                 read: name => this.context.bindings.find(name), module: name => this.context.modules.has(name),
             }, name, receiver, types),
@@ -450,13 +450,18 @@ export class FastPaths {
             const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true, [], scalarTypes);
             if (!proof || proof.planReturn || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
+            const isScalarType = (type: CompiledCalleeType): boolean =>
+                type === 'integer' || type === 'real' || type === 'boolean' || type === 'text';
+            const stableReads = typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size;
+            const numberSafe = stableReads && isScalarType(proof.type) && types.every(isScalarType);
             return {
                 parameters: types,
                 effects: {
                     writes: types.flatMap((type, index) => isCompiledContainer(type) ? [index] : []),
-                    stableArrayReads: typeof proof.type === 'string' && !proof.containers && !proof.arrayWrites.size,
+                    stableArrayReads: stableReads,
                 },
                 type: proof.type,
+                numberSafe,
                 locals: [...(captures ? proof.locals : []), ...proof.nativeReads, ...proof.dependencies],
                 bind: () => {
                     const current = this.context.bindings.find(name);
@@ -466,14 +471,41 @@ export class FastPaths {
                         || proof.locals.some(local => active.context?.find(local))) return undefined;
                     const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
                     if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
-                    return (arguments_, tail = false) => {
-                        if (tail && active.owner === this.context.functions) {
-                            throw new TailCallSignal(active, arguments_,
-                                this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
+                    return ((...arguments_: RankValue[]) => {
+                        if (arguments_.length === 2 && Array.isArray(arguments_[0]) && typeof arguments_[1] === 'boolean') {
+                            const [args, tail] = arguments_ as unknown as [RankValue[], boolean];
+                            if (tail && active.owner === this.context.functions) {
+                                throw new TailCallSignal(active, args,
+                                    this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
+                            }
+                            return compiled ? (compiled.direct ? compiled.direct(...args) : compiled(args, tail)) : current.call(args);
                         }
-                        return compiled ? compiled(arguments_) : current.call(arguments_);
-                    };
+                        return compiled?.direct ? compiled.direct(...arguments_) : compiled ? compiled(arguments_) : current.call(arguments_);
+                    }) as LoopCallable;
                 },
+                bindNumber: numberSafe ? () => {
+                    const current = this.context.bindings.find(name);
+                    if (!current || !isNativeFunction(current)) return undefined;
+                    const active = this.context.functions.definitionOf(current);
+                    if (active?.statement !== statement || (active.context !== undefined) !== captures
+                        || proof.locals.some(local => active.context?.find(local))) return undefined;
+                    const compiled = active.owner.prepareScalarCall(statement, active.context, types, true, scalarTypes);
+                    if ((proof.nativeReads.length || proof.dependencies.length) && !compiled || compiled?.available && !compiled.available()) return undefined;
+                    if (compiled?.numberDirect) return compiled.numberDirect as unknown as LoopCallable;
+                    const direct = compiled?.direct ?? ((...args: RankValue[]) => compiled ? compiled(args) : current.call(args));
+                    const widen = types.map(t => t === 'integer');
+                    const narrow = proof.type === 'integer' ? (v: RankValue) => typeof v === 'bigint' ? Number(v) : v : (v: RankValue) => v;
+                    if (arity === 1) {
+                        const w0 = widen[0];
+                        return ((a: number) => narrow(direct(w0 ? BigInt(a) : a))) as unknown as LoopCallable;
+                    }
+                    if (arity === 2) {
+                        const w0 = widen[0], w1 = widen[1];
+                        return ((a: number, b: number) => narrow(direct(w0 ? BigInt(a) : a, w1 ? BigInt(b) : b))) as unknown as LoopCallable;
+                    }
+                    return ((...arguments_: number[]) =>
+                        narrow(direct(...arguments_.map((v, i) => widen[i] ? BigInt(v) : v)))) as unknown as LoopCallable;
+                } : undefined,
             };
         };
     }

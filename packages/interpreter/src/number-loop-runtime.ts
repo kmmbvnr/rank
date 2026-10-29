@@ -7,11 +7,12 @@ import { currentDiagnostics, recordFallback } from './diagnostics.js';
 import { checkpoint, privateLoopPolling } from './interrupt.js';
 import { arrayRevision, denseScalarItems, materializedArrayItems, hasPendingSelections, arrayForWrite, borrowArrayStorage, prepareScalarArrayWriter, typedElementKind, integer32Cells, writeInteger32Cells, writableIntegerCells, writableRealCells, hasWritableBooleanCells, typedArray } from './array-storage.js';
 import { isRankArray, type RankArray, type RankValue } from './value.js';
-import type { CompiledLoop, IntegerLoopPlan, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
+import type { CompiledLoop, IntegerLoopPlan, LoopCallable, LoopHost, LoopTerm, LoopWorkFeedback } from './integer-loop-plan.js';
 
 // Internal control transfer, never exposed as a Rank error or converted to BigInt.
 type NumberCells = ArrayLike<number | bigint>;
-const overflow = {};
+export const numberOverflow = {};
+const overflow = numberOverflow;
 /** Fresh local storage stays private until publication. In particular, a later
  * allocation cannot replace the array retained as a previous iteration result. */
 class PrivateIntegerArray {
@@ -130,7 +131,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
         ${publish}
         return { value: result, type: resultType };
     };`;
-    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: ((arguments_: RankValue[]) => RankValue)[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
+    type Run = (input: unknown[], cells: NumberCells[], changes: Uint8Array[], calls: LoopCallable[], publish: (entered: boolean[], values: [number, number, unknown][]) => void) => { value: unknown; type: string; work?: number } | undefined;
     let run: Run;
     let countedRun: Run | undefined;
     const compile = (code: string): Run => new Function('safe', 'int32', 'overflow', 'zero', 'badStep', 'checkpoint', 'locate', 'badSlice', 'badIndex', 'domain', 'powerZero', 'powerDomain', 'badWriteIndex', 'argumentSelectionError', 'isqrt', 'divide', 'power', 'widePower', 'dimension', 'createArray', 'shapeMismatch', 'copyArray', code)(
@@ -164,7 +165,7 @@ export function prepareNumberLoop(plan: IntegerLoopPlan, host: LoopHost, feedbac
     return { run: (insideFinally = false) => {
         if (plan.hasControl && insideFinally || !privateLoopPolling()) return undefined;
         for (const [name, module] of plan.builtins) if (!host.builtin(module, name)) return undefined;
-        const calls: ((arguments_: RankValue[]) => RankValue)[] = [];
+        const calls: LoopCallable[] = [];
         for (const call of plan.calls) {
             const bound = call.bind();
             if (!bound) return undefined;

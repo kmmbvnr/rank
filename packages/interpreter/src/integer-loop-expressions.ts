@@ -340,7 +340,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
         // no Rank callbacks; bind() checks the current builtin.
         calls.push({ name: operation.name, locals: [], stableArrayReads: true, numberSafe: numberMode,
             bind: host.prepareBuiltinCall(operation.module, operation.name, types, numberMode) });
-        const code = `calls[${index}]([${arguments_.join(',')}])`;
+        const code = `calls[${index}](${arguments_.join(',')})`;
         lines.push(`const ${name} = ${numberMode && signature.result === 'integer' ? safe(code) : code};`);
         return { code: name, type: signature.result };
     }
@@ -689,7 +689,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     && (host.module(operation.module) || !prepareCallee)) {
                     return emitBuiltinCall(operation, parts.slice(0, -1), lines);
                 }
-                if (prepareCallee && !numberMode) {
+                if (prepareCallee) {
                     const arguments_: string[] = [];
                     const types: CompiledCalleeType[] = [];
                     for (let part of parts.slice(0, -1)) {
@@ -699,6 +699,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         if (current && isNameExpression(part) && (current instanceof RankDeque
                             || isRankIndex(current) && current.entries instanceof ResourceMap
                             || isRankSet(current) && current.entries instanceof IntegerEntries && current.entries.integers)) {
+                            if (numberMode) return undefined;
                             const kind = current instanceof RankDeque ? 'deque' : isRankSet(current) ? 'set' : 'index';
                             const receiver = container(part.name, kind);
                             if (!receiver) return undefined;
@@ -713,7 +714,7 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         const type = existing ? { kind: 'array' as const, element: existing.type, rank: existing.rank }
                             : current === undefined ? undefined : compiledArgumentType(current);
                         if (type && typeof type !== 'string' && isNameExpression(part)) {
-                            if (!host.arrayReads || type.element === 'real' || type.element === 'bytes'
+                            if (numberMode || !host.arrayReads || type.element === 'real' || type.element === 'bytes'
                                 || type.element === 'text' && !host.textArrayLoops
                                 || type.element === 'boolean' && !host.booleanArrays) return undefined;
                             const info = existing ?? { slot: slot(part.name), rank: type.rank, type: type.element };
@@ -731,9 +732,10 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                     }
                     const callable = prepareCallee(types);
                     if (callable?.type === 'real' && !host.reals) return reject(e, 'unsupported-type:real');
+                    if (numberMode && (!callable?.numberSafe || !callable.bindNumber || callable.locals.some(name => destinations.has(name) || arrays.has(name)))) return undefined;
                     if (callable) {
                         if (typeof callable.type !== 'string') {
-                            if (!host.arrayLocals || callable.type.element === 'real'
+                            if (numberMode || !host.arrayLocals || callable.type.element === 'real'
                                 || callable.type.element === 'boolean' && !host.booleanArrays
                                 || callable.type.element === 'text' && !host.textArrayLoops) return undefined;
                             state.hasArrayCall = true;
@@ -741,8 +743,27 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                         const name = `v${state.serial++}`, index = calls.length;
                         // The proof fixes input domains and permitted mutations.
                         // Binding identity is rechecked at every region entry.
-                        calls.push({ name: last.name, locals: callable.locals, stableArrayReads: callable.effects.stableArrayReads, bind: callable.bind });
-                        lines.push(`const ${name} = calls[${index}]([${arguments_.join(',')}]${tail ? ', tailCallsAllowed' : ''});`);
+                        if (numberMode) {
+                            calls.push({
+                                name: last.name,
+                                locals: callable.locals,
+                                stableArrayReads: callable.effects.stableArrayReads,
+                                numberSafe: true,
+                                bind: () => callable.bindNumber!(),
+                            });
+                            const callCode = `calls[${index}](${arguments_.join(',')})`;
+                            lines.push(`const ${name} = ${callable.type === 'integer' ? safe(callCode) : callCode};`);
+                        } else {
+                            calls.push({
+                                name: last.name,
+                                locals: callable.locals,
+                                stableArrayReads: callable.effects.stableArrayReads,
+                                bind: callable.bind,
+                            });
+                            lines.push(tail
+                                ? `const ${name} = calls[${index}]([${arguments_.join(',')}], tailCallsAllowed);`
+                                : `const ${name} = calls[${index}](${arguments_.join(',')});`);
+                        }
                         return { code: name, type: callable.type };
                     }
                 }
@@ -824,10 +845,9 @@ export function createLoopExpressions(state: LoopCompilationState, wide = false)
                 calls.push({ name, locals: [], stableArrayReads: true, bind: () => {
                     const domain = host.read(name);
                     if (domain && isRankArray(domain) && (destinations.size || calls.some(call => !call.stableArrayReads))) return undefined;
-                    const contains = compiledIntegerMembership(domain);
-                    return contains ? arguments_ => contains(arguments_[0] as bigint) : undefined;
+                    return compiledIntegerMembership(domain);
                 } });
-                return { code: `${negate}calls[${index}]([${key.code}])`, type: 'boolean' };
+                return { code: `${negate}calls[${index}](${key.code})`, type: 'boolean' };
             }
             if (isRankSet(host.read(name)!)) {
                 const receiver = container(name, 'set');

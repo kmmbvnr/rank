@@ -43,7 +43,9 @@ import { compileDistinctFunction } from './distinct-function.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { FunctionPlanDemandError } from './function-plan.js';
-import { prepareCompiledBuiltin } from './typed-native.js';
+import { preparePositionalBuiltin } from './typed-native.js';
+import type { LoopCallable } from './integer-loop-plan.js';
+import { numberOverflow } from './number-loop-runtime.js';
 import { nativeSetMembership } from './collections.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
@@ -703,35 +705,40 @@ export class FunctionInvocation {
                 || call.locals.some(name => definition.context?.find(name))) return undefined;
             if (call.recursive) {
                 if (definition.owner !== this || definition.context !== context) return undefined;
-                return (arguments_: RankValue[], tail = false) => {
+                if (call.tail) {
+                    return ((arguments_: RankValue[]) => {
+                        checkpoint();
+                        throw new TailCallSignal(definition, arguments_, run);
+                    }) as LoopCallable;
+                }
+                return ((...arguments_: RankValue[]) => {
                     checkpoint();
-                    if (tail) throw new TailCallSignal(definition, arguments_, run);
-                    // Keep shallow searches compiled, but transfer deep calls
-                    // to resumable frames before exhausting the host stack.
                     if (this.scalarHostDepth >= 128) {
                         this.scalarFallbackDepth++;
                         try { return runExecution(this.callFunction(statement, arguments_, context)); }
                         finally { this.scalarFallbackDepth--; }
                     }
-                    return run(arguments_);
-                };
+                    return run.direct ? run.direct(...arguments_) : run(arguments_);
+                }) as LoopCallable;
             }
             const compiled = definition.owner.prepareScalarCall(call.statement, definition.context, call.types, true, call.captures);
             if (!compiled || compiled.available && !compiled.available()) return undefined;
-            const checked: PreparedScalarCall = (arguments_, tail = false) => {
+            if (call.tail) {
+                return ((arguments_: RankValue[]) => {
+                    if (definition.owner === this) throw new TailCallSignal(definition, arguments_, compiled);
+                    return compiled(arguments_, true);
+                }) as LoopCallable;
+            }
+            const direct = compiled.direct;
+            return ((...arguments_: RankValue[]) => {
                 const contract = definition.specialization(arguments_);
-                const value = compiled(arguments_, tail);
+                const value = direct ? direct(...arguments_) : compiled(arguments_);
                 try { return contract.check(value); }
                 catch (error) {
                     if (error instanceof RankError) definition.owner.frames.addCall(error, call.statement, arguments_);
                     throw definition.owner.host.locate(error, call.statement);
                 }
-            };
-            if (compiled.available) Object.defineProperty(checked, 'available', { value: compiled.available });
-            return (arguments_: RankValue[], tail = false) => {
-                if (tail && definition.owner === this) throw new TailCallSignal(definition, arguments_, checked);
-                return checked(arguments_);
-            };
+            }) as LoopCallable;
         });
         const rankedCalls = kernel.rankedCalls.map(call => () => {
             const value = resolve(call.name);
@@ -752,24 +759,74 @@ export class FunctionInvocation {
                 }
             };
         });
-        const users: ((arguments_: RankValue[], tail?: boolean) => RankValue)[] = [];
+        const users: LoopCallable[] = [];
         const memberships: ((value: bigint) => boolean)[] = [];
         const captures: ((indices: bigint[]) => bigint)[] = [];
         const scalars = kernel.scalarCaptures.map(({ name }) => () => resolve(name)!);
         const captureReaders: ReturnType<typeof capturedIntegerReader>[] = [];
         const locate = (error: unknown, index: number) => this.host.locate(error, kernel.locations[index] ?? statement);
-        const binders = kernel.calls.map(({ operation, inputs }) => prepareCompiledBuiltin({
+        const binders = kernel.calls.map(({ operation, inputs }) => preparePositionalBuiltin({
             modules: this.modules, builtins: this.builtins, options: this.options,
             resolve: name => context?.lookup(name) ?? this.bindings.globals.get(name)
                 ?? this.builtins.lookup(name) ?? (() => { throw this.builtins.unknown(name); })(),
         }, operation.module, operation.name, inputs));
-        const calls: ((arguments_: RankValue[]) => RankValue)[] = [];
+        const calls: LoopCallable[] = [];
         const planConsumed = () => {
             this.options().onTensorKernelExecuted?.();
             const diagnostics = currentDiagnostics();
             if (diagnostics) diagnostics.compiledTensors++;
         };
+        const kernelDirect = kernel.direct?.(locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
+        const hasTailCalls = kernel.userCalls.some(call => call.tail);
+        const hasUserCalls = kernel.userCalls.length > 0 || kernel.rankedCalls.length > 0;
+        let directFn: ((...arguments_: RankValue[]) => RankValue) | undefined;
+        if (kernelDirect) {
+            if (!hasUserCalls && !hasTailCalls) {
+                directFn = (...arguments_: RankValue[]) => {
+                    if (this.depth >= this.maxDepth) {
+                        throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
+                    }
+                    this.options().onScalarFunctionExecuted?.();
+                    try {
+                        return kernelDirect(...arguments_ as never[]);
+                    } catch (error) {
+                        if (error instanceof FunctionPlanDemandError) throw error.error;
+                        if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
+                        throw error;
+                    }
+                };
+            } else {
+                directFn = (...arguments_: RankValue[]) => {
+                    if (this.depth >= this.maxDepth) {
+                        throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
+                    }
+                    this.depth += 1;
+                    this.scalarHostDepth++;
+                    try {
+                        for (;;) {
+                            try {
+                                this.options().onScalarFunctionExecuted?.();
+                                return kernelDirect(...arguments_ as never[]);
+                            } catch (error) {
+                                if (error instanceof FunctionPlanDemandError) throw error.error;
+                                if (error instanceof TailCallSignal && error.compiled === run) {
+                                    arguments_ = error.arguments_;
+                                    continue;
+                                }
+                                if (error instanceof TailCallSignal && error.compiled) return error.compiled(error.arguments_, true);
+                                if (error instanceof RankError) this.frames.addCall(error, statement, arguments_);
+                                throw error;
+                            }
+                        }
+                    } finally {
+                        this.scalarHostDepth--;
+                        this.depth -= 1;
+                    }
+                };
+            }
+        }
         const run: PreparedScalarCall = (arguments_, tail = false) => {
+            if (!tail && directFn) return directFn(...arguments_);
             if (!tail && this.depth >= this.maxDepth) {
                 throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
             }
@@ -800,6 +857,29 @@ export class FunctionInvocation {
                 if (!tail) this.depth -= 1;
             }
         };
+        if (directFn) run.direct = directFn;
+        if (kernel.numberDirect) {
+            const rawNumber = kernel.numberDirect(
+                locate,
+                val => { if (!Number.isSafeInteger(val)) throw numberOverflow; return val; },
+                () => new RankError('division by zero'),
+                numberOverflow,
+                checkpoint,
+            );
+            run.numberDirect = (...arguments_: number[]) => {
+                if (this.depth >= this.maxDepth) {
+                    throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
+                }
+                this.options().onScalarFunctionExecuted?.();
+                try {
+                    return rawNumber(...arguments_ as never[]) as unknown as number;
+                } catch (error) {
+                    if (error === numberOverflow) throw error;
+                    if (error instanceof RankError) this.frames.addCall(error, statement, arguments_.map(BigInt));
+                    throw error;
+                }
+            };
+        }
         if (kernel.rankedCalls.length || kernel.plans || kernel.dequeIteration || kernel.setMembership || kernel.scalarCaptures.length || binders.length || userBinders.length || kernel.memberships.length || kernel.captures.length || kernel.guards.length || kernel.modules.length) Object.defineProperty(run, 'available', { value: () => {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
             if (kernel.dequeIteration && (!privateLoopPolling() || !nativeDequeMethods())) return false;

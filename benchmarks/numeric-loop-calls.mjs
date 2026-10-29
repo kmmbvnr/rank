@@ -19,7 +19,7 @@ ${inline ? `  X = A
    X = Y
    Y = Z
   end
-  if X equal 1` : '  if A B gcd equal 1'}
+  if X equal 1` : '  if A gcd B equal 1'}
    S += 1
   end
  end

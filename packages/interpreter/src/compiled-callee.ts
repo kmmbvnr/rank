@@ -1,6 +1,6 @@
 import type { CompiledFunctionType } from '@arrrank/language';
 import type { CompiledCalleeType } from './compiled-callee-type.js';
-import type { RankValue } from './value.js';
+import type { LoopCallable } from './integer-loop-plan.js';
 
 /** A proven call boundary; bind rechecks closure and builtin identities at region entry. */
 export interface CompiledCallee {
@@ -11,5 +11,7 @@ export interface CompiledCallee {
         readonly writes: readonly number[];
         readonly stableArrayReads: boolean;
     };
-    bind(): ((arguments_: RankValue[], tail?: boolean) => RankValue) | undefined;
+    readonly numberSafe?: boolean;
+    bind(): LoopCallable | undefined;
+    bindNumber?(): LoopCallable | undefined;
 }

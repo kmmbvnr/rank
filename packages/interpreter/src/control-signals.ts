@@ -4,6 +4,8 @@ import type { RankValue } from './value.js';
 /** A prepared scalar body whose native bindings, if any, need entry validation. */
 export type PreparedScalarCall = ((arguments_: RankValue[], tail?: boolean) => RankValue) & {
     readonly available?: () => boolean;
+    direct?: (...arguments_: RankValue[]) => RankValue;
+    numberDirect?: (...arguments_: number[]) => number;
 };
 
 /**

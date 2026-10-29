@@ -7,7 +7,7 @@ import { Interpreter, RuntimeDiagnostics } from '../packages/interpreter/out/ind
 
 const demo = name => {
     const source = readFileSync(new URL(`../demos/euler/${name}.ra`, import.meta.url), 'utf8')
-        .replace('use cli', '').replace(/option (\w+) integer =/g, '$1 =').replace('Answer print', '');
+        .replace('use cli', '').replace(/(?:option|arg) (\w+) integer =/g, '$1 =').replace('Answer print', '');
     const definitions = source.indexOf('\nfun ');
     return { setup: definitions < 0 ? '' : source.slice(definitions),
         body: (definitions < 0 ? source : source.slice(0, definitions)) + '\nAnswer', regression: true };
@@ -38,7 +38,7 @@ Cache 1 = 1
 Best = 0
 Answer = 0
 for I in 1 till 10000
- Length = Cache I chainlength
+ Length = Cache chainlength I
  if Length greater Best
   Best = Length
   Answer = I

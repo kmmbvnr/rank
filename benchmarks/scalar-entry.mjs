@@ -19,7 +19,7 @@ if (process.argv[2] === '--worker') {
     });
     try {
         runtime.execute(helpers[name]);
-        const source = `Total = 0\nfor I in 0 till ${count}\n Total += I 456 helper\nend\nTotal`;
+        const source = `Total = 0\nfor I in 0 till ${count}\n Total += I helper 456\nend\nTotal`;
         const expected = BigInt(name === 'leaf' ? 10 : 1000) * BigInt(count) * BigInt(count - 1) / 2n + 456n * BigInt(count);
         const run = () => assert.equal(runtime.execute(source), expected);
         run(); run();
