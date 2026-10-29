@@ -947,3 +947,66 @@ function explicitWindow(
         rest: parts.slice(position), axes, stride, padding, fill, wrap,
     };
 }
+
+export interface TypeConversionForm {
+    readonly kind: 'type-conversion';
+    readonly source: Expression;
+    readonly target: 'integer' | 'text';
+    readonly rank?: number;
+}
+
+export function typeConversionForm(
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
+): TypeConversionForm | undefined {
+    if (parts.length === 4 && isNamed(parts[1], 'integer', nameOf)
+        && isNamed(parts[2], 'rank', nameOf) && isNumberLiteral(parts[3]) && parts[3].value === 0n
+        && standard('integer')) {
+        return { kind: 'type-conversion', source: parts[0], target: 'integer', rank: 0 };
+    }
+    if (parts.length === 2 && isNamed(parts[1], 'text', nameOf) && standard('text')) {
+        return { kind: 'type-conversion', source: parts[0], target: 'text' };
+    }
+    return undefined;
+}
+
+export interface OrderedApplicationForm {
+    readonly kind: 'ordered-application';
+    readonly source: Expression;
+    readonly operation: 'sort' | 'argsort' | 'unique';
+    readonly descending?: boolean;
+}
+
+export function orderedApplicationForm(
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
+): OrderedApplicationForm | undefined {
+    if (parts.length < 2 || parts.length > 3) return undefined;
+    const op = parts[1];
+    if (!isNameExpression(op) || !standard(nameOf(op))) return undefined;
+    const name = nameOf(op);
+    if (name !== 'sort' && name !== 'argsort' && name !== 'unique') return undefined;
+    if (parts.length === 2) {
+        return { kind: 'ordered-application', source: parts[0], operation: name, descending: false };
+    }
+    const tail = parts[2];
+    if (name === 'unique' || !isLabelLiteral(tail) || (tail.name !== 'ascending' && tail.name !== 'descending')) {
+        return undefined;
+    }
+    return { kind: 'ordered-application', source: parts[0], operation: name, descending: tail.name === 'descending' };
+}
+
+export interface TerminalReductionForm {
+    readonly kind: 'terminal-reduction';
+    readonly source: Expression;
+    readonly operation: 'sum' | 'min' | 'max' | 'count';
+}
+
+export function terminalReductionForm(
+    parts: readonly Expression[], standard: (name: string) => boolean = () => true, nameOf: NameOf = rawName,
+): TerminalReductionForm | undefined {
+    if (parts.length !== 2) return undefined;
+    const last = parts[1];
+    if (!isNameExpression(last) || !standard(nameOf(last))) return undefined;
+    const op = nameOf(last);
+    if (op !== 'sum' && op !== 'min' && op !== 'max' && op !== 'count') return undefined;
+    return { kind: 'terminal-reduction', source: parts[0], operation: op };
+}

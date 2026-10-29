@@ -1,41 +1,41 @@
 import { selectValues } from './value-selection.js';
 import { sumCounterTensor } from './collections.js';
-import type { LoopHost, LoopContinuation, LoopCallable } from './integer-loop-plan.js';
+import type { LoopHost, LoopContinuation, LoopCallable } from './jit/integer-loop-plan.js';
 import { prepareEffectCall } from './effect-call.js';
-import { isCompiledContainer, type CompiledCalleeType } from './compiled-callee-type.js';
-import type { CompiledCallee } from './compiled-callee.js';
+import { isCompiledContainer, type CompiledCalleeType } from './jit/compiled-callee-type.js';
+import type { CompiledCallee } from './jit/compiled-callee.js';
 import type { AstNode } from 'langium';
 import {
     findOperation, isBinaryExpression, isNameExpression, isUnaryExpression, isForStatement, isFunctionStatement,
     type ApplicationForm, type Operation, isAssignmentStatement,
     isReturnStatement, type Expression, type ForStatement, type FunctionStatement, type Statement,
 } from '@arrrank/language';
-import { compileBlock, type CompiledBlock } from './block-compiler.js';
+import { compileBlock, type CompiledBlock } from './jit/block-compiler.js';
 import { TailCallSignal } from './control-signals.js';
 import { registerFlatCombine } from './flat-combine.js';
-import { compileFusedReduction, compileFusedSum } from './fused-reduction.js';
+import { compileFusedReduction, compileFusedSum } from './jit/fused-reduction.js';
 import type { Operators } from './operators.js';
-import { compileScalarExpression, compileResumableScalarExpression } from './scalar-compiler.js';
-import { scalarFunctionResult, type ScalarCaptureTypes } from './scalar-function-proof.js';
+import { compileScalarExpression, compileResumableScalarExpression } from './jit/scalar-compiler.js';
+import { scalarFunctionResult, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { completed, runExecution, type Evaluation, type Execution } from './execution.js';
-import { CallSpecializations } from './call-specializations.js';
+import { CallSpecializations } from './jit/call-specializations.js';
 import type { ExecutionContext, PreparedStatement, TensorStep } from './statement-control.js';
-import { compileTensorKernel, compileTensorReduction, type TensorCodeCache, type TensorKernelHost } from './tensor-kernel.js';
+import { compileTensorKernel, compileTensorReduction, type TensorCodeCache, type TensorKernelHost } from './jit/tensor-kernel.js';
 import { hasNativeImplementation } from './native-implementation.js';
-import { tensorPlanScope } from './tensor-map.js';
+import { tensorPlanScope } from './jit/tensor-map.js';
 import type { BindingEnvironment } from './binding-environment.js';
 import { recordFallback } from './diagnostics.js';
 import { checkedArrayDimension } from './eval/expressions.js';
 import { forIteration, iterationAtoms, declareIterationTypes, type ForBinding } from './eval/loops.js';
 import type { FunctionInvocation } from './function-invocation.js';
 import { ReturnSignal } from './control-signals.js';
-import { compileIntegerLoop, compileIntegerFunctionPrefix } from './integer-loop.js';
-import type { InterpreterOptions } from './interpreter-options.js';
+import { compileIntegerLoop, compileIntegerFunctionPrefix } from './jit/integer-loop.js';
+import { resolveCompilerCapabilities, type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
 import type { BuiltinRegistry } from './modules/builtins.js';
 import { copyArray } from './modules/sequences.js';
 import { ALL_AXIS, atArray, sliceArray, scalarArrayWriteOffset, tensorSelection } from './selectors.js';
-import { preparePositionalBuiltin } from './typed-native.js';
+import { preparePositionalBuiltin } from './jit/typed-native.js';
 import { textAt } from './text-storage.js';
 import { isRankArray, isRankCounter, isNativeFunction, type NativeFunction, type RankValue } from './value.js';
 
@@ -52,6 +52,7 @@ export interface FastPathContext {
     compileAssign(name: string): (value: RankValue) => void;
     locate(error: unknown, node: AstNode): unknown;
     options(): InterpreterOptions;
+    compiler?(): CompilerCapabilities;
     evaluate(expression: Expression): Evaluation<RankValue>;
     evaluateReturn(expression: Expression, tail?: boolean): Evaluation<RankValue>;
     compileDirect(expression: Expression): (() => RankValue) | undefined;
@@ -88,9 +89,13 @@ export class FastPaths {
 
     constructor(private readonly context: FastPathContext) {}
 
+    private get compiler(): CompilerCapabilities {
+        return this.context.compiler ? this.context.compiler() : resolveCompilerCapabilities(this.context.options());
+    }
+
     /** A block of 2 to 64 statements compiled to one closure that steps through them. */
     block(statements: Statement[], steps: BlockSteps): CompiledBlock<ExecutionContext> | undefined {
-        if (this.context.options().blockCompilation !== false && statements.length >= 2 && statements.length <= 64) {
+        if (this.compiler.blocks.blocks && statements.length >= 2 && statements.length <= 64) {
             let block = this.blocks.get(statements);
             if (block === undefined) {
                 block = compileBlock<ExecutionContext>(statements.length, {
@@ -98,8 +103,8 @@ export class FastPaths {
                     locate: (error, index) => this.context.locate(error, statements[index]),
                     pause: (index, task, context, compiled) => steps.continueCompiledBlock(
                         statements, index, task, context, compiled),
-                    compiled: this.context.options().onBlockCompiled,
-                    executed: this.context.options().onBlockExecuted,
+                    compiled: this.compiler.hooks.onBlockCompiled,
+                    executed: this.compiler.hooks.onBlockExecuted,
                 }) ?? null;
                 this.blocks.set(statements, block);
             }
@@ -112,7 +117,7 @@ export class FastPaths {
     functionBody(
         statement: FunctionStatement, arguments_: RankValue[], steps: BlockSteps,
     ): CompiledBlock<ExecutionContext> | undefined {
-        if (this.context.options().functionBodyCompilation === false) return undefined;
+        if (!this.compiler.functions.bodies) return undefined;
         let instances = this.functionBodies.get(statement);
         if (!instances) this.functionBodies.set(statement, instances = new CallSpecializations());
         let body = instances.get(arguments_);
@@ -136,8 +141,8 @@ export class FastPaths {
                 },
                 locate: (error, index) => this.context.locate(error, commands[index]),
                 pause: (index, task, context, compiled) => steps.continueCompiledBlock(commands, index, task, context, compiled),
-                compiled: this.context.options().onFunctionBodyCompiled,
-                executed: this.context.options().onFunctionBodyExecuted,
+                compiled: this.compiler.hooks.onFunctionBodyCompiled,
+                executed: this.compiler.hooks.onFunctionBodyExecuted,
             }) ?? null : null;
             // A single outer loop can contain all the work (including nested
             // loops). Join its fresh allocations too: compiling it separately
@@ -162,9 +167,9 @@ export class FastPaths {
 
     private tensorHost(): TensorKernelHost {
         return {
-            textDigits: this.context.options().tensorTextDigits !== false,
+            textDigits: this.compiler.tensors.textDigits,
             lookup: name => this.context.bindings.find(name),
-            compiled: this.context.options().onTensorKernelCompiled,
+            compiled: this.compiler.hooks.onTensorKernelCompiled,
             builtin: name => {
                 const module = findOperation(name)?.module;
                 if (module === undefined || !this.context.modules.has(module)) return false;
@@ -176,7 +181,7 @@ export class FastPaths {
     }
 
     private tensorExecuted(): void {
-        this.context.options().onTensorKernelExecuted?.();
+        this.compiler.hooks.onTensorKernelExecuted?.();
         const diagnostics = currentDiagnostics();
         if (diagnostics) diagnostics.compiledTensors++;
     }
@@ -184,7 +189,7 @@ export class FastPaths {
     /** Called at the ordinary postfix gather, before resolving its consumer.
      * Unsupported readers must finish gathering before user reducer dispatch. */
     counterSum(receiver: RankValue, keys: RankValue): bigint | undefined {
-        if (this.context.options().tensorFusion === false || !isRankCounter(receiver)) return undefined;
+        if (!this.compiler.tensors.fusion || !isRankCounter(receiver)) return undefined;
         const identity = this.context.operationOf('sum');
         if (!identity || identity.module !== 'core' || identity.name !== 'sum') return undefined;
         const fn = this.context.resolve('sum');
@@ -194,12 +199,12 @@ export class FastPaths {
     }
 
     planReduction(expression: Expression): (() => RankValue | undefined) | undefined {
-        if (this.context.options().tensorFusion === false) return undefined;
+        if (!this.compiler.tensors.fusion) return undefined;
         const kernel = compileTensorReduction(expression, this.tensorHost());
         if (!kernel) return undefined;
         return () => {
             // Inspection can disable compilation after the plan was captured.
-            if (this.context.options().tensorFusion === false) return undefined;
+            if (!this.compiler.tensors.fusion) return undefined;
             const value = kernel.run();
             if (value !== undefined) this.tensorExecuted();
             return value;
@@ -209,7 +214,7 @@ export class FastPaths {
     tensorPlanScope(expression: Expression): <T>(run: () => T) => T {
         let code = this.tensorPlanCode.get(expression);
         if (!code) this.tensorPlanCode.set(expression, code = new Map());
-        return tensorPlanScope(this.tensorHost(), () => this.context.options().tensorFusion !== false,
+        return tensorPlanScope(this.tensorHost(), () => this.compiler.tensors.fusion,
             () => this.tensorExecuted(), code);
     }
 
@@ -235,11 +240,12 @@ export class FastPaths {
     compileLoop(statement: ForStatement | FunctionStatement, binding: ForBinding | undefined, continuation?: LoopContinuation): CompiledLoop | undefined {
         const compile = (host: LoopHost) => isFunctionStatement(statement)
             ? compileIntegerFunctionPrefix(statement, host) : compileIntegerLoop(statement, host, binding);
-        const compiled = this.context.options().integerLoopCompilation !== false ? compile({
+        const { loops, tensors, scalars, hooks } = this.compiler;
+        const compiled = loops.integer ? compile({
             continuation,
-            observableEntry: this.context.options().onIntegerLoopExecuted !== undefined,
-            canDeferWrites: bindings => this.context.options().numberLoopCompilation !== false && this.context.bindings.canDeferWrites(bindings),
-            tensorReadHoisting: this.context.options().tensorReadHoisting !== false,
+            observableEntry: hooks.onIntegerLoopExecuted !== undefined,
+            canDeferWrites: bindings => loops.number && this.context.bindings.canDeferWrites(bindings),
+            tensorReadHoisting: tensors.readHoisting,
             read: name => {
                 const value = this.context.bindings.find(name);
                 if (value !== undefined) return value;
@@ -253,7 +259,7 @@ export class FastPaths {
                 return this.context.builtins.lookup(name);
             },
             writer: name => this.context.compileAssign(name),
-            prepareWriter: this.context.options().boundIntegerWrites !== false ? (name, checked) => {
+            prepareWriter: loops.boundWrites ? (name, checked) => {
                 let direct: ((value: RankValue) => void) | undefined;
                 return value => {
                     if (direct) { direct(value); return; }
@@ -265,9 +271,9 @@ export class FastPaths {
                     };
                 };
             } : undefined,
-            textLoops: this.context.options().textLoopCompilation !== false,
-            textArrayLoops: this.context.options().textArrayLoopCompilation !== false,
-            nestedLoops: this.context.options().nestedLoopCompilation !== false,
+            textLoops: loops.text,
+            textArrayLoops: loops.textArrays,
+            nestedLoops: loops.nested,
             arrayRead: atArray,
             copySlice: (source, start, end, axis, inclusive) => {
                 const selectors: RankValue[] = Array(axis).fill(ALL_AXIS);
@@ -283,38 +289,38 @@ export class FastPaths {
                 binary: (operator, left, right) => this.context.operators.evaluateBinary(operator, left, right),
             },
             textRead: textAt,
-            returns: this.context.options().loopReturnCompilation !== false,
-            yields: this.context.options().loopYieldCompilation !== false,
+            returns: loops.returns,
+            yields: loops.yields,
             canReturn: () => this.context.bindings.insideFunction,
             returnValue: value => { throw new ReturnSignal(value); },
-            arrayLocals: this.context.options().arrayLocalCompilation !== false,
+            arrayLocals: loops.arrayLocals,
             dimension: checkedArrayDimension,
-            booleanArrays: this.context.options().booleanArrayCompilation !== false,
-            booleanLocals: this.context.options().booleanLoopCompilation !== false,
-            scalarText: this.context.options().scalarTextCompilation !== false,
-            nativeCalls: this.context.options().nativeLoopCompilation !== false,
+            booleanArrays: loops.booleanArrays,
+            booleanLocals: loops.booleans,
+            scalarText: scalars.text,
+            nativeCalls: loops.nativeCalls,
             prepareBuiltinCall: (module, name, types, numberMode) => preparePositionalBuiltin(this.context, module, name, types, numberMode),
             prepareEffectCall: (name, receiver, types) => prepareEffectCall({
                 read: name => this.context.bindings.find(name), module: name => this.context.modules.has(name),
             }, name, receiver, types),
             scalarFunction: (name, arity) => this.scalarCall(name, arity),
-            sequenceMembership: this.context.options().sequenceMembershipCompilation !== false,
-            absolute: this.context.options().absoluteLoopCompilation !== false,
-            reals: this.context.options().realLoopCompilation !== false,
-            extrema: this.context.options().extremaLoopCompilation !== false,
-            compoundWrites: this.context.options().compoundArrayCompilation !== false,
-            arrayIteration: this.context.options().arrayIterationCompilation !== false,
+            sequenceMembership: scalars.sequenceMembership,
+            absolute: loops.absolute,
+            reals: loops.reals,
+            extrema: loops.extrema,
+            compoundWrites: loops.compoundWrites,
+            arrayIteration: loops.arrayIteration,
             declareIteration: (binding, source) => declareIterationTypes(this.context.bindings, binding, source, 'integer'),
             // The region guards cell types before entry and preserves them.
             iterationValues: (binding, source, elementType = 'integer') => iterationAtoms(this.context.bindings, binding, source,
-                this.context.options().provenIterationTypes !== false ? elementType : undefined,
-                this.context.options().directTextIteration !== false),
-            arrayWrites: this.context.options().arrayWriteCompilation !== false,
-            inlineWriteOffsets: this.context.options().scalarAddressCompilation !== false,
-            arrayOffset: this.context.options().scalarAddressCompilation !== false
+                loops.provenTypes ? elementType : undefined,
+                loops.directTextIteration),
+            arrayWrites: loops.arrayWrites,
+            inlineWriteOffsets: loops.scalarAddress,
+            arrayOffset: loops.scalarAddress
                 ? scalarArrayWriteOffset
                 : (source, indices) => tensorSelection(source, indices).offsetAt(0),
-            arrayReads: this.context.options().arrayLoopCompilation !== false,
+            arrayReads: loops.arrays,
             iteration: forIteration,
             module: name => this.context.modules.has(name),
             builtin: (module, name) => {
@@ -323,10 +329,10 @@ export class FastPaths {
                 catch { return false; }
             },
             locate: (error, command) => this.context.locate(error, command),
-            compiled: this.context.options().onIntegerLoopCompiled,
-            executed: this.context.options().onIntegerLoopExecuted,
+            compiled: hooks.onIntegerLoopCompiled,
+            executed: hooks.onIntegerLoopExecuted,
         }) : undefined;
-        if (this.context.options().integerLoopCompilation === false) recordFallback('loop:disabled');
+        if (!loops.integer) recordFallback('loop:disabled');
         return compiled && { run: (...context) => {
             this.context.checkMutation(statement);
             return compiled.run(...context);
@@ -337,7 +343,7 @@ export class FastPaths {
     scalarExpression(
         expression: Expression, leaf: (expression: Expression) => (() => RankValue) | undefined,
     ): (() => RankValue) | undefined {
-        if (this.context.options().scalarCompilation === false
+        if (!this.compiler.scalars.expressions
             || !(isBinaryExpression(expression) || isUnaryExpression(expression))) return undefined;
         return compileScalarExpression(expression, {
             leaf,
@@ -349,14 +355,14 @@ export class FastPaths {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
                 return this.context.operators.evaluateUnary(op, value);
             },
-            compiled: this.context.options().onScalarCompiled,
-            executed: this.context.options().onScalarExecuted,
+            compiled: this.compiler.hooks.onScalarCompiled,
+            executed: this.compiler.hooks.onScalarExecuted,
         });
     }
 
     /** Arithmetic around effectful or suspended children, without replaying them. */
     scalarEvaluation(expression: Expression, leaf: (expression: Expression) => () => Evaluation<RankValue>): (() => Evaluation<RankValue>) | undefined {
-        if (this.context.options().scalarCompilation === false
+        if (!this.compiler.scalars.expressions
             || !(isBinaryExpression(expression) || isUnaryExpression(expression))) return undefined;
         return compileResumableScalarExpression(expression, {
             leaf,
@@ -368,8 +374,8 @@ export class FastPaths {
                 if (currentDiagnostics()) recordFallback(`scalar-expression:operator-guard:${op}`);
                 return this.context.operators.evaluateUnary(op, value);
             },
-            compiled: this.context.options().onScalarCompiled,
-            executed: this.context.options().onScalarExecuted,
+            compiled: this.compiler.hooks.onScalarCompiled,
+            executed: this.compiler.hooks.onScalarExecuted,
         });
     }
 
@@ -387,7 +393,7 @@ export class FastPaths {
                 scope ??= this.tensorPlanScope(form.kind === 'reduce' ? form.source : parts[0]);
                 return scope(() => this.context.operators.evaluateBinary(operator, a, b));
             },
-            compilation: () => this.context.options().tensorFusion !== false,
+            compilation: () => this.compiler.tensors.fusion,
             prepareLeaf: (source: Expression) => this.context.compileDirect(source),
             binary: (operator: string, a: RankValue, b: RankValue) => this.context.operators.evaluateBinary(operator, a, b),
         };
@@ -421,7 +427,7 @@ export class FastPaths {
 
     /** A proven scalar body that the selected argument types may enter without a frame. */
     scalarEntry(statement: FunctionStatement, generator: boolean, types?: readonly CompiledCalleeType[], captures?: ScalarCaptureTypes): { readonly locals: readonly string[]; readonly nonnegative: readonly number[]; readonly loops: true } | undefined {
-        if (this.context.options().scalarEntryCompilation === false || generator) return undefined;
+        if (!this.compiler.scalars.entries || generator) return undefined;
         const proof = scalarFunctionResult(statement, true, types, true, [], captures);
         // Entry arguments admit scalars, checked arrays and tracked integer indices/deques.
         // Container storage is integer-only, cannot escape through a scalar return,
@@ -437,7 +443,7 @@ export class FastPaths {
     flatCombine(
         fn: NativeFunction, statement: FunctionStatement, available: (builtins: ReadonlySet<string>) => boolean,
     ): void {
-        if (this.context.options().scalarFunctionCompilation !== false) registerFlatCombine(fn, statement, available);
+        if (this.compiler.scalars.functions) registerFlatCombine(fn, statement, available);
     }
 
     /**
@@ -446,7 +452,7 @@ export class FastPaths {
      * binding at loop entry, since the name can be rebound between runs.
      */
     scalarCall(name: string, arity: number): ((types: readonly CompiledCalleeType[]) => CompiledCallee | undefined) | undefined {
-        if (this.context.options().scalarCallCompilation === false) return undefined;
+        if (!this.compiler.scalars.calls) return undefined;
         const value = this.context.bindings.find(name);
         const definition = value && isNativeFunction(value) ? this.context.functions.definitionOf(value) : undefined;
         if (!definition || definition.statement.parameters.length !== arity) return undefined;
@@ -454,7 +460,7 @@ export class FastPaths {
         if (statement.memo || statement.ranks.some(rank => rank !== 'all')) return undefined;
         return types => {
             const scalarTypes = definition.owner.scalarCaptureTypes(statement, definition.context);
-            const proof = scalarFunctionResult(statement, this.context.options().scalarBlockCalls !== false, types, true, [], scalarTypes);
+            const proof = scalarFunctionResult(statement, this.compiler.scalars.blockCalls, types, true, [], scalarTypes);
             if (!proof || proof.planReturn || proof.nonnegative.length) return undefined;
             const captures = definition.context !== undefined;
             const isScalarType = (type: CompiledCalleeType): boolean =>
@@ -483,7 +489,7 @@ export class FastPaths {
                             const [args, tail] = arguments_ as unknown as [RankValue[], boolean];
                             if (tail && active.owner === this.context.functions) {
                                 throw new TailCallSignal(active, args,
-                                    this.context.options().compiledScalarTailCalls !== false ? compiled : undefined);
+                                    this.compiler.scalars.tailCalls ? compiled : undefined);
                             }
                             return compiled ? (compiled.direct ? compiled.direct(...args) : compiled(args, tail)) : current.call(args);
                         }

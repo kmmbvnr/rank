@@ -5,8 +5,8 @@ import {
 import { membershipLookup } from './membership-lookup.js';
 import { isPureLazyFunction } from './lazy-function.js';
 import { compiledIntegerMembership } from './integer-membership.js';
-import { capturedIntegerReader } from './scalar-selection.js';
-import { compiledCalleeTypeKey, type CompiledCalleeType } from './compiled-callee-type.js';
+import { capturedIntegerReader } from './jit/scalar-selection.js';
+import { compiledCalleeTypeKey, type CompiledCalleeType } from './jit/compiled-callee-type.js';
 import type { AstNode } from 'langium';
 import {
     functionScope, lazyFunctionFailure, lazyBuiltinDependencies, lexicalBinding, findOperation,
@@ -19,7 +19,7 @@ import {
 import { arrayRevision } from './array-storage.js';
 import type { CheckedInputContracts } from './checked-input.js';
 import type { BindingEnvironment } from './binding-environment.js';
-import type { CompiledBlock } from './block-compiler.js';
+import type { CompiledBlock } from './jit/block-compiler.js';
 import { ReturnSignal, TailCallSignal, type PreparedScalarCall, type FunctionControl } from './control-signals.js';
 import type { DebugInspection } from './debug-inspection.js';
 import { RankError } from './errors.js';
@@ -29,23 +29,23 @@ import {
 } from './execution.js';
 import { LocalFrame } from './frame.js';
 import { FunctionFrames } from './function-frame.js';
-import type { InterpreterOptions } from './interpreter-options.js';
+import { resolveCompilerCapabilities, type CompilerCapabilities, type InterpreterOptions } from './interpreter-options.js';
 import { checkpoint, inspectionEnabled, privateLoopPolling } from './interrupt.js';
 import { BuiltinRegistry } from './modules/builtins.js';
 import { prepareFunction } from './prepared-function.js';
 import type { ResourceOwnership } from './resource-ownership.js';
 import { ReturnContract } from './return-contract.js';
-import { compiledEntryArgumentType, compiledScalarType, nativeDequeMethods } from './compiled-argument-type.js';
-import { scalarCaptureKey, type ScalarCaptureTypes } from './scalar-function-proof.js';
-import { compileScalarFunction } from './scalar-function-kernel.js';
+import { compiledEntryArgumentType, compiledScalarType, nativeDequeMethods } from './jit/compiled-argument-type.js';
+import { scalarCaptureKey, type ScalarCaptureTypes } from './jit/scalar-function-proof.js';
+import { compileScalarFunction } from './jit/scalar-function-kernel.js';
 import { compileMembershipFunction, type RankedMembership } from './membership-function.js';
 import { compileDistinctFunction } from './distinct-function.js';
 import { currentDiagnostics } from './diagnostics.js';
 import { hasNativeImplementation } from './native-implementation.js';
 import { FunctionPlanDemandError } from './function-plan.js';
-import { preparePositionalBuiltin } from './typed-native.js';
-import type { LoopCallable } from './integer-loop-plan.js';
-import { numberOverflow } from './number-loop-runtime.js';
+import { preparePositionalBuiltin } from './jit/typed-native.js';
+import type { LoopCallable } from './jit/integer-loop-plan.js';
+import { numberOverflow } from './jit/number-loop-runtime.js';
 import { nativeSetMembership } from './collections.js';
 import { sequence } from './sequence.js';
 import type { ExecutionContext } from './statement-control.js';
@@ -129,6 +129,10 @@ export class FunctionInvocation {
         if (!Number.isSafeInteger(this.maxDepth) || this.maxDepth < 1) {
             throw new RankError('maxCallDepth must be a positive safe integer');
         }
+    }
+
+    private get compiler(): CompilerCapabilities {
+        return resolveCompilerCapabilities(this.options());
     }
 
     /** Calls a function, through its Rank body when it has one so the call can suspend. */
@@ -466,15 +470,15 @@ export class FunctionInvocation {
             if (!statement.memo) functionDefinitions.set(fn, { owner: this, statement, context, direct, specialization, bindParameters });
             // Hits already passed the return contract. Misses retain the same
             // execution stack, validation and cache writer as ordinary calls.
-            if (memoMiss && this.options().scalarFunctionCompilation !== false
-                && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
+            if (memoMiss && this.compiler.scalars.functions
+                && this.compiler.scalars.entries) scalarCallbacks.set(fn, arguments_ => {
                 const key = memoCallKey(arguments_, signature.arity);
                 const cached = cachedMemoValue!(key);
                 if (cached !== undefined) return cached;
                 return runExecution(memoMiss(arguments_, key));
             });
-            if (!statement.memo && this.options().scalarFunctionCompilation !== false
-                && this.options().scalarEntryCompilation !== false) scalarCallbacks.set(fn, arguments_ => {
+            if (!statement.memo && this.compiler.scalars.functions
+                && this.compiler.scalars.entries) scalarCallbacks.set(fn, arguments_ => {
                 // The caller already read the operands. A declined guard uses
                 // those same values and keeps memo/generator paths untouched.
                 const selected = selectScalar(arguments_);
@@ -505,8 +509,8 @@ export class FunctionInvocation {
     private tryArrayFunction(statement: FunctionStatement, arguments_: RankValue[], context: LocalFrame | undefined,
         arrayFunction: ReturnType<typeof compileMembershipFunction> | ReturnType<typeof compileDistinctFunction>,
         distinct: ReturnType<typeof compileDistinctFunction>): Evaluation<RankValue> | undefined {
-        if (arrayFunction && !inspectionEnabled() && this.options().arrayFunctionCompilation !== false
-            && this.options().tensorFusion !== false && this.modules.has('sequences')
+        if (arrayFunction && !inspectionEnabled() && this.compiler.functions.arrayFunctions
+            && this.compiler.tensors.fusion && this.modules.has('sequences')
             && !arrayFunction.locals.some(name => context?.find(name))
             && (!distinct || ['unique', 'len'].every(name => {
                 const value = context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
@@ -532,8 +536,8 @@ export class FunctionInvocation {
     private registerRankedMembership(fn: NativeFunction, membership: NonNullable<ReturnType<typeof compileMembershipFunction>>, context: LocalFrame | undefined): void {
         const originalCall = fn.call;
         const enabled = () => !inspectionEnabled() && fn.call === originalCall
-            && this.options().arrayFunctionCompilation !== false && this.options().tensorFusion !== false
-            && this.options().rankedArrayCompilation !== false && this.modules.has('sequences')
+            && this.compiler.functions.arrayFunctions && this.compiler.tensors.fusion
+            && this.compiler.functions.rankedArrays && this.modules.has('sequences')
             && this.depth < this.maxDepth && !membership.locals.some(name => context?.find(name));
         const lookup = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name);
         arrayBatches.set(fn, (source, axes) => {
@@ -689,7 +693,7 @@ export class FunctionInvocation {
 
     /** A proven scalar body compiled to a direct call, counted against the call depth. */
     prepareScalarCall(statement: FunctionStatement, context?: LocalFrame, types?: readonly CompiledCalleeType[], loops = false, capturedTypes?: ScalarCaptureTypes): PreparedScalarCall | undefined {
-        if (this.options().scalarFunctionCompilation === false) return undefined;
+        if (!this.compiler.scalars.functions) return undefined;
         let cache = context ? this.localScalarCalls.get(context) : this.globalScalarCalls;
         if (!cache) this.localScalarCalls.set(context!, cache = new WeakMap());
         let instances = cache.get(statement);
@@ -699,9 +703,9 @@ export class FunctionInvocation {
         const cached = instances.get(key);
         if (cached) return cached;
         const kernel = compileScalarFunction(statement, types, loops, scalarTypes);
-        if (!kernel || kernel.userCalls.length && this.options().scalarCallCompilation === false
-            || kernel.memberships.length && this.options().sequenceMembershipCompilation === false
-            || kernel.userCalls.some(call => call.tail) && this.options().compiledScalarTailCalls === false) return undefined;
+        if (!kernel || kernel.userCalls.length && !this.compiler.scalars.calls
+            || kernel.memberships.length && !this.compiler.scalars.sequenceMembership
+            || kernel.userCalls.some(call => call.tail) && !this.compiler.scalars.tailCalls) return undefined;
         const resolve = (name: string) => context?.lookup(name) ?? this.bindings.globals.get(name) ?? this.builtins.lookup(name);
         const userBinders = kernel.userCalls.map(call => () => {
             const value = resolve(call.name);
@@ -777,7 +781,7 @@ export class FunctionInvocation {
         }, operation.module, operation.name, inputs));
         const calls: LoopCallable[] = [];
         const planConsumed = () => {
-            this.options().onTensorKernelExecuted?.();
+            this.compiler.hooks.onTensorKernelExecuted?.();
             const diagnostics = currentDiagnostics();
             if (diagnostics) diagnostics.compiledTensors++;
         };
@@ -791,7 +795,7 @@ export class FunctionInvocation {
                     if (this.depth >= this.maxDepth) {
                         throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                     }
-                    this.options().onScalarFunctionExecuted?.();
+                    this.compiler.hooks.onScalarFunctionExecuted?.();
                     try {
                         return kernelDirect(...arguments_ as never[]);
                     } catch (error) {
@@ -810,7 +814,7 @@ export class FunctionInvocation {
                     try {
                         for (;;) {
                             try {
-                                this.options().onScalarFunctionExecuted?.();
+                                this.compiler.hooks.onScalarFunctionExecuted?.();
                                 return kernelDirect(...arguments_ as never[]);
                             } catch (error) {
                                 if (error instanceof FunctionPlanDemandError) throw error.error;
@@ -845,7 +849,7 @@ export class FunctionInvocation {
             try {
                 for (;;) {
                     try {
-                        this.options().onScalarFunctionExecuted?.();
+                        this.compiler.hooks.onScalarFunctionExecuted?.();
                         return kernel.run(arguments_, locate, calls, users, memberships, captures, scalars, planConsumed, rankedCalls);
                     } catch (error) {
                         if (error instanceof FunctionPlanDemandError) throw error.error;
@@ -883,7 +887,7 @@ export class FunctionInvocation {
                 if (this.depth >= this.maxDepth) {
                     throw new RankError(`function call depth exceeds ${this.maxDepth}`, 'RecursionLimit');
                 }
-                this.options().onScalarFunctionExecuted?.();
+                this.compiler.hooks.onScalarFunctionExecuted?.();
                 try {
                     return rawNumber(...arguments_ as never[]) as unknown as number;
                 } catch (error) {
@@ -897,7 +901,7 @@ export class FunctionInvocation {
             if (inspectionEnabled() || this.scalarFallbackDepth) return false;
             if (kernel.dequeIteration && (!privateLoopPolling() || !nativeDequeMethods())) return false;
             if (kernel.setMembership && (!privateLoopPolling() || !nativeSetMembership())) return false;
-            if (kernel.plans && (this.options().tensorFusion === false || !privateLoopPolling())) return false;
+            if (kernel.plans && (!this.compiler.tensors.fusion || !privateLoopPolling())) return false;
             if (kernel.scalarCaptures.length && (!privateLoopPolling()
                 || kernel.scalarCaptures.some(({ name, type }) => compiledScalarType(resolve(name)) !== type))) return false;
             if (kernel.modules.some(module => !this.modules.has(module))) return false;
@@ -985,7 +989,7 @@ export class FunctionInvocation {
         const callerStatement = this.inspection.statement;
         const caller = this.bindings.current;
         const callerControl = this.control;
-        const control: FunctionControl<FunctionDefinition> | undefined = this.options().directFunctionControl !== false ? {} : undefined;
+        const control: FunctionControl<FunctionDefinition> | undefined = this.compiler.functions.directControl ? {} : undefined;
         this.control = control;
         const scope = new Set<RankFile>();
         this.resources.pushScope(scope);

@@ -22,7 +22,8 @@ import { runExecution } from './execution.js';
 import { FastPaths } from './fast-paths.js';
 import { FunctionInvocation } from './function-invocation.js';
 import {
-    moduleOptions, testOptions, type InterpreterOptions, type RankTestResult,
+    moduleOptions, testOptions, resolveCompilerCapabilities, referenceCompilerOptions,
+    type CompilerCapabilities, type InterpreterOptions, type RankTestResult,
 } from './interpreter-options.js';
 import { RETIRED_IMPLICIT_NAMES } from './modules/algo.js';
 import { BuiltinRegistry, reseed, seedableRandom, type SeedableRandom } from './modules/builtins.js';
@@ -69,6 +70,9 @@ export class Interpreter {
     get options(): InterpreterOptions {
         return this.baseOptions.compilation === false || inspectionEnabled() ? this.referenceOptions : this.baseOptions;
     }
+    get compiler(): CompilerCapabilities {
+        return resolveCompilerCapabilities(this.options);
+    }
     private readonly random: SeedableRandom;
     private readonly parsingPrograms = new Set<string>();
     private readonly openPrograms = new Map<string, LoadedProgram>();
@@ -102,40 +106,7 @@ export class Interpreter {
     constructor(output: Output = console.log, options: InterpreterOptions = {}) {
         this.output = output;
         this.baseOptions = { ...options, environment: options.environment ?? new EnvironmentOverlay() };
-        this.referenceOptions = { ...this.baseOptions, compilation: false, tensorFusion: false,
-            compiledScalarTailCalls: false,
-            scalarEntryCompilation: false,
-            scalarFunctionCompilation: false,
-            scalarCallCompilation: false,
-            sequenceMembershipCompilation: false,
-            scalarTextCompilation: false,
-            textArrayLoopCompilation: false,
-            textLoopCompilation: false,
-            absoluteLoopCompilation: false,
-            realLoopCompilation: false,
-            loopReturnCompilation: false,
-            loopYieldCompilation: false,
-            arrayLocalCompilation: false,
-            booleanArrayCompilation: false,
-            booleanSelectionCompilation: false,
-            generatorLoopCompilation: false,
-            booleanLoopCompilation: false,
-            scalarAddressCompilation: false,
-            extremaLoopCompilation: false,
-            compoundArrayCompilation: false,
-            arrayIterationCompilation: false,
-            arrayWriteCompilation: false,
-            arrayLoopCompilation: false,
-            nestedLoopCompilation: false,
-            tensorCellCompilation: false,
-            arrayFunctionCompilation: false,
-            rankedArrayCompilation: false,
-            nativeLoopCompilation: false,
-            functionBodyCompilation: false,
-            integerLoopCompilation: false,
-            blockCompilation: false,
-            scalarCompilation: false,
-        };
+        this.referenceOptions = referenceCompilerOptions(this.baseOptions);
         this.random = seedableRandom(options.random);
         const requireOpen = (module: string, operation: string) => requireModule(this.modules, module, operation);
         const select = (values: RankValue[], missing?: () => RankValue) => selectValues(this.modules, values, missing);
@@ -163,7 +134,7 @@ export class Interpreter {
             });
         this.reductions = new ReductionEvaluator(
             (operator, left, right) => this.operators.evaluateBinary(operator, left, right),
-            name => this.resolve(name), this.builtins.functions, () => this.options.tensorFusion !== false,
+            name => this.resolve(name), this.builtins.functions, () => this.compiler.tensors.fusion,
             fn => this.functions.scalarCallback(fn),
             (fn, args) => runExecution(this.rankApplication.applyIntrinsicRank(fn, args)),
             value => this.resources.ownFiles(value),
@@ -385,7 +356,7 @@ export class Interpreter {
     /** Hosts force preview results in this environment, without borrowing a caller's compiler. */
     inEnvironment<T>(run: () => T): T {
         return withoutAmbientTensorPlan(() => this.environmentOverride ? withEnvironment(this.environmentOverride, run) : run(),
-            this.options.tensorFusion !== false);
+            this.compiler.tensors.fusion);
     }
 
     /** Copy the current bindings without rerunning the program that produced them. */
@@ -750,4 +721,8 @@ export class Interpreter {
 }
 
 export { typeName } from './value.js';
-export type { InterpreterOptions, LoadedModule, RankTestResult } from './interpreter-options.js';
+export {
+    resolveCompilerCapabilities,
+    type CompilerCapabilities, type CompilerCapabilitiesConfig,
+    type InterpreterOptions, type LoadedModule, type RankTestResult,
+} from './interpreter-options.js';
