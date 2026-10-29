@@ -1,0 +1,83 @@
+rem One More One
+rem https://projecteuler.net/problem=672
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Kk integer = 1000000000
+
+rem In base 7, g(7a) = g(a) and g(7a+r)
+rem = 7 - r + g(a+1). With f(n) = g(n+1)
+rem and F(n) the sum of g up to n,
+rem appending a digit d gives
+rem   f' = f + 6 - d, n' = 7 n + d,
+rem   F' = 7 F + 21 n + d f
+rem        - 6 + d (13 - d) / 2.
+rem N = (7^K - 1) / 11 is the 10-digit
+rem base-7 block of (7^10 - 1) / 11,
+rem repeated K / 10 times; the state
+rem (F, f, n, 1) takes the digits as
+rem one matrix per block, raised to a
+rem power.
+P = 1117117717
+Cc = (7 ** 10 - 1) // 11
+Dg = (Cc // (7 ** (9 - (0 to 9)))) mod 7
+Is = (0 to 3) reshape 4 1
+Id = (Is equal (0 to 3)) integer
+Bm = Id
+Pm = Id
+Gt = 0
+for D in Dg
+  for W in 0 to 1
+    Xm = Bm
+    if W equal 1
+      Xm = Pm
+    end
+    Fr = Xm 0
+    Ff = Xm 1
+    Nr = Xm 2
+    On = Xm 3
+    Ct = D * (13 - D) // 2 - 6
+    Nf = 7 * Fr + 21 * Nr + D * Ff
+    Nf = Nf mod P
+    Nf = (Nf + Ct * On + P) mod P
+    Ng = (Ff + (6 - D) * On) mod P
+    Nn = (7 * Nr + D * On) mod P
+    Yb = concat Nf Ng
+    Yc = concat Nn On
+    Ya = concat Yb Yc
+    Ym = Ya reshape 4 4
+    if W equal 0
+      Bm = Ym
+    end
+    if W equal 1
+      if Gt + D greater 0
+        Pm = Ym
+      end
+    end
+  end
+  if D greater 0
+    Gt = 1
+  end
+end
+Uc = ((0 to 3) equal 3) integer
+Vv = (Pm * Uc) sum axis 1
+Ee = Kk // 10 - 1
+for Ee greater 0
+  if Ee mod 2 equal 1
+    Vr = Vv reshape 1 4
+    Vm = Bm * Vr mod P
+    Vv = Vm sum axis 1 mod P
+  end
+  Ee = Ee // 2
+  if Ee greater 0
+    Aa = Bm reshape 4 4 1
+    Bb = Bm reshape 1 4 4
+    Cm = Aa * Bb mod P
+    Bm = Cm sum axis 1 mod P
+  end
+end
+Answer = Vv 0
+Answer print

@@ -1,0 +1,18 @@
+use testing
+
+test "statement value"
+  use "672_onemoreone"
+  Kk = 10
+  run
+  Answer equal 690409338
+  Kk = 20
+  run
+  Answer equal 933607441
+end
+
+test "default input"
+  use "672_onemoreone"
+  Kk = 1000000000
+  run
+  Answer equal 91627537
+end
