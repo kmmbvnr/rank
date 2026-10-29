@@ -1,0 +1,99 @@
+rem ACMP 212 - Villages (Деревни)
+rem Solved in Euler 1-15 style with tree dynamic programming and min-plus convolution.
+rem
+rem We are given a tree of N villages and need to find the minimum number of edges to cut
+rem so that there is an isolated connected component of size exactly P.
+rem
+rem We root the tree at node 0 and traverse bottom-up by depth. For each node U,
+rem DP[U][s] represents the minimum cuts in the subtree of U to keep a component of size s
+rem containing U. When merging child V into U, we perform a vectorized min-plus convolution:
+rem   NewDP[s] = min(DP[U][s] + 1, min_{1 <= s1 < s}(DP[U][s1] + DP[V][s - s1]))
+rem
+rem Finally, for each candidate root U of the component, the total cuts are:
+rem   DP[0][P] if U is the tree root, else DP[U][P] + 1 (cutting the edge to U's parent).
+
+use io
+use cli
+use sequences
+use text
+
+arg N integer = 3
+arg P integer = 2
+arg EdgesText text = "1 2 3 2"
+
+INF = 1000
+
+EdgeTokens = EdgesText words integer
+Adj = (array shape (N * N) fill 0) reshape N N
+NumEdges = (EdgeTokens len) // 2
+
+for E in 0 till NumEdges
+  U = (EdgeTokens (2 * E)) - 1
+  V = (EdgeTokens (2 * E + 1)) - 1
+  Adj U V = 1
+  Adj V U = 1
+end
+
+Depth = array shape N fill -1
+Parent = array shape N fill -1
+Depth 0 = 0
+MaxDepth = 0
+
+for D in 0 till N
+  Layer = Depth equal D
+  if (Layer count) equal 0
+    break
+  end
+  MaxDepth = D
+  for U in 0 till N
+    if Depth U equal D
+      for V in 0 till N
+        if (Adj U V equal 1) and (Depth V equal -1)
+          Depth V = D + 1
+          Parent V = U
+        end
+      end
+    end
+  end
+end
+
+DP = (array shape (N * (P + 1)) fill INF) reshape N (P + 1)
+for U in 0 till N
+  DP U 1 = 0
+end
+
+for D in (0 to MaxDepth) reverse
+  for U in 0 till N
+    if Depth U equal D
+      for V in 0 till N
+        if (Parent V equal U) and (Depth V equal (D + 1))
+          NewDP = array shape (P + 1) fill INF
+          NewDP 1 = (DP U 1) + 1
+          if P greater 1
+            for S in 2 to P
+              S1 = 1 to (S - 1)
+              S2 = S - S1
+              PairMin = ((DP U S1) + (DP V S2)) min
+              CutVal = (DP U S) + 1
+              NewDP S = CutVal min PairMin
+            end
+          end
+          DP U = NewDP
+        end
+      end
+    end
+  end
+end
+
+Costs = array shape N fill INF
+for U in 0 till N
+  BaseCost = DP U P
+  if U equal 0
+    Costs U = BaseCost
+  else
+    Costs U = BaseCost + 1
+  end
+end
+
+Answer = Costs min
+Answer print

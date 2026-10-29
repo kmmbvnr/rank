@@ -1,0 +1,41 @@
+use testing
+
+test "ACMP 212: sample 1 (3 villages, target 2)"
+  use "0212_villages"
+  N = 3
+  P = 2
+  EdgesText = "1 2 3 2"
+  run
+
+  Answer equal 1
+end
+
+test "ACMP 212: sample 2 (11 villages, target 6)"
+  use "0212_villages"
+  N = 11
+  P = 6
+  EdgesText = "1 2 1 3 1 4 1 5 2 6 2 7 2 8 4 9 4 10 4 11"
+  run
+
+  Answer equal 2
+end
+
+test "ACMP 212: full tree kept (5 villages, target 5)"
+  use "0212_villages"
+  N = 5
+  P = 5
+  EdgesText = "1 2 1 3 1 4 1 5"
+  run
+
+  Answer equal 0
+end
+
+test "ACMP 212: single village component (5 villages, target 1)"
+  use "0212_villages"
+  N = 5
+  P = 1
+  EdgesText = "1 2 1 3 1 4 1 5"
+  run
+
+  Answer equal 1
+end
