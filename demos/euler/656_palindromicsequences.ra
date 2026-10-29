@@ -1,0 +1,50 @@
+rem Palindromic Sequences
+rem https://projecteuler.net/problem=656
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Lo integer = 2
+arg Hi integer = 1000
+arg G integer = 100
+
+rem With the continued fraction a_i of
+rem sqrt(b) and convergent denominators
+rem q_i, the palindromic n form blocks
+rem for each odd i: q(i-2) + k q(i-1),
+rem k = 1 to a_i. All b advance at once;
+rem q is kept mod 10^15, and each block
+rem adds t q(i-2) + q(i-1) t (t+1) / 2
+rem for the t terms still needed.
+Q = 1000000000000000
+Bs = Lo to Hi
+Rt = Bs isqrt
+Ix = ((Rt * Rt) not equal Bs) indices
+Bs = Bs Ix
+A0 = Rt Ix
+Ms = A0 * 0
+Ds = A0 * 0 + 1
+As = A0 copy
+Qa = A0 * 0
+Qb = A0 * 0 + 1
+Cn = A0 * 0
+Sm = A0 * 0
+for I in 1 to 2 * G
+  Ms = Ds * As - Ms
+  Ds = (Bs - Ms * Ms) // Ds
+  As = (A0 + Ms) // Ds
+  if I mod 2 equal 1
+    Rm = G - Cn
+    Tt = (As at most Rm) choose As Rm
+    Tr = Tt * (Tt + 1) // 2
+    Sm = (Sm + Tt * Qa + Qb * Tr) mod Q
+    Cn = Cn + Tt
+  end
+  Qn = (As * Qb + Qa) mod Q
+  Qa = Qb
+  Qb = Qn
+end
+Answer = Sm sum mod Q
+Answer print
