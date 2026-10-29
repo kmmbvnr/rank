@@ -88,6 +88,7 @@ interface DeclaredCallExpression extends Expression {
 interface FunctionStatement {
     name: string
     memo: boolean
+    gpu?: boolean
     leftBindings: FunctionParameter[]
     rightBindings: FunctionParameter[]
     leftParameters: string[]
@@ -151,7 +152,7 @@ TestStatement:
     'end';
 
 FunctionStatement returns FunctionStatement:
-    ('fun' | memo?='memo') leftBindings+=LeftFunctionParameter* name=FunctionName rightBindings+=FunctionParameter*
+    ('fun' | gpu?='gpu' | memo?='memo') leftBindings+=LeftFunctionParameter* name=FunctionName rightBindings+=FunctionParameter*
     groups+=FunctionCallGroup* ('rank' ranks+=RankSpec+)?
     ('=' expressionBody=Expression |
         NL+ (groups+=ContinuationCallGroup+ NL+)*

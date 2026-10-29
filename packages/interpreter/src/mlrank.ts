@@ -83,6 +83,7 @@ export function compileRam(source: string, id: string, readBinary?: (name: strin
     const simpleAssignment = (statement: Statement) => isAssignmentStatement(statement)
         && statement.operator === '=' && !statement.deferred && !statement.accumulate;
     const declareFunction = (statement: FunctionStatement): void => {
+        if (!statement.gpu) fail('RAM functions must be declared with gpu, not fun or memo', statement);
         const signature = functionCallSignature(statement);
         if (!signature.arity || statement.memo || statement.ranks.length || signature.words.length
             || signature.parameters.some(parameter => parameter.kind !== 'data' || parameter.deferred))

@@ -92,7 +92,7 @@ export class SignatureLexer extends DefaultLexer {
                 /^[a-z][A-Za-z0-9_.]*$/.test(tokens[index + 2]?.image ?? '') && newline(tokens[index + 3])) {
                 scope.names.set(token.image, { alias: tokens[index + 2].image });
             }
-            if (!['fun', 'memo'].includes(token.image)) continue;
+            if (!['fun', 'gpu', 'memo'].includes(token.image)) continue;
             const start = index;
             let cursor = index + 1;
             while (uppercase(tokens[cursor])) {

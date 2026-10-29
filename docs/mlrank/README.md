@@ -39,14 +39,14 @@ H = Old softmax
 return H
 ```
 
-Local tensor functions can group operations inside the same `.ram`:
+Local tensor functions use `gpu` (not `fun`) and can group operations inside the same `.ram`:
 
 ```rank
 use ml
 arg X .f32 shape 2 3
 arg W .f32 shape 3 4
 arg Bias .f32 shape 4
-fun X affine Weight Offset
+gpu X affine Weight Offset
 H = X matmul Weight
 return H + Offset
 end
@@ -56,7 +56,8 @@ return X affine W Bias
 The compiler infers helper parameter/result shapes from each call. It expands the
 body into the same graph; a function boundary adds no GPU invocation or host
 readback. Functions are optional: writing the operations inline remains valid.
-Only the module entry point is exported to `.ra`. Helper names must be declared
+`gpu` declarations are restricted to RAM modules; ordinary Rank functions keep
+using `fun`. Only the module entry point is exported to `.ra`. Helper names must be declared
 before their calls are expanded. Helpers can use module tensors and introduce
 private local assignments. Arguments are lowered
 once in the caller. A callee sees module bindings and its own parameters/locals,
@@ -64,7 +65,7 @@ not the caller's local variables. Integer index parameters retain the existing
 gather bounds checks.
 
 The current subset accepts positional tensor parameters, simple assignments and
-a final tensor return, including the ordinary expression-bodied `fun` form.
+a final tensor return, including the expression-bodied `gpu` form.
 Recursion, nested declarations, loops/branches, memoization, deferred/function
 parameters, named option groups and helper rank/axis modifiers are not supported.
 Expanded operations count toward the bounded whole-graph limit. Large `.f32`

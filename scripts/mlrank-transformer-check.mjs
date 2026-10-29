@@ -78,9 +78,9 @@ for(const [B,T,H,D] of [[1,1,1,3],[1,3,2,3],[2,5,2,3]]) {
  for(const [name,end,expected,outputShape] of stages) {
  if(composed&&name!=='Output')continue;
  const flat=prefix+constants+lines.slice(0,end+1).join('\n')+'\nreturn '+name+'\n';
- const source=composed?prefix+constants+'fun X attentionblock W O\n'+lines.slice(0,15).join('\n')+'\nreturn X + Attention\nend\n'
-  +'fun X feedforward UpW DownW\n'+lines.slice(16,20).join('\n').replaceAll('Residual1','X')+'\nreturn X + Mlp\nend\n'
-  +(partitioned?'fun X transformerblock W O UpW DownW\nreturn (X attentionblock W O) feedforward UpW DownW\nend\n'
+ const source=composed?prefix+constants+'gpu X attentionblock W O\n'+lines.slice(0,15).join('\n')+'\nreturn X + Attention\nend\n'
+  +'gpu X feedforward UpW DownW\n'+lines.slice(16,20).join('\n').replaceAll('Residual1','X')+'\nreturn X + Mlp\nend\n'
+  +(partitioned?'gpu X transformerblock W O UpW DownW\nreturn (X attentionblock W O) feedforward UpW DownW\nend\n'
     +'X = X transformerblock W O UpW DownW\n'.repeat(blocks-1)+'return X transformerblock W O UpW DownW\n'
     :'return (X attentionblock W O) feedforward UpW DownW\n'):flat;
  if(composed&&!partitioned)assert.deepEqual(compileRam(source,'transformer.ram').graph.model,compileRam(flat,'transformer.ram').graph.model);

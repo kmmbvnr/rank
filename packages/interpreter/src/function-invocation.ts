@@ -358,6 +358,7 @@ export class FunctionInvocation {
     }
 
     define(statement: FunctionStatement, constant = true): RankValue {
+        if (statement.gpu) throw new RankError('gpu functions can only be declared inside a .ram module', 'Syntax');
         const existing = this.bindings.scope.get(statement.name);
         if (this.bindings.isConstant(statement.name)) {
             const declaration = existing && isNativeFunction(existing) ? functionDeclarations.get(existing) : undefined;
