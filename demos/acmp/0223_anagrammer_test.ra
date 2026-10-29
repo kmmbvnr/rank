@@ -1,0 +1,37 @@
+use testing
+
+test "ACMP 223: sample 1 TROT -> TORT (2 ways)"
+  use "0223_anagrammer"
+  S = "TROT"
+  T = "TORT"
+  run
+
+  Answer equal 2
+end
+
+test "ACMP 223: sample 2 MADAM -> ADAMM (4 ways)"
+  use "0223_anagrammer"
+  S = "MADAM"
+  T = "ADAMM"
+  run
+
+  Answer equal 4
+end
+
+test "ACMP 223: sample 3 LONG -> GONG (0 ways)"
+  use "0223_anagrammer"
+  S = "LONG"
+  T = "GONG"
+  run
+
+  Answer equal 0
+end
+
+test "ACMP 223: sample 4 all identical letters Catalan C_8 = 1430"
+  use "0223_anagrammer"
+  S = "AAAAAAAA"
+  T = "AAAAAAAA"
+  run
+
+  Answer equal 1430
+end

@@ -1,0 +1,62 @@
+rem ACMP 223 - Anagrammer (Анаграммер)
+rem Solved in Euler 1-15 style with interval dynamic programming.
+rem
+rem An anagrammer pushes characters from string S into a stack and pops them to form T.
+rem Each valid sequence of 2*N operations corresponds to a Dyck-path decomposition:
+rem When S[I] is pushed into an empty stack, it is popped at some position K where T[K] == S[I].
+rem The characters pushed and popped in between transform S[I+1 ... I + len1] into T[J ... K-1],
+rem and the remaining characters transform S[I+1+len1 ... I+L-1] into T[K+1 ... J+L-1].
+rem
+rem Recurrence:
+rem   DP[L][I][J] = sum_{0 <= step < L, T[J+step] == S[I]}
+rem                    DP[step][I+1][J] * DP[L - 1 - step][I + 1 + step][J + step + 1]
+
+use io
+use cli
+use sequences
+use text
+
+arg S text = "TROT"
+arg T text = "TORT"
+
+N = S len
+Dim = N + 2
+
+DP = (array shape (Dim * Dim * Dim) fill 0) reshape Dim Dim Dim
+
+for I in 0 to (N + 1)
+  for J in 0 to (N + 1)
+    DP 0 I J = 1
+  end
+end
+
+for L in 1 to N
+  MaxI = N - L
+  for I in 0 to MaxI
+    MaxJ = N - L
+    for J in 0 to MaxJ
+      SI = S I
+      Total = 0
+      for Step in 0 till L
+        K = J + Step
+        TK = T K
+        if TK equal SI
+          Len1 = Step
+          Len2 = L - 1 - Step
+          I1 = I + 1
+          J1 = J
+          I2 = I + 1 + Len1
+          J2 = K + 1
+          W1 = DP Len1 I1 J1
+          W2 = DP Len2 I2 J2
+          Term = W1 * W2
+          Total = Total + Term
+        end
+      end
+      DP L I J = Total
+    end
+  end
+end
+
+Answer = DP N 0 0
+Answer print
