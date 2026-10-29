@@ -1,0 +1,34 @@
+rem Randomly Decaying Sequence
+rem https://projecteuler.net/problem=697
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 10000000
+
+rem -ln X(n) = ln c + the sum of n
+rem exponentials, a Gamma(n, 1) sum S,
+rem and X(n) < 1 means S > ln c. So ln c
+rem is the 75% point of Gamma(n, 1), by
+rem the Cornish-Fisher expansion at
+rem z = 0.6744897501960817 (the 75%
+rem point of the normal law):
+rem   x = n + z sqrt(n) + (z^2 - 1) / 3
+rem     + (z^3 - 7 z) / (36 sqrt(n))
+rem     - (3 z^4 + 7 z^2 - 16)
+rem       / (810 n).
+rem The answer is x / ln 10.
+Z = 0.6744897501960817
+N = Nn * 1.0
+Sr = N sqrt
+X = N + Z * Sr + (Z * Z - 1.0) / 3.0
+Z3 = Z * Z * Z
+X = X + (Z3 - 7.0 * Z) / (36.0 * Sr)
+Z2 = Z * Z
+Q4 = 3.0 * Z2 * Z2 + 7.0 * Z2 - 16.0
+X = X - Q4 / (810.0 * N)
+Lg = X / 2.302585092994046
+Answer = Lg text ".2f"
+Answer print
