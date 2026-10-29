@@ -69,8 +69,7 @@ a final tensor return, including the expression-bodied `gpu` form.
 Recursion, nested declarations, loops/branches, memoization, deferred/function
 parameters, named option groups and helper rank/axis modifiers are not supported.
 Expanded operations count toward the bounded whole-graph limit. Large `.f32`
-graphs use the automatic partitioning described below; GiB-scale placement remains
-unimplemented.
+graphs use the automatic partitioning and file-range placement described below.
 See [the transformer block](../../demos/mlrank/transformer.ram) and
 [the GPT-2 MLP](../../demos/mlrank/gpt2tokenmlp.ram).
 
@@ -123,10 +122,9 @@ native retention now evicts them when necessary while preserving the active mode
 and every retained state.
 
 This still does not optimize cuts for latency, query physical device memory,
-stream a GiB of weights, or replace the manually partitioned full GPT-2 example.
-Constants can repeat between parts, and eviction can cause recompilation. File
-input buffers remain included in reservations; this step adds no weight-streaming
-mechanism.
+or replace the manually partitioned full GPT-2 example. Constants can repeat
+between parts, and eviction can cause recompilation. File input buffers remain
+included in reservations; file-range streaming is described below.
 
 Memory validation on Mac and Intel used real GPU execution with injected planning
 caps of 256 KiB and 128 KiB: four and ten parts, respectively, with measured logical
@@ -228,8 +226,9 @@ by 16 or 32. It emits LiteRT `FULLY_CONNECTED` with weights transposed once
 to `[N,K]` during compilation; no host multiplication or explicit padding is used.
 This is GPU execution, not a claim of AMX or Hexagon NPU execution.
 Tensor shapes have 1–4 positive dimensions. Computed tensors and baked constants
-allow at most 1,048,576 elements; file runtime inputs allow up to 4,194,304 elements
-each, with a 64 MiB aggregate input budget (see resident projection below).
+allow at most 1,048,576 elements. Logical `.f32` file inputs can be larger; each
+native range allows up to 4,194,304 elements. Inline inputs have a 64 MiB aggregate
+budget (see file-range streaming below).
 Inputs must contain finite Rank `real` values; integers are not narrowed.
 `.f16` and `.f32` round at the input/output boundary. LiteRT transport and computation use float32 tensors; both native bridges
 explicitly request FP32 GPU precision. `.f16` describes boundary rounding,
@@ -269,6 +268,53 @@ The notebook and its selected RAM tab survived a WebView reload.
 These checks establish correctness and placement for this workload, not a
 speedup. Linux WebGPU profiling in the standalone tool is unsupported; run
 that probe without `--use_profiler=true`.
+
+### File-range streaming: 1 GiB acceptance
+
+A logical `.f32` input can describe a large file tensor. Before memory planning,
+RAM promotes statically contiguous slices and reshapes to bounded native file
+ranges. Unused source-bank nodes disappear from the executable graph. Paths,
+revisions and offsets refresh on each call; weight payloads never enter JavaScript.
+Transpose and arithmetic are not file views. Noncontiguous slices remain GPU
+operations, and an oversized source range is rejected before dispatch. This does
+not tile an individual oversized matrix operation.
+
+Equivalent executable parts share compiled-model identities and input buffers.
+The native budget can evict cached models: the fixture below loads three models
+per run, including the repeat. Changed ranges are read into those bounded buffers.
+
+[file-stream.ra](../../demos/mlrank/file-stream.ra) calls one
+[stream.ram](../../demos/mlrank/stream.ram), which applies 256 residual matrix
+blocks. Every byte of its dense `[256,1024,1024]` F32 bank participates: exactly
+1,073,741,824 payload bytes, without sparse padding. The 256 static calls are a
+stress fixture, not the final model-authoring interface. Generate weights and run:
+
+```sh
+OPENBLAS_NUM_THREADS=1 node_modules/.cache/mlrank/bin/python scripts/mlrank-stream-fixture.py /tmp/rank-stream-1gib
+RANK_ML_PYTHON="$PWD/node_modules/.cache/mlrank/bin/python" node scripts/mlrank-stream-check.mjs /tmp/rank-stream-1gib
+```
+
+The independent reference uses NumPy float64. All 1024 output values matched on
+Mac, Intel and OnePlus, with maximum absolute error below 9.2e-7. Each run made
+13 GPU calls, read exactly 1 GiB natively, returned 4096 bytes, and left zero internal
+states. JavaScript read only headers. Desktop checks verified full acceleration;
+Android logs verified complete delegation of the loaded graph templates. Desktop
+injected-failure and Android stale-file tests verified cleanup.
+
+Measured first/repeat runs: Mac 0.44/0.26 s, Intel 3.32/2.95 s, OnePlus 7.44/4.72 s.
+These are process first/repeat runs with potentially warm OS file caches, not disk
+cold-cache measurements or speedup claims. Peak logical native accounting was
+100.5 MiB. Process memory is different: native peak RSS reached 528.2 MiB on Mac
+and 313.5 MiB on Intel; Android observed peak PSS was 357.2 MiB. Desktop JavaScript
+processes additionally peaked around 211–213 MiB RSS. The logical 128 MiB budget
+is not a total physical-memory bound.
+
+The OnePlus notebook **GPU 1 GiB** uses `files/models/stream.safetensors` and was
+also run through Program → RAM → GPU (7.18 s). The file is a generated test fixture,
+not bundled into the APK. This closes the infrastructure's first 1 GiB execution
+check; full GPT-2 migration and convenient block weight binding remain pending.
+[Recorded evidence](../../benchmarks/baselines/2026-10-29-mlrank-stream.json).
+
 
 ## LayerNorm and GELU (stage 9)
 
@@ -375,6 +421,8 @@ For Android, generate `output/playwright/ram-mlp.js` using
 the app WebView, then run `node scripts/mlrank-android-placement.mjs SERIAL APP_PID`.
 Restart the app before timing a first call. Capture `adb -s SERIAL shell dumpsys
 meminfo com.arrrank.app` before and after for app memory snapshots.
+
+
 
 ### Stage 6 measurements (2026-10-27, before binary weights)
 
@@ -1193,11 +1241,12 @@ input buffers on subsequent invocations; file size and revision are checked befo
 reuse. An ordinary input write invalidates that buffer's file identity. Release,
 eviction or release discards that model's resident inputs; helper restart discards all resident inputs. Failed writes
 never mark an input resident. This does not prove the driver avoids internal copies.
-File-backed baked constants and placement of large weight sets remain separate
-work; automatic graph partitioning is described above.
+File-backed baked constants remain separate work; automatic file-range placement
+is described above.
 
-Runtime inputs allow up to 4,194,304 elements (16 MiB F32) each and 64 MiB in total.
-Inputs above 1,048,576 elements must be file tensors. Computed tensors, outputs and
+Native file ranges allow up to 4,194,304 elements (16 MiB F32) each. Logical `.f32`
+file banks can be larger when their contiguous slices fit executable parts.
+Inline inputs allow 64 MiB in total; inputs above 1,048,576 elements must be file tensors. Computed tensors, outputs and
 individual baked constants retain the 1,048,576-element limit; the 32 MiB constant
 budget remains. The 128-node bound now applies per executable part. These are
 bounded graph budgets, not a claim that

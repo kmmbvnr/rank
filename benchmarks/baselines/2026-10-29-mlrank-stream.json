@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-29",
+  "purpose": "Dense 1 GiB file bank through automatic GPU partitioning",
+  "fixture": {
+    "shape": [
+      256,
+      1024,
+      1024
+    ],
+    "payloadBytes": 1073741824,
+    "reference": "NumPy float64, residual matmul chain; all 1024 outputs compared",
+    "generator": "scripts/mlrank-stream-fixture.py",
+    "checker": "scripts/mlrank-stream-check.mjs",
+    "androidChecker": "packages/web/test/ram-stream.playwright.js"
+  },
+  "mac": {
+    "platform": "darwin",
+    "weightBytes": 1073741824,
+    "fileBytes": 1073741920,
+    "sha256": "92645eacf2282c09b4a400f52e422138990b6d5c32e9513a99df64e21d2d42cf",
+    "headerBytesRead": 288,
+    "jsPayloadBytes": 0,
+    "jsMemory": {
+      "rss": 221495296,
+      "heapTotal": 125730816,
+      "heapUsed": 85978544,
+      "external": 3252066,
+      "arrayBuffers": 6412669
+    },
+    "jsPeakRssBytes": 221495296,
+    "runs": [
+      {
+        "repeat": 0,
+        "wallMs": 439.38425000000007,
+        "maxError": 7.883473189251866e-07,
+        "gpuCalls": 13,
+        "modelLoads": 3,
+        "modelBytesSent": 26176,
+        "fileBytesRead": 1073741824,
+        "outputBytesRead": 4096,
+        "maxReservationBytes": 88530536,
+        "peakNativeAccountedBytes": 105396184,
+        "peakRssBytes": 360660992,
+        "inlineValuesSent": 1024,
+        "finalStateBytes": 0
+      },
+      {
+        "repeat": 1,
+        "wallMs": 258.78645800000004,
+        "maxError": 7.883473189251866e-07,
+        "gpuCalls": 13,
+        "modelLoads": 3,
+        "modelBytesSent": 26176,
+        "fileBytesRead": 1073741824,
+        "outputBytesRead": 4096,
+        "maxReservationBytes": 88530536,
+        "peakNativeAccountedBytes": 105396288,
+        "peakRssBytes": 553910272,
+        "inlineValuesSent": 1024,
+        "finalStateBytes": 0
+      }
+    ],
+    "failureCleanup": true
+  },
+  "intel": {
+    "platform": "linux",
+    "weightBytes": 1073741824,
+    "fileBytes": 1073741920,
+    "sha256": "92645eacf2282c09b4a400f52e422138990b6d5c32e9513a99df64e21d2d42cf",
+    "headerBytesRead": 288,
+    "jsPayloadBytes": 0,
+    "jsMemory": {
+      "rss": 223358976,
+      "heapTotal": 126025728,
+      "heapUsed": 68008016,
+      "external": 3721695,
+      "arrayBuffers": 6670703
+    },
+    "jsPeakRssBytes": 223358976,
+    "runs": [
+      {
+        "repeat": 0,
+        "wallMs": 3316.838243,
+        "maxError": 8.521284456941558e-07,
+        "gpuCalls": 13,
+        "modelLoads": 3,
+        "modelBytesSent": 26176,
+        "fileBytesRead": 1073741824,
+        "outputBytesRead": 4096,
+        "maxReservationBytes": 88530536,
+        "peakNativeAccountedBytes": 105396184,
+        "peakRssBytes": 227786752,
+        "inlineValuesSent": 1024,
+        "finalStateBytes": 0
+      },
+      {
+        "repeat": 1,
+        "wallMs": 2945.964535,
+        "maxError": 8.521284456941558e-07,
+        "gpuCalls": 13,
+        "modelLoads": 3,
+        "modelBytesSent": 26176,
+        "fileBytesRead": 1073741824,
+        "outputBytesRead": 4096,
+        "maxReservationBytes": 88530536,
+        "peakNativeAccountedBytes": 105396288,
+        "peakRssBytes": 328724480,
+        "inlineValuesSent": 1024,
+        "finalStateBytes": 0
+      }
+    ],
+    "failureCleanup": true
+  },
+  "oneplus": {
+    "weightBytes": 1073741824,
+    "sha256": "92645eacf2282c09b4a400f52e422138990b6d5c32e9513a99df64e21d2d42cf",
+    "runs": [
+      {
+        "repeat": 0,
+        "wallMs": 7437.5999999940395,
+        "maxError": 9.194602799134088e-07,
+        "valuesCompared": 1024,
+        "gpuCalls": 13,
+        "modelLoads": 3,
+        "fileBytesRead": 1073741824,
+        "headerBytesRead": 96,
+        "jsPayloadBytes": 0,
+        "outputBytesRead": 4096,
+        "peakNativeAccountedBytes": 105396184,
+        "peakPssBytes": 373478400,
+        "finalStateBytes": 0
+      },
+      {
+        "repeat": 1,
+        "wallMs": 4722.20000000298,
+        "maxError": 9.194602799134088e-07,
+        "valuesCompared": 1024,
+        "gpuCalls": 13,
+        "modelLoads": 3,
+        "fileBytesRead": 1073741824,
+        "headerBytesRead": 96,
+        "jsPayloadBytes": 0,
+        "outputBytesRead": 4096,
+        "peakNativeAccountedBytes": 105396288,
+        "peakPssBytes": 374509568,
+        "finalStateBytes": 0
+      }
+    ],
+    "staleFileRejected": true,
+    "failureCleanup": true
+  },
+  "androidPlacement": {
+    "serial": "192.168.1.74:38461",
+    "pid": "11041",
+    "placements": [
+      {
+        "delegated": 19,
+        "total": 19
+      },
+      {
+        "delegated": 105,
+        "total": 105
+      },
+      {
+        "delegated": 106,
+        "total": 106
+      },
+      {
+        "delegated": 19,
+        "total": 19
+      },
+      {
+        "delegated": 105,
+        "total": 105
+      },
+      {
+        "delegated": 106,
+        "total": 106
+      },
+      {
+        "delegated": 19,
+        "total": 19
+      }
+    ]
+  },
+  "androidUi": {
+    "notebookId": "d5bbb73d-15ca-4a86-ac40-0ea55321a264",
+    "title": "GPU 1 GiB",
+    "wallMs": 7182,
+    "result": "real [1 1024]"
+  },
+  "validation": {
+    "streamFocusedTests": 74,
+    "gpuKeywordInterpreterTests": 92,
+    "languageTests": 1482,
+    "typescriptBuild": true,
+    "androidApkBuild": true,
+    "additionalFileStatusTests": 4
+  },
+  "limitations": [
+    "Timing does not flush OS file caches.",
+    "Logical native budget excludes driver/process overhead; desktop JS process is separate.",
+    "Desktop failure cleanup uses injected host failure; Android uses stale native file descriptors.",
+    "Individual oversized operations are not tiled; large noncontiguous file views are rejected.",
+    "Full GPT-2 migration remains pending."
+  ],
+  "implementationCommit": "ffd44e4f"
+}
