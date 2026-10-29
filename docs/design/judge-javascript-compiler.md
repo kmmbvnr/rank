@@ -17,9 +17,9 @@ Target judges, to be confirmed one by one:
 - Yandex contests
 - [acmp.ru](https://acmp.ru/)
 
-For acmp.ru the Node.js assumption is unverified. Its front page lists C++,
-Python, PyPy and PascalABC.NET and does not mention JavaScript. Check the
-accepted languages before counting it as a target.
+acmp.ru runs Node.js 19.0.0 (reported by the maintainer; its front page news
+lists only C++, Python, PyPy and PascalABC.NET, so confirm the limits when
+testing a first submission).
 
 ## What exists today
 
@@ -41,8 +41,9 @@ accepted languages before counting it as a target.
 - **Source size limit.** Codeforces allows 64 KB. Other judges differ; record
   each limit here when confirmed. The interpreter (about 46,000 lines) cannot
   be shipped inside a submission, so bundling it is not an option.
-- **Node version.** Judges run different, sometimes old, versions. Emit ES2020
-  with BigInt and avoid newer APIs until each judge's version is known.
+- **Node version.** Judges run different, sometimes old, versions (acmp.ru:
+  19.0.0). Emit ES2020 with BigInt and avoid newer APIs until each judge's
+  version is known.
 - **Time and memory limits.** Output has to be fast, not only correct.
 
 ## Consequences for the design
@@ -91,7 +92,7 @@ test runs both and compares.
 ## Open questions
 
 - Which judges and Node versions are in scope, and their source size limits?
-- Does acmp.ru accept JavaScript at all?
+- What are acmp.ru's source size, time and memory limits?
 - Output format: pretty source for reading, or minified to fit size limits?
 - Where does the IR live, and does it replace the specialised kernel planners
   or sit beside them?
