@@ -1,0 +1,32 @@
+use testing
+
+test "single guest"
+  use "0188_derangements"
+  N = 1
+  run
+
+  Answer equal 0
+end
+
+test "two guests"
+  use "0188_derangements"
+  N = 2
+  run
+
+  Answer equal 1
+end
+
+test "five guests"
+  use "0188_derangements"
+  run
+
+  Answer equal 44
+end
+
+test "twenty guests"
+  use "0188_derangements"
+  N = 20
+  run
+
+  Answer equal 895014631192902121
+end

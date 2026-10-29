@@ -1,0 +1,24 @@
+rem Derangements (Guest Seating)
+rem https://acmp.ru/index.asp?main=task&id_task=188
+rem Number of permutations of N elements with no fixed points
+
+use io
+use cli
+
+arg N integer = 5
+
+Answer = 0
+if N equal 1
+  Answer = 0
+elif N equal 2
+  Answer = 1
+else
+  D = array shape (N + 1) fill 0
+  D 2 = 1
+  for I in 3 to N
+    D I = (I - 1) * (D (I - 1) + D (I - 2))
+  end
+  Answer = D N
+end
+
+Answer print
