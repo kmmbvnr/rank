@@ -1,0 +1,14 @@
+use testing
+
+test "statement values"
+  use "636_restrictedfactorisations"
+  N = 25
+  run
+  Answer equal 4933
+  N = 100
+  run
+  Answer equal 693952493
+  N = 1000
+  run
+  Answer equal 6364496
+end

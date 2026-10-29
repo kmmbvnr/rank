@@ -1,0 +1,136 @@
+rem Restricted Factorisations
+rem https://projecteuler.net/problem=636
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg N integer = 1000000
+
+rem The 10 bases (exponents 1, 2, 2, 3,
+rem 3, 3, 4, 4, 4, 4) must all differ.
+rem Ordered tuples with a product N!
+rem number prod over primes of the
+rem solutions of sum e_i x_i = v_p, and
+rem Moebius over set partitions (merge
+rem equal bases: mu = prod (-1)^(k - 1)
+rem (k - 1)!) makes them distinct.
+rem Partitions group by their block
+rem exponent sums; dp(w) counts
+rem solutions for those weights, built
+rem along shared prefixes, and the
+rem total is divided by 2! 3! 4!.
+Md = 1000000007
+Cl = 0 to 9
+A1 = (Cl at least 1) integer
+A3 = (Cl at least 3) integer
+A6 = (Cl at least 6) integer
+Ex = 1 + A1 + A3 + A6
+Sm = (Cl reshape 1 10) * 0
+Zs = Sm * 1
+Kb = (0 to 0) * 0
+Mu = Kb + 1
+for I in 0 to 9
+  E = Ex I
+  Ob = (Cl equal I) integer
+  Oj = Ob reshape 1 10
+  Nw = (Kb equal I) indices
+  Ns = (Sm Nw Cl) + E * Oj
+  Nz = (Zs Nw Cl) + Oj
+  Nk = (Kb Nw) + 1
+  Nm = Mu Nw
+  for J in 0 to I - 1
+    Ob = (Cl equal J) integer
+    Oj = Ob reshape 1 10
+    Ja = (Kb greater J) indices
+    if Ja len greater 0
+      Sa = (Sm Ja Cl) + E * Oj
+      Za = (Zs Ja Cl) + Oj
+      Zq = 0 - Zs Ja J
+      Ns = concat Ns Sa
+      Nz = concat Nz Za
+      Nk = concat Nk (Kb Ja)
+      Nm = concat Nm ((Mu Ja) * Zq)
+    end
+    Nw = (Kb equal J) indices
+    if Nw len greater 0
+      Sa = (Sm Nw Cl) + E * Oj
+      Za = (Zs Nw Cl) + Oj
+      Ns = concat Ns Sa
+      Nz = concat Nz Za
+      Nk = concat Nk ((Kb Nw) + 1)
+      Nm = concat Nm (Mu Nw)
+    end
+  end
+  Sm = Ns
+  Zs = Nz
+  Kb = Nk
+  Mu = Nm
+end
+Zp = (Sm equal 0) integer
+Sp = Sm + Zp * 31
+So = Sp sort axis 1
+Pw = 32 ** (9 - Cl)
+Ky = (So * Pw) sum axis 1
+Od = Ky argsort
+Sk = Ky Od
+Mo = Mu Od
+Sj = Sk + 1
+St = (Sj not equal (Sj shift 1)) indices
+Ng = St len
+En = St shift -1
+En (Ng - 1) = Sk len
+Cp = Mo scan + with 0
+Cm = (Cp En) - (Cp St)
+Uk = Sk St
+Bd = (Cl * 0) + 32
+Dg = Uk digits Bd
+Pr = primes to N array
+Vp = Pr * 0
+Pk = Pr
+Pm = Pk at most N
+for Pm any
+  Vp += N // Pk
+  Pk = (Pk * Pr) min (N + 1)
+  Pm = Pk at most N
+end
+Zw = (Vp max) + 31
+Dp = (0 to (11 * Zw - 1)) * 0
+Dp 0 = 1
+Total = 0
+Prev = (Cl * 0) + 99
+for R in 0 to Ng - 1
+  Col = Dg Cl R
+  Ln = ((Col less 31) integer) sum
+  Mi = (Col not equal Prev) indices
+  C0 = (Mi first) min Ln
+  for D in C0 to Ln - 1
+    W = Col D
+    Rw = Zw // W
+    Ll = Rw * W
+    Lo = D * Zw
+    Hi = Lo + Ll
+    Sl = Dp (Lo till Hi)
+    Mx = Sl reshape Rw W
+    Cs = (Mx scan + axis 0) mod Md
+    Fl = Cs reshape Ll
+    Dn = (D + 1) * Zw
+    Dp (Dn till Dn + Ll) = Fl
+  end
+  Prev = Col
+  Gv = Dp (Ln * Zw + Vp)
+  for Gv len greater 1
+    Hl = (Gv len + 1) // 2
+    Np = 2 * Hl - Gv len
+    Gv = concat Gv ((0 till Np) * 0 + 1)
+    Lh = Gv (0 till Hl)
+    Rh = Gv (Hl till 2 * Hl)
+    Gv = Lh * Rh mod Md
+  end
+  Total += (Cm R mod Md) * Gv 0 mod Md
+end
+Iv = 288 (Md - 2) Md powmod
+Answer = Total mod Md * Iv mod Md
+Answer print
