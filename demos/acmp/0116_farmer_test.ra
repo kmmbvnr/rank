@@ -1,0 +1,32 @@
+use testing
+
+test "default example 5x10"
+  use "0116_farmer"
+  run
+
+  Answer equal 21
+end
+
+test "all ones 3x3"
+  use "0116_farmer"
+  Grid = "111 111 111"
+  run
+
+  Answer equal 9
+end
+
+test "checkerboard 2x2"
+  use "0116_farmer"
+  Grid = "10 01"
+  run
+
+  Answer equal 1
+end
+
+test "single row with hole"
+  use "0116_farmer"
+  Grid = "11011"
+  run
+
+  Answer equal 2
+end
