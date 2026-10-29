@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "683_chaseii"
+  Nn = 5
+  run
+  Answer equal "9.65441116e1"
+  Nn = 50
+  run
+  Answer equal "2.82491788e6"
+end
+
+test "default input"
+  use "683_chaseii"
+  Nn = 500
+  run
+  Answer equal "2.38955315e11"
+end
