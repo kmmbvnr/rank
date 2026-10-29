@@ -1,0 +1,27 @@
+use testing
+
+test "statement values"
+  use "639_multiplicativesum"
+  N = 10
+  K = 1
+  run
+  Answer equal 41
+  N = 100
+  run
+  Answer equal 3512
+  K = 2
+  run
+  Answer equal 211602
+  N = 10000
+  K = 1
+  run
+  Answer equal 35252550
+end
+
+test "three exponents"
+  use "639_multiplicativesum"
+  N = 100000000
+  K = 3
+  run
+  Answer equal 338787512
+end
