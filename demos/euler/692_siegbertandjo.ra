@@ -1,0 +1,37 @@
+rem Siegbert and Jo
+rem https://projecteuler.net/problem=692
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Nn integer = 23416728348467685
+
+rem H(m) is the smallest Fibonacci term
+rem in the Zeckendorf form of m. With
+rem Fb = 1, 2, 3, 5, ... and P(m) =
+rem G(Fb(m) - 1) one gets P(m + 1) =
+rem P(m) + Fb(m) + P(m - 1), and
+rem G(x) is the sum over the Zeckendorf
+rem terms Fb(i) of x of P(i) + Fb(i).
+Fb = array shape 90 fill 0
+Pp = array shape 90 fill 0
+Fb 1 = 1
+Fb 2 = 2
+Pp 2 = 1
+Km = 2
+for K in 3 to 89
+  Fb K = Fb (K - 1) + Fb (K - 2)
+  Pq = Pp (K - 1) + Pp (K - 2)
+  Pp K = Pq + Fb (K - 1)
+end
+Answer = 0
+X = Nn
+for K in 89 to 1 by -1
+  if Fb K at most X
+    Answer += Pp K + Fb K
+    X -= Fb K
+  end
+end
+Answer print
