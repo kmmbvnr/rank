@@ -1,0 +1,35 @@
+rem Every Day Is a Holiday
+rem https://projecteuler.net/problem=645
+
+use numbers
+use sequences
+use io
+use cli
+
+arg D integer = 10000
+
+rem A gap of one day between holidays
+rem fills, longer gaps stay, so the year
+rem is done once no two neighbouring
+rem days (around the cycle) are both
+rem birthday-free. With j days seen the
+rem seen set is uniform, so state j is
+rem still open with probability 1 - I(D,
+rem D - j) / C(D, j), I(D, k) = D / (D -
+rem k) C(D - k, k) the independent sets
+rem of size k. State j costs D / (D - j)
+rem draws, so E is the sum over the
+rem k = D - j unseen days of (open) D / k.
+Ks = 1 to D
+Lg = ((1 to D) * 1.0) log
+Lf = Lg scan + with 0.0
+Km = Ks min (D // 2)
+Lh = Lf (D - Km)
+Lr = Lf (D - 2 * Km)
+Ex = 2.0 * Lh - Lf D - Lr
+Rt = Ex exp * D / (D - Km)
+Ok = (Ks at most (D // 2)) integer
+Rt = Rt * Ok
+Tm = (1.0 - Rt) * D / Ks
+Answer = (Tm sum) text ".4f"
+Answer print

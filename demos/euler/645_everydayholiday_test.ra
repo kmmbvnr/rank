@@ -1,0 +1,20 @@
+use testing
+
+test "default input"
+  use "645_everydayholiday"
+  run
+  Answer equal "48894.2174"
+end
+
+test "statement values"
+  use "645_everydayholiday"
+  D = 2
+  run
+  Answer equal "1.0000"
+  D = 5
+  run
+  Answer equal "5.1667"
+  D = 365
+  run
+  Answer equal "1174.3501"
+end
