@@ -1,0 +1,713 @@
+{
+  "date": "2026-10-29",
+  "scope": "Automatic node-count partitioning of F32 RAM graphs, with GPU retained edges and last-use cleanup",
+  "validation": {
+    "focusedTests": 62,
+    "testFiles": 6,
+    "typescriptBuild": "passed",
+    "androidApkBuild": "passed",
+    "fullSuiteRun": false
+  },
+  "plan": {
+    "nodes": 315,
+    "parts": 7,
+    "partNodes": [
+      26,
+      5,
+      5,
+      7,
+      128,
+      24,
+      128
+    ],
+    "blockCalls": 3,
+    "finalHelperRefactor": "All six final fixture plans byte-equal the native-tested inline block-call plans"
+  },
+  "native": {
+    "mac": {
+      "platform": "darwin",
+      "composed": true,
+      "blocks": 3,
+      "partitioned": true,
+      "fixtureCount": 6,
+      "memoryBefore": {
+        "rss": 196952064,
+        "heapTotal": 119177216,
+        "heapUsed": 64575952,
+        "external": 2174074,
+        "arrayBuffers": 260336
+      },
+      "memoryAfter": {
+        "rss": 267239424,
+        "heapTotal": 200097792,
+        "heapUsed": 94866568,
+        "external": 2500852,
+        "arrayBuffers": 11741575
+      },
+      "profiles": [],
+      "tolerance": {
+        "atol": 1e-05,
+        "rtol": 1e-05
+      },
+      "checks": [
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 0,
+          "wallMs": 254.42212500000005,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 7.413336222672484e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 1,
+          "wallMs": 16.315417000000025,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 7.413336222672484e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 2,
+          "wallMs": 15.466957999999977,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 7.413336222672484e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 0,
+          "wallMs": 17.059665999999993,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 2.660915363605909e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 1,
+          "wallMs": 15.410708,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 2.660915363605909e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 2,
+          "wallMs": 15.205416999999898,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 2.660915363605909e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 0,
+          "wallMs": 28.86058300000002,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 9.098789555128661e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 1,
+          "wallMs": 17.457958000000076,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 9.098789555128661e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 2,
+          "wallMs": 17.192666999999915,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 9.098789555128661e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 0,
+          "wallMs": 18.11362500000007,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 4.665968962314082e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 1,
+          "wallMs": 16.146292000000017,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 4.665968962314082e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 2,
+          "wallMs": 16.119249999999965,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 4.665968962314082e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 0,
+          "wallMs": 42.036249999999995,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.1860713133859946e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 1,
+          "wallMs": 20.543750000000045,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.1860713133859946e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 2,
+          "wallMs": 19.227083000000107,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.1860713133859946e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 0,
+          "wallMs": 19.070291999999995,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.076654701392954e-06,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 1,
+          "wallMs": 18.605375000000095,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.076654701392954e-06,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 2,
+          "wallMs": 18.201500000000124,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.076654701392954e-06,
+          "fullyAccelerated": true
+        }
+      ]
+    },
+    "intel": {
+      "platform": "linux",
+      "composed": true,
+      "blocks": 3,
+      "partitioned": true,
+      "fixtureCount": 6,
+      "memoryBefore": {
+        "rss": 192004096,
+        "heapTotal": 119734272,
+        "heapUsed": 62825088,
+        "external": 2876707,
+        "arrayBuffers": 733629
+      },
+      "memoryAfter": {
+        "rss": 299245568,
+        "heapTotal": 201175040,
+        "heapUsed": 43977584,
+        "external": 3100351,
+        "arrayBuffers": 6534073
+      },
+      "profiles": [],
+      "tolerance": {
+        "atol": 1e-05,
+        "rtol": 1e-05
+      },
+      "checks": [
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 0,
+          "wallMs": 220.36538199999995,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 7.413336222672484e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 1,
+          "wallMs": 22.600400000000036,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 7.413336222672484e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 2,
+          "wallMs": 21.034900000000107,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 7.413336222672484e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 0,
+          "wallMs": 24.108606999999893,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 2.660915363605909e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 1,
+          "wallMs": 20.273920999999973,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 2.660915363605909e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 2,
+          "wallMs": 19.82655899999986,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 2.660915363605909e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 0,
+          "wallMs": 70.04947500000003,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 6.131414886922926e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 1,
+          "wallMs": 24.464541000000054,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 6.131414886922926e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 2,
+          "wallMs": 23.36577000000011,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 6.131414886922926e-08,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 0,
+          "wallMs": 24.308250999999927,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 9.255025625876101e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 1,
+          "wallMs": 23.418173000000024,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 9.255025625876101e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 2,
+          "wallMs": 25.12514800000008,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 9.255025625876101e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 0,
+          "wallMs": 82.46267499999999,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.2267118049136272e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 1,
+          "wallMs": 25.481502999999975,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.2267118049136272e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 2,
+          "wallMs": 25.014566999999943,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.2267118049136272e-07,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 0,
+          "wallMs": 25.93492900000001,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.076654701392954e-06,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 1,
+          "wallMs": 26.121973000000025,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.076654701392954e-06,
+          "fullyAccelerated": true
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 2,
+          "wallMs": 24.61093700000015,
+          "gpuCalls": 7,
+          "finalStateBytes": 0,
+          "maxError": 1.076654701392954e-06,
+          "fullyAccelerated": true
+        }
+      ]
+    },
+    "oneplus": {
+      "checks": [
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 0,
+          "values": 3,
+          "maxError": 7.413336222672484e-08,
+          "gpuCalls": 7,
+          "wallMs": 2386.2999999970198,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 1,
+          "values": 3,
+          "maxError": 7.413336222672484e-08,
+          "gpuCalls": 7,
+          "wallMs": 445.29999999701977,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x1x1x3/base/Output",
+          "repeat": 2,
+          "values": 3,
+          "maxError": 7.413336222672484e-08,
+          "gpuCalls": 7,
+          "wallMs": 398.20000000298023,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 0,
+          "values": 3,
+          "maxError": 2.660915363605909e-07,
+          "gpuCalls": 7,
+          "wallMs": 2138.5,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 1,
+          "values": 3,
+          "maxError": 2.660915363605909e-07,
+          "gpuCalls": 7,
+          "wallMs": 384.90000000596046,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x1x1x3/future-changed/Output",
+          "repeat": 2,
+          "values": 3,
+          "maxError": 2.660915363605909e-07,
+          "gpuCalls": 7,
+          "wallMs": 396.40000000596046,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 0,
+          "values": 18,
+          "maxError": 1.21134480779439e-07,
+          "gpuCalls": 7,
+          "wallMs": 2307.7000000029802,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 1,
+          "values": 18,
+          "maxError": 1.21134480779439e-07,
+          "gpuCalls": 7,
+          "wallMs": 429.09999999403954,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x3x2x3/base/Output",
+          "repeat": 2,
+          "values": 18,
+          "maxError": 1.21134480779439e-07,
+          "gpuCalls": 7,
+          "wallMs": 399.3999999910593,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 0,
+          "values": 18,
+          "maxError": 4.665968962314082e-07,
+          "gpuCalls": 7,
+          "wallMs": 2336.7000000029802,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 1,
+          "values": 18,
+          "maxError": 4.665968962314082e-07,
+          "gpuCalls": 7,
+          "wallMs": 421.70000000298023,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "1x3x2x3/future-changed/Output",
+          "repeat": 2,
+          "values": 18,
+          "maxError": 4.665968962314082e-07,
+          "gpuCalls": 7,
+          "wallMs": 408.69999998807907,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 0,
+          "values": 60,
+          "maxError": 1.2421803033402234e-07,
+          "gpuCalls": 7,
+          "wallMs": 2598,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 1,
+          "values": 60,
+          "maxError": 1.2421803033402234e-07,
+          "gpuCalls": 7,
+          "wallMs": 384.20000000298023,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "2x5x2x3/base/Output",
+          "repeat": 2,
+          "values": 60,
+          "maxError": 1.2421803033402234e-07,
+          "gpuCalls": 7,
+          "wallMs": 410.6000000089407,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 0,
+          "values": 60,
+          "maxError": 1.076654701392954e-06,
+          "gpuCalls": 7,
+          "wallMs": 2560.2000000029802,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 1,
+          "values": 60,
+          "maxError": 1.076654701392954e-06,
+          "gpuCalls": 7,
+          "wallMs": 396.79999999701977,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": "2x5x2x3/future-changed/Output",
+          "repeat": 2,
+          "values": 60,
+          "maxError": 1.076654701392954e-06,
+          "gpuCalls": 7,
+          "wallMs": 451.6000000089407,
+          "finalStateBytes": 0
+        }
+      ],
+      "failures": [
+        {
+          "stage": 1,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 2,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 3,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 4,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 5,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 6,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 7,
+          "finalStateBytes": 0
+        }
+      ],
+      "valuesCompared": 486,
+      "maxError": 1.076654701392954e-06
+    }
+  },
+  "nativeFailures": {
+    "mac": {
+      "platform": "darwin",
+      "failures": [
+        {
+          "stage": 1,
+          "invokes": 1,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 2,
+          "invokes": 2,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 3,
+          "invokes": 3,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 4,
+          "invokes": 4,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 5,
+          "invokes": 5,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 6,
+          "invokes": 6,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 7,
+          "invokes": 7,
+          "finalStateBytes": 0
+        }
+      ],
+      "recovered": true
+    },
+    "intel": {
+      "platform": "linux",
+      "failures": [
+        {
+          "stage": 1,
+          "invokes": 1,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 2,
+          "invokes": 2,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 3,
+          "invokes": 3,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 4,
+          "invokes": 4,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 5,
+          "invokes": 5,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 6,
+          "invokes": 6,
+          "finalStateBytes": 0
+        },
+        {
+          "stage": 7,
+          "invokes": 7,
+          "finalStateBytes": 0
+        }
+      ],
+      "recovered": true
+    }
+  },
+  "androidDemo": {
+    "id": "8f7d32d7-d656-4006-b568-19eb50588a5c",
+    "title": "Transformer stack",
+    "text": "real [1 3 6]",
+    "wallMs": 3122,
+    "finalStateBytes": 0
+  },
+  "limits": {
+    "wholeGraphNodes": 4096,
+    "partNodes": 128,
+    "precision": "f32",
+    "nativeReservationBytes": 134217728,
+    "nativeRetainedStates": 64
+  },
+  "limitations": [
+    "Cuts follow dependencies and node count; no memory-budget-aware planning",
+    "No 1 GiB weight acceptance yet",
+    "Full GPT-2 remains manually partitioned",
+    "Constants may repeat between parts; model LRU eviction can trigger preparation",
+    "Timings are correctness-run observations, not a speedup comparison",
+    "Small graphs keep the pre-existing single-model path"
+  ],
+  "implementationCommit": "80c8439b"
+}

@@ -67,10 +67,61 @@ The current subset accepts positional tensor parameters, simple assignments and
 a final tensor return, including the ordinary expression-bodied `fun` form.
 Recursion, nested declarations, loops/branches, memoization, deferred/function
 parameters, named option groups and helper rank/axis modifiers are not supported.
-Expanded operations still count toward the existing 128-tensor graph limit;
-this step does not implement graph partitioning or GiB-scale placement.
+Expanded operations count toward the bounded whole-graph limit. Large `.f32`
+graphs use the automatic partitioning described below; GiB-scale placement remains
+unimplemented.
 See [the transformer block](../../demos/mlrank/transformer.ram) and
 [the GPT-2 MLP](../../demos/mlrank/gpt2tokenmlp.ram).
+
+### Automatic partitioning of `.f32` graphs
+
+A `.ram` can now contain more than 128 tensor nodes. The compiler bounds whole-graph
+expansion at 4096 nodes and divides larger `.f32` graphs into single-output parts
+of at most 128 nodes. Small graphs keep their existing serialized model and single
+GPU call. The current partitioner does not support large `.f16` graphs.
+
+[Transformer stack](../../demos/mlrank/transformerstack.ram) applies the same small
+transformer block three times in one module; [the program](../../demos/mlrank/transformerstack.ra)
+loads the input and calls it once. Its 315-node graph produces seven GPU parts.
+Intermediate shapes are inferred. Runtime retains crossing tensors on the GPU,
+reuses shared computations, and releases each internal state after its final use.
+Only the final ordinary result returns to Rank. `gpukeep` retains the final result;
+caller-owned GPU states remain borrowed. Failures and cancellation clean internal
+states. Constants remain baked in each consuming part, including structural integer
+constants and transposed `linear` weights.
+
+The plan is available as `compileRam(...).graph.parts`, with original tensor IDs
+for each part's inputs/output. Composite graphs have an empty `model`; hosts that
+call the low-level API must use `executeRamGraph` to submit their parts. A composite's
+`reservationBytes` is the largest individual part reservation, **not** a bound on
+the entire execution. Native accounting still includes live states and cached
+models in its shared 128 MiB budget, with at most 64 retained states.
+
+This first partitioner chooses cuts by graph dependencies and node count. It does
+not optimize cuts for latency, adapt to available device memory, stream a GiB of
+weights, or replace the manually partitioned full GPT-2 example. Constants can be
+repeated between serialized parts and model-cache eviction can cause recompilation.
+An individual oversized part or excessive live states still fail native admission;
+partitioning does not guarantee that every permitted source fits a device.
+
+Validation: 18 runs on each of Mac, Intel and OnePlus, against an independent scalar
+reference, including changes to future tokens. Maximum absolute error was
+`1.077e-6`. Native failure injection at all seven parts left zero retained bytes
+on each host. On OnePlus, the actual worker compiled source, executed seven parts
+per call and made no intermediate `readState` requests. The **Transformer stack**
+notebook is saved in the app. [Results and timings](../../benchmarks/baselines/2026-10-29-mlrank-partition.json)
+are correctness evidence; no speedup is claimed.
+
+Reproduce after `npx tsc -b tsconfig.build.json`:
+
+```sh
+node scripts/mlrank-transformer-check.mjs --partition
+node scripts/mlrank-partition-failure-check.mjs
+node scripts/mlrank-transformer-check.mjs --partition --fixture
+```
+
+For Android, substitute the generated `transformer-partition-fixture.json` into
+`packages/web/test/ram-partition.playwright.js` and run against the rebuilt app.
 
 Changing source or referenced binary weights recompiles the model on the next call.
 The softmax check runs 60 calls per host across ranks 1–4, large positive and
@@ -242,8 +293,8 @@ and run `output/playwright/ram-norm.js`. Placement evidence is captured with
 `scripts/mlrank-android-placement.mjs`.
 These are correctness checks, not latency measurements or guarantees for all
 finite FP32 magnitudes: intermediate arithmetic can still overflow, as in the
-existing arithmetic operators. Expanded subgraphs count toward the 128-tensor
-limit. Weight upload/creation UX remains deferred.
+existing arithmetic operators. Expanded subgraphs count toward the whole-graph limit and are partitioned
+into parts of at most 128 nodes for `.f32`. Weight upload/creation UX remains deferred.
 
 ## Complete small MLP
 
@@ -351,7 +402,8 @@ omitted, and reshaped constants sharing the same values reuse their buffer. The 
 compiler still retains decoded weights; this is not a peak-memory saving claim.
 
 This small-model path retains 1,048,576 elements per tensor, 32 MiB of source
-constants and 128 graph nodes. Larger file runtime inputs use the separate limits
+constants. Each executable part has at most 128 graph nodes; `.f32` source graphs
+can expand beyond this using automatic partitioning. Larger file runtime inputs use the separate limits
 described below. Transport independently rejects JSON requests above 32 MiB, including base64
 expansion: the constant limit alone does not guarantee a model fits. Notebook binary
 attachments are capped at 8 MiB total and 64 files; archives at 16 MiB uncompressed.
@@ -768,7 +820,8 @@ FP32 RAM modules support these static forms using Rank syntax:
 Negative indices/axes, inferred reshape dimensions, gathers, scalar selectors,
 empty tensors and dynamic structural arguments are outside this subset.
 General `rank` modifiers remain unsupported; `matmul rank 2 2` is the specific matrix-cell form.
-The tensor size and 128-node graph limits still apply, including internal expansion.
+Tensor size limits still apply. Internal expansion counts toward the whole-graph
+limit; `.f32` graphs above 128 nodes are partitioned automatically.
 
 Declare additional runtime inputs with `arg` without a default:
 
@@ -982,10 +1035,9 @@ include the scalar comparison, native memory profiles, Android memory samples
 and delegation logs. TypeScript compilation and 27 focused tests pass. The full
 suite was not run; this stage does not claim a throughput improvement.
 
-Before importing a real checkpoint, review the 128-node limit: this single block
-already uses 115 nodes. Also check tensor, constant, attachment and transport
-limits, then choose graph partitioning or justified limit changes using actual
-checkpoint sizes and device measurements.
+This single block uses 115 nodes. Larger `.f32` graphs now partition automatically,
+but tensor, constant, attachment, transport and native memory limits still require
+checking against actual checkpoint sizes and device measurements.
 
 ## File-backed weights and native models (stage 13a, first slice)
 
@@ -1098,12 +1150,14 @@ input buffers on subsequent invocations; file size and revision are checked befo
 reuse. An ordinary input write invalidates that buffer's file identity. Release,
 eviction or release discards that model's resident inputs; helper restart discards all resident inputs. Failed writes
 never mark an input resident. This does not prove the driver avoids internal copies.
-File-backed baked constants and full-model partitioning remain separate work.
+File-backed baked constants and placement of large weight sets remain separate
+work; automatic graph partitioning is described above.
 
 Runtime inputs allow up to 4,194,304 elements (16 MiB F32) each and 64 MiB in total.
 Inputs above 1,048,576 elements must be file tensors. Computed tensors, outputs and
 individual baked constants retain the 1,048,576-element limit; the 32 MiB constant
-budget and 128-node limit remain. These are bounded graph budgets, not a claim that
+budget remains. The 128-node bound now applies per executable part. These are
+bounded graph budgets, not a claim that
 all permitted graphs fit a device's memory.
 
 `node scripts/mlrank-file-input-check.mjs` checks the complete Rank call path
@@ -1528,7 +1582,8 @@ The program explicitly calls three modules:
   to 768 and residual.
 
 The attention and MLP graphs are separate because the combined graph exceeds
-the current 128-tensor limit. No compiler limit was raised. Each boundary returns
+the 128-tensor limit at the time of that stage. That implementation remains a
+manual baseline even though automatic partitioning is now available. Each boundary returns
 3072 F32 values through Rank/host transport before the next GPU call. Weights use
 file descriptors and remain resident across repeated calls. This step proves
 numerical correctness of one block; it does not measure full-model speed or
@@ -1578,8 +1633,8 @@ The loop in ordinary Rank selects each block's tensors by name, calls
 `gpt2norm.ram` applies the final LayerNorm. The same four compiled graphs serve
 all blocks and repeated runs. File ranges change between blocks, so the native
 runtime replaces their weight buffers. It does not keep all 12 blocks' weights
-on the GPU. The existing 128-tensor, four-model and 128 MiB reservation limits
-are unchanged.
+on the GPU. This manual baseline uses parts below 128 tensors; the four-model
+and 128 MiB reservation limits are unchanged.
 
 The four graph reservations total 30,230,544 bytes (28.83 MiB). That is a logical
 reservation, not total device memory. In this check the native desktop runtime
