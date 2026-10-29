@@ -1917,3 +1917,43 @@ Results: [state lifetime baseline](../../benchmarks/baselines/2026-10-29-mlrank-
 The final APK also ran the saved GPT-2 GPU KV cache program on OnePlus: `Hello, I'm`,
 82.39 seconds for this single regression run, zero retained states and zero state
 bytes afterward. This run is not a performance comparison.
+
+
+### Android GPT-2 file status overhead
+
+Profiling the actual worker found 5,958 synchronous file status requests per
+three-token KV run. They took 42.3–42.4 seconds of a 79.6–81.5 second profiled
+execution. Native input preparation took another 19.3–19.4 seconds; native graph
+loading took 0.44–2.45 seconds. GPU dispatch plus readback occupied about 2.8
+seconds of host intervals, not a measurement of isolated GPU kernel time.
+
+The file host now supports a combined, fresh size/revision query. Safetensors
+shares that observation between checksum-lifetime and format checks at each
+access boundary, instead of querying both properties repeatedly. It does not
+cache file status between accesses. Tensor cells and native descriptors still
+reject changed files, and shard status checks still validate the parent index.
+Hosts without the combined query retain the separate size/revision fallback.
+
+`packages/web/test/ram-gpt2-profile.playwright.js` profiles the real application
+worker using the fixture from `scripts/mlrank-gpt2-kv-bench.mjs --fixture`.
+It records synchronous XHR time by operation, native subintervals, call counts,
+expected generated text, and state cleanup. Native profiling includes per-call
+PSS sampling overhead. XHR totals contain native timings; do not add them together.
+Readback can wait for GPU completion. Thermal status was 3 during this check, so
+these runs are implementation evidence, not a hardware throughput comparison.
+
+Results: [Android profile](../../benchmarks/baselines/2026-10-29-mlrank-android-profile.json).
+
+After the change, the same profiled run made 1,199 status requests, taking
+8.3–8.6 seconds. Total time fell to 45.7–46.4 seconds (about 1.75× faster across
+the two runs per version). Both versions made 300 GPU calls and read
+1,483,858,944 weight bytes. Native input preparation remained 18.9–19.2 seconds:
+that is the next profiling target. These are before/after runs, not ABBA trials.
+
+The installed APK also completed two ordinary menu runs of the saved notebook
+without profiling: 48.45 and 43.16 seconds, both producing `Hello, I'm` with zero
+retained state bytes afterward. These include the normal UI and execution signals.
+Validation also passed 44 interpreter tests, 19 CLI tests and three worker tests;
+Metal compared 251,285 logits with maximum error 0.00018953 against the independent
+reference. This change improves host overhead; it does not reduce weight traffic
+or establish faster GPU kernels.

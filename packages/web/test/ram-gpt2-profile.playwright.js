@@ -52,7 +52,15 @@ async page => {
      });
      const status=await native('closeSession',owner);
      if(status.stateBytes!==0)throw Error('States leaked');
-     runs.push({totalMs,text:"Hello, I'm",finalStateBytes:status.stateBytes,calls});
+     const groups={};
+     for(const call of calls){
+      const key=call.path+':'+String(call.action??'read');
+      const group=groups[key]??={count:0,wallMs:0,prepareMs:0,inputMs:0,dispatchMs:0,readbackMs:0,outputMs:0,fileBytesRead:0};
+      group.count++;group.wallMs+=call.elapsedMs;
+      for(const field of ['prepareMs','inputMs','dispatchMs','readbackMs','outputMs','fileBytesRead'])group[field]+=call.reply?.[field]??0;
+     }
+     runs.push({totalMs,text:"Hello, I'm",finalStateBytes:status.stateBytes,
+      outsideXhrMs:totalMs-calls.reduce((sum,call)=>sum+call.elapsedMs,0),groups});
     }finally{worker.terminate();await native('closeSession',owner);}
    }
   }finally{URL.revokeObjectURL(blob);}

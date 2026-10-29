@@ -28,16 +28,6 @@
           "outputMs": 0,
           "fileBytesRead": 0
         },
-        "/__rank_model_file:None": {
-          "count": 23,
-          "wallMs": 162.79999999701977,
-          "prepareMs": 0,
-          "inputMs": 0,
-          "dispatchMs": 0,
-          "readbackMs": 0,
-          "outputMs": 0,
-          "fileBytesRead": 0
-        },
         "/__rank_ml_result:load": {
           "count": 24,
           "wallMs": 694.2000000178814,
@@ -77,8 +67,20 @@
           "readbackMs": 0,
           "outputMs": 0,
           "fileBytesRead": 0
+        },
+        "/__rank_model_file:read": {
+          "count": 23,
+          "wallMs": 162.79999999701977,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
         }
-      }
+      },
+      "text": "Hello, I'm",
+      "finalStateBytes": 0
     },
     {
       "totalMs": 81478.89999999106,
@@ -97,16 +99,6 @@
         "/__rank_model_file:sha256": {
           "count": 2,
           "wallMs": 624.7000000029802,
-          "prepareMs": 0,
-          "inputMs": 0,
-          "dispatchMs": 0,
-          "readbackMs": 0,
-          "outputMs": 0,
-          "fileBytesRead": 0
-        },
-        "/__rank_model_file:None": {
-          "count": 23,
-          "wallMs": 185.90000005066395,
           "prepareMs": 0,
           "inputMs": 0,
           "dispatchMs": 0,
@@ -153,8 +145,20 @@
           "readbackMs": 0,
           "outputMs": 0,
           "fileBytesRead": 0
+        },
+        "/__rank_model_file:read": {
+          "count": 23,
+          "wallMs": 185.90000005066395,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
         }
-      }
+      },
+      "text": "Hello, I'm",
+      "finalStateBytes": 0
     }
   ],
   "notes": [
@@ -162,6 +166,196 @@
     "XHR times include bridge, scheduling and native work. Native input/dispatch/readback are nested intervals, not additive to XHR.",
     "Readback can wait for GPU completion; dispatch is not a GPU kernel timer.",
     "Native profile performs PSS collection on every invocation; timings include this overhead.",
-    "Device reported thermal status 3 during profiling; not a controlled hardware throughput benchmark."
+    "Device reported thermal status 3 during profiling; not a controlled hardware throughput benchmark.",
+    "Before then after, two profile runs per version; no claim of controlled ABBA hardware benchmarking. Native dispatch/readback and input-byte counts stayed comparable.",
+    "Unprofiled menu runs include the normal UI and execution signals; they are not the same harness as the profiled worker runs."
+  ],
+  "after": [
+    {
+      "totalMs": 45698.10000000894,
+      "outsideXhrMs": 3926.69999986887,
+      "groups": {
+        "/__rank_model_file:stat": {
+          "count": 1199,
+          "wallMs": 8314.500000149012,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:sha256": {
+          "count": 2,
+          "wallMs": 676.1000000089407,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:load": {
+          "count": 24,
+          "wallMs": 2827.2000000476837,
+          "prepareMs": 2594.5021860000006,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:invoke": {
+          "count": 300,
+          "wallMs": 28964.10000000894,
+          "prepareMs": 4.190522000000002,
+          "inputMs": 18928.73175499998,
+          "dispatchMs": 310.72240000000005,
+          "readbackMs": 2353.2301099999986,
+          "outputMs": 24.124629999999996,
+          "fileBytesRead": 1483858944
+        },
+        "/__rank_ml_result:releaseState": {
+          "count": 72,
+          "wallMs": 656.5999998897314,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:release": {
+          "count": 20,
+          "wallMs": 195.20000004768372,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:read": {
+          "count": 23,
+          "wallMs": 137.69999998807907,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        }
+      },
+      "text": "Hello, I'm",
+      "finalStateBytes": 0
+    },
+    {
+      "totalMs": 46446.5,
+      "outsideXhrMs": 3888.9999999701977,
+      "groups": {
+        "/__rank_model_file:stat": {
+          "count": 1199,
+          "wallMs": 8587.199999898672,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:sha256": {
+          "count": 2,
+          "wallMs": 628.0999999940395,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:load": {
+          "count": 24,
+          "wallMs": 2694.000000014901,
+          "prepareMs": 2435.213337999999,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:invoke": {
+          "count": 300,
+          "wallMs": 29535.000000029802,
+          "prepareMs": 3.001149,
+          "inputMs": 19247.428370999976,
+          "dispatchMs": 306.31167099999993,
+          "readbackMs": 2446.1074989999997,
+          "outputMs": 22.26593800000001,
+          "fileBytesRead": 1483858944
+        },
+        "/__rank_ml_result:releaseState": {
+          "count": 72,
+          "wallMs": 660.9000000208616,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_ml_result:release": {
+          "count": 20,
+          "wallMs": 221.80000004172325,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        },
+        "/__rank_model_file:read": {
+          "count": 23,
+          "wallMs": 230.50000002980232,
+          "prepareMs": 0,
+          "inputMs": 0,
+          "dispatchMs": 0,
+          "readbackMs": 0,
+          "outputMs": 0,
+          "fileBytesRead": 0
+        }
+      },
+      "text": "Hello, I'm",
+      "finalStateBytes": 0
+    }
+  ],
+  "validation": {
+    "unitTestsPassed": 44,
+    "cliTestsPassed": 19,
+    "workerProtocolTestsPassed": 3,
+    "metalGpt2": {
+      "text": "Hello, I'm",
+      "valuesCompared": 251285,
+      "maxError": 0.000189527071000839
+    }
+  },
+  "implementationCommit": "ff10cabe",
+  "comparison": {
+    "meanBeforeMs": 80561.79999999702,
+    "meanAfterMs": 46072.30000000447,
+    "beforeOverAfter": 1.7485951428513271
+  },
+  "unprofiledMenuRuns": [
+    {
+      "text": "Hello, I'm",
+      "elapsedMs": 48452,
+      "residentStates": 0,
+      "stateBytes": 0
+    },
+    {
+      "text": "Hello, I'm",
+      "elapsedMs": 43156,
+      "residentStates": 0,
+      "stateBytes": 0
+    }
   ]
 }
