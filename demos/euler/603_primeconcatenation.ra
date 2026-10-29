@@ -1,4 +1,4 @@
-rem Substring Sums of Prime Concatenations
+rem Prime Concatenation Substrings
 rem https://projecteuler.net/problem=603
 
 use numbers
@@ -22,9 +22,12 @@ Bs = (1 to 8) * 0 + 10
 Dm = Ps digits Bs
 Pw = Bs scan * with 1
 Pw = (Pw (0 till 8 array)) reverse
-Mk = (Ps reshape 1 N) at least (Pw reshape 8 1)
+Pr = Ps reshape 1 N
+Pc = Pw reshape 8 1
+Mk = Pr at least Pc
 Dg = (Dm transpose) reshape (8 * N)
-Dg = Dg (((Mk transpose) reshape (8 * N)) indices)
+Mt = (Mk transpose) reshape (8 * N)
+Dg = Dg (Mt indices)
 L = Dg len
 Os = 1 to L
 Ia = 10 (M - 2) M powmod
@@ -38,7 +41,8 @@ X = 10 L M powmod
 Xk = X K M powmod
 Iv = (X - 1) (M - 2) M powmod
 G0 = X * (Xk - 1) mod M * Iv mod M
-Ek = (1 - (K + 1) * Xk + K * Xk * X) mod M
+Ek = 1 - (K + 1) * Xk + K * Xk * X
+Ek = Ek mod M
 T = X * Ek mod M * Iv mod M * Iv mod M
 G1 = (K * G0 - T) mod M
 H1 = K * (K - 1) // 2 mod M
@@ -47,5 +51,6 @@ V1 = L * G1 mod M * S0 mod M
 V2 = G0 * S1 mod M
 V3 = L * H1 mod M * S2 mod M
 V4 = K * S3 mod M
-Answer = (V1 + V2 - V3 - V4) mod M * I9 mod M
+Sm = (V1 + V2 - V3 - V4) mod M
+Answer = Sm * I9 mod M
 Answer print
