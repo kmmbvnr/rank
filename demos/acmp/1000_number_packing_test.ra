@@ -1,0 +1,56 @@
+use testing
+
+test "0 -> 00"
+  use "1000_number_packing"
+  X = 0
+  run
+
+  Answer equal "00"
+end
+
+test "1 -> 01"
+  use "1000_number_packing"
+  X = 1
+  run
+
+  Answer equal "01"
+end
+
+test "100 -> 8064"
+  use "1000_number_packing"
+  run
+
+  Answer equal "8064"
+end
+
+test "500 -> 81f4"
+  use "1000_number_packing"
+  X = 500
+  run
+
+  Answer equal "81f4"
+end
+
+test "1000000 -> cf4240"
+  use "1000_number_packing"
+  X = 1000000
+  run
+
+  Answer equal "cf4240"
+end
+
+test "-1 -> 7f"
+  use "1000_number_packing"
+  X = -1
+  run
+
+  Answer equal "7f"
+end
+
+test "-100 -> bf9c"
+  use "1000_number_packing"
+  X = -100
+  run
+
+  Answer equal "bf9c"
+end

@@ -1,0 +1,72 @@
+rem Number Packing
+rem https://acmp.ru/index.asp?main=task&id_task=1000
+rem Variable-length prefix-free integer encoding (1 to 9 bytes)
+
+use bits
+use text
+use io
+use cli
+
+arg X integer = 100
+
+TargetQ = 8
+for Q in 0 to 7
+  B = 7 * (Q + 1)
+  Half = 2 ** (B - 1)
+  Lo = 0 - Half
+  Hi = Half - 1
+  if (not (X less Lo)) and (not (X greater Hi))
+    TargetQ = Q
+    break
+  end
+end
+
+Digits = "0123456789abcdef"
+Answer = ""
+
+if TargetQ less 8
+  B = 7 * (TargetQ + 1)
+  V = X
+  if X less 0
+    V = (2 ** B) + X
+  end
+
+  PrefixBits = (2 ** TargetQ) - 1
+  Prefix = PrefixBits * 2 * (2 ** B)
+  Total = Prefix + V
+
+  ByteCount = TargetQ + 1
+  Bytes = array shape ByteCount fill 0
+  Cur = Total
+  for I in (ByteCount - 1) to 0 by -1
+    Bytes I = Cur mod 256
+    Cur //= 256
+  end
+
+  for Byte in Bytes
+    H = Digits (Byte // 16)
+    L = Digits (Byte mod 16)
+    Answer = Answer + H + L
+  end
+else
+  V = X
+  if X less 0
+    V = (2 ** 64) + X
+  end
+
+  Bytes = array shape 8 fill 0
+  Cur = V
+  for I in 7 to 0 by -1
+    Bytes I = Cur mod 256
+    Cur //= 256
+  end
+
+  Answer = "ff"
+  for Byte in Bytes
+    H = Digits (Byte // 16)
+    L = Digits (Byte mod 16)
+    Answer = Answer + H + L
+  end
+end
+
+Answer print
