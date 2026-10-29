@@ -1,4 +1,4 @@
-rem Numbers with a Given Prime Factor Sum
+rem Numbers with a Prime Factor Sum
 rem https://projecteuler.net/problem=618
 
 use numbers
@@ -24,7 +24,8 @@ for P in primes to K
   for B in P to K by P
     Hi = (B + P) min (K + 1)
     Ds = P * G (B - P till Hi - P)
-    G (B till Hi) = (G (B till Hi) + Ds) mod M
+    Iw = B till Hi
+    G Iw = (G Iw + Ds) mod M
   end
 end
 Answer = (G Fb) sum mod M
