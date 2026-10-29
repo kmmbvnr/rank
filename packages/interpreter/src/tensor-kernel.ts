@@ -1,6 +1,6 @@
 import { RankError } from './errors.js';
 import { BooleanCells } from './boolean-cells.js';
-import { ownedStorage } from './array-storage-state.js';
+import { ownedStorage, noteMutation, type OwnedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
 import { binaryOperatorSource, scalarExtremeSource, zeroTestSource } from './operator-codegen.js';
 import { tensorInput, validateTensorInputs } from './tensor-input.js';
@@ -16,10 +16,10 @@ import {
     isParenthesizedExpression, isUnaryExpression, isCountClauseExpression, isAllAxisExpression,
     type Expression, type Statement, type ReturnStatement, type CompiledAtomType, type CompiledExpression,
 } from '@arrrank/language';
-import { type RankValue, isRankArray, isRankSequence } from './value.js';
+import { type RankArray, type RankValue, isRankArray, isRankSequence } from './value.js';
 import { broadcastShape } from './tensor.js';
 import { arraySliceLayout, reshapeDimensions, rankedBroadcastShapes } from './tensor-layout.js';
-import { arrayRevision, ownedArray, ownedScalarArray, typedArray, IntegerCells } from './array-storage.js';
+import { arrayRevision, ownedArray, ownedScalarArray, typedArray, IntegerCells, isSharedArray, hasPendingSelections } from './array-storage.js';
 import { arithmeticRange, modularRange } from './range-plan.js';
 
 type Terminal = 'copy' | 'sum' | 'mean' | 'any' | 'all' | 'count' | 'min' | 'max';
@@ -51,7 +51,7 @@ export interface TensorKernelHost {
 type KernelResult = RankValue | RankValue[] | Float64Array | IntegerCells | BooleanCells | undefined;
 type KernelRun = (data: ArrayLike<RankValue>[], offsets: number[], scalars: RankValue[], size: number,
     checks: ((cell: RankValue, index: number) => RankValue)[], routes: ((index: number) => number)[], start?: number,
-    visit?: (cell: RankValue, index: number) => void) => KernelResult;
+    visit?: (cell: RankValue, index: number) => void, dest?: Float64Array | BooleanCells | IntegerCells) => KernelResult;
 export interface TensorRange { readonly start: number; readonly size: number }
 export type TensorCodeCache = Map<string, KernelRun>;
 
@@ -281,7 +281,8 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
             return false;
         };
         if (!root || !arithmetic(root) || operations < 2) return undefined;
-        return build(root, 'copy', host, domains, true);
+        const destinationName = isAssignmentStatement(statement) ? statement.name : undefined;
+        return build(root, 'copy', host, domains, true, undefined, false, undefined, undefined, undefined, destinationName);
     }
     if (isAssignmentStatement(statement) && ['+=', '-=', '*='].includes(statement.operator) && !statement.name.includes('.')) {
         const right = parse(statement.value);
@@ -293,7 +294,8 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         const op = statement.operator.slice(0, -1);
         const matched = matchCompiledOperatorDomains(tensorOperatorSignatures(op, 2), [unknown, domains.get(right)!]);
         if (!matched) return undefined;
-        return build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains);
+        const destinationName = statement.name;
+        return build(typed({ kind: 'binary', op, left, right }, matched.result), 'copy', host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
     }
     // An ordinary assignment completes its result before the next statement.
     // Only a single expression may enter this source frontend. Named deferred
@@ -312,20 +314,123 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
     }
     const root = parse(parts![0]);
     if (!root || root.kind === 'input') return undefined;
-    return build(root, last.name as Terminal, host, domains);
+    const destinationName = assignment && last.name === 'copy' ? statement.name : undefined;
+    return build(root, last.name as Terminal, host, domains, false, undefined, false, undefined, undefined, undefined, destinationName);
+}
+
+function containsNodeInput(node: TensorNode, name: string): boolean {
+    if (node.kind === 'input') return node.name === name;
+    if (node.kind === 'unary') return containsNodeInput(node.operand, name);
+    if (node.kind === 'binary' || node.kind === 'outer') return containsNodeInput(node.left, name) || containsNodeInput(node.right, name);
+    if (node.kind === 'select') return containsNodeInput(node.source, name) || containsNodeInput(node.selector, name);
+    if (node.kind === 'shift') return containsNodeInput(node.source, name) || containsNodeInput(node.fill, name);
+    if (node.kind === 'slice' || node.kind === 'view' || node.kind === 'reshape' || node.kind === 'check' || node.kind === 'call') {
+        return containsNodeInput(node.source, name);
+    }
+    if (node.kind === 'concat') return node.sources.some(source => containsNodeInput(source, name));
+    return false;
+}
+
+function checkPointwiseSafety(node: TensorNode, destinationName: string): boolean {
+    if (node.kind === 'check' || node.kind === 'call') return false;
+    if (node.kind === 'shift' || node.kind === 'slice' || node.kind === 'select' ||
+        node.kind === 'outer' || node.kind === 'reshape' || node.kind === 'concat' ||
+        node.kind === 'view') {
+        return !containsNodeInput(node, destinationName);
+    }
+    if (node.kind === 'binary') {
+        if (['/', '//', 'mod', '**'].includes(node.op)) return false;
+        return checkPointwiseSafety(node.left, destinationName) && checkPointwiseSafety(node.right, destinationName);
+    }
+    if (node.kind === 'unary') {
+        return checkPointwiseSafety(node.operand, destinationName);
+    }
+    return true;
+}
+
+interface DestinationTarget {
+    array: RankArray;
+    state: OwnedStorage;
+    buffer: Float64Array | BooleanCells | Int32Array | BigInt64Array;
+    kind: 'real' | 'boolean' | 'integer';
 }
 
 function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     domains: ReadonlyMap<TensorNode, readonly CompiledAtomType[]>, implicit = false, code?: TensorCodeCache, nativeGraph = false,
-    scan?: bigint | null, visit?: (cell: RankValue, index: number) => void, axes?: readonly number[]) {
+    scan?: bigint | null, visit?: (cell: RankValue, index: number) => void, axes?: readonly number[], destinationName?: string) {
     const scanning = scan !== undefined;
     const seeded = typeof scan === 'bigint';
     const outputDomain = domains.get(root);
     const integerOutput = outputDomain?.length === 1 && outputDomain[0] === 'integer';
+    const pointwiseSafe = destinationName !== undefined && terminal === 'copy' && !visit && !axes && scan === undefined && checkPointwiseSafety(root, destinationName);
+
     // Typed results are already complete. Boxed fallback retains its scalar proof.
-    const copied = (items: RankValue[] | Float64Array | IntegerCells | BooleanCells, shape: readonly number[]): RankValue =>
-        items instanceof BooleanCells ? createOwned(items, shape, true) : items instanceof IntegerCells ? items.array(shape) : items instanceof Float64Array ? typedArray(items, shape) : integerOutput
-        ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
+    const copied = (items: RankValue[] | Float64Array | IntegerCells | BooleanCells, shape: readonly number[], target?: DestinationTarget): RankValue => {
+        if (target) {
+            if (items instanceof Float64Array && items === target.buffer) {
+                target.state.revision = noteMutation(target.state.birth);
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) {
+                    diagnostics.reusedTensorBuffers++;
+                    diagnostics.reusedTensorBufferCells += target.buffer.length;
+                }
+                return typedArray(items, shape);
+            }
+            if (items instanceof BooleanCells && items === target.buffer) {
+                target.state.revision = noteMutation(target.state.birth);
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) {
+                    diagnostics.reusedTensorBuffers++;
+                    diagnostics.reusedTensorBufferCells += target.buffer.length;
+                }
+                return createOwned(items, shape, true);
+            }
+            if (items instanceof IntegerCells && items.reused(target.buffer as BigInt64Array | Int32Array)) {
+                target.state.revision = noteMutation(target.state.birth);
+                const diagnostics = currentDiagnostics();
+                if (diagnostics) {
+                    diagnostics.reusedTensorBuffers++;
+                    diagnostics.reusedTensorBufferCells += target.buffer.length;
+                }
+                return items.array(shape);
+            }
+        }
+        return items instanceof BooleanCells ? createOwned(items, shape, true) : items instanceof IntegerCells ? items.array(shape) : items instanceof Float64Array ? typedArray(items, shape) : integerOutput
+            ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
+    };
+
+    function findTarget(
+        shape: readonly number[], size: number, outputKind: string | undefined,
+        inputs: readonly { name?: string; shape?: readonly number[] }[],
+    ): DestinationTarget | undefined {
+        if (!pointwiseSafe || !destinationName || interruptsEnabled()) return undefined;
+        const dest = host.lookup(destinationName);
+        if (!dest || !isRankArray(dest)) return undefined;
+        const state = ownedStorage.get(dest);
+        if (!state || !state.stable || state.readOnlyCells || state.validity) return undefined;
+        if (dest.itemAt !== undefined || dest.columnNames || dest.tableScopes || dest.sortKeys) return undefined;
+        if (state.owners !== 1 || isSharedArray(dest) || hasPendingSelections(dest)) return undefined;
+        if (!same(dest.shape, shape) || dest.shape.reduce((a, b) => a * b, 1) !== size) return undefined;
+        for (const input of inputs) {
+            if (input.name === destinationName) {
+                if (!input.shape || !same(input.shape, shape)) return undefined;
+            }
+        }
+        if (outputKind === 'real') {
+            if (state.typed instanceof Float64Array && state.typed.length === size) {
+                return { array: dest, state, buffer: state.typed, kind: 'real' };
+            }
+        } else if (outputKind === 'boolean') {
+            if (state.booleans instanceof BooleanCells && state.booleans.length === size) {
+                return { array: dest, state, buffer: state.booleans, kind: 'boolean' };
+            }
+        } else if (outputKind === 'integer') {
+            if ((state.typed instanceof BigInt64Array || state.typed instanceof Int32Array) && state.typed.length === size) {
+                return { array: dest, state, buffer: state.typed, kind: 'integer' };
+            }
+        }
+        return undefined;
+    }
     const nativeCalls = [...new Set([...domains.keys()].flatMap(node =>
         node.kind === 'binary' && node.native ? [node.native] : []))];
     const sequenceSelectors = new Set([...domains.keys()].flatMap(node =>
@@ -357,7 +462,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     // Selections and text conversions keep the general binder below.
     type InputLayout = { name?: string; value?: RankValue; slot: number; shape?: readonly number[]; boolean: boolean; kind?: string; storage?: string; scalarType?: string };
     type Layout = { inputs: InputLayout[]; offsets: number[]; shape: readonly number[]; size: number;
-        interruptible: boolean; execute: KernelRun; source: string };
+        interruptible: boolean; execute: KernelRun; source: string; outputKind?: string };
     let layout: Layout | undefined;
     const layouts = new Map<string, Layout>();
     const inputKey = (shape: readonly number[] | undefined, kind: string | undefined, boolean: boolean, slot: number, storage?: string, scalarType?: string) =>
@@ -421,9 +526,14 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     layout = selected;
                     generated = selected.source;
                     if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-                    const result = invoke(selected.execute, data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, frame ?? range?.start, visit);
+                    const target = findTarget(selected.shape, selected.size, selected.outputKind, selected.inputs);
+                    const destArg: Float64Array | BooleanCells | IntegerCells | undefined = target
+                        ? target.kind === 'real' ? (target.buffer as Float64Array)
+                        : target.kind === 'boolean' ? (target.buffer as BooleanCells)
+                        : new IntegerCells(target.buffer as BigInt64Array | Int32Array) : undefined;
+                    const result = invoke(selected.execute, data, offsets, scalars, range ? range.start + range.size : selected.size, checks, routes, frame ?? range?.start, visit, destArg);
                     return terminal === 'copy' && !visit && result !== undefined
-                        ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape) : result as RankValue | undefined;
+                        ? copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells, selected.shape, target) : result as RankValue | undefined;
                 }
             }
         }
@@ -957,7 +1067,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
                     for (let cell = 0; cell < ${count}; cell++) {
                         const i = base + ${offset('cell', reduced)};`;
             }
-            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit) { let answer = ${initial}, length = 0; ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
+            generated = `"use strict"; /* ${data.map(backing).join(',')} */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : ${initial}, length = 0; ${prefix} ${loop} ${interruptible ? "checkpoint('computing tensor');" : ''}\n${lines.join('\n')}\n} ${['mean', 'min', 'max'].includes(terminal) ? `if (length === 0) return decline('tensor:empty-terminal:${terminal}');` : ''} return ${terminal === 'mean' ? 'answer / length' : 'answer'}; };`;
             execute = code?.get(generated);
             const compiled = !execute;
             if (!execute) {
@@ -983,7 +1093,7 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             layout = { inputs: [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{
                 name: node.name, value: node.value,
                 slot: info.slot!, shape: info.shape && [...info.shape], boolean: info.boolean, kind: info.view?.kind, storage: info.view && backing(info.view.items), scalarType: info.shape ? undefined : typeof info.scalar,
-            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute!, source: generated };
+            }] : []), offsets: [...offsets], shape: [...output.shape], size, interruptible, execute: execute!, source: generated, outputKind };
             if (hasConcat) {
                 if (layouts.size >= 256) layouts.delete(layouts.keys().next().value!);
                 layouts.set(String(interruptible) + layout.inputs.map(input =>
@@ -992,10 +1102,16 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         }
         if (!validateTensorInputs(validations)) return recordFallback('tensor:input-validation');
         if (host.valid?.() === false) return recordFallback('tensor:stale-input');
-        const result = invoke(execute!, data, offsets, scalars, range ? range.start + range.size : size, checks, routes, frame ?? range?.start, visit);
+        const boundInputs = [...bound].flatMap(([node, info]) => node.kind === 'input' ? [{ name: node.name, shape: info.shape }] : []);
+        const target = findTarget(output.shape, size, outputKind, boundInputs);
+        const destArg: Float64Array | BooleanCells | IntegerCells | undefined = target
+            ? target.kind === 'real' ? (target.buffer as Float64Array)
+            : target.kind === 'boolean' ? (target.buffer as BooleanCells)
+            : new IntegerCells(target.buffer as BigInt64Array | Int32Array) : undefined;
+        const result = invoke(execute!, data, offsets, scalars, range ? range.start + range.size : size, checks, routes, frame ?? range?.start, visit, destArg);
         if (terminal === 'copy' && !visit && result !== undefined) {
             return copied(result as RankValue[] | Float64Array | IntegerCells | BooleanCells,
-                scanning ? [size + (seeded ? 1 : 0)] : compact ? [(result as RankValue[]).length] : output.shape);
+                scanning ? [size + (seeded ? 1 : 0)] : compact ? [(result as RankValue[]).length] : output.shape, target);
         }
         return result as RankValue | undefined;
     }

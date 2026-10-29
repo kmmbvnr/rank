@@ -55,6 +55,8 @@ export class RuntimeDiagnostics {
     fusedArrayUpdates = 0;
     fusedArrayUpdateCells = 0;
     fusedArrayUpdateWidenings = 0;
+    reusedTensorBuffers = 0;
+    reusedTensorBufferCells = 0;
     cowCopies = 0;
     cowCopiedCells = 0;
     elementTypeScans = 0;

@@ -619,9 +619,17 @@ export class IntegerCells {
     private packed?: Int32Array | BigInt64Array;
     private exact?: bigint[];
 
-    constructor(size: number) {
-        if (size >= PACKED_CELLS) this.packed = new Int32Array(size);
-        else this.exact = new Array(size);
+    constructor(sizeOrBuffer: number | Int32Array | BigInt64Array) {
+        if (typeof sizeOrBuffer === 'number') {
+            if (sizeOrBuffer >= PACKED_CELLS) this.packed = new Int32Array(sizeOrBuffer);
+            else this.exact = new Array(sizeOrBuffer);
+        } else {
+            this.packed = sizeOrBuffer;
+        }
+    }
+
+    reused(buffer: Int32Array | BigInt64Array): boolean {
+        return this.packed === buffer;
     }
 
     set(index: number, value: bigint): void {
