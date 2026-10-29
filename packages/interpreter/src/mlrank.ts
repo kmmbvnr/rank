@@ -17,6 +17,7 @@ import { isRankArray, type NativeFunction } from './value.js';
 
 export interface RamGraph {
     readonly parts?: readonly RamPart[];
+    readonly memoryPlan?: {budgetBytes:number; peakBytes:number; peakStateBytes:number; peakStates:number};
     readonly precision: 'f16' | 'f32';
     readonly shape: readonly number[];
     readonly inputs: readonly { name: string; shape: readonly number[]; dtype?: 'i32'; indexLimit?: number }[];
@@ -29,6 +30,7 @@ export interface RamGraph {
 }
 /** A synchronous host bridge. It must reject unavailable GPUs and partial delegation. */
 export type RamGpu = ((graph: RamGraph, input: readonly number[], inputFiles?: readonly (FileTensorInput | null)[], options?: {inputStates?: readonly (string|null)[]; retainOutput?: boolean}) => readonly number[] | RamStateDescriptor) & {
+    memory?: () => {memoryBudgetBytes:number; stateBytes:number; residentStates:number; maxStates:number};
     control?: (request: {action:'readState'|'releaseState';stateId:string;outputSize?:number}) => {output?:number[]};
 };
 export interface RamModule { readonly name: string; readonly graph: RamGraph; readonly program: Program; readonly source: string; readonly weights: Readonly<Record<string, string>> }

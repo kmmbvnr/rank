@@ -5,12 +5,12 @@ export interface RamModelFile { path: string; size: number; sha256: string }
  * eviction/restart; ordinary execution errors are never retried. */
 export interface RamRequest {
     inputDtypes?: readonly ('f32'|'i32')[];
-    action: 'load' | 'invoke' | 'release' | 'readState' | 'releaseState';
+    action: 'status' | 'load' | 'invoke' | 'release' | 'readState' | 'releaseState';
     stateId?: string; inputStates?: readonly (string | null)[]; retainOutput?: boolean; inputNames?: readonly string[]; outputName?: string; profile?: boolean; reservationBytes?: number; model?: string; modelId?: string;
     inputFiles?: readonly (FileTensorInput | null)[]; modelFile?: RamModelFile; inputSizes?: readonly number[]; input?: readonly number[]; outputSize?: number;
 }
 export interface RamReply {
-    state?: RamStateDescriptor; residentStates?: number; stateBytes?: number; stateInputsReused?: number; outputBytesRead?: number;
+    maxStates?: number; state?: RamStateDescriptor; residentStates?: number; stateBytes?: number; stateInputsReused?: number; outputBytesRead?: number;
     residentBytes?: number; residentModels?: number; memoryBudgetBytes?: number; cacheEvictions?: number;
     error?: string; code?: string; modelId?: string; output?: number[];
     fullyAccelerated?: boolean; gpuOnlyRequested?: boolean;
@@ -27,6 +27,15 @@ export function createRamClient(send: (request: RamRequest) => RamReply) {
         return reply;
     };
     return {
+        memory() {
+            const reply = send({action:'status'});
+            if (reply.error) throw new Error(reply.error);
+            const {memoryBudgetBytes, stateBytes, residentStates, maxStates} = reply;
+            if (![memoryBudgetBytes, stateBytes, residentStates, maxStates].every(n => Number.isSafeInteger(n) && n! >= 0)
+                || !memoryBudgetBytes || !maxStates || stateBytes! > memoryBudgetBytes || residentStates! > maxStates)
+                throw new Error('Invalid RAM memory status');
+            return {memoryBudgetBytes, stateBytes:stateBytes!, residentStates:residentStates!, maxStates};
+        },
         stateControl(request: {action:'readState'|'releaseState';stateId:string;outputSize?:number}) {
             const reply = send(request);
             if (reply.error) throw new Error(reply.error);

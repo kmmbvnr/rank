@@ -161,8 +161,9 @@ final class RamGpu {
         String owner = request.optString("sessionId", "");
         if (!owner.isEmpty() && !sessions.contains(owner))
             return new JSONObject().put("error", "GPU session is closed").put("code", "STALE_SESSION");
-        if (!action.equals("load") && !action.equals("invoke") && !action.equals("release") && !action.equals("readState") && !action.equals("releaseState"))
+        if (!action.equals("status") && !action.equals("load") && !action.equals("invoke") && !action.equals("release") && !action.equals("readState") && !action.equals("releaseState"))
             throw new IllegalArgumentException("Unknown RAM action");
+        if (action.equals("status")) return cacheStatus(new JSONObject());
         if (action.equals("releaseState")) {
             State state = states.get(request.optString("stateId"));
             if (state != null && !owner.equals(state.owner)) throw new IllegalArgumentException("GPU state belongs to another session");
@@ -308,6 +309,10 @@ final class RamGpu {
                 throw new IllegalArgumentException("Retained output requires F32 tensor metadata");
             outputBytes = 4;
             for (int n : entry.outputType.getLayout().getDimensions()) outputBytes = Math.multiplyExact(outputBytes, n);
+            for (String oldKey : new ArrayList<>(models.keySet())) {
+                if (residentBytes() + outputBytes <= MEMORY_BUDGET) break;
+                if (!oldKey.equals(key)) closeModel(models.remove(oldKey));
+            }
             if (states.size() >= MAX_STATES || residentBytes() + outputBytes > MEMORY_BUDGET)
                 throw new IllegalArgumentException("RAM state memory/count limit reached; release states explicitly");
         }
@@ -406,7 +411,7 @@ final class RamGpu {
     }
     private JSONObject cacheStatus(JSONObject result) throws Exception {
         return result.put("residentSessions", sessions.size()).put("residentBytes", residentBytes()).put("residentModels", models.size())
-            .put("memoryBudgetBytes", MEMORY_BUDGET).put("residentStates", states.size()).put("stateBytes", stateBytes());
+            .put("maxStates", MAX_STATES).put("memoryBudgetBytes", MEMORY_BUDGET).put("residentStates", states.size()).put("stateBytes", stateBytes());
     }
     private static void closeModel(Resident entry) {
         if (entry == null) return;

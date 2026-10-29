@@ -56,3 +56,5 @@ nodeRamGpu.control = request => client.stateControl(request);
 export function runRamGpuFile(modelFile: RamModelFile, input: readonly number[], outputSize: number): RamGpuResult {
     return client.invoke(JSON.stringify(modelFile), () => modelFile, input, outputSize) as RamGpuResult;
 }
+
+nodeRamGpu.memory = () => client.memory();

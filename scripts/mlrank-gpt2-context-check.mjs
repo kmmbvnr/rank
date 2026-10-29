@@ -26,7 +26,7 @@ const failures=retained?[
 ]:[];
 if(pinned){
  failures.push({name:'pinned-weight',prompt:'Hello',after:'Weights Layer = Weight pinweight'});
- failures.push({name:'pinned-budget-pressure',prompt:'Hello',after:'Weights Layer = Weight pinweight',injection:'for Copy in 0 till 64\nExtra = Weight pinweight\nend',message:'RAM state memory'});
+ failures.push({name:'pinned-budget-pressure',prompt:'Hello',after:'Weights Layer = Weight pinweight',injection:'for Copy in 0 till 64\nExtra = Weight pinweight\nend',message:'memory'});
  for(const failure of failures)failure.maxNew=2;
 }
 mkdirSync('/tmp/rank-mlrank',{recursive:true});

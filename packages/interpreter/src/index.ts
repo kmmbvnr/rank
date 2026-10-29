@@ -27,4 +27,4 @@ export type { FileTensorInput } from './file-tensor.js';
 
 export { inputValues } from './cli-args.js';
 
-export { executeRamGraph } from './ram-plan.js';
+export { executeRamGraph, planRamMemory } from './ram-plan.js';

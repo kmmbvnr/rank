@@ -31,3 +31,5 @@ export const browserRamGpu: RamGpu = (graph, input, inputFiles, options) => { co
     return result.state ?? result.output!;
 };
 browserRamGpu.control = request => client.stateControl(request);
+
+browserRamGpu.memory = () => client.memory();

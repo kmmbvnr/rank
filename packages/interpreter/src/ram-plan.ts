@@ -43,8 +43,11 @@ export function ramGraph(precision: RamGraph['precision'], nodes: readonly RamNo
  * shared operations therefore execute once, and crossing edges become states.
  * Constants stay baked, including integer structural operands and linear weights. */
 export function partitionRam(precision: RamGraph['precision'], nodes: readonly RamNode[], output: number,
-    inputs: RamGraph['inputs'], shape: readonly number[]): RamGraph {
-    if (nodes.length <= 128) return ramGraph(precision, nodes, output, inputs, shape);
+    inputs: RamGraph['inputs'], shape: readonly number[], partBudget = Infinity): RamGraph {
+    if (nodes.length <= 128) {
+        const single = ramGraph(precision, nodes, output, inputs, shape);
+        if (single.reservationBytes <= partBudget) return single;
+    }
     if (precision !== 'f32') throw new RankError('Partitioned RAM graphs require .f32', 'RamCompile');
     const reachable = new Set<number>([output]);
     for (let i = output; i >= 0; i--) if (reachable.has(i)) ramDependencies(nodes[i]).forEach(n => reachable.add(n));
@@ -54,15 +57,31 @@ export function partitionRam(precision: RamGraph['precision'], nodes: readonly R
     const specs = new Map<number, RamGraph['inputs'][number]>();
     let inputIndex = 0;
     nodes.forEach((n, i) => { if (n.kind === 'input') specs.set(i, inputs[inputIndex++]); });
+    // Conservative serialization allowance avoids repeatedly copying baked weights
+    // while considering cuts. Final admission uses the actual serialized length.
+    const estimate = (ids: Set<number>, included: Set<number>) => {
+        let bytes = 2048 + ids.size * 256;
+        const transposed = new Set<number>();
+        for (const id of ids) {
+            const node = nodes[id]; bytes += size(node.shape) * 4;
+            if (node.kind === 'constant') bytes += size(node.shape) * 4;
+            if (included.has(id) && node.kind === 'linear') transposed.add(node.right);
+        }
+        for (const id of transposed) bytes += size(nodes[id].shape) * 8 + 256;
+        return bytes;
+    };
     const parts: RamPart[] = [];
     while (remaining.size) {
         const target = Math.max(...remaining), included = new Set([target]);
         let dependencies = new Set(ramDependencies(nodes[target]));
         if (dependencies.size + 1 > 128) throw new RankError('A RAM operation exceeds the 128-tensor part limit', 'RamCompile');
+        if (estimate(new Set([target, ...dependencies]), included) > partBudget)
+            throw new RankError('RAM memory budget cannot fit an operation and its inputs', 'GpuMemory');
         for (let i = target - 1; i >= 0; i--) {
             if (!dependencies.has(i) || !remaining.has(i) || [...consumers[i]].some(c => !included.has(c))) continue;
             const expanded = new Set([...dependencies, ...ramDependencies(nodes[i])]);
-            if (new Set([...included, ...expanded, i]).size > 128) continue;
+            const candidate = new Set([...included, ...expanded, i]);
+            if (candidate.size > 128 || estimate(candidate, new Set([...included, i])) > partBudget) continue;
             included.add(i); dependencies = expanded;
         }
         const all = [...new Set([...included, ...dependencies])].sort((a, b) => a - b);
@@ -73,6 +92,7 @@ export function partitionRam(precision: RamGraph['precision'], nodes: readonly R
                 ...(nodes[i].kind === 'input' && nodes[i].dtype === 'i32' ? {dtype: 'i32' as const} : {})});
         const localInputs = external.map(i => specs.get(i) ?? {name: 't' + i, shape: nodes[i].shape});
         const graph = ramGraph(precision, localNodes, ids.get(target)!, localInputs, localInputs[0]?.shape ?? []);
+        if (graph.reservationBytes > partBudget) throw new RankError('RAM serialized part exceeds memory budget', 'GpuMemory');
         parts.push({graph, inputs: external, output: target});
         included.forEach(i => remaining.delete(i));
     }
@@ -82,9 +102,50 @@ export function partitionRam(precision: RamGraph['precision'], nodes: readonly R
         model: new Uint8Array(), reservationBytes: Math.max(...parts.map(p => p.graph.reservationBytes)), parts};
 }
 
+/** Working-set admission excludes evictable cached models. Caller states are
+ * subtracted by the executor, including states unrelated to this graph. */
+export function planRamMemory(graph: RamGraph, budgetBytes: number, stateSlots: number, retainOutput = false): RamGraph {
+    if (!Number.isSafeInteger(budgetBytes) || budgetBytes < 1 || !Number.isSafeInteger(stateSlots) || stateSlots < 0)
+        throw new RankError('RAM memory budget is exhausted or invalid', 'GpuMemory');
+    let plan = graph, partBudget = budgetBytes;
+    for (let attempt = 0; attempt < 32; attempt++) {
+        const parts = plan.parts ?? [{graph:plan, inputs:[], output:plan.output}];
+        const lastUse = new Map<number, number>();
+        parts.forEach((p,i) => p.inputs.forEach(id => lastUse.set(id,i)));
+        const live = new Map<number, number>();
+        let peakBytes=0, peakStateBytes=0, peakStates=0;
+        parts.forEach((part,i) => {
+            if (i < parts.length-1 || retainOutput) live.set(part.output, size(part.graph.outputShape)*4);
+            const stateBytes = [...live.values()].reduce((a,b)=>a+b,0);
+            peakBytes = Math.max(peakBytes, part.graph.reservationBytes + stateBytes);
+            peakStateBytes = Math.max(peakStateBytes,stateBytes); peakStates = Math.max(peakStates,live.size);
+            for (const id of part.inputs) if (lastUse.get(id)===i) live.delete(id);
+        });
+        if (peakStates > stateSlots) throw new RankError('RAM memory plan exceeds available GPU state slots', 'GpuMemory');
+        if (peakBytes <= budgetBytes) return {...plan,memoryPlan:{budgetBytes,peakBytes,peakStateBytes,peakStates}};
+        partBudget = Math.min(partBudget-1, budgetBytes-peakStateBytes);
+        if (partBudget <= 0) throw new RankError('RAM memory budget cannot fit the execution plan', 'GpuMemory');
+        plan = partitionRam(graph.precision,graph.nodes,graph.output,graph.inputs,graph.shape,partBudget);
+    }
+    throw new RankError('RAM memory planner could not find a bounded execution plan', 'GpuMemory');
+}
+const memoryPlans = new WeakMap<RamGraph, {key:string;plan:RamGraph}>();
+
 /** Internal states never enter Rank values. Borrowed caller states are not owned here. */
 export function executeRamGraph(graph: RamGraph, gpu: RamGpu, input: readonly number[],
     files?: readonly (FileTensorInput | null)[], options?: {inputStates?: readonly (string | null)[]; retainOutput?: boolean}): readonly number[] | RamStateDescriptor {
+    if (gpu.memory) {
+        const memory = gpu.memory(), available = memory.memoryBudgetBytes-memory.stateBytes;
+        const slots = memory.maxStates-memory.residentStates;
+        const key = `${available}/${slots}/${!!options?.retainOutput}`;
+        let cached = memoryPlans.get(graph);
+        if (!cached || cached.key !== key) {
+            cached = {key,plan:planRamMemory(graph,available,slots,!!options?.retainOutput)};
+            memoryPlans.set(graph,cached);
+        }
+        // Keep the native model identity when only admission metadata changed.
+        if (cached.plan.parts) graph = cached.plan;
+    }
     if (!graph.parts) return gpu(graph, input, files, options);
     if (!gpu.control) throw new RankError('Partitioned RAM graphs require GPU state support', 'GpuUnavailable');
     const original = new Map<number, {values: readonly number[]; file: FileTensorInput | null; state: string | null}>();

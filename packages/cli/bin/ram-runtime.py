@@ -38,15 +38,17 @@ def cache_status():
     return {"residentModels": len(models),
             "residentBytes": sum(entry["reservation"] for entry in models.values()) + state_bytes(),
             "residentStates": len(states), "stateBytes": state_bytes(),
-            "memoryBudgetBytes": MEMORY_BUDGET}
+            "memoryBudgetBytes": MEMORY_BUDGET, "maxStates": MAX_STATES}
 
 
 def run(request):
     global environment
     started = time.perf_counter()
     action = request.get("action")
-    if action not in ("load", "invoke", "release", "readState", "releaseState"):
+    if action not in ("status", "load", "invoke", "release", "readState", "releaseState"):
         raise ValueError("Unknown RAM action")
+    if action == "status":
+        return cache_status()
     if action == "releaseState":
         states.pop(request.get("stateId"), None)
         return {"released": True, **cache_status()}
@@ -139,6 +141,10 @@ def run(request):
     output_bytes = int(np.prod(output_shape)) * 4
     if retain and outputs[0].get_tensor_details().get("dtype", "float32") != "float32":
         raise ValueError("Retained output requires F32 tensor metadata")
+    if retain:
+        for old_key in list(models):
+            if cache_status()["residentBytes"] + output_bytes <= MEMORY_BUDGET: break
+            if old_key != key: models.pop(old_key)
     if retain and (len(states) >= MAX_STATES or cache_status()["residentBytes"] + output_bytes > MEMORY_BUDGET):
         raise ValueError("RAM state memory/count limit reached; release states explicitly")
     if data.ndim != 1 or data.size != sum(size for size, file, state in zip(sizes, files, state_inputs) if file is None and state is None) or not np.isfinite(data).all():
