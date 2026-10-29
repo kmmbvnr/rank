@@ -1,0 +1,45 @@
+rem Square Prime Factors II
+rem https://projecteuler.net/problem=633
+
+use numbers
+use sequences
+use io
+use cli
+
+arg K integer = 7
+
+rem p divides n twice with density
+rem 1 / p^2, so the density of exactly
+rem K square primes is c0 e_K(x) with
+rem c0 = 6 / pi^2 and x_p = 1 / (p^2 -
+rem 1). The elementary symmetric e_K
+rem comes from the power sums P_j of x
+rem over the primes up to 10^7 by
+rem Newton: k e_k = sum (-1)^(i - 1)
+rem e_(k - i) P_i.
+Pr = primes to 10000000 array
+X = 1.0 / (Pr * Pr - 1.0)
+Pw = (0 to K) * 0.0
+Xp = X
+for J in 1 to K
+  Pw J = Xp sum
+  Xp = Xp * X
+end
+Ek = (0 to K) * 0.0
+Ek 0 = 1.0
+for Kk in 1 to K
+  Tt = 0.0
+  for I in 1 to Kk
+    Sg = 1.0 - 2.0 * ((I + 1) mod 2)
+    Tt += Sg * Ek (Kk - I) * Pw I
+  end
+  Ek Kk = Tt / Kk
+end
+Pi = 0.0 atan2 (0.0 - 1.0)
+C0 = 6.0 / (Pi * Pi)
+V = C0 * Ek K
+Ex = ((V log) / (10.0 log)) floor
+Mn = V / (10.0 ** Ex)
+Mt = Mn text ".4f"
+Answer = Mt + "e" + (Ex text)
+Answer print

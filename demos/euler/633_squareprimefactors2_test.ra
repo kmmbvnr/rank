@@ -1,0 +1,17 @@
+use testing
+
+test "default input"
+  use "633_squareprimefactors2"
+  run
+  Answer equal "1.0012e-10"
+end
+
+test "statement densities"
+  use "633_squareprimefactors2"
+  K = 3
+  run
+  Answer equal "3.2921e-3"
+  K = 4
+  run
+  Answer equal "9.7046e-5"
+end
