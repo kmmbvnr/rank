@@ -1,0 +1,61 @@
+rem Wildcard Pattern Matching
+rem https://acmp.ru/index.asp?main=task&id_task=104
+rem Match word against wildcard pattern with * and ?
+
+use io
+use cli
+
+arg First text = "ABBCDA"
+arg Second text = "A*CDA"
+
+Pattern = First
+Word = Second
+
+IsSecondPattern = false
+for I in 0 till Second len
+  Ch = Second I
+  if Ch equal "*"
+    IsSecondPattern = true
+  elif Ch equal "?"
+    IsSecondPattern = true
+  end
+end
+
+if IsSecondPattern
+  Pattern = Second
+  Word = First
+end
+
+M = Pattern len
+N = Word len
+
+DP = array shape (M + 1) (N + 1) fill false
+DP 0 0 = true
+
+for I in 1 to M
+  Ch = Pattern (I - 1)
+  if Ch equal "*"
+    DP I 0 = DP (I - 1) 0
+  end
+end
+
+for I in 1 to M
+  P = Pattern (I - 1)
+  for J in 1 to N
+    W = Word (J - 1)
+    if P equal "*"
+      DP I J = (DP (I - 1) J) or (DP I (J - 1))
+    elif P equal "?"
+      DP I J = DP (I - 1) (J - 1)
+    elif P equal W
+      DP I J = DP (I - 1) (J - 1)
+    end
+  end
+end
+
+Answer = "NO"
+if DP M N
+  Answer = "YES"
+end
+
+Answer print

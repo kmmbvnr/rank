@@ -1,0 +1,35 @@
+use testing
+
+test "official example"
+  use "0104_pattern"
+  run
+
+  Answer equal "YES"
+end
+
+test "mismatch"
+  use "0104_pattern"
+  First = "ABBCDA"
+  Second = "A*Z"
+  run
+
+  Answer equal "NO"
+end
+
+test "exact letters match"
+  use "0104_pattern"
+  First = "HELLO"
+  Second = "HELLO"
+  run
+
+  Answer equal "YES"
+end
+
+test "star matches empty"
+  use "0104_pattern"
+  First = "A*B*C"
+  Second = "ABC"
+  run
+
+  Answer equal "YES"
+end
