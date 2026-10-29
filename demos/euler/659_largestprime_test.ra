@@ -1,0 +1,18 @@
+use testing
+
+test "statement values"
+  use "659_largestprime"
+  Kk = 10
+  run
+  Answer equal 1070
+  Kk = 1000
+  run
+  Answer equal 299015732
+end
+
+test "one million"
+  use "659_largestprime"
+  Kk = 1000000
+  run
+  Answer equal 148687122056813880
+end

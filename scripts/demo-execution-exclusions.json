@@ -256,5 +256,6 @@
   "euler/650_binomialproduct.ra": "About 4.5 min: 20000 steps of vector powmod over 2262 primes (#479); run manually.",
   "euler/644_squaresontheline.ra": "About 26 min: 3 x 10^5 row sweeps with argsort axis 1 (#480); run manually.",
   "euler/654_neighbourlyconstraints.ra": "About 33 s: Kitamasa over 4999 terms; run manually (#484).",
-  "euler/655_divisiblepalindromes.ra": "About 44 s: shift-built residue histogram; run manually (#485)."
+  "euler/655_divisiblepalindromes.ra": "About 44 s: shift-built residue histogram; run manually (#485).",
+  "euler/659_largestprime.ra": "About 53 s: per-prime sieve loop; run manually (#486)."
 }
