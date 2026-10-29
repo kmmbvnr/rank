@@ -39,6 +39,39 @@ H = Old softmax
 return H
 ```
 
+Local tensor functions can group operations inside the same `.ram`:
+
+```rank
+use ml
+arg X .f32 shape 2 3
+arg W .f32 shape 3 4
+arg Bias .f32 shape 4
+fun X affine Weight Offset
+H = X matmul Weight
+return H + Offset
+end
+return X affine W Bias
+```
+
+The compiler infers helper parameter/result shapes from each call. It expands the
+body into the same graph; a function boundary adds no GPU invocation or host
+readback. Functions are optional: writing the operations inline remains valid.
+Only the module entry point is exported to `.ra`. Helper names must be declared
+before their calls are expanded. Helpers can use module tensors and introduce
+private local assignments. Arguments are lowered
+once in the caller. A callee sees module bindings and its own parameters/locals,
+not the caller's local variables. Integer index parameters retain the existing
+gather bounds checks.
+
+The current subset accepts positional tensor parameters, simple assignments and
+a final tensor return, including the ordinary expression-bodied `fun` form.
+Recursion, nested declarations, loops/branches, memoization, deferred/function
+parameters, named option groups and helper rank/axis modifiers are not supported.
+Expanded operations still count toward the existing 128-tensor graph limit;
+this step does not implement graph partitioning or GiB-scale placement.
+See [the transformer block](../../demos/mlrank/transformer.ram) and
+[the GPT-2 MLP](../../demos/mlrank/gpt2tokenmlp.ram).
+
 Changing source or referenced binary weights recompiles the model on the next call.
 The softmax check runs 60 calls per host across ranks 1–4, large positive and
 negative logits, equal logits, singleton rows, aliases and reused results.
