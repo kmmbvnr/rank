@@ -1,0 +1,51 @@
+rem Friend Numbers
+rem https://projecteuler.net/problem=612
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg E integer = 18
+
+rem Count numbers below 10^E by digit
+rem set (a 10 bit mask): a number of
+rem length L over k digits using all
+rem of them is a surjection, and a
+rem leading zero removes 1 / k of the
+rem ones whose set holds 0. Then f =
+rem (S - (n - 1)) / 2 with S the
+rem ordered pairs (p may equal q)
+rem sharing a digit: all pairs less
+rem those with disjoint masks.
+M = 1000267129
+Ls = (1 to E) reshape E 1 1
+Ks = (1 to 10) reshape 1 10 1
+Js = (0 to 10) reshape 1 1 11
+Jc = Js min Ks
+Cb = Ks Jc 1000003 binomialmod
+Cb = Cb * ((Js at most Ks) integer)
+Sg = 1 - 2 * ((Ks - Js) mod 2)
+Pw = Js ** Ls
+Sr = (Sg * Cb * Pw) sum axis 2
+Su = (Sr sum axis 0)
+Kk = (1 to 10)
+Sz = (Sr * (Kk - 1) // Kk) sum axis 0
+Ms = 0 to 1023
+Pc = Ms popcount
+Ix = (Pc - 1) max 0
+Zr = Ms band 1
+Cn = (Zr equal 1) choose (Sz Ix) (Su Ix)
+Cn = Cn * ((Pc greater 0) integer) mod M
+Tt = Cn sum mod M
+Ma = Ms reshape 1024 1
+Mb = Ms reshape 1 1024
+Dj = ((Ma band Mb) equal 0) integer
+Ca = Cn reshape 1024 1
+Cr = Cn reshape 1 1024
+Dp = (Dj * Ca mod M * Cr mod M) sum
+Dp = Dp mod M
+S = (Tt * Tt - Dp) mod M
+Answer = (S - Tt) * ((M + 1) // 2) mod M
+Answer print

@@ -1,0 +1,23 @@
+use testing
+
+test "default input"
+  use "612_friendnumbers"
+  run
+  Answer equal 819963842
+end
+
+test "brute force"
+  use "612_friendnumbers"
+  E = 2
+  run
+  Answer equal 1539
+  E = 3
+  run
+  Answer equal 289665
+  E = 4
+  run
+  Answer equal 39235977
+  E = 5
+  run
+  Answer equal 527566505
+end
