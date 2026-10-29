@@ -252,5 +252,6 @@
   "euler/642_largestprimefactors.ra": "About 3 min: Lucy sieve and a second sieve over N // k values; run manually.",
   "euler/643_twofriendly.ra": "About 60 s: totient sums to 10^11 over N // 2^t; run manually.",
   "euler/646_boundeddivisors.ra": "About 15 s: 3.6 x 10^12 divisors by meet in the middle; run manually.",
-  "euler/649_lowprimenim.ra": "About 11 s: Grundy loop over 10^7 rows; run manually."
+  "euler/649_lowprimenim.ra": "About 11 s: Grundy loop over 10^7 rows; run manually.",
+  "euler/648_skippingsquares.ra": "About 30 s: cubic series products to degree 1000; run manually."
 }

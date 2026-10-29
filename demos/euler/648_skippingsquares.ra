@@ -1,0 +1,61 @@
+rem Skipping Squares
+rem https://projecteuler.net/problem=648
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 1000
+
+rem u_m = P(the walk lands on m) obeys
+rem u_m = r u_(m-1) + (1 - r) u_(m-2).
+rem Skipping square i^2 is a step 2 from
+rem i^2 - 1, reached after skipping the
+rem square before, so given the
+rem earlier skips it has probability
+rem S_i = (1 - r) u_(2 i - 3) (S_1 = 1 -
+rem r). Then f = sum over j of the
+rem product T_j of S_1 to S_j; S_i
+rem starts at r, so j <= N + 1 matter
+rem to degree N. Series mod r^(N + 1)
+rem and mod 10^9; F is the sum of the
+rem coefficients to degree N.
+M = 1000000000
+Ds = 0 to N
+W = Ds * 0
+W 0 = 1
+W 1 = M - 1
+Answer = 0
+Um = Ds * 0
+Up = Ds * 0
+Up 0 = 1
+for Mm in 1 to 2 * N - 1
+  Ut = Ds * 0
+  Ut (1 to N) = Up (0 to (N - 1))
+  Un = (Ut + Um - (Um shift 1)) mod M
+  Um = Up
+  Up = Un
+  if Mm mod 2 equal 1
+    J = (Mm + 3) // 2
+    L = N - (J - 1)
+    if L at least 0
+      Vv = (Up - (Up shift 1)) mod M
+      Sg = Vv (1 to (L + 1))
+      Wp = W (0 to L)
+      Cw = Wp * 0
+      for I in 0 to L
+        Si = Sg I
+        for K in I to L
+          Wk = Wp (K - I)
+          Cw K = (Cw K + Si * Wk) mod M
+        end
+      end
+      Zp = (0 till (N - L)) * 0
+      W = concat Cw Zp
+      Answer += Cw sum
+    end
+  end
+end
+Answer = Answer mod M
+Answer print
