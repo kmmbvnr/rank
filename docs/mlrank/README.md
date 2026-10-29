@@ -2180,3 +2180,78 @@ work and is separate from the worker timings above; the previous UI demo took
 31.70 s in a single earlier run, so the UI measurements do not establish the same
 24% improvement. Short-prompt worker ABBA on OnePlus measured 13.63–14.31 s for
 the previous version and 12.50–12.86 s with retained activations.
+
+### Explicit pinned weight subset
+
+[`gpt2-generate-pinned16.ra`](../../demos/mlrank/gpt2-generate-pinned16.ra) is an
+optional comparison variant of the retained-activation demo. It uses existing
+`gpukeep`/`gpufree` semantics to snapshot the attention output-projection matrix
+of each of the twelve layers. These twelve `[768,768]` F32 tensors occupy
+28,311,552 bytes (27 MiB). The source declares a 32 MiB weight allowance and
+rejects a smaller-than-required allowance before touching the GPU. This allowance
+does not raise or replace the runtime's shared 128 MiB model/state budget.
+
+[`gpt2pinweight.ram`](../../demos/mlrank/gpt2pinweight.ram) copies each matrix
+through an addition with zero and retains the result. This is an explicit GPU
+operation, not a claim of zero-copy file mapping. Subsequent prefill/decode calls
+pass the saved state instead of rereading that matrix. All twelve states are
+freed at the end; failures use the existing interpreter-owned cleanup.
+
+The program only pins when at least two output steps are possible from the token
+limit and context capacity. A one-output request and a prompt at the context edge
+use the previous file-backed path. EOS can still stop a pinned run early.
+The choice is visible in the Rank source, without a compiler transformation.
+
+File size/revision and checkpoint SHA-256 are checked through the existing file
+path before pinning. Once retained, a weight is an immutable snapshot: it is not
+a live view of a modified file. A later run reopens/verifies the checkpoint and
+creates fresh snapshots. Other file-backed inputs retain their version checks.
+
+`mlrank-gpt2-context-check.mjs --pinned` compares all 603,084 reference logits,
+rejects an insufficient declared allowance, and checks cleanup after failures
+with weights still alive. Its pressure case deliberately retains extra matrices
+until the shared native budget rejects the call; all states must be gone before
+interpreter disposal. `mlrank-gpt2-prefill-bench.mjs --pinned` compares this variant
+with retained activations alone; `--decode` uses one prompt and six output tokens.
+Separate desktop profiles measure native file bytes.
+
+For seven input and two output tokens, reads decrease from 989,276,160 to
+960,964,608 bytes: only one extra use of the 27 MiB subset is saved. For one input
+and six output tokens, reads decrease from 2,967,717,888 to 2,826,160,128 bytes
+(135 MiB saved). Weight preparation still dominates the remaining model; this
+subset does not solve full-model residency. Readback payload is unchanged and
+pinning adds twelve GPU calls. Normal-run retained-state payload peaks at
+29,736,960 bytes on desktop, excluding driver allocations.
+
+The retained-activation demo remains the default comparison point. Pinning this
+small subset is not presented as a general speed optimization.
+
+All three devices matched 603,084 reference logits at the existing tolerance;
+maximum errors remained 1.90e-4 (Metal), 3.50e-4 (Intel), and 3.42e-4 (OnePlus).
+Each passed cleanup with live weights, including an actual native-budget
+exhaustion case. The file-cache unit suite additionally checks that an old
+snapshot survives file replacement, stale descriptors fail, and a newly created
+snapshot contains the replacement values; this test uses mocked GPU buffers.
+
+Unprofiled ABBA timings for seven prompt tokens and two outputs:
+
+| Device | Retained activations | Pinned weight subset |
+| --- | --- | --- |
+| Mac / Metal | 1.15–1.76 s | 1.24–1.25 s |
+| jack / Intel | 5.26–6.01 s | 5.28–5.46 s |
+| OnePlus / OpenCL | 19.85–20.27 s | 19.84–20.21 s |
+
+The intervals overlap. For six outputs on desktop they also overlap: Metal
+1.68–3.62 s versus 1.63–1.85 s, Intel 13.25–14.58 s versus 13.19–13.33 s.
+The first baseline run is cold; these two runs per variant do not establish a
+repeatable speedup. Reduced file-byte counts should not be confused with reduced
+wall time or full-model residency.
+See the [pinned weights baseline](../../benchmarks/baselines/2026-10-29-mlrank-gpt2-pinned.json).
+
+For six outputs on OnePlus, worker ABBA measured 47.18–49.03 s without weight
+snapshots and 45.91–47.01 s with them: a small improvement in this sample, not a
+large throughput gain. The saved **GPT-2 pinned weights** notebook produced the
+expected text through Run program in 45.26 s, with zero states afterward. This
+single UI run was slower than the earlier retained-activation UI run (30.84 s);
+editor/per-cell overhead is included and these are not paired UI benchmarks.
+The previous notebook remains available and is the recommended baseline.

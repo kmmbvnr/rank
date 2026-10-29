@@ -65,6 +65,24 @@ class FileCacheTest(unittest.TestCase):
         runtime.run(dict(action='releaseState',stateId=key))
         self.assertEqual(runtime.run(dict(action='invoke',modelId=self.key,input=[],inputStates=[key]))['code'], 'STALE_STATE')
 
+    def test_retained_file_weights_are_snapshots_not_live_file_views(self):
+        runtime.models[self.key]["reservation"] = 1024
+        original = self.descriptor()
+        first = runtime.run(dict(action='invoke', modelId=self.key, input=[],
+                                 inputFiles=[original], retainOutput=True))['state']['id']
+        self.replace([5, 6])
+        with self.assertRaisesRegex(ValueError, 'changed'):
+            runtime.run(dict(action='invoke', modelId=self.key, input=[],
+                             inputFiles=[original], retainOutput=True))
+        self.assertEqual(runtime.run(dict(action='readState', stateId=first))['output'], [2, 4])
+        second = runtime.run(dict(action='invoke', modelId=self.key, input=[],
+                                  inputFiles=[self.descriptor()], retainOutput=True))['state']['id']
+        runtime.run(dict(action='release', modelId=self.key))
+        self.assertEqual(runtime.run(dict(action='readState', stateId=first))['output'], [2, 4])
+        self.assertEqual(runtime.run(dict(action='readState', stateId=second))['output'], [10, 12])
+        runtime.run(dict(action='releaseState', stateId=first))
+        self.assertEqual(runtime.run(dict(action='releaseState', stateId=second))['stateBytes'], 0)
+
     def test_retention_budget_and_allocation_failure_publish_no_state(self):
         with self.assertRaisesRegex(ValueError, 'limit'):
             runtime.run(dict(action='invoke',modelId=self.key,input=[1,2],retainOutput=True))

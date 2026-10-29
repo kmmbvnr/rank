@@ -5,17 +5,22 @@ import {Interpreter,createRamClient} from '../packages/interpreter/out/index.js'
 import {nodeIo} from '../packages/cli/out/node-io.js';
 import {sendRamGpu,closeRamGpu} from '../packages/cli/out/ram-gpu.js';
 const directory=resolve(process.argv[2]??'/tmp/rank-gpt2-forward');
-const retained=process.argv.includes('--retained');
-const modes=retained?['batched','retained']:['sequential','batched'];
+const pinned=process.argv.includes('--pinned');
+const retained=pinned||process.argv.includes('--retained');
+const modes=pinned?['retained','pinned']:retained?['batched','retained']:['sequential','batched'];
 const short=process.argv.includes('--short');
-const programs=Object.fromEntries(modes.map(mode=>[mode,readFileSync(new URL('../demos/mlrank/gpt2-generate-'+(mode==='retained'?'retained16':mode==='batched'?'prefill16':'kv16')+'.ra',import.meta.url),'utf8').replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(short?'Hello':'Hello, world! My name is')).replace(/^MaxNew = .*$/m,'MaxNew = '+(short?1:2))]));
+const decode=process.argv.includes('--decode');
+const prompt=short||decode?'Hello':'Hello, world! My name is';
+const maxNew=short?1:decode?6:2;
+const programs=Object.fromEntries(modes.map(mode=>[mode,readFileSync(new URL('../demos/mlrank/gpt2-generate-'+(mode==='pinned'?'pinned16':mode==='retained'?'retained16':mode==='batched'?'prefill16':'kv16')+'.ra',import.meta.url),'utf8').replace(/^Prompt = .*$/m,'Prompt = '+JSON.stringify(prompt)).replace(/^MaxNew = .*$/m,'MaxNew = '+maxNew)]));
 const names=['row','qkv','kvwrite16','kvattn16','tokenmlp','tokennorm','tokenhead','tokentail','prefillqkv16','prefillcache16','prefillattn16','prefillmlp16'];
 if(retained)names.push('prefilllast16');
+if(pinned)names.push('pinweight');
 const modules=Object.fromEntries(names.map(n=>['gpt2'+n+'.ram',readFileSync(new URL('../demos/mlrank/gpt2'+n+'.ram',import.meta.url),'utf8')]));
-const expected=JSON.parse(readFileSync(join(directory,'context-reference.json'))).cases.find(c=>c.name===(short?'masked':'prefill')).text;
+const expected=JSON.parse(readFileSync(join(directory,'context-reference.json'))).cases.find(c=>c.name===(short?'masked':decode?'decode':'prefill')).text;
 const order=[modes[0],modes[1],modes[1],modes[0]];
 mkdirSync('/tmp/rank-mlrank',{recursive:true});
-writeFileSync('/tmp/rank-mlrank/gpt2-'+(retained?'retained':'prefill')+(short?'-short':'')+'-bench-fixture.json',JSON.stringify({programs,modules,expected,order,profileModes:modes}));
+writeFileSync('/tmp/rank-mlrank/gpt2-'+(pinned?'pinned':retained?'retained':'prefill')+(short?'-short':decode?'-decode':'')+'-bench-fixture.json',JSON.stringify({programs,modules,expected,order,profileModes:modes}));
 if(process.argv.includes('--fixture'))process.exit();
 const runs=[];
 let profile=false,fileBytesRead=0;
@@ -38,7 +43,7 @@ try{
    const started=performance.now();
    assert.equal(runtime.execute(source),expected);
    const totalMs=performance.now()-started;
-   assert.equal(tokenEnds.length,short?1:2);
+   assert.equal(tokenEnds.length,maxNew);
    const status=sendRamGpu({action:'releaseState',stateId:'nonexistent'});assert.equal(status.residentStates,0);
    runs.push({mode,profile,...(profile?{fileBytesRead}:{}),totalMs,firstTokenMs:tokenEnds[0]-started,decodeMs:tokenEnds.slice(1).map((t,i)=>t-tokenEnds[i]),gpuCalls,retainedOutputs:retained,readbackBytes});
   }finally{runtime.dispose();}
