@@ -38,6 +38,8 @@ export class RuntimeDiagnostics {
     numberLoopReadBufferCells = 0;
     numberLoopReadBufferHits = 0;
     compiledTensors = 0;
+    tensorRangeScans = 0;
+    tensorRangeScannedCells = 0;
     numberTensors = 0;
     compiledCounterBuilds = 0;
     compiledCounterSums = 0;

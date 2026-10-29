@@ -42,7 +42,7 @@ for (const kind of ['float64', 'int32', 'int64']) {
                 values.set('A', result);
             };
             for (let i = 0; i < 200; i++) step();
-            return { variant: index ? 'specialized' : 'baseline', values, reset, step, timingsMs: [], sums: [], reuse: [] };
+            return { variant: index ? 'specialized' : 'baseline', values, reset, step, timingsMs: [], sums: [], reuse: [], rangeScans: [], source: kernel.source };
         });
         for (let sample = 0; sample < samples; sample++) {
             for (const row of sample % 2 ? [...rows].reverse() : rows) {
@@ -54,6 +54,7 @@ for (const kind of ['float64', 'int32', 'int64']) {
                 diagnostics.run(() => { for (let i = 0; i < steps; i++) row.step(); });
                 row.timingsMs.push(performance.now() - start);
                 row.reuse.push(diagnostics.reusedTensorBuffers);
+                row.rangeScans.push(diagnostics.tensorRangeScans);
                 let sum = kind === 'float64' ? 0 : 0n;
                 for (let i = 0; i < size; i++) sum += readArrayItem(row.values.get('A'), i);
                 row.sums.push(String(sum));
@@ -63,8 +64,8 @@ for (const kind of ['float64', 'int32', 'int64']) {
         if (JSON.stringify(rows[0].sums) !== JSON.stringify(rows[1].sums)) throw new Error('result mismatch');
         const pairedSpeedups = rows[0].timingsMs.map((ms, i) => ms / rows[1].timingsMs[i]);
         const medianPairedSpeedup = [...pairedSpeedups].sort((a,b) => a-b)[Math.floor(samples / 2)];
-        results.push({ kind, shape, pairedSpeedups, medianPairedSpeedup, variants: rows.map(({ variant, timingsMs, sums, reuse }) => ({
-            variant, timingsMs, sums, reuse, medianMs: [...timingsMs].sort((a,b) => a-b)[Math.floor(samples / 2)],
+        results.push({ kind, shape, pairedSpeedups, medianPairedSpeedup, variants: rows.map(({ variant, timingsMs, sums, reuse, rangeScans, source }) => ({
+            variant, timingsMs, sums, reuse, rangeScans, source, medianMs: [...timingsMs].sort((a,b) => a-b)[Math.floor(samples / 2)],
         })) });
     }
 }

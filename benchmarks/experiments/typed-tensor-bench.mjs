@@ -13,7 +13,7 @@ const mode = process.env.MODE ?? 'interpreter';
 const results = [];
 for (const kind of ['float64', 'int32', 'int64']) {
     for (const shape of [[size], [200, 250]]) {
-        const timings = [], sums = [], reuse = [];
+        const timings = [], sums = [], reuse = [], rangeScans = [];
         for (let sample = 0; sample < samples; sample++) {
             const runtime = new Interpreter();
             const diagnostics = new RuntimeDiagnostics();
@@ -40,9 +40,13 @@ for (const kind of ['float64', 'int32', 'int64']) {
                 for (let i = 0; i < 30; i++) step();
                 global.gc?.();
                 const start = performance.now();
-                diagnostics.run(() => { for (let i = 0; i < steps; i++) step(); });
+                diagnostics.run(() => {
+                    if (mode === 'program') runtime.execute(`for N in 1 to ${steps}\n  ${source}\nend`);
+                    else for (let i = 0; i < steps; i++) step();
+                });
                 timings.push(performance.now() - start);
                 reuse.push(diagnostics.reusedTensorBuffers);
+                rangeScans.push(diagnostics.tensorRangeScans);
                 const value = values.get('A');
                 let sum = real ? 0 : 0n;
                 for (let i = 0; i < size; i++) sum += readArrayItem(value, i);
@@ -50,7 +54,7 @@ for (const kind of ['float64', 'int32', 'int64']) {
             } finally { runtime.dispose(); }
         }
         if (new Set(sums).size !== 1) throw new Error('unstable result');
-        results.push({ kind, shape, steps, timingsMs: timings, medianMs: [...timings].sort((a,b) => a-b)[Math.floor(samples/2)], sums, reuse });
+        results.push({ kind, shape, steps, timingsMs: timings, medianMs: [...timings].sort((a,b) => a-b)[Math.floor(samples/2)], sums, reuse, rangeScans });
     }
 }
 console.log(JSON.stringify({ mode, node: process.version, cpu: cpus()[0].model, size, samples, results }, null, 2));

@@ -1,0 +1,613 @@
+{
+  "revision": "9dfe7784",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "steps": 500,
+  "samples": 7,
+  "size": 50000,
+  "results": [
+    {
+      "kind": "float64",
+      "shape": [
+        50000
+      ],
+      "pairedSpeedups": [
+        4.583307276595154,
+        4.665251313117945,
+        4.653237155960789,
+        4.700625070363479,
+        4.682980653907607,
+        4.700725626418829,
+        4.632313777943113
+      ],
+      "medianPairedSpeedup": 4.665251313117945,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            111.00579100000004,
+            105.57425,
+            105.39175,
+            106.47033299999998,
+            105.903458,
+            105.91341699999998,
+            104.61887500000012
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (i)];\nconst v4 = scalars[0];\nif (!Number.isFinite(v3) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:*\");\nconst v2 = (v3) * (v4);\nif (!Number.isFinite(v1) || !Number.isFinite(v2)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v2);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\nlength++;\n}  return answer; };",
+          "medianMs": 105.903458
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            24.219582999999943,
+            22.629916999999978,
+            22.649124999999913,
+            22.650249999999915,
+            22.614540999999917,
+            22.53129100000001,
+            22.584583000000066
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v4 = (v0) + (v3);\nanswer[i] = v4;\n}};",
+          "medianMs": 22.629916999999978
+        }
+      ]
+    },
+    {
+      "kind": "float64",
+      "shape": [
+        200,
+        250
+      ],
+      "pairedSpeedups": [
+        4.871168463027859,
+        4.6322803454721635,
+        4.699950825651061,
+        4.660870073891643,
+        4.644463193282089,
+        4.641181803036341,
+        4.658400969719068
+      ],
+      "medianPairedSpeedup": 4.658400969719068,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            111.00966699999981,
+            104.99912499999982,
+            104.70491700000002,
+            105.96954199999982,
+            105.81500000000005,
+            105.80579200000011,
+            105.65816600000016
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (i)];\nconst v4 = scalars[0];\nif (!Number.isFinite(v3) || !Number.isFinite(v4)) return decline(\"tensor:operator-guard:*\");\nconst v2 = (v3) * (v4);\nif (!Number.isFinite(v1) || !Number.isFinite(v2)) return decline(\"tensor:operator-guard:+\");\nconst v0 = (v1) + (v2);\nif (!Number.isFinite(v0)) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\nlength++;\n}  return answer; };",
+          "medianMs": 105.80579200000011
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            22.789125000000013,
+            22.666832999999997,
+            22.277874999999767,
+            22.735999999999876,
+            22.783042000000023,
+            22.79716600000029,
+            22.681208999999853
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v4 = (v0) + (v3);\nanswer[i] = v4;\n}};",
+          "medianMs": 22.735999999999876
+        }
+      ]
+    },
+    {
+      "kind": "int32",
+      "shape": [
+        50000
+      ],
+      "pairedSpeedups": [
+        13.870181598032957,
+        14.626907301989238,
+        14.06516401009142,
+        13.67859493679806,
+        14.077370931542351,
+        14.272533302958166,
+        13.547502575367657
+      ],
+      "medianPairedSpeedup": 14.06516401009142,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            420.9790830000002,
+            426.46270900000036,
+            425.2537919999995,
+            425.03099999999995,
+            428.08229200000005,
+            426.26941700000043,
+            424.47600000000057
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = BigInt(data[0][offsets[0] + (i)]);\nconst v4 = BigInt(data[1][offsets[1] + (i)]);\nconst v5 = scalars[0];\nconst v3 = (v4) * (v5);\nconst v6 = scalars[1];\nconst v2 = (v3) + (v6);\nconst v0 = (v1) + (v2);\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 425.2537919999995
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            30.35137500000019,
+            29.156041000000187,
+            30.234542000000147,
+            31.07270900000003,
+            30.4092499999997,
+            29.866415999999845,
+            31.332417000000532
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 30.35137500000019
+        }
+      ]
+    },
+    {
+      "kind": "int32",
+      "shape": [
+        200,
+        250
+      ],
+      "pairedSpeedups": [
+        14.210691063354705,
+        14.461349156076698,
+        14.062373989611334,
+        14.399697595975791,
+        14.64088584572573,
+        14.080275700128992,
+        13.999409047009582
+      ],
+      "medianPairedSpeedup": 14.210691063354705,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            422.58391699999993,
+            426.74116700000013,
+            428.40670800000044,
+            436.5088330000017,
+            427.6511250000003,
+            428.7408749999995,
+            428.2833329999994
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = BigInt(data[0][offsets[0] + (i)]);\nconst v4 = BigInt(data[1][offsets[1] + (i)]);\nconst v5 = scalars[0];\nconst v3 = (v4) * (v5);\nconst v6 = scalars[1];\nconst v2 = (v3) + (v6);\nconst v0 = (v1) + (v2);\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 428.2833329999994
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            29.737041999999747,
+            29.509084000000257,
+            30.464749999999185,
+            30.313749999999345,
+            29.209375000000364,
+            30.449749999999767,
+            30.59295800000109
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 30.313749999999345
+        }
+      ]
+    },
+    {
+      "kind": "int64",
+      "shape": [
+        50000
+      ],
+      "pairedSpeedups": [
+        9.69611573860503,
+        11.470278805419975,
+        11.74548231719587,
+        11.564709064041242,
+        11.83295611845063,
+        11.49481807304944,
+        11.63213005673679
+      ],
+      "medianPairedSpeedup": 11.564709064041242,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            281.1522079999995,
+            273.46291700000074,
+            278.3566669999982,
+            275.51570900000115,
+            277.0011250000007,
+            275.1940830000003,
+            275.60199999999895
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v4 = data[1][offsets[1] + (i)];\nconst v5 = scalars[0];\nconst v3 = (v4) * (v5);\nconst v6 = scalars[1];\nconst v2 = (v3) + (v6);\nconst v0 = (v1) + (v2);\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 275.60199999999895
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            28.996375000000626,
+            23.84099999999853,
+            23.699040999999852,
+            23.823833999998897,
+            23.409292000000278,
+            23.940708000000086,
+            23.693167000001267
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 23.823833999998897
+        }
+      ]
+    },
+    {
+      "kind": "int64",
+      "shape": [
+        200,
+        250
+      ],
+      "pairedSpeedups": [
+        7.963845686313796,
+        10.674318726372707,
+        11.626219705502727,
+        11.172691639275662,
+        10.84751262158239,
+        11.556147100740077,
+        11.53686817074799
+      ],
+      "medianPairedSpeedup": 11.172691639275662,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            271.87241600000016,
+            272.7430830000012,
+            277.2843749999993,
+            273.6592499999988,
+            277.57383299999856,
+            273.2412499999991,
+            272.79741600000125
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v4 = data[1][offsets[1] + (i)];\nconst v5 = scalars[0];\nconst v3 = (v4) * (v5);\nconst v6 = scalars[1];\nconst v2 = (v3) + (v6);\nconst v0 = (v1) + (v2);\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 273.2412499999991
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            34.138333000000785,
+            25.55133399999977,
+            23.84991699999955,
+            24.49358299999949,
+            25.588708000001134,
+            23.644666999998663,
+            23.645708000000013
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 24.49358299999949
+        }
+      ]
+    }
+  ]
+}

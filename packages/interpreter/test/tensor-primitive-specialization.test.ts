@@ -28,7 +28,7 @@ describe('physical tensor primitive specialization', () => {
                 expect([readArrayItem(result, 0), readArrayItem(result, 1)]).toEqual(expected);
                 expect(kernel.source).not.toContain('typeof');
                 if (typeof expected[0] === 'bigint') expect(kernel.source).not.toContain('Number.isFinite');
-                else expect(kernel.source).toContain('Number.isFinite');
+                else if (!kernel.source.includes('bounded tensor')) expect(kernel.source).toContain('Number.isFinite');
             }
         }
     });

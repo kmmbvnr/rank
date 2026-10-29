@@ -1,0 +1,613 @@
+{
+  "revision": "9099399f",
+  "node": "v24.15.0",
+  "cpu": "Apple M5",
+  "steps": 500,
+  "samples": 7,
+  "size": 50000,
+  "results": [
+    {
+      "kind": "float64",
+      "shape": [
+        50000
+      ],
+      "pairedSpeedups": [
+        9.153063576082454,
+        13.138757818798885,
+        13.566927118105726,
+        14.36799752736705,
+        14.700539802612836,
+        13.852790746953884,
+        13.726328436882293
+      ],
+      "medianPairedSpeedup": 13.726328436882293,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            323.7743750000001,
+            316.968709,
+            313.04554200000007,
+            324.893959,
+            332.54704100000026,
+            313.793416,
+            309.883875
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (i)];\nconst v4 = scalars[0];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return decline(\"tensor:operator-guard:*\");\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? (v3) * (v4) : (Number(v3)) * (Number(v4)));\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2))) return decline(\"tensor:operator-guard:+\");\nconst v0 = (typeof v1 === 'bigint' && typeof v2 === 'bigint' ? (v1) + (v2) : (Number(v1)) + (Number(v2)));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\nlength++;\n}  return answer; };",
+          "medianMs": 316.968709
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            35.37333400000011,
+            24.124709000000166,
+            23.07416699999999,
+            22.612334000000146,
+            22.621416999999838,
+            22.652000000000044,
+            22.575874999999996
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v4 = (v0) + (v3);\nanswer[i] = v4;\n}};",
+          "medianMs": 22.652000000000044
+        }
+      ]
+    },
+    {
+      "kind": "float64",
+      "shape": [
+        200,
+        250
+      ],
+      "pairedSpeedups": [
+        13.825768961025991,
+        13.598862272870393,
+        13.573441281356777,
+        13.578179783475878,
+        13.960162963249708,
+        13.59595711943788,
+        13.944767992921207
+      ],
+      "medianPairedSpeedup": 13.598862272870393,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            310.48875,
+            307.8765419999995,
+            306.8689169999998,
+            306.89854099999957,
+            315.988875,
+            306.7712499999998,
+            314.18316700000014
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new Float64Array(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v3 = data[1][offsets[1] + (i)];\nconst v4 = scalars[0];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4))) return decline(\"tensor:operator-guard:*\");\nconst v2 = (typeof v3 === 'bigint' && typeof v4 === 'bigint' ? (v3) * (v4) : (Number(v3)) * (Number(v4)));\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2))) return decline(\"tensor:operator-guard:+\");\nconst v0 = (typeof v1 === 'bigint' && typeof v2 === 'bigint' ? (v1) + (v2) : (Number(v1)) + (Number(v2)));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:copy');\nanswer[i] = v0;\nlength++;\n}  return answer; };",
+          "medianMs": 307.8765419999995
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            22.45724999999993,
+            22.639874999999847,
+            22.608040999999503,
+            22.602333000000726,
+            22.635041999999885,
+            22.5634170000003,
+            22.530541000000085
+          ],
+          "sums": [
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086",
+            "2879848.800000086"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* float64,float64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v4 = (v0) + (v3);\nanswer[i] = v4;\n}};",
+          "medianMs": 22.602333000000726
+        }
+      ]
+    },
+    {
+      "kind": "int32",
+      "shape": [
+        50000
+      ],
+      "pairedSpeedups": [
+        14.765685721627062,
+        13.856385893517855,
+        14.693239832266677,
+        14.717810544592215,
+        14.513641831198777,
+        14.537811414207626,
+        14.949390938640814
+      ],
+      "medianPairedSpeedup": 14.693239832266677,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            437.67583300000024,
+            437.957625,
+            442.9062920000006,
+            440.78370799999993,
+            440.4176660000012,
+            440.272167000001,
+            440.08266699999876
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = BigInt(data[0][offsets[0] + (i)]);\nconst v4 = BigInt(data[1][offsets[1] + (i)]);\nconst v5 = scalars[0];\nif (!(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return decline(\"tensor:operator-guard:*\");\nconst v3 = (typeof v4 === 'bigint' && typeof v5 === 'bigint' ? (v4) * (v5) : (Number(v4)) * (Number(v5)));\nconst v6 = scalars[1];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6))) return decline(\"tensor:operator-guard:+\");\nconst v2 = (typeof v3 === 'bigint' && typeof v6 === 'bigint' ? (v3) + (v6) : (Number(v3)) + (Number(v6)));\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2))) return decline(\"tensor:operator-guard:+\");\nconst v0 = (typeof v1 === 'bigint' && typeof v2 === 'bigint' ? (v1) + (v2) : (Number(v1)) + (Number(v2)));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:copy');\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 440.272167000001
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            29.64141599999948,
+            31.60691599999973,
+            30.143541999999798,
+            29.949000000000524,
+            30.34508300000016,
+            30.284625000000233,
+            29.43816700000025
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 30.143541999999798
+        }
+      ]
+    },
+    {
+      "kind": "int32",
+      "shape": [
+        200,
+        250
+      ],
+      "pairedSpeedups": [
+        13.01511015142289,
+        13.358288077585172,
+        13.892662261359702,
+        13.583930943369007,
+        14.17931711479089,
+        14.260916345357494,
+        14.297053180892448
+      ],
+      "medianPairedSpeedup": 13.892662261359702,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            437.8597499999996,
+            438.3249590000014,
+            438.6411250000001,
+            438.26345799999945,
+            442.1879169999993,
+            436.42562499999985,
+            436.23049999999967
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = BigInt(data[0][offsets[0] + (i)]);\nconst v4 = BigInt(data[1][offsets[1] + (i)]);\nconst v5 = scalars[0];\nif (!(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return decline(\"tensor:operator-guard:*\");\nconst v3 = (typeof v4 === 'bigint' && typeof v5 === 'bigint' ? (v4) * (v5) : (Number(v4)) * (Number(v5)));\nconst v6 = scalars[1];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6))) return decline(\"tensor:operator-guard:+\");\nconst v2 = (typeof v3 === 'bigint' && typeof v6 === 'bigint' ? (v3) + (v6) : (Number(v3)) + (Number(v6)));\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2))) return decline(\"tensor:operator-guard:+\");\nconst v0 = (typeof v1 === 'bigint' && typeof v2 === 'bigint' ? (v1) + (v2) : (Number(v1)) + (Number(v2)));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:copy');\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 438.26345799999945
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            33.642416000000594,
+            32.812959000000774,
+            31.573582999999417,
+            32.26337499999863,
+            31.185417000000598,
+            30.602915999999823,
+            30.51191700000163
+          ],
+          "sums": [
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278",
+            "858756278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int32,int32 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 31.573582999999417
+        }
+      ]
+    },
+    {
+      "kind": "int64",
+      "shape": [
+        50000
+      ],
+      "pairedSpeedups": [
+        9.801660401791896,
+        11.02399511223465,
+        11.313642969188932,
+        11.204627022661498,
+        11.93655113184269,
+        11.802284532372267,
+        11.894059924065443
+      ],
+      "medianPairedSpeedup": 11.313642969188932,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            280.0530409999992,
+            277.41745900000024,
+            280.71929099999943,
+            278.1053749999992,
+            279.16808299999866,
+            279.23566700000083,
+            282.5632089999999
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v4 = data[1][offsets[1] + (i)];\nconst v5 = scalars[0];\nif (!(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return decline(\"tensor:operator-guard:*\");\nconst v3 = (typeof v4 === 'bigint' && typeof v5 === 'bigint' ? (v4) * (v5) : (Number(v4)) * (Number(v5)));\nconst v6 = scalars[1];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6))) return decline(\"tensor:operator-guard:+\");\nconst v2 = (typeof v3 === 'bigint' && typeof v6 === 'bigint' ? (v3) + (v6) : (Number(v3)) + (Number(v6)));\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2))) return decline(\"tensor:operator-guard:+\");\nconst v0 = (typeof v1 === 'bigint' && typeof v2 === 'bigint' ? (v1) + (v2) : (Number(v1)) + (Number(v2)));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:copy');\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 279.23566700000083
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            28.572000000000116,
+            25.164875000000393,
+            24.812458000000333,
+            24.820582999998805,
+            23.387666999999055,
+            23.659459000000425,
+            23.756665999999313
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 24.812458000000333
+        }
+      ]
+    },
+    {
+      "kind": "int64",
+      "shape": [
+        200,
+        250
+      ],
+      "pairedSpeedups": [
+        9.550235581096281,
+        11.671382332045468,
+        11.632865123331147,
+        11.945287388753673,
+        11.832302721972079,
+        10.508787456478974,
+        11.904197267985923
+      ],
+      "medianPairedSpeedup": 11.671382332045468,
+      "variants": [
+        {
+          "variant": "baseline",
+          "timingsMs": [
+            277.4574169999978,
+            277.2026250000017,
+            277.98525000000154,
+            279.06929200000013,
+            282.1688749999994,
+            278.815208,
+            280.6037499999984
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ return function(data, offsets, scalars, size, checks, routes, start = 0, visit, dest) { let answer = dest !== undefined ? dest : new IntegerCells(size), length = 0;  for (let i = start; i < size; i++) { \nconst v1 = data[0][offsets[0] + (i)];\nconst v4 = data[1][offsets[1] + (i)];\nconst v5 = scalars[0];\nif (!(typeof v4 === 'bigint' || typeof v4 === 'number' && Number.isFinite(v4)) || !(typeof v5 === 'bigint' || typeof v5 === 'number' && Number.isFinite(v5))) return decline(\"tensor:operator-guard:*\");\nconst v3 = (typeof v4 === 'bigint' && typeof v5 === 'bigint' ? (v4) * (v5) : (Number(v4)) * (Number(v5)));\nconst v6 = scalars[1];\nif (!(typeof v3 === 'bigint' || typeof v3 === 'number' && Number.isFinite(v3)) || !(typeof v6 === 'bigint' || typeof v6 === 'number' && Number.isFinite(v6))) return decline(\"tensor:operator-guard:+\");\nconst v2 = (typeof v3 === 'bigint' && typeof v6 === 'bigint' ? (v3) + (v6) : (Number(v3)) + (Number(v6)));\nif (!(typeof v1 === 'bigint' || typeof v1 === 'number' && Number.isFinite(v1)) || !(typeof v2 === 'bigint' || typeof v2 === 'number' && Number.isFinite(v2))) return decline(\"tensor:operator-guard:+\");\nconst v0 = (typeof v1 === 'bigint' && typeof v2 === 'bigint' ? (v1) + (v2) : (Number(v1)) + (Number(v2)));\nif (!(typeof v0 === 'bigint' || typeof v0 === 'number' && Number.isFinite(v0))) return decline('tensor:terminal-type:copy');\nanswer.set(i, v0);\nlength++;\n}  return answer; };",
+          "medianMs": 278.815208
+        },
+        {
+          "variant": "specialized",
+          "timingsMs": [
+            29.05241599999863,
+            23.750624999996944,
+            23.89654199999859,
+            23.362292000001617,
+            23.847334000001865,
+            26.53162499999962,
+            23.57183299999815
+          ],
+          "sums": [
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278",
+            "520500000806706278"
+          ],
+          "reuse": [
+            500,
+            500,
+            500,
+            500,
+            500,
+            500,
+            500
+          ],
+          "rangeScans": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "source": "\"use strict\"; /* int64,int64 */ /* bounded tensor */ return function(data, scalars, size, answer) {\nconst data0 = data[0];\nconst data1 = data[1];\nconst v2 = scalars[0];\nconst v4 = scalars[1];\nfor (let i = 0; i < size; i++) {\nconst v0 = data0[i];\nconst v1 = data1[i];\nconst v3 = (v1) * (v2);\nconst v5 = (v3) + (v4);\nconst v6 = (v0) + (v5);\nanswer[i] = v6;\n}};",
+          "medianMs": 23.847334000001865
+        }
+      ]
+    }
+  ]
+}

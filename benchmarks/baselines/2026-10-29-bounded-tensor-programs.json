@@ -1,0 +1,1347 @@
+{
+  "revision": "9099399f",
+  "samples": 5,
+  "steps": 500,
+  "runs": [
+    {
+      "sample": 0,
+      "variant": "baseline",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            345.144875
+          ],
+          "medianMs": 345.144875,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            332.939291
+          ],
+          "medianMs": 332.939291,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            445.532375
+          ],
+          "medianMs": 445.532375,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            448.39441699999975
+          ],
+          "medianMs": 448.39441699999975,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            283.56775000000016
+          ],
+          "medianMs": 283.56775000000016,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            284.8420839999999
+          ],
+          "medianMs": 284.8420839999999,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 0,
+      "variant": "bounded",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.78854200000001
+          ],
+          "medianMs": 35.78854200000001,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            30.401666999999975
+          ],
+          "medianMs": 30.401666999999975,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            37.07900000000001
+          ],
+          "medianMs": 37.07900000000001,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.282959000000005
+          ],
+          "medianMs": 35.282959000000005,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            31.696542000000022
+          ],
+          "medianMs": 31.696542000000022,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            31.168042000000014
+          ],
+          "medianMs": 31.168042000000014,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "variant": "bounded",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.62883300000004
+          ],
+          "medianMs": 35.62883300000004,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            28.316082999999992
+          ],
+          "medianMs": 28.316082999999992,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            37.350874999999974
+          ],
+          "medianMs": 37.350874999999974,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.73204099999998
+          ],
+          "medianMs": 35.73204099999998,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            30.052459
+          ],
+          "medianMs": 30.052459,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            29.715125000000057
+          ],
+          "medianMs": 29.715125000000057,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 1,
+      "variant": "baseline",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            338.31874999999997
+          ],
+          "medianMs": 338.31874999999997,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            329.004417
+          ],
+          "medianMs": 329.004417,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            445.3052909999999
+          ],
+          "medianMs": 445.3052909999999,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            442.99483299999997
+          ],
+          "medianMs": 442.99483299999997,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            286.96641699999964
+          ],
+          "medianMs": 286.96641699999964,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            285.32612500000005
+          ],
+          "medianMs": 285.32612500000005,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "variant": "baseline",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            330.077208
+          ],
+          "medianMs": 330.077208,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            312.715958
+          ],
+          "medianMs": 312.715958,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            450.038542
+          ],
+          "medianMs": 450.038542,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            449.36808299999984
+          ],
+          "medianMs": 449.36808299999984,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            289.02541599999995
+          ],
+          "medianMs": 289.02541599999995,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            288.060833
+          ],
+          "medianMs": 288.060833,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 2,
+      "variant": "bounded",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.88408400000003
+          ],
+          "medianMs": 35.88408400000003,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            28.590458000000012
+          ],
+          "medianMs": 28.590458000000012,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            36.742665999999986
+          ],
+          "medianMs": 36.742665999999986,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.209834
+          ],
+          "medianMs": 35.209834,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            31.10858399999995
+          ],
+          "medianMs": 31.10858399999995,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            31.15420800000004
+          ],
+          "medianMs": 31.15420800000004,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "variant": "bounded",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            36.036459000000036
+          ],
+          "medianMs": 36.036459000000036,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            28.23962499999999
+          ],
+          "medianMs": 28.23962499999999,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.688833000000045
+          ],
+          "medianMs": 35.688833000000045,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            34.251750000000015
+          ],
+          "medianMs": 34.251750000000015,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            34.08933400000001
+          ],
+          "medianMs": 34.08933400000001,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            30.720957999999996
+          ],
+          "medianMs": 30.720957999999996,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 3,
+      "variant": "baseline",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            338.28716599999996
+          ],
+          "medianMs": 338.28716599999996,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            324.110625
+          ],
+          "medianMs": 324.110625,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            445.6747909999999
+          ],
+          "medianMs": 445.6747909999999,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            442.5302919999999
+          ],
+          "medianMs": 442.5302919999999,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            284.8739999999998
+          ],
+          "medianMs": 284.8739999999998,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            294.1822080000002
+          ],
+          "medianMs": 294.1822080000002,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 4,
+      "variant": "baseline",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            335.42016700000005
+          ],
+          "medianMs": 335.42016700000005,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            321.1122909999999
+          ],
+          "medianMs": 321.1122909999999,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            448.8612089999999
+          ],
+          "medianMs": 448.8612089999999,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            451.35249999999996
+          ],
+          "medianMs": 451.35249999999996,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            286.362083
+          ],
+          "medianMs": 286.362083,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            285.943667
+          ],
+          "medianMs": 285.943667,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "sample": 4,
+      "variant": "bounded",
+      "mode": "program",
+      "node": "v24.15.0",
+      "cpu": "Apple M5",
+      "size": 50000,
+      "samples": 1,
+      "results": [
+        {
+          "kind": "float64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.58200000000005
+          ],
+          "medianMs": 35.58200000000005,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "float64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            28.103999999999985
+          ],
+          "medianMs": 28.103999999999985,
+          "sums": [
+            "2919846.6999999136"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.72595799999999
+          ],
+          "medianMs": 35.72595799999999,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int32",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            35.04454199999998
+          ],
+          "medianMs": 35.04454199999998,
+          "sums": [
+            "875255438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            50000
+          ],
+          "steps": 500,
+          "timingsMs": [
+            29.989708000000064
+          ],
+          "medianMs": 29.989708000000064,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        },
+        {
+          "kind": "int64",
+          "shape": [
+            200,
+            250
+          ],
+          "steps": 500,
+          "timingsMs": [
+            31.331500000000005
+          ],
+          "medianMs": 31.331500000000005,
+          "sums": [
+            "530500000822205438"
+          ],
+          "reuse": [
+            500
+          ],
+          "rangeScans": [
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

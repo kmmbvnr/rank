@@ -1,4 +1,5 @@
 import { RankError } from './errors.js';
+import { prepareBoundedTensor } from './tensor-bounds.js';
 import { BooleanCells } from './boolean-cells.js';
 import { ownedStorage, noteMutation, type OwnedStorage } from './array-storage-state.js';
 import { createOwned } from './owned-array.js';
@@ -259,7 +260,8 @@ function compileTensorPlan(statement: Statement, host: TensorKernelHost,
         return undefined;
     }
     // A compound arithmetic assignment is one observable rebinding. Its old
-    // value remains an input, never an output buffer or a private temporary.
+    // value is an input; reuse requires a separate proof that no partial write
+    // can be observed if execution declines or is interrupted.
     if (isAssignmentStatement(statement) && statement.deferred) return reject(statement, 'deferred-binding');
     if (implicit) {
         if (!(isAssignmentStatement(statement) && statement.operator === '=' && !statement.name.includes('.'))
@@ -400,11 +402,38 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
             ? ownedScalarArray(items, 'integer', shape) : ownedArray(items, shape, true);
     };
 
+    // A general kernel can decline after an intermediate result. Only total
+    // integer/boolean trees may write visible storage without a range proof.
+    // Bounded real kernels establish that proof before entering their loop.
+    function totalStoredType(node: TensorNode): 'integer' | 'boolean' | undefined {
+        if (node.kind === 'input') {
+            const value = node.name === undefined ? node.value : host.lookup(node.name);
+            if (typeof value === 'bigint') return 'integer';
+            if (typeof value === 'boolean') return 'boolean';
+            const kind = value && isRankArray(value) ? tensorInput(value)?.kind : undefined;
+            return kind === 'integer' || kind === 'boolean' ? kind : undefined;
+        }
+        if (node.kind === 'unary') {
+            const type = totalStoredType(node.operand);
+            return type === 'integer' && ['+', '-'].includes(node.op) ? type
+                : type === 'boolean' && node.op === 'not' ? type : undefined;
+        }
+        if (node.kind === 'binary') {
+            const a = totalStoredType(node.left), b = totalStoredType(node.right);
+            if (!a || a !== b) return undefined;
+            if (a === 'integer' && (['+', '-', '*'].includes(node.op) || node.native)) return a;
+            const signatures = tensorOperatorSignatures(node.op, 2);
+            if (signatures.some(signature => signature.inputs[0] === a && signature.inputs[1] === b
+                && signature.result === 'boolean')) return 'boolean';
+        }
+        return undefined;
+    }
+
     function findTarget(
         shape: readonly number[], size: number, outputKind: string | undefined,
         inputs: readonly { name?: string; shape?: readonly number[] }[],
     ): DestinationTarget | undefined {
-        if (!pointwiseSafe || !destinationName || interruptsEnabled()) return undefined;
+        if (!pointwiseSafe || !destinationName || interruptsEnabled() || !totalStoredType(root)) return undefined;
         const dest = host.lookup(destinationName);
         if (!dest || !isRankArray(dest)) return undefined;
         const state = ownedStorage.get(dest);
@@ -468,6 +497,8 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
     const layouts = new Map<string, Layout>();
     const inputKey = (shape: readonly number[] | undefined, kind: string | undefined, boolean: boolean, slot: number, storage?: string, scalarType?: string) =>
         `${shape === undefined ? 's' : shape.join(',')}:${kind ?? ''}:${boolean}:${slot}:${storage ?? ''}:${scalarType ?? ''}`;
+    const bounded = terminal === 'copy' && !scanning && !visit && !axes
+        ? prepareBoundedTensor(root, host, destinationName, code) : undefined;
     let generated = '';
     let unavailable = false;
     return { get source() { return generated; }, run(range?: TensorRange, frame?: number): RankValue | undefined {
@@ -482,6 +513,10 @@ function build(root: TensorNode, terminal: Terminal, host: TensorKernelHost,
         if (!nativeGraph && hasShifts && !host.builtin('shift')) return recordFallback('tensor:builtin:shift');
         for (const name of nativeCalls) if (!host.builtin(name)) return recordFallback(`tensor:builtin:${name}`);
         if (unavailable) return recordFallback('tensor:code-generation');
+        if (bounded && (implicit || host.builtin('copy'))) {
+            const result = bounded.run();
+            if (result !== undefined) { generated = bounded.source; return result; }
+        }
         // Native boolean recipes have word kernels. A scalar emitter would
         // unpack their advantage into one load/operation/store per bit.
         const booleanInput = (node: TensorNode): boolean => {
