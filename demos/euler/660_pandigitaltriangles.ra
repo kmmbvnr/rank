@@ -1,0 +1,112 @@
+rem Pandigital Triangles
+rem https://projecteuler.net/problem=660
+
+use numbers
+use sequences
+use bits
+use io
+use cli
+
+arg Lo integer = 9
+arg Hi integer = 18
+
+rem A 120 degree triangle has a^2 + a b
+rem + b^2 = c^2, so (a, b, c) = t (m^2
+rem - n^2, 2 m n + n^2, m^2 + m n + n^2)
+rem with m > n coprime, m - n not a
+rem multiple of 3. The digits of the
+rem sides total the base B, so c has
+rem k = ceil(B / 3) digits when B mod 3
+rem is not 0, else B / 3. The digit
+rem sum B (B-1) / 2 is also a + b + c
+rem mod (B-1): t then runs through one
+rem residue class mod a step, found
+rem from a small table. Candidates
+rem get an exact digit mask check.
+Answer = 0
+for Bs in Lo to Hi
+  Lc = (Bs + 2) // 3
+  Cx = Bs ** Lc
+  Cn = Bs ** (Lc - 1)
+  Md = Bs - 1
+  Tt = (Bs * Md // 2) mod Md
+  Sv = 0 to (Md - 1)
+  Sx = Sv reshape Md 1
+  Xx = Sv reshape 1 Md
+  Rs = (Sx * Xx + Md - Tt) mod Md
+  Ok = Rs equal 0
+  Cd = Ok choose Xx Md
+  R0 = Cd reduce min axis 1
+  St = Md // (Sv gcd Md)
+  Mx = Cx isqrt
+  Np = Mx * (Mx - 1) // 2
+  Ix = 0 to (Np - 1)
+  Mm = ((8 * Ix + 1) isqrt - 1) // 2 + 2
+  Nn = Ix - (Mm - 2) * (Mm - 1) // 2 + 1
+  C0 = Mm * Mm + Mm * Nn + Nn * Nn
+  Fm = (C0 less Cx) integer
+  Dm = (Mm - Nn) mod 3 not equal 0
+  Fm = Fm * (Dm integer)
+  Sl = (Fm equal 1) indices
+  Mm = Mm Sl
+  Nn = Nn Sl
+  Sl = ((Mm gcd Nn) equal 1) indices
+  Mm = Mm Sl
+  Nn = Nn Sl
+  A0 = Mm * Mm - Nn * Nn
+  B0 = 2 * Mm * Nn + Nn * Nn
+  C0 = Mm * Mm + Mm * Nn + Nn * Nn
+  S0 = (A0 + B0 + C0) mod Md
+  Rr = R0 S0
+  Sl = (Rr less Md) indices
+  A0 = A0 Sl
+  B0 = B0 Sl
+  C0 = C0 Sl
+  Rr = Rr Sl
+  Sp = St (S0 Sl)
+  T0 = (Cn + C0 - 1) // C0
+  Tx = (Cx - 1) // C0
+  Gp = (T0 - Rr) max 0
+  T1 = Rr + (Gp + Sp - 1) // Sp * Sp
+  Cf = (T1 at most Tx) integer
+  Cf = Cf * ((Tx - T1) // Sp + 1)
+  Tot = Cf sum
+  if Tot greater 0
+    Of = (Cf scan +) - Cf
+    Pz = (Cf greater 0) indices
+    Mk = array shape Tot fill 0
+    Mk (Of Pz) = 1
+    Pd = Pz ((Mk scan +) - 1)
+    Jj = (0 to (Tot - 1)) - Of Pd
+    Tv = T1 Pd + Jj * Sp Pd
+    Av = A0 Pd * Tv
+    Bv = B0 Pd * Tv
+    Cv = C0 Pd * Tv
+    Ms = Av * 0
+    Ct = Av * 0
+    for D in 0 to Lc - 1
+      Pw = Bs ** D
+      Pa = (Av at least Pw) integer
+      Pb = (Bv at least Pw) integer
+      Pc = (Cv at least Pw) integer
+      Dg = Av // Pw mod Bs
+      Ga = Pa * (1 shl Dg)
+      Dg = Bv // Pw mod Bs
+      Gb = Pb * (1 shl Dg)
+      Dg = Cv // Pw mod Bs
+      Gc = Pc * (1 shl Dg)
+      Ms = Ms + Ga + Gb + Gc
+      Ct = Ct + Pa + Pb + Pc
+      Pk = Ms popcount
+      Sl = (Pk equal Ct) indices
+      Av = Av Sl
+      Bv = Bv Sl
+      Cv = Cv Sl
+      Ms = Ms Sl
+      Ct = Ct Sl
+    end
+    Sl = (Ct equal Bs) indices
+    Answer += (Cv Sl) sum
+  end
+end
+Answer print
