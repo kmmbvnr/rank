@@ -1,0 +1,21 @@
+use testing
+
+test "statement values"
+  use "654_neighbourlyconstraints"
+  Nn = 3
+  Mm = 4
+  run
+  Answer equal 8
+  Nn = 5
+  Mm = 5
+  run
+  Answer equal 246
+  Nn = 10
+  Mm = 100
+  run
+  Answer equal 862820094
+  Nn = 100
+  Mm = 10
+  run
+  Answer equal 782136797
+end
