@@ -44,7 +44,9 @@ prefillproject = (gpt2prefillqkv16 gpukeep)
 prefillcache = (gpt2prefillcache16 gpukeep)
 Caches = array shape 12 fill .NA
 CachedLayers = 0
+Empty = array shape ContextLimit 1536 fill 0.0
 PromptLength = Tokens len
+BatchPrompt = PromptLength greater 1
 Generated = 0
 StopReason = "token limit"
 Begin = PromptLength - 1
@@ -66,7 +68,7 @@ MaskRow = array shape ContextLimit fill -10000.0
 MaskRow (0 till (Position + 1)) = 0.0
 Mask = MaskRow reshape 1 1 1 ContextLimit
 X = .NA
-if Generated equal 0
+if Generated equal 0 and BatchPrompt
 X = array shape ContextLimit 768 fill 0.0
 for RowPosition in 0 till PromptLength
 Token = Tokens RowPosition
@@ -95,7 +97,7 @@ UpW' = F tensor (Prefix + "mlp.c_fc.weight")
 UpB' = F tensor (Prefix + "mlp.c_fc.bias")
 DownW' = F tensor (Prefix + "mlp.c_proj.weight")
 DownB' = F tensor (Prefix + "mlp.c_proj.bias")
-if Generated equal 0
+if Generated equal 0 and BatchPrompt
 Projection = X prefillproject G1 B1 W QkvBias
 NewCache = Projection prefillcache
 Caches Layer = NewCache
@@ -105,15 +107,21 @@ Projection gpufree
 X = H gpt2prefillmlp16 G2 B2 UpW UpB DownW DownB
 else
 Projection = X project G1 B1 W QkvBias
+NewCache = .NA
+if Position equal 0
+NewCache = Empty writecache Projection Slot
+CachedLayers += 1
+else
 NewCache = (Caches Layer) writecache Projection Slot
 (Caches Layer) gpufree
+end
 Caches Layer = NewCache
 H = X gpt2kvattn16 Projection NewCache Mask O OutBias
 Projection gpufree
 X = H gpt2tokenmlp G2 B2 UpW UpB DownW DownB
 end
 end
-if Generated equal 0
+if Generated equal 0 and BatchPrompt
 X = X ((PromptLength - 1) till PromptLength) #
 end
 G' = F tensor "ln_f.weight"

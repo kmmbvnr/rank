@@ -11,6 +11,7 @@ const names=['row','qkv','kvwrite16','kvattn16','tokenmlp','tokennorm','tokenhea
 if(batched)names.push('prefillqkv16','prefillcache16','prefillattn16','prefillmlp16');
 const modules=Object.fromEntries(names.map(n=>['gpt2'+n+'.ram',readFileSync(new URL('../demos/mlrank/gpt2'+n+'.ram',import.meta.url),'utf8')]));
 const reference=JSON.parse(readFileSync(join(directory,'context-reference.json')));
+if(batched)reference.cases.push({...reference.cases.find(c=>c.name==='prefill'),name:'prefill-padding',poison:true});
 mkdirSync('/tmp/rank-mlrank',{recursive:true});
 writeFileSync('/tmp/rank-mlrank/gpt2-'+(batched?'prefill':'context')+'-fixture.json',JSON.stringify({source,modules,reference,batched}));
 if(process.argv.includes('--fixture'))process.exit();
