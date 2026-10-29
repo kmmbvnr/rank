@@ -1,0 +1,43 @@
+rem Regular Bracket Sequences of Depth K
+rem https://acmp.ru/index.asp?main=task&id_task=176
+rem Count balanced bracket sequences of length 2N with maximum nesting depth K
+
+use sequences
+use io
+use cli
+
+arg N integer = 3
+arg K integer = 2
+
+Opens = 0 to N array
+Prefix = array 0
+
+DMax = K
+DPrev = K - 1
+
+DPMax = array shape (N + 1) fill 0
+DPMax 0 = 1
+
+DPPrev = array shape (N + 1) fill 0
+DPPrev 0 = 1
+
+for Step in 1 to (2 * N)
+  Balance = 2 * Opens - Step
+  NonNeg = not (Balance less 0)
+
+  ShiftedMax = concat Prefix (DPMax (0 till N array))
+  MaskMax = (NonNeg and (not (Balance greater DMax))) integer
+  DPMax = (DPMax + ShiftedMax) * MaskMax
+
+  if DPrev greater 0
+    ShiftedPrev = concat Prefix (DPPrev (0 till N array))
+    MaskPrev = (NonNeg and (not (Balance greater DPrev))) integer
+    DPPrev = (DPPrev + ShiftedPrev) * MaskPrev
+  end
+end
+
+Answer = DPMax N
+if DPrev greater 0
+  Answer -= DPPrev N
+end
+Answer print

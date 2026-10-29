@@ -1,0 +1,26 @@
+use testing
+
+test "default 3 2"
+  use "0176_brackets"
+  run
+
+  Answer equal 3
+end
+
+test "large 37 23"
+  use "0176_brackets"
+  N = 37
+  K = 23
+  run
+
+  Answer equal 203685956218528
+end
+
+test "equal depth K=N"
+  use "0176_brackets"
+  N = 4
+  K = 4
+  run
+
+  Answer equal 1
+end
