@@ -232,5 +232,6 @@
   "euler/609_pisequences.ra": "About 70 s: gathers over a 12 x 5.8M matrix; run manually.",
   "euler/611_hallwaysquaresteps.ra": "About 115 s: Lucy sieves of pi and the mod 4 character to 10^12; run manually.",
   "euler/614_specialpartitions.ra": "About 70 s: blocked sparse recurrence over 2.5 x 10^6 terms; run manually.",
-  "euler/618_primefactorsum.ra": "About 20 s: 4800 prime knapsacks in blocks of p; run manually."
+  "euler/618_primefactorsum.ra": "About 20 s: 4800 prime knapsacks in blocks of p; run manually.",
+  "euler/619_squaresubsets.ra": "About 65 s: GF(2) elimination of 230k packed vectors; run manually."
 }
