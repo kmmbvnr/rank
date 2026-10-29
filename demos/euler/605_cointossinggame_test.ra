@@ -1,0 +1,27 @@
+use testing
+
+test "default input"
+  use "605_cointossinggame"
+  run
+  Answer equal 64604416
+end
+
+test "statement values"
+  use "605_cointossinggame"
+  N = 3
+  K = 1
+  run
+  Answer equal 588
+  N = 6
+  K = 2
+  run
+  Answer equal 486864
+  N = 11
+  K = 5
+  run
+  Answer equal 53509824
+  N = 13
+  K = 13
+  run
+  Answer equal 26344705
+end

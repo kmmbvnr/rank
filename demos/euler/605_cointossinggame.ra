@@ -1,0 +1,32 @@
+rem Pairwise Coin-Tossing Game
+rem https://projecteuler.net/problem=605
+
+use numbers
+use io
+use cli
+
+arg N integer = 100000007
+arg K integer = 10004
+
+rem The game ends at the first S F in
+rem the round winners (S: second of the
+rem pair), so round r ends it with
+rem probability r / 2^(r + 1), won by
+rem player r mod N + 1. Summing r =
+rem c + j N, c = K - 1, gives
+rem 2^N (c u + N) / (2^(c + 1) u^2)
+rem with u = 2^N - 1. Only G = gcd(N,
+rem u) cancels, so M is 2^(N - c - 1)
+rem (c u + N) u^2 / G^2, kept mod
+rem 10^8 G where G divides it.
+C = K - 1
+G = N gcd ((2 N N powmod) - 1)
+Md = 100000000
+Mg = Md * G
+U = ((2 N Mg powmod) - 1) mod Mg
+A = (C * U + N) mod Mg // G
+B = U // G
+Tw = 2 (N - C - 1) Md powmod
+Answer = Tw * A mod Md * G mod Md
+Answer = Answer * B mod Md * B mod Md
+Answer print
