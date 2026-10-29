@@ -53,9 +53,11 @@ for M in 1 to Hi
       Nq = Pm len
       Pc = Pm reshape 1 Nq
       Mu = (Dr mod Pc) equal 0
-      Rd = (Mu choose Pc 1) reduce * axis 1
+      Mp = Mu choose Pc 1
+      Rd = Mp reduce * axis 1
       Pq = Pc - 1
-      Fi = (Mu choose Pq 1) reduce * axis 1
+      Mq = Mu choose Pq 1
+      Fi = Mq reduce * axis 1
       Ph = Dv // Rd * Fi
       Ev = 1 - N mod 2
       J = 0 to 1
@@ -94,10 +96,11 @@ for M in 1 to Hi
     Cy = Cy + Ak1 * Bk2 * (A1 gcd B2)
     Cy = Cy + Ak2 * Bk1 * (A2 gcd B1)
     Cy = Cy + Ak2 * Bk2 * (A2 gcd B2)
-    Cf = Cy reshape (Na * Nb)
+    Nn = Na * Nb
+    Cf = Cy reshape Nn
     Aw = ((Wa Ia) mod P) reshape Na 1
     Bw = ((Wa Ib) mod P) reshape 1 Nb
-    Ww = (Aw * Bw mod P) reshape (Na * Nb)
+    Ww = (Aw * Bw mod P) reshape Nn
     Sm = Cf * 0
     Bn = 1
     for Jj in 0 to M
