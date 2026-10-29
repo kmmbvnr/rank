@@ -1,0 +1,34 @@
+use testing
+
+test "default input"
+  use "638_weightedlatticepaths"
+  run
+  Answer equal 18423394
+end
+
+test "statement values"
+  use "638_weightedlatticepaths"
+  A = 2
+  B = 2
+  K = 1
+  run
+  Answer equal 6
+  K = 2
+  run
+  Answer equal 35
+  A = 10
+  B = 10
+  K = 1
+  run
+  Answer equal 184756
+  A = 15
+  B = 10
+  K = 3
+  run
+  Answer equal 880419838
+  A = 10000
+  B = 10000
+  K = 4
+  run
+  Answer equal 395913804
+end
