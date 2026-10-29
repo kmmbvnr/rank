@@ -1,0 +1,129 @@
+rem Pivotal Square Sums
+rem https://projecteuler.net/problem=261
+rem Sum the distinct k up to Limit such
+rem that the m + 1 squares ending at k^2
+rem add to the m squares from (n + 1)^2,
+rem for some m > 0 and n >= k
+
+use numbers
+use sequences
+use io
+use cli
+
+arg Limit integer = 10000000000
+
+rem The sums agree when, with u = 2k - m
+rem and v = 2n + m + 1, (m + 1) u^2 - m
+rem v^2 = -m (m + 1). So m divides u^2
+rem and m + 1 divides v^2: with m = a
+rem y^2 and m + 1 = b z^2 (a, b
+rem squarefree) u = a y x and v = b z w,
+rem where b w^2 - a x^2 = 1. Having n >=
+rem k forces k >= 2 m (m + 1), which
+rem bounds m. The solutions of that Pell
+rem type equation are the powers of its
+rem least one. It comes from the least
+rem solution of X^2 - a b Y^2 = 1 when
+rem (X + 1) / 2 = b w^2 and (X - 1) / 2
+rem = a x^2; when b = 1 every power
+rem counts. Step by (A, B) = (X, Y).
+fun N core
+  Ps = N factors array
+  Us = Ps unique
+  Col = Us reshape (Us len) 1
+  Hits = (Ps equal Col) count axis 1
+  Odd = Hits mod 2
+  return (Us ** Odd) reduce *
+end
+Top = (Limit // 2) isqrt + 2
+Out = array shape (Top * 4) fill 0
+At = 0
+for M in 1 to Top
+  A0 = M core
+  Y = (M // A0) isqrt
+  B0 = (M + 1) core
+  Z = ((M + 1) // B0) isqrt
+  D = A0 * B0
+  Root = D isqrt
+  Mm = 0
+  Dd = 1
+  Aa = Root
+  H0 = 1
+  H1 = Root
+  K0 = 0
+  K1 = 1
+  for
+    if H1 * H1 - D * K1 * K1 equal 1
+      break
+    end
+    Mm = Dd * Aa - Mm
+    Dd = (D - Mm * Mm) // Dd
+    Aa = (Root + Mm) // Dd
+    Hn = Aa * H1 + H0
+    Kn = Aa * K1 + K0
+    H0 = H1
+    H1 = Hn
+    K0 = K1
+    K1 = Kn
+  end
+  X = H1
+  Q = K1
+  W = 0
+  Xx = 0
+  Found = 0
+  if B0 equal 1
+    W = X
+    Xx = Q
+    Found = 1
+  else
+    for
+      Lo = (X + 1) // 2
+      Hi = (X - 1) // 2
+      Fa = Lo mod B0 equal 0
+      Fits = Fa and (Hi mod A0 equal 0)
+      if Fits
+        W2 = Lo // B0
+        X2 = Hi // A0
+        Wr = W2 isqrt
+        Xr = X2 isqrt
+        Sq = Wr * Wr equal W2
+        if Sq and (Xr * Xr equal X2)
+          W = Wr
+          Xx = Xr
+          Found = 1
+          break
+        end
+      end
+      if X equal 2 * M + 1
+        break
+      end
+      Nx = H1 * X + D * K1 * Q
+      Q = H1 * Q + K1 * X
+      X = Nx
+    end
+  end
+  if Found equal 1
+    for Step in 1 to 80
+      U = A0 * Y * Xx
+      V = Z * B0 * W
+      Par = (U + M) mod 2 equal 0
+      Rest = (V - M - 1) mod 2 equal 0
+      if Par and Rest
+        K = (U + M) // 2
+        if K greater Limit
+          break
+        end
+        if (V - M - 1) // 2 at least K
+          Out At = K
+          At += 1
+        end
+      end
+      Nw = W * X + Xx * Q * A0
+      Nxx = W * Q * B0 + Xx * X
+      W = Nw
+      Xx = Nxx
+    end
+  end
+end
+Answer = (Out take At) unique sum
+Answer print

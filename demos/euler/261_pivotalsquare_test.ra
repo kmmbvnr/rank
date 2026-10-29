@@ -1,6 +1,6 @@
 use testing
 
-rem The default input takes about 90 s.
+rem Small limits independently checked by direct square sums.
 test "small limits"
   use "261_pivotalsquare"
   Limit = 110
@@ -15,4 +15,24 @@ test "small limits"
   run
 
   Answer equal 1305678503
+end
+
+test "boundary limits"
+  use "261_pivotalsquare"
+  Limit = 0
+  run
+
+  Answer equal 0
+  Limit = 3
+  run
+
+  Answer equal 0
+  Limit = 4
+  run
+
+  Answer equal 4
+  Limit = 1000
+  run
+
+  Answer equal 9167
 end

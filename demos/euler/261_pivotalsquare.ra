@@ -27,21 +27,25 @@ rem solution of X^2 - a b Y^2 = 1 when
 rem (X + 1) / 2 = b w^2 and (X - 1) / 2
 rem = a x^2; when b = 1 every power
 rem counts. Step by (A, B) = (X, Y).
-fun N core
-  Ps = N factors array
-  Us = Ps unique
-  Col = Us reshape (Us len) 1
-  Hits = (Ps equal Col) count axis 1
-  Odd = Hits mod 2
-  return (Us ** Odd) reduce *
-end
 Top = (Limit // 2) isqrt + 2
 Out = array shape (Top * 4) fill 0
 At = 0
+rem Remove square factors once for all M.
+rem Composite P are harmless: their squares
+rem have already been removed by smaller P.
+Cs = (0 to (Top + 1)) array
+for P in 2 to ((Top + 1) isqrt)
+  Square = P * P
+  for J in Square to (Top + 1) by Square
+    for (Cs J) mod Square equal 0
+      Cs J = (Cs J) // Square
+    end
+  end
+end
 for M in 1 to Top
-  A0 = M core
+  A0 = Cs M
   Y = (M // A0) isqrt
-  B0 = (M + 1) core
+  B0 = Cs (M + 1)
   Z = ((M + 1) // B0) isqrt
   D = A0 * B0
   Root = D isqrt

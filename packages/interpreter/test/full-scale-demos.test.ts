@@ -82,3 +82,15 @@ it('checks the full Euler 260 exact-bitset answer', () => {
         expect(diagnostics.compiledLoops).toBeGreaterThan(0);
     } finally { runtime.dispose(); }
 }, 60_000);
+
+it('compiles the full Euler 261 squarefree-table search', () => {
+    const url = new URL('../../../demos/euler/261_pivotalsquare.ra', import.meta.url);
+    const diagnostics = new RuntimeDiagnostics();
+    const runtime = new Interpreter(() => {}, { sourceId: fileURLToPath(url) });
+    try {
+        diagnostics.run(() => runtime.execute(readFileSync(url, 'utf8')));
+        expect(runtime.variables.get('Answer')).toBe(238890850232021n);
+        expect(diagnostics.numberLoops).toBeGreaterThanOrEqual(2);
+        expect(diagnostics.numberLoopOverflows).toBe(0);
+    } finally { runtime.dispose(); }
+}, 60_000);
