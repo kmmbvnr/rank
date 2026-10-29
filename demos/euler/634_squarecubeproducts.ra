@@ -1,0 +1,51 @@
+rem Numbers of the Form a^2 b^3
+rem https://projecteuler.net/problem=634
+
+use numbers
+use sequences
+use io
+use cli
+
+arg N integer = 9000000000000000000
+
+rem Write x = u^2 v^3 with v squarefree
+rem (unique). For v >= 2, x is of the
+rem form iff u >= 2. For v = 1, x = u^2
+rem is iff u = c^3 a with c, a >= 2: u
+rem has a cube factor and is not a
+rem prime cube. The cubefull u <= M =
+rem sqrt N number M less the cubefree
+rem count (sum of mu(d) (M // d^3)).
+Vr = ((N // 4) * 1.0) ** (1.0 / 3.0)
+Vf = Vr floor
+Vm = Vf + 2
+Vs = 2 to Vm
+Sf = (0 to Vm) * 0 + 1
+for P in primes to (Vm isqrt) array
+  Sf (P * P to Vm by P * P) = 0
+end
+Ok = Sf Vs
+Cu = Vs * Vs * Vs
+Rt = (N // Cu) isqrt
+Pa = ((Rt - 1) max 0) * Ok
+Answer = Pa sum
+M = N isqrt
+Dr = (M * 1.0) ** (1.0 / 3.0)
+Df = Dr floor
+Dm = Df + 2
+Ds = 1 to Dm
+Mu = Ds * 0 + 1
+for P in primes to Dm array
+  Mu (P - 1 to Dm - 1 by P) *= -1
+  if P * P at most Dm
+    Q2 = P * P
+    Mu (Q2 - 1 to Dm - 1 by Q2) = 0
+  end
+end
+D3 = Ds * Ds * Ds
+Cf = (Mu * (M // D3)) sum
+Pq = primes to Dm array
+Pc = ((Pq * Pq * Pq) at most M) integer
+Pn = Pc sum
+Answer += M - Cf - Pn
+Answer print
