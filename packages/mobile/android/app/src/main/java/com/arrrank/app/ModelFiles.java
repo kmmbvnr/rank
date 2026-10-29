@@ -54,31 +54,39 @@ final class ModelFiles {
         File file = tensorFile(context, descriptor, size);
         long offset = descriptor.getLong("offset");
         String revision = descriptor.getString("revision");
-        // The Kotlin LiteRT API accepts float[], not a file or mapped ByteBuffer.
-        // Keep the intermediate read buffer bounded; no tensor data enters the WebView.
-        long allocated = profile == null ? 0 : System.nanoTime();
-        float[] values = new float[size];
-        byte[] bytes = new byte[Math.min(65536, size * 4)];
-        ByteBuffer view = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
-        if (profile != null) profile.allocationNanos += System.nanoTime() - allocated;
+        float[] values;
         try (RandomAccessFile stream = new RandomAccessFile(file, "r")) {
             stream.seek(offset);
-            for (int at = 0; at < size;) {
-                int count = Math.min(bytes.length / 4, size - at);
-                long started = profile == null ? 0 : System.nanoTime();
-                stream.readFully(bytes, 0, count * 4);
-                long read = profile == null ? 0 : System.nanoTime();
-                if (profile != null) profile.readNanos += read - started;
-                for (int i = 0; i < count; i++) {
-                    float value = view.getFloat(i * 4);
-                    if (!Float.isFinite(value)) throw new IllegalArgumentException("RAM file input requires finite f32 values");
-                    values[at++] = value;
-                }
-                if (profile != null) profile.decodeNanos += System.nanoTime() - read;
-            }
+            values = readTensorData(stream, size, profile);
         }
         if (!revision.equals(file.length() + ":" + file.lastModified()))
             throw new IllegalArgumentException("File tensor changed during transfer");
+        return values;
+    }
+
+    /** Decode from the current cursor using at most 64 KiB of byte staging. */
+    static float[] readTensorData(RandomAccessFile stream, int size, TensorReadProfile profile) throws Exception {
+        // The Kotlin LiteRT API accepts float[], not a file or mapped ByteBuffer.
+        // No tensor payload enters the WebView.
+        long allocated = profile == null ? 0 : System.nanoTime();
+        float[] values = new float[size];
+        byte[] bytes = new byte[Math.min(65536, size * 4)];
+        java.nio.FloatBuffer view = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer();
+        if (profile != null) profile.allocationNanos += System.nanoTime() - allocated;
+        for (int at = 0; at < size;) {
+            int count = Math.min(bytes.length / 4, size - at);
+            long started = profile == null ? 0 : System.nanoTime();
+            stream.readFully(bytes, 0, count * 4);
+            long read = profile == null ? 0 : System.nanoTime();
+            if (profile != null) profile.readNanos += read - started;
+            view.position(0);
+            view.get(values, at, count);
+            for (int i = at; i < at + count; i++) {
+                if (!Float.isFinite(values[i])) throw new IllegalArgumentException("RAM file input requires finite f32 values");
+            }
+            at += count;
+            if (profile != null) profile.decodeNanos += System.nanoTime() - read;
+        }
         return values;
     }
 
